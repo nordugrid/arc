@@ -53,8 +53,8 @@ class XMLNode {
     };
   };
   // If object represents XML node
-  operator bool(void) { return ((node_ != NULL) && (!is_temporary_)); };
-  bool operator!(void) { return ((node_ == NULL) || is_temporary_); };
+  operator bool(void) const { return ((node_ != NULL) && (!is_temporary_)); };
+  bool operator!(void) const { return ((node_ == NULL) || is_temporary_); };
   // n-th node in sequence of siblings of same name
   XMLNode operator[](int n) const;
   // n-th child of node
