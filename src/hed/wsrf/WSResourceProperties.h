@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "../SOAPMessage.h"
 
 class WSRP {
@@ -59,7 +61,7 @@ class WSRPGetResourcePropertyResponse: public WSRP {
   //WSRPGetResourcePropertyResponse(const std::list<XMLNode>& properties);
   ~WSRPGetResourcePropertyResponse(void);
   int Size(void);
-  void Property(const XMLNode& prop_doc,int pos = -1);
+  void Property(const XMLNode& prop,int pos = -1);
   XMLNode Property(int pos);
   XMLNode Properties(void);
 };
@@ -68,9 +70,25 @@ class WSRPGetResourcePropertyResponse: public WSRP {
 
 // ============================================================
 class WSRPGetMultipleResourcePropertiesRequest: public WSRP {
+ public:
+  WSRPGetMultipleResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPGetMultipleResourcePropertiesRequest(void);
+  WSRPGetMultipleResourcePropertiesRequest(const std::vector<std::string>& names);
+  ~WSRPGetMultipleResourcePropertiesRequest(void);
+  std::vector<std::string> Names(void);
+  void Names(const std::vector<std::string>& names);
 };
 
 class WSRPGetMultipleResourcePropertiesResponse: public WSRP {
+ public:
+  WSRPGetMultipleResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPGetMultipleResourcePropertiesResponse(void);
+  //WSRPGetMultipleResourcePropertiesResponse(const std::list<XMLNode>& properties);
+  ~WSRPGetMultipleResourcePropertiesResponse(void);
+  int Size(void);
+  void Property(const XMLNode& prop,int pos = -1);
+  XMLNode Property(int pos);
+  XMLNode Properties(void);
 };
 
 // ============================================================

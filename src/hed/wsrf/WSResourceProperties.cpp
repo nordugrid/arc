@@ -110,3 +110,91 @@ XMLNode WSRPGetResourcePropertyResponse::Properties(void) {
   if(!valid_) return XMLNode();
   return soap_.Child();
 }
+
+
+// ============= GetMultipleResourceProperties ==============
+
+WSRPGetMultipleResourcePropertiesRequest::WSRPGetMultipleResourcePropertiesRequest(SOAPMessage& soap):WSRP(soap) {
+  if(!valid_) return;
+  if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetMultipleResourceProperties")) valid_=false;
+}
+
+WSRPGetMultipleResourcePropertiesRequest::WSRPGetMultipleResourcePropertiesRequest(void) {
+  XMLNode req = soap_.NewChild("wsrf-rp:GetMultipleResourceProperties");
+  if(!req) valid_=false;
+}
+
+WSRPGetMultipleResourcePropertiesRequest::WSRPGetMultipleResourcePropertiesRequest(const std::vector<std::string>& names) {
+  XMLNode req = soap_.NewChild("wsrf-rp:GetMultipleResourceProperties");
+  if(!req) { valid_=false; return; };
+  for(std::vector<std::string>::const_iterator i = names.begin();i!=names.end();++i) {
+    XMLNode new_node = req.NewChild("wsrf-rp:ResourceProperty");
+    new_node=*i;
+  };
+}
+
+WSRPGetMultipleResourcePropertiesRequest::~WSRPGetMultipleResourcePropertiesRequest(void) {
+}
+
+std::vector<std::string> WSRPGetMultipleResourcePropertiesRequest::Names(void) {
+  std::vector<std::string> names;
+  if(!valid_) return names;
+  XMLNode props = soap_.Child()["wsrf-rp:ResourceProperty"];
+  for(int n = 0;;++n) {
+    XMLNode prop = props[n];
+    if(!prop) break;
+    names.push_back((std::string)prop);
+  };
+  return names;
+}
+
+void WSRPGetMultipleResourcePropertiesRequest::Names(const std::vector<std::string>& names) {
+
+
+}
+
+WSRPGetMultipleResourcePropertiesResponse::WSRPGetMultipleResourcePropertiesResponse(SOAPMessage& soap):WSRP(soap) {
+  if(!valid_) return;
+  if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetMultipleResourcePropertiesResponse")) valid_=false;
+}
+
+WSRPGetMultipleResourcePropertiesResponse::WSRPGetMultipleResourcePropertiesResponse(void) {
+  XMLNode resp = soap_.NewChild("wsrf-rp:GetMultipleResourcePropertiesResponse");
+  if(!resp) valid_=false;
+}
+
+WSRPGetMultipleResourcePropertiesResponse::~WSRPGetMultipleResourcePropertiesResponse(void) {
+}
+
+int WSRPGetMultipleResourcePropertiesResponse::Size(void) {
+  if(!valid_) return 0;
+  return soap_.Child().Size();  
+}
+
+void WSRPGetMultipleResourcePropertiesResponse::Property(const XMLNode& prop,int pos) {
+  if(!valid_) return;
+  XMLNode resp = soap_.Child();
+  if(resp) resp.NewChild(prop,pos);
+}
+
+XMLNode WSRPGetMultipleResourcePropertiesResponse::Property(int pos) {
+  if(!valid_) return XMLNode();
+  return soap_.Child().Child(pos);
+}
+
+XMLNode WSRPGetMultipleResourcePropertiesResponse::Properties(void) {
+  if(!valid_) return XMLNode();
+  return soap_.Child();
+}
+
+
+
+
+
+
+
+
+
+
+
+
