@@ -186,6 +186,8 @@ class XMLNode {
     return NewChild(name.c_str(),n);
   };
   XMLNode NewChild(const char* name,int n = -1);
+  // Make a copy of supplied node and link it as child
+  XMLNode NewChild(const XMLNode& node,int n = -1);
   void Destroy(void);
 };
 

@@ -130,6 +130,7 @@ XMLNode XMLNode::NewChild(const char* name,int n) {
     name_=name;
   };
   xmlNodePtr new_node = xmlNewNode(ns,(const xmlChar*)name_);
+  if(new_node == NULL) return XMLNode();
   XMLNode old_node = operator[](name)[n];
   if(!old_node) {
     // TODO: find last old_node
@@ -138,6 +139,17 @@ XMLNode XMLNode::NewChild(const char* name,int n) {
   if(old_node) {
     return XMLNode(xmlAddPrevSibling(old_node.node_,new_node));
   };
+  return XMLNode(xmlAddChild(node_,new_node));
+}
+
+XMLNode XMLNode::NewChild(const XMLNode& node,int n = -1) {
+  if(node_ == NULL) return XMLNode();
+  if(node.node_ == NULL) return XMLNode();
+  if(node.node_->type == XML_DOCUMENT_NODE) {
+    return NewChild(XMLNode(node.node_->children),n);
+  };
+  xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
+  if(new_node == NULL) return XMLNode();
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
