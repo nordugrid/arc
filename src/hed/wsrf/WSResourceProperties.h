@@ -25,6 +25,7 @@ class WSRP {
   SOAPMessage& SOAP(void) { return soap_; };
 };
 
+// ============================================================
 class WSRPGetResourcePropertyDocumentRequest: public WSRP {
  public:
   WSRPGetResourcePropertyDocumentRequest(SOAPMessage& soap);
@@ -37,50 +38,77 @@ class WSRPGetResourcePropertyDocumentResponse: public WSRP {
   WSRPGetResourcePropertyDocumentResponse(SOAPMessage& soap);
   WSRPGetResourcePropertyDocumentResponse(const XMLNode& prop_doc = XMLNode());
   ~WSRPGetResourcePropertyDocumentResponse(void);
+  void Document(const XMLNode& prop_doc);
+  XMLNode Document(void);
 };
 
+// ============================================================
 class WSRPGetResourcePropertyRequest: public WSRP {
+ public:
+  WSRPGetResourcePropertyRequest(SOAPMessage& soap);
+  WSRPGetResourcePropertyRequest(const std::string& name);
+  ~WSRPGetResourcePropertyRequest(void);
+  std::string Name(void);
+  void Name(const std::string& name);
 };
 
 class WSRPGetResourcePropertyResponse: public WSRP {
+ public:
+  WSRPGetResourcePropertyResponse(SOAPMessage& soap);
+  WSRPGetResourcePropertyResponse(void);
+  //WSRPGetResourcePropertyResponse(const std::list<XMLNode>& properties);
+  ~WSRPGetResourcePropertyResponse(void);
+  int Size(void);
+  void Property(const XMLNode& prop_doc,int pos = -1);
+  XMLNode Property(int pos);
+  XMLNode Properties(void);
 };
 
+// Fault InvalidResourcePropertyQNameFault
+
+// ============================================================
 class WSRPGetMultipleResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPGetMultipleResourcePropertiesResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPPutResourcePropertyDocumentRequest: public WSRP {
 };
 
 class WSRPPutResourcePropertyDocumentResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPSetResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPSetResourcePropertiesResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPInsertResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPInsertResourcePropertiesResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPUpdateResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPUpdateResourcePropertiesResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPDeleteResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPDeleteResourcePropertiesResponse: public WSRP {
 };
 
+// ============================================================
 class WSRPQueryResourcePropertiesRequest: public WSRP {
 };
 
