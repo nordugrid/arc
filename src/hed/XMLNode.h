@@ -1,3 +1,6 @@
+#ifndef __ARC_XMLNODE_H__
+#define __ARC_XMLNODE_H__
+
 #include <string>
 #include <list>
 #include <map>
@@ -192,3 +195,4 @@ bool MatchXMLName(xmlNodePtr node,const char* name);
 bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
 bool MatchXMLName(const XMLNode& node,const char* name);
 
+#endif
