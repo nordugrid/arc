@@ -50,7 +50,6 @@ int main(void) {
 
   std::cout<<"*** REQUEST ***"<<std::endl;
   std::cout<<http_header<<xml<<std::endl;
-return 0;
 
   std::cout<<"*** RESPONSE ***"<<std::endl;
   SOAPMessage response(google_response);
