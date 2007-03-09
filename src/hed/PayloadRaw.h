@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "Data.h"
+#include "Message.h"
 
 // Virtual interface for managing main part of content
 class PayloadRawInterface: public MessagePayload {

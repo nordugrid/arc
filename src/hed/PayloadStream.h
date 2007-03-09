@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string>
 
-#include "Data.h"
+#include "Message.h"
 
 // Virtual interface for managing stream-like source and destination
 class PayloadStreamInterface: public MessagePayload {
