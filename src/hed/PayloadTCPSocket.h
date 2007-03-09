@@ -2,12 +2,12 @@
 
 #include "PayloadStream.h"
 
-class DataPayloadTCPSocket: public DataPayloadStream {
+class PayloadTCPSocket: public PayloadStream {
  public:
-  DataPayloadTCPSocket(const char* hostname,int port);
-  DataPayloadTCPSocket(const std::string endpoint);
-  DataPayloadTCPSocket(int s):DataPayloadStream(s) { };
-  virtual ~DataPayloadTCPSocket(void);
+  PayloadTCPSocket(const char* hostname,int port);
+  PayloadTCPSocket(const std::string endpoint);
+  PayloadTCPSocket(int s):PayloadStream(s) { };
+  virtual ~PayloadTCPSocket(void);
 };
 
 

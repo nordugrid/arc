@@ -7,10 +7,10 @@
 #include "Data.h"
 
 // Virtual interface for managing stream-like source and destination
-class DataPayloadStreamInterface: public DataPayload {
+class PayloadStreamInterface: public MessagePayload {
  public:
-  DataPayloadStreamInterface(void) { };
-  virtual ~DataPayloadStreamInterface(void) { };
+  PayloadStreamInterface(void) { };
+  virtual ~PayloadStreamInterface(void) { };
   // Extract information from stream
   virtual bool Get(char* buf,int& size) = 0;
   virtual bool Get(std::string& buf) = 0;
@@ -25,14 +25,14 @@ class DataPayloadStreamInterface: public DataPayload {
   virtual void Timeout(int to) = 0;
 };
 
-class DataPayloadStream: public DataPayloadStreamInterface {
+class PayloadStream: public PayloadStreamInterface {
  protected:
   int timeout_;
   int handle_;
   bool seekable_;
  public:
-  DataPayloadStream(int h = -1);
-  ~DataPayloadStream(void) { ::close(handle_); };
+  PayloadStream(int h = -1);
+  ~PayloadStream(void) { ::close(handle_); };
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void) { std::string buf; Get(buf); return buf; };

@@ -4,35 +4,35 @@
 #include <stdlib.h>
 
 // Undefined (yet) classes
-class DataAuth;
-class DataAttr;
+class MessageAuth;
+class MessageAttr;
 
 // Base class for content of message paased through chain. It's not 
 // intended to be used directly. Instead functional classes must be 
 // derived from it.
-class DataPayload {
+class MessagePayload {
  public:
-  DataPayload(void) { };
-  virtual ~DataPayload(void) { };
+  MessagePayload(void) { };
+  virtual ~MessagePayload(void) { };
 };
 
 // Message. It is going to contain main content (payload), 
 // authentication/authorization information, attributes, etc.
-class Data {
+class Message {
  private:
-  DataPayload& payload_;
-  DataAuth& auth_;
-  DataAttr& attr_;
+  MessagePayload& payload_;
+  MessageAuth& auth_;
+  MessageAttr& attr_;
  public:
-  Data(DataPayload& payload):payload_(payload),auth_(*(DataAuth*)NULL),attr_(*(DataAttr*)NULL) { };
-  ~Data(void);
+  Message(MessagePayload& payload):payload_(payload),auth_(*(MessageAuth*)NULL),attr_(*(MessageAttr*)NULL) { };
+  ~Message(void);
   // Get current payload
-  DataPayload& Payload(void) { return payload_; };
+  MessagePayload& Payload(void) { return payload_; };
   // Update payload
-  DataPayload& Payload(DataPayload& new_payload) {
-   DataPayload& p = payload_;
-   payload_=new_payload;
-   return p;
+  MessagePayload& Payload(MessagePayload& new_payload) {
+    MessagePayload& p = payload_;
+    payload_=new_payload;
+    return p;
   };
 };
 

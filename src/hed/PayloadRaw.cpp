@@ -1,12 +1,12 @@
 #include "PayloadRaw.h"
 
-DataPayloadRaw::~DataPayloadRaw(void) {
-  for(std::vector<DataPayloadRaw::Buf>::iterator b = buf_.begin();b!=buf_.end();++b) {
+PayloadRaw::~PayloadRaw(void) {
+  for(std::vector<PayloadRaw::Buf>::iterator b = buf_.begin();b!=buf_.end();++b) {
     if(b->allocated) free(b->data);
   };
 };
 
-static bool BufferAtPos(const std::vector<DataPayloadRaw::Buf>& buf_,int pos,int& bufnum,int& bufpos) {
+static bool BufferAtPos(const std::vector<PayloadRaw::Buf>& buf_,int pos,int& bufnum,int& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
   int cpos = 0;
@@ -20,7 +20,7 @@ static bool BufferAtPos(const std::vector<DataPayloadRaw::Buf>& buf_,int pos,int
   return false;
 }
 
-static bool BufferAtPos(std::vector<DataPayloadRaw::Buf>& buf_,int pos,std::vector<DataPayloadRaw::Buf>::iterator& bufref,int& bufpos) {
+static bool BufferAtPos(std::vector<PayloadRaw::Buf>& buf_,int pos,std::vector<PayloadRaw::Buf>::iterator& bufref,int& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
   int cpos = 0;
@@ -34,21 +34,21 @@ static bool BufferAtPos(std::vector<DataPayloadRaw::Buf>& buf_,int pos,std::vect
   return false;
 }
 
-char* DataPayloadRaw::Content(int pos) {
+char* PayloadRaw::Content(int pos) {
   int bufnum;
   int bufpos;
   if(!BufferAtPos(buf_,pos,bufnum,bufpos)) return NULL;
   return buf_[bufnum].data+bufpos;
 }
 
-char DataPayloadRaw::operator[](int pos) const {
+char PayloadRaw::operator[](int pos) const {
   int bufnum;
   int bufpos;
   if(!BufferAtPos(buf_,pos,bufnum,bufpos)) return 0;
   return buf_[bufnum].data[bufpos];
 }
 
-int DataPayloadRaw::Size(void) const {
+int PayloadRaw::Size(void) const {
   int cpos = 0;
   for(int bufnum = 0;bufnum<buf_.size();bufnum++) {
     cpos+=buf_[bufnum].length;
@@ -56,13 +56,13 @@ int DataPayloadRaw::Size(void) const {
   return cpos;
 }
 
-char* DataPayloadRaw::Insert(int pos,int size) {
-  std::vector<DataPayloadRaw::Buf>::iterator bufref;
+char* PayloadRaw::Insert(int pos,int size) {
+  std::vector<PayloadRaw::Buf>::iterator bufref;
   int bufpos;
   if(!BufferAtPos(buf_,pos,bufref,bufpos)) {
     bufref=buf_.end(); bufpos=0;
   };
-  DataPayloadRaw::Buf buf;
+  PayloadRaw::Buf buf;
   if(bufpos != 0) {
     // Need to split buffers
     buf.size=bufref->length - bufpos;
@@ -85,27 +85,27 @@ char* DataPayloadRaw::Insert(int pos,int size) {
   return buf.data;
 }
 
-char* DataPayloadRaw::Insert(const char* s,int pos,int size) {
+char* PayloadRaw::Insert(const char* s,int pos,int size) {
   if(size <= 0) size=strlen(s);
   char* s_ = Insert(pos,size);
   if(s_) memcpy(s_,s,size);
   return s_;
 }
 
-char* DataPayloadRaw::Buffer(int num) {
+char* PayloadRaw::Buffer(int num) {
   if((num<0) || (num>=buf_.size())) return NULL;
   return buf_[num].data;
 }
 
-int DataPayloadRaw::BufferSize(int num) const {
+int PayloadRaw::BufferSize(int num) const {
   if((num<0) || (num>=buf_.size())) return 0;
   return buf_[num].length;
 }
 
-const char* ContentFromPayload(const DataPayload& payload) {
+const char* ContentFromPayload(const MessagePayload& payload) {
   try {
-    const DataPayloadRaw& buffer = dynamic_cast<const DataPayloadRaw&>(payload);
-    return ((DataPayloadRaw&)buffer).Content();
+    const PayloadRaw& buffer = dynamic_cast<const PayloadRaw&>(payload);
+    return ((PayloadRaw&)buffer).Content();
   } catch(std::exception& e) { };
   return "";
 }

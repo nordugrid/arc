@@ -1,12 +1,12 @@
 #include "PayloadSOAP.h"
 #include "PayloadRaw.h"
 
-DataPayloadSOAP::DataPayloadSOAP(const DataPayload& source):SOAPMessage(ContentFromPayload(source)) {
+PayloadSOAP::PayloadSOAP(const MessagePayload& source):SOAPMessage(ContentFromPayload(source)) {
 }
 
-DataPayloadSOAP::DataPayloadSOAP(const SOAPMessage& soap):SOAPMessage(soap) {
+PayloadSOAP::PayloadSOAP(const SOAPMessage& soap):SOAPMessage(soap) {
 }
 
-DataPayloadSOAP::~DataPayloadSOAP(void) {
+PayloadSOAP::~PayloadSOAP(void) {
 }
 

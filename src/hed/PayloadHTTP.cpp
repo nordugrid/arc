@@ -19,7 +19,7 @@ static bool ParseHTTPVersion(const std::string& s,int& major,int& minor) {
 }
 
 // Assuming there are no zeroes in stream
-bool DataPayloadHTTP::readline(std::string& line) {
+bool PayloadHTTP::readline(std::string& line) {
   line.resize(0);
   for(;;) {
     char* p = strchr(tbuf_,'\n');
@@ -40,7 +40,7 @@ bool DataPayloadHTTP::readline(std::string& line) {
   return false;
 }
 
-bool DataPayloadHTTP::parse_header(void) {
+bool PayloadHTTP::parse_header(void) {
   char buf[1024];
   method_.resize(0);
   code_=0;
@@ -98,7 +98,7 @@ bool DataPayloadHTTP::parse_header(void) {
   return true;
 }
 
-bool DataPayloadHTTP::read(char* buf,int& size) {
+bool PayloadHTTP::read(char* buf,int& size) {
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -117,7 +117,7 @@ bool DataPayloadHTTP::read(char* buf,int& size) {
   return true;
 }
 
-bool DataPayloadHTTP::get_body(void) {
+bool PayloadHTTP::get_body(void) {
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
   int result_size = 0;
@@ -162,33 +162,33 @@ bool DataPayloadHTTP::get_body(void) {
   return true;
 }
 
-const std::string& DataPayloadHTTP::Attribute(const std::string& name) {
+const std::string& PayloadHTTP::Attribute(const std::string& name) {
   std::map<std::string,std::string>::iterator it = attributes_.find(name);
   if(it == attributes_.end()) return empty_string;
   return it->second;
 }
 
-void DataPayloadHTTP::Attribute(const std::string& name,const std::string& value) {
+void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-DataPayloadHTTP::DataPayloadHTTP(DataPayloadStreamInterface& stream):stream_(stream) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):stream_(stream) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   if(!get_body()) return;
 }
 
-DataPayloadHTTP::DataPayloadHTTP(const std::string& method,const std::string& url,DataPayloadStreamInterface& stream):method_(method),uri_(url),stream_(stream) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):method_(method),uri_(url),stream_(stream) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-DataPayloadHTTP::DataPayloadHTTP(int code,const std::string& reason,DataPayloadStreamInterface& stream):code_(code),reason_(reason),stream_(stream) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):code_(code),reason_(reason),stream_(stream) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-DataPayloadHTTP::~DataPayloadHTTP(void) {
+PayloadHTTP::~PayloadHTTP(void) {
 }
 
 static std::string tostring(int i) {
@@ -197,7 +197,7 @@ static std::string tostring(int i) {
   return std::string(tbuf);
 }
 
-bool DataPayloadHTTP::Flush(void) {
+bool PayloadHTTP::Flush(void) {
   std::string line;
   if(!method_.empty()) {
     line=method_+" "+uri_+

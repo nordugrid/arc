@@ -31,11 +31,11 @@ static int connect_socket(const char* hostname,int port) {
   return s;
 }
 
-DataPayloadTCPSocket::DataPayloadTCPSocket(const char* hostname,int port) {
+PayloadTCPSocket::PayloadTCPSocket(const char* hostname,int port) {
   handle_=connect_socket(hostname,port);
 }
 
-DataPayloadTCPSocket::DataPayloadTCPSocket(const std::string endpoint) {
+PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint) {
   std::string hostname = endpoint;
   std::string::size_type p = hostname.find(':');
   if(p == std::string::npos) return;
@@ -44,7 +44,7 @@ DataPayloadTCPSocket::DataPayloadTCPSocket(const std::string endpoint) {
   handle_=connect_socket(hostname.c_str(),port);
 }
 
-DataPayloadTCPSocket::~DataPayloadTCPSocket(void) {
+PayloadTCPSocket::~PayloadTCPSocket(void) {
   shutdown(handle_,2);
 }
 

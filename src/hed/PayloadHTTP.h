@@ -7,9 +7,9 @@
 #define HTTP_OK          (200)
 #define HTTP_NOT_FOUND   (404)
 
-class DataPayloadHTTP: public DataPayloadRaw {
+class PayloadHTTP: public PayloadRaw {
  protected:
-  DataPayloadStreamInterface& stream_;
+  PayloadStreamInterface& stream_;
   std::string uri_;
   int version_major_;
   int version_minor_;
@@ -27,12 +27,12 @@ class DataPayloadHTTP: public DataPayloadRaw {
   bool get_body(void);
  public:
   // Creates object by parsing information from stream
-  DataPayloadHTTP(DataPayloadStreamInterface& stream);
+  PayloadHTTP(PayloadStreamInterface& stream);
   // Creates HTTP request to be sent through stream
-  DataPayloadHTTP(const std::string& method,const std::string& url,DataPayloadStreamInterface& stream);
+  PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream);
   // Creates HTTP response to be sent through stream
-  DataPayloadHTTP(int code,const std::string& reason,DataPayloadStreamInterface& stream);
-  virtual ~DataPayloadHTTP(void);
+  PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream);
+  virtual ~PayloadHTTP(void);
 //  virtual char operator[](int pos) const;
 //  virtual char* Content(int pos = -1);
 //  virtual int Size(void) const;
@@ -47,16 +47,16 @@ class DataPayloadHTTP: public DataPayloadRaw {
 };
 
 /*
-class DataPayloadHTTPRequest: public DataPayloadHTTP {
+class PayloadHTTPRequest: public PayloadHTTP {
  public:
-  DataPayloadHTTPRequest(DataPayloadStreamInterface& stream);
-  virtual ~DataPayloadHTTPRequest(void);
+  PayloadHTTPRequest(PayloadStreamInterface& stream);
+  virtual ~PayloadHTTPRequest(void);
 };
 
-class DataPayloadHTTPResponse: public DataPayloadHTTP {
+class PayloadHTTPResponse: public PayloadHTTP {
  public:
-  DataPayloadHTTPResponse(DataPayloadHTTPRequest& request);
-  virtual ~DataPayloadHTTPResponse(void);
+  PayloadHTTPResponse(PayloadHTTPRequest& request);
+  virtual ~PayloadHTTPResponse(void);
   virtual Flush(void);
 };
 */

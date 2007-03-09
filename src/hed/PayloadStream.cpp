@@ -6,7 +6,7 @@
 
 #include "PayloadStream.h"
 
-DataPayloadStream::DataPayloadStream(int h):handle_(h),seekable_(false),timeout_(60) {
+PayloadStream::PayloadStream(int h):handle_(h),seekable_(false),timeout_(60) {
   struct stat st;
   if(fstat(handle_,&st) != 0) return;
   if(!(S_ISREG(st.st_mode))) return;
@@ -14,7 +14,7 @@ DataPayloadStream::DataPayloadStream(int h):handle_(h),seekable_(false),timeout_
   return;
 };
 
-bool DataPayloadStream::Get(char* buf,int& size) {
+bool PayloadStream::Get(char* buf,int& size) {
   ssize_t l = size;
   struct pollfd fd;
   size=0;
@@ -37,7 +37,7 @@ bool DataPayloadStream::Get(char* buf,int& size) {
   return true;
 }
 
-bool DataPayloadStream::Get(std::string& buf) {
+bool PayloadStream::Get(std::string& buf) {
   char tbuf[1024];
   int l = sizeof(tbuf);
   bool result = Get(tbuf,l);
@@ -45,7 +45,7 @@ bool DataPayloadStream::Get(std::string& buf) {
   return result;
 }
 
-bool DataPayloadStream::Put(const char* buf,int size) {
+bool PayloadStream::Put(const char* buf,int size) {
   ssize_t l;
   struct pollfd fd;
   if(handle_ == -1) return false;

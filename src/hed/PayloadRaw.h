@@ -3,10 +3,10 @@
 #include "Data.h"
 
 // Virtual interface for managing main part of content
-class DataPayloadRawInterface: public DataPayload {
+class PayloadRawInterface: public MessagePayload {
  public:
-  DataPayloadRawInterface(void) { };
-  virtual ~DataPayloadRawInterface(void) { };
+  PayloadRawInterface(void) { };
+  virtual ~PayloadRawInterface(void) { };
   // Get byte at specified position
   virtual char operator[](int pos) const = 0;
   // Get pointer to content at pos. By default to main part.
@@ -25,8 +25,8 @@ class DataPayloadRawInterface: public DataPayload {
 };
 
 // Raw byte multi-buffer. Direct implementation of 
-// DataPayloadRawInterface
-class DataPayloadRaw: public DataPayloadRawInterface {
+// PayloadRawInterface
+class PayloadRaw: public PayloadRawInterface {
  public:
   typedef struct {
     char* data;
@@ -37,8 +37,8 @@ class DataPayloadRaw: public DataPayloadRawInterface {
  protected:
   std::vector<Buf> buf_;
  public:
-  DataPayloadRaw(void) { };
-  virtual ~DataPayloadRaw(void);
+  PayloadRaw(void) { };
+  virtual ~PayloadRaw(void);
   virtual char operator[](int pos) const;
   virtual char* Content(int pos = -1);
   virtual int Size(void) const;
@@ -48,5 +48,5 @@ class DataPayloadRaw: public DataPayloadRawInterface {
   virtual int BufferSize(int num = 0) const;
 };
 
-const char* ContentFromPayload(const DataPayload& payload);
+const char* ContentFromPayload(const MessagePayload& payload);
 
