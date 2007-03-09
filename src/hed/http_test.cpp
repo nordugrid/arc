@@ -14,13 +14,13 @@
 void test1(void) {
   std::cout<<std::endl;
   std::cout<<"------- Testing simple file download ------"<<std::endl;
-  DataPayloadTCPSocket socket("grid.uio.no",80);
-  DataPayloadHTTP request("GET","/index.html",socket);
+  PayloadTCPSocket socket("grid.uio.no",80);
+  PayloadHTTP request("GET","/index.html",socket);
   if(!request.Flush()) {
     std::cout<<"Failed to send HTTP request"<<std::endl;
     return;
   };
-  DataPayloadHTTP response(socket);
+  PayloadHTTP response(socket);
   std::cout<<"*** RESPONSE ***"<<std::endl;
   for(int n = 0;n<response.Size();++n) std::cout<<response[n];
   std::cout<<std::endl;
@@ -29,8 +29,8 @@ void test1(void) {
 void test2(void) {
   std::cout<<std::endl;
   std::cout<<"------- Testing Google Web Service ------"<<std::endl;
-  DataPayloadTCPSocket socket("api.google.com",80);
-  DataPayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
+  PayloadTCPSocket socket("api.google.com",80);
+  PayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
   XMLNode::NS ns;
   ns["google"]="urn:GoogleSearch";
   SOAPMessage soap_req(ns);
@@ -43,8 +43,8 @@ void test2(void) {
     std::cout<<"Failed to send HTTP request"<<std::endl;
     return;
   };
-  DataPayloadHTTP response(socket);
-  DataPayloadSOAP soap_resp(response);
+  PayloadHTTP response(socket);
+  PayloadSOAP soap_resp(response);
   soap_resp.GetXML(xml);
   std::cout<<"*** RESPONSE ***"<<std::endl;
   std::cout<<xml<<std::endl;
