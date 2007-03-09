@@ -149,8 +149,17 @@ std::vector<std::string> WSRPGetMultipleResourcePropertiesRequest::Names(void) {
 }
 
 void WSRPGetMultipleResourcePropertiesRequest::Names(const std::vector<std::string>& names) {
-
-
+  if(!valid_) return;
+  XMLNode req = soap_.Child();
+  for(;;) {
+    XMLNode prop = req["wsrf-rp:ResourceProperty"];
+    if(!prop) break;
+    prop.Destroy();
+  };
+  for(std::vector<std::string>::const_iterator i = names.begin();i!=names.end();++i) {
+    XMLNode new_node = req.NewChild("wsrf-rp:ResourceProperty");
+    new_node=*i;
+  };
 }
 
 WSRPGetMultipleResourcePropertiesResponse::WSRPGetMultipleResourcePropertiesResponse(SOAPMessage& soap):WSRP(soap) {

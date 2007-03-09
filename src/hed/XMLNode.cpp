@@ -142,7 +142,7 @@ XMLNode XMLNode::NewChild(const char* name,int n) {
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
-XMLNode XMLNode::NewChild(const XMLNode& node,int n = -1) {
+XMLNode XMLNode::NewChild(const XMLNode& node,int n) {
   if(node_ == NULL) return XMLNode();
   if(node.node_ == NULL) return XMLNode();
   if(node.node_->type == XML_DOCUMENT_NODE) {
