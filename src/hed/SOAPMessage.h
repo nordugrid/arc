@@ -1,3 +1,6 @@
+#ifndef __ARC_SOAPMESSAGE_H__
+#define __ARC_SOAPMESSAGE_H__
+
 #include <string>
 
 #include "XMLNode.h"
@@ -80,3 +83,6 @@ class SOAPMessage: public XMLNode {
   bool ver12;       // If SOAP version 1.2 is used
   void set(void);
 };
+
+#endif /* __ARC_SOAPMESSAGE_H__ */
+

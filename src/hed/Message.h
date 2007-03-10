@@ -1,5 +1,5 @@
-#ifndef __ARC_DATA_H__
-#define __ARC_DATA_H__
+#ifndef __ARC_MESSAGE_H__
+#define __ARC_MESSAGE_H__
 
 #include <stdlib.h>
 
@@ -36,5 +36,5 @@ class Message {
   };
 };
 
-#endif
+#endif /* __ARC_MESSAGE_H__ */
 

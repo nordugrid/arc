@@ -46,4 +46,4 @@ class PayloadStream: public PayloadStreamInterface {
   virtual void Timeout(int to) { timeout_=to; };
 };
 
-#endif
+#endif /* __ARC_PAYLOADSTREAM_H__ */

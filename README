@@ -1,0 +1,5 @@
+New generation Advanced Resource Connector (ARC) grid middleware
+
+- Requirements for build from source tree
+    - g++
+    - libxml2

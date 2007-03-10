@@ -1,3 +1,6 @@
+#ifndef __ARC_PAYLOADRAW_H__
+#define __ARC_PAYLOADRAW_H__
+
 #include <vector>
 
 #include "Message.h"
@@ -50,3 +53,4 @@ class PayloadRaw: public PayloadRawInterface {
 
 const char* ContentFromPayload(const MessagePayload& payload);
 
+#endif /* __ARC_PAYLOADRAW_H__ */

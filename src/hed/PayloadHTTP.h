@@ -1,3 +1,6 @@
+#ifndef __ARC_PATYLOADHTTP_H__
+#define __ARC_PATYLOADHTTP_H__
+
 #include <string>
 #include <map>
 
@@ -61,3 +64,4 @@ class PayloadHTTPResponse: public PayloadHTTP {
 };
 */
 
+#endif /* __ARC_PATYLOADHTTP_H__ */

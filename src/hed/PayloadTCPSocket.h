@@ -1,3 +1,6 @@
+#ifndef __ARC_PAYLOADTCPSOCKET_H__
+#define __ARC_PAYLOADTCPSOCKET_H__
+
 #include <vector>
 
 #include "PayloadStream.h"
@@ -10,4 +13,5 @@ class PayloadTCPSocket: public PayloadStream {
   virtual ~PayloadTCPSocket(void);
 };
 
+#endif /* __ARC_PAYLOADTCPSOCKET_H__ */
 
