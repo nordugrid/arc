@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
+AC_PREREQ(2.57)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[1.0],[knowarc-support@nordugrid.org])
 AM_INIT_AUTOMAKE
