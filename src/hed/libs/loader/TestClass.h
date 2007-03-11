@@ -2,13 +2,16 @@
 #define __ARC_TESTPLUGIN_H__
 
 namespace TestPlugin {
+
+class TestClass 
+{
     public:
-        TestPlugin();
-        ~TestPlugin();
-        void test(void);
-    private:
+        TestClass(void);
+        ~TestClass(void);
         int a;
-        void _test(void);
+        void testfunc(int b);
+};
+
 }; // namespace TestPlugin
 
 #endif /* __ARC_TESTPLUGIN_H__ */

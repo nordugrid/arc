@@ -1,3 +1,5 @@
+test
+*.loT
 *.o
 .deps
 .libs
