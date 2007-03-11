@@ -27,6 +27,82 @@ class WSRP {
   SOAPMessage& SOAP(void) { return soap_; };
 };
 
+
+// ==================== Faults ================================
+
+class WSRPBaseFault: public WSRP {
+ public:
+  WSRPBaseFault(SOAPMessage& soap);
+  WSRPBaseFault(void);
+  virtual ~WSRPBaseFault(void);
+};
+
+class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
+ public:
+   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap);
+   WSRPInvalidResourcePropertyQNameFault(void);
+   virtual ~WSRPInvalidResourcePropertyQNameFault(void);
+};
+
+class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
+ public:
+   WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPBaseFault(soap) { };
+   WSRPResourcePropertyChangeFailure(void) { };
+   virtual ~WSRPResourcePropertyChangeFailure(void) { };
+   XMLNode CurrentProperties(bool create = false);
+   XMLNode RequestedProperties(bool create = false);
+};
+
+class WSRPUnableToPutResourcePropertyDocumentFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPUnableToPutResourcePropertyDocumentFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUnableToPutResourcePropertyDocumentFault(void) { };
+   virtual ~WSRPUnableToPutResourcePropertyDocumentFault(void) { };
+};
+
+class WSRPInvalidModificationFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPInvalidModificationFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPInvalidModificationFault(void) { };
+   virtual ~WSRPInvalidModificationFault(void) { };
+};
+
+class WSRPUnableToModifyResourcePropertyFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPUnableToModifyResourcePropertyFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUnableToModifyResourcePropertyFault(void) { };
+   virtual ~WSRPUnableToModifyResourcePropertyFault(void) { };
+};
+
+class WSRPSetResourcePropertyRequestFailedFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPSetResourcePropertyRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPSetResourcePropertyRequestFailedFault(void) { };
+   virtual ~WSRPSetResourcePropertyRequestFailedFault(void) { };
+};
+
+class WSRPInsertResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPInsertResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPInsertResourcePropertiesRequestFailedFault(void) { };
+   virtual ~WSRPInsertResourcePropertiesRequestFailedFault(void) { };
+};
+
+class WSRPUpdateResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPUpdateResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
+   virtual ~WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
+};
+
+class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
+ public:
+   WSRPDeleteResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
+   virtual ~WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
+};
+
+
 // ============================================================
 class WSRPGetResourcePropertyDocumentRequest: public WSRP {
  public:
@@ -66,7 +142,6 @@ class WSRPGetResourcePropertyResponse: public WSRP {
   XMLNode Properties(void);
 };
 
-// Fault InvalidResourcePropertyQNameFault
 
 // ============================================================
 class WSRPGetMultipleResourcePropertiesRequest: public WSRP {
@@ -110,8 +185,6 @@ class WSRPPutResourcePropertyDocumentResponse: public WSRP {
   XMLNode Document(void);
 };
 
-// ResourcePropertyChangeFailure
-// UnableToPutResourcePropertyDocumentFault
 
 // ============================================================
 
@@ -169,13 +242,6 @@ class WSRPSetResourcePropertiesResponse: public WSRP {
   ~WSRPSetResourcePropertiesResponse(void);
 };
 
-// InvalidModificationFault
-// UnableToModifyResourcePropertyFault
-// SetResourcePropertyRequestFailedFault
-// InsertResourcePropertiesRequestFailedFault
-// UpdateResourcePropertiesRequestFailedFault
-// DeleteResourcePropertiesRequestFailedFault
-
 
 // ============================================================
 class WSRPInsertResourcePropertiesRequest: public WSRP {
@@ -223,9 +289,23 @@ class WSRPDeleteResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 class WSRPQueryResourcePropertiesRequest: public WSRP {
+  WSRPQueryResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPQueryResourcePropertiesRequest(const std::string& dialect);
+  WSRPQueryResourcePropertiesRequest(void);
+  ~WSRPQueryResourcePropertiesRequest(void);
+  std::string Dialect(void);
+  void Dialect(const std::string& dialect);
+  XMLNode Query(void);
 };
 
 class WSRPQueryResourcePropertiesResponse: public WSRP {
+  WSRPQueryResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPQueryResourcePropertiesResponse(void);
+  ~WSRPQueryResourcePropertiesResponse(void);
+  XMLNode Properties(void);
 };
 
-
+// UnknownQueryExpressionDialectFaultType
+// InvalidQueryExpressionFault
+// QueryEvaluationErrorFault
+// 
