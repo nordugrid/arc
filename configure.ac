@@ -10,7 +10,7 @@ AM_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_PROG_CXX
-AC_PROG_CC
+AC_PROG_CC_STDC
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -42,7 +42,6 @@ AC_CHECK_HEADERS([fcntl.h netdb.h stdlib.h sys/socket.h unistd.h])
 AC_HEADER_STDBOOL
 AC_C_CONST
 AC_TYPE_OFF_T
-AC_TYPE_SSIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC

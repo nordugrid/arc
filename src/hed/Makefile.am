@@ -1,13 +1,7 @@
 SUBDIRS=libs wsrf ws-addressing
 
 noinst_PROGRAMS=test client http_test
-SOURCES = XMLNode.cpp \
-		  SOAPMessage.cpp \
-		  PayloadRaw.cpp \
-		  PayloadSOAP.cpp \
-          PayloadStream.cpp \
-		  PayloadTCPSocket.cpp \
-		  PayloadHTTP.cpp
+SOURCES = XMLNode.cpp SOAPMessage.cpp PayloadRaw.cpp PayloadSOAP.cpp PayloadStream.cpp PayloadTCPSocket.cpp PayloadHTTP.cpp
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(LIBXML2_CFLAGS)
