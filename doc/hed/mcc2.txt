@@ -1,0 +1,161 @@
+Hello,
+
+----- Original Message ----- 
+From: "Markus Nordén" <Markus.Norden@tsl.uu.se>
+To: "List for technical-level discussions" <knowarc-discuss@knowarc.eu>
+Sent: Monday, March 05, 2007 11:07 AM
+Subject: [knowarc-discuss] HED: Message Chain Components
+
+
+> What shall the interface of the MCCs and Messages look like? Most urgently 
+> I need to know how I access the content of the incoming messages. It would 
+> also be very nice to know what methods an MCC shall implement.
+
+I suggest :
+
+Server side MCC provides constructor
+
+MCC(MCC& next,Config& config);
+
+and method
+
+Message* Request(Message& message);
+
+(Message is called Data in current code, but should be renamed to Message 
+IMO).
+
+And client side is identical. Maybe just 'next' could be called 'previous' 
+for consistency.
+
+Probably there should be no other required methods. At least nothing i can 
+imagine right now.
+
+> Furthermore, I am wondering whether we should use the same class for 
+> incoming as well as outgoing messages (A single Message class) or if it 
+> would be better to have one Request class and one Response class (both 
+> possibly subclasses of a Message class).
+
+I vote for single class. For asynchronous communication (which we are not 
+going to implement but
+which we should think about too) there may be no real difference between 
+request and response.
+At least at some levels.
+
+> The HTTP header contains attributes that may (probably will) be of 
+> interest to the components and services further down the chain. How shall 
+> they be stored and propagated?
+
+We could use attr_ variable of Message/Data class for that. Real task from 
+my point of view is to
+agree on common set of names for attributes.
+
+> Different components may also encounter errors of various kinds that need 
+> to be conveyed to other components. For example, if an incoming message 
+> requests a service that does not exist, this is (probably) discovered in 
+> the multiplexer whereas the HTTP component is responsible for returning a 
+> "404 - Not found" response. Does the multiplexer return a special kind of 
+> message containing this information or does it throw an exception?
+
+I vote against exceptions in MCC chain. Any forgotten exception may kill 
+whole application.
+Rather IMO errors should be treated at MCC within protocol they support.
+As for errors that arrise at higher levels but need to be translated at 
+lower level (like 404 for
+unknow service) we could define error classes derived from  DataPayload.
+
+> It is mentioned in Alexandrs notes from the meeting in Lund February 22 
+> that message chains may branch after an HTTP component based on the HTTP 
+> method that is requested. Can message chains be merged as well, e.g. a TCP 
+> component on port 80 leads to the same HTTP component as a TCP component 
+> on port 443 (via a TLS component in the SSL layer)?
+
+Yes. Definitely.
+
+> How shall message chains be created? I find the notes from the Lund 
+> meeting somewhat unclear on this point. In particular considering that 
+> message chains may branch/merge. Below I include some pseudocode showing 
+> how I think message chains could be created.
+
+During Lund meeting it was proposed that chains will created by Loader part 
+which would parse
+configuration, load MCCs libraries and create one MCC instance per chain.
+
+I disagree with your code. I would prefer to see way MCC is loaded much 
+simpler. No separate methods
+for linking and starting anything.
+Like (configuration passing is skipped, just pure idea):
+
+Service service1;
+Service service1;
+Multiplexer multiplexer(Service* services[] = { service1, service2, NULL });
+SOAP soap(multiplexer);
+HTTP http(soap);
+TLS tls(http);
+TCP tcp(tls);
+
+
+A.K.
+
+
+
+>
+> Cheers,
+> Markus
+>
+>
+> /********************************************************************************
+> * Create some MCCs, a multiplexer and two services.
+> ********************************************************************************/
+TCPComponent tcp80;
+// TCP component listening to port 80.
+TCPComponent tcp443;
+// TCP component listening to port 443.
+TLSComponent tls;
+// SSL for https.HTTPComponent http;
+// HTTP component for ordinary http as well as https.
+Multiplexer mplex;
+// Switch, routing incoming messages to services.
+WSAddressing wsa;
+// The WS/* component in Figure 4 of D1.1-1.AREXService arex;
+// ARC Resource-coupled EXecution Serivice (or whatever).SomeOtherService 
+sos;
+// Just to show that there can be more than 
+oneservice./******************************************************************************** 
+* Specify ports for incoming messages. 
+********************************************************************************/tcp80.setPort(80);
+// Tell the tcp80 component to listen to port 80.
+tcp443.setPort(443);
+// Tell the tcp443 component to listen to port 
+443./*********************************************************
+> *********************** * Connect the MCCs into chains leading to the 
+> multiplexer. 
+> ********************************************************************************/tcp80.setListener(&http); 
+> // Tell tcp80 to send incoming messages to http.tcp443.setListener(&tls); 
+> // Tell tcp443 to send incomping messages to tls.tls.setListener(&http); 
+> // Tell tls to send incoming messages to http.http.setListener("POST", 
+> &mplex); // Tell http to send POST-messages 
+> tomplex.http.setListener("GET", &wsa); // Tell http to send GET-messages 
+> to wsa.wsa.setListener(&mplex); // Tell wsa to send incoming messages to 
+> mplex./******************************************************************************** 
+> * Add the two services to the multiplexer. 
+> ********************************************************************************/mplex.addService("arex", 
+> &arex); // Register the service arex at themultiplexer under the name 
+> "arex".mplex.addService("sos", &sos); // Register the service sos at 
+> themultipleser under the name 
+> "sos"./******************************************************************************** 
+> * Everything else is ready, time to start the two TCP components! 
+> ********************************************************************************/tcp80.start(); 
+> // Tell tcp80 to start accepting connections. (Probablyimplies spawning a 
+> thread.)tcp443.start();  // Tell tcp80 to start accepting connections. 
+> (Probablyimplies spawning a thread.)
+> _______________________________________________
+> knowarc-discuss mailing list
+> knowarc-discuss@knowarc.eu
+> http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss
+> 
+
+
+_______________________________________________
+knowarc-discuss mailing list
+knowarc-discuss@knowarc.eu
+http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss

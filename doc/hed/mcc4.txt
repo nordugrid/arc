@@ -1,0 +1,309 @@
+Hi,
+
+If You find anything I write below not-acceptable - fight me :)
+
+----- Original Message ----- 
+From: "Markus Nordén" <Markus.Norden@tsl.uu.se>
+To: "List for technical-level discussions" <knowarc-discuss@knowarc.eu>
+Sent: Monday, March 05, 2007 5:22 PM
+Subject: Re: [knowarc-discuss] HED: Message Chain Components
+
+
+> What is the signature of the constructor of an MCC where the chain 
+> branches?
+> MessageChainComponent(int numberOfBranches, std::string method[], 
+> MessageChainComponent& next[], Config& config);
+> MessageChainComponent(std::map<std::string, MessageChainComponent&> nexts, 
+> Config& config);
+> MessageChainComponent(Config& config, ...); // Variable-length Argument 
+> List...
+> If the MCCs are to be dynamically loaded, even the constructors must 
+> probably have a uniform interface.
+
+My choice is
+  MessageChainComponent(std::map<std::string, MessageChainComponent&> 
+nexts,Config& config);
+because 'next' MCC need labels anyway.
+
+> And what does the Config class look like? How do I access it? I do not 
+> think we have discussed that before.
+
+No, we did not discuss that. I suggest that as first iteration we could 
+assume configuration to be XML and use XML objects for that.
+
+> Who (which component) is responsible for deallocating the object pointed 
+> to by the pointer returned by the Request method?
+
+Not sure. That needs real discussion. I suggest 2 possible approaches:
+1) C-style. Object is freed by last MCC which uses it - e.g. TCP MCC.
+2) Java style - we could use self-destructive reference classes for Message 
+and related things. For example like in
+/grid-manager/misc/safepointer.h of current ARC.
+
+> Regarding the client side, I think "next" is a relevant name there as 
+> well. Each component (on client as well as server side) must have a 
+> reference or pointer to the next component in the direction that requests 
+> propagates. It need not know which component preceds it, since responses 
+> are sent as return values from the Request method.
+
+Agree.
+
+
+> We should write an abstract MessageChainClass as soon as possible that 
+> different developers can let their MCCs extend. Otherwise we will end up 
+> with incompatible components and much more work.
+
+Very much agree.
+
+> It is still very urgent to specify the interface of the Message class, in 
+> particular in what way the content of a Message is accessed. I suggest 
+> that the Message class either extends std::istream (so that I can read 
+> directly from it) or provides a method std::istream getIstream() that 
+> returns a reference to an istream that I can read from. Furthermore, we 
+> must decide how the content of a response Message is entered into a 
+> Message object.
+
+I disagree. Message is not only about data. And even data is not only 
+streamable.
+Also I would very much like to avoid streams at all due to unnecessary 
+complicated
+interface. I find buffer-like (random access) interface more functional.
+Of course TCP socket should definitely by represented by stream. But SOAP 
+message
+should not be streamable.
+Concerning getIstream() I would prefer more C++ solution. Namely 
+<dynamic_cast>.
+This is how it is done in curent code in workarea - function 
+ContentFromPayload() checks
+if instance provides buffer-like interface and returns simple pointer to 
+content.
+This function for example is then used by SOAP message to process any text 
+in memory
+into parsed XML tree.
+
+> I agree that attributes (e.g. from the HTTP header) can be stored in the 
+> attr_ variable, but I would prefer to call it attributes. Furthermore, I 
+> suggest that we rename the DataAttr class MessageAttributes and define its 
+> interface. Or is it simply a std::map<std::string, std::string>?
+
+I do not object. Simply so far I'm satisfied with interface provided by 
+std::map.
+But any anything else would be as good for me. Personnaly so far I have
+no special use case for that interface.
+If we choose another interface, may be we could add attribute association 
+with
+MCCs. Although I'm not sure we need that.
+Also various additional features like immutable attributes could be useful 
+in a future.
+
+> I admit that there is a risk that uncaught exceptions may kill the whole 
+> application. It can be partly eliminated with a default catch clause 
+> 'catch(...){ return new Message("500 Internal Server Error"); }' However, 
+> there is no way to guarante that any third party MCC will do it that way.
+>
+> If errors are to be conveyed to lower level MCCs by ordinary Message 
+> objects, we must how that is done. What error classes will there be? 
+> Should the DataPayload class have a method bool isOk(){return true;} that 
+> is overridden by the error classes? How do I distinguish between different 
+> kind of errors?
+
+I suggest we go through MCCs defined so far and try to define error classes 
+which could
+satisfy most of use cases and create corresponding Message classes.
+Anyway that holds true in case we exceptions too. In that case we will have 
+to specify
+exception classes in exactly same way.
+
+> I will probably post even more questions in the near future... :-)
+
+I think after 2-3 days of discussion after dust settles we should have skype 
+meeting.
+
+
+A.K.
+
+
+
+Cheers,
+Markus
+
+
+----- Original Message ----- 
+From: "Aleksandr Konstantinov" <const@takas.lt>
+To: "List for technical-level discussions" <knowarc-discuss@knowarc.eu>
+Sent: Monday, March 05, 2007 1:37 PM
+Subject: Re: [knowarc-discuss] HED: Message Chain Components
+
+
+Hello,
+
+----- Original Message ----- 
+From: "Markus Nordén" <Markus.Norden@tsl.uu.se>
+To: "List for technical-level discussions" <knowarc-discuss@knowarc.eu>
+Sent: Monday, March 05, 2007 11:07 AM
+Subject: [knowarc-discuss] HED: Message Chain Components
+
+
+> What shall the interface of the MCCs and Messages look like? Most urgently 
+> I need to know how I access the content of the incoming messages. It would 
+> also be very nice to know what methods an MCC shall implement.
+
+I suggest :
+
+Server side MCC provides constructor
+
+MCC(MCC& next,Config& config);
+
+and method
+
+Message* Request(Message& message);
+
+(Message is called Data in current code, but should be renamed to Message
+IMO).
+
+And client side is identical. Maybe just 'next' could be called 'previous'
+for consistency.
+
+Probably there should be no other required methods. At least nothing i can
+imagine right now.
+
+> Furthermore, I am wondering whether we should use the same class for 
+> incoming as well as outgoing messages (A single Message class) or if it 
+> would be better to have one Request class and one Response class (both 
+> possibly subclasses of a Message class).
+
+I vote for single class. For asynchronous communication (which we are not
+going to implement but
+which we should think about too) there may be no real difference between
+request and response.
+At least at some levels.
+
+> The HTTP header contains attributes that may (probably will) be of 
+> interest to the components and services further down the chain. How shall 
+> they be stored and propagated?
+
+We could use attr_ variable of Message/Data class for that. Real task from
+my point of view is to
+agree on common set of names for attributes.
+
+> Different components may also encounter errors of various kinds that need 
+> to be conveyed to other components. For example, if an incoming message 
+> requests a service that does not exist, this is (probably) discovered in 
+> the multiplexer whereas the HTTP component is responsible for returning a 
+> "404 - Not found" response. Does the multiplexer return a special kind of 
+> message containing this information or does it throw an exception?
+
+I vote against exceptions in MCC chain. Any forgotten exception may kill
+whole application.
+Rather IMO errors should be treated at MCC within protocol they support.
+As for errors that arrise at higher levels but need to be translated at
+lower level (like 404 for
+unknow service) we could define error classes derived from  DataPayload.
+
+> It is mentioned in Alexandrs notes from the meeting in Lund February 22 
+> that message chains may branch after an HTTP component based on the HTTP 
+> method that is requested. Can message chains be merged as well, e.g. a TCP 
+> component on port 80 leads to the same HTTP component as a TCP component 
+> on port 443 (via a TLS component in the SSL layer)?
+
+Yes. Definitely.
+
+> How shall message chains be created? I find the notes from the Lund 
+> meeting somewhat unclear on this point. In particular considering that 
+> message chains may branch/merge. Below I include some pseudocode showing 
+> how I think message chains could be created.
+
+During Lund meeting it was proposed that chains will created by Loader part
+which would parse
+configuration, load MCCs libraries and create one MCC instance per chain.
+
+I disagree with your code. I would prefer to see way MCC is loaded much
+simpler. No separate methods
+for linking and starting anything.
+Like (configuration passing is skipped, just pure idea):
+
+Service service1;
+Service service1;
+Multiplexer multiplexer(Service* services[] = { service1, service2, NULL });
+SOAP soap(multiplexer);
+HTTP http(soap);
+TLS tls(http);
+TCP tcp(tls);
+
+
+A.K.
+
+
+
+>
+> Cheers,
+> Markus
+>
+>
+> /********************************************************************************
+> * Create some MCCs, a multiplexer and two services.
+> ********************************************************************************/
+TCPComponent tcp80;
+// TCP component listening to port 80.
+TCPComponent tcp443;
+// TCP component listening to port 443.
+TLSComponent tls;
+// SSL for https.HTTPComponent http;
+// HTTP component for ordinary http as well as https.
+Multiplexer mplex;
+// Switch, routing incoming messages to services.
+WSAddressing wsa;
+// The WS/* component in Figure 4 of D1.1-1.AREXService arex;
+// ARC Resource-coupled EXecution Serivice (or whatever).SomeOtherService
+sos;
+// Just to show that there can be more than
+oneservice./********************************************************************************
+* Specify ports for incoming messages.
+********************************************************************************/tcp80.setPort(80);
+// Tell the tcp80 component to listen to port 80.
+tcp443.setPort(443);
+// Tell the tcp443 component to listen to port
+443./*********************************************************
+> *********************** * Connect the MCCs into chains leading to the 
+> multiplexer. 
+> ********************************************************************************/tcp80.setListener(&http); 
+> // Tell tcp80 to send incoming messages to http.tcp443.setListener(&tls); 
+> // Tell tcp443 to send incomping messages to tls.tls.setListener(&http); 
+> // Tell tls to send incoming messages to http.http.setListener("POST", 
+> &mplex); // Tell http to send POST-messages 
+> tomplex.http.setListener("GET", &wsa); // Tell http to send GET-messages 
+> to wsa.wsa.setListener(&mplex); // Tell wsa to send incoming messages to 
+> mplex./******************************************************************************** 
+> * Add the two services to the multiplexer. 
+> ********************************************************************************/mplex.addService("arex", 
+> &arex); // Register the service arex at themultiplexer under the name 
+> "arex".mplex.addService("sos", &sos); // Register the service sos at 
+> themultipleser under the name 
+> "sos"./******************************************************************************** 
+> * Everything else is ready, time to start the two TCP components! 
+> ********************************************************************************/tcp80.start(); 
+> // Tell tcp80 to start accepting connections. (Probablyimplies spawning a 
+> thread.)tcp443.start();  // Tell tcp80 to start accepting connections. 
+> (Probablyimplies spawning a thread.)
+> _______________________________________________
+> knowarc-discuss mailing list
+> knowarc-discuss@knowarc.eu
+> http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss
+>
+
+
+_______________________________________________
+knowarc-discuss mailing list
+knowarc-discuss@knowarc.eu
+http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss
+
+_______________________________________________
+knowarc-discuss mailing list
+knowarc-discuss@knowarc.eu
+http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss
+
+
+_______________________________________________
+knowarc-discuss mailing list
+knowarc-discuss@knowarc.eu
+http://mail.knowarc.eu/mailman/listinfo/knowarc-discuss
