@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ArcConfig>
+    <Communication>
+        <MessageChainComponent name="libtestclass">
+            <Config1>Value1</Config1>
+        </MessageChainComponent>
+    </Communication>
+</ArcConfig>
