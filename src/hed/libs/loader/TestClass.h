@@ -1,15 +1,18 @@
 #ifndef __ARC_TESTPLUGIN_H__
 #define __ARC_TESTPLUGIN_H__
 
+#include "MCC.h"
+
 namespace TestPlugin {
 
-class TestClass 
+class TestClass : public Arc::MCC 
 {
-    public:
-        TestClass(void);
-        ~TestClass(void);
+    private:
         int a;
-        void testfunc(int b);
+    public:
+        TestClass(Arc::Config *cfg);
+        ~TestClass();
+        void request(void);
 };
 
 }; // namespace TestPlugin

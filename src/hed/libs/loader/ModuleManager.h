@@ -4,8 +4,9 @@
 #include <string>
 #include <map>
 #include <glibmm/module.h>
+#include "common/ArcConfig.h"
 
-namespace Loader {
+namespace Arc {
 
 typedef std::map<std::string, Glib::Module *> plugin_cache_t;
 
@@ -14,13 +15,12 @@ class ModuleManager
     private:
         std::string plugin_dir;
         plugin_cache_t plugin_cache;
-        Glib::Module *load(const std::string& name);
     public:
-        ModuleManager();
+        ModuleManager(Arc::Config *cfg);
         ~ModuleManager();
-        void *load_mcc(const std::string& name);
+        Glib::Module *load(const std::string& name);
 };
 
-}; // namespace Loader
+}; // namespace Arc
 
 #endif /* __ARC_MESSAGE_H__ */

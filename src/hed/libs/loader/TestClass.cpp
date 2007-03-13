@@ -1,26 +1,32 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <iostream>
 #include "TestClass.h"
-#include "Plugin.h"
 
 namespace TestPlugin {
 
-TestClass::TestClass(void)
+TestClass::TestClass(Arc::Config *cfg) : MCC(cfg)
 {
-	a = 1;
+    std::cout << "Init: TestClass" << std::endl;
+    a = 1;
 }
 
 TestClass::~TestClass(void) 
 {
-
+    std::cout << "Destroy: TestClass " << std::endl;
 }
 
-void TestClass::testfunc(int b)
+void TestClass::request(void)
 {
-	a = b;
+	std::cout << "request: TestClass" << std::endl;
+    std::cout << "private variable: " << a << std::endl; 
 }
 
-void *init(void) 
+Arc::MCC *get_instance(Arc::Config *cfg) 
 {
-    return new TestClass();
+    return (Arc::MCC *)(new TestClass(cfg));
 }
 
 }; // namespace TestClass
@@ -28,5 +34,5 @@ void *init(void)
 /* MCC plugin descriptor */
 mcc_descriptor descriptor = {
     0,                  /* version */
-    TestPlugin::init    /* init function */
+    TestPlugin::get_instance    /* get_instance function */
 };

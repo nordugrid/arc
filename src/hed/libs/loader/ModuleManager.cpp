@@ -4,10 +4,9 @@
 
 #include <iostream>
 #include "ModuleManager.h"
-#include "Plugin.h"
 
-namespace Loader {
-ModuleManager::ModuleManager(void)
+namespace Arc {
+ModuleManager::ModuleManager(Arc::Config *cfg)
 {
     plugin_dir = '.';
 }
@@ -25,6 +24,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
     }
     // find name in plugin_cache 
     if (plugin_cache.find(name) != plugin_cache.end()) {
+        std::cout << "found in cache" << std::endl;
         return plugin_cache[name];
     }
     std::string path = Glib::Module::build_path(plugin_dir, name);
@@ -38,28 +38,5 @@ Glib::Module *ModuleManager::load(const std::string& name)
     return module;
 }
 
-void *ModuleManager::load_mcc(const std::string& name)
-{
-    void *ptr = NULL;
-    mcc_descriptor *descriptor;
-    
-    Glib::Module *module = load(name);
-    if (module == NULL) {
-        return module;
-    }
-    if (!module->get_symbol("descriptor", ptr)) {
-        std::cerr << "Not MCC plugin" << std::endl;
-        return NULL;
-    }
-    descriptor = (mcc_descriptor *)ptr;
-    // XXX: version check missing
-    std::cout << descriptor->version << std::endl;
-    if (descriptor->init == NULL) {
-        std::cerr << "Missing init function" << std::endl;
-        return NULL;
-    }
-    return descriptor->init();
-}
-
-}; // namespace Loader
+}; // namespace Arc
 

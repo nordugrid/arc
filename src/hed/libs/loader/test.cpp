@@ -3,11 +3,15 @@
 #endif
 
 #include <iostream>
-#include "ModuleManager.h"
-#include "TestClass.h"
+#include "Loader.h"
+#include "common/ArcConfig.h"
 
 int main(void)
 {
+    Arc::Config *c = new Arc::Config("test.xml");    
+    Arc::Loader *l = new Arc::Loader(c);
+    l->bootstrap();
+/*
     Loader::ModuleManager *mm = new Loader::ModuleManager();
     TestPlugin::TestClass *p = (TestPlugin::TestClass *)mm->load_mcc("libtestclass");
     printf("%p\n", p);
@@ -21,4 +25,6 @@ int main(void)
     // std::cout << "Return: " << mm->load("libtestclass") << \
          " True: " << true << std::endl;
     return 0;
+*/
+
 }
