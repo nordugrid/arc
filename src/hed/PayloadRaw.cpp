@@ -1,5 +1,7 @@
 #include "PayloadRaw.h"
 
+namespace Arc {
+
 PayloadRaw::~PayloadRaw(void) {
   for(std::vector<PayloadRaw::Buf>::iterator b = buf_.begin();b!=buf_.end();++b) {
     if(b->allocated) free(b->data);
@@ -110,3 +112,4 @@ const char* ContentFromPayload(const MessagePayload& payload) {
   return "";
 }
 
+} // namespace Arc

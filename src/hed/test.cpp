@@ -5,13 +5,12 @@
 
 #include "SOAPMessage.h"
 
-
-void printNode(XMLNode& node,int skip) {
+void printNode(Arc::XMLNode& node,int skip) {
   for(int n=0;n<skip;n++) std::cout<<" ";
   std::string content = (std::string)node;
   std::cout<<"* "<<node.Name()<<"("<<node.Size()<<")"<<" = "<<content<<std::endl;
   for(int n=0;;n++) {
-    XMLNode node_ = node.Child(n);
+    Arc::XMLNode node_ = node.Child(n);
     if(!node_) break;
     printNode(node_,skip+2);
   };
@@ -42,9 +41,9 @@ int main(void) {
 "  </ns:add>\n"
 " </SOAP-ENV:Body>\n"
 "</SOAP-ENV:Envelope>";
-  SOAPMessage node(xml);
+  Arc::SOAPMessage node(xml);
 
-  //XMLNode::NS ns;
+  //Arc::XMLNode::NS ns;
   //ns["soap-enc"]="http://schemas.xmlsoap.org/soap/encoding/";
   //ns["soap-env"]="http://schemas.xmlsoap.org/soap/envelope/";
   //ns["ARC"]="http://www.nordugrid.org/schemas/arc/";
@@ -470,12 +469,12 @@ class child2: public master1 {
 
 int main(void) {
   std::string xml;
-  XMLNode::NS ns;
+  Arc::XMLNode::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
   ns["bes"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-  SOAPMessage req(ns);
-  XMLNode job = req.NewChild("bes:CreateActivity").\
+  Arc::SOAPMessage req(ns);
+  Arc::XMLNode job = req.NewChild("bes:CreateActivity").\
                     NewChild("bes:ActivityDocument").\
                     NewChild("jsdl:JobDefinition").\
                     NewChild("jsdl:JobDescription");
@@ -486,16 +485,16 @@ int main(void) {
   req.GetXML(xml);
   std::cout<<xml<<std::endl;
 
-  SOAPMessage resp(bes_example_response);
+  Arc::SOAPMessage resp(bes_example_response);
   printNode(resp,0);
-  XMLNode Id = resp["CreateActivityResponse"]["ActivityIdentifier"];
+  Arc::XMLNode Id = resp["CreateActivityResponse"]["ActivityIdentifier"];
   std::string addr = Id["Address"];
   std::cout<<"Job address: "<<addr<<std::endl;
   //resp.GetXML(xml);
   //std::cout<<xml<<std::endl;
 
-  XMLNode::NS ns_;
-  SOAPMessage fault(ns_,true);
+  Arc::XMLNode::NS ns_;
+  Arc::SOAPMessage fault(ns_,true);
   fault.Fault()->Subcode(1,"Unexpected");
   fault.Fault()->Reason("Failed processing request");
   fault.GetXML(xml);

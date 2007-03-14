@@ -6,6 +6,8 @@
 
 #include "Message.h"
 
+namespace Arc {
+
 // Virtual interface for managing stream-like source and destination
 class PayloadStreamInterface: public MessagePayload {
  public:
@@ -46,4 +48,5 @@ class PayloadStream: public PayloadStreamInterface {
   virtual void Timeout(int to) { timeout_=to; };
 };
 
+}
 #endif /* __ARC_PAYLOADSTREAM_H__ */

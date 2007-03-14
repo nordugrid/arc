@@ -2,6 +2,8 @@
 
 #include "PayloadHTTP.h"
 
+namespace Arc {
+
 static std::string empty_string("");
 
 static bool ParseHTTPVersion(const std::string& s,int& major,int& minor) {
@@ -254,3 +256,4 @@ bool PayloadHTTP::Flush(void) {
 //  virtual char* Buffer(int num);
 //  virtual int BufferSize(int num) const;
 
+} // namespace Arc

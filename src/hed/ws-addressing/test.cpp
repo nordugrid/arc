@@ -30,8 +30,8 @@ int main(void) {
 </S:Envelope>\
 ");     
 
-  SOAPMessage soap(xml);
-  WSAHeader header(soap);
+  Arc::SOAPMessage soap(xml);
+  Arc::WSAHeader header(soap);
   std::cout<<"To: "<<header.To()<<std::endl;
   std::cout<<"Action: "<<header.Action()<<std::endl;
   std::cout<<"MessageID: "<<header.MessageID()<<std::endl;
@@ -42,7 +42,7 @@ int main(void) {
   //std::string RelationshipType(void) const;
   for(int i=0;;++i) {
     std::string s;
-    XMLNode r = header.ReferenceParameter(i);
+    Arc::XMLNode r = header.ReferenceParameter(i);
     if(!r) break;
     r.GetXML(s);
     std::cout<<"ReferenceParameter: "<<s<<std::endl;

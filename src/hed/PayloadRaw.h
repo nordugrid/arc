@@ -5,6 +5,8 @@
 
 #include "Message.h"
 
+namespace Arc {
+
 // Virtual interface for managing main part of content
 class PayloadRawInterface: public MessagePayload {
  public:
@@ -52,5 +54,7 @@ class PayloadRaw: public PayloadRawInterface {
 };
 
 const char* ContentFromPayload(const MessagePayload& payload);
+
+} // namespace Arc
 
 #endif /* __ARC_PAYLOADRAW_H__ */

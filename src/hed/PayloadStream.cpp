@@ -6,6 +6,8 @@
 
 #include "PayloadStream.h"
 
+namespace Arc {
+
 PayloadStream::PayloadStream(int h):handle_(h),seekable_(false),timeout_(60) {
   struct stat st;
   if(fstat(handle_,&st) != 0) return;
@@ -63,3 +65,4 @@ bool PayloadStream::Put(const char* buf,int size) {
   return true;
 }
 
+} // namespace Arc

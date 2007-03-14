@@ -3,7 +3,9 @@
 
 #include <string>
 
-#include "XMLNode.h"
+#include "common/XMLNode.h"
+
+namespace Arc {
 
 // Wrapper for XML document representing SOAP message.
 class SOAPMessage: public XMLNode {
@@ -83,6 +85,8 @@ class SOAPMessage: public XMLNode {
   bool ver12;       // If SOAP version 1.2 is used
   void set(void);
 };
+
+} // namespace Arc 
 
 #endif /* __ARC_SOAPMESSAGE_H__ */
 

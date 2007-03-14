@@ -1,8 +1,29 @@
 <?xml version="1.0"?>
 <ArcConfig>
+    <Services>
+        <Service name="testservice">
+            <Config1>Value2</Config1>
+        </Service>
+    </Services>
     <Communication>
-        <MessageChainComponent name="libtestclass">
+        <MessageChainComponent name="testmcc">
             <Config1>Value1</Config1>
         </MessageChainComponent>
+        <MessageChain name="normalChain">
+            <Component name="none">
+                <Next name="default">testmcc</Next>
+            </Component>
+            <Component name="http">
+                <Next name="default">plexer</Next>
+            </Component>
+        </MessageChain>
     </Communication>
+    <Plexer>
+        <Chain name="normalChain">
+            <EndPointReference>
+                <ServiceModule>testservice</ServiceModule>
+                <URL>echo</URL>
+            </EndPointReference>
+        </Chain>
+    </Plexer>
 </ArcConfig>

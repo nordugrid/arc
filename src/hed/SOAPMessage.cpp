@@ -1,5 +1,10 @@
+#ifndef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "SOAPMessage.h"
 
+namespace Arc {
 
 SOAPMessage::SOAPMessage(const std::string& s):XMLNode(s) {
   set();
@@ -278,3 +283,4 @@ XMLNode& SOAPMessage::SOAPFault::NewDetail(void) {
   return detail;
 }
 
+} // namespace Arc

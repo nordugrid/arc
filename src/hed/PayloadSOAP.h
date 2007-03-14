@@ -4,6 +4,8 @@
 #include "Message.h"
 #include "SOAPMessage.h"
 
+namespace Arc {
+
 // Combining MessagePayload with SOAPMessage
 class PayloadSOAP: public MessagePayload, public SOAPMessage {
  public:
@@ -14,5 +16,7 @@ class PayloadSOAP: public MessagePayload, public SOAPMessage {
   PayloadSOAP(const MessagePayload& source);
   virtual ~PayloadSOAP(void);
 };
+
+} // namespace Arc
 
 #endif /* __ARC_PAYLOADSOAP_H__ */

@@ -1,4 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "WSResourceProperties.h"
+
+namespace Arc {
 
 void WSRP::set_namespaces(void) {
   XMLNode::NS ns;
@@ -507,3 +513,5 @@ class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropert
 };
 
 */
+
+} // namespace Arc

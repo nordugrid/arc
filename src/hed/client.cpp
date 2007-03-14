@@ -5,7 +5,6 @@
 
 #include "SOAPMessage.h"
 
-
 std::string google_response = 
 "<?xml version='1.0' encoding='UTF-8'?>\r\n"
 "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/1999/XMLSchema\">\r\n"
@@ -22,10 +21,10 @@ std::string google_response =
 
 int main(void) {
   std::string xml;
-  XMLNode::NS ns;
+  Arc::XMLNode::NS ns;
   ns["google"]="urn:GoogleSearch";
-  SOAPMessage google_search(ns);
-  XMLNode search = google_search.NewChild("google:doGoogleSearch");
+  Arc::SOAPMessage google_search(ns);
+  Arc::XMLNode search = google_search.NewChild("google:doGoogleSearch");
   search.NewChild("key")="key";
   search.NewChild("q")="query";
   search.NewChild("start")="0";
@@ -52,11 +51,11 @@ int main(void) {
   std::cout<<http_header<<xml<<std::endl;
 
   std::cout<<"*** RESPONSE ***"<<std::endl;
-  SOAPMessage response(google_response);
+  Arc::SOAPMessage response(google_response);
   response.GetXML(xml);
   std::cout<<xml<<std::endl;
   if(response.IsFault()) {
-    SOAPMessage::SOAPFault& fault = *response.Fault();
+    Arc::SOAPMessage::SOAPFault& fault = *response.Fault();
     std::cout<<"Fault code: "<<fault.Code()<<std::endl;
     for(int n = 0;;++n) {
       std::string subcode = fault.Subcode(n);

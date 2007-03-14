@@ -3,6 +3,8 @@
 
 #include "PayloadTCPSocket.h"
 
+namespace Arc {
+
 static int connect_socket(const char* hostname,int port) {
   struct hostent* host;
   struct hostent  hostbuf;
@@ -48,3 +50,4 @@ PayloadTCPSocket::~PayloadTCPSocket(void) {
   shutdown(handle_,2);
 }
 
+} // namespace Arc

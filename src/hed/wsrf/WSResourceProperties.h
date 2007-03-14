@@ -1,6 +1,10 @@
-#include <vector>
+#ifndef __ARC_WSRF_H__
+#define __ARC_WSRF_H__
 
+#include <vector>
 #include "../SOAPMessage.h"
+
+namespace Arc {
 
 class WSRP {
  protected:
@@ -308,4 +312,8 @@ class WSRPQueryResourcePropertiesResponse: public WSRP {
 // UnknownQueryExpressionDialectFaultType
 // InvalidQueryExpressionFault
 // QueryEvaluationErrorFault
-// 
+//
+} // namespace Arc
+
+#endif /* _ARC_WSRF_H__ */
+

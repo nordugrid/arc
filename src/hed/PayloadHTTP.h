@@ -10,6 +10,8 @@
 #define HTTP_OK          (200)
 #define HTTP_NOT_FOUND   (404)
 
+namespace Arc {
+
 class PayloadHTTP: public PayloadRaw {
  protected:
   PayloadStreamInterface& stream_;
@@ -63,5 +65,6 @@ class PayloadHTTPResponse: public PayloadHTTP {
   virtual Flush(void);
 };
 */
+} // namespace Arc
 
 #endif /* __ARC_PATYLOADHTTP_H__ */

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <ArcConfig>
     <Services>
-        <Service name="echo">
+        <ServiceModule name="echo">
             <Config1>Value2</Config1>
-        </Service>
-        <Service name="echo2">
+        </ServiceModule>
+        <ServiceModule name="echo2">
             <Config2>Value3</Config2>
-        </Service>
+        </ServiceModule>
     </Services>
     <Communication>
         <MessageChainComponent name="tcp">
@@ -28,11 +28,15 @@
         </MessageChain>
     </Communication>
     <Plexer>
-        <Service name="echo">
-            <Chain>normalChain</Chain>
-        </Service>
-        <Service name="echo2">
-            <Chain>normalChain</Chain>
-        </Service>
+        <Chain name="normalChain">
+            <EndPointReference>
+                <ServiceModule>echo</ServiceModule>
+                <URL>echo</URL>
+            </EndPointReference>
+            <EndPointReference>
+                <ServiceModule>echo2</ServiceModule>
+                <URL>echob</URL>
+            </EndPointReference>
+        </Chain>
     </Plexer>
 </ArcConfig>

@@ -1,5 +1,10 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "WSA.h"
 
+namespace Arc {
 
 static void remove_empty_nodes(XMLNode& parent,const char* name) {
   while(true) {
@@ -310,4 +315,5 @@ WSAFault WSAFaultExtract(SOAPMessage& message) {
   return fid;
 }
 
+} // namespace Arc
 

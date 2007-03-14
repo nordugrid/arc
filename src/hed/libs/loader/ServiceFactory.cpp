@@ -3,32 +3,32 @@
 #endif
 
 #include <iostream>
-#include "MCCFactory.h"
+#include "ServiceFactory.h"
 
 namespace Arc {
 
-MCCFactory::MCCFactory(std::string name, Arc::Config *cfg) : ModuleManager(cfg) {
-    mcc_name = name;
+ServiceFactory::ServiceFactory(std::string name, Arc::Config *cfg) : ModuleManager(cfg) {
+    service_name = name;
 }
 
-MCCFactory::~MCCFactory(void)
+ServiceFactory::~ServiceFactory(void)
 {
 }
 
-Arc::MCC *MCCFactory::get_instance(Arc::Config *cfg) 
+Arc::Service *ServiceFactory::get_instance(Arc::Config *cfg) 
 {
     void *ptr = NULL;
-    mcc_descriptor *descriptor;
+    service_descriptor *descriptor;
     
-    Glib::Module *module = ModuleManager::load("lib" + mcc_name);
+    Glib::Module *module = ModuleManager::load("lib" + service_name);
     if (module == NULL) {
         return NULL;
     }
     if (!module->get_symbol("descriptor", ptr)) {
-        std::cerr << "Not MCC plugin" << std::endl;
+        std::cerr << "Not Service plugin" << std::endl;
         return NULL;
     }
-    descriptor = (mcc_descriptor *)ptr;
+    descriptor = (service_descriptor *)ptr;
     // XXX: version check missing
     std::cout << "Version: " << descriptor->version << std::endl;
     if (descriptor->get_instance == NULL) {

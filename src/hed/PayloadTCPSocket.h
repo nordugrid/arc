@@ -5,6 +5,8 @@
 
 #include "PayloadStream.h"
 
+namespace Arc {
+
 class PayloadTCPSocket: public PayloadStream {
  public:
   PayloadTCPSocket(const char* hostname,int port);
@@ -12,6 +14,8 @@ class PayloadTCPSocket: public PayloadStream {
   PayloadTCPSocket(int s):PayloadStream(s) { };
   virtual ~PayloadTCPSocket(void);
 };
+
+} // namespace Arc 
 
 #endif /* __ARC_PAYLOADTCPSOCKET_H__ */
 

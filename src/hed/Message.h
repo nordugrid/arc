@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+namespace Arc {
+
 // Undefined (yet) classes
 class MessageAuth;
 class MessageAttr;
@@ -35,6 +37,8 @@ class Message {
     return p;
   };
 };
+
+} // namespace Arc
 
 #endif /* __ARC_MESSAGE_H__ */
 

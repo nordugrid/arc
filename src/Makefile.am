@@ -1,1 +1,1 @@
-SUBDIRS=hed libs
+SUBDIRS=libs hed

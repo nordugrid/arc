@@ -1,13 +1,20 @@
-lib_LTLIBRARIES = libarcloader.la libtestclass.la
+lib_LTLIBRARIES= libarcloader.la  libtestmcc.la libtestservice.la
+# mccsdir=$(topdir)
+# mccs_LTLIBRARIES= 
+# servicesdir=$(topdir)
+# services_LTLIBRARIES= 
 
 libarcloader_ladir=$(includedir)
-libarcloader_la_HEADERS=Loader.h MCCFactory.h MCC.h ModuleManager.h
-libarcloader_la_SOURCES=Loader.cpp MCCFactory.cpp ModuleManager.cpp
+libarcloader_la_HEADERS=Loader.h MCCFactory.h MCC.h ModuleManager.h Plexer.h ServiceFactory.h Service.h
+libarcloader_la_SOURCES=Loader.cpp MCCFactory.cpp ModuleManager.cpp Plexer.cpp ServiceFactory.cpp
 libarcloader_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 # libarccommon_la_LDFLAGS=
 
-libtestclass_la_SOURCES=TestClass.cpp TestClass.h
-libtestclass_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+libtestmcc_la_SOURCES=TestMCC.cpp TestMCC.h
+libtestmcc_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+
+libtestservice_la_SOURCES=TestService.cpp TestService.h
+libtestservice_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 
 noinst_PROGRAMS=test
 test_SOURCES=test.cpp

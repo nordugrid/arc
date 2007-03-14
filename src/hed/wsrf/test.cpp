@@ -1,10 +1,9 @@
 #include <iostream>
 #include <string>
 
-#include "../XMLNode.h"
+#include "common/XMLNode.h"
 #include "../SOAPMessage.h"
 #include "WSResourceProperties.h"
-
 
 // Examples are taken from OASIS WSRF-WSRP specifications documnent
 
@@ -40,21 +39,22 @@ const char* req_GetResourcePropertyDocument_text = "\
 </s11:Envelope>\r\n";
 
 
+
 int main(void) {
   std::cout<<"======== Resource Properties Document==============="<<std::endl;
-  XMLNode wsrp_document(wsrp_document_text);
+  Arc::XMLNode wsrp_document(wsrp_document_text);
   std::string s;
   wsrp_document.GetXML(s);
   std::cout<<s<<std::endl;
   std::cout<<"======= GetResourcePropertyDocument request ========"<<std::endl;
-  SOAPMessage req_soap(req_GetResourcePropertyDocument_text);
+  Arc::SOAPMessage req_soap(req_GetResourcePropertyDocument_text);
   req_soap.GetXML(s);
   std::cout<<s<<std::endl;
   std::cout<<"============== Processing =========================="<<std::endl;
-  WSRPGetResourcePropertyDocumentRequest req(req_soap);
+  Arc::WSRPGetResourcePropertyDocumentRequest req(req_soap);
   if(!req) return -1;
   std::cout<<"WSRPGetResourcePropertyDocument request recognized"<<std::endl;
-  WSRPGetResourcePropertyDocumentResponse resp(wsrp_document);
+  Arc::WSRPGetResourcePropertyDocumentResponse resp(wsrp_document);
   if(!resp) return -1;
   std::cout<<"WSRPGetResourcePropertyDocument response created"<<std::endl;
   std::cout<<"======= GetResourcePropertyDocument response ======="<<std::endl;
@@ -63,4 +63,5 @@ int main(void) {
   std::cout<<"===================================================="<<std::endl;
   return 0;
 }
+
 
