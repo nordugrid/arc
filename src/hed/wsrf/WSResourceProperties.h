@@ -37,9 +37,9 @@ class WSRPBaseFault: public WSRP {
 
 class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
  public:
-   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap);
-   WSRPInvalidResourcePropertyQNameFault(void);
-   virtual ~WSRPInvalidResourcePropertyQNameFault(void);
+   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap):WSRPBaseFault(soap) { };
+   WSRPInvalidResourcePropertyQNameFault(void) { };
+   virtual ~WSRPInvalidResourcePropertyQNameFault(void) { };
 };
 
 class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {

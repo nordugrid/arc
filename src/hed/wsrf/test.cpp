@@ -38,7 +38,7 @@ const char* req_GetResourcePropertyDocument_text = "\
   </s11:Body>\r\n\
 </s11:Envelope>\r\n";
 
-
+using namespace Arc;
 
 int main(void) {
   std::cout<<"======== Resource Properties Document==============="<<std::endl;
@@ -60,7 +60,19 @@ int main(void) {
   std::cout<<"======= GetResourcePropertyDocument response ======="<<std::endl;
   resp.SOAP().GetXML(s);
   std::cout<<s<<std::endl;
-  std::cout<<"===================================================="<<std::endl;
+  std::cout<<"=============== Fault ==============================="<<std::endl;
+
+  WSRPInsertResourcePropertiesRequestFailedFault fault;
+  XMLNode::NS tns;
+  tns["tns"]="http://example.com/diskDrive";
+  fault.SOAP().Namespaces(tns);
+  fault.CurrentProperties(true).NewChild(XMLNode(
+    "<tns:NumberOfBlocks xmlns:tns=\"http://example.com/diskDrive\">22</tns:NumberOfBlocks>"));
+  fault.RequestedProperties(true).NewChild(XMLNode(
+    "<tns:NumberOfBlocks xmlns:tns=\"http://example.com/diskDrive\">25</tns:NumberOfBlocks>"));
+  fault.SOAP().GetXML(s);
+  std::cout<<s<<std::endl;
+  std::cout<<"====================================================="<<std::endl;
   return 0;
 }
 

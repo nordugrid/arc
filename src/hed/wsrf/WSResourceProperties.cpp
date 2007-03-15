@@ -501,72 +501,40 @@ WSRPBaseFault::WSRPBaseFault(void):WSRP(true,WSRPBaseFaultAction) {
 WSRPBaseFault::~WSRPBaseFault(void) {
 }
 
-/*
-class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
- public:
-   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap);
-   WSRPInvalidResourcePropertyQNameFault(void);
-   virtual ~WSRPInvalidResourcePropertyQNameFault(void);
-};
 
-class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
- public:
-   WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPBaseFault(soap) { };
-   WSRPResourcePropertyChangeFailure(void) { };
-   virtual ~WSRPResourcePropertyChangeFailure(void) { };
-   XMLNode CurrentProperties(bool create = false);
-   XMLNode RequestedProperties(bool create = false);
-};
+XMLNode WSRPResourcePropertyChangeFailure::CurrentProperties(bool create) {
+  SOAPMessage::SOAPFault* fault = soap_.Fault();
+  if(!fault) return XMLNode();
+  XMLNode detail = fault->Detail(true);
+  XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
+  if(!failure) {
+    if(!create) return XMLNode();
+    failure=detail.NewChild("wsrf-rp:ResourcePropertyChangeFailure");
+  };
+  XMLNode cur_value = failure["wsrf-rp:CurrentValue"];
+  if(!cur_value) {
+    if(!create) return XMLNode();
+    cur_value=failure.NewChild("wsrf-rp:CurrentValue");
+  };
+  return cur_value;
+}
 
-class WSRPUnableToPutResourcePropertyDocumentFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPUnableToPutResourcePropertyDocumentFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUnableToPutResourcePropertyDocumentFault(void) { };
-   virtual ~WSRPUnableToPutResourcePropertyDocumentFault(void) { };
-};
+XMLNode WSRPResourcePropertyChangeFailure::RequestedProperties(bool create) {
+  SOAPMessage::SOAPFault* fault = soap_.Fault();
+  if(!fault) return XMLNode();
+  XMLNode detail = fault->Detail(true);
+  XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
+  if(!failure) {
+    if(!create) return XMLNode();
+    failure=detail.NewChild("wsrf-rp:ResourcePropertyChangeFailure");
+  };
+  XMLNode req_value = failure["wsrf-rp:RequestedValue"];
+  if(!req_value) {
+    if(!create) return XMLNode();
+    req_value=failure.NewChild("wsrf-rp:RequestedValue");
+  };
+  return req_value;
+}
 
-class WSRPInvalidModificationFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPInvalidModificationFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPInvalidModificationFault(void) { };
-   virtual ~WSRPInvalidModificationFault(void) { };
-};
-
-class WSRPUnableToModifyResourcePropertyFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPUnableToModifyResourcePropertyFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUnableToModifyResourcePropertyFault(void) { };
-   virtual ~WSRPUnableToModifyResourcePropertyFault(void) { };
-};
-
-class WSRPSetResourcePropertyRequestFailedFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPSetResourcePropertyRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPSetResourcePropertyRequestFailedFault(void) { };
-   virtual ~WSRPSetResourcePropertyRequestFailedFault(void) { };
-};
-
-class WSRPInsertResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPInsertResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPInsertResourcePropertiesRequestFailedFault(void) { };
-   virtual ~WSRPInsertResourcePropertiesRequestFailedFault(void) { };
-};
-
-class WSRPUpdateResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPUpdateResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
-   virtual ~WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
-};
-
-class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
- public:
-   WSRPDeleteResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
-   virtual ~WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
-};
-
-*/
 
 } // namespace Arc
