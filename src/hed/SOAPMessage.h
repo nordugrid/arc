@@ -53,8 +53,7 @@ class SOAPMessage: public XMLNode {
     std::string Role(void);
     void Role(const char* reason);
     // Get/set Fault Detail
-    XMLNode& Detail(void);
-    XMLNode& NewDetail(void);
+    XMLNode Detail(bool create = false);
   };
   // Parse SOAP message in XML document. Sets default namespaces 
   // to prefixes as specified below.

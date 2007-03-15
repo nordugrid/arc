@@ -273,12 +273,9 @@ void SOAPMessage::SOAPFault::Subcode(int level,const char* s) {
   };
 }
 
-XMLNode& SOAPMessage::SOAPFault::Detail(void) {
-  return detail;
-}
-
-XMLNode& SOAPMessage::SOAPFault::NewDetail(void) {
+XMLNode SOAPMessage::SOAPFault::Detail(bool create) {
   if(detail) return detail;
+  if(!create) return XMLNode();
   detail=fault.NewChild("soap-env:Detail");
   return detail;
 }
