@@ -35,8 +35,8 @@ SOAPMessage::SOAPMessage(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   ns_["xsd"]="http://www.w3.org/2001/XMLSchema";
   Namespaces(ns_);
   Namespaces(ns);
+  header=envelope.NewChild("soap-env:Header");
   body=envelope.NewChild("soap-env:Body");
-  header=NewChild("soap-env:Header",0);
   doc=it; ((SOAPMessage*)(&doc))->is_owner_=true;
   is_owner_=false; node_=((SOAPMessage*)(&body))->node_;
   if(f) {
@@ -88,7 +88,7 @@ void SOAPMessage::set(void) {
   } else {
     // SOAP has no header - create an empty one
     body=envelope.Child(0);
-    header=NewChild("soap-env:Header",0);
+    header=envelope.NewChild("soap-env:Header",0,true);
   };
   if(!MatchXMLName(((SOAPMessage*)(&body))->node_,"soap-env:Body")) {
     // No SOAP Body found
@@ -114,7 +114,7 @@ void SOAPMessage::GetXML(std::string& xml) const {
     SOAPMessage& it = *(SOAPMessage*)this;
     it.header.Destroy();
     doc.GetXML(xml);
-    it.header=it.NewChild("soap-env:Header",0); 
+    it.header=it.envelope.NewChild("soap-env:Header",0,true); 
     return;
   };
   doc.GetXML(xml);
