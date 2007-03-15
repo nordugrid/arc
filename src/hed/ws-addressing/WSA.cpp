@@ -11,7 +11,7 @@ static void remove_empty_nodes(XMLNode& parent,const char* name) {
     XMLNode to = parent[name];
     if(!to) break;
     if(to.Size() > 0) break;
-    if(((std::string)to).empty()) break;
+    if(!(((std::string)to).empty())) break;
     to.Destroy();
   };
   return;
