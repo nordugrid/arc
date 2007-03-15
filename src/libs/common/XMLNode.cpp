@@ -136,7 +136,7 @@ XMLNode XMLNode::NewAttribute(const char* name) {
   return XMLNode((xmlNodePtr)xmlNewNsProp(node_,ns,(const xmlChar*)name_,NULL));
 }
 
-XMLNode XMLNode::NewChild(const char* name,int n) {
+XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(name == NULL) return XMLNode();
   const char* name_ = strchr(name,':');
@@ -150,7 +150,7 @@ XMLNode XMLNode::NewChild(const char* name,int n) {
   };
   xmlNodePtr new_node = xmlNewNode(ns,(const xmlChar*)name_);
   if(new_node == NULL) return XMLNode();
-  XMLNode old_node = operator[](name)[n];
+  XMLNode old_node = global_order?Child(n):operator[](name)[n];
   if(!old_node) {
     // TODO: find last old_node
     return XMLNode(xmlAddChild(node_,new_node));
@@ -161,11 +161,11 @@ XMLNode XMLNode::NewChild(const char* name,int n) {
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
-XMLNode XMLNode::NewChild(const XMLNode& node,int n) {
+XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(node.node_ == NULL) return XMLNode();
   if(node.node_->type == XML_DOCUMENT_NODE) {
-    return NewChild(XMLNode(node.node_->children),n);
+    return NewChild(XMLNode(node.node_->children),n,global_order);
   };
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
   if(new_node == NULL) return XMLNode();

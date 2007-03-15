@@ -183,12 +183,12 @@ class XMLNode {
   std::string NamespacePrefix(const char* urn);
   // Create new child node at specified position. Default is to put it 
   // at end of list
-  XMLNode NewChild(const std::string& name,int n = -1) {
-    return NewChild(name.c_str(),n);
+  XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
+    return NewChild(name.c_str(),n,global_order);
   };
-  XMLNode NewChild(const char* name,int n = -1);
+  XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
   // Make a copy of supplied node and link it as child
-  XMLNode NewChild(const XMLNode& node,int n = -1);
+  XMLNode NewChild(const XMLNode& node,int n = -1,bool global_order = false);
   // Make a copy of supplied node and place it to this one
   // Replace(const XMLNode& node);
   void Destroy(void);
