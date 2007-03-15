@@ -1,5 +1,5 @@
 noinst_PROGRAMS=test
-SOURCES = ../SOAPMessage.cpp WSResourceProperties.cpp WSResourceProperties.h
+SOURCES = ../SOAPMessage.cpp ../ws-addressing/WSA.cpp WSResourceProperties.cpp WSResourceProperties.h
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 test_LDFLAGS=$(LIBXML2_LIBS) 

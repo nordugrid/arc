@@ -14,16 +14,10 @@ class WSRP {
   void set_namespaces(void);
  public:
   // Prepare for creation of new WSRP request/response
-  WSRP(void):soap_(*(new SOAPMessage(XMLNode::NS()))),allocated_(true) {
-    set_namespaces();
-    valid_=true;
-  };
+  WSRP(bool fault = false,const std::string& action = "");
   // Acquire presented SOAP tree as one of WS-RP requests/responses.
   // Actual check for validity of structure is done by derived class.
-  WSRP(SOAPMessage& soap):soap_(soap),allocated_(false) {
-    valid_=(bool)soap;
-    set_namespaces();
-  };
+  WSRP(SOAPMessage& soap,const std::string& action = "");
   ~WSRP(void) { if(allocated_) delete &soap_; };
   // Check if instance is valid
   operator bool(void) { return valid_; };
