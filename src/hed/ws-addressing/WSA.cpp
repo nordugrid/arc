@@ -196,10 +196,11 @@ XMLNode WSAHeader::ReferenceParameter(const std::string& name) {
   };
 }
 
-void WSAHeader::NewReferenceParameter(const std::string& name) {
+XMLNode WSAHeader::NewReferenceParameter(const std::string& name) {
   XMLNode n = header_.NewChild(name);
   XMLNode a = n.NewAttribute("wsa:IsReferenceParameter");
   a="true";
+  return n;
 }
 
 
