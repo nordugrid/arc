@@ -9,29 +9,45 @@
 #include <libxml/parser.h>
 
 namespace Arc {
-// Wrapper for libxml library Tree interface. This class wraps 
-// XML Node, Document and Property/Attribute structures.
-// It implements only small subset of XML capabilities, which 
-// is probably enough for performing most of useful actions.
-// This class also filters out (usually) useless textual nodes.
+/** Wrapper for LibXML library Tree interface. 
+  This class wraps XML Node, Document and Property/Attribute structures.
+  Each instance serves as pointer to actual LibXML element and provides convenient
+  (for chosen purpose) methods for manipulating it.
+  This class has no special ties to LibXML library and may be easily rewritten for any XML 
+  parser which provides interface similar to LibXML Tree.
+  It implements only small subset of XML capabilities, which is probably enough for performing 
+  most of useful actions. This class also filters out (usually) useless textual nodes which 
+  are often used to make XML documents human-readable. */
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
  public:
-  // List of namespaces
+  /** convenience typedef representing mapping between namespace URIs and their prefixes */
   typedef std::map<std::string,std::string> NS;
  protected:
   xmlNodePtr node_;
-  // Node is owned by class - hence freed in destructor.
+  /**  If true node is owned by this instance - hence released in destructor. 
+    Normally that may be true only for top level node of XML document.
+  */
   bool is_owner_;
+  /** This variable is for future */
   bool is_temporary_;
+  /** Private constructor for inherited classes
+    Creates instance and links to existing LibXML structure. Acquired structure is
+    not owned by class instance. If there is need to completely pass control of 
+    LibXML document to then instance's is_owner_ variable has to be set to true.
+  */
   XMLNode(xmlNodePtr node):is_owner_(false),node_(node),is_temporary_(false) { };
  public:
-  // Constructor of invalid node - placeholder
+  /** Constructor of invalid node
+    Created instance does not point to XML element. All methods are still allowed 
+    for such instance but produce no results. */
   XMLNode(void):is_owner_(false),node_(NULL),is_temporary_(false) { };
-  // Create reference to existing node. Ownership is not inherited.
+  /** Copies existing instance.
+    Underlying XML element is NOT copied. Ownership is NOT inherited. */
   XMLNode(const XMLNode& node):is_owner_(false),node_(node.node_),is_temporary_(false) { };
-  // Create XML document structure from textual representation of XML document
+  /** Creates XML document structure from textual representation of XML document.
+    Created structure is pointed and owned by constructed instance */
   XMLNode(const std::string& xml):is_owner_(false),node_(NULL),is_temporary_(false) {
     xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
     if(!doc) return;
@@ -42,23 +58,26 @@ class XMLNode {
     //ns["xsd"]="http://www.w3.org/2001/XMLSchema";
     //Namespaces(ns);
   };
-  // Create empty XML document structure with specified namespaces
+  /** Creates empty XML document structure with specified namespaces.
+    Created structure is pointed and owned by constructed instance */
   XMLNode(const NS& ns):is_owner_(false),node_(NULL),is_temporary_(false) {
     node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
     if(!node_) is_owner_=true;
     Namespaces(ns);
   };
+  /** Detructor
+    Also destroys underlying XML document if owned by this instance */
   ~XMLNode(void) {
     if(is_owner_ && node_) {
       xmlFreeDoc((xmlDocPtr)node_);
     };
   };
-  // If object represents XML node
+  /** Returns true if instance points to XML element - valid instance */
   operator bool(void) const { return ((node_ != NULL) && (!is_temporary_)); };
+  /** Returns true if instance does not point to XML element - invalid instance */
   bool operator!(void) const { return ((node_ == NULL) || is_temporary_); };
-  // n-th node in sequence of siblings of same name
-  XMLNode operator[](int n) const;
-  // n-th child of node
+  /** Returns XMLNode instance representing n-th child of XML element.
+    If such does not exist invalid XMLNode instance is returned */
   XMLNode Child(int n = 0) const {
     if(!node_) return XMLNode();
     xmlNodePtr p = n<0?NULL:node_->children;
@@ -70,13 +89,19 @@ class XMLNode {
     // New invalid node
     return XMLNode(p);
   };
-  // First child element of node with specified name. Name
-  // may be "namespace_prefix:name" or simply "name".
+  /** Returns XMLNode instance representing first child element with specified name. 
+    Name may be "namespace_prefix:name" or simply "name". In last case namespace is ignored.
+    If such node does not exist invalid XMLNode instance is returned */
   XMLNode operator[](const char* name) const;
+  /** Similar to previous method */
   XMLNode operator[](const std::string& name) const {
     return operator[](name.c_str());
   };
-  // Number of children nodes
+  /** Returns XMLNode instance representing n-th node in sequence of siblings of same name.
+    It's main purpose is to be used to retrieve element in array of children of same name
+    like  node["name"][5] */
+  XMLNode operator[](int n) const;
+  /** Returns number of children nodes */
   int Size(void) const {
     if(!node_) return 0;
     int n = 0;
@@ -87,18 +112,18 @@ class XMLNode {
     };
     return n;
   };
-  // Name of node
+  /** Returns name of XML node */
   std::string Name(void) const { 
     const char* name = (node_)?((node_->name)?(char*)(node_->name):""):"";
     return std::string(name);
   };
-  // Assign new name to node
+  /** Assign new name to XML node */
   void Name(std::string name) {
     if(!node_) return;
     if(node_->name) xmlFree((void*)(node_->name));
     node_->name=xmlCharStrdup(name.c_str());
   };
-  // Fill variable xml with XML (sub)tree represented by this node
+  /** Fills argument with this instance XML (sub)tree textual representation */
   void GetXML(std::string& xml) const {
     xml.resize(0);
     if(!node_) return;
@@ -119,7 +144,7 @@ class XMLNode {
       };
     };
   };
-  /*
+/*
   void SetXML(const std::string& xml) {
     xmlDocPtr doc = NULL;
     if(node_->type == XML_DOCUMENT_NODE) {
@@ -137,7 +162,7 @@ class XMLNode {
     };
   }
 */
-  // Get textual content of node excluding content of children nodes
+  /** Returns textual content of node excluding content of children nodes */
   operator std::string(void) const {
     std::string content;
     if(!node_) return content;
@@ -150,54 +175,72 @@ class XMLNode {
     };
     return content;
   };
-  // Set textual content of node. All existing children nodes are discarded.
+  /** Sets textual content of node. All existing children nodes are discarded. */
   XMLNode& operator=(const std::string& content) {
     return operator=(content.c_str());
   };
+  /** Same as previous method */
   XMLNode& operator=(const char* content) {
     if(!node_) return *this;
     xmlNodeSetContent(node_,(xmlChar*)content);
     return *this;
   };
-  // Make object refer to another node. Ownership is preserved.
+  /** Make instance refer to another XML node. Ownership is not inherited. */
   XMLNode& operator=(const XMLNode& node) {
     node_=node.node_;
     is_owner_=false;
     is_temporary_=node.is_temporary_;
   };
-  // All attributes of node 
+  /** Returns list of all attributes of node */
   std::list<XMLNode> Attributes(void);
-  // Get n-th attribute of node. 
+  /** Returns XMLNode instance reresenting n-th attribute of node. */
   XMLNode Attribute(int n = 0);
-  // Create new attribute with specified name.
+  /** Creates new attribute with specified name. */
   XMLNode NewAttribute(const std::string& name);
+  /** Same as previous method */
   XMLNode NewAttribute(const char* name);
-  // Get first attribute of node with specified by name
+  /** Returns XMLNode instance representing first attribute of node with specified by name */
   XMLNode Attribute(const std::string& name); 
-  // Number of attributes of node (not implemented)
+  /** Returns number of attributes of node */
   int AttributesSize(void);
-  // Set/modify namespaces of XML document at point specified by node
-  // Matching namespaces get new prefix. New namespaces are added.
+  /** Assign namespaces of XML document at point specified by this instance.
+    If namespace already exists it gets new prefix. New namespaces are added.
+    It is usefull to apply this method to XML being processed in order to refer to it's 
+    elements by known prefix. */
   void Namespaces(const NS& namespaces);
-  // Get prefix of namespace. Returns empty string if no such namespace.
+  /** Returns prefix of specified namespace. 
+    Empty string if no such namespace. */
   std::string NamespacePrefix(const char* urn);
-  // Create new child node at specified position. Default is to put it 
-  // at end of list
+  /** Creates new child XML element at specified position with specified name.
+    Default is to put it at end of list. If global order is true position
+    applies to whole set of children, otherwise only to children of same name */
   XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
     return NewChild(name.c_str(),n,global_order);
   };
+  /** Same as previous method */
   XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
-  // Make a copy of supplied node and link it as child
+  /** Link a copy of supplied XML node as child.
+    Returns instance refering to new child. XML element is a copy on supplied one
+    but not ovned by returned instance */
   XMLNode NewChild(const XMLNode& node,int n = -1,bool global_order = false);
   // Make a copy of supplied node and place it to this one
   // Replace(const XMLNode& node);
+  /** Destroys underlying XML element. 
+    XML element is unlinked from XML tree and destroyed.
+    After this operation XMLNode instance becomes invalid */
   void Destroy(void);
 };
 
-// Compare node names with namespace prefixes
+/** Returns true if XML elements have same names */
 bool MatchXMLName(xmlNodePtr node1,xmlNodePtr node2);
+
+/** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(xmlNodePtr node,const char* name);
+
+/** Returns true if underlying XML elements have same names */
 bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
+
+/** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(const XMLNode& node,const char* name);
 
 } // namespace Arc 
