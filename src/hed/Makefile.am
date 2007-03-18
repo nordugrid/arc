@@ -1,4 +1,4 @@
-SUBDIRS=libs wsrf ws-addressing
+SUBDIRS=libs wsrf ws-addressing mcc
 
 noinst_PROGRAMS=test client http_test
 SOURCES = SOAPMessage.cpp PayloadRaw.cpp PayloadSOAP.cpp PayloadStream.cpp PayloadTCPSocket.cpp PayloadHTTP.cpp
