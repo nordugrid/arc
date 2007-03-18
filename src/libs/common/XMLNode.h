@@ -58,6 +58,15 @@ class XMLNode {
     //ns["xsd"]="http://www.w3.org/2001/XMLSchema";
     //Namespaces(ns);
   };
+  /** Same as previous */
+  XMLNode(const char* xml,int len = -1):is_owner_(false),node_(NULL),is_temporary_(false) {
+    if(!xml) return;
+    if(len == -1) len=strlen(xml);
+    xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,0);
+    if(!doc) return;
+    node_=(xmlNodePtr)doc;
+    is_owner_=true;
+  } 
   /** Creates empty XML document structure with specified namespaces.
     Created structure is pointed and owned by constructed instance */
   XMLNode(const NS& ns):is_owner_(false),node_(NULL),is_temporary_(false) {
