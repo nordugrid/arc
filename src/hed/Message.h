@@ -28,11 +28,11 @@ class MessagePayload {
 class Message {
  private:
   MessagePayload* payload_; /** Main content of message */
-  MessageAuth& auth_; /** Auth. related information */
-  MessageAttr& attr_; /** Various useful attributes */
+  MessageAuth* auth_; /** Auth. related information */
+  MessageAttr* attr_; /** Various useful attributes */
  public:
   Message(void):payload_(NULL),auth_(NULL),attr_(NULL) { };
-  ~Message(void);
+  ~Message(void) { };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
   /** Replace payload with new one */
