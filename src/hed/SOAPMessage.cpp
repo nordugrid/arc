@@ -10,6 +10,10 @@ SOAPMessage::SOAPMessage(const std::string& s):XMLNode(s) {
   set();
 }
 
+SOAPMessage::SOAPMessage(const char* s,int l):XMLNode(s,l) {
+  set();
+}
+
 SOAPMessage::~SOAPMessage(void) {
 }
 

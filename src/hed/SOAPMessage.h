@@ -73,6 +73,8 @@ class SOAPMessage: public XMLNode {
     This constructor also sets default namespaces to default prefixes 
     as specified below. */
   SOAPMessage(const std::string& xml);
+  /** Same as previous */
+  SOAPMessage(const char* xml,int len = -1);
   /** Create new SOAP message with specified namespaces.
     Created XML structure is owned by this instance.
     If argument fault is set to true created message is fault.  */
