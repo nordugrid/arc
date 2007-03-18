@@ -27,7 +27,7 @@ fi
 
 # using pkgconfig
 # check glibmm
-PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.12.0])
+PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.6.0])
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.6.0])
@@ -56,7 +56,8 @@ AC_CONFIG_FILES([Makefile \
                  src/hed/libs/Makefile \
                  src/hed/libs/loader/Makefile \
                  src/libs/Makefile \
-                 src/libs/common/Makefile
+                 src/libs/common/Makefile \
+		 doc/Makefile
 ])
 
 AC_OUTPUT
