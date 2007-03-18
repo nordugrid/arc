@@ -6,31 +6,40 @@
 
 namespace Arc {
 
+/** Base class for all WS-ResourceProperties structures.
+  Inheriting classes implement specific WS-ResourceProperties messages and
+  their properties/elements. Refer to WS-ResourceProperties specifications
+  for things specific to every message. */
 class WSRP {
  protected:
-  SOAPMessage& soap_;
-  bool allocated_;
-  bool valid_;
+  SOAPMessage& soap_; /** Associated SOAP message */
+  bool allocated_;    /** true if soap_ needs to be deleted in destructor */
+  bool valid_;        /** true if object represents valid WS-ResourceProperties message */
+  /** set WS-ResourceProperties namespaces and default prefixes in SOAP message */
   void set_namespaces(void);
  public:
-  // Prepare for creation of new WSRP request/response
+  /** Constructor - prepares object for creation of new WSRP request/response/fault */
   WSRP(bool fault = false,const std::string& action = "");
-  // Acquire presented SOAP tree as one of WS-RP requests/responses.
-  // Actual check for validity of structure is done by derived class.
+  /** Constructor - creates object out of supplied SOAP tree.
+    It does not check if 'soap' represents valid WS-ResourceProperties structure.
+    Actual check for validity of structure has to be done by derived class. */
   WSRP(SOAPMessage& soap,const std::string& action = "");
   ~WSRP(void) { if(allocated_) delete &soap_; };
-  // Check if instance is valid
+  /** Returns true if instance is valid */
   operator bool(void) { return valid_; };
-  // Direct access to underlying SOAP element
+  /** Direct access to underlying SOAP element */
   SOAPMessage& SOAP(void) { return soap_; };
 };
 
 
 // ==================== Faults ================================
 
+/** Base class for all WS-ResourceProperties faults */
 class WSRPBaseFault: public WSRP {
  public:
+  /** Constructor - creates object out of supplied SOAP tree. */
   WSRPBaseFault(SOAPMessage& soap);
+  /** Constructor - creates new WSRP fault */
   WSRPBaseFault(void);
   virtual ~WSRPBaseFault(void);
 };
@@ -42,9 +51,12 @@ class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
    virtual ~WSRPInvalidResourcePropertyQNameFault(void) { };
 };
 
+/** Base class for WS-ResourceProperties faults which contain ResourcePropertyChangeFailure */
 class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
  public:
+  /** Constructor - creates object out of supplied SOAP tree. */
    WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPBaseFault(soap) { };
+  /** Constructor - creates new WSRP fault */
    WSRPResourcePropertyChangeFailure(void) { };
    virtual ~WSRPResourcePropertyChangeFailure(void) { };
    XMLNode CurrentProperties(bool create = false);
