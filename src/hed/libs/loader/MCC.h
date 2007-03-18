@@ -2,6 +2,7 @@
 #define __ARC_MCC_H__
 
 #include "common/ArcConfig.h"
+#include "../../Message.h"
 
 namespace Arc {
 
@@ -10,7 +11,7 @@ class MCC
     public:
         MCC(Arc::Config *cfg) { };
         virtual ~MCC(void) { };
-        virtual void request(void) { };
+        virtual Message request(Message) { };
 };
 
 } // namespace Arc
