@@ -6,13 +6,14 @@
 
 namespace Arc {
 
-// Combining MessagePayload with SOAPMessage
+/** This class combines MessagePayload with SOAPMessage to make 
+  it possible to pass SOAP messages through MCC chain */
 class PayloadSOAP: public MessagePayload, public SOAPMessage {
  public:
-  // Create payload from SOAP message
+  /** Constructor - creates Message payload from SOAP message */
   PayloadSOAP(const SOAPMessage& soap);
-  // Create SOAP message from payload (PayloadRaw and derived classes
-  // are supported).
+  /** Constructor - creates SOAP message from payload.
+    PayloadRawInterface and derived classes are supported. */
   PayloadSOAP(const MessagePayload& source);
   virtual ~PayloadSOAP(void);
 };
