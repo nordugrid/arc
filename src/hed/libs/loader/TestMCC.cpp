@@ -18,7 +18,7 @@ TestMCC::~TestMCC(void)
     std::cout << "Destroy: TestMCC " << std::endl;
 }
 
-void TestMCC::request(void)
+Arc::Message TestMCC::request(Arc::Message)
 {
 	std::cout << "request: TestMCC" << std::endl;
     std::cout << "private variable: " << a << std::endl; 

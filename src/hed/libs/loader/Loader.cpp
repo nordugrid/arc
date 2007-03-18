@@ -111,7 +111,7 @@ void Loader::bootstrap(void)
         // Get new instance of MCC object from the factory 
         MCC *mcc = it->second->get_instance(mcc_conf[it->first]);
         printf("MCC: %p\n");
-        mcc->request();
+        mcc->request(Message());
     }
 
     /* for all MessageChainComponent in Config create MCCFactory and  
