@@ -106,8 +106,8 @@ int PayloadRaw::BufferSize(int num) const {
 
 const char* ContentFromPayload(const MessagePayload& payload) {
   try {
-    const PayloadRaw& buffer = dynamic_cast<const PayloadRaw&>(payload);
-    return ((PayloadRaw&)buffer).Content();
+    const PayloadRawInterface& buffer = dynamic_cast<const PayloadRawInterface&>(payload);
+    return ((PayloadRawInterface&)buffer).Content();
   } catch(std::exception& e) { };
   return "";
 }

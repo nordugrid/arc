@@ -7,42 +7,50 @@
 
 namespace Arc {
 
-// Virtual interface for managing main part of content
+/** Virtual interface for managing arbitrarily accessible Message payload.
+  This class implements memory-resident or memory-mapped content made 
+  of optionally multiple chunks/buffers. 
+  This calss is purely virtual. */
 class PayloadRawInterface: public MessagePayload {
  public:
   PayloadRawInterface(void) { };
   virtual ~PayloadRawInterface(void) { };
-  // Get byte at specified position
+  /** Returns content of byte at specified position. Specified position 'pos' 
+    is treated as global one and goes through all buffers placed one 
+    after another. */  
   virtual char operator[](int pos) const = 0;
-  // Get pointer to content at pos. By default to main part.
+  /** Get pointer to buffer content at global position 'pos'. By default to
+    beginning of main buffer whatever that means. */
   virtual char* Content(int pos = -1) = 0;
-  // Cumulative length of all records
+  /** Returns cumulative length of all buffers */
   virtual int Size(void) const = 0;
-  // Create a place for new record (filled with 0)
+  /**  Create new buffer at global position 'pos' of size 'size'. */
   virtual char* Insert(int pos = 0,int size = 0) = 0;
-  // Acquire s as part object. It won't be freed. 
-  // If size == 0 s is expected to be null-terminated
+  /** Create new buffer at global position 'pos' of size 'size'.
+    Created buffer is filled with content of memory at 's'.
+    If 'size' is 0 aontent at 's' is expected to be null-terminated. */
   virtual char* Insert(const char* s,int pos = 0,int size = 0) = 0;
-  // Pointer to num'th buffer.
+  /** Returns pointer to num'th buffer */
   virtual char* Buffer(int num) = 0;
-  // Length of num'th record.
+  /** Returns length of num'th buffer */
   virtual int BufferSize(int num) const = 0;
 };
 
-// Raw byte multi-buffer. Direct implementation of 
-// PayloadRawInterface
+/** Implementation of PayloadRawInterface - raw byte multi-buffer. */ 
 class PayloadRaw: public PayloadRawInterface {
  public:
   typedef struct {
-    char* data;
-    int size;
-    int length;
-    bool allocated;
+    char* data;     /** pointer to buffer in memory */
+    int size;       /** size of allocated mmemory */
+    int length;     /** size of used memory - size of buffer */
+    bool allocated; /** true if memory has to free by destructor */
   } Buf;
  protected:
-  std::vector<Buf> buf_;
+  std::vector<Buf> buf_; /** List of handled buffers. */
  public:
+  /** Constructor. Created object contains no buffers. */
   PayloadRaw(void) { };
+  /** Destructor. Frees allocated buffers. */
   virtual ~PayloadRaw(void);
   virtual char operator[](int pos) const;
   virtual char* Content(int pos = -1);
@@ -53,6 +61,8 @@ class PayloadRaw: public PayloadRawInterface {
   virtual int BufferSize(int num = 0) const;
 };
 
+/** Returns pointer to main buffer of Message payload. 
+  NULL if no buffer is present or if payload is not of PayloadRawInterface type. */ 
 const char* ContentFromPayload(const MessagePayload& payload);
 
 } // namespace Arc
