@@ -1,0 +1,49 @@
+Security, Authentication, Authorization
+
+Summary and application to HED infrastructure
+
+Authorization and authentication are based on Security Assertions (SA).
+
+SAs are structures which contain information about properties of  communicating endpoint.
+SAs are not only about authentication, they may also carry some preliminary authorization decisions.
+Strictly speking it is difficult to put exact border between authentication and authorization - so let's 
+not try to do that.
+Examples of SAs:
+  Distinguished Name is /O=Grid/CN=Good User   
+  VOMS Server /O=Grid/CN=voms/cern.ch says "VO=Atlas, Group=Users, Role=Tester"
+  PDP server /O=Grid/VO=Alice/CN=pdp/cern.ch says "srm://atlas.tier1.nbi.dk/fie1 access right read-only"
+
+SAs are represented internally in HED by using own structures probably derived  from SAML - but preferably 
+ not XML trees. SAs are attached to Message structure and being passed through chain.
+
+Each HED MCC may add own SAs to Message which are specific to protocol it processes.
+Example:
+  HTTP MCC may add assertion "HTTP auth = user:password".
+
+Each HED MCC may call other Security Plugins (SP) specified in configuration to generate/extracrt and add more assertions. 
+Example:
+ TLS MCC may call VOMS plugin to extract VOMS attributes from presented user certificates
+  SOAP plugin may call WS-Security plugin to add SAs representing authorization assertions passed as part 
+of SOAP message.
+
+There must be Policy Decision Point (PDP) functionality (PDPF) in security part of HED (probably presented as a function)
+which if provided with SAs, description of operations (DO) and reference to configuration would produce an
+authorization decision.
+
+PDPF is a common interface point which branches into various implementaions depending on configuration supplied.
+Various functionalities should be represented by plugins (some very basic ones may be integrated too).
+Examples:
+  Processing DN of user against grid-mapfile - for legacy.
+  Processing local XACML document 
+  
+
+PDPF not necessary returns "yes or no" decision. It may as well return SAs which will be processed later by another 
+call to PDPF. That means PDPF may also be used for gathering additional SAs. For example: to check if user belongs
+to particular VO in old-fashioned LDAP way.
+
+Each MCC may (but preferably Services should) call PDPF. 
+
+Common dictionary of SAs and DOs is an important point for interoperability. Probably one of SPs task would be to
+convert implementation specific information to common dictionary.
+
+
