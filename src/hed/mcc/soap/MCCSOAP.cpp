@@ -37,7 +37,7 @@ static Message make_soap_fault(Message basemsg,const char* desc = NULL) {
   return msg;
 }
 
-Message MCCSOAP::request(Message inmsg) {
+Message MCCSOAP::process(Message inmsg) {
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
   if(!inpayload) return make_soap_fault(inmsg);
@@ -49,7 +49,7 @@ Message MCCSOAP::request(Message inmsg) {
   nextmsg.Payload(&nextpayload);
   // Call next MCC 
   if(!next_) return make_soap_fault(inmsg);
-  Message retmsg = next_->request(nextmsg); 
+  Message retmsg = next_->process(nextmsg); 
   // Do checks and extract SOAP response
   if(!retmsg.Payload()) return make_soap_fault(inmsg);
   PayloadSOAP* retpayload = NULL;
