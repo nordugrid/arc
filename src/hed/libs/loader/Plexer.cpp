@@ -15,9 +15,9 @@ Plexer::~Plexer(void)
 {
 }
 
-void Plexer::request(void)
+void Plexer::process(void)
 {
-    std::cout << "Plexer: request" << std::endl;
+    std::cout << "Plexer: process" << std::endl;
 
 }
 

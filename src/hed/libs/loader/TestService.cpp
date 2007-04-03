@@ -18,9 +18,9 @@ TestService::~TestService(void)
     std::cout << "Destroy: TestService " << std::endl;
 }
 
-void TestService::request(void)
+void TestService::process(void)
 {
-	std::cout << "request: TestService" << std::endl;
+	std::cout << "process: TestService" << std::endl;
     std::cout << "private variable: " << a << std::endl; 
 }
 

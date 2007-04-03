@@ -12,7 +12,7 @@ class TestMCC : public Arc::MCC
     public:
         TestMCC(Arc::Config *cfg);
         ~TestMCC();
-        Arc::Message request(Arc::Message);
+        Arc::Message process(Arc::Message);
 };
 
 }; // namespace Test

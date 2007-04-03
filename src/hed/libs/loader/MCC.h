@@ -11,7 +11,7 @@ class MCC
     public:
         MCC(Arc::Config *cfg) { };
         virtual ~MCC(void) { };
-        virtual Message request(Message) { };
+        virtual Message process(Message) { };
 };
 
 } // namespace Arc

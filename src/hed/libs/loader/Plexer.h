@@ -15,7 +15,7 @@ class Plexer: public MCC {
     public:
         Plexer(Arc::Config *cfg);
         ~Plexer(void);
-        void request(void);
+        void process(void);
 };
 
 } // namespace Arc

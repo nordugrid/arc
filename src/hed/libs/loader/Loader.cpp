@@ -104,14 +104,14 @@ void Loader::bootstrap(void)
 
     /* Get Message chains */
     // config_container_t mcs_conf = get_message_chain_confs();
-    /* Load mccs and call request function of them */
+    /* Load mccs and call process function of them */
     for (mcc_container_t::iterator it = mccs.begin();
          it != mccs.end(); it++) {
         std::cout << "Bootstrap: " << it->first << std::endl;
         // Get new instance of MCC object from the factory 
         MCC *mcc = it->second->get_instance(mcc_conf[it->first]);
         printf("MCC: %p\n");
-        mcc->request(Message());
+        mcc->process(Message());
     }
 
     /* for all MessageChainComponent in Config create MCCFactory and  

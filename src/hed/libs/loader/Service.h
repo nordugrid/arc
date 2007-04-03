@@ -10,7 +10,7 @@ class Service
     public:
         Service(Arc::Config *cfg) { };
         virtual ~Service(void) { };
-        virtual void request(void) { };
+        virtual void process(void) { };
 };
 
 } // namespace Arc
