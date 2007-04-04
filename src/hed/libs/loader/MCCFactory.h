@@ -10,18 +10,19 @@ namespace Arc {
 /** This class handles shared libraries containing MCCs */
 class MCCFactory: public ModuleManager {
     private:
-        // Name of MCC
-        std::string mcc_name;
+        typedef std::list<mcc_descriptor> descriptors_t;
+        descriptors_t descriptors_;
     public:
-        /** Constructor - accepts name of module containing MCC 
-          and configuration (not used) meant to tune loading of module. */
-        MCCFactory(std::string name, Arc::Config *cfg);
+        /** Constructor - accepts  configuration (not yet used) meant to tune loading of modules. */
+        MCCFactory(Config *cfg);
         ~MCCFactory();
         /** This method loads shared library named lib'name', locates symbol
           representing descriptor of MCC and calls it's constructor function. 
           Supplied configuration tree is passed to constructor.
           Returns created MCC instance. */
-        Arc::MCC *get_instance(Arc::Config *cfg);
+        MCC *get_instance(const std::string& name,Arc::Config *cfg);
+        MCC *get_instance(const std::string& name,int version,Arc::Config *cfg);
+        MCC *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
 };
 
 }; // namespace Arc

@@ -32,7 +32,11 @@ Arc::MCC *get_mcc_instance(Arc::Config *cfg)
 }; // namespace Test
 
 /* MCC plugin descriptor */
-mcc_descriptor descriptor = {
-    0,                        /* version */
-    Test::get_mcc_instance    /* get_instance function */
+mcc_descriptor __arc_mcc_modules__[] = {
+    {
+        "Test",                   /* name */
+        0,                        /* version */
+        Test::get_mcc_instance    /* get_instance function */
+    },
+    { NULL, 0, NULL }
 };
