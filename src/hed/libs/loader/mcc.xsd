@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  elementFormDefault="qualified">
+  
+    <xsd:complexType name="next_Type">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="id" type="xsd:string" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="next" type="next_Type"/>
+
+    <xsd:complexType name="Component_Type">
+        <!--
+             This element defines MCC plugin. Required attribute 'name' specifies name of 
+            plugin as defined in MCC description. Optional attribute 'id' assigns identifier
+            which is used to refer to this element from others. If not specified it will be
+            assigned automatically. Sub-elements 'next' refer to next components in a chain 
+            through their attribute 'id' and their content represent assigned component-specific 
+            label. If attribute 'id' is missing all 'next' refer to next component in document.
+            If 'next' is missing one label-less 'next' is assigned automatically. Rest elements
+            define component-specific configuration.
+        -->
+        <xsd:sequence>
+            <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="Component" type="Component_Type"/>
+
+    <xsd:complexType name="Plexer_Type">
+        <xsd:sequence>
+        <!--
+             This element is a Plexer. Optional attribute 'id' assigns identifier
+            which is used to refer to this element from others. If not specified it will be
+            assigned automatically. Sub-elements 'next' refer to next components in a chain and
+            their content represent requested endpoints. If attributes 'id' are missing from 
+            'next' then those refer to next components in document sequentially.
+        -->
+            <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="Plexer" type="Plexer_Type"/>
+    
+    <xsd:complexType name="Service_Type">
+        <!--
+             This element represents a service - last compnent in a chain. Required attribute 'name' 
+            specifies name of plugin as defined in Service description. Optional attribute 'id' 
+            assigns identifier which is used to refer to this element from others. If not specified 
+            it will be assigned automatically. Rest elements define service-specific configuration.
+        -->
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="Service" type="Service_Type"/>
+
+    <xsd:complexType name="Chain_Type">
+        <!--
+             This element is not required and does affect chains directly. It's purpose
+            is to group multiple components logically mostly for readability purpose.
+        -->
+        <xsd:sequence>
+            <xsd:element ref="Chain"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Component" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Plexer"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Service"   minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Chain" type="Chain_Type"/>
+
+    <xsd:complexType name="ArcConfig_Type">
+        <!--
+             This is a top level element of ARC configuration document.
+        -->
+        <xsd:sequence>
+            <xsd:element ref="Chain"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Component" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Plexer"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Service"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="ArcConfig" type="ArcConfig_Type"/>
+</xsd:schema>
+
