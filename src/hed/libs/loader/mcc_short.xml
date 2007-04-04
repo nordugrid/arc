@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
+    <Chain>
+        <Component name="tcp">
+            <port>80</port>
+        </Component>
+        <Component name="http">
+            <next>GET</next>
+            <next>PUT</next>
+            <next>HEAD</next>
+            <next>POST</next>
+        </Component>
+        <Plexer>
+            <next>/service1</next>
+            <next>/service2</next>
+        </Plexer>
+        <Service name="file_service">
+            <root>/tmp</root>
+        </Service>
+        <Chain>
+            <Component name="soap">
+            </Component>
+            <Service name="arex">
+                <gmconfig>/etc/arc.conf</gmconfig>
+            </Service>
+        </Chain>
+    <Chain>
+</ArcConfig>
