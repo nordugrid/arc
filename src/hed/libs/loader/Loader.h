@@ -4,30 +4,38 @@
 #include <string>
 #include <map>
 #include "common/ArcConfig.h"
+#include "MCC.h"
 #include "MCCFactory.h"
+#include "Service.h"
 #include "ServiceFactory.h"
+#include "Plexer.h"
 
 namespace Arc {
 
-typedef std::map<std::string, Arc::Config *> config_container_t; 
-typedef std::map<std::string, Arc::MCCFactory *> mcc_container_t;
-typedef std::map<std::string, Arc::ServiceFactory *> service_container_t;
-        // std::list<Arc::MessageChain &> chains;
+
+
 
 class Loader 
 {
+    public:
+        typedef std::map<std::string, MCC *>     mcc_container_t;
+        typedef std::map<std::string, Service *> service_container_t;
+        typedef std::map<std::string, Plexer *>  plexer_container_t;
+
     private:
-        Arc::Config *config;
-        mcc_container_t mccs;
-        service_container_t services;
-        config_container_t get_mcc_confs(void);
-        config_container_t get_service_confs(void);
-        config_container_t get_message_chain_confs(void);
+        ServiceFactory *service_factory;
+        MCCFactory *mcc_factory;
+        //PlexerFactory *plexer_factory;
+
+        mcc_container_t     mccs_;
+        service_container_t services_;
+        plexer_container_t  plexers_;
+
+        void make_elements(Config *cfg);
 
     public:
-        Loader(Arc::Config *cfg);
+        Loader(Config *cfg);
         ~Loader(void);
-        void bootstrap(void);
 };
 
 }

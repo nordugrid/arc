@@ -42,7 +42,7 @@ class MCC: public MCCInterface
 
 } // namespace Arc
 
-/** This structure describes on of MCCs stored in shared library.
+/** This structure describes set of MCCs stored in shared library.
   It contains name of plugin, version number and pointer to function which 
   creates an instance of object inherited from MCC class. */
 typedef struct {

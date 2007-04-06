@@ -58,8 +58,7 @@ MCC *MCCFactory::get_instance(const std::string& name,int min_version,int max_ve
     }
     if(i == descriptors_.end()) return NULL;
     mcc_descriptor &descriptor = *i;
-    std::cout << "MCC: " << descriptor.name << std::endl;
-    std::cout << "Version: " << descriptor.version << std::endl;
+    std::cout << "MCC: " << descriptor.name << " version: " << descriptor.version << std::endl;
     if (descriptor.get_instance == NULL) {
         std::cerr << "Missing init function" << std::endl;
         return NULL;

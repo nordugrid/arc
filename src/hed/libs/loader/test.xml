@@ -1,29 +1,29 @@
 <?xml version="1.0"?>
-<ArcConfig>
-    <Services>
-        <Service name="testservice">
-            <Config1>Value2</Config1>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
+    <Chain>
+        <Component name="testmcc" id="mcc1">
+            <next id="mcc2"/>
+        </Component>
+        <Component name="testmcc" id="mcc2">
+            <next id="mcc3">GET</next>
+            <next id="mcc3">PUT</next>
+            <next id="mcc3">HEAD</next>
+            <next id="mcc3">POST</next>
+        </Component>
+        <Plexer id="mcc3">
+            <next id="mcc4">/service1</next>
+            <next id="mcc5">/service2</next>
+        </Plexer>
+        <Service name="testservice" id="mcc4">
+            <root>/tmp</root>
         </Service>
-    </Services>
-    <Communication>
-        <MessageChainComponent name="testmcc">
-            <Config1>Value1</Config1>
-        </MessageChainComponent>
-        <MessageChain name="normalChain">
-            <Component name="none">
-                <Next name="default">testmcc</Next>
+        <Chain>
+            <Component name="testmcc" id="mcc5">
+                <next id="mcc6"/>
             </Component>
-            <Component name="http">
-                <Next name="default">plexer</Next>
-            </Component>
-        </MessageChain>
-    </Communication>
-    <Plexer>
-        <Chain name="normalChain">
-            <EndPointReference>
-                <ServiceModule>testservice</ServiceModule>
-                <URL>echo</URL>
-            </EndPointReference>
+            <Service name="testservice" id="mcc6">
+            </Service>
         </Chain>
-    </Plexer>
+    </Chain>
 </ArcConfig>
+

@@ -32,7 +32,12 @@ Arc::Service *get_service_instance(Arc::Config *cfg)
 }; // namespace Test
 
 /* Service plugin descriptor */
-service_descriptor descriptor = {
-    0,                            /* version */
-    Test::get_service_instance    /* get_instance function */
+service_descriptor __arc_service_modules__[] = {
+    {
+        "testservice",              /* name */
+        0,                          /* version */
+        Test::get_service_instance  /* get_instance function */
+    },
+    { NULL, 0, NULL }
 };
+

@@ -10,18 +10,19 @@ namespace Arc {
 /** This class handles shared libraries containing Services */
 class ServiceFactory: public ModuleManager {
     private:
-        // Name of service
-        std::string service_name;
+        typedef std::list<service_descriptor> descriptors_t;
+        descriptors_t descriptors_;
     public:
-        /** Constructor - accepts name of module containing Service 
-          and configuration (not used) meant to tune loading of module. */
-        ServiceFactory(std::string name, Arc::Config *cfg);
+        /** Constructor - accepts configuration (not yet used) meant to tune loading of module. */
+        ServiceFactory(Arc::Config *cfg);
         ~ServiceFactory();
         /** This method loads shared library named lib'name', locates symbol
           representing descriptor of Service and calls it's constructor function. 
           Supplied configuration tree is passed to constructor.
           Returns created Service instance. */
-        Arc::Service *get_instance(Arc::Config *cfg);
+        Service *get_instance(const std::string& name,Arc::Config *cfg);
+        Service *get_instance(const std::string& name,int version,Arc::Config *cfg);
+        Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
 };
 
 }; // namespace Arc
