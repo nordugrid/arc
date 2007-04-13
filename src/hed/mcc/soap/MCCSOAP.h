@@ -5,13 +5,19 @@
 
 namespace Arc {
 
-class MCCSOAP: public MCC
+class MCC_SOAP_Service: public MCC
 {
-    private:
-        MCC* next_;
     public:
-        MCCSOAP(Arc::Config *cfg);
-        virtual ~MCCSOAP(void);
+        MCC_SOAP_Service(Arc::Config *cfg);
+        virtual ~MCC_SOAP_Service(void);
+        virtual MCC_Status process(Message&,Message&);
+};
+
+class MCC_SOAP_Client: public MCC
+{
+    public:
+        MCC_SOAP_Client(Arc::Config *cfg);
+        virtual ~MCC_SOAP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };
 
