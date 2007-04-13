@@ -12,7 +12,7 @@ class TestService : public Arc::Service
     public:
         TestService(Arc::Config *cfg);
         ~TestService();
-        virtual Arc::Message process(Arc::Message msg);
+        virtual Arc::MCC_Status process(Arc::Message& request,Arc::Message& response);
 };
 
 }; // namespace Test
