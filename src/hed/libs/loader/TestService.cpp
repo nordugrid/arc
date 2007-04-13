@@ -18,7 +18,7 @@ TestService::~TestService(void)
     std::cout << "Destroy: TestService " << std::endl;
 }
 
-void TestService::process(void)
+Arc::Message TestService::process(Arc::Message msg)
 {
 	std::cout << "process: TestService" << std::endl;
     std::cout << "private variable: " << a << std::endl; 

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "TestMCC.h"
+#include "MCCLoader.h"
 
 namespace Test {
 

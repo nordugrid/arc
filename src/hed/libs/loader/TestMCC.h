@@ -1,7 +1,7 @@
 #ifndef __ARC_TESTMCC_H__
 #define __ARC_TESTMCC_H__
 
-#include "MCC.h"
+#include "../../mcc/MCC.h"
 
 namespace Test {
 

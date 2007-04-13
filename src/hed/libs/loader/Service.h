@@ -2,7 +2,7 @@
 #define __ARC_Service_H__
 
 #include "common/ArcConfig.h"
-#include "MCC.h"
+#include "../../mcc/MCC.h"
 
 namespace Arc {
 

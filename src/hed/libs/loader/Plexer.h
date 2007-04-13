@@ -5,7 +5,7 @@
 #include <string>
 
 #include "common/ArcConfig.h"
-#include "MCC.h"
+#include "../../mcc/MCC.h"
 
 namespace Arc {
 
