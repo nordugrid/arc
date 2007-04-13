@@ -14,5 +14,11 @@ void MCC::Next(MCCInterface* next,const std::string& label) {
     };
 }
 
+MCCInterface* MCC::Next(const std::string& label) {
+    std::map<std::string,MCCInterface*>::iterator n = next_.find(label);
+    if(n == next_.end()) return NULL;
+    return n->second;
+}
+
 }; // namespace Arc
 

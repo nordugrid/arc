@@ -46,7 +46,7 @@ class MCCInterface
           of the request when the method returns.
           \return An object representing the status of the call.
         */
-        virtual  Message process(Message& request, Message& response)  = 0;
+        virtual  MCC_Status process(Message& request, Message& response)  = 0;
 };
 
 /** Message Chain Component - base class for every MCC plugin.
@@ -60,6 +60,7 @@ class MCC: public MCCInterface
           Each implemented MCC must call process() metthod of corresponding MCCInterface
          from this set in own process() method. */
         std::map<std::string,MCCInterface*> next_;
+        MCCInterface* Next(const std::string& label = "");
     public:
         /** Example contructor - MCC takes at least it's configuration subtree */
         MCC(Arc::Config *cfg) { };
