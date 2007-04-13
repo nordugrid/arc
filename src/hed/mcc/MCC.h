@@ -56,12 +56,17 @@ class MCCInterface
 class MCC: public MCCInterface
 {
     protected:
+        /** Set of labeled "next" components. 
+          Each implemented MCC must call process() metthod of corresponding MCCInterface
+         from this set in own process() method. */
         std::map<std::string,MCCInterface*> next_;
     public:
         /** Example contructor - MCC takes at least it's configuration subtree */
         MCC(Arc::Config *cfg) { };
         virtual ~MCC(void) { };
-        /** Add reference to next MCC in chain */
+        /** Add reference to next MCC in chain.
+          This method is called by Loader for every potentially labeled link to next 
+         component which implements MCCInterface.  */
         virtual void Next(MCCInterface* next,const std::string& label = "");
         /** Dummy Message processing method. Just a placeholder. */
         virtual  MCC_Status process(Message& request, Message& response) { return MCC_Status(-1); };
