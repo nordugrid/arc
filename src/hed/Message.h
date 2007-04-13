@@ -23,15 +23,49 @@ class MessagePayload {
 };
 
 /** Message is passed through chain of MCCs. 
-  It is going to contain main content (payload), authentication/authorization 
-  information, attributes, etc. */
+  It refers to objects with main content (payload), authentication/authorization 
+ information and common purpose attributes. Message class does not manage pointers
+ to objects and theur content. it only serves for grouping those objects.
+  Message objects are supposed to be processed by objects' implementing 
+ MCCInterface method process(). All objects constituting content of Message object 
+ are subject to following policies:
+
+  1. All objects created inside call to process() method using new command must 
+     be explicitely destroyed within same call using delete command  with 
+     following exceptions.
+   a) Objects which are assigned to 'response' Message.
+   b) Objects whose management is completely acquired by objects assigned to 
+      'response' Message.
+
+  2. All objects not created inside call to process() method are not explicitely
+     destroyed within that call with following exception.
+   a) Objects which are part of 'response' Method returned from call to next's 
+      process() method. Unless those objects are passed further to calling
+      process(), of course.
+
+  3. It is not allowed to make 'response' point to same objects as 'request' does
+     on entry to process() method. That is needed to avoid double destruction of
+     same object. (Note: if in a future such need arises it may be solved by storing
+     additional flags in Message object).
+
+  4. It is allowed to change content of pointers of 'request' Message. Calling 
+     process() method mus tnot rely on that object to stay intact.
+
+  5. Called process() method should either fill 'response' Message with pointers to 
+     valid objects or to keep them intact. This makes it possible for calling 
+     process() to preload 'response' with valid error message.
+*/
 class Message {
  private:
   MessagePayload* payload_; /** Main content of message */
-  MessageAuth* auth_; /** Auth. related information */
+  MessageAuth* auth_; /** Authentication and authorization related information */
   MessageAttr* attr_; /** Various useful attributes */
  public:
+  /** Dummy constructor */
   Message(void):payload_(NULL),auth_(NULL),attr_(NULL) { };
+  /** Copy constructor. Ensures shallow copy. */
+  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attr_(msg.attr_) { };
+  /** Destructor does not affect refered objects */
   ~Message(void) { };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
