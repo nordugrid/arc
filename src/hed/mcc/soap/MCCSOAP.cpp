@@ -2,6 +2,7 @@
 #include "../../SOAPMessage.h"
 #include "../../PayloadSOAP.h"
 #include "../../../libs/common/XMLNode.h"
+#include "../../libs/loader/Loader.h"
 
 #include "MCCSOAP.h"
 
@@ -11,6 +12,7 @@ static Arc::MCC* get_mcc_instance(Arc::Config *cfg) {
 }
 
 mcc_descriptor descriptor = {
+	"soap",
     0,
     &get_mcc_instance
 };
