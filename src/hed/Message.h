@@ -67,6 +67,8 @@ class Message {
   Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attr_(msg.attr_) { };
   /** Destructor does not affect refered objects */
   ~Message(void) { };
+  /** Assignment. Ensures shallow copy. */
+  Message& operator=(Message& msg) { payload_=msg.payload_; auth_=msg.auth_, attr_=msg.attr_; };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
   /** Replace payload with new one */
