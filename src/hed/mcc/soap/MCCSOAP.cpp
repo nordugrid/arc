@@ -28,43 +28,49 @@ MCCSOAP::~MCCSOAP(void) {
   // and nothing to destroy
 }
 
-static Message make_soap_fault(Message basemsg,const char* desc = NULL) {
-  Message msg = basemsg;
+static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
   SOAPMessage soap(XMLNode::NS(),true);
   soap.Fault()->Code(SOAPMessage::SOAPFault::Receiver);
   std::string xml; soap.GetXML(xml);
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
-  msg.Payload(payload);
-  return msg;
+  outmsg.Payload(payload);
+  return MCC_Status(-1);
 }
 
-Message MCCSOAP::process(Message inmsg) {
+MCC_Status MCCSOAP::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
   if(!inpayload) return make_soap_fault(inmsg);
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
-  if(!nextpayload) return make_soap_fault(inmsg);
-  // Creating message to pass to next MCC
-  Message nextmsg = inmsg;
-  nextmsg.Payload(&nextpayload);
+  if(!nextpayload) return make_soap_fault(outmsg);
+  // Creating message to pass to next MCC and setting new payload.. 
+  // Using separate message. But could also use same inmsg.
+  // Just trying to keep intact as much as possible.
+  Message nextinmsg = inmsg;
+  nextinmsg.Payload(&nextpayload);
   // Call next MCC 
-  if(!next_) return make_soap_fault(inmsg);
-  Message retmsg = next_->process(nextmsg); 
+  MCCInterface* next = Next();
+  if(!next) return make_soap_fault(outmsg);
+  Message nextoutmsg;
+  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
-  if(!retmsg.Payload()) return make_soap_fault(inmsg);
+  if(!ret) return make_soap_fault(outmsg);
+  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg);
   PayloadSOAP* retpayload = NULL;
   try {
-    retpayload = dynamic_cast<PayloadSOAP*>(retmsg.Payload());
+    retpayload = dynamic_cast<PayloadSOAP*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) return make_soap_fault(inmsg);
-  if(!(*retpayload)) return make_soap_fault(inmsg);
-  // Convert to Raw - TODO: more effective conversion
+  if(!retpayload) return make_soap_fault(outmsg);
+  if(!(*retpayload)) return make_soap_fault(outmsg);
+  // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
   std::string xml; retpayload->GetXML(xml);
   outpayload->Insert(xml.c_str());
-  Message outmsg = retmsg;
+  outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
-  return outmsg;
+  return MCC_Status();
 }
+
+

@@ -12,7 +12,7 @@ class MCCSOAP: public MCC
     public:
         MCCSOAP(Arc::Config *cfg);
         virtual ~MCCSOAP(void);
-        virtual Message process(Message);
+        virtual MCC_Status process(Message&,Message&);
 };
 
 } // namespace Arc
