@@ -537,4 +537,104 @@ XMLNode WSRPResourcePropertyChangeFailure::RequestedProperties(bool create) {
 }
 
 
+// ============= QueryResourceProperties ==============
+
+WSRPQueryResourcePropertiesRequest::WSRPQueryResourcePropertiesRequest(SOAPMessage& soap):WSRP(soap,WSRPQueryResourcePropertiesRequestAction) {
+  if(!valid_) return;
+  if(!MatchXMLName(soap_.Child(),"wsrf-rp:QueryResourceProperties")) valid_=false;
+}
+
+WSRPQueryResourcePropertiesRequest::WSRPQueryResourcePropertiesRequest(const std::string& dialect):WSRP(false,WSRPQueryResourcePropertiesRequestAction) {
+  XMLNode req = soap_.NewChild("wsrf-rp:QueryResourceProperties");
+  if(!req) valid_=false;
+  Dialect(dialect);
+}
+
+WSRPQueryResourcePropertiesRequest::WSRPQueryResourcePropertiesRequest(void) {
+  XMLNode req = soap_.NewChild("wsrf-rp:QueryResourceProperties");
+  if(!req) valid_=false;
+}
+
+WSRPQueryResourcePropertiesRequest::~WSRPQueryResourcePropertiesRequest(void) {
+}
+  
+std::string WSRPQueryResourcePropertiesRequest::Dialect(void) {
+  if(!valid_) return "";
+  return soap_.Child()["wsrf-rp:QueryExpression"].Attribute("Dialect");
+}
+
+
+void WSRPQueryResourcePropertiesRequest::Dialect(const std::string& dialect_uri) {
+  if(!valid_) return;
+  XMLNode query = soap_.Child()["wsrf-rp:QueryExpression"];
+  if(!query) query=soap_.Child().NewChild("wsrf-rp:QueryExpression");
+  XMLNode dialect = query.Attribute("Dialect");
+  if(!dialect) dialect=query.NewAttribute("Dialect");
+  dialect=dialect_uri;
+}
+
+XMLNode WSRPQueryResourcePropertiesRequest::Query(void) {
+  XMLNode query = soap_.Child()["wsrf-rp:QueryExpression"];
+  if(!query) {
+    query=soap_.Child().NewChild("wsrf-rp:QueryExpression");
+    query.NewAttribute("Dialect");
+  };
+  return query;
+}
+
+WSRPQueryResourcePropertiesResponse::WSRPQueryResourcePropertiesResponse(SOAPMessage& soap):WSRP(soap,WSRPQueryResourcePropertiesResponseAction) {
+  if(!valid_) return;
+  if(!MatchXMLName(soap_.Child(),"wsrf-rp:QueryResourcePropertiesResponse")) valid_=false;
+}
+
+WSRPQueryResourcePropertiesResponse::WSRPQueryResourcePropertiesResponse(void):WSRP(false,WSRPQueryResourcePropertiesResponseAction) {
+  XMLNode req = soap_.NewChild("wsrf-rp:QueryResourcePropertiesResponse");
+  if(!req) valid_=false;
+}
+
+WSRPQueryResourcePropertiesResponse::~WSRPQueryResourcePropertiesResponse(void) {
+}
+
+XMLNode WSRPQueryResourcePropertiesResponse::Properties(void) {
+  if(!valid_) return XMLNode();
+  return soap_.Child();
+}
+
+WSRP& CreateWSRP(SOAPMessage& soap) {
+  XMLNode::NS ns;
+  ns["wsa"]="http://www.w3.org/2005/08/addressing";
+  ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
+  ns["wsrf-rp"]="http://docs.oasis-open.org/wsrf/rp-2";
+  ns["wsrf-rpw"]="http://docs.oasis-open.org/wsrf/rpw-2";
+  ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+  soap.Namespaces(ns);
+
+  std::string action = strip_spaces(WSAHeader(soap).Action());
+
+  if(action == WSRPBaseFaultAction) {
+
+
+  };
+  if(action == WSRPGetResourcePropertyDocumentRequestAction) return *(new WSRPGetResourcePropertyDocumentRequest(soap));
+  if(action == WSRPGetResourcePropertyDocumentResponseAction) return *(new WSRPGetResourcePropertyDocumentResponse(soap));
+  if(action == WSRPGetResourcePropertyRequestAction) return *(new WSRPGetResourcePropertyRequest(soap));
+  if(action == WSRPGetResourcePropertyResponseAction) return *(new WSRPGetResourcePropertyResponse(soap));
+  if(action == WSRPGetMultipleResourcePropertiesRequestAction) return *(new WSRPGetMultipleResourcePropertiesRequest(soap));
+  if(action == WSRPGetMultipleResourcePropertiesResponseAction) return *(new WSRPGetMultipleResourcePropertiesResponse(soap));
+  if(action == WSRPQueryResourcePropertiesRequestAction) return *(new WSRPQueryResourcePropertiesRequest(soap));
+  if(action == WSRPQueryResourcePropertiesResponseAction) return *(new WSRPQueryResourcePropertiesResponse(soap));
+  if(action == WSRPPutResourcePropertyDocumentRequestAction) return *(new WSRPPutResourcePropertyDocumentRequest(soap));
+  if(action == WSRPPutResourcePropertyDocumentResponseAction) return *(new WSRPPutResourcePropertyDocumentResponse(soap));
+  if(action == WSRPSetResourcePropertiesRequestAction) return *(new WSRPSetResourcePropertiesRequest(soap));
+  if(action == WSRPSetResourcePropertiesResponseAction) return *(new WSRPSetResourcePropertiesResponse(soap));
+  if(action == WSRPInsertResourcePropertiesRequestAction) return *(new WSRPInsertResourcePropertiesRequest(soap));
+  if(action == WSRPInsertResourcePropertiesResponseAction) return *(new WSRPInsertResourcePropertiesResponse(soap));
+  if(action == WSRPUpdateResourcePropertiesRequestAction) return *(new WSRPUpdateResourcePropertiesRequest(soap));
+  if(action == WSRPUpdateResourcePropertiesResponseAction) return *(new WSRPUpdateResourcePropertiesResponse(soap));
+  if(action == WSRPDeleteResourcePropertiesRequestAction) return *(new WSRPDeleteResourcePropertiesRequest(soap));
+  if(action == WSRPDeleteResourcePropertiesResponseAction) return *(new WSRPDeleteResourcePropertiesResponse(soap));
+  return *(new WSRP());
+}
+
+
 } // namespace Arc

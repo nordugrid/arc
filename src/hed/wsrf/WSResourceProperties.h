@@ -255,6 +255,7 @@ class WSRPSetResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 class WSRPInsertResourcePropertiesRequest: public WSRP {
+ public:
   WSRPInsertResourcePropertiesRequest(SOAPMessage& soap);
   WSRPInsertResourcePropertiesRequest(void);
   ~WSRPInsertResourcePropertiesRequest(void);
@@ -262,6 +263,7 @@ class WSRPInsertResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPInsertResourcePropertiesResponse: public WSRP {
+ public:
   WSRPInsertResourcePropertiesResponse(SOAPMessage& soap);
   WSRPInsertResourcePropertiesResponse(void);
   ~WSRPInsertResourcePropertiesResponse(void);
@@ -269,6 +271,7 @@ class WSRPInsertResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 class WSRPUpdateResourcePropertiesRequest: public WSRP {
+ public:
   WSRPUpdateResourcePropertiesRequest(SOAPMessage& soap);
   WSRPUpdateResourcePropertiesRequest(void);
   ~WSRPUpdateResourcePropertiesRequest(void);
@@ -276,6 +279,7 @@ class WSRPUpdateResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPUpdateResourcePropertiesResponse: public WSRP {
+ public:
   WSRPUpdateResourcePropertiesResponse(SOAPMessage& soap);
   WSRPUpdateResourcePropertiesResponse(void);
   ~WSRPUpdateResourcePropertiesResponse(void);
@@ -283,6 +287,7 @@ class WSRPUpdateResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 class WSRPDeleteResourcePropertiesRequest: public WSRP {
+ public:
   WSRPDeleteResourcePropertiesRequest(SOAPMessage& soap);
   WSRPDeleteResourcePropertiesRequest(const std::string& name);
   WSRPDeleteResourcePropertiesRequest(void);
@@ -292,6 +297,7 @@ class WSRPDeleteResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPDeleteResourcePropertiesResponse: public WSRP {
+ public:
   WSRPDeleteResourcePropertiesResponse(SOAPMessage& soap);
   WSRPDeleteResourcePropertiesResponse(void);
   ~WSRPDeleteResourcePropertiesResponse(void);
@@ -299,6 +305,7 @@ class WSRPDeleteResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 class WSRPQueryResourcePropertiesRequest: public WSRP {
+ public:
   WSRPQueryResourcePropertiesRequest(SOAPMessage& soap);
   WSRPQueryResourcePropertiesRequest(const std::string& dialect);
   WSRPQueryResourcePropertiesRequest(void);
@@ -309,6 +316,7 @@ class WSRPQueryResourcePropertiesRequest: public WSRP {
 };
 
 class WSRPQueryResourcePropertiesResponse: public WSRP {
+ public:
   WSRPQueryResourcePropertiesResponse(SOAPMessage& soap);
   WSRPQueryResourcePropertiesResponse(void);
   ~WSRPQueryResourcePropertiesResponse(void);
@@ -319,6 +327,12 @@ class WSRPQueryResourcePropertiesResponse: public WSRP {
 // InvalidQueryExpressionFault
 // QueryEvaluationErrorFault
 //
+
+
+// ============================================================
+
+WSRP& CreateWSRP(SOAPMessage& soap);
+
 } // namespace Arc
 
 #endif /* _ARC_WSRF_H__ */
