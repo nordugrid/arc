@@ -6,51 +6,53 @@
 
 namespace Arc {
 
+/** This class represents status of Message processing.
+  Currently it's just a placeholder for int code with 0 meaning
+ there were no errors during processing. It's methods allow
+ it to be treated as ordinary int as well.
+  The precise meaning of non-zero values and other extensions have to 
+ be decided.
+  The purpose of such object is to indicate if message was processed
+ at endpoint Service or it hasn't reached it due to error in it's 
+ path. */
+class MCC_Status {
+    protected:
+        int code_;
+    public:
+        MCC_Status(int code = 0):code_(code) { };
+        operator int(void) { return code_; };
+        MCC_Status& operator=(int code) { code_=code; return *this; };
+        operator bool(void) { return (code_ == 0); };
+        bool operator!(void) { return (code_ != 0); };
+};
+
 /** This class defines interface for communication between MCC, Service and Plexer objects.
-  Interface is made of method process() which is called by previous MCC in chain. */
+  Interface is made of method process() which is called by previous MCC in chain. 
+  For memory management policies please read description of Message class. */
 class MCCInterface
 {
     public:
-        /** Method for processing of information.
-           This method is called by previos MCC in chain.
+        /** Method for processing of requests and responses.
+           This method is called by preceeding MCC in chain when a request 
+           needs to be processed.
            This method must call similar method of next MCC in chain unless 
           any failure happens. Result returned by call to next MCC should
           be processed and passed back to previous MCC.
            In case of failure this method is expected to generate valid 
           error response and return it back to previous MCC without calling
-          the next one. */
-        virtual  Message process(Message msg)  = 0;
-/*
-    //! The method that processes an incoming request
-    *! This method is called by the preceeding MCC in a chain when an
-      incoming request needs to be processed.
-      The advantage of sending out the response through a reference
-      parameter is that no new Message object is created, as would be
-      the case if the response was sent as a return value. The problem
-      with creating new message objects is that it either involves a
-      shallow copy of the payload (which may result in memory leaks or
-      "dangling" pointers when the copy is deallocated) or a deep copy
-      of the payload (which may be an expensive operation or even
-      impossible in case of streams).
-      \param request The incoming request that needs to be processed.
-      \param response A message object that will contain the response
-      of the request when the method returns.
-      \return An object (integer) representing the status of the call,
-      zero if everything was ok and non-zero if an error occurred. The
-      precise meaning of non-zero values have to be decided.
-     *
-    virtual MCC_Status process(Message& request, Message& response) = 0;
-*/
-
-
-
+          the next one.
+          \param request The request that needs to be processed.
+          \param response A Message object that will contain the response
+          of the request when the method returns.
+          \return An object representing the status of the call.
+        */
+        virtual  Message process(Message& request, Message& response)  = 0;
 };
 
 /** Message Chain Component - base class for every MCC plugin.
   This is partialy virtual class which defines interface and common 
  functionality for every MCC plugin needed for managing of component
- in a chain.
- */
+ in a chain. */
 class MCC: public MCCInterface
 {
     protected:
@@ -61,7 +63,8 @@ class MCC: public MCCInterface
         virtual ~MCC(void) { };
         /** Add reference to next MCC in chain */
         virtual void Next(MCCInterface* next,const std::string& label = "");
-        virtual  Message process(Message msg) { return Message(); };
+        /** Dummy Message processing method. Just a placeholder. */
+        virtual  MCC_Status process(Message& request, Message& response) { return MCC_Status(-1); };
 };
 
 } // namespace Arc
