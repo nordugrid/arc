@@ -17,8 +17,8 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
 }
 
 mcc_descriptor __arc_mcc_modules__[] = {
-	{ "soap", 0, &get_mcc_service },
-    { "soap_client", 0, &get_mcc_client }
+    { "soap.service", 0, &get_mcc_service },
+    { "soap.client", 0, &get_mcc_client }
 };
 
 using namespace Arc;
@@ -78,7 +78,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     retpayload = dynamic_cast<PayloadSOAP*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
   if(!retpayload) return make_raw_fault(outmsg);
-  if(!(*retpayload)) return make_raw_fault(outmsg);
+  if(!(*retpayload)) { delete retpayload; return make_raw_fault(outmsg); };
   // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
   std::string xml; retpayload->GetXML(xml);
