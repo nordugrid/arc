@@ -35,6 +35,7 @@ static int connect_socket(const char* hostname,int port) {
 
 PayloadTCPSocket::PayloadTCPSocket(const char* hostname,int port) {
   handle_=connect_socket(hostname,port);
+  acquired_=true;
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint) {
@@ -44,10 +45,11 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint) {
   int port = atoi(hostname.c_str()+p+1);
   hostname.resize(p);
   handle_=connect_socket(hostname.c_str(),port);
+  acquired_=true;
 }
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {
-  shutdown(handle_,2);
+  if(acquired_) { shutdown(handle_,2); close(handle_); };
 }
 
 } // namespace Arc

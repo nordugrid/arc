@@ -50,10 +50,11 @@ class PayloadStream: public PayloadStreamInterface {
   int handle_;    /** Handle for operations */
   bool seekable_; /** true if lseek operation is applicable to open handle */
  public:
-  /** Constructor. Takes already open handle as argument. */
+  /** Constructor. Attaches to already open handle.
+    Handle is not managed by this class and must be closed by external code. */
   PayloadStream(int h = -1);
-  /** Destructor. Closes acquired handle. */
-  ~PayloadStream(void) { ::close(handle_); };
+  /** Destructor. */
+  virtual ~PayloadStream(void) { };
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void) { std::string buf; Get(buf); return buf; };
