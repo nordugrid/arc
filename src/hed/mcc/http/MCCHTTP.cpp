@@ -1,0 +1,140 @@
+#include "../../../libs/common/XMLNode.h"
+#include "../../PayloadRaw.h"
+#include "../../PayloadHTTP.h"
+#include "../../libs/loader/Loader.h"
+#include "../../libs/loader/MCCLoader.h"
+
+#include "MCCHTTP.h"
+
+
+static Arc::MCC* get_mcc_service(Arc::Config *cfg) {
+    return new Arc::MCC_HTTP_Service(cfg);
+}
+
+static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
+    return new Arc::MCC_HTTP_Client(cfg);
+}
+
+mcc_descriptor __arc_mcc_modules__[] = {
+    { "http.service", 0, &get_mcc_service },
+    { "http.client", 0, &get_mcc_client }
+};
+
+using namespace Arc;
+
+
+MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC(cfg) {
+}
+
+MCC_HTTP_Service::~MCC_HTTP_Service(void) {
+}
+
+MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC(cfg) {
+}
+
+MCC_HTTP_Client::~MCC_HTTP_Client(void) {
+}
+
+static MCC_Status make_http_fault(PayloadStreamInterface& stream,Message& outmsg,const char* desc = NULL) {
+  if((desc == NULL) || (*desc == 0)) desc="Bad Request";
+  PayloadHTTP outpayload(400,desc,stream);
+  outpayload.Flush();
+  // Returning empty payload because response is already sent
+  PayloadRaw* outpayload_e = new PayloadRaw;
+  outmsg.Payload(outpayload_e);
+  return MCC_Status(-1);
+}
+/*
+static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
+  PayloadHTTP* soap = new PayloadHTTP(XMLNode::NS(),true);
+  soap->Fault()->Code(HTTPMessage::HTTPFault::Receiver);
+  outmsg.Payload(soap);
+  return MCC_Status(-1);
+}
+*/
+
+
+MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
+  // Extracting payload
+  if(!inmsg.Payload()) return MCC_Status(-1);
+  PayloadStreamInterface* inpayload = NULL;
+  try {
+    inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+  } catch(std::exception& e) { };
+  if(!inpayload) return MCC_Status(-1);
+  // Converting stream payload to HTTP which also implements raw interface
+  PayloadHTTP nextpayload(*inpayload);
+  if(!nextpayload) return make_http_fault(*inpayload,outmsg);
+  // Creating message to pass to next MCC and setting new payload. 
+  Message nextinmsg = inmsg;
+  nextinmsg.Payload(&nextpayload);
+  // Call next MCC 
+  MCCInterface* next = Next();
+  if(!next) return make_http_fault(*inpayload,outmsg);
+  Message nextoutmsg;
+  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
+  // Do checks and extract raw response
+  if(!ret) return make_http_fault(*inpayload,outmsg);
+  if(!nextoutmsg.Payload()) return make_http_fault(*inpayload,outmsg);
+  PayloadRaw* retpayload = NULL;
+  try {
+    retpayload = dynamic_cast<PayloadRaw*>(nextoutmsg.Payload());
+  } catch(std::exception& e) { };
+  if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(*inpayload,outmsg); };
+  //if(!(*retpayload)) { delete retpayload; return make_http_fault(*inpayload,outmsg); };
+  // Create HTTP response from raw body content
+  // Use stream payload of inmsg to send HTTP response
+  // TODO: make it possible for HTTP paylaod to acquire Raw payload to exclude double buffering
+  PayloadHTTP* outpayload = new PayloadHTTP(200,"OK",*inpayload);
+  int l = 0;
+  for(int i = 0;;++i) {
+    char* buf = retpayload->Buffer(i);
+    if(!buf) break;
+    int bufsize = retpayload->BufferSize(i);
+    outpayload->Insert(buf,l,bufsize); l+=bufsize;
+  };
+  delete retpayload;
+  if(!outpayload->Flush()) return make_http_fault(*inpayload,outmsg);
+  delete outpayload;
+  outmsg = nextoutmsg;
+  // Returning empty payload because response is already sent
+  PayloadRaw* outpayload_e = new PayloadRaw;
+  outmsg.Payload(outpayload_e);
+  return MCC_Status();
+}
+
+MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
+/*
+  // Extracting payload
+  if(!inmsg.Payload()) return make_raw_fault(outmsg);
+  PayloadRawInterface* inpayload = NULL;
+  try {
+    inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
+  } catch(std::exception& e) { };
+  if(!inpayload) return make_raw_fault(outmsg);
+  // Converting payload to HTTP request
+  PayloadRaw nextpayload;
+  std::string xml; inpayload->GetXML(xml);
+  nextpayload.Insert(xml.c_str());
+  // Creating message to pass to next MCC and setting new payload.. 
+  Message nextinmsg = inmsg;
+  nextinmsg.Payload(&nextpayload);
+  // Call next MCC 
+  MCCInterface* next = Next();
+  if(!next) return make_soap_fault(outmsg);
+  Message nextoutmsg;
+  MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
+  // Do checks and create HTTP response
+  if(!ret) return make_soap_fault(outmsg);
+  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg);
+  MessagePayload* retpayload = nextoutmsg.Payload();
+  if(!retpayload) return make_soap_fault(outmsg);
+  PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload);
+  if(!outpayload) return make_soap_fault(outmsg);
+  if(!(*outpayload)) { delete outpayload; return make_soap_fault(outmsg); };
+  outmsg = nextoutmsg;
+  delete outmsg.Payload(outpayload);
+*/
+  return MCC_Status();
+}
+
