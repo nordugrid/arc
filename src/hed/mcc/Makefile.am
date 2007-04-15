@@ -1,4 +1,4 @@
-SUBDIRS=soap tcp
+SUBDIRS=soap tcp http
 
 noinst_LTLIBRARIES= libmcc.la
 
