@@ -58,6 +58,7 @@ AC_CONFIG_FILES([Makefile \
 		 src/hed/mcc/Makefile \
 		 src/hed/mcc/soap/Makefile \
 		 src/hed/mcc/tcp/Makefile \
+		 src/hed/mcc/http/Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
 		 doc/Makefile
