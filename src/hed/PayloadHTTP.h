@@ -17,6 +17,7 @@ namespace Arc {
   for including as payload into Message passed through MCC chains. */
 class PayloadHTTP: public PayloadRaw {
  protected:
+  bool valid_;
   PayloadStreamInterface& stream_; /** stream used to comminicate to outside */
   std::string uri_;                /** URI being contacted */
   int version_major_;              /** major number of HTTP version - must be 1 */
@@ -48,6 +49,8 @@ class PayloadHTTP: public PayloadRaw {
     HTTP message is not sent yet. */
   PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream);
   virtual ~PayloadHTTP(void);
+  virtual operator bool(void) { return valid_; };
+  virtual bool operator!(void) { return !valid_; };
 //  virtual char operator[](int pos) const;
 //  virtual char* Content(int pos = -1);
 //  virtual int Size(void) const;

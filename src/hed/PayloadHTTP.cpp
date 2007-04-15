@@ -174,18 +174,19 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):stream_(stream) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):stream_(stream),valid_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   if(!get_body()) return;
+  valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):method_(method),uri_(url),stream_(stream) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):method_(method),uri_(url),stream_(stream),valid_(true) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):code_(code),reason_(reason),stream_(stream) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):code_(code),reason_(reason),stream_(stream),valid_(true) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
