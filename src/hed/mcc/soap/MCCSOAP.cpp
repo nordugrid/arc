@@ -77,7 +77,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   try {
     retpayload = dynamic_cast<PayloadSOAP*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) return make_raw_fault(outmsg);
+  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
   if(!(*retpayload)) { delete retpayload; return make_raw_fault(outmsg); };
   // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
@@ -114,6 +114,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   MessagePayload* retpayload = nextoutmsg.Payload();
   if(!retpayload) return make_soap_fault(outmsg);
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
+  delete retpayload;
   if(!outpayload) return make_soap_fault(outmsg);
   if(!(*outpayload)) { delete outpayload; return make_soap_fault(outmsg); };
   outmsg = nextoutmsg;
