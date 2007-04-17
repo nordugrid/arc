@@ -1,5 +1,11 @@
+lib_LTLIBRARIES= libmcctcp.la
 noinst_PROGRAMS=test
 SOURCES = MCCTCP.cpp ../MCC.cpp ../../PayloadStream.cpp ../../PayloadTCPSocket.cpp ../../PayloadRaw.cpp
+
+libmcctcp_ladir=$(includedir)
+libmcctcp_la_HEADERS=MCCTCP.h
+libmcctcp_la_SOURCES=MCCTCP.cpp
+libmcctcp_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
