@@ -17,7 +17,7 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
 
 mcc_descriptor __arc_mcc_modules__[] = {
     { "http.service", 0, &get_mcc_service },
-    { "http.client", 0, &get_mcc_client }
+    { "http.client",  0, &get_mcc_client },
 };
 
 using namespace Arc;
@@ -29,12 +29,6 @@ MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC(cfg) {
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 }
 
-MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC(cfg) {
-}
-
-MCC_HTTP_Client::~MCC_HTTP_Client(void) {
-}
-
 static MCC_Status make_http_fault(PayloadStreamInterface& stream,Message& outmsg,const char* desc = NULL) {
   if((desc == NULL) || (*desc == 0)) desc="Bad Request";
   PayloadHTTP outpayload(400,desc,stream);
@@ -44,14 +38,13 @@ static MCC_Status make_http_fault(PayloadStreamInterface& stream,Message& outmsg
   outmsg.Payload(outpayload_e);
   return MCC_Status(-1);
 }
-/*
-static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
-  PayloadHTTP* soap = new PayloadHTTP(XMLNode::NS(),true);
-  soap->Fault()->Code(HTTPMessage::HTTPFault::Receiver);
-  outmsg.Payload(soap);
+
+static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
+  PayloadRaw* outpayload = new PayloadRaw;
+  if(desc) outpayload->Insert(desc,0);
+  outmsg.Payload(outpayload);
   return MCC_Status(-1);
 }
-*/
 
 
 MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
@@ -103,8 +96,18 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   return MCC_Status();
 }
 
+MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC(cfg) {
+  endpoint_=(std::string)((*cfg)["Endpoint"]);
+  method_=(std::string)((*cfg)["Method"]);
+}
+
+MCC_HTTP_Client::~MCC_HTTP_Client(void) {
+}
+
 MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
-/*
+  // Take Raw payload, add HTTP stuf by using PayloadHTTP and
+  // generate new Raw payload to pass further through chain.
+  // TODO: do not create new object - use or acqure same one.
   // Extracting payload
   if(!inmsg.Payload()) return make_raw_fault(outmsg);
   PayloadRawInterface* inpayload = NULL;
@@ -112,29 +115,41 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
     inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) return make_raw_fault(outmsg);
-  // Converting payload to HTTP request
-  PayloadRaw nextpayload;
-  std::string xml; inpayload->GetXML(xml);
-  nextpayload.Insert(xml.c_str());
+  // Making HTTP request
+  PayloadHTTP nextpayload(method_,endpoint_);
+  // Bad solution - copying buffers between payloads
+  int l = 0;
+  for(int n = 0;;++n) {
+    char* buf = inpayload->Buffer(n);
+    if(!buf) break;
+    int bufsize = inpayload->BufferSize(n);
+    if(bufsize <= 0) continue;
+    nextpayload.Insert(buf,l,bufsize);
+    l+=bufsize;
+  };
+  nextpayload.Flush();
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Call next MCC 
   MCCInterface* next = Next();
-  if(!next) return make_soap_fault(outmsg);
+  if(!next) return make_raw_fault(outmsg);
   Message nextoutmsg;
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
-  // Do checks and create HTTP response
-  if(!ret) return make_soap_fault(outmsg);
-  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg);
-  MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg);
+  // Do checks and process response - supported response so far is stream
+  // Generated result is HTTP payload with Raw interface
+  if(!ret) return make_raw_fault(outmsg);
+  if(!nextoutmsg.Payload()) return make_raw_fault(outmsg);
+  PayloadStreamInterface* retpayload = NULL;
+  try {
+    retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
+  } catch(std::exception& e) { };
+  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload);
-  if(!outpayload) return make_soap_fault(outmsg);
-  if(!(*outpayload)) { delete outpayload; return make_soap_fault(outmsg); };
+  if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
+  if(!(*outpayload)) { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
-*/
   return MCC_Status();
 }
 

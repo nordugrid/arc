@@ -15,6 +15,9 @@ class MCC_HTTP_Service: public MCC
 
 class MCC_HTTP_Client: public MCC
 {
+    protected:
+        std::string method_;
+        std::string endpoint_;
     public:
         MCC_HTTP_Client(Arc::Config *cfg);
         virtual ~MCC_HTTP_Client(void);
