@@ -1,1 +1,1 @@
-SUBDIRS=libs hed
+SUBDIRS=libs hed tests
