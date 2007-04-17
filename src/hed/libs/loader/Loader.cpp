@@ -22,9 +22,23 @@ Loader::Loader(Config *cfg)
 
 Loader::~Loader(void)
 {
-
-
-
+  // TODO: stop any processing on those MCCs or mark them for self-destruction
+  // or break links first or use semaphors in MCC destructors
+  for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();mcc_i = mccs_.begin()) {
+      MCC* mcc = mcc_i->second; 
+      mccs_.erase(mcc_i);
+      if(mcc) delete mcc;
+  };
+  for(service_container_t::iterator service_i = services_.begin();service_i != services_.end();service_i = services_.begin()) {
+      Service* service = service_i->second;
+      services_.erase(service_i);
+      if(service) delete service;
+  };
+  for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();plexer_i = plexers_.begin()) {
+      Plexer* plexer = plexer_i->second; 
+      plexers_.erase(plexer_i);
+      if(plexer) delete plexer;
+  };
 }
 
 
@@ -37,9 +51,9 @@ class mcc_connector_t {
 };
 
 std::ostream& operator<<(std::ostream& o,const mcc_connector_t& mcc) {
-  o << mcc.name;
-  o << "(" << mcc.mcc->first << ")";
-  return o;
+    o << mcc.name;
+    o << "(" << mcc.mcc->first << ")";
+    return o;
 }
 
 class plexer_connector_t {
@@ -51,16 +65,18 @@ class plexer_connector_t {
 };
 
 std::ostream& operator<<(std::ostream& o,const plexer_connector_t& plexer) {
-  o << plexer.name;
-  o << "(" << plexer.plexer->first << ")";
-  return o;
+    o << plexer.name;
+    o << "(" << plexer.plexer->first << ")";
+    return o;
 }
 
-void Loader::make_elements(Config *cfg) {
+class mcc_connectors_t: public std::list<mcc_connector_t> { };
+class plexer_connectors_t: public std::list<plexer_connector_t> { };
 
-    std::list<mcc_connector_t> mcc_connectors;
-    std::list<plexer_connector_t> plexer_connectors;
+void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connectors,plexer_connectors_t* plexer_connectors) {
 
+    if(mcc_connectors == NULL) mcc_connectors = new mcc_connectors_t;
+    if(plexer_connectors == NULL) plexer_connectors = new plexer_connectors_t;
     // 1st stage - creating all elements.
     // Configuration is parsed recursively - going deeper at ArcConfig and Chain elements
     for(int n = 0; ; ++n) {
@@ -69,12 +85,23 @@ void Loader::make_elements(Config *cfg) {
         Config cfg_(cn);
 
         if (MatchXMLName(cn, "ArcConfig")) {
-            make_elements(&cfg_);
+            make_elements(&cfg_,level+1,mcc_connectors,plexer_connectors);
             continue;
         }
 
         if (MatchXMLName(cn, "Chain")) {
-            make_elements(&cfg_);
+            make_elements(&cfg_,level+1,mcc_connectors,plexer_connectors);
+            continue;
+        }
+
+        if (MatchXMLName(cn, "Plugins")) {
+            std::string name = cn["Name"];
+            if(name.empty()) {
+                std::cerr << "Plugins element has no Name defined" << std::endl;
+                continue;
+            };
+            service_factory->load_all_instances(name);
+            mcc_factory->load_all_instances(name);
             continue;
         }
 
@@ -108,7 +135,7 @@ void Loader::make_elements(Config *cfg) {
                 mcc_connector.nexts[nid]=label;
             };
             mcc_connector.name=name;
-            mcc_connectors.push_back(mcc_connector);
+            mcc_connectors->push_back(mcc_connector);
             std::cout << "Loaded MCC " << name << "(" << id << ")" << std::endl;
             continue;
         }
@@ -132,7 +159,7 @@ void Loader::make_elements(Config *cfg) {
                 plexer_connector.nexts[nid]=label;
             };
             plexer_connector.name=name;
-            plexer_connectors.push_back(plexer_connector);
+            plexer_connectors->push_back(plexer_connector);
             std::cout << "Loaded Plexer " << name << "(" << id << ")" << std::endl;
             continue;
         }
@@ -161,11 +188,13 @@ void Loader::make_elements(Config *cfg) {
         std::cerr << "Unknown element \"" << cn.Name() << "\" - ignoring." << std::endl;
     }
 
+    if(level != 0) return;
+
     // 2nd stage - making links between elements.
 
-    // Making links form MCCs
-    for(std::list<mcc_connector_t>::iterator mcc = mcc_connectors.begin();
-                                              mcc != mcc_connectors.end(); ++mcc) {
+    // Making links from MCCs
+    for(mcc_connectors_t::iterator mcc = mcc_connectors->begin();
+                                   mcc != mcc_connectors->end(); ++mcc) {
         for(std::map<std::string, std::string>::iterator next = mcc->nexts.begin();
                                 next != mcc->nexts.end();next = mcc->nexts.begin()) {
             std::string id = next->first;
@@ -197,9 +226,9 @@ void Loader::make_elements(Config *cfg) {
             mcc->nexts.erase(next);
         }
     }
-    // Making links form Plexers
-    for(std::list<plexer_connector_t>::iterator plexer = plexer_connectors.begin();
-                                              plexer != plexer_connectors.end(); ++plexer) {
+    // Making links from Plexers
+    for(plexer_connectors_t::iterator plexer = plexer_connectors->begin();
+                                      plexer != plexer_connectors->end(); ++plexer) {
         for(std::map<std::string, std::string>::iterator next = plexer->nexts.begin();
                                next!=plexer->nexts.end();next = plexer->nexts.begin()) {
             std::string id = next->first;
@@ -231,6 +260,8 @@ void Loader::make_elements(Config *cfg) {
             plexer->nexts.erase(next);
         }
     }
+    if(mcc_connectors) delete mcc_connectors;
+    if(plexer_connectors) delete plexer_connectors;
 }
 
 } // namespace Arc

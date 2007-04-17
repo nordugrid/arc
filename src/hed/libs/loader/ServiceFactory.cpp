@@ -67,5 +67,24 @@ Arc::Service *ServiceFactory::get_instance(const std::string& name,int min_versi
     return descriptor.get_instance(cfg);
 }
 
+void ServiceFactory::load_all_instances(const std::string& libname) {
+    // Load module
+    Glib::Module *module = ModuleManager::load("lib" + libname);
+    if (module == NULL) {
+        std::cerr << "Module " << libname << " could not be loaded" << std::endl;
+        return;
+    };
+    // Identify table of Service descriptors
+    void *ptr = NULL;
+    if (!module->get_symbol(ARC_SERVICE_LOADER_ID, ptr)) {
+        //std::cerr << "Not Service plugin" << std::endl;
+        return;
+    }
+    // Copy new description to a table. TODO: check for duplicate names
+    for(service_descriptor* desc = (service_descriptor*)ptr;!ARC_SERVICE_LOADER_FINAL(*desc);++desc) {
+        descriptors_.push_back(*desc);
+    }
+}
+
 };
 

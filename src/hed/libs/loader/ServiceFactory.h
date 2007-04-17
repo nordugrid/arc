@@ -23,6 +23,7 @@ class ServiceFactory: public ModuleManager {
         Service *get_instance(const std::string& name,Arc::Config *cfg);
         Service *get_instance(const std::string& name,int version,Arc::Config *cfg);
         Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        void load_all_instances(const std::string& libname);
 };
 
 }; // namespace Arc

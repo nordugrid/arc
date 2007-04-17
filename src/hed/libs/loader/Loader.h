@@ -12,6 +12,9 @@
 
 namespace Arc {
 
+class mcc_connectors_t;
+class plexer_connectors_t;
+
 /** This class processes XML configration and creates message chains.
   Accepted configuration is defined by XML schema mcc.xsd.
   Supported components are of types MCC, Service and Plexer. MCC and 
@@ -60,7 +63,9 @@ class Loader
         /** Internal method which performs whole stuff except creation of Factories. 
           It is taken out from constructor to make it easier to reconfigure chains
           in a future. */
-        void make_elements(Config *cfg);
+        void make_elements(Config *cfg, int level = 0,
+                           mcc_connectors_t* mcc_connectors = NULL,
+                           plexer_connectors_t* plexer_connectors = NULL);
 
     public:
         /** Constructor takes whole XML configuration and creates components' chains */

@@ -5,6 +5,20 @@
   xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
   targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007"
   elementFormDefault="qualified">
+
+    <xsd:complexType name="Plugins_Type">
+        <!--
+             This element defines shared library which contains plugins to be used. 
+	    It is supposed to be used if name of library is not same as name of plugin
+	    and hence can't be located automatically.
+        -->
+        <xsd:sequence>
+	    <xsd:element name="Name" type="xsd:string">
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="Plugins" type="Plugins_Type"/>
   
     <xsd:complexType name="next_Type">
         <xsd:simpleContent>

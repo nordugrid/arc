@@ -66,5 +66,24 @@ MCC *MCCFactory::get_instance(const std::string& name,int min_version,int max_ve
     return descriptor.get_instance(cfg);
 }
 
+void MCCFactory::load_all_instances(const std::string& libname) {
+    // Load module
+    Glib::Module *module = ModuleManager::load("lib" + libname);
+    if (module == NULL) {
+        std::cerr << "Module " << libname << " could not be loaded" << std::endl;
+        return;
+    };
+    // Identify table of MCC descriptors
+    void *ptr = NULL;
+    if (!module->get_symbol(ARC_MCC_LOADER_ID, ptr)) {
+        //std::cerr << "Not MCC plugin" << std::endl;
+        return;
+    }
+    // Copy new description to a table. TODO: check for duplicate names
+    for(mcc_descriptor* desc = (mcc_descriptor*)ptr;!ARC_MCC_LOADER_FINAL(*desc);++desc) {
+        descriptors_.push_back(*desc);
+    }
+}
+
 }; // namespace Arc
 
