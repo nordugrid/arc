@@ -8,14 +8,14 @@
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Chain>
-        <Component name="tcp" id="tcp">
+        <Component name="tcp.service" id="tcp">
             <next id="http"/>
             <tcp:port>60000</tcp:port>
         </Component>
-        <Component name="http" id="http">
+        <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>
-        <Component name="soap" id="soap">
+        <Component name="soap.service" id="soap">
             <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">
