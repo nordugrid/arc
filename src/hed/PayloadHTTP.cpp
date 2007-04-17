@@ -191,6 +191,16 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterfa
   if(reason_.empty()) reason_="OK";
 }
 
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):method_(method),uri_(url),stream_(*((PayloadStreamInterface*)NULL)),valid_(true) {
+  version_major_=1; version_minor_=1;
+  // TODO: encode URI properly
+}
+
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):code_(code),reason_(reason),stream_(*((PayloadStreamInterface*)NULL)),valid_(true) {
+  version_major_=1; version_minor_=1;
+  if(reason_.empty()) reason_="OK";
+}
+
 PayloadHTTP::~PayloadHTTP(void) {
 }
 
@@ -201,51 +211,60 @@ static std::string tostring(int i) {
 }
 
 bool PayloadHTTP::Flush(void) {
-  std::string line;
+  std::string header;
+  bool to_stream = ((&stream_) != NULL);
   if(!method_.empty()) {
-    line=method_+" "+uri_+
-         " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
+    header=method_+" "+uri_+
+           " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
   } else if(code_ != 0) {
     char tbuf[256]; tbuf[255]=0;
     snprintf(tbuf,255,"HTTP/%i.%i %i",version_major_,version_minor_,code_);
-    line="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+
-         tostring(code_)+" "+reason_+"\r\n";
+    header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+
+           tostring(code_)+" "+reason_+"\r\n";
   } else {
     return false;
   };
-  if(!stream_.Put(line)) return false;
+  //if(!stream_.Put(line)) return false;
+   std::string host;
   if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
-    line.resize(0);
+    //line.resize(0);
     if(!uri_.empty()) {
       std::string::size_type p1 = uri_.find("://");
       if(p1 != std::string::npos) {
         std::string::size_type p2 = uri_.find('/',p1+3);
         if(p2 != std::string::npos) {
-          line=uri_.substr(p1+3,p2-p1-3);
+          host=uri_.substr(p1+3,p2-p1-3);
         };
       };
     };
-    line="Host: "+line+"\r\n";
-    if(!stream_.Put(line)) return false;
+    header+="Host: "+host+"\r\n";
+    //if(!stream_.Put(line)) return false;
   };
   length_=Size();
   if((method_ != "GET") && (method_ != "HEAD")) {
-    line="Content-Length: "+tostring(length_)+"\r\n";
-    if(!stream_.Put(line)) return false;
+    header+="Content-Length: "+tostring(length_)+"\r\n";
+    //if(!stream_.Put(line)) return false;
   };
   bool keep_alive = false;
   if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=true;
-  if(keep_alive) if(!stream_.Put("Connection: keep-alive\r\n")) return false;
-  if(!stream_.Put("\r\n")) return false;
-  if(length_ > 0) {
-    for(int n=0;;++n) {
-      char* tbuf = Buffer(n);
-      if(tbuf == NULL) break;
-      int lbuf = BufferSize(n);
-      if(lbuf > 0) if(!stream_.Put(tbuf,lbuf)) return false;
+  //if(keep_alive) if(!stream_.Put("Connection: keep-alive\r\n")) return false;
+  if(keep_alive) header+="Connection: keep-alive\r\n";
+  //if(!stream_.Put("\r\n")) return false;
+  header+="\r\n";
+  if(to_stream) {
+    if(!stream_.Put(header)) return false;
+    if(length_ > 0) {
+      for(int n=0;;++n) {
+        char* tbuf = Buffer(n);
+        if(tbuf == NULL) break;
+        int lbuf = BufferSize(n);
+        if(lbuf > 0) if(!stream_.Put(tbuf,lbuf)) return false;
+      };
     };
+    //if(!keep_alive) stream.Close();
+  } else {
+    Insert(header.c_str(),0,header.length());
   };
-  //if(!keep_alive) stream.Close();
   return true;
 }
 

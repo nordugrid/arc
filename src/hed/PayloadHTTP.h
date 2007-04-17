@@ -48,6 +48,10 @@ class PayloadHTTP: public PayloadRaw {
   /** Constructor - creates HTTP response to be sent through stream.
     HTTP message is not sent yet. */
   PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream);
+  /** Constructor - creates HTTP request to be rendered through Raw interface.  */
+  PayloadHTTP(const std::string& method,const std::string& url);
+  /** Constructor - creates HTTP response to be rendered through Raw interface. */
+  PayloadHTTP(int code,const std::string& reason);
   virtual ~PayloadHTTP(void);
   virtual operator bool(void) { return valid_; };
   virtual bool operator!(void) { return !valid_; };
@@ -63,7 +67,8 @@ class PayloadHTTP: public PayloadRaw {
   virtual const std::string& Attribute(const std::string& name);
   /** Sets HTTP header attribute 'name' to 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
-  /** Send created object through associated stream */
+  /** Send created object through associated stream. If there is no stream associated then
+    HTTP specific data is inserted into Raw buffers of this object. */
   virtual bool Flush(void);
 };
 
