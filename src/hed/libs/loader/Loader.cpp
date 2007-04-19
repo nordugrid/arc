@@ -122,6 +122,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 continue;
             };
             mccs_[id]=mcc;
+            std::string entry = cn.Attribute("entry");
+            if(!entry.empty()) mccs_exposed_[entry]=mcc;
             mcc_connector_t mcc_connector(mccs_.find(id));
             for(int nn = 0;;++nn) {
                 XMLNode cnn = cn["next"][nn];
@@ -263,6 +265,13 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
     if(mcc_connectors) delete mcc_connectors;
     if(plexer_connectors) delete plexer_connectors;
 }
+
+MCC* Loader::operator[](const std::string& id) {
+    mcc_container_t::iterator mcc = mccs_exposed_.find(id);
+    if(mcc != mccs_exposed_.end()) return mcc->second;
+    return NULL;
+}
+
 
 } // namespace Arc
 

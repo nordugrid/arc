@@ -54,6 +54,9 @@ class Loader
         /** Set of labeled MCC objects */
         mcc_container_t     mccs_;
 
+        /** Set of MCC objects exposed to external interface */
+        mcc_container_t     mccs_exposed_;
+
         /** Set of labeled Service objects */
         service_container_t services_;
 
@@ -72,6 +75,9 @@ class Loader
         Loader(Config *cfg);
         /** Destructor destroys all components created by constructor */
         ~Loader(void);
+        /** Access entry MCCs in chains.
+          Those are compnents exposed for external access using 'entry' attribute */
+        MCC* operator[](const std::string& id);
 };
 
 }

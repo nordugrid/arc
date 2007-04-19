@@ -9,11 +9,11 @@
     <xsd:complexType name="Plugins_Type">
         <!--
              This element defines shared library which contains plugins to be used. 
-	    It is supposed to be used if name of library is not same as name of plugin
-	    and hence can't be located automatically.
+             It is supposed to be used if name of library is not same as name of plugin
+             and hence can't be located automatically.
         -->
         <xsd:sequence>
-	    <xsd:element name="Name" type="xsd:string">
+        <xsd:element name="Name" type="xsd:string">
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
@@ -37,8 +37,10 @@
             assigned automatically. Sub-elements 'next' refer to next components in a chain 
             through their attribute 'id' and their content represent assigned component-specific 
             label. If attribute 'id' is missing all 'next' refer to next component in document.
-            If 'next' is missing one label-less 'next' is assigned automatically. Rest elements
-            define component-specific configuration.
+            If 'next' is missing one label-less 'next' is assigned automatically. Presence of 
+            attribute 'entry' exposes this MCC through Loader class interface to external code.
+            That is meant to be used in code which cretes chains dynamically like client 
+            utilities. Rest elements define component-specific configuration.
         -->
         <xsd:sequence>
             <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
@@ -46,6 +48,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="entry" type="xsd:string" use="optional"/>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
     <xsd:element name="Component" type="Component_Type"/>
