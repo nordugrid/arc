@@ -10,7 +10,7 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="http"/>
-            <tcp:port>60000</tcp:port>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>

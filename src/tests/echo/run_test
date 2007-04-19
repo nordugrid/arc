@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rm -f *.so
+cp ../../hed/mcc/*/.libs/*.so ./
+./test
