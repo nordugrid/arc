@@ -4,8 +4,11 @@ SOURCES = MCCSOAP.cpp ../../SOAPMessage.cpp ../../PayloadRaw.cpp ../../PayloadSO
 
 libmccsoap_ladir=$(includedir)
 libmccsoap_la_HEADERS=MCCSOAP.h
-libmccsoap_la_SOURCES=MCCSOAP.cpp
+libmccsoap_la_SOURCES=MCCSOAP.cpp ../../PayloadSOAP.cpp ../../SOAPMessage.cpp ../../PayloadRaw.cpp ../MCC.cpp
 libmccsoap_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+libmccsoap_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la 
+#$(top_srcdir)/src/hed/mcc/libmcc.la
+libmccsoap_la_LDFLAGS=$(LIBXML2_LIBS)
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/

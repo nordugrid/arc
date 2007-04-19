@@ -31,7 +31,7 @@ using namespace Arc;
 
 MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
     for(int i = 0;;++i) {
-        XMLNode l = (*cfg)["Listen"][0];
+        XMLNode l = (*cfg)["Listen"][i];
         if(!l) break;
         std::string port_s = l["Port"];
         if(port_s.empty()) {
