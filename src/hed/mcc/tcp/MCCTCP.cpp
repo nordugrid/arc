@@ -23,7 +23,8 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
 
 mcc_descriptor __arc_mcc_modules__[] = {
     { "tcp.service", 0, &get_mcc_service },
-    { "tcp.client", 0, &get_mcc_client }
+    { "tcp.client", 0, &get_mcc_client },
+    { NULL, 0, NULL }
 };
 
 using namespace Arc;

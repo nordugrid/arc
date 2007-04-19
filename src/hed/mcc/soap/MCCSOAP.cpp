@@ -18,7 +18,8 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
 
 mcc_descriptor __arc_mcc_modules__[] = {
     { "soap.service", 0, &get_mcc_service },
-    { "soap.client", 0, &get_mcc_client }
+    { "soap.client", 0, &get_mcc_client },
+    { NULL, 0, NULL }
 };
 
 using namespace Arc;
