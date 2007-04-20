@@ -68,18 +68,21 @@ char* PayloadRaw::Insert(int pos,int size) {
   if(bufpos != 0) {
     // Need to split buffers
     buf.size=bufref->length - bufpos;
-    buf.data=(char*)malloc(buf.size);
+    buf.data=(char*)malloc(buf.size+1);
     if(!buf.data) return NULL;
+    buf.data[buf.size]=0;
     memcpy(buf.data,bufref->data+bufpos,buf.size);
     buf.length=buf.size;
     buf.allocated=true;
     bufref->length=bufpos;
+    bufref->data[bufref->length]=0;
     ++bufref;
     bufref=buf_.insert(bufref,buf);
   };
   // Inserting between buffers
-  buf.data=(char*)malloc(size);
+  buf.data=(char*)malloc(size+1);
   if(!buf.data) return NULL;
+  buf.data[size]=0;
   buf.size=size;
   buf.length=size;
   buf.allocated=true;

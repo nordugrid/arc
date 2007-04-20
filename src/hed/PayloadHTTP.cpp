@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 
 #include "PayloadHTTP.h"
@@ -110,7 +111,7 @@ bool PayloadHTTP::read(char* buf,int& size) {
     buf+=tbuflen_; 
     int l = size-tbuflen_;
     size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
-    for(;;) {
+    for(;l;) {
       int l_ = l;
       if(!stream_.Get(buf,l_)) return (size>0);
       size+=l_; buf+=l_; l-=l_;
@@ -132,7 +133,7 @@ bool PayloadHTTP::get_body(void) {
       if((*e != ';') && (*e != 0)) { free(result); return false; };
       if(e == line.c_str()) { free(result); return false; };
       if(chunk_size == 0) break;
-      char* new_result = (char*)realloc(result,result_size+chunk_size);
+      char* new_result = (char*)realloc(result,result_size+chunk_size+1);
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
       if(!read(result+result_size,chunk_size)) { free(result); return false; };
@@ -142,7 +143,7 @@ bool PayloadHTTP::get_body(void) {
     };
   } else if(length_ >= 0) {
     if(length_ > 0) {
-      result=(char*)malloc(length_);
+      result=(char*)malloc(length_+1);
       if(!read(result,length_)) { free(result); return false; };
       result_size=length_;
     };
@@ -150,13 +151,14 @@ bool PayloadHTTP::get_body(void) {
     // Read till connection closed
     for(;;) {
       int chunk_size = 4096;
-      char* new_result = (char*)realloc(result,result_size+chunk_size);
+      char* new_result = (char*)realloc(result,result_size+chunk_size+1);
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
       if(!read(result+result_size,chunk_size)) break;
       result_size+=chunk_size;
     };
   };
+  result[result_size]=0;
   // Attach result to buffer exposed to user
   Buf b;
   b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
@@ -219,7 +221,7 @@ bool PayloadHTTP::Flush(void) {
   } else if(code_ != 0) {
     char tbuf[256]; tbuf[255]=0;
     snprintf(tbuf,255,"HTTP/%i.%i %i",version_major_,version_minor_,code_);
-    header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+
+    header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+" "+
            tostring(code_)+" "+reason_+"\r\n";
   } else {
     return false;

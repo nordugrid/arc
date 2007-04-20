@@ -1,3 +1,4 @@
+#include <iostream>
 #include <unistd.h>
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -36,6 +37,7 @@ bool PayloadStream::Get(char* buf,int& size) {
   if(l == -1) return false;
   size=l;
   if((l == 0) && (fd.revents && POLLERR)) return false;
+  // std::cerr<<"PayloadStream::Get: *"; for(int n=0;n<l;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
   return true;
 }
 
@@ -51,6 +53,7 @@ bool PayloadStream::Put(const char* buf,int size) {
   ssize_t l;
   struct pollfd fd;
   if(handle_ == -1) return false;
+  // std::cerr<<"PayloadStream::Put: *"; for(int n=0;n<size;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
   time_t start = time(NULL);
   for(;size;) {
     fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;

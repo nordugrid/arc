@@ -119,7 +119,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   if(!outpayload) return make_soap_fault(outmsg);
   if(!(*outpayload)) { delete outpayload; return make_soap_fault(outmsg); };
   outmsg = nextoutmsg;
-  delete outmsg.Payload(outpayload);
+  outmsg.Payload(outpayload);
   return MCC_Status();
 }
 

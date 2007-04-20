@@ -1,7 +1,13 @@
+lib_LTLIBRARIES=libpayload.la
 SUBDIRS=mcc libs wsrf ws-addressing
-
 noinst_PROGRAMS=test client http_test
 SOURCES = SOAPMessage.cpp PayloadRaw.cpp PayloadSOAP.cpp PayloadStream.cpp PayloadTCPSocket.cpp PayloadHTTP.cpp
+
+libpayload_ladir=$(includedir)
+libpayload_la_HEADERS=SOAPMessage.h PayloadRaw.h PayloadSOAP.h PayloadStream.h PayloadTCPSocket.h PayloadHTTP.h
+libpayload_la_SOURCES=SOAPMessage.cpp PayloadRaw.cpp PayloadSOAP.cpp PayloadStream.cpp PayloadTCPSocket.cpp PayloadHTTP.cpp
+libpayload_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+libpayload_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/

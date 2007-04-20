@@ -70,6 +70,10 @@ class PayloadHTTP: public PayloadRaw {
   /** Send created object through associated stream. If there is no stream associated then
     HTTP specific data is inserted into Raw buffers of this object. */
   virtual bool Flush(void);
+  virtual std::string Method() { return method_; };
+  virtual std::string Endpoint() { return uri_; };
+  virtual std::string Reason() { return reason_; };
+  virtual int Code() { return code_; };
 };
 
 /*

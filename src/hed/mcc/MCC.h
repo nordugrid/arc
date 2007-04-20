@@ -67,8 +67,12 @@ class MCC: public MCCInterface
         virtual ~MCC(void) { };
         /** Add reference to next MCC in chain.
           This method is called by Loader for every potentially labeled link to next 
-         component which implements MCCInterface.  */
+         component which implements MCCInterface. If next is set NULL corresponding
+         link is removed.  */
         virtual void Next(MCCInterface* next,const std::string& label = "");
+        /** Removing all links. 
+          Useful for destroying chains. */
+        virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
         virtual  MCC_Status process(Message& request, Message& response) { return MCC_Status(-1); };
 };

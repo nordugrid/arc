@@ -12,7 +12,8 @@ static Arc::Service* get_service(Arc::Config *cfg) {
 }
 
 service_descriptor __arc_service_modules__[] = {
-    { "echo", 0, &get_service }
+    { "echo", 0, &get_service },
+    { NULL, 0, NULL }
 };
 
 using namespace Echo;

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -12,14 +13,20 @@ static int connect_socket(const char* hostname,int port) {
 #ifndef _AIX
   char   buf[BUFSIZ];
   if(gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
-                                        &host,&errcode) != 0) return -1;
+                                        &host,&errcode) != 0) {
 #else
   struct hostent_data buf[BUFSIZ];
   if((errcode=gethostbyname_r(hostname,
-                                  (host=&hostbuf),buf)) != 0) return -1;
+                                  (host=&hostbuf),buf)) != 0) {
 #endif
+    std::cerr << "Failed to resolve " << hostname << std::endl;
+    return -1;
+  };
   if( (host->h_length < sizeof(struct in_addr)) ||
-      (host->h_addr_list[0] == NULL) ) return -1;
+      (host->h_addr_list[0] == NULL) ) {
+    std::cerr << "Failed to resolve " << hostname << std::endl;
+    return -1;
+  };
   struct sockaddr_in addr;
   memset(&addr,0,sizeof(addr));
   addr.sin_family=AF_INET;
@@ -28,6 +35,7 @@ static int connect_socket(const char* hostname,int port) {
   int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
   if(s==-1) return -1;
   if(::connect(s,(struct sockaddr *)&addr,sizeof(addr))==-1) {
+    std::cerr << "Failed to connect to " << hostname << ":" << port << std::endl;
     close(s); return -1;
   };
   return s;

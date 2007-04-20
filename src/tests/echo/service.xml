@@ -19,8 +19,8 @@
             <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">
-            <echo:prefix>Hello.</echo:prefix>
-	    <echo:suffix>Bye.</echo:suffix>
+            <echo:prefix>[ </echo:prefix>
+	    <echo:suffix> ]</echo:suffix>
         </Service>
     </Chain>
 </ArcConfig>

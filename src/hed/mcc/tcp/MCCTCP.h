@@ -9,8 +9,20 @@ namespace Arc {
 
 class MCC_TCP_Service: public MCC
 {
+    friend class mcc_tcp_exec_t;
     private:
+        class mcc_tcp_exec_t {
+            public:
+                MCC_TCP_Service* obj;
+                int handle;
+                pthread_t thread;
+                mcc_tcp_exec_t(MCC_TCP_Service* o,int h);
+                operator bool(void) { return (handle != -1); };
+        };
         std::list<int> handles_;
+        std::list<mcc_tcp_exec_t> executers_;
+        pthread_t listen_th_;
+        pthread_mutex_t lock_;
         static void* listener(void *);
         static void* executer(void *);
     public:

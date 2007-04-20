@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "../../../libs/common/XMLNode.h"
 #include "../../PayloadRaw.h"
 #include "../../PayloadHTTP.h"
@@ -63,7 +65,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Call next MCC 
-  MCCInterface* next = Next();
+  MCCInterface* next = Next(nextpayload.Method());
   if(!next) return make_http_fault(*inpayload,outmsg);
   Message nextoutmsg;
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 

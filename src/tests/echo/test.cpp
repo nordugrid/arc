@@ -1,9 +1,13 @@
 #include <iostream>
+#include <signal.h>
 
 #include "../../libs/common/ArcConfig.h"
 #include "../../hed/libs/loader/Loader.h"
+#include "../../hed/SOAPMessage.h"
+#include "../../hed/PayloadSOAP.h"
 
 int main(void) {
+  signal(SIGTTOU,SIG_IGN);
   // Load service chain
   std::cout << "Creating service side chain" << std::endl;
   Arc::Config service_config("service.xml");
@@ -24,8 +28,8 @@ int main(void) {
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
      <Chain>\
-      <Component name='tcp.client' id='tcp'><tcp:host>localhost</tcp:host><tcp:port>60000</tcp:port></Component>\
-      <Component name='http.client' id='http'><next id='tcp'/><method>POST</method></Component>\
+      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>localhost</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
+      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>/</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
      </Chain>\
     </ArcConfig>");
@@ -43,6 +47,31 @@ int main(void) {
   };
 
   // Create and send echo request
-
+  std::cout << "Creating and sending request" << std::endl;
+  Arc::SOAPMessage::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::PayloadSOAP req(echo_ns);
+  req.NewChild("echo").NewChild("say")="HELLO";
+  Arc::Message reqmsg;
+  Arc::Message repmsg;
+  reqmsg.Payload(&req);
+  Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+  if(!status) {
+    std::cerr << "Request fialed" << std::endl;
+    return -1;
+  };
+  Arc::PayloadSOAP* resp = NULL;
+  if(repmsg.Payload() == NULL) {
+    std::cerr << "There isn no response" << std::endl;
+    return -1;
+  };
+  try {
+    resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+  } catch(std::exception&) { };
+  if(resp == NULL) {
+    std::cerr << "Response is not SOAP" << std::endl;
+    return -1;
+  };
+  std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
+      
   return 0;
 }

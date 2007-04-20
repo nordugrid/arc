@@ -24,6 +24,16 @@ Loader::~Loader(void)
 {
   // TODO: stop any processing on those MCCs or mark them for self-destruction
   // or break links first or use semaphors in MCC destructors
+  // Unlink all objects
+  for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();++mcc_i) {
+      MCC* mcc = mcc_i->second; 
+      if(mcc) mcc->Unlink();
+  };
+  for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();++plexer_i) {
+      Plexer* plexer = plexer_i->second; 
+      if(plexer) plexer->Unlink();
+  };
+  // Destroy all objects
   for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();mcc_i = mccs_.begin()) {
       MCC* mcc = mcc_i->second; 
       mccs_.erase(mcc_i);
