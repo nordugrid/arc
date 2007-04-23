@@ -55,12 +55,15 @@ AC_CONFIG_FILES([Makefile \
                  src/hed/ws-addressing/Makefile \
                  src/hed/libs/Makefile \
                  src/hed/libs/loader/Makefile \
+                 src/hed/libs/message/Makefile \
 		 src/hed/mcc/Makefile \
 		 src/hed/mcc/soap/Makefile \
 		 src/hed/mcc/tcp/Makefile \
 		 src/hed/mcc/http/Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
+                 src/tests/Makefile \
+                 src/tests/echo/Makefile \
 		 doc/Makefile
 ])
 

@@ -8,7 +8,7 @@
 
 #include "../../mcc/tcp/PayloadTCPSocket.h"
 #include "PayloadHTTP.h"
-#include "../../PayloadSOAP.h"
+#include "../../libs/message/PayloadSOAP.h"
 
 void test1(void) {
   std::cout<<std::endl;

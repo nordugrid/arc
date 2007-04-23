@@ -1,7 +1,7 @@
 #ifndef __ARC_MCCSOAP_H__
 #define __ARC_MCCSOAP_H__
 
-#include "../MCC.h"
+#include "../../libs/message/MCC.h"
 
 namespace Arc {
 

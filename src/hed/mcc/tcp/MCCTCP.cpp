@@ -4,8 +4,8 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "../../PayloadStream.h"
-#include "../../PayloadRaw.h"
+#include "../../libs/message/PayloadStream.h"
+#include "../../libs/message/PayloadRaw.h"
 #include "../../libs/loader/Loader.h"
 #include "../../libs/loader/MCCLoader.h"
 #include "../../../libs/common/XMLNode.h"

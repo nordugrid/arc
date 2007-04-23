@@ -2,7 +2,7 @@
 #define __ARC_MCC_H__
 
 #include "common/ArcConfig.h"
-#include "../Message.h"
+#include "Message.h"
 
 namespace Arc {
 

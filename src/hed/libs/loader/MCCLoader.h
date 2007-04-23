@@ -2,7 +2,7 @@
 #define __ARC_MCC_LOADER_H__
 
 #include "common/ArcConfig.h"
-#include "../../mcc/MCC.h"
+#include "../message/MCC.h"
 
 #define ARC_MCC_LOADER_ID "__arc_mcc_modules__"
 

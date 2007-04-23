@@ -1,1 +1,1 @@
-SUBDIRS=loader
+SUBDIRS=message loader

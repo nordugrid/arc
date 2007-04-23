@@ -1,8 +1,8 @@
 #ifndef __ARC_MCCTCP_H__
 #define __ARC_MCCTCP_H__
 
-#include "../MCC.h"
-#include "../../PayloadStream.h"
+#include "../../libs/message/MCC.h"
+#include "../../libs/message/PayloadStream.h"
 #include "PayloadTCPSocket.h"
 
 namespace Arc {

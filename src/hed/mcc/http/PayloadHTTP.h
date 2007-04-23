@@ -4,8 +4,8 @@
 #include <string>
 #include <map>
 
-#include "../../PayloadRaw.h"
-#include "../../PayloadStream.h"
+#include "../../libs/message/PayloadRaw.h"
+#include "../../libs/message/PayloadStream.h"
 
 #define HTTP_OK          (200)
 #define HTTP_NOT_FOUND   (404)
