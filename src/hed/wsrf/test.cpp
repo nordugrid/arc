@@ -2,7 +2,7 @@
 #include <string>
 
 #include "common/XMLNode.h"
-#include "../SOAPMessage.h"
+#include "../libs/message/SOAPMessage.h"
 #include "WSResourceProperties.h"
 
 // Examples are taken from OASIS WSRF-WSRP specifications documnent

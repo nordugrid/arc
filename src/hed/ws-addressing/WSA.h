@@ -2,7 +2,7 @@
 #define __ARC_WSA_H__
 
 #include "common/XMLNode.h"
-#include "../SOAPMessage.h"
+#include "../libs/message/SOAPMessage.h"
 
 // WS-Adressing
 // wsa="http://www.w3.org/2005/08/addressing"

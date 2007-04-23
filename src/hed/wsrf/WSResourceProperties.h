@@ -2,7 +2,7 @@
 #define __ARC_WSRF_H__
 
 #include <vector>
-#include "../SOAPMessage.h"
+#include "../libs/message/SOAPMessage.h"
 
 namespace Arc {
 
