@@ -1,11 +1,11 @@
-#ifndef __ARC_PATYLOADHTTP_H__
-#define __ARC_PATYLOADHTTP_H__
+#ifndef __ARC_PAYLOADHTTP_H__
+#define __ARC_PAYLOADHTTP_H__
 
 #include <string>
 #include <map>
 
-#include "PayloadRaw.h"
-#include "PayloadStream.h"
+#include "../../PayloadRaw.h"
+#include "../../PayloadStream.h"
 
 #define HTTP_OK          (200)
 #define HTTP_NOT_FOUND   (404)
@@ -92,4 +92,4 @@ class PayloadHTTPResponse: public PayloadHTTP {
 */
 } // namespace Arc
 
-#endif /* __ARC_PATYLOADHTTP_H__ */
+#endif /* __ARC_PAYLOADHTTP_H__ */

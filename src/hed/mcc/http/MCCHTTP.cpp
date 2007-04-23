@@ -2,7 +2,7 @@
 
 #include "../../../libs/common/XMLNode.h"
 #include "../../PayloadRaw.h"
-#include "../../PayloadHTTP.h"
+#include "PayloadHTTP.h"
 #include "../../libs/loader/Loader.h"
 #include "../../libs/loader/MCCLoader.h"
 

@@ -6,10 +6,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-//#include "PayloadStream.h"
-#include "PayloadTCPSocket.h"
+#include "../../mcc/tcp/PayloadTCPSocket.h"
 #include "PayloadHTTP.h"
-#include "PayloadSOAP.h"
+#include "../../PayloadSOAP.h"
 
 void test1(void) {
   std::cout<<std::endl;

@@ -3,7 +3,7 @@
 
 #include "../MCC.h"
 #include "../../PayloadStream.h"
-#include "../../PayloadTCPSocket.h"
+#include "PayloadTCPSocket.h"
 
 namespace Arc {
 
