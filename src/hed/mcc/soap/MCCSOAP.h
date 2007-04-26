@@ -5,7 +5,7 @@
 
 namespace Arc {
 
-/** This MCC processes parsed SOAP message from input payload.
+/** This MCC parses SOAP message from input payload.
   On input payload with PayloadRawInterface is expected. It's
  converted into PayloadSOAP and passed next MCC. Returned 
  PayloadSOAP is converted into PayloadRaw and returned to calling
