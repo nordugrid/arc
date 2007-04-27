@@ -1,0 +1,107 @@
+ This document contains ideas about security infrastructure of new ARC and
+possible implementation in HED framework as discussed on mailing list and
+offline.
+ In a future it will evolve into architecture and implementation guide.
+
+ Security includes at least authentication and authorization. Authentication
+and authorization are distinct. But in some cases outcome of authorization
+decision may become authentication input for other modules.
+
+ Design basics outlined in "KnowARC design document" 
+(https://www.knowarc.eu/wiki/images/c/c4/Knowarc_D1.1-1_07.pdf) sections 5.2.5 
+and 7.6 are valid.
+
+ Prefered way to implement security related components is to use already avaialble
+libraries and frameworks. Acceptable implementations are under investigation now.
+
+-----------------------------------------------------------------------------------
+
+ Suggested HED interface (namings need to be adjusted, code is not for compilation).
+
+ Each security information code is plugin
+
+   class IPlugIn;
+
+implementing authorization/authentication handler
+
+class AuthNHandler: public virtual IPlugIn {
+  virtual SAMLAssertion* authenticate(Arc::Message* message, Arc::Config *cfg);
+  AuthNHandler(){}
+  virtual ~AuthnNHandler(){}
+}
+
+ Handler takes some XML configuration document and message and produces 
+security assertion expressed as SAML document - SAMLAssertion. This assertion
+may be then evaluated by MCC or Service component and/or linked to Message for 
+later processing.
+
+ For integrating AuthnNHandler into HED new method is added to MCC class
+
+class MCC: public MCCInterface {
+ public:
+  virtual void addHandler(IPlugIn* h, Arc::Config *cfg);
+ private:
+  std::vector<std::pair<IPlugIn*,Arc::Config*> > auth_handlers;
+}
+
+ New method addHandler adds specified plugins with AuthnNHandler objects into 
+internal list for later usage. 
+
+void MCC::addHandler(IPlugIn* h, Arc::Config *cfg) {
+    auth_handlers.push_back(pair<IPlugIn**,Arc::Config*>(h,cfg));
+}
+
+AuthnNHandler objects are created according to their configuration and are 
+refernced from MCC's configuration. For example like in
+
+ <Component name="tcp">
+  <AuthHandler name="ssoauthen"/>
+  <AuthHandler name="author"/>
+  <Next name="default">http</Next>
+ </Component>
+
+Method addHandler is called during creation of each MCC either by MCC constructor or 
+by Loader component. It could be allowed to call it during running phase as well.
+
+ authenticate() methods of AuthnNHandler objects are called by MCC components for 
+processing of incoming and outgoing messages. For example:
+
+MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
+
+    // inmsg is converted into nextinmsg SOAP message
+
+    for (vector<pair<IPlugIn**,Arc::Config*> > h = auth_handlers.begin(); h != auth_handlers.end(); ++h) {
+        h.first->authenticate(nextinmsg, h.second);
+    }
+
+    // Calling next MCC which produces nextoutmsg SOAP message
+
+    // Note: the handlers here should probably be different from previous 
+
+    for (vector<pair<IPlugIn**,Arc::Config*> > h = auth_handlers.begin(); h != auth_handlers.end(); ++h) {
+        h.first->authenticate(this, h.second);
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+Software of interest
+
+* An API for XACML Policy Verification and Change Analysis - http://www.cs.brown.edu/research/plt/software/margrave/
+
+* AXESCON XACML 2.0 Engine - http://axescon.com/ax2e/
+
+-----------------------------------------------------------------------------------
+
+Projects of interest
+
+* GridShib - http://gridshib.globus.org/
+
+* Interoperability of gLite and Shibboleth - http://www.switch.ch/grid/
+
+* PERMIS - http://sec.isi.salford.ac.uk/permis/index.shtml
+
+* Open PERMIS - http://www.openpermis.org/
+
+
+
