@@ -1,7 +1,7 @@
 #ifndef __ARC_TESTSERVICE_H__
 #define __ARC_TESTSERVICE_H__
 
-#include "Service.h"
+#include "ServiceLoader.h"
 
 namespace Test {
 

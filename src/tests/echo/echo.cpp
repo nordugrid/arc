@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/loader/MCCLoader.h"
+#include "../../hed/libs/loader/ServiceLoader.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
 
 #include "echo.h"

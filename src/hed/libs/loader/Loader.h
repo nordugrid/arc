@@ -6,7 +6,7 @@
 #include "common/ArcConfig.h"
 #include "MCCLoader.h"
 #include "MCCFactory.h"
-#include "Service.h"
+#include "ServiceLoader.h"
 #include "ServiceFactory.h"
 #include "Plexer.h"
 

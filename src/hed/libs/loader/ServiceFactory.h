@@ -3,7 +3,7 @@
 
 #include "common/ArcConfig.h"
 #include "ModuleManager.h"
-#include "Service.h"
+#include "ServiceLoader.h"
 
 namespace Arc {
 

@@ -1,7 +1,7 @@
 #ifndef __ARC_ECHO_H__
 #define __ARC_ECHO_H__
 
-#include "../../hed/libs/loader/Service.h"
+#include "../../hed/libs/message/Service.h"
 
 namespace Echo {
 
