@@ -1,8 +1,9 @@
-#ifndef __ARC_WSRF_H__
-#define __ARC_WSRF_H__
+#ifndef __ARC_WSRP_H__
+#define __ARC_WSRP_H__
 
 #include <vector>
 #include "../libs/message/SOAPMessage.h"
+#include "WSRFBaseFault.h"
 
 namespace Arc {
 
@@ -10,11 +11,8 @@ namespace Arc {
   Inheriting classes implement specific WS-ResourceProperties messages and
   their properties/elements. Refer to WS-ResourceProperties specifications
   for things specific to every message. */
-class WSRP {
+class WSRP: public WSRF {
  protected:
-  SOAPMessage& soap_; /** Associated SOAP message */
-  bool allocated_;    /** true if soap_ needs to be deleted in destructor */
-  bool valid_;        /** true if object represents valid WS-ResourceProperties message */
   /** set WS-ResourceProperties namespaces and default prefixes in SOAP message */
   void set_namespaces(void);
  public:
@@ -24,30 +22,26 @@ class WSRP {
     It does not check if 'soap' represents valid WS-ResourceProperties structure.
     Actual check for validity of structure has to be done by derived class. */
   WSRP(SOAPMessage& soap,const std::string& action = "");
-  ~WSRP(void) { if(allocated_) delete &soap_; };
-  /** Returns true if instance is valid */
-  operator bool(void) { return valid_; };
-  /** Direct access to underlying SOAP element */
-  SOAPMessage& SOAP(void) { return soap_; };
+  ~WSRP(void) { };
 };
 
 
 // ==================== Faults ================================
 
 /** Base class for all WS-ResourceProperties faults */
-class WSRPBaseFault: public WSRP {
+class WSRPBaseFault: public WSRFBaseFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
   WSRPBaseFault(SOAPMessage& soap);
   /** Constructor - creates new WSRP fault */
-  WSRPBaseFault(void);
+  WSRPBaseFault(const std::string& type);
   virtual ~WSRPBaseFault(void);
 };
 
 class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
  public:
    WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap):WSRPBaseFault(soap) { };
-   WSRPInvalidResourcePropertyQNameFault(void) { };
+   WSRPInvalidResourcePropertyQNameFault(void):WSRPBaseFault("wsrf-rp:InvalidResourcePropertyQNameFault") { };
    virtual ~WSRPInvalidResourcePropertyQNameFault(void) { };
 };
 
@@ -57,7 +51,7 @@ class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
   /** Constructor - creates object out of supplied SOAP tree. */
    WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPBaseFault(soap) { };
   /** Constructor - creates new WSRP fault */
-   WSRPResourcePropertyChangeFailure(void) { };
+   WSRPResourcePropertyChangeFailure(const std::string& type):WSRPBaseFault(type) { };
    virtual ~WSRPResourcePropertyChangeFailure(void) { };
    XMLNode CurrentProperties(bool create = false);
    XMLNode RequestedProperties(bool create = false);
@@ -66,49 +60,49 @@ class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
 class WSRPUnableToPutResourcePropertyDocumentFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPUnableToPutResourcePropertyDocumentFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUnableToPutResourcePropertyDocumentFault(void) { };
+   WSRPUnableToPutResourcePropertyDocumentFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UnableToPutResourcePropertyDocumentFault") { };
    virtual ~WSRPUnableToPutResourcePropertyDocumentFault(void) { };
 };
 
 class WSRPInvalidModificationFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPInvalidModificationFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPInvalidModificationFault(void) { };
+   WSRPInvalidModificationFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:InvalidModificationFault") { };
    virtual ~WSRPInvalidModificationFault(void) { };
 };
 
 class WSRPUnableToModifyResourcePropertyFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPUnableToModifyResourcePropertyFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUnableToModifyResourcePropertyFault(void) { };
+   WSRPUnableToModifyResourcePropertyFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UnableToModifyResourcePropertyFault") { };
    virtual ~WSRPUnableToModifyResourcePropertyFault(void) { };
 };
 
 class WSRPSetResourcePropertyRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPSetResourcePropertyRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPSetResourcePropertyRequestFailedFault(void) { };
+   WSRPSetResourcePropertyRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:SetResourcePropertyRequestFailedFault") { };
    virtual ~WSRPSetResourcePropertyRequestFailedFault(void) { };
 };
 
 class WSRPInsertResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPInsertResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPInsertResourcePropertiesRequestFailedFault(void) { };
+   WSRPInsertResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:InsertResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPInsertResourcePropertiesRequestFailedFault(void) { };
 };
 
 class WSRPUpdateResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPUpdateResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
+   WSRPUpdateResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UpdateResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
 };
 
 class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
    WSRPDeleteResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
-   WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
+   WSRPDeleteResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:DeleteResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
 };
 
@@ -331,9 +325,10 @@ class WSRPQueryResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 
-WSRP& CreateWSRP(SOAPMessage& soap);
+WSRF& CreateWSRP(SOAPMessage& soap);
+
 
 } // namespace Arc
 
-#endif /* _ARC_WSRF_H__ */
+#endif /* _ARC_WSRP_H__ */
 

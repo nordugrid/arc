@@ -7,17 +7,8 @@
 
 namespace Arc {
 
-static std::string strip_spaces(const std::string& s) {
-  std::string::size_type start = 0;
-  for(;start<s.length();++start) if(!isspace(s[start])) break;
-  std::string::size_type end = s.length()-1;
-  for(;end>=start;--end) if(!isspace(s[end])) break;
-  return s.substr(start,end-start+1);
-}
-
 // ============= Actions ==============
 
-static const char* WSRPBaseFaultAction = "http://docs.oasis-open.org/wsrf/fault";
 static const char* WSRPGetResourcePropertyDocumentRequestAction = "http://docs.oasis-open.org/wsrf/rpw-2/GetResourcePropertyDocument/GetResourcePropertyDocumentRequest";
 static const char* WSRPGetResourcePropertyDocumentResponseAction = "http://docs.oasis-open.org/wsrf/rpw-2/GetResourcePropertyDocument/GetResourcePropertyDocumentResponse";
 static const char* WSRPGetResourcePropertyRequestAction = "http://docs.oasis-open.org/wsrf/rpw-2/GetResourceProperty/GetResourcePropertyRequest";
@@ -42,7 +33,6 @@ static const char* WSRPDeleteResourcePropertiesResponseAction = "http://docs.oas
 
 void WSRP::set_namespaces(void) {
   XMLNode::NS ns;
-  ns["wsa"]="http://www.w3.org/2005/08/addressing";
   ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns["wsrf-rp"]="http://docs.oasis-open.org/wsrf/rp-2";
   ns["wsrf-rpw"]="http://docs.oasis-open.org/wsrf/rpw-2";
@@ -50,23 +40,12 @@ void WSRP::set_namespaces(void) {
   soap_.Namespaces(ns);
 }
 
-WSRP::WSRP(bool fault,const std::string& action):
-                   soap_(*(new SOAPMessage(XMLNode::NS(),fault))),
-                   allocated_(true) {
+WSRP::WSRP(bool fault,const std::string& action):WSRF(fault,action) {
   set_namespaces();
-  if(!action.empty()) WSAHeader(soap_).Action(action);
-  valid_=true;
 };
 
-WSRP::WSRP(SOAPMessage& soap,const std::string& action):
-                   soap_(soap),allocated_(false) {
-    valid_=(bool)soap;
-    if(valid_) {
-      set_namespaces();
-      if(!action.empty()) {
-        if(strip_spaces(WSAHeader(soap).Action()) != action) valid_=false;
-    };
-  };
+WSRP::WSRP(SOAPMessage& soap,const std::string& action):WSRF(soap,action) {
+  set_namespaces();
 }
 
 // ============= ResourceProperties modifiers ==============
@@ -492,10 +471,10 @@ WSRPDeleteResourcePropertiesResponse::~WSRPDeleteResourcePropertiesResponse(void
 // ==================== Faults ================================
 
 
-WSRPBaseFault::WSRPBaseFault(SOAPMessage& soap):WSRP(soap,WSRPBaseFaultAction) {
+WSRPBaseFault::WSRPBaseFault(SOAPMessage& soap):WSRFBaseFault(soap) {
 }
 
-WSRPBaseFault::WSRPBaseFault(void):WSRP(true,WSRPBaseFaultAction) {
+WSRPBaseFault::WSRPBaseFault(const std::string& type):WSRFBaseFault(type) {
 }
 
 WSRPBaseFault::~WSRPBaseFault(void) {
@@ -600,20 +579,23 @@ XMLNode WSRPQueryResourcePropertiesResponse::Properties(void) {
   return soap_.Child();
 }
 
-WSRP& CreateWSRP(SOAPMessage& soap) {
+// =====================================================================
+
+WSRF& CreateWSRP(SOAPMessage& soap) {
   XMLNode::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
+  ns["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
+  ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns["wsrf-rp"]="http://docs.oasis-open.org/wsrf/rp-2";
   ns["wsrf-rpw"]="http://docs.oasis-open.org/wsrf/rpw-2";
-  ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   soap.Namespaces(ns);
 
-  std::string action = strip_spaces(WSAHeader(soap).Action());
+  std::string action = WSAHeader(soap).Action();
 
-  if(action == WSRPBaseFaultAction) {
-
-
+  if(action == WSRFBaseFaultAction) {
+    WSRF& fault = CreateWSRFBaseFault(soap);
+    if(fault) return fault;
   };
   if(action == WSRPGetResourcePropertyDocumentRequestAction) return *(new WSRPGetResourcePropertyDocumentRequest(soap));
   if(action == WSRPGetResourcePropertyDocumentResponseAction) return *(new WSRPGetResourcePropertyDocumentResponse(soap));
