@@ -5,7 +5,7 @@ lib_LTLIBRARIES= libarcloader.la  libtestmcc.la libtestservice.la
 # services_LTLIBRARIES= 
 
 libarcloader_ladir=$(includedir)
-libarcloader_la_HEADERS=Loader.h MCCFactory.h MCCLoader.h ModuleManager.h Plexer.h ServiceFactory.h Service.h
+libarcloader_la_HEADERS=Loader.h MCCFactory.h MCCLoader.h ModuleManager.h Plexer.h ServiceFactory.h ServiceLoader.h
 libarcloader_la_SOURCES=Loader.cpp MCCFactory.cpp ModuleManager.cpp Plexer.cpp ServiceFactory.cpp
 libarcloader_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 # libarccommon_la_LDFLAGS=
