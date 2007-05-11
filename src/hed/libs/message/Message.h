@@ -3,15 +3,13 @@
 
 #include <stdlib.h>
 
+#include "MessageAttributes.h"
+
 namespace Arc {
 
 /** Class MessageAuth will contain authencity information, 
   authorization tokens and decisions. */
 class MessageAuth;
-
-/** Class MessageAttr will contain all attributes which 
-  MCC developers find useful to expose. */
-class MessageAttr;
 
 /** Base class for content of message passed through chain. It's not 
   intended to be used directly. Instead functional classes must be 
@@ -59,16 +57,16 @@ class Message {
  private:
   MessagePayload* payload_; /** Main content of message */
   MessageAuth* auth_; /** Authentication and authorization related information */
-  MessageAttr* attr_; /** Various useful attributes */
+  MessageAttributes* attributes_; /** Various useful attributes */
  public:
   /** Dummy constructor */
-  Message(void):payload_(NULL),auth_(NULL),attr_(NULL) { };
+  Message(void):payload_(NULL),auth_(NULL),attributes_(NULL) { };
   /** Copy constructor. Ensures shallow copy. */
-  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attr_(msg.attr_) { };
+  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attributes_(msg.attributes_) { };
   /** Destructor does not affect refered objects */
   ~Message(void) { };
   /** Assignment. Ensures shallow copy. */
-  Message& operator=(Message& msg) { payload_=msg.payload_; auth_=msg.auth_, attr_=msg.attr_; };
+  Message& operator=(Message& msg) { payload_=msg.payload_; auth_=msg.auth_, attributes_=msg.attributes_; };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
   /** Replace payload with new one */
