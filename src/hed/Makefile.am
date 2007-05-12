@@ -1,5 +1,5 @@
 lib_LTLIBRARIES=
-SUBDIRS=libs mcc wsrf ws-addressing
+SUBDIRS=libs mcc # ws-addressing wsrf 
 #noinst_PROGRAMS=test client
 #SOURCES = SOAPMessage.cpp PayloadRaw.cpp PayloadSOAP.cpp PayloadStream.cpp
 

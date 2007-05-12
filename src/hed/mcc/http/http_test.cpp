@@ -48,7 +48,7 @@ void test2(void) {
   std::cout<<"*** RESPONSE ***"<<std::endl;
   std::cout<<xml<<std::endl;
   if(soap_resp.IsFault()) {
-    Arc::SOAPMessage::SOAPFault& fault = *soap_resp.Fault();
+    Arc::SOAPFault& fault = *soap_resp.Fault();
     std::cout<<"Fault code: "<<fault.Code()<<std::endl;
     for(int n = 0;;++n) {
       std::string subcode = fault.Subcode(n);

@@ -124,7 +124,7 @@ void SOAPMessage::GetXML(std::string& xml) const {
   doc.GetXML(xml);
 }
 
-SOAPMessage::SOAPFault::SOAPFault(XMLNode& body) {
+SOAPFault::SOAPFault(XMLNode& body) {
   if(body.Size() != 1) return;
   fault=body.Child(0);
   if(!MatchXMLName(fault,"soap-env:Fault")) { fault=XMLNode(); return; };
@@ -150,13 +150,13 @@ SOAPMessage::SOAPFault::SOAPFault(XMLNode& body) {
   return;
 }
 
-std::string SOAPMessage::SOAPFault::Reason(int num) {
+std::string SOAPFault::Reason(int num) {
   if(ver12) return reason.Child(num);
   if(num != 0) return "";
   return reason; 
 }
 
-void SOAPMessage::SOAPFault::Reason(int num,const char* r) {
+void SOAPFault::Reason(int num,const char* r) {
   if(ver12) {
     if(!reason) reason=fault.NewChild("soap-env:Reason");
     XMLNode rn = reason.Child(num);
@@ -169,11 +169,11 @@ void SOAPMessage::SOAPFault::Reason(int num,const char* r) {
   return;
 }
 
-std::string SOAPMessage::SOAPFault::Node(void) {
+std::string SOAPFault::Node(void) {
   return node;
 }
 
-void SOAPMessage::SOAPFault::Node(const char* n) {
+void SOAPFault::Node(const char* n) {
   if(!node) {
     if(ver12) {
       node=fault.NewChild("soap-env:Node");
@@ -184,11 +184,11 @@ void SOAPMessage::SOAPFault::Node(const char* n) {
   node=n;
 }
 
-std::string SOAPMessage::SOAPFault::Role(void) {
+std::string SOAPFault::Role(void) {
   return role;
 }
 
-void SOAPMessage::SOAPFault::Role(const char* r) {
+void SOAPFault::Role(const char* r) {
   if(ver12) {
     if(!role) role=fault.NewChild("soap-env:Role");
     role=r;
@@ -203,7 +203,7 @@ static const char* FaultCodeMatch(const char* base,const char* code) {
   return NULL;
 }
 
-SOAPMessage::SOAPFault::SOAPFaultCode SOAPMessage::SOAPFault::Code(void) {
+SOAPFault::SOAPFaultCode SOAPFault::Code(void) {
   if(!code) return undefined;
   if(ver12) {
     std::string c = code["soap-env:Value"];
@@ -232,7 +232,7 @@ SOAPMessage::SOAPFault::SOAPFaultCode SOAPMessage::SOAPFault::Code(void) {
   };
 }
 
-void SOAPMessage::SOAPFault::Code(SOAPFaultCode c) {
+void SOAPFault::Code(SOAPFaultCode c) {
   if(!code) code=fault.NewChild("soap-env:Code");
   if(ver12) {
     XMLNode value = code["soap-env:Value"];
@@ -248,7 +248,7 @@ void SOAPMessage::SOAPFault::Code(SOAPFaultCode c) {
   };
 }
 
-std::string SOAPMessage::SOAPFault::Subcode(int level) {
+std::string SOAPFault::Subcode(int level) {
   if(!ver12) return "";
   if(level < 0) return "";
   if(!code) return "";
@@ -260,7 +260,7 @@ std::string SOAPMessage::SOAPFault::Subcode(int level) {
   return subcode["soap-env:Value"];
 }
 
-void SOAPMessage::SOAPFault::Subcode(int level,const char* s) {
+void SOAPFault::Subcode(int level,const char* s) {
   if(!ver12) return;
   if(level < 0) return;
   if(!code) code=fault.NewChild("soap-env:Code");
@@ -277,7 +277,7 @@ void SOAPMessage::SOAPFault::Subcode(int level,const char* s) {
   };
 }
 
-XMLNode SOAPMessage::SOAPFault::Detail(bool create) {
+XMLNode SOAPFault::Detail(bool create) {
   if(detail) return detail;
   if(!create) return XMLNode();
   detail=fault.NewChild("soap-env:Detail");

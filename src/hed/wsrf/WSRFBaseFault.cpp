@@ -28,7 +28,7 @@ WSRFBaseFault::WSRFBaseFault(const std::string& type):WSRF(true,WSRFBaseFaultAct
   SOAPMessage::SOAPFault* fault = SOAP().Fault();
   if(!fault) return;
   fault->Detail(true).NewChild(type);
-  Timestamp(XMLNode::dateTime(time(NULL)));
+  // Timestamp(XMLNode::dateTime(time(NULL)));
 }
 
 WSRFBaseFault::~WSRFBaseFault(void) {
@@ -41,13 +41,14 @@ std::string WSRFBaseFault::Type(void) {
   return fault->Detail()[0].Name();
 }
 
+/*
 time_t WSRFBaseFault::Timestamp(void) {
   if(!valid_) return 0;
   SOAPMessage::SOAPFault* fault = SOAP().Fault();
   if(!fault) return 0;
   std::string time_s = fault->Detail()[0]["wsrf-bf:Timestamp"];
   return XMLNode::dateTime(time_s);
-}
+} 
 
 void WSRFBaseFault::Timestamp(time_t t) {
   if(!valid_) return;
@@ -57,6 +58,7 @@ void WSRFBaseFault::Timestamp(time_t t) {
   if(!timestamp) timestamp = fault->Detail()[0].NewChild("wsrf-bf:Timestamp");
   timestamp = (std::string)XMLNode::dateTime(t);
 }
+*/
 
 WSAEndpointReference WSRFBaseFault::Originator(void) {
   if(!valid_) return WSAEndpointReference();

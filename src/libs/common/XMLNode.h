@@ -201,7 +201,7 @@ class XMLNode {
     is_temporary_=node.is_temporary_;
   };
   /** Returns list of all attributes of node */
-  std::list<XMLNode> Attributes(void);
+  // std::list<XMLNode> Attributes(void);
   /** Returns XMLNode instance reresenting n-th attribute of node. */
   XMLNode Attribute(int n = 0);
   /** Creates new attribute with specified name. */

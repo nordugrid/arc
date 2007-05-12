@@ -160,7 +160,7 @@ bool PayloadHTTP::get_body(void) {
   };
   result[result_size]=0;
   // Attach result to buffer exposed to user
-  Buf b;
+  PayloadRawBuf b;
   b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
   buf_.push_back(b);
   return true;

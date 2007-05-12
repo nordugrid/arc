@@ -3,12 +3,12 @@
 namespace Arc {
 
 PayloadRaw::~PayloadRaw(void) {
-  for(std::vector<PayloadRaw::Buf>::iterator b = buf_.begin();b!=buf_.end();++b) {
+  for(std::vector<PayloadRawBuf>::iterator b = buf_.begin();b!=buf_.end();++b) {
     if(b->allocated) free(b->data);
   };
 };
 
-static bool BufferAtPos(const std::vector<PayloadRaw::Buf>& buf_,int pos,int& bufnum,int& bufpos) {
+static bool BufferAtPos(const std::vector<PayloadRawBuf>& buf_,int pos,int& bufnum,int& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
   int cpos = 0;
@@ -22,7 +22,7 @@ static bool BufferAtPos(const std::vector<PayloadRaw::Buf>& buf_,int pos,int& bu
   return false;
 }
 
-static bool BufferAtPos(std::vector<PayloadRaw::Buf>& buf_,int pos,std::vector<PayloadRaw::Buf>::iterator& bufref,int& bufpos) {
+static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,int pos,std::vector<PayloadRawBuf>::iterator& bufref,int& bufpos) {
   if(pos == -1) pos=0;
   if(pos < 0) return false;
   int cpos = 0;
@@ -59,12 +59,12 @@ int PayloadRaw::Size(void) const {
 }
 
 char* PayloadRaw::Insert(int pos,int size) {
-  std::vector<PayloadRaw::Buf>::iterator bufref;
+  std::vector<PayloadRawBuf>::iterator bufref;
   int bufpos;
   if(!BufferAtPos(buf_,pos,bufref,bufpos)) {
     bufref=buf_.end(); bufpos=0;
   };
-  PayloadRaw::Buf buf;
+  PayloadRawBuf buf;
   if(bufpos != 0) {
     // Need to split buffers
     buf.size=bufref->length - bufpos;

@@ -3,3 +3,14 @@ New generation Advanced Resource Connector (ARC) grid middleware
 - Requirements for build from source tree
     - g++
     - libxml2
+    - glibmm
+    - doxygen
+    - pkg-config
+    - automake
+    - autoconf
+    - libtool
+
+- Optional requirements
+    - swig (>1.3.28)
+    - java sdk for Java bindings
+    - python-dev for Python bindings

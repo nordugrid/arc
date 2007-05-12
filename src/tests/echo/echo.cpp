@@ -30,9 +30,9 @@ Service_Echo::~Service_Echo(void) {
 
 Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
-  Arc::SOAPMessage::SOAPFault* fault = outpayload->Fault();
+  Arc::SOAPFault* fault = outpayload->Fault();
   if(fault) {
-    fault->Code(Arc::SOAPMessage::SOAPFault::Sender);
+    fault->Code(Arc::SOAPFault::Sender);
     fault->Reason("Failed processing request");
   };
   outmsg.Payload(outpayload);

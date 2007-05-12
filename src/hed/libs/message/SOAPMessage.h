@@ -6,12 +6,6 @@
 #include "common/XMLNode.h"
 
 namespace Arc {
-
-/** SOAPMessage extends XMLNode class to support structures of SOAP message.
-  All XMLNode methods are exposed with top node translated to Envelope part
-  of SOAP. */
-class SOAPMessage: public XMLNode {
- public:
   /** SOAPFault provides an interface to conveinet access to elements of SOAP faults.
     It also tries to expose single interface for both version 1.0 and 1.2 faults.
     This class is not intended to 'own' any information stored. It's purpose 
@@ -68,6 +62,12 @@ class SOAPMessage: public XMLNode {
     /** Access Fault Detail element. If create is set to true this element is creted if not present. */
     XMLNode Detail(bool create = false);
   };
+
+/** SOAPMessage extends XMLNode class to support structures of SOAP message.
+  All XMLNode methods are exposed with top node translated to Envelope part
+  of SOAP. */
+class SOAPMessage: public XMLNode {
+ public:
   /** Create new SOAP message from textual representation of XML document.
     Created XML structure is owned by this instance.
     This constructor also sets default namespaces to default prefixes 

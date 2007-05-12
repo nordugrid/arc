@@ -1,0 +1,5 @@
+Because we are using SWIG for generate language bindings for libraries there should follow some guidelines at the implementation of class. These limitations comes indicated by limitations of SWIG C++ support:
+
+1. Not use nested (struct or class definition in class) structures of classes,
+2. Use operator overloading where it is absolutely necessary,
+3. Multiple inheritance is not supported by some languages like Java, so minimaize the usage of this techniques.

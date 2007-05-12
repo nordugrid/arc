@@ -36,17 +36,18 @@ class PayloadRawInterface: public MessagePayload {
   virtual int BufferSize(int num) const = 0;
 };
 
-/** Implementation of PayloadRawInterface - raw byte multi-buffer. */ 
-class PayloadRaw: public PayloadRawInterface {
- public:
-  typedef struct {
+/* Buffer type for PayloadRaw */
+typedef struct {
     char* data;     /** pointer to buffer in memory */
     int size;       /** size of allocated mmemory */
     int length;     /** size of used memory - size of buffer */
     bool allocated; /** true if memory has to free by destructor */
-  } Buf;
+} PayloadRawBuf;
+
+/** Implementation of PayloadRawInterface - raw byte multi-buffer. */ 
+class PayloadRaw: public PayloadRawInterface {
  protected:
-  std::vector<Buf> buf_; /** List of handled buffers. */
+  std::vector<PayloadRawBuf> buf_; /** List of handled buffers. */
  public:
   /** Constructor. Created object contains no buffers. */
   PayloadRaw(void) { };

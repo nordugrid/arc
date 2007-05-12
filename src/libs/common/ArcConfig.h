@@ -29,7 +29,7 @@ class Config: public XMLNode {
 	/** Acquire existing XML (sub)tree.
 	  Content is not copied. Make sure XML tree is not destroyed
 	  while in use by this object. */
-        Config(XMLNode xml): XMLNode(xml) { };
+        Config(Arc::XMLNode xml): XMLNode(xml) { };
         ~Config(void);
 	/** Print structure of document.
 	  For debuging purposes. Printed content is not an XML document. */
