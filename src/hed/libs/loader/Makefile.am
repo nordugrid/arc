@@ -8,7 +8,7 @@ libarcloader_ladir=$(includedir)
 libarcloader_la_HEADERS=Loader.h MCCFactory.h MCCLoader.h ModuleManager.h Plexer.h ServiceFactory.h ServiceLoader.h
 libarcloader_la_SOURCES=Loader.cpp MCCFactory.cpp ModuleManager.cpp Plexer.cpp ServiceFactory.cpp
 libarcloader_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
-# libarccommon_la_LDFLAGS=
+libarcloader_la_LIBADD=$(GLIBMM_LIBS) $(top_srcdir)/src/libs/common/libarccommon.la
 
 libtestmcc_la_SOURCES=TestMCC.cpp TestMCC.h
 libtestmcc_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
