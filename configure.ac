@@ -51,7 +51,6 @@ if test "x$JAVA" = "xjava" && test "x$JAVAC" = "xjavac"; then
         SUN=yes
     fi
     dnl jni.h is required
-    echo $JDK_INCLUDE
     if ! test "$JDK_INCLUDE/jni.h"; then
         JAVA_VERSION=""
     fi
@@ -166,7 +165,6 @@ fi
 PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.6.0])
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
-echo $GLIBMM_LIBS
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.6.0])
 AC_SUBST(LIBXML2_CFLAGS)
 AC_SUBST(LIBXML2_LIBS)
