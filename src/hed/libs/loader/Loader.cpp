@@ -12,9 +12,9 @@ namespace Arc {
 
 Loader::Loader(Config *cfg)
 {
-    Config empty_config;
-    service_factory = new ServiceFactory(&empty_config);
-    mcc_factory = new MCCFactory(&empty_config);
+    // Config empty_config;
+    service_factory = new ServiceFactory(cfg);
+    mcc_factory = new MCCFactory(cfg);
     //plexer_factory = new PlexerFactory(&empty_config);
 
     make_elements(cfg);

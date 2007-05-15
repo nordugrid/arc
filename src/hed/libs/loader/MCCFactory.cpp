@@ -33,7 +33,7 @@ MCC *MCCFactory::get_instance(const std::string& name,int min_version,int max_ve
     }
     if(i == descriptors_.end()) {
         // Load module
-        Glib::Module *module = ModuleManager::load("lib" + name);
+        Glib::Module *module = ModuleManager::load(name);
         if (module == NULL) {
             return NULL;
         }
@@ -68,7 +68,7 @@ MCC *MCCFactory::get_instance(const std::string& name,int min_version,int max_ve
 
 void MCCFactory::load_all_instances(const std::string& libname) {
     // Load module
-    Glib::Module *module = ModuleManager::load("lib" + libname);
+    Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
         std::cerr << "Module " << libname << " could not be loaded" << std::endl;
         return;

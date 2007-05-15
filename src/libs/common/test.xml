@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <ArcConfig>
+    <ModuleLoader>
+        <Path>../ize/bize</Path>
+        <Path>../foo/bar</Path>
+    </ModuleLoader>
     <Services>
         <Service name="echo">
             <Config1>Value2</Config1>

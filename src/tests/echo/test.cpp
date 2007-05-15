@@ -24,6 +24,12 @@ int main(void) {
     <ArcConfig\
       xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
       xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\
+     <ModuleManager>\
+        <Path>.libs/</Path>\
+        <Path>../../hed/mcc/http/.libs/</Path>\
+        <Path>../../hed/mcc/soap/.libs/</Path>\
+        <Path>../../hed/mcc/tcp/.libs/</Path>\
+     </ModuleManager>\
      <Plugins><Name>mcctcp</Name></Plugins>\
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\

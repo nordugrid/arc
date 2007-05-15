@@ -1,7 +1,2 @@
 #!/bin/sh
-
-rm -f *.so
-ln -s ../../hed/mcc/soap/.libs/libmccsoap.so
-ln -s ../../hed/mcc/http/.libs/libmcchttp.so
-ln -s ../../hed/mcc/tcp/.libs/libmcctcp.so
 ./test

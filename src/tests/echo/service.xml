@@ -4,6 +4,12 @@
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:echo="urn:echo_config"
 >
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+    </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>

@@ -34,7 +34,7 @@ Arc::Service *ServiceFactory::get_instance(const std::string& name,int min_versi
     }
     if(i == descriptors_.end()) {
         // Load module
-        Glib::Module *module = ModuleManager::load("lib" + name);
+        Glib::Module *module = ModuleManager::load(name);
         if (module == NULL) {
             return NULL;
         }
@@ -69,7 +69,7 @@ Arc::Service *ServiceFactory::get_instance(const std::string& name,int min_versi
 
 void ServiceFactory::load_all_instances(const std::string& libname) {
     // Load module
-    Glib::Module *module = ModuleManager::load("lib" + libname);
+    Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
         std::cerr << "Module " << libname << " could not be loaded" << std::endl;
         return;
