@@ -29,29 +29,29 @@ class WSRP: public WSRF {
 // ==================== Faults ================================
 
 /** Base class for all WS-ResourceProperties faults */
-class WSRPBaseFault: public WSRFBaseFault {
+class WSRPFault: public WSRFBaseFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
-  WSRPBaseFault(SOAPMessage& soap);
+  WSRPFault(SOAPMessage& soap);
   /** Constructor - creates new WSRP fault */
-  WSRPBaseFault(const std::string& type);
-  virtual ~WSRPBaseFault(void);
+  WSRPFault(const std::string& type);
+  virtual ~WSRPFault(void);
 };
 
-class WSRPInvalidResourcePropertyQNameFault: public WSRPBaseFault {
+class WSRPInvalidResourcePropertyQNameFault: public WSRPFault {
  public:
-   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap):WSRPBaseFault(soap) { };
-   WSRPInvalidResourcePropertyQNameFault(void):WSRPBaseFault("wsrf-rp:InvalidResourcePropertyQNameFault") { };
+   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap):WSRPFault(soap) { };
+   WSRPInvalidResourcePropertyQNameFault(void):WSRPFault("wsrf-rp:InvalidResourcePropertyQNameFault") { };
    virtual ~WSRPInvalidResourcePropertyQNameFault(void) { };
 };
 
 /** Base class for WS-ResourceProperties faults which contain ResourcePropertyChangeFailure */
-class WSRPResourcePropertyChangeFailure: public WSRPBaseFault {
+class WSRPResourcePropertyChangeFailure: public WSRPFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
-   WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPBaseFault(soap) { };
+   WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPFault(soap) { };
   /** Constructor - creates new WSRP fault */
-   WSRPResourcePropertyChangeFailure(const std::string& type):WSRPBaseFault(type) { };
+   WSRPResourcePropertyChangeFailure(const std::string& type):WSRPFault(type) { };
    virtual ~WSRPResourcePropertyChangeFailure(void) { };
    XMLNode CurrentProperties(bool create = false);
    XMLNode RequestedProperties(bool create = false);

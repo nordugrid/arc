@@ -1,5 +1,5 @@
 noinst_PROGRAMS=test
-SOURCES = WSRF.cpp WSRFBaseFault.cpp ../libs/message/SOAPMessage.cpp ../ws-addressing/WSA.cpp WSResourceProperties.cpp WSResourceProperties.h
+SOURCES = WSRF.cpp WSRFBaseFault.cpp WSResourceProperties.cpp ../libs/message/SOAPMessage.cpp ../ws-addressing/WSA.cpp 
 
 # test_SOURCES=$(SOURCES) test.cpp
 # test_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/

@@ -471,13 +471,13 @@ WSRPDeleteResourcePropertiesResponse::~WSRPDeleteResourcePropertiesResponse(void
 // ==================== Faults ================================
 
 
-WSRPBaseFault::WSRPBaseFault(SOAPMessage& soap):WSRFBaseFault(soap) {
+WSRPFault::WSRPFault(SOAPMessage& soap):WSRFBaseFault(soap) {
 }
 
-WSRPBaseFault::WSRPBaseFault(const std::string& type):WSRFBaseFault(type) {
+WSRPFault::WSRPFault(const std::string& type):WSRFBaseFault(type) {
 }
 
-WSRPBaseFault::~WSRPBaseFault(void) {
+WSRPFault::~WSRPFault(void) {
 }
 
 
@@ -581,6 +581,22 @@ XMLNode WSRPQueryResourcePropertiesResponse::Properties(void) {
 
 // =====================================================================
 
+WSRF& CreateWSRPFault(SOAPMessage& soap) {
+  // Not the most efective way to extract type of message
+  WSRPFault& v = *(new WSRPFault(soap));
+  std::string type = v.Type();
+  delete &v;
+  if(v.Type() == "wsrf-rp:WSRPInvalidResourcePropertyQNameFault") return *(new WSRPInvalidResourcePropertyQNameFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPUnableToPutResourcePropertyDocumentFault") return *(new WSRPUnableToPutResourcePropertyDocumentFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPInvalidModificationFault") return *(new WSRPInvalidModificationFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPUnableToModifyResourcePropertyFault") return *(new WSRPUnableToModifyResourcePropertyFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPSetResourcePropertyRequestFailedFault") return *(new WSRPSetResourcePropertyRequestFailedFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPInsertResourcePropertiesRequestFailedFault") return *(new WSRPInsertResourcePropertiesRequestFailedFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPUpdateResourcePropertiesRequestFailedFault") return *(new WSRPUpdateResourcePropertiesRequestFailedFault(soap));
+  if(v.Type() == "wsrf-rp:WSRPDeleteResourcePropertiesRequestFailedFault") return *(new WSRPDeleteResourcePropertiesRequestFailedFault(soap));
+  return *(new WSRF());
+}
+
 WSRF& CreateWSRP(SOAPMessage& soap) {
   XMLNode::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
@@ -596,6 +612,7 @@ WSRF& CreateWSRP(SOAPMessage& soap) {
   if(action == WSRFBaseFaultAction) {
     WSRF& fault = CreateWSRFBaseFault(soap);
     if(fault) return fault;
+    return CreateWSRPFault(soap);
   };
   if(action == WSRPGetResourcePropertyDocumentRequestAction) return *(new WSRPGetResourcePropertyDocumentRequest(soap));
   if(action == WSRPGetResourcePropertyDocumentResponseAction) return *(new WSRPGetResourcePropertyDocumentResponse(soap));
