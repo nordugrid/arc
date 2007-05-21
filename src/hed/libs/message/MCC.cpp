@@ -1,8 +1,8 @@
-#include <iostream>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <iostream>
 
 #include "MCC.h"
 
@@ -25,6 +25,14 @@ MCCInterface* MCC::Next(const std::string& label) {
 void MCC::Unlink(void) {
     for(std::map<std::string,MCCInterface*>::iterator n = next_.begin();
                                      n != next_.end();n = next_.begin()) next_.erase(n);
+}
+
+void MCC::AuthN(AuthNHandler* authn,const std::string& label) {
+    if(authn) authn_[label].push_back(authn);
+}
+
+void MCC::AuthZ(AuthZHandler* authz,const std::string& label) {
+    if(authz) authz_[label].push_back(authz);
 }
 
 }; // namespace Arc

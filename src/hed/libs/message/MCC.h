@@ -6,6 +6,9 @@
 
 namespace Arc {
 
+class AuthNHandler;
+class AuthZHandler;
+
 /** This class represents status of Message processing.
   Currently it's just a placeholder for int code with 0 meaning
  there were no errors during processing. It's methods allow
@@ -57,10 +60,16 @@ class MCC: public MCCInterface
 {
     protected:
         /** Set of labeled "next" components. 
-          Each implemented MCC must call process() metthod of corresponding MCCInterface
-         from this set in own process() method. */
+          Each implemented MCC must call process() metthod of 
+         corresponding MCCInterface from this set in own process() method. */
         std::map<std::string,MCCInterface*> next_;
         MCCInterface* Next(const std::string& label = "");
+        /** Set o flabeled authentication and authorization handlers.
+          MCC calls sequence of handlers at specific point depending
+         on associated identifier. in most aces those are "in" and "out"
+         for incoming and outgoing messages correspondingly. */
+        std::map<std::string,std::list<AuthNHandler*> > authn_;
+        std::map<std::string,std::list<AuthZHandler*> > authz_;
     public:
         /** Example contructor - MCC takes at least it's configuration subtree */
         MCC(Arc::Config *cfg) { };
@@ -70,6 +79,8 @@ class MCC: public MCCInterface
          component which implements MCCInterface. If next is set NULL corresponding
          link is removed.  */
         virtual void Next(MCCInterface* next,const std::string& label = "");
+        virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
+        virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
         /** Removing all links. 
           Useful for destroying chains. */
         virtual void Unlink(void);

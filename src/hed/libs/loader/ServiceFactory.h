@@ -1,29 +1,25 @@
 #ifndef __ARC_SERVICEFACTORY_H__
 #define __ARC_SERVICEFACTORY_H__
 
-#include "common/ArcConfig.h"
-#include "ModuleManager.h"
+#include "LoaderFactory.h"
 #include "ServiceLoader.h"
 
 namespace Arc {
 
 /** This class handles shared libraries containing Services */
-class ServiceFactory: public ModuleManager {
-    private:
-        typedef std::list<service_descriptor> descriptors_t;
-        descriptors_t descriptors_;
+class ServiceFactory: public LoaderFactory {
     public:
-        /** Constructor - accepts configuration (not yet used) meant to tune loading of module. */
+        /** Constructor - accepts configuration (not yet used) meant to 
+          tune loading of module. */
         ServiceFactory(Arc::Config *cfg);
         ~ServiceFactory();
-        /** This method loads shared library named lib'name', locates symbol
+        /** This methods load shared library named lib'name', locate symbol
           representing descriptor of Service and calls it's constructor function. 
           Supplied configuration tree is passed to constructor.
           Returns created Service instance. */
         Service *get_instance(const std::string& name,Arc::Config *cfg);
         Service *get_instance(const std::string& name,int version,Arc::Config *cfg);
         Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
-        void load_all_instances(const std::string& libname);
 };
 
 }; // namespace Arc

@@ -4,10 +4,14 @@
 #include <string>
 #include <map>
 #include "common/ArcConfig.h"
-#include "MCCLoader.h"
+//#include "MCCLoader.h"
 #include "MCCFactory.h"
-#include "ServiceLoader.h"
+//#include "ServiceLoader.h"
 #include "ServiceFactory.h"
+//#include "AuthNHandlerLoader.h"
+#include "AuthNHandlerFactory.h"
+//#include "AuthZHandlerLoader.h"
+#include "AuthZHandlerFactory.h"
 #include "Plexer.h"
 
 namespace Arc {
@@ -41,6 +45,8 @@ class Loader
         typedef std::map<std::string, MCC *>     mcc_container_t;
         typedef std::map<std::string, Service *> service_container_t;
         typedef std::map<std::string, Plexer *>  plexer_container_t;
+        typedef std::map<std::string, AuthNHandler *> authn_container_t;
+        typedef std::map<std::string, AuthZHandler *> authz_container_t;
 
     private:
         /** Link to Factory responsible for loading and creation of Service objects */
@@ -50,6 +56,9 @@ class Loader
         MCCFactory *mcc_factory;
 
         //PlexerFactory *plexer_factory;
+
+        AuthNHandlerFactory *authn_factory;
+        AuthZHandlerFactory *authz_factory;
 
         /** Set of labeled MCC objects */
         mcc_container_t     mccs_;
@@ -62,6 +71,9 @@ class Loader
 
         /** Set of labeled Plexer objects */
         plexer_container_t  plexers_;
+
+        authn_container_t  authns_;
+        authz_container_t  authzs_;
 
         /** Internal method which performs whole stuff except creation of Factories. 
           It is taken out from constructor to make it easier to reconfigure chains
@@ -81,4 +93,5 @@ class Loader
 };
 
 }
+
 #endif /* __ARC_LOADER_H__ */

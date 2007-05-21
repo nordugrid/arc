@@ -1,9 +1,17 @@
 <?xml version="1.0"?>
 <ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
     <Chain>
+        <Authentication id="authn1" name="tcp"/>
+	<Authorization id="authz1" name="tcp">
+	    <Allow>
+		<FromDomain>*.uio.no</FromDomain>
+	    </Allow>
+	</Authorization>
         <Component name="tcp" id="mcc1">
             <next id="mcc2"/>
             <port>80</port>
+	    <Authentication refid="authn1" listid="in">
+	    <Authorization refid="authz1" listid="in">
         </Component>
         <Component name="http" id="mcc2">
             <next id="mcc3">GET</next>

@@ -1,7 +1,6 @@
 #ifndef __ARC_MCC_LOADER_H__
 #define __ARC_MCC_LOADER_H__
 
-#include "common/ArcConfig.h"
 #include "../message/MCC.h"
 
 #define ARC_MCC_LOADER_ID "__arc_mcc_modules__"
@@ -20,6 +19,6 @@ typedef struct {
   To check for end of array use ARC_MCC_LOADER_FINAL() macro */
 typedef mcc_descriptor mcc_descriptors[];
 
-#define ARC_MCC_LOADER_FINAL(desc) ((desc).name == NULL)
+#define ARC_MCC_LOADER_FINAL(desc) ARC_LOADER_FINAL(desc)
 
 #endif /* __ARC_MCC_LOADER_H__ */

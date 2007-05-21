@@ -1,7 +1,6 @@
 #ifndef __ARC_SERVICE_LOADER_H__
 #define __ARC_SERVICE_LOADER_H__
 
-#include "common/ArcConfig.h"
 #include "../message/Service.h"
 
 #define ARC_SERVICE_LOADER_ID "__arc_service_modules__"
@@ -20,7 +19,7 @@ typedef struct {
   To check for end of array use ARC_SERVICE_LOADER_FINAL() macro */
 typedef service_descriptor service_descriptors[];
 
-#define ARC_SERVICE_LOADER_FINAL(desc) ((desc).name == NULL)
+#define ARC_SERVICE_LOADER_FINAL(desc) ARC_LOADER_FINAL(desc)
 
 
 #endif /* __ARC_SERVICE_LOADER_H__ */

@@ -83,6 +83,109 @@ std::ostream& operator<<(std::ostream& o,const plexer_connector_t& plexer) {
 class mcc_connectors_t: public std::list<mcc_connector_t> { };
 class plexer_connectors_t: public std::list<plexer_connector_t> { };
 
+static XMLNode FindElementByID(XMLNode node,const std::string& id,const std::string& name) {
+    for(int n = 0; ; ++n) {
+        XMLNode cn = node.Child(n);
+        if(!cn) break;
+        Config cfg_(cn);
+
+        if (MatchXMLName(cn, "ArcConfig")) {
+            XMLNode result = FindElementByID(cn,id,name);
+            if(result) return result;
+            continue;
+        }
+
+        if (MatchXMLName(cn, "Chain")) {
+            XMLNode result = FindElementByID(cn,id,name);
+            if(result) return result;
+            continue;
+        }
+
+        if (MatchXMLName(cn, name)) {
+            if((std::string)(cn.Attribute("id")) == id) return cn;
+        }
+    }
+    return XMLNode();
+}
+
+
+static AuthNHandler* MakeAuthNHandler(Config* cfg,Loader::authn_container_t& authns,AuthNHandlerFactory* authn_factory,XMLNode node) {
+    if(!node) return NULL;
+    XMLNode desc_node;
+    std::string refid = node.Attribute("refid");
+    if(refid.empty()) {
+        desc_node = node;
+        refid = (std::string)(node.Attribute("id"));
+        if(refid.empty()) {
+            char buf[256];
+            snprintf(buf,sizeof(buf)-1,"__arc_authn_%u__",authns.size());
+            buf[sizeof(buf)-1]=0;
+            refid=buf;
+        };
+    } else {
+        // Maybe it's already created
+        Loader::authn_container_t::iterator auth = authns.find(refid);
+        if(auth != authns.end()) {
+            return auth->second;
+        }
+        // Look for it's configuration
+        desc_node=FindElementByID(*cfg,refid,"Authentication");
+    }
+    if(!desc_node) {
+        std::cerr << "Authentication handler has no configuration" << std::endl;
+        return NULL;
+    }
+    std::string name = desc_node.Attribute("name");
+    if(name.empty()) {
+        std::cerr << "Authentication handler has no name attribute defined" << std::endl;
+        return NULL;
+    }
+    // Create new handler
+    Config cfg_(desc_node);
+    AuthNHandler* handler=authn_factory->get_instance(name,&cfg_);
+    if(handler) authns[refid]=handler;
+    return handler;
+}
+
+static AuthZHandler* MakeAuthZHandler(Config* cfg,Loader::authz_container_t& authzs,AuthZHandlerFactory* authz_factory,XMLNode node) {
+    if(!node) return NULL;
+    XMLNode desc_node;
+    std::string refid = node.Attribute("refid");
+    if(refid.empty()) {
+        desc_node = node;
+        refid = (std::string)(node.Attribute("id"));
+        if(refid.empty()) {
+            char buf[256];
+            snprintf(buf,sizeof(buf)-1,"__arc_authz_%u__",authzs.size());
+            buf[sizeof(buf)-1]=0;
+            refid=buf;
+        };
+    } else {
+        // Maybe it's already created
+        Loader::authz_container_t::iterator auth = authzs.find(refid);
+        if(auth != authzs.end()) {
+            return auth->second;
+        }
+        // Look for it's configuration
+        desc_node=FindElementByID(*cfg,refid,"Authentication");
+    }
+    if(!desc_node) {
+        std::cerr << "Authentication handler has no configuration" << std::endl;
+        return NULL;
+    }
+    std::string name = desc_node.Attribute("name");
+    if(name.empty()) {
+        std::cerr << "Authentication handler has no name attribute defined" << std::endl;
+        return NULL;
+    }
+    // Create new handler
+    Config cfg_(desc_node);
+    AuthZHandler* handler=authz_factory->get_instance(name,&cfg_);
+    if(handler) authzs[refid]=handler;
+    return handler;
+}
+
+
 void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connectors,plexer_connectors_t* plexer_connectors) {
 
     if(mcc_connectors == NULL) mcc_connectors = new mcc_connectors_t;
@@ -116,6 +219,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
         }
 
         if (MatchXMLName(cn, "Component")) {
+            // Create new MCC
             std::string name = cn.Attribute("name");
             if(name.empty()) {
                 std::cerr << "Component has no name attribute defined" << std::endl;
@@ -132,6 +236,29 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 continue;
             };
             mccs_[id]=mcc;
+            
+            // Configure security plugins
+            XMLNode an;
+            an=cn["Authentication"];
+            for(int n = 0;;++n) {
+                XMLNode can = an[n];
+                if(!can) break;
+                AuthNHandler* handler = 
+                       MakeAuthNHandler(cfg,authns_,authn_factory,can);
+                if(!handler) continue; // ????
+                mcc->AuthN(handler,can.Attribute("event"));
+            };
+            an=cn["Authorization"];
+            for(int n = 0;;++n) {
+                XMLNode can = an[n];
+                if(!can) break;
+                AuthZHandler* handler = 
+                       MakeAuthZHandler(cfg,authzs_,authz_factory,can);
+                if(!handler) continue; // ????
+                mcc->AuthZ(handler,can.Attribute("event"));
+            };
+
+            // Add to chain list
             std::string entry = cn.Attribute("entry");
             if(!entry.empty()) mccs_exposed_[entry]=mcc;
             mcc_connector_t mcc_connector(mccs_.find(id));
