@@ -212,4 +212,52 @@ void XMLNode::Destroy(void) {
   node_=NULL;
 }
 
+XMLNode::dateTime::dateTime(time_t val):t_(val) {
+}
+
+XMLNode::dateTime::dateTime(const std::string& val):t_((time_t)(-1)) {
+  struct tm t;
+  int shift = 0;
+  const char* p = val.c_str();
+  if(sscanf(p,"%04i-%02u-%02uT%02u:%02u:%02u",
+     &t.tm_year,&t.tm_mon,&t.tm_mday,&t.tm_hour,&t.tm_min,&t.tm_sec)
+     != 6) return;
+  p=strchr(p,':');
+  if(!p) return;
+  p=strchr(p,':');
+  if(!p) return;
+  const char* f = strchr(p,'.');
+  if(f) {
+    p=strchr(f,'+');
+    if(!p) return;
+    ++p;
+  };
+  if(*p) {
+    if(*p != 'Z') {
+      if((*p != '+') && (*p != '-')) return;
+      unsigned int shift_hour = 0;
+      unsigned int shift_min = 0;
+      if(sscanf(p+1,"%02u:%02u",&shift_hour,&shift_min) != 2) return;
+      shift=shift_min+(shift_hour*60);
+      if(*p == '-') shift=-shift;
+    };
+  };
+  t_=timegm(&t);
+  t_+=shift;
+}
+
+XMLNode::dateTime::operator time_t(void) {
+  return t_;
+}
+
+XMLNode::dateTime::operator std::string(void) {
+  char buf[256];
+  struct tm t;
+  gmtime_r(&t_,&t);
+  snprintf(buf,sizeof(buf)-1,"%04i-%02u-%02uT%02u:%02u:%02uZ",
+           t.tm_year,t.tm_mon,t.tm_mday,t.tm_hour,t.tm_min,t.tm_sec);
+  buf[sizeof(buf)-1]=0;
+  return std::string(buf);
+}
+
 } // namespace Arc

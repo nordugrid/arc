@@ -24,6 +24,15 @@ class XMLNode {
  public:
   /** convenience typedef representing mapping between namespace URIs and their prefixes */
   typedef std::map<std::string,std::string> NS;
+  class dateTime {
+   private:
+    time_t t_;
+   public:
+    dateTime(const std::string& val);
+    dateTime(time_t val);
+    operator time_t(void);
+    operator std::string(void);
+  };
  protected:
   xmlNodePtr node_;
   /**  If true node is owned by this instance - hence released in destructor. 
