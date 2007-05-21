@@ -6,6 +6,14 @@
 
 namespace Arc {
 
+static std::string strip_spaces(const std::string& s) {
+  std::string::size_type start = 0;
+  for(;start<s.length();++start) if(!isspace(s[start])) break;
+  std::string::size_type end = s.length()-1;
+  for(;end>=start;--end) if(!isspace(s[end])) break;
+  return s.substr(start,end-start+1);
+}
+
 static void remove_empty_nodes(XMLNode& parent,const char* name) {
   while(true) {
     XMLNode to = parent[name];
@@ -46,7 +54,7 @@ WSAEndpointReference::~WSAEndpointReference(void) {
 
 
 std::string WSAEndpointReference::Address(void) const {
-  return epr_["wsa:Address"];
+  return strip_spaces(epr_["wsa:Address"]);
 }
 
 WSAEndpointReference& WSAEndpointReference::operator=(const std::string& address) {
@@ -103,7 +111,7 @@ WSAHeader::~WSAHeader(void) {
 
 
 std::string WSAHeader::To(void) const {
-  return header_["wsa:To"];
+  return strip_spaces(header_["wsa:To"]);
 }
 
 
@@ -113,7 +121,7 @@ void WSAHeader::To(const std::string& uri) {
 
 
 std::string WSAHeader::Action(void) const {
-  return header_["wsa:Action"];
+  return strip_spaces(header_["wsa:Action"]);
 }
 
 
@@ -123,7 +131,7 @@ void WSAHeader::Action(const std::string& uri) {
 
 
 std::string WSAHeader::MessageID(void) const {
-  return header_["wsa:MessageID"];
+  return strip_spaces(header_["wsa:MessageID"]);
 }
 
 
@@ -133,7 +141,7 @@ void WSAHeader::MessageID(const std::string& uri) {
 
 
 std::string WSAHeader::RelatesTo(void) const {
-  return header_["wsa:RelatesTo"];
+  return strip_spaces(header_["wsa:RelatesTo"]);
 }
 
 
@@ -157,7 +165,7 @@ WSAEndpointReference WSAHeader::FaultTo(void) {
 }
 
 std::string WSAHeader::RelationshipType(void) const {
-  return header_["wsa:ReplyTo"].Attribute("wsa:RelationshipType");
+  return strip_spaces(header_["wsa:ReplyTo"].Attribute("wsa:RelationshipType"));
 }
 
 
