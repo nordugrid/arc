@@ -1,7 +1,8 @@
 #ifndef __ARC_MCC_H__
 #define __ARC_MCC_H__
 
-#include "common/ArcConfig.h"
+#include <list>
+#include "ArcConfig.h"
 #include "Message.h"
 
 namespace Arc {
@@ -71,7 +72,8 @@ class MCC: public MCCInterface
         std::map<std::string,std::list<AuthNHandler*> > authn_;
         std::map<std::string,std::list<AuthZHandler*> > authz_;
     public:
-        /** Example contructor - MCC takes at least it's configuration subtree */
+        /** Example contructor - MCC takes at least it's configuration
+	    subtree */
         MCC(Arc::Config *cfg) { };
         virtual ~MCC(void) { };
         /** Add reference to next MCC in chain.

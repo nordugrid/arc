@@ -75,6 +75,9 @@ class Message {
     payload_=new_payload;
     return p;
   };
+  /** Returns a pointer to the current attributes object or NULL if no
+      attributes object has been assigned. */
+  MessageAttributes* Attributes(void) { return attributes_; };
 };
 
 } // namespace Arc
