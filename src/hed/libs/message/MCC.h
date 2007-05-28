@@ -1,6 +1,8 @@
 #ifndef __ARC_MCC_H__
 #define __ARC_MCC_H__
 
+#include <list>
+#include <map>
 #include "common/ArcConfig.h"
 #include "Message.h"
 
