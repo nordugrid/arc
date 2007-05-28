@@ -32,7 +32,7 @@ using namespace Arc;
 
 
 MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
-    pthread_mutex_init(&lock_,NULL);
+    // pthread_mutex_init(&lock_,NULL);
     for(int i = 0;;++i) {
         XMLNode l = (*cfg)["Listen"][i];
         if(!l) break;
@@ -75,22 +75,30 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
-    pthread_mutex_lock(&lock_);
+    //pthread_mutex_lock(&lock_);
+    lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
     };
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
         ::close(e->handle); e->handle=-1;
     };
-    pthread_mutex_unlock(&lock_);
+    //pthread_mutex_unlock(&lock_);
+    lock_.unlock();
     // Wait for threads to exit
     while(executers_.size() > 0) {
-        pthread_mutex_unlock(&lock_); sleep(1); pthread_mutex_lock(&lock_);
+        // pthread_mutex_unlock(&lock_);
+        lock_.unlock(); sleep(1); lock_.lock();
+        // pthread_mutex_lock(&lock_);
     };
     while(handles_.size() > 0) {
-        pthread_mutex_unlock(&lock_); sleep(1); pthread_mutex_lock(&lock_);
+        // pthread_mutex_unlock(&lock_);
+        lock_.unlock(); sleep(1); lock_.lock();
+        // pthread_mutex_lock(&lock_);
     };
-    pthread_mutex_destroy(&lock_);
+    // pthread_mutex_unlock(&lock_);
+    lock_.unlock();
+    // pthread_mutex_destroy(&lock_);
 }
 
 MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o),handle(h) {
@@ -112,7 +120,8 @@ void MCC_TCP_Service::listener(void* arg) {
         fd_set readfds;
         fd_set exfds;
         FD_ZERO(&readfds);
-        pthread_mutex_lock(&it.lock_);
+        // pthread_mutex_lock(&it.lock_);
+        it.lock_.lock();
         for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
             int s = *i;
             if(s == -1) { i=it.handles_.erase(i); continue; };
@@ -120,43 +129,52 @@ void MCC_TCP_Service::listener(void* arg) {
             if(s > max_s) max_s = s;
             ++i;
         };
-        pthread_mutex_unlock(&it.lock_);
+        // pthread_mutex_unlock(&it.lock_);
+        it.lock_.unlock();
         if(max_s == -1) break;
         struct timeval tv; tv.tv_sec = 2; tv.tv_usec = 0;
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(errno != EINTR) {
                 std::cerr<<"Error: Failed while waiting for connection request"<<std::endl;
-                pthread_mutex_lock(&it.lock_);
+                // pthread_mutex_lock(&it.lock_);
+                it.lock_.lock();
                 for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
                     int s = *i;
                     ::close(s); 
                     i=it.handles_.erase(i);
                 };
+                // pthread_mutex_unlock(&it.lock_);
+                it.lock_.unlock();
                 return;
             };
             continue;
         } else if(n == 0) continue;
-        pthread_mutex_lock(&it.lock_);
+        // pthread_mutex_lock(&it.lock_);
+        it.lock_.lock();
         for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();++i) {
             int s = *i;
             if(s == -1) continue;
             if(FD_ISSET(s,&readfds)) {
-                pthread_mutex_unlock(&it.lock_);
+                // pthread_mutex_unlock(&it.lock_);
+                it.lock_.unlock();
                 struct sockaddr addr;
                 socklen_t addrlen = sizeof(addr);
                 int h = accept(s,&addr,&addrlen);
                 if(h == -1) {
                     std::cerr<<"Error: Failed to accept connection request"<<std::endl;
-                    pthread_mutex_lock(&it.lock_);
+                    //pthread_mutex_lock(&it.lock_);
+                    it.lock_.lock();
                 } else {
                     mcc_tcp_exec_t t(&it,h);
-                    pthread_mutex_lock(&it.lock_);
+                    //pthread_mutex_lock(&it.lock_);
+                    it.lock_.lock();
                     if(t) it.executers_.push_back(t);
                 };
             };
         };
-        pthread_mutex_unlock(&it.lock_);
+        //pthread_mutex_unlock(&it.lock_);
+        it.lock_.unlock();
     };
     return;
 }
@@ -178,7 +196,8 @@ void MCC_TCP_Service::executer(void* arg) {
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!ret) break;
     };
-    pthread_mutex_lock(&it.lock_);
+    //pthread_mutex_lock(&it.lock_);
+    it.lock_.lock();
     for(std::list<mcc_tcp_exec_t>::iterator e = it.executers_.begin();e != it.executers_.end();++e) {
         if(id == e->id) {
             s=e->handle;
@@ -187,7 +206,8 @@ void MCC_TCP_Service::executer(void* arg) {
         };
     };
     ::close(s);
-    pthread_mutex_unlock(&it.lock_);
+    //pthread_mutex_unlock(&it.lock_);
+    it.lock_.unlock();
     return;
 }
 

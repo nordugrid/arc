@@ -33,7 +33,7 @@ class MCC_TCP_Service: public MCC
         std::list<int> handles_; /** listening sockets */
         std::list<mcc_tcp_exec_t> executers_; /** active connections and associated threads */
         /* pthread_t listen_th_; ** thread listening for incoming connections */
-        pthread_mutex_t lock_; /** lock for safe operations in internal lists */
+        Glib::Mutex lock_; /** lock for safe operations in internal lists */
         static void listener(void *); /** executing function for listening thread */
         static void executer(void *); /** executing function for connection thread */
     public:
