@@ -39,7 +39,8 @@ Glib::Module *ModuleManager::load(const std::string& name)
         return plugin_cache[name];
     }
     std::string path;
-    for (std::vector<std::string>::const_iterator i = plugin_dir.begin(); i != plugin_dir.end(); i++) {
+    std::vector<std::string>::const_iterator i = plugin_dir.begin();
+    for (; i != plugin_dir.end(); i++) {
         // std::cout << "Path: " << *i << std::endl;
         path = Glib::Module::build_path(*i, name);
         FILE *file = fopen(path.c_str(), "r");
@@ -50,9 +51,14 @@ Glib::Module *ModuleManager::load(const std::string& name)
             break;
         }
     }
+    if(i == plugin_dir.end()) {
+        std::cerr << "Could not locate module " << name << std::endl;
+        return NULL;
+    };
     Glib::Module *module = new Glib::Module(path);
-    if (!(bool)module || module == NULL) {
+    if ((!module) || (!(*module))) {
         std::cerr << Glib::Module::get_last_error() << std::endl;
+        if(module) delete module;
         return NULL;
     }
     std::cout << "Loaded: " << path << std::endl;
