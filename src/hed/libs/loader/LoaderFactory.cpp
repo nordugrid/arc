@@ -17,15 +17,15 @@ LoaderFactory::~LoaderFactory(void)
 {
 }
 
-void *LoaderFactory::get_instance(const std::string& name,Arc::Config *cfg) {
-    return get_instance(name,0,INT_MAX,cfg);
+void *LoaderFactory::get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return get_instance(name,0,INT_MAX,cfg,ctx);
 }
 
-void *LoaderFactory::get_instance(const std::string& name,int version,Arc::Config *cfg) {
-    return get_instance(name,version,version,cfg);
+void *LoaderFactory::get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return get_instance(name,version,version,cfg,ctx);
 }
 
-void *LoaderFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg) {
+void *LoaderFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx) {
     descriptors_t::iterator i = descriptors_.begin();
     for(; i != descriptors_.end(); ++i) {
         if((i->name == name) && 
@@ -34,7 +34,7 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
     }
     if(i == descriptors_.end()) {
         // Load module
-        Glib::Module *module = ModuleManager::load("lib" + name);
+        Glib::Module *module = ModuleManager::load(name);
         if (module == NULL) {
             return NULL;
         }
@@ -65,12 +65,12 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         std::cerr << "Missing init function" << std::endl;
         return NULL;
     }
-    return (*descriptor.get_instance)(cfg);
+    return (*descriptor.get_instance)(cfg,ctx);
 }
 
 void LoaderFactory::load_all_instances(const std::string& libname) {
     // Load module
-    Glib::Module *module = ModuleManager::load("lib" + libname);
+    Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
         std::cerr << "Module " << libname << " could not be loaded" << std::endl;
         return;

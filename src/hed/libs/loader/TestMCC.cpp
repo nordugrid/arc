@@ -29,7 +29,7 @@ Arc::Message TestMCC::process(Arc::Message)
     }
 }
 
-Arc::MCC *get_mcc_instance(Arc::Config *cfg) 
+Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext* ctx) 
 {
     return (Arc::MCC *)(new TestMCC(cfg));
 }

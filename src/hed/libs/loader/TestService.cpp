@@ -24,7 +24,7 @@ Arc::MCC_Status TestService::process(Arc::Message& request,Arc::Message& respons
     std::cout << "private variable: " << a << std::endl; 
 }
 
-Arc::Service *get_service_instance(Arc::Config *cfg) 
+Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext* ctx) 
 {
     return (Arc::Service *)(new TestService(cfg));
 }

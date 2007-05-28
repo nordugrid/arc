@@ -5,13 +5,16 @@
 #include "ModuleManager.h"
 
 namespace Arc {
+
+class ChainContext;
+
 /** This structure describes set of elements stored in shared library.
   It contains name of plugin, version number and pointer to function which
   creates an instance of object. */
 typedef struct {
     const char* name;
     int version;
-    void *(*get_instance)(Arc::Config *cfg);
+    void *(*get_instance)(Arc::Config *cfg,Arc::ChainContext* ctx);
 } loader_descriptor;
 
 /** Elements are detected by presence of element with particular name of
@@ -38,9 +41,9 @@ class LoaderFactory: public ModuleManager {
           Returns created instance.
           This classes must be rewritten in real implementation with
           proper type casting. */
-        void *get_instance(const std::string& name,Arc::Config *cfg);
-        void *get_instance(const std::string& name,int version,Arc::Config *cfg);
-        void *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        void *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
+        void *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
+        void *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
     public:
         ~LoaderFactory();
         void load_all_instances(const std::string& libname);

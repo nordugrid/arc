@@ -13,16 +13,16 @@ PDPFactory::~PDPFactory(void)
 {
 }
 
-PDP *PDPFactory::get_instance(const std::string& name,Arc::Config *cfg) {
-    return (PDP*)LoaderFactory::get_instance(name,cfg);
+PDP *PDPFactory::get_instance(const std::string& name,Arc::Config *cfg,ChainContext* ctx) {
+    return (PDP*)LoaderFactory::get_instance(name,cfg,ctx);
 }
 
-PDP *PDPFactory::get_instance(const std::string& name,int version,Arc::Config *cfg) {
-    return (PDP*)LoaderFactory::get_instance(name,version,cfg);
+PDP *PDPFactory::get_instance(const std::string& name,int version,Arc::Config *cfg,ChainContext* ctx) {
+    return (PDP*)LoaderFactory::get_instance(name,version,cfg,ctx);
 }
 
-PDP *PDPFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg) {
-    return (PDP*)LoaderFactory::get_instance(name,min_version,max_version,cfg);
+PDP *PDPFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,ChainContext* ctx) {
+    return (PDP*)LoaderFactory::get_instance(name,min_version,max_version,cfg,ctx);
 }
 
 }; // namespace Arc

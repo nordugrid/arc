@@ -17,9 +17,9 @@ ading of modules. */
           representing descriptor of PDP and calls it's constructor
           function. Supplied configuration tree is passed to constructor.
           Returns created PDP instance. */
-        PDP *get_instance(const std::string& name,Arc::Config *cfg);
-        PDP *get_instance(const std::string& name,int version,Arc::Config *cfg);
-        PDP *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        PDP *get_instance(const std::string& name,Arc::Config *cfg,ChainContext* ctx);
+        PDP *get_instance(const std::string& name,int version,Arc::Config *cfg,ChainContext* ctx);
+        PDP *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,ChainContext* ctx);
 };
 
 }; // namespace Arc

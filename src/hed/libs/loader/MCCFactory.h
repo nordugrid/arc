@@ -17,9 +17,9 @@ class MCCFactory: public LoaderFactory {
           representing descriptor of MCC and calls it's constructor function. 
           Supplied configuration tree is passed to constructor.
           Returns created MCC instance. */
-        MCC *get_instance(const std::string& name,Arc::Config *cfg);
-        MCC *get_instance(const std::string& name,int version,Arc::Config *cfg);
-        MCC *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        MCC *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
+        MCC *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
+        MCC *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
 };
 
 }; // namespace Arc

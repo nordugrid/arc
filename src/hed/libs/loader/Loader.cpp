@@ -17,6 +17,8 @@ Loader::Loader(Config *cfg)
     mcc_factory = new MCCFactory(cfg);
     //plexer_factory = new PlexerFactory(&empty_config);
 
+    context_ = new ChainContext(*this);
+
     make_elements(cfg);
 }
 
@@ -49,6 +51,7 @@ Loader::~Loader(void)
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
   };
+  if(context_) delete context_;
 }
 
 
@@ -109,7 +112,7 @@ static XMLNode FindElementByID(XMLNode node,const std::string& id,const std::str
 }
 
 
-static AuthNHandler* MakeAuthNHandler(Config* cfg,Loader::authn_container_t& authns,AuthNHandlerFactory* authn_factory,XMLNode node) {
+static AuthNHandler* MakeAuthNHandler(Config* cfg,ChainContext* ctx,Loader::authn_container_t& authns,AuthNHandlerFactory* authn_factory,XMLNode node) {
     if(!node) return NULL;
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");
@@ -142,12 +145,12 @@ static AuthNHandler* MakeAuthNHandler(Config* cfg,Loader::authn_container_t& aut
     }
     // Create new handler
     Config cfg_(desc_node);
-    AuthNHandler* handler=authn_factory->get_instance(name,&cfg_);
+    AuthNHandler* handler=authn_factory->get_instance(name,&cfg_,ctx);
     if(handler) authns[refid]=handler;
     return handler;
 }
 
-static AuthZHandler* MakeAuthZHandler(Config* cfg,Loader::authz_container_t& authzs,AuthZHandlerFactory* authz_factory,XMLNode node) {
+static AuthZHandler* MakeAuthZHandler(Config* cfg,ChainContext* ctx,Loader::authz_container_t& authzs,AuthZHandlerFactory* authz_factory,XMLNode node) {
     if(!node) return NULL;
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");
@@ -180,7 +183,7 @@ static AuthZHandler* MakeAuthZHandler(Config* cfg,Loader::authz_container_t& aut
     }
     // Create new handler
     Config cfg_(desc_node);
-    AuthZHandler* handler=authz_factory->get_instance(name,&cfg_);
+    AuthZHandler* handler=authz_factory->get_instance(name,&cfg_,ctx);
     if(handler) authzs[refid]=handler;
     return handler;
 }
@@ -230,7 +233,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 std::cerr << "Component has no id attribute defined" << std::endl;
                 continue;
             };
-            MCC* mcc = mcc_factory->get_instance(name,&cfg_);
+            MCC* mcc = mcc_factory->get_instance(name,&cfg_,context_);
             if(!mcc) {
                 std::cerr << "Component " << name << "(" << id << ") could not be created" << std::endl;
                 continue;
@@ -244,7 +247,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 XMLNode can = an[n];
                 if(!can) break;
                 AuthNHandler* handler = 
-                       MakeAuthNHandler(cfg,authns_,authn_factory,can);
+                     MakeAuthNHandler(cfg,context_,authns_,authn_factory,can);
                 if(!handler) continue; // ????
                 mcc->AuthN(handler,can.Attribute("event"));
             };
@@ -253,7 +256,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 XMLNode can = an[n];
                 if(!can) break;
                 AuthZHandler* handler = 
-                       MakeAuthZHandler(cfg,authzs_,authz_factory,can);
+                     MakeAuthZHandler(cfg,context_,authzs_,authz_factory,can);
                 if(!handler) continue; // ????
                 mcc->AuthZ(handler,can.Attribute("event"));
             };
@@ -314,7 +317,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 std::cerr << "Service has no id attribute defined" << std::endl;
                 continue;
             };
-            Service* service = service_factory->get_instance(name,&cfg_);
+            Service* service = service_factory->get_instance(name,&cfg_,context_);
             if(!service) {
                 std::cerr << "Service " << name << "(" << id << ") could not be created" << std::endl;
                 continue;

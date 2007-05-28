@@ -5,13 +5,17 @@
 
 #define ARC_SERVICE_LOADER_ID "__arc_service_modules__"
 
+namespace Arc {
+    class ChainContext;
+};
+
 /** This structure describes one of Services stored in shared library.
   It contains name of plugin, version number and pointer to function which 
   creates an instance of object inherited from Service class. */
 typedef struct {
     const char* name;
     int version;
-    Arc::Service *(*get_instance)(Arc::Config *cfg);
+    Arc::Service *(*get_instance)(Arc::Config *cfg,Arc::ChainContext* ctx);
 } service_descriptor;
 
 /** Services are detected by presence of element named ARC_SERVICE_LOADER_ID of

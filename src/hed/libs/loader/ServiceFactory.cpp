@@ -13,17 +13,17 @@ ServiceFactory::~ServiceFactory(void)
 {
 }
 
-Service *ServiceFactory::get_instance(const std::string& name,Arc::Config *cfg) {
-    return (Service*)LoaderFactory::get_instance(name,cfg);
+Service *ServiceFactory::get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return (Service*)LoaderFactory::get_instance(name,cfg,ctx);
 }
 
-Service *ServiceFactory::get_instance(const std::string& name,int version,Arc::Config *cfg) {
-    return (Service*)LoaderFactory::get_instance(name,version,cfg);
+Service *ServiceFactory::get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return (Service*)LoaderFactory::get_instance(name,version,cfg,ctx);
 }
 
-Arc::Service *ServiceFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg) 
+Arc::Service *ServiceFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx) 
 {
-    return (Service*)LoaderFactory::get_instance(name,min_version,max_version,cfg);
+    return (Service*)LoaderFactory::get_instance(name,min_version,max_version,cfg,ctx);
 }
 
 };

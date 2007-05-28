@@ -5,13 +5,15 @@
 
 #define ARC_AUTHNHANDLER_LOADER_ID "__arc_authnhandler_modules__"
 
+class Arc::ChainContext;
+
 /** This structure describes set of authentication handlers stored in shared 
   library.  It contains name of plugin, version number and pointer to function
   which creates an instance of object inherited from AuthNHandler class. */
 typedef struct {
     const char* name;
     int version;
-    Arc::AuthNHandler *(*get_instance)(Arc::Config *cfg);
+    Arc::AuthNHandler *(*get_instance)(Arc::Config *cfg,Arc::ChainContext* ctx);
 } authnhandler_descriptor;
 
 /** AuthNHandlers are detected by presence of element named 

@@ -13,16 +13,16 @@ AuthZHandlerFactory::~AuthZHandlerFactory(void)
 {
 }
 
-AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,Arc::Config *cfg) {
-    return (AuthZHandler*)LoaderFactory::get_instance(name,cfg);
+AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return (AuthZHandler*)LoaderFactory::get_instance(name,cfg,ctx);
 }
 
-AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,int version,Arc::Config *cfg) {
-    return (AuthZHandler*)LoaderFactory::get_instance(name,version,cfg);
+AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return (AuthZHandler*)LoaderFactory::get_instance(name,version,cfg,ctx);
 }
 
-AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg) {
-    return (AuthZHandler*)LoaderFactory::get_instance(name,min_version,max_version,cfg);
+AuthZHandler *AuthZHandlerFactory::get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx) {
+    return (AuthZHandler*)LoaderFactory::get_instance(name,min_version,max_version,cfg,ctx);
 }
 
 }; // namespace Arc

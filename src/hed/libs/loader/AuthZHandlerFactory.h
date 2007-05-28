@@ -17,9 +17,9 @@ ading of modules. */
           representing descriptor of AuthZHandler and calls it's constructor
           function. Supplied configuration tree is passed to constructor.
           Returns created AuthZHandler instance. */
-        AuthZHandler *get_instance(const std::string& name,Arc::Config *cfg);
-        AuthZHandler *get_instance(const std::string& name,int version,Arc::Config *cfg);
-        AuthZHandler *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        AuthZHandler *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
+        AuthZHandler *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
+        AuthZHandler *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
 };
 
 }; // namespace Arc

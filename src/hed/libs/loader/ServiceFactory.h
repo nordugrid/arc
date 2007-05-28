@@ -17,9 +17,9 @@ class ServiceFactory: public LoaderFactory {
           representing descriptor of Service and calls it's constructor function. 
           Supplied configuration tree is passed to constructor.
           Returns created Service instance. */
-        Service *get_instance(const std::string& name,Arc::Config *cfg);
-        Service *get_instance(const std::string& name,int version,Arc::Config *cfg);
-        Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg);
+        Service *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
+        Service *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
+        Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
 };
 
 }; // namespace Arc

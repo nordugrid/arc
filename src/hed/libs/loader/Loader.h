@@ -4,13 +4,9 @@
 #include <string>
 #include <map>
 #include "common/ArcConfig.h"
-//#include "MCCLoader.h"
 #include "MCCFactory.h"
-//#include "ServiceLoader.h"
 #include "ServiceFactory.h"
-//#include "AuthNHandlerLoader.h"
 #include "AuthNHandlerFactory.h"
-//#include "AuthZHandlerLoader.h"
 #include "AuthZHandlerFactory.h"
 #include "Plexer.h"
 
@@ -18,6 +14,8 @@ namespace Arc {
 
 class mcc_connectors_t;
 class plexer_connectors_t;
+
+class ChainContext;
 
 /** This class processes XML configration and creates message chains.
   Accepted configuration is defined by XML schema mcc.xsd.
@@ -41,6 +39,7 @@ class plexer_connectors_t;
 */
 class Loader 
 {
+    friend class ChainContext;
     public:
         typedef std::map<std::string, MCC *>     mcc_container_t;
         typedef std::map<std::string, Service *> service_container_t;
@@ -57,7 +56,10 @@ class Loader
 
         //PlexerFactory *plexer_factory;
 
+        /** Link to Factory responsible for loading and creation of authentication handlers */
         AuthNHandlerFactory *authn_factory;
+
+        /** Link to Factory responsible for loading and creation of authorization handlers */
         AuthZHandlerFactory *authz_factory;
 
         /** Set of labeled MCC objects */
@@ -72,7 +74,10 @@ class Loader
         /** Set of labeled Plexer objects */
         plexer_container_t  plexers_;
 
+        /** Set of labeled authentication handlers */
         authn_container_t  authns_;
+
+        /** Set of labeled authorization handlers */
         authz_container_t  authzs_;
 
         /** Internal method which performs whole stuff except creation of Factories. 
@@ -82,6 +87,8 @@ class Loader
                            mcc_connectors_t* mcc_connectors = NULL,
                            plexer_connectors_t* plexer_connectors = NULL);
 
+        ChainContext* context_;
+
     public:
         /** Constructor takes whole XML configuration and creates components' chains */
         Loader(Config *cfg);
@@ -90,6 +97,19 @@ class Loader
         /** Access entry MCCs in chains.
           Those are compnents exposed for external access using 'entry' attribute */
         MCC* operator[](const std::string& id);
+};
+
+class ChainContext {
+    friend class Loader;
+    private:
+        Loader& loader_;
+        ChainContext(Loader& loader):loader_(loader) { };
+        ~ChainContext(void) { };
+    public:
+        operator ServiceFactory*(void);
+        operator MCCFactory*(void);
+        operator AuthNHandlerFactory*(void);
+        operator AuthZHandlerFactory*(void);
 };
 
 }
