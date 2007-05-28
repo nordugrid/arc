@@ -7,7 +7,7 @@
 #include "echo.h"
 
 
-static Arc::Service* get_service(Arc::Config *cfg) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Echo::Service_Echo(cfg);
 }
 
