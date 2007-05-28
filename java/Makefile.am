@@ -27,7 +27,7 @@ libjarc_la_LDFLAGS =	-no-undefined -avoid-version -module
 javashare_DATA = arc.jar
 
 SWIG_OUTPUTS = arc_wrap.cpp *.java 
-	
+
 JAVA_CRUFT = $(JAVA_PATH)arc.class arc_wrap.cpp arc_wrap.o arc.jar $(JAVA_PATH)arc.java
 
 # The SWIG outputs are included in the distribution so SWIG is not
@@ -38,15 +38,10 @@ CLEANFILES = $(JAVA_CRUFT)
 MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 SWIG_I_FILES=$(shell find $(top_srcdir)/swig/ -name '*.[ih]')
-arc_wrap.cpp arc.java: $(SWIG_I_FILES)
-	$(SWIG) -v -c++ -java -module arc -package org.nordugrid.arc -o arc_wrap.cpp \
-		$(top_srcdir)/swig/Arc.i
-
-# FIXME There must be a better way to do this with SWIG
-$(JAVA_PATH)arc.java: arc.java
+arc_wrap.cpp $(JAVA_PATH)arc.java: $(SWIG_I_FILES)
 	mkdir -p $(JAVA_PATH)
-	rm -f $(JAVA_PATH)/*
-	mv $(srcdir)/*.java $(JAVA_PATH)
+	$(SWIG) -v -c++ -java -module arc -package org.nordugrid.arc -o arc_wrap.cpp -outdir $(JAVA_PATH) \
+		$(top_srcdir)/swig/Arc.i
 
 clean-local:
 	rm -f *.class

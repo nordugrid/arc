@@ -1,4 +1,5 @@
 %{
+#include "../src/hed/libs/message/MessageAttributes.h"
 #include "../src/hed/libs/message/Message.h"
 #include "../src/hed/libs/message/MCC.h"
 #include "../src/hed/libs/message/Service.h"
@@ -16,6 +17,7 @@
 %typemap(javafinalize) MessagePayload "";
 %typemap(javadestruct) MessagePayload "";
 #endif
+%include "../src/hed/libs/message/MessageAttributes.h"
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/Service.h"

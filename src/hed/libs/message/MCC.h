@@ -1,8 +1,7 @@
 #ifndef __ARC_MCC_H__
 #define __ARC_MCC_H__
 
-#include <list>
-#include "ArcConfig.h"
+#include "common/ArcConfig.h"
 #include "Message.h"
 
 namespace Arc {
