@@ -120,11 +120,11 @@ fi
 
 # using pkgconfig
 # check gthread
-PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.6.0])
+PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
 # check glibmm
-PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.6.0])
+PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
 # check libxml
