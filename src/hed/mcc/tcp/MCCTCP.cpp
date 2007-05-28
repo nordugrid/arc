@@ -9,15 +9,16 @@
 #include "../../libs/loader/Loader.h"
 #include "../../libs/loader/MCCLoader.h"
 #include "../../../libs/common/XMLNode.h"
+#include "../../../libs/common/Thread.h"
 
 #include "MCCTCP.h"
 
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Client(cfg);
 }
 
@@ -65,7 +66,9 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
         std::cerr<<"Error: No listening ports configured"<<std::endl;
         return;
     };
-    if(pthread_create(&listen_th_,NULL,&listener,this) != 0) {
+    //pthread_t thread;
+    //if(pthread_create(&thread,NULL,&listener,this) != 0) {
+    if(!CreateThreadFunction(&listener,this)) {
         std::cerr<<"Error: Failed to start thread for listening"<<std::endl;
         for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(*i);
     };
@@ -77,45 +80,60 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
         ::close(*i); *i=-1;
     };
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
-        ::close(e->handle);
+        ::close(e->handle); e->handle=-1;
     };
     pthread_mutex_unlock(&lock_);
     // Wait for threads to exit
-    pthread_join(listen_th_,NULL);
-    while(executers_.size() > 0) { sleep(1); };
+    while(executers_.size() > 0) {
+        pthread_mutex_unlock(&lock_); sleep(1); pthread_mutex_lock(&lock_);
+    };
+    while(handles_.size() > 0) {
+        pthread_mutex_unlock(&lock_); sleep(1); pthread_mutex_lock(&lock_);
+    };
     pthread_mutex_destroy(&lock_);
 }
 
 MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o),handle(h) {
+    static int local_id = 0;
+    //pthread_t thread;
     if(handle == -1) return;
-    if(pthread_create(&thread,NULL,&MCC_TCP_Service::executer,this) != 0) {
+    id=local_id++;
+    //if(pthread_create(&thread,NULL,&MCC_TCP_Service::executer,this) != 0) {
+    if(!CreateThreadFunction(&MCC_TCP_Service::executer,this)) {
         std::cerr<<"Error: Failed to start thread for communication"<<std::endl;
         ::close(handle);  handle=-1;
     };
 }
 
-void* MCC_TCP_Service::listener(void* arg) {
+void MCC_TCP_Service::listener(void* arg) {
     MCC_TCP_Service& it = *((MCC_TCP_Service*)arg);
     for(;;) {
-        int max_s = 0;
+        int max_s = -1;
         fd_set readfds;
         fd_set exfds;
         FD_ZERO(&readfds);
         pthread_mutex_lock(&it.lock_);
-        for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();++i) {
+        for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
             int s = *i;
-            if(s == -1) continue;
+            if(s == -1) { i=it.handles_.erase(i); continue; };
             FD_SET(s,&readfds);
             if(s > max_s) max_s = s;
+            ++i;
         };
         pthread_mutex_unlock(&it.lock_);
-        if(max_s == 0) break;
+        if(max_s == -1) break;
         struct timeval tv; tv.tv_sec = 2; tv.tv_usec = 0;
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(errno != EINTR) {
                 std::cerr<<"Error: Failed while waiting for connection request"<<std::endl;
-                return NULL;
+                pthread_mutex_lock(&it.lock_);
+                for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
+                    int s = *i;
+                    ::close(s); 
+                    i=it.handles_.erase(i);
+                };
+                return;
             };
             continue;
         } else if(n == 0) continue;
@@ -129,22 +147,24 @@ void* MCC_TCP_Service::listener(void* arg) {
                 socklen_t addrlen = sizeof(addr);
                 int h = accept(s,&addr,&addrlen);
                 if(h == -1) {
-                  std::cerr<<"Error: Failed to accept connection request"<<std::endl;
+                    std::cerr<<"Error: Failed to accept connection request"<<std::endl;
+                    pthread_mutex_lock(&it.lock_);
                 } else {
                     mcc_tcp_exec_t t(&it,h);
+                    pthread_mutex_lock(&it.lock_);
                     if(t) it.executers_.push_back(t);
                 };
-                pthread_mutex_lock(&it.lock_);
             };
         };
         pthread_mutex_unlock(&it.lock_);
     };
-    return NULL;
+    return;
 }
 
-void* MCC_TCP_Service::executer(void* arg) {
+void MCC_TCP_Service::executer(void* arg) {
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
+    int id = ((mcc_tcp_exec_t*)arg)->id;
     // Creating stream payload
     PayloadStream stream(s);
     for(;;) {
@@ -160,14 +180,15 @@ void* MCC_TCP_Service::executer(void* arg) {
     };
     pthread_mutex_lock(&it.lock_);
     for(std::list<mcc_tcp_exec_t>::iterator e = it.executers_.begin();e != it.executers_.end();++e) {
-      if(pthread_equal(e->thread,pthread_self())) {
-        it.executers_.erase(e);
-        break;
-      };
+        if(id == e->id) {
+            s=e->handle;
+            it.executers_.erase(e);
+            break;
+        };
     };
     ::close(s);
     pthread_mutex_unlock(&it.lock_);
-    return NULL;
+    return;
 }
 
 MCC_Status MCC_TCP_Service::process(Message& inmsg,Message& outmsg) {

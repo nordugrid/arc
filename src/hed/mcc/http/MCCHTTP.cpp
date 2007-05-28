@@ -9,11 +9,11 @@
 #include "MCCHTTP.h"
 
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext* ctx) {
     return new Arc::MCC_HTTP_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext* ctx) {
     return new Arc::MCC_HTTP_Client(cfg);
 }
 

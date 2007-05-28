@@ -25,16 +25,17 @@ class MCC_TCP_Service: public MCC
             public:
                 MCC_TCP_Service* obj;
                 int handle;
-                pthread_t thread;
+                /* pthread_t thread; */
+                int id;
                 mcc_tcp_exec_t(MCC_TCP_Service* o,int h);
                 operator bool(void) { return (handle != -1); };
         };
         std::list<int> handles_; /** listening sockets */
         std::list<mcc_tcp_exec_t> executers_; /** active connections and associated threads */
-        pthread_t listen_th_; /** thread listening for incoming connections */
+        /* pthread_t listen_th_; ** thread listening for incoming connections */
         pthread_mutex_t lock_; /** lock for safe operations in internal lists */
-        static void* listener(void *); /** executing function for listening thread */
-        static void* executer(void *); /** executing function for connection thread */
+        static void listener(void *); /** executing function for listening thread */
+        static void executer(void *); /** executing function for connection thread */
     public:
         MCC_TCP_Service(Arc::Config *cfg);
         virtual ~MCC_TCP_Service(void);
