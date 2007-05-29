@@ -32,13 +32,14 @@
 #include "MCCTLS.h"
 
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TLS_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TLS_Client(cfg);
 }
+
 
 mcc_descriptor __arc_mcc_modules__[] = {
     { "tls.service", 0, &get_mcc_service },

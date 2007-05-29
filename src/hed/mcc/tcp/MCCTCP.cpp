@@ -279,7 +279,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Payload(s_);
     Message nextoutmsg;
     MCCInterface* next = Next();
-    if(!next) repayload = s_;//return MCC_Status(-1);
+    if(!next) retpayload = s_;//return MCC_Status(-1);
     MCC_Status ret = next->process(nextinmsg,nextoutmsg);
     if(!ret) retpayload = s_;//return MCC_Status(-1);
 
