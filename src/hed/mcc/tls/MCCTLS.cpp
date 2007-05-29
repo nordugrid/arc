@@ -140,7 +140,7 @@ static void tls_set_dhe1024()
 
 static bool tls_load_certificate(SSL_CTX* sslctx, std::string cert_file, std::string key_file, std::string password, std::string random_file)
 {
-  // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password);
+  // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
    if(SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM)!=1&&(SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1
 ))!=1)
