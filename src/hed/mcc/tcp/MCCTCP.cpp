@@ -257,7 +257,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     } catch(std::exception& e) { };
     if(!inpayload) return MCC_Status(-1);
     // Sending payload
-    for(int n=0;;++n) {
+/*    for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
         if(!buf) break;
         int bufsize = inpayload->BufferSize(n);
@@ -267,6 +267,40 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         };
     };
     outmsg.Payload(new PayloadStream(*s_));
+    return MCC_Status();*/
+
+
+    //Modified for TLS
+    // Call next MCC, get the ssl payload
+
+    PayloadStreamInterface* retpayload = NULL;
+
+    Message nextinmsg;
+    nextinmsg.Payload(s_);
+    Message nextoutmsg;
+    MCCInterface* next = Next();
+    if(!next) repayload = s_;//return MCC_Status(-1);
+    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
+    if(!ret) retpayload = s_;//return MCC_Status(-1);
+
+
+    try{
+        retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
+    }catch(std::exception& e){};
+    if(!retpayload){delete nextoutmsg.Payload(); retpayload = s_; /*return MCC_Status(-1);*/}
+
+
+    for(int n=0;;++n) {
+        char* buf = inpayload->Buffer(n);
+        if(!buf) break;
+        int bufsize = inpayload->BufferSize(n);
+        if(!(retpayload->Put(buf,bufsize))) {
+            std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
+            return MCC_Status(-1);
+        };
+    };
+    outmsg = nextoutmsg;   //Don't need to change the Payload of "nextoutmsg", just transfer to MCC_HTTP_Client directly
+ //   outmsg.Payload(retpayload);
     return MCC_Status();
 }
 
