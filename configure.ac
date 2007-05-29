@@ -131,6 +131,10 @@ AC_SUBST(GLIBMM_LIBS)
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.6.0])
 AC_SUBST(LIBXML2_CFLAGS)
 AC_SUBST(LIBXML2_LIBS)
+# check openssl
+PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.8e])
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -158,7 +162,8 @@ AC_OUTPUT([Makefile \
                  src/hed/mcc/soap/Makefile \
                  src/hed/mcc/tcp/Makefile \
                  src/hed/mcc/http/Makefile \
-                 src/libs/Makefile \
+                 src/hed/mcc/tls/Makefile \
+		 src/libs/Makefile \
                  src/libs/common/Makefile \
                  src/tests/Makefile \
                  src/tests/echo/Makefile \

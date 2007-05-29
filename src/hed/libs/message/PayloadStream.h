@@ -65,7 +65,8 @@ class PayloadStream: public PayloadStreamInterface {
   virtual bool operator!(void) { return (handle_ == -1); };
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
+  
+  virtual int GetHandle(void){return handle_;};  //The method is specified for MCCTLS
 };
-
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */
