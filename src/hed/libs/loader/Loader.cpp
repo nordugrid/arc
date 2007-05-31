@@ -205,6 +205,10 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             continue;
         }
 
+        if (MatchXMLName(cn, "ModuleManager")) {
+            continue;
+        }
+
         if (MatchXMLName(cn, "Chain")) {
             make_elements(&cfg_,level+1,mcc_connectors,plexer_connectors);
             continue;
