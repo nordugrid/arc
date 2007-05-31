@@ -100,15 +100,28 @@
     </xsd:complexType>
     <xsd:element name="Chain" type="Chain_Type"/>
 
+    <xsd:complexType name="ModuleManager_Type">
+        <!--
+             This element specifies parameters needed to successfully load plugins.
+	    Currently it allows to specify filesystem paths to directories where
+	    plugin libraries are located.
+        -->
+        <xsd:sequence>
+            <xsd:element name="Path"     minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="ModuleManager" type="ModuleManager_Type"/>
+
     <xsd:complexType name="ArcConfig_Type">
         <!--
              This is a top level element of ARC configuration document.
         -->
         <xsd:sequence>
-            <xsd:element ref="Chain"     minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Component" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Plexer"    minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Service"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Chain"         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Component"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Plexer"        minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Service"       minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="ModuleManager" minOccurs="0" maxOccurs="1"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
