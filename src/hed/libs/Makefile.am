@@ -1,1 +1,1 @@
-SUBDIRS=message loader
+SUBDIRS=message loader counter
