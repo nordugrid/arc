@@ -1,0 +1,33 @@
+<xsd:schema
+    targetNamespace="http://schemas.ggf.org/bes/2006/08/bes-activity"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:wsa="http://www.w3.org/2005/08/addressing"
+    xmlns:bes-factory="http://schemas.ggf.org/bes/2006/08/bes-factory"
+    xmlns:bes-activity="http://schemas.ggf.org/bes/2006/08/bes-activity"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+    <xsd:import
+        namespace="http://www.w3.org/2005/08/addressing"
+        schemaLocation="http://www.w3.org/2002/ws/addr/ns/ws-addr"/>
+
+    <xsd:import
+        namespace="http://schemas.ggf.org/bes/2006/08/bes-factory"
+        schemaLocation="./bes-factory.xsd"/>
+
+    <xsd:complexType name="ActivityResourceAttributesDocumentType">
+        <xsd:sequence>
+            <xsd:element name="Status" type="bes-factory:ActivityStatusType"/>
+            <xsd:element name="ActivityDocument"
+                type="bes-factory:ActivityDocumentType"/>
+            <xsd:element name="FactoryReference" type="wsa:EndpointReferenceType"/>
+            <xsd:any namespace="##other" processContents="lax"
+                minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+
+    <xsd:element name="ActivityResourceAttributesDocument"
+        type="bes-activity:ActivityResourceAttributesDocumentType"/>
+
+</xsd:schema>
