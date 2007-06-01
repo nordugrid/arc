@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <xsd:schema
     targetNamespace="http://schemas.ggf.org/bes/2006/08/bes-factory"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
