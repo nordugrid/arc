@@ -15,7 +15,7 @@
   
   <xsd:import
       namespace="http://www.w3.org/2005/08/addressing"
-      schemaLocation="http://www.w3.org/2002/ws/addr/ns/ws-addr"/>
+      schemaLocation="./ws-addr.xsd"/>
 
   <xsd:import
       namespace="http://schemas.ggf.org/jsdl/2005/11/jsdl"

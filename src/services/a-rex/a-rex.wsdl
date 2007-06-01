@@ -6,6 +6,7 @@
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:wsa="http://www.w3.org/2005/08/addressing"
  xmlns:bes-factory="http://schemas.ggf.org/bes/2006/08/bes-factory"
  xmlns:bes-mgmt="http://schemas.ggf.org/bes/2006/08/bes-management"
  xmlns="http://www.nordugrid.org/schemas/a-rex">
@@ -13,87 +14,29 @@
 
   <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
   <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
-<!--
 
-<wsdl:types>
- <schema targetNamespace="urn:echo"
-  xmlns="http://www.w3.org/2001/XMLSchema">
-  <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
 
-  <simpleType name="say">
-   <restriction base="xsd:string"/>
-  </simpleType>
-
-  <simpleType name="hear">
-   <restriction base="xsd:string"/>
-  </simpleType>
-  
-  <complexType name="echoRequest">
-   <sequence>
-    <element name="say" type="echo:say" minOccurs="1" maxOccurs="1"/>
-   </sequence>
-  </complexType>
-
-  <complexType name="echoResponse">
-   <sequence>
-    <element name="hear" type="echo:hear" minOccurs="1" maxOccurs="1"/>
-   </sequence>
-  </complexType>
-   
-  <element name="echo" type="echo:echoRequest"/>
-  <element name="echoResponse" type="echo:echoResponse"/>
-
- </schema>
-</wsdl:types>
-
-<wsdl:message name="echoRequest">
- <wsdl:part name="echoRequest" element="echo:echo"/>
-</wsdl:message>
-
-<wsdl:message name="echoResponse">
- <wsdl:part name="echoResponse" element="echo:echoResponse"/>
-</wsdl:message>
-
-<wsdl:portType name="echo">
- <wsdl:operation name="echo">
-  <wsdl:input name="echoRequest" message="echo:echoRequest"/>
-  <wsdl:output name="echoResponse" message="echo:echoResponse"/>
- </wsdl:operation>
-</wsdl:portType>
-
-<wsdl:binding name="echo" type="echo:echo">
- <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
- <wsdl:operation name="echo">
-  <soap:operation soapAction="echo"/>
-  <wsdl:input name="echoRequest">
-   <soap:body use="literal"/>
-  </wsdl:input>
-  <wsdl:output name="echoResponse">
-   <soap:body use="literal"/>
-  </wsdl:output>
- </wsdl:operation>
-</wsdl:binding>
-
--->
   <wsdl:types>
-    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/a-rex" 
-                xmlns="http://www.w3.org/2001/XMLSchema">
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/a-rex">
+
+      <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="./ws-addr.xsd"/>
 		
-      <complexType name="ChangeActivityStatusRequestType">
-        <sequence>
-          <element name="OldStatus" type="bes-factory:ActivityStatusType" minOccurs="0"/>
-          <element name="NewStatus" type="bes-factory:ActivityStatusType"/>
-        </sequence>
-      </complexType>
+      <xsd:complexType name="ChangeActivityStatusRequestType">
+        <xsd:sequence>
+	  <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
+          <xsd:element name="OldStatus" type="bes-factory:ActivityStatusType" minOccurs="0"/>
+          <xsd:element name="NewStatus" type="bes-factory:ActivityStatusType"/>
+        </xsd:sequence>
+      </xsd:complexType>
 		
-      <complexType name="ChangeActivityStatusResponseType">
-        <sequence>
-          <element name="NewStatus" type="bes-factory:ActivityStatusType"/>
-        </sequence>
-      </complexType>
+      <xsd:complexType name="ChangeActivityStatusResponseType">
+        <xsd:sequence>
+          <xsd:element name="NewStatus" type="bes-factory:ActivityStatusType"/>
+        </xsd:sequence>
+      </xsd:complexType>
 		
-      <element name="ChangeActivityStatus" type="a-rex:ChangeActivityStatusRequestType"/>
-      <element name="ChangeActivityStatusResponse" type="a-rex:ChangeActivityStatusResponseType"/>
+      <xsd:element name="ChangeActivityStatus" type="a-rex:ChangeActivityStatusRequestType"/>
+      <xsd:element name="ChangeActivityStatusResponse" type="a-rex:ChangeActivityStatusResponseType"/>
 		
     </xsd:schema>
   </wsdl:types>
@@ -108,8 +51,22 @@
 
   <wsdl:portType name="a-rex">
     <wsdl:operation name="ChangeActivityStatus">
-      <wsdl:input name="ChangeActivityStatusRequest" message="a-rex:ChangeActivityStatusRequest"/>
-      <wsdl:output name="ChangeActivityStatusResponse" message="a-rex:ChangeActivityStatusResponse"/>
+      <wsdl:input name="ChangeActivityStatusRequest"
+        message="a-rex:ChangeActivityStatusRequest"/>
+      <wsdl:output name="ChangeActivityStatusResponse"
+        message="a-rex:ChangeActivityStatusResponse"/>
+      <wsdl:fault name="NotAuthorizedFault"
+        message="bes-factory:NotAuthorizedFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidActivityIdentifierFault" 
+        message="bes-factory:InvalidActivityIdentifierFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="CantApplyOperationToCurrentStateFault" 
+         message="bes-factory:CantApplyOperationToCurrentStateFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="OperationWillBeAppliedEventuallyFault" 
+         message="bes-factory:OperationWillBeAppliedEventuallyFault"
+         wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
     </wsdl:operation>
   </wsdl:portType>
 

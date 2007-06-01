@@ -15,7 +15,7 @@
 
       <xsd:import
           namespace="http://www.w3.org/2005/08/addressing"
-          schemaLocation="http://www.w3.org/2005/08/addressing/ws-addr.xsd"/>
+          schemaLocation="./ws-addr.xsd"/>
 
       <!-- Message Types -->
       <xsd:complexType name="StopAcceptingNewActivitiesType">
