@@ -18,6 +18,7 @@ PayloadTLSStream::PayloadTLSStream(SSL* ssl):ssl_(ssl) {
 };
 
 bool PayloadTLSStream::Get(char* buf,int& size) {
+  if(ssl_ == NULL) return false;
   //ssl read
   ssize_t l=size;
   size=0;
@@ -33,7 +34,6 @@ bool PayloadTLSStream::Get(char* buf,int& size) {
 
 bool PayloadTLSStream::Get(std::string& buf) {
   char tbuf[1024];
-  if(ssl_ == NULL) return false;
   int l = sizeof(tbuf);
   bool result = Get(tbuf,l);
   buf.assign(tbuf,l);
