@@ -13,7 +13,7 @@ class PayloadTLSSocket: public PayloadTLSStream {
  private:
   SSL_CTX* sslctx_;
   SSL* ssl_;     //Each PayloadTLSSocket should has one "socket fd" and "ssl" 
-  bool client_;  //A flag indicates whether the stream is from client side or server side.  client==1, means ssl client;  client==0, means ssl server
+  bool client_;  //A flag indicates whether the stream is from client side or server side.  client==true, means ssl client;  client==false, means ssl server
  public:
   /** Constructor - creat ssl object which is binded into socket object */
   PayloadTLSSocket(int s, SSL_CTX* ctx, bool client);
