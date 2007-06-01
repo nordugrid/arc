@@ -20,6 +20,25 @@
     <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/a-rex">
 
       <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="./ws-addr.xsd"/>
+
+      <xsd:simpleType name="ActivitySubStateType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="Accepting"/>
+          <xsd:enumeration value="Accepted"/>
+          <xsd:enumeration value="Preparing"/>
+          <xsd:enumeration value="Prepared"/>
+          <xsd:enumeration value="Submiting"/>
+          <xsd:enumeration value="Executing"/>
+          <xsd:enumeration value="Killing"/>
+          <xsd:enumeration value="Executed"/>
+          <xsd:enumeration value="Finishing"/>
+          <xsd:enumeration value="Finished"/>
+          <xsd:enumeration value="Failed"/>
+          <xsd:enumeration value="Pending"/>
+          <xsd:enumeration value="Held"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:element name="State" type="a-rex:ActivitySubStateType"/>
 		
       <xsd:complexType name="ChangeActivityStatusRequestType">
         <xsd:sequence>
@@ -28,14 +47,13 @@
           <xsd:element name="NewStatus" type="bes-factory:ActivityStatusType"/>
         </xsd:sequence>
       </xsd:complexType>
+      <xsd:element name="ChangeActivityStatus" type="a-rex:ChangeActivityStatusRequestType"/>
 		
       <xsd:complexType name="ChangeActivityStatusResponseType">
         <xsd:sequence>
           <xsd:element name="NewStatus" type="bes-factory:ActivityStatusType"/>
         </xsd:sequence>
       </xsd:complexType>
-		
-      <xsd:element name="ChangeActivityStatus" type="a-rex:ChangeActivityStatusRequestType"/>
       <xsd:element name="ChangeActivityStatusResponse" type="a-rex:ChangeActivityStatusResponseType"/>
 		
     </xsd:schema>
@@ -51,6 +69,16 @@
 
   <wsdl:portType name="a-rex">
     <wsdl:operation name="ChangeActivityStatus">
+      <wsdl:documentation>
+        This operation allows any simple status change request 
+	which involves no additional parameters. It should be
+	used to modify job/activity execution flow:
+	  - To put job on hold
+	  - To rerun job in case of failure
+	  - To cancel job (same as TerminateActivity of BESFActory)
+	  - To remove/release job - as long as non-existence is a state
+	  - Any other status change no supported by BES
+      </wsdl:documentation>
       <wsdl:input name="ChangeActivityStatusRequest"
         message="a-rex:ChangeActivityStatusRequest"/>
       <wsdl:output name="ChangeActivityStatusResponse"
