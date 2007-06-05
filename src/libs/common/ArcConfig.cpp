@@ -7,7 +7,8 @@
 #include "ArcConfig.h"
 
 namespace Arc {
-Config::Config(const char *filename)
+
+static xmlDocPtr _parse(const char *filename) 
 {
     std::string xml_str = "";
     std::string str;
@@ -19,8 +20,13 @@ Config::Config(const char *filename)
         xml_str.append(" ");
     }
     f.close();
+    return xmlReadMemory(xml_str.c_str(),xml_str.length(),NULL,NULL,0);
+}
+
+Config::Config(const char *filename)
+{
     // create XMLNode
-    xmlDocPtr doc = xmlReadMemory(xml_str.c_str(),xml_str.length(),NULL,NULL,0);
+    xmlDocPtr doc = _parse(filename);
     if(!doc) return;
     node_=(xmlNodePtr)doc;
     is_owner_=true;
@@ -50,6 +56,15 @@ static void _print(XMLNode &node, int skip) {
 void Config::print(void)
 {
     _print(*((XMLNode *)this), 0);
+}
+
+void Config::parse(const char *filename)
+{
+    // create XMLNode
+    xmlDocPtr doc = _parse(filename);
+    if(!doc) return;
+    node_=(xmlNodePtr)doc;
+    is_owner_=true;
 }
 
 };

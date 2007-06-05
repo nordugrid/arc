@@ -34,6 +34,8 @@ class Config: public XMLNode {
 	/** Print structure of document.
 	  For debuging purposes. Printed content is not an XML document. */
         void print(void);
+    /** Parse configuration document from file 'filename' */
+        void parse(const char *filename);
 };
 
 }; // namespace Arc 
