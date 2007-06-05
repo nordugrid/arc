@@ -173,6 +173,7 @@ AC_OUTPUT([Makefile \
                  src/hed/mcc/plexer/Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
+                 src/hed/daemon/Makefile \
                  src/tests/Makefile \
                  src/tests/echo/Makefile \
                  swig/Makefile \
