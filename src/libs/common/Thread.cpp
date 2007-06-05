@@ -1,9 +1,11 @@
 #include "Thread.h"
+#include <iostream>
 
 namespace Arc {
 class ThreadInitializer {
     public:
         ThreadInitializer(void) {
+            std::cout << "Initialize thread system" << std::endl;
             if(!Glib::thread_supported()) Glib::thread_init();
         };
 };
@@ -24,7 +26,12 @@ bool CreateThreadFunction(void (*func)(void*), void* arg) {
     try {
         Glib::Thread::create(sigc::mem_fun(*argument,&ThreadArgument::thread),
                              false);
-    } catch(std::exception& e) { delete argument; };
+    } catch(std::exception& e) { 
+        std::cout << e.what() << std::endl;
+        delete argument;
+        return false;
+    };
+    return true;
 }
 
 /*
