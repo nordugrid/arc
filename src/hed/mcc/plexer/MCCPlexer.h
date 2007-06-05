@@ -7,7 +7,7 @@
 #include <string>
 #include "../../libs/message/MCC.h"
 #include "../../libs/message/Message.h"
-#include "../../libs/message/ArcConfig.h"
+#include "../../../libs/common/ArcConfig.h"
 
 namespace Arc {
   

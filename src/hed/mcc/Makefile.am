@@ -1,4 +1,4 @@
-SUBDIRS=soap tcp http tls
+SUBDIRS=soap tcp http tls plexer
 
 #noinst_LTLIBRARIES= libmcc.la
 

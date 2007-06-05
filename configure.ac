@@ -24,23 +24,26 @@ languages_available=
 AC_CHECK_PROGS(SWIG, swig)
 
 # Java
-AC_CHECK_PROGS(JAVA, gij java)
-AC_CHECK_PROGS(JAVAC, gcj ecj javac)
-AC_CHECK_PROGS(JAR, fastjar jar)
-
 dnl Check if Java is explicitly disabled.
 AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),[],enable_java="yes")
+AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [set the full path JDK include]))
+
+AC_CHECK_PROGS(JAVA, java gij)
+AC_CHECK_PROGS(JAVAC, javac gcj ecj)
+AC_CHECK_PROGS(JAR, fastjar jar)
 
 JAVAC_FLAGS=
 if test "X`basename $JAVAC`" = "Xgcj"; then
     JAVAC_FLAGS=-C
 fi
 
-JDK_INCLUDE=
+JDK_INCLUDE=$with_jdk
 if test "X$JAVAC" != "X"; then
-    JDK_INCLUDE=`which $JAVAC`
-    JDK_INCLUDE=`dirname $JDK_INCLUDE`
-    JDK_INCLUDE=`dirname $JDK_INCLUDE`
+    if test "X$JDK_INCLUDE" == "X"; then
+        JDK_INCLUDE=`which $JAVAC`
+        JDK_INCLUDE=`dirname $JDK_INCLUDE`
+        JDK_INCLUDE=`dirname $JDK_INCLUDE`
+    fi
 
     if test "x$JDK_INCLUDE" = "x/" || test "x$JDK_INCLUDE" = "x/usr"; then
         JDK_INCLUDE=
@@ -64,8 +67,11 @@ fi
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS=$JDK_INCLUDE
+SAVA_CFLAGS=$CFLAGS
+CFLAGS=$JDK_INCLUDE
 AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
 CPPFLAGS=$SAVE_CPPFLAGS
+CFLAGS=$SAVA_CFLAGS
 
 if test "x$jni_h" = "xyes" && test "X$SWIG" != "X" &&
    test "X$JAVAC" != "X" && test "X$JAR" != "X"; then
@@ -164,6 +170,7 @@ AC_OUTPUT([Makefile \
                  src/hed/mcc/tcp/Makefile \
                  src/hed/mcc/http/Makefile \
                  src/hed/mcc/tls/Makefile \
+                 src/hed/mcc/plexer/Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
                  src/tests/Makefile \
