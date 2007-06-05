@@ -90,6 +90,7 @@ class Loader
         ChainContext* context_;
 
     public:
+        Loader() {};
         /** Constructor takes whole XML configuration and creates components' chains */
         Loader(Config *cfg);
         /** Destructor destroys all components created by constructor */

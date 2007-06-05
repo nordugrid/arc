@@ -220,6 +220,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 std::cerr << "Plugins element has no Name defined" << std::endl;
                 continue;
             };
+            std::cout << "DEBUG: " << name << std::endl;
             service_factory->load_all_instances(name);
             mcc_factory->load_all_instances(name);
             continue;
