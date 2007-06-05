@@ -257,7 +257,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     } catch(std::exception& e) { };
     if(!inpayload) return MCC_Status(-1);
     // Sending payload
-/*    for(int n=0;;++n) {
+    for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
         if(!buf) break;
         int bufsize = inpayload->BufferSize(n);
@@ -267,9 +267,9 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         };
     };
     outmsg.Payload(new PayloadStream(*s_));
-    return MCC_Status();*/
+    return MCC_Status();
 
-
+#if 0
     //Modified for TLS
     // Call next MCC, get the ssl payload
 
@@ -302,5 +302,6 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     outmsg = nextoutmsg;   //Don't need to change the Payload of "nextoutmsg", just transfer to MCC_HTTP_Client directly
  //   outmsg.Payload(retpayload);
     return MCC_Status();
+#endif
 }
 

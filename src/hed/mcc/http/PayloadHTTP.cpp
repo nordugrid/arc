@@ -158,6 +158,9 @@ bool PayloadHTTP::get_body(void) {
       result_size+=chunk_size;
     };
   };
+  if (result == NULL) {
+    return false;
+  }
   result[result_size]=0;
   // Attach result to buffer exposed to user
   PayloadRawBuf b;
