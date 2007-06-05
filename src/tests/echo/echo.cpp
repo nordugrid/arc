@@ -60,7 +60,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   std::string hear = prefix_+say+suffix_;
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
   outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
-  outmsg.Payload(outpayload); 
+  outmsg.Payload(outpayload);
   return Arc::MCC_Status();
 }
 

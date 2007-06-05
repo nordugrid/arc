@@ -7,7 +7,7 @@
 #include "../../hed/libs/message/PayloadSOAP.h"
 
 int main(void) {
-  signal(SIGTTOU,SIG_IGN);
+/*  signal(SIGTTOU,SIG_IGN);
   // Load service chain
   std::cout << "Creating service side chain" << std::endl;
   Arc::Config service_config("service.xml");
@@ -17,7 +17,7 @@ int main(void) {
   };
   Arc::Loader service_loader(&service_config);
   std::cout << "Service side MCCs are loaded" << std::endl;
-
+*/
   std::cout << "Creating client side chain" << std::endl;
   // Create client chain
   Arc::XMLNode client_doc("\
