@@ -7,17 +7,22 @@
     <ModuleManager>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
-            <next id="http"/>
+            <next id="tls"/>
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>

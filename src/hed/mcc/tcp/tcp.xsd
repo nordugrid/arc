@@ -2,7 +2,7 @@
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:arc="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
   targetNamespace="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   elementFormDefault="qualified">
   
@@ -31,4 +31,3 @@
     </xsd:complexType>
     <xsd:element name="Connect" type="Connect_Type"/>
 </xsd:schema>
-

@@ -180,6 +180,7 @@ void MCC_TCP_Service::listener(void* arg) {
 }
 
 void MCC_TCP_Service::executer(void* arg) {
+std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
     int id = ((mcc_tcp_exec_t*)arg)->id;
@@ -193,6 +194,17 @@ void MCC_TCP_Service::executer(void* arg) {
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
+/*
+
+
+        nextinmsg.Attributes()->set("TCP:ENDPOINT",);
+HOST
+PORT
+SESSIONID
+REMOTEHOST
+REMOTEPORT
+*/
+std::cerr<<"MCC_TCP_Service::executer - calling next"<<std::endl;
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!ret) break;
     };
@@ -279,16 +291,16 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Payload(s_);
     Message nextoutmsg;
     MCCInterface* next = Next();
-    if(!next) retpayload = s_;//return MCC_Status(-1);
-    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-    if(!ret) retpayload = s_;//return MCC_Status(-1);
-
-
-    try{
-        retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
-    }catch(std::exception& e){};
-    if(!retpayload){delete nextoutmsg.Payload(); retpayload = s_; /*return MCC_Status(-1);*/}
-
+    if(next) {
+        MCC_Status ret = next->process(nextinmsg,nextoutmsg);
+        if(!ret) retpayload = s_;//return MCC_Status(-1);
+        try{
+            retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
+        } catch(std::exception& e){};
+        if(!retpayload){delete nextoutmsg.Payload(); retpayload = s_; *return MCC_Status(-1);*}
+    } else {
+        retpayload = s_;//return MCC_Status(-1);
+    };
 
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);

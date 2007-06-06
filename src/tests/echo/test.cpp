@@ -7,7 +7,8 @@
 #include "../../hed/libs/message/PayloadSOAP.h"
 
 int main(void) {
-/*  signal(SIGTTOU,SIG_IGN);
+  signal(SIGTTOU,SIG_IGN);
+  signal(SIGTTIN,SIG_IGN);
   // Load service chain
   std::cout << "Creating service side chain" << std::endl;
   Arc::Config service_config("service.xml");
@@ -17,7 +18,7 @@ int main(void) {
   };
   Arc::Loader service_loader(&service_config);
   std::cout << "Service side MCCs are loaded" << std::endl;
-*/
+
   std::cout << "Creating client side chain" << std::endl;
   // Create client chain
   Arc::XMLNode client_doc("\
@@ -28,14 +29,17 @@ int main(void) {
         <Path>.libs/</Path>\
         <Path>../../hed/mcc/http/.libs/</Path>\
         <Path>../../hed/mcc/soap/.libs/</Path>\
+        <Path>../../hed/mcc/tls/.libs/</Path>\
         <Path>../../hed/mcc/tcp/.libs/</Path>\
      </ModuleManager>\
      <Plugins><Name>mcctcp</Name></Plugins>\
+     <Plugins><Name>mcctls</Name></Plugins>\
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
      <Chain>\
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>localhost</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
-      <Component name='http.client' id='http'><next id='tcp'/><Method>POST</Method><Endpoint>/</Endpoint></Component>\
+      <Component name='tls.client' id='tls'><next id='tcp'/></Component>\
+      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
      </Chain>\
     </ArcConfig>");

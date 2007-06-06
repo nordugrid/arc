@@ -39,6 +39,8 @@ class MCC_TLS_Service: public MCC
         virtual MCC_Status process(Message&,Message&);
 };
 
+class PayloadTLSMCC;
+
 /** This class is MCC implementing TLS client.
  Unfortunately, the MCC_TLS_Client would be put behind MCC_TCP_Client, which looks different with server side(MCC_TLS_Server is put between 
 MCC_HTTP_Server and MCC_TCP_Server).
@@ -52,10 +54,12 @@ class MCC_TLS_Client: public MCC
 {
     private:
         SSL_CTX* sslctx_; 
+        PayloadTLSMCC* stream_;
     public:
         MCC_TLS_Client(Arc::Config *cfg);
         virtual ~MCC_TLS_Client(void);
         virtual MCC_Status process(Message&,Message&);
+        virtual void Next(MCCInterface* next,const std::string& label = "");
 };
 
 } // namespace Arc

@@ -12,22 +12,11 @@
 
 #include "PayloadTLSStream.h"
 #include "PayloadTLSSocket.h"
+#include "PayloadTLSMCC.h"
 
-#include <openssl/crypto.h>
-#include <openssl/dh.h>
-#include <openssl/dsa.h>
 #include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/opensslv.h>
-#include <openssl/pem.h>
 #include <openssl/rand.h>
-#ifndef NO_RSA
- #include <openssl/rsa.h>
-#endif
 #include <openssl/ssl.h>
-#include <openssl/x509.h>
-#include <openssl/x509_vfy.h>
-
 
 #include "MCCTLS.h"
 
@@ -139,39 +128,48 @@ static void tls_set_dhe1024()
     	tls_dhe1024 = dhparams;
 }
 
-static bool tls_load_certificate(SSL_CTX* sslctx, std::string cert_file, std::string key_file, std::string password, std::string random_file)
+static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password, const std::string& random_file)
 {
-  // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
+   // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
-   if(SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM)!=1&&(SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1
-))!=1)
-   {
+   if((SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
+               SSL_FILETYPE_PEM) != 1) && 
+      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
+               SSL_FILETYPE_ASN1) != 1)) {
         std::cerr <<"Error: Can not load certificate file"<<std::endl;
         tls_process_error();
         return false;
    }
-   if(SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM)!=1&&SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1)!=1)
-   {
+   if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
+               SSL_FILETYPE_PEM) != 1) &&
+      (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
+               SSL_FILETYPE_ASN1) != 1)) {
         std::cerr <<"Error: Can not load key file"<<std::endl;
         tls_process_error();
         return false;
    }
-   if(!(SSL_CTX_check_private_key(sslctx)))
-   {
+   if(!(SSL_CTX_check_private_key(sslctx))) {
         std::cerr <<"Error: Private key does not match certificate"<<std::endl;
         tls_process_error();
         return false;
    }
-   if(tls_random_seed(random_file, 0)){return false;}
+   if(tls_random_seed(random_file, 0)) {
+     return false;
+   }
 }
 
 
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
    //The following credential filename should be obtained from configuration file later.
-   std::string cert_file="cert.pem";
-   std::string key_file="key.pem";
-   std::string ca_file="ca.pem";
+   
+   std::string cert_file = (*cfg)["CertificatePath"];
+   if(cert_file.empty()) cert_file="/etc/grid-security/hostcert.pem";
+   std::string key_file = (*cfg)["KeyPath"];
+   if(key_file.empty()) key_file="/etc/grid-security/hostkey.pem";
+   std::string ca_file = (*cfg)["CACertificatePath"];
+   std::string ca_dir = (*cfg)["CACertificatesDir"];
+   if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
    int r;
    SSL_load_error_strings();
    if(!SSL_library_init()){
@@ -187,19 +185,22 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
 	return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   tls_load_certificate(sslctx_, cert_file, key_file, NULL, key_file);
+   tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-   if(!(ca_file.c_str()==NULL)){
-   	r=SSL_CTX_load_verify_locations(sslctx_, ca_file.c_str(), NULL /* no CA-directory */);   //The CA-directory paremerters would be added to support multiple CA
-        if(!r){
-	   tls_process_error();
-	   return;}   
-	SSL_CTX_set_client_CA_list(sslctx_, SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
-   	if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){
-	   std::cerr<<"Error: Can not set client CA list from the specified file"<<std::endl;
-   	   tls_process_error();
-	   return;
-	}
+   if(!ca_file.empty()){
+      r=SSL_CTX_load_verify_locations(sslctx_, ca_file.c_str(), NULL /* no CA-directory */);   //The CA-directory paremerters would be added to support multiple CA
+      if(!r){
+         tls_process_error();
+         return;
+      }   
+      SSL_CTX_set_client_CA_list(sslctx_, 
+         SSL_load_client_CA_file(ca_file.c_str())
+      ); //Scan all certificates in CAfile and list them as acceptable CAs
+      if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){
+         std::cerr<<"Error: Can not set client CA list from the specified file"<<std::endl;
+   	 tls_process_error();
+	 return;
+      }
    }
    if(tls_dhe1024 == NULL){
    	tls_set_dhe1024();
@@ -223,8 +224,11 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
 	}
    RSA_free(tmpkey);
 #endif
-//The SSL object will be created when MCC_TCP_Service call the MCC_TLS_Service's process() method, and the SSL object can be reused just like socket object*
+   // The SSL object will be created when MCC_TCP_Service call 
+   // the MCC_TLS_Service's process() method, and the SSL object 
+   // can be reused just like socket object
 }
+
 
 MCC_TLS_Service::~MCC_TLS_Service(void) {
    if(sslctx_!=NULL)SSL_CTX_free(sslctx_);
@@ -232,32 +236,54 @@ MCC_TLS_Service::~MCC_TLS_Service(void) {
 
 
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
-   //MCC_TCP_Service ---> MCC_TLS_Service ---> MCC_HTTP_Service ---> MCC_SOAP_Service
+std::cerr<<"MCC_TLS_Service"<<std::endl;
+   // MCC_TCP_Service ---> MCC_TLS_Service ---> MCC_HTTP_Service ---> MCC_SOAP_Service
+   // Accepted payload is Stream - not a StreamInterface, needed for 
+   // otaining handle from it.
+   // Returned payload is undefined - currently holds no information
    if(!inmsg.Payload()) return MCC_Status(-1);
-   PayloadStreamInterface* inpayload = NULL;
+   PayloadStream* inpayload = NULL;
    try {
-      	inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+      	inpayload = dynamic_cast<PayloadStream*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status(-1);
+std::cerr<<"MCC_TLS_Service: extracted inpayload"<<std::endl;
 
-   //Adding ssl to socket stream, the "ssl" object is created and binded to socket fd in PayloadTLSSocket
+   // Adding ssl to socket stream, the "ssl" object is created and 
+   // binded to socket fd in PayloadTLSSocket
+   // TODO: create ssl object only once per connection.
+std::cerr<<"MCC_TLS_Service: creating nextpayload"<<std::endl;
    PayloadTLSSocket *nextpayload= new PayloadTLSSocket(*inpayload, sslctx_, false);////*************/////
+std::cerr<<"MCC_TLS_Service: constructor finished"<<std::endl;
    if(!nextpayload) return MCC_Status(-1);
-   //Creating message to pass to next MCC
+std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
+   // Creating message to pass to next MCC
    Message nextinmsg = inmsg;;
    nextinmsg.Payload(nextpayload);
    Message nextoutmsg;
    // Call next MCC 
    MCCInterface* next = Next();
-   if(!next) return MCC_Status(-1);
+   if(!next) { 
+      delete nextpayload;
+      return MCC_Status(-1);
+   };
+std::cerr<<"MCC_TLS_Service: extracted next"<<std::endl;
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-   //For nextoutmsg, nothing to do for payload of msg, but transfer some attributes of msg
+std::cerr<<"MCC_TLS_Service: next was called"<<std::endl;
+   if(!ret) {
+      delete nextpayload;
+      return MCC_Status(-1);
+   };
+   // For nextoutmsg, nothing to do for payload of msg, but 
+   // transfer some attributes of msg
    outmsg = nextoutmsg;
+   delete nextpayload;
    return MCC_Status();
 }
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
-  //The following credential filename should be obtained from configuration file later.
+   stream_=NULL;
+   //The following credential filename should be obtained from configuration file later.
    std::string cert_file="cert.pem";
    std::string key_file="key.pem";
    std::string ca_file="ca.pem";
@@ -276,7 +302,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
         return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   tls_load_certificate(sslctx_, cert_file, key_file, NULL, key_file);
+   tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
    if(ca_file.c_str()!=NULL){
         r=SSL_CTX_load_verify_locations(sslctx_, ca_file.c_str(), NULL /* no CA-directory */);   //The CA-directory paremerters would be added to support multiple CA
@@ -288,30 +314,43 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
 }
 
 MCC_TLS_Client::~MCC_TLS_Client(void) {
-   if(sslctx_!=NULL)SSL_CTX_free(sslctx_);
+   if(sslctx_) SSL_CTX_free(sslctx_);
+   if(stream_) delete stream_;
 }
 
 MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
-   //MCC_TLS_Client shoule be put behind MCC_TCP_Client.  MCC_SOAP_Client ---> MCC_HTTP_Client ---> MCC_TCP_Client ---> MCC_TLS_Client
+   //  MCC_SOAP_Client ---> MCC_HTTP_Client ---> MCC_TLS_Client ---> MCC_TCP_Client
+   // Accepted payload is Raw
+   // Returned payload is Stream
+   // Extracting payload
    if(!inmsg.Payload()) return MCC_Status(-1);
-   PayloadStreamInterface* inpayload = NULL;
+   if(!stream_) return MCC_Status(-1);
+   PayloadRawInterface* inpayload = NULL;
    try {
-        inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+      inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status(-1);
-   //Adding ssl to socket stream, the "ssl" object is created and binded to socket fd in PayloadTLSSocket
-   PayloadTLSSocket *outpayload= new PayloadTLSSocket(*inpayload, sslctx_, true);////*************/////
-   if(!outpayload) return MCC_Status(-1);
-   //Creating message to pass to next MCC
-   //Message nextinmsg = inmsg;;
-   //nextinmsg.Payload(&nextpayload);
-   //Message nextoutmsg;
-   // Call next MCC
-   //MCCInterface* next = Next();
-   //if(!next) return;
-   //MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-   
-   outmsg.Payload(outpayload);
+   // Sending payload
+   for(int n=0;;++n) {
+      char* buf = inpayload->Buffer(n);
+      if(!buf) break;
+      int bufsize = inpayload->BufferSize(n);
+      if(!(stream_->Put(buf,bufsize))) {
+         std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
+         return MCC_Status(-1);
+      };
+   };
+   outmsg.Payload(new PayloadTLSMCC(*stream_));
    return MCC_Status();
 }
+
+
+void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
+   if(label.empty()) {
+      if(stream_) delete stream_;
+      stream_=NULL;
+      stream_=new PayloadTLSMCC(next,sslctx_);
+   };
+   MCC::Next(next,label);
+};
 
