@@ -6,10 +6,10 @@ libmccsoap_ladir=$(includedir)
 libmccsoap_la_HEADERS=MCCSOAP.h
 libmccsoap_la_SOURCES=MCCSOAP.cpp
 libmccsoap_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
-libmccsoap_la_LIBADD=$(top_srcdir)/src/hed/libs/message/libmessage.la
+libmccsoap_la_LIBADD=$(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/ws-addressing/libwsaddressing.la
 libmccsoap_la_LDFLAGS=$(LIBXML2_LIBS)
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 test_LDFLAGS=$(LIBXML2_LIBS)
-test_LDADD=$(top_srcdir)/src/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la
+test_LDADD=$(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/ws-addressing/libwsaddressing.la

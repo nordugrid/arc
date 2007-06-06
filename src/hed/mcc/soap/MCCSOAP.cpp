@@ -4,6 +4,7 @@
 #include "../../../libs/common/XMLNode.h"
 #include "../../libs/loader/Loader.h"
 #include "../../libs/loader/MCCLoader.h"
+#include "../../ws-addressing/WSA.h"
 
 #include "MCCSOAP.h"
 
@@ -66,6 +67,11 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Just trying to keep intact as much as possible.
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
+  if(WSAHeader::Check(nextpayload)) {
+    std::string endpoint_attr = WSAHeader(nextpayload).To();
+    nextinmsg.Attributes()->set("SOAP:ENDPOINT",endpoint_attr);
+    nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
+  };
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg);

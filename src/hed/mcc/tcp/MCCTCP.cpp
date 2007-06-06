@@ -179,11 +179,45 @@ void MCC_TCP_Service::listener(void* arg) {
     return;
 }
 
+static std::string tostring(unsigned int n) {
+    char buf[64];
+    snprintf(buf,sizeof(buf)-1,"%u",n);
+    buf[sizeof(buf)-1]=0;
+    return buf;
+}
+
 void MCC_TCP_Service::executer(void* arg) {
 std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
     int id = ((mcc_tcp_exec_t*)arg)->id;
+    std::string host_attr,port_attr;
+    std::string remotehost_attr,remoteport_attr;
+    std::string endpoint_attr;
+    // Extract useful attributes
+    {
+        struct sockaddr_in addr;
+        socklen_t addrlen;
+        addrlen=sizeof(addr);
+        if(getsockname(s,(sockaddr*)(&addr),&addrlen) == 0) {
+            char buf[256];
+            if(inet_ntop(AF_INET,&addr,buf,sizeof(buf)-1) != NULL) {
+                buf[sizeof(buf)-1]=0;
+                host_attr=buf;
+                port_attr=tostring(ntohs(addr.sin_port));
+                endpoint_attr = host_attr+":"+port_attr;
+            };
+        };
+        if(getpeername(s,(sockaddr*)(&addr),&addrlen) == 0) {
+            char buf[256];
+            if(inet_ntop(AF_INET,&addr,buf,sizeof(buf)-1) != NULL) {
+                buf[sizeof(buf)-1]=0;
+                remotehost_attr=buf;
+                remoteport_attr=tostring(ntohs(addr.sin_port));
+            };
+        };
+        // SESSIONID
+    };
     // Creating stream payload
     PayloadStream stream(s);
     for(;;) {
@@ -191,19 +225,15 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
         Message nextinmsg;
         Message nextoutmsg;
         nextinmsg.Payload(&stream);
+        nextinmsg.Attributes()->set("TCP:HOST",host_attr);
+        nextinmsg.Attributes()->set("TCP:PORT",port_attr);
+        nextinmsg.Attributes()->set("TCP:REMOTEHOST",remotehost_attr);
+        nextinmsg.Attributes()->set("TCP:REMOTEPORT",remoteport_attr);
+        nextinmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
+        nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
-/*
-
-
-        nextinmsg.Attributes()->set("TCP:ENDPOINT",);
-HOST
-PORT
-SESSIONID
-REMOTEHOST
-REMOTEPORT
-*/
 std::cerr<<"MCC_TCP_Service::executer - calling next"<<std::endl;
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(!ret) break;

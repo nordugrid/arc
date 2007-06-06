@@ -95,6 +95,8 @@ class WSAHeader {
   XMLNode NewReferenceParameter(const std::string& name);
   /** Returns reference to SOAP Header - not implemented */
   operator XMLNode(void);
+  /** Tells if specified SOAP message has WSA header */
+  static bool Check(SOAPMessage& soap);
 };
 
 /** WS-Addressing possible faults */

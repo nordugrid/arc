@@ -1,1 +1,1 @@
-SUBDIRS=libs mcc daemon # ws-addressing wsrf 
+SUBDIRS=libs ws-addressing mcc daemon # wsrf 

@@ -6,6 +6,8 @@
 
 namespace Arc {
 
+#define WSA_NAMESPACE "http://www.w3.org/2005/08/addressing"
+
 static std::string strip_spaces(const std::string& s) {
   std::string::size_type start = 0;
   for(;start<s.length();++start) if(!isspace(s[start])) break;
@@ -88,7 +90,7 @@ WSAHeader::WSAHeader(SOAPMessage& soap) {
   header_allocated_=false;
   // apply predefined namespace prefix
   XMLNode::NS ns;
-  ns["wsa"]="http://www.w3.org/2005/08/addressing";
+  ns["wsa"]=WSA_NAMESPACE;
   header_.Namespaces(ns);
 } 
 
@@ -211,10 +213,17 @@ XMLNode WSAHeader::NewReferenceParameter(const std::string& name) {
   return n;
 }
 
+bool WSAHeader::Check(SOAPMessage& soap) {
+  if(soap.NamespacePrefix(WSA_NAMESPACE).empty()) return false;
+  WSAHeader wsa(soap);
+  if(!wsa.header_["wsa:Action"]) return false;
+  if(!wsa.header_["wsa:To"]) return false;
+  return true;
+}
 
 void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
   // TODO: Detail
-  SOAPMessage::SOAPFault& fault = *(message.Fault());
+  SOAPFault& fault = *(message.Fault());
   if(&fault == NULL) return;
   XMLNode::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
@@ -229,7 +238,7 @@ void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
     case WSAFaultActionMismatch:
     case WSAFaultOnlyAnonymousAddressSupported:
     case WSAFaultOnlyNonAnonymousAddressSupported:
-      fault.Code(SOAPMessage::SOAPFault::Sender);
+      fault.Code(SOAPFault::Sender);
       fault.Subcode(1,"wsa:InvalidAddressingHeader"); 
       fault.Reason(0,"A header representing a Message Addressing Property is not valid and the message cannot be processed");
       switch(fid) {
@@ -245,22 +254,22 @@ void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
       };
     break;
     case WSAFaultMessageAddressingHeaderRequired:
-      fault.Code(SOAPMessage::SOAPFault::Sender);
+      fault.Code(SOAPFault::Sender);
       fault.Subcode(1,"wsa:MessageAddressingHeaderRequired"); 
       fault.Reason(0,"A required header representing a Message Addressing Property is not present");
     break;
     case WSAFaultDestinationUnreachable:
-      fault.Code(SOAPMessage::SOAPFault::Sender);
+      fault.Code(SOAPFault::Sender);
       fault.Subcode(1,"wsa:DestinationUnreachable"); 
       fault.Reason(0,"No route can be determined to reach [destination]");
     break;
     case WSAFaultActionNotSupported:
-      fault.Code(SOAPMessage::SOAPFault::Sender);
+      fault.Code(SOAPFault::Sender);
       fault.Subcode(1,"wsa:ActionNotSupported"); 
       fault.Reason(0,"The [action] cannot be processed at the receiver");
     break;
     case WSAFaultEndpointUnavailable:
-      fault.Code(SOAPMessage::SOAPFault::Receiver);
+      fault.Code(SOAPFault::Receiver);
       fault.Subcode(1,"wsa:EndpointUnavailable"); 
       fault.Reason(0,"The endpoint is unable to process the message at this time");
     break;
@@ -271,7 +280,7 @@ void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
 WSAFault WSAFaultExtract(SOAPMessage& message) {
   // TODO: extend XML interface to compare QNames
   WSAFault fid = WSAFaultNone;
-  SOAPMessage::SOAPFault& fault = *(message.Fault());
+  SOAPFault& fault = *(message.Fault());
   if(&fault == NULL) return fid;
   //XMLNode::NS ns;
   //ns["wsa"]="http://www.w3.org/2005/08/addressing";
