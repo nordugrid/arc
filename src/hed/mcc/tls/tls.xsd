@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
+  elementFormDefault="qualified">
+    <!-- Location of private key.
+      Default is /etc/grid-security/hostkey.pem for service 
+      and none for client. -->
+    <xsd:element name="KeyPath" type="xsd:string">
+    <!-- Content of private key - not supported -->
+    <xsd:element name="Key" type="xsd:string">
+    <!-- Location of public certificate.
+      Default is /etc/grid-security/hostcert.pem for service
+      and none for client. -->
+    <xsd:element name="CertificatePath" type="xsd:string">
+    <!-- Content of public certificate - not supported -->
+    <xsd:element name="Certificate" type="xsd:string">
+    <!-- Location of proxy credentials - include certificates, key and 
+      chain of involved certificates. Elements Key, KeyPath, Certificate
+      and CertificatePath overwrite those in Proxy. 
+      Default is /tmp/x509_up#PID# for client and none for service. -->
+    <xsd:element name="ProxyPath" type="xsd:string">
+    <!-- Content of proxy credentials - not supported -->
+    <xsd:element name="Proxy" type="xsd:string">
+    <!-- Location of certificate of CA. Default is none. -->
+    <xsd:element name="CACertificatePath" type="xsd:string">
+    <!-- Content of certificate of CA - not supported -->
+    <xsd:element name="CACertificate" type="xsd:string">
+    <!-- Directory containing certificates of accepted CAs.
+      Default is /etc/grid-security/ . -->
+    <xsd:element name="CAcertificatesDir" type="xsd:string">
+</xsd:schema>
+
