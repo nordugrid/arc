@@ -8,7 +8,7 @@ namespace Arc {
 class Daemon {
     public:
         Daemon() {};
-        Daemon(std::string& pid_file);
+        Daemon(std::string& pid_file, std::string& log_file);
         ~Daemon();
     private:
         std::string pid_file;

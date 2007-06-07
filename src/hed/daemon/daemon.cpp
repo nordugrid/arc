@@ -21,7 +21,7 @@
 
 namespace Arc {
 
-Daemon::Daemon(std::string& pid_file)
+Daemon::Daemon(std::string& pid_file, std::string& log_file)
 {
     pid_t pid;
     
@@ -31,6 +31,7 @@ Daemon::Daemon(std::string& pid_file)
     switch(pid) {
         case -1: // parent fork error
             std::cerr << "daemoinzation fork failed: " << strerror(errno) << std::endl;
+            exit(1);
         case 0: // child
             /* clear inherited umasks */
             umask(0);
@@ -46,10 +47,10 @@ Daemon::Daemon(std::string& pid_file)
             /* close standard input */
             fclose(stdin);
             /* forward stdout and stderr to log file */
-            if (std::freopen("logfile", "a", stdout) == NULL) {
+            if (std::freopen(log_file.c_str(), "a", stdout) == NULL) {
                 fclose(stdout);
             }
-            if (std::freopen("logfile", "a", stderr) == NULL) {
+            if (std::freopen(log_file.c_str(), "a", stderr) == NULL) {
                 fclose(stderr);
             }
             break;
