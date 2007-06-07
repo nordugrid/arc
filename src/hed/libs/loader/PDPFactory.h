@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-/** This class handles shared libraries containing authentication handlers */
+/** This class handles shared libraries containing authorization handlers */
 class PDPFactory: public LoaderFactory {
     public:
         /** Constructor - accepts  configuration (not yet used) meant to tune lo

@@ -1,9 +1,9 @@
 #ifndef __ARC_PDPLOADER_H__
 #define __ARC_PDPLOADER_H__
 
-#include "../message/AuthZHandler.h"
+#include "../message/PDP.h"
 
-#define ARC_PDP_LOADER_ID "__arc_authzhandler_modules__"
+#define ARC_PDP_LOADER_ID "__arc_pdp_modules__"
 
 class Arc::ChainContext;
 
