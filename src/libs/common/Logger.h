@@ -20,6 +20,7 @@ namespace Arc {
   };
 
   std::ostream& operator<<(std::ostream& os, LogLevel level);
+  LogLevel string_to_level(std::string& str);
   
   class LogMessage {
   public:
@@ -74,11 +75,12 @@ namespace Arc {
 	   const std::string& subdomain);
     Logger(Logger& parent,
 	   const std::string& subdomain,
-	   LogLevel treshold);
+	   LogLevel threshold);
     void addDestination(LogDestination& destination);
-    void setTreshold(LogLevel treshold);
-    LogLevel getTreshold() const;
+    void setThreshold(LogLevel threshold);
+    LogLevel getThreshold() const;
     void msg(LogMessage message);
+    void msg(LogLevel level, const char *str);
   private:
     Logger();
     Logger(const Logger& unique);
@@ -88,13 +90,13 @@ namespace Arc {
     Logger* parent;
     std::string domain;
     std::list<LogDestination*> destinations;
-    LogLevel treshold;
+    LogLevel threshold;
   };
 
 }
 
 #define MSG(logger, level, message) {		\
-  if (level>=logger.getTreshold())			\
+  if (level>=logger.getThreshold())			\
     logger.msg(Arc::LogMessage(level,message));}
 
 #endif
