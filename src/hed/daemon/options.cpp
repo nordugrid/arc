@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-ArcServerOptions::ArcServerOptions() : Glib::OptionGroup("Server options", "server options of arc server", "help") {
+ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server options of arc server", "help") {
     
     foreground = false;
     Glib::OptionEntry entry1;
@@ -24,7 +24,7 @@ ArcServerOptions::ArcServerOptions() : Glib::OptionGroup("Server options", "serv
     entry2.set_description("full path of config file");
     add_entry_filename(entry2, config_file);
     
-    pid_file = "/var/run/arcserver.pid";
+    pid_file = "";
     Glib::OptionEntry entry3;
     entry3.set_long_name("pid-file");
     entry3.set_short_name('p');

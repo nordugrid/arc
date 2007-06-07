@@ -5,9 +5,9 @@
 
 namespace Arc {
 
-class ArcServerOptions : public Glib::OptionGroup {
+class ServerOptions : public Glib::OptionGroup {
     public:
-        ArcServerOptions();
+        ServerOptions();
         
         /* Command line options values */
         bool foreground;
@@ -16,7 +16,7 @@ class ArcServerOptions : public Glib::OptionGroup {
         std::string user;
         std::string group;
 
-}; // ArcServerOptions
+}; // ServerOptions
 
 };
 #endif // __ARC_SERVER_OPTIONS_H__
