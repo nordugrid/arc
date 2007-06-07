@@ -6,9 +6,9 @@
 #include "Loader.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
-
 
 Loader::Loader(Config *cfg)
 {
@@ -24,34 +24,44 @@ Loader::Loader(Config *cfg)
 
 Loader::~Loader(void)
 {
+  Arc::Logger &l = Arc::Logger::rootLogger;
+
   // TODO: stop any processing on those MCCs or mark them for self-destruction
   // or break links first or use semaphors in MCC destructors
   // Unlink all objects
+  l.msg(Arc::DEBUG, "befor loop");
   for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();++mcc_i) {
+      l.msg(Arc::DEBUG, "mcc unlink");
       MCC* mcc = mcc_i->second; 
       if(mcc) mcc->Unlink();
   };
   for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();++plexer_i) {
+      l.msg(Arc::DEBUG, "plexer unlink");
       Plexer* plexer = plexer_i->second; 
       if(plexer) plexer->Unlink();
   };
   // Destroy all objects
   for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();mcc_i = mccs_.begin()) {
+      l.msg(Arc::DEBUG, "mcc erase");
       MCC* mcc = mcc_i->second; 
       mccs_.erase(mcc_i);
       if(mcc) delete mcc;
   };
   for(service_container_t::iterator service_i = services_.begin();service_i != services_.end();service_i = services_.begin()) {
+      l.msg(Arc::DEBUG, "service erase");
       Service* service = service_i->second;
       services_.erase(service_i);
       if(service) delete service;
   };
   for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();plexer_i = plexers_.begin()) {
+      l.msg(Arc::DEBUG, "plexer erase");
       Plexer* plexer = plexer_i->second; 
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
   };
+  l.msg(Arc::DEBUG, "after loops");
   if(context_) delete context_;
+  l.msg(Arc::DEBUG, "after delete context");
 }
 
 

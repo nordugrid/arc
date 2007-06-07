@@ -1,12 +1,4 @@
-SUBDIRS=soap tcp http tls plexer
-
-#noinst_LTLIBRARIES= libmcc.la
-
-#libmcc_ladir=$(includedir)
-#libmcc_la_HEADERS=MCC.h
-#libmcc_la_SOURCES=MCC.cpp
-#libmcc_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
-#libmcc_la_LDFLAGS=
+SUBDIRS=soap tcp http tls 
 
 #noinst_PROGRAMS=test
 #test_SOURCES=test.cpp
