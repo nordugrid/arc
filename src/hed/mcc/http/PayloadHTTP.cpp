@@ -175,6 +175,10 @@ const std::string& PayloadHTTP::Attribute(const std::string& name) {
   return it->second;
 }
 
+const std::map<std::string,std::string>& PayloadHTTP::Attributes(void) {
+  return attributes_;
+}
+
 void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }

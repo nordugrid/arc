@@ -1,11 +1,6 @@
-/*
-#include <stdio.h>
-#include <errno.h>
-#define USE_SOCKETS
-#include "cryptlib.h"
-#include "bio_lcl.h"
-*/
+#include <iostream>
 #include <openssl/ssl.h>
+#include <errno.h>
 #include "../../libs/message/PayloadRaw.h"
 #include "../../libs/message/PayloadStream.h"
 #include "../../libs/message/MCC.h"
@@ -86,6 +81,7 @@ static int mcc_free(BIO *b) {
 }
   
 static int mcc_read(BIO *b, char *out,int outl) {
+std::cerr<<"mcc_read: "<<outl<<std::endl;
   int ret=0;
   if (out == NULL) return(ret);
   if(b == NULL) return(ret);
@@ -102,6 +98,7 @@ static int mcc_read(BIO *b, char *out,int outl) {
 }
 
 static int mcc_write(BIO *b, const char *in, int inl) {
+std::cerr<<"mcc_write: "<<inl<<std::endl;
   int ret = 0;
   //clear_sys_error();
   if(in == NULL) return(ret);
@@ -116,6 +113,7 @@ static int mcc_write(BIO *b, const char *in, int inl) {
     // If available just use stream directly
     bool r = stream->Put(in,inl);
     BIO_clear_retry_flags(b);
+std::cerr<<"mcc_write: r="<<r<<std::endl;
     if(r) { ret=inl; } else { ret=-1; };
     return(ret);
   };

@@ -10,9 +10,11 @@
 #include "../../libs/loader/MCCLoader.h"
 #include "../../../libs/common/XMLNode.h"
 #include "../../../libs/common/Thread.h"
+#include "../../../libs/common/Logger.h"
 
 #include "MCCTCP.h"
 
+Arc::Logger &l = Arc::Logger::rootLogger;
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Service(cfg);
@@ -76,6 +78,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
     //pthread_mutex_lock(&lock_);
+    l.msg(Arc::DEBUG, "TCP_Service destroy");
     lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
@@ -84,7 +87,6 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
         ::close(e->handle); e->handle=-1;
     };
     //pthread_mutex_unlock(&lock_);
-    lock_.unlock();
     // Wait for threads to exit
     while(executers_.size() > 0) {
         // pthread_mutex_unlock(&lock_);
@@ -205,7 +207,7 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
                 buf[sizeof(buf)-1]=0;
                 host_attr=buf;
                 port_attr=tostring(ntohs(addr.sin_port));
-                endpoint_attr = host_attr+":"+port_attr;
+                endpoint_attr = "://"+host_attr+":"+port_attr;
             };
         };
         if(getpeername(s,(sockaddr*)(&addr),&addrlen) == 0) {
@@ -225,6 +227,7 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
         Message nextinmsg;
         Message nextoutmsg;
         nextinmsg.Payload(&stream);
+        nextinmsg.Attributes(new MessageAttributes);
         nextinmsg.Attributes()->set("TCP:HOST",host_attr);
         nextinmsg.Attributes()->set("TCP:PORT",port_attr);
         nextinmsg.Attributes()->set("TCP:REMOTEHOST",remotehost_attr);

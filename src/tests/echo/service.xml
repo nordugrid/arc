@@ -22,6 +22,9 @@
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
+	    <KeyPath>./key.pem</KeyPath>
+	    <CertificatePath>./cert.pem</CertificatePath>
+	    <CACertificatePath>./ca.pem</CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>

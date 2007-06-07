@@ -60,10 +60,21 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(!inpayload) return MCC_Status(-1);
   // Converting stream payload to HTTP which also implements raw interface
   PayloadHTTP nextpayload(*inpayload);
-  if(!nextpayload) return make_http_fault(*inpayload,outmsg);
+  if(!nextpayload) {
+    return make_http_fault(*inpayload,outmsg);
+  };
   // Creating message to pass to next MCC and setting new payload. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
+  // Creating attributes
+  nextinmsg.Attributes()->set("ENDPOINT",nextpayload.Endpoint());
+  nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
+  nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
+  // Reason ?
+  for(std::map<std::string,std::string>::const_iterator i = 
+      nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {
+    nextinmsg.Attributes()->set("HTTP:"+i->first,i->second);
+  };
   // Call next MCC 
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) return make_http_fault(*inpayload,outmsg);

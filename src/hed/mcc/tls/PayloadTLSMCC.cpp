@@ -34,10 +34,15 @@ std::cerr<<"PayloadTLSMCC - copy constructor"<<std::endl;
 
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
-  if(!master_) return;
-  unsigned long err = 0;
-  int counter=0;
-  if(ssl_) { 
+std::cerr<<"PayloadTLSMCC - destructor: "<<master_<<std::endl;
+   if(!master_) return;
+   unsigned long err = 0;
+   int counter=0;
+   if(ssl_) { 
+      if(SSL_shutdown(ssl_) == 0) {
+        std::cerr << "Warning: Failed to shut down SSL" << std::endl;
+      };
+/*
     while((err==0)&&(counter<60)){
 	err=SSL_shutdown(ssl_);
 	if (err==0){
@@ -48,6 +53,7 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
       std::cerr << "Error: Failed to shut down SSL" << std::endl;
   }
   if(ssl_){
+*/
     SSL_free(ssl_);
     ssl_=NULL;
   }
