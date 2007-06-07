@@ -22,6 +22,7 @@ bool PayloadStream::Get(char* buf,int& size) {
   struct pollfd fd;
   size=0;
   if(handle_ == -1) return false;
+std::cerr<<"PayloadStream::Get: "<<handle_<<": "<<l<<std::endl;
   if(seekable_) { // check for EOF
     struct stat st;
     if(fstat(handle_,&st) != 0) return false;
@@ -37,7 +38,8 @@ bool PayloadStream::Get(char* buf,int& size) {
   if(l == -1) return false;
   size=l;
   if((l == 0) && (fd.revents && POLLERR)) return false;
-  std::cerr<<"PayloadStream::Get: *"; for(int n=0;n<l;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
+//  std::cerr<<"PayloadStream::Get: *"; for(int n=0;n<l;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
+std::cerr<<"PayloadStream::Get: done: "<<size<<std::endl;
   return true;
 }
 
@@ -53,7 +55,8 @@ bool PayloadStream::Put(const char* buf,int size) {
   ssize_t l;
   struct pollfd fd;
   if(handle_ == -1) return false;
-  std::cerr<<"PayloadStream::Put: *"; for(int n=0;n<size;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
+std::cerr<<"PayloadStream::Put: "<<handle_<<": "<<size<<std::endl;
+  // std::cerr<<"PayloadStream::Put: *"; for(int n=0;n<size;n++) std::cerr<<buf[n]; std::cerr<<"*"<<std::endl;
   time_t start = time(NULL);
   for(;size;) {
     fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
@@ -62,6 +65,7 @@ bool PayloadStream::Put(const char* buf,int size) {
     if(poll(&fd,1,to*1000) != 1) return false;
     if(!(fd.revents & POLLOUT)) return false;
     l=::write(handle_,buf,size);
+std::cerr<<"PayloadStream::Put: l="<<l<<std::endl;
     if(l == -1) return false;
     buf+=l; size-=l;
   };  
