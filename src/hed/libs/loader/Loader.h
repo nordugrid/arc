@@ -6,8 +6,8 @@
 #include "common/ArcConfig.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
-#include "AuthNHandlerFactory.h"
-#include "AuthZHandlerFactory.h"
+#include "HandlerFactory.h"
+#include "HandlerFactory.h"
 #include "Plexer.h"
 
 namespace Arc {
@@ -44,8 +44,9 @@ class Loader
         typedef std::map<std::string, MCC *>     mcc_container_t;
         typedef std::map<std::string, Service *> service_container_t;
         typedef std::map<std::string, Plexer *>  plexer_container_t;
-        typedef std::map<std::string, AuthNHandler *> authn_container_t;
-        typedef std::map<std::string, AuthZHandler *> authz_container_t;
+        typedef std::map<std::string, Handler *> handler_container_t;
+        //typedef std::map<std::string, AuthNHandler *> authn_container_t;
+        //typedef std::map<std::string, AuthZHandler *> authz_container_t;
 
     private:
         /** Link to Factory responsible for loading and creation of Service objects */
@@ -55,12 +56,15 @@ class Loader
         MCCFactory *mcc_factory;
 
         //PlexerFactory *plexer_factory;
+        
+        /** Link to Factory responsible for loading and creation of authentication handlers */
+	HandlerFactory *handler_factory;
 
         /** Link to Factory responsible for loading and creation of authentication handlers */
-        AuthNHandlerFactory *authn_factory;
+        //AuthNHandlerFactory *authn_factory;
 
         /** Link to Factory responsible for loading and creation of authorization handlers */
-        AuthZHandlerFactory *authz_factory;
+        //AuthZHandlerFactory *authz_factory;
 
         /** Set of labeled MCC objects */
         mcc_container_t     mccs_;
@@ -74,11 +78,15 @@ class Loader
         /** Set of labeled Plexer objects */
         plexer_container_t  plexers_;
 
+
+    	/** Set of labeled handlers */
+	handler_container_t  handlers_;
+
         /** Set of labeled authentication handlers */
-        authn_container_t  authns_;
+        //authn_container_t  authns_;
 
         /** Set of labeled authorization handlers */
-        authz_container_t  authzs_;
+        //authz_container_t  authzs_;
 
         /** Internal method which performs whole stuff except creation of Factories. 
           It is taken out from constructor to make it easier to reconfigure chains
@@ -109,8 +117,10 @@ class ChainContext {
     public:
         operator ServiceFactory*(void);
         operator MCCFactory*(void);
-        operator AuthNHandlerFactory*(void);
-        operator AuthZHandlerFactory*(void);
+
+	operator HandlerFactory*(void);
+        //operator AuthNHandlerFactory*(void);
+        //operator AuthZHandlerFactory*(void);
 };
 
 }

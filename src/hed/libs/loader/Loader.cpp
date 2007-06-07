@@ -122,7 +122,7 @@ static XMLNode FindElementByID(XMLNode node,const std::string& id,const std::str
 }
 
 
-static AuthNHandler* MakeAuthNHandler(Config* cfg,ChainContext* ctx,Loader::authn_container_t& authns,AuthNHandlerFactory* authn_factory,XMLNode node) {
+static Handler* MakeHandler(Config* cfg,ChainContext* ctx, Loader::handler_container_t& handlers, HandlerFactory* handler_factory,XMLNode node) {
     if(!node) return NULL;
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");
@@ -131,35 +131,35 @@ static AuthNHandler* MakeAuthNHandler(Config* cfg,ChainContext* ctx,Loader::auth
         refid = (std::string)(node.Attribute("id"));
         if(refid.empty()) {
             char buf[256];
-            snprintf(buf,sizeof(buf)-1,"__arc_authn_%u__",authns.size());
+            snprintf(buf,sizeof(buf)-1,"__arc_handler_%u__",handlers.size());
             buf[sizeof(buf)-1]=0;
             refid=buf;
         };
     } else {
         // Maybe it's already created
-        Loader::authn_container_t::iterator auth = authns.find(refid);
-        if(auth != authns.end()) {
-            return auth->second;
+        Loader::handler_container_t::iterator phandler = handlers.find(refid);
+        if(phandler != handlers.end()) {
+            return phandler->second;
         }
         // Look for it's configuration
-        desc_node=FindElementByID(*cfg,refid,"Authentication");
+        desc_node=FindElementByID(*cfg,refid,"Handler");
     }
     if(!desc_node) {
-        std::cerr << "Authentication handler has no configuration" << std::endl;
+        std::cerr << "Handler has no configuration" << std::endl;
         return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
-        std::cerr << "Authentication handler has no name attribute defined" << std::endl;
+        std::cerr << "Handler has no name attribute defined" << std::endl;
         return NULL;
     }
     // Create new handler
     Config cfg_(desc_node);
-    AuthNHandler* handler=authn_factory->get_instance(name,&cfg_,ctx);
-    if(handler) authns[refid]=handler;
+    Handler* handler=handler_factory->get_instance(name,&cfg_,ctx);
+    if(handler) handlers[refid]=handler;
     return handler;
 }
-
+/*
 static AuthZHandler* MakeAuthZHandler(Config* cfg,ChainContext* ctx,Loader::authz_container_t& authzs,AuthZHandlerFactory* authz_factory,XMLNode node) {
     if(!node) return NULL;
     XMLNode desc_node;
@@ -197,7 +197,7 @@ static AuthZHandler* MakeAuthZHandler(Config* cfg,ChainContext* ctx,Loader::auth
     if(handler) authzs[refid]=handler;
     return handler;
 }
-
+*/
 
 void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connectors,plexer_connectors_t* plexer_connectors) {
 
@@ -257,7 +257,18 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             
             // Configure security plugins
             XMLNode an;
-            an=cn["Authentication"];
+  	    
+            an=cn["Handler"];
+	    for(int n = 0;;++n) {
+                XMLNode can = an[n];
+                if(!can) break;
+                Handler* handler = 
+                     MakeHandler(cfg,context_,handlers_,handler_factory,can);
+                if(!handler) continue; // ????
+                mcc->handle(handler,can.Attribute("event"));
+            };
+	    
+            /*an=cn["Authentication"];
             for(int n = 0;;++n) {
                 XMLNode can = an[n];
                 if(!can) break;
@@ -275,7 +286,7 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 if(!handler) continue; // ????
                 mcc->AuthZ(handler,can.Attribute("event"));
             };
-
+*/
             // Add to chain list
             std::string entry = cn.Attribute("entry");
             if(!entry.empty()) mccs_exposed_[entry]=mcc;
