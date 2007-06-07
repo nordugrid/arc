@@ -56,6 +56,7 @@ int main(void) {
     return -1;
   };
 
+  for(int n = 0;n<10;n++) {
   // Create and send echo request
   std::cout << "Creating and sending request" << std::endl;
   Arc::SOAPMessage::NS echo_ns; echo_ns["echo"]="urn:echo";
@@ -66,7 +67,7 @@ int main(void) {
   reqmsg.Payload(&req);
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
-    std::cerr << "Request fialed" << std::endl;
+    std::cerr << "Request failed" << std::endl;
     return -1;
   };
   Arc::PayloadSOAP* resp = NULL;
@@ -82,6 +83,7 @@ int main(void) {
     return -1;
   };
   std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
-      
+  };
+ 
   return 0;
 }

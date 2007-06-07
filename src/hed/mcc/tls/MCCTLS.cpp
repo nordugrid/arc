@@ -161,8 +161,6 @@ static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, 
 
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
-   //The following credential filename should be obtained from configuration file later.
-   
    std::string cert_file = (*cfg)["CertificatePath"];
    if(cert_file.empty()) cert_file="/etc/grid-security/hostcert.pem";
    std::string key_file = (*cfg)["KeyPath"];
@@ -235,6 +233,14 @@ MCC_TLS_Service::~MCC_TLS_Service(void) {
 }
 
 
+class MCC_TLS_Context:public MessageContextElement {
+ public:
+  PayloadTLSSocket* stream;
+  MCC_TLS_Context(PayloadTLSSocket* s = NULL):stream(s) { };
+  ~MCC_TLS_Context(void) { if(stream) delete stream; };
+};
+
+
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 std::cerr<<"MCC_TLS_Service"<<std::endl;
    // MCC_TCP_Service ---> MCC_TLS_Service ---> MCC_HTTP_Service ---> MCC_SOAP_Service
@@ -248,13 +254,32 @@ std::cerr<<"MCC_TLS_Service"<<std::endl;
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status(-1);
 std::cerr<<"MCC_TLS_Service: extracted inpayload"<<std::endl;
-
-   // Adding ssl to socket stream, the "ssl" object is created and 
-   // binded to socket fd in PayloadTLSSocket
-   // TODO: create ssl object only once per connection.
+   // Obtaining previously created stream or creating a new one
+   PayloadTLSSocket *nextpayload = NULL;
+   MCC_TLS_Context* context = NULL;
+   {   
+      MessageContextElement* mcontext = (*inmsg.Context())["tls.service"];
+      if(mcontext) {
+         try {
+            context = dynamic_cast<MCC_TLS_Context*>(mcontext);
+         } catch(std::exception& e) { };
+      };
+   };
+   if(context) {
+      nextpayload=context->stream;
+   } else {
+      context=new MCC_TLS_Context;
+      inmsg.Context()->Add("tls.service",context);
+   };
+   if(!nextpayload) {
+      // Adding ssl to socket stream, the "ssl" object is created and 
+      // binded to socket fd in PayloadTLSSocket
+      // TODO: create ssl object only once per connection. - done ?
 std::cerr<<"MCC_TLS_Service: creating nextpayload"<<std::endl;
-   PayloadTLSSocket *nextpayload= new PayloadTLSSocket(*inpayload, sslctx_, false);////*************/////
+      nextpayload = new PayloadTLSSocket(*inpayload, sslctx_, false);
 std::cerr<<"MCC_TLS_Service: constructor finished"<<std::endl;
+      context->stream=nextpayload;
+   };
    if(!nextpayload) return MCC_Status(-1);
 std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
    // Creating message to pass to next MCC
@@ -264,29 +289,33 @@ std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
    // Call next MCC 
    MCCInterface* next = Next();
    if(!next) { 
-      delete nextpayload;
+      //delete nextpayload;
       return MCC_Status(-1);
    };
 std::cerr<<"MCC_TLS_Service: extracted next"<<std::endl;
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
 std::cerr<<"MCC_TLS_Service: next was called"<<std::endl;
    if(!ret) {
-      delete nextpayload;
+      //delete nextpayload;
       return MCC_Status(-1);
    };
    // For nextoutmsg, nothing to do for payload of msg, but 
    // transfer some attributes of msg
    outmsg = nextoutmsg;
-   delete nextpayload;
+   //delete nextpayload;
    return MCC_Status();
 }
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
    stream_=NULL;
-   //The following credential filename should be obtained from configuration file later.
-   std::string cert_file="cert.pem";
-   std::string key_file="key.pem";
-   std::string ca_file="ca.pem";
+   std::string cert_file = (*cfg)["CertificatePath"];
+   if(cert_file.empty()) cert_file="cert.pem";
+   std::string key_file = (*cfg)["KeyPath"];
+   if(key_file.empty()) key_file="key.pem";
+   std::string ca_file = (*cfg)["CACertificatePath"];
+   if(ca_file.empty()) ca_file="ca.pem";
+   std::string ca_dir = (*cfg)["CACertificatesDir"];
+   if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
    int r;
    SSL_load_error_strings();
    if(!SSL_library_init()){

@@ -86,7 +86,6 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
         ::close(e->handle); e->handle=-1;
     };
-    //pthread_mutex_unlock(&lock_);
     // Wait for threads to exit
     while(executers_.size() > 0) {
         // pthread_mutex_unlock(&lock_);
@@ -222,18 +221,21 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
     };
     // Creating stream payload
     PayloadStream stream(s);
+    MessageAttributes attributes;
+    MessageContext context;
     for(;;) {
         // Preparing Message objects for chain
         Message nextinmsg;
         Message nextoutmsg;
         nextinmsg.Payload(&stream);
-        nextinmsg.Attributes(new MessageAttributes);
+        nextinmsg.Attributes(&attributes);
         nextinmsg.Attributes()->set("TCP:HOST",host_attr);
         nextinmsg.Attributes()->set("TCP:PORT",port_attr);
         nextinmsg.Attributes()->set("TCP:REMOTEHOST",remotehost_attr);
         nextinmsg.Attributes()->set("TCP:REMOTEPORT",remoteport_attr);
         nextinmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
         nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
+        nextinmsg.Context(&context);
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;

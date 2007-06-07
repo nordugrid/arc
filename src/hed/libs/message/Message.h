@@ -20,6 +20,28 @@ class MessagePayload {
   virtual ~MessagePayload(void) { };
 };
 
+/** Just a top class for elements contained in context - needed
+  for destruction to work. */
+class MessageContextElement {
+ public:
+  MessageContextElement(void) { };
+  virtual ~MessageContextElement(void) { };
+};
+
+/** Handler for context of message associated to persistent 
+  conenction. */
+class MessageContext {
+ private:
+  std::map<std::string,MessageContextElement*> elements_;
+ public:
+  MessageContext(void);
+  ~MessageContext(void);
+  /** Provided element is taken over by this class. It is
+    remembered by it and destroyed when this class is destroyed. */
+  void Add(const std::string& name,MessageContextElement* element);
+  MessageContextElement* operator[](const std::string& id);
+};
+
 /** Message is passed through chain of MCCs. 
   It refers to objects with main content (payload), authentication/authorization 
  information and common purpose attributes. Message class does not manage pointers
@@ -58,6 +80,10 @@ class Message {
   MessagePayload* payload_; /** Main content of message */
   MessageAuth* auth_; /** Authentication and authorization related information */
   MessageAttributes* attributes_; /** Various useful attributes */
+  /** This element is maintained by MCC/element which handles/knows
+    persistency of connection. It must be created and destroyed by
+    that element. */
+  MessageContext* context_;
  public:
   /** Dummy constructor */
   Message(void):payload_(NULL),auth_(NULL),attributes_(NULL) { };
@@ -80,6 +106,10 @@ class Message {
   MessageAttributes* Attributes(void) { return attributes_; };
   MessageAttributes* Attributes(MessageAttributes* attributes) {
     attributes_=attributes;
+  };
+  MessageContext* Context(void) { return context_; };
+  MessageContext* Context(MessageContext* context) {
+    context_=context;
   };
 };
 
