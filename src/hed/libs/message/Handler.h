@@ -1,5 +1,5 @@
-#ifndef __ARC_AUTHNHANDLER_H__
-#define __ARC_AUTHNHANDLER_H__
+#ifndef __ARC_HANDLER_H__
+#define __ARC_HANDLER_H__
 
 #include <stdlib.h>
 
@@ -9,14 +9,14 @@
 
 namespace Arc {
 
-class AuthNHandler {
+class Handler {
  public:
-  AuthNHandler(Arc::Config* cfg) { };
-  virtual ~AuthNHandler(void) { };
+  Handler(Arc::Config* cfg) { };
+  virtual ~Handler(void) { };
   virtual MCC_Status process(Message& msg) { return -1; };
 };
 
 } // namespace Arc
 
-#endif /* __ARC_AUTHNHANDLER_H__ */
+#endif /* __ARC_HANDLER_H__ */
 

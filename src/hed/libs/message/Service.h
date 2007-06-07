@@ -29,14 +29,16 @@ namespace Arc {
 class Service: public MCCInterface
 {
     protected:
-        std::map<std::string,std::list<AuthNHandler*> > authn_;
-        std::map<std::string,std::list<AuthZHandler*> > authz_;
+	std::map<std::string,std::list<Handler*> > handlers_;
+//        std::map<std::string,std::list<AuthNHandler*> > authn_;
+//        std::map<std::string,std::list<AuthZHandler*> > authz_;
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
         Service(Arc::Config *cfg) { };
         virtual ~Service(void) { };
-        virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
-        virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
+	virtual void handle(Handler* handler,const std::string& label = "");
+//        virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
+//        virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
 };
 
 } // namespace Arc

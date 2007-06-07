@@ -27,6 +27,11 @@ void MCC::Unlink(void) {
                                      n != next_.end();n = next_.begin()) next_.erase(n);
 }
 
+void MCC::handle(Handler* handler,const std::string& label) {
+    if(handler) handlers_[label].push_back(handler);
+}
+
+/*
 void MCC::AuthN(AuthNHandler* authn,const std::string& label) {
     if(authn) authn_[label].push_back(authn);
 }
@@ -34,6 +39,6 @@ void MCC::AuthN(AuthNHandler* authn,const std::string& label) {
 void MCC::AuthZ(AuthZHandler* authz,const std::string& label) {
     if(authz) authz_[label].push_back(authz);
 }
-
+*/
 }; // namespace Arc
 
