@@ -5,12 +5,32 @@
 #include <map>
 #include "common/ArcConfig.h"
 #include "Message.h"
-#include "MCC_Status.h"
 
 namespace Arc {
 
-class AuthNHandler;
-class AuthZHandler;
+class Handler;
+//class AuthNHandler;
+//class AuthZHandler;
+
+/** This class represents status of Message processing.
+  Currently it's just a placeholder for int code with 0 meaning
+ there were no errors during processing. It's methods allow
+ it to be treated as ordinary int as well.
+  The precise meaning of non-zero values and other extensions have to 
+ be decided.
+  The purpose of such object is to indicate if message was processed
+ at endpoint Service or it hasn't reached it due to error in it's 
+ path. */
+class MCC_Status {
+    protected:
+        int code_;
+    public:
+        MCC_Status(int code = 0):code_(code) { };
+        operator int(void) { return code_; };
+        MCC_Status& operator=(int code) { code_=code; return *this; };
+        operator bool(void) { return (code_ == 0); };
+        bool operator!(void) { return (code_ != 0); };
+};
 
 /** This class defines interface for communication between MCC, Service and Plexer objects.
   Interface is made of method process() which is called by previous MCC in chain. 
@@ -51,8 +71,10 @@ class MCC: public MCCInterface
           MCC calls sequence of handlers at specific point depending
          on associated identifier. in most aces those are "in" and "out"
          for incoming and outgoing messages correspondingly. */
-        std::map<std::string,std::list<AuthNHandler*> > authn_;
-        std::map<std::string,std::list<AuthZHandler*> > authz_;
+        
+	std::map<std::string,std::list<Handler*> > handlers_;
+	//std::map<std::string,std::list<AuthNHandler*> > authn_;
+        //std::map<std::string,std::list<AuthZHandler*> > authz_;
     public:
         /** Example contructor - MCC takes at least it's configuration
 	    subtree */
@@ -63,9 +85,12 @@ class MCC: public MCCInterface
          component which implements MCCInterface. If next is set NULL corresponding
          link is removed.  */
         virtual void Next(MCCInterface* next,const std::string& label = "");
-        virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
-        virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
-        /** Removing all links. 
+        
+	virtual void handle(Handler* handler,const std::string& label = "");
+        //virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
+        //virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
+        
+	/** Removing all links. 
           Useful for destroying chains. */
         virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
