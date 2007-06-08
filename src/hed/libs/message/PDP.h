@@ -13,7 +13,7 @@ class PDP {
  public:
   PDP(Arc::Config* cfg) { };
   virtual ~PDP(void) { };
-  virtual MCC_Status process(Message& msg) { return -1; };
+  virtual MCC_Status process(Message& msg) { MCC_Status(); };
 };
 
 } // namespace Arc

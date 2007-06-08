@@ -13,7 +13,7 @@ class Handler {
  public:
   Handler(Arc::Config* cfg) { };
   virtual ~Handler(void) { };
-  virtual MCC_Status process(Message& msg) { return -1; };
+  virtual MCC_Status process(Message& msg) { MCC_Status(); };
 };
 
 } // namespace Arc
