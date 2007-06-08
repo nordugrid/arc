@@ -72,6 +72,9 @@ int main(void) {
     std::cerr << "Response is not SOAP" << std::endl;
     return -1;
   };
+  std::string xml;
+  resp->GetXML(xml);
+  std::cout << "XML: "<< xml << std::endl;
   std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
       
   return 0;

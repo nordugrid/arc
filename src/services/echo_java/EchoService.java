@@ -5,6 +5,6 @@ public class EchoService {
 
     public int process() {
         System.out.println("EchoService process called");
-        return 0;
+        return 10;
     }
 }
