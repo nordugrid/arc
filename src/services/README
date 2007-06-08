@@ -10,3 +10,4 @@ rte-catalog     - Runtime Environment Cataloge/Resource Management Cap.
 ste             - Storage Element/Data Cap.
 stm             - Storage Management Service/Data Cap.
 vmms            - Virtual Machine Management Service
+echo_java       - Demonstration services: how to write Java service 

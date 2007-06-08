@@ -258,9 +258,6 @@ namespace Arc {
      */
     static Logger rootLogger;
 
-    //! Currently not used?!?
-    static LogStream cerr;
-
     //! Creates a logger.
     /*! Creates a logger. The threshold is inherited from its parent
       Logger.

@@ -38,11 +38,15 @@ if test "X`basename $JAVAC`" = "Xgcj"; then
 fi
 
 JDK_INCLUDE=$with_jdk
+# XXX: temporaly solution
+JDK_LDFLAGS="-L$with_jdk/jre/lib/i386/server/ -ljvm"
 if test "X$JAVAC" != "X"; then
     if test "X$JDK_INCLUDE" == "X"; then
         JDK_INCLUDE=`which $JAVAC`
         JDK_INCLUDE=`dirname $JDK_INCLUDE`
         JDK_INCLUDE=`dirname $JDK_INCLUDE`
+        # XXX: temporaly solution
+        JDK_LDFLAGS="-L$JDK_INCLUDE/jre/lib/i386/server/ -ljvm"
     fi
 
     if test "x$JDK_INCLUDE" = "x/" || test "x$JDK_INCLUDE" = "x/usr"; then
@@ -84,6 +88,7 @@ dnl Conditional java sub dir test.
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_INCLUDE)
+AC_SUBST(JDK_LDFLAGS)
 
 # Python
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")
@@ -158,6 +163,8 @@ AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol])
 
 AC_OUTPUT([Makefile \
                  src/Makefile \
+                 src/libs/Makefile \
+                 src/libs/common/Makefile \
                  src/hed/Makefile \
                  src/hed/wsrf/Makefile \
                  src/hed/ws-addressing/Makefile \
@@ -171,9 +178,9 @@ AC_OUTPUT([Makefile \
                  src/hed/mcc/http/Makefile \
                  src/hed/mcc/tls/Makefile \
                  src/hed/mcc/plexer/Makefile \
-                 src/libs/Makefile \
-                 src/libs/common/Makefile \
                  src/hed/daemon/Makefile \
+                 src/services/Makefile \
+                 src/services/echo_java/Makefile \
                  src/tests/Makefile \
                  src/tests/echo/Makefile \
                  swig/Makefile \

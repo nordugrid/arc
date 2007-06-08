@@ -15,9 +15,9 @@ class MessageAuth {
   private:
     std::map<std::string,std::list<AuthObject> > properties_;
   public:
-    set(const std::string& key,const AuthObject& value);
+    void set(const std::string& key,const AuthObject& value);
     AuthObject get(const std::string& key,int index = 0);
-    remove(const std::string& key);
+    void remove(const std::string& key);
 };
 
 } // namespace Arc

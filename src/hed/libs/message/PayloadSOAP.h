@@ -11,13 +11,13 @@ namespace Arc {
 class PayloadSOAP: public MessagePayload, public SOAPMessage {
  public:
   /** Constructor - creates new Message payload */
-  PayloadSOAP(const NS& ns,bool fault = false);
+  PayloadSOAP(const Arc::XMLNode::NS& ns,bool fault = false);
   /** Constructor - creates Message payload from SOAP message. 
     Used SOAP message must exist as long as created object exists. */
-  PayloadSOAP(const SOAPMessage& soap);
+  PayloadSOAP(const Arc::SOAPMessage& soap);
   /** Constructor - creates SOAP message from payload.
     PayloadRawInterface and derived classes are supported. */
-  PayloadSOAP(const MessagePayload& source);
+  PayloadSOAP(const Arc::MessagePayload& source);
   virtual ~PayloadSOAP(void);
 };
 

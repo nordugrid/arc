@@ -9,6 +9,7 @@
 #include <libxml/parser.h>
 
 namespace Arc {
+
 /** Wrapper for LibXML library Tree interface. 
   This class wraps XML Node, Document and Property/Attribute structures.
   Each instance serves as pointer to actual LibXML element and provides convenient
@@ -18,6 +19,7 @@ namespace Arc {
   It implements only small subset of XML capabilities, which is probably enough for performing 
   most of useful actions. This class also filters out (usually) useless textual nodes which 
   are often used to make XML documents human-readable. */
+  
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
