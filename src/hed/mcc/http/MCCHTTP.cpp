@@ -39,25 +39,25 @@ static MCC_Status make_http_fault(PayloadStreamInterface& stream,Message& outmsg
   // Returning empty payload because response is already sent
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
-  return MCC_Status(-1);
+  return MCC_Status();
 }
 
 static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   PayloadRaw* outpayload = new PayloadRaw;
   if(desc) outpayload->Insert(desc,0);
   outmsg.Payload(outpayload);
-  return MCC_Status(-1);
+  return MCC_Status();
 }
 
 
 MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
-  if(!inmsg.Payload()) return MCC_Status(-1);
+  if(!inmsg.Payload()) return MCC_Status();
   PayloadStreamInterface* inpayload = NULL;
   try {
     inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
   } catch(std::exception& e) { };
-  if(!inpayload) return MCC_Status(-1);
+  if(!inpayload) return MCC_Status();
   // Converting stream payload to HTTP which also implements raw interface
   PayloadHTTP nextpayload(*inpayload);
   if(!nextpayload) {
@@ -107,7 +107,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Returning empty payload because response is already sent
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
-  return MCC_Status();
+  return MCC_Status(Arc::STATUS_OK);
 }
 
 MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC(cfg) {

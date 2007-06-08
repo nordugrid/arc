@@ -87,8 +87,7 @@ namespace Arc {
 	    return iter->service->process(request, response);
       }
     }
-    return MCC_Status(-1);  // Service not found!
-    // TODO: Discuss how to represent errors!
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR, (std::string)("MCC Plexer"), path);  
   }
 
   std::string Plexer::getPath(std::string url){

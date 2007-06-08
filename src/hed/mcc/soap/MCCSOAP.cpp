@@ -45,14 +45,22 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
-  return MCC_Status(-1);
+  return MCC_Status(Arc::STATUS_OK);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
   PayloadSOAP* soap = new PayloadSOAP(XMLNode::NS(),true);
   soap->Fault()->Code(SOAPFault::Receiver);
   outmsg.Payload(soap);
-  return MCC_Status(-1);
+  return MCC_Status(Arc::STATUS_OK);
+}
+
+static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* desc = NULL) {
+  if(oldmsg.Payload()) {
+    delete oldmsg.Payload();
+    oldmsg.Payload(NULL);
+  };
+  return make_soap_fault(outmsg,desc);
 }
 
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
@@ -92,7 +100,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   outpayload->Insert(xml.c_str());
   outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
-  return MCC_Status();
+  return MCC_Status(Arc::STATUS_OK);
 }
 
 MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
@@ -116,16 +124,19 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextoutmsg;
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
-  if(!ret) return make_soap_fault(outmsg);
-  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg);
+  if(!ret) return make_soap_fault(outmsg,nextoutmsg);
+  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg);
   MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg);
+  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg);
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
-  delete retpayload;
-  if(!outpayload) return make_soap_fault(outmsg);
-  if(!(*outpayload)) { delete outpayload; return make_soap_fault(outmsg); };
+  if(!outpayload) return make_soap_fault(outmsg,nextoutmsg);
+  if(!(*outpayload)) {
+    delete outpayload;
+    return make_soap_fault(outmsg,nextoutmsg);
+  };
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);
+  delete retpayload;
   return MCC_Status();
 }
 

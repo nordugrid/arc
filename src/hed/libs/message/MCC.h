@@ -9,8 +9,6 @@
 namespace Arc {
 
 class Handler;
-//class AuthNHandler;
-//class AuthZHandler;
 
 /** This class represents status of Message processing.
   Currently it's just a placeholder for int code with 0 meaning
@@ -52,29 +50,28 @@ class MCCInterface
           of the request when the method returns.
           \return An object representing the status of the call.
         */
-        virtual  MCC_Status process(Message& request, Message& response)  = 0;
+        virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response)  = 0;
 };
 
 /** Message Chain Component - base class for every MCC plugin.
   This is partialy virtual class which defines interface and common 
  functionality for every MCC plugin needed for managing of component
  in a chain. */
-class MCC: public MCCInterface
+class MCC: public Arc::MCCInterface
 {
     protected:
         /** Set of labeled "next" components. 
           Each implemented MCC must call process() metthod of 
          corresponding MCCInterface from this set in own process() method. */
-        std::map<std::string,MCCInterface*> next_;
-        MCCInterface* Next(const std::string& label = "");
+        std::map<std::string,Arc::MCCInterface*> next_;
+        Arc::MCCInterface* Next(const std::string& label = "");
+   
         /** Set o flabeled authentication and authorization handlers.
           MCC calls sequence of handlers at specific point depending
          on associated identifier. in most aces those are "in" and "out"
          for incoming and outgoing messages correspondingly. */
-        
-	std::map<std::string,std::list<Handler*> > handlers_;
-	//std::map<std::string,std::list<AuthNHandler*> > authn_;
-        //std::map<std::string,std::list<AuthZHandler*> > authz_;
+	    std::map<std::string,std::list<Arc::Handler*> > handlers_;
+    
     public:
         /** Example contructor - MCC takes at least it's configuration
 	    subtree */
@@ -84,17 +81,16 @@ class MCC: public MCCInterface
           This method is called by Loader for every potentially labeled link to next 
          component which implements MCCInterface. If next is set NULL corresponding
          link is removed.  */
-        virtual void Next(MCCInterface* next,const std::string& label = "");
         
-	virtual void handle(Handler* handler,const std::string& label = "");
-        //virtual void AuthN(AuthNHandler* authn,const std::string& label = "");
-        //virtual void AuthZ(AuthZHandler* authz,const std::string& label = "");
+        virtual void Next(Arc::MCCInterface* next,const std::string& label = "");
         
-	/** Removing all links. 
-          Useful for destroying chains. */
+        /** Handler */
+	    virtual void handle(Arc::Handler* handler,const std::string& label = "");
+        
+	    /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
-        virtual  MCC_Status process(Message& request, Message& response) { return MCC_Status(-1); };
+        virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response) { return MCC_Status(); };
 };
 
 } // namespace Arc

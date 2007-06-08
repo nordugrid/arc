@@ -76,6 +76,19 @@ namespace Arc {
     /*! This operator converts a MCC_Status object to a string.
      */
     operator std::string() const;
+    
+    //! Is the status kind ok?
+    /*! This method returns true iff the status kind of this object is
+      STATUS_OK
+      @return true iff kind==STATUS_OK
+    */
+    operator bool(void) const { return isOk(); };
+    
+    //! not operator
+    /*! Returns true if the status kind is not OK
+      @return true if kind!=STATUS_OK
+     */
+    bool operator!(void) const { return !isOk(); };
 
   private:
 

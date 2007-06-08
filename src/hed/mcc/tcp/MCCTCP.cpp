@@ -241,6 +241,7 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
         if(!next) break;
 std::cerr<<"MCC_TCP_Service::executer - calling next"<<std::endl;
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
+        if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
         if(!ret) break;
     };
     //pthread_mutex_lock(&it.lock_);
@@ -259,7 +260,7 @@ std::cerr<<"MCC_TCP_Service::executer - calling next"<<std::endl;
 }
 
 MCC_Status MCC_TCP_Service::process(Message& inmsg,Message& outmsg) {
-  return MCC_Status(-1);
+  return MCC_Status();
 }
 
 MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC(cfg),s_(NULL) {
@@ -295,14 +296,14 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
 
-    if(!s_) return MCC_Status(-1);
+    if(!s_) return MCC_Status();
     // Extracting payload
-    if(!inmsg.Payload()) return MCC_Status(-1);
+    if(!inmsg.Payload()) return MCC_Status();
     PayloadRawInterface* inpayload = NULL;
     try {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
-    if(!inpayload) return MCC_Status(-1);
+    if(!inpayload) return MCC_Status();
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
@@ -310,11 +311,11 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
             std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
-            return MCC_Status(-1);
+            return MCC_Status();
         };
     };
     outmsg.Payload(new PayloadStream(*s_));
-    return MCC_Status();
+    return MCC_Status(Arc::STATUS_OK);
 
 #if 0
     //Modified for TLS

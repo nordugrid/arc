@@ -247,12 +247,12 @@ std::cerr<<"MCC_TLS_Service"<<std::endl;
    // Accepted payload is Stream - not a StreamInterface, needed for 
    // otaining handle from it.
    // Returned payload is undefined - currently holds no information
-   if(!inmsg.Payload()) return MCC_Status(-1);
+   if(!inmsg.Payload()) return MCC_Status();
    PayloadStream* inpayload = NULL;
    try {
       	inpayload = dynamic_cast<PayloadStream*>(inmsg.Payload());
    } catch(std::exception& e) { };
-   if(!inpayload) return MCC_Status(-1);
+   if(!inpayload) return MCC_Status();
 std::cerr<<"MCC_TLS_Service: extracted inpayload"<<std::endl;
    // Obtaining previously created stream or creating a new one
    PayloadTLSSocket *nextpayload = NULL;
@@ -280,7 +280,7 @@ std::cerr<<"MCC_TLS_Service: creating nextpayload"<<std::endl;
 std::cerr<<"MCC_TLS_Service: constructor finished"<<std::endl;
       context->stream=nextpayload;
    };
-   if(!nextpayload) return MCC_Status(-1);
+   if(!nextpayload) return MCC_Status();
 std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
    // Creating message to pass to next MCC
    Message nextinmsg = inmsg;;
@@ -290,20 +290,24 @@ std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
    MCCInterface* next = Next();
    if(!next) { 
       //delete nextpayload;
-      return MCC_Status(-1);
+      return MCC_Status();
    };
 std::cerr<<"MCC_TLS_Service: extracted next"<<std::endl;
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
 std::cerr<<"MCC_TLS_Service: next was called"<<std::endl;
+   if(nextoutmsg.Payload()) {
+      delete nextoutmsg.Payload();
+      nextoutmsg.Payload(NULL);
+   };
    if(!ret) {
       //delete nextpayload;
-      return MCC_Status(-1);
+      return MCC_Status();
    };
    // For nextoutmsg, nothing to do for payload of msg, but 
    // transfer some attributes of msg
    outmsg = nextoutmsg;
    //delete nextpayload;
-   return MCC_Status();
+   return MCC_Status(Arc::STATUS_OK);
 }
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
@@ -352,13 +356,13 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    // Accepted payload is Raw
    // Returned payload is Stream
    // Extracting payload
-   if(!inmsg.Payload()) return MCC_Status(-1);
-   if(!stream_) return MCC_Status(-1);
+   if(!inmsg.Payload()) return MCC_Status();
+   if(!stream_) return MCC_Status();
    PayloadRawInterface* inpayload = NULL;
    try {
       inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
-   if(!inpayload) return MCC_Status(-1);
+   if(!inpayload) return MCC_Status();
    // Sending payload
    for(int n=0;;++n) {
       char* buf = inpayload->Buffer(n);
@@ -366,11 +370,11 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       int bufsize = inpayload->BufferSize(n);
       if(!(stream_->Put(buf,bufsize))) {
          std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
-         return MCC_Status(-1);
+         return MCC_Status();
       };
    };
    outmsg.Payload(new PayloadTLSMCC(*stream_));
-   return MCC_Status();
+   return MCC_Status(Arc::STATUS_OK);
 }
 
 
