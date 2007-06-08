@@ -24,6 +24,10 @@ ModuleManager::ModuleManager(Arc::Config *cfg)
 ModuleManager::~ModuleManager(void)
 {
     // removes all element from cache
+    std::map<std::string, Glib::Module *>::iterator i;
+    for(i=plugin_cache.begin();i!=plugin_cache.end();++i) {
+        delete i->second;
+    };
     plugin_cache.clear();
 }
 
