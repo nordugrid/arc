@@ -1,1 +1,5 @@
-SUBDIRS=echo_java
+if JAVA_ENABLED 
+JAVA_SERVICES = echo_java 
+endif
+
+SUBDIRS=$(JAVA_SERVICE)
