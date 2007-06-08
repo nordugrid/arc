@@ -21,6 +21,8 @@ namespace Arc {
 
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg) 
 {
+    ns_["echo"]="urn:echo";
+    
     /* Initiliaze java engine */
     JNI_GetDefaultJavaVMInitArgs(&jvm_args);
     jvm_args.version = JNI_VERSION_1_2;
@@ -73,6 +75,7 @@ Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg)
 
 Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 {
+/*
     jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
     printf("%d\n", aret);
     printf("%p\n", serviceClass);
@@ -83,10 +86,12 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     printf("%p\n", processID);
     jobject ret = jenv->CallObjectMethod(serviceObj, processID);
     jint b = (jint)ret;
-    jvm->DetachCurrentThread();
+    aret = jvm->DetachCurrentThread();
+    printf("%d\n", aret);
     std::cout << "Java return value:" << b << std::endl;
+  */
+#if 0
     // XXX: ECHO code logic which shoud go to java XXX
-    ns_["echo"]="urn:echo";
     Arc::PayloadSOAP* inpayload = NULL;
     try {
         inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
@@ -103,11 +108,34 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     };
     std::cout << "HERE" << std::endl;
     std::string say = echo_op["say"];
-    std::string hear = "Java result:";
+    std::string hear = say;
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
     outmsg.Payload(outpayload);
     
+    return Arc::MCC_Status(Arc::STATUS_OK);
+#endif
+    // Both input and output are supposed to be SOAP 
+    //   // Extracting payload
+    Arc::PayloadSOAP* inpayload = NULL;
+    try {
+        inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
+    } catch(std::exception& e) { };
+    if(!inpayload) {
+        std::cerr << "ECHO: input is not SOAP" << std::endl;
+        return make_fault(outmsg);
+    };
+    // Analyzing request 
+    Arc::XMLNode echo_op = (*inpayload)["echo"];
+    if(!echo_op) {
+        std::cerr << "ECHO: request is not supported - " << echo_op.Name() << std::endl;
+        return make_fault(outmsg);
+    };
+    std::string say = echo_op["say"];
+    std::string hear = say;
+    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
+    outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
+    outmsg.Payload(outpayload);
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
