@@ -45,14 +45,14 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
   outmsg.Payload(payload);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(Arc::GENERIC_ERROR);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
   PayloadSOAP* soap = new PayloadSOAP(XMLNode::NS(),true);
   soap->Fault()->Code(SOAPFault::Receiver);
   outmsg.Payload(soap);
-  return MCC_Status(Arc::STATUS_OK);
+  return MCC_Status(Arc::GENERIC_ERROR);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* desc = NULL) {
@@ -137,6 +137,6 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);
   delete retpayload;
-  return MCC_Status();
+  return MCC_Status(Arc::STATUS_OK);
 }
 

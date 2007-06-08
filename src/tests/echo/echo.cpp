@@ -36,7 +36,7 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
     fault->Reason("Failed processing request");
   };
   outmsg.Payload(outpayload);
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::GENERIC_ERROR);
 }
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
@@ -61,6 +61,6 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
   outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
   outmsg.Payload(outpayload);
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

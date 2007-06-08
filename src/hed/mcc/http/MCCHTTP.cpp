@@ -164,6 +164,6 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   if(!(*outpayload)) { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
-  return MCC_Status();
+  return MCC_Status(Arc::STATUS_OK);
 }
 

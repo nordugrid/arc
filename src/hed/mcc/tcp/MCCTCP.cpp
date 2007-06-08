@@ -296,14 +296,14 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
 
-    if(!s_) return MCC_Status();
+    if(!s_) return MCC_Status(Arc::GENERIC_ERROR);
     // Extracting payload
-    if(!inmsg.Payload()) return MCC_Status();
+    if(!inmsg.Payload()) return MCC_Status(Arc::GENERIC_ERROR);
     PayloadRawInterface* inpayload = NULL;
     try {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
-    if(!inpayload) return MCC_Status();
+    if(!inpayload) return MCC_Status(Arc::GENERIC_ERROR);
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
@@ -316,40 +316,5 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     };
     outmsg.Payload(new PayloadStream(*s_));
     return MCC_Status(Arc::STATUS_OK);
-
-#if 0
-    //Modified for TLS
-    // Call next MCC, get the ssl payload
-
-    PayloadStreamInterface* retpayload = NULL;
-
-    Message nextinmsg;
-    nextinmsg.Payload(s_);
-    Message nextoutmsg;
-    MCCInterface* next = Next();
-    if(next) {
-        MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-        if(!ret) retpayload = s_;//return MCC_Status(-1);
-        try{
-            retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
-        } catch(std::exception& e){};
-        if(!retpayload){delete nextoutmsg.Payload(); retpayload = s_; *return MCC_Status(-1);*}
-    } else {
-        retpayload = s_;//return MCC_Status(-1);
-    };
-
-    for(int n=0;;++n) {
-        char* buf = inpayload->Buffer(n);
-        if(!buf) break;
-        int bufsize = inpayload->BufferSize(n);
-        if(!(retpayload->Put(buf,bufsize))) {
-            std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
-            return MCC_Status(-1);
-        };
-    };
-    outmsg = nextoutmsg;   //Don't need to change the Payload of "nextoutmsg", just transfer to MCC_HTTP_Client directly
- //   outmsg.Payload(retpayload);
-    return MCC_Status();
-#endif
 }
 
