@@ -60,7 +60,7 @@ int main(void) {
   for(int n = 0;n<2;n++) {
   // Create and send echo request
   std::cout << "Creating and sending request" << std::endl;
-  Arc::SOAPMessage::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
   Arc::PayloadSOAP req(echo_ns);
   req.NewChild("echo").NewChild("say")="HELLO";
   Arc::Message reqmsg;

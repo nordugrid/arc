@@ -8,10 +8,10 @@ namespace Arc {
 
 /** This class combines MessagePayload with SOAPMessage to make 
   it possible to pass SOAP messages through MCC chain */
-class PayloadSOAP: public MessagePayload, public SOAPMessage {
+class PayloadSOAP: public Arc::SOAPMessage, public Arc::MessagePayload {
  public:
   /** Constructor - creates new Message payload */
-  PayloadSOAP(const Arc::XMLNode::NS& ns,bool fault = false);
+  PayloadSOAP(const Arc::NS& ns,bool fault = false);
   /** Constructor - creates Message payload from SOAP message. 
     Used SOAP message must exist as long as created object exists. */
   PayloadSOAP(const Arc::SOAPMessage& soap);

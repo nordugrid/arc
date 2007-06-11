@@ -47,10 +47,10 @@ int main(void) {
     return -1;
   };
 
-  for (int i = 0; i < 10; i++) {
+  // for (int i = 0; i < 10; i++) {
   // Create and send echo request
   std::cout << "Creating and sending request" << std::endl;
-  Arc::SOAPMessage::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
   Arc::PayloadSOAP req(echo_ns);
   req.NewChild("echo").NewChild("say")="HELLO";
   Arc::Message reqmsg;
@@ -77,6 +77,6 @@ int main(void) {
   resp->GetXML(xml);
   std::cout << "XML: "<< xml << std::endl;
   std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
-  }    
+  //}    
   return 0;
 }

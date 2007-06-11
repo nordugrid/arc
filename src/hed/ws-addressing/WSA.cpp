@@ -89,7 +89,7 @@ WSAHeader::WSAHeader(SOAPMessage& soap) {
   header_=soap.Header();
   header_allocated_=false;
   // apply predefined namespace prefix
-  XMLNode::NS ns;
+  Arc::NS ns;
   ns["wsa"]=WSA_NAMESPACE;
   header_.Namespaces(ns);
 } 
@@ -225,7 +225,7 @@ void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
   // TODO: Detail
   SOAPFault& fault = *(message.Fault());
   if(&fault == NULL) return;
-  XMLNode::NS ns;
+  Arc::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   message.Namespaces(ns);
   switch(fid) {

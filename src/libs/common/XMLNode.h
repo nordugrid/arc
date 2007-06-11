@@ -10,6 +10,8 @@
 
 namespace Arc {
 
+typedef std::map<std::string,std::string> NS;
+
 /** Wrapper for LibXML library Tree interface. 
   This class wraps XML Node, Document and Property/Attribute structures.
   Each instance serves as pointer to actual LibXML element and provides convenient
@@ -25,7 +27,6 @@ class XMLNode {
  friend bool MatchXMLName(const XMLNode& node,const char* name);
  public:
   /** convenience typedef representing mapping between namespace URIs and their prefixes */
-  typedef std::map<std::string,std::string> NS;
   class dateTime {
    private:
     time_t t_;
@@ -80,7 +81,7 @@ class XMLNode {
   } 
   /** Creates empty XML document structure with specified namespaces.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const NS& ns):is_owner_(false),node_(NULL),is_temporary_(false) {
+  XMLNode(const Arc::NS& ns):is_owner_(false),node_(NULL),is_temporary_(false) {
     node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
     if(!node_) is_owner_=true;
     Namespaces(ns);
@@ -199,6 +200,13 @@ class XMLNode {
   XMLNode& operator=(const std::string& content) {
     return operator=(content.c_str());
   };
+
+/*
+  XMLNode& Set(const std::string& content) {
+    return operator=(content);
+  }
+*/
+
   /** Same as previous method */
   XMLNode& operator=(const char* content) {
     if(!node_) return *this;
@@ -227,7 +235,7 @@ class XMLNode {
     If namespace already exists it gets new prefix. New namespaces are added.
     It is usefull to apply this method to XML being processed in order to refer to it's 
     elements by known prefix. */
-  void Namespaces(const NS& namespaces);
+  void Namespaces(const Arc::NS& namespaces);
   /** Returns prefix of specified namespace. 
     Empty string if no such namespace. */
   std::string NamespacePrefix(const char* urn);

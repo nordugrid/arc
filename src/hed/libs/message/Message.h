@@ -16,7 +16,6 @@ class MessageAuth;
   derived from it. */
 class MessagePayload {
  public:
-  MessagePayload(void) { };
   virtual ~MessagePayload(void) { };
 };
 

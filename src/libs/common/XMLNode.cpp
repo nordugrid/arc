@@ -172,9 +172,9 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
-static void SetNamespaces(const XMLNode::NS& namespaces,xmlNodePtr node_) {
+static void SetNamespaces(const Arc::NS& namespaces,xmlNodePtr node_) {
   if(node_ == NULL) return;
-  for(XMLNode::NS::const_iterator ns = namespaces.begin();
+  for(Arc::NS::const_iterator ns = namespaces.begin();
          ns!=namespaces.end();++ns) {
     xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc,node_,(const xmlChar*)(ns->second.c_str()));
     if(ns_) {
@@ -186,7 +186,7 @@ static void SetNamespaces(const XMLNode::NS& namespaces,xmlNodePtr node_) {
   };
 }
 
-void XMLNode::Namespaces(const XMLNode::NS& namespaces) {
+void XMLNode::Namespaces(const Arc::NS& namespaces) {
   if(node_ == NULL) return;
   if(node_->type == XML_DOCUMENT_NODE) {
     for(int n = 0;;++n) {

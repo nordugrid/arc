@@ -39,7 +39,7 @@ MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
 static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
-  SOAPMessage soap(XMLNode::NS(),true);
+  SOAPMessage soap(Arc::NS(),true);
   soap.Fault()->Code(SOAPFault::Receiver);
   std::string xml; soap.GetXML(xml);
   PayloadRaw* payload = new PayloadRaw;
@@ -49,7 +49,7 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,const char* desc = NULL) {
-  PayloadSOAP* soap = new PayloadSOAP(XMLNode::NS(),true);
+  PayloadSOAP* soap = new PayloadSOAP(Arc::NS(),true);
   soap->Fault()->Code(SOAPFault::Receiver);
   outmsg.Payload(soap);
   return MCC_Status(Arc::GENERIC_ERROR);

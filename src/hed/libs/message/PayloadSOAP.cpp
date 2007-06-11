@@ -9,7 +9,7 @@ PayloadSOAP::PayloadSOAP(const MessagePayload& source):SOAPMessage(ContentFromPa
 PayloadSOAP::PayloadSOAP(const SOAPMessage& soap):SOAPMessage(soap) {
 }
 
-PayloadSOAP::PayloadSOAP(const NS& ns,bool fault):SOAPMessage(ns,fault) {
+PayloadSOAP::PayloadSOAP(const Arc::NS& ns,bool fault):SOAPMessage(ns,fault) {
 }
 
 PayloadSOAP::~PayloadSOAP(void) {

@@ -1,3 +1,4 @@
 %module arc
-%include common.i
-%include message.i
+%include <stl.i>
+%include "common.i"
+%include "message.i"

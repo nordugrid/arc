@@ -27,7 +27,7 @@ SOAPMessage::SOAPMessage(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
       ver12=true; break;
     };
   };
-  XMLNode::NS ns_;
+  Arc::NS ns_;
   if(ver12) {
     ns_["soap-enc"]="http://www.w3.org/2003/05/soap-encoding";
     ns_["soap-env"]="http://www.w3.org/2003/05/soap-envelope";
@@ -68,7 +68,7 @@ void SOAPMessage::set(void) {
   if(!it) return;
   ver12=false;
   if(!it.Child().NamespacePrefix("http://www.w3.org/2003/05/soap-envelope").empty()) ver12=true;
-  XMLNode::NS ns;
+  Arc::NS ns;
   if(ver12) {
     ns["soap-enc"]="http://www.w3.org/2003/05/soap-encoding";
     ns["soap-env"]="http://www.w3.org/2003/05/soap-envelope";

@@ -18,7 +18,7 @@ namespace Arc {
   machine processing (XML-like).
    So far there are no schema and/or namespaces assigned.
  */
-class Config: public XMLNode {
+class Config: public Arc::XMLNode {
     public:
 	/** Dummy constructor - produces empty structure */
         Config() { };

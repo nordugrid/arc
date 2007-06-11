@@ -30,7 +30,7 @@ void test2(void) {
   std::cout<<"------- Testing Google Web Service ------"<<std::endl;
   Arc::PayloadTCPSocket socket("api.google.com",80);
   Arc::PayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
-  Arc::XMLNode::NS ns;
+  Arc::NS ns;
   ns["google"]="urn:GoogleSearch";
   Arc::SOAPMessage soap_req(ns);
   std::string xml;

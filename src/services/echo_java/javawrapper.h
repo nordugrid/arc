@@ -14,7 +14,6 @@ class Service_JavaWrapper: public Arc::Service {
         JavaVMInitArgs jvm_args;
         JavaVMOption options[1];
 
-        Arc::XMLNode::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
     public:
         Service_JavaWrapper(Arc::Config *cfg);

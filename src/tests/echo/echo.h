@@ -13,7 +13,7 @@ class Service_Echo: public Arc::Service
     protected:
         std::string prefix_;
         std::string suffix_;
-        Arc::XMLNode::NS ns_;
+        Arc::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
     public:
         /** Constructor accepts configuration describing content of prefix and suffix */

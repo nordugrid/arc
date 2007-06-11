@@ -21,8 +21,6 @@ namespace Arc {
 
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg) 
 {
-    ns_["echo"]="urn:echo";
-    
     /* Initiliaze java engine */
     JNI_GetDefaultJavaVMInitArgs(&jvm_args);
     jvm_args.version = JNI_VERSION_1_2;
@@ -40,19 +38,12 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
         std::cerr << "There is no service: " << "EchoService" << " in you java class search path" << std::endl;
         return;
     }
-    printf("%p\n", serviceClass);
     jmethodID constructorID = jenv->GetMethodID(serviceClass, "<init>", "()V");
-    printf("%p\n", constructorID);
-    if (constructorID) {
-        serviceObj = jenv->NewObject(serviceClass, constructorID);
-    }
+    if (constructorID == NULL) {
+        std::cerr << "There is no constructor function" << std::endl;
     
-    jmethodID processID = jenv->GetMethodID(serviceClass, "process", "()I");
-    if (processID == NULL) {
-        std::cerr << "Cannot find function: " << "process" << std::endl;
     }
-    printf("processID: %p\n", processID);
-    
+    serviceObj = jenv->NewObject(serviceClass, constructorID);
     std::cout << "EchoService constructed" << std::endl;
 }
 
@@ -63,7 +54,7 @@ Service_JavaWrapper::~Service_JavaWrapper(void) {
 
 Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg) 
 {
-    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
+    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(Arc::NS(),true);
     Arc::SOAPFault* fault = outpayload->Fault();
     if(fault) {
         fault->Code(Arc::SOAPFault::Sender);
@@ -75,48 +66,7 @@ Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg)
 
 Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 {
-/*
-    jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
-    printf("%d\n", aret);
-    printf("%p\n", serviceClass);
-    jmethodID processID = jenv->GetMethodID(serviceClass, "process", "()I");
-    if (processID == NULL) {
-        std::cerr << "Cannot find function: " << "process" << std::endl;
-    }
-    printf("%p\n", processID);
-    jobject ret = jenv->CallObjectMethod(serviceObj, processID);
-    jint b = (jint)ret;
-    aret = jvm->DetachCurrentThread();
-    printf("%d\n", aret);
-    std::cout << "Java return value:" << b << std::endl;
-  */
-#if 0
-    // XXX: ECHO code logic which shoud go to java XXX
-    Arc::PayloadSOAP* inpayload = NULL;
-    try {
-        inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
-    } catch(std::exception& e) { };
-    if(!inpayload) {
-        std::cout << "ECHO: input is not SOAP" << std::endl;
-        return make_fault(outmsg);
-    };
-    // Analyzing request 
-    Arc::XMLNode echo_op = (*inpayload)["echo"];
-    if(!echo_op) {
-        std::cout << "ECHO: request is not supported - " << echo_op.Name() << std::endl;
-        return make_fault(outmsg);
-    };
-    std::cout << "HERE" << std::endl;
-    std::string say = echo_op["say"];
-    std::string hear = say;
-    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-    outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
-    outmsg.Payload(outpayload);
-    
-    return Arc::MCC_Status(Arc::STATUS_OK);
-#endif
-    // Both input and output are supposed to be SOAP 
-    //   // Extracting payload
+    /* Get the SOAP content of the input */
     Arc::PayloadSOAP* inpayload = NULL;
     try {
         inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
@@ -125,18 +75,95 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
         std::cerr << "ECHO: input is not SOAP" << std::endl;
         return make_fault(outmsg);
     };
-    // Analyzing request 
-    Arc::XMLNode echo_op = (*inpayload)["echo"];
-    if(!echo_op) {
-        std::cerr << "ECHO: request is not supported - " << echo_op.Name() << std::endl;
-        return make_fault(outmsg);
-    };
-    std::string say = echo_op["say"];
-    std::string hear = say;
-    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-    outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
-    outmsg.Payload(outpayload);
-    return Arc::MCC_Status(Arc::STATUS_OK);
+
+    /* Attach to the current java engine thread */
+    jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
+    /* Get the process function of service */
+    jmethodID processID = jenv->GetMethodID(serviceClass, "process", "(Lorg/nodugrid/arc/SOAPMessage;Lorg/nordugrid/arc/SOAPMessage;)Lorg/nodugrid/arc/MCC_Status;");
+    if (processID == NULL) {
+        std::cerr << "Cannot find function: " << "process" << std::endl;
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* convert inmsg and outmsg to java objects */
+    Arc::SOAPMessage *inmsg_ptr = (Arc::SOAPMessage *)inpayload;
+    Arc::SOAPMessage *outmsg_ptr = new Arc::SOAPMessage(Arc::NS(),true);
+    jclass JSOAPMessageClass = jenv->FindClass("org/nordugrid/arc/SOAPMessage");
+    if (JSOAPMessageClass == NULL) {
+        std::cerr << "Cannot find Message object" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Get the constructor of java object */
+    jmethodID constructorID = jenv->GetMethodID(JSOAPMessageClass, "<init>", "(I)V");
+    if (constructorID == NULL) {
+        std::cerr << "Cannot find constructor function of message" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Convert C++ object to Java objects */
+    jobject jinmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)inmsg_ptr));
+    if (jinmsg == NULL) {
+        std::cerr << "Cannot convert input message to java object" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    jobject joutmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)outmsg_ptr));
+    if (jinmsg == NULL) {
+        std::cerr << "Cannot convert output message to java object" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Create arguments for java process function */
+    jvalue args[2];
+    args[0].l = jinmsg;
+    args[1].l = joutmsg;
+    /* Call the process method of Java object */
+    jobject jmcc_status = jenv->CallObjectMethodA(serviceObj, processID, args);
+    if (jmcc_status == NULL) {
+        std::cerr << "Error in call process function of java object" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Get SWIG specific getCPtr function of Message class */
+    jmethodID msg_getCPtrID = jenv->GetStaticMethodID(JSOAPMessageClass, "getCPtr", "(Lorg/nordugrid/arc/SOAPMessage;)J");
+    if (msg_getCPtrID == NULL) {
+        std::cerr << "Cannot find getCPtr method of java Message class" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Get Java MCC_Status class */
+    jclass JMCC_StatusClass = jenv->FindClass("org/nordugrid/arc/MCC_Status");
+    if (JMCC_StatusClass == NULL) {
+        std::cerr << "Cannot find MCC_Status object" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+    /* Get SWIG specific getCPtr function of MCC_Status class */
+    jmethodID mcc_status_getCPtrID = jenv->GetStaticMethodID(JSOAPMessageClass, "getCPtr", "(Lorg/nordugrid/arc/MCC_Status;)J");
+    if (mcc_status_getCPtrID == NULL) {
+        std::cerr << "Cannot find getCPtr method of java MCC_Status class" << std::endl;
+        /* Cleanup */
+        jvm->DetachCurrentThread();
+        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+    }
+
+    /* Convert Java status object to C++ class */
+    jlong mcc_status_addr = jenv->CallStaticLongMethod(JMCC_StatusClass, mcc_status_getCPtrID, jmcc_status);
+    Arc::MCC_Status status(*((Arc::MCC_Status *)(long)mcc_status_addr));
+    /* Convert Java output message object to C++ class */
+    jlong outmsg_addr = jenv->CallStaticLongMethod(JSOAPMessageClass, msg_getCPtrID, jinmsg);
+     outmsg.Payload(new Arc::PayloadSOAP(*((Arc::SOAPMessage *)(long)outmsg_addr)));
+    // XXX: how to handle error?
+    /* Detach from the Java engine */
+    jvm->DetachCurrentThread();
+    return status;
 }
 
 }; // namespace Arc
