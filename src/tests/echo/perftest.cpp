@@ -154,6 +154,7 @@ void sendRequests(){
   ::completedTime+=completedTime;
   ::failedTime+=failedTime;
   finishedThreads++;
+  std::cout << "Number of finished threads: " << finishedThreads << std::endl;
 }
 
 int main(int argc, char* argv[]){
