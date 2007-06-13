@@ -34,6 +34,7 @@
           <xsd:enumeration value="Finishing"/>
           <xsd:enumeration value="Finished"/>
           <xsd:enumeration value="Failed"/>
+          <xsd:enumeration value="Deleted"/>
           <xsd:enumeration value="Pending"/>
           <xsd:enumeration value="Held"/>
         </xsd:restriction>
