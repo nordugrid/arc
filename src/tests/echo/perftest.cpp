@@ -69,70 +69,80 @@ void sendRequests(){
   Glib::TimeVal failedTime(0,0);
   Glib::TimeVal tBefore;
   Glib::TimeVal tAfter;
+  bool connected;
       
-  // Create a client chain.
-  Arc::Config client_config(confString);
-  if(!client_config) {
-    std::cerr << "Failed to load client configuration." << std::endl;
-    return;
-  }
-  Arc::Loader client_loader(&client_config);
-  Arc::MCC* client_entry = client_loader["soap"];
-  if(!client_entry) {
-    std::cerr << "Client chain have no entry point." << std::endl;
-    return;
-  }
-
   while(run){
-    // Prepare the request.
-    Arc::NS echo_ns;
-    echo_ns["echo"]="urn:echo";
-    Arc::PayloadSOAP req(echo_ns);
-    req.NewChild("echo").NewChild("say")="HELLO";
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
+    
+    // Create a client chain.
+    Arc::Config client_config(confString);
+    if(!client_config) {
+      std::cerr << "Failed to load client configuration." << std::endl;
+      return;
+    }
+    Arc::Loader client_loader(&client_config);
+    Arc::MCC* client_entry = client_loader["soap"];
+    if(!client_entry) {
+      std::cerr << "Client chain have no entry point." << std::endl;
+      return;
+    }
+    connected=true;
 
-    // Send the request and time it.
-    tBefore.assign_current_time();
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    tAfter.assign_current_time();
-
-    if(!status) {
-      // Request failed.
-      failedRequests++;
-      failedTime+=tAfter-tBefore;
-    }
-    Arc::PayloadSOAP* resp = NULL;
-    if(repmsg.Payload() == NULL) {
-      // There were no response.
-      failedRequests++;
-      failedTime+=tAfter-tBefore;
-    }
-    try{
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    }
-    catch(std::exception&){
-      // Payload had wrong type.
-      failedRequests++;
-      failedTime+=tAfter-tBefore;
-    }
-    if(resp == NULL) {
-      // Response was not SOAP.
-      failedRequests++;
-      failedTime+=tAfter-tBefore;
-    }
-    std::string xml;
-    resp->GetXML(xml);
-    if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
-      // The response was not what it should be.
-      failedRequests++;
-      failedTime+=tAfter-tBefore;
-    }
-    else{
-      // Everything worked just fine!
-      completedRequests++;
-      completedTime+=tAfter-tBefore;
+    while(run and connected){
+      // Prepare the request.
+      Arc::NS echo_ns;
+      echo_ns["echo"]="urn:echo";
+      Arc::PayloadSOAP req(echo_ns);
+      req.NewChild("echo").NewChild("say")="HELLO";
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      reqmsg.Payload(&req);
+      
+      // Send the request and time it.
+      tBefore.assign_current_time();
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      tAfter.assign_current_time();
+      
+      if(!status) {
+	// Request failed.
+	failedRequests++;
+	failedTime+=tAfter-tBefore;
+	connected=false;
+      }
+      Arc::PayloadSOAP* resp = NULL;
+      if(repmsg.Payload() == NULL) {
+	// There were no response.
+	failedRequests++;
+	failedTime+=tAfter-tBefore;
+	connected=false;
+      }
+      try{
+	resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      }
+      catch(std::exception&){
+	// Payload had wrong type.
+	failedRequests++;
+	failedTime+=tAfter-tBefore;
+	connected=false;
+      }
+      if(resp == NULL) {
+	// Response was not SOAP.
+	failedRequests++;
+	failedTime+=tAfter-tBefore;
+	connected=false;
+      }
+      std::string xml;
+      resp->GetXML(xml);
+      if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
+	// The response was not what it should be.
+	failedRequests++;
+	failedTime+=tAfter-tBefore;
+	connected=false;
+      }
+      else{
+	// Everything worked just fine!
+	completedRequests++;
+	completedTime+=tAfter-tBefore;
+      }
     }
   }
 
@@ -187,17 +197,16 @@ int main(int argc, char* argv[]){
   // Sleep while the threads are working.
   Glib::usleep(duration*1000000);
 
+  // Stop the threads
   run=false;
-  sleep(5);
-/*
-  // Stop the threads.
-  for (i=0; i<numberOfThreads; i++)
-    threads[i]->join();
-  delete[] threads;
-  delete mutex;
-*/
+  // Give the threads time to stop.
+  Glib::usleep(5000000);
+  // This is a very ugly solution, but apparently the behaviour of
+  // join() it is not well defined when called for threads that have
+  // allready finished.
 
   // Print the result of the test.
+  Glib::Mutex::Lock lock(*mutex);
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
