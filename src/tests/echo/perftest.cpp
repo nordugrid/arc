@@ -93,7 +93,7 @@ void sendRequests(){
     Arc::Message repmsg;
     reqmsg.Payload(&req);
 
-    // Sent the request and time it.
+    // Send the request and time it.
     tBefore.assign_current_time();
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     tAfter.assign_current_time();
@@ -198,6 +198,10 @@ int main(int argc, char* argv[]){
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
+  std::cout << "Host: "
+	    << serviceHost << std::endl;
+  std::cout << "Port: "
+	    << portNumber << std::endl;
   std::cout << "Number of threads: "
 	    << numberOfThreads << std::endl;
   std::cout << "Duration: "
