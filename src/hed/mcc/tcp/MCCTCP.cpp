@@ -14,7 +14,7 @@
 
 #include "MCCTCP.h"
 
-Arc::Logger &l = Arc::Logger::rootLogger;
+static Arc::Logger log(Arc::Logger::rootLogger,"TCP");
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Service(cfg);
@@ -78,7 +78,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
     //pthread_mutex_lock(&lock_);
-    l.msg(Arc::DEBUG, "TCP_Service destroy");
+    log.msg(Arc::DEBUG, "TCP_Service destroy");
     lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
