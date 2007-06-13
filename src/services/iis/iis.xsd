@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Data types of Information Indexing Service
+-->
+
+<xsd:schema 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:iis="http://www.nordugrid.org/iis/2007/06"
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  elementFormDefault="qualified" attributeFormDefault="unqualified" 
+  targetNamespace="http://www.nordugrid.org/iis/2007/06" 
+>
+
+<xsd:complexType name="ServiceDescriptionType">
+    <xsd:any/>    
+</xsd:complexType>
+
+<xsd:complexType name="ServiceDescriptionMetadataType">
+    <xsd:element name="TTL" type="xsd:integer"/>
+    <xsd:element name="Lifetime" type="xsd:dateTime"/>
+    <xsd:element name="Origin" type="wsa:EndPointReference">
+</xsd:complexType>
+
+<xsd:complexType name="Tuple">
+    <xsd:element name="Data" type="ServiceDescriptionType" minOccurs="1" maxOccures="1">
+    <xsd:element name="Metadata" type="ServiceDescriptionMetadataType" minOccurs="1" maxOccurs="1">
+    <xsd:element name="Fault" type="FaultType" minOccurs="0" maxOccurs="1">
+</xsd:complexType>
+
+<xsd:complexType name="RegisterRequestType">
+    <xsd:sequence>
+        <xsd:element name="Elements" type="Tuple" minOccures="1" maxOccures="unbounded">
+    </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="RegisterResponseType">
+</xsd:complexType>
+
+<xsd:complexType name="ExchangeRequestType">
+    <xsd:sequence>
+        <xsd:element name="Elements" type="Tuple" minOccures="0" maxOccures="unbounded">
+    </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ExchangeResponseType">
+    <xsd:sequence>
+        <xsd:element name="Elements" type="Tuple" minOccures="0" maxOccures="unbounded">
+    </xsd:sequence>
+</xsd:complexType>
+

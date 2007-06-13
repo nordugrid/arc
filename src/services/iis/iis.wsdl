@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Interface of Information Indexing Service
+-->
+<wsdl:definitions name="InformationIndexing"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  xmlns:iis="http://www.nordigrid.org/iis/2007/06/"
+  xmlns:wsrf-rp="http://docs.oasis-open.org/wsrf/rp-2"
+  targetNamespace="http://docs.oasis-open.org/wsrf/rpw-2"
+>
+
+<!-- ======= Type definitions ====== -->
+<wsdl:types>
+    <xsd:schema>
+        <xsd:import namespace="http://www.nordugrid.org/iis/2007/06" 
+                    schemaLocation="./iis.xsd" />
+    </xsd:schema>
+</wsdl:types>
+
+<!-- ====== Register ====== 
+Register(list of (ServiceDescriptionMetadata, ServiceDescription))
+returns:
+-->
+<wsdl:message name="RegisterRequest">
+    <wsdl:part name="RegisterRequest" 
+          element="iis:RegisterRequestType"/>
+</wsdl:message>
+
+<wsdl:message name="RegisterResponse">
+   <wsdl:part name="RegisterResponse" 
+         element="iis:RegisterResponseType"/>
+</wsdl:message>
+
+<!-- ====== Register ====== 
+Exchange(list of (ServiceDescriptionMetadata, ServiceDescription))
+returns: list of (ServiceDescriptionMetadata, ServiceDescription)
+-->
+
+<wsdl:message name="ExchangeRequest">
+    <wsdl:part name="ExchangeRequest" 
+          element="iis:ExchangeRequestType"/>
+</wsdl:message>
+
+<wsdl:message name="ExchangeResponse">
+   <wsdl:part name="ExchangeResponse" 
+         element="iis:ExchangeResponseType"/>
+</wsdl:message>
+
+<!-- ====== PortType definitions ====== -->
+<wsdl:portType name="IISPortType">
+    <wsdl:operation name="Registration">
+      <wsdl:input name="RegistrationRequest"
+               message="iis:RegistrationRequest"/>
+      <wsdl:output name="RegistrationResponse"
+               message="iis:RegistartionResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="Exchange">
+      <wsdl:input name="RegistrationRequest"
+               message="iis:RegistrationRequest"/>
+      <wsdl:output name="RegistrationResponse"
+               message="iis:RegistartionResponse"/>
+    </wsdl:operation>
+</wsdl:portType>
+
+<!-- ====== Bindings ====== -->
+
+<wsdl:binding name="iis" type="iis:IISPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Registration">
+      <soap:operation soapAction="Registration"/>
+      <wsdl:input name="RegistrationRequest">
+         <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="RegistrationResponse">
+         <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Exchange">
+      <soap:operation soapAction="Exchange"/>
+      <wsdl:input name="ExchangeRequest">
+         <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="ExchangeResponse">
+         <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+</wsdl:binding>
+
+<wsdl:binding name="GetResourcePropoertiesBinding" type="wsrf-rp:GetResourcePropoerties">
+    
+</wsdl:binding>
+
+<wsdl:binding name="GetResourceDocumentBinding" type="wsrf-rp:GetResourcePropertyDocumen">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  <wsdl:operation name="wsrf-rp:GetResourcePropertyDocument">
+      <soap:operation soapAction="wsrf-rp:GetResourcePropertyDocument"/>
+      <wsdl:input name="wsrf-rp:GetResourcePropertyDocumentRequest"
+               message="wsrf-rpw:GetResourcePropertyDocumentRequest"/>
+      <wsdl:output name="wsrf-rp:GetResourcePropertyDocumentResponse"
+               message="wsrf-rpw:GetResourcePropertyDocumentResponse"/>
+      <wsdl:fault name="wsrf-rp:ResourceUnknownFault" 
+              message="wsrf-rw:ResourceUnknownFault"/>
+      <wsdl:fault name="wsrf-rp:ResourceUnavailableFault" 
+              message="wsrf-rw:ResourceUnavailableFault"/>
+  </wsdl:operation>
+</wsdl:binding>
+
+<wsdl:binding name="QueryResourcePropertiesBinding" type="wsrf:QueryResourceProperties">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="wsrf-rp:QueryResourceProperties">
+      <wsdl:input  name="wsrf-rp:QueryResourcePropertiesRequest" 
+                   message="wsrf-rpw:QueryResourcePropertiesRequest" />
+      <wsdl:output name="wsrf-rp:QueryResourcePropertiesResponse" 
+                   message="wsrf-rpw:QueryResourcePropertiesResponse" />
+      <wsdl:fault name="wsrf-rp:ResourceUnknownFault" 
+              message="wsrf-rw:ResourceUnknownFault"/>
+      <wsdl:fault name="wsrf-rp:ResourceUnavailableFault" 
+              message="wsrf-rw:ResourceUnavailableFault"/>
+      <wsdl:fault  name="wsrf-rp:InvalidResourcePropertyQNameFault" 
+                   message="wsrf-rpw:InvalidResourcePropertyQNameFault" />     
+      <wsdl:fault  name="wsrf-rp:UnknownQueryExpressionDialectFault" 
+                   message="wsrf-rpw:UnknownQueryExpressionDialectFault" />
+      <wsdl:fault  name="wsrf-rp:InvalidQueryExpressionFault" 
+                   message="wsrf-rpw:InvalidQueryExpressionFault" />
+      <wsdl:fault  name="wsrf-rp:QueryEvaluationErrorFault" 
+                   message="wsrf-rpw:QueryEvaluationErrorFault" />
+    </wsdl:operation>
+</wsdl:binding>
+
+<!-- ====== Service definition ====== -->
+<wsdl:service name="iis">
+    <wsdl:port name="GetResourcePropertiesBinding" binding="iis:GetResourcePropertiesBinding"></wsdl:port>
+    <wsdl:port name="QueryResourcePropertiesBinding" binding="iis:GetResourceDocumentBinding"></wsdl:port>
+    <wsdl:port name="GetResourceDocumentBinding" binding="iis:GetResourceDocumentBinding"></wsdl:port>
+    <wsdl:port name="iis" binding="iis:iis"></wsdl:port>
+</wsdl:service>
+</wsrf:definitions>
