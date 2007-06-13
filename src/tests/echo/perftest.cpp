@@ -14,6 +14,7 @@
 // Some global shared variables...
 Glib::Mutex* mutex;
 bool run;
+int finishedThreads;
 unsigned long completedRequests;
 unsigned long failedRequests;
 unsigned long totalRequests;
@@ -152,6 +153,7 @@ void sendRequests(){
   ::failedRequests+=failedRequests;
   ::completedTime+=completedTime;
   ::failedTime+=failedTime;
+  finishedThreads++;
 }
 
 int main(int argc, char* argv[]){
@@ -188,6 +190,7 @@ int main(int argc, char* argv[]){
 
   // Start threads.
   run=true;
+  finishedThreads=0;
   //Glib::thread_init();
   mutex=new Glib::Mutex;
   threads = new Glib::Thread*[numberOfThreads];
@@ -199,11 +202,8 @@ int main(int argc, char* argv[]){
 
   // Stop the threads
   run=false;
-  // Give the threads time to stop.
-  Glib::usleep(5000000);
-  // This is a very ugly solution, but apparently the behaviour of
-  // join() it is not well defined when called for threads that have
-  // allready finished.
+  while(finishedThreads<numberOfThreads)
+    Glib::usleep(100000);
 
   // Print the result of the test.
   Glib::Mutex::Lock lock(*mutex);
