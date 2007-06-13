@@ -20,7 +20,6 @@
 
 #include "MCCTLS.h"
 
-
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TLS_Service(cfg);
 }
@@ -158,6 +157,20 @@ static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, 
    }
 }
 
+static bool do_ssl_init(void) {
+   static bool ssl_inited = false;
+   if(ssl_inited) return true;
+   ssl_inited=true;
+   SSL_load_error_strings();
+   if(!SSL_library_init()){
+        std::cerr<<"Error: SSL_library_init failed\n"<<std::endl;
+        tls_process_error();
+        ssl_inited=false;
+        return false;
+   };
+   return true;
+}
+
 
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
@@ -169,12 +182,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
    std::string ca_dir = (*cfg)["CACertificatesDir"];
    if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
    int r;
-   SSL_load_error_strings();
-   if(!SSL_library_init()){
- 	std::cerr<<"Error: SSL_library_init failed\n"<<std::endl;
-	tls_process_error();
-	return;
-   }	 
+   if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_server_method());
    if(sslctx_==NULL){
@@ -321,12 +329,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
    std::string ca_dir = (*cfg)["CACertificatesDir"];
    if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
    int r;
-   SSL_load_error_strings();
-   if(!SSL_library_init()){
-        std::cerr<<"Error: SSL_library_init failed\n"<<std::endl;
-        tls_process_error();
-        return;
-   }
+   if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_client_method());
    if(sslctx_==NULL){
