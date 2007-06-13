@@ -185,7 +185,7 @@ namespace Arc {
 
   Logger::Logger() :
     parent(0),
-    domain("arc"),
+    domain("Arc"),
     threshold(ERROR)
   {
     // addDestination(cerr);

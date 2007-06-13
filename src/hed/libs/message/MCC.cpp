@@ -8,6 +8,8 @@
 
 namespace Arc {
 
+  Arc::Logger Arc::MCC::logger(Arc::Logger::rootLogger,"MCC");
+
 void MCC::Next(MCCInterface* next,const std::string& label) {
     if(next == NULL) {
         next_.erase(label);

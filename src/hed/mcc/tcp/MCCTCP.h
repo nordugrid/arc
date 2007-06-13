@@ -7,6 +7,18 @@
 
 namespace Arc {
 
+  //! A base class for TCP client and service MCCs.
+  /*! This is a base class for TCP client and service MCCs. It
+    provides some common functionality for them, i.e. so far only a
+    logger.
+   */
+  class MCC_TCP : public MCC {
+  public:
+    MCC_TCP(Arc::Config *cfg);
+  protected:
+    static Arc::Logger logger;
+  };
+
 /** This class is MCC implementing TCP server.
   Upon creation this object binds to specified TCP ports and listens
  for incoming TCP connections on dedicated thread. Each connection is 
@@ -17,7 +29,7 @@ namespace Arc {
  may use provided PayloadStreamInterface to send it's response back 
  directly.
 */
-class MCC_TCP_Service: public MCC
+class MCC_TCP_Service: public MCC_TCP
 {
     friend class mcc_tcp_exec_t;
     private:
@@ -48,7 +60,7 @@ class MCC_TCP_Service: public MCC
  payload is sent over TCP socket. It returns PayloadStreamInterface 
  payload for previous MCC to read response.
 */
-class MCC_TCP_Client: public MCC
+class MCC_TCP_Client: public MCC_TCP
 {
     private:
         /** Socket object connected to remote site. 

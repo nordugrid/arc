@@ -14,7 +14,10 @@
 
 #include "MCCTCP.h"
 
-static Arc::Logger log(Arc::Logger::rootLogger,"TCP");
+Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
+
+Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : MCC(cfg) {
+}
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Service(cfg);
@@ -33,20 +36,20 @@ mcc_descriptor __arc_mcc_modules__[] = {
 using namespace Arc;
 
 
-MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
+MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
     // pthread_mutex_init(&lock_,NULL);
     for(int i = 0;;++i) {
         XMLNode l = (*cfg)["Listen"][i];
         if(!l) break;
         std::string port_s = l["Port"];
         if(port_s.empty()) {
-            std::cerr<<"Warning: Missing Port in Listen element"<<std::endl;
+            logger.msg(Arc::WARNING, "Missing Port in Listen element.");
             continue;
         };
         int port = atoi(port_s.c_str());
         int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
         if(s == -1) {
-            std::cerr<<"Warning: Failed to create socket"<<std::endl;
+	    logger.msg(Arc::WARNING, "Failed to create socket.");
             continue;
         };
         struct sockaddr_in myaddr;
@@ -55,30 +58,30 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC(cfg) {
         myaddr.sin_port=htons(port);
         myaddr.sin_addr.s_addr=INADDR_ANY;
         if(bind(s,(struct sockaddr *)&myaddr,sizeof(myaddr)) == -1) {
-            std::cerr<<"Warning: Failed to bind socket"<<std::endl;
+	    logger.msg(Arc::WARNING, "Failed to bind socket.");
             continue;
         };
         if(::listen(s,-1) == -1) {
-            std::cerr<<"Warning: Failed to listen on socket"<<std::endl;
+	    logger.msg(Arc::WARNING, "Failed to listen on socket.");
             continue;
         };
         handles_.push_back(s);
     };
     if(handles_.size() == 0) {
-        std::cerr<<"Error: No listening ports configured"<<std::endl;
+        logger.msg(Arc::ERROR, "No listening ports configured.");
         return;
     };
     //pthread_t thread;
     //if(pthread_create(&thread,NULL,&listener,this) != 0) {
     if(!CreateThreadFunction(&listener,this)) {
-        std::cerr<<"Error: Failed to start thread for listening"<<std::endl;
+        logger.msg(Arc::ERROR, "Failed to start thread for listening.");
         for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(*i);
     };
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
     //pthread_mutex_lock(&lock_);
-    log.msg(Arc::DEBUG, "TCP_Service destroy");
+    logger.msg(Arc::DEBUG, "TCP_Service destroy");
     lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
@@ -109,7 +112,7 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o)
     id=local_id++;
     //if(pthread_create(&thread,NULL,&MCC_TCP_Service::executer,this) != 0) {
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,this)) {
-        std::cerr<<"Error: Failed to start thread for communication"<<std::endl;
+        logger.msg(Arc::ERROR, "Failed to start thread for communication.");
         ::close(handle);  handle=-1;
     };
 }
@@ -137,7 +140,8 @@ void MCC_TCP_Service::listener(void* arg) {
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
             if(errno != EINTR) {
-                std::cerr<<"Error: Failed while waiting for connection request"<<std::endl;
+	        logger.msg(Arc::ERROR,
+			"Failed while waiting for connection request.");
                 // pthread_mutex_lock(&it.lock_);
                 it.lock_.lock();
                 for(std::list<int>::iterator i = it.handles_.begin();i!=it.handles_.end();) {
@@ -163,7 +167,8 @@ void MCC_TCP_Service::listener(void* arg) {
                 socklen_t addrlen = sizeof(addr);
                 int h = accept(s,&addr,&addrlen);
                 if(h == -1) {
-                    std::cerr<<"Error: Failed to accept connection request"<<std::endl;
+		    logger.msg(Arc::ERROR,
+			    "Failed to accept connection request.");
                     //pthread_mutex_lock(&it.lock_);
                     it.lock_.lock();
                 } else {
@@ -188,7 +193,6 @@ static std::string tostring(unsigned int n) {
 }
 
 void MCC_TCP_Service::executer(void* arg) {
-std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
     int id = ((mcc_tcp_exec_t*)arg)->id;
@@ -239,7 +243,6 @@ std::cerr<<"MCC_TCP_Service::executer"<<std::endl;
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
-std::cerr<<"MCC_TCP_Service::executer - calling next"<<std::endl;
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
         if(!ret) break;
@@ -263,22 +266,22 @@ MCC_Status MCC_TCP_Service::process(Message& inmsg,Message& outmsg) {
   return MCC_Status();
 }
 
-MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC(cfg),s_(NULL) {
+MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC_TCP(cfg),s_(NULL) {
     XMLNode c = (*cfg)["Connect"][0];
     if(!c) {
-        std::cerr<<"Error: No Connect element specified"<<std::endl;
+        logger.msg(Arc::ERROR,"No Connect element specified.");
         return;
     };
 
     std::string port_s = c["Port"];
     if(port_s.empty()) {
-        std::cerr<<"Error: Missing Port in Connect element"<<std::endl;
+        logger.msg(Arc::ERROR,"Missing Port in Connect element.");
         return;
     };
 
     std::string host_s = c["Host"];
     if(host_s.empty()) {
-        std::cerr<<"Error: Missing Host in Connect element"<<std::endl;
+        logger.msg(Arc::ERROR,"Missing Host in Connect element.");
         return;
     };
 
@@ -310,7 +313,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         if(!buf) break;
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
-            std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
+	    logger.msg(Arc::ERROR,"Failed to send content of buffer.");
             return MCC_Status();
         };
     };

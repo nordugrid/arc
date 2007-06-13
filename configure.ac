@@ -131,11 +131,11 @@ fi
 
 # using pkgconfig
 # check gthread
-PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.6.0])
+PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
 # check glibmm
-PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.6.0])
+PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
 # check libxml
@@ -178,7 +178,6 @@ AC_OUTPUT([Makefile \
                  src/hed/mcc/http/Makefile \
                  src/hed/mcc/tls/Makefile \
                  src/hed/mcc/plexer/Makefile \
-                 src/hed/daemon/Makefile \
                  src/services/Makefile \
                  src/services/echo_java/Makefile \
                  src/tests/Makefile \

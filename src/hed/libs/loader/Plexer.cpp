@@ -67,8 +67,13 @@ namespace Arc {
 
   void Plexer::Next(MCCInterface* next, const std::string& label){
     std::list<PlexerEntry>::iterator iter;
-    if (next!=0)
-      services.push_front(PlexerEntry(RegularExpression(label),next));
+    if (next!=0){
+      RegularExpression regex(label);
+      if (regex.isOk())
+	services.push_front(PlexerEntry(regex,next));
+      else
+	logger.msg(LogMessage(WARNING, "Bad label: \""+label+"\""));
+    }
     else
       for (iter=services.begin(); iter!=services.end(); ++iter)
 	if (iter->label.hasPattern(label))
@@ -87,8 +92,12 @@ namespace Arc {
 	    return iter->service->process(request, response);
       }
     }
-    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR, (std::string)("MCC Plexer"), path);  
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR,
+			   (std::string)("MCC Plexer"),
+			   path);  
   }
+
+  Arc::Logger Arc::Plexer::logger(Arc::MCC::logger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
     int ds, ps;

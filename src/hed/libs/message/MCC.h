@@ -6,6 +6,7 @@
 #include "common/ArcConfig.h"
 #include "Message.h"
 #include "MCC_Status.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 
@@ -40,19 +41,25 @@ class MCCInterface
  in a chain. */
 class MCC: public Arc::MCCInterface
 {
-    protected:
-        /** Set of labeled "next" components. 
-          Each implemented MCC must call process() metthod of 
-         corresponding MCCInterface from this set in own process() method. */
-        std::map<std::string,Arc::MCCInterface*> next_;
-        Arc::MCCInterface* Next(const std::string& label = "");
-   
-        /** Set o flabeled authentication and authorization handlers.
-          MCC calls sequence of handlers at specific point depending
-         on associated identifier. in most aces those are "in" and "out"
-         for incoming and outgoing messages correspondingly. */
-	    std::map<std::string,std::list<Arc::Handler*> > handlers_;
-    
+ protected:
+  /** Set of labeled "next" components. 
+      Each implemented MCC must call process() metthod of 
+      corresponding MCCInterface from this set in own process() method. */
+  std::map<std::string,Arc::MCCInterface*> next_;
+  Arc::MCCInterface* Next(const std::string& label = "");
+  
+  /** Set o flabeled authentication and authorization handlers.
+      MCC calls sequence of handlers at specific point depending
+      on associated identifier. in most aces those are "in" and "out"
+      for incoming and outgoing messages correspondingly. */
+  std::map<std::string,std::list<Arc::Handler*> > handlers_;
+  
+  //! A logger for MCCs.
+  /*! A logger intended to be the parent of loggers in the different
+    MCCs.
+  */
+  static Arc::Logger logger;
+  
     public:
         /** Example contructor - MCC takes at least it's configuration
 	    subtree */
@@ -72,6 +79,7 @@ class MCC: public Arc::MCCInterface
         virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
         virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response) { return MCC_Status(); };
+
 };
 
 } // namespace Arc

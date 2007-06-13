@@ -11,11 +11,11 @@ libarcloader_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/
 libarcloader_la_LIBADD=$(GLIBMM_LIBS) $(top_srcdir)/src/libs/common/libarccommon.la
 
 libtestmcc_la_SOURCES=TestMCC.cpp TestMCC.h
-libtestmcc_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
-libtestmcc_la_LIBADD=../message/libmessage.la
+libtestmcc_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/src/libs/
+libtestmcc_la_LIBADD=$(GLIBMM_LIBS) $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/libs/common/libarccommon.la 
 
 libtestservice_la_SOURCES=TestService.cpp TestService.h
-libtestservice_la_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+libtestservice_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/src/libs/
 
 noinst_PROGRAMS=test
 test_SOURCES=test.cpp

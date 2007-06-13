@@ -102,6 +102,10 @@ namespace Arc {
       the attributes discussion is finished.
     */
     virtual MCC_Status process(Message& request, Message& response);
+
+  protected:
+    static Arc::Logger logger;
+
   private:
 
     //! Extracts the path part of an URL.
