@@ -198,6 +198,10 @@ int main(int argc, char* argv[]){
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
+  std::cout << "Number of threads: "
+	    << numberOfThreads << std::endl;
+  std::cout << "Duration: "
+	    << duration << " s" << std::endl;
   std::cout << "Number of requests: "
 	    << totalRequests << std::endl;
   std::cout << "Completed requests: "
