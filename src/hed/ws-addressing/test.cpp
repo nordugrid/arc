@@ -30,7 +30,7 @@ int main(void) {
 </S:Envelope>\
 ");     
 
-  Arc::SOAPMessage soap(xml);
+  Arc::SOAPEnvelop soap(xml);
   Arc::WSAHeader header(soap);
   std::cout<<"To: "<<header.To()<<std::endl;
   std::cout<<"Action: "<<header.Action()<<std::endl;

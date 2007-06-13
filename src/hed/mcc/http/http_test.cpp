@@ -32,7 +32,7 @@ void test2(void) {
   Arc::PayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
   Arc::NS ns;
   ns["google"]="urn:GoogleSearch";
-  Arc::SOAPMessage soap_req(ns);
+  Arc::SOAPEnvelop soap_req(ns);
   std::string xml;
   soap_req.GetXML(xml);
   request.Insert(xml.c_str());

@@ -3,13 +3,13 @@
 
 namespace Arc {
 
-PayloadSOAP::PayloadSOAP(const MessagePayload& source):SOAPMessage(ContentFromPayload(source)) {
+PayloadSOAP::PayloadSOAP(const MessagePayload& source):SOAPEnvelop(ContentFromPayload(source)) {
 }
 
-PayloadSOAP::PayloadSOAP(const SOAPMessage& soap):SOAPMessage(soap) {
+PayloadSOAP::PayloadSOAP(const SOAPEnvelop& soap):SOAPEnvelop(soap) {
 }
 
-PayloadSOAP::PayloadSOAP(const Arc::NS& ns,bool fault):SOAPMessage(ns,fault) {
+PayloadSOAP::PayloadSOAP(const Arc::NS& ns,bool fault):SOAPEnvelop(ns,fault) {
 }
 
 PayloadSOAP::~PayloadSOAP(void) {

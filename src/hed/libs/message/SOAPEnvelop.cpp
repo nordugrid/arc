@@ -2,22 +2,22 @@
 #include <config.h>
 #endif
 
-#include "SOAPMessage.h"
+#include "SOAPEnvelop.h"
 
 namespace Arc {
 
-SOAPMessage::SOAPMessage(const std::string& s):XMLNode(s) {
+SOAPEnvelop::SOAPEnvelop(const std::string& s):XMLNode(s) {
   set();
 }
 
-SOAPMessage::SOAPMessage(const char* s,int l):XMLNode(s,l) {
+SOAPEnvelop::SOAPEnvelop(const char* s,int l):XMLNode(s,l) {
   set();
 }
 
-SOAPMessage::~SOAPMessage(void) {
+SOAPEnvelop::~SOAPEnvelop(void) {
 }
 
-SOAPMessage::SOAPMessage(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
+SOAPEnvelop::SOAPEnvelop(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   XMLNode& it = *this;
   if(!it) return;
   envelope=NewChild(":soap-env:Envelope");
@@ -41,8 +41,8 @@ SOAPMessage::SOAPMessage(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   Namespaces(ns);
   header=envelope.NewChild("soap-env:Header");
   body=envelope.NewChild("soap-env:Body");
-  doc=it; ((SOAPMessage*)(&doc))->is_owner_=true;
-  is_owner_=false; node_=((SOAPMessage*)(&body))->node_;
+  doc=it; ((SOAPEnvelop*)(&doc))->is_owner_=true;
+  is_owner_=false; node_=((SOAPEnvelop*)(&body))->node_;
   if(f) {
     XMLNode fault_n = body.NewChild("soap-env:Fault");
     if(ver12) {
@@ -61,7 +61,7 @@ SOAPMessage::SOAPMessage(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
 }
 
 // This function is only called from constructor
-void SOAPMessage::set(void) {
+void SOAPEnvelop::set(void) {
   // TODO: check type of node = DOCUMENT
   fault=NULL;
   XMLNode& it = *this;
@@ -94,28 +94,28 @@ void SOAPMessage::set(void) {
     body=envelope.Child(0);
     header=envelope.NewChild("soap-env:Header",0,true);
   };
-  if(!MatchXMLName(((SOAPMessage*)(&body))->node_,"soap-env:Body")) {
+  if(!MatchXMLName(((SOAPEnvelop*)(&body))->node_,"soap-env:Body")) {
     // No SOAP Body found
     xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
     return;
   };
   // Store reference to XML document in doc.
-  doc=it; ((SOAPMessage*)(&doc))->is_owner_=true;
+  doc=it; ((SOAPEnvelop*)(&doc))->is_owner_=true;
   // Make this object represent SOAP Body
   is_owner_=false; 
-  this->node_=((SOAPMessage*)(&body))->node_;
+  this->node_=((SOAPEnvelop*)(&body))->node_;
   // Check if this message is fault
   fault = new SOAPFault(body);
   if(!(*fault)) { delete fault; fault=NULL; };
 }
 
-void SOAPMessage::Namespaces(const NS& namespaces) {
+void SOAPEnvelop::Namespaces(const NS& namespaces) {
   envelope.Namespaces(namespaces);
 }
 
-void SOAPMessage::GetXML(std::string& xml) const {
+void SOAPEnvelop::GetXML(std::string& xml) const {
   if(header.Size() == 0) {
-    SOAPMessage& it = *(SOAPMessage*)this;
+    SOAPEnvelop& it = *(SOAPEnvelop*)this;
     it.header.Destroy();
     doc.GetXML(xml);
     it.header=it.envelope.NewChild("soap-env:Header",0,true); 

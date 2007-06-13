@@ -1,5 +1,5 @@
 #include "../../libs/message/PayloadRaw.h"
-#include "../../libs/message/SOAPMessage.h"
+#include "../../libs/message/SOAPEnvelop.h"
 #include "../../libs/message/PayloadSOAP.h"
 #include "../../../libs/common/XMLNode.h"
 #include "../../libs/loader/Loader.h"
@@ -39,7 +39,7 @@ MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
 static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
-  SOAPMessage soap(Arc::NS(),true);
+  SOAPEnvelop soap(Arc::NS(),true);
   soap.Fault()->Code(SOAPFault::Receiver);
   std::string xml; soap.GetXML(xml);
   PayloadRaw* payload = new PayloadRaw;

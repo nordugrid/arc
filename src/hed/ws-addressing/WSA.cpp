@@ -85,7 +85,7 @@ WSAEndpointReference::operator XMLNode(void) {
 }
 
 
-WSAHeader::WSAHeader(SOAPMessage& soap) {
+WSAHeader::WSAHeader(SOAPEnvelop& soap) {
   header_=soap.Header();
   header_allocated_=false;
   // apply predefined namespace prefix
@@ -213,7 +213,7 @@ XMLNode WSAHeader::NewReferenceParameter(const std::string& name) {
   return n;
 }
 
-bool WSAHeader::Check(SOAPMessage& soap) {
+bool WSAHeader::Check(SOAPEnvelop& soap) {
   if(soap.NamespacePrefix(WSA_NAMESPACE).empty()) return false;
   WSAHeader wsa(soap);
   if(!wsa.header_["wsa:Action"]) return false;
@@ -221,7 +221,7 @@ bool WSAHeader::Check(SOAPMessage& soap) {
   return true;
 }
 
-void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
+void WSAFaultAssign(SOAPEnvelop& message,WSAFault fid) {
   // TODO: Detail
   SOAPFault& fault = *(message.Fault());
   if(&fault == NULL) return;
@@ -277,7 +277,7 @@ void WSAFaultAssign(SOAPMessage& message,WSAFault fid) {
   };
 }
 
-WSAFault WSAFaultExtract(SOAPMessage& message) {
+WSAFault WSAFaultExtract(SOAPEnvelop& message) {
   // TODO: extend XML interface to compare QNames
   WSAFault fid = WSAFaultNone;
   SOAPFault& fault = *(message.Fault());

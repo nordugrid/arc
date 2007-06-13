@@ -2,7 +2,7 @@
 #define __ARC_WSRP_H__
 
 #include <vector>
-#include "../libs/message/SOAPMessage.h"
+#include "../libs/message/SOAPEnvelop.h"
 #include "WSRFBaseFault.h"
 
 namespace Arc {
@@ -21,7 +21,7 @@ class WSRP: public WSRF {
   /** Constructor - creates object out of supplied SOAP tree.
     It does not check if 'soap' represents valid WS-ResourceProperties structure.
     Actual check for validity of structure has to be done by derived class. */
-  WSRP(SOAPMessage& soap,const std::string& action = "");
+  WSRP(SOAPEnvelop& soap,const std::string& action = "");
   ~WSRP(void) { };
 };
 
@@ -32,7 +32,7 @@ class WSRP: public WSRF {
 class WSRPFault: public WSRFBaseFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
-  WSRPFault(SOAPMessage& soap);
+  WSRPFault(SOAPEnvelop& soap);
   /** Constructor - creates new WSRP fault */
   WSRPFault(const std::string& type);
   virtual ~WSRPFault(void);
@@ -40,7 +40,7 @@ class WSRPFault: public WSRFBaseFault {
 
 class WSRPInvalidResourcePropertyQNameFault: public WSRPFault {
  public:
-   WSRPInvalidResourcePropertyQNameFault(SOAPMessage& soap):WSRPFault(soap) { };
+   WSRPInvalidResourcePropertyQNameFault(SOAPEnvelop& soap):WSRPFault(soap) { };
    WSRPInvalidResourcePropertyQNameFault(void):WSRPFault("wsrf-rp:InvalidResourcePropertyQNameFault") { };
    virtual ~WSRPInvalidResourcePropertyQNameFault(void) { };
 };
@@ -49,7 +49,7 @@ class WSRPInvalidResourcePropertyQNameFault: public WSRPFault {
 class WSRPResourcePropertyChangeFailure: public WSRPFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
-   WSRPResourcePropertyChangeFailure(SOAPMessage& soap):WSRPFault(soap) { };
+   WSRPResourcePropertyChangeFailure(SOAPEnvelop& soap):WSRPFault(soap) { };
   /** Constructor - creates new WSRP fault */
    WSRPResourcePropertyChangeFailure(const std::string& type):WSRPFault(type) { };
    virtual ~WSRPResourcePropertyChangeFailure(void) { };
@@ -59,49 +59,49 @@ class WSRPResourcePropertyChangeFailure: public WSRPFault {
 
 class WSRPUnableToPutResourcePropertyDocumentFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPUnableToPutResourcePropertyDocumentFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUnableToPutResourcePropertyDocumentFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPUnableToPutResourcePropertyDocumentFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UnableToPutResourcePropertyDocumentFault") { };
    virtual ~WSRPUnableToPutResourcePropertyDocumentFault(void) { };
 };
 
 class WSRPInvalidModificationFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPInvalidModificationFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPInvalidModificationFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPInvalidModificationFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:InvalidModificationFault") { };
    virtual ~WSRPInvalidModificationFault(void) { };
 };
 
 class WSRPUnableToModifyResourcePropertyFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPUnableToModifyResourcePropertyFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUnableToModifyResourcePropertyFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPUnableToModifyResourcePropertyFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UnableToModifyResourcePropertyFault") { };
    virtual ~WSRPUnableToModifyResourcePropertyFault(void) { };
 };
 
 class WSRPSetResourcePropertyRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPSetResourcePropertyRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPSetResourcePropertyRequestFailedFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPSetResourcePropertyRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:SetResourcePropertyRequestFailedFault") { };
    virtual ~WSRPSetResourcePropertyRequestFailedFault(void) { };
 };
 
 class WSRPInsertResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPInsertResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPInsertResourcePropertiesRequestFailedFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPInsertResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:InsertResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPInsertResourcePropertiesRequestFailedFault(void) { };
 };
 
 class WSRPUpdateResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPUpdateResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPUpdateResourcePropertiesRequestFailedFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPUpdateResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:UpdateResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPUpdateResourcePropertiesRequestFailedFault(void) { };
 };
 
 class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropertyChangeFailure {
  public:
-   WSRPDeleteResourcePropertiesRequestFailedFault(SOAPMessage& soap):WSRPResourcePropertyChangeFailure(soap) { };
+   WSRPDeleteResourcePropertiesRequestFailedFault(SOAPEnvelop& soap):WSRPResourcePropertyChangeFailure(soap) { };
    WSRPDeleteResourcePropertiesRequestFailedFault(void):WSRPResourcePropertyChangeFailure("wsrf-rp:DeleteResourcePropertiesRequestFailedFault") { };
    virtual ~WSRPDeleteResourcePropertiesRequestFailedFault(void) { };
 };
@@ -110,14 +110,14 @@ class WSRPDeleteResourcePropertiesRequestFailedFault: public WSRPResourcePropert
 // ============================================================
 class WSRPGetResourcePropertyDocumentRequest: public WSRP {
  public:
-  WSRPGetResourcePropertyDocumentRequest(SOAPMessage& soap);
+  WSRPGetResourcePropertyDocumentRequest(SOAPEnvelop& soap);
   WSRPGetResourcePropertyDocumentRequest(void);
   ~WSRPGetResourcePropertyDocumentRequest(void);
 };
 
 class WSRPGetResourcePropertyDocumentResponse: public WSRP {
  public:
-  WSRPGetResourcePropertyDocumentResponse(SOAPMessage& soap);
+  WSRPGetResourcePropertyDocumentResponse(SOAPEnvelop& soap);
   WSRPGetResourcePropertyDocumentResponse(const XMLNode& prop_doc = XMLNode());
   ~WSRPGetResourcePropertyDocumentResponse(void);
   void Document(const XMLNode& prop_doc);
@@ -127,7 +127,7 @@ class WSRPGetResourcePropertyDocumentResponse: public WSRP {
 // ============================================================
 class WSRPGetResourcePropertyRequest: public WSRP {
  public:
-  WSRPGetResourcePropertyRequest(SOAPMessage& soap);
+  WSRPGetResourcePropertyRequest(SOAPEnvelop& soap);
   WSRPGetResourcePropertyRequest(const std::string& name);
   ~WSRPGetResourcePropertyRequest(void);
   std::string Name(void);
@@ -136,7 +136,7 @@ class WSRPGetResourcePropertyRequest: public WSRP {
 
 class WSRPGetResourcePropertyResponse: public WSRP {
  public:
-  WSRPGetResourcePropertyResponse(SOAPMessage& soap);
+  WSRPGetResourcePropertyResponse(SOAPEnvelop& soap);
   WSRPGetResourcePropertyResponse(void);
   //WSRPGetResourcePropertyResponse(const std::list<XMLNode>& properties);
   ~WSRPGetResourcePropertyResponse(void);
@@ -150,7 +150,7 @@ class WSRPGetResourcePropertyResponse: public WSRP {
 // ============================================================
 class WSRPGetMultipleResourcePropertiesRequest: public WSRP {
  public:
-  WSRPGetMultipleResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPGetMultipleResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPGetMultipleResourcePropertiesRequest(void);
   WSRPGetMultipleResourcePropertiesRequest(const std::vector<std::string>& names);
   ~WSRPGetMultipleResourcePropertiesRequest(void);
@@ -160,7 +160,7 @@ class WSRPGetMultipleResourcePropertiesRequest: public WSRP {
 
 class WSRPGetMultipleResourcePropertiesResponse: public WSRP {
  public:
-  WSRPGetMultipleResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPGetMultipleResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPGetMultipleResourcePropertiesResponse(void);
   //WSRPGetMultipleResourcePropertiesResponse(const std::list<XMLNode>& properties);
   ~WSRPGetMultipleResourcePropertiesResponse(void);
@@ -173,7 +173,7 @@ class WSRPGetMultipleResourcePropertiesResponse: public WSRP {
 // ============================================================
 class WSRPPutResourcePropertyDocumentRequest: public WSRP {
  public:
-  WSRPPutResourcePropertyDocumentRequest(SOAPMessage& soap);
+  WSRPPutResourcePropertyDocumentRequest(SOAPEnvelop& soap);
   WSRPPutResourcePropertyDocumentRequest(const XMLNode& prop_doc = XMLNode());
   ~WSRPPutResourcePropertyDocumentRequest(void);
   void Document(const XMLNode& prop_doc);
@@ -182,7 +182,7 @@ class WSRPPutResourcePropertyDocumentRequest: public WSRP {
 
 class WSRPPutResourcePropertyDocumentResponse: public WSRP {
  public:
-  WSRPPutResourcePropertyDocumentResponse(SOAPMessage& soap);
+  WSRPPutResourcePropertyDocumentResponse(SOAPEnvelop& soap);
   WSRPPutResourcePropertyDocumentResponse(const XMLNode& prop_doc = XMLNode());
   ~WSRPPutResourcePropertyDocumentResponse(void);
   void Document(const XMLNode& prop_doc);
@@ -233,7 +233,7 @@ class WSRPDeleteResourceProperties: public WSRPModifyResourceProperties {
 // ============================================================
 class WSRPSetResourcePropertiesRequest: public WSRP {
  public:
-  WSRPSetResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPSetResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPSetResourcePropertiesRequest(void);
   ~WSRPSetResourcePropertiesRequest(void);
   XMLNode Properties(void);
@@ -241,7 +241,7 @@ class WSRPSetResourcePropertiesRequest: public WSRP {
 
 class WSRPSetResourcePropertiesResponse: public WSRP {
  public:
-  WSRPSetResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPSetResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPSetResourcePropertiesResponse(void);
   ~WSRPSetResourcePropertiesResponse(void);
 };
@@ -250,7 +250,7 @@ class WSRPSetResourcePropertiesResponse: public WSRP {
 // ============================================================
 class WSRPInsertResourcePropertiesRequest: public WSRP {
  public:
-  WSRPInsertResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPInsertResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPInsertResourcePropertiesRequest(void);
   ~WSRPInsertResourcePropertiesRequest(void);
   WSRPInsertResourceProperties Property(void);
@@ -258,7 +258,7 @@ class WSRPInsertResourcePropertiesRequest: public WSRP {
 
 class WSRPInsertResourcePropertiesResponse: public WSRP {
  public:
-  WSRPInsertResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPInsertResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPInsertResourcePropertiesResponse(void);
   ~WSRPInsertResourcePropertiesResponse(void);
 };
@@ -266,7 +266,7 @@ class WSRPInsertResourcePropertiesResponse: public WSRP {
 // ============================================================
 class WSRPUpdateResourcePropertiesRequest: public WSRP {
  public:
-  WSRPUpdateResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPUpdateResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPUpdateResourcePropertiesRequest(void);
   ~WSRPUpdateResourcePropertiesRequest(void);
   WSRPUpdateResourceProperties Property(void);
@@ -274,7 +274,7 @@ class WSRPUpdateResourcePropertiesRequest: public WSRP {
 
 class WSRPUpdateResourcePropertiesResponse: public WSRP {
  public:
-  WSRPUpdateResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPUpdateResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPUpdateResourcePropertiesResponse(void);
   ~WSRPUpdateResourcePropertiesResponse(void);
 };
@@ -282,7 +282,7 @@ class WSRPUpdateResourcePropertiesResponse: public WSRP {
 // ============================================================
 class WSRPDeleteResourcePropertiesRequest: public WSRP {
  public:
-  WSRPDeleteResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPDeleteResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPDeleteResourcePropertiesRequest(const std::string& name);
   WSRPDeleteResourcePropertiesRequest(void);
   ~WSRPDeleteResourcePropertiesRequest(void);
@@ -292,7 +292,7 @@ class WSRPDeleteResourcePropertiesRequest: public WSRP {
 
 class WSRPDeleteResourcePropertiesResponse: public WSRP {
  public:
-  WSRPDeleteResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPDeleteResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPDeleteResourcePropertiesResponse(void);
   ~WSRPDeleteResourcePropertiesResponse(void);
 };
@@ -300,7 +300,7 @@ class WSRPDeleteResourcePropertiesResponse: public WSRP {
 // ============================================================
 class WSRPQueryResourcePropertiesRequest: public WSRP {
  public:
-  WSRPQueryResourcePropertiesRequest(SOAPMessage& soap);
+  WSRPQueryResourcePropertiesRequest(SOAPEnvelop& soap);
   WSRPQueryResourcePropertiesRequest(const std::string& dialect);
   WSRPQueryResourcePropertiesRequest(void);
   ~WSRPQueryResourcePropertiesRequest(void);
@@ -311,7 +311,7 @@ class WSRPQueryResourcePropertiesRequest: public WSRP {
 
 class WSRPQueryResourcePropertiesResponse: public WSRP {
  public:
-  WSRPQueryResourcePropertiesResponse(SOAPMessage& soap);
+  WSRPQueryResourcePropertiesResponse(SOAPEnvelop& soap);
   WSRPQueryResourcePropertiesResponse(void);
   ~WSRPQueryResourcePropertiesResponse(void);
   XMLNode Properties(void);
@@ -325,7 +325,7 @@ class WSRPQueryResourcePropertiesResponse: public WSRP {
 
 // ============================================================
 
-WSRF& CreateWSRP(SOAPMessage& soap);
+WSRF& CreateWSRP(SOAPEnvelop& soap);
 
 
 } // namespace Arc

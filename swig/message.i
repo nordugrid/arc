@@ -7,7 +7,7 @@
 /* #include "../src/hed/libs/message/MessageAuth.h" */
 #include "../src/hed/libs/message/Message.h"
 #include "../src/hed/libs/message/PayloadRaw.h"
-#include "../src/hed/libs/message/SOAPMessage.h"
+#include "../src/hed/libs/message/SOAPEnvelop.h"
 #include "../src/hed/libs/message/PayloadSOAP.h"
 #include "../src/hed/libs/message/PayloadStream.h"
 #include "../src/hed/libs/message/Service.h"
@@ -15,7 +15,7 @@
 /* %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) PayloadSOAP; */
 
 %ignore Arc::PayloadStream::Put(char const *);
-%ignore Arc::SOAPMessage(char const *);
+%ignore Arc::SOAPEnvelop(char const *);
 %ignore Arc::PayloadRawInterface;
 %ignore Arc::PayloadStreamInterface;
 %ignore Arc::ContentFromPayload;
@@ -64,7 +64,7 @@
 /* %include "../src/hed/libs/message/MessageAuth.h" */
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
-%include "../src/hed/libs/message/SOAPMessage.h"
+%include "../src/hed/libs/message/SOAPEnvelop.h"
 %include "../src/hed/libs/message/PayloadSOAP.h"
 %include "../src/hed/libs/message/PayloadStream.h"
 %include "../src/hed/libs/message/Service.h"

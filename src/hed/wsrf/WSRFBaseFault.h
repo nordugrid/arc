@@ -11,7 +11,7 @@ class WSRFBaseFault: public WSRF {
   void set_namespaces(void);
  public:
   /** Constructor - creates object out of supplied SOAP tree. */
-  WSRFBaseFault(SOAPMessage& soap);
+  WSRFBaseFault(SOAPEnvelop& soap);
   /** Constructor - creates new WSRF fault */
   WSRFBaseFault(const std::string& type);
   virtual ~WSRFBaseFault(void);
@@ -38,19 +38,19 @@ class WSRFBaseFault: public WSRF {
 
 class WSRFResourceUnknownFault: public WSRFBaseFault {
  public:
-  WSRFResourceUnknownFault(SOAPMessage& soap):WSRFBaseFault(soap) { };
+  WSRFResourceUnknownFault(SOAPEnvelop& soap):WSRFBaseFault(soap) { };
   WSRFResourceUnknownFault(void):WSRFBaseFault("wsrf-r:ResourceUnknownFault") { }
   virtual ~WSRFResourceUnknownFault(void) { };
 };
 
 class WSRFResourceUnavailableFault: public WSRFBaseFault {
  public:
-  WSRFResourceUnavailableFault(SOAPMessage& soap):WSRFBaseFault(soap) { };
+  WSRFResourceUnavailableFault(SOAPEnvelop& soap):WSRFBaseFault(soap) { };
   WSRFResourceUnavailableFault(void):WSRFBaseFault("wsrf-r:ResourceUnavailableFault") { }
   virtual ~WSRFResourceUnavailableFault(void) { };
 };
 
-WSRF& CreateWSRFBaseFault(SOAPMessage& soap);
+WSRF& CreateWSRFBaseFault(SOAPEnvelop& soap);
 
 } // namespace Arc 
 
