@@ -82,12 +82,12 @@ namespace Arc {
   
   MCC_Status Plexer::process(Message& request, Message& response){
     std::string ep = request.Attributes()->get("ENDPOINT");
-    std::cout << "Plexer: ep: " << ep << std::endl;
+    //std::cout << "Plexer: ep: " << ep << std::endl;
     std::string path = getPath(ep);
-    std::cout << "Plexer: get: " << path << std::endl;
+    //std::cout << "Plexer: get: " << path << std::endl;
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
-      std::cout << "Plexer: label: " << iter->label.getPattern() << std::endl;
+      //std::cout << "Plexer: label: " << iter->label.getPattern() << std::endl;
       if (iter->label.match(path)) {
 	    return iter->service->process(request, response);
       }
