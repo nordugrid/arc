@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/storage-manager"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:sm="http://www.nordugrid.org/schemas/storage-manager">
+
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/storage-manager">
+
+      <!-- Either collection or file -->
+      <xsd:simpleType name="ItemType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="Collection"/>
+          <xsd:enumeration value="File"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <!-- type of patern for name matching -->
+      <xsd:simpleType name="PatternTypeType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="regex"/>
+          <xsd:enumeration value="file"/>
+          <xsd:enumeration value="xpath"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <!-- pattern for name matching -->
+      <xsd:simpleType name="PatternType">
+        <xsd:restriction base="xsd:string"/>
+        <!-- xsd:attribute name="type" type="PatternTypeType" use="required" -->
+      </xsd:simpleType>
+      <xsd:element name="Type" type="ItemType"/>
+
+      <!-- common purpose metadata -->
+      <xsd:complexType name="MetaDataType">
+        <xsd:sequence>
+          <xsd:element name="Key"        type="xsd:string"/>
+          <xsd:element name="Value"      type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- type of fault  -->
+      <xsd:simpleType name="FaultTypeType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="Undefined"/>
+          <xsd:enumeration value="SizeLimitReached"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <!-- description of fault -->
+      <xsd:complexType name="FaultType">
+        <xsd:sequence>
+          <xsd:element name="Name"        type="xsd:string"/>
+          <xsd:element name="Type"        type="sm:FaultTypeType"/>
+          <xsd:element name="Description" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- description of fault -->
+      <xsd:complexType name="LocationType">
+        <xsd:sequence>
+          <xsd:element name="Endpoint"    type="xsd:string"/>
+          <xsd:element name="Ticket"      type="sm:FaultTypeType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- desription of file element. Depending on request diffrent elements are mandatory -->
+      <xsd:complexType name="FileDescriptionType">
+        <xsd:sequence>
+          <xsd:element name="Name"     type="xsd:string"/>
+          <xsd:element name="GUID"     type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Size"     type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Checksum" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Created"  type="xsd:dateTime" minOccurs="0"/>
+          <xsd:element name="Owner"    type="xsd:string" minOccurs="0"/>
+          <xsd:element name="ACL"      type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Replicas" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="NeededReplicas" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="PreferedLocation" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Location" type="sm:LocationType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Metadata" type="sm:MetaDataType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="CollectionDescriptionType">
+        <xsd:sequence>
+          <xsd:element name="Name"     type="xsd:string"/>
+          <xsd:element name="GUID"     type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Created"  type="xsd:dateTime" minOccurs="0"/>
+          <xsd:element name="Owner"    type="xsd:string" minOccurs="0"/>
+          <xsd:element name="ACL"      type="xsd:string" minOccurs="0"/>
+          <xsd:element name="Replicas" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="NeededReplicas" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="Metadata" type="sm:MetaDataType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="ItemReferenceType">
+        <xsd:sequence>
+          <xsd:element name="Name"     type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+
+      <!--
+        PUT logical name, metadata
+
+          works on files only
+          logical name is the proposed name of the file
+          metadata:
+            size
+            CRC
+            timestamp of creation
+            replication factor
+            owner
+            access control list
+            list of preferred storage elements
+
+          the size is in bytes, manditory
+          if timestamp is not given, the actual time will be used
+          replication factor is the required number of replicas
+          if list of preferred storage elements is not given, all storage elements accessible by the VO 
+          of the user will be considered
+
+          the Storage Manager has to know which storage elements the user's VO can use but I don't know 
+          from where it could get this information.
+
+          the Storage Manager first creates an entry in the Catalog if the logical name is available
+          then the data scheduler modul in the Storage Manager chooses a Storage Element,
+          and try to initiate file transfer on behalf of the user
+          the Storage Element gives back an SURL, which can be later used to access this file
+          and a TURL which refers to the initiated file transfer
+          then it creates an assertion which allows the user to use the initiated file transfer
+          then returns the assertion, and the URL of this initiated file transfer (TURL)
+
+          after this method there is an entry of this LN in the catalog with one replica (SURL),
+          which points to a not-yet-existent replica
+
+          Questions:
+            How prefered SE are named?
+            How to make sure file is transferred? size is not a perfect way. Should it be mandatory?
+            How to deal with SE full during transfer?
+            How about file state?
+      -->
+      <xsd:complexType name="PutRequestType">
+        <xsd:sequence>
+          <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Put" type="sm:PutRequestType"/>
+
+      <xsd:complexType name="PutResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="PutResponse" type="sm:PutResponseType"/>
+
+
+      <!--
+        GET logical name [, list of preferred storage elements]
+
+        works on files only
+        the Storage Manager gets the metadata of the file from the Catalog,
+        which consists of the SURLs of the replicas
+        the Storage Manager chooses one of these SURLs according to the list of preferred
+        storage elements, then initiates file transfer at the Storage Element (gets the TURL),
+        creates assertion, and returns them
+      -->
+      <xsd:complexType name="GetRequestType">
+        <xsd:sequence>
+          <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Get" type="sm:GetRequestType"/>
+
+      <xsd:complexType name="GetResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GetResponse" type="sm:GetResponseType"/>
+
+      <!--
+        DEL logical name
+
+        works on files only
+        the Storage Manager gets the metadata of the file from the Catalog,
+        and for each SURL initiates removal of the replica at its Storage Element,
+        then removes the Catalog entry.
+
+        This command is probably asynchronous. Because delete is multi-stage opeartion.
+      -->
+      <xsd:complexType name="DelRequestType">
+        <xsd:sequence>
+          <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Del" type="sm:DelRequestType"/>
+
+      <xsd:complexType name="DelResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="DelResponse" type="sm:DelResponseType"/>
+
+     <!--
+        STAT logical name
+
+        gets all the metadata of the file or collection from the Catalog, and returns it
+
+        No locations are returned
+      -->
+      <xsd:complexType name="StatRequestType">
+        <xsd:sequence>
+          <xsd:element name="Item" type="sm:ItemReferenceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Stat" type="sm:StatRequestType"/>
+
+      <xsd:complexType name="StatResponseType">
+        <xsd:sequence>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="StatResponse" type="sm:StatResponseType"/>
+
+     <!--
+        MOD logical name, modification of metadata
+
+        modify metadata of file or collection in the Catalog
+     -->
+      <xsd:complexType name="ModifyRequestType">
+        <xsd:sequence>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Modify" type="sm:ModifyRequestType"/>
+
+      <xsd:complexType name="ModifyResponseType">
+        <xsd:sequence>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="ModifyResponse" type="sm:ModifyResponseType"/>
+
+       <!-- 
+       MKCOL logical name, metadata
+
+        works on collections only
+        metadata:
+            timestamp of creation
+            owner
+            access control list
+            closed
+        creates an empty collection
+        creates an entry of this collection ni the Catalog if this LN is available
+        after this collection is created, you can put files in it, or move files to it,
+        then you can close it with MOD
+      -->
+      <xsd:complexType name="MakeRequestType">
+        <xsd:sequence>
+          <xsd:element name="Collection" type="sm:CollectionDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Make" type="sm:MakeRequestType"/>
+
+      <xsd:complexType name="MakeResponseType">
+        <xsd:sequence>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="MakeResponse" type="sm:MakeResponseType"/>
+
+      <!--
+        LSCOL logical name
+
+        works on collections only
+        lists the contents of the collection: the names of the files and sub-collections in it
+
+        Operation is not recursive.
+        Returned information contains minimal metadata.
+      -->
+      <xsd:complexType name="ListRequestType">
+        <xsd:sequence>
+          <xsd:element name="Collection" type="sm:ItemReferenceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="List" type="sm:ListRequestType"/>
+
+      <xsd:complexType name="ListResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="ListResponse" type="sm:ListResponseType"/>
+
+      <!--
+        MV old logical name, new logical name
+
+        if the new logical name is available then create the entry in the parent collection
+        of the new logical name similar to the entry at the old logical name,
+        then remove the entry of the parent collection of the old logical name
+        this is a rename (nothing happens with replicas)
+
+        Retturns minimal description with new name or fault with old name.
+      -->
+      <xsd:complexType name="PairType"> 
+        <xsd:sequence>
+          <xsd:element name="Source" type="sm:ItemReferenceType"/>
+          <xsd:element name="Destination" type="sm:ItemReferenceType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="NewPairType"> 
+        <xsd:sequence>
+          <xsd:element name="Source" type="sm:ItemReferenceType"/>
+          <xsd:element name="DestinationFile" type="sm:FileDescriptionType"/>
+          <xsd:element name="DestinationCollection" type="sm:CollectionDescriptionType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="MoveRequestType">
+        <xsd:sequence>
+          <xsd:element name="Pair" type="sm:PairType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Move" type="sm:MoveRequestType"/>
+
+      <xsd:complexType name="MoveResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="MoveResponse" type="sm:MoveResponseType"/>
+
+      <!--
+        LN target logical name, link logical name
+
+        same as MV, only it does not remove the entry of the parent collection
+            of the target logical name
+      -->
+      <xsd:complexType name="LinkRequestType">
+        <xsd:sequence>
+          <xsd:element name="Pair" type="sm:PairType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Link" type="sm:LinkRequestType"/>
+
+      <xsd:complexType name="LinkResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="LinkResponse" type="sm:LinkResponseType"/>
+
+
+      <!--
+        CP source logical name, target logical name
+
+        works on files only ???
+        it is actually a PUT to the new logical name done by the Storage Manager itself
+        using a replica of the source logical name, or done by the a Storage Element
+        if it is capable
+      -->
+      <xsd:complexType name="CopyRequestType">
+        <xsd:sequence>
+          <xsd:element name="Pair" type="sm:NewPairType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Copy" type="sm:CopyRequestType"/>
+
+      <xsd:complexType name="CopyResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="CopyResponse" type="sm:CopyResponseType"/>
+
+      <!--
+        GLOB pattern
+        using the Catalog, returns all the logical names matching the given pattern
+      -->
+      <xsd:complexType name="GlobRequestType">
+        <xsd:sequence>
+          <xsd:element name="Pattern" type="sm:PatternType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Glob" type="sm:GlobRequestType"/>
+
+      <xsd:complexType name="GlobResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection" type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GlobResponse" type="sm:GlobResponseType"/>
+
+    </xsd:schema>
+  </wsdl:types>
+
+  <!-- Messages -->
+  <wsdl:message name="PutRequest">
+    <wsdl:part name="parameters" element="sm:Put"/>
+  </wsdl:message>
+
+  <wsdl:message name="PutResponse">
+    <wsdl:part name="parameters" element="sm:PutResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="GetRequest">
+    <wsdl:part name="parameters" element="sm:Get"/>
+  </wsdl:message>
+
+  <wsdl:message name="GetResponse">
+    <wsdl:part name="parameters" element="sm:GetResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="DelRequest">
+    <wsdl:part name="parameters" element="sm:Del"/>
+  </wsdl:message>
+
+  <wsdl:message name="DelResponse">
+    <wsdl:part name="parameters" element="sm:DelResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="StatRequest">
+    <wsdl:part name="parameters" element="sm:Stat"/>
+  </wsdl:message>
+
+  <wsdl:message name="StatResponse">
+    <wsdl:part name="parameters" element="sm:StatResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="ModifyRequest">
+    <wsdl:part name="parameters" element="sm:Modify"/>
+  </wsdl:message>
+
+  <wsdl:message name="ModifyResponse">
+    <wsdl:part name="parameters" element="sm:ModifyResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="MakeRequest">
+    <wsdl:part name="parameters" element="sm:Make"/>
+  </wsdl:message>
+
+  <wsdl:message name="MakeResponse">
+    <wsdl:part name="parameters" element="sm:MakeResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="ListRequest">
+    <wsdl:part name="parameters" element="sm:List"/>
+  </wsdl:message>
+
+  <wsdl:message name="ListResponse">
+    <wsdl:part name="parameters" element="sm:ListResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="MoveRequest">
+    <wsdl:part name="parameters" element="sm:Move"/>
+  </wsdl:message>
+
+  <wsdl:message name="MoveResponse">
+    <wsdl:part name="parameters" element="sm:MoveResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="LinkRequest">
+    <wsdl:part name="parameters" element="sm:Link"/>
+  </wsdl:message>
+
+  <wsdl:message name="LinkResponse">
+    <wsdl:part name="parameters" element="sm:LinkResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="CopyRequest">
+    <wsdl:part name="parameters" element="sm:Copy"/>
+  </wsdl:message>
+
+  <wsdl:message name="CopyResponse">
+    <wsdl:part name="parameters" element="sm:CopyResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="GlobRequest">
+    <wsdl:part name="parameters" element="sm:Glob"/>
+  </wsdl:message>
+
+  <wsdl:message name="GlobResponse">
+    <wsdl:part name="parameters" element="sm:GlobResponse"/>
+  </wsdl:message>
+
+  <!-- Port Type -->
+  <wsdl:portType name="StorageManagerPortType">
+
+    <wsdl:operation name="Put">
+      <wsdl:input  name="PutRequest" message="sm:PutRequest"/>
+      <wsdl:output name="PutResponse" message="sm:PutResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Get">
+      <wsdl:input  name="GetRequest" message="sm:GetRequest"/>
+      <wsdl:output name="GetResponse" message="sm:GetResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Del">
+      <wsdl:input  name="DelRequest" message="sm:DelRequest"/>
+      <wsdl:output name="DelResponse" message="sm:DelResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Stat">
+      <wsdl:input  name="StatRequest" message="sm:StatRequest"/>
+      <wsdl:output name="StatResponse" message="sm:StatResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Modify">
+      <wsdl:input  name="ModifyRequest" message="sm:ModifyRequest"/>
+      <wsdl:output name="ModifyResponse" message="sm:ModifyResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Make">
+      <wsdl:input  name="MakeRequest" message="sm:ModifyRequest"/>
+      <wsdl:output name="MakeResponse" message="sm:ModifyResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="List">
+      <wsdl:input  name="ListRequest" message="sm:ListRequest"/>
+      <wsdl:output name="ListResponse" message="sm:ListResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Move">
+      <wsdl:input  name="MoveRequest" message="sm:MoveRequest"/>
+      <wsdl:output name="MoveResponse" message="sm:MoveResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Link">
+      <wsdl:input  name="LinkRequest" message="sm:LinkRequest"/>
+      <wsdl:output name="LinkResponse" message="sm:LinkResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Copy">
+      <wsdl:input  name="CopyRequest" message="sm:CopyRequest"/>
+      <wsdl:output name="CopyResponse" message="sm:CopyResponse"/>
+    </wsdl:operation>
+
+    <wsdl:operation name="Glob">
+      <wsdl:input  name="GlobRequest" message="sm:GlobRequest"/>
+      <wsdl:output name="GlobResponse" message="sm:GlobResponse"/>
+    </wsdl:operation>
+
+  </wsdl:portType>
+
+  <!-- Bindings -->
+  <wsdl:binding name="StorageManagerBinding" type="sm:StorageManagerPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+
+    <wsdl:operation name="Put">
+      <soap:operation/>
+      <wsdl:input name="PutRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="PutResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Get">
+      <soap:operation/>
+      <wsdl:input name="GetRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="GetResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Del">
+      <soap:operation/>
+      <wsdl:input name="DelRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="DelResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Stat">
+      <soap:operation/>
+      <wsdl:input name="StatRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="StatResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Modify">
+      <soap:operation/>
+      <wsdl:input name="ModifyRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="ModifyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Make">
+      <soap:operation/>
+      <wsdl:input name="MakeRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="MakeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="List">
+      <soap:operation/>
+      <wsdl:input name="ListRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="ListResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Move">
+      <soap:operation/>
+      <wsdl:input name="MoveRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="MoveResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Link">
+      <soap:operation/>
+      <wsdl:input name="LinkRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="LinkResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Copy">
+      <soap:operation/>
+      <wsdl:input name="CopyRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="CopyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="Glob">
+      <soap:operation/>
+      <wsdl:input name="GlobRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="GlobResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+
+  </wsdl:binding>
+</wsdl:definitions>

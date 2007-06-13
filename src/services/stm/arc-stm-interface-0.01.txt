@@ -1,0 +1,225 @@
+Data Catalogue
+
+The data catalogue should be distributed, but in a client point of view
+it should be one consistent system (in this case a Storage Manager is a client too),
+so if there are multiple data catalogue services, it does not matter which one
+the client choose, because they all provide the same information. So we will refer to this
+whole data catalogue system as 'the catalog', which in first prototypes can be implemented as
+a centralized service, then later could we distribute it (somehow...)
+
+The catalog stores entries of two different type: collections and files.
+Every entry has a globally unique id called 'guid', so every collections and files has a guid.
+In a collection there are files and other collections.
+Each collection-entry has a name, which is unique inside the collection.
+So a collection is a list of name-guid pairs, and some metadata.
+A file entry in the catalog is some metadata and a list of URIs,
+which are the addresses of the file's replicas.
+
+
+Logical Name (LN)
+
+Each file and collection has a guid which is globally unique, so they can be referred
+using this guid. 
+In a collection each entry has a name, and this entry can be a sub-collection, in which
+there are files and sub-sub-collections, etc.
+If we have a collection with guid '1234', and in it
+there is a collection called 'abc', and in 'abc' there is an other collection called 'def',
+and in 'def' there is the file called 'ghi',
+then we can refer to this file as '/abc/def/ghi', but we have to know where to start,
+so let's prefix it with the guid of the starting collection: '1234/abc/def/ghi'.
+I think this is a Logical Name (LN).
+If there is a well-known system-wide root collection (its guid could be e.g. '0'),
+then if a LN starts with no guid prefix, then it is implicitly prefixed with the guid of
+this well-known root collection, e.g. '/what/ever' means '0/what/ever'.
+
+The syntax of a Logical Name (LN): [<guid>]/[<path>]
+The <guid> has a default of e.g. '0', the guid of the well-known root collection.
+
+
+Handling of LNs
+
+So if a client wants to find the file called '/what/ever', the client knows where to start
+the search, it knows the guid of the well-known root collection.
+This root collection knows the guid of 'what',
+and the (sub-)collection 'what' knows the guid of 'ever'.
+
+If the guid of this file is '5678', and somebody makes an other entry in collection '/what'
+(= '0/what') with name 'else' and guid '5678',
+then the '/what/else' LN points to the same file as '/what/ever', so it's a hard link.
+
+I think every VO should create a VO-wide root collection, and put it in the well-known
+root collection, e.g. if a VO called 'vo1' creates a collection called 'vo1' as a sub-collection of
+the root collection (which has the guid '0'), then it can be refered as '0/vo1' or just '/vo1'.
+Then this VO can create some files, and put them in this '/vo1' collection, e.g. '/vo1/file1', etc.
+Or sub-collections, e.g. '/vo1/col1', '/vo1/col2/file3', etc.
+For this the VO does not need the install any service. These files and collection can be created
+using the storage management layer (using one of the Storage Managers).
+
+
+Storage Managers
+
+Clients can access the storage system only through a Storage Manager.
+If a client wants to create a collection, upload or download a file, the first step is to
+connect a Storage Manager. The Storage Manager then resolves Logical Names and gets metadata
+using the catalog, initiates file transfers on some storage elements, and gives some assertions
+(some kind of certificate) to the client, which allows the client to actually do the
+file transfer from/to a storage element. So the data transfer itself does not go through
+the Storage Manager, it is direct between a storage element and the client.
+On upload the Storage Manager is capable of choosing appropiate Storage Elements using pluggable
+scheduling algorithms.
+
+
+ARC Storage Elements
+
+The hierarchy of files on an ARC Storage Element has nothing to do
+with the the hierarchy of collections, or Logical Names.
+The interface of an ARC Storage Element works with SURLs and TURLs.
+The SURL is a system-wide unique ID of a file on a Storage Element.
+If you have a SURL and an assertion which authorize you, you can turn to
+the Storage Element specified by the SURL itself, and the Storage Element will
+recognize the SURL as a file it actually stores. Then the Storage Element provides
+a way to download that file (it generates a Transfer URL, TURL, which can be an http(s)
+or gridftp, etc.)
+If you want to upload a new file to the storage system, then you turn to a Storage Manager,
+which chooses a Storage Element, and initiate the transfer. Then a new SURL is created, and
+the Storage Manager will provide a way to upload the file, which later can be referred using
+this new SURL. So it does not matter which collection this file is part of, and it does
+not matter how the Storage Element internally organize the files. The file has an SURL,
+and using that, it can be downloaded.
+The SURL is somehow refer to the Storage Element itself, and the file on the Storage Element,
+e.g. https://storage.element.eu:12345/SE?ocrh6kb43d8j
+
+
+ARC Storage Manager interface
+
+    (maybe all of these methods should work in batch mode,
+        where the client can specify more than one logical name)
+
+
+    PUT logical name, metadata
+
+        works on files only
+        logical name is the proposed name of the file
+        metadata:
+            size
+            CRC
+            timestamp of creation
+            replication factor
+            owner
+            access control list
+            list of preferred storage elements
+
+        the size is in bytes, manditory
+        if timestamp is not given, the actual time will be used
+        replication factor is the required number of replicas
+        if list of preferred storage elements is not given,
+            all storage elements accessible by the VO of the user will be considered
+
+        the Storage Manager has to know which storage elements the user's VO can use
+            but I don't know from where it could get this information
+            
+        the Storage Manager first creates an entry in the Catalog if the logical name is available
+        then the data scheduler modul in the Storage Manager chooses a Storage Element,
+        and try to initiate file transfer on behalf of the user
+        the Storage Element gives back an SURL, which can be later used to access this file
+        and a TURL which refers to the initiated file transfer
+        then it creates an assertion which allows the user to use the initiated file transfer
+        then returns the assertion, and the URL of this initiated file transfer (TURL)
+
+        after this method there is an entry of this LN in the catalog with one replica (SURL),
+            which points to a not-yet-existent replica
+
+
+    GET logical name [, list of preferred storage elements]
+
+        works on files only
+        the Storage Manager gets the metadata of the file from the Catalog,
+        which consists of the SURLs of the replicas
+        the Storage Manager chooses one of these SURLs according to the list of preferred
+        storage elements, then initiates file transfer at the Storage Element (gets the TURL),
+        creates assertion, and returns them
+
+
+    DEL logical name
+
+        works on files only
+        the Storage Manager gets the metadata of the file from the Catalog,
+        and for each SURL initiates removal of the replica at its Storage Element,
+        then removes the Catalog entry.
+
+
+    STAT logical name
+
+        gets all the metadata of the file or collection from the Catalog, and returns it
+
+
+    MOD logical name, modification of metadata
+
+        modify metadata of file or collection in the Catalog
+
+    
+    MKCOL logical name, metadata
+
+        works on collections only
+        metadata:
+            timestamp of creation
+            owner
+            access control list
+            closed
+            
+        creates an empty collection
+        creates an entry of this collection ni the Catalog if this LN is available
+        after this collection is created, you can put files in it, or move files to it,
+        then you can close it with MOD
+
+
+    LSCOL logical name
+
+        works on collections only
+        lists the contents of the collection: the names of the files and sub-collections in it
+    
+    
+    MV old logical name, new logical name
+
+        if the new logical name is available then create the entry in the parent collection
+        of the new logical name similar to the entry at the old logical name,
+        then remove the entry of the parent collection of the old logical name
+        this is a rename (nothing happens with replicas)
+
+
+    LN target logical name, link logical name
+    
+        same as MV, only it does not remove the entry of the parent collection
+            of the target logical name
+
+
+    CP source logical name, target logical name
+
+        works on files only
+        it is actually a PUT to the new logical name done by the Storage Manager itself
+        using a replica of the source logical name, or done by the a Storage Element
+        if it is capable
+    
+
+    REPL logical name
+
+        works on files only
+        check the replica factor of the file, and if there are less replicas, choose one of
+        the current replicas, choose one or more Storage Elements
+        (according to the list of preferred storage elements in the metadata of the file),
+        initiate file transfer at both Storage Elements, and copy the replica
+        (if the Storage Elements are capable of direct copy, ask them to do it,
+        if not, do it some other way...)
+
+
+    GLOB pattern
+        
+        using the Catalog, returns all the logical names matching the given pattern
+
+
+There is a strong need of a Consistency Service or just a consistency modul of the Storage Manager.
+These Consistency Services or moduls form a distributed net, dividing the namespace of
+the logical names, and constantly checking all replicas of all the files, and if there is trouble,
+e.g. some file has fewer replica than its replica factor, it calls the REPL method of the
+Storage Manager to create more replicas.
+
