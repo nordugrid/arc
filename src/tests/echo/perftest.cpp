@@ -187,12 +187,15 @@ int main(int argc, char* argv[]){
   // Sleep while the threads are working.
   Glib::usleep(duration*1000000);
 
-  // Stop the threads.
   run=false;
+  sleep(5);
+/*
+  // Stop the threads.
   for (i=0; i<numberOfThreads; i++)
     threads[i]->join();
   delete[] threads;
   delete mutex;
+*/
 
   // Print the result of the test.
   totalRequests = completedRequests+failedRequests;
