@@ -12,8 +12,9 @@ static int connect_socket(const char* hostname,int port) {
   int    errcode;
 #ifndef _AIX
   char   buf[BUFSIZ];
-  if(gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
-                                        &host,&errcode) != 0) {
+  if((gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
+                                        &host,&errcode) != 0) ||
+     (errcode != 0) || (host == NULL)) {
 #else
   struct hostent_data buf[BUFSIZ];
   if((errcode=gethostbyname_r(hostname,
