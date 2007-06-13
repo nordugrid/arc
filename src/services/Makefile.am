@@ -1,3 +1,4 @@
+JAVA_SERVICE=
 if JAVA_ENABLED 
 JAVA_SERVICES = echo_java 
 endif
