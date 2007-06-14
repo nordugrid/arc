@@ -242,6 +242,7 @@ void MCC_TCP_Service::executer(void* arg) {
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
+        logger.msg(Arc::DEBUG, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
         if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
         if(!ret) break;
@@ -297,7 +298,8 @@ MCC_TCP_Client::~MCC_TCP_Client(void) {
 MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
-
+    
+    logger.msg(Arc::DEBUG, "client process called");
     if(!s_) return MCC_Status(Arc::GENERIC_ERROR);
     // Extracting payload
     if(!inmsg.Payload()) return MCC_Status(Arc::GENERIC_ERROR);
