@@ -15,6 +15,7 @@ class Service_JavaWrapper: public Arc::Service {
         JavaVMOption options[1];
 
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
+        Arc::MCC_Status java_error(const char *str);
     public:
         Service_JavaWrapper(Arc::Config *cfg);
         virtual ~Service_JavaWrapper(void);

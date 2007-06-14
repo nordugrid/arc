@@ -1,7 +1,7 @@
 import org.nordugrid.arc.*;
 
 public class EchoService {
-    private NS ns_;
+    // private NS ns_;
     static {
             // load libjarc.so
             System.loadLibrary("jarc");
@@ -9,23 +9,28 @@ public class EchoService {
 
     public EchoService() {
         System.out.println("EchoService constructor called");
-        NS ns_ = new NS();
-        ns_.set("echo", "urn:echo");
+        // NS ns_ = new NS();
+        // ns_.set("echo", "urn:echo");
     }
 
+/*
     public int process() {
         System.out.println("EchoService process called");
         return 10;
     }
-
+*/
     public MCC_Status process(SOAPMessage inmsg, SOAPMessage outmsg) {
         System.out.println("EchoService process with messages called");
         // XXX: error handling
-        XMLNode echo_op = new XMLNode(inmsg.Get("echo"));
+        XMLNode echo_op = new XMLNode(inmsg.Payload().Get("echo"));
         String say = new String(echo_op.Get("say").toString());
-        String hear = new String(say);
-        outmsg = new SOAPMessage(this.ns_);
-        outmsg.NewChild("echo:echoResponse").NewChild("echo:hear").Set(hear);
+        System.out.println("Java got: " + say);
+        String hear = new String("[ " + say + " ]");
+        NS ns_ = new NS();
+        ns_.set("echo", "urn:echo");
+        PayloadSOAP outpayload = new PayloadSOAP(ns_);
+        outpayload.NewChild("echo:echoResponse").NewChild("echo:hear").Set(hear);
+        outmsg.Payload(outpayload);
         return new MCC_Status(StatusKind.STATUS_OK);
     }
 }
