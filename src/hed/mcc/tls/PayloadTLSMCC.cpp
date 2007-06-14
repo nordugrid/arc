@@ -1,11 +1,10 @@
-#include <iostream>
-
 #include "PayloadTLSMCC.h"
 
 namespace Arc {
 
-PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, SSL_CTX *ctx): sslctx_(ctx) { 
-std::cerr<<"PayloadTLSMCC - constructor"<<std::endl;
+PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, SSL_CTX *ctx, Logger& logger):
+  sslctx_(ctx), logger(logger)
+{ 
    master_=true;
    ssl_ = SSL_new(ctx);
    if (ssl_ == NULL){
@@ -26,21 +25,21 @@ std::cerr<<"PayloadTLSMCC - constructor"<<std::endl;
    // }
 }
 
-PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):PayloadTLSStream(stream) {
-std::cerr<<"PayloadTLSMCC - copy constructor"<<std::endl;
+PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger):
+  PayloadTLSStream(stream), logger(logger)
+{
    master_=false;
    sslctx_=stream.sslctx_; 
 }
 
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
-std::cerr<<"PayloadTLSMCC - destructor: "<<master_<<std::endl;
    if(!master_) return;
    unsigned long err = 0;
    int counter=0;
    if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
-        std::cerr << "Warning: Failed to shut down SSL" << std::endl;
+	logger.msg(WARNING, "Failed to shut down SSL.");
       };
 /*
     while((err==0)&&(counter<60)){
@@ -50,7 +49,7 @@ std::cerr<<"PayloadTLSMCC - destructor: "<<master_<<std::endl;
 		counter++;}
     }
     if(err<0)
-      std::cerr << "Error: Failed to shut down SSL" << std::endl;
+      logger.msg(ERROR, "Failed to shut down SSL.");
   }
   if(ssl_){
 */

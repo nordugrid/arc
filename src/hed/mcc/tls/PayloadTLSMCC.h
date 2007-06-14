@@ -8,6 +8,7 @@
 #include "../../libs/message/PayloadStream.h"
 #include "../../libs/message/MCC.h"
 #include "BIOMCC.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 // This class extends PayloadTLSStream with initialization procedure to 
@@ -16,10 +17,11 @@ class PayloadTLSMCC: public PayloadTLSStream {
  private:
   bool master_;
   SSL_CTX* sslctx_;
+  Logger& logger;
  public:
   /** Constructor - creat ssl object which is bound to next MCC */
-  PayloadTLSMCC(MCCInterface* mcc, SSL_CTX* ctx);
-  PayloadTLSMCC(PayloadTLSMCC& stream);
+  PayloadTLSMCC(MCCInterface* mcc, SSL_CTX* ctx, Logger& logger);
+  PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger);
   virtual ~PayloadTLSMCC(void);
 };
 

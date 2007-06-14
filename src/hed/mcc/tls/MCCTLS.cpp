@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -77,15 +76,15 @@ static int no_passphrase_callback(char *buf, int size, int rwflag, void *passwor
 
 static int tls_rand_seeded_p = 0;
 #define my_MIN_SEED_BYTES 256 
-static bool tls_random_seed(std::string filename, size_t n)
+bool MCC_TLS::tls_random_seed(std::string filename, size_t n)
 {
    int r;
    r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? (long)n : LONG_MAX);
    if (n == 0)
 	n = my_MIN_SEED_BYTES;
     if (r < n) {
-      //        logger.msg(Arc::ERROR,
-      //		   "tls_random_seed from file: could not read files");
+        logger.msg(Arc::ERROR,
+		   "tls_random_seed from file: could not read files");
    	tls_process_error();
 	return false;
     } else {
@@ -133,7 +132,7 @@ static void tls_set_dhe1024()
     	tls_dhe1024 = dhparams;
 }
 
-static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password, const std::string& random_file)
+bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password, const std::string& random_file)
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
@@ -141,7 +140,7 @@ static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, 
                SSL_FILETYPE_PEM) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
                SSL_FILETYPE_ASN1) != 1)) {
-        std::cerr <<"Error: Can not load certificate file"<<std::endl;
+        logger.msg(ERROR, "Can not load certificate file.");
         tls_process_error();
         return false;
    }
@@ -149,12 +148,12 @@ static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, 
                SSL_FILETYPE_PEM) != 1) &&
       (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
                SSL_FILETYPE_ASN1) != 1)) {
-        std::cerr <<"Error: Can not load key file"<<std::endl;
+        logger.msg(ERROR, "Can not load key file.");
         tls_process_error();
         return false;
    }
    if(!(SSL_CTX_check_private_key(sslctx))) {
-        std::cerr <<"Error: Private key does not match certificate"<<std::endl;
+        logger.msg(ERROR, "Private key does not match certificate.");
         tls_process_error();
         return false;
    }
@@ -163,13 +162,13 @@ static bool tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, 
    }
 }
 
-static bool do_ssl_init(void) {
+bool MCC_TLS::do_ssl_init(void) {
    static bool ssl_inited = false;
    if(ssl_inited) return true;
    ssl_inited=true;
    SSL_load_error_strings();
    if(!SSL_library_init()){
-        std::cerr<<"Error: SSL_library_init failed\n"<<std::endl;
+        logger.msg(ERROR, "SSL_library_init failed.");
         tls_process_error();
         ssl_inited=false;
         return false;
@@ -290,7 +289,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       // Adding ssl to socket stream, the "ssl" object is created and 
       // binded to socket fd in PayloadTLSSocket
       // TODO: create ssl object only once per connection. - done ?
-      nextpayload = new PayloadTLSSocket(*inpayload, sslctx_, false);
+      nextpayload = new PayloadTLSSocket(*inpayload, sslctx_, false, logger);
       context->stream=nextpayload;
    };
    if(!nextpayload) return MCC_Status();
@@ -378,7 +377,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
          return MCC_Status();
       };
    };
-   outmsg.Payload(new PayloadTLSMCC(*stream_));
+   outmsg.Payload(new PayloadTLSMCC(*stream_, logger));
    return MCC_Status(Arc::STATUS_OK);
 }
 
@@ -387,7 +386,7 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
    if(label.empty()) {
       if(stream_) delete stream_;
       stream_=NULL;
-      stream_=new PayloadTLSMCC(next,sslctx_);
+      stream_=new PayloadTLSMCC(next,sslctx_, logger);
    };
    MCC::Next(next,label);
 };

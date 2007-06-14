@@ -1,4 +1,3 @@
-#include <iostream>
 #include <openssl/ssl.h>
 #include <errno.h>
 #include "../../libs/message/PayloadRaw.h"
@@ -81,7 +80,6 @@ static int mcc_free(BIO *b) {
 }
   
 static int mcc_read(BIO *b, char *out,int outl) {
-std::cerr<<"mcc_read: "<<outl<<std::endl;
   int ret=0;
   if (out == NULL) return(ret);
   if(b == NULL) return(ret);
@@ -98,7 +96,6 @@ std::cerr<<"mcc_read: "<<outl<<std::endl;
 }
 
 static int mcc_write(BIO *b, const char *in, int inl) {
-std::cerr<<"mcc_write: "<<inl<<std::endl;
   int ret = 0;
   //clear_sys_error();
   if(in == NULL) return(ret);
@@ -113,7 +110,6 @@ std::cerr<<"mcc_write: "<<inl<<std::endl;
     // If available just use stream directly
     bool r = stream->Put(in,inl);
     BIO_clear_retry_flags(b);
-std::cerr<<"mcc_write: r="<<r<<std::endl;
     if(r) { ret=inl; } else { ret=-1; };
     return(ret);
   };

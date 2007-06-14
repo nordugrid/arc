@@ -14,6 +14,13 @@ namespace Arc {
   public:
     MCC_TLS(Arc::Config *cfg);
   protected:
+    bool tls_random_seed(std::string filename, size_t n);
+    bool tls_load_certificate(SSL_CTX* sslctx,
+			      const std::string& cert_file,
+			      const std::string& key_file,
+			      const std::string& password,
+			      const std::string& random_file);
+    bool do_ssl_init(void);
     static Arc::Logger logger;
   };
 

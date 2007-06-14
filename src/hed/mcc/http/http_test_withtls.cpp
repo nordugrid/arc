@@ -163,7 +163,8 @@ void test2(void) {
   creattlscontext();
   std::cout<<"------Testing TLS enhanced simple file download ------"<<std::endl;
   Arc::PayloadTCPSocket socket("127.0.0.1",443,Arc::Logger::rootLogger);
-  Arc::PayloadTLSSocket tlssocket(socket,sslctx_,true);
+  Arc::PayloadTLSSocket tlssocket(socket,sslctx_,true,
+				  Arc::Logger::rootLogger);
   Arc::PayloadHTTP request("GET","/index.html",tlssocket);
   if(!request.Flush()) {
     std::cout<<"Failed to send HTTPs request"<<std::endl;
