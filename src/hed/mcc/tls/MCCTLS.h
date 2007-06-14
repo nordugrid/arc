@@ -5,6 +5,18 @@
 
 namespace Arc {
 
+  //! A base class for SOAP client and service MCCs.
+  /*! This is a base class for SOAP client and service MCCs. It
+    provides some common functionality for them, i.e. so far only a
+    logger.
+   */
+  class MCC_TLS : public MCC {
+  public:
+    MCC_TLS(Arc::Config *cfg);
+  protected:
+    static Arc::Logger logger;
+  };
+
 /** This two classed are MCCs implementing TLS functionality. Upon creation this 
 object creats SSL_CTX object and configures SSL_CTX object with some environment
 information about credential. 
@@ -28,7 +40,7 @@ It is the PayloadTLSSocket some keeps some information about ssl session. And th
 the PayloadStreamInterface will be used by PayloadHTTP.
 */
 
-class MCC_TLS_Service: public MCC
+class MCC_TLS_Service: public MCC_TLS
 {
     private:
         SSL_CTX* sslctx_;
@@ -50,7 +62,7 @@ MCC_TLS_Client behind MCC_TCP_Client.
 Also there PayloadTLSStream that implement PayloadStreamInterface, which is specified for TLS method, such like "SSL_read()" "SSL_write".
 As Alexsandr's advice, we could replace TCP with TLS, it will be considered and done later.
 */
-class MCC_TLS_Client: public MCC
+class MCC_TLS_Client: public MCC_TLS
 {
     private:
         SSL_CTX* sslctx_; 

@@ -1,4 +1,4 @@
-#include <iostream>
+//include <iostream>
 
 #include "../../../libs/common/XMLNode.h"
 #include "../../libs/message/PayloadRaw.h"
@@ -8,6 +8,11 @@
 
 #include "MCCHTTP.h"
 
+
+Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
+
+Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : MCC(cfg) {
+}
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext* ctx) {
     return new Arc::MCC_HTTP_Service(cfg);
@@ -26,7 +31,7 @@ mcc_descriptor __arc_mcc_modules__[] = {
 using namespace Arc;
 
 
-MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC(cfg) {
+MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC_HTTP(cfg) {
 }
 
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
@@ -110,7 +115,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(Arc::STATUS_OK);
 }
 
-MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC(cfg) {
+MCC_HTTP_Client::MCC_HTTP_Client(Arc::Config *cfg):MCC_HTTP(cfg) {
   endpoint_=(std::string)((*cfg)["Endpoint"]);
   method_=(std::string)((*cfg)["Method"]);
 }

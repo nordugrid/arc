@@ -287,7 +287,7 @@ MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC_TCP(cfg),s_(NULL) {
 
     int port = atoi(port_s.c_str());
 
-    s_ = new PayloadTCPSocket(host_s.c_str(),port);
+    s_ = new PayloadTCPSocket(host_s.c_str(),port,logger);
     if(!(*s_)) { delete s_; s_ = NULL; };
 }
 

@@ -9,11 +9,12 @@
 #include "../../mcc/tcp/PayloadTCPSocket.h"
 #include "PayloadHTTP.h"
 #include "../../libs/message/PayloadSOAP.h"
+#include "../../../libs/common/Logger.h"
 
 void test1(void) {
   std::cout<<std::endl;
   std::cout<<"------- Testing simple file download ------"<<std::endl;
-  Arc::PayloadTCPSocket socket("grid.uio.no",80);
+  Arc::PayloadTCPSocket socket("grid.uio.no",80,Arc::Logger::rootLogger);
   Arc::PayloadHTTP request("GET","/index.html",socket);
   if(!request.Flush()) {
     std::cout<<"Failed to send HTTP request"<<std::endl;
@@ -28,7 +29,7 @@ void test1(void) {
 void test2(void) {
   std::cout<<std::endl;
   std::cout<<"------- Testing Google Web Service ------"<<std::endl;
-  Arc::PayloadTCPSocket socket("api.google.com",80);
+  Arc::PayloadTCPSocket socket("api.google.com",80,Arc::Logger::rootLogger);
   Arc::PayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
   Arc::NS ns;
   ns["google"]="urn:GoogleSearch";

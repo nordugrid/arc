@@ -9,6 +9,11 @@
 #include "MCCSOAP.h"
 
 
+Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
+
+Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : MCC(cfg) {
+}
+
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_SOAP_Service(cfg);
 }
@@ -26,13 +31,13 @@ mcc_descriptor __arc_mcc_modules__[] = {
 using namespace Arc;
 
 
-MCC_SOAP_Service::MCC_SOAP_Service(Arc::Config *cfg):MCC(cfg) {
+MCC_SOAP_Service::MCC_SOAP_Service(Arc::Config *cfg):MCC_SOAP(cfg) {
 }
 
 MCC_SOAP_Service::~MCC_SOAP_Service(void) {
 }
 
-MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC(cfg) {
+MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC_SOAP(cfg) {
 }
 
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {

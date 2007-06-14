@@ -17,6 +17,7 @@ namespace Arc {
     MCC_TCP(Arc::Config *cfg);
   protected:
     static Arc::Logger logger;
+    friend class PayloadTCPSocket;
   };
 
 /** This class is MCC implementing TCP server.

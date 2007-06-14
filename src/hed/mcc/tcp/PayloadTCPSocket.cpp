@@ -1,4 +1,4 @@
-#include <iostream>
+#include <sstream>
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-static int connect_socket(const char* hostname,int port) {
+int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
   struct hostent* host;
   struct hostent  hostbuf;
   int    errcode;
@@ -20,12 +20,16 @@ static int connect_socket(const char* hostname,int port) {
   if((errcode=gethostbyname_r(hostname,
                                   (host=&hostbuf),buf)) != 0) {
 #endif
-    std::cerr << "Failed to resolve " << hostname << std::endl;
+    logger.msg(LogMessage(WARNING,
+			  std::string("Failed to resolve ")+
+			  std::string(hostname)));
     return -1;
   };
   if( (host->h_length < sizeof(struct in_addr)) ||
       (host->h_addr_list[0] == NULL) ) {
-    std::cerr << "Failed to resolve " << hostname << std::endl;
+    logger.msg(LogMessage(WARNING,
+			  std::string("Failed to resolve ")+
+			  std::string(hostname)));
     return -1;
   };
   struct sockaddr_in addr;
@@ -36,18 +40,27 @@ static int connect_socket(const char* hostname,int port) {
   int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
   if(s==-1) return -1;
   if(::connect(s,(struct sockaddr *)&addr,sizeof(addr))==-1) {
-    std::cerr << "Failed to connect to " << hostname << ":" << port << std::endl;
+    std::ostringstream msg;
+    msg << "Failed to connect to " << hostname << ":" << port << std::flush;
+    logger.msg(LogMessage(WARNING,msg.str()));
     close(s); return -1;
   };
   return s;
 }
 
-PayloadTCPSocket::PayloadTCPSocket(const char* hostname,int port) {
+PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
+				   int port,
+				   Logger& logger) :
+  logger(logger)
+{
   handle_=connect_socket(hostname,port);
   acquired_=true;
 }
 
-PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint) {
+PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
+				   Logger& logger) :
+  logger(logger)
+{
   std::string hostname = endpoint;
   std::string::size_type p = hostname.find(':');
   if(p == std::string::npos) return;

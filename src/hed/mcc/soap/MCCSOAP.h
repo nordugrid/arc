@@ -5,12 +5,24 @@
 
 namespace Arc {
 
+  //! A base class for SOAP client and service MCCs.
+  /*! This is a base class for SOAP client and service MCCs. It
+    provides some common functionality for them, i.e. so far only a
+    logger.
+   */
+  class MCC_SOAP : public MCC {
+  public:
+    MCC_SOAP(Arc::Config *cfg);
+  protected:
+    static Arc::Logger logger;
+  };
+
 /** This MCC parses SOAP message from input payload.
   On input payload with PayloadRawInterface is expected. It's
  converted into PayloadSOAP and passed next MCC. Returned 
  PayloadSOAP is converted into PayloadRaw and returned to calling
  MCC. */
-class MCC_SOAP_Service: public MCC
+class MCC_SOAP_Service: public MCC_SOAP
 {
     public:
         /* Constructor takes configuration of MCC. 
@@ -24,7 +36,7 @@ class MCC_SOAP_Service: public MCC
   It accepts and produces PayloadSOAP kind of payloads in it's
  process() method. Comminication to next MCC is done over payloads
  implementing PayloadRawInterface. */
-class MCC_SOAP_Client: public MCC
+class MCC_SOAP_Client: public MCC_SOAP
 {
     public:
         /* Constructor takes configuration of MCC. 

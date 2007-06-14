@@ -20,6 +20,11 @@
 
 #include "MCCTLS.h"
 
+Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
+
+Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
+}
+
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TLS_Service(cfg);
 }
@@ -79,7 +84,8 @@ static bool tls_random_seed(std::string filename, size_t n)
    if (n == 0)
 	n = my_MIN_SEED_BYTES;
     if (r < n) {
-	std::cerr<<"Error: tls_random_seed from file: could not read files"<<std::endl;
+      //        logger.msg(Arc::ERROR,
+      //		   "tls_random_seed from file: could not read files");
    	tls_process_error();
 	return false;
     } else {
@@ -173,7 +179,7 @@ static bool do_ssl_init(void) {
 
 
 /*The main functionality of the constructor method is creat SSL context object*/
-MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
+MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    std::string cert_file = (*cfg)["CertificatePath"];
    if(cert_file.empty()) cert_file="/etc/grid-security/hostcert.pem";
    std::string key_file = (*cfg)["KeyPath"];
@@ -186,7 +192,8 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_server_method());
    if(sslctx_==NULL){
-	std::cerr<<"Error: Can not creat the SSL Context object"<<std::endl;
+        logger.msg(Arc::ERROR,
+		   "Can not creat the SSL Context object.");
 	tls_process_error();
 	return;
    }
@@ -202,8 +209,9 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
       SSL_CTX_set_client_CA_list(sslctx_, 
          SSL_load_client_CA_file(ca_file.c_str())
       ); //Scan all certificates in CAfile and list them as acceptable CAs
-      if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){
-         std::cerr<<"Error: Can not set client CA list from the specified file"<<std::endl;
+      if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
+         logger.msg(Arc::ERROR,
+		   "Can not set client CA list from the specified file.");
    	 tls_process_error();
 	 return;
       }
@@ -213,7 +221,8 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC(cfg) {
 	if(tls_dhe1024 == NULL){return;}
    }
    if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)){
-	   std::cerr<<"Error: DH set error"<<std::endl;
+           logger.msg(Arc::ERROR,
+		   "DH set error.");
            tls_process_error();
 	   return;
    }
@@ -250,7 +259,6 @@ class MCC_TLS_Context:public MessageContextElement {
 
 
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
-std::cerr<<"MCC_TLS_Service"<<std::endl;
    // MCC_TCP_Service ---> MCC_TLS_Service ---> MCC_HTTP_Service ---> MCC_SOAP_Service
    // Accepted payload is Stream - not a StreamInterface, needed for 
    // otaining handle from it.
@@ -261,7 +269,6 @@ std::cerr<<"MCC_TLS_Service"<<std::endl;
       	inpayload = dynamic_cast<PayloadStream*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
-std::cerr<<"MCC_TLS_Service: extracted inpayload"<<std::endl;
    // Obtaining previously created stream or creating a new one
    PayloadTLSSocket *nextpayload = NULL;
    MCC_TLS_Context* context = NULL;
@@ -283,13 +290,10 @@ std::cerr<<"MCC_TLS_Service: extracted inpayload"<<std::endl;
       // Adding ssl to socket stream, the "ssl" object is created and 
       // binded to socket fd in PayloadTLSSocket
       // TODO: create ssl object only once per connection. - done ?
-std::cerr<<"MCC_TLS_Service: creating nextpayload"<<std::endl;
       nextpayload = new PayloadTLSSocket(*inpayload, sslctx_, false);
-std::cerr<<"MCC_TLS_Service: constructor finished"<<std::endl;
       context->stream=nextpayload;
    };
    if(!nextpayload) return MCC_Status();
-std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
    // Creating message to pass to next MCC
    Message nextinmsg = inmsg;;
    nextinmsg.Payload(nextpayload);
@@ -300,9 +304,7 @@ std::cerr<<"MCC_TLS_Service: created nextpayload"<<std::endl;
       //delete nextpayload;
       return MCC_Status();
    };
-std::cerr<<"MCC_TLS_Service: extracted next"<<std::endl;
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-std::cerr<<"MCC_TLS_Service: next was called"<<std::endl;
    if(nextoutmsg.Payload()) {
       delete nextoutmsg.Payload();
       nextoutmsg.Payload(NULL);
@@ -318,7 +320,7 @@ std::cerr<<"MCC_TLS_Service: next was called"<<std::endl;
    return MCC_Status(Arc::STATUS_OK);
 }
 
-MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
+MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    stream_=NULL;
    std::string cert_file = (*cfg)["CertificatePath"];
    if(cert_file.empty()) cert_file="cert.pem";
@@ -333,7 +335,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC(cfg){
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_client_method());
    if(sslctx_==NULL){
-        std::cerr<<"Error: Can not creat the SSL Context object"<<std::endl;
+        logger.msg(ERROR, "Can not creat the SSL Context object");
         tls_process_error();
         return;
    }
@@ -372,7 +374,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       if(!buf) break;
       int bufsize = inpayload->BufferSize(n);
       if(!(stream_->Put(buf,bufsize))) {
-         std::cerr<<"Error: Failed to send content of buffer"<<std::endl;
+         logger.msg(ERROR, "Failed to send content of buffer.");
          return MCC_Status();
       };
    };
