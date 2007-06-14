@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-#include <iostream>
 #include <sstream>
 #include "Loader.h"
 #include "MCCFactory.h"
