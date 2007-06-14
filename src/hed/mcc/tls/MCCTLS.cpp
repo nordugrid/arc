@@ -293,10 +293,23 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       context->stream=nextpayload;
    };
    if(!nextpayload) return MCC_Status();
+ 
    // Creating message to pass to next MCC
-   Message nextinmsg = inmsg;;
+   Message nextinmsg = inmsg;
    nextinmsg.Payload(nextpayload);
    Message nextoutmsg;
+
+   //Getting the subject name of peer(client) certificate
+   X509* peercert;
+   char buf[100];     
+   peercert = (dynamic_cast<PayloadTLSStream*>(nextpayload))->GetPeercert();
+   X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
+   std::string peer_dn = buf;
+   std::cerr<< "DN name:\n"<<peer_dn<< std::endl;
+   //Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribut temporally, it should be put into MessageAuth later.
+   nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
+  
+
    // Call next MCC 
    MCCInterface* next = Next();
    if(!next) { 
@@ -348,6 +361,9 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
            return;}
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
+
+  /**Get DN from certificate, and put it into message's attribute */
+  
 }
 
 MCC_TLS_Client::~MCC_TLS_Client(void) {

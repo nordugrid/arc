@@ -627,4 +627,62 @@ xsd__NOTATION NOTATION::deserialize(const char* buf){
   return tmp;
 }
 
-};
+} //  namespace Arc
+
+
+/*********************************************/
+/*class Integer::Integer(){
+Integer::Integer(const xsd__integer buf){
+  if(buf)
+    serialize(buf);
+}
+Integer::~Integer(){
+}
+
+XSDTYPE Integer::getType(){
+  return XSD_INTEGER;
+}
+xsd__Integer Integer::getInteger(){
+  if(m_buf)
+    return deserialize(m_buf);
+}
+void* Integer::getValue(){
+  return (void*)getInteger();
+}
+char* Integer::serialize(const xsd__integer buf){
+  BasicType::serialize(buf);
+  return m_buf;
+}
+xsd__integer Integer::deserialize(const char* buf){
+  xsd__integer tmp = new char[strlen(buf)+1];
+  strcpy (tmp, buf);
+  return tmp;
+}
+}
+
+
+typedef long long       xsd__integer;
+typedef long long       xsd__nonPositiveInteger;
+typedef long long       xsd__negativeInteger;
+typedef long long       xsd__long;
+typedef int     xsd__int;
+typedef short   xsd__short;
+typedef signed char     xsd__byte;
+typedef unsigned long long      xsd__nonNegativeInteger;
+typedef unsigned long long      xsd__unsignedLong;
+typedef unsigned int            xsd__unsignedInt;
+typedef unsigned short  xsd__unsignedShort;
+typedef unsigned char   xsd__unsignedByte;
+typedef unsigned long long      xsd__positiveInteger;
+
+//two special primitive datatype
+typedef struct{
+  xsd__unsignedByte* buf;
+  xsd__int size;
+}xsd__hexBinary;
+typedef struct{
+  xsd__unsignedByte* buf;
+  xsd__int size;
+}xsd__base64Binary;
+*/
+

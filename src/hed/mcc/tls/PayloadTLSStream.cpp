@@ -7,6 +7,7 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
+#include "../../../libs/common/Logger.h"
 #include "PayloadTLSStream.h"
 
 namespace Arc {
@@ -51,4 +52,23 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
   }
   return true;
 }
+
+X509* PayloadTLSStream::GetPeercert(void){
+  X509* peercert;
+  if((SSL_get_verify_result(ssl_)) == X509_V_OK){
+    peercert=SSL_get_peer_certificate (ssl_);
+    if(peercert!=NULL){
+       return peercert;
+    }
+    else{      
+      Logger::rootLogger.msg(ERROR,"Peer cert cannot be extracted");
+      return NULL;
+    }
+  }
+  else{
+      Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
+      return NULL;
+  }
+}
+
 } // namespace Arc

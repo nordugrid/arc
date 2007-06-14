@@ -27,8 +27,14 @@ void MCC::Unlink(void) {
                                      n != next_.end();n = next_.begin()) next_.erase(n);
 }
 
-void MCC::handle(Handler* handler,const std::string& label) {
-    if(handler) handlers_[label].push_back(handler);
+void MCC::AddHandler(Config* cfg,Handler* handler,const std::string& label) {
+    if(handler) {
+    handlers_[label].push_back(handler); //need polishing to put the HandlerFactory->getinstance here
+    XMLNode cn = (*cfg)["Handler"];
+    printf("Handler here!!!!");
+    Config cfg_(cn);
+    handler->MakePDP(&cfg_);
+    }
 }
 
 /*

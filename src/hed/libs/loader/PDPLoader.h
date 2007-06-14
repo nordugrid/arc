@@ -1,11 +1,13 @@
 #ifndef __ARC_PDPLOADER_H__
 #define __ARC_PDPLOADER_H__
 
-#include "../message/PDP.h"
+#include "../security/PDP.h"
 
 #define ARC_PDP_LOADER_ID "__arc_pdp_modules__"
 
-class Arc::ChainContext;
+namespace Arc {
+    class ChainContext;
+};
 
 /** This structure describes set of authorization handlers stored in shared
   library. It contains name of plugin, version number and pointer to function

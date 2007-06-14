@@ -1,11 +1,13 @@
 #ifndef __ARC_HANDLERLOADER_H__
 #define __ARC_HANDLERLOADER_H__
 
-#include "../message/Handler.h"
+#include "../security/Handler.h"
 
 #define ARC_HANDLER_LOADER_ID "__arc_handler_modules__"
 
-class Arc::ChainContext;
+namespace Arc{
+  class ChainContext;
+};
 
 /** This structure describes set of handlers stored in shared
   library. It contains name of plugin, version number and pointer to function

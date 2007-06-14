@@ -7,7 +7,6 @@
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
 #include "HandlerFactory.h"
-#include "HandlerFactory.h"
 #include "Plexer.h"
 #include "../../../libs/common/Logger.h"
 

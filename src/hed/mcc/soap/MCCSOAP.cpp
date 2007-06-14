@@ -6,6 +6,8 @@
 #include "../../libs/loader/MCCLoader.h"
 #include "../../ws-addressing/WSA.h"
 
+#include "../../libs/security/Handler.h"
+
 #include "MCCSOAP.h"
 
 
@@ -69,6 +71,21 @@ static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* de
 }
 
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
+  //Checking authentication and authorization; 
+  //Each MCC/Service can define a few handler chain in the configuration file, the chains are distinguished by "event" attribute;
+  //Handlers in one handler chain are called one by one. For one type ("event") of handlers, each one should be configured carefully, because there should be some sequencial relationship between them (e.g. authentication should be put in front of authorization).
+  //The h->SecHandle(msg) only return true/false; If any Handler in the  handler chain produce some information which will be used by some following handler, the information should be stored in the msg.attributes(e.g. the Identity extracted from authentication will be used by authorization to make access control decision).
+  
+  std::list<Arc::Handler*> hlist=handlers_["incoming"];
+  std::list<Arc::Handler*>::iterator it;
+  for(it=hlist.begin(); it!=hlist.end(); it++){
+    Arc::Handler* h = *it;
+    if(h->SecHandle(&inmsg)) break;   
+  }  
+ //The "SecHandle" method only return true/false; The MCC/Service doesn't can about security process;"Handler" uses msg.attributes to exchange security related information
+  if(it==hlist.end()){printf("UnAuthorized\n"); return MCC_Status(Arc::GENERIC_ERROR);} //Do we need to add some status in MCC_Status
+  printf("Authorized\n");
+
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
   if(!inpayload) return make_raw_fault(inmsg);

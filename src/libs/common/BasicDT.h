@@ -242,8 +242,7 @@ public:
 
     xsd__NOTATION deserialize(const char* buf);
     char* serialize(const xsd__NOTATION buf);
-};;
-
+};
 
 
 
@@ -259,24 +258,83 @@ class NCName{};
 class ID{};
 class IDREF{};
 class ENTITY{};
-class Integer{};
-class NonPositiveInteger{};
-class NegativeInteger{};
-class Long{};
-class Int{};
-class Short{};
-class Byte;
+
+class Integer : public Decimal {
+public:
+    Integer();
+    ~Integer();
+    Integer(const xsd__integer buf);
+    XSDTYPE getType();
+    xsd__integer getInteger();
+    void* getValue();
+
+    xsd__integer deserialize(const char* buf);
+    char* serialize(const xsd__integer buf);
+};
+
+
+class NonPositiveInteger : public Decimal {
+public:
+    NonPositiveInteger();
+    ~NonPositiveInteger();
+    NonPositiveInteger(const xsd__nonPositiveInteger buf);
+    XSDTYPE getType();
+    xsd__nonPositiveInteger getInteger();
+    void* getValue();
+
+    xsd__nonPositiveInteger deserialize(const char* buf);
+    char* serialize(const xsd__nonPositiveInteger buf);
+};
+
+class NegativeInteger : public Decimal {
+public:
+    NegativeInteger();
+    ~NegativeInteger();
+    NegativeInteger(const xsd__negativeInteger buf);
+    XSDTYPE getType();
+    xsd__negativeInteger getNegativeInteger();
+    void* getValue();
+
+    xsd__negativeInteger deserialize(const char* buf);
+    char* serialize(const xsd__negativeInteger buf);
+};
+
+class Long : public Decimal {
+public:
+    Long();
+    ~Long();
+    Long(const xsd__long buf);
+    XSDTYPE getType();
+    xsd__long getLong();
+    void* getValue();
+
+    xsd__long deserialize(const char* buf);
+    char* serialize(const xsd__long buf);
+};
+/*
+class Int : public Long {
+
+}
+
+class Short : public Int{
+public:
+    Short();
+    ~Short();
+}
+*/
+/*
+class Byte{};
 class NonNegativeInteger{};
 class UnsignedLong{};
 class UnsignedInt{};
 class UnsignedShort{};
 class UnsignedByte{};
 class PositiveInteger{};
-
-
+*/
+/*
 class HexBinary{};
 class Base64Binary{};
-
+*/
 } // namespace Arc
 
 #endif /* __ARC_BASICDT_H__ */

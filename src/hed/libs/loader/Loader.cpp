@@ -6,6 +6,7 @@
 #include "Loader.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
+#include "HandlerFactory.h"
 #include "../../../libs/common/Logger.h"
 
 namespace Arc {
@@ -17,6 +18,7 @@ Loader::Loader(Config *cfg)
     // Config empty_config;
     service_factory = new ServiceFactory(cfg);
     mcc_factory = new MCCFactory(cfg);
+    handler_factory = new HandlerFactory(cfg);
     //plexer_factory = new PlexerFactory(&empty_config);
 
     context_ = new ChainContext(*this);
@@ -161,6 +163,7 @@ static Handler* MakeHandler(Config* cfg,ChainContext* ctx, Loader::handler_conta
     // Create new handler
     Config cfg_(desc_node);
     Handler* handler=handler_factory->get_instance(name,&cfg_,ctx);
+    std::cerr << "Handler name:\n" <<name<< std::endl;
     if(handler) handlers[refid]=handler;
     return handler;
 }
@@ -238,7 +241,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
 	    logger.msg(DEBUG, name.c_str());
             service_factory->load_all_instances(name);
             mcc_factory->load_all_instances(name);
-            continue;
+            handler_factory->load_all_instances(name);
+	    continue;
         }
 
         if (MatchXMLName(cn, "Component")) {
@@ -271,8 +275,9 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
                 if(!can) break;
                 Handler* handler = 
                      MakeHandler(cfg,context_,handlers_,handler_factory,can);
-                if(!handler) continue; // ????
-                mcc->handle(handler,can.Attribute("event"));
+                if(!handler) continue;
+		std::string event=can.Attribute("event");
+                mcc->AddHandler(&cfg_,handler,event);
             };
 	    
             /*an=cn["Authentication"];

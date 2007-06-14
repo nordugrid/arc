@@ -37,7 +37,7 @@ int main(void) {
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
      <Chain>\
-      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>localhost</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
+      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/></Component>\
       <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
@@ -57,7 +57,7 @@ int main(void) {
   };
 
   //for(int n = 0;n<100;n++) {
-  for(int n = 0;n<2;n++) {
+  for(int n = 0;n<1;n++) {
   // Create and send echo request
   std::cout << "Creating and sending request" << std::endl;
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
@@ -71,6 +71,9 @@ int main(void) {
     std::cerr << "Request failed" << std::endl;
     return -1;
   };
+
+  std::cerr << "Request succeed!!!\n" << std::endl;
+
   Arc::PayloadSOAP* resp = NULL;
   if(repmsg.Payload() == NULL) {
     std::cerr << "There isn no response" << std::endl;

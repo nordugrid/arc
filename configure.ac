@@ -172,7 +172,8 @@ AC_OUTPUT([Makefile \
                  src/hed/libs/loader/Makefile \
                  src/hed/libs/message/Makefile \
                  src/hed/libs/counter/Makefile \
-                 src/hed/mcc/Makefile \
+                 src/hed/libs/security/Makefile \
+		 src/hed/mcc/Makefile \
                  src/hed/mcc/soap/Makefile \
                  src/hed/mcc/tcp/Makefile \
                  src/hed/mcc/http/Makefile \
