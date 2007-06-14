@@ -3,7 +3,7 @@
 
 #include "../../libs/common/ArcConfig.h"
 #include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/message/SOAPMessage.h"
+#include "../../hed/libs/message/SOAPEnvelop.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
 
 int main(void) {
