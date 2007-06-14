@@ -9,6 +9,7 @@
 #include "HandlerFactory.h"
 #include "HandlerFactory.h"
 #include "Plexer.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 
@@ -47,6 +48,8 @@ class Loader
         typedef std::map<std::string, Handler *> handler_container_t;
         //typedef std::map<std::string, AuthNHandler *> authn_container_t;
         //typedef std::map<std::string, AuthZHandler *> authz_container_t;
+
+	static Logger logger;
 
     private:
         /** Link to Factory responsible for loading and creation of Service objects */

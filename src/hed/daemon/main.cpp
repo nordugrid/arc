@@ -4,7 +4,6 @@
 
 #include "daemon.h"
 #include "options.h"
-#include <iostream>
 #include <fstream>
 #include <glibmm.h>
 #include <signal.h>
@@ -30,8 +29,8 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 {   
     Arc::XMLNode srv = cfg["ArcConfig"]["Server"];
     if (!(bool)srv) {
-        std::cout << "No server config part of config file" << std::endl;
-        return;
+      logger.msg(Arc::ERROR, "No server config part of config file.");
+      return;
     }
     if (opt.pid_file != "") {
         if (!(bool)srv["PidFile"]) {
@@ -58,9 +57,9 @@ static std::string init_logger(Arc::Config& cfg)
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
     Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["ArcConfig"]["Server"]["Foreground"]) {
-        std::cout << "Start foreground" << std::endl;
-        Arc::LogStream *err = new Arc::LogStream(std::cerr);
-        Arc::Logger::rootLogger.addDestination(*err);
+      logger.msg(Arc::INFO, "Start foreground.");
+      Arc::LogStream *err = new Arc::LogStream(std::cerr);
+      Arc::Logger::rootLogger.addDestination(*err);
     }
     return log_file;
 }
@@ -79,8 +78,8 @@ int main(int argc, char **argv)
             /* Load and parse config file */
             config.parse(options.config_file.c_str());
             if(!config) {
-                std::cerr << "Failed to load service configuration" << std::endl;
-                exit(1);
+	      logger.msg(Arc::ERROR, "Failed to load service configuration.");
+	      exit(1);
             };
 
             /* overwrite config variables by cmdline options */
@@ -109,7 +108,7 @@ int main(int argc, char **argv)
             }
         }
     } catch (const Glib::Error& error) {
-        std::cout << error.what() << std::endl;
+      logger.msg(Arc::ERROR, error.what().c_str());
     }
 
     return 0;

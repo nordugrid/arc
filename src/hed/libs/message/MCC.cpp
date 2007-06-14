@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-#include <iostream>
-
 #include "MCC.h"
 
 namespace Arc {

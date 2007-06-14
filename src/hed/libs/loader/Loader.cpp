@@ -3,12 +3,15 @@
 #endif
 
 #include <iostream>
+#include <sstream>
 #include "Loader.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
 #include "../../../libs/common/Logger.h"
 
 namespace Arc {
+
+  Logger Loader::logger(Logger::rootLogger, "Loader");
 
 Loader::Loader(Config *cfg)
 {
@@ -148,13 +151,13 @@ static Handler* MakeHandler(Config* cfg,ChainContext* ctx, Loader::handler_conta
         desc_node=FindElementByID(*cfg,refid,"Handler");
     }
     if(!desc_node) {
-        std::cerr << "Handler has no configuration" << std::endl;
-        return NULL;
+      Loader::logger.msg(ERROR, "Handler has no configuration.");
+      return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
-        std::cerr << "Handler has no name attribute defined" << std::endl;
-        return NULL;
+      Loader::logger.msg(ERROR, "Handler has no name attribute defined.");
+      return NULL;
     }
     // Create new handler
     Config cfg_(desc_node);
@@ -186,12 +189,12 @@ static AuthZHandler* MakeAuthZHandler(Config* cfg,ChainContext* ctx,Loader::auth
         desc_node=FindElementByID(*cfg,refid,"Authentication");
     }
     if(!desc_node) {
-        std::cerr << "Authentication handler has no configuration" << std::endl;
+        logger.msg(ERROR, "Authentication handler has no configuration.");
         return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
-        std::cerr << "Authentication handler has no name attribute defined" << std::endl;
+        logger.msg(ERROR, "Authentication handler has no name attribute defined.");
         return NULL;
     }
     // Create new handler
@@ -230,10 +233,10 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
         if (MatchXMLName(cn, "Plugins")) {
             std::string name = cn["Name"];
             if(name.empty()) {
-                std::cerr << "Plugins element has no Name defined" << std::endl;
-                continue;
+	      logger.msg(ERROR, "Plugins element has no Name defined.");
+	      continue;
             };
-            std::cout << "DEBUG: " << name << std::endl;
+	    logger.msg(DEBUG, name.c_str());
             service_factory->load_all_instances(name);
             mcc_factory->load_all_instances(name);
             continue;
@@ -243,18 +246,20 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             // Create new MCC
             std::string name = cn.Attribute("name");
             if(name.empty()) {
-                std::cerr << "Component has no name attribute defined" << std::endl;
-                continue;
+	      logger.msg(ERROR, "Component has no name attribute defined");
+	      continue;
             };
             std::string id = cn.Attribute("id");
             if(id.empty()) {
-                std::cerr << "Component has no id attribute defined" << std::endl;
-                continue;
+	      logger.msg(ERROR, "Component has no id attribute defined");
+	      continue;
             };
             MCC* mcc = mcc_factory->get_instance(name,&cfg_,context_);
             if(!mcc) {
-                std::cerr << "Component " << name << "(" << id << ") could not be created" << std::endl;
-                continue;
+	      logger.msg(LogMessage(ERROR,
+				    "Component "+name+" ("+id+
+				    ") could not be created"));
+	      continue;
             };
             mccs_[id]=mcc;
             
@@ -295,19 +300,20 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             if(!entry.empty()) mccs_exposed_[entry]=mcc;
             mcc_connector_t mcc_connector(mccs_.find(id));
             for(int nn = 0;;++nn) {
-                XMLNode cnn = cn["next"][nn];
-                if(!cnn) break;
-                std::string nid = cnn.Attribute("id");
-                if(nid.empty()) {
-                    std::cerr << "Component's " << name << "(" << id << ") next has no id attribute defined" << std::endl;
-                    continue;
-                };
-                std::string label = cnn;
-                mcc_connector.nexts[nid]=label;
+	      XMLNode cnn = cn["next"][nn];
+	      if(!cnn) break;
+	      std::string nid = cnn.Attribute("id");
+	      if(nid.empty()) {
+		logger.msg(LogMessage(ERROR, "Component's "+name+"("+id+
+				      ") next has no id attribute defined"));
+		continue;
+	      };
+	      std::string label = cnn;
+	      mcc_connector.nexts[nid]=label;
             };
             mcc_connector.name=name;
             mcc_connectors->push_back(mcc_connector);
-            std::cout << "Loaded MCC " << name << "(" << id << ")" << std::endl;
+	    logger.msg(LogMessage(INFO, "Loaded MCC "+name+"("+id+")"));
             continue;
         }
 
@@ -319,44 +325,46 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             plexers_[id]=plexer;
             plexer_connector_t plexer_connector(plexers_.find(id));
             for(int nn = 0;;++nn) {
-                XMLNode cnn = cn["next"][nn];
-                if(!cnn) break;
-                std::string nid = cnn.Attribute("id");
-                if(nid.empty()) {
-                    std::cerr << "Plexer's (" << id << ") next has no id attribute defined" << std::endl;
-                    continue;
-                };
-                std::string label = cnn;
-                plexer_connector.nexts[nid]=label;
+	      XMLNode cnn = cn["next"][nn];
+	      if(!cnn) break;
+	      std::string nid = cnn.Attribute("id");
+	      if(nid.empty()) {
+		logger.msg(LogMessage(ERROR, "Plexer's ("+id+
+				      ") next has no id attribute defined"));
+		continue;
+	      };
+	      std::string label = cnn;
+	      plexer_connector.nexts[nid]=label;
             };
             plexer_connector.name=name;
             plexer_connectors->push_back(plexer_connector);
-            std::cout << "Loaded Plexer " << name << "(" << id << ")" << std::endl;
+	    logger.msg(LogMessage(INFO, "Loaded Plexer "+name+"("+id+")"));
             continue;
         }
 
         if (MatchXMLName(cn, "Service")) {
             std::string name = cn.Attribute("name");
             if(name.empty()) {
-                std::cerr << "Service has no name attribute defined" << std::endl;
-                continue;
+	      logger.msg(ERROR, "Service has no name attribute defined.");
+	      continue;
             };
             std::string id = cn.Attribute("id");
             if(id.empty()) {
-                std::cerr << "Service has no id attribute defined" << std::endl;
-                continue;
+	      logger.msg(ERROR, "Service has no id attribute defined");
+	      continue;
             };
             Service* service = service_factory->get_instance(name,&cfg_,context_);
             if(!service) {
-                std::cerr << "Service " << name << "(" << id << ") could not be created" << std::endl;
-                continue;
+	      logger.msg(LogMessage(ERROR, "Service "+name+"("+id+
+				    ") could not be created"));
+	      continue;
             };
             services_[id]=service;
-            std::cout << "Loaded Service " << name << "(" << id << ")" << std::endl;
-            continue;
+	    logger.msg(LogMessage(INFO, "Loaded Service "+name+"("+id+")"));
+	    continue;
         }
-
-        std::cerr << "Unknown element \"" << cn.Name() << "\" - ignoring." << std::endl;
+	logger.msg(LogMessage(WARNING, "Unknown element \""+
+			      cn.Name()+"\" - ignoring."));
     }
 
     if(level != 0) return;
@@ -374,26 +382,37 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             if(mcc_l != mccs_.end()) {
                 // Make link MCC->MCC
                 mcc->mcc->second->Next(mcc_l->second,label);
-                std::cout << "Linking MCC " << *mcc << " to MCC (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+		msg << "Linking MCC " << *mcc << " to MCC ("
+		    << id+") under " << label;
+		logger.msg(LogMessage(INFO, msg.str()));
                 mcc->nexts.erase(next); continue; 
             };
             service_container_t::iterator service_l = services_.find(id);
             if(service_l != services_.end()) {
                 // Make link MCC->Service
                 mcc->mcc->second->Next(service_l->second,label);
-                std::cout << "Linking MCC " << *mcc << " to Service (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+                msg << "Linking MCC " << *mcc << " to Service (" << id
+		    << ") under " << label << std::endl;
+		logger.msg(LogMessage(INFO, msg.str()));
                 mcc->nexts.erase(next); continue; 
             };
             plexer_container_t::iterator plexer_l = plexers_.find(id);
             if(plexer_l != plexers_.end()) {
                 // Make link MCC->Plexer
                 mcc->mcc->second->Next(plexer_l->second,label);
-                std::cout << "Linking MCC " << *mcc << " to Plexer (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+                msg << "Linking MCC " << *mcc << " to Plexer (" << id
+		    << ") under " << label;
+		logger.msg(LogMessage(INFO, msg.str()));		
                 mcc->nexts.erase(next); continue; 
             };
-
-            std::cerr << "MCC " << mcc->name << "(" << mcc->mcc->first << ") - next " <<
-                         label << "(" << id << ") has no target" << std::endl;
+	    std::ostringstream msg;
+	    msg << "MCC " << mcc->name << "(" << mcc->mcc->first
+		<< ") - next " << label << "(" << id
+		<< ") has no target" << std::endl;
+	    logger.msg(LogMessage(ERROR, msg.str()));		
             mcc->nexts.erase(next);
         }
     }
@@ -408,26 +427,37 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             if(mcc_l != mccs_.end()) {
                 // Make link Plexer->MCC
                 plexer->plexer->second->Next(mcc_l->second,label);
-                std::cout << "Linking Plexer " << *plexer << " to MCC (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+                msg << "Linking Plexer " << *plexer << " to MCC (" << id
+		    << ") under " << label;
+		logger.msg(LogMessage(INFO, msg.str()));
                 plexer->nexts.erase(next); continue;
             };
             service_container_t::iterator service_l = services_.find(id);
             if(service_l != services_.end()) {
                 // Make link Plexer->Service
                 plexer->plexer->second->Next(service_l->second,label);
-                std::cout << "Linking Plexer " << *plexer << " to Service (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+                msg << "Linking Plexer " << *plexer << " to Service ("
+		    << id << ") under " << label;
+		logger.msg(LogMessage(INFO, msg.str()));
                 plexer->nexts.erase(next); continue;
             };
             plexer_container_t::iterator plexer_l = plexers_.find(id);
             if(plexer_l != plexers_.end()) {
                 // Make link Plexer->Plexer
                 plexer->plexer->second->Next(plexer_l->second,label);
-                std::cout << "Linking Plexer " << *plexer << " to Plexer (" << id << ") under " << label << std::endl;
+		std::ostringstream msg;
+                msg << "Linking Plexer " << *plexer << " to Plexer ("
+		    << id << ") under " << label;
+		logger.msg(LogMessage(INFO, msg.str()));
                 plexer->nexts.erase(next); continue;
             };
 
-            std::cerr << "Plexer (" << plexer->plexer->first << ") - next " <<
-                         label << "(" << id << ") has no target" << std::endl;
+	    std::ostringstream msg;
+            msg << "Plexer (" << plexer->plexer->first << ") - next "
+		<< label << "(" << id << ") has no target";
+	    logger.msg(LogMessage(ERROR, msg.str()));
             plexer->nexts.erase(next);
         }
     }
