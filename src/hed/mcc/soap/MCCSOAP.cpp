@@ -83,7 +83,10 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     if(h->SecHandle(&inmsg)) break;   
   }  
  //The "SecHandle" method only return true/false; The MCC/Service doesn't can about security process;"Handler" uses msg.attributes to exchange security related information
-  if(it==hlist.end()){printf("UnAuthorized\n"); return MCC_Status(Arc::GENERIC_ERROR);} //Do we need to add some status in MCC_Status
+  if((it==hlist.end()) && (hlist.size() > 0)){
+    printf("UnAuthorized\n"); 
+    return MCC_Status(Arc::GENERIC_ERROR);
+  } //Do we need to add some status in MCC_Status
   printf("Authorized\n");
 
   // Extracting payload
