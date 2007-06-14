@@ -7,14 +7,14 @@
 namespace Arc {
 
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
-  struct hostent* host;
+  struct hostent* host = NULL;
   struct hostent  hostbuf;
-  int    errcode;
+  int    errcode = 0;
 #ifndef _AIX
   char   buf[BUFSIZ];
   if((gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
                                         &host,&errcode) != 0) ||
-     (errcode != 0) || (host == NULL)) {
+     (host == NULL)) {
 #else
   struct hostent_data buf[BUFSIZ];
   if((errcode=gethostbyname_r(hostname,
