@@ -1,5 +1,5 @@
-#ifndef __ARC_SOAPMESSAGE_H__
-#define __ARC_SOAPMESSAGE_H__
+#ifndef __ARC_SOAPENVELOP_H__
+#define __ARC_SOAPENVELOP_H__
 
 #include <string>
 
@@ -110,5 +110,5 @@ class SOAPEnvelop: public XMLNode {
 
 } // namespace Arc 
 
-#endif /* __ARC_SOAPMESSAGE_H__ */
+#endif /* __ARC_SOAPENVELOP_H__ */
 

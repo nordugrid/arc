@@ -103,11 +103,15 @@ class Message {
   /** Returns a pointer to the current attributes object or NULL if no
       attributes object has been assigned. */
   MessageAttributes* Attributes(void) { return attributes_; };
-  MessageAttributes* Attributes(MessageAttributes* attributes) {
+  void Attributes(MessageAttributes* attributes) {
     attributes_=attributes;
   };
+  MessageAuth* Auth(void) { return auth_; };
+  void Auth(MessageAuth* auth) {
+    auth_ = auth;
+  };
   MessageContext* Context(void) { return context_; };
-  MessageContext* Context(MessageContext* context) {
+  void Context(MessageContext* context) {
     context_=context;
   };
 };
