@@ -16,15 +16,19 @@
 </xsd:complexType>
 
 <xsd:complexType name="ServiceDescriptionMetadataType">
-    <xsd:element name="TTL" type="xsd:integer"/>
-    <xsd:element name="Lifetime" type="xsd:dateTime"/>
-    <xsd:element name="Origin" type="wsa:EndPointReference">
+    <xsd:sequence>
+        <xsd:element name="TTL" type="xsd:integer"/>
+        <xsd:element name="Lifetime" type="xsd:duration"/>
+        <xsd:element name="Origin" type="wsa:EndPointReference">
+    </xsd:sequence>
 </xsd:complexType>
 
 <xsd:complexType name="Tuple">
-    <xsd:element name="Data" type="ServiceDescriptionType" minOccurs="1" maxOccures="1">
-    <xsd:element name="Metadata" type="ServiceDescriptionMetadataType" minOccurs="1" maxOccurs="1">
-    <xsd:element name="Fault" type="FaultType" minOccurs="0" maxOccurs="1">
+    <xsd:sequence>
+        <xsd:element name="Data" type="ServiceDescriptionType" minOccurs="0" maxOccures="1">
+        <xsd:element name="Metadata" type="ServiceDescriptionMetadataType" minOccurs="1" maxOccurs="1">
+        <xsd:element name="Fault" type="FaultType" minOccurs="0" maxOccurs="1">
+    </xsd:sequence>
 </xsd:complexType>
 
 <xsd:complexType name="RegisterRequestType">
@@ -34,6 +38,9 @@
 </xsd:complexType>
 
 <xsd:complexType name="RegisterResponseType">
+    <xsd:sequence>
+        <!-- The origin is an id for response -->
+    </xsd:sequence>
 </xsd:complexType>
 
 <xsd:complexType name="ExchangeRequestType">

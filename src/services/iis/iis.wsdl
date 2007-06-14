@@ -34,7 +34,7 @@ returns:
          element="iis:RegisterResponseType"/>
 </wsdl:message>
 
-<!-- ====== Register ====== 
+<!-- ====== Exchange ====== 
 Exchange(list of (ServiceDescriptionMetadata, ServiceDescription))
 returns: list of (ServiceDescriptionMetadata, ServiceDescription)
 -->
