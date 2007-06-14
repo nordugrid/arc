@@ -21,6 +21,8 @@
 
 namespace Arc {
 
+  Logger Daemon::logger(Logger::rootLogger, "Daemon");
+
 Daemon::Daemon(std::string& pid_file, std::string& log_file)
 {
     pid_t pid;
@@ -30,8 +32,10 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
     pid = fork();
     switch(pid) {
         case -1: // parent fork error
-            std::cerr << "daemoinzation fork failed: " << strerror(errno) << std::endl;
-            exit(1);
+ 	  logger.msg(ERROR,
+		     std::string("Daemoinzation fork failed: ")+
+		     std::string(strerror(errno)));
+	  exit(1);
         case 0: // child
             /* clear inherited umasks */
             umask(0);
@@ -67,8 +71,7 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
 Daemon::~Daemon() {
     // Remove pid file
     unlink(pid_file.c_str());
-    // XXX: use the logging class
-    std::cout << "Shoutdown daemon" << std::endl;
+    logger::msg(INFO, "Shutdown daemon.");
 }
 
 }; // namespace Arc

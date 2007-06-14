@@ -16,11 +16,11 @@
 Arc::Daemon *main_daemon;
 Arc::Config config;
 Arc::Loader *loader;
-Arc::Logger &l = Arc::Logger::rootLogger;
+Arc::Logger& logger=Arc::Logger::rootLogger;
 
 static void shutdown(int sigint)
 {
-    l.msg(Arc::DEBUG, "shutdown");
+    logger.msg(Arc::DEBUG, "shutdown");
     delete loader;
     delete main_daemon;
     _exit(0);
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
             // bootstrap
             loader = new Arc::Loader(&config);
             // Arc::Loader loader(&config);
-            l.msg(Arc::INFO, "Service side MCCs are loaded");
+            logger.msg(Arc::INFO, "Service side MCCs are loaded");
             // sleep forever
             for (;;) {
                 sleep(INT_MAX);

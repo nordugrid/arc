@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "../../libs/common/Logger.h"
+
 namespace Arc {
 
 class Daemon {
@@ -12,6 +14,7 @@ class Daemon {
         ~Daemon();
     private:
         std::string pid_file;
+	static Logger logger;
 };
 
 }; // namespace Arc

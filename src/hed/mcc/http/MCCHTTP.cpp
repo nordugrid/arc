@@ -1,5 +1,3 @@
-//include <iostream>
-
 #include "../../../libs/common/XMLNode.h"
 #include "../../libs/message/PayloadRaw.h"
 #include "PayloadHTTP.h"
