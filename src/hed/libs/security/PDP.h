@@ -5,6 +5,7 @@
 
 #include "common/ArcConfig.h"
 #include "../message/Message.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 
@@ -13,6 +14,8 @@ class PDP {
   PDP(Arc::Config* cfg) { };
   virtual ~PDP(void) { };
   virtual bool isPermitted(std::string subject) {};
+ protected:
+  static Logger logger;
 };
 
 } // namespace Arc

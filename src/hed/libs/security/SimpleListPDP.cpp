@@ -1,16 +1,12 @@
-#include <iostream>
 #include <fstream>
 #include <sys/types.h>
 
 #include "../../libs/loader/PDPLoader.h"
 #include "../../../libs/common/XMLNode.h"
 #include "../../../libs/common/Thread.h"
-#include "../../../libs/common/Logger.h"
 #include "../../../libs/common/ArcConfig.h"
 
 #include "SimpleListPDP.h"
-
-//Arc::Logger &l = Arc::Logger::rootLogger;
 
 static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::SimpleListPDP(cfg);
@@ -25,7 +21,7 @@ using namespace Arc;
 
 SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   location = (std::string)(cfg->Attribute("location"));
-  std::cerr<<"Access list location:\n"<<location<<std::endl;
+  logger.msg(LogMessage(INFO, "Access list location: "+location));
 }
 
 bool SimpleListPDP::isPermitted(std::string subject){
@@ -34,14 +30,14 @@ bool SimpleListPDP::isPermitted(std::string subject){
   
   while (!fs.eof()) {
      getline (fs, line);
-     std::cerr <<"policy line:"<<line<<std::endl;
-     std::cerr<<"subject:"<<subject<<std::endl;
+  logger.msg(LogMessage(INFO, "policy line:"+line));
+  logger.msg(LogMessage(INFO, "subject:"+subject));
      if(!(line.compare(subject))){
 	fs.close();
         return true;
      }
   }
   fs.close();
-  std::cerr <<"UnAuthorized!!!"<<std::endl;
+  logger.msg(ERROR, "UnAuthorized!!!");
   return false;
 }

@@ -5,6 +5,7 @@
 
 #include "common/ArcConfig.h"
 #include "../message/Message.h"
+#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 
@@ -13,6 +14,8 @@ class SecHandler {
   SecHandler(Arc::Config* cfg) { };
   virtual ~SecHandler(void) { };
   virtual bool Handle(Message* msg){};
+ protected:
+  static Logger logger;
 };
 
 } // namespace Arc

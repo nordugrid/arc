@@ -1,13 +1,9 @@
-#include <iostream>
 #include <sys/types.h>
 
 #include "../../libs/loader/SecHandlerLoader.h"
 #include "../../../libs/common/XMLNode.h"
-#include "../../../libs/common/Logger.h"
 
 #include "SimpleListAuthZ.h"
-
-//Arc::Logger &l = Arc::Logger::rootLogger;
 
 static Arc::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
     return new Arc::SimpleListAuthZ(cfg,ctx);
@@ -22,12 +18,10 @@ using namespace Arc;
 
 SimpleListAuthZ::SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx):SecHandler(cfg){
   
-std::cerr<<"SimpleListAuthZ: top = "<<cfg->Name()<<std::endl;
   pdp_factory = (PDPFactory*)ctx;
   if(pdp_factory) {
     for(int n = 0;;++n) {
       std::string name = (*cfg)["Plugins"][n]["Name"];
-std::cerr<<"SimpleListAuthZ: Name = "<<name<<std::endl;
       if(name.empty()) break;
       pdp_factory->load_all_instances(name);
     };
@@ -53,7 +47,7 @@ void* SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
 	    if(!can) break;
 	    std::string name = can.Attribute("name");
 	    if(name.empty()) {
-               std::cerr << "PDP has no name attribute defined" << std::endl;
+	       logger.msg(ERROR, "PDP has no name attribute defined");
                continue;
 	    }
             PDP* pdp = pdp_factory->get_instance(name,&cfg_,ctx);
@@ -69,7 +63,7 @@ void* SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
        if(!can) break;
        Arc::Config cfg_(cn);
        std::string name = cn.Attribute("name");
-       std::cerr <<"PDP name:\n"<<name<<std::endl;
+       logger.msg(LogMessage(ERROR, "PDP name:"+name));
        PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
        if(!pdp) continue;
        pdps_[name]=pdp;
@@ -78,7 +72,6 @@ void* SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
 
 bool SimpleListAuthZ::Handle(Message* msg){
   std::string subject=msg->Attributes()->get("TLS:PEERDN");
-  std::cerr <<"Get the DN:\n"<<subject<<std::endl;
   pdp_container_t::iterator it;
   for(it=pdps_.begin();it!=pdps_.end();it++){
      if(it->second->isPermitted(subject))
