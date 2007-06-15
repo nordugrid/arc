@@ -33,12 +33,6 @@
         </Component>
         <Component name="soap.service" id="soap">
             <SecHandler name="simplelist.authz" id="authz" event="incoming">
-              <ArcConfig>
-                <ModuleManager>
-    	          <Path>../../hed/libs/security/.libs/</Path>
-                </ModuleManager>
-              </ArcConfig>
-              <Plugins><Name>security</Name></Plugins>
               <PDP name="simplelist.pdp" type="plaintxt" location="./accesslist"/>
             </SecHandler>
 	    <next id="echo"/>
