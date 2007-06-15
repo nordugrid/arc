@@ -6,6 +6,8 @@
 
 namespace Arc {
 
+  Logger Service::logger(Logger::rootLogger, "Service");
+
 void Service::handle(Handler* handler,const std::string& label) {
     if(handler) handlers_[label].push_back(handler);
 }

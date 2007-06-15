@@ -3,9 +3,11 @@
 #endif
 
 #include <iostream>
+#include <sstream>
 #include <limits.h>
 
 #include "LoaderFactory.h"
+#include "Loader.h"
 
 namespace Arc {
 
@@ -41,8 +43,8 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         // Identify table of descriptors
         void *ptr = NULL;
         if (!module->get_symbol(id_.c_str(), ptr)) {
-            std::cerr << "Not a plugin" << std::endl;
-            return NULL;
+	  Loader::logger.msg(ERROR, "Not a plugin.");
+	  return NULL;
         }
         // Copy new description to a table. TODO: check for duplicate names
         for(loader_descriptor* desc = (loader_descriptor*)ptr;
@@ -60,10 +62,13 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
     }
     if(i == descriptors_.end()) return NULL;
     loader_descriptor &descriptor = *i;
-    std::cout << "Element: " << descriptor.name << " version: " << descriptor.version << std::endl;
+    std::ostringstream msg;
+    msg << "Element: " << descriptor.name << " version: "
+	<< descriptor.version;
+    Loader::logger.msg(LogMessage(DEBUG, msg.str()));
     if (descriptor.get_instance == NULL) {
-        std::cerr << "Missing init function" << std::endl;
-        return NULL;
+      Loader::logger.msg(ERROR, "Missing init function");
+      return NULL;
     }
     return (*descriptor.get_instance)(cfg,ctx);
 }
@@ -72,14 +77,16 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     // Load module
     Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
-        std::cerr << "Module " << libname << " could not be loaded" << std::endl;
-        return;
+      std::ostringstream msg;
+      msg << "Module " << libname << " could not be loaded";
+      Loader::logger.msg(LogMessage(ERROR, msg.str()));
+      return;
     };
     // Identify table of descriptors
     void *ptr = NULL;
     if (!module->get_symbol(id_.c_str(), ptr)) {
-        //std::cerr << "Not a plugin" << std::endl;
-        return;
+      Loader::logger.msg(ERROR, "Not a plugin");
+      return;
     }
     printf("%s %p\n", id_.c_str(), ptr);
     // Copy new description to a table. TODO: check for duplicate names

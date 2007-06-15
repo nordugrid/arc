@@ -2,6 +2,7 @@
 #include <signal.h>
 
 #include "../../libs/common/ArcConfig.h"
+#include "../../libs/common/Logger.h"
 #include "../../hed/libs/loader/Loader.h"
 #include "../../hed/libs/message/SOAPEnvelop.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
@@ -9,8 +10,10 @@
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
-  
-  std::cout << "Creating client side chain" << std::endl;
+  Arc::Logger logger(Arc::Logger::rootLogger, "Test");
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::rootLogger.addDestination(logcerr);
+  logger.msg(Arc::INFO, "Creating client side chain");
   // Create client chain
   Arc::XMLNode client_doc("\
     <ArcConfig\
@@ -36,20 +39,20 @@ int main(void) {
     </ArcConfig>");
   Arc::Config client_config(client_doc);
   if(!client_config) {
-    std::cerr << "Failed to load client configuration" << std::endl;
+    logger.msg(Arc::ERROR, "Failed to load client configuration.");
     return -1;
   };
   Arc::Loader client_loader(&client_config);
-  std::cout << "Client side MCCs are loaded" << std::endl;
+  logger.msg(Arc::INFO, "Client side MCCs are loaded");
   Arc::MCC* client_entry = client_loader["soap"];
   if(!client_entry) {
-    std::cerr << "Client chain does not have entry point" << std::endl;
+    logger.msg(Arc::ERROR, "Client chain does not have entry point.");
     return -1;
   };
 
   // for (int i = 0; i < 10; i++) {
   // Create and send echo request
-  std::cout << "Creating and sending request" << std::endl;
+  logger.msg(Arc::INFO, "Creating and sending request");
   Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
   Arc::PayloadSOAP req(echo_ns);
   req.NewChild("echo").NewChild("say")="HELLO";
@@ -58,19 +61,19 @@ int main(void) {
   reqmsg.Payload(&req);
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
-    std::cerr << "Request fialed" << std::endl;
+    logger.msg(Arc::ERROR, "Request fialed");
     return -1;
   };
   Arc::PayloadSOAP* resp = NULL;
   if(repmsg.Payload() == NULL) {
-    std::cerr << "There isn no response" << std::endl;
+    logger.msg(Arc::ERROR, "There isn no response");
     return -1;
   };
   try {
     resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
   } catch(std::exception&) { };
   if(resp == NULL) {
-    std::cerr << "Response is not SOAP" << std::endl;
+    logger.msg(Arc::ERROR, "Response is not SOAP");
     return -1;
   };
   std::string xml;

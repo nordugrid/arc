@@ -1,13 +1,17 @@
 #include "Thread.h"
 #include <iostream>
+#include "Logger.h"
 
 namespace Arc {
+
+  static Logger threadLogger(Logger::rootLogger, "Thread");
+
 class ThreadInitializer {
-    public:
-        ThreadInitializer(void) {
-            std::cout << "Initialize thread system" << std::endl;
-            if(!Glib::thread_supported()) Glib::thread_init();
-        };
+public:
+  ThreadInitializer(void) {
+    threadLogger.msg(INFO, "Initialize thread system");
+    if(!Glib::thread_supported()) Glib::thread_init();
+  };
 };
 
 class ThreadArgument {
@@ -27,9 +31,9 @@ bool CreateThreadFunction(void (*func)(void*), void* arg) {
         Glib::Thread::create(sigc::mem_fun(*argument,&ThreadArgument::thread),
                              false);
     } catch(std::exception& e) { 
-        std::cout << e.what() << std::endl;
-        delete argument;
-        return false;
+      threadLogger.msg(ERROR, e.what());
+      delete argument;
+      return false;
     };
     return true;
 }

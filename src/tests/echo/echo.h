@@ -2,6 +2,7 @@
 #define __ARC_ECHO_H__
 
 #include "../../hed/libs/message/Service.h"
+#include "../../libs/common/Logger.h"
 
 namespace Echo {
 
@@ -15,6 +16,7 @@ class Service_Echo: public Arc::Service
         std::string suffix_;
         Arc::NS ns_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
+	static Arc::Logger logger;
     public:
         /** Constructor accepts configuration describing content of prefix and suffix */
         Service_Echo(Arc::Config *cfg);

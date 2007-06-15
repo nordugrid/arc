@@ -1,6 +1,7 @@
 #ifndef __ARC_SERVICE_H__
 #define __ARC_SERVICE_H__
 
+#include "common/Logger.h"
 #include "common/ArcConfig.h"
 #include "../message/MCC.h"
 
@@ -28,8 +29,9 @@ namespace Arc {
  */
 class Service: public MCCInterface
 {
-    protected:
-	std::map<std::string,std::list<Handler*> > handlers_;
+ protected:
+  static Logger logger;
+  std::map<std::string,std::list<Handler*> > handlers_;
 //        std::map<std::string,std::list<AuthNHandler*> > authn_;
 //        std::map<std::string,std::list<AuthZHandler*> > authz_;
     public:

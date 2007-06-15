@@ -6,7 +6,6 @@
 
 #include "echo.h"
 
-
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Echo::Service_Echo(cfg);
 }
@@ -18,6 +17,7 @@ service_descriptor __arc_service_modules__[] = {
 
 using namespace Echo;
 
+Arc::Logger Service_Echo::logger(Service::logger, "Echo");
 
 Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg) {
     ns_["echo"]="urn:echo";
@@ -47,13 +47,14 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) {
-    std::cerr << "ECHO: input is not SOAP" << std::endl;
+    logger.msg(Arc::ERROR, "Input is not SOAP.");
     return make_fault(outmsg);
   };
   // Analyzing request 
   Arc::XMLNode echo_op = (*inpayload)["echo"];
   if(!echo_op) {
-    std::cerr << "ECHO: request is not supported - " << echo_op.Name() << std::endl;
+    logger.msg(Arc::LogMessage(Arc::ERROR, "Request is not supported - "+
+			       echo_op.Name()));
     return make_fault(outmsg);
   };
   std::string say = echo_op["say"];
