@@ -22,6 +22,9 @@ namespace Arc {
 
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg) 
 {
+    JNIEnv *jenv = NULL;
+    JavaVMInitArgs jvm_args;
+    JavaVMOption options[1];
     /* Initiliaze java engine */
     JNI_GetDefaultJavaVMInitArgs(&jvm_args);
     jvm_args.version = JNI_VERSION_1_2;
@@ -71,7 +74,7 @@ Arc::MCC_Status Service_JavaWrapper::make_fault(Arc::Message& outmsg)
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status Service_JavaWrapper::java_error(const char *str) {
+Arc::MCC_Status Service_JavaWrapper::java_error(JNIEnv *jenv, const char *str) {
     std::cerr << str << std::endl;
     if (jenv->ExceptionOccurred()) {
         jenv->ExceptionDescribe();
@@ -83,12 +86,15 @@ Arc::MCC_Status Service_JavaWrapper::java_error(const char *str) {
 
 Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 {
+    JNIEnv *jenv = NULL;
+
     /* Attach to the current java engine thread */
     jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
+    printf("JEnv: %p\n");
     /* Get the process function of service */
     jmethodID processID = jenv->GetMethodID(serviceClass, "process", "(Lorg/nordugrid/arc/SOAPMessage;Lorg/nordugrid/arc/SOAPMessage;)Lorg/nordugrid/arc/MCC_Status;");
     if (processID == NULL) {
-        return java_error("Cannot find process method of java class");
+        return java_error(jenv,"Cannot find process method of java class");
     }
     /* convert inmsg and outmsg to java objects */
     Arc::SOAPMessage *inmsg_ptr = NULL;
@@ -108,21 +114,21 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
 
     jclass JSOAPMessageClass = jenv->FindClass("org/nordugrid/arc/SOAPMessage");
     if (JSOAPMessageClass == NULL) {
-        return java_error("Cannot find SOAPMessage object");
+        return java_error(jenv,"Cannot find SOAPMessage object");
     }
     /* Get the constructor of java object */
     jmethodID constructorID = jenv->GetMethodID(JSOAPMessageClass, "<init>", "(I)V");
     if (constructorID == NULL) {
-        return java_error("Cannot find constructor function of message");
+        return java_error(jenv,"Cannot find constructor function of message");
     }
     /* Convert C++ object to Java objects */
     jobject jinmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)inmsg_ptr));
     if (jinmsg == NULL) {
-        return java_error("Cannot convert input message to java object");
+        return java_error(jenv,"Cannot convert input message to java object");
     }
     jobject joutmsg = jenv->NewObject(JSOAPMessageClass, constructorID, (jlong)((long int)outmsg_ptr));
     if (jinmsg == NULL) {
-        return java_error("Cannot convert output message to java object");
+        return java_error(jenv,"Cannot convert output message to java object");
     }
     /* Create arguments for java process function */
     jvalue args[2];
@@ -131,12 +137,12 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     /* Call the process method of Java object */
     jobject jmcc_status = jenv->CallObjectMethodA(serviceObj, processID, args);
     if (jmcc_status == NULL) {
-        return java_error("Error in call process function of java object");
+        return java_error(jenv,"Error in call process function of java object");
     }
     /* Get SWIG specific getCPtr function of Message class */
     jmethodID msg_getCPtrID = jenv->GetStaticMethodID(JSOAPMessageClass, "getCPtr", "(Lorg/nordugrid/arc/SOAPMessage;)J");
     if (msg_getCPtrID == NULL) {
-        return java_error("Cannot find getCPtr method of java Message class");
+        return java_error(jenv,"Cannot find getCPtr method of java Message class");
     }
     /* Get Java MCC_Status class */
     jclass JMCC_StatusClass = jenv->FindClass("org/nordugrid/arc/MCC_Status");
@@ -149,21 +155,23 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     /* Get SWIG specific getCPtr function of MCC_Status class */
     jmethodID mcc_status_getCPtrID = jenv->GetStaticMethodID(JMCC_StatusClass, "getCPtr", "(Lorg/nordugrid/arc/MCC_Status;)J");
     if (mcc_status_getCPtrID == NULL) {
-        return java_error("Cannot find getCPtr method of java MCC_Status class");
+        return java_error(jenv,"Cannot find getCPtr method of java MCC_Status class");
     }
     
     /* Convert Java status object to C++ class */
     jlong mcc_status_addr = jenv->CallStaticLongMethod(JMCC_StatusClass, mcc_status_getCPtrID, jmcc_status);
+    printf("%p\n", mcc_status_addr);
     Arc::MCC_Status status(*((Arc::MCC_Status *)(long)mcc_status_addr));
     /* Convert Java output message object to C++ class */
     jlong outmsg_addr = jenv->CallStaticLongMethod(JSOAPMessageClass, msg_getCPtrID, joutmsg);
      
     Arc::SOAPMessage *outmsg_ptr2 = (Arc::SOAPMessage *)(long)outmsg_addr;
-    printf("%p\n", outmsg_ptr2);
-    std::string xml;
-    outmsg_ptr2->Payload()->GetXML(xml);   
-    std::cout << xml << std::endl;
-    outmsg.Payload((MessagePayload *)outmsg_ptr2->Payload());
+    // printf("%p\n", outmsg_ptr2);
+    // std::string xml;
+    // outmsg_ptr2->Payload()->GetXML(xml);   
+    // std::cout << xml << std::endl;
+    Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
+    outmsg.Payload((MessagePayload *)pl);
 #if 0
     ->GetXML(xml);
     std::cout << "XML: "<< xml << std::endl;
