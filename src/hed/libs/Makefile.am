@@ -1,1 +1,1 @@
-SUBDIRS=message loader counter
+SUBDIRS=message loader counter security
