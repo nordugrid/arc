@@ -1,6 +1,7 @@
 #include <sys/types.h>
 
 #include "../../libs/loader/SecHandlerLoader.h"
+#include "../../libs/loader/Loader.h"
 #include "../../../libs/common/XMLNode.h"
 
 #include "SimpleListAuthZ.h"
@@ -18,7 +19,7 @@ using namespace Arc;
 
 SimpleListAuthZ::SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx):SecHandler(cfg){
   
-  pdp_factory = (PDPFactory*)ctx;
+  pdp_factory = (PDPFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {
       std::string name = (*cfg)["Plugins"][n]["Name"];
