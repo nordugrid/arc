@@ -6,18 +6,10 @@
 
 namespace Arc {
 
-  Logger Service::logger(Logger::rootLogger, "Service");
+Logger Service::logger(Logger::rootLogger, "Service");
 
-void Service::handle(Handler* handler,const std::string& label) {
-    if(handler) handlers_[label].push_back(handler);
-}
-/*
-void Service::AuthN(AuthNHandler* authn,const std::string& label) {
-    if(authn) authn_[label].push_back(authn);
+void Service::AddSecHandler(SecHandler* sechandler,const std::string& label) {
+    if(sechandler) sechandlers_[label].push_back(sechandler);
 }
 
-void Service::AuthZ(AuthZHandler* authz,const std::string& label) {
-    if(authz) authz_[label].push_back(authz);
-}
-*/
 } // namespace Arc

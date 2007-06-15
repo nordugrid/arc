@@ -31,7 +31,7 @@
       <!-- pattern for name matching -->
       <xsd:simpleType name="PatternType">
         <xsd:restriction base="xsd:string"/>
-        <!-- xsd:attribute name="type" type="PatternTypeType" use="required" -->
+        <!-- xsd:attribute name="type" type="PatternTypeType" use="required"/ -->
       </xsd:simpleType>
       <xsd:element name="Type" type="ItemType"/>
 
@@ -41,6 +41,7 @@
           <xsd:element name="Key"        type="xsd:string"/>
           <xsd:element name="Value"      type="xsd:string"/>
         </xsd:sequence>
+        <xsd:attribute name="type" type="PatternTypeType" use="required"/>
       </xsd:complexType>
 
       <!-- type of fault  -->

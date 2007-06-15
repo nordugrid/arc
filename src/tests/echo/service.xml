@@ -32,7 +32,7 @@
             <next id="soap">POST</next>
         </Component>
         <Component name="soap.service" id="soap">
-            <Handler name="simplelist.authz" id="authz" event="incoming">
+            <SecHandler name="simplelist.authz" id="authz" event="incoming">
               <ArcConfig>
                 <ModuleManager>
     	          <Path>../../hed/libs/security/.libs/</Path>
@@ -40,7 +40,7 @@
               </ArcConfig>
               <Plugins><Name>security</Name></Plugins>
               <PDP name="simplelist.pdp" type="plaintxt" location="./accesslist"/>
-            </Handler>
+            </SecHandler>
 	    <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">

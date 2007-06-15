@@ -6,7 +6,8 @@
 #include "common/ArcConfig.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
-#include "HandlerFactory.h"
+#include "SecHandlerFactory.h"
+#include "PDPFactory.h"
 #include "Plexer.h"
 #include "../../../libs/common/Logger.h"
 
@@ -44,29 +45,29 @@ class Loader
         typedef std::map<std::string, MCC *>     mcc_container_t;
         typedef std::map<std::string, Service *> service_container_t;
         typedef std::map<std::string, Plexer *>  plexer_container_t;
-        typedef std::map<std::string, Handler *> handler_container_t;
-        //typedef std::map<std::string, AuthNHandler *> authn_container_t;
-        //typedef std::map<std::string, AuthZHandler *> authz_container_t;
+        typedef std::map<std::string, SecHandler *> sechandler_container_t;
 
 	static Logger logger;
 
     private:
-        /** Link to Factory responsible for loading and creation of Service objects */
+        /** Link to Factory responsible for loading and creation of 
+          Service objects */
         ServiceFactory *service_factory;
 
-        /** Link to Factory responsible for loading and creation of MCC objects */
+        /** Link to Factory responsible for loading and creation of 
+          MCC objects */
         MCCFactory *mcc_factory;
 
         //PlexerFactory *plexer_factory;
         
-        /** Link to Factory responsible for loading and creation of authentication handlers */
-	HandlerFactory *handler_factory;
+        /** Link to Factory responsible for loading and creation of 
+          Security handlers */
+	SecHandlerFactory *sechandler_factory;
 
-        /** Link to Factory responsible for loading and creation of authentication handlers */
-        //AuthNHandlerFactory *authn_factory;
-
-        /** Link to Factory responsible for loading and creation of authorization handlers */
-        //AuthZHandlerFactory *authz_factory;
+        /** Link to Factory responsible for loading and creation of 
+          PDP objects. Differently from other factories this one 
+          is not used by Loader. */
+	PDPFactory *pdp_factory;
 
         /** Set of labeled MCC objects */
         mcc_container_t     mccs_;
@@ -80,15 +81,8 @@ class Loader
         /** Set of labeled Plexer objects */
         plexer_container_t  plexers_;
 
-
     	/** Set of labeled handlers */
-	handler_container_t  handlers_;
-
-        /** Set of labeled authentication handlers */
-        //authn_container_t  authns_;
-
-        /** Set of labeled authorization handlers */
-        //authz_container_t  authzs_;
+	sechandler_container_t  sechandlers_;
 
         /** Internal method which performs whole stuff except creation of Factories. 
           It is taken out from constructor to make it easier to reconfigure chains
@@ -119,10 +113,8 @@ class ChainContext {
     public:
         operator ServiceFactory*(void);
         operator MCCFactory*(void);
-
-	operator HandlerFactory*(void);
-        //operator AuthNHandlerFactory*(void);
-        //operator AuthZHandlerFactory*(void);
+	operator SecHandlerFactory*(void);
+	operator PDPFactory*(void);
 };
 
 }

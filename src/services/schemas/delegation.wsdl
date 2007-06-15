@@ -34,6 +34,7 @@
         </xsd:sequence>
         <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
       </xsd:complexType>
+      <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
 
       <xsd:complexType name="TokenRequestType">
         <xsd:sequence>
@@ -42,6 +43,7 @@
         </xsd:sequence>
         <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
       </xsd:complexType>
+      <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
 
       <!-- Types for messages -->
 
@@ -87,6 +89,13 @@
       </xsd:complexType>
       <xsd:element name="ProcessingFault" type="deleg:ProcessingFaultType"/>
 
+      <xsd:complexType name="WrongReferenceFaultType">
+        <xsd:sequence>
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="WrongReferenceFault" type="deleg:WrongReferenceFaultType"/>
+
     </xsd:schema>
   </wsdl:types>
 
@@ -112,6 +121,10 @@
 
   <wsdl:message name="ProcessingFault">
     <wsdl:part name="Detail" element="deleg:ProcessingFault"/>
+  </wsdl:message>
+
+  <wsdl:message name="WrongReferenceFault">
+    <wsdl:part name="Detail" element="deleg:WrongReferenceFault"/>
   </wsdl:message>
 
   <wsdl:portType name="DelegationPortType">
@@ -140,6 +153,8 @@
         message="deleg:UnsupportedFault"/>
       <wsdl:fault name="ProcessingFault"
         message="deleg:ProcessingFault"/>
+      <wsdl:fault name="WrongReferenceFault"
+        message="deleg:WrongReferenceFault"/>
     </wsdl:operation>
 
   </wsdl:portType>

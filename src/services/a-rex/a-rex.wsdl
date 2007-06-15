@@ -9,11 +9,13 @@
  xmlns:wsa="http://www.w3.org/2005/08/addressing"
  xmlns:bes-factory="http://schemas.ggf.org/bes/2006/08/bes-factory"
  xmlns:bes-mgmt="http://schemas.ggf.org/bes/2006/08/bes-management"
- xmlns="http://www.nordugrid.org/schemas/a-rex">
+ xmlns:deleg="http://www.nordugrid.org/schemas/delegation"
+ xmlns:a-rex="http://www.nordugrid.org/schemas/a-rex">
 
 
   <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
   <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
+  <wsdl:import namespase="http://www.nordugrid.org/schemas/delegation" location="../schemas/delegation.wsdl"/>
 
 
   <wsdl:types>
@@ -114,6 +116,8 @@
 
 
   <wsdl:service name="a-rex">
+    <wsdl:port name="delegation" binding="deleg:DelegationBinding">
+    </wsdl:port>
     <wsdl:port name="bes-factory" binding="bes-factory:BESFactoryBinding">
     </wsdl:port>
     <wsdl:port name="bes-mgmt" binding="bes-mgmt:BESManagementBinding">

@@ -27,24 +27,13 @@ void MCC::Unlink(void) {
                                      n != next_.end();n = next_.begin()) next_.erase(n);
 }
 
-void MCC::AddHandler(Config* cfg,Handler* handler,const std::string& label) {
-    if(handler) {
-    handlers_[label].push_back(handler); //need polishing to put the HandlerFactory->getinstance here
-    XMLNode cn = (*cfg)["Handler"];
-    printf("Handler here!!!!");
-    Config cfg_(cn);
-    handler->MakePDP(&cfg_);
+void MCC::AddSecHandler(Config* cfg,SecHandler* sechandler,const std::string& label) {
+    if(sechandler) {
+        sechandlers_[label].push_back(sechandler); //need polishing to put the SecHandlerFactory->getinstance here
+        XMLNode cn = (*cfg)["Handler"];
+        Config cfg_(cn);
     }
 }
 
-/*
-void MCC::AuthN(AuthNHandler* authn,const std::string& label) {
-    if(authn) authn_[label].push_back(authn);
-}
-
-void MCC::AuthZ(AuthZHandler* authz,const std::string& label) {
-    if(authz) authz_[label].push_back(authz);
-}
-*/
 }; // namespace Arc
 

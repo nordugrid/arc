@@ -5,30 +5,28 @@
 
 #include "common/ArcConfig.h"
 #include "../message/Message.h"
-#include "Handler.h"
+#include "SecHandler.h"
 #include "PDP.h"
 #include "../../libs/loader/PDPFactory.h"
 
 namespace Arc {
-class SimpleListAuthZ : public Handler {
+class SimpleListAuthZ : public SecHandler {
  public:
   typedef std::map<std::string, PDP *>  pdp_container_t;
 
  private:
-  /** Link to Factory responsible for loading and creation of MCC objects */
+  /** Link to Factory responsible for loading and creation of PDP objects */
   PDPFactory *pdp_factory;
-  /**One AuthZ Handeler can include a few PDP */
+  /** One Handler can include few PDP */
   pdp_container_t pdps_;
-
- public:
-  SimpleListAuthZ(Arc::Config *cfg);
-  virtual ~SimpleListAuthZ(void) { };
-  
   /** PDP*/
-  virtual void *MakePDP(Arc::Config* cfg);
-
+  void *MakePDPs(Arc::Config* cfg);
+ public:
+  SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx);
+  virtual ~SimpleListAuthZ(void);
+  
   /** Get authorization decision*/
-  virtual bool SecHandle(Message* msg);  
+  virtual bool Handle(Message* msg);  
 };
 
 } // namespace Arc

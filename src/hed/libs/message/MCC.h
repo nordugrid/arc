@@ -6,12 +6,10 @@
 #include "common/ArcConfig.h"
 #include "Message.h"
 #include "MCC_Status.h"
-#include "../security/Handler.h"
+#include "../security/SecHandler.h"
 #include "../../../libs/common/Logger.h"
 
 namespace Arc {
-
-//class Handler;
 
 /** This class defines interface for communication between MCC, Service and Plexer objects.
   Interface is made of method process() which is called by previous MCC in chain. 
@@ -53,7 +51,7 @@ class MCC: public Arc::MCCInterface
       MCC calls sequence of handlers at specific point depending
       on associated identifier. in most aces those are "in" and "out"
       for incoming and outgoing messages correspondingly. */
-  std::map<std::string,std::list<Arc::Handler*> > handlers_;
+  std::map<std::string,std::list<Arc::SecHandler*> > sechandlers_;
   
   //! A logger for MCCs.
   /*! A logger intended to be the parent of loggers in the different
@@ -73,8 +71,8 @@ class MCC: public Arc::MCCInterface
         
         virtual void Next(Arc::MCCInterface* next,const std::string& label = "");
         
-        /** Handler */
-	    virtual void AddHandler(Arc::Config *cfg,Arc::Handler* handler,const std::string& label = "");
+        /** SecHandler */
+        virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");
         
 	    /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);

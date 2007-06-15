@@ -6,7 +6,8 @@
 #include "Loader.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
-#include "HandlerFactory.h"
+#include "SecHandlerFactory.h"
+#include "PDPFactory.h"
 #include "../../../libs/common/Logger.h"
 
 namespace Arc {
@@ -16,10 +17,11 @@ namespace Arc {
 Loader::Loader(Config *cfg)
 {
     // Config empty_config;
-    service_factory = new ServiceFactory(cfg);
-    mcc_factory = new MCCFactory(cfg);
-    handler_factory = new HandlerFactory(cfg);
-    //plexer_factory = new PlexerFactory(&empty_config);
+    service_factory    = new ServiceFactory(cfg);
+    mcc_factory        = new MCCFactory(cfg);
+    sechandler_factory = new SecHandlerFactory(cfg);
+    pdp_factory        = new PDPFactory(cfg);
+    //plexer_factory     = new PlexerFactory(&empty_config);
 
     context_ = new ChainContext(*this);
 
@@ -129,7 +131,7 @@ static XMLNode FindElementByID(XMLNode node,const std::string& id,const std::str
 }
 
 
-static Handler* MakeHandler(Config* cfg,ChainContext* ctx, Loader::handler_container_t& handlers, HandlerFactory* handler_factory,XMLNode node) {
+static SecHandler* MakeSecHandler(Config* cfg,ChainContext* ctx, Loader::sechandler_container_t& sechandlers, SecHandlerFactory* sechandler_factory,XMLNode node) {
     if(!node) return NULL;
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");
@@ -138,74 +140,35 @@ static Handler* MakeHandler(Config* cfg,ChainContext* ctx, Loader::handler_conta
         refid = (std::string)(node.Attribute("id"));
         if(refid.empty()) {
             char buf[256];
-            snprintf(buf,sizeof(buf)-1,"__arc_handler_%u__",handlers.size());
+            snprintf(buf,sizeof(buf)-1,"__arc_sechandler_%u__",sechandlers.size());
             buf[sizeof(buf)-1]=0;
             refid=buf;
         };
     } else {
         // Maybe it's already created
-        Loader::handler_container_t::iterator phandler = handlers.find(refid);
-        if(phandler != handlers.end()) {
+        Loader::sechandler_container_t::iterator phandler = sechandlers.find(refid);
+        if(phandler != sechandlers.end()) {
             return phandler->second;
         }
         // Look for it's configuration
-        desc_node=FindElementByID(*cfg,refid,"Handler");
+        desc_node=FindElementByID(*cfg,refid,"SecHandler");
     }
     if(!desc_node) {
-      Loader::logger.msg(ERROR, "Handler has no configuration.");
+      Loader::logger.msg(ERROR, "SecHandler has no configuration.");
       return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
-      Loader::logger.msg(ERROR, "Handler has no name attribute defined.");
+      Loader::logger.msg(ERROR, "SecHandler has no name attribute defined.");
       return NULL;
     }
-    // Create new handler
+    // Create new security handler
     Config cfg_(desc_node);
-    Handler* handler=handler_factory->get_instance(name,&cfg_,ctx);
-    std::cerr << "Handler name:\n" <<name<< std::endl;
-    if(handler) handlers[refid]=handler;
-    return handler;
+    SecHandler* sechandler=sechandler_factory->get_instance(name,&cfg_,ctx);
+    std::cerr << "SecHandler name:\n" <<name<< std::endl;
+    if(sechandler) sechandlers[refid]=sechandler;
+    return sechandler;
 }
-/*
-static AuthZHandler* MakeAuthZHandler(Config* cfg,ChainContext* ctx,Loader::authz_container_t& authzs,AuthZHandlerFactory* authz_factory,XMLNode node) {
-    if(!node) return NULL;
-    XMLNode desc_node;
-    std::string refid = node.Attribute("refid");
-    if(refid.empty()) {
-        desc_node = node;
-        refid = (std::string)(node.Attribute("id"));
-        if(refid.empty()) {
-            char buf[256];
-            snprintf(buf,sizeof(buf)-1,"__arc_authz_%u__",authzs.size());
-            buf[sizeof(buf)-1]=0;
-            refid=buf;
-        };
-    } else {
-        // Maybe it's already created
-        Loader::authz_container_t::iterator auth = authzs.find(refid);
-        if(auth != authzs.end()) {
-            return auth->second;
-        }
-        // Look for it's configuration
-        desc_node=FindElementByID(*cfg,refid,"Authentication");
-    }
-    if(!desc_node) {
-        logger.msg(ERROR, "Authentication handler has no configuration.");
-        return NULL;
-    }
-    std::string name = desc_node.Attribute("name");
-    if(name.empty()) {
-        logger.msg(ERROR, "Authentication handler has no name attribute defined.");
-        return NULL;
-    }
-    // Create new handler
-    Config cfg_(desc_node);
-    AuthZHandler* handler=authz_factory->get_instance(name,&cfg_,ctx);
-    if(handler) authzs[refid]=handler;
-    return handler;
-}
-*/
 
 void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connectors,plexer_connectors_t* plexer_connectors) {
 
@@ -241,7 +204,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
 	    logger.msg(DEBUG, name.c_str());
             service_factory->load_all_instances(name);
             mcc_factory->load_all_instances(name);
-            handler_factory->load_all_instances(name);
+            sechandler_factory->load_all_instances(name);
+            pdp_factory->load_all_instances(name);
 	    continue;
         }
 
@@ -269,36 +233,18 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             // Configure security plugins
             XMLNode an;
   	    
-            an=cn["Handler"];
+            an=cn["SecHandler"];
 	    for(int n = 0;;++n) {
                 XMLNode can = an[n];
                 if(!can) break;
-                Handler* handler = 
-                     MakeHandler(cfg,context_,handlers_,handler_factory,can);
-                if(!handler) continue;
+                SecHandler* sechandler = 
+                     MakeSecHandler(cfg,context_,sechandlers_,
+                                    sechandler_factory,can);
+                if(!sechandler) continue;
 		std::string event=can.Attribute("event");
-                mcc->AddHandler(&cfg_,handler,event);
+                mcc->AddSecHandler(&cfg_,sechandler,event);
             };
 	    
-            /*an=cn["Authentication"];
-            for(int n = 0;;++n) {
-                XMLNode can = an[n];
-                if(!can) break;
-                AuthNHandler* handler = 
-                     MakeAuthNHandler(cfg,context_,authns_,authn_factory,can);
-                if(!handler) continue; // ????
-                mcc->AuthN(handler,can.Attribute("event"));
-            };
-            an=cn["Authorization"];
-            for(int n = 0;;++n) {
-                XMLNode can = an[n];
-                if(!can) break;
-                AuthZHandler* handler = 
-                     MakeAuthZHandler(cfg,context_,authzs_,authz_factory,can);
-                if(!handler) continue; // ????
-                mcc->AuthZ(handler,can.Attribute("event"));
-            };
-*/
             // Add to chain list
             std::string entry = cn.Attribute("entry");
             if(!entry.empty()) mccs_exposed_[entry]=mcc;

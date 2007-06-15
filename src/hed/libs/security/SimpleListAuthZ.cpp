@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sys/types.h>
 
-#include "../../libs/loader/HandlerLoader.h"
+#include "../../libs/loader/SecHandlerLoader.h"
 #include "../../../libs/common/XMLNode.h"
 #include "../../../libs/common/Logger.h"
 
@@ -9,30 +9,40 @@
 
 //Arc::Logger &l = Arc::Logger::rootLogger;
 
-static Arc::Handler* get_handler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new Arc::SimpleListAuthZ(cfg);
+static Arc::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
+    return new Arc::SimpleListAuthZ(cfg,ctx);
 }
 
-handler_descriptor __arc_handler_modules__[] = {
-    { "simplelist.authz", 0, &get_handler},
+sechandler_descriptor __arc_sechandler_modules__[] = {
+    { "simplelist.authz", 0, &get_sechandler},
     { NULL, 0, NULL }
 };
 
 using namespace Arc;
-SimpleListAuthZ::SimpleListAuthZ(Arc::Config *cfg):Handler(cfg){
+
+SimpleListAuthZ::SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx):SecHandler(cfg){
   
 std::cerr<<"SimpleListAuthZ: top = "<<cfg->Name()<<std::endl;
-  pdp_factory = new Arc::PDPFactory(cfg);
-  for(int n = 0;;++n) {
-    std::string name = (*cfg)["Plugins"][n]["Name"];
+  pdp_factory = (PDPFactory*)ctx;
+  if(pdp_factory) {
+    for(int n = 0;;++n) {
+      std::string name = (*cfg)["Plugins"][n]["Name"];
 std::cerr<<"SimpleListAuthZ: Name = "<<name<<std::endl;
-    if(name.empty()) break;
-    pdp_factory->load_all_instances(name);
+      if(name.empty()) break;
+      pdp_factory->load_all_instances(name);
+    };
+  };
+  MakePDPs(cfg);
+}
+
+SimpleListAuthZ::~SimpleListAuthZ() {
+  for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
+    if(p->second) delete p->second;
   };
 }
 
 /**Producing PDPs */
-void* SimpleListAuthZ::MakePDP(Arc::Config* cfg) {
+void* SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
     /**Creating the PDP plugins*/
  /*   XMLNode cn, an, can;
     for(int i=0;;++i){
@@ -66,7 +76,7 @@ void* SimpleListAuthZ::MakePDP(Arc::Config* cfg) {
     } 
 }
 
-bool SimpleListAuthZ::SecHandle(Message* msg){
+bool SimpleListAuthZ::Handle(Message* msg){
   std::string subject=msg->Attributes()->get("TLS:PEERDN");
   std::cerr <<"Get the DN:\n"<<subject<<std::endl;
   pdp_container_t::iterator it;

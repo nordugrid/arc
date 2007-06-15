@@ -43,7 +43,7 @@ int main(void) {
      <Chain>\
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/></Component>\
-      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/</Endpoint></Component>\
+      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/echo1</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
      </Chain>\
     </ArcConfig>");
@@ -60,7 +60,6 @@ int main(void) {
     return -1;
   };
 
-  //for(int n = 0;n<100;n++) {
   for(int n = 0;n<1;n++) {
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request.");
