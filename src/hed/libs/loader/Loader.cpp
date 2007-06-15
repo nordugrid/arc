@@ -65,11 +65,18 @@ Loader::~Loader(void)
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
   };
+  for(sechandler_container_t::iterator sechandler_i = sechandlers_.begin();sechandler_i != sechandlers_.end();sechandler_i = sechandlers_.begin()) {
+      l.msg(Arc::DEBUG, "sechandler erase");
+      SecHandler* sechandler = sechandler_i->second; 
+      sechandlers_.erase(sechandler_i);
+      if(sechandler) delete sechandler;
+  };
   l.msg(Arc::DEBUG, "after loops");
   if(context_) delete context_;
   l.msg(Arc::DEBUG, "after delete context");
   if(service_factory) delete service_factory;
   if(mcc_factory) delete mcc_factory;
+  if(pdp_factory) delete pdp_factory;
   //if(plexer_factory) delete plexer_factory;
 }
 

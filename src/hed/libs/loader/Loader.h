@@ -111,10 +111,10 @@ class ChainContext {
         ChainContext(Loader& loader):loader_(loader) { };
         ~ChainContext(void) { };
     public:
-        operator ServiceFactory*(void);
-        operator MCCFactory*(void);
-	operator SecHandlerFactory*(void);
-	operator PDPFactory*(void);
+        operator ServiceFactory*(void) { return loader_.service_factory; };
+        operator MCCFactory*(void) { return loader_.mcc_factory; };
+        operator SecHandlerFactory*(void) { return loader_.sechandler_factory; };
+        operator PDPFactory*(void) { return loader_.pdp_factory; };
 };
 
 }
