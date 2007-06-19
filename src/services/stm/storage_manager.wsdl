@@ -6,7 +6,10 @@
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2"
  xmlns:sm="http://www.nordugrid.org/schemas/storage-manager">
+
+  <wsdl:import namespase="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
 
   <wsdl:types>
     <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/storage-manager">
@@ -686,4 +689,88 @@
     </wsdl:operation>
 
   </wsdl:binding>
+  
+  <wsdl:binding name="GetResourcePropertyDocument" type="wsrf-rpw:GetResourcePropertyDocument">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetResourcePropertyDocument">
+      <soap:operation soapAction="GetResourcePropertyDocument"/>
+      <wsdl:input name="wsrf-rpw:GetResourcePropertyDocumentRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsrf-rpw:GetResourcePropertyDocumentResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="ResourceUnknownFault">
+        <soap:fault name="ResourceUnknownFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="ResourceUnavailableFault">
+        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:binding name="GetResourceProperty" type="wsrf-rpw:GetResourceProperty">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetResourceProperty">
+      <soap:operation soapAction="GetResourceProperty"/>
+      <wsdl:input name="wsrf-rpw:GetResourcePropertyRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsrf-rpw:GetResourcePropertyResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="ResourceUnknownFault">
+        <soap:fault name="ResourceUnknownFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="ResourceUnavailableFault">
+        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidResourcePropertyQNameFault">
+        <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:binding name="QueryResourceProperties" type="wsrf:QueryResourceProperties">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="QueryResourceProperties">
+      <soap:operation soapAction="QueryResourceProperties"/>
+      <wsdl:input name="wsrf-rpw:QueryResourcePropertiesRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsrf-rpw:QueryResourcePropertiesResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="ResourceUnknownFault">
+        <soap:fault name="ResourceUnknownFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="ResourceUnavailableFault">
+        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidResourcePropertyQNameFault">
+        <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="UnknownQueryExpressionDialectFault">
+        <soap:fault name="UnknownQueryExpressionDialectFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidQueryExpressionFault">
+        <soap:fault name="InvalidQueryExpressionFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="QueryEvaluationErrorFault">
+        <soap:fault name="QueryEvaluationErrorFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="a-rex">
+    <wsdl:port name="GetResourcePropertyDocument" binding="iis:GetResourcePropertyDocument">
+    </wsdl:port>
+    <wsdl:port name="GetResourceProperty" binding="iis:GetResourceProperty">
+    </wsdl:port>
+    <wsdl:port name="QueryResourceProperties" binding="iis:QueryResourceProperties">
+    </wsdl:port>
+    <wsdl:port name="StorageManager" binding="sm:StorageManagerBinding">
+    </wsdl:port>
+  </wsdl:service>
+  
 </wsdl:definitions>
