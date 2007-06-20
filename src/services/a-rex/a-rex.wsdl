@@ -194,11 +194,11 @@
     </wsdl:port>
     <wsdl:port name="bes-mgmt" binding="bes-mgmt:BESManagementBinding">
     </wsdl:port>
-    <wsdl:port name="GetResourcePropertyDocument" binding="iis:GetResourcePropertyDocument">
+    <wsdl:port name="GetResourcePropertyDocument" binding="a-rex:GetResourcePropertyDocument">
     </wsdl:port>
-    <wsdl:port name="GetResourceProperty" binding="iis:GetResourceProperty">
+    <wsdl:port name="GetResourceProperty" binding="a-rex:GetResourceProperty">
     </wsdl:port>
-    <wsdl:port name="QueryResourceProperties" binding="iis:QueryResourceProperties">
+    <wsdl:port name="QueryResourceProperties" binding="a-rex:QueryResourceProperties">
     </wsdl:port>
     <wsdl:port name="a-rex" binding="a-rex:a-rex">
     </wsdl:port>
