@@ -763,11 +763,11 @@
   </wsdl:binding>
 
   <wsdl:service name="a-rex">
-    <wsdl:port name="GetResourcePropertyDocument" binding="iis:GetResourcePropertyDocument">
+    <wsdl:port name="GetResourcePropertyDocument" binding="sm:GetResourcePropertyDocument">
     </wsdl:port>
-    <wsdl:port name="GetResourceProperty" binding="iis:GetResourceProperty">
+    <wsdl:port name="GetResourceProperty" binding="sm:GetResourceProperty">
     </wsdl:port>
-    <wsdl:port name="QueryResourceProperties" binding="iis:QueryResourceProperties">
+    <wsdl:port name="QueryResourceProperties" binding="sm:QueryResourceProperties">
     </wsdl:port>
     <wsdl:port name="StorageManager" binding="sm:StorageManagerBinding">
     </wsdl:port>
