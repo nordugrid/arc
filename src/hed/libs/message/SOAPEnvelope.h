@@ -79,7 +79,13 @@ class SOAPEnvelope: public XMLNode {
     Created XML structure is owned by this instance.
     If argument fault is set to true created message is fault.  */
   SOAPEnvelope(const NS& ns,bool fault = false);
+  /** Acquire XML document as SOAP message.
+    Created XML structure is NOT owned by this instance. */
+  SOAPEnvelope(XMLNode doc);
   ~SOAPEnvelope(void);
+  /** Creates complete copy of SOAP.
+    Do not use New() method of XMLNode - use this one. */
+  SOAPEnvelope* New(void);
   /** Modify assigned namespaces. 
     Default namespaces and prefixes are
      soap-enc http://schemas.xmlsoap.org/soap/encoding/

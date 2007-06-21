@@ -60,6 +60,10 @@ SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   };
 }
 
+SOAPEnvelope::SOAPEnvelope(XMLNode doc):XMLNode(doc),fault(NULL) {
+  set();
+}
+
 // This function is only called from constructor
 void SOAPEnvelope::set(void) {
   // TODO: check type of node = DOCUMENT
@@ -82,7 +86,7 @@ void SOAPEnvelope::set(void) {
   envelope = it.Child();
   if((!envelope) || (!MatchXMLName(envelope,"soap-env:Envelope"))) {
     // No SOAP Envelope found
-    xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
+    if(is_owner_) xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
     return;
   };
   if(MatchXMLName(envelope.Child(0),"soap-env:Header")) {
@@ -96,17 +100,28 @@ void SOAPEnvelope::set(void) {
   };
   if(!MatchXMLName(((SOAPEnvelope*)(&body))->node_,"soap-env:Body")) {
     // No SOAP Body found
-    xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
+    if(is_owner_) xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
     return;
   };
   // Store reference to XML document in doc.
-  doc=it; ((SOAPEnvelope*)(&doc))->is_owner_=true;
+  doc=it; ((SOAPEnvelope*)(&doc))->is_owner_=is_owner_; // true
   // Make this object represent SOAP Body
   is_owner_=false; 
   this->node_=((SOAPEnvelope*)(&body))->node_;
   // Check if this message is fault
   fault = new SOAPFault(body);
   if(!(*fault)) { delete fault; fault=NULL; };
+}
+
+SOAPEnvelope* SOAPEnvelope::New(void) {
+  XMLNode new_doc;
+  doc.New(new_doc);
+  SOAPEnvelope* new_soap = new SOAPEnvelope(new_doc);
+  if(new_soap) {
+    ((SOAPEnvelope*)(&(new_soap->doc)))->is_owner_=true;
+    ((SOAPEnvelope*)(&new_doc))->is_owner_=false;
+  };
+  return new_soap;
 }
 
 void SOAPEnvelope::Namespaces(const NS& namespaces) {
