@@ -7,7 +7,7 @@
 /* #include "../src/hed/libs/message/MessageAuth.h" */
 #include "../src/hed/libs/message/Message.h"
 #include "../src/hed/libs/message/PayloadRaw.h"
-#include "../src/hed/libs/message/SOAPEnvelop.h"
+#include "../src/hed/libs/message/SOAPEnvelope.h"
 #include "../src/hed/libs/message/SOAPMessage.h"
 #include "../src/hed/libs/message/PayloadSOAP.h"
 #include "../src/hed/libs/message/PayloadStream.h"
@@ -65,7 +65,7 @@
 /* %include "../src/hed/libs/message/MessageAuth.h" */
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/PayloadRaw.h"
-%include "../src/hed/libs/message/SOAPEnvelop.h"
+%include "../src/hed/libs/message/SOAPEnvelope.h"
 %include "../src/hed/libs/message/SOAPMessage.h"
 %include "../src/hed/libs/message/PayloadSOAP.h"
 %include "../src/hed/libs/message/PayloadStream.h"
