@@ -172,17 +172,21 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
-XMLNode XMLNode::New() {
-  XMLNode new_node;
-  if(!(*this)) return new_node;
+void XMLNode::New(XMLNode& new_node) {
+  if(is_owner_ && node_) {
+    xmlFreeDoc((xmlDocPtr)node_);
+  };
+  is_owner_=false; node_=NULL;
+  if(!(*this)) return;
   if(node_->type == XML_DOCUMENT_NODE) {
     new_node.node_=(xmlNodePtr)xmlCopyDoc((xmlDocPtr)node_,1);
   } else {
     new_node.node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
     new_node.NewChild(*this);
   };
-  if(!new_node) return new_node;
+  if(!new_node) return;
   is_owner_=true;
+  return;
 }
 
 static void SetNamespaces(const Arc::NS& namespaces,xmlNodePtr node_) {
