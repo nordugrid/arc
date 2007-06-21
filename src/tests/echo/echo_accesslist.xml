@@ -1,0 +1,37 @@
+<!--Sample arc authorization policy for Storage_manager
+The policy definition is inspired by XACML and GACL; 
+It is not complicated as XACML, but not so adapatable and general as XACML as well. We need to implement a specific PDP for Arc in order to use it, just like GACL does;
+The Element and Attribute in the policy can only be understood by ArcPDP;
+Because of the similiarity with XACML, the policy can be conventially translated into XACML by implemeting some special translating package. And then the general XACML policy expression and PDP can be used, if we need to use some standard XACML policy and do not want to write some complicated XACML policy;
+Each service can has one authorization policy file. The authorization decision is based on service. So if the service has some sublevel entities, the service's policy definition should includes the sublevel entities as "Resources";
+  -->
+<Service>
+   <Rule RuleId="rule1" Effect="Permit">
+      <Description>
+         Sample rule for echo service
+      </Description>
+      <Subjects>
+         <Subject Type="X509DN">/O=rid/O=Test/CN=localhost</Subject>
+      </Subjects>
+      <Resources/>
+      <Actions>
+         <Action>echo</Action>
+      </Actions>
+      <Conditions/> 
+   </Rule>
+   
+   <Rule RuleId="rule2" Effect="Deny">
+      <Description>
+         Sample rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="X509DN">/O=rid/O=Test/CN=localhost1</Subject>
+      </Subjects>
+      <Resources/>
+      <Actions>
+         <Action>echo</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+</Service>
+
