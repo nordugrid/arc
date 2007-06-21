@@ -44,7 +44,7 @@ WSRP::WSRP(bool fault,const std::string& action):WSRF(fault,action) {
   set_namespaces();
 };
 
-WSRP::WSRP(SOAPEnvelop& soap,const std::string& action):WSRF(soap,action) {
+WSRP::WSRP(SOAPEnvelope& soap,const std::string& action):WSRF(soap,action) {
   set_namespaces();
 }
 
@@ -83,7 +83,7 @@ void WSRPDeleteResourceProperties::Property(const std::string& name) {
 
 // ============= GetResourcePropertyDocument ==============
 
-WSRPGetResourcePropertyDocumentRequest::WSRPGetResourcePropertyDocumentRequest(SOAPEnvelop& soap):WSRP(soap,WSRPGetResourcePropertyDocumentRequestAction) {
+WSRPGetResourcePropertyDocumentRequest::WSRPGetResourcePropertyDocumentRequest(SOAPEnvelope& soap):WSRP(soap,WSRPGetResourcePropertyDocumentRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetResourcePropertyDocument")) valid_=false;
 }
@@ -95,7 +95,7 @@ WSRPGetResourcePropertyDocumentRequest::WSRPGetResourcePropertyDocumentRequest(v
 WSRPGetResourcePropertyDocumentRequest::~WSRPGetResourcePropertyDocumentRequest(void) {
 }
 
-WSRPGetResourcePropertyDocumentResponse::WSRPGetResourcePropertyDocumentResponse(SOAPEnvelop& soap):WSRP(soap,WSRPGetResourcePropertyDocumentResponseAction) {
+WSRPGetResourcePropertyDocumentResponse::WSRPGetResourcePropertyDocumentResponse(SOAPEnvelope& soap):WSRP(soap,WSRPGetResourcePropertyDocumentResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetResourcePropertyDocumentResponse")) valid_=false;
 }
@@ -124,7 +124,7 @@ XMLNode WSRPGetResourcePropertyDocumentResponse::Document(void) {
 
 // ============= GetResourceProperty ==============
 
-WSRPGetResourcePropertyRequest::WSRPGetResourcePropertyRequest(SOAPEnvelop& soap):WSRP(soap,WSRPGetResourcePropertyRequestAction) {
+WSRPGetResourcePropertyRequest::WSRPGetResourcePropertyRequest(SOAPEnvelope& soap):WSRP(soap,WSRPGetResourcePropertyRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetResourceProperty")) valid_=false;
 }
@@ -148,7 +148,7 @@ void WSRPGetResourcePropertyRequest::Name(const std::string& name) {
   soap_.Child()=name;
 }
 
-WSRPGetResourcePropertyResponse::WSRPGetResourcePropertyResponse(SOAPEnvelop& soap):WSRP(soap,WSRPGetResourcePropertyResponseAction) {
+WSRPGetResourcePropertyResponse::WSRPGetResourcePropertyResponse(SOAPEnvelope& soap):WSRP(soap,WSRPGetResourcePropertyResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetResourcePropertyResponse")) valid_=false;
 }
@@ -185,7 +185,7 @@ XMLNode WSRPGetResourcePropertyResponse::Properties(void) {
 
 // ============= GetMultipleResourceProperties ==============
 
-WSRPGetMultipleResourcePropertiesRequest::WSRPGetMultipleResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPGetMultipleResourcePropertiesRequestAction) {
+WSRPGetMultipleResourcePropertiesRequest::WSRPGetMultipleResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPGetMultipleResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetMultipleResourceProperties")) valid_=false;
 }
@@ -233,7 +233,7 @@ void WSRPGetMultipleResourcePropertiesRequest::Names(const std::vector<std::stri
   };
 }
 
-WSRPGetMultipleResourcePropertiesResponse::WSRPGetMultipleResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPGetMultipleResourcePropertiesResponseAction) {
+WSRPGetMultipleResourcePropertiesResponse::WSRPGetMultipleResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPGetMultipleResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:GetMultipleResourcePropertiesResponse")) valid_=false;
 }
@@ -270,7 +270,7 @@ XMLNode WSRPGetMultipleResourcePropertiesResponse::Properties(void) {
 
 // ============= PutResourcePropertiesDocument ==============
 
-WSRPPutResourcePropertyDocumentRequest::WSRPPutResourcePropertyDocumentRequest(SOAPEnvelop& soap):WSRP(soap,WSRPPutResourcePropertyDocumentRequestAction) {
+WSRPPutResourcePropertyDocumentRequest::WSRPPutResourcePropertyDocumentRequest(SOAPEnvelope& soap):WSRP(soap,WSRPPutResourcePropertyDocumentRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:PutResourcePropertyDocument")) valid_=false;
 }
@@ -296,7 +296,7 @@ XMLNode WSRPPutResourcePropertyDocumentRequest::Document(void) {
   return soap_.Child().Child();
 }
 
-WSRPPutResourcePropertyDocumentResponse::WSRPPutResourcePropertyDocumentResponse(SOAPEnvelop& soap):WSRP(soap,WSRPPutResourcePropertyDocumentResponseAction) {
+WSRPPutResourcePropertyDocumentResponse::WSRPPutResourcePropertyDocumentResponse(SOAPEnvelope& soap):WSRP(soap,WSRPPutResourcePropertyDocumentResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:PutResourcePropertyDocumentResponse")) valid_=false;
 }
@@ -325,7 +325,7 @@ XMLNode WSRPPutResourcePropertyDocumentResponse::Document(void) {
 
 // ============= SetResourceProperties ==============
 
-WSRPSetResourcePropertiesRequest::WSRPSetResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPSetResourcePropertiesRequestAction) {
+WSRPSetResourcePropertiesRequest::WSRPSetResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPSetResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:SetResourceProperties")) valid_=false;}
 
@@ -341,7 +341,7 @@ XMLNode WSRPSetResourcePropertiesRequest::Properties(void) {
   return soap_.Child();
 }
 
-WSRPSetResourcePropertiesResponse::WSRPSetResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPSetResourcePropertiesResponseAction) {
+WSRPSetResourcePropertiesResponse::WSRPSetResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPSetResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:SetResourcePropertiesResponse")) valid_=false;
 }
@@ -355,7 +355,7 @@ WSRPSetResourcePropertiesResponse::~WSRPSetResourcePropertiesResponse(void) {
 
 // ============= InsertResourceProperties ==============
 
-WSRPInsertResourcePropertiesRequest::WSRPInsertResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPInsertResourcePropertiesRequestAction) {
+WSRPInsertResourcePropertiesRequest::WSRPInsertResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPInsertResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:InsertResourceProperties")) valid_=false;
 }
@@ -372,7 +372,7 @@ WSRPInsertResourceProperties WSRPInsertResourcePropertiesRequest::Property(void)
   return WSRPInsertResourceProperties(soap_.Child()["wsrf-rp:Insert"],false);
 }
 
-WSRPInsertResourcePropertiesResponse::WSRPInsertResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPInsertResourcePropertiesResponseAction) {
+WSRPInsertResourcePropertiesResponse::WSRPInsertResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPInsertResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:InsertResourcePropertiesResponse")) valid_=false;
 }
@@ -387,7 +387,7 @@ WSRPInsertResourcePropertiesResponse::~WSRPInsertResourcePropertiesResponse(void
 
 // ============= UpdateResourceProperties ==============
 
-WSRPUpdateResourcePropertiesRequest::WSRPUpdateResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPUpdateResourcePropertiesRequestAction) {
+WSRPUpdateResourcePropertiesRequest::WSRPUpdateResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPUpdateResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:UpdateResourceProperties")) valid_=false;
 }
@@ -407,7 +407,7 @@ WSRPUpdateResourceProperties WSRPUpdateResourcePropertiesRequest::Property(void)
   return WSRPUpdateResourceProperties(soap_.Child()["wsrf-rp:Update"],false);
 }
 
-WSRPUpdateResourcePropertiesResponse::WSRPUpdateResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPUpdateResourcePropertiesResponseAction) {
+WSRPUpdateResourcePropertiesResponse::WSRPUpdateResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPUpdateResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:UpdateResourcePropertiesResponse")) valid_=false;
 }
@@ -422,7 +422,7 @@ WSRPUpdateResourcePropertiesResponse::~WSRPUpdateResourcePropertiesResponse(void
 
 // ============= DeleteResourceProperties ==============
 
-WSRPDeleteResourcePropertiesRequest::WSRPDeleteResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPDeleteResourcePropertiesRequestAction) {
+WSRPDeleteResourcePropertiesRequest::WSRPDeleteResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPDeleteResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:DeleteResourceProperties")) valid_=false;
 }
@@ -455,7 +455,7 @@ void WSRPDeleteResourcePropertiesRequest::Name(const std::string& name) {
   WSRPDeleteResourceProperties(soap_.Child()["wsrf-rp:Delete"],true).Property(name); 
 }
 
-WSRPDeleteResourcePropertiesResponse::WSRPDeleteResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPDeleteResourcePropertiesResponseAction) {
+WSRPDeleteResourcePropertiesResponse::WSRPDeleteResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPDeleteResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:DeleteResourcePropertiesResponse")) valid_=false;
 }
@@ -471,7 +471,7 @@ WSRPDeleteResourcePropertiesResponse::~WSRPDeleteResourcePropertiesResponse(void
 // ==================== Faults ================================
 
 
-WSRPFault::WSRPFault(SOAPEnvelop& soap):WSRFBaseFault(soap) {
+WSRPFault::WSRPFault(SOAPEnvelope& soap):WSRFBaseFault(soap) {
 }
 
 WSRPFault::WSRPFault(const std::string& type):WSRFBaseFault(type) {
@@ -482,7 +482,7 @@ WSRPFault::~WSRPFault(void) {
 
 
 XMLNode WSRPResourcePropertyChangeFailure::CurrentProperties(bool create) {
-  SOAPEnvelop::SOAPFault* fault = soap_.Fault();
+  SOAPEnvelope::SOAPFault* fault = soap_.Fault();
   if(!fault) return XMLNode();
   XMLNode detail = fault->Detail(true);
   XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
@@ -499,7 +499,7 @@ XMLNode WSRPResourcePropertyChangeFailure::CurrentProperties(bool create) {
 }
 
 XMLNode WSRPResourcePropertyChangeFailure::RequestedProperties(bool create) {
-  SOAPEnvelop::SOAPFault* fault = soap_.Fault();
+  SOAPEnvelope::SOAPFault* fault = soap_.Fault();
   if(!fault) return XMLNode();
   XMLNode detail = fault->Detail(true);
   XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
@@ -518,7 +518,7 @@ XMLNode WSRPResourcePropertyChangeFailure::RequestedProperties(bool create) {
 
 // ============= QueryResourceProperties ==============
 
-WSRPQueryResourcePropertiesRequest::WSRPQueryResourcePropertiesRequest(SOAPEnvelop& soap):WSRP(soap,WSRPQueryResourcePropertiesRequestAction) {
+WSRPQueryResourcePropertiesRequest::WSRPQueryResourcePropertiesRequest(SOAPEnvelope& soap):WSRP(soap,WSRPQueryResourcePropertiesRequestAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:QueryResourceProperties")) valid_=false;
 }
@@ -561,7 +561,7 @@ XMLNode WSRPQueryResourcePropertiesRequest::Query(void) {
   return query;
 }
 
-WSRPQueryResourcePropertiesResponse::WSRPQueryResourcePropertiesResponse(SOAPEnvelop& soap):WSRP(soap,WSRPQueryResourcePropertiesResponseAction) {
+WSRPQueryResourcePropertiesResponse::WSRPQueryResourcePropertiesResponse(SOAPEnvelope& soap):WSRP(soap,WSRPQueryResourcePropertiesResponseAction) {
   if(!valid_) return;
   if(!MatchXMLName(soap_.Child(),"wsrf-rp:QueryResourcePropertiesResponse")) valid_=false;
 }
@@ -581,7 +581,7 @@ XMLNode WSRPQueryResourcePropertiesResponse::Properties(void) {
 
 // =====================================================================
 
-WSRF& CreateWSRPFault(SOAPEnvelop& soap) {
+WSRF& CreateWSRPFault(SOAPEnvelope& soap) {
   // Not the most efective way to extract type of message
   WSRPFault& v = *(new WSRPFault(soap));
   std::string type = v.Type();
@@ -597,7 +597,7 @@ WSRF& CreateWSRPFault(SOAPEnvelop& soap) {
   return *(new WSRF());
 }
 
-WSRF& CreateWSRP(SOAPEnvelop& soap) {
+WSRF& CreateWSRP(SOAPEnvelope& soap) {
   XMLNode::NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   ns["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";

@@ -4,7 +4,7 @@
 #include "../../libs/common/ArcConfig.h"
 #include "../../libs/common/Logger.h"
 #include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/message/SOAPEnvelop.h"
+#include "../../hed/libs/message/SOAPEnvelope.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
 
 int main(void) {

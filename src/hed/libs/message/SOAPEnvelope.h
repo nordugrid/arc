@@ -9,11 +9,11 @@ namespace Arc {
   /** SOAPFault provides an interface to conveinet access to elements of SOAP faults.
     It also tries to expose single interface for both version 1.0 and 1.2 faults.
     This class is not intended to 'own' any information stored. It's purpose 
-    is to manipulate information which under control of XMLNode or SOAPEnvelop
+    is to manipulate information which under control of XMLNode or SOAPEnvelope
     classes. If instance does not refer to valid SOAP Fault structure all 
     manipulation methods will have no effect. */
   class SOAPFault {
-   friend class SOAPEnvelop;
+   friend class SOAPEnvelope;
    private:
     bool ver12;        /** true if SOAP version is 1.2 */
     XMLNode fault;     /** Fault element of SOAP */
@@ -63,23 +63,23 @@ namespace Arc {
     XMLNode Detail(bool create = false);
   };
 
-/** SOAPEnvelop extends XMLNode class to support structures of SOAP message.
+/** SOAPEnvelope extends XMLNode class to support structures of SOAP message.
   All XMLNode methods are exposed with top node translated to Envelope part
   of SOAP. */
-class SOAPEnvelop: public XMLNode {
+class SOAPEnvelope: public XMLNode {
  public:
   /** Create new SOAP message from textual representation of XML document.
     Created XML structure is owned by this instance.
     This constructor also sets default namespaces to default prefixes 
     as specified below. */
-  SOAPEnvelop(const std::string& xml);
+  SOAPEnvelope(const std::string& xml);
   /** Same as previous */
-  SOAPEnvelop(const char* xml,int len = -1);
+  SOAPEnvelope(const char* xml,int len = -1);
   /** Create new SOAP message with specified namespaces.
     Created XML structure is owned by this instance.
     If argument fault is set to true created message is fault.  */
-  SOAPEnvelop(const NS& ns,bool fault = false);
-  ~SOAPEnvelop(void);
+  SOAPEnvelope(const NS& ns,bool fault = false);
+  ~SOAPEnvelope(void);
   /** Modify assigned namespaces. 
     Default namespaces and prefixes are
      soap-enc http://schemas.xmlsoap.org/soap/encoding/

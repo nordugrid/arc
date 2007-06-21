@@ -2,7 +2,7 @@
 #define __ARC_WSA_H__
 
 #include "common/XMLNode.h"
-#include "../libs/message/SOAPEnvelop.h"
+#include "../libs/message/SOAPEnvelope.h"
 
 // WS-Adressing
 // wsa="http://www.w3.org/2005/08/addressing"
@@ -53,7 +53,7 @@ class WSAHeader {
   //XMLNode faultto_;
  public:
   /** Linking to a header of existing SOAP message */
-  WSAHeader(SOAPEnvelop& soap);
+  WSAHeader(SOAPEnvelope& soap);
   /** Creating independent SOAP header - not implemented */
   WSAHeader(const std::string& action);
   ~WSAHeader(void);
@@ -96,7 +96,7 @@ class WSAHeader {
   /** Returns reference to SOAP Header - not implemented */
   operator XMLNode(void);
   /** Tells if specified SOAP message has WSA header */
-  static bool Check(SOAPEnvelop& soap);
+  static bool Check(SOAPEnvelope& soap);
 };
 
 /** WS-Addressing possible faults */
@@ -119,9 +119,9 @@ typedef enum {
 } WSAFault;
 
 /** Fills SOAP Fault message look it like corresponding WS-Addressing fault */
-void WSAFaultAssign(SOAPEnvelop& mesage,WSAFault fid);
+void WSAFaultAssign(SOAPEnvelope& mesage,WSAFault fid);
 /** Anylizes SOAP Fault message and returns WS-Addressing fault it represents */
-WSAFault WSAFaultExtract(SOAPEnvelop& message);
+WSAFault WSAFaultExtract(SOAPEnvelope& message);
 
 } // namespace Arc
 

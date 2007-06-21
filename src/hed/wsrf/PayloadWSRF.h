@@ -15,12 +15,12 @@ class PayloadWSRF: public MessagePayload {
  public:
   /** Constructor - creates Message payload from SOAP message.
     Returns invalid WSRF if SOAP does not represent WS-ResourceProperties */
-  PayloadWSRF(const SOAPEnvelop& soap);
+  PayloadWSRF(const SOAPEnvelope& soap);
   /** Constructor - creates Message payload with acquired WSRF message.
     WSRF message will be destroyed by destructor of this object. */
   PayloadWSRF(WSRF& wsrp);
   /** Constructor - creates WSRF message from payload.
-    All classes derived from SOAPEnvelop are supported. */
+    All classes derived from SOAPEnvelope are supported. */
   PayloadWSRF(const MessagePayload& source);
   virtual ~PayloadWSRF(void);
   operator WSRF&(void) { return wsrf_; };

@@ -86,7 +86,7 @@ class XMLNode {
     if(!node_) is_owner_=true;
     Namespaces(ns);
   };
-  /** Detructor
+  /** Destructor
     Also destroys underlying XML document if owned by this instance */
   ~XMLNode(void) {
     if(is_owner_ && node_) {

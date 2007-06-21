@@ -12,7 +12,7 @@ void WSRF::set_namespaces(void) {
   soap_.Namespaces(ns);
 }
 
-WSRF::WSRF(SOAPEnvelop& soap,const std::string& action):
+WSRF::WSRF(SOAPEnvelope& soap,const std::string& action):
              soap_(soap),allocated_(false),valid_(false) {
   if(!soap_) return;
   set_namespaces();
@@ -22,7 +22,7 @@ WSRF::WSRF(SOAPEnvelop& soap,const std::string& action):
 
 
 WSRF::WSRF(bool fault,const std::string& action):
-            soap_(*(new SOAPEnvelop(XMLNode::NS(),fault))),
+            soap_(*(new SOAPEnvelope(XMLNode::NS(),fault))),
             allocated_(true),valid_(false) {
   set_namespaces();
   if(!action.empty()) WSAHeader(soap_).Action(action);
