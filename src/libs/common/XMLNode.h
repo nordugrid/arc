@@ -93,6 +93,10 @@ class XMLNode {
       xmlFreeDoc((xmlDocPtr)node_);
     };
   };
+  /** Creates a copy of XML (sub)tree.
+     If object does not represent whole document - top level document
+    is created. */
+  XMLNode New(void);
   /** Returns true if instance points to XML element - valid instance */
   operator bool(void) const { return ((node_ != NULL) && (!is_temporary_)); };
   /** Returns true if instance does not point to XML element - invalid instance */
