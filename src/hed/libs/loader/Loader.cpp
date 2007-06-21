@@ -318,6 +318,22 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             };
             services_[id]=service;
 	    logger.msg(LogMessage(INFO, "Loaded Service "+name+"("+id+")"));
+
+            // Configure security plugins
+            XMLNode an;
+
+            an=cn["SecHandler"];
+            for(int n = 0;;++n) {
+                XMLNode can = an[n];
+                if(!can) break;
+                SecHandler* sechandler =
+                     MakeSecHandler(cfg,context_,sechandlers_,
+                                    sechandler_factory,can);
+                if(!sechandler) continue;
+                std::string event=can.Attribute("event");
+                service->AddSecHandler(&cfg_,sechandler,event);
+            };
+
 	    continue;
         }
 	logger.msg(LogMessage(WARNING, "Unknown element \""+

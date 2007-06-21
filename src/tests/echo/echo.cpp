@@ -4,6 +4,8 @@
 #include "../../hed/libs/loader/ServiceLoader.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
 
+#include "../../hed/libs/security/SecHandler.h"
+
 #include "echo.h"
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
@@ -40,6 +42,22 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
 }
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
+  // Check authorization
+  std::list<Arc::SecHandler*> hlist=sechandlers_["incoming"];
+  std::list<Arc::SecHandler*>::iterator it;
+  for(it=hlist.begin(); it!=hlist.end(); it++){
+    Arc::SecHandler* h = *it;
+    if(h->Handle(&inmsg)) break;
+  }
+  // The "Handle" method only returns true/false; The MCC/Service doesn't 
+  // care about security process. "SecHandler" uses msg.attributes to 
+  // exchange security related information
+  if((it==hlist.end()) && (hlist.size() > 0)){
+    printf("echo_UnAuthorized\n");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR);
+  } //Do we need to add some status in MCC_Status
+  printf("echo_Authorized\n");
+
   // Both input and output are supposed to be SOAP 
   // Extracting payload
   Arc::PayloadSOAP* inpayload = NULL;

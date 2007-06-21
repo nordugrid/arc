@@ -5,6 +5,8 @@
 #include "common/ArcConfig.h"
 #include "../message/MCC.h"
 
+#include "../security/SecHandler.h"
+
 namespace Arc {
 
 /** Service - last plugin in a Message Chain.
@@ -29,14 +31,22 @@ namespace Arc {
  */
 class Service: public MCCInterface
 {
+
+
     protected:
+
+      /** Set o flabeled authentication and authorization handlers.
+      MCC calls sequence of handlers at specific point depending
+      on associated identifier. in most aces those are "in" and "out"
+      for incoming and outgoing messages correspondingly. */
+        std::map<std::string,std::list<Arc::SecHandler*> > sechandlers_;
         static Logger logger;
-	std::map<std::string,std::list<SecHandler*> > sechandlers_;
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
         Service(Arc::Config *cfg) { };
         virtual ~Service(void) { };
-	virtual void AddSecHandler(SecHandler* handler,const std::string& label = "");
+        /** SecHandler */
+        virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");
 };
 
 } // namespace Arc

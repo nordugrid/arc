@@ -38,6 +38,10 @@
 	    <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">
+            <SecHandler name="simplelist.authz" id="authz" event="incoming">
+              <PDP name="simplelist.pdp" type="plaintxt" location="./accesslist"/>
+            </SecHandler>
+            <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>
         </Service>
