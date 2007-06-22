@@ -25,147 +25,147 @@
 namespace Arc {
 
 
-class URLLocation;
+  class URLLocation;
 
 
-/**
- *  Class to hold general URL's. A URL is constructed from a string
- *  representation and split into protocol, hostname, port and path.
- */
-class URL {
+  /**
+   *  Class to hold general URL's. A URL is constructed from a string
+   *  representation and split into protocol, hostname, port and path.
+   */
+  class URL {
 
-	public:
-		/** Empty constructor. Necessary when the class is part of
-		 *  another class and the like. Can be used in conjunction
-		 *  with the assignment operator operator=(const std::string&) 
-		 *  to define a URL.
-		 */
-		URL();
+   public:
+    /** Empty constructor. Necessary when the class is part of
+     *  another class and the like. Can be used in conjunction
+     *  with the assignment operator operator=(const std::string&)
+     *  to define a URL.
+     */
+    URL();
 
-		/** Constructs a new URL from a string representation. The string
-		 *	is split into protocol, hostname, port and path.
-		 */
-		URL(const std::string& url);
+    /** Constructs a new URL from a string representation. The string
+     *	is split into protocol, hostname, port and path.
+     */
+    URL(const std::string& url);
 
-		/** URL Destructor */
-		virtual ~URL();
+    /** URL Destructor */
+    virtual ~URL();
 
-		/** Returns the protocol of the URL. */
-		const std::string& Protocol() const;
+    /** Returns the protocol of the URL. */
+    const std::string& Protocol() const;
 
-		/** Returns the username of the URL. */
-		const std::string& Username() const;
+    /** Returns the username of the URL. */
+    const std::string& Username() const;
 
-		/** Returns the password of the URL. */
-		const std::string& Passwd() const;
+    /** Returns the password of the URL. */
+    const std::string& Passwd() const;
 
-		/** Returns the hostname of the URL. */
-		const std::string& Host() const;
+    /** Returns the hostname of the URL. */
+    const std::string& Host() const;
 
-		/** Returns the port of the URL. */
-		int Port() const;
+    /** Returns the port of the URL. */
+    int Port() const;
 
-		/** Returns the path of the URL. */
-		const std::string& Path() const;
+    /** Returns the path of the URL. */
+    const std::string& Path() const;
 
-		/** In case of ldap-protocol, return the basedn of the URL. */
-		std::string BaseDN() const;
+    /** In case of ldap-protocol, return the basedn of the URL. */
+    std::string BaseDN() const;
 
-		/** Returns http-options if any. */
-		const std::map<std::string, std::string>& HTTPOptions() const;
+    /** Returns http-options if any. */
+    const std::map<std::string, std::string>& HTTPOptions() const;
 
-		/** Returns options if any. */
-		const std::map<std::string, std::string>& Options() const;
+    /** Returns options if any. */
+    const std::map<std::string, std::string>& Options() const;
 
-		/** Returns the locations if any. */
-		const std::list<URLLocation>& Locations() const;
+    /** Returns the locations if any. */
+    const std::list<URLLocation>& Locations() const;
 
-		/** Returns a string representation of the URL. */
-		virtual std::string str() const;
+    /** Returns a string representation of the URL. */
+    virtual std::string str() const;
 
-		/** Returns the URL string representation w/o options and locations */
-		virtual std::string CanonicalURL() const;
+    /** Returns the URL string representation w/o options and locations */
+    virtual std::string CanonicalURL() const;
 
-		/** Compares one URL to another */
-		bool operator<(const URL& url) const;
+    /** Compares one URL to another */
+    bool operator<(const URL& url) const;
 
-		/** Is one URL equal to another? */
-		bool operator==(const URL& url) const;
+    /** Is one URL equal to another? */
+    bool operator==(const URL& url) const;
 
-		/** Assignment operator. */
-		void operator=(const std::string&);
+    /** Assignment operator. */
+    void operator=(const std::string&);
 
-		/** Check if instance holds valid URL */
-		operator bool() const;
-		bool operator!() const;
+    /** Check if instance holds valid URL */
+    operator bool() const;
+    bool operator!() const;
 
-	protected:
-		/** Method that parses the URL-string passed. */
-		void ParseURL(const std::string& urlstring);
+   protected:
+    /** Method that parses the URL-string passed. */
+    void ParseURL(const std::string& urlstring);
 
-		/** the url protocol. */
-		std::string protocol;
+    /** the url protocol. */
+    std::string protocol;
 
-		/** username of the url. */
-		std::string username;
+    /** username of the url. */
+    std::string username;
 
-		/** password of the url. */
-		std::string passwd;
+    /** password of the url. */
+    std::string passwd;
 
-		/** hostname of the url. */
-		std::string host;
+    /** hostname of the url. */
+    std::string host;
 
-		/** portnumber of the url. */
-		int port;
+    /** portnumber of the url. */
+    int port;
 
-		/** the url path. */
-		std::string path;
+    /** the url path. */
+    std::string path;
 
-		/** http-options of the url. */
-		std::map<std::string, std::string> httpoptions;
+    /** http-options of the url. */
+    std::map<std::string, std::string> httpoptions;
 
-		/** options of the url. */
-		std::map<std::string, std::string> urloptions;
+    /** options of the url. */
+    std::map<std::string, std::string> urloptions;
 
-		/** locations for index server URLs. */
-		std::list<URLLocation> locations;
+    /** locations for index server URLs. */
+    std::list<URLLocation> locations;
 
-		/** a private method that converts an ldap basedn to a path. */
-		static std::string BaseDN2Path(const std::string&);
+    /** a private method that converts an ldap basedn to a path. */
+    static std::string BaseDN2Path(const std::string&);
 
-		/** a private method that converts an ldap path to a basedn. */
-		static std::string Path2BaseDN(const std::string&);
+    /** a private method that converts an ldap path to a basedn. */
+    static std::string Path2BaseDN(const std::string&);
 
-		/** Overloaded operator << to print a URL. */
-		friend std::ostream& operator<<(std::ostream& out, const URL& u);
-};
+    /** Overloaded operator << to print a URL. */
+    friend std::ostream& operator<<(std::ostream& out, const URL& u);
+  };
 
 
-/**
- *  Class to hold a resolved URL location for an RC or RLS registration.
- */
-class URLLocation : public URL {
+  /**
+   *  Class to hold a resolved URL location for an RC or RLS registration.
+   */
+  class URLLocation : public URL {
 
-	public:
-		/** Creates a URL Location from a URL. */
-		URLLocation(const std::string& url);
+   public:
+    /** Creates a URL Location from a URL. */
+    URLLocation(const std::string& url);
 
-		/** Creates a URL Location from a name and an option string. */
-		URLLocation(const std::string& name, const std::string& optstring);
+    /** Creates a URL Location from a name and an option string. */
+    URLLocation(const std::string& name, const std::string& optstring);
 
-		/** URL Location destructor. */
-		virtual ~URLLocation();
+    /** URL Location destructor. */
+    virtual ~URLLocation();
 
-		/** Returns the URL Location name (used for RC registrations). */
-		std::string Name() const;
+    /** Returns the URL Location name (used for RC registrations). */
+    std::string Name() const;
 
-		/** Returns a string representation of the URL Location. */
-		virtual std::string str() const;
+    /** Returns a string representation of the URL Location. */
+    virtual std::string str() const;
 
-	protected:
-		/** the URL Location name (used for RC registrations). */
-		std::string name;
-};
+   protected:
+    /** the URL Location name (used for RC registrations). */
+    std::string name;
+  };
 
 } // namespace Arc
 
