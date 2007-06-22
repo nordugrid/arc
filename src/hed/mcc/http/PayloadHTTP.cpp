@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "PayloadHTTP.h"
+#include "../../../libs/common/StringConv.h"
 
 namespace Arc {
 
@@ -210,12 +211,6 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason):code_(code),reason_
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
-}
-
-static std::string tostring(int i) {
-  char tbuf[256]; tbuf[255]=0;
-  snprintf(tbuf,255,"%i",i);
-  return std::string(tbuf);
 }
 
 bool PayloadHTTP::Flush(void) {

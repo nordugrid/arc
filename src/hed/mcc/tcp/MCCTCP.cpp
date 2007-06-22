@@ -10,6 +10,7 @@
 #include "../../../libs/common/XMLNode.h"
 #include "../../../libs/common/Thread.h"
 #include "../../../libs/common/Logger.h"
+#include "../../../libs/common/StringConv.h"
 
 #include "MCCTCP.h"
 
@@ -182,13 +183,6 @@ void MCC_TCP_Service::listener(void* arg) {
         it.lock_.unlock();
     };
     return;
-}
-
-static std::string tostring(unsigned int n) {
-    char buf[64];
-    snprintf(buf,sizeof(buf)-1,"%u",n);
-    buf[sizeof(buf)-1]=0;
-    return buf;
 }
 
 void MCC_TCP_Service::executer(void* arg) {
