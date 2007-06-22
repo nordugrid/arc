@@ -1,4 +1,4 @@
-lib_LTLIBRARIES= libwsaddressing.la
+noinst_LTLIBRARIES= libwsaddressing.la
 noinst_PROGRAMS=test
 
 libwsaddressing_ladir=$(includedir)
