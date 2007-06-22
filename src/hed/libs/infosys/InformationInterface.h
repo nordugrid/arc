@@ -14,6 +14,9 @@ namespace Arc {
   In a future it may extend range of supported specifications. */
 class InformationInterface {
  protected:
+  /** Mutex used to protect access to Get methods in multi-threaded env. */
+  Glib::Mutex lock_;
+  bool to_lock_;
   /** This method is called by this object's Process method.
     Real implementation of this class should return (sub)tree 
     of XML document. This method may be called multiple times
@@ -21,8 +24,8 @@ class InformationInterface {
   virtual std::list<XMLNode> Get(const std::list<std::string>& path);
   virtual std::list<XMLNode> Get(XMLNode xpath);
  public:
-  /** Constructor - placeholder. */
-  InformationInterface(void);
+  /** Constructor. If 'safe' i true all calls to Get will be locked. */
+  InformationInterface(bool safe = true);
   virtual ~InformationInterface(void);
   /* This method is called by service which wants to process WSRF request.
     It parses 'in' message, calls appropriate 'Get' method and fills
@@ -40,8 +43,6 @@ class InformationContainer: public InformationInterface {
  protected:
   /** Either link or container of XML document */
   XMLNode doc_;
-  /** Mutex used to protect access to XML document in multi-threaded env. */
-  Glib::Mutex lock_;
   virtual std::list<XMLNode> Get(const std::list<std::string>& path);
   virtual std::list<XMLNode> Get(XMLNode xpath);
  public:
@@ -53,6 +54,20 @@ class InformationContainer: public InformationInterface {
     release it with  Release() */
   XMLNode Acquire(void);
   void Release(void);
+};
+
+class InformationRequest {
+ private:
+  WSRP* wsrp_;
+ public:
+  InformationRequest(void);
+  InformationRequest(const std::list<std::string>& path);
+  InformationRequest(const std::list<std::list<std::string> >& paths);
+  InformationRequest(XMLNode query);
+  ~InformationRequest(void);
+  operator bool(void) { return (wsrp_ != NULL); };
+  bool operator!(void) { return (wsrp_ == NULL); };
+  SOAPEnvelope* SOAP(void);
 };
 
 } // namespace Arc
