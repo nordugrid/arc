@@ -143,7 +143,7 @@ class XMLNode {
     return std::string(name);
   };
   /** Assign new name to XML node */
-  void Name(std::string name);
+  void Name(const std::string& name);
   void Name(const char* name);
   /** Fills argument with this instance XML (sub)tree textual representation */
   void GetXML(std::string& xml) const {

@@ -136,7 +136,7 @@ XMLNode XMLNode::NewAttribute(const char* name) {
   return XMLNode((xmlNodePtr)xmlNewNsProp(node_,ns,(const xmlChar*)name_,NULL));
 }
 
-void XMLNode::Name(std::string name) {
+void XMLNode::Name(const std::string& name) {
   Name(name.c_str());
 }
 
