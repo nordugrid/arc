@@ -1,1 +1,1 @@
-SUBDIRS=message loader counter security
+SUBDIRS=message loader counter security infosys
