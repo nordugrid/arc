@@ -166,13 +166,13 @@ AC_OUTPUT([Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
                  src/hed/Makefile \
-                 src/hed/wsrf/Makefile \
-                 src/hed/ws-addressing/Makefile \
                  src/hed/libs/Makefile \
                  src/hed/libs/loader/Makefile \
                  src/hed/libs/message/Makefile \
                  src/hed/libs/counter/Makefile \
                  src/hed/libs/security/Makefile \
+                 src/hed/libs/wsrf/Makefile \
+                 src/hed/libs/ws-addressing/Makefile \
                  src/hed/libs/infosys/Makefile \
 		 src/hed/mcc/Makefile \
                  src/hed/mcc/soap/Makefile \

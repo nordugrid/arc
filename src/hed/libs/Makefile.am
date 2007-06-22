@@ -1,1 +1,1 @@
-SUBDIRS=message loader counter security infosys
+SUBDIRS=message loader counter security ws-addressing wsrf infosys

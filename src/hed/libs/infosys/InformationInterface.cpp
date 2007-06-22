@@ -1,4 +1,4 @@
-#include "../../../hed/wsrf/WSResourceProperties.h"
+#include "../../../hed/libs/wsrf/WSResourceProperties.h"
 #include "InformationInterface.h"
 
 

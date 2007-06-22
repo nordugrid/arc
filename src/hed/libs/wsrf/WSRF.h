@@ -1,7 +1,7 @@
 #ifndef __ARC_WSRF_H__
 #define __ARC_WSRF_H__
 
-#include "../libs/message/SOAPEnvelope.h"
+#include "../message/SOAPEnvelope.h"
 
 namespace Arc {
 

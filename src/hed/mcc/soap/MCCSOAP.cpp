@@ -4,7 +4,7 @@
 #include "../../../libs/common/XMLNode.h"
 #include "../../libs/loader/Loader.h"
 #include "../../libs/loader/MCCLoader.h"
-#include "../../ws-addressing/WSA.h"
+#include "../../libs/ws-addressing/WSA.h"
 
 #include "../../libs/security/SecHandler.h"
 
