@@ -6,6 +6,7 @@
 #include <glibmm/thread.h>
 #include "../../../libs/common/XMLNode.h"
 #include "../../../hed/libs/message/SOAPEnvelope.h"
+#include "../../../hed/libs/wsrf/WSResourceProperties.h"
 
 namespace Arc {
 
@@ -68,6 +69,17 @@ class InformationRequest {
   operator bool(void) { return (wsrp_ != NULL); };
   bool operator!(void) { return (wsrp_ == NULL); };
   SOAPEnvelope* SOAP(void);
+};
+
+class InformationResponse {
+ private:
+  WSRF* wsrp_;
+ public:
+  InformationResponse(SOAPEnvelope& soap);
+  ~InformationResponse(void);
+  operator bool(void) { return (wsrp_ != NULL); };
+  bool operator!(void) { return (wsrp_ == NULL); };
+  std::list<XMLNode> Result(void);
 };
 
 } // namespace Arc

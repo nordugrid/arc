@@ -161,7 +161,7 @@ void InformationContainer::Release(void) {
 std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path) {
   std::list<XMLNode> cur_list;
   std::list<std::string>::const_iterator cur_name = path.begin();
-  cur_list.push_back(doc_);
+  cur_list.push_back(doc_.Child());
   for(;cur_name != path.end(); ++cur_name) {
     std::list<XMLNode> new_list;
     for(std::list<XMLNode>::iterator cur_node = cur_list.begin();
@@ -229,6 +229,68 @@ InformationRequest::~InformationRequest(void) {
 SOAPEnvelope* InformationRequest::SOAP(void) {
   if(!wsrp_) return NULL;
   return &(wsrp_->SOAP());
+}
+
+InformationResponse::InformationResponse(SOAPEnvelope& soap) {
+  // Try to extract WSRP object from message
+  wsrp_ = &(CreateWSRP(soap));
+  if(!(*wsrp_)) { delete wsrp_; wsrp_=NULL; };
+}
+
+InformationResponse::~InformationResponse(void) {
+  if(wsrp_) delete wsrp_;
+}
+
+std::list<XMLNode> InformationResponse::Result(void) {
+  if(!wsrp_) return std::list<XMLNode>();
+  std::list<XMLNode> props;
+  // Check if operation is supported
+  try {
+    WSRPGetResourcePropertyDocumentResponse* resp =
+         dynamic_cast<WSRPGetResourcePropertyDocumentResponse*>(wsrp_);
+    if(!resp) throw std::exception();
+    if(!(*resp)) throw std::exception();
+    props.push_back(resp->Document());
+    return props;
+  } catch(std::exception& e) { };
+  try {
+    WSRPGetResourcePropertyResponse* resp =
+         dynamic_cast<WSRPGetResourcePropertyResponse*>(wsrp_);
+    if(!resp) throw std::exception();
+    if(!(*resp)) throw std::exception();
+    for(int n = 0;;++n) {
+      XMLNode prop = resp->Property(n);
+      if(!prop) break;
+      props.push_back(prop);
+    };
+    return props;
+  } catch(std::exception& e) { };
+  try {
+    WSRPGetMultipleResourcePropertiesResponse* resp =
+         dynamic_cast<WSRPGetMultipleResourcePropertiesResponse*>(wsrp_);
+    if(!resp) throw std::exception();
+    if(!(*resp)) throw std::exception();
+    for(int n = 0;;++n) {
+      XMLNode prop = resp->Property(n);
+      if(!prop) break;
+      props.push_back(prop);
+    };
+    return props;
+  } catch(std::exception& e) { };
+  try {
+    WSRPQueryResourcePropertiesResponse* resp =
+         dynamic_cast<WSRPQueryResourcePropertiesResponse*>(wsrp_);
+    if(!resp) throw std::exception();
+    if(!(*resp)) throw std::exception();
+    XMLNode props_ = resp->Properties();
+    for(int n = 0;;++n) {
+      XMLNode prop = props_.Child(n);
+      if(!prop) break;
+      props.push_back(prop);
+    };
+    return props;
+  } catch(std::exception& e) { };
+  return props;
 }
 
 } // namespace Arc

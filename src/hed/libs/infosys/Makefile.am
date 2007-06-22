@@ -9,6 +9,6 @@ libinfosys_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la $(top_srcdir)
 libinfosys_la_LDFLAGS=$(LIBXML2_LIBS)
 
 test_SOURCES=test.cpp
-test_CPPFLAGS=$(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
 test_LDFLAGS=$(LIBXML2_LIBS) 
-test_LDADD=
+test_LDADD=libinfosys.la
