@@ -39,6 +39,7 @@ SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   ns_["xsd"]="http://www.w3.org/2001/XMLSchema";
   Namespaces(ns_);
   Namespaces(ns);
+  envelope.Name("soap-env:Envelope");
   header=envelope.NewChild("soap-env:Header");
   body=envelope.NewChild("soap-env:Body");
   doc=it; ((SOAPEnvelope*)(&doc))->is_owner_=true;
