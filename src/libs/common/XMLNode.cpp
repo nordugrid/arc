@@ -136,6 +136,26 @@ XMLNode XMLNode::NewAttribute(const char* name) {
   return XMLNode((xmlNodePtr)xmlNewNsProp(node_,ns,(const xmlChar*)name_,NULL));
 }
 
+void XMLNode::Name(std::string name) {
+  Name(name.c_str());
+}
+
+void XMLNode::Name(const char* name) {
+  if(!node_) return;
+  const char* name_ = strchr(name,':');
+  xmlNsPtr ns = NULL;
+  if(name_ != NULL) {
+    std::string ns_(name,name_-name);
+    ns=xmlSearchNs(node_->doc,node_,(const xmlChar*)(ns_.c_str()));
+    ++name_;
+  } else {
+    name_=name;
+  };
+  xmlNodeSetName(node_,(const xmlChar*)name_);
+  if(ns) node_->ns=ns;
+};
+
+
 XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(name == NULL) return XMLNode();
