@@ -185,7 +185,7 @@ void XMLNode::New(XMLNode& new_node) {
     new_node.NewChild(*this);
   };
   if(!new_node) return;
-  is_owner_=true;
+  new_node.is_owner_=true;
   return;
 }
 
