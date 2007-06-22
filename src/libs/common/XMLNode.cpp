@@ -173,10 +173,10 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
 }
 
 void XMLNode::New(XMLNode& new_node) {
-  if(is_owner_ && node_) {
-    xmlFreeDoc((xmlDocPtr)node_);
+  if(new_node.is_owner_ && new_node.node_) {
+    xmlFreeDoc((xmlDocPtr)(new_node.node_));
   };
-  is_owner_=false; node_=NULL;
+  new_node.is_owner_=false; new_node.node_=NULL;
   if(!(*this)) return;
   if(node_->type == XML_DOCUMENT_NODE) {
     new_node.node_=(xmlNodePtr)xmlCopyDoc((xmlDocPtr)node_,1);
