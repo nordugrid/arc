@@ -32,7 +32,7 @@ static const char* WSRPDeleteResourcePropertiesResponseAction = "http://docs.oas
 // ============= BaseClass ==============
 
 void WSRP::set_namespaces(void) {
-  XMLNode::NS ns;
+  NS ns;
   ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns["wsrf-rp"]="http://docs.oasis-open.org/wsrf/rp-2";
   ns["wsrf-rpw"]="http://docs.oasis-open.org/wsrf/rpw-2";
@@ -482,7 +482,7 @@ WSRPFault::~WSRPFault(void) {
 
 
 XMLNode WSRPResourcePropertyChangeFailure::CurrentProperties(bool create) {
-  SOAPEnvelope::SOAPFault* fault = soap_.Fault();
+  SOAPFault* fault = soap_.Fault();
   if(!fault) return XMLNode();
   XMLNode detail = fault->Detail(true);
   XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
@@ -499,7 +499,7 @@ XMLNode WSRPResourcePropertyChangeFailure::CurrentProperties(bool create) {
 }
 
 XMLNode WSRPResourcePropertyChangeFailure::RequestedProperties(bool create) {
-  SOAPEnvelope::SOAPFault* fault = soap_.Fault();
+  SOAPFault* fault = soap_.Fault();
   if(!fault) return XMLNode();
   XMLNode detail = fault->Detail(true);
   XMLNode failure = detail["wsrf-rp:ResourcePropertyChangeFailure"];
@@ -598,7 +598,7 @@ WSRF& CreateWSRPFault(SOAPEnvelope& soap) {
 }
 
 WSRF& CreateWSRP(SOAPEnvelope& soap) {
-  XMLNode::NS ns;
+  NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   ns["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
   ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";

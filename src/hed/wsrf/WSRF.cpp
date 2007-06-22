@@ -4,7 +4,7 @@
 namespace Arc {
 
 void WSRF::set_namespaces(void) {
-  XMLNode::NS ns;
+  NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
@@ -22,7 +22,7 @@ WSRF::WSRF(SOAPEnvelope& soap,const std::string& action):
 
 
 WSRF::WSRF(bool fault,const std::string& action):
-            soap_(*(new SOAPEnvelope(XMLNode::NS(),fault))),
+            soap_(*(new SOAPEnvelope(NS(),fault))),
             allocated_(true),valid_(false) {
   set_namespaces();
   if(!action.empty()) WSAHeader(soap_).Action(action);

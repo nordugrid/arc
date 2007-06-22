@@ -16,7 +16,7 @@ void WSRFBaseFault::set_namespaces(void) {
 WSRFBaseFault::WSRFBaseFault(SOAPEnvelope& soap):WSRF(soap,WSRFBaseFaultAction) {
   if(!valid_) return;
   // Check if that is fault
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) { valid_=false; return; };
   // It must have timestamp
   XMLNode wsrf_fault = fault->Detail()[0];
@@ -25,7 +25,7 @@ WSRFBaseFault::WSRFBaseFault(SOAPEnvelope& soap):WSRF(soap,WSRFBaseFaultAction) 
 
 WSRFBaseFault::WSRFBaseFault(const std::string& type):WSRF(true,WSRFBaseFaultAction) {
   if(!valid_) return;
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return;
   fault->Detail(true).NewChild(type);
   // Timestamp(XMLNode::dateTime(time(NULL)));
@@ -36,7 +36,7 @@ WSRFBaseFault::~WSRFBaseFault(void) {
 
 std::string WSRFBaseFault::Type(void) {
   if(!valid_) return "";
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return "";
   return fault->Detail()[0].Name();
 }
@@ -44,7 +44,7 @@ std::string WSRFBaseFault::Type(void) {
 /*
 time_t WSRFBaseFault::Timestamp(void) {
   if(!valid_) return 0;
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return 0;
   std::string time_s = fault->Detail()[0]["wsrf-bf:Timestamp"];
   return XMLNode::dateTime(time_s);
@@ -52,7 +52,7 @@ time_t WSRFBaseFault::Timestamp(void) {
 
 void WSRFBaseFault::Timestamp(time_t t) {
   if(!valid_) return;
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return;
   XMLNode timestamp = fault->Detail()[0]["wsrf-bf:Timestamp"];
   if(!timestamp) timestamp = fault->Detail()[0].NewChild("wsrf-bf:Timestamp");
@@ -62,7 +62,7 @@ void WSRFBaseFault::Timestamp(time_t t) {
 
 WSAEndpointReference WSRFBaseFault::Originator(void) {
   if(!valid_) return WSAEndpointReference();
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return WSAEndpointReference();
   return WSAEndpointReference(fault->Detail()[0]["wsrf-bf:Originator"]);
 }
@@ -72,7 +72,7 @@ void WSRFBaseFault::ErrorCode(const std::string& dialect,const XMLNode& error) {
 
 XMLNode WSRFBaseFault::ErrorCode(void) {
   if(!valid_) return XMLNode();
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return XMLNode();
   return fault->Detail()[0]["wsrf-bf:ErrorCode"];
 }
@@ -83,7 +83,7 @@ std::string WSRFBaseFault::ErrorCodeDialect(void) {
 
 void WSRFBaseFault::FaultCause(int pos,const XMLNode& cause) {
   if(!valid_) return;
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return;
   XMLNode fcause = fault->Detail()[0]["wsrf-bf:FaultCause"];
   if(!fcause) fcause=fault->Detail()[0].NewChild("wsrf-bf:FaultCause");
@@ -92,7 +92,7 @@ void WSRFBaseFault::FaultCause(int pos,const XMLNode& cause) {
 
 XMLNode WSRFBaseFault::FaultCause(int pos) {
   if(!valid_) return XMLNode();
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return XMLNode();
   XMLNode fcause = fault->Detail()[0]["wsrf-bf:FaultCause"];
   if(!fcause) return XMLNode();
@@ -101,7 +101,7 @@ XMLNode WSRFBaseFault::FaultCause(int pos) {
 
 void WSRFBaseFault::Description(int pos,const std::string& desc,const std::string& lang) {
   if(!valid_) return;
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return;
   XMLNode d = fault->Detail()[0].NewChild("wsrf-bf:Description",pos);
   d=desc;
@@ -110,14 +110,14 @@ void WSRFBaseFault::Description(int pos,const std::string& desc,const std::strin
 
 std::string WSRFBaseFault::Description(int pos) {
   if(!valid_) return XMLNode();
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return XMLNode();
   return fault->Detail()[0]["wsrf-bf:Description"][pos];
 }
 
 std::string WSRFBaseFault::DescriptionLang(int pos) {
   if(!valid_) return XMLNode();
-  SOAPEnvelope::SOAPFault* fault = SOAP().Fault();
+  SOAPFault* fault = SOAP().Fault();
   if(!fault) return XMLNode();
   return fault->Detail()[0]["wsrf-bf:Description"][pos].Attribute("wsrf-bf:lang");
 }
