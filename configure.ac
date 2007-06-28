@@ -159,7 +159,7 @@ AC_TYPE_OFF_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol])
+AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm])
 
 AC_OUTPUT([Makefile \
                  src/Makefile \
