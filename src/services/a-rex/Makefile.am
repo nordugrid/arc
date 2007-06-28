@@ -1,3 +1,4 @@
+SUBDIRS = grid-manager
 lib_LTLIBRARIES= libarex.la
 #noinst_PROGRAMS=test
 SOURCES =

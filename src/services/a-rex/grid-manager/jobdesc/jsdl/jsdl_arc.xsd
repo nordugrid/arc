@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	    xmlns="http://www.nordugrid.org/ws/schemas/jsdl-arc"
+	    xmlns:jsdl-arc="http://www.nordugrid.org/ws/schemas/jsdl-arc"
+	    targetNamespace="http://www.nordugrid.org/ws/schemas/jsdl-arc">
+
+ <xsd:simpleType name="GMState_Type">
+  <xsd:restriction base="xsd:string">
+   <xsd:enumeration value="ACCEPTED"/>
+   <xsd:enumeration value="PREPARING"/>
+   <xsd:enumeration value="SUBMIT"/>
+   <xsd:enumeration value="INLRMS"/>
+   <xsd:enumeration value="FINISHING"/>
+   <xsd:enumeration value="FINISHED"/>
+   <xsd:enumeration value="DELETED"/>
+   <xsd:enumeration value="CANCELING"/>
+  </xsd:restriction>
+ </xsd:simpleType>
+
+ <xsd:complexType name="Version_Type">
+  <xsd:sequence>
+   <xsd:element name="UpperExclusive" type="xsd:string" minOccurs="0"/>
+   <xsd:element name="LowerExclusive" type="xsd:string" minOccurs="0"/>
+   <xsd:element name="Exact" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+   <xsd:element name="Exclusive" type="xsd:boolean" minOccurs="0"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:simpleType name="SessionType_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="SessionType" minOccurs="0"/ -->
+  <xsd:restriction base="xsd:string">
+   <xsd:enumeration value="INTERNAL"/>
+   <xsd:enumeration value="LIMITED"/>
+   <xsd:enumeration value="READONLY"/>
+   <xsd:enumeration value="FULL"/>
+  </xsd:restriction>
+ </xsd:simpleType>
+
+ <xsd:simpleType name="IsExecutable_Type">
+  <xsd:documentation> For jsdl:DataStaging_Type (default: false) </xsd:documentation>
+  <!-- xsd:element ref="IsExecutable" minOccurs="0"/ -->
+  <xsd:restriction base="xsd:boolean"/>
+ </xsd:simpleType>
+
+ <xsd:simpleType name="FileParameters_Type">
+  <xsd:documentation> For jsdl:DataStaging_Type </xsd:documentation>
+  <!-- xsd:element ref="IsExecutable" minOccurs="0"/ -->
+  <xsd:restriction base="xsd:string"/>
+ </xsd:simpleType>
+
+ <xsd:simpleType name="JoinOutputs_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation>
+  <!-- xsd:element ref="JoinOutputs" minOccurs="0"/ -->
+  <xsd:restriction base="xsd:boolean"/>
+ </xsd:simpleType>
+
+ <xsd:simpleType name="Reruns_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation>
+  <!-- xsd:element ref="Reruns" minOccurs="0"// -->
+  <xsd:restriction base="xsd:integer"/>
+ </xsd:simpleType>
+
+ <xsd:complexType name="RunTimeEnvironment_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="RunTimeEnvironment" minOccurs="0" maxOccurs="unbounded"/ -->
+  <xsd:sequence>
+   <xsd:element name="Name" type="xsd:string"/>
+   <xsd:element name="Version" type="Version_Type" minOccurs="0"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:complexType name="Middleware_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="Middleware" minOccurs="0" maxOccurs="unbounded"/ -->
+  <xsd:sequence>
+   <xsd:element name="Name" type="xsd:string"/>
+   <xsd:element name="Version" type="Version_Type" minOccurs="0"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:complexType name="RemoteLogging_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="RemoteLogging" minOccurs="0" maxOccurs="3"/ -->
+  <xsd:sequence>
+   <xsd:element name="URL" minOccurs="1" maxOccurs="1" type="xsd:anyURI"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:complexType name="CredentialServer_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="CredentialServer" minOccurs="0"/ -->
+  <xsd:sequence>
+   <xsd:element name="URL" minOccurs="1" maxOccurs="1" type="xsd:anyURI"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:complexType name="LocalLogging_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="LocalLogging" minOccurs="0" maxOccurs="1"/ -->
+  <xsd:sequence>
+   <xsd:element name="Directory" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:simpleType name="AccessControlType_Type">
+  <xsd:restriction base="xsd:string">
+   <xsd:enumeration value="GACL"/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:complexType name="AccessControl_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="AccessControl" minOccurs="0"/ -->
+  <xsd:sequence>
+   <xsd:element name="OwnerAlwaysAllowed" type="xsd:boolean" minOccurs="0"/>
+   <xsd:element name="Type" type="AccessControlType_Type" minOccurs="0"/>
+   <xsd:element name="Content" minOccurs="0" type="xsd:string"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:simpleType name="NotificationType_Type">
+  <xsd:restriction base="xsd:string">
+   <xsd:enumeration value="Email"/>
+  </xsd:restriction>
+ </xsd:simpleType>
+ <xsd:complexType name="Notify_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="Notify" minOccurs="0" maxOccurs="3"/ -->
+  <xsd:sequence>
+   <xsd:element name="Type" type="NotificationType_Type" minOccurs="0"/>
+   <xsd:element name="Endpoint" minOccurs="0" type="xsd:string"/>
+   <xsd:element name="State" minOccurs="1" maxOccurs="unbounded" type="GMState_Type"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:simpleType name="SessionLifeTime_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="SessionLifeTime" minOccurs="0" maxOccurs="1"/ -->
+  <xsd:restriction base="xsd:long"/>
+ </xsd:simpleType>
+
+ <xsd:simpleType name="GridTimeLimit_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="GridTimeLimit" minOccurs="0" maxOccurs="1"/ -->
+  <xsd:restriction base="xsd:positiveInteger"/>
+ </xsd:simpleType>
+ 
+ <xsd:complexType name="CandidateTarget_Type">
+  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <!-- xsd:element ref="jsdl-arc:CandidateTarget" minOccurs="0" maxOccurs="1"/ -->
+  <xsd:sequence>
+   <xsd:element name="HostName" minOccurs="0" type="xsd:string"/>
+   <xsd:element name="QueueName" minOccurs="0" type="xsd:string"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:simpleType name="Time_Type">
+  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <!-- xsd:element ref="ProcessingStartTime" minOccurs="0" maxOccurs="1"/ -->
+  <xsd:restriction base="xsd:dateTime"/>
+ </xsd:simpleType>
+
+ <!--=========================================================-->
+ <xsd:element name="IsExecutable" type="IsExecutable_Type"/>
+ <xsd:element name="FileParameters" type="FileParameters_Type"/>
+ <xsd:element name="RunTimeEnvironment" type="RunTimeEnvironment_Type"/>
+ <xsd:element name="Middleware" type="Middleware_Type"/>
+ <xsd:element name="RemoteLogging" type="RemoteLogging_Type"/>
+ <xsd:element name="LocalLogging" type="LocalLogging_Type"/>
+ <xsd:element name="AccessControl" type="AccessControl_Type"/>
+ <xsd:element name="Notify" type="Notify_Type"/>
+ <xsd:element name="SessionLifeTime" type="SessionLifeTime_Type"/>
+ <xsd:element name="SessionType" type="SessionType_Type"/>
+ <xsd:element name="JoinOutputs" type="JoinOutputs_Type"/>
+ <xsd:element name="Reruns" type="Reruns_Type"/>
+ <xsd:element name="CredentialServer" type="CredentialServer_Type"/>
+ <xsd:element name="GridTimeLimit" type="GridTimeLimit_Type"/>
+ <xsd:element name="CandidateTarget" type="CandidateTarget_Type"/>
+ <xsd:element name="ProcessingStartTime" type="Time_Type"/>
+
+</xsd:schema>
