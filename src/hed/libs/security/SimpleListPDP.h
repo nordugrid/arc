@@ -10,6 +10,7 @@ namespace Arc {
 
 class SimpleListPDP : public PDP {
  public:
+  static PDP* get_simplelist_pdp(Config *cfg,ChainContext *ctx) ;
   SimpleListPDP(Arc::Config* cfg);
   virtual ~SimpleListPDP(void) { };
   virtual bool isPermitted(std::string subject); 

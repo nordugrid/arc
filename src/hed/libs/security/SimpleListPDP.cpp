@@ -8,7 +8,7 @@
 
 #include "SimpleListPDP.h"
 
-static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
+/*static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::SimpleListPDP(cfg);
 }
 
@@ -16,8 +16,12 @@ pdp_descriptor __arc_pdp_modules__[] = {
     { "simplelist.pdp", 0, &get_pdp},
     { NULL, 0, NULL }
 };
-
+*/
 using namespace Arc;
+
+PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext *ctx) {
+    return new SimpleListPDP(cfg);
+}
 
 SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   location = (std::string)(cfg->Attribute("location"));
