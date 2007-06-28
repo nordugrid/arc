@@ -95,19 +95,36 @@ namespace Arc {
   /** Returns a time-stamp of some specified time in some format. */
   std::string TimeStamp(Time, const TimeFormat& = Time::GetFormat());
 
-  enum PeriodBase {
-    PeriodSeconds,
-    PeriodMinutes,
-    PeriodHours,
-    PeriodDays,
-    PeriodWeeks
+  class Period {
+   public:
+    /** Default constructor. The period is set to 0 length. */
+    Period();
+
+    /** Constructor that takes a time_t variable and stores it. */
+    Period(const time_t&);
+
+    /** Constructor that tries to convert a string. */
+    Period(const std::string&);
+
+    /** Assignment operator from a time_t. */
+    Period& operator=(const time_t&);
+
+    /** sets the period */
+    void SetPeriod(const time_t&);
+
+    /** gets the period */
+    time_t GetPeriod() const;
+
+    /** Returns a string representation of the period. */
+    operator std::string() const;
+
+   private:
+    /** The duration of the period */
+    time_t seconds;
   };
 
-  /** Returns a textual representation of a period of seconds. */
-  std::string Period(unsigned long);
-
-  /** Converts a textual representation to a period of seconds. */
-  long Seconds(const std::string&, PeriodBase base = PeriodMinutes);
+  /** Prints a Period-object to the given ostream -- typically cout. */
+  std::ostream& operator<<(std::ostream&, const Period&);
 
 } // namespace Arc
 

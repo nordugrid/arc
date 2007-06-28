@@ -10,7 +10,6 @@
 #include "StringConv.h"
 #include "Logger.h"
 
-#define __(A, B, C) ((C) == 1 ? (A) : (B))
 
 #ifndef HAVE_TIMEGM
 time_t timegm (struct tm *tm) {
@@ -368,87 +367,81 @@ namespace Arc {
   }
 
 
-  std::string Period(unsigned long seconds) {
-
-    if(seconds == 0) {
-      std::string str("0");
-      return str;
-    }
-
-    int years = 0;
-    int weeks = 0;
-    int days = 0;
-    int hours = 0;
-    int minutes = 0;
-
-    if(seconds >= 60 * 60 * 24 * 365) {
-      years = seconds / (60 * 60 * 24 * 365);
-      seconds = seconds - years * 60 * 60 * 24 * 365;
-    }
-    if(seconds >= 60 * 60 * 24 * 7) {
-      weeks = seconds / (60 * 60 * 24 * 7);
-      seconds = seconds - weeks * 60 * 60 * 24 * 7;
-    }
-    if(seconds >= 60 * 60 * 24) {
-      days = seconds / (60 * 60 * 24);
-      seconds = seconds - days * 60 * 60 * 24;
-    }
-    if(seconds >= 60 * 60) {
-      hours = seconds / (60 * 60);
-      seconds = seconds - hours * 60 * 60;
-    }
-    if(seconds >= 60) {
-      minutes = seconds / 60;
-      seconds = seconds - minutes * 60;
-    }
-
-    std::stringstream ss;
-    bool first = true;
-
-    if(years > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << years << " " << __("year", "years", years);
-    }
-    if(weeks > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << weeks << " " << __("week", "weeks", weeks);
-    }
-    if(days > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << days << " " << __("day", "days", days);
-    }
-    if(hours > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << hours << " " << __("hour", "hours", hours);
-    }
-    if(minutes > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << minutes << " " << __("minute", "minutes", minutes);
-    }
-    if(seconds > 0) {
-      if(!first) ss << ", ";
-      first = false;
-      ss << seconds << " " << __("second", "seconds", seconds);
-    }
-
-    return ss.str();
-  }
+  Period::Period() : seconds(0) {}
 
 
-  long Seconds(const std::string& period, PeriodBase base) {
+  Period::Period(const time_t& length) : seconds(length) {}
 
-    long seconds = 0;
 
-    std::string::size_type pos = std::string::npos;
-    int len = 0;
+  Period::Period(const std::string& period) : seconds(0) {
 
-    {
-      for(unsigned int i = 0; i != period.length(); i++) {
+    if (period.empty()) {
+      dateTimeLogger.msg(ERROR, "Empty string in Period");
+      return;
+    }
+
+    if (period[0] == 'P') {
+      // ISO duration
+      std::string::size_type pos = 1;
+      bool min = false; // months or minutes?
+      while (pos < period.size()) {
+	if (period[pos] == 'T') {
+	  min = true;
+	}
+	else {
+	  std::string::size_type pos2 = pos;
+	  while (pos2 < period.size() && isdigit(period[pos2])) pos2++;
+	  if (pos2 == pos || pos2 == period.size()) {
+	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format");
+	    seconds = 0;
+	    return;
+	  }
+	  int num = stringtoi(period.substr(pos, pos2 - pos));
+	  pos = pos2;
+	  switch (period[pos]) {
+	  case 'Y':
+	    seconds += num * (365 * 24 * 60 * 60);
+	    break;
+	  case 'W':
+	    seconds += num * (7 * 24 * 60 * 60);
+	    min = true;
+	    break;
+	  case 'D':
+	    seconds += num * (24 * 60 * 60);
+	    min = true;
+	    break;
+	  case 'H':
+	    seconds += num * (60 * 60);
+	    min = true;
+	    break;
+	  case 'M':
+	    if (min)
+	      seconds += num * 60;
+	    else {
+	      seconds += num * (30 * 24 * 60 * 60);
+	      min = true;
+	    }
+	    break;
+	  case 'S':
+	    seconds += num;
+	    break;
+          default:
+	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format");
+	    seconds = 0;
+	    return;
+	    break;
+	  }
+	}
+	pos++;
+      }
+    }
+
+    else {
+      // "free" format 
+      std::string::size_type pos = std::string::npos;
+      int len = 0;
+
+      for(std::string::size_type i = 0; i != period.length(); i++) {
 	if(isdigit(period[i])) {
 	  if(pos == std::string::npos) {
 	    pos = i;
@@ -487,35 +480,72 @@ namespace Arc {
 	    break;
           default:
 	    dateTimeLogger.msg(ERROR, "Invalid period string");
-	    return -1;
+	    seconds = 0;
+	    return;
 	    break;
 	  }
 	}
       }
 
-      if(pos != std::string::npos) {
-	long tmp = stringtoi(period.substr(pos, len));
-	switch(base) {
-        case PeriodSeconds:
-	  seconds += tmp;
-	  break;
-        case PeriodMinutes:
-	  seconds += tmp * 60;
-	  break;
-        case PeriodHours:
-	  seconds += tmp * (60 * 60);
-	  break;
-        case PeriodDays:
-	  seconds += tmp * (60 * 60 * 24);
-	  break;
-        case PeriodWeeks:
-	  seconds += tmp * (60 * 60 * 24 * 7);
-	  break;
-	}
-      }
+      if(pos != std::string::npos)
+	seconds += stringtoi(period.substr(pos, len));
     }
+  }
 
+
+  Period& Period::operator=(const time_t& length) {
+    seconds = length;
+    return *this;
+  }
+
+
+  void Period::SetPeriod(const time_t& length) {
+    seconds = length;
+  }
+
+
+  time_t Period::GetPeriod() const {
     return seconds;
+  }
+
+
+  Period::operator std::string() const {
+    time_t remain = seconds;
+
+    std::stringstream ss;
+
+    ss << 'P';
+    if (remain >= 365 * 24 * 60 * 60) {
+      ss << remain / (365 * 24 * 60 * 60) << 'Y';
+      remain %= (365 * 24 * 60 * 60);
+    }
+    if (remain >= 30 * 24 * 60 * 60) {
+      ss << remain / (30 * 24 * 60 * 60) << 'M';
+      remain %= (30 * 24 * 60 * 60);
+    }
+    if (remain >= 24 * 60 * 60) {
+      ss << remain / (24 * 60 * 60) << 'D';
+      remain %= (24 * 60 * 60);
+    }
+    if (remain)
+      ss << 'T';
+    if (remain >= 60 * 60) {
+      ss << remain / (60 * 60) << 'H';
+      remain %= (60 * 60);
+    }
+    if (remain >= 60) {
+      ss << remain / 60 << 'M';
+      remain %= 60;
+    }
+    if (remain >= 1)
+      ss << remain  << 'S';
+
+    return ss.str();
+  }
+
+
+  std::ostream& operator<<(std::ostream& out, const Period& period) {
+    return (out << (std::string) period);
   }
 
 } // namespace Arc
