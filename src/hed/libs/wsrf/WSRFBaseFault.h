@@ -1,5 +1,6 @@
 #include "WSRF.h"
 #include "../ws-addressing/WSA.h"
+#include "../../../../src/libs/common/DateTime.h"
 
 namespace Arc {
 
@@ -18,8 +19,8 @@ class WSRFBaseFault: public WSRF {
 
   std::string Type(void);
 
-  time_t Timestamp(void);
-  void Timestamp(time_t);
+  Time Timestamp(void);
+  void Timestamp(Time);
 
   WSAEndpointReference Originator(void);
   //void Originator(const WSAEndpointReference&);

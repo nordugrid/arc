@@ -48,8 +48,9 @@ namespace Arc {
 
   /** This method converts a long to any type of the width given. */
   template<typename T>
-  std::string tostring(T t, const int width = 0) {
+  std::string tostring(T t, const int width = 0, const int precision = 0) {
     std::stringstream ss;
+    if (precision) ss << std::setprecision(precision);
     ss << std::setw(width) << t;
     return ss.str();
   }

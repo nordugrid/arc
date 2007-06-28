@@ -81,13 +81,6 @@ namespace Arc {
 
   private:
 
-    //! Returns the current date and time nicely formated in a string.
-    /*! This method gets the current date and time and formats it
-      nicely in a string to be used by the constructors of this class.
-      @return A string containing the current date and time.
-     */
-    static std::string getCurrentTime();
-
     //! Composes a default identifier.
     /*! This method composes a default identifier by combining the the
       process ID and the address of the Thread object corresponding to

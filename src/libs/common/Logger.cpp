@@ -3,6 +3,7 @@
 #include <sstream>
 #include <glib.h>
 #include "Logger.h"
+#include "DateTime.h"
 
 namespace Arc {
   
@@ -42,7 +43,7 @@ namespace Arc {
 
   LogMessage::LogMessage(LogLevel level,
 			 const std::string& message) :
-    time(getCurrentTime()),
+    time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
@@ -54,7 +55,7 @@ namespace Arc {
   LogMessage::LogMessage(LogLevel level,
 			 const std::string& message,
 			 const std::string& identifier) :
-    time(getCurrentTime()),
+    time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
@@ -71,14 +72,6 @@ namespace Arc {
     this->identifier = identifier;
   }
   
-  std::string LogMessage::getCurrentTime(){
-    Glib::TimeVal tv;
-    gchar tc[51];
-    g_get_current_time(&tv);
-    strftime(tc, 50, "%Y-%m-%d %H:%M:%S", gmtime(&(tv.tv_sec)));
-    return std::string(tc);
-  }
-
   std::string LogMessage::getDefaultIdentifier(){
     std::ostringstream sout;
     sout << getpid() << "/"

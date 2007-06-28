@@ -2,8 +2,9 @@
 #define __ARC_BASICDT_H__
 
 #include <string>
-#include <time.h>
 #include <map>
+
+#include "DateTime.h"
 
 /**Deal with the serilization and deserilization about basic datatype (Build-in datatype in "XML Schema Part 2: Datatypes Second Edition": http://www.w3.org/TR/xmlschema-2/)*/
 
@@ -18,9 +19,9 @@ typedef enum XSDTYPETag
                 XSD_DATETIME, XSD_TIME, XSD_DATE, \
                 XSD_GYEARMONTH, XSD_GYEAR, XSD_GMONTHDAY, XSD_GDAY, \
                 XSD_GMONTH, XSD_HEXBINARY, \
-                XSD_BASE64BINARY, XSD_ANYURI, XSD_QNAME,  XSD_NOTATION, \
+                XSD_BASE64BINARY, XSD_ANYURI, XSD_QNAME, XSD_NOTATION, \
                 XSD_INTEGER, \
-                XSD_ARRAY, USER_TYPE,  XSD_NMTOKEN, XSD_ANY, XSD_NONNEGATIVEINTEGER, \
+                XSD_ARRAY, USER_TYPE, XSD_NMTOKEN, XSD_ANY, XSD_NONNEGATIVEINTEGER, \
                 XSD_POSITIVEINTEGER, XSD_NONPOSITIVEINTEGER, XSD_NEGATIVEINTEGER, \
                 XSD_NORMALIZEDSTRING, XSD_TOKEN, XSD_LANGUAGE, XSD_NAME, \
                 XSD_NCNAME, XSD_ID, XSD_IDREF, XSD_IDREFS, XSD_ENTITY, \
@@ -28,50 +29,50 @@ typedef enum XSDTYPETag
 } XSDTYPE;
 
 //primitive datatype
-typedef char* 	xsd__string;
-typedef bool 	xsd__boolean;
+typedef char*	xsd__string;
+typedef bool	xsd__boolean;
 typedef float	xsd__float;
 typedef double	xsd__double;
 typedef double	xsd__decimal;
-typedef long	xsd__duration;
-typedef struct tm  xsd__dateTime;
-typedef struct tm  xsd__time;
-typedef struct tm  xsd__date;
-typedef struct tm  xsd__gYearMonth;
-typedef struct tm  xsd__gYear;
-typedef struct tm  xsd__gMonthDay;
-typedef struct tm  xsd__gDay;
-typedef struct tm  xsd__gMonth;
+typedef Period	xsd__duration;
+typedef Time	xsd__dateTime;
+typedef Time	xsd__time;
+typedef Time	xsd__date;
+typedef Time	xsd__gYearMonth;
+typedef Time	xsd__gYear;
+typedef Time	xsd__gMonthDay;
+typedef Time	xsd__gDay;
+typedef Time	xsd__gMonth;
 typedef char*	xsd__anyURI;
-typedef char*   xsd__QName;
+typedef char*	xsd__QName;
 typedef char*	xsd__NOTATION;
 
 //derived datatype
-typedef char* 	xsd__normalizedString;
+typedef char*	xsd__normalizedString;
 typedef char*	xsd__token;
 typedef char*	xsd__language;
 typedef char*	xsd__IDREFS;
 typedef char*	xsd__ENTITIES;
 typedef char*	xsd__NMTOKEN;
 typedef char*	xsd__NMTOKENS;
-typedef char*   xsd__Name;
+typedef char*	xsd__Name;
 typedef char*	xsd__NCName;
 typedef char*	xsd__ID;
 typedef char*	xsd__IDREF;
 typedef char*	xsd__ENTITY;
-typedef long long  	xsd__integer;
-typedef long long  	xsd__nonPositiveInteger;
-typedef long long 	xsd__negativeInteger;
-typedef long long  	xsd__long;
-typedef int  	xsd__int;
-typedef short  	xsd__short;
-typedef signed char  	xsd__byte;
-typedef unsigned long long  	xsd__nonNegativeInteger;
-typedef unsigned long long  	xsd__unsignedLong;
-typedef unsigned int  		xsd__unsignedInt;
+typedef long long	xsd__integer;
+typedef long long	xsd__nonPositiveInteger;
+typedef long long	xsd__negativeInteger;
+typedef long long	xsd__long;
+typedef int	xsd__int;
+typedef short	xsd__short;
+typedef signed char	xsd__byte;
+typedef unsigned long long	xsd__nonNegativeInteger;
+typedef unsigned long long	xsd__unsignedLong;
+typedef unsigned int	xsd__unsignedInt;
 typedef unsigned short	xsd__unsignedShort;
-typedef unsigned char  	xsd__unsignedByte;
-typedef unsigned long long 	xsd__positiveInteger;
+typedef unsigned char	xsd__unsignedByte;
+typedef unsigned long long	xsd__positiveInteger;
 
 //two special primitive datatype
 typedef struct{
@@ -190,7 +191,7 @@ public:
 };
 
 
-
+/*
 class Time{};
 
 class Date{};
@@ -204,6 +205,7 @@ class GMonthDay{};
 class GDay{};
 
 class GMonth{};
+*/
 
 class AnyURI : public BasicType{
 public:
