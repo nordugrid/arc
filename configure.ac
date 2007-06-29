@@ -174,7 +174,7 @@ AC_OUTPUT([Makefile \
                  src/hed/libs/wsrf/Makefile \
                  src/hed/libs/ws-addressing/Makefile \
                  src/hed/libs/infosys/Makefile \
-		 src/hed/mcc/Makefile \
+                 src/hed/mcc/Makefile \
                  src/hed/mcc/soap/Makefile \
                  src/hed/mcc/tcp/Makefile \
                  src/hed/mcc/http/Makefile \
@@ -187,6 +187,7 @@ AC_OUTPUT([Makefile \
                  swig/Makefile \
                  java/Makefile \
                  python/Makefile \
+                 intl/Makefile \
                  doc/Makefile
 ])
 

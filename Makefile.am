@@ -5,4 +5,4 @@ if PYTHON_ENABLED
 PYTHON_SD = python
 endif
 
-SUBDIRS=src swig $(JAVA_SD) $(PYTHON_SD) # doc
+SUBDIRS=src swig $(JAVA_SD) $(PYTHON_SD) intl # doc
