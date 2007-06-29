@@ -26,11 +26,11 @@ namespace Arc {
     std::stringstream ss(s);
     ss >> t;
     if(ss.fail()) {
-      stringLogger.msg(ERROR, "Conversion failed");
+      stringLogger.msg(ERROR, "Conversion failed: %s", s.c_str());
       return 0;
     }
     if(!ss.eof())
-      stringLogger.msg(WARNING, "Full string not used");
+      stringLogger.msg(WARNING, "Full string not used: %s", s.c_str());
     return t;
   }
 

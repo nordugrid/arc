@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <iostream>
+#include <cstdarg>
 #include <glibmm/thread.h>
 
 namespace Arc {
@@ -49,7 +50,8 @@ namespace Arc {
       @param message The message text.
      */
     LogMessage(LogLevel level,
-	       const std::string& message);
+	       const std::string& message,
+	       va_list v = NULL);
 
     //! Creates a LogMessage with the specified attributes.
     /*! This constructor creates a LogMessage with the specified
@@ -62,7 +64,8 @@ namespace Arc {
     */
     LogMessage(LogLevel level,
 	       const std::string& message,
-	       const std::string& identifier);
+	       const std::string& identifier,
+	       va_list v = NULL);
 
     //! Returns the level of the LogMessage.
     /*! Returns the level of the LogMessage.
@@ -110,6 +113,9 @@ namespace Arc {
 
     //! The message text.
     std::string message;
+
+    //! The variable list.
+    va_list v;
 
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
@@ -307,7 +313,7 @@ namespace Arc {
       @param level The level of the message.
       @param str The message text.
     */
-    void msg(LogLevel level, const char *str);
+    void msg(LogLevel level, const std::string& str, ...);
 
   private:
 

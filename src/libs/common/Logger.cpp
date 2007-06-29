@@ -4,6 +4,7 @@
 #include <glib.h>
 #include "Logger.h"
 #include "DateTime.h"
+#include <libintl.h>
 
 namespace Arc {
   
@@ -42,24 +43,28 @@ namespace Arc {
   }
 
   LogMessage::LogMessage(LogLevel level,
-			 const std::string& message) :
+			 const std::string& message,
+			 va_list v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message)
+    message(message),
+    v(v)
   {
     // Nothing else needs to be done.
   }
 
   LogMessage::LogMessage(LogLevel level,
 			 const std::string& message,
-			 const std::string& identifier) :
+			 const std::string& identifier,
+			 va_list v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message)
+    message(message),
+    v(v)
   {
     // Nothing else needs to be done.
   }
@@ -84,19 +89,13 @@ namespace Arc {
   }
   
   std::ostream& operator<<(std::ostream& os, const LogMessage& message){
-    // TODO: Format the time in some human-readable way!
+    char buf[1024];
+    vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), message.v);
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
        << "[" << message.identifier << "] "
-       << message.message;
-    /*
-    os << "Time:       " << message.time << std::endl
-       << "Level:      " << message.level << std::endl
-       << "Domain:     " << message.domain << std::endl
-       << "Identifier: " << message.identifier << std::endl
-       << message.message << std::endl;
-    */
+       << buf;
   }
 
   LogDestination::LogDestination(){
@@ -172,8 +171,11 @@ namespace Arc {
     log(message);
   }
   
-  void Logger::msg(LogLevel level, const char *str) {
-    msg(LogMessage(level, str)); 
+  void Logger::msg(LogLevel level, const std::string& str, ...) {
+    va_list v;
+    va_start(v, str);
+    msg(LogMessage(level, str, v));
+    va_end(v);
   }
 
   Logger::Logger() :
