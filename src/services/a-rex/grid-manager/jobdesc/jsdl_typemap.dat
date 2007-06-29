@@ -1,0 +1,9 @@
+[
+// JSDL
+]
+jsdl      = http://schemas.ggf.org/jsdl/2005/11/jsdl
+jsdlPOSIX = http://schemas.ggf.org/jsdl/2005/11/jsdl-posix
+jsdlARC   = http://www.nordugrid.org/ws/schemas/jsdl-arc
+xsd__integer = | int
+xsd__positiveInteger = | unsigned int
+xsd__nonNegativeInteger = | unsigned int

@@ -1,4 +1,4 @@
-#include <arc/job.h>
+#include "job.h"
 
 JobRequest::JobRequest(void) {
 	reset();
@@ -32,9 +32,9 @@ bool JobRequest::print(std::string& s) throw(JobRequestError) {
 
 JobRequest::InputFile::InputFile(const std::string& n,const std::string& s):name(n) {
 	if(s.find(':') != std::string::npos) {
-		try {
+		//@ try {
 			source=s;
-		} catch(URLError) { };
+		//@ } catch(URLError) { };
 	} else {
 		parameters=s;
 	};
@@ -42,9 +42,9 @@ JobRequest::InputFile::InputFile(const std::string& n,const std::string& s):name
 
 JobRequest::OutputFile::OutputFile(const std::string& n,const std::string& d):name(n) {
 	if(d.length()) {
-		try {
+		//@ try {
 			destination=d;
-		} catch(URLError) { };
+		//@ } catch(URLError) { };
 	}
 }
 
@@ -54,7 +54,7 @@ JobRequest::Notification::Notification(const std::string& f,const std::string& e
 void JobRequest::reset(void) {
     job_name.resize(0);
     acl.resize(0);
-	start_time=Time(-1);
+    start_time=Arc::Time(-1);
     sstdin.resize(0);
     sstdout.resize(0);
     sstderr.resize(0);
@@ -159,7 +159,7 @@ void JobRequest::merge(const JobRequest& j) {
 	       j.runtime_environments.begin(),j.runtime_environments.end());
 	if(j.middlewares.size()) middlewares=j.middlewares;
 	if(j.acl.length()) acl=j.acl;
-	if(j.start_time != Time(-1)) start_time=j.start_time;
+	if(j.start_time != Arc::Time(-1)) start_time=j.start_time;
 	if(j.gmlog.length()) gmlog=j.gmlog;
 	if(j.credentialserver.length()) credentialserver=j.credentialserver;
 	if(j.architecture.length()) architecture=j.architecture;

@@ -9,7 +9,7 @@
 
 #include "runtimeenvironment.h"
 #include <src/libs/common/URL.h>
-#include "datetime.h"
+#include <src/libs/common/DateTime.h>
 
 
 /** Exception class thrown in case of errors with the JobRequest class. */
@@ -63,7 +63,7 @@ class JobRequest {
 		std::list<RuntimeEnvironment> middlewares;
 		std::string architecture;
 		std::string acl;
-		Time start_time;
+		Arc::Time start_time;
 		std::string gmlog;
 		std::list<std::string> loggers;
 		std::string credentialserver;

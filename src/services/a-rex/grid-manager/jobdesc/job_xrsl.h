@@ -5,7 +5,7 @@
 
 #include <string>
 
-//@ #include "xrsl.h"
+#include "xrsl.h"
 #include "job.h"
 
 /**
@@ -13,9 +13,9 @@
  */
 class JobRequestXRSL: public JobRequest {
     protected:
-        //@ bool set(const char* s) throw(JobRequestError);
-        //@ bool set(Xrsl& xrsl) throw(JobRequestError);
-        //@ bool set_xrsl(Xrsl& xrsl) throw (JobRequestError);
+        bool set(const char* s) throw(JobRequestError);
+        bool set(Xrsl& xrsl) throw(JobRequestError);
+        bool set_xrsl(Xrsl& xrsl) throw (JobRequestError);
         virtual bool print(std::string& s) throw(JobRequestError);
 
     public:
@@ -31,8 +31,8 @@ class JobRequestXRSL: public JobRequest {
         virtual JobRequest& operator=(const JobRequest& j) throw (JobRequestError);
 
     private:
-        //@ Xrsl* xrsl_;
-        //@ Type type_;
+        Xrsl* xrsl_;
+        Type type_;
 
 };
 

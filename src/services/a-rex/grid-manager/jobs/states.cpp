@@ -19,7 +19,7 @@
 #include "../mail/send_mail.h"
 #include "../url/url_options.h"
 //@ #include "../misc/log_time.h"
-#include "../misc/job_log.h"
+#include "../log/job_log.h"
 #include "../conf/conf_file.h"
 #include "../jobs/users.h"
 #include "../jobs/job.h"

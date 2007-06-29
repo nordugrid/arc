@@ -1,8 +1,9 @@
-#include <arc/job_xrsl.h>
-#include <arc/stringconv.h>
-#include <arc/datetime.h>
+#include "job_xrsl.h"
+#include <src/libs/common/StringConv.h>
+#include <src/libs/common/DateTime.h>
+#include <src/libs/common/URL.h>
 
-class URLModifier: public URL {
+class URLModifier: public Arc::URL {
 	public:
 		void AddOption(const std::string& name,const std::string& value) {
 			std::map<std::string, std::string>::value_type option(name,value);
@@ -32,12 +33,12 @@ static void add_attribute(const std::string& name,const std::string& value,Xrsl&
 
 static void add_attribute(const std::string& name,long value,Xrsl& xrsl) throw(XrslError) {
 	if(value>=0) {
-		xrsl.AddRelation(XrslRelation(name,operator_eq,tostring<long>(value)));
+		xrsl.AddRelation(XrslRelation(name,operator_eq,Arc::tostring<long>(value)));
 	};
 }
 
-static void add_attribute(const std::string& name,const Time& value,Xrsl& xrsl) throw(XrslError) {
-	if(value != Time(-1)) {
+static void add_attribute(const std::string& name,const Arc::Time& value,Xrsl& xrsl) throw(XrslError) {
+	if(value != Arc::Time(-1)) {
 		xrsl.AddRelation(XrslRelation(name,operator_eq,value.str()));
 	};
 }
@@ -50,7 +51,7 @@ static void add_attribute(const std::string& name,const std::list<std::string>& 
 
 static void add_attribute_period(const std::string& name,long value,Xrsl& xrsl) throw(XrslError) {
 	if(value>=0) {
-		xrsl.AddRelation(XrslRelation(name,operator_eq,Period(value)));
+		xrsl.AddRelation(XrslRelation(name,operator_eq,Arc::Period(value)));
 	};
 }
 
@@ -69,47 +70,56 @@ static void get_attribute(const std::string& name,std::string& value,Xrsl& xrsl)
 
 static void get_attribute(const std::string& name,int& value,Xrsl& xrsl) {
     try {
-        value=stringto<int>((xrsl.GetRelation(name)).GetSingleValue());
+        value=Arc::stringto<int>((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-	} catch (StringConvError) { };
+    //@ } catch (Arc::StringConvError) {
+    };
 }
 
 static void get_attribute(const std::string& name,long& value,Xrsl& xrsl) {
     try {
-        value=stringto<long>((xrsl.GetRelation(name)).GetSingleValue());
+        value=Arc::stringto<long>((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-    } catch (StringConvError) { };
+    //@ } catch (StringConvError) {
+    };
 }
 
-static void get_attribute(const std::string& name,Time& value,Xrsl& xrsl) {
+static void get_attribute(const std::string& name,Arc::Time& value,Xrsl& xrsl) {
     try {
-        value=Time((xrsl.GetRelation(name)).GetSingleValue());
+        value=Arc::Time((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-    } catch (TimeError) { };
+    //@ } catch (Arc::TimeError) {
+    };
 }
 
 static void get_attribute_seconds(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		value=Seconds(v,PeriodSeconds);
+		//@ value=Arc::Seconds(v,Arc::PeriodSeconds);
+		value=Arc::Period(v).GetPeriod();
 	} catch (XrslError) {
-	} catch (TimeError) { };
+	//@ } catch (Arc::TimeError) {
+	};
 }
 
 static void get_attribute_minutes(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		value=Seconds(v,PeriodMinutes);
+		//@ value=Arc::Seconds(v,Arc::PeriodMinutes);
+		value=Arc::Period(v).GetPeriod();
 	} catch (XrslError) {
-	} catch (TimeError) { };
+	//@ } catch (Arc::TimeError) {
+        };
 }
 
 static void get_attribute_days(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		value=Seconds(v,PeriodDays);
+		//@ value=Arc::Seconds(v,Arc::PeriodDays);
+		value=Arc::Period(v).GetPeriod();
 	} catch (XrslError) {
-	} catch (TimeError) { };
+	//@ } catch (TimeError) {
+        };
 }
 
 static std::string notification(const JobRequest::Notification v) {
@@ -307,9 +317,9 @@ bool JobRequestXRSL::set(Xrsl& xrsl) throw(JobRequestError) {
 	};
 	value=""; get_attribute("replicacollection",value,xrsl);
 	if(value.length()) {
-		try {
-			URL rc_url(value);
-			if(rc_url.Protocol() == "ldap") {
+		//@ try {
+			Arc::URL rc_url(value);
+			if(rc_url && (rc_url.Protocol() == "ldap")) {
 				for(std::list<InputFile>::iterator i = inputdata.begin();
 		        		                           i!=inputdata.end();++i) {
 					if(i->source.Host().length() == 0) {
@@ -319,7 +329,7 @@ bool JobRequestXRSL::set(Xrsl& xrsl) throw(JobRequestError) {
 					};
 				};
 			};
-		} catch(URLError) { };
+		//@ } catch(URLError) { };
 	};
 	return true;
 }
@@ -394,7 +404,7 @@ bool JobRequestXRSL::set_xrsl(Xrsl& xrsl) throw (JobRequestError) {
 		add_attribute("disk",disk,xrsl);
 		switch(type_) {
 			case UserFriendly:
-                start_time.SetFormat(UserTime);
+                start_time.SetFormat(Arc::UserTime);
 		        add_attribute("starttime",start_time,xrsl);
 				add_attribute_period("cputime",cpu_time,xrsl);
 				add_attribute_period("walltime",wall_time,xrsl);
@@ -402,7 +412,7 @@ bool JobRequestXRSL::set_xrsl(Xrsl& xrsl) throw (JobRequestError) {
 				add_attribute_period("lifetime",lifetime,xrsl);
 				break;
 			default: // safe way
-                start_time.SetFormat(MDSTime);
+                start_time.SetFormat(Arc::MDSTime);
 		        add_attribute("starttime",start_time,xrsl);
 				add_attribute("cputime",divide_up(cpu_time,60),xrsl);
 				add_attribute("walltime",divide_up(wall_time,60),xrsl);

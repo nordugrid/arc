@@ -450,7 +450,7 @@ bool JobRequestJSDL::set_jsdl(jsdl__JobDescription_USCOREType* job_description_,
 		if(!(job_description_->jsdlARC__AccessControl->Content)) goto error;
 		*(job_description_->jsdlARC__AccessControl->Content)=acl;
 	};
-	if(start_time != Time(-1)) {
+	if(start_time != Arc::Time(-1)) {
 		job_description_->jsdlARC__ProcessingStartTime=(time_t*)soap_malloc(sp_,sizeof(time_t));
 		if(!(job_description_->jsdlARC__ProcessingStartTime)) goto error;
 		*(job_description_->jsdlARC__ProcessingStartTime)=start_time.GetTime();

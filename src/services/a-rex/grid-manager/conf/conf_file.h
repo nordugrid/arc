@@ -5,7 +5,7 @@
 
 #include "../jobs/users.h"
 #include "../jobs/states.h"
-#include "../misc/job_log.h"
+#include "../log/job_log.h"
 #include "../conf/daemon.h"
 
 extern JobLog job_log;
