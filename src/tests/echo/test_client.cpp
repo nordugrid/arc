@@ -61,7 +61,7 @@ int main(void) {
   reqmsg.Payload(&req);
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
-    logger.msg(Arc::ERROR, "Request fialed");
+    logger.msg(Arc::ERROR, "Request failed");
     return -1;
   };
   Arc::PayloadSOAP* resp = NULL;

@@ -1,0 +1,523 @@
+# Translation file for the Advanced Resource Connector (Arc)
+msgid ""
+msgstr ""
+"Project-Id-Version: Arc\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-30 21:33+0200\n"
+"PO-Revision-Date: 2007-06-30 22:54+0200\n"
+"Last-Translator: name <email@address>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/libs/common/DateTime.cpp:65
+#, c-format
+msgid "Can not parse date: %s"
+msgstr "Kan inte tolka datum: %s"
+
+#: ../src/libs/common/DateTime.cpp:88
+#, c-format
+msgid "Can not parse time: %s"
+msgstr "Kan inte tolka tid: %s"
+
+#: ../src/libs/common/DateTime.cpp:119
+#, c-format
+msgid "Can not parse time zone offset: %s"
+msgstr "Kan inte tolka tidszon: %s"
+
+#: ../src/libs/common/DateTime.cpp:138 ../src/libs/common/DateTime.cpp:158
+#: ../src/libs/common/DateTime.cpp:198
+#, c-format
+msgid "Illegal time format: %s"
+msgstr "Ogiltigt tidsformat: %s"
+
+#: ../src/libs/common/DateTime.cpp:190
+#, c-format
+msgid "Can not parse month: %s"
+msgstr "Kan inte tolka månad: %s"
+
+#: ../src/libs/common/DateTime.cpp:385
+msgid "Empty period string"
+msgstr "Tom periodsträng"
+
+#: ../src/libs/common/DateTime.cpp:401 ../src/libs/common/DateTime.cpp:436
+#, c-format
+msgid "Invalid ISO duration format: %s"
+msgstr "Ogiltigt ISO-tidsperiodsformat: %s"
+
+#: ../src/libs/common/DateTime.cpp:490
+#, c-format
+msgid "Invalid period string: %s"
+msgstr "Ogiltig periodsträng: %s"
+
+#: ../src/libs/common/Thread.cpp:11
+msgid "Initialize thread system"
+msgstr "Initialisera trådsystemet"
+
+#: ../src/libs/common/StringConv.h:23
+msgid "Empty String"
+msgstr "Tom sträng"
+
+#: ../src/libs/common/StringConv.h:29
+#, c-format
+msgid "Conversion failed: %s"
+msgstr "Konvertering misslyckades: %s"
+
+#: ../src/libs/common/StringConv.h:33
+#, c-format
+msgid "Full string not used: %s"
+msgstr "Hela strängen användes inte: %s"
+
+#: ../src/libs/common/URL.cpp:87
+#, c-format
+msgid "URL is not valid: %s"
+msgstr "URL:en är inte giltig: %s"
+
+#: ../src/libs/common/URL.cpp:93
+#, c-format
+msgid "Malformed URL: %s"
+msgstr "Ogiltig URL: %s"
+
+#: ../src/libs/common/URL.cpp:204
+msgid "Illegal URL - no hostname given"
+msgstr "Ogiltig URL - inget värdnamn givet"
+
+#: ../src/libs/common/URL.cpp:234
+msgid "Basedn only defined for ldap protocol"
+msgstr "Bas-dn är endast definierat för ldap-protokoll"
+
+#: ../src/tests/echo/test.cpp:17
+msgid "Creating service side chain"
+msgstr "Skapar servicesidokedjan"
+
+#: ../src/tests/echo/test.cpp:20 ../src/hed/daemon/main.cpp:81
+msgid "Failed to load service configuration"
+msgstr "Misslyckades med att ladda serviceinställningar"
+
+#: ../src/tests/echo/test.cpp:24 ../src/hed/daemon/main.cpp:104
+msgid "Service side MCCs are loaded"
+msgstr "Servicesidans MCC:er har laddats"
+
+#: ../src/tests/echo/test.cpp:26 ../src/tests/echo/test_client.cpp:16
+msgid "Creating client side chain"
+msgstr "Skapar klientsidokedjan"
+
+#: ../src/tests/echo/test.cpp:52 ../src/tests/echo/test_client.cpp:42
+msgid "Failed to load client configuration"
+msgstr "Misslyckades med att ladda klientinställningar"
+
+#: ../src/tests/echo/test.cpp:56 ../src/tests/echo/test_client.cpp:46
+msgid "Client side MCCs are loaded"
+msgstr "Klientsidans MCC:er har laddats"
+
+#: ../src/tests/echo/test.cpp:59 ../src/tests/echo/test_client.cpp:49
+msgid "Client chain does not have entry point"
+msgstr "Klientkedjan har ingen ingångspunkt"
+
+#: ../src/tests/echo/test.cpp:65 ../src/tests/echo/test_client.cpp:55
+msgid "Creating and sending request"
+msgstr "Skapar och skickar förfrågan"
+
+#: ../src/tests/echo/test.cpp:74 ../src/tests/echo/test_client.cpp:64
+msgid "Request failed"
+msgstr "Förfrågan misslyckades"
+
+#: ../src/tests/echo/test.cpp:78
+msgid "Request succeed!!!"
+msgstr "Förfrågan lyckades!!!"
+
+#: ../src/tests/echo/test.cpp:82 ../src/tests/echo/test_client.cpp:69
+msgid "There is no response"
+msgstr "Det finns inget svar"
+
+#: ../src/tests/echo/test.cpp:89 ../src/tests/echo/test_client.cpp:76
+msgid "Response is not SOAP"
+msgstr "Svaret är inte SOAP"
+
+#: ../src/tests/echo/echo.cpp:68
+msgid "Input is not SOAP"
+msgstr "Indata är inte SOAP"
+
+#: ../src/tests/echo/echo.cpp:74
+#, c-format
+msgid "Request is not supported - %s"
+msgstr "Förfrågan understöds inte - %s"
+
+#: ../src/hed/daemon/daemon.cpp:35
+#, c-format
+msgid "Daemonization fork failed: %s"
+msgstr "Demonisering av fork misslyckades: %s"
+
+#: ../src/hed/daemon/daemon.cpp:72
+msgid "Shutdown daemon"
+msgstr "Stänger av demon"
+
+#: ../src/hed/daemon/main.cpp:22
+msgid "shutdown"
+msgstr "avstängning"
+
+#: ../src/hed/daemon/main.cpp:32
+msgid "No server config part of config file"
+msgstr "Ingen serverinställningsdel i inställningsfilen"
+
+#: ../src/hed/daemon/main.cpp:60
+msgid "Start foreground"
+msgstr "Startar i förgrunden"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:5
+msgid "The root node of request is not <Request>"
+msgstr "Förfrågans rotnod är inte <Request>"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:18
+msgid "Subject has no Attribute defined"
+msgstr "Subjektet har inget attribut definierat"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:33
+msgid "Object has no Attribute defined"
+msgstr "Objektet har inget attribut definierat"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:46
+msgid "Action has no Attribute defined"
+msgstr "Handlingen har inget attribut definierat"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:59
+msgid "Context has no Attribute defined"
+msgstr "Kontexten har inget attribut definierat"
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:69
+#: ../src/hed/libs/loader/Loader.cpp:340
+#, c-format
+msgid "Unknown element \"%s\" - ignoring"
+msgstr "Okänt element \"%s\" - ignorerar"
+
+#: ../src/hed/libs/security/SimpleListAuthZ.cpp:67
+#, c-format
+msgid "PDP name: %s"
+msgstr "PDP-namn: %s"
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:28
+#, c-format
+msgid "Access list location: %s"
+msgstr "Tillträdeslista: %s"
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:37
+#, c-format
+msgid "policy line: %s"
+msgstr "policyrad: %s"
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:38
+#, c-format
+msgid "subject: %s"
+msgstr "subjekt: %s"
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:45
+msgid "UnAuthorized!!!"
+msgstr "Oautoriserad!!!"
+
+#: ../src/hed/libs/security/ArcPDP.cpp:25
+#, c-format
+msgid "Arc access list location: %s"
+msgstr "Arc tillträdeslista: %s"
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:44
+#: ../src/hed/libs/loader/LoaderFactory.cpp:83
+msgid "Not a plugin"
+msgstr "Ingen plugin"
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:63
+#, c-format
+msgid "Element: %s version: %i"
+msgstr "Element: %s version: %i"
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:66
+msgid "Missing init function"
+msgstr "init-funktion saknas"
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:76
+#, c-format
+msgid "Module %s could not be loaded"
+msgstr "Modul %s kunde inte laddas"
+
+#: ../src/hed/libs/loader/Loader.cpp:37
+msgid "before loop"
+msgstr "före loop"
+
+#: ../src/hed/libs/loader/Loader.cpp:39
+msgid "mcc unlink"
+msgstr "mcc avlänkning"
+
+#: ../src/hed/libs/loader/Loader.cpp:44
+msgid "plexer unlink"
+msgstr "plexer avlänkning"
+
+#: ../src/hed/libs/loader/Loader.cpp:50
+msgid "mcc erase"
+msgstr "mcc radering"
+
+#: ../src/hed/libs/loader/Loader.cpp:56
+msgid "service erase"
+msgstr "service radering"
+
+#: ../src/hed/libs/loader/Loader.cpp:62
+msgid "plexer erase"
+msgstr "plexer radering"
+
+#: ../src/hed/libs/loader/Loader.cpp:68
+msgid "sechandler erase"
+msgstr "sechandler radering"
+
+#: ../src/hed/libs/loader/Loader.cpp:73
+msgid "after loops"
+msgstr "efter loopar"
+
+#: ../src/hed/libs/loader/Loader.cpp:75
+msgid "after delete context"
+msgstr "efter kontextborttagande"
+
+#: ../src/hed/libs/loader/Loader.cpp:163
+msgid "SecHandler has no configuration"
+msgstr "Säkerhetshanterare saknar inställningar"
+
+#: ../src/hed/libs/loader/Loader.cpp:168
+msgid "SecHandler has no name attribute defined"
+msgstr "Säkerhetshanterare har inget namnattribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:207
+msgid "Plugins element has no Name defined"
+msgstr "Pluginelement har inget namn definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:222
+msgid "Component has no name attribute defined"
+msgstr "Komponent har inget namnattribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:227
+msgid "Component has no id attribute defined"
+msgstr "Komponent har inget id-attribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:232
+#, c-format
+msgid "Component %s(%s) could not be created"
+msgstr "Komponent %s(%s) kunde inte skapas"
+
+#: ../src/hed/libs/loader/Loader.cpp:262
+#, c-format
+msgid "Component's %s(%s) next has no id attribute defined"
+msgstr "Komponentens %s(%s) nästa har inget id-attribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:271
+#, c-format
+msgid "Loaded MCC %s(%s)"
+msgstr "Laddade MCC %s(%s)"
+
+#: ../src/hed/libs/loader/Loader.cpp:288
+#, c-format
+msgid "Plexer's (%s) next has no id attribute defined"
+msgstr "Plexerns %s nästa har inget id-attribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:297
+#, c-format
+msgid "Loaded Plexer %s(%s)"
+msgstr "Laddade Plexer %s(%s)"
+
+#: ../src/hed/libs/loader/Loader.cpp:305
+msgid "Service has no name attribute defined"
+msgstr "Service har inget namnattribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:310
+msgid "Service has no id attribute defined"
+msgstr "Service har inget id-attribut definierat"
+
+#: ../src/hed/libs/loader/Loader.cpp:315
+#, c-format
+msgid "Service %s(%s) could not be created"
+msgstr "Service %s(%s) kunde inte skapas"
+
+#: ../src/hed/libs/loader/Loader.cpp:320
+#, c-format
+msgid "Loaded Service %s(%s)"
+msgstr "Laddade Service %s(%s)"
+
+#: ../src/hed/libs/loader/Loader.cpp:359
+#, c-format
+msgid "Linking MCC %s(%s) to MCC (%s) under %s"
+msgstr "Länkar MCC %s(%s) till MCC (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:368
+#, c-format
+msgid "Linking MCC %s(%s) to Service (%s) under %s"
+msgstr "Länkar MCC %s(%s) till Service (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:377
+#, c-format
+msgid "Linking MCC %s(%s) to Plexer (%s) under %s"
+msgstr "Länkar MCC %s(%s) till Plexer (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:382
+#, c-format
+msgid "MCC %s(%s) - next %s(%s) has no target"
+msgstr "MCC %s(%s) - nästa %s(%s) saknar mål"
+
+#: ../src/hed/libs/loader/Loader.cpp:399
+#, c-format
+msgid "Linking Plexer %s to MCC (%s) under %s"
+msgstr "Länkar Plexer %s till MCC (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:408
+#, c-format
+msgid "Linking Plexer %s to Service (%s) under %s"
+msgstr "Länkar Plexer %s till Service (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:417
+#, c-format
+msgid "Linking Plexer %s to Plexer (%s) under %s"
+msgstr "Länkar Plexer %s(%s) till Plexer (%s) under %s"
+
+#: ../src/hed/libs/loader/Loader.cpp:423
+#, c-format
+msgid "Plexer (%s) - next %s(%s) has no target"
+msgstr "Plexer (%s) - nästa %s(%s) saknar mål"
+
+#: ../src/hed/libs/loader/Plexer.cpp:74
+#, c-format
+msgid "Bad label: \"%s\""
+msgstr "Dålig etikett: \"%s\""
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:11
+msgid "Module Manager Init"
+msgstr "Modulhanterare init"
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:41
+#, c-format
+msgid "Found %s in cache"
+msgstr "Hittade %s i cache"
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:57
+#, c-format
+msgid "Could not locate module %s"
+msgstr "Kunde inte lokalisera modulen %s"
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:66
+#, c-format
+msgid "Loaded %s"
+msgstr "Laddade %s"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:46
+msgid "Missing Port in Listen element"
+msgstr "Port saknas i Listen-element"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:52
+msgid "Failed to create socket"
+msgstr "Misslyckades med att skapa socket"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:61
+msgid "Failed to bind socket"
+msgstr "Misslyckades med att binda socket"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:65
+msgid "Failed to listen on socket"
+msgstr "Misslyckades med att lyssna till socket"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:71
+msgid "No listening ports configured"
+msgstr "Inga lyssnande portar inställda"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:77
+msgid "Failed to start thread for listening"
+msgstr "Misslyckades med att starta tråd för att lyssna"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:84
+msgid "TCP_Service destroy"
+msgstr "Ta bort TPC-service"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:115
+msgid "Failed to start thread for communication"
+msgstr "Misslyckades med att starta tråd för kommunikation"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:144
+msgid "Failed while waiting for connection request"
+msgstr "Misslyckades under väntan på uppkopplingsförfrågan"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:171
+msgid "Failed to accept connection request"
+msgstr "Misslyckades med att acceptera uppkopplingsförfrågan"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:239
+msgid "next chain element called"
+msgstr "nästa kedjeelement kallat"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:266
+msgid "No Connect element specified"
+msgstr "Inget Connect-element specificerat"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:272
+msgid "Missing Port in Connect element"
+msgstr "Port saknas i Connect-element"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:278
+msgid "Missing Host in Connect element"
+msgstr "Värd saknas i Connect-element"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:296
+msgid "client process called"
+msgstr "klientprocess kallad"
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:311 ../src/hed/mcc/tls/MCCTLS.cpp:389
+msgid "Failed to send content of buffer"
+msgstr "Misslyckades med att skicka innehåll till buffer"
+
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:22
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:27
+#, c-format
+msgid "Failed to resolve %s"
+msgstr "Misslyckades med att slå upp %s"
+
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:38
+#, c-format
+msgid "Failed to connect to %s:%i"
+msgstr "Misslyckades med att koppla upp mot %s:%i"
+
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:42
+#: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:70
+msgid "Failed to shut down SSL"
+msgstr "Misslyckades med att stänga av SSL"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:86
+msgid "tls_random_seed from file: could not read files"
+msgstr "tls_random_seed från fil: kunde inte läsa filer"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:142
+msgid "Can not load certificate file"
+msgstr "Kunde inte ladda certifikatfil"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:150
+msgid "Can not load key file"
+msgstr "Kunde inte ladda nyckelfil"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:155
+msgid "Private key does not match certificate"
+msgstr "Den privata nyckeln passar inte certifikatet"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:170
+msgid "SSL_library_init failed"
+msgstr "SSL_library_init misslyckades"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:193 ../src/hed/mcc/tls/MCCTLS.cpp:347
+msgid "Can not create the SSL Context object"
+msgstr "Kan inte skapa SSL-kontextobjekt"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:211
+msgid "Can not set client CA list from the specified file"
+msgstr "Kan inte sätta klientens CA-lista från den specificerade filen"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:221
+msgid "DH set error"
+msgstr "DH-fel"
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:64
+msgid "Peer cert cannot be extracted"
+msgstr "Peer-certifikat kunde inte extraheras"
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:69
+msgid "Peer cert verification fail"
+msgstr "Peer-certifikatvalidering misslyckades"

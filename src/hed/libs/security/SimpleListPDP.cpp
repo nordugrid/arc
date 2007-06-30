@@ -35,7 +35,7 @@ bool SimpleListPDP::isPermitted(std::string subject){
   while (!fs.eof()) {
      getline (fs, line);
      logger.msg(INFO, "policy line: %s", line.c_str());
-     logger.msg(INFO, "subject: &s", subject.c_str());
+     logger.msg(INFO, "subject: %s", subject.c_str());
      if(!(line.compare(subject))){
 	fs.close();
         return true;
