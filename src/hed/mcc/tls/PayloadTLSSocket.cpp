@@ -67,7 +67,7 @@ PayloadTLSSocket::~PayloadTLSSocket(void) {
    int counter=0;
    if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
-	logger.msg(WARNING, "Failed to shut down SSL.");
+	logger.msg(WARNING, "Failed to shut down SSL");
       };
 /*
     while((err==0)&&(counter<60)){
@@ -77,7 +77,7 @@ PayloadTLSSocket::~PayloadTLSSocket(void) {
 		counter++;}
     }
     if(err<0)
-      logger.msg(ERROR, "Failed to shut down SSL.");
+      logger.msg(ERROR, "Failed to shut down SSL");
   }
   if(ssl_){
 */

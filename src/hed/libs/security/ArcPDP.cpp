@@ -22,7 +22,7 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext *ctx) {
 
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
   location = (std::string)(cfg->Attribute("location"));
-  logger.msg(LogMessage(INFO, "Arc access list location: "+location));
+  logger.msg(INFO, "Arc access list location: %s", location.c_str());
 }
 
 bool ArcPDP::isPermitted(std::string subject){

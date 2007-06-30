@@ -1,5 +1,4 @@
 #include "Thread.h"
-#include <iostream>
 #include "Logger.h"
 
 namespace Arc {

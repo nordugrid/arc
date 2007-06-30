@@ -84,13 +84,13 @@ namespace Arc {
     std::string::size_type pos, pos2, pos3;
 
     if(url[0] == '#') {
-      URLLogger.msg(LogMessage(ERROR, "URL is not valid: " + url));
+      URLLogger.msg(ERROR, "URL is not valid: %s", url.c_str());
       return;
     }
 
     pos = url.find("://");
     if(pos == std::string::npos) {
-      URLLogger.msg(LogMessage(ERROR, "Malformed URL: " + url));
+      URLLogger.msg(ERROR, "Malformed URL: %s", url.c_str());
       return;
     }
 

@@ -15,15 +15,17 @@ static void make_request(XMLNode* node){
       	if(MatchXMLName(snd, "Subject")){
        	  XMLNode attr=snd["Attribute"];
           if(attr.empty()){
-          logger.msg(Error, "Subject has no Attribute defined");
-          continue;
-       }
-       logger.msg(DEBUG, attr.c_str());
+	    logger.msg(Error, "Subject has no Attribute defined");
+	    continue;
+	  }
+	  logger.msg(DEBUG, attr);
 
-       Attribute* attribute;
-       attribute->get_instance(attr.c_str());  //TODO
-       subjects.insert(attribute);
-       continue;       
+	  Attribute* attribute;
+	  attribute->get_instance(attr.c_str());  //TODO
+	  subjects.insert(attribute);
+	  continue;
+	}
+      }
     }
     if(MatchXMLName(nd, "Object")){
        std::string attr["Attribute"];
@@ -31,12 +33,12 @@ static void make_request(XMLNode* node){
           logger.msg(Error, "Object has no Attribute defined");
           continue;
        }
-       logger.msg(DEBUG, attr.c_str());
+       logger.msg(DEBUG, attr);
 
        Attribute* attribute;
        attribute->get_instance(attr.c_str());  //TODO
        subjects.insert(attribute);
-       continue; 
+       continue;
     }
     if(MatchXMLName(nd, "Action")){
        std::string attr["Attribute"];
@@ -44,7 +46,7 @@ static void make_request(XMLNode* node){
           logger.msg(Error, "Action has no Attribute defined");
           continue;
        }
-       logger.msg(DEBUG, attr.c_str());
+       logger.msg(DEBUG, attr);
 
        Attribute* attribute;
        attribute->get_instance(attr.c_str());  //TODO
@@ -57,16 +59,15 @@ static void make_request(XMLNode* node){
           logger.msg(Error, "Context has no Attribute defined");
           continue;
        }
-       logger.msg(DEBUG, attr.c_str());
+       logger.msg(DEBUG, attr);
 
        Attribute* attribute;
        attribute->get_instance(attr.c_str());  //TODO
        subjects.insert(attribute);
        continue;
     }
-   }
-    logger.msg(LogMessage(WARNING, "Unknown element \""+
-                              nd.Name()+"\" - ignoring."));
+    logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
+	       nd.Name().c_str()));
   }
 }
 
@@ -87,18 +88,4 @@ Request::get_instance(const char* filename){
 
 Request::get_instance(Arc::XMLNode* root){
   make_request(root);
-
 }
-
-  Request(const Arc::XMLNode* root);
-  virtual ~Request(void) { };
-
-  //**Parse request information from a xml file*/
-  static Request* get_instance(const char* filename);
-  //**Parse request information from a xml stucture in memory*/
-  static Request* get_instance(const Arc::XMLNode *node);
-
-private:
-  std::list<RequestItem*> requests;
-};
-

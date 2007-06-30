@@ -1,4 +1,3 @@
-#include <sstream>
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -20,16 +19,12 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
   if((errcode=gethostbyname_r(hostname,
                                   (host=&hostbuf),buf)) != 0) {
 #endif
-    logger.msg(LogMessage(WARNING,
-			  std::string("Failed to resolve ")+
-			  std::string(hostname)));
+    logger.msg(WARNING, "Failed to resolve %s", hostname);
     return -1;
   };
   if( (host->h_length < sizeof(struct in_addr)) ||
       (host->h_addr_list[0] == NULL) ) {
-    logger.msg(LogMessage(WARNING,
-			  std::string("Failed to resolve ")+
-			  std::string(hostname)));
+    logger.msg(WARNING, "Failed to resolve %s", hostname);
     return -1;
   };
   struct sockaddr_in addr;
@@ -40,9 +35,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
   int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
   if(s==-1) return -1;
   if(::connect(s,(struct sockaddr *)&addr,sizeof(addr))==-1) {
-    std::ostringstream msg;
-    msg << "Failed to connect to " << hostname << ":" << port << std::flush;
-    logger.msg(LogMessage(WARNING,msg.str()));
+    logger.msg(WARNING, "Failed to connect to %s:%i", hostname, port);
     close(s); return -1;
   };
   return s;

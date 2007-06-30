@@ -71,7 +71,7 @@ namespace Arc {
       if (regex.isOk())
 	services.push_front(PlexerEntry(regex,next));
       else
-	logger.msg(LogMessage(WARNING, "Bad label: \""+label+"\""));
+	logger.msg(WARNING, "Bad label: \"%s\"", label.c_str());
     }
     else
       for (iter=services.begin(); iter!=services.end(); ++iter)

@@ -29,7 +29,7 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 {   
     Arc::XMLNode srv = cfg["ArcConfig"]["Server"];
     if (!(bool)srv) {
-      logger.msg(Arc::ERROR, "No server config part of config file.");
+      logger.msg(Arc::ERROR, "No server config part of config file");
       return;
     }
     if (opt.pid_file != "") {
@@ -57,7 +57,7 @@ static std::string init_logger(Arc::Config& cfg)
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
     Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["ArcConfig"]["Server"]["Foreground"]) {
-      logger.msg(Arc::INFO, "Start foreground.");
+      logger.msg(Arc::INFO, "Start foreground");
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
       Arc::Logger::rootLogger.addDestination(*err);
     }
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
             /* Load and parse config file */
             config.parse(options.config_file.c_str());
             if(!config) {
-	      logger.msg(Arc::ERROR, "Failed to load service configuration.");
+	      logger.msg(Arc::ERROR, "Failed to load service configuration");
 	      exit(1);
             };
 

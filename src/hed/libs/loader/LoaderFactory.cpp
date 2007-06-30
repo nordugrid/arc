@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-#include <iostream>
-#include <sstream>
 #include <limits.h>
 
 #include "LoaderFactory.h"
@@ -43,7 +41,7 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         // Identify table of descriptors
         void *ptr = NULL;
         if (!module->get_symbol(id_.c_str(), ptr)) {
-	  Loader::logger.msg(ERROR, "Not a plugin.");
+	  Loader::logger.msg(ERROR, "Not a plugin");
 	  return NULL;
         }
         // Copy new description to a table. TODO: check for duplicate names
@@ -62,10 +60,8 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
     }
     if(i == descriptors_.end()) return NULL;
     loader_descriptor &descriptor = *i;
-    std::ostringstream msg;
-    msg << "Element: " << descriptor.name << " version: "
-	<< descriptor.version;
-    Loader::logger.msg(LogMessage(DEBUG, msg.str()));
+    Loader::logger.msg(DEBUG, "Element: %s version: %i",
+		       descriptor.name, descriptor.version);
     if (descriptor.get_instance == NULL) {
       Loader::logger.msg(ERROR, "Missing init function");
       return NULL;
@@ -77,9 +73,8 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     // Load module
     Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
-      std::ostringstream msg;
-      msg << "Module " << libname << " could not be loaded";
-      Loader::logger.msg(LogMessage(ERROR, msg.str()));
+      Loader::logger.msg(ERROR, "Module %s could not be loaded",
+			 libname.c_str());
       return;
     };
     // Identify table of descriptors

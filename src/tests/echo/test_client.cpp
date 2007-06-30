@@ -39,14 +39,14 @@ int main(void) {
     </ArcConfig>");
   Arc::Config client_config(client_doc);
   if(!client_config) {
-    logger.msg(Arc::ERROR, "Failed to load client configuration.");
+    logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
   };
   Arc::Loader client_loader(&client_config);
   logger.msg(Arc::INFO, "Client side MCCs are loaded");
   Arc::MCC* client_entry = client_loader["soap"];
   if(!client_entry) {
-    logger.msg(Arc::ERROR, "Client chain does not have entry point.");
+    logger.msg(Arc::ERROR, "Client chain does not have entry point");
     return -1;
   };
 
@@ -66,7 +66,7 @@ int main(void) {
   };
   Arc::PayloadSOAP* resp = NULL;
   if(repmsg.Payload() == NULL) {
-    logger.msg(Arc::ERROR, "There isn no response");
+    logger.msg(Arc::ERROR, "There is no response");
     return -1;
   };
   try {

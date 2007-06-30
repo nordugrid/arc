@@ -62,7 +62,8 @@ namespace Arc {
 		     &timestr.tm_mday) == 3)
 	pos += 8;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse date");
+	dateTimeLogger.msg(ERROR, "Can not parse date: %s",
+			   timestring.c_str());
 	return;
       }
 
@@ -84,7 +85,8 @@ namespace Arc {
 		     &timestr.tm_sec) == 3)
 	pos += 6;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse time");
+	dateTimeLogger.msg(ERROR, "Can not parse time: %s",
+			   timestring.c_str());
 	return;
       }
 
@@ -114,7 +116,8 @@ namespace Arc {
 		       &tzm) == 2)
 	  pos += 4;
 	else {
-	  dateTimeLogger.msg(ERROR, "Can not parse time zone offset");
+	  dateTimeLogger.msg(ERROR, "Can not parse time zone offset: %s",
+			     timestring.c_str());
 	  return;
 	}
 
@@ -132,7 +135,8 @@ namespace Arc {
 	gtime = mktime(&timestr);
 
       if(timestring.size() != pos) {
-	dateTimeLogger.msg(ERROR, "Illegal format for time string");
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
+			   timestring.c_str());
 	return;
       }
     }
@@ -151,7 +155,8 @@ namespace Arc {
 		&timestr.tm_min,
 		&timestr.tm_sec,
 		&timestr.tm_year) != 7) {
-	dateTimeLogger.msg(ERROR, "Illegal format for time string");
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
+			   timestring.c_str());
 	return;
       }
 
@@ -182,7 +187,7 @@ namespace Arc {
       else if(strncmp(month, "Dec", 3) == 0)
 	timestr.tm_mon = 11;
       else {
-	dateTimeLogger.msg(ERROR, "Illegal format for month");
+	dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
 	return;
       }
 
@@ -190,7 +195,8 @@ namespace Arc {
     }
 
     if(gtime == -1)
-      dateTimeLogger.msg(ERROR, "Cannot convert string to time_t");
+      dateTimeLogger.msg(ERROR, "Illegal time format: %s",
+			 timestring.c_str());
   }
 
 
@@ -376,7 +382,7 @@ namespace Arc {
   Period::Period(const std::string& period) : seconds(0) {
 
     if (period.empty()) {
-      dateTimeLogger.msg(ERROR, "Empty string in Period");
+      dateTimeLogger.msg(ERROR, "Empty period string");
       return;
     }
 
@@ -392,7 +398,8 @@ namespace Arc {
 	  std::string::size_type pos2 = pos;
 	  while (pos2 < period.size() && isdigit(period[pos2])) pos2++;
 	  if (pos2 == pos || pos2 == period.size()) {
-	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format");
+	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
+			       period.c_str());
 	    seconds = 0;
 	    return;
 	  }
@@ -426,7 +433,8 @@ namespace Arc {
 	    seconds += num;
 	    break;
           default:
-	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format");
+	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
+			       period.c_str());
 	    seconds = 0;
 	    return;
 	    break;
@@ -479,7 +487,8 @@ namespace Arc {
           case ' ':
 	    break;
           default:
-	    dateTimeLogger.msg(ERROR, "Invalid period string");
+	    dateTimeLogger.msg(ERROR, "Invalid period string: %s",
+			       period.c_str());
 	    seconds = 0;
 	    return;
 	    break;

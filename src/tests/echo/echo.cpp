@@ -65,14 +65,14 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) {
-    logger.msg(Arc::ERROR, "Input is not SOAP.");
+    logger.msg(Arc::ERROR, "Input is not SOAP");
     return make_fault(outmsg);
   };
   // Analyzing request 
   Arc::XMLNode echo_op = (*inpayload)["echo"];
   if(!echo_op) {
-    logger.msg(Arc::LogMessage(Arc::ERROR, "Request is not supported - "+
-			       echo_op.Name()));
+    logger.msg(Arc::ERROR, "Request is not supported - %s",
+	       echo_op.Name().c_str());
     return make_fault(outmsg);
   };
   std::string say = echo_op["say"];

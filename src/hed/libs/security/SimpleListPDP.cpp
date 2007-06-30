@@ -25,7 +25,7 @@ PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext *ctx) {
 
 SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   location = (std::string)(cfg->Attribute("location"));
-  logger.msg(LogMessage(INFO, "Access list location: "+location));
+  logger.msg(INFO, "Access list location: %s", location.c_str());
 }
 
 bool SimpleListPDP::isPermitted(std::string subject){
@@ -34,8 +34,8 @@ bool SimpleListPDP::isPermitted(std::string subject){
   
   while (!fs.eof()) {
      getline (fs, line);
-  logger.msg(LogMessage(INFO, "policy line:"+line));
-  logger.msg(LogMessage(INFO, "subject:"+subject));
+     logger.msg(INFO, "policy line: %s", line.c_str());
+     logger.msg(INFO, "subject: &s", subject.c_str());
      if(!(line.compare(subject))){
 	fs.close();
         return true;

@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-#include <sstream>
 #include "Loader.h"
 #include "MCCFactory.h"
 #include "ServiceFactory.h"
@@ -12,7 +11,7 @@
 
 namespace Arc {
 
-  Logger Loader::logger(Logger::rootLogger, "Loader");
+Logger Loader::logger(Logger::rootLogger, "Loader");
 
 Loader::Loader(Config *cfg)
 {
@@ -30,50 +29,50 @@ Loader::Loader(Config *cfg)
 
 Loader::~Loader(void)
 {
-  Arc::Logger &l = Arc::Logger::rootLogger;
+  Logger &l = Logger::rootLogger;
 
   // TODO: stop any processing on those MCCs or mark them for self-destruction
   // or break links first or use semaphors in MCC destructors
   // Unlink all objects
-  l.msg(Arc::DEBUG, "befor loop");
+  l.msg(DEBUG, "before loop");
   for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();++mcc_i) {
-      l.msg(Arc::DEBUG, "mcc unlink");
+      l.msg(DEBUG, "mcc unlink");
       MCC* mcc = mcc_i->second; 
       if(mcc) mcc->Unlink();
   };
   for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();++plexer_i) {
-      l.msg(Arc::DEBUG, "plexer unlink");
+      l.msg(DEBUG, "plexer unlink");
       Plexer* plexer = plexer_i->second; 
       if(plexer) plexer->Unlink();
   };
   // Destroy all objects
   for(mcc_container_t::iterator mcc_i = mccs_.begin();mcc_i != mccs_.end();mcc_i = mccs_.begin()) {
-      l.msg(Arc::DEBUG, "mcc erase");
+      l.msg(DEBUG, "mcc erase");
       MCC* mcc = mcc_i->second; 
       mccs_.erase(mcc_i);
       if(mcc) delete mcc;
   };
   for(service_container_t::iterator service_i = services_.begin();service_i != services_.end();service_i = services_.begin()) {
-      l.msg(Arc::DEBUG, "service erase");
+      l.msg(DEBUG, "service erase");
       Service* service = service_i->second;
       services_.erase(service_i);
       if(service) delete service;
   };
   for(plexer_container_t::iterator plexer_i = plexers_.begin();plexer_i != plexers_.end();plexer_i = plexers_.begin()) {
-      l.msg(Arc::DEBUG, "plexer erase");
+      l.msg(DEBUG, "plexer erase");
       Plexer* plexer = plexer_i->second; 
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
   };
   for(sechandler_container_t::iterator sechandler_i = sechandlers_.begin();sechandler_i != sechandlers_.end();sechandler_i = sechandlers_.begin()) {
-      l.msg(Arc::DEBUG, "sechandler erase");
+      l.msg(DEBUG, "sechandler erase");
       SecHandler* sechandler = sechandler_i->second; 
       sechandlers_.erase(sechandler_i);
       if(sechandler) delete sechandler;
   };
-  l.msg(Arc::DEBUG, "after loops");
+  l.msg(DEBUG, "after loops");
   if(context_) delete context_;
-  l.msg(Arc::DEBUG, "after delete context");
+  l.msg(DEBUG, "after delete context");
   if(service_factory) delete service_factory;
   if(mcc_factory) delete mcc_factory;
   if(pdp_factory) delete pdp_factory;
@@ -161,12 +160,12 @@ static SecHandler* MakeSecHandler(Config* cfg,ChainContext* ctx, Loader::sechand
         desc_node=FindElementByID(*cfg,refid,"SecHandler");
     }
     if(!desc_node) {
-      Loader::logger.msg(ERROR, "SecHandler has no configuration.");
+      Loader::logger.msg(ERROR, "SecHandler has no configuration");
       return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
-      Loader::logger.msg(ERROR, "SecHandler has no name attribute defined.");
+      Loader::logger.msg(ERROR, "SecHandler has no name attribute defined");
       return NULL;
     }
     // Create new security handler
@@ -205,10 +204,10 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
         if (MatchXMLName(cn, "Plugins")) {
             std::string name = cn["Name"];
             if(name.empty()) {
-	      logger.msg(ERROR, "Plugins element has no Name defined.");
+	      logger.msg(ERROR, "Plugins element has no Name defined");
 	      continue;
             };
-	    logger.msg(DEBUG, name.c_str());
+	    logger.msg(DEBUG, name);
             service_factory->load_all_instances(name);
             mcc_factory->load_all_instances(name);
             sechandler_factory->load_all_instances(name);
@@ -230,9 +229,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             };
             MCC* mcc = mcc_factory->get_instance(name,&cfg_,context_);
             if(!mcc) {
-	      logger.msg(LogMessage(ERROR,
-				    "Component "+name+" ("+id+
-				    ") could not be created"));
+	      logger.msg(ERROR, "Component %s(%s) could not be created",
+			 name.c_str(), id.c_str());
 	      continue;
             };
             mccs_[id]=mcc;
@@ -261,8 +259,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
 	      if(!cnn) break;
 	      std::string nid = cnn.Attribute("id");
 	      if(nid.empty()) {
-		logger.msg(LogMessage(ERROR, "Component's "+name+"("+id+
-				      ") next has no id attribute defined"));
+		logger.msg(ERROR, "Component's %s(%s) next has no id "
+			   "attribute defined", name.c_str(), id.c_str());
 		continue;
 	      };
 	      std::string label = cnn;
@@ -270,7 +268,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             };
             mcc_connector.name=name;
             mcc_connectors->push_back(mcc_connector);
-	    logger.msg(LogMessage(INFO, "Loaded MCC "+name+"("+id+")"));
+	    logger.msg(INFO, "Loaded MCC %s(%s)",
+		       name.c_str(), id.c_str());
             continue;
         }
 
@@ -286,8 +285,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
 	      if(!cnn) break;
 	      std::string nid = cnn.Attribute("id");
 	      if(nid.empty()) {
-		logger.msg(LogMessage(ERROR, "Plexer's ("+id+
-				      ") next has no id attribute defined"));
+		logger.msg(ERROR, "Plexer's (%s) next has no id "
+			   "attribute defined", id.c_str());
 		continue;
 	      };
 	      std::string label = cnn;
@@ -295,14 +294,15 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             };
             plexer_connector.name=name;
             plexer_connectors->push_back(plexer_connector);
-	    logger.msg(LogMessage(INFO, "Loaded Plexer "+name+"("+id+")"));
+	    logger.msg(INFO, "Loaded Plexer %s(%s)",
+		       name.c_str(), id.c_str());
             continue;
         }
 
         if (MatchXMLName(cn, "Service")) {
             std::string name = cn.Attribute("name");
             if(name.empty()) {
-	      logger.msg(ERROR, "Service has no name attribute defined.");
+	      logger.msg(ERROR, "Service has no name attribute defined");
 	      continue;
             };
             std::string id = cn.Attribute("id");
@@ -312,12 +312,13 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             };
             Service* service = service_factory->get_instance(name,&cfg_,context_);
             if(!service) {
-	      logger.msg(LogMessage(ERROR, "Service "+name+"("+id+
-				    ") could not be created"));
+	      logger.msg(ERROR, "Service %s(%s) could not be created",
+			 name.c_str(), id.c_str());
 	      continue;
             };
             services_[id]=service;
-	    logger.msg(LogMessage(INFO, "Loaded Service "+name+"("+id+")"));
+	    logger.msg(INFO, "Loaded Service %s(%s)",
+		       name.c_str(), id.c_str());
 
             // Configure security plugins
             XMLNode an;
@@ -336,8 +337,8 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
 
 	    continue;
         }
-	logger.msg(LogMessage(WARNING, "Unknown element \""+
-			      cn.Name()+"\" - ignoring."));
+	logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
+		   cn.Name().c_str());
     }
 
     if(level != 0) return;
@@ -355,37 +356,32 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             if(mcc_l != mccs_.end()) {
                 // Make link MCC->MCC
                 mcc->mcc->second->Next(mcc_l->second,label);
-		std::ostringstream msg;
-		msg << "Linking MCC " << *mcc << " to MCC ("
-		    << id+") under " << label;
-		logger.msg(LogMessage(INFO, msg.str()));
+		logger.msg(INFO, "Linking MCC %s(%s) to MCC (%s) under %s",
+			   mcc->name.c_str(), mcc->mcc->first.c_str(),
+			   id.c_str(), label.c_str());
                 mcc->nexts.erase(next); continue; 
             };
             service_container_t::iterator service_l = services_.find(id);
             if(service_l != services_.end()) {
                 // Make link MCC->Service
                 mcc->mcc->second->Next(service_l->second,label);
-		std::ostringstream msg;
-                msg << "Linking MCC " << *mcc << " to Service (" << id
-		    << ") under " << label << std::endl;
-		logger.msg(LogMessage(INFO, msg.str()));
+		logger.msg(INFO, "Linking MCC %s(%s) to Service (%s) under %s",
+			   mcc->name.c_str(), mcc->mcc->first.c_str(),
+			   id.c_str(), label.c_str());
                 mcc->nexts.erase(next); continue; 
             };
             plexer_container_t::iterator plexer_l = plexers_.find(id);
             if(plexer_l != plexers_.end()) {
                 // Make link MCC->Plexer
                 mcc->mcc->second->Next(plexer_l->second,label);
-		std::ostringstream msg;
-                msg << "Linking MCC " << *mcc << " to Plexer (" << id
-		    << ") under " << label;
-		logger.msg(LogMessage(INFO, msg.str()));		
+		logger.msg(INFO, "Linking MCC %s(%s) to Plexer (%s) under %s",
+			   mcc->name.c_str(), mcc->mcc->first.c_str(),
+			   id.c_str(), label.c_str());
                 mcc->nexts.erase(next); continue; 
             };
-	    std::ostringstream msg;
-	    msg << "MCC " << mcc->name << "(" << mcc->mcc->first
-		<< ") - next " << label << "(" << id
-		<< ") has no target" << std::endl;
-	    logger.msg(LogMessage(ERROR, msg.str()));		
+	    logger.msg(ERROR, "MCC %s(%s) - next %s(%s) has no target",
+		       mcc->name.c_str(), mcc->mcc->first.c_str(),
+		       label.c_str(), id.c_str());
             mcc->nexts.erase(next);
         }
     }
@@ -400,37 +396,33 @@ void Loader::make_elements(Config *cfg,int level,mcc_connectors_t* mcc_connector
             if(mcc_l != mccs_.end()) {
                 // Make link Plexer->MCC
                 plexer->plexer->second->Next(mcc_l->second,label);
-		std::ostringstream msg;
-                msg << "Linking Plexer " << *plexer << " to MCC (" << id
-		    << ") under " << label;
-		logger.msg(LogMessage(INFO, msg.str()));
+		logger.msg(INFO, "Linking Plexer %s to MCC (%s) under %s",
+			   plexer->plexer->first.c_str(),
+			   id.c_str(), label.c_str());
                 plexer->nexts.erase(next); continue;
             };
             service_container_t::iterator service_l = services_.find(id);
             if(service_l != services_.end()) {
                 // Make link Plexer->Service
                 plexer->plexer->second->Next(service_l->second,label);
-		std::ostringstream msg;
-                msg << "Linking Plexer " << *plexer << " to Service ("
-		    << id << ") under " << label;
-		logger.msg(LogMessage(INFO, msg.str()));
+		logger.msg(INFO, "Linking Plexer %s to Service (%s) under %s",
+			   plexer->plexer->first.c_str(),
+			   id.c_str(), label.c_str());
                 plexer->nexts.erase(next); continue;
             };
             plexer_container_t::iterator plexer_l = plexers_.find(id);
             if(plexer_l != plexers_.end()) {
                 // Make link Plexer->Plexer
                 plexer->plexer->second->Next(plexer_l->second,label);
-		std::ostringstream msg;
-                msg << "Linking Plexer " << *plexer << " to Plexer ("
-		    << id << ") under " << label;
-		logger.msg(LogMessage(INFO, msg.str()));
+		logger.msg(INFO, "Linking Plexer %s to Plexer (%s) under %s",
+			   plexer->plexer->first.c_str(),
+			   id.c_str(), label.c_str());
                 plexer->nexts.erase(next); continue;
             };
 
-	    std::ostringstream msg;
-            msg << "Plexer (" << plexer->plexer->first << ") - next "
-		<< label << "(" << id << ") has no target";
-	    logger.msg(LogMessage(ERROR, msg.str()));
+	    logger.msg(ERROR, "Plexer (%s) - next %s(%s) has no target",
+		       plexer->plexer->first.c_str(),
+		       label.c_str(), id.c_str());
             plexer->nexts.erase(next);
         }
     }
