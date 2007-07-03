@@ -7,7 +7,7 @@ namespace ARex {
 
 class ARexService: public Arc::Service {
  protected:
-  Arc::XMLNode::NS ns_;
+  Arc::NS ns_;
   Arc::MCC_Status CreateActivity(Arc::XMLNode& in,Arc::XMLNode& out);
   Arc::MCC_Status GetActivityStatuses(Arc::XMLNode& in,Arc::XMLNode& out);
   Arc::MCC_Status TerminateActivities(Arc::XMLNode& in,Arc::XMLNode& out);
