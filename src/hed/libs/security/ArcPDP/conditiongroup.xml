@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConditionGroup xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" GroupId="normalcondition">   
+  <!--The relationshop between CondFractions is "and"  --> 
+   <Condition>
+       <CondFraction>
+          <Expression FunctionId="policy-arc:function:time-start">
+             <CondValue DataType="xsd:dateTime">20:00</CondValue>
+          </Expression>
+       </CondFraction>
+       <CondFraction>
+          <Expression FunctionId="policy-arc:function:time-duration">
+             <CondValue DataType="xsd:Duration">12h</CondValue>
+          </Expression>
+       </CondFraction>
+    </Condition>
+</ConditionGroup>      

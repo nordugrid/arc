@@ -1,0 +1,57 @@
+<!--Sample arc authorization policy for Storage_manager-->
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" RuleCombiningAlgId="DenyOveride">
+   <Rule RuleId="rule1" Effect="Permit">
+      <Description>
+         Sample Permit rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
+         <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
+	 <Subject>
+	    <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+	    <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
+   	 </Subject>
+	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</SubjectGroup>
+      </Subjects>
+      <Resources>
+         <Resource Type="Storage">localhost:/home/scratch/</Resource>
+      </Resources>
+      <Actions>
+         <Action>Get</Action>
+         <Action>Stat</Action>
+         <Action>List</Action>
+      </Actions>
+      <Conditions>
+	 <Condition>
+	   <Expression FunctionId="policy-arc:function:time-equal">
+    		<CondValue DataType="xsd:dateTime">14:00</CondValue>
+  	   </Expression>
+	 </Condition>
+         <GroupIdRef Location="./conditiongroup.xml">normalcondition</SubjectGroup>   
+      </Conditions>
+   </Rule>
+   
+   <Rule RuleId="rule2" Effect="Deny">
+      <Description>
+         Sample Deny rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ANONYMOS</Subject>
+         <Subject Type="VOMSAttribute">/vo.knowarc/usergroupB</Subject>
+      </Subjects>
+      <Resources>
+         <Resource>localhost:/home/atlas/</Resource>
+         <Resource>nordugrid.org:/home/atlas/</Resource>
+      </Resources>
+      <Actions>
+         <Action>Put</Action>
+         <Action>Move</Action>
+         <Action>Del</Action>
+         <Action>Modify</Action>
+         <Action>Make</Action>
+      </Actions>
+      <Condition/>
+   </Rule>
+</Policy>
+

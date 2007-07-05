@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Request xmlns="urn:arc:request">
+<Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
     <RequestItem> 
         <Subject AttributeId="urn:arc:subject:dn" DateType="xsd:string">/O=NorduGrid/OU=UIO/CN=test</Subject>
         <Resource AttributeId="urn:arc:resource:file" DateType="xsd:uri">file://home/test</Resource>

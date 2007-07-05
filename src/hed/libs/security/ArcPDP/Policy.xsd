@@ -3,7 +3,18 @@
  xmlns:policy-arc="http://www.nordugrid.org/ws/schemas/policy-arc"
  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-<!-- -->
+<!--One Policy is composed of a few Rules; one Rule is composed of a tuple <Subjects, Resources, Actions, Conditions>, and each Rule 
+ has one Effect: Permit or Deny.-->
+<!--The policy definition is inspired by XACML and GACL;
+It is not complicated as XACML, but not so adapatable and general as XACML as well. We need to implement a specific PDP for Arc in order to use it, just lik
+e GACL does;
+The element and attribute in the policy can only be understood by ArcPDP;
+Because of the similiarity with XACML, the policy can be conventially translated into XACML by implemeting some special translating package. And then the ge
+neral XACML policy expression and PDP can be used, if we need to use some standard XACML policy and do not want to write some complicated XACML policy;
+Each servicei or resource can has one authorization policy file. 
+It the policy enforcement point only includes one entity, then "Resources" can be omitted;
+  -->
+
  <xsd:element name="Policy" type="policy-arc:PolicyType"/>
  <xsd:complexType name="PolicyType">
   <xsd:sequence>
@@ -42,7 +53,7 @@
    <xsd:element ref="policy-arc:Conditions" minOccurs="0"/>
   </xsd:sequence>
   <xsd:attribute name="RuleId" type="xsd:string" use="required"/>
-  <xsd:attribute name="Effect" type="policy-arc:EffectType"/>
+  <xsd:attribute name="Effect" type="policy-arc:EffectType" use="required"/>
  </xsd:complexType> 
 
 
@@ -184,7 +195,7 @@
    The definition of Conditions is complicated, because there can be many types of conditions: Time, Duration, URI, etc.;
    The match-making of Conditions with Request.Contex (See schema definition of Request) is complicated, because for each types of Condition, the
    match-making algorithm should be different.  Not like the situation, we implicitly use simple "string1 == string2" for match-making. -->
- <!-- -->
+ <!--The relationship between CondFractions is "and"; The relationship between Condition is "or" -->
  <xsd:element name="Conditions" type="policy-arc:ConditionsType"/>
  <xsd:complexType name="ConditionsType">
   <xsd:choice maxOccurs="unbounded">
@@ -226,9 +237,10 @@
   </xsd:complexType>
 
  <!--Example:
-  <Expression FunctionId="policy-arc:string-equal">
+  <Expression FunctionId="policy-arc:function:time-equal">
     <CondValue DataType="xsd:dateTime">14:00</CondValue>
   </Expression>
+  The exmaple indtructs PDP to compare Request's Context with this CondValue, by using "time-equal" function
   -->
 
  <xsd:element name="Expression" type="policy-arc:ExpressionType"/>
@@ -243,7 +255,7 @@
   </xsd:complexContent>
  </xsd:complexType>
  
- <!-- Example: <Function FunctionId="function-arc:string-equal"/> -->
+ <!-- Example: <Function FunctionId="policy-arc:function:string-equal"/> -->
  <xsd:element name="Function" type="policy-arc:FunctionType"/>
  <xsd:complexType name="FunctionType">
   <xsd:complexContent>

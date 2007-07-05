@@ -11,6 +11,16 @@ static void make_request(XMLNode* node){
       RequestItem* reqitem;
       reqitem->get_instance();//
       for(int m=0;;++m){
+      	XMLNode rnd=nd.Child(m);
+      	if(MatchXMLName(rnd, "Subject")){
+       	  for(int k=0;k<rnd.AttributeSize();++k){
+            std::string attr=rnd.Attribute(k);
+            Attribute* attribute;
+            attribute->get_instance(attr.c_str());  //TODO
+            subjects.insert(attribute);
+	  }
+        continue;       
+        }
       	XMLNode snd=nd->Child(m);
       	if(MatchXMLName(snd, "Subject")){
        	  XMLNode attr=snd["Attribute"];
@@ -20,6 +30,15 @@ static void make_request(XMLNode* node){
 	  }
 	  logger.msg(DEBUG, attr);
 
+        if(MatchXMLName(rnd, "Resource")){
+          for(int k=0;k<rnd.AttributeSize();++k){
+            std::string attr=rnd.Attribute(k);
+            Attribute* attribute;
+            attribute->get_instance(attr.c_str());  //TODO
+            resources.insert(attribute);
+          }
+        continue; 
+        }
 	  Attribute* attribute;
 	  attribute->get_instance(attr.c_str());  //TODO
 	  subjects.insert(attribute);
@@ -35,6 +54,15 @@ static void make_request(XMLNode* node){
        }
        logger.msg(DEBUG, attr);
 
+        if(MatchXMLName(rnd, "Action")){
+          for(int k=0;k<rnd.AttributeSize();++k){
+            std::string attr=rnd.Attribute(k);
+            Attribute* attribute;
+            attribute->get_instance(attr.c_str());  //TODO
+            actions.insert(attribute);
+          }
+        continue;
+        }
        Attribute* attribute;
        attribute->get_instance(attr.c_str());  //TODO
        subjects.insert(attribute);
@@ -48,6 +76,18 @@ static void make_request(XMLNode* node){
        }
        logger.msg(DEBUG, attr);
 
+        if(MatchXMLName(rnd, "Context")){
+          for(int k=0;k<rnd.AttributeSize();++k){
+            std::string attr=rnd.Attribute(k);
+            Attribute* attribute;
+            attribute->get_instance(attr.c_str());  //TODO
+            contexts.insert(attribute);
+          }
+        continue;
+        }
+      }
+      logger.msg(LogMessage(WARNING, "Unknown element \""+
+                              nd.Name()+"\" - ignoring."));
        Attribute* attribute;
        attribute->get_instance(attr.c_str());  //TODO
        subjects.insert(attribute);
@@ -68,6 +108,7 @@ static void make_request(XMLNode* node){
     }
     logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
 	       nd.Name().c_str()));
+    }
   }
 }
 
