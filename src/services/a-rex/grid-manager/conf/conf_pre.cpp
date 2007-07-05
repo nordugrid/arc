@@ -1,21 +1,32 @@
-#include "../std.h"
+//@ #include "../std.h"
 
 #include <string>
 #include <fstream>
 
 #include "conf.h"
-#include "config_sections.h"
+#include "conf_sections.h"
 #include "environment.h"
 #include "gridmap.h"
-#include "../misc/stringtoint.h"
+//@ #include "../misc/stringtoint.h"
 #include "../jobs/job.h"
 #include "../jobs/users.h"
 #include "../jobs/plugins.h"
 #include "../run/run_plugin.h"
-#include "../misc/substitute.h"
-#include "../misc/log_time.h"
-#include "config_pre.h"
+//@ #include "../misc/substitute.h"
+//@ #include "../misc/log_time.h"
+#include "conf_pre.h"
 
+//@
+#include <iostream>
+#include <pwd.h>
+#include <src/libs/common/StringConv.h>
+#define olog std::cerr
+
+//static bool stringtoint(const std::string& s,long long int& i) {
+//  i=Arc::stringto<long long int>(s);
+//  return true;
+//}
+//@
 
 bool configure_user_dirs(const std::string &my_username,
                 std::string &control_dir,std::string &session_root,
