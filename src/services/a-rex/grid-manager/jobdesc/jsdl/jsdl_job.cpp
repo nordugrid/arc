@@ -28,6 +28,9 @@
 
 #include "jsdl_job.h"
 
+//#define SOAP_FMAC5 static
+//#include "jsdl_soapC.cpp"
+
 static struct Namespace jsdl_namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
     {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},

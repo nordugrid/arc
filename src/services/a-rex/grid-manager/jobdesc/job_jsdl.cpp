@@ -2,8 +2,8 @@
 
 #include "job_jsdl.h"
 
-#include "jsdl_soapStub.h"
-#include "jsdl_soapH.h"
+#include "jsdl/jsdl_soapStub.h"
+#include "jsdl/jsdl_soapH.h"
 
 struct Namespace jsdl_namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
