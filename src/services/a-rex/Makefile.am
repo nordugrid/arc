@@ -4,9 +4,10 @@ lib_LTLIBRARIES= libarex.la
 SOURCES =
 
 libarex_ladir=$(includedir)
-libarex_la_HEADERS=arex.h
-libarex_la_SOURCES=arex.cpp
+libarex_la_HEADERS=arex.h   job.h
+libarex_la_SOURCES=arex.cpp job.cpp
 libarex_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/
+libarex_la_LIBADD=grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la
 
 #test_SOURCES=$(SOURCES) test.cpp
 #test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs/

@@ -69,13 +69,14 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // GET and PUT for data transfer
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
-  while(subpath[0] == '/') subpath=subpath.substr(1);
+  while(id[0] == '/') id=id.substr(1);
   std::string subpath;
   {
-    std::string::pos_t p = subpath.find('/');
+    std::string::size_type p = id.find('/');
     if(p != std::string::npos) {
       subpath = id.substr(p);
       id.resize(p);
+      while(subpath[0] == '/') subpath=subpath.substr(1);
     };
   };
   if(method == "POST") {
