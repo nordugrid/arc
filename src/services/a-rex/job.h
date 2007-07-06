@@ -2,6 +2,8 @@
 #include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
 
+namespace ARex {
+
 class ARexGMConfig {
  private:
   JobUser *user_;
@@ -58,7 +60,7 @@ class ARexJob {
   std::string State(void);
 };
 
-
+}; // namespace ARex
 
 
 

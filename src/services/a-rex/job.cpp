@@ -16,6 +16,8 @@
  
 #include "job.h"
 
+using namespace ARex;
+
 static bool env_initialized = false;
 
 ARexGMConfig::~ARexGMConfig(void) {
@@ -33,7 +35,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
     };
   };
   if(!env_initialized) return;
-  if(configfile.length()) nordugrid_config_loc=configfile;
+  if(!configfile.empty()) nordugrid_config_loc=configfile;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
   user_=new JobUser(uname);

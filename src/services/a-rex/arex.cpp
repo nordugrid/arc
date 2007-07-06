@@ -1,5 +1,8 @@
 #include <iostream>
 
+#include <sys/types.h>
+#include <pwd.h>
+
 #include "../../hed/libs/loader/Loader.h"
 #include "../../hed/libs/loader/ServiceLoader.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
@@ -20,35 +23,65 @@ service_descriptor __arc_service_modules__[] = {
 using namespace ARex;
  
 
-Arc::MCC_Status ARexService::CreateActivity(Arc::XMLNode& in,Arc::XMLNode& out) {
+class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
+ public:
+  ARexConfigContext(const std::string& config_file,const std::string& uname,const std::string& grid_name):ARexGMConfig(config_file,uname,grid_name) { };
+  virtual ~ARexConfigContext(void) { };
+};
+
+
+Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
+  /*
+  CreateActivity
+    ActivityDocument
+      jsdl:JobDefinition
+
+  CreateActivityResponse
+    ActivityIdentifier (wsa:EndpointReferenceType)
+    ActivityDocument
+      jsdl:JobDefinition
+  */
+  Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
+  if(!jsdl) {
+    // Wrongly formated request
+    return Arc::MCC_Status();
+  };
+  ARexJob* job = new ARexJob(jsdl,config);
+  if((!job) || (!(*job))) {
+    // Failed to create new job
+    if(job) delete job;
+  };
+  // Make job's ID
+
+
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::GetActivityStatuses(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::TerminateActivities(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::GetActivityDocuments(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::GetFactoryAttributesDocument(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::StopAcceptingNewActivities(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::StartAcceptingNewActivities(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::ChangeActivityStatus(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out) {
   return Arc::MCC_Status();
 }
 
@@ -65,6 +98,37 @@ Arc::MCC_Status ARexService::make_fault(Arc::Message& outmsg) {
 
 
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
+
+  // Process grid-manager configuration if not done yet
+  ARexConfigContext* config = NULL;
+  {
+    Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
+    if(mcontext) {
+      try {
+        config = dynamic_cast<ARexConfigContext*>(mcontext);
+      } catch(std::exception& e) { };
+    };
+  };
+  if(!config) {
+    // TODO: do configuration detection
+    // TODO: do mapping to local unix name
+    struct passwd pwbuf;
+    char buf[4096];
+    struct passwd* pw;
+    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
+      if(pw && pw->pw_name) {
+        std::string uname = pw->pw_name;
+        std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
+        config=new ARexConfigContext("",uname,grid_name);
+        inmsg.Context()->Add("arex.gmconfig",config);
+      };
+    };
+  };
+  if(!config) {
+    // Service is not operational
+    return Arc::MCC_Status();
+  };
+
   // Identify which of served endpoints request is for
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
@@ -103,21 +167,21 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Factory operations
       Arc::XMLNode res;
       if(MatchXMLName(op,"CreateActivity")) {
-        CreateActivity(op,res);
+        CreateActivity(*config,op,res);
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
-        GetActivityStatuses(op,res);
+        GetActivityStatuses(*config,op,res);
       } else if(MatchXMLName(op,"TerminateActivities")) {
-        TerminateActivities(op,res);
+        TerminateActivities(*config,op,res);
       } else if(MatchXMLName(op,"GetActivityDocuments")) {
-        GetActivityDocuments(op,res);
+        GetActivityDocuments(*config,op,res);
       } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-        GetFactoryAttributesDocument(op,res);
+        GetFactoryAttributesDocument(*config,op,res);
       } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-        StopAcceptingNewActivities(op,res);
+        StopAcceptingNewActivities(*config,op,res);
       } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-        StartAcceptingNewActivities(op,res);
+        StartAcceptingNewActivities(*config,op,res);
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
-        ChangeActivityStatus(op,res);
+        ChangeActivityStatus(*config,op,res);
       } else {
         std::cerr << "A-Rex: request is not supported - " << op.Name() << std::endl;
         return make_fault(outmsg);
