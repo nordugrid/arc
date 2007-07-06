@@ -3,6 +3,7 @@
 #include "../../hed/libs/loader/Loader.h"
 #include "../../hed/libs/loader/ServiceLoader.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
+#include "job.h"
 
 #include "arex.h"
 

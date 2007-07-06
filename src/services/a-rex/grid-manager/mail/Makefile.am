@@ -9,4 +9,4 @@ libmail_ladir=$(includedir)
 libmail_la_HEADERS=send_mail.h
 libmail_la_SOURCES=send_mail.cpp 
 libmail_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-libmail_la_LDFLAGS=
+#libmail_la_LIBADD=../files/libfiles.la ../run/librun.la ../conf/libconf.la

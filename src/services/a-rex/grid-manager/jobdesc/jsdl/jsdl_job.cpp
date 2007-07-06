@@ -11,7 +11,6 @@
 #include <fstream>
 
 #include "jsdl_soapStub.h"
-#include "../rsl/parse_rsl.h"
 #include "../../files/info_types.h"
 #include "../../files/info_files.h"
 //@ #include "../../misc/stringtoint.h"
@@ -19,6 +18,10 @@
 //@ #include "../../misc/inttostring.h"
 #include "../../url/url_options.h"
 //@ #include "../../misc/log_time.h"
+
+// For some constants
+#include "../rsl/parse_rsl.h"
+
 //@ 
 #include <src/libs/common/StringConv.h>
 #define olog std::cerr

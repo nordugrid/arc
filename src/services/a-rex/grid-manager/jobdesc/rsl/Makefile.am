@@ -4,4 +4,6 @@ librsl_ladir=$(includedir)
 librsl_la_HEADERS=parse_rsl.h   subst_rsl.h
 librsl_la_SOURCES=parse_rsl.cpp subst_rsl.cpp
 librsl_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_CFLAGS)
-librsl_la_LDFLAGS=$(GLOBUS_LDFLAGS) -lglobus_rsl_$(GLOBUS_FLAVOR)
+librsl_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la
+# ../../jobs/libjobs.la ../../files/libfiles.la
+librsl_la_LDFLAGS=$(GLOBUS_LDFLAGS) -lglobus_common_$(GLOBUS_FLAVOR) -lglobus_rsl_$(GLOBUS_FLAVOR)
