@@ -1,3 +1,5 @@
+ACLOCAL_FLAGS=-I m4
+
 if JAVA_ENABLED 
 JAVA_SD = java 
 endif

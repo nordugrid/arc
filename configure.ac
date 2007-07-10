@@ -147,6 +147,11 @@ PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 
+# globus/gpt packages
+GPT_PKG(globus_rls_client)
+AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
+AC_SUBST(GLOBUS_RLS_CLIENT_LIBS)
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h netdb.h stdlib.h sys/socket.h unistd.h])
