@@ -27,53 +27,65 @@ Interface of Information Indexing Service
             targetNamespace="http://www.nordugrid.org/schemas/iis/2007/06"
             attributeFormDefault="unqualified"
             elementFormDefault="qualified"
-        >
-            <xsd:include schemaLocation="./iis.xsd" />
+            >
+            <xsd:include schemaLocation="./iis.xsd"/>
         </xsd:schema>
     </wsdl:types>
 
-<!-- ====== Register ====== 
-Register(list of (ServiceDescriptionMetadata, ServiceDescription))
-returns:
--->
+<!-- ====== Messages definitions ====== -->
+
+<!-- ====== Register ====== -->
 <wsdl:message name="RegisterRequest">
-    <wsdl:part name="RegisterRequest" 
-          element="iis:Register"/>
+    <wsdl:part name="RegistrationMessage"  type="iis:RegistrationMessageType"/>
 </wsdl:message>
 
 <wsdl:message name="RegisterResponse">
-   <wsdl:part name="RegisterResponse" 
-         element="iis:RegisterResponse"/>
+    <wsdl:part name="RegisterResponse" type="iis:RegisterResponseType"/>
 </wsdl:message>
 
-<!-- ====== Exchange ====== 
-Exchange(list of (ServiceDescriptionMetadata, ServiceDescription))
-returns: list of (ServiceDescriptionMetadata, ServiceDescription)
--->
+<!-- ====== RemoveRegistrations ====== -->
 
-<wsdl:message name="ExchangeRequest">
-    <wsdl:part name="ExchangeRequest"
-          element="iis:Exchange"/>
+<wsdl:message name="RemoveRegistrationsRequest">
+    <wsdl:part name="RegistrationEntryID" type="iis:RegistrationEntryIDListType"/>
 </wsdl:message>
 
-<wsdl:message name="ExchangeResponse">
-   <wsdl:part name="ExchangeResponse" 
-         element="iis:ExchangeResponse"/>
+<wsdl:message name="RemoveRegistrationsResponse">
+    <wsdl:part name="RemoveRegistrationsResponse" type="iis:RemoveRegistrationsResponseType"/>
+</wsdl:message>
+
+<!-- ====== GetRegistrationStatuses ====== -->
+<wsdl:message name="GetRegistrationStatusesRequest">
+    <wsdl:part name="RegistrationEntryID" type="iis:RegistrationEntryIDListType"/>
+</wsdl:message>
+
+<wsdl:message name="GetRegistrationStatusesResponse">
+    <wsdl:part name="GetRegistrationStatusesResponse" type="iis:GetRegistrationStatusesResponseType"/>
+</wsdl:message>
+
+<!-- ====== GetRegistrationStatuses ====== -->
+<wsdl:message name="GetIISListRequest"/>
+
+<wsdl:message name="GetIISListResponse">
+    <wsdl:part name="GetIISListResponse" type="iis:GetIISListResponseType"/>
 </wsdl:message>
 
 <!-- ====== PortType definitions ====== -->
 <wsdl:portType name="IISPortType">
     <wsdl:operation name="Register">
-      <wsdl:input name="RegisterRequest"
-               message="iis:RegisterRequest"/>
-      <wsdl:output name="RegisterResponse"
-               message="iis:RegisterResponse"/>
+        <wsdl:input name="RegisterRequest" message="iis:RegisterRequest"/>
+        <wsdl:output name="RegisterResponse" message="iis:RegisterResponse"/>
     </wsdl:operation>
-    <wsdl:operation name="Exchange">
-      <wsdl:input name="ExchangeRequest"
-               message="iis:ExchangeRequest"/>
-      <wsdl:output name="ExchangeResponse"
-               message="iis:ExchangeResponse"/>
+    <wsdl:operation name="RemoveRegistrations">
+        <wsdl:input name="RemoveRegistrationsRequest" message="iis:RemoveRegistrationsRequest"/>
+        <wsdl:output name="RemoveRegistrationsResponse" message="iis:RemoveRegistrationsResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetRegistrationStatuses">
+        <wsdl:input name="GetRegistrationStatusesRequest" message="iis:GetRegistrationStatusesRequest"/>
+        <wsdl:output name="GetRegistrationStatusesResponse" message="iis:GetRegistrationStatusesResponse"/>
+    </wsdl:operation>
+        <wsdl:operation name="GetIISList">
+        <wsdl:input name="GetIISListRequest" message="iis:GetIISListRequest"/>
+        <wsdl:output name="GetIISListResponse" message="iis:GetIISListResponse"/>
     </wsdl:operation>
 </wsdl:portType>
 
@@ -82,40 +94,58 @@ returns: list of (ServiceDescriptionMetadata, ServiceDescription)
 <wsdl:binding name="iis" type="iis:IISPortType">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="Register">
-      <soap:operation soapAction="Register"/>
-      <wsdl:input name="RegisterRequest">
-         <soap:body use="literal"/>
-      </wsdl:input>
-      <wsdl:output name="RegisterResponse">
-         <soap:body use="literal"/>
-      </wsdl:output>
+        <soap:operation soapAction="Register"/>
+        <wsdl:input name="RegisterRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="RegisterResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="Exchange">
-      <soap:operation soapAction="Exchange"/>
-      <wsdl:input name="ExchangeRequest">
-         <soap:body use="literal"/>
-      </wsdl:input>
-      <wsdl:output name="ExchangeResponse">
-         <soap:body use="literal"/>
-      </wsdl:output>
+    <wsdl:operation name="RemoveRegistrations">
+        <soap:operation soapAction="RemoveRegistrations"/>
+        <wsdl:input name="RemoveRegistrationsRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="RemoveRegistrationsResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRegistrationStatuses">
+        <soap:operation soapAction="GetRegistrationStatuses"/>
+        <wsdl:input name="GetRegistrationStatusesRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="GetRegistrationStatusesResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetIISList">
+        <soap:operation soapAction="GetIISList"/>
+        <wsdl:input name="GetIISListRequest">
+            <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output name="GetIISListResponse">
+            <soap:body use="literal"/>
+        </wsdl:output>
     </wsdl:operation>
 </wsdl:binding>
 
 <wsdl:binding name="GetResourcePropertyDocument" type="wsrf-rpw:GetResourcePropertyDocument">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="GetResourcePropertyDocument">
-        <soap:operation soapAction="GetResourcePropertyDocument"/>
-        <wsdl:input name="wsrf-rpw:GetResourcePropertyDocumentRequest">
-	    <soap:body use="literal"/>
-	</wsdl:input>
+       <soap:operation soapAction="GetResourcePropertyDocument"/>
+       <wsdl:input name="wsrf-rpw:GetResourcePropertyDocumentRequest">
+         <soap:body use="literal"/>
+        </wsdl:input>
         <wsdl:output name="wsrf-rpw:GetResourcePropertyDocumentResponse">
-	    <soap:body use="literal"/>
-	</wsdl:output>
+            <soap:body use="literal"/>
+        </wsdl:output>
         <wsdl:fault name="ResourceUnknownFault">
-            <soap:fault name="ResourceUnknownFault" use="literal" />
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="ResourceUnavailableFault">
-            <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+            <soap:fault name="ResourceUnavailabbleFault" use="literal"/>
         </wsdl:fault>
     </wsdl:operation>
 </wsdl:binding>
@@ -125,19 +155,19 @@ returns: list of (ServiceDescriptionMetadata, ServiceDescription)
     <wsdl:operation name="GetResourceProperty">
         <soap:operation soapAction="GetResourceProperty"/>
         <wsdl:input name="wsrf-rpw:GetResourcePropertyRequest">
-	    <soap:body use="literal"/>
-	</wsdl:input>
+            <soap:body use="literal"/>
+        </wsdl:input>
         <wsdl:output name="wsrf-rpw:GetResourcePropertyResponse">
-	    <soap:body use="literal"/>
-	</wsdl:output>
+            <soap:body use="literal"/>
+        </wsdl:output>
         <wsdl:fault name="ResourceUnknownFault">
-            <soap:fault name="ResourceUnknownFault" use="literal" />
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="ResourceUnavailableFault">
-            <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+            <soap:fault name="ResourceUnavailabbleFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="InvalidResourcePropertyQNameFault">
-            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
+            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal"/>
         </wsdl:fault>
     </wsdl:operation>
 </wsdl:binding>
@@ -147,28 +177,28 @@ returns: list of (ServiceDescriptionMetadata, ServiceDescription)
     <wsdl:operation name="QueryResourceProperties">
         <soap:operation soapAction="QueryResourceProperties"/>
         <wsdl:input name="wsrf-rpw:QueryResourcePropertiesRequest">
-	    <soap:body use="literal"/>
-	</wsdl:input>
+            <soap:body use="literal"/>
+        </wsdl:input>
         <wsdl:output name="wsrf-rpw:QueryResourcePropertiesResponse">
-	    <soap:body use="literal"/>
-	</wsdl:output>
+            <soap:body use="literal"/>
+        </wsdl:output>
         <wsdl:fault name="ResourceUnknownFault">
-            <soap:fault name="ResourceUnknownFault" use="literal" />
+            <soap:fault name="ResourceUnknownFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="ResourceUnavailableFault">
-            <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+            <soap:fault name="ResourceUnavailabbleFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="InvalidResourcePropertyQNameFault">
-            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
+            <soap:fault name="InvalidResourcePropertyQNameFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="UnknownQueryExpressionDialectFault">
-            <soap:fault name="UnknownQueryExpressionDialectFault" use="literal" />
+            <soap:fault name="UnknownQueryExpressionDialectFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="InvalidQueryExpressionFault">
-            <soap:fault name="InvalidQueryExpressionFault" use="literal" />
+            <soap:fault name="InvalidQueryExpressionFault" use="literal"/>
         </wsdl:fault>
         <wsdl:fault name="QueryEvaluationErrorFault">
-            <soap:fault name="QueryEvaluationErrorFault" use="literal" />
+            <soap:fault name="QueryEvaluationErrorFault" use="literal"/>
         </wsdl:fault>
     </wsdl:operation>
 </wsdl:binding>

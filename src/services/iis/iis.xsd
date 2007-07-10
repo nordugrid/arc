@@ -13,10 +13,106 @@
 
     <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="./ws-addr.xsd"/>
 
+<!-- This is an initial and incomplete DRAFT which mainly concentrates on the structure but not on the actual names. Final version will use GLUE-2.0 ternminology. -->
+
+    <!-- ==== Input and output types for IIS operations ==== -->
+    <!-- Input type for Register operation -->
+    <xsd:complexType name="RegistrationMessageType">
+        <xsd:sequence>
+            <xsd:element name="Header" type="iis:HeaderType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="RegEntry" type="iis:RegistrationEntryType" minOccurs="1" maxOccures="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Output type for Register operation -->
+    <xsd:complexType name="RegisterResponseType">
+        <xsd:sequence>
+            <xsd:element name="Fault" type="iis:FaultType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Input type for RemoveRegistrations and GetRegistrationStatuses operations -->
+    <xsd:complexType name="RegistrationEntryIDListType">
+        <xsd:sequence>
+            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccures="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Output type for RemoveRegistrations operation -->
+    <xsd:complexType name="RemoveRegistrationsResponseType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Output type for GetRegistrationStatuses operation -->
+    <xsd:complexType name="GetRegistrationStatusesResponseType">
+        <xsd:sequence>
+            <xsd:element name="RegEntryStatus" type="iis:RegistrationEntryStatus" minOccurs="1" maxOccures="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Output type for GetIISList operation -->
+    <xsd:complexType name="GetRegistrationStatusesResponseType">
+        <xsd:sequence>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccures="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- === Helper type definitions === -->
+    <xsd:complexType name="RegistrationEntryStatus">
+        <xsd:sequence>
+            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccures="1"/>
+            <xsd:element name="Status" type="iis:StatusType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Fault" type="iis:FaultType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="StatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="HeaderType">
+        <xsd:sequence>
+            <xsd:element name="HedID" type="xsd:string"/> <!-- Identifier of the source HED -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RegistrationEntryType">
+        <xsd:sequence>
+            <xsd:element name="SrcAdv" type="iis:ServiceAdvertisementType" minOccurs="1" maxOccures="1"/>
+            <xsd:element name="MetaSrcAdv" type="iis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+
+    <xsd:complexType name="ServiceAdvertisementType">
+        <xsd:sequence>
+            <xsd:element name="Type" type="iis:ServiceTypeType"/>
+            <xsd:element name="EndPoint" type="wsa:EndpointReferenceType"/>
+            <xsd:element name="Impl" type="xsd:string"/>
+            <xsd:element name="Version" type="xsd:string"/>
+            <xsd:element name="URI" type="xsd:anyURI"/>
+            <xsd:element name="AuthzInfo" type="iis:AutorizationInfoType"/> <!-- Authorization information -->
+            <xsd:element name="SSPair" type="iis:NameValuePair" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ServiceAdvertisementMetadataType">
+        <xsd:sequence>
+            <xsd:element name="Expiration" type="xsd:duration"/>
+            <xsd:element name="GenTime" type="xsd:dateTime"/>
+            <xsd:element name="Source" type="wsa:EndpointReferenceType"/>
+            <xsd:element name="Status" type="xsd:string"/> <!-- Registration status: NEW, ACCEPTED ... -->
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="FaultTypeType">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="Undefined"/>
-            <xsd:enumeration value="SizeLimitReached"/>
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="2"/>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -29,54 +125,78 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ServiceDescriptionType">
+
+    <xsd:complexType name="FullServiceDescriptionType">
         <xsd:sequence>
-            <xsd:any namespace="##other" processContents="lax"/>
+            <xsd:element name="CoreSD" type="iis:CoreServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ExtSD" type="iis:ExtendedServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Resource" type="iis:ResourceDescriptionType" minOccurs="0" maxOccurs="1"/>
+             <xsd:element name="Activity" type="iis:ActivityDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ServiceDescriptionMetadataType">
+    <xsd:complextType name="CoreServiceDescriptionType">
         <xsd:sequence>
-            <xsd:element name="TTL" type="xsd:integer"/>
-            <xsd:element name="Lifetime" type="xsd:duration"/>
-            <xsd:element name="Origin" type="wsa:EndpointReferenceType"/>
+            <xsd:element name="Status" type="xsd:string"/>
+            <xsd:element name="Type" type="iis:ServiceTypeType"/>
+            <xsd:element name="EndPoint" type="wsa:EndpointReferenceType"/> <!-- Endpoint reference -->
+            <xsd:element name="URI" type="xsd:anyURI"/>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Impl" type="xsd:string"/> <!-- Name of the implementation (ComputingService: A-REX, ...) -->
+            <xsd:element name="Version" type="xsd:string"/> <!-- Version of the service implementation -->
+            <xsd:element name="Profile" type="iis:ProfileType"/> <!-- Supported profiles -->
+            <xsd:element name="AuthzInfo" type="iis:AutorizationInfoType"/> <!-- Authorization information -->
+            <xsd:element name="AuthInfo" type="iis:AuthenticationInfoType"/> <!-- Authentication information -->
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="Tuple">
+    <!-- List of the service types will be provided by the GLUE-2.0 -->
+    <xsd:complexType name="ServiceTypeType">
+        <xsd:restriction base="xsd:string">
+        </xsd:restriction>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProfileType">
         <xsd:sequence>
-            <xsd:element name="Data" type="iis:ServiceDescriptionType" minOccurs="0" maxOccures="1"/>
-            <xsd:element name="Metadata" type="iis:ServiceDescriptionMetadataType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Fault" type="iis:FaultType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="RegisterRequestType">
+    <xsd:complextType name="AuthorizationInfoType">
         <xsd:sequence>
-            <xsd:element name="Elements" type="iis:Tuple" minOccures="1" maxOccures="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="Register" type="iis:RegisterRequestType"/>
 
-    <xsd:complexType name="RegisterResponseType">
+    <xsd:complextType name="AuthenticationInfoType">
         <xsd:sequence>
-            <!-- The origin is an id for response -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="RegisterResponse" type="iis:RegisterResponseType"/>
 
-    <xsd:complexType name="ExchangeRequestType">
+    <xsd:complextType name="NameValuePairType">
         <xsd:sequence>
-            <xsd:element name="Elements" type="iis:Tuple" minOccures="0" maxOccures="unbounded"/>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Value" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="Exchange" type="iis:ExchangeRequestType"/>
 
-    <xsd:complexType name="ExchangeResponseType">
+    <!-- Service Specific attributes will be defined later following GLUE-2.0 -->
+    <xsd:complextType name="ExtendedServiceDescriptionType">
         <xsd:sequence>
-            <xsd:element name="Elements" type="iis:Tuple" minOccures="0" maxOccures="unbounded"/>
+            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="ExchangeResponse" type="iis:ExchangeResponseType"/>
+
+    <!-- Service Specific attributes describing resources will be defined later following GLUE-2.0 -->
+    <xsd:complextType name="ResourceDescriptionType">
+        <xsd:sequence>
+            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Service Specific attributes describing activity will be defined later following GLUE-2.0 -->
+    <xsd:complextType name="ActivityDescriptionType">
+        <xsd:sequence>
+            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
