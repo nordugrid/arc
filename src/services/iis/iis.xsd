@@ -91,7 +91,7 @@
     <xsd:complexType name="ServiceAdvertisementType">
         <xsd:sequence>
             <xsd:element name="Type" type="iis:ServiceTypeType"/>
-            <xsd:element name="EndPoint" type="wsa:EndpointReferenceType"/>
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
             <xsd:element name="Impl" type="xsd:string"/>
             <xsd:element name="Version" type="xsd:string"/>
             <xsd:element name="URI" type="xsd:anyURI"/>
@@ -139,7 +139,7 @@
         <xsd:sequence>
             <xsd:element name="Status" type="xsd:string"/>
             <xsd:element name="Type" type="iis:ServiceTypeType"/>
-            <xsd:element name="EndPoint" type="wsa:EndpointReferenceType"/> <!-- Endpoint reference -->
+            <xsd:element name="EPR" type="wsa:EndpointReferenceType"/> <!-- Endpoint reference -->
             <xsd:element name="URI" type="xsd:anyURI"/>
             <xsd:element name="Name" type="xsd:string"/>
             <xsd:element name="Impl" type="xsd:string"/> <!-- Name of the implementation (ComputingService: A-REX, ...) -->
