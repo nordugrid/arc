@@ -1,8 +1,8 @@
-#include "../../../libs/common/XMLNode.h"
-#include "../../libs/message/PayloadRaw.h"
+#include "common/XMLNode.h"
+#include "message/PayloadRaw.h"
 #include "PayloadHTTP.h"
-#include "../../libs/loader/Loader.h"
-#include "../../libs/loader/MCCLoader.h"
+#include "loader/Loader.h"
+#include "loader/MCCLoader.h"
 
 #include "MCCHTTP.h"
 
@@ -20,7 +20,7 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext* ctx) {
     return new Arc::MCC_HTTP_Client(cfg);
 }
 
-mcc_descriptor __arc_mcc_modules__[] = {
+mcc_descriptors ARC_MCC_LOADER = {
     { "http.service", 0, &get_mcc_service },
     { "http.client",  0, &get_mcc_client },
     { NULL, 0, NULL }

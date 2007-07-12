@@ -37,7 +37,7 @@ Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext* ctx)
 }; // namespace Test
 
 /* MCC plugin descriptor */
-mcc_descriptor __arc_mcc_modules__[] = {
+mcc_descriptors ARC_MCC_LOADER = {
     {
         "testmcc",                /* name */
         0,                        /* version */

@@ -3,14 +3,14 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "../../libs/message/PayloadStream.h"
-#include "../../libs/message/PayloadRaw.h"
-#include "../../libs/loader/Loader.h"
-#include "../../libs/loader/MCCLoader.h"
-#include "../../../libs/common/XMLNode.h"
-#include "../../../libs/common/Thread.h"
-#include "../../../libs/common/Logger.h"
-#include "../../../libs/common/StringConv.h"
+#include "message/PayloadStream.h"
+#include "message/PayloadRaw.h"
+#include "loader/Loader.h"
+#include "loader/MCCLoader.h"
+#include "common/XMLNode.h"
+#include "common/Thread.h"
+#include "common/Logger.h"
+#include "common/StringConv.h"
 
 #include "MCCTCP.h"
 
@@ -27,7 +27,7 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_TCP_Client(cfg);
 }
 
-mcc_descriptor __arc_mcc_modules__[] = {
+mcc_descriptors ARC_MCC_LOADER = {
     { "tcp.service", 0, &get_mcc_service },
     { "tcp.client", 0, &get_mcc_client },
     { NULL, 0, NULL }

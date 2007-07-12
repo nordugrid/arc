@@ -32,7 +32,7 @@ Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext* ctx)
 }; // namespace Test
 
 /* Service plugin descriptor */
-service_descriptor __arc_service_modules__[] = {
+service_descriptors ARC_SERVICE_LOADER = {
     {
         "testservice",              /* name */
         0,                          /* version */

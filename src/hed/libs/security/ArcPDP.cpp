@@ -1,7 +1,7 @@
-#include "../../libs/loader/PDPLoader.h"
-#include "../../../libs/common/XMLNode.h"
-#include "../../../libs/common/Thread.h"
-#include "../../../libs/common/ArcConfig.h"
+#include "loader/PDPLoader.h"
+#include "common/XMLNode.h"
+#include "common/Thread.h"
+#include "common/ArcConfig.h"
 
 #include "ArcPDP.h"
 /*
@@ -9,7 +9,7 @@ static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::ArcPDP(cfg);
 }
 
-pdp_descriptor __arc_pdp_modules__[] = {
+pdp_descriptors ARC_PDP_LOADER = {
     { "arc.pdp", 0, &get_pdp},
     { NULL, 0, NULL }
 };

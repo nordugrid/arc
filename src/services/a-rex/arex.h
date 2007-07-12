@@ -1,7 +1,7 @@
 #ifndef __ARC_AREX_H__
 #define __ARC_AREX_H__
 
-#include "../../hed/libs/message/Service.h"
+#include "message/Service.h"
 
 namespace ARex {
 

@@ -3,16 +3,16 @@
 #endif
 
 #include <iostream>
-#include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/loader/ServiceLoader.h"
-#include "../../hed/libs/message/SOAPMessage.h"
+#include "loader/Loader.h"
+#include "loader/ServiceLoader.h"
+#include "message/SOAPMessage.h"
 #include "javawrapper.h"
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::Service_JavaWrapper(cfg);
 }
 
-service_descriptor __arc_service_modules__[] = {
+service_descriptors ARC_SERVICE_LOADER = {
     { "arcservice_javawrapper", 0, &get_service },
     { NULL, 0, NULL }
 };

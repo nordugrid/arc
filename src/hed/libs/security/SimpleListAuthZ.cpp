@@ -1,8 +1,8 @@
 #include <sys/types.h>
 
-#include "../../libs/loader/SecHandlerLoader.h"
-#include "../../libs/loader/Loader.h"
-#include "../../../libs/common/XMLNode.h"
+#include "loader/SecHandlerLoader.h"
+#include "loader/Loader.h"
+#include "common/XMLNode.h"
 
 #include "SimpleListAuthZ.h"
 
@@ -10,7 +10,7 @@ static Arc::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx)
     return new Arc::SimpleListAuthZ(cfg,ctx);
 }
 
-sechandler_descriptor __arc_sechandler_modules__[] = {
+sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "simplelist.authz", 0, &get_sechandler},
     { NULL, 0, NULL }
 };

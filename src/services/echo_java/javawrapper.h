@@ -2,7 +2,7 @@
 #define __ARC_SERVICE_JAVA_WRAPPER_H__
 
 #include <jni.h>
-#include "../../hed/libs/message/Service.h"
+#include "message/Service.h"
 
 namespace Arc {
 class Service_JavaWrapper: public Arc::Service {

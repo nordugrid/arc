@@ -1,12 +1,12 @@
-#include "../../libs/message/PayloadRaw.h"
-#include "../../libs/message/SOAPEnvelope.h"
-#include "../../libs/message/PayloadSOAP.h"
-#include "../../../libs/common/XMLNode.h"
-#include "../../libs/loader/Loader.h"
-#include "../../libs/loader/MCCLoader.h"
-#include "../../libs/ws-addressing/WSA.h"
+#include "message/PayloadRaw.h"
+#include "message/SOAPEnvelope.h"
+#include "message/PayloadSOAP.h"
+#include "common/XMLNode.h"
+#include "loader/Loader.h"
+#include "loader/MCCLoader.h"
+#include "ws-addressing/WSA.h"
 
-#include "../../libs/security/SecHandler.h"
+#include "security/SecHandler.h"
 
 #include "MCCSOAP.h"
 
@@ -24,7 +24,7 @@ static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::MCC_SOAP_Client(cfg);
 }
 
-mcc_descriptor __arc_mcc_modules__[] = {
+mcc_descriptors ARC_MCC_LOADER = {
     { "soap.service", 0, &get_mcc_service },
     { "soap.client", 0, &get_mcc_client },
     { NULL, 0, NULL }

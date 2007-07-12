@@ -3,9 +3,9 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/loader/ServiceLoader.h"
-#include "../../hed/libs/message/PayloadSOAP.h"
+#include "loader/Loader.h"
+#include "loader/ServiceLoader.h"
+#include "message/PayloadSOAP.h"
 #include "job.h"
 
 #include "arex.h"
@@ -15,7 +15,7 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new ARex::ARexService(cfg);
 }
 
-service_descriptor __arc_service_modules__[] = {
+service_descriptors ARC_SERVICE_LOADER = {
     { "a-rex", 0, &get_service },
     { NULL, 0, NULL }
 };
