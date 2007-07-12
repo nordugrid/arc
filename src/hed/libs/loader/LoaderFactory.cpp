@@ -83,7 +83,6 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
       Loader::logger.msg(ERROR, "Not a plugin");
       return;
     }
-    printf("%s %p\n", id_.c_str(), ptr);
     // Copy new description to a table. TODO: check for duplicate names
     for(loader_descriptor* desc = (loader_descriptor*)ptr;
                                  !ARC_LOADER_FINAL(*desc);++desc) {

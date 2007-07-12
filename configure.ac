@@ -71,11 +71,11 @@ fi
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS=$JDK_INCLUDE
-SAVA_CFLAGS=$CFLAGS
+SAVE_CFLAGS=$CFLAGS
 CFLAGS=$JDK_INCLUDE
 AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
 CPPFLAGS=$SAVE_CPPFLAGS
-CFLAGS=$SAVA_CFLAGS
+CFLAGS=$SAVE_CFLAGS
 
 if test "x$jni_h" = "xyes" && test "X$SWIG" != "X" &&
    test "X$JAVAC" != "X" && test "X$JAR" != "X"; then
@@ -151,6 +151,12 @@ AC_SUBST(OPENSSL_LIBS)
 GPT_PKG(globus_rls_client)
 AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
 AC_SUBST(GLOBUS_RLS_CLIENT_LIBS)
+GPT_PKG(globus_ftp_client)
+AC_SUBST(GLOBUS_FTP_CLIENT_CFLAGS)
+AC_SUBST(GLOBUS_FTP_CLIENT_LIBS)
+
+AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
+AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -170,6 +176,10 @@ AC_OUTPUT([Makefile \
                  src/Makefile \
                  src/libs/Makefile \
                  src/libs/common/Makefile \
+                 src/libs/data/Makefile \
+                 src/libs/data/dmc/Makefile \
+                 src/libs/data/dmc/gridftp/Makefile \
+                 src/libs/data/dmc/rls/Makefile \
                  src/hed/Makefile \
                  src/hed/libs/Makefile \
                  src/hed/libs/loader/Makefile \
@@ -189,6 +199,7 @@ AC_OUTPUT([Makefile \
                  src/services/Makefile \
                  src/services/echo_java/Makefile \
                  src/tests/Makefile \
+                 src/tests/data/Makefile \
                  src/tests/echo/Makefile \
                  swig/Makefile \
                  java/Makefile \

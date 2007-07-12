@@ -1,0 +1,8 @@
+if RLS_ENABLED 
+RLS_SD = rls
+endif
+if GRIDFTP_ENABLED
+GRIDFTP_SD = gridftp
+endif
+
+SUBDIRS = $(GRIDFTP_SD) $(RLS_SD)

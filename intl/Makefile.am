@@ -1,6 +1,6 @@
 LANGUAGES = sv
 
-SRC_FILES = $(shell find .. -name *.cpp -o -name *.h)
+SRC_FILES = $(shell find .. -name *.cpp -o -name *.h | sort)
 
 localedir = $(prefix)/share/locale
 

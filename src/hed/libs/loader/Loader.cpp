@@ -7,6 +7,7 @@
 #include "ServiceFactory.h"
 #include "SecHandlerFactory.h"
 #include "PDPFactory.h"
+#include "DMCFactory.h"
 #include "common/Logger.h"
 #include "common/StringConv.h"
 
@@ -19,6 +20,7 @@ namespace Arc {
     mcc_factory        = new MCCFactory(cfg);
     sechandler_factory = new SecHandlerFactory(cfg);
     pdp_factory        = new PDPFactory(cfg);
+    dmc_factory        = new DMCFactory(cfg);
 
     context_ = new ChainContext(*this);
 
@@ -75,12 +77,20 @@ namespace Arc {
       sechandlers_.erase(sechandler_i);
       if(sechandler) delete sechandler;
     }
+    for(dmc_container_t::iterator dmc_i = dmcs_.begin();
+	dmc_i != dmcs_.end(); dmc_i = dmcs_.begin()) {
+      l.msg(DEBUG, "dmc erase");
+      DMC* dmc = dmc_i->second;
+      dmcs_.erase(dmc_i);
+      if(dmc) delete dmc;
+    }
     l.msg(DEBUG, "after loops");
     if(context_) delete context_;
     l.msg(DEBUG, "after delete context");
     if(service_factory) delete service_factory;
     if(mcc_factory) delete mcc_factory;
     if(pdp_factory) delete pdp_factory;
+    if(dmc_factory) delete dmc_factory;
   }
 
   class mcc_connector_t {
@@ -219,6 +229,7 @@ namespace Arc {
 	mcc_factory->load_all_instances(name);
 	sechandler_factory->load_all_instances(name);
 	pdp_factory->load_all_instances(name);
+	dmc_factory->load_all_instances(name);
 	continue;
       }
 
@@ -340,6 +351,30 @@ namespace Arc {
 
 	continue;
       }
+
+      if(MatchXMLName(cn, "DataManager")) {
+	std::string name = cn.Attribute("name");
+	if(name.empty()) {
+	  logger.msg(ERROR, "DataManager has no name attribute defined");
+	  continue;
+	}
+	std::string id = cn.Attribute("id");
+	if(id.empty()) {
+	  logger.msg(ERROR, "DataManager has no id attribute defined");
+	  continue;
+	}
+	DMC* dmc = dmc_factory->get_instance(name, &cfg_, context_);
+	if(!dmc) {
+	  logger.msg(ERROR, "DataManager %s(%s) could not be created",
+		     name.c_str(), id.c_str());
+	  continue;
+	}
+	dmcs_[id] = dmc;
+	logger.msg(INFO, "Loaded DataManager %s(%s)",
+		   name.c_str(), id.c_str());
+	continue;
+      }
+
       logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
 		 cn.Name().c_str());
     }
