@@ -86,6 +86,9 @@ namespace Arc {
     /** Returns the URL string representation w/o options and locations */
     virtual std::string CanonicalURL() const;
 
+    /** Returns a string representation with protocol, host and port only */
+    virtual std::string ConnectionURL() const;
+
     /** Compares one URL to another */
     bool operator<(const URL& url) const;
 

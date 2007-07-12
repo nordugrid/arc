@@ -152,9 +152,13 @@ namespace Arc {
       host = url.substr(pos);
       path = "";
     }
+    else if(pos2 == pos){
+      host = "";
+      path = url.substr(pos2);
+    }
     else {
       host = url.substr(pos, pos2 - pos);
-      path = url.substr(pos2);
+      path = url.substr(pos2 + 1);
     }
 
     pos2 = host.find(":");
@@ -277,6 +281,9 @@ namespace Arc {
     if(!urloptions.empty())
       urlstr += ";" + OptionString(urloptions, ';');
 
+    if(!host.empty() || port != -1 || !urloptions.empty())
+      urlstr += '/';
+
     if(!path.empty())
       urlstr += path;
 
@@ -307,11 +314,29 @@ namespace Arc {
     if(port != -1)
       urlstr += ":" + tostring(port);
 
+    if(!host.empty() || port != -1)
+      urlstr += '/';
+
     if(!path.empty())
       urlstr += path;
 
     if(!httpoptions.empty())
       urlstr += "?" + OptionString(httpoptions, '&');
+
+    return urlstr;
+  }
+
+  std::string URL::ConnectionURL() const {
+
+    std::string urlstr;
+    if(!protocol.empty())
+      urlstr = protocol + "://";
+
+    if(!host.empty())
+      urlstr += host;
+
+    if(port != -1)
+      urlstr += ":" + tostring(port);
 
     return urlstr;
   }
@@ -331,8 +356,8 @@ namespace Arc {
   std::string URL::BaseDN2Path(const std::string& basedn) {
 
     std::string::size_type pos, pos2;
-    // mds-vo-name=local, o=grid --> /o=grid/mds-vo-name=local
-    std::string newpath("/");
+    // mds-vo-name=local, o=grid --> o=grid/mds-vo-name=local
+    std::string newpath;
 
     pos = basedn.size();
     while((pos2 = basedn.rfind(",", pos - 1)) != std::string::npos) {
@@ -342,7 +367,7 @@ namespace Arc {
       pos = pos2;
     }
 
-    newpath += basedn.substr(1, pos - 1);
+    newpath += basedn.substr(0, pos);
 
     return newpath;
   }
@@ -355,12 +380,12 @@ namespace Arc {
     std::string::size_type pos, pos2;
 
     pos = newpath.size();
-    while((pos2 = newpath.rfind("/", pos - 1)) != 0) {
+    while((pos2 = newpath.rfind("/", pos - 1)) != std::string::npos) {
       basedn += newpath.substr(pos2 + 1, pos - pos2 - 1) + ", ";
       pos = pos2;
     }
 
-    basedn += newpath.substr(1, pos - 1);
+    basedn += newpath.substr(0, pos);
 
     return basedn;
   }
