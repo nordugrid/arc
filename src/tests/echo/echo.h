@@ -1,8 +1,8 @@
 #ifndef __ARC_ECHO_H__
 #define __ARC_ECHO_H__
 
-#include "../../hed/libs/message/Service.h"
-#include "../../libs/common/Logger.h"
+#include "message/Service.h"
+#include "common/Logger.h"
 
 namespace Echo {
 

@@ -6,22 +6,26 @@
 
 namespace Arc {
 
-/** This class handles shared libraries containing Services */
-class ServiceFactory: public LoaderFactory {
-    public:
-        /** Constructor - accepts configuration (not yet used) meant to 
-          tune loading of module. */
-        ServiceFactory(Arc::Config *cfg);
-        ~ServiceFactory();
-        /** This methods load shared library named lib'name', locate symbol
-          representing descriptor of Service and calls it's constructor function. 
-          Supplied configuration tree is passed to constructor.
-          Returns created Service instance. */
-        Service *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
-        Service *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
-        Service *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
-};
+  /** This class handles shared libraries containing Services */
+  class ServiceFactory : public LoaderFactory {
+   public:
+    /** Constructor - accepts configuration (not yet used) meant to
+	tune loading of module. */
+    ServiceFactory(Config *cfg);
+    ~ServiceFactory();
+    /** These methods load shared library named lib'name', locate symbol
+	representing descriptor of Service and calls it's constructor
+	function. Supplied configuration tree is passed to constructor.
+	Returns created Service instance. */
+    Service* get_instance(const std::string& name,
+			  Config *cfg, ChainContext *ctx);
+    Service* get_instance(const std::string& name, int version,
+			  Config *cfg, ChainContext *ctx);
+    Service* get_instance(const std::string& name,
+			  int min_version, int max_version,
+			  Config *cfg, ChainContext *ctx);
+  };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif /* __ARC_SERVICEFACTORY_H__ */
