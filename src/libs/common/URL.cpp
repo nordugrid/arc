@@ -183,13 +183,17 @@ namespace Arc {
       if(protocol == "http") port = HTTP_DEFAULT_PORT;
       if(protocol == "https") port = HTTPS_DEFAULT_PORT;
       if(protocol == "httpg") port = HTTPG_DEFAULT_PORT;
+      if(protocol == "srm") port = SRM_DEFAULT_PORT;
       if(protocol == "ldap") port = LDAP_DEFAULT_PORT;
       if(protocol == "ftp") port = FTP_DEFAULT_PORT;
       if(protocol == "gsiftp") port = GSIFTP_DEFAULT_PORT;
     }
 
     // if protocol = http, get the options after the ?
-    if(protocol == "http") {
+    if(protocol == "http" ||
+       protocol == "https" ||
+       protocol == "httpg" ||
+       protocol == "srm") {
       pos = path.find("?");
       if(pos != std::string::npos) {
 	httpoptions = ParseOptions(path.substr(pos + 1), '&');
@@ -202,6 +206,12 @@ namespace Arc {
       if(path.find(",") != std::string::npos) {           // probably a basedn
 	path = BaseDN2Path(path);
       }
+    }
+
+    // expand SRM short URLs
+    if(protocol == "srm" && httpoptions.find("SFN") == httpoptions.end()) {
+      httpoptions["SFN"] = path;
+      path = "srm/managerv1";
     }
 
     if(host.empty() && protocol != "file")
