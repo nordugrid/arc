@@ -68,5 +68,5 @@ Glib::Module *ModuleManager::load(const std::string& name)
   return module;
 }
 
-}; // namespace Arc
+} // namespace Arc
 

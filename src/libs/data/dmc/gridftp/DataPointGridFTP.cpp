@@ -12,7 +12,7 @@ static void callback (void* arg, globus_ftp_client_handle_t* h,
 namespace Arc {
 
   DataPointGridFTP::DataPointGridFTP(DMCGridFTP* dmc, const URL& url) :
-    DataPoint(url), dmc(dmc) {};
+    DataPoint(url), dmc(dmc) {}
 
   unsigned long long int DataPointGridFTP::GetSize() {
     if (size == -1) {

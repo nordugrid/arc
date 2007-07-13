@@ -42,7 +42,7 @@ void WSRP::set_namespaces(void) {
 
 WSRP::WSRP(bool fault,const std::string& action):WSRF(fault,action) {
   set_namespaces();
-};
+}
 
 WSRP::WSRP(SOAPEnvelope& soap,const std::string& action):WSRF(soap,action) {
   set_namespaces();

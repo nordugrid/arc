@@ -9,7 +9,7 @@ extern "C" {
 namespace Arc {
 
   DataPointRLS::DataPointRLS(DMCRLS* dmc, const URL& url) :
-    DataPoint(url), dmc(dmc) {};
+    DataPoint(url), dmc(dmc) {}
 
   unsigned long long int DataPointRLS::GetSize() {
     if (size == -1) {

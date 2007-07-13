@@ -15,6 +15,6 @@ class TestMCC : public Arc::MCC
         virtual Arc::Message process(Arc::Message);
 };
 
-}; // namespace Test
+} // namespace Test
 
 #endif /* __ARC_TESTMCC_H__ */

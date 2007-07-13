@@ -59,7 +59,7 @@ XMLNode XMLNode::operator[](int n) const {
   if(p) return XMLNode(p);
   // New (temporary) node
   return XMLNode(p);
-};
+}
 
 XMLNode XMLNode::operator[](const char* name) const {
   if(!node_) return XMLNode();
@@ -72,7 +72,7 @@ XMLNode XMLNode::operator[](const char* name) const {
   if(p) return XMLNode(p);
   // New temporary node
   return XMLNode(p);
-};
+}
 
 int XMLNode::AttributesSize(void)
 {
@@ -153,7 +153,7 @@ void XMLNode::Name(const char* name) {
   };
   xmlNodeSetName(node_,(const xmlChar*)name_);
   if(ns) node_->ns=ns;
-};
+}
 
 
 XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {

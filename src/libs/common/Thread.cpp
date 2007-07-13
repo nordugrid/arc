@@ -17,7 +17,7 @@ class ThreadArgument {
     public:
         void* arg;
         void (*func)(void*);
-        ThreadArgument(void (*f)(void*), void* a):func(f),arg(a) { }
+        ThreadArgument(void (*f)(void*), void* a):arg(a),func(f) { }
         ~ThreadArgument(void) { };
         void thread(void) { (*func)(arg); delete this; };
 };
@@ -53,4 +53,4 @@ void test(void) {
 }
 */
 
-};
+} // namespace Arc

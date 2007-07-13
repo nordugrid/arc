@@ -20,8 +20,9 @@ TestService::~TestService(void)
 
 Arc::MCC_Status TestService::process(Arc::Message& request,Arc::Message& response)
 {
-	std::cout << "process: TestService" << std::endl;
-    std::cout << "private variable: " << a << std::endl; 
+    std::cout << "process: TestService" << std::endl;
+    std::cout << "private variable: " << a << std::endl;
+    return Arc::MCC_Status(Arc::STATUS_OK, "TestService");
 }
 
 Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext* ctx) 
@@ -29,7 +30,7 @@ Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext* ctx)
     return (Arc::Service *)(new TestService(cfg));
 }
 
-}; // namespace Test
+} // namespace Test
 
 /* Service plugin descriptor */
 service_descriptors ARC_SERVICE_LOADER = {

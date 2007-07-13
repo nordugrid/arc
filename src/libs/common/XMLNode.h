@@ -38,18 +38,18 @@ class XMLNode {
     not owned by class instance. If there is need to completely pass control of 
     LibXML document to then instance's is_owner_ variable has to be set to true.
   */
-  XMLNode(xmlNodePtr node):is_owner_(false),node_(node),is_temporary_(false) { };
+  XMLNode(xmlNodePtr node):node_(node),is_owner_(false),is_temporary_(false) {};
  public:
   /** Constructor of invalid node
     Created instance does not point to XML element. All methods are still allowed 
     for such instance but produce no results. */
-  XMLNode(void):is_owner_(false),node_(NULL),is_temporary_(false) { };
+  XMLNode(void):node_(NULL),is_owner_(false),is_temporary_(false) {};
   /** Copies existing instance.
     Underlying XML element is NOT copied. Ownership is NOT inherited. */
-  XMLNode(const XMLNode& node):is_owner_(false),node_(node.node_),is_temporary_(false) { };
+  XMLNode(const XMLNode& node):node_(node.node_),is_owner_(false),is_temporary_(false) {};
   /** Creates XML document structure from textual representation of XML document.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const std::string& xml):is_owner_(false),node_(NULL),is_temporary_(false) {
+  XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
     xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
     if(!doc) return;
     node_=(xmlNodePtr)doc;
@@ -60,7 +60,7 @@ class XMLNode {
     //Namespaces(ns);
   };
   /** Same as previous */
-  XMLNode(const char* xml,int len = -1):is_owner_(false),node_(NULL),is_temporary_(false) {
+  XMLNode(const char* xml,int len = -1):node_(NULL),is_owner_(false),is_temporary_(false) {
     if(!xml) return;
     if(len == -1) len=strlen(xml);
     xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,0);
@@ -70,7 +70,7 @@ class XMLNode {
   } 
   /** Creates empty XML document structure with specified namespaces.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const Arc::NS& ns):is_owner_(false),node_(NULL),is_temporary_(false) {
+  XMLNode(const Arc::NS& ns):node_(NULL),is_owner_(false),is_temporary_(false) {
     node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
     if(!node_) is_owner_=true;
     Namespaces(ns);
@@ -208,6 +208,7 @@ class XMLNode {
     node_=node.node_;
     is_owner_=false;
     is_temporary_=node.is_temporary_;
+    return *this;
   };
   /** Returns list of all attributes of node */
   // std::list<XMLNode> Attributes(void);

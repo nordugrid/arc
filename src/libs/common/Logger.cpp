@@ -7,39 +7,40 @@
 #include <libintl.h>
 
 namespace Arc {
-  
-  std::ostream& operator<<(std::ostream& os, LogLevel level){
+
+  std::ostream& operator<<(std::ostream& os, LogLevel level) {
     if (level==VERBOSE)
       os << "VERBOSE";
-    else if (level==DEBUG)
+    else if (level == DEBUG)
       os << "DEBUG";
-    else if (level==INFO)
+    else if (level == INFO)
       os << "INFO";
-    else if (level==WARNING)
+    else if (level == WARNING)
       os << "WARNING";
-    else if (level==ERROR)
+    else if (level == ERROR)
       os << "ERROR";
-    else if (level==FATAL)
+    else if (level == FATAL)
       os << "FATAL";
     else  // There should be no more alternative!
       ;
+    return os;
   }
-  
-  LogLevel string_to_level(std::string& str) 
-  {
-    if (str == "VERBOSE") {
-        return VERBOSE;
-    } else if (str == "DEBUG") {
-        return DEBUG;
-    } else if (str == "INFO") {
-        return INFO;
-    } else if (str == "WARNING") {
-        return WARNING;
-    } else if (str == "ERROR") {
-        return ERROR;
-    } else if (str == "FATAL") {
-        return FATAL;
-    }
+
+  LogLevel string_to_level(const std::string& str) {
+    if (str == "VERBOSE")
+      return VERBOSE;
+    else if (str == "DEBUG")
+      return DEBUG;
+    else if (str == "INFO")
+      return INFO;
+    else if (str == "WARNING")
+      return WARNING;
+    else if (str == "ERROR")
+      return ERROR;
+    else if (str == "FATAL")
+      return FATAL;
+    else  // should not happen...
+      return FATAL;
   }
 
   LogMessage::LogMessage(LogLevel level,
@@ -96,6 +97,7 @@ namespace Arc {
        << "[" << message.level << "] "
        << "[" << message.identifier << "] "
        << buf;
+    return os;
   }
 
   LogDestination::LogDestination(){
@@ -121,7 +123,8 @@ namespace Arc {
     destination << message << std::endl;
   }
 
-  LogStream::LogStream(const LogStream& unique) : destination(std::cerr) {
+  LogStream::LogStream(const LogStream& unique) : LogDestination(),
+						  destination(std::cerr) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }

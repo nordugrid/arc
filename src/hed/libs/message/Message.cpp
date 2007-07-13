@@ -23,5 +23,4 @@ MessageContextElement* MessageContext::operator[](const std::string& id) {
   return elements_[id];
 }
 
-};
-
+} // namespace Arc

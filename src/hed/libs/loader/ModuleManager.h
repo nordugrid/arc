@@ -31,6 +31,6 @@ class ModuleManager
         Glib::Module *load(const std::string& name);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif /* __ARC_MODULEMANAGER_H__ */

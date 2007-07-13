@@ -32,6 +32,7 @@ class MCCInterface
           \return An object representing the status of the call.
         */
         virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response)  = 0;
+        virtual ~MCCInterface() {};
 };
 
 /** Message Chain Component - base class for every MCC plugin.

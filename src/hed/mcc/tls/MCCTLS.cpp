@@ -159,6 +159,7 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
    if(tls_random_seed(random_file, 0)) {
      return false;
    }
+   return true;
 }
 
 bool MCC_TLS::do_ssl_init(void) {
@@ -402,5 +403,4 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
       stream_=new PayloadTLSMCC(next,sslctx_, logger);
    };
    MCC::Next(next,label);
-};
-
+}

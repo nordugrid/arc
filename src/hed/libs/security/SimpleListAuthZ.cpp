@@ -37,7 +37,7 @@ SimpleListAuthZ::~SimpleListAuthZ() {
 }
 
 /**Producing PDPs */
-void* SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
+void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
     /**Creating the PDP plugins*/
  /*   XMLNode cn, an, can;
     for(int i=0;;++i){
@@ -78,6 +78,5 @@ bool SimpleListAuthZ::Handle(Message* msg){
      if(it->second->isPermitted(subject))
 	return true;  
   }
-  if(it==pdps_.end())
-    return false;
+  return false;
 }

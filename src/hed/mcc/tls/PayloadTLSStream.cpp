@@ -14,7 +14,7 @@ namespace Arc {
 PayloadTLSStream::PayloadTLSStream(SSL* ssl):ssl_(ssl) {
   //initialize something
   return;
-};
+}
 
 bool PayloadTLSStream::Get(char* buf,int& size) {
   if(ssl_ == NULL) return false;

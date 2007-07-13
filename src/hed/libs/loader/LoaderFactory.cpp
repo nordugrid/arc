@@ -90,5 +90,5 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     }
 }
 
-}; // namespace Arc
+} // namespace Arc
 

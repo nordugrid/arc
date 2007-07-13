@@ -38,6 +38,6 @@ class Config: public Arc::XMLNode {
         void parse(const char *filename);
 };
 
-}; // namespace Arc 
+} // namespace Arc 
 
 #endif /* __ARC_CONFIG_H__ */

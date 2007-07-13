@@ -15,6 +15,6 @@ class TestService : public Arc::Service
         virtual Arc::MCC_Status process(Arc::Message& request,Arc::Message& response);
 };
 
-}; // namespace Test
+} // namespace Test
 
 #endif /* __ARC_TESTPLUGIN_H__ */

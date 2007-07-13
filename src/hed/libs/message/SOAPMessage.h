@@ -33,7 +33,7 @@ class SOAPMessage {
   /** Destructor does not affect refered objects */
   ~SOAPMessage(void) { };
   /** Assignment. Ensures shallow copy. */
-  SOAPMessage& operator=(SOAPMessage& msg) { payload_=msg.payload_; auth_=msg.auth_, attributes_=msg.attributes_; };
+  SOAPMessage& operator=(SOAPMessage& msg) { payload_=msg.payload_; auth_=msg.auth_; attributes_=msg.attributes_; return *this; };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   Arc::PayloadSOAP* Payload(void) { return payload_; };
   /** Replace payload with new one */

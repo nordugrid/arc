@@ -35,5 +35,4 @@ void MCC::AddSecHandler(Config* cfg,SecHandler* sechandler,const std::string& la
     }
 }
 
-}; // namespace Arc
-
+} // namespace Arc

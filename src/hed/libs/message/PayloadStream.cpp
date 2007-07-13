@@ -8,13 +8,13 @@
 
 namespace Arc {
 
-PayloadStream::PayloadStream(int h):handle_(h),seekable_(false),timeout_(60) {
+PayloadStream::PayloadStream(int h):timeout_(60),handle_(h),seekable_(false) {
   struct stat st;
   if(fstat(handle_,&st) != 0) return;
   if(!(S_ISREG(st.st_mode))) return;
   seekable_=true;
   return;
-};
+}
 
 bool PayloadStream::Get(char* buf,int& size) {
   ssize_t l = size;

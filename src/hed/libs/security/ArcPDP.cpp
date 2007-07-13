@@ -2,6 +2,7 @@
 #include "common/XMLNode.h"
 #include "common/Thread.h"
 #include "common/ArcConfig.h"
+#include "common/Logger.h"
 
 #include "ArcPDP.h"
 /*

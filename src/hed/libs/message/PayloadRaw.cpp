@@ -6,7 +6,7 @@ PayloadRaw::~PayloadRaw(void) {
   for(std::vector<PayloadRawBuf>::iterator b = buf_.begin();b!=buf_.end();++b) {
     if(b->allocated) free(b->data);
   };
-};
+}
 
 static bool BufferAtPos(const std::vector<PayloadRawBuf>& buf_,int pos,int& bufnum,int& bufpos) {
   if(pos == -1) pos=0;

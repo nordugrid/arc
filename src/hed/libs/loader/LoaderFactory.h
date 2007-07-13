@@ -49,6 +49,6 @@ class LoaderFactory: public ModuleManager {
         void load_all_instances(const std::string& libname);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif /* __ARC_LOADERFACTORY_H__ */

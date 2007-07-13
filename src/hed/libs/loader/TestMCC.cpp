@@ -21,12 +21,14 @@ TestMCC::~TestMCC(void)
 
 Arc::Message TestMCC::process(Arc::Message)
 {
-	std::cout << "process: TestMCC" << std::endl;
-    std::cout << "private variable: " << a << std::endl; 
+    std::cout << "process: TestMCC" << std::endl;
+    std::cout << "private variable: " << a << std::endl;
     std::cout << "Defined \"next\"s: " << std::endl;
     for(std::map<std::string,MCCInterface*>::iterator i = next_.begin(); i != next_.end(); ++i) {
         std::cout << "Name: " << i->first << " - " << ((i->second)?"defined":"undefined") << std::endl;
     }
+    Arc::Message msg;
+    return msg;
 }
 
 Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext* ctx) 
@@ -34,7 +36,7 @@ Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext* ctx)
     return (Arc::MCC *)(new TestMCC(cfg));
 }
 
-}; // namespace Test
+} // namespace Test
 
 /* MCC plugin descriptor */
 mcc_descriptors ARC_MCC_LOADER = {

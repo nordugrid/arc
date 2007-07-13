@@ -19,4 +19,4 @@ SOAPMessage::SOAPMessage(Arc::Message& msg)
     payload_ = dynamic_cast<Arc::PayloadSOAP*>(msg.Payload());
 }
 
-};
+} // namespace Arc

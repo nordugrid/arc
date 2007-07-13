@@ -50,13 +50,13 @@ namespace Arc {
       std::string::size_type pos = 0;
 
       if(sscanf(timestring.substr(pos, 10).c_str(),
-		"%4u-%2u-%2u",
+		"%4d-%2d-%2d",
 		&timestr.tm_year,
 		&timestr.tm_mon,
 		&timestr.tm_mday) == 3)
 	pos += 10;
       else if(sscanf(timestring.substr(pos, 8).c_str(),
-		     "%4u%2u%2u",
+		     "%4d%2d%2d",
 		     &timestr.tm_year,
 		     &timestr.tm_mon,
 		     &timestr.tm_mday) == 3)

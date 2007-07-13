@@ -67,4 +67,4 @@ void Config::parse(const char *filename)
     is_owner_=true;
 }
 
-};
+} // namespace Arc

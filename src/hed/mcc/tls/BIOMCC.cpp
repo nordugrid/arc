@@ -165,5 +165,4 @@ static int mcc_puts(BIO *bp, const char *str) {
   return(ret);
 }
 
-};
-
+} // namespace Arc

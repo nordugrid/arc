@@ -20,7 +20,7 @@ class SimpleListAuthZ : public SecHandler {
   /** One Handler can include few PDP */
   pdp_container_t pdps_;
   /** PDP*/
-  void *MakePDPs(Arc::Config* cfg);
+  void MakePDPs(Arc::Config* cfg);
  public:
   SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx);
   virtual ~SimpleListAuthZ(void);

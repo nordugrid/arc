@@ -151,7 +151,7 @@ InformationContainer::~InformationContainer(void) {
 XMLNode InformationContainer::Acquire(void) {
   lock_.lock();
   return doc_;
-};
+}
 
 void InformationContainer::Release(void) {
   lock_.unlock();

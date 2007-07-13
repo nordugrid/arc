@@ -31,6 +31,6 @@ namespace Arc {
   Returns true on success. */
 bool CreateThreadFunction(void (*func)(void*), void* arg);
 
-}; // namespace Arc 
+} // namespace Arc 
 
 #endif /* __ARC_THREAD_H__ */

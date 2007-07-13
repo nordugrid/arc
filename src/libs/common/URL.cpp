@@ -246,6 +246,7 @@ namespace Arc {
     if(protocol == "ldap")
       return Path2BaseDN(path);
     URLLogger.msg(ERROR, "Basedn only defined for ldap protocol");
+    return "";
   }
 
   const std::map<std::string, std::string>& URL::HTTPOptions() const {

@@ -53,6 +53,8 @@ XSDTYPE String::getType(){
 xsd__string String::getString(){
   if(m_buf)
     return deserialize(m_buf);
+  else
+    return NULL;
 }
 void* String::getValue(){
   return (void*)getString();
@@ -86,6 +88,8 @@ XSDTYPE Boolean::getType(){
 xsd__boolean* Boolean::getBoolean(){
   if(m_buf)
     return deserialize(m_buf);
+  else
+    return NULL;
 }
 
 void* Boolean::getValue(){
@@ -127,7 +131,8 @@ XSDTYPE Float::getType(){
 xsd__float* Float::getFloat(){
   if(m_buf!= NULL)
     return deserialize(m_buf);
-  else return NULL;
+  else
+    return NULL;
 }
 
 void* Float::getValue(){
@@ -161,7 +166,8 @@ XSDTYPE Double::getType(){
 xsd__double* Double::getDouble(){
   if(m_buf!= NULL)
     return deserialize(m_buf);
-  else return NULL;
+  else
+    return NULL;
 }
 
 void* Double::getValue(){
@@ -198,7 +204,8 @@ XSDTYPE Decimal::getType(){
 xsd__decimal* Decimal::getDecimal(){
   if(m_buf!= NULL)
     return deserialize(m_buf);
-  else return NULL;
+  else
+    return NULL;
 }
 
 void* Decimal::getValue(){
@@ -235,7 +242,8 @@ XSDTYPE Duration::getType(){
 xsd__duration* Duration::getDuration(){
   if(m_buf!= NULL)
     return deserialize(m_buf);
-  else return NULL;
+  else
+    return NULL;
 }
 
 void* Duration::getValue(){
@@ -273,7 +281,8 @@ XSDTYPE DateTime::getType(){
 xsd__dateTime* DateTime::getDateTime(){
   if(m_buf!= NULL)
     return deserialize(m_buf);
-  else return NULL;
+  else
+    return NULL;
 }
 
 void* DateTime::getValue(){
@@ -317,6 +326,8 @@ XSDTYPE AnyURI::getType(){
 xsd__anyURI AnyURI::getAnyURI(){
   if(m_buf) 
     return deserialize(m_buf);
+  else
+    return NULL;
 } 
 void* AnyURI::getValue(){
   return (void*)getAnyURI();
@@ -347,6 +358,8 @@ XSDTYPE QName::getType(){
 xsd__QName QName::getQName(){
   if(m_buf)
     return deserialize(m_buf);
+  else
+    return NULL;
 }
 void* QName::getValue(){
   return (void*)getQName();
@@ -377,6 +390,8 @@ XSDTYPE NOTATION::getType(){
 xsd__NOTATION NOTATION::getNOTATION(){
   if(m_buf)
     return deserialize(m_buf);
+  else
+    return NULL;
 }
 void* NOTATION::getValue(){
   return (void*)getNOTATION();
@@ -409,6 +424,8 @@ XSDTYPE Integer::getType(){
 xsd__Integer Integer::getInteger(){
   if(m_buf)
     return deserialize(m_buf);
+  else
+    return NULL;
 }
 void* Integer::getValue(){
   return (void*)getInteger();
