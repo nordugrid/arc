@@ -78,12 +78,13 @@
 
     <xsd:complexType name="HeaderType">
         <xsd:sequence>
-            <xsd:element name="HedID" type="xsd:string"/> <!-- Identifier of the source HED -->
+            <xsd:element name="RequesterID" type="xsd:string"/> <!-- Identifier of the source HED -->
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="RegistrationEntryType">
         <xsd:sequence>
+            <xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="SrcAdv" type="iis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="MetaSrcAdv" type="iis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
