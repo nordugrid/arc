@@ -102,6 +102,7 @@ namespace Arc {
     }
     else {
       expiryTime=HISTORIC;
+      reservationID=0;
     }
     synchMutex.unlock();
     return getCounterTicket(reservationID, expiryTime, this);
