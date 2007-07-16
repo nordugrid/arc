@@ -253,8 +253,28 @@ namespace Arc {
     return httpoptions;
   }
 
+  const std::string& URL::HTTPOption(const std::string& option,
+				     const std::string& undefined) const {
+    std::map<std::string, std::string>::const_iterator
+      opt = httpoptions.find(option);
+    if(opt != httpoptions.end())
+      return opt->second;
+    else
+      return undefined;
+  }
+
   const std::map<std::string, std::string>& URL::Options() const {
     return urloptions;
+  }
+
+  const std::string& URL::Option(const std::string& option,
+				 const std::string& undefined) const {
+    std::map<std::string, std::string>::const_iterator
+      opt = urloptions.find(option);
+    if(opt != urloptions.end())
+      return opt->second;
+    else
+      return undefined;
   }
 
   const std::list<URLLocation>& URL::Locations() const {

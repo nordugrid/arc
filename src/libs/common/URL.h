@@ -72,11 +72,21 @@ namespace Arc {
     /** In case of ldap-protocol, return the basedn of the URL. */
     std::string BaseDN() const;
 
-    /** Returns http-options if any. */
+    /** Returns HTTP options if any. */
     const std::map<std::string, std::string>& HTTPOptions() const;
 
-    /** Returns options if any. */
+    /** Returns the value of the HTTP option \param option.
+	Returns \param undefined if the HTTP option is not defined. */
+    const std::string& HTTPOption(const std::string& option,
+				  const std::string& undefined = "") const;
+
+    /** Returns URL options if any. */
     const std::map<std::string, std::string>& Options() const;
+
+    /** Returns the value of the URL option \param option.
+	Returns \param undefined if the URL option is not defined. */
+    const std::string& Option(const std::string& option,
+			      const std::string& undefined = "") const;
 
     /** Returns the locations if any. */
     const std::list<URLLocation>& Locations() const;
