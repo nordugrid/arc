@@ -37,9 +37,7 @@ namespace Arc {
 
    public:
     /** Empty constructor. Necessary when the class is part of
-     *  another class and the like. Can be used in conjunction
-     *  with the assignment operator operator=(const std::string&)
-     *  to define a URL.
+     *  another class and the like.
      */
     URL();
 
@@ -106,17 +104,11 @@ namespace Arc {
     /** Is one URL equal to another? */
     bool operator==(const URL& url) const;
 
-    /** Assignment operator. */
-    void operator=(const std::string&);
-
     /** Check if instance holds valid URL */
     operator bool() const;
     bool operator!() const;
 
    protected:
-    /** Method that parses the URL-string passed. */
-    void ParseURL(const std::string& urlstring);
-
     /** the url protocol. */
     std::string protocol;
 

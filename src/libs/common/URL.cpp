@@ -58,28 +58,9 @@ namespace Arc {
   }
 
 
-  URL::URL() : port(-1) { }
+  URL::URL() : port(-1) {}
 
-
-  URL::URL(const std::string& url) {
-    ParseURL(url);
-  }
-
-
-  URL::~URL() {}
-
-
-  void URL::ParseURL(const std::string& url) {
-
-    protocol = "";
-    username = "";
-    passwd = "";
-    host = "";
-    port = -1;
-    path = "";
-    locations.clear();
-    httpoptions.clear();
-    urloptions.clear();
+  URL::URL(const std::string& url) : port(-1) {
 
     std::string::size_type pos, pos2, pos3;
 
@@ -100,7 +81,8 @@ namespace Arc {
     pos2 = url.find("@", pos);
     if(pos2 != std::string::npos) {
 
-      if(protocol == "rc" || protocol == "rls" || protocol == "fireman") {
+      if(protocol == "rc" || protocol == "rls" ||
+	 protocol == "fireman" || protocol == "lfc") {
 
 	std::string locstring = url.substr(pos, pos2 - pos);
 	pos = pos2 + 1;
@@ -118,16 +100,17 @@ namespace Arc {
 
 	  if(protocol == "rc") {
 	    pos3 = loc.find(';');
-	    if(pos3 == std::string::npos) {
+	    if(pos3 == std::string::npos)
 	      locations.push_back(URLLocation(loc, ""));
-	    }
-	    else {
+	    else
 	      locations.push_back(URLLocation(loc.substr(0, pos3),
 	          loc.substr(pos3 + 1)));
-	    }
 	  }
 	  else {
-	    locations.push_back(loc);
+	    if (loc[0] == ';')
+	      locations.push_back(URLLocation("", loc.substr(1)));
+	    else
+	      locations.push_back(loc);
 	  }
 	}
       }
@@ -217,6 +200,8 @@ namespace Arc {
     if(host.empty() && protocol != "file")
       URLLogger.msg(ERROR, "Illegal URL - no hostname given");
   }
+
+  URL::~URL() {}
 
   const std::string& URL::Protocol() const {
     return protocol;
@@ -312,7 +297,7 @@ namespace Arc {
     if(!urloptions.empty())
       urlstr += ";" + OptionString(urloptions, ';');
 
-    if(!host.empty() || port != -1 || !urloptions.empty())
+    if(!host.empty() || port != -1)
       urlstr += '/';
 
     if(!path.empty())
@@ -380,10 +365,6 @@ namespace Arc {
     return (str() == url.str());
   }
 
-  void URL::operator=(const std::string& urlstring) {
-    ParseURL(urlstring);
-  }
-
   std::string URL::BaseDN2Path(const std::string& basedn) {
 
     std::string::size_type pos, pos2;
@@ -434,19 +415,10 @@ namespace Arc {
   }
 
 
-  URLLocation::URLLocation(const std::string& url) : URL() {
-    if(url[0] == ';') {
-      // Options only
-      urloptions = ParseOptions(url.substr(1), ';');
-    }
-    else {
-      URL::ParseURL(url);
-    }
-  }
+  URLLocation::URLLocation(const std::string& url) : URL(url) {}
 
-  URLLocation::URLLocation(const std::string& _name,
-                           const std::string& optstring) : URL(),
-    name(_name) {
+  URLLocation::URLLocation(const std::string& name,
+                           const std::string& optstring) : URL(), name(name) {
     urloptions = ParseOptions(optstring, ';');
   }
 
