@@ -23,8 +23,7 @@ namespace Arc {
     virtual bool meta_postregister(bool replication, bool failure);
     virtual bool meta_preunregister(bool replication);
     virtual bool meta_unregister(bool all);
-    virtual bool list_files(std::list<DataPoint::FileInfo> &files,
-			    bool resolve = true);
+    virtual bool list_files(std::list<FileInfo> &files, bool resolve = true);
    protected:
     static Logger logger;
     bool guid_enabled;
