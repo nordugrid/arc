@@ -1,6 +1,6 @@
 lib_LTLIBRARIES=libdmcrls.la
 
-libdmcrls_la_SOURCES = DMCRLS.cpp DataPointRLS.cpp
+libdmcrls_la_SOURCES = DMCRLS.cpp DataPointRLS.cpp RLS.cpp
 libdmcrls_la_CPPFLAGS = ${LIBXML2_CFLAGS} ${GLIBMM_CFLAGS} ${GLOBUS_RLS_CLIENT_CFLAGS} -I$(top_srcdir)/src/libs
-libdmcrls_la_LIBADD = ${LIBXML2_LIBS} ${GLIBMM_LIBS} ${GLOBUS_RLS_CLIENT_LIBS}
+libdmcrls_la_LIBADD = ${LIBXML2_LIBS} ${GLIBMM_LIBS} ${GLOBUS_RLS_CLIENT_LIBS} -luuid
 libdmcrls_la_LDFLAGS = -no-undefined -avoid-version -module

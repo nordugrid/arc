@@ -32,7 +32,7 @@ namespace Arc {
 
   DataPoint* DMCRLS::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "rls") return NULL;
-    return new DataPointRLS(this, url);
+    return new DataPointRLS(url);
   }
 
 } // namespace Arc

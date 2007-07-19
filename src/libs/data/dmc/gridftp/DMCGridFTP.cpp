@@ -27,7 +27,7 @@ namespace Arc {
   DataPoint* DMCGridFTP::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "gsiftp" &&
 	url.Protocol() != "ftp") return NULL;
-    return new DataPointGridFTP(this, url);
+    return new DataPointGridFTP(url);
   }
 
 } // namespace Arc
