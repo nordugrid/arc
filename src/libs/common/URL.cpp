@@ -98,17 +98,17 @@ namespace Arc {
 	  pos2 = pos3;
 	  if(pos2 != std::string::npos) pos2++;
 
-	  if(protocol == "rc") {
-	    pos3 = loc.find(';');
-	    if(pos3 == std::string::npos)
-	      locations.push_back(URLLocation(loc, ""));
-	    else
-	      locations.push_back(URLLocation(loc.substr(0, pos3),
-	          loc.substr(pos3 + 1)));
-	  }
+	  if (loc[0] == ';')
+	    commonlocoptions = ParseOptions(loc.substr(1), ';');
 	  else {
-	    if (loc[0] == ';')
-	      locations.push_back(URLLocation("", loc.substr(1)));
+	    if(protocol == "rc") {
+	      pos3 = loc.find(';');
+	      if(pos3 == std::string::npos)
+		locations.push_back(URLLocation(loc, ""));
+	      else
+		locations.push_back(URLLocation(loc.substr(0, pos3),
+						loc.substr(pos3 + 1)));
+	    }
 	    else
 	      locations.push_back(loc);
 	  }
@@ -262,8 +262,29 @@ namespace Arc {
       return undefined;
   }
 
+  void URL::AddOption(const std::string& option, const std::string& value,
+		      bool overwrite) {
+    if(!overwrite && urloptions.find(option) != urloptions.end())
+      return;
+    urloptions[option] = value;
+  }
+
   const std::list<URLLocation>& URL::Locations() const {
     return locations;
+  }
+
+  const std::map<std::string, std::string>& URL::CommonLocOptions() const {
+    return commonlocoptions;
+  }
+
+  const std::string& URL::CommonLocOption(const std::string& option,
+					  const std::string& undefined) const {
+    std::map<std::string, std::string>::const_iterator
+      opt = commonlocoptions.find(option);
+    if(opt != commonlocoptions.end())
+      return opt->second;
+    else
+      return undefined;
   }
 
   std::string URL::str() const {
@@ -284,6 +305,12 @@ namespace Arc {
 	urlstr += '|';
       urlstr += it->str();
     }
+
+    if(!locations.empty() && !commonlocoptions.empty())
+      urlstr += '|';
+
+    if(!commonlocoptions.empty())
+      urlstr += ";" + OptionString(commonlocoptions, ';');
 
     if(!username.empty() || !passwd.empty() || !locations.empty())
       urlstr += '@';

@@ -1,9 +1,5 @@
-/**
- *  A URL-class to be used by other components of ARCLib.
- */
-
-#ifndef ARCLIB_URL
-#define ARCLIB_URL
+#ifndef __ARC_URL_H__
+#define __ARC_URL_H__
 
 #include <iostream>
 #include <list>
@@ -86,8 +82,22 @@ namespace Arc {
     const std::string& Option(const std::string& option,
 			      const std::string& undefined = "") const;
 
+    /** Adds a URL option. */
+    void AddOption(const std::string& option, const std::string& value,
+		   bool overwrite = true);
+
     /** Returns the locations if any. */
     const std::list<URLLocation>& Locations() const;
+
+    /** Returns the common location options if any. */
+    const std::map<std::string, std::string>& CommonLocOptions() const;
+
+    /** Returns the value of the common location option \param option.
+	Returns \param undefined if the common location option is not
+	defined. */
+    const std::string& CommonLocOption(const std::string& option,
+				       const std::string&
+				         undefined = "") const;
 
     /** Returns a string representation of the URL. */
     virtual std::string str() const;
@@ -136,6 +146,9 @@ namespace Arc {
     /** locations for index server URLs. */
     std::list<URLLocation> locations;
 
+    /** common location options for index server URLs. */
+    std::map<std::string, std::string> commonlocoptions;
+
     /** a private method that converts an ldap basedn to a path. */
     static std::string BaseDN2Path(const std::string&);
 
@@ -175,4 +188,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // ARCLIB_URL
+#endif //  __ARC_URL_H__
