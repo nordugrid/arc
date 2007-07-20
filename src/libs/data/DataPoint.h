@@ -369,6 +369,8 @@ namespace Arc {
     /// List of locations at which file can be probably found.
     std::list<Location> locations;
     std::list<Location>::iterator location;
+    static std::string empty_string_;
+    static URL emprty_url_;
    protected:
     bool is_metaexisting;
     bool is_resolved;
@@ -380,12 +382,14 @@ namespace Arc {
 
     virtual const URL& current_location() const {
       if(location != locations.end())
-	return location->url;
+	    return location->url;
+      return empty_url_;
     };
 
     virtual const std::string& current_meta_location() const {
       if(location != locations.end())
-	return location->meta;
+  	    return location->meta;
+      return empty_string_;
     };
 
     virtual bool next_location();
