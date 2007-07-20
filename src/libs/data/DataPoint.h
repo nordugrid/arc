@@ -34,19 +34,14 @@ namespace Arc {
       std::string name;
       std::list<URL> urls;         // Physical enpoints/URLs.
       unsigned long long int size; // Size of file in bytes.
-      bool size_available;         // If size is known.
       std::string checksum;        // Checksum of file.
-      bool checksum_available;     // If checksum is known.
       Time created;                // Creation/modification time.
-      bool created_available;      // If time is known.
       Time valid;                  // Valid till time.
-      bool valid_available;        // If validity is known.
       Type type;                   // File type - usually file_type_file
       FileInfo(const std::string& name = "") : name(name),
-					       size_available(false),
-					       checksum_available(false),
-					       created_available(false),
-					       valid_available(false),
+					       size(-1),
+					       created(-1),
+					       valid(-1),
 					       type(file_type_unknown) {};
       /// If object is valid
       operator bool() {
@@ -132,106 +127,87 @@ namespace Arc {
 
     /// Check if meta-information 'size' is available.
     virtual bool meta_size_available() const {
-      return meta_size_valid;
+      return (meta_size_ != -1);
     };
 
     /// Set value of meta-information 'size' if not already set.
     virtual void meta_size(unsigned long long int val) {
-      if(!meta_size_valid) {
+      if(!meta_size_available())
 	meta_size_ = val;
-	meta_size_valid = true;
-      }
     };
 
     /// Set value of meta-information 'size'.
     virtual void meta_size_force(unsigned long long int val) {
       meta_size_ = val;
-      meta_size_valid = true;
     };
 
     /// Get value of meta-information 'size'.
     virtual unsigned long long int meta_size() const {
-      if(meta_size_valid)
-	return meta_size_;
-      return 0;
+      return meta_size_;
     };
 
     /// Check if meta-information 'checksum' is available.
     virtual bool meta_checksum_available() const {
-      return meta_checksum_valid;
+      return (!meta_checksum_.empty());
     };
 
     /// Set value of meta-information 'checksum' if not already set.
     virtual void meta_checksum(const std::string& val) {
-      if(!meta_checksum_valid) {
+      if(!meta_checksum_available())
 	meta_checksum_ = val;
-	meta_checksum_valid = true;
-      }
     };
 
     /// Set value of meta-information 'checksum'.
     virtual void meta_checksum_force(const std::string& val) {
       meta_checksum_ = val;
-      meta_checksum_valid = true;
     };
 
     /// Get value of meta-information 'checksum'.
     virtual const std::string& meta_checksum() const {
-      if(meta_checksum_valid)
-	return meta_checksum_;
+      return meta_checksum_;
     };
 
     /// Check if meta-information 'creation/modification time' is available.
     virtual bool meta_created_available() const {
-      return meta_created_valid;
+      return (meta_created_ != -1);
     };
 
     /// Set value of meta-information 'creation/modification time' if not
     /// already set.
     virtual void meta_created(Time val) {
-      if(!meta_created_valid) {
+      if(!meta_created_available())
 	meta_created_ = val;
-	meta_created_valid = true;
-      }
     };
 
     /// Set value of meta-information 'creation/modification time'.
     virtual void meta_created_force(Time val) {
       meta_created_ = val;
-      meta_created_valid = true;
     };
 
     /// Get value of meta-information 'creation/modification time'.
     virtual Time meta_created() const {
-      if(meta_created_valid)
-	return meta_created_;
-      return 0;
+      return meta_created_;
     };
 
     /// Check if meta-information 'validity time' is available.
     virtual bool meta_validtill_available() const {
-      return meta_validtill_valid;
+      return (meta_validtill_ != -1);
     };
 
     /// Set value of meta-information 'validity time' if not already set.
     virtual void meta_validtill(Time val) {
-      if(!meta_validtill_valid) {
+      if(!meta_validtill_available())
 	meta_validtill_ = val;
-	meta_validtill_valid = true;
-      }
     };
 
     /// Set value of meta-information 'validity time'.
     virtual void meta_validtill_force(Time val) {
       meta_validtill_ = val;
-      meta_validtill_valid = true;
     };
 
     /// Get value of meta-information 'validity time'.
     virtual Time meta_validtill() const {
-      if(meta_validtill_valid)
-	return meta_validtill_;
-      return 0;
+      return meta_validtill_;
     };
 
     /// Check if URL is meta-URL.
@@ -267,17 +243,17 @@ namespace Arc {
     /// are not used for comparison. Default result is 'true'.
     /// \param p object to which compare.
     virtual bool meta_compare(const DataPoint& p) const {
-      if(p.meta_size_available() && meta_size_valid)
+      if(p.meta_size_available() && meta_size_available())
 	if(meta_size_ != p.meta_size())
 	  return false;
       // TODO: compare checksums properly
-      if(p.meta_checksum_available() && meta_checksum_valid)
+      if(p.meta_checksum_available() && meta_checksum_available())
 	if(strcasecmp(meta_checksum_.c_str(), p.meta_checksum().c_str()))
 	  return false;
-      if(p.meta_created_available() && meta_created_valid)
+      if(p.meta_created_available() && meta_created_available())
 	if(meta_created_ != p.meta_created())
 	  return false;
-      if(p.meta_validtill_available() && meta_validtill_valid)
+      if(p.meta_validtill_available() && meta_validtill_available())
 	if(meta_validtill_ != p.meta_validtill())
 	  return false;
       return true;
@@ -362,13 +338,9 @@ namespace Arc {
     int tries_left;
     // attributes
     unsigned long long int meta_size_;
-    bool meta_size_valid;
     std::string meta_checksum_;
-    bool meta_checksum_valid;
     Time meta_created_;
-    bool meta_created_valid;
     Time meta_validtill_;
-    bool meta_validtill_valid;
   };
 
   /// DataPointIndex complements DataPoint with attributes

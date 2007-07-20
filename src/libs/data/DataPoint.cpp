@@ -9,10 +9,9 @@ namespace Arc {
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
   DataPoint::DataPoint(const URL& url) : url(url),
-					 meta_size_valid(false),
-					 meta_checksum_valid(false),
-					 meta_created_valid(false),
-					 meta_validtill_valid(false),
+					 meta_size_(-1),
+					 meta_created_(-1),
+					 meta_validtill_(-1),
 					 tries_left(5) {}
 
   DataPointIndex::DataPointIndex(const URL& url) : DataPoint(url),
@@ -39,25 +38,16 @@ namespace Arc {
     }
     fi.name = url.Path();
     for(std::list<Location>::iterator i = locations.begin();
-        i != locations.end(); ++i) {
+        i != locations.end(); ++i)
       fi.urls.push_back(i->url);
-    }
-    if(meta_size_valid) {
+    if(meta_size_available())
       fi.size = meta_size_;
-      fi.size_available = true;
-    }
-    if(meta_checksum_valid) {
+    if(meta_checksum_available())
       fi.checksum = meta_checksum_;
-      fi.checksum_available = true;
-    }
-    if(meta_created_valid) {
+    if(meta_created_available())
       fi.created = meta_created_;
-      fi.created_available = true;
-    }
-    if(meta_validtill_valid) {
+    if(meta_validtill_available())
       fi.valid = meta_validtill_;
-      fi.valid_available = true;
-    }
     fi.type = FileInfo::file_type_file;
     return true;
   }

@@ -43,13 +43,18 @@ int main () {
     dp[k]->list_files(files);
     for (std::list<Arc::DataPoint::FileInfo>::iterator i = files.begin();
 	 i != files.end(); i++) {
-      std::cout << i->name << std::endl;
-      std::cout << i->size << std::endl;
-      std::cout << i->created << std::endl;
-      std::cout << i->checksum << std::endl;
+      std::cout << "Name: " << i->name << std::endl;
+      if(i->size != -1)
+	std::cout << "Size: " << i->size << std::endl;
+      if(i->created != -1)
+	std::cout << "Created: " << i->created << std::endl;
+      if(i->valid != -1)
+	std::cout << "Valid: " << i->created << std::endl;
+      if(!i->checksum.empty())
+	std::cout << "Checksum: " << i->checksum << std::endl;
       for(std::list<Arc::URL>::iterator j = i->urls.begin();
 	  j != i->urls.end(); j++)
-	std::cout << *j << std::endl;
+	std::cout << "Location: " << *j << std::endl;
     }
     delete dp[k];
   }

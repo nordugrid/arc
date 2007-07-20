@@ -222,15 +222,15 @@ namespace Arc {
 	if(attr->type != globus_rls_attr_type_str) continue;
 	logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
 	if(strcmp(attr->name, "filechecksum") == 0) {
-	  if(!it.meta_checksum_valid)
+	  if(!it.meta_checksum_available())
 	    it.meta_checksum(attr->val.s);
 	}
 	else if(strcmp(attr->name, "size") == 0) {
-	  if(!it.meta_size_valid)
+	  if(!it.meta_size_available())
 	    it.meta_size(stringtoi(attr->val.s));
 	}
 	else if(strcmp(attr->name, "modifytime") == 0) {
-	  if(!it.meta_created_valid) {
+	  if(!it.meta_created_available()) {
 	    Time created(attr->val.s);
 	    if(created == -1)
 	      created.SetTime(stringtoull(attr->val.s));
@@ -238,7 +238,7 @@ namespace Arc {
 	  }
 	}
 	else if(strcmp(attr->name, "created") == 0) {
-	  if(!it.meta_created_valid) {
+	  if(!it.meta_created_available()) {
 	    Time created(attr->val.s);
 	    if(created == -1)
 	      created.SetTime(stringtoull(attr->val.s));
@@ -555,7 +555,7 @@ namespace Arc {
 		   errmsg);
       }
     }
-    if(meta_size_valid) {
+    if(meta_size_available()) {
       attr.name = "size";
       attr_val = tostring(meta_size_);
       attr.val.s = (char*)attr_val.c_str();
@@ -570,7 +570,7 @@ namespace Arc {
 	}
       }
     }
-    if(meta_checksum_valid) {
+    if(meta_checksum_available()) {
       attr.name = "filechecksum";
       attr_val = meta_checksum_;
       attr.val.s = (char*)attr_val.c_str();
@@ -585,9 +585,9 @@ namespace Arc {
 	}
       }
     }
-    if(meta_created_valid) {
+    if(meta_created_available()) {
       attr.name = "modifytime";
-      attr_val = tostring(meta_created_);
+      attr_val = meta_created_;
       attr.val.s = (char*)attr_val.c_str();
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
 					   &attr, 0);
@@ -927,25 +927,21 @@ namespace Arc {
       // logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
       if(strcmp(attr->name, "filechecksum") == 0) {
 	f.checksum = attr->val.s;
-	f.checksum_available = true;
       }
       else if(strcmp(attr->name, "size") == 0) {
 	f.size = stringtoi(attr->val.s);
-	f.size_available = true;
       }
       else if(strcmp(attr->name, "modifytime") == 0) {
 	Time created(attr->val.s);
 	if(created == -1)
 	  created.SetTime(stringtoull(attr->val.s));
 	f.created = created;
-	f.created_available = true;
       }
       else if(strcmp(attr->name, "created") == 0) {
 	Time created(attr->val.s);
 	if(created == -1)
 	  created.SetTime(stringtoull(attr->val.s));
 	f.created = created;
-	f.created_available = true;
       }
     }
     globus_rls_client_free_list(attr_list);
