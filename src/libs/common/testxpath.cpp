@@ -21,16 +21,20 @@ int main(void)
     f.close();
 
     Arc::NS nsList;
-
     nsList.insert(std::pair<std::string, std::string>("test","uri:bbb"));
-    std::list<xmlNodePtr> list = Arc::XPathLookup(xml_str, (xmlChar*)"//test:child2", nsList);
-    std::list<xmlNodePtr>::iterator it;
-    xmlNodePtr node;
+    std::list<Arc::XMLNode*> list = Arc::XPathLookup(xml_str, (xmlChar*)"//test:child2", nsList);
+    std::list<Arc::XMLNode*>::iterator it;
+    Arc::XMLNode* node;
     for ( it=list.begin() ; it != list.end(); it++ ){
       node=*it;
-      std::cout << node->name << std::endl;       
+      std::cout << node->Name() << std::endl;       
     }
-   
+
+    while(list.size()>0){
+      delete(list.back());
+      list.pop_back();
+    }
+
     std::cout << "************************" << std::endl;
     
     nsList.erase("test");
@@ -38,7 +42,12 @@ int main(void)
     list = Arc::XPathLookup(xml_str, (xmlChar*)"//test1:child2", nsList);
     for ( it=list.begin() ; it != list.end(); it++ ){
       node=*it;
-      std::cout << node->name << std::endl;
+      std::cout << node->Name() << std::endl;
+    }
+
+    while(list.size()>0){
+      delete(list.back());
+      list.pop_back();
     }
 
     return 0;

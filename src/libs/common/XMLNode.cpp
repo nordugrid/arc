@@ -249,7 +249,7 @@ void XMLNode::Destroy(void) {
   node_=NULL;
 }
 
-std::list<xmlNodePtr> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList) {
+std::list<XMLNode*> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList) {
   xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
   xmlXPathContextPtr xpathCtx=xmlXPathNewContext(doc);
 
@@ -258,16 +258,16 @@ std::list<xmlNodePtr> XPathLookup(const std::string xml, const xmlChar* xpathExp
 
   xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
 
-  std::list<xmlNodePtr> retlist;
-  //XMLNode * node;  
+  std::list<XMLNode*> retlist;
+  XMLNode * node;  
   if (xpathObj && xpathObj->nodesetval && xpathObj->nodesetval->nodeNr) {
     xmlNodeSetPtr nodes=xpathObj->nodesetval;
     int size = nodes->nodeNr;
     for(int i = 0; i < size; ++i) {
       if(nodes->nodeTab[i]->type == XML_ELEMENT_NODE){
         xmlNodePtr cur = nodes->nodeTab[i];
-       // node = new XMLNode(cur);
-        retlist.push_back(cur);   
+        node = new XMLNode(cur);
+        retlist.push_back(node);   
       }
     }
   }
