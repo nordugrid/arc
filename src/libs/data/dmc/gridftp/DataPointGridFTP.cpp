@@ -744,6 +744,35 @@ namespace Arc {
     if(url.Protocol() == "gsiftp") is_secure = true;
     if(!ftp_active) {
       globus_result_t res;
+#ifdef HAVE_GLOBUS_FTP_CLIENT_HANDLEATTR_SET_GRIDFTP2
+      globus_ftp_client_handleattr_t ftp_attr;
+      if((res = globus_ftp_client_handleattr_init(&ftp_attr)) !=
+	 GLOBUS_SUCCESS) {
+	logger.msg(ERROR,
+		   "init_handle: globus_ftp_client_handleattr_init failed");
+	logger.msg(ERROR, "Globus error: %s", GlobusResult(res).str().c_str());
+	ftp_active = false;
+	return false;
+      }
+      if((res = globus_ftp_client_handleattr_set_gridftp2(&ftp_attr,
+							  GLOBUS_TRUE)) !=
+	 GLOBUS_SUCCESS) {
+	logger.msg(ERROR,"init_handle: "
+		   "globus_ftp_client_handleattr_set_gridftp2 failed");
+	logger.msg(ERROR, "Globus error: %s", GlobusResult(res).str().c_str());
+	ftp_active = false;
+	return false;
+      }
+      if((res = globus_ftp_client_handle_init(&ftp_handle, &ftp_attr)) !=
+	 GLOBUS_SUCCESS) {
+	globus_ftp_client_handleattr_destroy(&ftp_attr);
+	logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
+	logger.msg(ERROR, "Globus error: %s", GlobusResult(res).str().c_str());
+	ftp_active = false;
+	return false;
+      }
+      globus_ftp_client_handleattr_destroy(&ftp_attr);
+#else
       if((res = globus_ftp_client_handle_init(&ftp_handle, GLOBUS_NULL)) !=
 	 GLOBUS_SUCCESS) {
 	logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
@@ -751,12 +780,12 @@ namespace Arc {
 	ftp_active = false;
 	return false;
       }
+#endif
       if((res = globus_ftp_client_operationattr_init(&ftp_opattr)) !=
 	 GLOBUS_SUCCESS) {
 	logger.msg(ERROR, "init_handle: "
 		   "globus_ftp_client_operationattr_init failed");
-	logger.msg(ERROR, "Globus error: %s",
-		   GlobusResult(res).str().c_str());
+	logger.msg(ERROR, "Globus error: %s", GlobusResult(res).str().c_str());
 	globus_ftp_client_handle_destroy(&ftp_handle);
 	ftp_active = false;
 	return false;
