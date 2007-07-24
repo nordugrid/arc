@@ -2,7 +2,7 @@
 #include "common/Logger.h"
 #include "common/URL.h"
 #include "data/DMC.h"
-#include "data/DataPoint.h"
+#include "data/DataHandle.h"
 #include "../../hed/libs/loader/Loader.h"
 
 int main () {
@@ -33,10 +33,11 @@ int main () {
   Arc::Loader client_loader(&client_config);
   logger.msg(Arc::INFO, "DMCs are loaded");
 
-  Arc::DataPoint* dp[3];
-  dp[0] = Arc::DMC::GetDataPoint(Arc::URL("rls://hermione.hagrid.it.uu.se/test"));
-  dp[1] = Arc::DMC::GetDataPoint(Arc::URL("gsiftp://harry.hagrid.it.uu.se:2811/vol2/dc2/test"));
-  dp[2] = Arc::DMC::GetDataPoint(Arc::URL("ftp://download.nordugrid.org/test/README"));
+  Arc::DataHandle dp[3] = {
+    Arc::URL("rls://hermione.hagrid.it.uu.se/test"),
+    Arc::URL("gsiftp://harry.hagrid.it.uu.se:2811/vol2/dc2/test"),
+    Arc::URL("ftp://download.nordugrid.org/test/README")
+  };
 
   for (int k = 0; k < 3; k++) {
     std::list<Arc::DataPoint::FileInfo> files;
@@ -56,6 +57,5 @@ int main () {
 	  j != i->urls.end(); j++)
 	std::cout << "Location: " << *j << std::endl;
     }
-    delete dp[k];
   }
 }
