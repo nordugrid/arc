@@ -249,4 +249,34 @@ void XMLNode::Destroy(void) {
   node_=NULL;
 }
 
+std::list<xmlNodePtr> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList) {
+  xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
+  xmlXPathContextPtr xpathCtx=xmlXPathNewContext(doc);
+
+  for(Arc::NS::const_iterator ns = nsList.begin(); ns!=nsList.end(); ++ns) 
+    xmlXPathRegisterNs(xpathCtx, (xmlChar*)ns->first.c_str(), (xmlChar*)ns->second.c_str());
+
+  xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
+
+  std::list<xmlNodePtr> retlist;
+  //XMLNode * node;  
+  if (xpathObj && xpathObj->nodesetval && xpathObj->nodesetval->nodeNr) {
+    xmlNodeSetPtr nodes=xpathObj->nodesetval;
+    int size = nodes->nodeNr;
+    for(int i = 0; i < size; ++i) {
+      if(nodes->nodeTab[i]->type == XML_ELEMENT_NODE){
+        xmlNodePtr cur = nodes->nodeTab[i];
+       // node = new XMLNode(cur);
+        retlist.push_back(cur);   
+      }
+    }
+  }
+ 
+  xmlXPathFreeObject(xpathObj);
+  xmlXPathFreeContext(xpathCtx); 
+  xmlFreeDoc(doc);   
+
+  return retlist;
+}
+
 } // namespace Arc

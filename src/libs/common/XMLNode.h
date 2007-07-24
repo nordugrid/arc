@@ -7,6 +7,9 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+
 
 namespace Arc {
 
@@ -25,6 +28,8 @@ typedef std::map<std::string,std::string> NS;
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
+ friend std::list<xmlNodePtr> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
+
  protected:
   xmlNodePtr node_;
   /**  If true node is owned by this instance - hence released in destructor. 
@@ -261,6 +266,12 @@ bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
 
 /** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(const XMLNode& node,const char* name);
+
+
+/** Uses xPath to look up the whole xml structure, Returns a list of XMLNode points. The xpathExpr should be like "//xx:child1/" which indicates the namespace and node that you would like to find; The nsList is the namespace the result should belong to (e.g. xx="uri:test").
+It should be the user who calls the method to release the list of  xmlNodes.
+*/ 
+std::list<xmlNodePtr> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
 
 } // namespace Arc 
 
