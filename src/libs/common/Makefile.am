@@ -5,14 +5,13 @@ libarccommon_la_SOURCES=ArcConfig.cpp XMLNode.cpp Thread.cpp BasicDT.cpp DateTim
 libarccommon_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarccommon_la_LDFLAGS=$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
 
-noinst_PROGRAMS=DTtest
+noinst_PROGRAMS = DTtest testxpath
+
 DTtest_SOURCES=DTtest.cpp
 DTtest_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 DTtest_LDFLAGS=$(LIBXML2_LIBS)
 DTtest_LDADD=./libarccommon.la
 
-
-noinst_PROGRAMS=testxpath
 testxpath_SOURCES=testxpath.cpp
 testxpath_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
 testxpath_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS)
