@@ -1,1 +1,3 @@
-SUBDIRS=libs mcc # daemon
+SUBDIRS = libs mcc # daemon
+
+DIST_SUBDIRS = $(SUBDIRS) daemon

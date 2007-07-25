@@ -1,5 +1,7 @@
 SUBDIRS=soap tcp http tls 
 
+DIST_SUBDIRS = $(SUBDIRS) # plexer
+
 #noinst_PROGRAMS=test
 #test_SOURCES=test.cpp
 #test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs
