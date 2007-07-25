@@ -216,9 +216,9 @@ AC_CONFIG_FILES([Makefile
 AC_OUTPUT
 
 languages_available=`echo $languages_available | sed -e "s/^ //" `
-AC_MSG_RESULT(
+AC_MSG_RESULT([
 Available languages: ${languages_available}
 
 Java binding:       ${enable_java}
 Python binding      ${enable_python}
-)
+])
