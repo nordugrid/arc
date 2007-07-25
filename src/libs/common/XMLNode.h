@@ -28,7 +28,7 @@ typedef std::map<std::string,std::string> NS;
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
- friend std::list<XMLNode*> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
+ friend std::list<XMLNode> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
 
  protected:
   xmlNodePtr node_;
@@ -269,9 +269,8 @@ bool MatchXMLName(const XMLNode& node,const char* name);
 
 
 /** Uses xPath to look up the whole xml structure, Returns a list of XMLNode points. The xpathExpr should be like "//xx:child1/" which indicates the namespace and node that you would like to find; The nsList is the namespace the result should belong to (e.g. xx="uri:test").
-It should be the user who calls the method to release the list of XMLNodes.
 */ 
-std::list<XMLNode*> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
+std::list<XMLNode> XPathLookup(const std::string xml, const xmlChar* xpathExpr, const Arc::NS& nsList);
 } // namespace Arc 
 
 #endif /* __ARC_XMLNODE_H__ */
