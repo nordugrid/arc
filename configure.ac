@@ -201,7 +201,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tcp/Makefile
                  src/hed/mcc/http/Makefile
                  src/hed/mcc/tls/Makefile
-                 src/hed/mcc/plexer/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
                  src/tests/Makefile
