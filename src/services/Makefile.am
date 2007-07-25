@@ -4,3 +4,4 @@ JAVA_SERVICES = echo_java
 endif
 
 SUBDIRS=$(JAVA_SERVICE)
+DIST_SUBDIRS = echo_java
