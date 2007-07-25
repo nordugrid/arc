@@ -26,7 +26,7 @@ libjarc_la_LDFLAGS =	-no-undefined -avoid-version -module
 
 javashare_DATA = arc.jar
 
-SWIG_OUTPUTS = arc_wrap.cpp *.java 
+SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)*.java 
 
 JAVA_CRUFT = $(JAVA_PATH)arc.class arc_wrap.cpp arc_wrap.o arc.jar $(JAVA_PATH)arc.java
 
