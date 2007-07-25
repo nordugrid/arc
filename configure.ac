@@ -178,41 +178,42 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm])
 
-AC_OUTPUT([Makefile \
-                 src/Makefile \
-                 src/libs/Makefile \
-                 src/libs/common/Makefile \
-                 src/libs/data/Makefile \
-                 src/libs/data/dmc/Makefile \
-                 src/libs/data/dmc/gridftp/Makefile \
-                 src/libs/data/dmc/rls/Makefile \
-                 src/hed/Makefile \
-                 src/hed/libs/Makefile \
-                 src/hed/libs/loader/Makefile \
-                 src/hed/libs/message/Makefile \
-                 src/hed/libs/counter/Makefile \
-                 src/hed/libs/security/Makefile \
-                 src/hed/libs/wsrf/Makefile \
-                 src/hed/libs/ws-addressing/Makefile \
-                 src/hed/libs/infosys/Makefile \
-                 src/hed/daemon/Makefile \
-                 src/hed/mcc/Makefile \
-                 src/hed/mcc/soap/Makefile \
-                 src/hed/mcc/tcp/Makefile \
-                 src/hed/mcc/http/Makefile \
-                 src/hed/mcc/tls/Makefile \
-                 src/hed/mcc/plexer/Makefile \
-                 src/services/Makefile \
-                 src/services/echo_java/Makefile \
-                 src/tests/Makefile \
-                 src/tests/data/Makefile \
-                 src/tests/echo/Makefile \
-                 swig/Makefile \
-                 java/Makefile \
-                 python/Makefile \
-                 intl/Makefile \
+AC_CONFIG_FILES([Makefile
+                 src/Makefile
+                 src/libs/Makefile
+                 src/libs/common/Makefile
+                 src/libs/data/Makefile
+                 src/libs/data/dmc/Makefile
+                 src/libs/data/dmc/gridftp/Makefile
+                 src/libs/data/dmc/rls/Makefile
+                 src/hed/Makefile
+                 src/hed/libs/Makefile
+                 src/hed/libs/loader/Makefile
+                 src/hed/libs/message/Makefile
+                 src/hed/libs/counter/Makefile
+                 src/hed/libs/security/Makefile
+                 src/hed/libs/wsrf/Makefile
+                 src/hed/libs/ws-addressing/Makefile
+                 src/hed/libs/infosys/Makefile
+                 src/hed/daemon/Makefile
+                 src/hed/mcc/Makefile
+                 src/hed/mcc/soap/Makefile
+                 src/hed/mcc/tcp/Makefile
+                 src/hed/mcc/http/Makefile
+                 src/hed/mcc/tls/Makefile
+                 src/hed/mcc/plexer/Makefile
+                 src/services/Makefile
+                 src/services/echo_java/Makefile
+                 src/tests/Makefile
+                 src/tests/data/Makefile
+                 src/tests/echo/Makefile
+                 swig/Makefile
+                 java/Makefile
+                 python/Makefile
+                 intl/Makefile
                  doc/Makefile
 ])
+AC_OUTPUT
 
 languages_available=`echo $languages_available | sed -e "s/^ //" `
 AC_MSG_RESULT(
