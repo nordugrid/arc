@@ -21,7 +21,7 @@
 
 namespace Arc {
 
-  Logger Daemon::logger(Logger::rootLogger, "Daemon");
+Logger Daemon::logger(Logger::rootLogger, "Daemon");
 
 Daemon::Daemon(std::string& pid_file, std::string& log_file)
 {
@@ -69,7 +69,7 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
 Daemon::~Daemon() {
     // Remove pid file
     unlink(pid_file.c_str());
-    logger::msg(INFO, "Shutdown daemon");
+    Daemon::logger.msg(INFO, "Shutdown daemon");
 }
 
 }; // namespace Arc

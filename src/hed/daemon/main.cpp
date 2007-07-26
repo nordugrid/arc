@@ -7,10 +7,10 @@
 #include <fstream>
 #include <glibmm.h>
 #include <signal.h>
-#include "../../hed/libs/loader/Loader.h"
-#include "../../libs/common/ArcConfig.h"
-#include "../../libs/common/XMLNode.h"
-#include "../../libs/common/Logger.h"
+#include "loader/Loader.h"
+#include "common/ArcConfig.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
 
 Arc::Daemon *main_daemon;
 Arc::Config config;
@@ -51,8 +51,9 @@ static std::string init_logger(Arc::Config& cfg)
     /* setup root logger */
     Arc::XMLNode log = cfg["ArcConfig"]["Server"]["Logger"];
     std::string log_file = (std::string)log;
-    std::string level = (std::string)log.Attribute("level");
-    Arc::Logger::rootLogger.setThreshold(Arc::string_to_level(level)); 
+    std::string str = (std::string)log.Attribute("level");
+    Arc::LogLevel level = Arc::string_to_level(str);
+    Arc::Logger::rootLogger.setThreshold(level); 
     std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::app);
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
     Arc::Logger::rootLogger.addDestination(*sd);
