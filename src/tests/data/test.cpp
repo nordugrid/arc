@@ -45,6 +45,7 @@ int main () {
 
   for (int k = 0; k < 4; k++) {
     std::list<Arc::DataPoint::FileInfo> files;
+    if(!dp[k]) continue;
     dp[k]->list_files(files);
     for (std::list<Arc::DataPoint::FileInfo>::iterator i = files.begin();
 	 i != files.end(); i++) {
