@@ -2,11 +2,11 @@
 #include <list>
 
 #include <globus_common.h>
-#include <globus_error.h>
 #include <globus_ftp_control.h>
 #include <globus_url.h>
 #include <globus_object.h>
 
+#include "GlobusErrorUtils.h"
 #include "Lister.h"
 
 #include "common/Logger.h"
@@ -107,8 +107,8 @@ void Lister::resp_callback(void *arg,globus_ftp_control_handle_t *h,globus_objec
     globus_mutex_lock(&(it->mutex));
     if(error != GLOBUS_SUCCESS) {
       it->callback_status=CALLBACK_ERROR;
-      char* tmp = globus_object_printable_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp); free(tmp);
+      std::string tmp = globus_object_to_string(error);
+      logger.msg(INFO, "Failure: %s", tmp.c_str());
       if(response) logger.msg(INFO, "Response: %s", response->response_buffer);
     }
     else {
@@ -140,8 +140,8 @@ void Lister::list_read_callback(void *arg,globus_ftp_control_handle_t *hctrl,glo
     if(error != GLOBUS_SUCCESS) {
       /* no such file or connection error - assume no such file */
       logger.msg(INFO, "Error getting list of files (in list)");
-      char* tmp = globus_object_printable_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp); free(tmp);
+      std::string tmp = globus_object_to_string(error);
+      logger.msg(INFO, "Failure: %s", tmp.c_str());
       logger.msg(INFO, "Assuming - file not found");
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status=CALLBACK_ERROR;
@@ -219,8 +219,8 @@ void Lister::list_conn_callback(void* arg,globus_ftp_control_handle_t* hctrl,
     /* if(!callback_active) return; */
     Lister* it = (Lister*)arg;
     if(error != GLOBUS_SUCCESS) {
-      char* tmp = globus_object_printable_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp); free(tmp);
+      std::string tmp = globus_object_to_string(error);
+      logger.msg(INFO, "Failure: %s", tmp.c_str());
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status=CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
@@ -409,7 +409,7 @@ Lister::~Lister(void) {
 
 int Lister::setup_pasv(globus_ftp_control_host_port_t &pasv_addr) {
     char* sresp;
-    globus_result_t res_tmp;
+    GlobusResult res;
     if(send_command("PASV",NULL,true,&sresp,'(') != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       if(sresp) { logger.msg(INFO, "PASV failed: %s" ,sresp); free(sresp); }
       else { logger.msg(INFO, "PASV failed"); };
@@ -433,17 +433,16 @@ int Lister::setup_pasv(globus_ftp_control_host_port_t &pasv_addr) {
     logger.msg(DEBUG, "Data channel: %d.%d.%d.%d %d", pasv_addr.host[0],
 	       pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
 	       pasv_addr.port);
-    if((res_tmp=globus_ftp_control_local_port(handle,&pasv_addr)) != GLOBUS_SUCCESS) {
+    if(!(res = globus_ftp_control_local_port(handle, &pasv_addr))) {
       logger.msg(INFO, "Obtained host and address are not acceptable");
-      char* tmp = globus_object_printable_to_string(globus_error_get(res_tmp));
-      logger.msg(INFO, "Failure: %s", tmp); free(tmp);
+      logger.msg(INFO, "Failure: %s", res.str().c_str());
       return -1;
     };
     return 0;
 }
 
 int Lister::retrieve_dir(const std::string &url) {
-    globus_result_t res_tmp;
+    GlobusResult res;
     /* get listing */
     fnames.clear();
     globus_url_t url_;
@@ -508,11 +507,10 @@ int Lister::retrieve_dir(const std::string &url) {
         !!!!!!!!!!!!!!!!!!!!!!!!!!!
         disconnect here ???????????
       */
-      if((res_tmp=globus_ftp_control_connect(handle,host,
-               port,&resp_callback,this)) != GLOBUS_SUCCESS) {
+      if(!(res = globus_ftp_control_connect(handle, host, port,
+					    &resp_callback, this))) {
         logger.msg(ERROR, "Failed connecting to server %s:%d", host, port);
-        char* tmp=globus_object_printable_to_string(globus_error_get(res_tmp));
-        logger.msg(ERROR, "Failure: %s", tmp); free(tmp);
+        logger.msg(ERROR, "Failure: %s", res.str().c_str());
         return -1;
       };
       if(wait_for_callback() != CALLBACK_DONE) {

@@ -1,5 +1,5 @@
-#ifndef __ARC_DATAHANDLEFTP_H__
-#define __ARC_DATAHANDLEFTP_H__
+#ifndef __ARC_DATAPOINTGRIDFTP_H__
+#define __ARC_DATAPOINTGRIDFTP_H__
 
 #include <string>
 #include <list>
@@ -53,26 +53,25 @@ namespace Arc {
     std::string ftp_dir_path;
     bool mkdir_ftp();
     char ftp_buf[16];
-    bool check_credentials(void);
+    bool check_credentials();
    protected:
-    virtual bool init_handle(void);
-    virtual bool deinit_handle(void);
+    virtual bool init_handle();
+    virtual bool deinit_handle();
    public:
     DataPointGridFTP(const URL& url);
-    virtual ~DataPointGridFTP(void);
+    virtual ~DataPointGridFTP();
     virtual bool analyze(analyze_t& arg);
     virtual bool start_reading(DataBufferPar& buf);
     virtual bool start_writing(DataBufferPar& buf,
 			       DataCallback *space_cb = NULL);
-    virtual bool stop_reading(void);
-    virtual bool stop_writing(void);
-    virtual bool check(void);
-    virtual bool remove(void);
-    virtual bool list_files(std::list <DataPoint::FileInfo>& files,
-			    bool resolve = true);
-    virtual bool out_of_order(void);
+    virtual bool stop_reading();
+    virtual bool stop_writing();
+    virtual bool check();
+    virtual bool remove();
+    virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
+    virtual bool out_of_order();
   };
 
 } // namespace Arc
 
-#endif // __ARC_DATAHANDLEFTP_H__
+#endif // __ARC_DATAPOINTGRIDFTP_H__
