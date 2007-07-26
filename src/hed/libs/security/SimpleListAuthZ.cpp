@@ -64,7 +64,7 @@ void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
        if(!can) break;
        Arc::Config cfg_(cn);
        std::string name = cn.Attribute("name");
-       logger.msg(ERROR, "PDP name: %s", name.c_str());
+       logger.msg(DEBUG, "PDP name: %s", name.c_str());
        PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
        if(!pdp) continue;
        pdps_[name]=pdp;
@@ -76,7 +76,7 @@ bool SimpleListAuthZ::Handle(Message* msg){
   pdp_container_t::iterator it;
   for(it=pdps_.begin();it!=pdps_.end();it++){
      if(it->second->isPermitted(subject))
-	return true;  
+        return true;  
   }
   return false;
 }

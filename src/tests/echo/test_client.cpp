@@ -62,6 +62,7 @@ int main(void) {
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
     logger.msg(Arc::ERROR, "Request failed");
+    std::cerr << "Status: " << std::string(status) << std::endl;
     return -1;
   };
   Arc::PayloadSOAP* resp = NULL;
