@@ -2,7 +2,7 @@
 #include "DataPointRLS.h"
 #include "common/Logger.h"
 #include "common/URL.h"
-#include "src/hed/libs/loader/DMCLoader.h"
+#include "loader/DMCLoader.h"
 
 extern "C" {
 #include "globus_rls_client.h"

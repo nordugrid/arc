@@ -2,7 +2,7 @@
 #include "DataPointGridFTP.h"
 #include "common/Logger.h"
 #include "common/URL.h"
-#include "src/hed/libs/loader/DMCLoader.h"
+#include "loader/DMCLoader.h"
 
 #include "globus_ftp_client.h"
 
