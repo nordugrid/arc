@@ -41,8 +41,8 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         // Identify table of descriptors
         void *ptr = NULL;
         if (!module->get_symbol(id_.c_str(), ptr)) {
-	  Loader::logger.msg(ERROR, "Not a plugin");
-	  return NULL;
+	        Loader::logger.msg(WARNING, "Not a '%s' type plugin", id_.c_str());
+	        return NULL;
         }
         // Copy new description to a table. TODO: check for duplicate names
         for(loader_descriptor* desc = (loader_descriptor*)ptr;
@@ -80,7 +80,7 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     // Identify table of descriptors
     void *ptr = NULL;
     if (!module->get_symbol(id_.c_str(), ptr)) {
-      Loader::logger.msg(ERROR, "Not a plugin");
+	  Loader::logger.msg(WARNING, "Not a '%s' type plugin", id_.c_str());
       return;
     }
     // Copy new description to a table. TODO: check for duplicate names

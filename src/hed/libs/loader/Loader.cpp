@@ -161,7 +161,7 @@ namespace Arc {
       desc_node = node;
       refid = (std::string)node.Attribute("id");
       if(refid.empty()) {
-	refid = "__arc_sechandler_" + tostring(sechandlers.size()) + "__";
+	    refid = "__arc_sechandler_" + tostring(sechandlers.size()) + "__";
       }
     }
     else {
@@ -169,7 +169,7 @@ namespace Arc {
       Loader::sechandler_container_t::iterator phandler =
 	sechandlers.find(refid);
       if(phandler != sechandlers.end()) {
-	return phandler->second;
+	    return phandler->second;
       }
       // Look for it's configuration
       desc_node = FindElementByID(*cfg, refid, "SecHandler");
