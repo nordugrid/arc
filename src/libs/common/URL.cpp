@@ -170,6 +170,7 @@ namespace Arc {
       if(protocol == "ldap") port = LDAP_DEFAULT_PORT;
       if(protocol == "ftp") port = FTP_DEFAULT_PORT;
       if(protocol == "gsiftp") port = GSIFTP_DEFAULT_PORT;
+      if(protocol == "lfc") port = LFC_DEFAULT_PORT;
     }
 
     // if protocol = http, get the options after the ?

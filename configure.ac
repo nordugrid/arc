@@ -161,8 +161,12 @@ AC_CHECK_FUNCS(globus_ftp_client_handleattr_set_gridftp2)
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
+# Check for LFC
+AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
+AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -185,6 +189,7 @@ AC_CONFIG_FILES([Makefile
                  src/libs/data/Makefile
                  src/libs/data/dmc/Makefile
                  src/libs/data/dmc/gridftp/Makefile
+                 src/libs/data/dmc/lfc/Makefile
                  src/libs/data/dmc/rls/Makefile
                  src/hed/Makefile
                  src/hed/libs/Makefile
