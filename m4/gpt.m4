@@ -6,8 +6,9 @@ AC_ARG_VAR([GPT_FLAVOR_CONFIGURATION], [path to gpt-flavor-configuration])
 if test "x$ac_cv_env_GPT_FLAVOR_CONFIGURATION_set" != "xset"; then
    AC_PATH_TOOL([GPT_FLAVOR_CONFIGURATION], [gpt-flavor-configuration], [], $PATH:/opt/gpt/sbin)
 fi
-if test "x$GPT_LOCATION" = "x"; then
+if test -f "$GPT_FLAVOR_CONFIGURATION" && test "x$GPT_LOCATION" = "x"; then
    GPT_LOCATION=`dirname $GPT_FLAVOR_CONFIGURATION`
+   GPT_LOCATION=`dirname $GPT_LOCATION`
    export GPT_LOCATION
 fi
 ])
@@ -17,8 +18,9 @@ AC_ARG_VAR([GPT_QUERY], [path to gpt-query])
 if test "x$ac_cv_env_GPT_QUERY_set" != "xset"; then
    AC_PATH_TOOL([GPT_QUERY], [gpt-query], [], $PATH:/opt/gpt/sbin)
 fi
-if test "x$GPT_LOCATION" = "x"; then
-   GPT_LOCATION=`dirname $GPT_FLAVOR_CONFIGURATION`
+if test -f "$GPT_QUERY" && test "x$GPT_LOCATION" = "x"; then
+   GPT_LOCATION=`dirname $GPT_QUERY`
+   GPT_LOCATION=`dirname $GPT_LOCATION`
    export GPT_LOCATION
 fi
 ])
@@ -28,8 +30,9 @@ AC_ARG_VAR([GLOBUS_MAKEFILE_HEADER], [path to globus-makefile-header])
 if test "x$ac_cv_env_GLOBUS_MAKEFILE_HEADER_set" != "xset"; then
    AC_PATH_TOOL([GLOBUS_MAKEFILE_HEADER], [globus-makefile-header], [], $PATH:/opt/globus/bin)
 fi
-if test "x$GLOBUS_LOCATION" = "x"; then
-   GLOBUS_LOCATION=`dirname $GLOBUS_FLAVOR_CONFIGURATION`
+if test -f "$GLOBUS_MAKEFILE_HEADER" && test "x$GLOBUS_LOCATION" = "x"; then
+   GLOBUS_LOCATION=`dirname $GLOBUS_MAKEFILE_HEADER`
+   GLOBUS_LOCATION=`dirname $GLOBUS_LOCATION`
    export GLOBUS_LOCATION
 fi
 ])
