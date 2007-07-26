@@ -11,6 +11,27 @@
 #include "PayloadTLSStream.h"
 
 namespace Arc {
+static void handle_ssl_error(int code)
+{
+    switch (code) {
+        case SSL_ERROR_SSL: {
+            int e = ERR_get_error();
+            while(e != 0) {
+                Logger::rootLogger.msg(ERROR, "DEBUG: SSL_write error: %d %s:%s:%s", 
+                                      e, 
+                                      ERR_lib_error_string(e),
+                                      ERR_func_error_string(e),
+                                      ERR_reason_error_string(e));
+                e = ERR_get_error();
+            }
+            break;
+        }
+        default:
+            Logger::rootLogger.msg(DEBUG, "SSL error Code: %d", code);
+            break;
+    }
+}
+
 PayloadTLSStream::PayloadTLSStream(SSL* ssl):ssl_(ssl) {
   //initialize something
   return;
@@ -45,6 +66,7 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
   for(;size;){
      l=SSL_write(ssl_,buf,size);
      if(l <= 0){
+        handle_ssl_error(SSL_get_error(ssl_, l));
         //handle tls error
         return false;
      }

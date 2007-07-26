@@ -298,16 +298,17 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    Message nextoutmsg;
 
    //Getting the subject name of peer(client) certificate
-   X509* peercert;
+   X509* peercert = NULL;
    char buf[100];     
    peercert = (dynamic_cast<PayloadTLSStream*>(nextpayload))->GetPeercert();
-   X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
-   std::string peer_dn = buf;
-   std::cerr<< "DN name:\n"<<peer_dn<< std::endl;
-   //Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribut temporally, it should be put into MessageAuth later.
-   nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
-  
-
+   if (peercert != NULL) {
+      X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
+      std::string peer_dn = buf;
+      logger.msg(DEBUG, "DN name: %s", peer_dn.c_str());
+      //Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribut temporally, it should be put into MessageAuth later.
+      nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
+   }
+   
    // Call next MCC 
    MCCInterface* next = Next();
    if(!next) { 
@@ -386,7 +387,8 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       char* buf = inpayload->Buffer(n);
       if(!buf) break;
       int bufsize = inpayload->BufferSize(n);
-      if(!(stream_->Put(buf,bufsize))) {
+      int ret = stream_->Put(buf,bufsize);
+      if(ret == false) {
          logger.msg(ERROR, "Failed to send content of buffer");
          return MCC_Status();
       };
