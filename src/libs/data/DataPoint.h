@@ -27,9 +27,9 @@ namespace Arc {
     class FileInfo {
      public:
       typedef enum {
-	file_type_unknown = 0,
-	file_type_file = 1,
-	file_type_dir = 2
+        file_type_unknown = 0,
+        file_type_file = 1,
+        file_type_dir = 2
       } Type;
       std::string name;
       std::list<URL> urls;         // Physical enpoints/URLs.
@@ -39,13 +39,13 @@ namespace Arc {
       Time valid;                  // Valid till time.
       Type type;                   // File type - usually file_type_file
       FileInfo(const std::string& name = "") : name(name),
-					       size(-1),
+					       size((unsigned long long int)(-1)),
 					       created(-1),
 					       valid(-1),
 					       type(file_type_unknown) {};
       /// If object is valid
       operator bool() {
-	return (name.length() != 0);
+        return (name.length() != 0);
       }
     };
 
@@ -127,13 +127,13 @@ namespace Arc {
 
     /// Check if meta-information 'size' is available.
     virtual bool meta_size_available() const {
-      return (meta_size_ != -1);
+      return (meta_size_ != (unsigned long long int)(-1));
     };
 
     /// Set value of meta-information 'size' if not already set.
     virtual void meta_size(unsigned long long int val) {
       if(!meta_size_available())
-	meta_size_ = val;
+        meta_size_ = val;
     };
 
     /// Set value of meta-information 'size'.
@@ -230,13 +230,13 @@ namespace Arc {
     /// \param p object from which information is taken.
     virtual void meta(const DataPoint& p) {
       if(p.meta_size_available())
-	meta_size(p.meta_size());
+        meta_size(p.meta_size());
       if(p.meta_checksum_available())
-	meta_checksum(p.meta_checksum());
+        meta_checksum(p.meta_checksum());
       if(p.meta_created_available())
-	meta_created(p.meta_created());
+        meta_created(p.meta_created());
       if(p.meta_validtill_available())
-	meta_validtill(p.meta_validtill());
+        meta_validtill(p.meta_validtill());
     };
 
     /// Compare meta-information form another object. Undefined values
@@ -244,18 +244,18 @@ namespace Arc {
     /// \param p object to which compare.
     virtual bool meta_compare(const DataPoint& p) const {
       if(p.meta_size_available() && meta_size_available())
-	if(meta_size_ != p.meta_size())
-	  return false;
+      if(meta_size_ != p.meta_size())
+	    return false;
       // TODO: compare checksums properly
       if(p.meta_checksum_available() && meta_checksum_available())
-	if(strcasecmp(meta_checksum_.c_str(), p.meta_checksum().c_str()))
-	  return false;
+        if(strcasecmp(meta_checksum_.c_str(), p.meta_checksum().c_str()))
+          return false;
       if(p.meta_created_available() && meta_created_available())
-	if(meta_created_ != p.meta_created())
-	  return false;
+        if(meta_created_ != p.meta_created())
+          return false;
       if(p.meta_validtill_available() && meta_validtill_available())
-	if(meta_validtill_ != p.meta_validtill())
-	  return false;
+        if(meta_validtill_ != p.meta_validtill())
+          return false;
       return true;
     };
 
