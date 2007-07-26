@@ -72,7 +72,7 @@ fi
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS+=" $JDK_INCLUDE"
 AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
-CPPFLAGS=$SAVE_CFLAGS
+CPPFLAGS=$SAVE_CPPFLAGS
 
 if test "x$jni_h" = "xyes" && test "X$SWIG" != "X" &&
    test "X$JAVAC" != "X" && test "X$JAR" != "X"; then
