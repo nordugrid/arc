@@ -1,4 +1,4 @@
-lib_LTLIBRARIES=libdmclfc.la
+pkglib_LTLIBRARIES = libdmclfc.la
 
 libdmclfc_la_SOURCES = DMCLFC.cpp DataPointLFC.cpp \
                        DMCLFC.h   DataPointLFC.h
