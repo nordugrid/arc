@@ -31,6 +31,65 @@ namespace Arc {
   Returns true on success. */
 bool CreateThreadFunction(void (*func)(void*), void* arg);
 
+/*
+  Simple triggered condition.
+*/
+class SimpleCondition {
+ private:
+  Glib::Cond cond_;
+  Glib::Mutex lock_;
+  bool flag_;
+ public:
+  SimpleCondition(void) : flag_(false) { };
+  ~SimpleCondition(void) {
+    /* race condition ? */
+    broadcast();
+  };
+  void lock(void) { lock_.lock(); };
+  void unlock(void) { lock_.unlock(); };
+  void signal(void) {
+    lock_.lock(); 
+    flag_=true;
+    cond_.signal();
+    lock_.unlock();
+  };
+  void signal_nonblock(void) {
+    flag_=true;
+    cond_.signal();
+  };
+  void broadcast(void) {
+    lock_.lock();
+    flag_=true;
+    cond_.broadcast();
+    lock_.unlock();
+  };
+  void wait(void) {
+    lock_.lock();
+    while(!flag_) cond_.wait(lock_);
+    flag_=false;
+    lock_.unlock();
+  };
+  void wait_nonblock(void) {
+    while(!flag_) cond_.wait(lock_);
+    flag_=false;
+  };
+  void wait(int t) {
+    lock_.lock();
+    Glib::TimeVal etime;
+    etime.assign_current_time();
+    etime.add_milliseconds(t);
+    while(!flag_) if(!cond_.timed_wait(lock_,etime)) break;
+    flag_=false;
+    lock_.unlock();
+  };
+  void reset(void) {
+    lock_.lock();
+    flag_=false;
+    lock_.unlock();
+  };
+};
+
+
 } // namespace Arc 
 
 #endif /* __ARC_THREAD_H__ */
