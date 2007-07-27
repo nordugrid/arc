@@ -1,4 +1,4 @@
-lib_LTLIBRARIES= libmcctls.la
+pkglib_LTLIBRARIES = libmcctls.la
 noinst_PROGRAMS=test
 SOURCES = PayloadTLSStream.cpp PayloadTLSSocket.cpp MCCTLS.cpp BIOMCC.cpp PayloadTLSMCC.cpp
 
@@ -7,7 +7,7 @@ libmcctls_la_HEADERS=PayloadTLSStream.h   PayloadTLSSocket.h   MCCTLS.h   BIOMCC
 libmcctls_la_SOURCES=PayloadTLSStream.cpp PayloadTLSSocket.cpp MCCTLS.cpp BIOMCC.cpp PayloadTLSMCC.cpp
 libmcctls_la_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
 libmcctls_la_LIBADD=$(top_srcdir)/src/hed/libs/message/libmessage.la
-libmcctls_la_LDFLAGS=$(LIBXML2_LIBS) $(OPENSSL_LIBS) -lpthread
+libmcctls_la_LDFLAGS=$(LIBXML2_LIBS) $(OPENSSL_LIBS) -lpthread -no-undefined -avoid-version -module
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
