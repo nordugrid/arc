@@ -9,18 +9,18 @@ namespace Arc {
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
   DataPoint::DataPoint(const URL& url) : url(url),
-					 meta_size_(-1),
-					 meta_created_(-1),
-					 meta_validtill_(-1),
-					 tries_left(5) {}
+                                         meta_size_(-1),
+                                         meta_created_(-1),
+                                         meta_validtill_(-1),
+                                         tries_left(5) {}
 
   std::string DataPointIndex::empty_string_;
   URL DataPointIndex::empty_url_;
 
 
   DataPointIndex::DataPointIndex(const URL& url) : DataPoint(url),
-						   is_metaexisting(false),
-						   is_resolved(false) {
+                                                   is_metaexisting(false),
+                                                   is_resolved(false) {
     location = locations.end();
   }
 
@@ -94,18 +94,18 @@ namespace Arc {
     std::list<Location>::const_iterator p_ext;
     for(p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext) {
       for(p_int = locations.begin(); p_int != locations.end();) {
-	// Compare protocol+host+port part
-	if((p_int->url.ConnectionURL() == p_ext->url.ConnectionURL())) {
-	  if(location == p_int) {
-	    p_int = locations.erase(p_int);
-	    location = p_int;
-	  }
-	  else {
-	    p_int = locations.erase(p_int);
-	  }
-	  continue;
-	}
-	++p_int;
+        // Compare protocol+host+port part
+        if((p_int->url.ConnectionURL() == p_ext->url.ConnectionURL())) {
+          if(location == p_int) {
+            p_int = locations.erase(p_int);
+            location = p_int;
+          }
+          else {
+            p_int = locations.erase(p_int);
+          }
+          continue;
+        }
+        ++p_int;
       }
     }
     if(location == locations.end())
@@ -114,11 +114,11 @@ namespace Arc {
   }
 
   bool DataPointIndex::add_location(const std::string& meta_loc,
-				    const URL& loc) {
+                                    const URL& loc) {
     logger.msg(DEBUG, "Add location: metaname: %s", meta_loc.c_str());
     logger.msg(DEBUG, "Add location: location: %s", loc.str().c_str());
     for(std::list<Location>::iterator i = locations.begin();
-	i != locations.end(); ++i) {
+        i != locations.end(); ++i) {
       if(i->meta == meta_loc) return true; // Already exists
     }
     locations.insert(locations.end(), Location(meta_loc, loc, false));

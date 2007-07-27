@@ -55,9 +55,9 @@ namespace Arc {
     if(allow_out_of_order) {
       transfer_streams = stringtoi(url.Option("threads"));
       if(transfer_streams < 1)
-	transfer_streams = 1;
+        transfer_streams = 1;
       if(transfer_streams > MAX_PARALLEL_STREAMS)
-	transfer_streams = MAX_PARALLEL_STREAMS;
+        transfer_streams = MAX_PARALLEL_STREAMS;
     }
     return true;
   }
@@ -85,7 +85,7 @@ namespace Arc {
   }
 
   bool DataPointDirect::start_writing(DataBufferPar& buffer,
-				      DataCallback *space_cb) {
+                                      DataCallback *space_cb) {
     failure_code = common_failure;
     failure_description = "";
     if(reading || writing || !url)
@@ -142,7 +142,7 @@ namespace Arc {
 
   bool DataPointDirect::additional_checks() {
     return !no_checks;
-  };
+  }
 
   void DataPointDirect::passive(bool val) {
     force_passive = val;
@@ -169,7 +169,7 @@ namespace Arc {
   }
 
   void DataPointDirect::range(unsigned long long int start,
-			      unsigned long long int end) {
+                              unsigned long long int end) {
     range_start = start;
     range_end = end;
   }

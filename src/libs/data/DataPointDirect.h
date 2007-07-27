@@ -61,7 +61,7 @@ namespace Arc {
     /// storing data. Currently implemented only for file:/// URL.
     /// Returns true on success.
     virtual bool start_writing(DataBufferPar& buffer,
-			       DataCallback *space_cb = NULL);
+                               DataCallback *space_cb = NULL);
 
     /// Stop reading. It MUST be called after corressponding start_reading
     /// method. Either after whole data is transfered or to cancel transfer.
@@ -84,7 +84,7 @@ namespace Arc {
       bool local;
       bool readonly;
       analyze_t() : bufsize(-1), bufnum(1), cache(true),
-		    local(false), readonly(true) {};
+                    local(false), readonly(true) {};
     };
 
     /// Analyze url and provide hints.
@@ -145,7 +145,7 @@ namespace Arc {
     /// Set range of bytes to retrieve. Default values correspond to
     /// whole file.
     virtual void range(unsigned long long int start = 0,
-		       unsigned long long int end = 0);
+                       unsigned long long int end = 0);
 
    protected:
     DataBufferPar *buffer;

@@ -7,16 +7,16 @@ namespace Arc {
       return (o << "<success>");
     globus_object_t *err = globus_error_get(res);
     for(globus_object_t *err_ = err; err_;
-	err_ = globus_error_base_get_cause(err_)) {
+        err_ = globus_error_base_get_cause(err_)) {
       if(err_ != err)
-	o << "/";
+        o << "/";
       char *tmp = globus_object_printable_to_string(err_);
       if(tmp) {
-	o << tmp;
-	free(tmp);
+        o << tmp;
+        free(tmp);
       }
       else
-	o << "unknown error";
+        o << "unknown error";
     }
     if(err)
       globus_object_free(err);
@@ -29,16 +29,16 @@ namespace Arc {
     globus_object_t *err = globus_error_get(r);
     std::string s;
     for(globus_object_t *err_ = err; err_;
-	err_ = globus_error_base_get_cause(err_)) {
+        err_ = globus_error_base_get_cause(err_)) {
       if(err_ != err)
-	s += "/";
+        s += "/";
       char *tmp = globus_object_printable_to_string(err_);
       if(tmp) {
-	s += tmp;
-	free(tmp);
+        s += tmp;
+        free(tmp);
       }
       else
-	s += "unknown error";
+        s += "unknown error";
     }
     if(err)
       globus_object_free(err);
@@ -49,16 +49,16 @@ namespace Arc {
     if(err == GLOBUS_NULL)
       return (o << "<success>");
     for(globus_object_t *err_ = err; err_;
-	err_ = globus_error_base_get_cause(err_)) {
+        err_ = globus_error_base_get_cause(err_)) {
       if(err_ != err)
-	o << "/";
+        o << "/";
       char *tmp = globus_object_printable_to_string(err_);
       if(tmp) {
-	o << tmp;
-	free(tmp);
+        o << tmp;
+        free(tmp);
       }
       else
-	o << "unknown error";
+        o << "unknown error";
     }
     return o;
   }
@@ -68,16 +68,16 @@ namespace Arc {
       return "<success>";
     std::string s;
     for(globus_object_t *err_ = err; err_;
-	err_ = globus_error_base_get_cause(err_)) {
+        err_ = globus_error_base_get_cause(err_)) {
       if(err_ != err)
-	s += "/";
+        s += "/";
       char *tmp = globus_object_printable_to_string(err_);
       if(tmp) {
-	s += tmp;
-	free(tmp);
+        s += tmp;
+        free(tmp);
       }
       else
-	s += "unknown error";
+        s += "unknown error";
     }
     return s;
   }

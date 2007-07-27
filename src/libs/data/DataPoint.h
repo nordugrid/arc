@@ -39,10 +39,11 @@ namespace Arc {
       Time valid;                  // Valid till time.
       Type type;                   // File type - usually file_type_file
       FileInfo(const std::string& name = "") : name(name),
-					       size((unsigned long long int)(-1)),
-					       created(-1),
-					       valid(-1),
-					       type(file_type_unknown) {};
+                                               size((unsigned long long int)
+                                                    (-1)),
+                                               created(-1),
+                                               valid(-1),
+                                               type(file_type_unknown) {};
       /// If object is valid
       operator bool() {
         return (name.length() != 0);
@@ -154,7 +155,7 @@ namespace Arc {
     /// Set value of meta-information 'checksum' if not already set.
     virtual void meta_checksum(const std::string& val) {
       if(!meta_checksum_available())
-	meta_checksum_ = val;
+        meta_checksum_ = val;
     };
 
     /// Set value of meta-information 'checksum'.
@@ -176,7 +177,7 @@ namespace Arc {
     /// already set.
     virtual void meta_created(Time val) {
       if(!meta_created_available())
-	meta_created_ = val;
+        meta_created_ = val;
     };
 
     /// Set value of meta-information 'creation/modification time'.
@@ -197,7 +198,7 @@ namespace Arc {
     /// Set value of meta-information 'validity time' if not already set.
     virtual void meta_validtill(Time val) {
       if(!meta_validtill_available())
-	meta_validtill_ = val;
+        meta_validtill_ = val;
     };
 
     /// Set value of meta-information 'validity time'.
@@ -244,8 +245,8 @@ namespace Arc {
     /// \param p object to which compare.
     virtual bool meta_compare(const DataPoint& p) const {
       if(p.meta_size_available() && meta_size_available())
-      if(meta_size_ != p.meta_size())
-	    return false;
+        if(meta_size_ != p.meta_size())
+          return false;
       // TODO: compare checksums properly
       if(p.meta_checksum_available() && meta_checksum_available())
         if(strcasecmp(meta_checksum_.c_str(), p.meta_checksum().c_str()))
@@ -362,8 +363,8 @@ namespace Arc {
       Location() : existing(true), arg(NULL) {};
       Location(const URL& url) : url(url), existing(true), arg(NULL) {};
       Location(const std::string& meta, const URL& url,
-	       bool existing = true) : meta(meta), url(url),
-				       existing(existing), arg(NULL) {};
+               bool existing = true) : meta(meta), url(url),
+                                       existing(existing), arg(NULL) {};
     };
 
     /// List of locations at which file can be probably found.
@@ -382,13 +383,13 @@ namespace Arc {
 
     virtual const URL& current_location() const {
       if(location != locations.end())
-	return location->url;
+        return location->url;
       return empty_url_;
     };
 
     virtual const std::string& current_meta_location() const {
       if(location != locations.end())
-	return location->meta;
+        return location->meta;
       return empty_string_;
     };
 

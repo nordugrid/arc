@@ -13,7 +13,7 @@ namespace Arc {
     DataPoint* dp = NULL;
     Glib::Mutex::Lock lock(mutex);
     for (std::list<DMC*>::iterator i = dmcs.begin();
-	 !dp && (i != dmcs.end()); i++) {
+         !dp && (i != dmcs.end()); i++) {
       dp = (*i)->iGetDataPoint(url);
     }
     return dp;

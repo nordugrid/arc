@@ -29,11 +29,11 @@ namespace Arc {
     bool guid_enabled;
     std::string pfn_path;
     static bool meta_resolve_callback(globus_rls_handle_t *h,
-				      const URL& url, void *arg);
+                                      const URL& url, void *arg);
     static bool list_files_callback(globus_rls_handle_t *h,
-				    const URL& url, void *arg);
+                                    const URL& url, void *arg);
     static bool meta_unregister_callback(globus_rls_handle_t *h,
-					 const URL& url,void *arg);
+                                         const URL& url,void *arg);
   };
 
 } // namespace Arc

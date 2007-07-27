@@ -29,7 +29,7 @@ namespace Arc {
     Type type;
    public:
     ListerFile(const std::string& name) : name(name), size(-1), created(-1),
-					  type(file_type_unknown) {};
+                                          type(file_type_unknown) {};
     ~ListerFile(void) {};
 
     const std::string& GetName() const {
