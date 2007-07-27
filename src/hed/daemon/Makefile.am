@@ -1,4 +1,4 @@
-bin_PROGRAMS=arcserver
+sbin_PROGRAMS = arcserver
 SOURCES=main.cpp options.cpp options.h daemon.cpp daemon.h
 
 arcserver_SOURCES=$(SOURCES)

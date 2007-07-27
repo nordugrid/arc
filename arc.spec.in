@@ -24,6 +24,14 @@ BuildRequires: globus_rsl-devel
 %description
 ARC
 
+%package server
+Summary: ARC Hosting Environment Daemon
+Group: System Environment/Libraries
+Requires: %{name}
+
+%description server
+ARC Hosting Environment Daemon (HED).
+
 %package plugins
 Summary: ARC plugins
 Group: System Environment/Libraries
@@ -49,6 +57,7 @@ Development files for ARC
 Summary: ARC Python wrapper
 Group: Development/Libraries
 Requires: %{name}
+Requires: python
 
 %description python
 Python wrapper for ARC
@@ -65,7 +74,7 @@ Java wrapper for ARC
 %setup -q
 
 %build
-%configure --disable-java --disable-static
+%configure --disable-static --disable-java
 make %{?_smp_mflags}
 
 
@@ -83,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc ChangeLog NEWS README INSTALL AUTHORS
 %{_libdir}/lib*.so.*
 %{_datadir}/locale/*/LC_MESSAGES/Arc.mo
+
+%files server
+%{_sbindir}/arcserver
 
 %files devel
 %defattr(-,root,root,-)
