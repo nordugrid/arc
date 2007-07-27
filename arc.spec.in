@@ -70,6 +70,13 @@ Requires: %{name}
 %description java
 Java wrapper for ARC
 
+%package doc
+Summary: ARC API documentation
+Group: Documentation
+
+%description doc
+ARC API docmentation
+
 %prep
 %setup -q
 
@@ -82,6 +89,9 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
+
+# RPM does it's own doc handling
+rm -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/KnowARC-API.pdf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -114,6 +124,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files java
 %defattr(-,root,root,-)
+
+%files doc
+%defattr(-,root,root,-)
+%doc doc/KnowARC-API.pdf
 
 %changelog
 
