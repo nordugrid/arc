@@ -63,7 +63,7 @@ namespace Arc {
     virtual bool analyze(analyze_t& arg);
     virtual bool start_reading(DataBufferPar& buf);
     virtual bool start_writing(DataBufferPar& buf,
-			       DataCallback *space_cb = NULL);
+                               DataCallback *space_cb = NULL);
     virtual bool stop_reading();
     virtual bool stop_writing();
     virtual bool check();
