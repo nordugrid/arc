@@ -1,15 +1,17 @@
 LANGUAGES = sv
 
+TRANSLATIONS = $(foreach lang, $(LANGUAGES), Arc.$(lang).po)
+
 SRC_FILES = $(shell find .. -name *.cpp -o -name *.h | sort)
 
 localedir = $(prefix)/share/locale
 
-all-local: $(foreach lang, $(LANGUAGES), Arc.$(lang).mo)
+all-local:  $(patsubst %.po,%.mo,$(TRANSLATIONS))
 
 %.mo: %.po
 	msgfmt -o $@ $^
 
-%.po: Arc.pot
+$(TRANSLATIONS): Arc.pot
 	if test ! -f $@ ; then rm -rf $@; cp template.po $@ ; fi
 	cp $@ $@.old
 	rm -rf $@
@@ -36,6 +38,6 @@ clean-local:
 	rm -f *.mo
 	rm -f *.pot
 
-EXTRA_DIST = $(foreach lang, $(LANGUAGES), Arc.$(lang).po) template.po
+EXTRA_DIST = $(TRANSLATIONS) template.po
 
-MAINTAINERCLEANFILES = $(foreach lang, $(LANGUAGES), Arc.$(lang).po)
+MAINTAINERCLEANFILES = $(TRANSLATIONS)
