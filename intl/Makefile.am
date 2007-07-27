@@ -37,3 +37,5 @@ clean-local:
 	rm -f *.pot
 
 EXTRA_DIST = $(foreach lang, $(LANGUAGES), Arc.$(lang).po) template.po
+
+MAINTAINERCLEANFILES = $(EXTRA_DIST)
