@@ -216,6 +216,7 @@ AC_CONFIG_FILES([Makefile
                  python/Makefile
                  intl/Makefile
                  doc/Makefile
+                 arc.spec
 ])
 AC_OUTPUT
 

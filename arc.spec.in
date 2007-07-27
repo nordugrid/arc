@@ -1,0 +1,110 @@
+Name: @PACKAGE@
+Version: @VERSION@
+Release: 1%{?dist}
+Summary: ARC
+Group: System Environment/Daemons 
+License: GPLv2
+URL: http://www.nordugrid.org/
+Source:	%{name}-%{version}.tar.gz
+BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+#
+BuildRequires: gettext
+BuildRequires: python-devel
+BuildRequires: glibmm24-devel
+BuildRequires: glib2-devel
+BuildRequires: libxml2-devel
+BuildRequires: openssl-devel
+#
+BuildRequires: globus_common-devel
+BuildRequires: globus_ftp_client-devel
+BuildRequires: globus_ftp_control-devel
+BuildRequires: globus_rls_client-devel
+BuildRequires: globus_rsl-devel
+
+%description
+ARC
+
+%package plugins
+Summary: ARC plugins
+Group: System Environment/Libraries
+Requires: %{name}
+
+%description plugins
+ARC plugins. This includes the Message Chain Components (MCCs) and
+Data Manager Components (DMCs).
+
+%package devel
+Summary: ARC development files
+Group: Development/Libraries
+Requires: %{name}
+Requires: glibmm24-devel
+Requires: glib2-devel
+Requires: libxml2-devel
+Requires: openssl-devel
+
+%description devel
+Development files for ARC
+
+%package python
+Summary: ARC Python wrapper
+Group: Development/Libraries
+Requires: %{name}
+
+%description python
+Python wrapper for ARC
+
+%package java
+Summary: ARC Java wrapper
+Group: Development/Libraries
+Requires: %{name}
+
+%description java
+Java wrapper for ARC
+
+%prep
+%setup -q
+
+%build
+%configure --disable-java --disable-static
+make %{?_smp_mflags}
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files
+%defattr(-,root,root,-)
+%doc ChangeLog NEWS README INSTALL AUTHORS
+%{_libdir}/lib*.so.*
+%{_datadir}/locale/*/LC_MESSAGES/Arc.mo
+
+%files devel
+%defattr(-,root,root,-)
+%{_includedir}/*.h
+#%{_libdir}/lib*.a
+#%{_libdir}/lib*.la
+%{_libdir}/lib*.so
+
+%files plugins
+%defattr(-,root,root,-)
+%{_libdir}/%{name}/libmcc*.so
+%{_libdir}/%{name}/libdmc*.so
+
+%files python
+%defattr(-,root,root,-)
+%{_prefix}/lib/python?.?/site-packages/
+
+%files java
+%defattr(-,root,root,-)
+
+%changelog
+
+* Fri Jul 27 2007 Anders Waananen <waananen@nbi.dk> - 1.0-1
+- Initial release
+

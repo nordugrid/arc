@@ -9,3 +9,5 @@ endif
 
 SUBDIRS = src swig $(JAVA_SD) $(PYTHON_SD) intl # doc
 DIST_SUBDIRS = src swig java python intl doc
+
+EXTRA_DIST = arc.spec
