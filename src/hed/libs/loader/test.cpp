@@ -9,7 +9,7 @@
 int main(void)
 {
     Arc::Config *c = new Arc::Config("test.xml");    
-    Arc::Loader *l = new Arc::Loader(c);
+    /* Arc::Loader *l = */ new Arc::Loader(c);
 /*
     Arc::Config *c = new Arc::Config("test.xml");    
     Arc::Loader *l = new Arc::Loader(c);

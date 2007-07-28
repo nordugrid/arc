@@ -31,7 +31,7 @@ class MCCInterface
           of the request when the method returns.
           \return An object representing the status of the call.
         */
-        virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response)  = 0;
+        virtual Arc::MCC_Status process(Arc::Message& request, Arc::Message& response) = 0;
         virtual ~MCCInterface() {};
 };
 
@@ -62,8 +62,8 @@ class MCC: public Arc::MCCInterface
   
     public:
         /** Example contructor - MCC takes at least it's configuration
-	    subtree */
-        MCC(Arc::Config *cfg) { };
+            subtree */
+        MCC(Arc::Config *cfg __attribute__((unused))) { };
         virtual ~MCC(void) { };
         /** Add reference to next MCC in chain.
           This method is called by Loader for every potentially labeled link to next 
@@ -75,10 +75,10 @@ class MCC: public Arc::MCCInterface
         /** SecHandler */
         virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");
         
-	    /** Removing all links. Useful for destroying chains. */
+        /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
-        virtual  Arc::MCC_Status process(Arc::Message& request, Arc::Message& response) { return MCC_Status(); };
+        virtual Arc::MCC_Status process(Arc::Message& request __attribute__((unused)), Arc::Message& response __attribute__((unused))) { return MCC_Status(); };
 
 };
 

@@ -39,8 +39,7 @@ namespace Arc {
       Time valid;                  // Valid till time.
       Type type;                   // File type - usually file_type_file
       FileInfo(const std::string& name = "") : name(name),
-                                               size((unsigned long long int)
-                                                    (-1)),
+                                               size(-1),
                                                created(-1),
                                                valid(-1),
                                                type(file_type_unknown) {};
@@ -62,7 +61,7 @@ namespace Arc {
     /// about file. Can be called for object representing ordinary URL or
     /// already resolved object.
     /// \param source true if DataPoint object represents source of information
-    virtual bool meta_resolve(bool source) {
+    virtual bool meta_resolve(bool source __attribute__((unused))) {
       return false;
     };
 
@@ -73,7 +72,8 @@ namespace Arc {
     /// 2 locations registered in Indexing Service under same name.
     /// \param force if true, perform registration of new file even if it
     /// already exists. Should be used to fix failures in Indexing Service.
-    virtual bool meta_preregister(bool replication, bool force = false) {
+    virtual bool meta_preregister(bool replication __attribute__((unused)),
+                                  bool force __attribute__((unused)) = false) {
       return false;
     };
 
@@ -81,28 +81,27 @@ namespace Arc {
     /// actual transfer of file successfully finished.
     /// \param replication if true then file is being replicated between
     /// 2 locations registered in Indexing Service under same name.
-    /// \param failure not used.
-    virtual bool meta_postregister(bool replication, bool failure) {
+    virtual bool meta_postregister(bool replication __attribute__((unused))) {
       return false;
     };
 
     // Same operation as meta_preregister and meta_postregister together.
     virtual bool meta_register(bool replication) {
       if(!meta_preregister(replication)) return false;
-      if(!meta_postregister(replication, false)) return false;
+      if(!meta_postregister(replication)) return false;
       return true;
     };
 
     /// Should be called if file transfer failed. It removes changes made
     /// by meta_preregister.
-    virtual bool meta_preunregister(bool replication) {
+    virtual bool meta_preunregister(bool replication __attribute__((unused))) {
       return false;
     };
 
     /// Remove information about file registered in Indexing Service.
     /// \param all if true information about file itself is (LFN) is removed.
     /// Otherwise only particular physical instance is unregistered.
-    virtual bool meta_unregister(bool all) {
+    virtual bool meta_unregister(bool all __attribute__((unused))) {
       return false;
     };
 
@@ -110,14 +109,15 @@ namespace Arc {
     /// under meta-URL of DataPoint object. It works only for meta-URL.
     /// \param files list of obtained objects.
     /// \param resolve if false, do not try to obtain propertiers of objects.
-    virtual bool list_files(std::list<FileInfo>& files, bool resolve = true) {
+    virtual bool list_files(std::list<FileInfo>& files __attribute__((unused)),
+                            bool resolve __attribute__((unused)) = true) {
       return false;
     };
 
     /// Retrieve properties of object pointed by meta-URL of DataPoint
     /// object. It works only for meta-URL.
     /// \param fi contains retrieved information.
-    virtual bool get_info(FileInfo& fi) {
+    virtual bool get_info(FileInfo& fi __attribute__((unused))) {
       return false;
     };
 
@@ -284,11 +284,15 @@ namespace Arc {
      */
 
     /// Returns current (resolved) URL.
-    virtual const URL& current_location() const {};
+    virtual const URL& current_location() const {
+      return empty_url_;
+    };
 
     /// Returns meta information used to create curent URL. For RC that is
     ///  location's name. For RLS that is equal to pfn.
-    virtual const std::string& current_meta_location() const {};
+    virtual const std::string& current_meta_location() const {
+      return empty_string_;
+    };
 
     /// Switch to next location in list of URLs. At last location
     /// switch to first if number of allowed retries does not exceeded.
@@ -313,7 +317,7 @@ namespace Arc {
     };
 
     /// Remove locations present in another DataPoint object
-    virtual bool remove_locations(const DataPoint& p) {
+    virtual bool remove_locations(const DataPoint& p __attribute__((unused))) {
       return false;
     };
 
@@ -329,19 +333,22 @@ namespace Arc {
     /// Add URL to list.
     /// \param meta meta-name (name of location/service).
     /// \param loc URL.
-    virtual bool add_location(const std::string& meta, const URL& loc) {
+    virtual bool add_location(const std::string& meta __attribute__((unused)),
+                              const URL& loc __attribute__((unused))) {
       return false;
     };
 
    protected:
     URL url;
     static Logger logger;
-    int tries_left;
+    static std::string empty_string_;
+    static URL empty_url_;
     // attributes
     unsigned long long int meta_size_;
     std::string meta_checksum_;
     Time meta_created_;
     Time meta_validtill_;
+    int tries_left;
   };
 
   /// DataPointIndex complements DataPoint with attributes
@@ -370,8 +377,6 @@ namespace Arc {
     /// List of locations at which file can be probably found.
     std::list<Location> locations;
     std::list<Location>::iterator location;
-    static std::string empty_string_;
-    static URL empty_url_;
    protected:
     bool is_metaexisting;
     bool is_resolved;

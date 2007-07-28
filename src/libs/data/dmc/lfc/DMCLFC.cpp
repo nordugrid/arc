@@ -16,7 +16,8 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC* DMCLFC::Instance(Arc::Config *cfg, Arc::ChainContext *ctx) {
+  DMC* DMCLFC::Instance(Arc::Config *cfg,
+                        Arc::ChainContext *ctx __attribute__((unused))) {
     return new DMCLFC(cfg);
   }
 

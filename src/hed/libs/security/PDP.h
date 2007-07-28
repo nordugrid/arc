@@ -10,7 +10,7 @@ namespace Arc {
 
   class PDP {
    public:
-    PDP(Config* cfg) {};
+    PDP(Config* cfg __attribute__((unused))) {};
     virtual ~PDP() {};
     virtual bool isPermitted(std::string subject) = 0;
    protected:

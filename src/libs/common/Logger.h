@@ -31,14 +31,14 @@ namespace Arc {
   LogLevel string_to_level(const std::string& str);
 
 
-  
+
   //! A class for log messages.
   /*! This class is used to represent log messages internally. It
     contains the time the message was created, its level, from which
     domain it was sent, an identifier and the message text itself.
    */
   class LogMessage {
-  public:
+   public:
 
     //! Creates a LogMessage with  the specified level and message text.
     /*! This constructor creates a LogMessage with the specified level
@@ -50,8 +50,8 @@ namespace Arc {
       @param message The message text.
      */
     LogMessage(LogLevel level,
-	       const std::string& message,
-	       va_list v = NULL);
+               const std::string& message,
+               va_list v = NULL);
 
     //! Creates a LogMessage with the specified attributes.
     /*! This constructor creates a LogMessage with the specified
@@ -61,11 +61,11 @@ namespace Arc {
       @param level The level of the LogMessage.
       @param message The message text.
       @param ident The identifier of the LogMessage.
-    */
+     */
     LogMessage(LogLevel level,
-	       const std::string& message,
-	       const std::string& identifier,
-	       va_list v = NULL);
+               const std::string& message,
+               const std::string& identifier,
+               va_list v = NULL);
 
     //! Returns the level of the LogMessage.
     /*! Returns the level of the LogMessage.
@@ -73,7 +73,7 @@ namespace Arc {
      */
     LogLevel getLevel() const;
 
-  protected:
+   protected:
 
     //! Sets the identifier of the LogMessage.
     /*! The purpose of this method is to allow subclasses (in case
@@ -82,7 +82,7 @@ namespace Arc {
      */
     void setIdentifier(std::string identifier);
 
-  private:
+   private:
 
     //! Composes a default identifier.
     /*! This method composes a default identifier by combining the the
@@ -96,7 +96,7 @@ namespace Arc {
     /*! This method sets the domain (origin) of the LogMEssage. It is
       called by the Logger to which the LogMessage is sent.
       @param domain The domain.
-    */
+     */
     void setDomain(std::string domain);
 
     //! The time when the LogMessage was created.
@@ -120,9 +120,9 @@ namespace Arc {
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
       conveniently by LogDestinations.
-    */
+     */
     friend std::ostream& operator<<(std::ostream& os,
-				    const LogMessage& message);
+                                    const LogMessage& message);
 
     //! The Logger class is a friend.
     /*! The Logger class must have some privileges (e.g. ability to
@@ -140,14 +140,14 @@ namespace Arc {
     mechanisms and should therefore never be copied.
    */
   class LogDestination {
-  public:
+   public:
 
     //! Logs a LogMessage to this LogDestination.
     virtual void log(const LogMessage& message) = 0;
 
     virtual ~LogDestination() {};
 
-  protected:
+   protected:
 
     //! Default constructor.
     /*! The only constructor needed by subclasses, since the
@@ -155,7 +155,7 @@ namespace Arc {
      */
     LogDestination();
 
-  private:
+   private:
 
     //! Private copy constructor
     /*! LogDestinations should never be copied, therefore the copy
@@ -183,7 +183,7 @@ namespace Arc {
     as long as the Logger to which it has been registered.
    */
   class LogStream : public LogDestination {
-  public:
+   public:
 
     //! Creates a LogStream connected to an ostream.
     /*! Creates a LogStream connected to the specified ostream. In
@@ -201,7 +201,7 @@ namespace Arc {
      */
     virtual void log(const LogMessage& message);
 
-  private:
+   private:
 
     //! Private copy constructor
     /*! LogStreams should never be copied, therefore the copy
@@ -251,7 +251,7 @@ namespace Arc {
     and methods there.
    */
   class Logger {
-  public:
+   public:
 
     //! The root Logger
     /*! This is the root Logger. It is an ancestor of any other Logger
@@ -266,7 +266,7 @@ namespace Arc {
       @param subdomain The subdomain of the new logger.
      */
     Logger(Logger& parent,
-	   const std::string& subdomain);
+           const std::string& subdomain);
 
     //! Creates a logger.
     /*! Creates a logger.
@@ -275,8 +275,8 @@ namespace Arc {
       @param threshold The threshold of the new logger.
      */
     Logger(Logger& parent,
-	   const std::string& subdomain,
-	   LogLevel threshold);
+           const std::string& subdomain,
+           LogLevel threshold);
 
     //! Adds a LogDestination.
     /*! Adds a LogDestination to which to forward LogMessages sent to
@@ -299,13 +299,13 @@ namespace Arc {
     //! Returns the threshold.
     /*! Returns the threshold.
       @return The threshold of this Logger.
-    */
+     */
     LogLevel getThreshold() const;
 
     //! Sends a LogMessage.
     /*! Sends a LogMessage.
       @param The LogMessage to send.
-    */
+     */
     void msg(LogMessage message);
 
     //! Loggs a message text.
@@ -314,10 +314,10 @@ namespace Arc {
       LogMessage and sends it to the other msg() method.
       @param level The level of the message.
       @param str The message text.
-    */
+     */
     void msg(LogLevel level, const std::string& str, ...);
 
-  private:
+   private:
 
     //! A private constructor.
     /*! Every Logger (except the root logger) must have a parent,
@@ -356,7 +356,7 @@ namespace Arc {
     void log(const LogMessage& message);
 
     //! A pointer to the parent of this logger.
-    Logger* parent;
+    Logger *parent;
 
     //! The domain of this logger.
     std::string domain;
@@ -383,7 +383,7 @@ namespace Arc {
   expression that evaluates to a string.
  */
 #define MSG(logger, level, message) {			\
-    if (level>=logger.getThreshold())			\
-      logger.msg(Arc::LogMessage(level,message));}
+    if(level >= logger.getThreshold())			\
+      logger.msg(Arc::LogMessage(level, message));}
 
 #endif

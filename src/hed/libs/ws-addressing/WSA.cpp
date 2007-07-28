@@ -40,7 +40,7 @@ WSAEndpointReference::WSAEndpointReference(XMLNode epr) {
 }
 
 
-WSAEndpointReference::WSAEndpointReference(const std::string& address) {
+WSAEndpointReference::WSAEndpointReference(const std::string& address __attribute__((unused))) {
 }
 
 
@@ -94,7 +94,7 @@ WSAHeader::WSAHeader(SOAPEnvelope& soap) {
   header_.Namespaces(ns);
 } 
 
-WSAHeader::WSAHeader(const std::string& action) {
+WSAHeader::WSAHeader(const std::string& action __attribute__((unused))) {
 }
 
 

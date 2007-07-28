@@ -13,7 +13,7 @@ namespace Arc {
     // Nothing else needs to be done.
   }
   
-  IntraProcessCounter::IntraProcessCounter(const IntraProcessCounter& unique) :
+  IntraProcessCounter::IntraProcessCounter(const IntraProcessCounter&) :
     Counter() {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
@@ -23,7 +23,7 @@ namespace Arc {
     // Nothing needs to be done.
   }
 
-  void IntraProcessCounter::operator=(const IntraProcessCounter& unique){
+  void IntraProcessCounter::operator=(const IntraProcessCounter&){
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }

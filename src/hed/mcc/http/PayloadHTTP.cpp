@@ -44,7 +44,6 @@ bool PayloadHTTP::readline(std::string& line) {
 }
 
 bool PayloadHTTP::parse_header(void) {
-  char buf[1024];
   method_.resize(0);
   code_=0;
   // Skip empty lines

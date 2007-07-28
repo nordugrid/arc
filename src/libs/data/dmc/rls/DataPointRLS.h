@@ -20,7 +20,7 @@ namespace Arc {
     ~DataPointRLS() {};
     virtual bool meta_resolve(bool source);
     virtual bool meta_preregister(bool replication, bool force = false);
-    virtual bool meta_postregister(bool replication, bool failure);
+    virtual bool meta_postregister(bool replication);
     virtual bool meta_preunregister(bool replication);
     virtual bool meta_unregister(bool all);
     virtual bool list_files(std::list<FileInfo> &files, bool resolve = true);

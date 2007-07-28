@@ -51,7 +51,7 @@ void replace(std::string& str,
 	     const std::string& out,
 	     const std::string& in)
 {
-  int index = str.find(out);
+  std::string::size_type index = str.find(out);
   if (index!=std::string::npos)
     str.replace(index, out.size(), in);
 }

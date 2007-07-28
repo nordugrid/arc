@@ -121,7 +121,7 @@ void CRC32Sum::scan(const char* buf) {
   int l;
   if(strncasecmp("cksum:",buf,6) == 0) {
     unsigned long long rr; // for compatibilty with bug in 0.4
-    l=sscanf(buf+6,"%Lx",&rr);
+    l=sscanf(buf+6,"%llx",&rr);
     r=rr;
   } else {
     int i;
@@ -132,7 +132,7 @@ void CRC32Sum::scan(const char* buf) {
       for(i = 0;buf[i];i++) if(!isxdigit(buf[i])) break;
       if(!(buf[i])) { 
         unsigned long long rr;
-        l=sscanf(buf,"%Lx",&rr);
+        l=sscanf(buf,"%llx",&rr);
         r=rr;
       };
     };
@@ -309,7 +309,8 @@ void MD5Sum::scan(const char* buf) {
   computed=false;
   if(strncasecmp("md5:",buf,4) != 0) return;
   int l = sscanf(buf+4,
-      "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+      "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+      "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
       ((u_char*)&A)+0,((u_char*)&A)+1,((u_char*)&A)+2,((u_char*)&A)+3,
       ((u_char*)&B)+0,((u_char*)&B)+1,((u_char*)&B)+2,((u_char*)&B)+3,
       ((u_char*)&C)+0,((u_char*)&C)+1,((u_char*)&C)+2,((u_char*)&C)+3,

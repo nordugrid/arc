@@ -24,11 +24,11 @@ Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
     return new Arc::MCC_TLS_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
     return new Arc::MCC_TLS_Client(cfg);
 }
 
@@ -48,7 +48,6 @@ using namespace Arc;
 void tls_print_error(const char *fmt, ...){
    char errbuf[TLS_ERROR_BUFSIZ];
    va_list args;
-   int r;
    va_start(args, fmt);
    bzero((char *)&errbuf, sizeof errbuf);
    vsnprintf(errbuf, sizeof errbuf, fmt, args);
@@ -70,16 +69,19 @@ static void tls_process_error(){
    return;
 }
 
-static int no_passphrase_callback(char *buf, int size, int rwflag, void *password){
+static int no_passphrase_callback(char *buf __attribute__((unused)),
+                                  int size __attribute__((unused)),
+                                  int rwflag __attribute__((unused)),
+                                  void *password __attribute__((unused))) {
    return -1;
 }
 
 static int tls_rand_seeded_p = 0;
 #define my_MIN_SEED_BYTES 256 
-bool MCC_TLS::tls_random_seed(std::string filename, size_t n)
+bool MCC_TLS::tls_random_seed(std::string filename, long n)
 {
    int r;
-   r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? (long)n : LONG_MAX);
+   r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? n : LONG_MAX);
    if (n == 0)
 	n = my_MIN_SEED_BYTES;
     if (r < n) {
@@ -131,7 +133,7 @@ static void tls_set_dhe1024()
     	tls_dhe1024 = dhparams;
 }
 
-bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password, const std::string& random_file)
+bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password __attribute__((unused)), const std::string& random_file)
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.

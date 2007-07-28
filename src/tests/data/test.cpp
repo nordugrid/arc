@@ -32,7 +32,7 @@ int main () {
   if(!client_config) {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
-  };
+  }
   Arc::Loader client_loader(&client_config);
   logger.msg(Arc::INFO, "DMCs are loaded");
 
@@ -50,7 +50,7 @@ int main () {
     for (std::list<Arc::DataPoint::FileInfo>::iterator i = files.begin();
 	 i != files.end(); i++) {
       std::cout << "Name: " << i->name << std::endl;
-      if(i->size != -1)
+      if(i->size != (unsigned long long int)(-1))
 	std::cout << "Size: " << i->size << std::endl;
       if(i->created != -1)
 	std::cout << "Created: " << i->created << std::endl;

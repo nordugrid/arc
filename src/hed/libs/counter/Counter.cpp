@@ -11,7 +11,7 @@ namespace Arc {
     // Nothing needs to be done.
   }
 
-  Counter::Counter(const Counter& unique){
+  Counter::Counter(const Counter&){
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
@@ -20,7 +20,7 @@ namespace Arc {
     // Nothing needs to be done.
   }
 
-  void Counter::operator=(const Counter& unique){
+  void Counter::operator=(const Counter&){
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }

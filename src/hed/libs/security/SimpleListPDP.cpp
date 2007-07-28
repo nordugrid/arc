@@ -20,7 +20,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 */
 using namespace Arc;
 
-PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext *ctx) {
+PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext *ctx __attribute__((unused))) {
     return new SimpleListPDP(cfg);
 }
 
@@ -38,7 +38,7 @@ bool SimpleListPDP::isPermitted(std::string subject){
      logger.msg(INFO, "policy line: %s", line.c_str());
      logger.msg(INFO, "subject: %s", subject.c_str());
      if(!(line.compare(subject))){
-	fs.close();
+        fs.close();
         return true;
      }
   }

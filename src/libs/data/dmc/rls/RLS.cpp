@@ -177,7 +177,6 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
       if(err != GLOBUS_SUCCESS) {
         say_rls_error; rli_p=rlis.erase(rli_p); continue;
       };
-      bool bad_rli = false;
       globus_list_t* senderinfo_list;
       err = globus_rls_client_rli_sender_list(h,&senderinfo_list);
       if(err != GLOBUS_SUCCESS) {

@@ -17,7 +17,7 @@ Arc::Config config;
 Arc::Loader *loader;
 Arc::Logger& logger=Arc::Logger::rootLogger;
 
-static void shutdown(int sigint)
+static void shutdown(int sigint __attribute__((unused)))
 {
     logger.msg(Arc::DEBUG, "shutdown");
     delete loader;

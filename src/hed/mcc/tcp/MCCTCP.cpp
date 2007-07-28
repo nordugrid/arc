@@ -19,11 +19,11 @@ Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
 Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
     return new Arc::MCC_TCP_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
     return new Arc::MCC_TCP_Client(cfg);
 }
 
@@ -122,7 +122,6 @@ void MCC_TCP_Service::listener(void* arg) {
     for(;;) {
         int max_s = -1;
         fd_set readfds;
-        fd_set exfds;
         FD_ZERO(&readfds);
         // pthread_mutex_lock(&it.lock_);
         it.lock_.lock();
@@ -256,7 +255,7 @@ void MCC_TCP_Service::executer(void* arg) {
     return;
 }
 
-MCC_Status MCC_TCP_Service::process(Message& inmsg,Message& outmsg) {
+MCC_Status MCC_TCP_Service::process(Message& inmsg __attribute__((unused)),Message& outmsg __attribute__((unused))) {
   return MCC_Status();
 }
 

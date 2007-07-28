@@ -37,7 +37,7 @@ namespace Arc {
     };
     const char *GetLastName() const;
     bool CheckSize() const {
-      return (size != -1);
+      return (size != (unsigned long long int)(-1));
     };
     unsigned long long int GetSize() const {
       return size;

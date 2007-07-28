@@ -216,7 +216,6 @@ namespace Arc {
       it.is_metaexisting = true; // even for destination
       for(globus_list_t *list_pa = attr_list; list_pa;
           list_pa = globus_list_rest(list_pa)) {
-        unsigned long long int i;
         globus_rls_attribute_t *attr =
           (globus_rls_attribute_t*)globus_list_first(list_pa);
         if(attr->type != globus_rls_attr_type_str) continue;
@@ -266,8 +265,8 @@ namespace Arc {
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
       meta_resolve_rls_t arg(*this, source);
-      bool res = rls_find_lrcs(rlis, lrcs, true, false,
-                               &meta_resolve_callback, (void*)&arg);
+      rls_find_lrcs(rlis, lrcs, true, false,
+                    &meta_resolve_callback, (void*)&arg);
       if(!arg.success) return false;
       // Remove unresolved locations
       std::list<Location>::iterator loc = locations.begin();
@@ -299,8 +298,8 @@ namespace Arc {
                    "will use those registered with special name");
       }
       meta_resolve_rls_t arg(*this, source);
-      bool res = rls_find_lrcs(rlis, lrcs, true, false,
-                               &meta_resolve_callback, (void*)&arg);
+      rls_find_lrcs(rlis, lrcs, true, false,
+                    &meta_resolve_callback, (void*)&arg);
       if(!arg.success) return false;
       if(locations.size() == 0) {
         logger.msg(INFO, "No locations found for destination");
@@ -393,7 +392,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointRLS::meta_postregister(bool replication, bool failure) {
+  bool DataPointRLS::meta_postregister(bool replication) {
     globus_rls_handle_t *h;
     char errmsg[MAXERRMSG];
     globus_result_t err;
@@ -632,7 +631,7 @@ namespace Arc {
     bool all;
     bool failure;
     std::string guid;
-    meta_unregister_rls_t(bool a, DataPointRLS& u) : all(a), url(u),
+    meta_unregister_rls_t(bool a, DataPointRLS& u) : url(u), all(a),
                                                      failure(false) {};
   };
 
@@ -894,8 +893,8 @@ namespace Arc {
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
       meta_unregister_rls_t arg(all, *this);
-      bool res = rls_find_lrcs(rlis, lrcs, true, false,
-                               &meta_unregister_callback, (void*)&arg);
+      rls_find_lrcs(rlis, lrcs, true, false,
+                    &meta_unregister_callback, (void*)&arg);
       if(!arg.failure) fix_unregistered(all);
       return !arg.failure;
     }
@@ -956,7 +955,7 @@ namespace Arc {
     bool resolve;
     std::string guid;
     list_files_rls_t(std::list<DataPoint::FileInfo>& f, DataPointRLS& u,
-                     bool r) : files(f), url(u), resolve(r), success(false) {};
+                     bool r) : files(f), url(u), success(false), resolve(r) {};
   };
 
   bool DataPointRLS::list_files_callback(globus_rls_handle_t *h,
@@ -1095,8 +1094,8 @@ namespace Arc {
     lrcs.push_back(url.ConnectionURL());
 
     list_files_rls_t arg(files, *this, resolve);
-    bool res = rls_find_lrcs(rlis, lrcs, true, false,
-                             &list_files_callback, (void*)&arg);
+    rls_find_lrcs(rlis, lrcs, true, false,
+                  &list_files_callback, (void*)&arg);
     return arg.success;
   }
 

@@ -33,4 +33,4 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     add_entry_filename(entry3, pid_file);
 }
 
-}; // namespace Arc
+} // namespace Arc

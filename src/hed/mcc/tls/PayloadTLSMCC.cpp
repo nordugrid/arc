@@ -35,8 +35,10 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger):
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
    if(!master_) return;
+/*
    unsigned long err = 0;
    int counter=0;
+*/
    if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
 	logger.msg(WARNING, "Failed to shut down SSL");

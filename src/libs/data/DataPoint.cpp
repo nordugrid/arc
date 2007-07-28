@@ -14,8 +14,8 @@ namespace Arc {
                                          meta_validtill_(-1),
                                          tries_left(5) {}
 
-  std::string DataPointIndex::empty_string_;
-  URL DataPointIndex::empty_url_;
+  std::string DataPoint::empty_string_;
+  URL DataPoint::empty_url_;
 
 
   DataPointIndex::DataPointIndex(const URL& url) : DataPoint(url),

@@ -119,8 +119,8 @@ namespace Arc {
     globus_mutex_unlock(&mutex);
   }
 
-  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t *h,
-                             globus_object_t *error,
+  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t *h
+                             __attribute__((unused)), globus_object_t *error,
                              globus_ftp_control_response_t *response) {
     Lister *it = (Lister*)arg;
     globus_mutex_lock(&(it->mutex));
@@ -155,10 +155,14 @@ namespace Arc {
   }
 
   void Lister::list_read_callback(void *arg,
-                                  globus_ftp_control_handle_t *hctrl,
+                                  globus_ftp_control_handle_t *hctrl
+                                  __attribute__((unused)),
                                   globus_object_t *error,
-                                  globus_byte_t *buffer, globus_size_t length,
-                                  globus_off_t offset, globus_bool_t eof) {
+                                  globus_byte_t *buffer
+                                  __attribute__((unused)),
+                                  globus_size_t length,
+                                  globus_off_t offset __attribute__((unused)),
+                                  globus_bool_t eof) {
     Lister *it = (Lister*)arg;
     length += it->list_shift;
     if(error != GLOBUS_SUCCESS) {
@@ -182,7 +186,7 @@ namespace Arc {
     for(;;) {
       if((*name) == 0)
         break;
-      int nlen;
+      globus_size_t nlen;
       nlen = strcspn(name, "\n\r");
       name[nlen] = 0;
       logger.msg(DEBUG, "list record: %s", name);
@@ -255,8 +259,9 @@ namespace Arc {
 
   void Lister::list_conn_callback(void *arg,
                                   globus_ftp_control_handle_t *hctrl,
-                                  unsigned int stripe_ndx,
-                                  globus_bool_t reused,
+                                  unsigned int stripe_ndx
+                                  __attribute__((unused)),
+                                  globus_bool_t reused __attribute__((unused)),
                                   globus_object_t *error) {
     /* if(!callback_active) return; */
     Lister *it = (Lister*)arg;

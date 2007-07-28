@@ -7,12 +7,12 @@ class CheckSum {
  public:
   CheckSum(void) { };
   virtual ~CheckSum(void) { };
-  virtual void start(void) { };
-  virtual void add(void* buf,unsigned long long int len) { };
-  virtual void end(void) { };
-  virtual void result(unsigned char*& res,unsigned int& len) const { len=0; };
+  virtual void start(void) = 0;
+  virtual void add(void* buf,unsigned long long int len) = 0;
+  virtual void end(void) = 0;
+  virtual void result(unsigned char*& res,unsigned int& len) const = 0;
   virtual int print(char* buf,int len) const { if(len>0) buf[0]=0; return 0; };
-  virtual void scan(const char* buf) { };
+  virtual void scan(const char* buf) = 0;
   virtual operator bool(void) const { return false; };
   virtual bool operator!(void) const { return true; };
 };

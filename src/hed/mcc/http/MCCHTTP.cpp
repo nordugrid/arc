@@ -12,11 +12,11 @@ Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
 Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext* ctx) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext* ctx __attribute__((unused))) {
     return new Arc::MCC_HTTP_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext* ctx) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext* ctx __attribute__((unused))) {
     return new Arc::MCC_HTTP_Client(cfg);
 }
 

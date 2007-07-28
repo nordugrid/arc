@@ -9,7 +9,7 @@ namespace Arc {
 
   class SecHandler {
    public:
-    SecHandler(Config *cfg) {};
+    SecHandler(Config *cfg __attribute__((unused))) {};
     virtual ~SecHandler() {};
     virtual bool Handle(Message *msg) = 0;
    protected:

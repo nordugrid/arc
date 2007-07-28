@@ -18,5 +18,6 @@ class ServerOptions : public Glib::OptionGroup {
 
 }; // ServerOptions
 
-};
+} // namespace Arc
+
 #endif // __ARC_SERVER_OPTIONS_H__

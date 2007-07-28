@@ -63,8 +63,10 @@ PayloadTLSSocket::PayloadTLSSocket(PayloadStream& s, SSL_CTX *ctx,
 
 
 PayloadTLSSocket::~PayloadTLSSocket(void) {
+/*
    unsigned long err = 0;
    int counter=0;
+*/
    if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
 	logger.msg(WARNING, "Failed to shut down SSL");

@@ -214,7 +214,8 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointLFC::meta_postregister(bool replication, bool failure) {
+  bool DataPointLFC::meta_postregister(bool replication
+                                       __attribute__((unused))) {
     if(guid.empty()) {
       logger.msg(ERROR,
                  "No GUID defined for LFN - probably not preregistered");
@@ -334,7 +335,8 @@ namespace Arc {
   }
 
 
-  bool DataPointLFC::list_files(std::list<FileInfo>& files, bool resolve) {
+  bool DataPointLFC::list_files(std::list<FileInfo>& files,
+                                bool resolve __attribute__((unused))) {
     if(lfc_startsess(const_cast<char*>((url.Host() + ':' +
                                         tostring(url.Port())).c_str()),
                      "ARC") != 0)

@@ -41,7 +41,7 @@ namespace Arc {
       int st;
       regmatch_t rm;
       st = regexec(&preg, str.c_str(), 1, &rm, 0);
-      return st==0 and rm.rm_so==0 and rm.rm_eo==str.size();
+      return st==0 and rm.rm_so==0 and rm.rm_eo==(regoff_t)str.size();
     }
     else
       return false;
@@ -96,7 +96,7 @@ namespace Arc {
   Arc::Logger Arc::Plexer::logger(Arc::MCC::logger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
-    int ds, ps;
+    std::string::size_type ds, ps;
     ds=url.find("//");
     if (ds==std::string::npos)
       ps=url.find("/");

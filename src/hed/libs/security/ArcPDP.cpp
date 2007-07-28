@@ -17,7 +17,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 */
 using namespace Arc;
 
-PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext *ctx) {
+PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext *ctx __attribute__((unused))) {
     return new ArcPDP(cfg);
 }
 
@@ -26,6 +26,6 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
   logger.msg(INFO, "Arc access list location: %s", location.c_str());
 }
 
-bool ArcPDP::isPermitted(std::string subject){
+bool ArcPDP::isPermitted(std::string subject __attribute__((unused))){
   return false;
 }

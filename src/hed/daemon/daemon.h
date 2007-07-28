@@ -17,6 +17,6 @@ class Daemon {
 	static Logger logger;
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // __ARC_DAEMON_H__

@@ -43,7 +43,7 @@ class Service: public MCCInterface
         static Logger logger;
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
-        Service(Arc::Config *cfg) { };
+        Service(Arc::Config *cfg __attribute__((unused))) { };
         virtual ~Service(void) { };
         /** SecHandler */
         virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");

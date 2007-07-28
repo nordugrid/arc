@@ -22,7 +22,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
     logger.msg(WARNING, "Failed to resolve %s", hostname);
     return -1;
   };
-  if( (host->h_length < sizeof(struct in_addr)) ||
+  if( (host->h_length < (int)sizeof(struct in_addr)) ||
       (host->h_addr_list[0] == NULL) ) {
     logger.msg(WARNING, "Failed to resolve %s", hostname);
     return -1;

@@ -72,4 +72,4 @@ Daemon::~Daemon() {
     Daemon::logger.msg(INFO, "Shutdown daemon");
 }
 
-}; // namespace Arc
+} // namespace Arc

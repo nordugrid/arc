@@ -31,9 +31,9 @@ class PayloadRawInterface: public MessagePayload {
     If 'size' is 0 aontent at 's' is expected to be null-terminated. */
   virtual char* Insert(const char* s,int pos = 0,int size = 0) = 0;
   /** Returns pointer to num'th buffer */
-  virtual char* Buffer(int num) = 0;
+  virtual char* Buffer(unsigned int num) = 0;
   /** Returns length of num'th buffer */
-  virtual int BufferSize(int num) const = 0;
+  virtual int BufferSize(unsigned int num) const = 0;
 };
 
 /* Buffer type for PayloadRaw */
@@ -58,8 +58,8 @@ class PayloadRaw: public PayloadRawInterface {
   virtual int Size(void) const;
   virtual char* Insert(int pos = 0,int size = 0);
   virtual char* Insert(const char* s,int pos = 0,int size = 0);
-  virtual char* Buffer(int num = 0);
-  virtual int BufferSize(int num = 0) const;
+  virtual char* Buffer(unsigned int num = 0);
+  virtual int BufferSize(unsigned int num = 0) const;
 };
 
 /** Returns pointer to main buffer of Message payload. 

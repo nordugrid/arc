@@ -25,7 +25,6 @@ int main(void)
     Arc::XMLNode doc(xml_str);
     std::list<Arc::XMLNode> list = doc.XPathLookup("//test:child2", nsList);
     std::list<Arc::XMLNode>::iterator it;
-    Arc::XMLNode* node;
     for ( it=list.begin() ; it != list.end(); it++ ){
       std::cout << (*it).Name() << std::endl;       
     }
