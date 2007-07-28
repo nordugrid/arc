@@ -217,6 +217,7 @@ AC_CONFIG_FILES([Makefile
                  intl/Makefile
                  doc/Makefile
                  arc.spec
+                 src/hed/daemon/arcserver.8
 ])
 AC_OUTPUT
 

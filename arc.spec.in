@@ -105,6 +105,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files server
 %{_sbindir}/arcserver
+%doc %{_mandir}/man8/arcserver.8*
 
 %files devel
 %defattr(-,root,root,-)

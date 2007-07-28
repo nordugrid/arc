@@ -1,0 +1,34 @@
+.\" -*- nroff -*-
+.TH ARCSERVER "8" "July 2007" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.SH NAME
+arcserver \- ARC Hosting Environment Daemon
+.SH SYNOPSIS
+.B arcserver
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+arcserver is the ARC Hosting Environment Daemon and is responsible for...
+.SH OPTIONS
+.TP
+\fB\-f\fR, \fB\-\-foreground\fR
+run daemon in foreground
+.TP
+\fB\-c\fR, \fB\-\-config\fR
+full path of config file
+.TP
+\fB\-p\fR, \fB\-\-pid-file\fR
+full path of pid file
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+output version information and exit
+.PP
+Exit status is bla bla ...
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+We need to have this
+.SH FILES
+.BR /etc/arc.conf
+.SH AUTHOR
+Written by developers
