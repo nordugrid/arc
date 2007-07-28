@@ -2,7 +2,7 @@
 #include "../src/libs/common/ArcConfig.h"
 /* #include "../src/libs/common/BasicDT.h" */
 #include "../src/libs/common/Logger.h"
-#include "../src/libs/common/Thread.h"
+/* #include "../src/libs/common/Thread.h" */
 #include "../src/libs/common/XMLNode.h"
 %}
 
@@ -37,4 +37,4 @@
 %include "../src/libs/common/ArcConfig.h"
 /* %include "../src/libs/common/BasicDT.h" */
 %include "../src/libs/common/Logger.h"
-%include "../src/libs/common/Thread.h"
+/* %include "../src/libs/common/Thread.h" */
