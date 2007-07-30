@@ -1,0 +1,1370 @@
+# Translation file for the Advanced Resource Connector (Arc)
+msgid ""
+msgstr ""
+"Project-Id-Version: Arc\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-07-28 20:49+0200\n"
+"PO-Revision-Date: 2007-06-29 15:37+0200\n"
+"Last-Translator: name <email@address>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/hed/daemon/daemon.cpp:35
+#, c-format
+msgid "Daemonization fork failed: %s"
+msgstr ""
+
+#: ../src/hed/daemon/daemon.cpp:72
+msgid "Shutdown daemon"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:22
+msgid "shutdown"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:32
+msgid "No server config part of config file"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:61
+msgid "Start foreground"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:82 ../src/tests/echo/test.cpp:20
+msgid "Failed to load service configuration"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:105 ../src/tests/echo/test.cpp:24
+msgid "Service side MCCs are loaded"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:37
+msgid "before loop"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:40
+msgid "mcc unlink"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:46
+msgid "plexer unlink"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:53
+msgid "mcc erase"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:60
+msgid "service erase"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:67
+msgid "plexer erase"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:75
+msgid "sechandler erase"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:82
+msgid "dmc erase"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:87
+msgid "after loops"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:89
+msgid "after delete context"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:178
+msgid "SecHandler has no configuration"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:183
+msgid "SecHandler has no name attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:190
+#, c-format
+msgid "SecHandler name: %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:225
+msgid "Plugins element has no Name defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:240
+msgid "Component has no name attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:245
+msgid "Component has no id attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:250
+#, c-format
+msgid "Component %s(%s) could not be created"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:279
+#, c-format
+msgid "Component's %s(%s) next has no id attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:288
+#, c-format
+msgid "Loaded MCC %s(%s)"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:304
+#, c-format
+msgid "Plexer's (%s) next has no id attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:313
+#, c-format
+msgid "Loaded Plexer %s(%s)"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:320
+msgid "Service has no name attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:325
+msgid "Service has no id attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:331
+#, c-format
+msgid "Service %s(%s) could not be created"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:336
+#, c-format
+msgid "Loaded Service %s(%s)"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:358
+msgid "DataManager has no name attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:363
+msgid "DataManager has no id attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:368
+#, c-format
+msgid "DataManager %s(%s) could not be created"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:373
+#, c-format
+msgid "Loaded DataManager %s(%s)"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:378
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:109
+#, c-format
+msgid "Unknown element \"%s\" - ignoring"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:398
+#, c-format
+msgid "Linking MCC %s(%s) to MCC (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:408
+#, c-format
+msgid "Linking MCC %s(%s) to Service (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:418
+#, c-format
+msgid "Linking MCC %s(%s) to Plexer (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:424
+#, c-format
+msgid "MCC %s(%s) - next %s(%s) has no target"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:442
+#, c-format
+msgid "Linking Plexer %s to MCC (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:452
+#, c-format
+msgid "Linking Plexer %s to Service (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:462
+#, c-format
+msgid "Linking Plexer %s to Plexer (%s) under %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Loader.cpp:469
+#, c-format
+msgid "Plexer (%s) - next %s(%s) has no target"
+msgstr ""
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:44
+#: ../src/hed/libs/loader/LoaderFactory.cpp:83
+#, c-format
+msgid "Not a '%s' type plugin"
+msgstr ""
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:63
+#, c-format
+msgid "Element: %s version: %i"
+msgstr ""
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:66
+msgid "Missing init function"
+msgstr ""
+
+#: ../src/hed/libs/loader/LoaderFactory.cpp:76
+#, c-format
+msgid "Module %s could not be loaded"
+msgstr ""
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:11
+msgid "Module Manager Init"
+msgstr ""
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:41
+#, c-format
+msgid "Found %s in cache"
+msgstr ""
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:57
+#, c-format
+msgid "Could not locate module %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/ModuleManager.cpp:66
+#, c-format
+msgid "Loaded %s"
+msgstr ""
+
+#: ../src/hed/libs/loader/Plexer.cpp:74
+#, c-format
+msgid "Bad label: \"%s\""
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP.cpp:26
+#, c-format
+msgid "Arc access list location: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:5
+msgid "The root node of request is not <Request>"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:28
+msgid "Subject has no Attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:52
+msgid "Object has no Attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:74
+msgid "Action has no Attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/Request.cpp:99
+msgid "Context has no Attribute defined"
+msgstr ""
+
+#: ../src/hed/libs/security/SimpleListAuthZ.cpp:67
+#, c-format
+msgid "PDP name: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:29
+#, c-format
+msgid "Access list location: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:38
+#, c-format
+msgid "policy line: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:39
+#, c-format
+msgid "subject: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/SimpleListPDP.cpp:46
+msgid "UnAuthorized!!!"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:46
+msgid "Missing Port in Listen element"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:52
+msgid "Failed to create socket"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:61
+msgid "Failed to bind socket"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:65
+msgid "Failed to listen on socket"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:71
+msgid "No listening ports configured"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:77
+msgid "Failed to start thread for listening"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:84
+msgid "TCP_Service destroy"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:115
+msgid "Failed to start thread for communication"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:143
+msgid "Failed while waiting for connection request"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:170
+msgid "Failed to accept connection request"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:238
+msgid "next chain element called"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:265
+msgid "No Connect element specified"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:271
+msgid "Missing Port in Connect element"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:277
+msgid "Missing Host in Connect element"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:295
+msgid "client process called"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:310 ../src/hed/mcc/tls/MCCTLS.cpp:394
+msgid "Failed to send content of buffer"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:22
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:27
+#, c-format
+msgid "Failed to resolve %s"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:38
+#, c-format
+msgid "Failed to connect to %s:%i"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:88
+msgid "tls_random_seed from file: could not read files"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:144
+msgid "Can not load certificate file"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:152
+msgid "Can not load key file"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:157
+msgid "Private key does not match certificate"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:173
+msgid "SSL_library_init failed"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:196 ../src/hed/mcc/tls/MCCTLS.cpp:351
+msgid "Can not create the SSL Context object"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:214
+msgid "Can not set client CA list from the specified file"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:224
+msgid "DH set error"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:309
+#, c-format
+msgid "DN name: %s"
+msgstr ""
+
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:44
+#: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:72
+msgid "Failed to shut down SSL"
+msgstr ""
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:20
+#, c-format
+msgid "DEBUG: SSL_write error: %d %s:%s:%s"
+msgstr ""
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:30
+#, c-format
+msgid "SSL error Code: %d"
+msgstr ""
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:86
+msgid "Peer cert cannot be extracted"
+msgstr ""
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:91
+msgid "Peer cert verification fail"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:65
+#, c-format
+msgid "Can not parse date: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:88
+#, c-format
+msgid "Can not parse time: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:119
+#, c-format
+msgid "Can not parse time zone offset: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:138 ../src/libs/common/DateTime.cpp:158
+#: ../src/libs/common/DateTime.cpp:198
+#, c-format
+msgid "Illegal time format: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:190
+#, c-format
+msgid "Can not parse month: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:385
+msgid "Empty period string"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:401 ../src/libs/common/DateTime.cpp:436
+#, c-format
+msgid "Invalid ISO duration format: %s"
+msgstr ""
+
+#: ../src/libs/common/DateTime.cpp:490
+#, c-format
+msgid "Invalid period string: %s"
+msgstr ""
+
+#: ../src/libs/common/StringConv.h:23
+msgid "Empty String"
+msgstr ""
+
+#: ../src/libs/common/StringConv.h:29
+#, c-format
+msgid "Conversion failed: %s"
+msgstr ""
+
+#: ../src/libs/common/StringConv.h:33
+#, c-format
+msgid "Full string not used: %s"
+msgstr ""
+
+#: ../src/libs/common/Thread.cpp:11
+msgid "Initialize thread system"
+msgstr ""
+
+#: ../src/libs/common/URL.cpp:68
+#, c-format
+msgid "URL is not valid: %s"
+msgstr ""
+
+#: ../src/libs/common/URL.cpp:74
+#, c-format
+msgid "Malformed URL: %s"
+msgstr ""
+
+#: ../src/libs/common/URL.cpp:202
+msgid "Illegal URL - no hostname given"
+msgstr ""
+
+#: ../src/libs/common/URL.cpp:234
+msgid "Basedn only defined for ldap protocol"
+msgstr ""
+
+#: ../src/libs/data/DataPoint.cpp:118
+#, c-format
+msgid "Add location: metaname: %s"
+msgstr ""
+
+#: ../src/libs/data/DataPoint.cpp:119
+#, c-format
+msgid "Add location: location: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:27
+msgid "ftp_complete_callback: success"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:33
+#, c-format
+msgid "ftp_complete_callback: error: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:44
+msgid "ftp_check_callback"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:47
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:59
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:80
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:104
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:130
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:168
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:216
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:257
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:299
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:357
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:476
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:526
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:628
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:701
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:746
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:754
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:761
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:769
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:777
+#, c-format
+msgid "Globus error: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:58
+msgid "Registration of Globus FTP buffer failed - cancel check"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:79
+msgid "check_ftp: globus_ftp_client_size failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:84
+msgid "check_ftp: timeout waiting for size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:90
+msgid "check_ftp: failed to get file's size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:103
+msgid "check_ftp: globus_ftp_client_modification_time failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:108
+msgid "check_ftp: timeout waiting for modification_time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:114
+msgid "check_ftp: failed to get file's modification time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:129
+msgid "check_ftp: globus_ftp_client_get failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:134
+msgid "check_ftp: globus_ftp_client_register_read"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:145
+msgid "check_ftp: timeout waiting for partial get"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:167
+msgid "delete_ftp: globus_ftp_client_delete failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:172
+msgid "delete_ftp: globus_ftp_client_delete timeout"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:211
+msgid "mkdir_ftp: making &s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:220
+msgid "mkdir_ftp: timeout waiting for mkdir"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:244
+msgid "start_reading_ftp"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:250
+#, c-format
+msgid "start_reading_ftp: size: url: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:256
+msgid "start_reading_ftp: failure"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:265
+msgid "start_reading_ftp: timeout waiting for file size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:268
+msgid "Timeout waiting for FTP file size - cancel transfer"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:279
+msgid "start_reading_ftp: failed to get file's size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:286
+#, c-format
+msgid "start_reading_ftp: obtained size: %ull"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:297
+msgid "start_reading_ftp: globus_ftp_client_modification_time failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:305
+msgid "start_reading_ftp: timeout waiting for modification_time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:316
+msgid "start_reading_ftp: failed to get file's modification time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:326
+#, c-format
+msgid "start_reading_ftp: creation time: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:333
+msgid "start_reading_ftp: range is out of size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:343
+msgid "start_reading_ftp: globus_ftp_client_get"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:356
+msgid "start_reading_ftp: globus_ftp_client_get failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:366
+msgid "start_reading_ftp: globus_thread_create failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:383
+msgid "stop_reading_ftp: aborting connection"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:386
+msgid "stop_reading_ftp: waiting for transfer to finish"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:388
+#, c-format
+msgid "stop_reading_ftp: exiting: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:401
+msgid "ftp_read_thread: get and register buffers"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:407
+#, c-format
+msgid "ftp_read_thread: for_read failed - aborting: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:418
+#, c-format
+msgid "ftp_read_thread: Globus error: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:426
+#, c-format
+msgid "ftp_read_thread: too many registration failures - abort: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:431
+#, c-format
+msgid "ftp_read_thread: failed to register globus buffer - will try later: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:443
+msgid "ftp_read_thread: waiting for eof"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:445
+msgid "ftp_read_thread: exiting"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:457
+msgid "ftp_read_callback: failure"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:461
+msgid "ftp_read_callback: success"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:470
+msgid "ftp_get_complete_callback"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:474
+msgid "Failed to get ftp file"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:497
+msgid "start_writing_ftp"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:505
+msgid "start_writing_ftp: mkdir"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:508
+msgid "start_writing_ftp: mkdir failed - still trying to write"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:511
+msgid "start_writing_ftp: put"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:524
+msgid "start_writing_ftp: put failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:535
+msgid "start_writing_ftp: globus_thread_create failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:565
+msgid "ftp_write_thread: get and register buffers"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:570
+msgid "ftp_write_thread: for_write failed - aborting"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:610
+msgid "ftp_write_callback: failure"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:614
+msgid "ftp_write_callback: success"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:622
+msgid "ftp_put_complete_callback"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:626
+msgid "Failed to store ftp file"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:640
+#, c-format
+msgid "Failed to obtain listing from ftp: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:662
+#, c-format
+msgid "list_files_ftp: looking for size of %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:667
+msgid "list_files_ftp: globus_ftp_client_size failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:668
+#, c-format
+msgid "Globus error %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:672
+msgid "list_files_ftp: timeout waiting for size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:678
+msgid "list_files_ftp: failed to get file's size"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:692
+#, c-format
+msgid "list_files_ftp: looking for modification time of %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:699
+msgid "list_files_ftp: globus_ftp_client_modification_time failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:705
+msgid "list_files_ftp: timeout waiting for modification_time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:712
+msgid "list_files_ftp: failed to get file's modification time"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:745
+msgid "init_handle: globus_ftp_client_handleattr_init failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:752
+msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:760
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:768
+msgid "init_handle: globus_ftp_client_handle_init failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:775
+msgid "init_handle: globus_ftp_client_operationattr_init failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:831
+msgid "Using secure data transfer"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:844
+msgid "Using insecure data transfer"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/DataPointGridFTP.cpp:859
+msgid "DataPoint::deinit_handle: destroy ftp_handle"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:130
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:172
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:270
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:518
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:572
+#, c-format
+msgid "Failure: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:132
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:151
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:353
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:360
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:382
+#, c-format
+msgid "Response: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:170
+msgid "Error getting list of files (in list)"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:173
+msgid "Assuming - file not found"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:192
+#, c-format
+msgid "list record: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:245
+msgid "Failed reading list of files"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:283
+msgid "Failed reading data"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:310
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:356
+msgid "Memory allocation error"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:318
+#, c-format
+msgid "Command: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:322
+#, c-format
+msgid "%s failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:327
+msgid "Command is being sent"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:332
+msgid "Waiting for response"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:337
+msgid "Callback got failure"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:413
+msgid "Failed initing condition"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:417
+msgid "Failed initing mutex"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:424
+msgid "Failed allocating memory for handle"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:429
+msgid "Failed initing handle"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:442
+msgid "Closing connection"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:447
+msgid "Failed to close connection 1"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:454
+msgid "Failed to close connection 2"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:458
+msgid "Failed to close connection 3"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:463
+msgid "Closed successfuly"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:475
+msgid "Memory leak (globus_ftp_control_handle_t)"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:489
+#, c-format
+msgid "PASV failed: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:493
+msgid "PASV failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:507
+msgid "Can't parse host and port in response to PASV"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:513
+#, c-format
+msgid "Data channel: %d.%d.%d.%d %d"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:517
+msgid "Obtained host and address are not acceptable"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:532
+#, c-format
+msgid "Unsupported protocol in url %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:545
+msgid "Reusing connection"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:570
+#, c-format
+msgid "Failed connecting to server %s:%d"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:576
+#, c-format
+msgid "Failed to connect to server %s:%d"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:593
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:606
+msgid "Bad authentication information"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:614
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:618
+msgid "Failed authenticating"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:632
+#, c-format
+msgid "DCAU failed: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:636
+msgid "DCAU failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:654
+msgid "Failed to open data channel"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:659
+msgid "MLSD is not supported - trying NLST"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:666
+#, c-format
+msgid "Immediate completion: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:674
+#, c-format
+msgid "NLST/MLSD failed: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:678
+msgid "NLST/MLSD failed"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:691
+#, c-format
+msgid "Data transfer aborted: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:695
+msgid "Data transfer aborted"
+msgstr ""
+
+#: ../src/libs/data/dmc/gridftp/Lister.cpp:706
+msgid "Failed to transfer data"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:41
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:260
+msgid "Source must contain LFN"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:47
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:289
+msgid "Destination must contain LFN"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:51
+msgid "Locations are missing in destination LFC URL"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:79
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:90
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:160
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:175
+#, c-format
+msgid "Adding location: %s - %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:122
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:305
+msgid "No locations found for destination"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:141
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:280
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:336
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:351
+#, c-format
+msgid "Using location: %s - %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:146
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:359
+#, c-format
+msgid "meta_get_data: checksum: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:147
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:360
+#, c-format
+msgid "meta_get_data: size: %ull"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:148
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:361
+#, c-format
+msgid "meta_get_data: created: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:167
+msgid "LFN is missing in LFC (needed for replication)"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:174
+msgid "LFN already exists in LFC"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:221
+msgid "No GUID defined for LFN - probably not preregistered"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:270
+msgid "Failed to remove LFN in LFC - You may need to do that by hand"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:283
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:737
+msgid "Location is missing"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:287
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:695
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:741
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:837
+msgid "SE location will be unregistered automatically"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:312
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:328
+msgid "Failed to remove location from LFC"
+msgstr ""
+
+#: ../src/libs/data/dmc/lfc/DataPointLFC.cpp:318
+msgid "Failed to remove LFN in LFC"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:102
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:513
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:663
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:985
+#, c-format
+msgid "Failed to find GUID for specified LFN in %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:107
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:519
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:668
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:990
+#, c-format
+msgid "There is no GUID for specified LFN in %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:141
+#, c-format
+msgid "Warning: can't get PFNs from server %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:212
+#, c-format
+msgid "Warning: Failed to obtain attributes from %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:222
+#, c-format
+msgid "Attribute: %s - %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:275
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:342
+#, c-format
+msgid "Removing location: %s - %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:297
+msgid ""
+"Locations are missing in destination RLS url - will use those registered "
+"with special name"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:380
+msgid "LFN is missing in RLS (needed for replication)"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:387
+msgid "LFN already exists in replica"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:404
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:756
+#, c-format
+msgid "Failed to connect to RLS server: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:436
+#, c-format
+msgid "Failed to create GUID in RLS: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:456
+#, c-format
+msgid "Failed to check for existing LFN in %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:464
+#, c-format
+msgid "There is same LFN in %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:479
+#, c-format
+msgid "Failed to add LFN-GUID to RLS: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:537
+#, c-format
+msgid "Failed to create/add LFN-PFN mapping: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:553
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:567
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:582
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:597
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:613
+#, c-format
+msgid "Warning: failed to add attribute to RLS: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:684
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:821
+#, c-format
+msgid "Warning: Failed to retrieve LFN/PFNs from %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:706
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:725
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:849
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:870
+#, c-format
+msgid "Warning: Failed to delete LFN/PFN from %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:773
+msgid "LFN must be already deleted, try LRC anyway"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:777
+#, c-format
+msgid "Failed to retrieve LFN/LRC: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:801
+#, c-format
+msgid "Warning: Failed to connect to LRC at %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:1015
+#, c-format
+msgid "No LFNs found in %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:1019
+#, c-format
+msgid "Failed to retrieve list of LFNs/PFNs from %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:1059
+#, c-format
+msgid "lfn: %s(%s) - %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/DataPointRLS.cpp:1074
+#, c-format
+msgid "lfn: %s - pfn: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/RLS.cpp:73
+#, c-format
+msgid "Warning: can't connect to RLS server %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/RLS.cpp:92 ../src/libs/data/dmc/rls/RLS.cpp:121
+#: ../src/libs/data/dmc/rls/RLS.cpp:175 ../src/libs/data/dmc/rls/RLS.cpp:208
+#, c-format
+msgid "Contacting %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/RLS.cpp:106 ../src/libs/data/dmc/rls/RLS.cpp:135
+#: ../src/libs/data/dmc/rls/RLS.cpp:152 ../src/libs/data/dmc/rls/RLS.cpp:222
+#, c-format
+msgid "Warning: can't get list of RLIs from server %s: %s"
+msgstr ""
+
+#: ../src/libs/data/dmc/rls/RLS.cpp:191
+#, c-format
+msgid "Warning: can't get list of senders from server %s: %s"
+msgstr ""
+
+#: ../src/tests/data/test.cpp:33 ../src/tests/echo/test_client.cpp:42
+#: ../src/tests/echo/test.cpp:52
+msgid "Failed to load client configuration"
+msgstr ""
+
+#: ../src/tests/data/test.cpp:37
+msgid "DMCs are loaded"
+msgstr ""
+
+#: ../src/tests/echo/echo.cpp:68
+msgid "Input is not SOAP"
+msgstr ""
+
+#: ../src/tests/echo/echo.cpp:74
+#, c-format
+msgid "Request is not supported - %s"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:16 ../src/tests/echo/test.cpp:26
+msgid "Creating client side chain"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:46 ../src/tests/echo/test.cpp:56
+msgid "Client side MCCs are loaded"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:49 ../src/tests/echo/test.cpp:59
+msgid "Client chain does not have entry point"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:55 ../src/tests/echo/test.cpp:65
+msgid "Creating and sending request"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:64 ../src/tests/echo/test.cpp:74
+msgid "Request failed"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:70 ../src/tests/echo/test.cpp:82
+msgid "There is no response"
+msgstr ""
+
+#: ../src/tests/echo/test_client.cpp:77 ../src/tests/echo/test.cpp:89
+msgid "Response is not SOAP"
+msgstr ""
+
+#: ../src/tests/echo/test.cpp:17
+msgid "Creating service side chain"
+msgstr ""
+
+#: ../src/tests/echo/test.cpp:78
+msgid "Request succeed!!!"
+msgstr ""

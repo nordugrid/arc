@@ -1,4 +1,4 @@
-LANGUAGES = sv
+LANGUAGES = sv ru
 
 TRANSLATIONS = $(foreach lang, $(LANGUAGES), Arc.$(lang).po)
 
