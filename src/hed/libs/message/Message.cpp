@@ -20,7 +20,10 @@ void MessageContext::Add(const std::string& name,MessageContextElement* element)
 }
 
 MessageContextElement* MessageContext::operator[](const std::string& id) {
-  return elements_[id];
+  std::map<std::string,MessageContextElement*>::iterator i;
+  i=elements_.find(id);
+  if(i == elements_.end()) return NULL;
+  return i->second;
 }
 
 } // namespace Arc
