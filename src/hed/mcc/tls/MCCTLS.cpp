@@ -253,7 +253,7 @@ class MCC_TLS_Context:public MessageContextElement {
  public:
   PayloadTLSSocket* stream;
   MCC_TLS_Context(PayloadTLSSocket* s = NULL):stream(s) { };
-  ~MCC_TLS_Context(void) { if(stream) delete stream; };
+  virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
 };
 
 
