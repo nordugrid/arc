@@ -192,6 +192,19 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   return XMLNode(xmlAddChild(node_,new_node));
 }
 
+void XMLNode::Replace(const XMLNode& node) {
+  if(node_ == NULL) return;
+  if(node.node_ == NULL) return;
+  if(node.node_->type == XML_DOCUMENT_NODE) {
+    Replace(XMLNode(node.node_->children));
+    return;
+  };
+  xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
+  if(new_node == NULL) return;
+  xmlReplaceNode(node_,new_node);
+  return;
+}
+
 void XMLNode::New(XMLNode& new_node) {
   if(new_node.is_owner_ && new_node.node_) {
     xmlFreeDoc((xmlDocPtr)(new_node.node_));

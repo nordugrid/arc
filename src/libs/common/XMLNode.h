@@ -247,7 +247,7 @@ class XMLNode {
     one but not owned by returned instance */
   XMLNode NewChild(const XMLNode& node,int n = -1,bool global_order = false);
   // Make a copy of supplied node and place it to this one
-  // Replace(const XMLNode& node);
+  void Replace(const XMLNode& node);
   /** Destroys underlying XML element. 
     XML element is unlinked from XML tree and destroyed.
     After this operation XMLNode instance becomes invalid */
