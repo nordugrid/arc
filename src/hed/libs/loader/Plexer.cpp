@@ -37,14 +37,31 @@ namespace Arc {
   }
   
   bool RegularExpression::match(const std::string& str) const {
+    std::list<std::string> unmatched;
+    return match(str,unmatched) && (unmatched.size() == 0);
+  }
+
+  bool RegularExpression::match(const std::string& str,std::list<std::string>& unmatched) const {
     if (status==0){
       int st;
-      regmatch_t rm;
-      st = regexec(&preg, str.c_str(), 1, &rm, 0);
-      return st==0 and rm.rm_so==0 and rm.rm_eo==(regoff_t)str.size();
+      regmatch_t rm[256];
+      unmatched.clear();
+      st = regexec(&preg, str.c_str(), 256, rm, 0);
+      if(st != 0) return false;
+      regoff_t p = 0;
+      for(int n = 0; n<256; ++n) {
+        if(rm[n].rm_so == -1) break;
+        if(rm[n].rm_so > p) {
+          unmatched.push_back(str.substr(p,rm[n].rm_so-p));
+        };
+        p=rm[n].rm_eo;
+      };
+      if(p < str.length()) unmatched.push_back(str.substr(p));
+      return true;
     }
-    else
+    else {
       return false;
+    }
   }
 
   std::string RegularExpression::getPattern() {
@@ -84,8 +101,13 @@ namespace Arc {
     std::string path = getPath(ep);
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
+      std::list<std::string> unmatched;
       if (iter->label.match(path)) {
-	    return iter->service->process(request, response);
+        request.Attributes()->set("PLEXER:PATTERN",iter->label.getPattern());
+        if(unmatched.size() > 0) {
+          request.Attributes()->set("PLEXER:EXTENSION",*(unmatched.end()--));
+        };
+        return iter->service->process(request, response);
       }
     }
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR,
