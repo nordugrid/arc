@@ -6,18 +6,20 @@
 namespace ARex {
 
 class ARexGMConfig;
+class ARexConfigContext;
 
 class ARexService: public Arc::Service {
  protected:
   Arc::NS ns_;
-  Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status TerminateActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status GetActivityDocuments(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status GetFactoryAttributesDocument(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
-  Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode& in,Arc::XMLNode& out);
+  ARexConfigContext* ARexService::get_configuration(void);
+  Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status TerminateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status GetActivityDocuments(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status GetFactoryAttributesDocument(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
  public:
   ARexService(Arc::Config *cfg);
