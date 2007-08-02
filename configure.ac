@@ -143,6 +143,10 @@ AC_SUBST(LIBXML2_LIBS)
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
+# check gSOAP
+PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [GSOAP=yes], [GSOAP=no])
+AC_SUBST(GSOAP_CFLAGS)
+AC_SUBST(GSOAP_LIBS)
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
@@ -151,6 +155,9 @@ AC_SUBST(GLOBUS_RLS_CLIENT_LIBS)
 GPT_PKG(globus_ftp_client)
 AC_SUBST(GLOBUS_FTP_CLIENT_CFLAGS)
 AC_SUBST(GLOBUS_FTP_CLIENT_LIBS)
+GPT_PKG(globus_rsl)
+AC_SUBST(GLOBUS_RSL_CFLAGS)
+AC_SUBST(GLOBUS_RSL_LIBS)
 
 # Check for gridftp-v2 
 SAVE_CFLAGS=$CFLAGS
@@ -167,6 +174,8 @@ AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
+AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
+AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -208,6 +217,20 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tls/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
+                 src/services/a-rex/Makefile
+                 src/services/a-rex/grid-manager/Makefile
+                 src/services/a-rex/grid-manager/cache/Makefile
+                 src/services/a-rex/grid-manager/conf/Makefile
+                 src/services/a-rex/grid-manager/files/Makefile
+                 src/services/a-rex/grid-manager/jobdesc/Makefile
+                 src/services/a-rex/grid-manager/jobdesc/jsdl/Makefile
+                 src/services/a-rex/grid-manager/jobdesc/rsl/Makefile
+                 src/services/a-rex/grid-manager/jobs/Makefile
+                 src/services/a-rex/grid-manager/log/Makefile
+                 src/services/a-rex/grid-manager/mail/Makefile
+                 src/services/a-rex/grid-manager/misc/Makefile
+                 src/services/a-rex/grid-manager/run/Makefile
+                 src/services/a-rex/grid-manager/url/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
