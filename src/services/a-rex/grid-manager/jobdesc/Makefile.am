@@ -10,7 +10,7 @@ JSDLSOURCES=
 JSDLHEADERS=
 endif
 
-if GLOBUS_ENABLED
+if RSL_ENABLED
 RSLDIR=rsl
 RSLLIB=rsl/librsl.la
 RSLSOURCES=job_xrsl.cpp xrsl.cpp
