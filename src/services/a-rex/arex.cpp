@@ -6,14 +6,17 @@
 #include "loader/Loader.h"
 #include "loader/ServiceLoader.h"
 #include "message/PayloadSOAP.h"
-#include "../../hed/libs/ws-addressing/WSA.h"
+#include "message/PayloadRaw.h"
+#include "message/PayloadStream.h"
+#include "ws-addressing/WSA.h"
 #include "job.h"
 
 #include "arex.h"
 
+namespace ARex {
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
-    return new ARex::ARexService(cfg);
+    return new ARexService(cfg);
 }
 
 service_descriptors ARC_SERVICE_LOADER = {
@@ -122,7 +125,7 @@ Arc::MCC_Status ARexService::make_fault(Arc::Message& outmsg) {
 
 
 
-ARexConfigContext* ARexService::get_configuration(void) {
+ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   ARexConfigContext* config = NULL;
   Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
   if(mcontext) {
@@ -140,6 +143,7 @@ ARexConfigContext* ARexService::get_configuration(void) {
       if(pw && pw->pw_name) {
         std::string uname = pw->pw_name;
         std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
+        std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
         config=new ARexConfigContext("",uname,grid_name,endpoint);
         inmsg.Context()->Add("arex.gmconfig",config);
       };
@@ -151,6 +155,7 @@ ARexConfigContext* ARexService::get_configuration(void) {
 
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Split request path into parts: service, job and file path. 
+  // TODO: make it HTTP independent
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
@@ -171,7 +176,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
 
   // Process grid-manager configuration if not done yet
-  ARexConfigContext* config = get_configuration();
+  ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
     // Service is not operational
     return Arc::MCC_Status();
@@ -252,7 +257,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 
 
-
+    };
   } else if(method == "HEAD") {
   
 
@@ -268,4 +273,6 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg) {
 
 ARexService::~ARexService(void) {
 }
+
+}; // namespace ARex
 

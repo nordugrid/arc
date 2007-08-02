@@ -30,7 +30,7 @@ libjobdesc_ladir=$(includedir)
 libjobdesc_la_HEADERS=$(RSLHEADERS) $(JSDLHEADERS) job.cpp runtimeenvironment.h
 libjobdesc_la_SOURCES=$(RSLSOURCES) $(JSDLSOURCES) job.cpp runtimeenvironment.cpp
 #nodist_libjobdesc_la_SOURCES = jsdl_soapClientLib.cpp
-libjobdesc_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_CFLAGS)
+libjobdesc_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS)
 libjobdesc_la_LDFLAGS=
 libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/libs/common/libarccommon.la
 

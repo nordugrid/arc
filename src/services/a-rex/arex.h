@@ -11,7 +11,7 @@ class ARexConfigContext;
 class ARexService: public Arc::Service {
  protected:
   Arc::NS ns_;
-  ARexConfigContext* ARexService::get_configuration(void);
+  ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status TerminateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);

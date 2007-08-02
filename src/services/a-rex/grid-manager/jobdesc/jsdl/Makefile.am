@@ -4,8 +4,8 @@ libjsdl_ladir=$(includedir)
 libjsdl_la_HEADERS=jsdl_job.h
 libjsdl_la_SOURCES=jsdl_job.cpp
 nodist_libjsdl_la_SOURCES = jsdl_soapClient.cpp jsdl_soapC.cpp
-libjsdl_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_CFLAGS) $(GSOAP_CFLAGS)
-libjsdl_la_LIBADD=$(top_srcdir)/libs/common/libarccommon.la 
+libjsdl_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS) $(GSOAP_CFLAGS)
+libjsdl_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la 
 #../../files/libfiles.la ../../misc/libmisc.la ../../url/liburl.la
 libjsdl_la_LDFLAGS=$(GSOAP_LIBS)
 
