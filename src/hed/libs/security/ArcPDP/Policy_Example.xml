@@ -1,5 +1,5 @@
-<!--Sample arc authorization policy for Storage_manager-->
 <?xml version="1.0" encoding="UTF-8"?>
+<!--Sample arc authorization policy for Storage_manager-->
 <Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" RuleCombiningAlgId="DenyOveride">
    <Rule RuleId="rule1" Effect="Permit">
       <Description>
@@ -12,7 +12,7 @@
 	    <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
 	    <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
    	 </Subject>
-	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</SubjectGroup>
+	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
       </Subjects>
       <Resources>
          <Resource Type="Storage">localhost:/home/scratch/</Resource>
@@ -28,7 +28,7 @@
     		<CondValue DataType="xsd:dateTime">14:00</CondValue>
   	   </Expression>
 	 </Condition>
-         <GroupIdRef Location="./conditiongroup.xml">normalcondition</SubjectGroup>   
+         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>   
       </Conditions>
    </Rule>
    

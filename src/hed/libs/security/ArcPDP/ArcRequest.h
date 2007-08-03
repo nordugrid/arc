@@ -1,34 +1,32 @@
-#ifndef __ARC_REQUEST_H__
-#define __ARC_REQUEST_H__
+#ifndef __ARC_ARCREQUEST_H__
+#define __ARC_ARCREQUEST_H__
 
+#include "Request.h"
 #include <list>
 #include <fstream>
 #include "../../../../libs/common/XMLNode.h"
 #include "../../../../libs/common/Logger.h"
 
-/** Basic class for Request*/
+/** ArcRequest, Parsing the specified Arc request format*/
 
 namespace Arc {
 
 typedef std::list<RequestItem*> ReqItemList;
 
-/**A request can has a few <subjects, actions, objects> tuples */
-//**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
-class Request {
-protect:
-  ReqItemList rlist;
+class ArcRequest : public Request {
+
 public:
   virtual ReqItemList getRequestItems () const {};
   virtual void setRequestItems (const ReqItemList* sl) {};
 
   //**Parse request information from a input stream, such as one file*/
-  Request (const std::ifstream& input) {};
+  ArcRequest (const std::ifstream& input) {};
 
   //**Parse request information from a xml stucture in memory*/
-  Request (const Arc::XMLNode& node) {};
-  virtual ~Request();
+  ArcRequest (const Arc::XMLNode& node) {};
+  virtual ~ArcRequest();
 };
 
 } // namespace Arc
 
-#endif /* __ARC_REQUEST_H__ */
+#endif /* __ARC_ARCREQUEST_H__ */
