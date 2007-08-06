@@ -1,6 +1,8 @@
 #include "ArcRequestItem.h"
 
 ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
+  ArcAttributeFactory * attrfactory;
+
   Arc::NS nsList;
   nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/ws/schemas/request-arc"));
   std::list<Arc::XMLNode> list;
@@ -17,7 +19,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
      <Subject AttributeId="urn:arc:subject:dn" Type="X500DN">/O=NorduGrid/OU=UIO/CN=test</Subject>  */
     if(attrlist.empty()){
       Subject sub;
-      sub.push_back(new Arc::Attribute(nd));
+      sub.push_back(new Arc::RequestAttribute(nd));
       subjects.push_back(sub);  
     }
     /**else like this:
@@ -28,7 +30,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
     else{
       Subject sub;
       for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        sub.push_back(new Arc::Attribute(*attrit));
+        sub.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
       }
       subjects.push_back(sub);
     }
@@ -41,13 +43,13 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
 
     if(attrlist.empty()){
       Resource res;
-      res.push_back(new Arc::Attribute(nd));
+      res.push_back(new Arc::RequestAttribute(nd, attrfactory));
       resources.push_back(res);
     }
     else{
       Resource sub;
       for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        res.push_back(new Arc::Attribute(*attrit));
+        res.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
       }
       resources.push_back(res);
     }
@@ -60,13 +62,13 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
 
     if(attrlist.empty()){
       Action act;
-      act.push_back(new Arc::Attribute(nd));
+      act.push_back(new Arc::RequestAttribute(nd, attrfactory));
       resources.push_back(act);
     }
     else{
       Action act;
       for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        act.push_back(new Arc::Attribute(*attrit));
+        act.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
       }
       actions.push_back(act);
     }
@@ -79,13 +81,13 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
 
     if(attrlist.empty()){
       Environment env;
-      env.push_back(new Arc::Attribute(nd));
+      env.push_back(new Arc::RequestAttribute(nd, attrfactory));
       environments.push_back(env);
     }
     else{
       Environment env;
       for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        env.push_back(new Arc::Attribute(*attrit));
+        env.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
       }
       environments.push_back(env);
     }
