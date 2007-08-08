@@ -1,25 +1,19 @@
 #include "ArcRequestItem.h"
 
 ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
-  ArcAttributeFactory * attrfactory;
+  //TODO
+  ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
+  XMLNode nd;
 
-  Arc::NS nsList;
-  nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/ws/schemas/request-arc"));
-  std::list<Arc::XMLNode> list;
-  std::list<Arc::XMLNode>::iterator it;
-  std::list<Arc::XMLNode> attrlist;
-  std::list<Arc::XMLNode>::iterator attrit;
-
-  list = node.XPathLookup("//request:Subject", nsList);
-  for ( it=list.begin() ; it != list.end(); it++ ){
-    XMLNode nd=*it;
-    attrlist = nd.XPathLookup("//request:Attribute", nsList)   
+  for ( int i=0;; i++ ){
+    nd = node["Subject"][i];
+    if(!nd) break;
     
     /**if is like this: 
      <Subject AttributeId="urn:arc:subject:dn" Type="X500DN">/O=NorduGrid/OU=UIO/CN=test</Subject>  */
-    if(attrlist.empty()){
+    if(nd.AttributesSize()){
       Subject sub;
-      sub.push_back(new Arc::RequestAttribute(nd));
+      sub.push_back(new Arc::RequestAttribute(nd, attrfactory));
       subjects.push_back(sub);  
     }
     /**else like this:
@@ -29,69 +23,75 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
         </Subject> */
     else{
       Subject sub;
-      for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        sub.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
+      for(int j=0;;j++){
+        XMLNode tnd = nd.Child(j);
+        if(tnd) break;
+        sub.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       subjects.push_back(sub);
     }
   }
-  
-  list = node.XPathLookup("//request:Resource", nsList);
-  for ( it=list.begin() ; it != list.end(); it++ ){
-    XMLNode nd=*it;
-    attrlist = nd.XPathLookup("//request:Attribute", nsList)
 
-    if(attrlist.empty()){
+  for ( int i=0;; i++ ){
+    nd = node["Resource"][i];
+    if(!nd) break;
+
+    if(nd.AttributesSize()){
       Resource res;
       res.push_back(new Arc::RequestAttribute(nd, attrfactory));
       resources.push_back(res);
     }
     else{
-      Resource sub;
-      for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        res.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
+      Resource res;
+      for(int j=0;;j++){
+        XMLNode tnd = nd.Child(j);
+        if(tnd) break;
+        res.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       resources.push_back(res);
     }
   }
 
-  list = node.XPathLookup("//request:Action", nsList);
-  for ( it=list.begin() ; it != list.end(); it++ ){
-    XMLNode nd=*it;
-    attrlist = nd.XPathLookup("//request:Attribute", nsList)
+  for ( int i=0;; i++ ){
+    nd = node["Action"][i];
+    if(!nd) break;
 
-    if(attrlist.empty()){
+    if(nd.AttributesSize()){
       Action act;
       act.push_back(new Arc::RequestAttribute(nd, attrfactory));
-      resources.push_back(act);
+      actions.push_back(act);
     }
     else{
       Action act;
-      for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        act.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
+      for(int j=0;;j++){
+        XMLNode tnd = nd.Child(j);
+        if(tnd) break;
+        act.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       actions.push_back(act);
     }
   }
 
-  list = node.XPathLookup("//request:Environment", nsList);
-  for ( it=list.begin() ; it != list.end(); it++ ){
-    XMLNode nd=*it;
-    attrlist = nd.XPathLookup("//request:Attribute", nsList)
+  for ( int i=0;; i++ ){
+    nd = node["Environment"][i];
+    if(!nd) break;
 
-    if(attrlist.empty()){
+    if(nd.AttributesSize()){
       Environment env;
       env.push_back(new Arc::RequestAttribute(nd, attrfactory));
       environments.push_back(env);
     }
     else{
       Environment env;
-      for (attrit=attrlist.begin() ; attrit != attrlist.end(); attrit++ ){
-        env.push_back(new Arc::RequestAttribute(*attrit, attrfactory));
+      for(int j=0;;j++){
+        XMLNode tnd = nd.Child(j);
+        if(tnd) break;
+        env.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       environments.push_back(env);
     }
   }
+
 }
 
 ArcRequestItem:: ~RequestItem(void){

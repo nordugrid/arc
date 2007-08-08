@@ -46,4 +46,10 @@ AttrValList RequestAttribute::getAttributeValueList () const{
 void RequestAttribute::setAttributeValueList (const AttrValList& attributeValueList){
 }
 
+RequestAttribute::~RequestAttribute(){
+  while(!avlist.empty()){
+    delete (*(avlist.back()));
+    avlist.pop_back();
+  }
+}
 
