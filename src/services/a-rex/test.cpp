@@ -43,6 +43,11 @@ int main(void) {
   };
 
   for(int n = 0;n<1;n++) {
+
+
+    // -------------------------------------------------------
+    //    Sending job request to service
+    // -------------------------------------------------------
     logger.msg(Arc::INFO, "Creating and sending request");
 
     // Create job request
@@ -91,18 +96,101 @@ int main(void) {
       std::string str;
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
-      Arc::NS ns;
-      Arc::XMLNode id(ns);
-      id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
+    };
+    Arc::NS ns;
+    Arc::XMLNode id(ns);
+    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
+    {
+      std::string str;
       id.GetXML(str);
       std::cout << "Job ID: " << std::endl << str << std::endl;
     };
     delete repmsg.Payload();
+
+    // -------------------------------------------------------
+    //    Requesting job's JSDL from service
+    // -------------------------------------------------------
+    {
+      std::string str;
+      logger.msg(Arc::INFO, "Creating and sending request");
+
+      Arc::PayloadSOAP req(arex_ns);
+      Arc::XMLNode jobref = req.NewChild("bes-factory:GetActivityDocuments").NewChild(id);
+
+      // Send job request
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      reqmsg.Payload(&req);
+    
+      req.GetXML(str);
+      std::cout << "REQUEST: " << str << std::endl;
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Request failed");
+        return -1;
+      };
+      logger.msg(Arc::INFO, "Request succeed!!!");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There is no response");
+        return -1;
+      };
+      Arc::PayloadSOAP* resp = NULL;
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR, "Response is not SOAP");
+        delete repmsg.Payload();
+        return -1;
+      };
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+    };
+
+    // -------------------------------------------------------
+    //    Requesting job's status from service
+    // -------------------------------------------------------
+    {
+      std::string str;
+      logger.msg(Arc::INFO, "Creating and sending request");
+
+      Arc::PayloadSOAP req(arex_ns);
+      Arc::XMLNode jobref = req.NewChild("bes-factory:GetActivityStatuses").NewChild(id);
+
+      // Send job request
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      reqmsg.Payload(&req);
+    
+      req.GetXML(str);
+      std::cout << "REQUEST: " << str << std::endl;
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Request failed");
+        return -1;
+      };
+      logger.msg(Arc::INFO, "Request succeed!!!");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There is no response");
+        return -1;
+      };
+      Arc::PayloadSOAP* resp = NULL;
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR, "Response is not SOAP");
+        delete repmsg.Payload();
+        return -1;
+      };
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+    };
+
+
+
+
   };
-
-
-
-
 /*
 
 

@@ -53,7 +53,7 @@ class ARexJob {
   /** Return ID assigned to job */
   std::string ID(void) { return id_; };
   /** Fills provided jsdl with job description */
-  void GetDescription(Arc::XMLNode& jsdl);
+  bool GetDescription(Arc::XMLNode& jsdl);
   /** Cancel processing/execution of job */
   bool Cancel(void);
   /** Resume execution of job after error */

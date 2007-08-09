@@ -43,15 +43,7 @@ static std::string GetPath(std::string url){
 }
 
 
-Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  return Arc::MCC_Status();
-}
-
 Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  return Arc::MCC_Status();
-}
-
-Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   return Arc::MCC_Status();
 }
 

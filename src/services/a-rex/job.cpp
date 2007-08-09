@@ -347,7 +347,14 @@ std::cerr<<"ARexJob - 100"<<std::endl;
   return;
 }
 
-void ARexJob::GetDescription(Arc::XMLNode& jsdl) {
+bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
+  if(id_.empty()) return false;
+  std::string sdesc;
+  if(!job_description_read_file(id_,*config_.User(),sdesc)) return false;
+  Arc::XMLNode xdesc(sdesc);
+  if(!xdesc) return false;
+  jsdl.Replace(xdesc);
+  return true;
 }
 
 bool ARexJob::Cancel(void) {
@@ -362,7 +369,10 @@ bool ARexJob::Resume(void) {
 
 std::string ARexJob::State(void) {
   if(id_.empty()) return "";
-  return "";
+  bool job_pending;
+  job_state_t state = job_state_read_file(id_,*config_.User(),job_pending);
+  if(state > JOB_STATE_UNDEFINED) state=JOB_STATE_UNDEFINED;
+  return states_all[state].name;
 }
 
 
