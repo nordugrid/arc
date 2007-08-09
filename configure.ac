@@ -192,11 +192,12 @@ if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
 enable_gsoap=no
-if test -n x$GSOAP = xyes ; then enable_gsoap=yes; fi
+if test x$GSOAP = xyes ; then enable_gsoap=yes; fi
 
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h netdb.h stdlib.h sys/socket.h unistd.h])
+AC_CXX_HAVE_SSTREAM
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
