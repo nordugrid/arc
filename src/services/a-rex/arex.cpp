@@ -5,6 +5,7 @@
 
 #include "loader/Loader.h"
 #include "loader/ServiceLoader.h"
+#include "loader/Plexer.h"
 #include "message/PayloadSOAP.h"
 #include "message/PayloadRaw.h"
 #include "message/PayloadStream.h"
@@ -15,17 +16,12 @@
 
 namespace ARex {
 
+
+static Arc::LogStream logcerr(std::cerr);
+
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new ARexService(cfg);
 }
-
-service_descriptors ARC_SERVICE_LOADER = {
-    { "a-rex", 0, &get_service },
-    { NULL, 0, NULL }
-};
-
-using namespace ARex;
- 
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
  public:
@@ -33,56 +29,19 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
   virtual ~ARexConfigContext(void) { };
 };
 
-
-Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  /*
-  CreateActivity
-    ActivityDocument
-      jsdl:JobDefinition
-
-  CreateActivityResponse
-    ActivityIdentifier (wsa:EndpointReferenceType)
-    ActivityDocument
-      jsdl:JobDefinition
-
-  InvalidRequestMessageFault
-    InvalidElement
-    Message
-  */
-  Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
-  if(!jsdl) {
-    // Wrongly formated request
-    Arc::SOAPEnvelope fault(ns_,true);
-    if(fault) {
-      fault.Fault()->Code(Arc::SOAPFault::Sender);
-      fault.Fault()->Reason("Can't find JobDefinition element in request");
-      Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:InvalidRequestMessageFault");
-      f.NewChild("bes-factory:InvalidElement")="jsdl:JobDefinition";
-      f.NewChild("bes-factory:Message")="Element is missing";
-      out.Replace(fault.Child());
-    };
-    return Arc::MCC_Status();
-  };
-  ARexJob job(jsdl,config);
-  if(!job) {
-    // Failed to create new job (generic SOAP error)
-    Arc::SOAPEnvelope fault(ns_,true);
-    if(fault) {
-      fault.Fault()->Code(Arc::SOAPFault::Receiver);
-      fault.Fault()->Reason("Can't creat new activity");
-      out.Replace(fault.Child());
-    };
-    return Arc::MCC_Status();
-  };
-  // Make SOAP response
-  Arc::WSAEndpointReference identifier(out.NewChild("bes-factory:ActivityIdentifier"));
-  // Make job's ID
-  identifier.Address(config.Endpoint()); // address of service
-  identifier.ReferenceParameters().NewChild("a-rex:JobID")=job.ID();
-  identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=config.Endpoint()+"/"+job.ID();
-  out.NewChild(in["ActivityDocument"]);
-  return Arc::MCC_Status(Arc::STATUS_OK);
+static std::string GetPath(std::string url){
+  std::string::size_type ds, ps;
+  ds=url.find("//");
+  if (ds==std::string::npos)
+    ps=url.find("/");
+  else
+    ps=url.find("/", ds+2);
+  if (ps==std::string::npos)
+    return "";
+  else
+    return url.substr(ps);
 }
+
 
 Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   return Arc::MCC_Status();
@@ -143,7 +102,19 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
       if(pw && pw->pw_name) {
         std::string uname = pw->pw_name;
         std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
-        std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+        std::string endpoint = endpoint_;
+        if(endpoint.empty()) {
+          std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+          std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
+          bool https_proto = !grid_name.empty();
+          endpoint = tcp_endpoint;
+          if(https_proto) {
+            endpoint="https"+endpoint;
+          } else {
+            endpoint="http"+endpoint;
+          };
+          endpoint+=GetPath(http_endpoint);
+        };
         config=new ARexConfigContext("",uname,grid_name,endpoint);
         inmsg.Context()->Add("arex.gmconfig",config);
       };
@@ -159,6 +130,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  logger.msg(Arc::DEBUG, "process: method: %s", method.c_str());
+  logger.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
   if(id.length() < endpoint.length()) {
     if(endpoint.substr(endpoint.length()-id.length()) == id) {
       endpoint.resize(endpoint.length()-id.length());
@@ -174,10 +147,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       while(subpath[0] == '/') subpath=subpath.substr(1);
     };
   };
+  logger.msg(Arc::DEBUG, "process: id: %s", id.c_str());
+  logger.msg(Arc::DEBUG, "process: subpath: %s", subpath.c_str());
 
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
+    logger.msg(Arc::ERROR, "Can't obtain configuration");
     // Service is not operational
     return Arc::MCC_Status();
   };
@@ -186,6 +162,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
   if(method == "POST") {
+    logger.msg(Arc::DEBUG, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -193,22 +170,25 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
-      std::cerr << "A-Rex: input is not SOAP" << std::endl;
+      logger.msg(Arc::ERROR, "input is not SOAP");
       return make_fault(outmsg);
     };
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
-      std::cerr << "A-Rex: input does not define operation" << std::endl;
+      logger.msg(Arc::ERROR, "input does not define operation");
       return make_fault(outmsg);
     };
+    logger.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
     if(id.empty()) {
       // Factory operations
+      logger.msg(Arc::DEBUG, "process: factory endpoint");
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
       Arc::PayloadSOAP& res = *outpayload;
       if(MatchXMLName(op,"CreateActivity")) {
+        logger.msg(Arc::DEBUG, "process: CreateActivity");
         CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"));
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
         GetActivityStatuses(*config,op,res.NewChild("bes-factory:GetActivityStatuses"));
@@ -228,13 +208,20 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         std::cerr << "A-Rex: request is not supported - " << op.Name() << std::endl;
         return make_fault(outmsg);
       };
+      {
+        std::string str;
+        outpayload->GetXML(str);
+        logger.msg(Arc::DEBUG, "process: response=%s",str.c_str());
+      };
       outmsg.Payload(outpayload);
     } else {
       // Listing operations for session directories
     };
   } else if(method == "GET") {
+    logger.msg(Arc::DEBUG, "process: GET");
     
   } else if(method == "PUT") {
+    logger.msg(Arc::DEBUG, "process: PUT");
     if(id.empty() || subpath.empty()) {
       std::cerr << "A-Rex: input contains no proper path to file" << std::endl;
       return make_fault(outmsg);
@@ -259,20 +246,29 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
     };
   } else if(method == "HEAD") {
+    logger.msg(Arc::DEBUG, "process: HEAD");
   
 
   };
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
  
-ARexService::ARexService(Arc::Config *cfg):Service(cfg) {
-    ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-    ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-    ns_["wsa"]="http://www.w3.org/2005/08/addressing";
+ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {
+  logger_.addDestination(logcerr);
+  ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+  ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+  ns_["wsa"]="http://www.w3.org/2005/08/addressing";
+  ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  endpoint_=(std::string)((*cfg)["endpoint"]);
 }
 
 ARexService::~ARexService(void) {
 }
 
 }; // namespace ARex
+
+service_descriptors ARC_SERVICE_LOADER = {
+    { "a-rex", 0, &ARex::get_service },
+    { NULL, 0, NULL }
+};
 

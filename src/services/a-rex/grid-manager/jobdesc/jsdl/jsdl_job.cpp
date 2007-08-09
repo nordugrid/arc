@@ -34,6 +34,33 @@
 //#define SOAP_FMAC5 static
 //#include "jsdl_soapC.cpp"
 
+#define JobDescription jsdl__JobDescription
+#define Application jsdl__Application
+#define JobIdentification jsdl__JobIdentification
+#define JobName jsdl__JobName
+#define DataStaging jsdl__DataStaging
+#define Target jsdl__Target
+#define Source jsdl__Source
+#define FileName jsdl__FileName
+#define FilesystemName jsdl__FilesystemName
+#define URI jsdl__URI
+#define Resources jsdl__Resources
+#define IndividualCPUCount jsdl__IndividualCPUCount
+#define TotalCPUCount jsdl__TotalCPUCount
+#define IndividualCPUTime jsdl__IndividualCPUTime
+#define TotalCPUTime jsdl__TotalCPUTime
+#define IndividualPhysicalMemory jsdl__IndividualPhysicalMemory
+#define TotalPhysicalMemory jsdl__TotalPhysicalMemory
+
+#define Executable jsdlPOSIX__Executable
+#define Argument jsdlPOSIX__Argument
+#define CPUTimeLimit jsdlPOSIX__CPUTimeLimit
+#define WallTimeLimit jsdlPOSIX__WallTimeLimit
+#define MemoryLimit jsdlPOSIX__MemoryLimit
+#define Input jsdlPOSIX__Input
+#define Output jsdlPOSIX__Output
+#define Error jsdlPOSIX__Error
+
 static struct Namespace jsdl_namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
     {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},
@@ -674,7 +701,13 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   return true;
 }
 
+#ifdef JobDescription
+#undef JobDescription
 bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const char* opt_add) {
+#define JobDescription jsdl__JobDescription
+#else
+bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const char* opt_add) {
+#endif
   if(!check()) return false;
   if(desc.get_local() == NULL) return false;
   std::string session_dir = desc.SessionDir();

@@ -116,50 +116,64 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):config_(config),id_
 }
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("") {
+std::cerr<<"ARexJob - 0"<<std::endl;
+  if(!config_) return;
+std::cerr<<"ARexJob - 1"<<std::endl;
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
+std::cerr<<"ARexJob - 2"<<std::endl;
   // Turn JSDL into text
   std::string job_desc_str;
   jsdl.GetXML(job_desc_str);
   // Store description
   std::string fname = config_.User()->ControlDir() + "/job." + id_ + ".description";
   if(!job_description_write_file(fname,job_desc_str)) {
+std::cerr<<"ARexJob - 3"<<std::endl;
     //@ error_description="Failed to store job RSL description.";
     delete_job_id();
     return;
   };
+std::cerr<<"ARexJob - 4"<<std::endl;
   // Analyze JSDL (checking, substituting, etc)
   std::string acl("");
   if(!parse_job_req(fname.c_str(),job_,&acl)) {
+std::cerr<<"ARexJob - 5"<<std::endl;
     //@ error_description="Failed to parse job/action description.";
     //@ olog<<error_description<<std::endl;
     delete_job_id();
     return;
   };
+std::cerr<<"ARexJob - 6"<<std::endl;
   // Check for proper LRMS name in request. If there is no LRMS name
   // in user configuration that means service is opaque frontend and
   // accepts any LRMS in request.
   if((!job_.lrms.empty()) && (!config_.User()->DefaultLRMS().empty())) {
+std::cerr<<"ARexJob - 7"<<std::endl;
     if(job_.lrms != config_.User()->DefaultLRMS()) {
+std::cerr<<"ARexJob - 8"<<std::endl;
       //@ error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
       //@ olog<<error_description<<std::endl;
       delete_job_id();
       return;
     };
   };
+std::cerr<<"ARexJob - 9"<<std::endl;
   if(job_.lrms.empty()) job_.lrms=config_.User()->DefaultLRMS();
   // Check for proper queue in request.
   if(job_.queue.empty()) job_.queue=config_.User()->DefaultQueue();
   if(job_.queue.empty()) {
+std::cerr<<"ARexJob - 9.5"<<std::endl;
     //@ error_description="Request has no queue defined.";
     //@ olog<<error_description<<std::endl;
     delete_job_id();
     return;
   };
   if(config_.Queues().size() > 0) { // If no queues configured - service takes any
+std::cerr<<"ARexJob - 10"<<std::endl;
     for(std::list<std::string>::const_iterator q = config_.Queues().begin();;++q) {
       if(q == config_.Queues().end()) {
+std::cerr<<"ARexJob - 11"<<std::endl;
         //@ error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
         //@ olog<<error_description<<std::endl;
         delete_job_id();
@@ -169,6 +183,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
     };
   };
   if(!preprocess_job_req(fname,config_.User()->SessionRoot()+"/"+id_,id_)) {
+std::cerr<<"ARexJob - 12"<<std::endl;
     //@ error_description="Failed to preprocess job description.";
     //@ olog<<error_description<<std::endl;
     delete_job_id();
@@ -190,14 +205,17 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
   /*@
   // Try to create proxy
   if(proxy_fname.length() != 0) {
+std::cerr<<"ARexJob - 13"<<std::endl;
     std::string fname=user->ControlDir()+"/job."+job_id+".proxy";
     int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
     if(h == -1) {
+std::cerr<<"ARexJob - 14"<<std::endl;
       error_description="Failed to store credentials.";
       return 1;
     };
     int hh=::open(proxy_fname.c_str(),O_RDONLY);
     if(hh == -1) {
+std::cerr<<"ARexJob - 15"<<std::endl;
       ::close(h);
       ::remove(fname.c_str());
       error_description="Failed to read credentials.";
@@ -226,6 +244,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
   // Write local file
   JobDescription job(id_,"",JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,*config_.User(),job_)) {
+std::cerr<<"ARexJob - 16"<<std::endl;
     //@ olog<<"Failed writing local description"<<std::endl;
     delete_job_id();
     //@ error_description="Failed to create job description.";
@@ -233,7 +252,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
   };
   // Write ACL file
   if(!acl.empty()) {
+std::cerr<<"ARexJob - 17"<<std::endl;
     if(!job_acl_write_file(id_,*config.User(),acl)) {
+std::cerr<<"ARexJob - 18"<<std::endl;
       //@ olog<<"Failed writing ACL"<<std::endl;
       delete_job_id();
       //@ error_description="Failed to process/store job ACL.";
@@ -296,6 +317,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
   };
 */
   if(mkdir(dir.c_str(),0700) != 0) {
+std::cerr<<"ARexJob - 19"<<std::endl;
 /*@
     if((getuid()==0) && (user) && (user->StrictSession())) {
       RESET_USER_UID;
@@ -314,12 +336,14 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
   fix_file_owner(dir,*config_.User());
   // Create status file (do it last so GM picks job up here)
   if(!job_state_write_file(job,*config_.User(),JOB_STATE_ACCEPTED)) {
+std::cerr<<"ARexJob - 20"<<std::endl;
     //@ olog<<"Failed writing status"<<std::endl;
     delete_job_id();
     //@ error_description="Failed registering job in grid-manager.";
     return;
   };
   SignalFIFO(*config_.User());
+std::cerr<<"ARexJob - 100"<<std::endl;
   return;
 }
 
@@ -380,6 +404,7 @@ bool ARexJob::make_job_id(const std::string &id) {
 */
 
 bool ARexJob::make_job_id(void) {
+  if(!config_) return false;
   int i;
   //@ delete_job_id();
   for(i=0;i<100;i++) {
@@ -407,6 +432,7 @@ bool ARexJob::make_job_id(void) {
 }
 
 bool ARexJob::delete_job_id(void) {
+  if(!config_) return true;
   if(!id_.empty()) {
     job_clean_final(JobDescription(id_,
                 config_.User()->SessionRoot()+"/"+id_),*config_.User());

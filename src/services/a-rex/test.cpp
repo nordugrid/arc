@@ -1,8 +1,11 @@
+#include <string>
 #include <iostream>
+#include <fstream>
 #include <signal.h>
 
 #include "../../libs/common/ArcConfig.h"
 #include "../../libs/common/Logger.h"
+#include "../../libs/common/XMLNode.h"
 #include "../../hed/libs/loader/Loader.h"
 #include "../../hed/libs/message/SOAPEnvelope.h"
 #include "../../hed/libs/message/PayloadSOAP.h"
@@ -13,6 +16,7 @@ int main(void) {
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
+
   // Load service chain
   logger.msg(Arc::INFO, "Creating service side chain");
   Arc::Config service_config("service.xml");
@@ -22,32 +26,10 @@ int main(void) {
   };
   Arc::Loader service_loader(&service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
-/*
   logger.msg(Arc::INFO, "Creating client side chain");
+
   // Create client chain
-  Arc::XMLNode client_doc("\
-    <ArcConfig\
-      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-      xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\">\
-     <ModuleManager>\
-        <Path>.libs/</Path>\
-        <Path>../../hed/mcc/http/.libs/</Path>\
-        <Path>../../hed/mcc/soap/.libs/</Path>\
-        <Path>../../hed/mcc/tls/.libs/</Path>\
-        <Path>../../hed/mcc/tcp/.libs/</Path>\
-     </ModuleManager>\
-     <Plugins><Name>mcctcp</Name></Plugins>\
-     <Plugins><Name>mcctls</Name></Plugins>\
-     <Plugins><Name>mcchttp</Name></Plugins>\
-     <Plugins><Name>mccsoap</Name></Plugins>\
-     <Chain>\
-      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
-      <Component name='tls.client' id='tls'><next id='tcp'/></Component>\
-      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/echo1</Endpoint></Component>\
-      <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
-     </Chain>\
-    </ArcConfig>");
-  Arc::Config client_config(client_doc);
+  Arc::Config client_config("client.xml");
   if(!client_config) {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
     return -1;
@@ -61,39 +43,70 @@ int main(void) {
   };
 
   for(int n = 0;n<1;n++) {
-  // Create and send echo request
-  logger.msg(Arc::INFO, "Creating and sending request");
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
-  Arc::PayloadSOAP req(echo_ns);
-  req.NewChild("echo").NewChild("say")="HELLO";
-  Arc::Message reqmsg;
-  Arc::Message repmsg;
-  reqmsg.Payload(&req);
-  Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-  if(!status) {
-    logger.msg(Arc::ERROR, "Request failed");
-    return -1;
-  };
+    logger.msg(Arc::INFO, "Creating and sending request");
 
-  logger.msg(Arc::INFO, "Request succeed!!!");
+    // Create job request
+    /*
+      bes-factory:CreateActivity
+        bes-factory:ActivityDocument
+          jsdl:JobDefinition
+    */
+    Arc::NS arex_ns;
+    arex_ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+    arex_ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+    arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
+    arex_ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    Arc::PayloadSOAP req(arex_ns);
+    Arc::XMLNode act_doc = req.NewChild("bes-factory:CreateActivity").NewChild("bes-factory:ActivityDocument");
+    std::ifstream jsdl_file("jsdl.xml");
+    std::string jsdl_str; 
+    std::getline<char>(jsdl_file,jsdl_str,0);
+    act_doc.NewChild(Arc::XMLNode(jsdl_str));
+    req.GetXML(jsdl_str);
 
-  Arc::PayloadSOAP* resp = NULL;
-  if(repmsg.Payload() == NULL) {
-    logger.msg(Arc::ERROR, "There is no response");
-    return -1;
-  };
-  try {
-    resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-  } catch(std::exception&) { };
-  if(resp == NULL) {
-    logger.msg(Arc::ERROR, "Response is not SOAP");
+    // Send job request
+    Arc::Message reqmsg;
+    Arc::Message repmsg;
+    reqmsg.Payload(&req);
+    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+    if(!status) {
+      logger.msg(Arc::ERROR, "Request failed");
+      return -1;
+    };
+    logger.msg(Arc::INFO, "Request succeed!!!");
+    if(repmsg.Payload() == NULL) {
+      logger.msg(Arc::ERROR, "There is no response");
+      return -1;
+    };
+    Arc::PayloadSOAP* resp = NULL;
+    try {
+      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+    } catch(std::exception&) { };
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR, "Response is not SOAP");
+      delete repmsg.Payload();
+      return -1;
+    };
+    {
+      std::string str;
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+      Arc::NS ns;
+      Arc::XMLNode id(ns);
+      id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
+      id.GetXML(str);
+      std::cout << "Job ID: " << std::endl << str << std::endl;
+    };
     delete repmsg.Payload();
-    return -1;
   };
+
+
+
+
+/*
+
+
   
-  std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"])
-	    << std::endl;
-  delete repmsg.Payload();
   };
 */ 
   return 0;

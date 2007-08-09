@@ -66,7 +66,8 @@ static job_req_type_t detect_job_req_type(const char* fname) {
   static char* rsl_pattern = "&(";
 #ifndef JSDL_MISSING
   // JSDL starts from <?xml
-  static char* jsdl_pattern = "<?xml";
+  //@ static char* jsdl_pattern = "<?xml";
+  static char* jsdl_pattern = "<";
 #endif
   std::ifstream f(fname);
   if(!f.is_open()) return job_req_unknown;
@@ -83,7 +84,8 @@ static job_req_type_t detect_job_req_type(const char* fname) {
   buf[l]=0;
   if(strncasecmp(rsl_pattern,buf,2) == 0) return job_req_rsl;
 #ifndef JSDL_MISSING
-  if(strncasecmp(jsdl_pattern,buf,5) == 0) return job_req_jsdl;
+  //@ if(strncasecmp(jsdl_pattern,buf,5) == 0) return job_req_jsdl;
+  if(strncasecmp(jsdl_pattern,buf,1) == 0) return job_req_jsdl;
 #endif
   return job_req_unknown;
 }

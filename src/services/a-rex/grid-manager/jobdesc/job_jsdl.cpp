@@ -5,6 +5,37 @@
 #include "jsdl/jsdl_soapStub.h"
 #include "jsdl/jsdl_soapH.h"
 
+#define JobDescription jsdl__JobDescription
+#define Application jsdl__Application
+#define JobIdentification jsdl__JobIdentification
+#define JobName jsdl__JobName
+#define DataStaging jsdl__DataStaging
+#define Target jsdl__Target
+#define Source jsdl__Source
+#define FileName jsdl__FileName
+#define FilesystemName jsdl__FilesystemName
+#define URI jsdl__URI
+#define Resources jsdl__Resources
+#define IndividualCPUCount jsdl__IndividualCPUCount
+#define TotalCPUCount jsdl__TotalCPUCount
+#define IndividualCPUTime jsdl__IndividualCPUTime
+#define TotalCPUTime jsdl__TotalCPUTime
+#define IndividualPhysicalMemory jsdl__IndividualPhysicalMemory
+#define TotalPhysicalMemory jsdl__TotalPhysicalMemory
+#define CPUArchitecture jsdl__CPUArchitecture
+#define CPUArchitectureName jsdl__CPUArchitectureName
+#define TotalDiskSpace jsdl__TotalDiskSpace
+#define IndividualDiskSpace jsdl__IndividualDiskSpace
+
+#define Executable jsdlPOSIX__Executable
+#define Argument jsdlPOSIX__Argument
+#define CPUTimeLimit jsdlPOSIX__CPUTimeLimit
+#define WallTimeLimit jsdlPOSIX__WallTimeLimit
+#define MemoryLimit jsdlPOSIX__MemoryLimit
+#define Input jsdlPOSIX__Input
+#define Output jsdlPOSIX__Output
+#define Error jsdlPOSIX__Error
+
 struct Namespace jsdl_namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
     {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},

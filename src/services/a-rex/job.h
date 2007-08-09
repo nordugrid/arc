@@ -47,7 +47,7 @@ class ARexJob {
   /** Create new job with provided JSDL description */
   ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config);
   operator bool(void) { return !id_.empty(); };
-  bool operator!(void) { return !id_.empty(); };
+  bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
   std::string Failure(void) { return failure_; };
   /** Return ID assigned to job */
