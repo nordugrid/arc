@@ -147,6 +147,10 @@ AC_SUBST(OPENSSL_LIBS)
 PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [GSOAP=yes], [GSOAP=no])
 AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
+WSDL2H=wsdl2h
+SOAPCPP2=soapcpp2
+AC_SUBST(WSDL2H)
+AC_SUBST(SOAPCPP2)
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
@@ -171,11 +175,24 @@ LIBS=$SAVE_LIBS
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 
+# Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
+
+# Setup messages for reporting
+enable_rls=no
+if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enable_rls=yes; fi
+enable_gridftp=no
+if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enable_gridftp=yes; fi
+enable_lfc=no
+if test x$LFC = xyes ; then enable_lfc=yes; fi
+enable_rsl=no
+if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
+enable_gsoap=no
+if test -n x$GSOAP = xyes ; then enable_gsoap=yes; fi
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -190,6 +207,10 @@ AC_TYPE_OFF_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm])
+AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
+AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
+AC_SUBST(LIBRESOLV)
+
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -249,5 +270,14 @@ AC_MSG_RESULT([
 Available languages: ${languages_available}
 
 Java binding:       ${enable_java}
-Python binding      ${enable_python}
+Python binding:     ${enable_python}
+
+Available third-party features:
+
+RLS:                ${enable_rls}
+GridFTP:            ${enable_gridftp}
+LFC:                ${enable_lfc}
+RSL:                ${enable_rsl}
+gSOAP:              ${enable_gsoap}
+
 ])
