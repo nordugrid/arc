@@ -187,8 +187,85 @@ int main(void) {
       std::cout << "Response: " << str << std::endl;
     };
 
+    // -------------------------------------------------------
+    //    Requesting job's termination
+    // -------------------------------------------------------
+    {
+      std::string str;
+      logger.msg(Arc::INFO, "Creating and sending request");
 
+      Arc::PayloadSOAP req(arex_ns);
+      Arc::XMLNode jobref = req.NewChild("bes-factory:TerminateActivities").NewChild(id);
 
+      // Send job request
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      reqmsg.Payload(&req);
+    
+      req.GetXML(str);
+      std::cout << "REQUEST: " << str << std::endl;
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Request failed");
+        return -1;
+      };
+      logger.msg(Arc::INFO, "Request succeed!!!");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There is no response");
+        return -1;
+      };
+      Arc::PayloadSOAP* resp = NULL;
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR, "Response is not SOAP");
+        delete repmsg.Payload();
+        return -1;
+      };
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+    };
+
+    // -------------------------------------------------------
+    //    Requesting service's attributes
+    // -------------------------------------------------------
+    {
+      std::string str;
+      logger.msg(Arc::INFO, "Creating and sending request");
+
+      Arc::PayloadSOAP req(arex_ns);
+      req.NewChild("bes-factory:GetFactoryAttributesDocument");
+
+      // Send job request
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      reqmsg.Payload(&req);
+    
+      req.GetXML(str);
+      std::cout << "REQUEST: " << str << std::endl;
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Request failed");
+        return -1;
+      };
+      logger.msg(Arc::INFO, "Request succeed!!!");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There is no response");
+        return -1;
+      };
+      Arc::PayloadSOAP* resp = NULL;
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR, "Response is not SOAP");
+        delete repmsg.Payload();
+        return -1;
+      };
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+    };
 
   };
 /*

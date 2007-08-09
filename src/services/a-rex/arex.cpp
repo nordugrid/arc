@@ -43,14 +43,6 @@ static std::string GetPath(std::string url){
 }
 
 
-Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  return Arc::MCC_Status();
-}
-
-Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  return Arc::MCC_Status();
-}
-
 Arc::MCC_Status ARexService::StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   return Arc::MCC_Status();
 }
@@ -87,29 +79,34 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   if(!config) {
     // TODO: do configuration detection
     // TODO: do mapping to local unix name
-    struct passwd pwbuf;
-    char buf[4096];
-    struct passwd* pw;
-    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
-      if(pw && pw->pw_name) {
-        std::string uname = pw->pw_name;
-        std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
-        std::string endpoint = endpoint_;
-        if(endpoint.empty()) {
-          std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
-          std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
-          bool https_proto = !grid_name.empty();
-          endpoint = tcp_endpoint;
-          if(https_proto) {
-            endpoint="https"+endpoint;
-          } else {
-            endpoint="http"+endpoint;
-          };
-          endpoint+=GetPath(http_endpoint);
+    std::string uname = uname_;
+    if(uname.empty()) {
+      struct passwd pwbuf;
+      char buf[4096];
+      struct passwd* pw;
+      if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
+        if(pw && pw->pw_name) {
+          uname = pw->pw_name;
         };
-        config=new ARexConfigContext("",uname,grid_name,endpoint);
-        inmsg.Context()->Add("arex.gmconfig",config);
       };
+    };
+    if(!uname.empty()) {
+      std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
+      std::string endpoint = endpoint_;
+      if(endpoint.empty()) {
+        std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+        std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
+        bool https_proto = !grid_name.empty();
+        endpoint = tcp_endpoint;
+        if(https_proto) {
+          endpoint="https"+endpoint;
+        } else {
+          endpoint="http"+endpoint;
+        };
+        endpoint+=GetPath(http_endpoint);
+      };
+      config=new ARexConfigContext("",uname,grid_name,endpoint);
+      inmsg.Context()->Add("arex.gmconfig",config);
     };
   };
   return config;
@@ -183,9 +180,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         logger.msg(Arc::DEBUG, "process: CreateActivity");
         CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"));
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
-        GetActivityStatuses(*config,op,res.NewChild("bes-factory:GetActivityStatuses"));
+        GetActivityStatuses(*config,op,res.NewChild("bes-factory:GetActivityStatusesResponse"));
       } else if(MatchXMLName(op,"TerminateActivities")) {
-        TerminateActivities(*config,op,res.NewChild("bes-factory:TerminateActivities"));
+        TerminateActivities(*config,op,res.NewChild("bes-factory:TerminateActivitiesResponse"));
       } else if(MatchXMLName(op,"GetActivityDocuments")) {
         GetActivityDocuments(*config,op,res.NewChild("bes-factory:GetActivityDocumentsResponse"));
       } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
@@ -252,6 +249,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
   endpoint_=(std::string)((*cfg)["endpoint"]);
+  uname_=(std::string)((*cfg)["username"]);
 }
 
 ARexService::~ARexService(void) {

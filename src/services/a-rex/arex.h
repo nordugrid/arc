@@ -13,6 +13,7 @@ class ARexService: public Arc::Service {
   Arc::NS ns_;
   Arc::Logger logger_;
   std::string endpoint_;
+  std::string uname_;
   ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);

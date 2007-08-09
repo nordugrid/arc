@@ -359,7 +359,9 @@ bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
 
 bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
-  return false;
+  JobDescription job_desc(id_,"");
+  if(!job_cancel_mark_put(job_desc,*config_.User())) return false;
+  return true;
 }
 
 bool ARexJob::Resume(void) {
@@ -449,5 +451,24 @@ bool ARexJob::delete_job_id(void) {
     id_="";
   };
   return true;
+}
+
+int ARexJob::TotalJobs(ARexGMConfig& config) {
+  ContinuationPlugins plugins;
+  JobsList jobs(*config.User(),plugins);
+  jobs.ScanNewJobs();
+  return jobs.size();
+}
+
+std::list<std::string> ARexJob::Jobs(ARexGMConfig& config) {
+  std::list<std::string> jlist;
+  ContinuationPlugins plugins;
+  JobsList jobs(*config.User(),plugins);
+  jobs.ScanNewJobs();
+  JobsList::iterator i = jobs.begin();
+  for(;i!=jobs.end();++i) {
+    jlist.push_back(i->get_id());
+  };
+  return jlist;
 }
 

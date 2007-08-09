@@ -60,6 +60,10 @@ class ARexJob {
   bool Resume(void);
   /** Returns current state of job */
   std::string State(void);
+  /** Return number of jobs associated with this configuration.
+      TODO: total for all user configurations. */
+  static int TotalJobs(ARexGMConfig& config);
+  static std::list<std::string> Jobs(ARexGMConfig& config);
 };
 
 }; // namespace ARex
