@@ -15,5 +15,5 @@ public:
 
 } // namespace Arc
 
-#endif /* __ARC_ATTRIBUTE_H__ */
+#endif /* __ARC_ATTRIBUTEVALUE_H__ */
 

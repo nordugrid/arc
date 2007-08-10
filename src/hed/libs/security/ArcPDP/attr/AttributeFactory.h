@@ -18,7 +18,7 @@ public:
 public:
   virtual AttributeValue* createValue(const XMLNode& node, const std::string& type){};
 
-protect:
+protected:
   AttrProxyMap apmap;
 };
 
