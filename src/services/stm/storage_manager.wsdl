@@ -34,7 +34,6 @@
       <!-- pattern for name matching -->
       <xsd:simpleType name="PatternType">
         <xsd:restriction base="xsd:string"/>
-        <!-- xsd:attribute name="type" type="PatternTypeType" use="required"/ -->
       </xsd:simpleType>
       <xsd:element name="Type" type="ItemType"/>
 
@@ -109,47 +108,7 @@
         </xsd:sequence>
       </xsd:complexType>
 
-
-      <!--
-        PUT logical name, metadata
-
-          works on files only
-          logical name is the proposed name of the file
-          metadata:
-            size
-            CRC
-            timestamp of creation
-            replication factor
-            owner
-            access control list
-            list of preferred storage elements
-
-          the size is in bytes, manditory
-          if timestamp is not given, the actual time will be used
-          replication factor is the required number of replicas
-          if list of preferred storage elements is not given, all storage elements accessible by the VO 
-          of the user will be considered
-
-          the Storage Manager has to know which storage elements the user's VO can use but I don't know 
-          from where it could get this information.
-
-          the Storage Manager first creates an entry in the Catalog if the logical name is available
-          then the data scheduler modul in the Storage Manager chooses a Storage Element,
-          and try to initiate file transfer on behalf of the user
-          the Storage Element gives back an SURL, which can be later used to access this file
-          and a TURL which refers to the initiated file transfer
-          then it creates an assertion which allows the user to use the initiated file transfer
-          then returns the assertion, and the URL of this initiated file transfer (TURL)
-
-          after this method there is an entry of this LN in the catalog with one replica (SURL),
-          which points to a not-yet-existent replica
-
-          Questions:
-            How prefered SE are named?
-            How to make sure file is transferred? size is not a perfect way. Should it be mandatory?
-            How to deal with SE full during transfer?
-            How about file state?
-      -->
+      <!-- PUT operation -->
       <xsd:complexType name="PutRequestType">
         <xsd:sequence>
           <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
@@ -165,17 +124,23 @@
       </xsd:complexType>
       <xsd:element name="PutResponse" type="sm:PutResponseType"/>
 
+      <!-- REPUT operation -->
+      <xsd:complexType name="ReputRequestType">
+        <xsd:sequence>
+          <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Reput" type="sm:ReputRequestType"/>
 
-      <!--
-        GET logical name [, list of preferred storage elements]
+      <xsd:complexType name="ReputResponseType">
+        <xsd:sequence>
+          <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="ReputResponse" type="sm:ReputResponseType"/>
 
-        works on files only
-        the Storage Manager gets the metadata of the file from the Catalog,
-        which consists of the SURLs of the replicas
-        the Storage Manager chooses one of these SURLs according to the list of preferred
-        storage elements, then initiates file transfer at the Storage Element (gets the TURL),
-        creates assertion, and returns them
-      -->
+      <!-- GET operation -->
       <xsd:complexType name="GetRequestType">
         <xsd:sequence>
           <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
@@ -191,16 +156,7 @@
       </xsd:complexType>
       <xsd:element name="GetResponse" type="sm:GetResponseType"/>
 
-      <!--
-        DEL logical name
-
-        works on files only
-        the Storage Manager gets the metadata of the file from the Catalog,
-        and for each SURL initiates removal of the replica at its Storage Element,
-        then removes the Catalog entry.
-
-        This command is probably asynchronous. Because delete is multi-stage opeartion.
-      -->
+      <!-- DEL operation -->
       <xsd:complexType name="DelRequestType">
         <xsd:sequence>
           <xsd:element name="File" type="sm:FileDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
@@ -216,13 +172,7 @@
       </xsd:complexType>
       <xsd:element name="DelResponse" type="sm:DelResponseType"/>
 
-     <!--
-        STAT logical name
-
-        gets all the metadata of the file or collection from the Catalog, and returns it
-
-        No locations are returned
-      -->
+     <!-- STAT operation -->
       <xsd:complexType name="StatRequestType">
         <xsd:sequence>
           <xsd:element name="Item" type="sm:ItemReferenceType" minOccurs="1" maxOccurs="unbounded"/>
@@ -232,18 +182,14 @@
 
       <xsd:complexType name="StatResponseType">
         <xsd:sequence>
-          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="StatResponse" type="sm:StatResponseType"/>
 
-     <!--
-        MOD logical name, modification of metadata
-
-        modify metadata of file or collection in the Catalog
-     -->
+     <!-- MODIFY operation -->
       <xsd:complexType name="ModifyRequestType">
         <xsd:sequence>
           <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
@@ -254,27 +200,14 @@
 
       <xsd:complexType name="ModifyResponseType">
         <xsd:sequence>
-          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="File"  type="sm:FileDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="ModifyResponse" type="sm:ModifyResponseType"/>
 
-       <!-- 
-       MKCOL logical name, metadata
-
-        works on collections only
-        metadata:
-            timestamp of creation
-            owner
-            access control list
-            closed
-        creates an empty collection
-        creates an entry of this collection ni the Catalog if this LN is available
-        after this collection is created, you can put files in it, or move files to it,
-        then you can close it with MOD
-      -->
+     <!-- Make operation -->
       <xsd:complexType name="MakeRequestType">
         <xsd:sequence>
           <xsd:element name="Collection" type="sm:CollectionDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
@@ -289,16 +222,24 @@
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="MakeResponse" type="sm:MakeResponseType"/>
+      
+      <!-- Unmake operation -->
+      <xsd:complexType name="UnmakeRequestType">
+        <xsd:sequence>
+          <xsd:element name="Collection" type="sm:CollectionDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="Unmake" type="sm:UnmakeRequestType"/>
 
-      <!--
-        LSCOL logical name
-
-        works on collections only
-        lists the contents of the collection: the names of the files and sub-collections in it
-
-        Operation is not recursive.
-        Returned information contains minimal metadata.
-      -->
+      <xsd:complexType name="UnmakeResponseType">
+        <xsd:sequence>
+          <xsd:element name="Collection"  type="sm:CollectionDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="Fault" type="sm:FaultType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="UnmakeResponse" type="sm:UnmakeResponseType"/>
+      
+      <!-- List operation -->
       <xsd:complexType name="ListRequestType">
         <xsd:sequence>
           <xsd:element name="Collection" type="sm:ItemReferenceType" minOccurs="1" maxOccurs="unbounded"/>
@@ -315,16 +256,7 @@
       </xsd:complexType>
       <xsd:element name="ListResponse" type="sm:ListResponseType"/>
 
-      <!--
-        MV old logical name, new logical name
-
-        if the new logical name is available then create the entry in the parent collection
-        of the new logical name similar to the entry at the old logical name,
-        then remove the entry of the parent collection of the old logical name
-        this is a rename (nothing happens with replicas)
-
-        Retturns minimal description with new name or fault with old name.
-      -->
+      <!-- Move operation -->
       <xsd:complexType name="PairType"> 
         <xsd:sequence>
           <xsd:element name="Source" type="sm:ItemReferenceType"/>
@@ -355,12 +287,7 @@
       </xsd:complexType>
       <xsd:element name="MoveResponse" type="sm:MoveResponseType"/>
 
-      <!--
-        LN target logical name, link logical name
-
-        same as MV, only it does not remove the entry of the parent collection
-            of the target logical name
-      -->
+      <!-- Link operation -->
       <xsd:complexType name="LinkRequestType">
         <xsd:sequence>
           <xsd:element name="Pair" type="sm:PairType" minOccurs="1" maxOccurs="unbounded"/>
@@ -378,14 +305,7 @@
       <xsd:element name="LinkResponse" type="sm:LinkResponseType"/>
 
 
-      <!--
-        CP source logical name, target logical name
-
-        works on files only ???
-        it is actually a PUT to the new logical name done by the Storage Manager itself
-        using a replica of the source logical name, or done by the a Storage Element
-        if it is capable
-      -->
+      <!-- Copy operation -->
       <xsd:complexType name="CopyRequestType">
         <xsd:sequence>
           <xsd:element name="Pair" type="sm:NewPairType" minOccurs="1" maxOccurs="unbounded"/>
@@ -402,10 +322,7 @@
       </xsd:complexType>
       <xsd:element name="CopyResponse" type="sm:CopyResponseType"/>
 
-      <!--
-        GLOB pattern
-        using the Catalog, returns all the logical names matching the given pattern
-      -->
+      <!-- Glob operation -->
       <xsd:complexType name="GlobRequestType">
         <xsd:sequence>
           <xsd:element name="Pattern" type="sm:PatternType" minOccurs="1" maxOccurs="unbounded"/>
@@ -431,6 +348,14 @@
   </wsdl:message>
 
   <wsdl:message name="PutResponse">
+    <wsdl:part name="parameters" element="sm:PutResponse"/>
+  </wsdl:message>
+  
+  <wsdl:message name="ReputRequest">
+    <wsdl:part name="parameters" element="sm:Put"/>
+  </wsdl:message>
+
+  <wsdl:message name="ReputResponse">
     <wsdl:part name="parameters" element="sm:PutResponse"/>
   </wsdl:message>
 
@@ -472,6 +397,14 @@
 
   <wsdl:message name="MakeResponse">
     <wsdl:part name="parameters" element="sm:MakeResponse"/>
+  </wsdl:message>
+  
+  <wsdl:message name="UnmakeRequest">
+    <wsdl:part name="parameters" element="sm:Unmake"/>
+  </wsdl:message>
+
+  <wsdl:message name="UnmakeResponse">
+    <wsdl:part name="parameters" element="sm:UnmakeResponse"/>
   </wsdl:message>
 
   <wsdl:message name="ListRequest">
@@ -521,6 +454,11 @@
       <wsdl:input  name="PutRequest" message="sm:PutRequest"/>
       <wsdl:output name="PutResponse" message="sm:PutResponse"/>
     </wsdl:operation>
+    
+    <wsdl:operation name="Reput">
+      <wsdl:input  name="ReputRequest" message="sm:ReputRequest"/>
+      <wsdl:output name="ReputResponse" message="sm:ReputResponse"/>
+    </wsdl:operation>
 
     <wsdl:operation name="Get">
       <wsdl:input  name="GetRequest" message="sm:GetRequest"/>
@@ -543,8 +481,13 @@
     </wsdl:operation>
 
     <wsdl:operation name="Make">
-      <wsdl:input  name="MakeRequest" message="sm:ModifyRequest"/>
-      <wsdl:output name="MakeResponse" message="sm:ModifyResponse"/>
+      <wsdl:input  name="MakeRequest" message="sm:MakeRequest"/>
+      <wsdl:output name="MakeResponse" message="sm:MakeResponse"/>
+    </wsdl:operation>
+    
+    <wsdl:operation name="Unmake">
+      <wsdl:input  name="UnmakeRequest" message="sm:UnmakeRequest"/>
+      <wsdl:output name="UnmakeResponse" message="sm:UnmakeResponse"/>
     </wsdl:operation>
 
     <wsdl:operation name="List">
@@ -584,6 +527,16 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="PutResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    
+    <wsdl:operation name="Reput">
+      <soap:operation/>
+      <wsdl:input name="ReputRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="ReputResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -634,6 +587,16 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="MakeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    
+    <wsdl:operation name="Unmake">
+      <soap:operation/>
+      <wsdl:input name="UnmakeRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="UnmakeResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
