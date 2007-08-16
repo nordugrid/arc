@@ -198,7 +198,7 @@ void MCC_TCP_Service::executer(void* arg) {
         addrlen=sizeof(addr);
         if(getsockname(s,(sockaddr*)(&addr),&addrlen) == 0) {
             char buf[256];
-            if(inet_ntop(AF_INET,&addr,buf,sizeof(buf)-1) != NULL) {
+            if(inet_ntop(AF_INET,&addr.sin_addr,buf,sizeof(buf)-1) != NULL) {
                 buf[sizeof(buf)-1]=0;
                 host_attr=buf;
                 port_attr=tostring(ntohs(addr.sin_port));
@@ -207,7 +207,7 @@ void MCC_TCP_Service::executer(void* arg) {
         };
         if(getpeername(s,(sockaddr*)(&addr),&addrlen) == 0) {
             char buf[256];
-            if(inet_ntop(AF_INET,&addr,buf,sizeof(buf)-1) != NULL) {
+            if(inet_ntop(AF_INET,&addr.sin_addr,buf,sizeof(buf)-1) != NULL) {
                 buf[sizeof(buf)-1]=0;
                 remotehost_attr=buf;
                 remoteport_attr=tostring(ntohs(addr.sin_port));
