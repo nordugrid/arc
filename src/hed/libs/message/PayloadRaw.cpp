@@ -39,14 +39,14 @@ static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,int pos,std::vector<Pay
 char* PayloadRaw::Content(int pos) {
   unsigned int bufnum;
   int bufpos;
-  if(!BufferAtPos(buf_,pos,bufnum,bufpos)) return NULL;
+  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return NULL;
   return buf_[bufnum].data+bufpos;
 }
 
 char PayloadRaw::operator[](int pos) const {
   unsigned int bufnum;
   int bufpos;
-  if(!BufferAtPos(buf_,pos,bufnum,bufpos)) return 0;
+  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return 0;
   return buf_[bufnum].data[bufpos];
 }
 
@@ -61,8 +61,9 @@ int PayloadRaw::Size(void) const {
 char* PayloadRaw::Insert(int pos,int size) {
   std::vector<PayloadRawBuf>::iterator bufref;
   int bufpos;
-  if(!BufferAtPos(buf_,pos,bufref,bufpos)) {
+  if(!BufferAtPos(buf_,pos-offset_,bufref,bufpos)) {
     bufref=buf_.end(); bufpos=0;
+    if(buf_.size() == 0) offset_=pos;
   };
   PayloadRawBuf buf;
   if(bufpos != 0) {
@@ -105,6 +106,16 @@ char* PayloadRaw::Buffer(unsigned int num) {
 int PayloadRaw::BufferSize(unsigned int num) const {
   if(num>=buf_.size()) return 0;
   return buf_[num].length;
+}
+
+int PayloadRaw::BufferPos(unsigned int num) const {
+  int pos = offset_;
+  std::vector<PayloadRawBuf>::const_iterator b = buf_.begin();
+  for(;b!=buf_.end();++b) {
+    if(!num) break;
+    pos+=(b->length);
+  };
+  return pos;
 }
 
 const char* ContentFromPayload(const MessagePayload& payload) {
