@@ -1,4 +1,4 @@
-SUBDIRS=soap tcp http tls 
+SUBDIRS=tcp tls http soap
 
 DIST_SUBDIRS = $(SUBDIRS) # plexer
 
