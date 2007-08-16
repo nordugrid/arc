@@ -94,14 +94,15 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   //if(!(*retpayload)) { delete retpayload; return make_http_fault(*inpayload,outmsg); };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
-  // TODO: make it possible for HTTP paylaod to acquire Raw payload to exclude double buffering
+  // TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
   PayloadHTTP* outpayload = new PayloadHTTP(200,"OK",*inpayload);
-  int l = 0;
+  // int l = 0;
   for(int i = 0;;++i) {
     char* buf = retpayload->Buffer(i);
     if(!buf) break;
     int bufsize = retpayload->BufferSize(i);
-    outpayload->Insert(buf,l,bufsize); l+=bufsize;
+    int l = retpayload->BufferPos(i);
+    outpayload->Insert(buf,l,bufsize); // l+=bufsize;
   };
   delete retpayload;
   if(!outpayload->Flush()) return make_http_fault(*inpayload,outmsg);

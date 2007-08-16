@@ -26,6 +26,8 @@ class PayloadHTTP: public PayloadRaw {
   int code_;                       /** HTTP code being sent or supplied */
   std::string reason_;             /** HTTP reason being sent or supplied */
   int length_;                     /** Content-length of HTTP message */
+  int offset_;                     /** Logical beginning of content computed from Content-Range */
+  int size_;                       /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */
   std::map<std::string,std::string> attributes_; /* All HTTP attributes */
   char tbuf_[1024];

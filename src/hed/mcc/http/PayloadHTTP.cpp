@@ -89,6 +89,31 @@ bool PayloadHTTP::parse_header(void) {
   if(it != attributes_.end()) {
     length_=strtol(it->second.c_str(),NULL,10);
   };
+  it=attributes_.find("content-range");
+  if(it != attributes_.end()) {
+    const char* token = it->second.c_str();
+    const char* p = token; for(;*p;p++) if(isspace(*p)) break;
+    int range_start,range_end,entity_size;
+    if(strncasecmp("bytes",token,p-token) == 0) {
+      for(;*p;p++) if(!isspace(*p)) break;
+      char *e;
+      range_start=strtoull(p,&e,10);
+      if((*e) == '-') {
+        p=e+1; range_end=strtoull(p,&e,10); p=e;
+        if(((*e) == '/') || ((*e) == 0)) {
+          if(range_start <= range_end) {
+            offset_=range_start;
+          };
+          if((*p) == '/') {
+            p++; entity_size=strtoull(p,&e,10);
+            if((*e) == 0) {
+              size_=entity_size;
+            };
+          };
+        };
+      };
+    };
+  };
   it=attributes_.find("transfer-encoding");
   if(it != attributes_.end()) {
     if(strcasecmp(it->second.c_str(),"chunked") != 0) {
@@ -243,8 +268,12 @@ bool PayloadHTTP::Flush(void) {
     //if(!stream_.Put(line)) return false;
   };
   length_=Size();
+  offset_=BufferPos(0);
   if((method_ != "GET") && (method_ != "HEAD")) {
     header+="Content-Length: "+tostring(length_)+"\r\n";
+    if(length_>0) {
+      header+="Content-Range: bytes "+tostring(offset_)+"-"+tostring(length_-1)+"/*";
+    };
     //if(!stream_.Put(line)) return false;
   };
   bool keep_alive = false;
