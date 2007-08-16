@@ -1,9 +1,9 @@
+#include <iostream>
 #include "Message.h"
 
 namespace Arc {
 
 MessageContext::MessageContext(void) {
-
 }
 
 MessageContext::~MessageContext(void) {
