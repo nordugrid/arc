@@ -377,21 +377,6 @@ std::string ARexJob::State(void) {
   return states_all[state].name;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 bool ARexJob::make_job_id(const std::string &id) {
   if((id.find('/') != std::string::npos) || (id.find('\n') != std::string::npos)) {
@@ -470,5 +455,10 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config) {
     jlist.push_back(i->get_id());
   };
   return jlist;
+}
+
+std::string ARexJob::SessionDir(void) {
+  if(id_.empty()) return "";
+  return config_.User()->SessionRoot()+"/"+id_;
 }
 

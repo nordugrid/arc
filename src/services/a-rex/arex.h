@@ -24,6 +24,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
+  Arc::MCC_Status Get(ARexGMConfig& config,const std::string& id,const std::string& subpath);
  public:
   ARexService(Arc::Config *cfg);
   virtual ~ARexService(void);

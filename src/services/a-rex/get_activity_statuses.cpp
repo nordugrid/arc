@@ -71,7 +71,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
       bes_state="Running"; arex_state="Killing";
     };
     // Make response
-    Arc::XMLNode state = resp.NewChild("bes-factor:ActivityStatus");
+    Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("bes-factory:ActivityStateEnumeration")=bes_state;
     state.NewChild("a-rex:state")=arex_state;
   };

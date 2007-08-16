@@ -206,15 +206,12 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } else {
       // Listing operations for session directories
     };
-  } else if(method == "GET") {
-    logger.msg(Arc::DEBUG, "process: GET");
-    
-  } else if(method == "PUT") {
-    logger.msg(Arc::DEBUG, "process: PUT");
+  } else {
     if(id.empty() || subpath.empty()) {
       std::cerr << "A-Rex: input contains no proper path to file" << std::endl;
       return make_fault(outmsg);
     };
+    // HTTP plugin either provides buffer or stream
     Arc::PayloadRawInterface* inbufpayload = NULL;
     Arc::PayloadStreamInterface* instreampayload = NULL;
     try {
@@ -223,21 +220,29 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(!inbufpayload) try {
       instreampayload = dynamic_cast<Arc::PayloadStreamInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
-    if((!inbufpayload) && (!instreampayload)) {
-      std::cerr << "A-Rex: input is neither stream nor buffer" << std::endl;
-      return make_fault(outmsg);
+    if(method == "GET") {
+      logger.msg(Arc::DEBUG, "process: GET");
+      
+
+
+
+
+
+
+    } else if(method == "PUT") {
+      logger.msg(Arc::DEBUG, "process: PUT");
+      if(inbufpayload) {
+
+      } else if(instreampayload) {
+      } else {
+        // Method PUT requres input
+        std::cerr << "A-Rex: input is neither stream nor buffer" << std::endl;
+        return make_fault(outmsg);
+      };
+    } else {
+      logger.msg(Arc::DEBUG, "process: $s: not supported",method.c_str());
+      return Arc::MCC_Status();
     };
-    if(inbufpayload) {
-
-
-
-
-
-    };
-  } else if(method == "HEAD") {
-    logger.msg(Arc::DEBUG, "process: HEAD");
-  
-
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
