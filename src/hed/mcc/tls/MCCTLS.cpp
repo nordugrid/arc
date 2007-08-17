@@ -199,13 +199,14 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-   if(!ca_file.empty()){
-      r=SSL_CTX_load_verify_locations(sslctx_, ca_file.c_str(), NULL /* no CA-directory */);   //The CA-directory paremerters would be added to support multiple CA
+   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, NULL);
+   if((!ca_file.empty()) || (!ca_dir.empty())){
+      r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
       if(!r){
          tls_process_error();
          return;
       }   
+      /*
       SSL_CTX_set_client_CA_list(sslctx_, 
          SSL_load_client_CA_file(ca_file.c_str())
       ); //Scan all certificates in CAfile and list them as acceptable CAs
@@ -215,6 +216,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    	 tls_process_error();
 	 return;
       }
+      */
    }
    if(tls_dhe1024 == NULL){
    	tls_set_dhe1024();
@@ -225,7 +227,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
            tls_process_error();
 	   return;
    }
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
+   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
 #ifndef NO_RSA
    RSA *tmpkey;
    tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL);
@@ -307,7 +309,8 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       std::string peer_dn = buf;
       logger.msg(DEBUG, "DN name: %s", peer_dn.c_str());
-      //Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribut temporally, it should be put into MessageAuth later.
+      // Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribute temporally, 
+      // it should be put into MessageAuth later.
       nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
    }
    
@@ -355,11 +358,12 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-   if(ca_file.c_str()!=NULL){
-        r=SSL_CTX_load_verify_locations(sslctx_, ca_file.c_str(), NULL /* no CA-directory */);   //The CA-directory paremerters would be added to support multiple CA
+   if((!ca_file.empty()) || (!ca_dir.empty())) {
+        r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
         if(!r){
            tls_process_error();
-           return;}
+           return;
+        }
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
 
