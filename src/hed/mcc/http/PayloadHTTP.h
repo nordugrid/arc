@@ -29,6 +29,7 @@ class PayloadHTTP: public PayloadRaw {
   int offset_;                     /** Logical beginning of content computed from Content-Range */
   int size_;                       /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */
+  bool keep_alive_;                /** true if conection should not be closed after response */
   std::map<std::string,std::string> attributes_; /* All HTTP attributes */
   char tbuf_[1024];
   int tbuflen_;

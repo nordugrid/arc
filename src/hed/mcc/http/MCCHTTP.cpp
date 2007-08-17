@@ -35,9 +35,17 @@ MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC_HTTP(cfg) {
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 }
 
-static MCC_Status make_http_fault(PayloadStreamInterface& stream,Message& outmsg,const char* desc = NULL) {
-  if((desc == NULL) || (*desc == 0)) desc="Bad Request";
-  PayloadHTTP outpayload(400,desc,stream);
+static MCC_Status make_http_fault(Arc::Logger& logger,PayloadStreamInterface& stream,Message& outmsg,int code,const char* desc = NULL) {
+  if((desc == NULL) || (*desc == 0)) {
+    switch(code) {
+      case 400: desc="Bad Request"; break;
+      case 404: desc="Not Found"; break;
+      case 500: desc="Internal error"; break;
+      default: desc="Something went wrong";
+    };
+  };
+  logger.msg(WARNING, "HTTP Error: %d %s",code,desc);
+  PayloadHTTP outpayload(code,desc,stream);
   outpayload.Flush();
   // Returning empty payload because response is already sent
   PayloadRaw* outpayload_e = new PayloadRaw;
@@ -64,7 +72,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Converting stream payload to HTTP which also implements raw interface
   PayloadHTTP nextpayload(*inpayload);
   if(!nextpayload) {
-    return make_http_fault(*inpayload,outmsg);
+    return make_http_fault(logger,*inpayload,outmsg,400);
   };
   // Creating message to pass to next MCC and setting new payload. 
   Message nextinmsg = inmsg;
@@ -80,18 +88,18 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   };
   // Call next MCC 
   MCCInterface* next = Next(nextpayload.Method());
-  if(!next) return make_http_fault(*inpayload,outmsg);
+  if(!next) return make_http_fault(logger,*inpayload,outmsg,404);
   Message nextoutmsg;
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract raw response
-  if(!ret) return make_http_fault(*inpayload,outmsg);
-  if(!nextoutmsg.Payload()) return make_http_fault(*inpayload,outmsg);
+  if(!ret) return make_http_fault(logger,*inpayload,outmsg,500);
+  if(!nextoutmsg.Payload()) return make_http_fault(logger,*inpayload,outmsg,500);
   PayloadRaw* retpayload = NULL;
   try {
     retpayload = dynamic_cast<PayloadRaw*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(*inpayload,outmsg); };
-  //if(!(*retpayload)) { delete retpayload; return make_http_fault(*inpayload,outmsg); };
+  if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,500); };
+  //if(!(*retpayload)) { delete retpayload; return make_http_fault(logger,*inpayload,outmsg); };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
   // TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
@@ -105,7 +113,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     outpayload->Insert(buf,l,bufsize); // l+=bufsize;
   };
   delete retpayload;
-  if(!outpayload->Flush()) return make_http_fault(*inpayload,outmsg);
+  if(!outpayload->Flush()) return make_http_fault(logger,*inpayload,outmsg,500);
   delete outpayload;
   outmsg = nextoutmsg;
   // Returning empty payload because response is already sent

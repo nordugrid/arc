@@ -46,6 +46,7 @@ bool PayloadHTTP::readline(std::string& line) {
 bool PayloadHTTP::parse_header(void) {
   method_.resize(0);
   code_=0;
+  keep_alive_=false;
   // Skip empty lines
   std::string line;
   for(;line.empty();) if(!readline(line)) return false;
@@ -67,6 +68,9 @@ bool PayloadHTTP::parse_header(void) {
     if(!ParseHTTPVersion(line.substr(pos3+1),version_major_,version_minor_)) return false;
     method_=line.substr(0,pos2);
     uri_=line.substr(pos2+1,pos3-pos2-1);
+  };
+  if((version_major_ > 1) || ((version_major_ == 1) && (version_minor_ >= 1))) {
+    keep_alive_=true;
   };
   // Parse header lines
   for(;readline(line) && (!line.empty());) {
@@ -122,6 +126,15 @@ bool PayloadHTTP::parse_header(void) {
     };
     chunked_=true;
   };
+  it=attributes_.find("connection");
+  if(it != attributes_.end()) {
+    if(strcasecmp(it->second.c_str(),"keep-alive") == 0) {
+      keep_alive_=true;
+    } else {
+      keep_alive_=false;
+    };
+  };
+  if(keep_alive_ && (length_ == -1)) length_=0;
   return true;
 }
 
@@ -165,12 +178,12 @@ bool PayloadHTTP::get_body(void) {
       if(!readline(line)) return false;
       if(!line.empty()) return false;
     };
-  } else if(length_ >= 0) {
-    if(length_ > 0) {
-      result=(char*)malloc(length_+1);
-      if(!read(result,length_)) { free(result); return false; };
-      result_size=length_;
-    };
+  } else if(length_ == 0) {
+    return true;
+  } else if(length_ > 0) {
+    result=(char*)malloc(length_+1);
+    if(!read(result,length_)) { free(result); return false; };
+    result_size=length_;
   } else {
     // Read till connection closed
     for(;;) {
