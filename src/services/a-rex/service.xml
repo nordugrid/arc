@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+>
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+	<Path>./.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arex</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <KeyPath>./key.pem</KeyPath>
+	    <CertificatePath>./cert.pem</CertificatePath>
+	    <CACertificatePath>./ca.pem</CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+	    <next id="a-rex">GET</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+	    <next id="a-rex"/>
+        </Component>
+        <Service name="a-rex" id="a-rex">
+	  <!-- arex:gmconfig>./arc.conf</arex:gmconfig -->
+	  <!-- arex:endpoint>https://localhost:60000/arex</arex:endpoint -->
+	  <arex:endpoint>https://localhost:60000</arex:endpoint>
+	  <arex:username>nobody</arex:username>
+	  <arex:gmconfig>./arc.conf</arex:gmconfig>
+        </Service>
+    </Chain>
+</ArcConfig>
