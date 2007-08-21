@@ -25,7 +25,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
       Subject sub;
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
-        if(tnd) break;
+        if(!tnd) break;
         sub.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       subjects.push_back(sub);

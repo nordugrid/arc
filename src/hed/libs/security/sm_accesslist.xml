@@ -12,6 +12,8 @@ Each service can has one authorization policy file. The authorization decision i
       </Description>
       <Subjects>
          <Subject Type="X509DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
+           /O=Grid/OU=KnowARC/CN=ABC
+	   /O=Grid/OU=KnowARC/CN=ABC    
          <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
       </Subjects>
       <Resources>
