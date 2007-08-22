@@ -18,10 +18,22 @@ public:
   EvaluationCtx (const Arc::Request* request);
   virtual ~EvaluationCtx();
   
+  virtual Arc::Request* getRequest() const;
+ 
+  virtual void setRequestItem(const Arc::RequestItem* reqit){reqitem = reqit};
+
+  virtual Arc::RequestItem* getRequestItem() const {return reqitem};
+
   virtual ArrtibuteValue * getSubjectAttribute();
   virtual ArrtibuteValue * getResourceAttribute();
   virtual ArrtibuteValue * getActionAttribute();
   virtual ArrtibuteValue * getEnvironmentAttribute();
+
+private:
+  Arc::Request* req;
+ 
+  Arc::RequestItem* reqitem;
+
 };
 
 } // namespace Arc

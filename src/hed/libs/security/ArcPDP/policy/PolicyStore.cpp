@@ -12,6 +12,12 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
 
 }
 
-Policy* PolicyStore::findPolicy(EvaluationCtx context){
-  
+Arc::MatchedItem PolicyStore::findPolicy(const EvaluationCtx* ctx){
+ 
+  std::list<Policy*>::iterator it; 
+  for(it = policies.begin(); it!=policies.end(); it++ ){
+    Arc::ReqItemList reqitems = (*it)->match(ctx);
+  }
+
+ //TODO 
 }

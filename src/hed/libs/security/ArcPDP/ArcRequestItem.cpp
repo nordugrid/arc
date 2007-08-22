@@ -45,7 +45,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
       Resource res;
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
-        if(tnd) break;
+        if(!tnd) break;
         res.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       resources.push_back(res);
@@ -65,7 +65,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
       Action act;
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
-        if(tnd) break;
+        if(!tnd) break;
         act.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       actions.push_back(act);
@@ -85,7 +85,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
       Environment env;
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
-        if(tnd) break;
+        if(!tnd) break;
         env.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
       environments.push_back(env);

@@ -18,10 +18,10 @@ public:
   ArcPolicy(const XMLNode& node);  
   virtual ~ArcPolicy();
 
-  virtual Result eval(EvalCtx ctx);
+  virtual Result eval(const EvaluationCtx* ctx);
 
 private:
-  std::list<Arc::Policy*> rules;
+ // std::list<Arc::Policy*> rules;
   std::string id;
   std::string version;
   CombiningAlg *comalg;

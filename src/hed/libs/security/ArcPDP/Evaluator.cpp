@@ -56,7 +56,26 @@ Arc::Response* Evaluator::evaluate(const std::string& reqfile){
   
 }
 
-Arc::Response* Evaluator::evaluate(const Arc::EvaluationCtx& ctx){
+Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
+  Arc::MatchedItem matcheditem = plstore->findPolicy(ctx);
+
+  Arc::Response response = new Arc::Response();
+  for(Arc::MatchedItem::iterator it = matcheditem.begin(); it!=matcheditem.end(); it++){
+    Arc::RequestItem* reqitem = (*it).first;
+    Arc::Policy* policies = (*it).second;
+    ctx->setRequestItem(reqitem);
+    Arc::Response* resp = policies->eval(ctx);
+    response->merge(resp);
+  }   
+  
+  return response;
+
+  
+/*  Request* req = ctx->getRequest();
+  ReqItemList reqitems = req->getRequestItems();
+*/
+ 
+
   
 }
 

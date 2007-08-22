@@ -28,6 +28,7 @@ public:
 
   virtual Arc::Response* evaluate(const Arc::Request* request);
   virtual Arc::Response* evaluate(const std::string& reqfile);
+  virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx)
 };
 
 } // namespace Arc

@@ -11,12 +11,17 @@ namespace Arc {
 
 class Policy {
 
+protected:
+  std::list<Policy*> subelements;
+
 public:
   Policy(){};
   Policy(const XMLNode& node){};  
   virtual ~Policy();
 
   virtual Result eval(EvalCtx ctx){};
+
+  virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
 };
 

@@ -152,7 +152,7 @@ ArcRule::ArcRule(const XMLNode& node){
  
 }
 
-Result ArcPolicy::eval(EvalCtx ctx){
+Result ArcPolicy::evaluation(const EvaluationCtx* ctx){
 
 
 }

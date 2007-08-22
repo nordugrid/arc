@@ -19,19 +19,19 @@ ArcPolicy::ArcPolicy(const XMLNode& node){
     nd = node["Rule"][i];
     if(!nd) break;
     rule = new ArcRule(nd);
-    rules.push_back(rule);
+    subelements.push_back(rule);
   }
     
 }
 
-Result ArcPolicy::eval(EvalCtx ctx){
+Result ArcPolicy::eval(const EvaluationCtx* ctx){
 
 }
 
 ArcPolicy::~ArcPolicy(){
-  while(!rules.empty()){
-      delete rules.back();
-      rules.pop_back();
+  while(!subelements.empty()){
+      delete subelements.back();
+      subelements.pop_back();
   }
 
 }

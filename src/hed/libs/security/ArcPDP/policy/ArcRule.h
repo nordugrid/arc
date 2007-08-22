@@ -18,14 +18,14 @@ typedef std::list<Arc::AndList*> OrList;
 
 
 /**ArcRule class to parsing Arc specific rule format*/
-class ArcRule {
+class ArcRule : public Policy {
 
 public:
   ArcRule();
   ArcRule(const XMLNode& node);  
   virtual ~ArcRule();
 
-  virtual Result eval(EvalCtx ctx);
+  virtual Result eval(const EvaluationCtx* ctx);
 
 private:
   int effect = 0;
