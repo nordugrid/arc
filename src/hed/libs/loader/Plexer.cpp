@@ -99,6 +99,7 @@ namespace Arc {
   MCC_Status Plexer::process(Message& request, Message& response){
     std::string ep = request.Attributes()->get("ENDPOINT");
     std::string path = getPath(ep);
+    logger.msg(DEBUG, "Operation on path \"%s\"",path.c_str());
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
       std::list<std::string> unmatched;
@@ -110,6 +111,7 @@ namespace Arc {
         return iter->service->process(request, response);
       }
     }
+    logger.msg(WARNING, "No service at path \"%s\"",path.c_str());
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR,
 			   (std::string)("MCC Plexer"),
 			   path);  
