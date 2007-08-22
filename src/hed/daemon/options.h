@@ -1,7 +1,7 @@
 #ifndef __ARC_SERVER_OPTIONS_H__
 #define __ARC_SERVER_OPTIONS_H__
 
-#ifdef HAVE_GLIB_OPTIONS
+#ifdef HAVE_GLIBMM_OPTIONS
 #include <glibmm.h>
 #else
 #include <unistd.h>
@@ -11,7 +11,7 @@
 
 namespace Arc {
 
-#ifdef HAVE_GLIB_OPTIONS
+#ifdef HAVE_GLIBMM_OPTIONS
 
 class ServerOptions : public Glib::OptionGroup {
     public:

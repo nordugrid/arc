@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-#ifdef HAVE_GLIB_OPTIONS
+#ifdef HAVE_GLIBMM_OPTIONS
 
 ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server options of arc server", "help") {
     
