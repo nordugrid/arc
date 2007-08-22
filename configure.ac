@@ -135,6 +135,16 @@ AC_SUBST(GTHREAD_LIBS)
 PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
+SAVE_CXXFLAGS=$CXXFLAGS
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+CXXFLAGS+=" $GLIBMM_CFLAGS"
+AC_TRY_COMPILE([#include <glibmm/optiongroup.h>],[],[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
+AC_LANG_RESTORE
+CXXFLAGS=$SAVE_CXXFLAGS
+if test "$glibmm_optiongroup_h" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_OPTIONS,,[define if glibmm have support for command line arguments])
+fi
 # check libxml
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.6.0])
 AC_SUBST(LIBXML2_CFLAGS)
