@@ -1,5 +1,5 @@
 lib_LTLIBRARIES= libecho.la
-noinst_PROGRAMS=test test_client perftest
+noinst_PROGRAMS=test test_client test_service perftest
 SOURCES =
 
 libecho_ladir=$(includedir)
@@ -16,6 +16,11 @@ test_client_SOURCES=$(SOURCES) test_client.cpp
 test_client_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
 test_client_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_client_LDADD=$(top_srcdir)/src/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libmessage.la
+
+test_service_SOURCES=$(SOURCES) test_service.cpp
+test_service_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
+test_service_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test_service_LDADD=$(top_srcdir)/src/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libmessage.la
 
 perftest_SOURCES=$(SOURCES) perftest.cpp
 perftest_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
