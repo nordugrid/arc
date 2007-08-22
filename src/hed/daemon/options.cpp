@@ -6,6 +6,8 @@
 
 namespace Arc {
 
+#ifdef HAVE_GLIB_OPTIONS
+
 ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server options of arc server", "help") {
     
     foreground = false;
@@ -32,5 +34,40 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     entry3.set_description("full path of pid file");
     add_entry_filename(entry3, pid_file);
 }
+
+#else
+
+const char* ServerOptions::optstring = "fc:p:";
+const struct option ServerOptions::longopts[] = {
+    {"foreground", 0, NULL, 'f'},
+    {"config", 1, NULL, 'c'},
+    {"pid-file", 1, NULL, 'p'},
+    {NULL, 0, NULL, 0}
+};
+
+ServerOptions::ServerOptions() {
+    foreground = false;
+    config_file = "/etc/arc/server.xml";
+    pid_file = "";
+    user="";
+    group="";
+}
+
+int ServerOptions::parse(int argc,char * const argv[]) {
+    for(;;) {
+        int r = getopt_long(argc,argv,optstring,longopts,NULL);
+        switch(r) {
+            case -1: return 1;
+            case '?': return 0;
+            case ':': return 0;
+            case 'f': foreground=true; break;
+            case 'c': config_file=optarg; break;
+            case 'p': pid_file=optarg; break;
+            default: return 0;
+        };
+    };
+}
+
+#endif
 
 } // namespace Arc

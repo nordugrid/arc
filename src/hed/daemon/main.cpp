@@ -67,11 +67,16 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
+#ifdef HAVE_GLIB_OPTIONS
     /* Create options parser */
     Glib::OptionContext opt_ctx;
     opt_ctx.set_help_enabled();
     Arc::ServerOptions options;
     opt_ctx.set_main_group(options);
+#else
+    Arc::ServerOptions options;
+    Arc::ServerOptions& opt_ctx = options;
+#endif
 
     try {
         int status = opt_ctx.parse(argc, argv);
