@@ -15,7 +15,7 @@ libnamespace_la_SOURCES=namespace.cpp
 libnamespace_la_CPPFLAGS=$(GSOAP_CFLAGS)
 libnamespace_la_LDFLAGS=
 
-jsdl_job.lo: jsdl_soapStub.h
+jsdl_job.cpp: jsdl_soapStub.h
 
 jsdl_soap.h: jsdl_complete.xsd jsdl_POSIXApplication.xsd jsdl_arc.xsd typemap.dat
 	$(WSDL2H) -t typemap.dat -o jsdl_soap.h jsdl_POSIXApplication.xsd jsdl_arc.xsd jsdl_complete.xsd
