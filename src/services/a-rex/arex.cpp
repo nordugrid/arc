@@ -105,8 +105,14 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
         };
         endpoint+=GetPath(http_endpoint);
       };
-      config=new ARexConfigContext("",uname,grid_name,endpoint);
-      inmsg.Context()->Add("arex.gmconfig",config);
+      config=new ARexConfigContext(gmconfig_,uname,grid_name,endpoint);
+      if(config) {
+        if(*config) {
+          inmsg.Context()->Add("arex.gmconfig",config);
+        } else {
+          delete config; config=NULL;
+        };
+      };
     };
   };
   return config;
@@ -119,6 +125,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
   logger.msg(Arc::DEBUG, "process: method: %s", method.c_str());
   logger.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
   if(id.length() < endpoint.length()) {
@@ -207,10 +214,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Listing operations for session directories
     };
   } else {
-    if(id.empty() || subpath.empty()) {
-      std::cerr << "A-Rex: input contains no proper path to file" << std::endl;
-      return make_fault(outmsg);
-    };
+//    if(id.empty() || subpath.empty()) {
+//std::cerr << "A-Rex: input contains no proper path to file" << std::endl;
+//      return make_fault(outmsg);
+//    };
     // HTTP plugin either provides buffer or stream
     Arc::PayloadRawInterface* inbufpayload = NULL;
     Arc::PayloadStreamInterface* instreampayload = NULL;
@@ -221,14 +228,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       instreampayload = dynamic_cast<Arc::PayloadStreamInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(method == "GET") {
+      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
       logger.msg(Arc::DEBUG, "process: GET");
-      
-
-
-
-
-
-
+      Arc::MCC_Status ret = Get(*config,id,subpath,*buf);
+      if(!ret) { delete buf; return make_fault(outmsg); };
+      outmsg.Payload(buf);
     } else if(method == "PUT") {
       logger.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
@@ -255,6 +259,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["username"]);
+  gmconfig_=(std::string)((*cfg)["gmconfig"]);
 }
 
 ARexService::~ARexService(void) {

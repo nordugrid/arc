@@ -6,53 +6,93 @@
 
 #include <string>
 
+#include <src/libs/common/StringConv.h>
+#include "message/PayloadRaw.h"
+#include "job.h"
+
+#include "arex.h"
+
 #define MAX_CHUNK_SIZE (10*1024*1024)
 
 namespace ARex {
 
 static bool http_get(const std::string& burl,const std::string& bpath,const std::string& hpath,uint64_t& offset,uint64_t& size,Arc::PayloadRawInterface& buf);
 
-Arc::MCC_Status Get(ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
+Arc::MCC_Status ARexService::Get(ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
+  if(id.empty()) {
+    // Make list of jobs
+    std::string html;
+    html="<HTML>\r\n<HEAD>ARex: Jobs list</HEAD>\r\n<BODY><UL>\r\n";
+    std::list<std::string> jobs = ARexJob::Jobs(config);
+std::cerr<<"Get: endpoint: "<<config.Endpoint()<<std::endl;
+    for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
+      std::string line = "<LI><I>job</I> <A HREF=\"";
+std::cerr<<"Get: job: "<<(*job)<<std::endl;
+      line+=config.Endpoint()+"/"+(*job);
+      line+="\">";
+      line+=(*job);
+      line+="</A>\r\n";
+      html+=line;
+    };
+    html+="</UL>\r\n</BODY>\r\n</HTML>";
+std::cerr<<"Get: html: "<<html<<std::endl;
+    buf.Insert(html.c_str(),0,html.length());
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  };
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
+std::cerr<<"Get: there is no job: "<<id<<std::endl;
 
     return Arc::MCC_Status();
   };
-  std::string session_dir = job.SesssionDir();
+  std::string session_dir = job.SessionDir();
   uint64_t offset = 0;
-  uint64_t size = 0;
-  http_get(config.Endpoint()+id,session_dir,subpath,offset,size)
+  uint64_t size = MAX_CHUNK_SIZE;
+  if(!http_get(config.Endpoint()+"/"+id,session_dir,subpath,offset,size,buf)) {
+    // Can't get file
 
+    return Arc::MCC_Status();
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 } 
 
 static bool http_get(const std::string& burl,const std::string& bpath,const std::string& hpath,uint64_t& offset,uint64_t& size,Arc::PayloadRawInterface& buf) {
   std::string path=bpath+"/"+hpath;
+std::cerr<<"http:get: burl: "<<burl<<std::endl;
+std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
+std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
+std::cerr<<"http:get: offset: "<<offset<<std::endl;
+std::cerr<<"http:get: size: "<<size<<std::endl;
+std::cerr<<"http:get: path: "<<path<<std::endl;
   struct stat64 st;
   if(lstat64(path.c_str(),&st) == 0) {
     if(S_ISDIR(st.st_mode)) {
+std::cerr<<"http:get: directory"<<std::endl;
       DIR *dir=opendir(path.c_str());
       if(dir != NULL) {
         // Directory - html with file list
         struct dirent file_;
         struct dirent *file;
         std::string html;
-        html="<HTML>\r\n<HEAD></HEAD>\r\n<BODY><UL>\r\n";
+        html="<HTML>\r\n<HEAD>ARex: Job</HEAD>\r\n<BODY><UL>\r\n";
         for(;;) {
           readdir_r(dir,&file_,&file);
           if(file == NULL) break;
+          if(strcmp(file->d_name,".") == 0) continue;
+          if(strcmp(file->d_name,"..") == 0) continue;
           std::string fpath = path+"/"+file->d_name;
           if(lstat64(fpath.c_str(),&st) == 0) {
             if(S_ISREG(st.st_mode)) {
               std::string line = "<LI><I>file</I> <A HREF=\"";
-              line+=burl+"/"+bpath+"/"+file->d_name;
+              line+=burl+"/"+hpath+"/"+file->d_name;
               line+="\">";
               line+=file->d_name;
-              line+="</A>\r\n";
+              line+="</A> - "+Arc::tostring(st.st_size)+" bytes"+"\r\n";
               html+=line;
             } else if(S_ISDIR(st.st_mode)) {
               std::string line = "<LI><I>dir</I> <A HREF=\"";
-              line+=burl+"/"+bpath+"/"+file->d_name+"/";
+              line+=burl+"/"+hpath+"/"+file->d_name+"/";
               line+="\">";
               line+=file->d_name;
               line+="</A>\r\n";
@@ -62,32 +102,39 @@ static bool http_get(const std::string& burl,const std::string& bpath,const std:
         };
         closedir(dir);
         html+="</UL>\r\n</BODY>\r\n</HTML>";
+std::cerr<<"Get: html: "<<html<<std::endl;
         buf.Insert(html.c_str(),0,html.length());
         return true;
       };
-    };
-  } else if(S_ISREG(st.st_mode)) {
-    // File 
-    int h = open64(path.c_str(),O_RDONLY);
-    if(h != -1) {
-      off_t o = lseek64(h,offset,SEEK_SET);
-      if(o != offset) {
-        // Out of file
+    } else if(S_ISREG(st.st_mode)) {
+      // File 
+std::cerr<<"http:get: file: "<<path<<std::endl;
+      //size=st.st_size;
+      int h = open64(path.c_str(),O_RDONLY);
+      if(h != -1) {
+std::cerr<<"http:get: file is opened"<<std::endl;
+        off_t o = lseek64(h,offset,SEEK_SET);
+        if(o != offset) {
+          // Out of file
+std::cerr<<"http:get: file has ended"<<std::endl;
 
-      } else {
-        if(size > MAX_CHUNK_SIZE) size=MAX_CHUNK_SIZE;
-        char* sbuf = buf.Insert(offset,size);
-        if(buf) {
-          ssize_t l = read(h,sbuf,size);
-          if(l != -1) {
-            close(h);
-            size=l; buf.Truncate(offset+size);
-            return true;
+        } else {
+          if(size > MAX_CHUNK_SIZE) size=MAX_CHUNK_SIZE;
+std::cerr<<"http:get: file: size: "<<size<<std::endl;
+          char* sbuf = buf.Insert(offset,size);
+          if(sbuf) {
+            ssize_t l = read(h,sbuf,size);
+            if(l != -1) {
+              close(h);
+              size=l;
+              buf.Truncate(offset+size); // Make sure there is no garbage in buffer
+              buf.Truncate(st.st_size);  // Specify logical size
+              return true;
+            };
           };
-          free(buf);
         };
+        close(h);
       };
-      close(h);
     };
   };
   // Can't process this path

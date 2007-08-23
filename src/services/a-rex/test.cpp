@@ -13,6 +13,7 @@
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
+  signal(SIGPIPE,SIG_IGN);
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -268,6 +269,9 @@ int main(void) {
     };
 
   };
+
+  for(;;) sleep(10);
+
 /*
 
 

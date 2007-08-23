@@ -2,6 +2,7 @@
 #define __ARC_AREX_H__
 
 #include "message/Service.h"
+#include "message/PayloadRaw.h"
 
 namespace ARex {
 
@@ -14,6 +15,7 @@ class ARexService: public Arc::Service {
   Arc::Logger logger_;
   std::string endpoint_;
   std::string uname_;
+  std::string gmconfig_;
   ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
@@ -24,7 +26,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
-  Arc::MCC_Status Get(ARexGMConfig& config,const std::string& id,const std::string& subpath);
+  Arc::MCC_Status Get(ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf);
  public:
   ARexService(Arc::Config *cfg);
   virtual ~ARexService(void);

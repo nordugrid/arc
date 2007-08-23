@@ -25,6 +25,7 @@ ARexGMConfig::~ARexGMConfig(void) {
 }
 
 ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
+  if(!configfile.empty()) nordugrid_config_loc=configfile;
   if(!env_initialized) {
     //if(!run.is_initialized()) {
     //  // olog<<"Warning: Initialization of signal environment failed"<<std::endl;
@@ -35,7 +36,6 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
     };
   };
   if(!env_initialized) return;
-  if(!configfile.empty()) nordugrid_config_loc=configfile;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
   user_=new JobUser(uname);
@@ -106,12 +106,16 @@ bool ARexJob::is_allowed(void) {
 }
 
 ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):config_(config),id_(id) {
+std::cerr<<"ARexJob: id="<<id<<std::endl;
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
+std::cerr<<"ARexJob: job_local_read_file"<<std::endl;
   if(!job_local_read_file(id_,*config_.User(),job_)) { id_.clear(); return; };
   // Checking if user is allowed to do anything with that job
   if(!is_allowed()) { id_.clear(); return; };
+std::cerr<<"ARexJob: allowed_to_see_="<<allowed_to_see_<<std::endl;
+std::cerr<<"ARexJob: allowed_to_maintain_="<<allowed_to_maintain_<<std::endl;
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
@@ -452,7 +456,9 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config) {
   jobs.ScanNewJobs();
   JobsList::iterator i = jobs.begin();
   for(;i!=jobs.end();++i) {
-    jlist.push_back(i->get_id());
+    // Check users's DN ?!?!?!?!
+    ARexJob job(i->get_id(),config);
+    if(job) jlist.push_back(i->get_id());
   };
   return jlist;
 }
