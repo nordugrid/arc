@@ -103,15 +103,29 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
   // TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
-  PayloadHTTP* outpayload = new PayloadHTTP(200,"OK",*inpayload);
-  // int l = 0;
+  int http_code = 220;
+  const char* http_resp = "OK";
+  int l = 0;
+  if(retpayload->BufferPos(0) != 0) {
+    http_code=206;
+    http_resp="Partial content";
+  } else {
+    for(int i = 0;;++i) {
+      if(retpayload->Buffer(i) == NULL) break;
+      l=retpayload->BufferPos(i) + retpayload->BufferSize(i);
+    };
+    if(l != retpayload->Size()) {
+      http_code=206;
+      http_resp="Partial content";
+    };
+  };
+  PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload);
   for(int i = 0;;++i) {
     char* buf = retpayload->Buffer(i);
     if(!buf) break;
-    int bufsize = retpayload->BufferSize(i);
-    int l = retpayload->BufferPos(i);
-    outpayload->Insert(buf,l,bufsize); // l+=bufsize;
+    outpayload->Insert(buf,retpayload->BufferPos(i),retpayload->BufferSize(i));
   };
+  outpayload->Truncate(retpayload->Size());
   delete retpayload;
   if(!outpayload->Flush()) return make_http_fault(logger,*inpayload,outmsg,500);
   delete outpayload;

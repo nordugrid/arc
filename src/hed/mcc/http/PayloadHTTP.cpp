@@ -280,13 +280,18 @@ bool PayloadHTTP::Flush(void) {
     header+="Host: "+host+"\r\n";
     //if(!stream_.Put(line)) return false;
   };
-  length_=Size();
-  offset_=BufferPos(0);
+  //offset_=BufferPos(0);
+  length_=0;
+  for(int n=0;;++n) {
+    if(Buffer(n) == NULL) break;
+    length_+=BufferSize(n);
+  };
+  //lsize_=Size();
   if((method_ != "GET") && (method_ != "HEAD")) {
-    header+="Content-Length: "+tostring(length_)+"\r\n";
-    if(length_>0) {
-      header+="Content-Range: bytes "+tostring(offset_)+"-"+tostring(length_-1)+"/*";
+    if(length_ != size_) {
+      header+="Content-Range: bytes "+tostring(offset_)+"-"+tostring(offset_+length_-1)+"/"+tostring(size_)+"\r\n";
     };
+    header+="Content-Length: "+tostring(length_)+"\r\n";
     //if(!stream_.Put(line)) return false;
   };
   bool keep_alive = false;

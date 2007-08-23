@@ -26,8 +26,8 @@ class PayloadHTTP: public PayloadRaw {
   int code_;                       /** HTTP code being sent or supplied */
   std::string reason_;             /** HTTP reason being sent or supplied */
   int length_;                     /** Content-length of HTTP message */
-  int offset_;                     /** Logical beginning of content computed from Content-Range */
-  int size_;                       /** Logical size of content obtained from Content-Range */
+  //int offset_;                   /** Logical beginning of content computed from Content-Range */
+  //int size_;                     /** Logical size of content obtained from Content-Range */
   bool chunked_;                   /** true if content is chunked */
   bool keep_alive_;                /** true if conection should not be closed after response */
   std::map<std::string,std::string> attributes_; /* All HTTP attributes */
@@ -81,20 +81,6 @@ class PayloadHTTP: public PayloadRaw {
   virtual int Code() { return code_; };
 };
 
-/*
-class PayloadHTTPRequest: public PayloadHTTP {
- public:
-  PayloadHTTPRequest(PayloadStreamInterface& stream);
-  virtual ~PayloadHTTPRequest(void);
-};
-
-class PayloadHTTPResponse: public PayloadHTTP {
- public:
-  PayloadHTTPResponse(PayloadHTTPRequest& request);
-  virtual ~PayloadHTTPResponse(void);
-  virtual Flush(void);
-};
-*/
 } // namespace Arc
 
 #endif /* __ARC_PAYLOADHTTP_H__ */
