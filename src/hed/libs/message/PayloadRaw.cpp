@@ -1,3 +1,4 @@
+#include <iostream>
 #include "PayloadRaw.h"
 
 namespace Arc {
@@ -51,11 +52,12 @@ char PayloadRaw::operator[](int pos) const {
 }
 
 int PayloadRaw::Size(void) const {
-  int cpos = 0;
-  for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
-    cpos+=buf_[bufnum].length;
-  };
-  return cpos;
+  return size_;
+  //int cpos = 0;
+  //for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
+  //  cpos+=buf_[bufnum].length;
+  //};
+  //return cpos;
 }
 
 char* PayloadRaw::Insert(int pos,int size) {
@@ -63,7 +65,14 @@ char* PayloadRaw::Insert(int pos,int size) {
   int bufpos;
   if(!BufferAtPos(buf_,pos-offset_,bufref,bufpos)) {
     bufref=buf_.end(); bufpos=0;
-    if(buf_.size() == 0) offset_=pos;
+    if(buf_.size() == 0) {
+      offset_=pos;
+    } else {
+      pos = 0;
+      for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
+        pos+=buf_[bufnum].length;
+      };
+    };
   };
   PayloadRawBuf buf;
   if(bufpos != 0) {
@@ -88,6 +97,7 @@ char* PayloadRaw::Insert(int pos,int size) {
   buf.length=size;
   buf.allocated=true;
   buf_.insert(bufref,buf);
+  if((pos+size) > size_) size_=pos+size;
   return buf.data;
 }
 
@@ -116,6 +126,49 @@ int PayloadRaw::BufferPos(unsigned int num) const {
     pos+=(b->length);
   };
   return pos;
+}
+
+bool PayloadRaw::Truncate(unsigned int size) {
+std::cerr<<"Truncate: size="<<size<<std::endl;
+std::cerr<<"Truncate: size_="<<size_<<std::endl;
+  if(size_ == size) return true; // Buffer is already of right size
+  if(size_ < size) { // Buffer needs to be extended
+std::cerr<<"Truncate: extending buffer"<<std::endl;
+    size_=size; return true;
+  };
+  if(size <= offset_) {
+std::cerr<<"Truncate: deleting all buffers"<<std::endl;
+    // All buffers must be released
+    offset_=size;
+    for(std::vector<PayloadRawBuf>::iterator b = buf_.begin();b!=buf_.end();) {
+      if(b->allocated) free(b->data);
+      b=buf_.erase(b);
+    };
+    size_=size;
+    return true;
+  };
+  int l = offset_;
+  for(unsigned int bufnum = 0;bufnum<buf_.size();bufnum++) {
+    l+=buf_[bufnum].length;
+  };
+std::cerr<<"Truncate: l="<<l<<std::endl;
+  if(l == size) {
+    size_=size; return true;
+  };
+  // Buffer must be truncated
+std::cerr<<"Truncate: truncating"<<std::endl;
+  std::vector<PayloadRawBuf>::iterator b;
+  int p;
+  if(!BufferAtPos(buf_,size-offset_,b,p)) return false;
+  if(p != 0) {
+    b->length=p; ++b;
+  };
+  for(;b!=buf_.end();) {
+    if(b->allocated) free(b->data);
+    b=buf_.erase(b);
+  };
+  size_=size;
+  return true;
 }
 
 const char* ContentFromPayload(const MessagePayload& payload) {

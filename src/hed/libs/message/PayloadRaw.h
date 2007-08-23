@@ -9,8 +9,8 @@ namespace Arc {
 
 /** Virtual interface for managing arbitrarily accessible Message payload.
   This class implements memory-resident or memory-mapped content made 
-  of optionally multiple chunks/buffers. 
-  This calss is purely virtual. */
+  of optionally multiple chunks/buffers. Buffers have own size and offset.
+  This class is purely virtual. */
 class PayloadRawInterface: public MessagePayload {
  public:
   PayloadRawInterface(void) { };
@@ -22,7 +22,7 @@ class PayloadRawInterface: public MessagePayload {
   /** Get pointer to buffer content at global position 'pos'. By default to
     beginning of main buffer whatever that means. */
   virtual char* Content(int pos = -1) = 0;
-  /** Returns cumulative length of all buffers */
+  /** Returns logical size of whole structure. */
   virtual int Size(void) const = 0;
   /**  Create new buffer at global position 'pos' of size 'size'. */
   virtual char* Insert(int pos = 0,int size = 0) = 0;
@@ -36,6 +36,11 @@ class PayloadRawInterface: public MessagePayload {
   virtual int BufferSize(unsigned int num) const = 0;
   /** Returns position of num'th buffer */
   virtual int BufferPos(unsigned int num) const = 0;
+  /** Change size of stored information.
+    If size exceeds end of allocated buffer, buffers are not 
+    re-allocated, only logical size is extended.
+    Buffers with location behind new size are deallocated. */
+  virtual bool Truncate(unsigned int size) = 0;
 };
 
 /* Buffer type for PayloadRaw */
@@ -50,10 +55,11 @@ typedef struct {
 class PayloadRaw: public PayloadRawInterface {
  protected:
   int offset_;
+  int size_;
   std::vector<PayloadRawBuf> buf_; /** List of handled buffers. */
  public:
   /** Constructor. Created object contains no buffers. */
-  PayloadRaw(void):offset_(0) { };
+  PayloadRaw(void):offset_(0),size_(0) { };
   /** Destructor. Frees allocated buffers. */
   virtual ~PayloadRaw(void);
   virtual char operator[](int pos) const;
@@ -64,6 +70,7 @@ class PayloadRaw: public PayloadRawInterface {
   virtual char* Buffer(unsigned int num = 0);
   virtual int BufferSize(unsigned int num = 0) const;
   virtual int BufferPos(unsigned int num = 0) const;
+  virtual bool Truncate(unsigned int size);
 };
 
 /** Returns pointer to main buffer of Message payload. 
