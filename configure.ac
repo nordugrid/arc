@@ -118,7 +118,7 @@ fi
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enable_python" = "xyes"])
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-if test "xPKG_CONFIG" = "xno"; then
+if test "x$PKG_CONFIG" = "xno"; then
         AC_MSG_ERROR([ *** pkg-config not found])
 else
         pkgconfigdir=${libdir}/pkgconfig
@@ -161,6 +161,27 @@ WSDL2H=wsdl2h
 SOAPCPP2=soapcpp2
 AC_SUBST(WSDL2H)
 AC_SUBST(SOAPCPP2)
+
+# gSOAP version
+GSOAP_VERSION=`$SOAPCPP2 -v 2>&1 | grep 'Compiler' | sed 's/^.*\([[0-9]]\.[[0-9]]\.[[0-9]][[a-z]]\).*$/\1/'`
+GSOAP_VERSION_MAJOR=`echo $GSOAP_VERSION | sed 's/^\([[0-9]]\).*/\1/'`
+GSOAP_VERSION_MINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.\([[0-9]]\).*/\1/'`
+GSOAP_VERSION_SUBMINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.[[0-9]]\.\([[0-9]]\).*/\1/'`
+gsoap_279=no
+if test "$GSOAP_VERSION_MAJOR" -gt '2'; then
+  gsoap_279=yes
+elif test "$GSOAP_VERSION_MAJOR" = '2'; then
+  if test "$GSOAP_VERSION_MINOR" -gt '7'; then
+    gsoap_279=yes
+  elif test "$GSOAP_VERSION_MINOR" = '7'; then
+    if test "$GSOAP_VERSION_MINOR" -ge '9'; then
+      gsoap_279=yes
+    fi
+  fi
+fi
+if test "x$gsoap_279" = "xyes"; then
+  AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+fi
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
