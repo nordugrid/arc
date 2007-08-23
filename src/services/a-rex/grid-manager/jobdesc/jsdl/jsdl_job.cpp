@@ -34,6 +34,7 @@
 //#define SOAP_FMAC5 static
 //#include "jsdl_soapC.cpp"
 
+#ifdef GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES
 #define JobDescription jsdl__JobDescription
 #define Application jsdl__Application
 #define JobIdentification jsdl__JobIdentification
@@ -60,6 +61,7 @@
 #define Input jsdlPOSIX__Input
 #define Output jsdlPOSIX__Output
 #define Error jsdlPOSIX__Error
+#endif
 
 static struct Namespace jsdl_namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
