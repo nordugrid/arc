@@ -1,0 +1,1129 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 9 414 400 784
+%%Title: pic3
+%%CreationDate: Wed Oct 16 19:02:25 2002
+%%Creator: Tgif-4.1.42 written by William Chia-Wei Cheng (bill.cheng@acm.org)
+%%ProducedBy: (unknown)
+%%Pages: 1
+%%DocumentFonts: (atend)
+%%EndComments
+%%BeginProlog
+
+/tgifdict 89 dict def
+tgifdict begin
+
+/tgifarrowtipdict 8 dict def
+tgifarrowtipdict /mtrx matrix put
+
+/TGAT % tgifarrowtip
+ { tgifarrowtipdict begin
+      /dy exch def
+      /dx exch def
+      /h exch def
+      /w exch def
+      /y exch def
+      /x exch def
+      /savematrix mtrx currentmatrix def
+      x y translate
+      dy dx atan rotate
+      0 0 moveto
+      w neg h lineto
+      w neg h neg lineto
+      savematrix setmatrix
+   end
+ } def
+
+/tgifarcdict 8 dict def
+tgifarcdict /mtrx matrix put
+
+/TGAN % tgifarcn
+ { tgifarcdict begin
+      /endangle exch def
+      /startangle exch def
+      /yrad exch def
+      /xrad exch def
+      /y exch def
+      /x exch def
+      /savematrix mtrx currentmatrix def
+      x y translate
+      xrad yrad scale
+      0 0 1 startangle endangle arc
+      savematrix setmatrix
+   end
+ } def
+
+/TGAR % tgifarc
+ { tgifarcdict begin
+      /endangle exch def
+      /startangle exch def
+      /yrad exch def
+      /xrad exch def
+      /y exch def
+      /x exch def
+      /savematrix mtrx currentmatrix def
+      x y translate
+      xrad yrad scale
+      0 0 1 startangle endangle arcn
+      savematrix setmatrix
+   end
+ } def
+
+/tgifpatdict 10 dict def
+
+/tgifpatbyte
+ { currentdict /retstr get exch
+   pat i cellsz mod get put
+ } def
+
+/tgifpatproc
+ { 0 1 widthlim {tgifpatbyte} for retstr
+   /i i 1 add def
+ } def
+
+/TGPF % tgifpatfill
+ { tgifpatdict begin
+      /h exch def
+      /w exch def
+      /lty exch def
+      /ltx exch def
+      /cellsz exch def
+      /pat exch def
+
+      /widthlim w cellsz div cvi 1 sub def
+      /retstr widthlim 1 add string def
+      /i 0 def
+
+      tgiforigctm setmatrix
+      ltx lty translate
+      w h true [1 0 0 1 0 0] {tgifpatproc} imagemask
+      ltx neg lty neg translate
+   end
+ } def
+
+/pat3 <8000000008000000> def
+/pat4 <8800000022000000> def
+/pat5 <8800220088002200> def
+/pat6 <8822882288228822> def
+/pat7 <aa55aa55aa55aa55> def
+/pat8 <77dd77dd77dd77dd> def
+/pat9 <77ffddff77ffddff> def
+/pat10 <77ffffff77ffffff> def
+/pat11 <7fffffff7fffffff> def
+/pat12 <8040200002040800> def
+/pat13 <40a00000040a0000> def
+/pat14 <ff888888ff888888> def
+/pat15 <ff808080ff080808> def
+/pat16 <f87422478f172271> def
+/pat17 <038448300c020101> def
+/pat18 <081c22c180010204> def
+/pat19 <8080413e080814e3> def
+/pat20 <8040201008040201> def
+/pat21 <8844221188442211> def
+/pat22 <77bbddee77bbddee> def
+/pat23 <c1e070381c0e0783> def
+/pat24 <7fbfdfeff7fbfdfe> def
+/pat25 <3e1f8fc7e3f1f87c> def
+/pat26 <0102040810204080> def
+/pat27 <1122448811224488> def
+/pat28 <eeddbb77eeddbb77> def
+/pat29 <83070e1c3870e0c1> def
+/pat30 <fefdfbf7efdfbf7f> def
+/pat31 <7cf8f1e3c78f1f3e> def
+
+/TGMAX
+ { exch dup 3 1 roll exch dup 3 1 roll gt { pop } { exch pop } ifelse
+ } def
+/TGMIN
+ { exch dup 3 1 roll exch dup 3 1 roll lt { pop } { exch pop } ifelse
+ } def
+/TGSW { stringwidth pop } def
+
+/bd { bind def } bind def
+
+/GS { gsave } bd
+/GR { grestore } bd
+/NP { newpath } bd
+/CP { closepath } bd
+/CHP { charpath } bd
+/CT { curveto } bd
+/L { lineto } bd
+/RL { rlineto } bd
+/M { moveto } bd
+/RM { rmoveto } bd
+/S { stroke } bd
+/F { fill } bd
+/TR { translate } bd
+/RO { rotate } bd
+/SC { scale } bd
+/MU { mul } bd
+/DI { div } bd
+/DU { dup } bd
+/NE { neg } bd
+/AD { add } bd
+/SU { sub } bd
+/PO { pop } bd
+/EX { exch } bd
+/CO { concat } bd
+/CL { clip } bd
+/EC { eoclip } bd
+/EF { eofill } bd
+/IM { image } bd
+/IMM { imagemask } bd
+/ARY { array } bd
+/SG { setgray } bd
+/RG { setrgbcolor } bd
+/SD { setdash } bd
+/W { setlinewidth } bd
+/SM { setmiterlimit } bd
+/SLC { setlinecap } bd
+/SLJ { setlinejoin } bd
+/SH { show } bd
+/FF { findfont } bd
+/MS { makefont setfont } bd
+/AR { arcto 4 {pop} repeat } bd
+/CURP { currentpoint } bd
+/FLAT { flattenpath strokepath clip newpath } bd
+/TGSM { tgiforigctm setmatrix } def
+/TGRM { savematrix setmatrix } def
+
+end
+
+%%EndProlog
+%%Page: 1 1
+
+%%PageBoundingBox: 9 414 400 784
+tgifdict begin
+/tgifsavedpage save def
+
+1 SM
+1 W
+
+0 SG
+
+72 0 MU 72 11 MU TR
+72 128 DI 100.000 MU 100 DI DU NE SC
+
+GS
+
+/tgiforigctm matrix currentmatrix def
+
+% BOX
+0 SG
+GS
+   NP 401 73 M 557 73 L 557 106 L 401 106 L CP 1 SG F
+   0 SG
+   NP 401 73 M 557 73 L 557 106 L 401 106 L CP EC NP
+   pat26 8 392 64 168 48 TGPF
+GR
+GS
+   10 SM
+   GS
+      NP 401 73 M 557 73 L 557 106 L 401 106 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   475 83 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   475 NE 83 NE TR
+NP 474 82 M 538 82 L 538 97 L 474 97 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      475 83 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (Job files) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 61 17 M 317 17 L 317 213 L 61 213 L CP
+      S
+   GR
+GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 361 17 M 617 17 L 617 213 L 361 213 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      242 33 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Frontend) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      507 31 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Cluster node) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 80 51 M 269 51 L 269 113 L 80 113 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      85 65 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 380 51 M 569 51 L 569 114 L 380 114 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      274 108 M
+      0 102 atan DU cos 8.000 MU 376 exch SU
+      exch sin 8.000 MU 108 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      376 108 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      376 108 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      272 63 M
+      0 102 atan DU cos 8.000 MU 374 exch SU
+      exch sin 8.000 MU 63 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      374 63 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      374 63 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      386 64 M
+      GS
+            0.373 0.620 0.627 RG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 382 121 M 602 121 L 602 207 L 382 207 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      385 138 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Scratch directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   NP 102 73 M 258 73 L 258 106 L 102 106 L CP 1 SG F
+   0 SG
+   NP 102 73 M 258 73 L 258 106 L 102 106 L CP EC NP
+   pat27 8 96 64 168 48 TGPF
+GR
+GS
+   10 SM
+   GS
+      NP 102 73 M 258 73 L 258 106 L 102 106 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   170 82 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   170 NE 82 NE TR
+NP 169 81 M 233 81 L 233 96 L 169 96 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      170 82 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (Job files) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 61 246 M 317 246 L 317 442 L 61 442 L CP
+      S
+   GR
+GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 361 246 M 617 246 L 617 442 L 361 442 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      242 262 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Frontend) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      507 260 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Cluster node) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 80 280 M 269 280 L 269 342 L 80 342 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      85 294 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 380 280 M 569 280 L 569 343 L 380 343 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      274 337 M
+      0 102 atan DU cos 8.000 MU 376 exch SU
+      exch sin 8.000 MU 337 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      376 337 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      376 337 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      272 292 M
+      0 102 atan DU cos 8.000 MU 374 exch SU
+      exch sin 8.000 MU 292 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      374 292 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      374 292 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      384 295 M
+      GS
+            0 SG
+            /Courier-Bold FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+      0 16 RM
+      GS
+            0 SG
+            /Courier-Bold FF [14 0 0 -14 0 0] MS
+            (imported from) SH
+      GR
+      0 16 RM
+      GS
+            0 SG
+            /Courier-Bold FF [14 0 0 -14 0 0] MS
+            (frontend) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   NP 434 394 M 590 394 L 590 427 L 434 427 L CP 1 SG F
+   0 SG
+   NP 434 394 M 590 394 L 590 427 L 434 427 L CP EC NP
+   pat27 8 432 392 160 40 TGPF
+GR
+GS
+   10 SM
+   GS
+      NP 434 394 M 590 394 L 590 427 L 434 427 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   502 403 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   502 NE 403 NE TR
+NP 501 402 M 565 402 L 565 417 L 501 417 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      502 403 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (Job files) SH
+      GR
+   GR
+
+% ARC
+0 SG
+GS
+   GS
+      NP
+         525 141 61 61 -55 9 TGAN
+      S
+   GR
+GR
+GS
+   TGSM
+   NP
+      584 157 8.000 3.000 -32 118 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      584 157 8.000 3.000 -32 118 TGAT
+   CP F
+GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 382 351 M 602 351 L 602 437 L 382 437 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      385 367 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Scratch directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 405 371 M 594 371 L 594 433 L 405 433 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      410 385 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Copy of session dir.) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 171 321 M 265 321 L 265 338 L 171 338 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   172 322 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   172 NE 322 NE TR
+NP 171 321 M 263 321 L 263 336 L 171 336 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      172 322 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (stdout+stderr) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 472 323 M 566 323 L 566 340 L 472 340 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   473 324 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   473 NE 324 NE TR
+NP 472 323 M 564 323 L 564 338 L 472 338 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      473 324 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (stdout+stderr) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      577 99 M
+      GS
+            0 SG
+            /Courier-Bold FF [10 0 0 -10 0 0] MS
+            (COPY before execution) SH
+      GR
+   GR
+
+% ARC
+0 SG
+GS
+   GS
+      NP
+         531 376 49 49 25 -43 TGAR
+      S
+   GR
+GR
+GS
+   TGSM
+   NP
+      562 338 8.000 3.000 -75 -63 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      562 338 8.000 3.000 -75 -63 TGAT
+   CP F
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      511 358 M
+      GS
+            0 SG
+            /Courier-Bold FF [10 0 0 -10 0 0] MS
+            (SOFT-LINKS) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      589 335 M
+      GS
+            0 SG
+            /Courier-Bold FF [10 0 0 -10 0 0] MS
+            (MOVE after execution) SH
+      GR
+   GR
+
+% ARC
+0 SG
+GS
+   GS
+      NP
+         529 360 61 61 -49 15 TGAN
+      S
+   GR
+GR
+GS
+   TGSM
+   NP
+      564 310 8.000 3.000 -100 -70 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      564 310 8.000 3.000 -100 -70 TGAT
+   CP F
+GR
+
+% BOX
+0 SG
+GS
+   NP 401 528 M 557 528 L 557 561 L 401 561 L CP 1 SG F
+   0 SG
+   NP 401 528 M 557 528 L 557 561 L 401 561 L CP EC NP
+   pat26 8 392 520 168 48 TGPF
+GR
+GS
+   10 SM
+   GS
+      NP 401 528 M 557 528 L 557 561 L 401 561 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   475 538 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   475 NE 538 NE TR
+NP 474 537 M 538 537 L 538 552 L 474 552 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      475 538 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (Job files) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 61 472 M 317 472 L 317 668 L 61 668 L CP
+      S
+   GR
+GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 361 472 M 617 472 L 617 668 L 361 668 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      242 488 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Frontend) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      507 486 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Cluster node) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 80 506 M 269 506 L 269 568 L 80 568 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      85 520 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 380 506 M 569 506 L 569 569 L 380 569 L CP
+      [8 8] 0 SD
+      S
+   GR
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      274 563 M
+      0 102 atan DU cos 8.000 MU 376 exch SU
+      exch sin 8.000 MU 563 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      376 563 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      376 563 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% POLY/OPEN-SPLINE
+0 SG
+GS
+   NP
+      272 518 M
+      0 102 atan DU cos 8.000 MU 374 exch SU
+      exch sin 8.000 MU 518 exch SU L
+   TGSM
+   1 W
+   S
+GR
+GS
+   TGSM
+   NP
+      374 518 8.000 3.000 102 0 TGAT
+   1 SG CP F
+   0 SG
+   NP
+      374 518 8.000 3.000 102 0 TGAT
+   CP F
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      386 519 M
+      GS
+            0.373 0.620 0.627 RG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Session directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   10 SM
+   GS
+      NP 382 576 M 602 576 L 602 662 L 382 662 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      385 593 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (Scratch directory) SH
+      GR
+   GR
+
+% BOX
+0 SG
+GS
+   NP 102 528 M 258 528 L 258 561 L 102 561 L CP 1 SG F
+   0 SG
+   NP 102 528 M 258 528 L 258 561 L 102 561 L CP EC NP
+   pat27 8 96 520 168 48 TGPF
+GR
+GS
+   10 SM
+   GS
+      NP 102 528 M 258 528 L 258 561 L 102 561 L CP
+      S
+   GR
+GR
+
+% TEXT
+NP
+0 SG
+GS
+   170 537 TR
+   [1.016 0.000 0.000 1.000 0 0] CO
+   170 NE 537 NE TR
+NP 169 536 M 233 536 L 233 551 L 169 551 L CP 1 SG F
+0 SG
+GR
+   GS
+      1 W
+      170 537 TR
+      [1.016 0.000 0.000 1.000 0 0] CO
+      0 11 M
+      GS
+            0 SG
+            /Courier FF [12 0 0 -12 0 0] MS
+            (Job files) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      22 109 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (a\)) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      23 348 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (b\)) SH
+      GR
+   GR
+
+% TEXT
+NP
+0 SG
+   GS
+      1 W
+      20 566 M
+      GS
+            0 SG
+            /Courier FF [14 0 0 -14 0 0] MS
+            (c\)) SH
+      GR
+   GR
+
+GR
+tgifsavedpage restore
+end
+showpage
+
+%%Trailer
+%MatchingCreationDate: Wed Oct 16 19:02:25 2002
+%%DocumentFonts: Courier-Bold
+%%+ Courier
+%%EOF
