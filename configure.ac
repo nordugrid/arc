@@ -174,7 +174,7 @@ elif test "$GSOAP_VERSION_MAJOR" = '2'; then
   if test "$GSOAP_VERSION_MINOR" -gt '7'; then
     gsoap_279=yes
   elif test "$GSOAP_VERSION_MINOR" = '7'; then
-    if test "$GSOAP_VERSION_MINOR" -ge '9'; then
+    if test "$GSOAP_VERSION_SUBMINOR" -ge '9'; then
       gsoap_279=yes
     fi
   fi
