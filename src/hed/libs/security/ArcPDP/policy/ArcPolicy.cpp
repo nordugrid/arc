@@ -1,5 +1,6 @@
 #include "ArcPolicy.h"
 #include <list>
+#include "../Result.h"
 
 ArcPolicy::ArcPolicy(const XMLNode& node){
   ArcRule *rule;
@@ -24,8 +25,24 @@ ArcPolicy::ArcPolicy(const XMLNode& node){
     
 }
 
-Result ArcPolicy::eval(const EvaluationCtx* ctx){
+MatchResult ArcPolicy::match(const EvaluationCtx* ctx){
+  //Arc::RequestTuple evaltuple = ctx->getEvalTuple();
+  
+  //Because ArcPolicy definition has no any <Subject, Resource, Action, Environment> directly;
+  //All the <Subject, Resource, Action, Environment>s are only in ArcRule.
+  //So the function always return "Match" 
 
+  return Match;
+  
+}
+
+Result ArcPolicy::eval(const EvaluationCtx* ctx){
+//  Arc::RequestTuple evaltuple = ctx->getEvalTuple();
+  
+  Result result = comalg->combine(ctx, subelements);
+
+  return result;
+   
 }
 
 ArcPolicy::~ArcPolicy(){

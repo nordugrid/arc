@@ -17,11 +17,11 @@ public:
   //plist is the list of policy sources, alg is the combing algorithm between these sources
   PolicyStore(const std::list<std::string>& plist, const std::string& alg);
   
-  virtual Arc::MatchedItem findPolicy(const EvaluationCtx* context);
+  virtual std::list<Arc::Policy*> findPolicy(const EvaluationCtx* context);
 
 private:
   std::list<std::string> policysrclist;
-  std::list<Policy*> policies;
+  std::list<Arc::Policy*> policies;
   std::string combalg;
  
 };

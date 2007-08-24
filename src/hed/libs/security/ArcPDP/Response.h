@@ -5,26 +5,28 @@
 #include <fstream>
 #include "../../../../libs/common/XMLNode.h"
 #include "../../../../libs/common/Logger.h"
+#include "EvaluationCtx.h"
+#include "./policy/Policy.h"
 
 /** Class for Response*/
 
 namespace Arc {
 
-//typedef std::list<Arc::Policy*> Policies;
-typedef std::map<Arc::RequestItem*, Policy*> MatchedItem, ResponseItem;
+typedef std::list<Arc::Policy*> Policies;
+typedef std::pair<Arc::RequestTuple, Policies> ResponseItem;
+typedef std::map<Arc::RequestTuple, Policies> ResponseList;
 
 /**A request can has a few <subjects, actions, objects> tuples */
 //**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
 class Response {
-protect:
-  ResponseItemList rlist;
+protected:
+  ResponseList rlist;
 public:
-  virtual ResponseItemList getResponseItems () const {};
-  virtual void setResponseItems (const ResponseItemList* rl) {};
+  virtual ResponseList getResponseItems () const {};
+  virtual void setResponseItems (const ResponseList rl) { rlist = rl;};
+  virtual addResponseItem(const ResponseItem item) { rlist.insert(item); };
 
-  Request () {};
-
-  void merge(Response*);
+  Response () {};
 
   virtual ~Response();
 };

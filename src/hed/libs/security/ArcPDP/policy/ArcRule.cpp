@@ -152,7 +152,19 @@ ArcRule::ArcRule(const XMLNode& node){
  
 }
 
-Result ArcPolicy::evaluation(const EvaluationCtx* ctx){
+MatchResult ArcRule::match(const EvaluationCtx* ctx){
+  Arc::RequestTuple evaltuple = ctx->getEvalTuple();
+  
 
+  return Match;
 
 }
+
+Result ArcRule::eval(const EvaluationCtx* ctx){
+
+  Result result = comalg->combine(ctx, subelements);
+
+  return result;
+
+}
+

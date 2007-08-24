@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ArcPolicy.h" 
 #include "PolicyParser.h"
+#include "../Result.h"
 
 PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg){
   combalg = alg;
@@ -12,11 +13,13 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
 
 }
 
-Arc::MatchedItem PolicyStore::findPolicy(const EvaluationCtx* ctx){
+//use list, there also can be a class "PolicySet", which includes a few policies
+std::list<Arc::Policy*> PolicyStore::findPolicy(const EvaluationCtx* ctx){
  
   std::list<Policy*>::iterator it; 
   for(it = policies.begin(); it!=policies.end(); it++ ){
-    Arc::ReqItemList reqitems = (*it)->match(ctx);
+    Match res = (*it)->match(ctx);
+    if (res == MATCH )
   }
 
  //TODO 

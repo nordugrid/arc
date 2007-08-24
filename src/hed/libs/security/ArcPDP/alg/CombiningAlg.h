@@ -4,12 +4,15 @@
 namespace Arc {
 
 class CombiningAlg {
-public:
-  CombiningAlg();
-  virtual ~CombiningAlg();
+protected:
+ std::string algId;
 
 public:
-  virtual boolean evaluate(){};
+  CombiningAlg(){};
+  virtual ~CombiningAlg(){};
+
+public:
+  virtual Result combine(Evaluation* ctx, std::list<Policy*> policies){};
 };
 
 } // namespace Arc

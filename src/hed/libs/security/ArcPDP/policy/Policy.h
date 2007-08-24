@@ -18,8 +18,10 @@ public:
   Policy(){};
   Policy(const XMLNode& node){};  
   virtual ~Policy();
+ 
+  vitual MatchResult match(const Evaluation* ctx){};
 
-  virtual Result eval(EvalCtx ctx){};
+  virtual Result eval(const EvaluationCtx* ctx){};
 
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
