@@ -468,3 +468,15 @@ std::string ARexJob::SessionDir(void) {
   return config_.User()->SessionRoot()+"/"+id_;
 }
 
+int ARexJob::CreateFile(const std::string& filename) {
+  if(id_.empty()) return -1;
+  std::string fname = config_.User()->SessionRoot()+"/"+id_+"/"+filename;
+  struct stat st;
+  if(lstat(fname.c_str(),&st) == 0) {
+    if(!S_ISREG(st.st_mode)) return -1;
+  };
+  // TODO: autocreate direcctories
+  int h = open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+  if(h != -1) fix_file_owner(fname,*config_.User());
+  return h;
+}

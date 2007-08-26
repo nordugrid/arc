@@ -7,7 +7,8 @@
 #include <string>
 
 #include <src/libs/common/StringConv.h>
-#include "message/PayloadRaw.h"
+#include <message/PayloadRaw.h>
+#include "PayloadFile.h"
 #include "job.h"
 
 #include "arex.h"
@@ -16,9 +17,9 @@
 
 namespace ARex {
 
-static bool http_get(const std::string& burl,const std::string& bpath,const std::string& hpath,uint64_t& offset,uint64_t& size,Arc::PayloadRawInterface& buf);
+static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath);
 
-Arc::MCC_Status ARexService::Get(ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
+Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::string& id,const std::string& subpath) {
   if(id.empty()) {
     // Make list of jobs
     std::string html;
@@ -36,34 +37,33 @@ std::cerr<<"Get: job: "<<(*job)<<std::endl;
     };
     html+="</UL>\r\n</BODY>\r\n</HTML>";
 std::cerr<<"Get: html: "<<html<<std::endl;
-    buf.Insert(html.c_str(),0,html.length());
-    return Arc::MCC_Status(Arc::STATUS_OK);
+    Arc::PayloadRaw* buf = NULL;
+    buf=new Arc::PayloadRaw;
+    if(buf) buf->Insert(html.c_str(),0,html.length());
+    return buf;
   };
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
 std::cerr<<"Get: there is no job: "<<id<<std::endl;
-
-    return Arc::MCC_Status();
+    // TODO: make proper html message
+    return NULL;
   };
   std::string session_dir = job.SessionDir();
-  uint64_t offset = 0;
-  uint64_t size = MAX_CHUNK_SIZE;
-  if(!http_get(config.Endpoint()+"/"+id,session_dir,subpath,offset,size,buf)) {
+  Arc::PayloadRawInterface* buf = NULL;
+  if((buf=http_get(config.Endpoint()+"/"+id,session_dir,subpath)) == NULL) {
     // Can't get file
-
-    return Arc::MCC_Status();
+    // TODO: make proper html message
+    return NULL;
   };
-  return Arc::MCC_Status(Arc::STATUS_OK);
+  return buf;
 } 
 
-static bool http_get(const std::string& burl,const std::string& bpath,const std::string& hpath,uint64_t& offset,uint64_t& size,Arc::PayloadRawInterface& buf) {
+static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath) {
   std::string path=bpath+"/"+hpath;
 std::cerr<<"http:get: burl: "<<burl<<std::endl;
 std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
 std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
-std::cerr<<"http:get: offset: "<<offset<<std::endl;
-std::cerr<<"http:get: size: "<<size<<std::endl;
 std::cerr<<"http:get: path: "<<path<<std::endl;
   struct stat64 st;
   if(lstat64(path.c_str(),&st) == 0) {
@@ -103,13 +103,18 @@ std::cerr<<"http:get: directory"<<std::endl;
         closedir(dir);
         html+="</UL>\r\n</BODY>\r\n</HTML>";
 std::cerr<<"Get: html: "<<html<<std::endl;
-        buf.Insert(html.c_str(),0,html.length());
-        return true;
+        Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+        if(buf) buf->Insert(html.c_str(),0,html.length());
+        return buf;
       };
     } else if(S_ISREG(st.st_mode)) {
       // File 
 std::cerr<<"http:get: file: "<<path<<std::endl;
       //size=st.st_size;
+      // TODO: support for range requests
+      PayloadFile* h = new PayloadFile(path.c_str());
+      return h;
+/*
       int h = open64(path.c_str(),O_RDONLY);
       if(h != -1) {
 std::cerr<<"http:get: file is opened"<<std::endl;
@@ -135,11 +140,12 @@ std::cerr<<"http:get: file: size: "<<size<<std::endl;
         };
         close(h);
       };
+*/
     };
   };
   // Can't process this path
-  offset=0; size=0;
-  return false;
+  // offset=0; size=0;
+  return NULL;
 }
 
 }; // namespace ARex

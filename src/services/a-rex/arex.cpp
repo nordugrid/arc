@@ -55,18 +55,26 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::make_fault(Arc::Message& outmsg) {
+Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
-  Arc::SOAPFault* fault = outpayload->Fault();
+  Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
     fault->Reason("Failed processing request");
   };
   outmsg.Payload(outpayload);
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status ARexService::make_fault(Arc::Message& outmsg) {
   return Arc::MCC_Status();
 }
 
-
+Arc::MCC_Status ARexService::make_response(Arc::Message& outmsg) {
+  Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+  outmsg.Payload(outpayload);
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
 
 ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   ARexConfigContext* config = NULL;
@@ -167,13 +175,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } catch(std::exception& e) { };
     if(!inpayload) {
       logger.msg(Arc::ERROR, "input is not SOAP");
-      return make_fault(outmsg);
+      return make_soap_fault(outmsg);
     };
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
       logger.msg(Arc::ERROR, "input does not define operation");
-      return make_fault(outmsg);
+      return make_soap_fault(outmsg);
     };
     logger.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
     // Check if request is for top of tree (BES factory) or particular 
@@ -201,8 +209,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
         ChangeActivityStatus(*config,op,res.NewChild("bes-factory:ChangeActivityStatusResponse"));
       } else {
-        std::cerr << "A-Rex: request is not supported - " << op.Name() << std::endl;
-        return make_fault(outmsg);
+        logger.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
+        return make_soap_fault(outmsg);
       };
       {
         std::string str;
@@ -213,11 +221,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } else {
       // Listing operations for session directories
     };
+    return Arc::MCC_Status(Arc::STATUS_OK);
   } else {
-//    if(id.empty() || subpath.empty()) {
-//std::cerr << "A-Rex: input contains no proper path to file" << std::endl;
-//      return make_fault(outmsg);
-//    };
     // HTTP plugin either provides buffer or stream
     Arc::PayloadRawInterface* inbufpayload = NULL;
     Arc::PayloadStreamInterface* instreampayload = NULL;
@@ -228,27 +233,32 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       instreampayload = dynamic_cast<Arc::PayloadStreamInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(method == "GET") {
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
       logger.msg(Arc::DEBUG, "process: GET");
-      Arc::MCC_Status ret = Get(*config,id,subpath,*buf);
-      if(!ret) { delete buf; return make_fault(outmsg); };
+      Arc::PayloadRawInterface* buf = Get(*config,id,subpath);
+      if(!buf) { return make_soap_fault(outmsg); };
       outmsg.Payload(buf);
+      return Arc::MCC_Status(Arc::STATUS_OK);
     } else if(method == "PUT") {
       logger.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
-
+        Arc::MCC_Status ret = Put(*config,id,subpath,*inbufpayload);
+        if(!ret) return make_fault(outmsg);
       } else if(instreampayload) {
+        // Not implemented yet
+        logger.msg(Arc::ERROR, "PUT: input stream not implemented yet");
+        return make_fault(outmsg);
       } else {
         // Method PUT requres input
-        std::cerr << "A-Rex: input is neither stream nor buffer" << std::endl;
+        logger.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
         return make_fault(outmsg);
       };
+      return make_response(outmsg);
     } else {
       logger.msg(Arc::DEBUG, "process: $s: not supported",method.c_str());
       return Arc::MCC_Status();
     };
   };
-  return Arc::MCC_Status(Arc::STATUS_OK);
+  return Arc::MCC_Status();
 }
  
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {

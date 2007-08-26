@@ -31,6 +31,7 @@
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
 	    <next id="a-rex">GET</next>
+	    <next id="a-rex">PUT</next>
         </Component>
         <Component name="soap.service" id="soap">
 	    <next id="a-rex"/>

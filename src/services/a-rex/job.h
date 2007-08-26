@@ -66,6 +66,7 @@ class ARexJob {
       TODO: total for all user configurations. */
   static int TotalJobs(ARexGMConfig& config);
   static std::list<std::string> Jobs(ARexGMConfig& config);
+  int CreateFile(const std::string& filename);
 };
 
 }; // namespace ARex
