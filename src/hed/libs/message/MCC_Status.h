@@ -11,13 +11,14 @@ namespace Arc {
   /*! This enum defines a set of possible status kinds.
    */
   enum StatusKind {
-    STATUS_UNDEFINED = 0,
-    STATUS_OK = 1,
-    GENERIC_ERROR = 2,
-    PARSING_ERROR = 4,
-    PROTOCOL_RECOGNIZED_ERROR = 8,
-    UNKNOWN_SERVICE_ERROR = 16,
-    BUSY_ERROR = 32
+    STATUS_UNDEFINED = 0,          //! Default status - undefined error
+    STATUS_OK = 1,                 //! No error
+    GENERIC_ERROR = 2,             //! Error does not fit any class
+    PARSING_ERROR = 4,             //! Error detected while parsing request/response
+    PROTOCOL_RECOGNIZED_ERROR = 8, //! Message does not fit into expected protocol
+    UNKNOWN_SERVICE_ERROR = 16,    //! There is no destination configured for this message
+    BUSY_ERROR = 32,               //! Message can't be processed now
+    SESSION_CLOSE = 64             //! Higher level protocol needs session to be closed
   };
   
   //! Conversion to string.
