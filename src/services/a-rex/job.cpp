@@ -474,8 +474,23 @@ int ARexJob::CreateFile(const std::string& filename) {
   struct stat st;
   if(lstat(fname.c_str(),&st) == 0) {
     if(!S_ISREG(st.st_mode)) return -1;
+  } else {
+    // Create sudirectories
+    std::string::size_type n = fname.length()-filename.length();
+    for(;;) {
+      if(strncmp("../",fname.c_str()+n,3) == 0) return -1;
+      n=fname.find('/',n);
+      if(n == std::string::npos) break;
+      std::string dname = fname.substr(0,n);
+      ++n;
+      if(lstat(dname.c_str(),&st) == 0) {
+        if(!S_ISDIR(st.st_mode)) return -1;
+      } else {
+        if(mkdir(dname.c_str(),S_IRUSR | S_IWUSR) != 0) return -1;
+        fix_file_owner(dname,*config_.User());
+      };
+    };
   };
-  // TODO: autocreate direcctories
   int h = open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
   if(h != -1) fix_file_owner(fname,*config_.User());
   return h;
