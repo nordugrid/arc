@@ -19,6 +19,7 @@ class PayloadHTTP: public PayloadRaw {
  protected:
   bool valid_;
   PayloadStreamInterface& stream_; /** stream used to comminicate to outside */
+  PayloadRawInterface* body_;      /** associated HTTP Body if any */
   std::string uri_;                /** URI being contacted */
   int version_major_;              /** major number of HTTP version - must be 1 */
   int version_minor_;              /** minor number of HTTP version - must be 0 or 1 */
@@ -45,26 +46,24 @@ class PayloadHTTP: public PayloadRaw {
   /** Constructor - creates object by parsing HTTP request or response from stream.
     Supplied stream is associated with object for later use. */
   PayloadHTTP(PayloadStreamInterface& stream);
+
   /** Constructor - creates HTTP request to be sent through stream.
     HTTP message is not sent yet. */
   PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream);
+  /** Constructor - creates HTTP request to be rendered through Raw interface.  */
+  PayloadHTTP(const std::string& method,const std::string& url);
+
   /** Constructor - creates HTTP response to be sent through stream.
     HTTP message is not sent yet. */
   PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream);
-  /** Constructor - creates HTTP request to be rendered through Raw interface.  */
-  PayloadHTTP(const std::string& method,const std::string& url);
   /** Constructor - creates HTTP response to be rendered through Raw interface. */
   PayloadHTTP(int code,const std::string& reason);
+
   virtual ~PayloadHTTP(void);
+
   virtual operator bool(void) { return valid_; };
   virtual bool operator!(void) { return !valid_; };
-//  virtual char operator[](int pos) const;
-//  virtual char* Content(int pos = -1);
-//  virtual int Size(void) const;
-//  virtual char* Insert(int pos = 0,int size = 0);
-//  virtual char* Insert(const char* s,int pos = 0,int size = 0);
-//  virtual char* Buffer(int num);
-//  virtual int BufferSize(int num) const;
+
   /** Returns HTTP header attribute with specified name.
     Empty string if no such attribute. */
   virtual const std::string& Attribute(const std::string& name);
@@ -73,12 +72,28 @@ class PayloadHTTP: public PayloadRaw {
   /** Sets HTTP header attribute 'name' to 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
   /** Send created object through associated stream. If there is no stream associated then
-    HTTP specific data is inserted into Raw buffers of this object. */
+    HTTP specific data is inserted into Raw buffers of this object. In last case 
+    this operation should not be repeated till content of buffer is completely
+    rewritten. */
   virtual bool Flush(void);
   virtual std::string Method() { return method_; };
   virtual std::string Endpoint() { return uri_; };
   virtual std::string Reason() { return reason_; };
   virtual int Code() { return code_; };
+  /** Assign HTTP body.
+    Assigned object is not copied. Instead it is remembered and made available
+    through Raw interface. */
+  virtual void Body(PayloadRawInterface& body);
+
+  virtual char operator[](int pos) const;
+  virtual char* Content(int pos = -1);
+  virtual int Size(void) const;
+  virtual char* Insert(int pos = 0,int size = 0);
+  virtual char* Insert(const char* s,int pos = 0,int size = 0);
+  virtual char* Buffer(unsigned int num = 0);
+  virtual int BufferSize(unsigned int num = 0) const;
+  virtual int BufferPos(unsigned int num = 0) const;
+  virtual bool Truncate(unsigned int size);
 };
 
 } // namespace Arc

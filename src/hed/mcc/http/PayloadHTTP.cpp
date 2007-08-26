@@ -32,6 +32,7 @@ bool PayloadHTTP::readline(std::string& line) {
       tbuflen_-=(p-tbuf_)+1;
       memmove(tbuf_,p+1,tbuflen_+1); 
       if(line[line.length()-1] == '\r') line.resize(line.length()-1);
+std::cerr<<"readline: "<<line<<std::endl;
       return true;
     };
     line+=tbuf_;
@@ -49,7 +50,11 @@ bool PayloadHTTP::parse_header(void) {
   keep_alive_=false;
   // Skip empty lines
   std::string line;
-  for(;line.empty();) if(!readline(line)) return false;
+  for(;line.empty();) if(!readline(line)) {
+    method_="END";  // Special name to repsent closed connection
+    chunked_=false; length_=0;
+    return true;
+  };
   // Parse request/response line
   std::string::size_type pos2 = line.find(' ');
   if(pos2 == std::string::npos) return false;
@@ -135,6 +140,9 @@ bool PayloadHTTP::parse_header(void) {
     };
   };
   if(keep_alive_ && (length_ == -1)) length_=0;
+std::cerr<<"parse_header: length_= "<<length_<<std::endl;
+std::cerr<<"parse_header: offset_= "<<offset_<<std::endl;
+std::cerr<<"parse_header: size_= "<<size_<<std::endl;
   return true;
 }
 
@@ -162,6 +170,7 @@ bool PayloadHTTP::get_body(void) {
   char* result = NULL;
   int result_size = 0;
   if(chunked_) {
+std::cerr<<"get_body: chunked"<<std::endl;
     for(;;) {
       std::string line;
       if(!readline(line)) return false;
@@ -179,12 +188,16 @@ bool PayloadHTTP::get_body(void) {
       if(!line.empty()) return false;
     };
   } else if(length_ == 0) {
+std::cerr<<"get_body: empty"<<std::endl;
     return true;
   } else if(length_ > 0) {
+std::cerr<<"get_body: length_="<<length_<<std::endl;
     result=(char*)malloc(length_+1);
     if(!read(result,length_)) { free(result); return false; };
     result_size=length_;
+std::cerr<<"get_body: read passed: result_size="<<result_size<<std::endl;
   } else {
+std::cerr<<"get_body: infinite"<<std::endl;
     // Read till connection closed
     for(;;) {
       int chunk_size = 4096;
@@ -194,11 +207,14 @@ bool PayloadHTTP::get_body(void) {
       if(!read(result+result_size,chunk_size)) break;
       result_size+=chunk_size;
     };
+std::cerr<<"get_body: read passed: result_size="<<result_size<<std::endl;
   };
   if (result == NULL) {
+std::cerr<<"get_body: no result"<<std::endl;
     return false;
   }
   result[result_size]=0;
+std::cerr<<"get_body: result: "<<result<<std::endl;
   // Attach result to buffer exposed to user
   PayloadRawBuf b;
   b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
@@ -220,34 +236,35 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),body_(NULL) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   if(!get_body()) return;
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),uri_(url),method_(method),body_(NULL) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),code_(code),reason_(reason),body_(NULL) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),uri_(url),method_(method),body_(NULL) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),code_(code),reason_(reason),body_(NULL) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
+  if(body_) delete body_;
 }
 
 bool PayloadHTTP::Flush(void) {
@@ -264,10 +281,8 @@ bool PayloadHTTP::Flush(void) {
   } else {
     return false;
   };
-  //if(!stream_.Put(line)) return false;
-   std::string host;
+  std::string host;
   if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
-    //line.resize(0);
     if(!uri_.empty()) {
       std::string::size_type p1 = uri_.find("://");
       if(p1 != std::string::npos) {
@@ -278,27 +293,24 @@ bool PayloadHTTP::Flush(void) {
       };
     };
     header+="Host: "+host+"\r\n";
-    //if(!stream_.Put(line)) return false;
   };
-  //offset_=BufferPos(0);
+  // Computing length of Body part
   length_=0;
-  for(int n=0;;++n) {
-    if(Buffer(n) == NULL) break;
-    length_+=BufferSize(n);
-  };
-  //lsize_=Size();
   if((method_ != "GET") && (method_ != "HEAD")) {
-    if(length_ != size_) {
-      header+="Content-Range: bytes "+tostring(offset_)+"-"+tostring(offset_+length_-1)+"/"+tostring(size_)+"\r\n";
+    for(int n=0;;++n) {
+      if(Buffer(n) == NULL) break;
+      length_+=BufferSize(n);
+    };
+    if(length_ != Size()) {
+      // Add range definition if Body represents part of logical buffer size
+      header+="Content-Range: bytes "+tostring(BufferPos(0))+"-"+tostring(BufferPos(0)+length_-1)+"/"+tostring(Size())+"\r\n";
     };
     header+="Content-Length: "+tostring(length_)+"\r\n";
-    //if(!stream_.Put(line)) return false;
   };
   bool keep_alive = false;
   if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=true;
-  //if(keep_alive) if(!stream_.Put("Connection: keep-alive\r\n")) return false;
+  // TODO: use keep-alive from request in response as well
   if(keep_alive) header+="Connection: keep-alive\r\n";
-  //if(!stream_.Put("\r\n")) return false;
   header+="\r\n";
   if(to_stream) {
     if(!stream_.Put(header)) return false;
@@ -310,19 +322,93 @@ bool PayloadHTTP::Flush(void) {
         if(lbuf > 0) if(!stream_.Put(tbuf,lbuf)) return false;
       };
     };
-    //if(!keep_alive) stream.Close();
+    //if(!keep_alive) stream_.Close();
   } else {
     Insert(header.c_str(),0,header.length());
   };
   return true;
 }
 
-//  virtual char operator[](int pos) const;
-//  virtual char* Content(int pos = -1);
-//  virtual int Size(void) const;
-//  virtual char* Insert(int pos = 0,int size = 0);
-//  virtual char* Insert(const char* s,int pos = 0,int size = 0);
-//  virtual char* Buffer(int num);
-//  virtual int BufferSize(int num) const;
+void PayloadHTTP::Body(PayloadRawInterface& body) {
+  if(body_) delete body_;
+  body_=&body;
+}
+
+char PayloadHTTP::operator[](int pos) const {
+  if(pos < PayloadRaw::Size()) {
+    return PayloadRaw::operator[](pos);
+  };
+  if(body_) {
+    return body_->operator[](pos-Size());
+  };
+  return 0;
+}
+
+char* PayloadHTTP::Content(int pos) {
+  if(pos < PayloadRaw::Size()) {
+    return PayloadRaw::Content(pos);
+  };
+  if(body_) {
+    return body_->Content(pos-Size());
+  };
+  return NULL;
+}
+
+int PayloadHTTP::Size(void) const {
+  if(body_) {
+    return PayloadRaw::Size() + (body_->Size());
+  };
+  return PayloadRaw::Size();
+}
+
+char* PayloadHTTP::Insert(int pos,int size) {
+  return PayloadRaw::Insert(pos,size);
+}
+
+char* PayloadHTTP::Insert(const char* s,int pos,int size) {
+  return PayloadRaw::Insert(s,pos,size);
+}
+
+char* PayloadHTTP::Buffer(unsigned int num) {
+  if(num < buf_.size()) {
+    return PayloadRaw::Buffer(num);
+  };
+  if(body_) {
+    return body_->Buffer(num-buf_.size());
+  };
+  return NULL;
+}
+
+int PayloadHTTP::BufferSize(unsigned int num) const {
+  if(num < buf_.size()) {
+    return PayloadRaw::BufferSize(num);
+  };
+  if(body_) {
+    return body_->BufferSize(num-buf_.size());
+  };
+  return 0;
+}
+
+int PayloadHTTP::BufferPos(unsigned int num) const {
+  if(num < buf_.size()) {
+    return PayloadRaw::BufferPos(num);
+  };
+  if(body_) {
+    return body_->BufferPos(num-buf_.size())+PayloadRaw::BufferPos(num);
+  };
+  return PayloadRaw::BufferPos(num);
+}
+
+bool PayloadHTTP::Truncate(unsigned int size) {
+  if(size < PayloadRaw::Size()) {
+    body_=NULL;
+    return PayloadRaw::Truncate(size);
+  };
+  if(body_) {
+    return body_->Truncate(size-Size());
+  };
+  return false;
+}
 
 } // namespace Arc
+

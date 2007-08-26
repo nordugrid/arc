@@ -74,6 +74,9 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(!nextpayload) {
     return make_http_fault(logger,*inpayload,outmsg,400);
   };
+  if(nextpayload.Method() == "END") {
+    return MCC_Status(SESSION_CLOSE);
+  };
   // Creating message to pass to next MCC and setting new payload. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
@@ -94,15 +97,15 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Do checks and extract raw response
   if(!ret) return make_http_fault(logger,*inpayload,outmsg,500);
   if(!nextoutmsg.Payload()) return make_http_fault(logger,*inpayload,outmsg,500);
-  PayloadRaw* retpayload = NULL;
+  PayloadRawInterface* retpayload = NULL;
   try {
-    retpayload = dynamic_cast<PayloadRaw*>(nextoutmsg.Payload());
+    retpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
   if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,500); };
   //if(!(*retpayload)) { delete retpayload; return make_http_fault(logger,*inpayload,outmsg); };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
-  // TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
+  //// TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
   int http_code = 220;
   const char* http_resp = "OK";
   int l = 0;
@@ -120,13 +123,15 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
   PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload);
-  for(int i = 0;;++i) {
-    char* buf = retpayload->Buffer(i);
-    if(!buf) break;
-    outpayload->Insert(buf,retpayload->BufferPos(i),retpayload->BufferSize(i));
-  };
-  outpayload->Truncate(retpayload->Size());
-  delete retpayload;
+
+  //for(int i = 0;;++i) {
+  //  char* buf = retpayload->Buffer(i);
+  //  if(!buf) break;
+  //  outpayload->Insert(buf,retpayload->BufferPos(i),retpayload->BufferSize(i));
+  //};
+  //outpayload->Truncate(retpayload->Size());
+  //delete retpayload;
+  outpayload->Body(*retpayload);
   if(!outpayload->Flush()) return make_http_fault(logger,*inpayload,outmsg,500);
   delete outpayload;
   outmsg = nextoutmsg;
