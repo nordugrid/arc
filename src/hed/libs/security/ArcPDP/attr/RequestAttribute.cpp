@@ -12,13 +12,17 @@ RequestAttribute::RequestAttribute(const XMLNode& node, const AttributeFactory* 
     issuer = (std::sting)nd;
   }
 
+  attrval = attrfactory->createValue(node, type);
+
+/*
   if(!(node.Size())){
     avlist.push_back(attrfactory->createValue(node, type));
   }
   else{
     for(int i=0; i<node.Size(); i++)
-    avlist.push_back(attrfactory->createValue(node.Child(i), type));
+      avlist.push_back(attrfactory->createValue(node.Child(i), type));
   }
+*/
 }
 
 std::string RequestAttribute::getAttributeId () const{
@@ -46,10 +50,17 @@ AttrValList RequestAttribute::getAttributeValueList () const{
 void RequestAttribute::setAttributeValueList (const AttrValList& attributeValueList){
 }
 
+AttributeValue* RequestAttribute::getAttributeValue() const{
+  return attrval;
+}
+
+
 RequestAttribute::~RequestAttribute(){
-  while(!avlist.empty()){
+  delete attrval;
+  /*while(!avlist.empty()){
     delete (*(avlist.back()));
     avlist.pop_back();
   }
+  */
 }
 

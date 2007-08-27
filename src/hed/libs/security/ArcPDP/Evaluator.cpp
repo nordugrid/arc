@@ -114,7 +114,6 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
   ReqItemList reqitems = req->getRequestItems();
 */
  
-
   
 }
 

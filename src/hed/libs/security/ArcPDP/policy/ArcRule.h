@@ -13,8 +13,8 @@ namespace Arc {
 Usually, there is only explicit definition about AttributeValue in ArcRule (e.g. <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>), no explicit definition about Function. The solution is just using string "equal" plus XML value of attribute "Type" (e.g. "X500-equal"). If there is explicit function difinition in policy (which will make policy definition more complicated, and more like XACML), we can use it.*/
 
 typedef std::pair<Arc::AttributeValue*, Arc::Function*> Match;
-typedef std::list<Arc::Match*> AndList;
-typedef std::list<Arc::AndList*> OrList;
+typedef std::list<Arc::Match> AndList;
+typedef std::list<Arc::AndList> OrList;
 
 
 /**ArcRule class to parsing Arc specific rule format*/
@@ -33,10 +33,10 @@ private:
   std::string version = NULL;
   std::string description = NULL;
   
-  OrList* subjects;
-  OrList* resources;
-  OrList* actions;
-  OrList* conditions;
+  OrList subjects;
+  OrList resources;
+  OrList actions;
+  OrList conditions;
 };
 
 } // namespace Arc

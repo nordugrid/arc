@@ -9,12 +9,11 @@
 
 Arc::Logger Service_Echo::logger(Service::logger, "Echo");
 
-static void getItemlist(const XMLNode& nd, OrList * items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
+static void getItemlist(const XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
 
   for(int i=0; i<nd.Size(); i++){
     std::string type = type_attr;
     std::string funcname = function_attr;
-    AndList *item = new AndList;
 
     for(int j=0;;j++){
       tnd = nd[itemtype][j];
@@ -26,10 +25,11 @@ static void getItemlist(const XMLNode& nd, OrList * items, const std::string& it
 
       if((type!=NULL)&&(tnd.Size()==0)){
         if(funcname == NULL) funcname = type + "equal";
-        item->push_back(new Match(attrfactory->createValue(tnd, type), fnfactory->creatFunction(funcname)));
-        items->push_back(item);
+        items.push_back(AndList(Match(attrfactory->createValue(tnd, type), fnfactory->creatFunction(funcname))));
+        //items.push_back(item);
       }
       else if((type==NULL)&&(tnd.Size()>0)){
+        AndList item;
         int size = tnd.Size();
         for(int k=0; k<size; k++){
           XMLNode snd = tnd.Child(k);
@@ -39,11 +39,12 @@ static void getItemlist(const XMLNode& nd, OrList * items, const std::string& it
             funcname = (std::string)(snd.Attribute("Function"));
           
           if(funcname == NULL) funcname = type + "equal";
-          item->push_back(new Match(attrfactory->createValue(snd, type), fnfactory->creatFunction(funcname)));
+          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->creatFunction(funcname)));
         }
-        items->push_back(item);
+        items.push_back(item);
       }
       else if(((type!=NULL)&&(tnd.Size()>0)){
+        AndList item;
         int size = tnd.Size();
         for(int k=0; k<size; k++){
           XMLNode snd = tnd.Child(k);
@@ -51,9 +52,9 @@ static void getItemlist(const XMLNode& nd, OrList * items, const std::string& it
             funcname = (std::string)(snd.Attribute("Function"));
 
           if(funcname == NULL) funcname = type + "equal";
-          item->push_back(new Match(attrfactory->createValue(snd, type), fnfactory->creatFunction(funcname)));
+          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->creatFunction(funcname)));
         }
-        items->push_back(item);
+        items.push_back(item);
       }
       else{
         logger.msg(Arc::ERROR, "Error definition in policy"); 
@@ -152,18 +153,58 @@ ArcRule::ArcRule(const XMLNode& node){
  
 }
 
-MatchResult ArcRule::match(const EvaluationCtx* ctx){
-  Arc::RequestTuple evaltuple = ctx->getEvalTuple();
-  
 
-  return Match;
+static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::Attribute*> req) const {
+
+  Arc::OrList::iterator orit;
+  Arc::AndList::iterator andit;
+  std::list<Arc::Attribute*>::iterator reqit;
+
+  //For example, go through each <Subject> element in one rule, once one <Subject> is satisfied, skip put.
+  for( orit = items.begin(); orit != items.end(); orit++ ){
+
+    int all_fraction_matched = 0;
+    //For example, go through each <SubFraction> element in one <Subject>, all of the <SubFraction> elements should be satisfied.
+    for(andit = (*orit).begin(); andit != (*orit).end(); andit++){
+      boolean one_req_matched = false;
+
+      //go through each <Attribute> element in one <Subject> in Request.xml, all of the <Attribute> should be satisfied.
+      for(reqit = req.begin(); reqit != req.end(), reqit++){
+        //evaluate two "AttributeValue*" based on "Function" definition in "Rule"
+        if((*andit)->second->evaluate(((*andit).first, (*reqit)->getAttributeValue())
+          one_req_matched = true;
+      }
+      // if one of the Attribute in one Request's Subject does not match any of the Rule.Subjects.SubjectA.SubFractions,
+      // then skip to the next: Rule.Subjects.SubjectB
+      if(!one_req_matched) break;
+      else all_fraction_matched +=1;
+    }
+    //One Rule.Subjects.Subject is satisfied (all of the SubFraction are satisfied) by the RequestTuple.Subject
+    if(all_fraction_matched == int((*orit).size())){
+      return MATCH;
+    }
+  }
+
+  return NO_MATCH;
+
+}
+
+MatchResult ArcRule::match(const EvaluationCtx* ctx){
+  Arc::RequestTuple evaltuple = ctx->getEvalTuple();  
+
+  if(itemMatch(subjects, evaltuple.sub)==MATCH &&
+    itemMatch(resources, evaltuple.sub)==MATCH &&
+    itemMatch(actions, evaltuple.sub)==MATCH &&
+    itemMatch(environments, evaltuple.sub)==MATCH)
+    return MATCH;
+  else return NO_MATCH;
 
 }
 
 Result ArcRule::eval(const EvaluationCtx* ctx){
 
   Result result = comalg->combine(ctx, subelements);
-
+  
   return result;
 
 }

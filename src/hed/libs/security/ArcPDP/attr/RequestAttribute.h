@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-typedef std::list<AttributeValue*> AttrValList;
+//typedef std::list<AttributeValue*> AttrValList;
 
 /**Parsing the attribute in Request.xml according to DateType*/
 
@@ -25,6 +25,8 @@ public:
   AttrValList getAttributeValueList () const;
   void setAttributeValueList (const AttrValList& attributeValueList);
 
+  AttributeValue* getAttributeValue() const;
+
 protect:
   AttrValList avlist;
 
@@ -32,8 +34,8 @@ private:
  std::string id;
  std::string type;
  std::string issuer;
- AttrValList avlist;
-
+ //AttrValList avlist;
+ AttributeValue* attrval;
 };
 
 } // namespace Arc
