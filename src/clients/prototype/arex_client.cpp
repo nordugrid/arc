@@ -14,7 +14,9 @@ namespace Arc {
   AREXClient::AREXClient(std::string configFile)
     throw(AREXClientError)
   {
-    if (configFile=="")
+    logger.msg(Arc::INFO, "Creating an A-REX client.");
+
+    if (configFile=="" && getenv("ARC_AREX_CONFIG"))
       configFile = getenv("ARC_AREX_CONFIG");
     if (configFile=="")
       configFile = "./arex_client.xml";
@@ -26,13 +28,13 @@ namespace Arc {
     }
 
     Arc::Loader client_loader(&client_config);
-    logger.msg(Arc::INFO, "Client side MCCs are loaded");
-    Arc::MCC* client_entry = client_loader["soap"];
+    logger.msg(Arc::INFO, "Client side MCCs are loaded.");
+    client_entry = client_loader["soap"];
     if(!client_entry) {
       logger.msg(Arc::ERROR, "Client chain does not have entry point.");
       throw AREXClientError("Client chain does not have entry point.");
     }
-    
+
     arex_ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
     arex_ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
     arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
@@ -68,7 +70,12 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     reqmsg.Payload(&req);
+    logger.msg(Arc::DEBUG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    std::cerr << "client_entry = "
+	      << (long)(void*)client_entry
+	      << std::endl;
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+    logger.msg(Arc::DEBUG, "????????????????????????????????????????");
     if(!status) {
       logger.msg(Arc::ERROR, "Submission request failed.");
       throw AREXClientError("Submission request failed.");

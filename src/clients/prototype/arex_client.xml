@@ -1,0 +1,22 @@
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
+  <ModuleManager>
+    <Path>.libs/</Path>
+    <Path>../../hed/mcc/http/.libs/</Path>
+    <Path>../../hed/mcc/soap/.libs/</Path>
+    <Path>../../hed/mcc/tls/.libs/</Path>
+    <Path>../../hed/mcc/tcp/.libs/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Chain>
+    <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>
+    <Component name='tls.client' id='tls'><next id='tcp'/></Component>
+    <!-- Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/arex</Endpoint></Component -->
+    <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint></Endpoint></Component>
+    <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>
+  </Chain>
+</ArcConfig>
