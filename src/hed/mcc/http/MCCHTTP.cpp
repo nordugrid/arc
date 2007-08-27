@@ -38,9 +38,9 @@ MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 static MCC_Status make_http_fault(Arc::Logger& logger,PayloadStreamInterface& stream,Message& outmsg,int code,const char* desc = NULL) {
   if((desc == NULL) || (*desc == 0)) {
     switch(code) {
-      case 400: desc="Bad Request"; break;
-      case 404: desc="Not Found"; break;
-      case 500: desc="Internal error"; break;
+      case HTTP_BAD_REQUEST:  desc="Bad Request"; break;
+      case HTTP_NOT_FOUND:    desc="Not Found"; break;
+      case HTTP_INTERNAL_ERR: desc="Internal error"; break;
       default: desc="Something went wrong";
     };
   };
@@ -106,11 +106,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
   //// TODO: make it possible for HTTP payload to acquire Raw payload to exclude double buffering
-  int http_code = 220;
+  int http_code = HTTP_OK;
   const char* http_resp = "OK";
   int l = 0;
   if(retpayload->BufferPos(0) != 0) {
-    http_code=206;
+    http_code=HTTP_PARTIAL;
     http_resp="Partial content";
   } else {
     for(int i = 0;;++i) {
@@ -118,7 +118,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       l=retpayload->BufferPos(i) + retpayload->BufferSize(i);
     };
     if(l != retpayload->Size()) {
-      http_code=206;
+      http_code=HTTP_PARTIAL;
       http_resp="Partial content";
     };
   };
