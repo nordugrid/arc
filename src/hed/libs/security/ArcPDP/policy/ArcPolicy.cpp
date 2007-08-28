@@ -12,7 +12,7 @@ ArcPolicy::ArcPolicy(const XMLNode& node){
   //Setup the rules combining algorithm inside one policy
   if(node.Attribute("CombiningAlg") != NULL)
     comalg = algfactory->createCombiningAlg((std::string)(node.Attribute("CombiningAlg")));
-  else comalg = algfactory->createCombiningAlg("deny-overides");     
+  else comalg = algfactory->createAlg("deny-overides");     
 
   description = (std::string)(node["Description"]);
   
@@ -37,7 +37,6 @@ MatchResult ArcPolicy::match(const EvaluationCtx* ctx){
 }
 
 Result ArcPolicy::eval(const EvaluationCtx* ctx){
-//  Arc::RequestTuple evaltuple = ctx->getEvalTuple();
   
   Result result = comalg->combine(ctx, subelements);
 

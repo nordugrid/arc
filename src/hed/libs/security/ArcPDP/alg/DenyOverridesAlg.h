@@ -8,7 +8,7 @@ namespace Arc {
 
 class DenyOverridesCombiningAlg : public CombiningAlg {
 public:
-  DenyOverridesCombiningAlg(){algId = "deny-overrides"};
+  DenyOverridesCombiningAlg(){algId = "Deny-Overrides"};
   virtual ~DenyOverridesCombiningAlg(){};
 
 public:

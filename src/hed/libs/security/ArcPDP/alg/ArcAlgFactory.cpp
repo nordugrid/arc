@@ -12,7 +12,7 @@ ArcAlgFactory::ArcAlgFactory(){
   initCombiningAlgs();
 }
 
-CombiningAlg* ArcAlgFactory::createCombiningAlg(const std::string& type){
+CombiningAlg* ArcAlgFactory::createAlg(const std::string& type){
   AlgMap::iterator it; 
   if((it=algmap.find(type)) != algmap.end())
     return (*it).second;

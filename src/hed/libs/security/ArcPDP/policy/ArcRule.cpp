@@ -43,7 +43,7 @@ static void getItemlist(const XMLNode& nd, OrList& items, const std::string& ite
         }
         items.push_back(item);
       }
-      else if(((type!=NULL)&&(tnd.Size()>0)){
+      else if((type!=NULL)&&(tnd.Size()>0)){
         AndList item;
         int size = tnd.Size();
         for(int k=0; k<size; k++){
@@ -94,6 +94,8 @@ static void getItemlist(const XMLNode& nd, OrList& items, const std::string& ite
 ArcRule::ArcRule(const XMLNode& node){
   XMLNode nd, tnd;
 
+  hasDirectEffect = true;
+  
   /* "And" relationship means the request should satisfy all of the items 
   <Subject>
    <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
@@ -116,9 +118,9 @@ ArcRule::ArcRule(const XMLNode& node){
   id = (std::string)(node.Attribute("RuleID"));
   description = (std::string)(node["Description"]);
   if((std::string)(node.Attribute("Effect"))=="Permit")
-    effect=0;
-  else if((std::string)(node.Attribute("RuleID"))=="Deny")
-    effect=1;
+    effecti="Permit";
+  else if((std::string)(node.Attribute("Effect"))=="Deny")
+    effect="Deny";
   else 
     logger.msg(Arc::ERROR, "Invalid Effect");
  
@@ -171,7 +173,7 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::Attribute*> 
       //go through each <Attribute> element in one <Subject> in Request.xml, all of the <Attribute> should be satisfied.
       for(reqit = req.begin(); reqit != req.end(), reqit++){
         //evaluate two "AttributeValue*" based on "Function" definition in "Rule"
-        if((*andit)->second->evaluate(((*andit).first, (*reqit)->getAttributeValue())
+        if((*andit)->second->evaluate((*andit).first, (*reqit)->getAttributeValue()))
           one_req_matched = true;
       }
       // if one of the Attribute in one Request's Subject does not match any of the Rule.Subjects.SubjectA.SubFractions,
@@ -193,19 +195,25 @@ MatchResult ArcRule::match(const EvaluationCtx* ctx){
   Arc::RequestTuple evaltuple = ctx->getEvalTuple();  
 
   if(itemMatch(subjects, evaltuple.sub)==MATCH &&
-    itemMatch(resources, evaltuple.sub)==MATCH &&
-    itemMatch(actions, evaltuple.sub)==MATCH &&
-    itemMatch(environments, evaltuple.sub)==MATCH)
+    itemMatch(resources, evaltuple.res)==MATCH &&
+    itemMatch(actions, evaltuple.act)==MATCH)
+    //&&itemMatch(environments, evaltuple.sub)==MATCH)
     return MATCH;
   else return NO_MATCH;
 
 }
 
 Result ArcRule::eval(const EvaluationCtx* ctx){
-
-  Result result = comalg->combine(ctx, subelements);
-  
+  Result result;
+  //TODO
+  // need to evaluate the "Condition"
+  if (effect == "Permit") result = DECISION_PERMIT;
+  else if (effect == "Deny") result = DECISION_DENY;
   return result;
-
 }
 
+Result ArcRule::getEffect() const {
+  if (effect == "Permit") result = DECISION_PERMIT;
+  else if (effect == "Deny") result = DECISION_DENY;
+  return result;
+}

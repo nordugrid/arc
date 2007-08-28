@@ -25,6 +25,11 @@ public:
 
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
+  //Distinguish ArcRule and ArcPolicy
+  virtual boolean hasDirectEffect() const {return hasDirectEffect };
+
+protected:
+  boolean hasDirectEffect = false;
 };
 
 } // namespace Arc

@@ -25,10 +25,12 @@ public:
   ArcRule(const XMLNode& node);  
   virtual ~ArcRule();
 
+  Result getEffect() const;
+
   virtual Result eval(const EvaluationCtx* ctx);
 
 private:
-  int effect = 0;
+  std::string effect = 0;
   std::string id = NULL;
   std::string version = NULL;
   std::string description = NULL;
