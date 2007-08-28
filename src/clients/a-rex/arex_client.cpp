@@ -21,15 +21,15 @@ namespace Arc {
     if (configFile=="")
       configFile = "./arex_client.xml";
 
-    Arc::Config client_config(configFile.c_str());
-    if(!client_config) {
+    client_config = new Arc::Config(configFile.c_str());
+    if(!*client_config) {
       logger.msg(Arc::ERROR, "Failed to load client configuration.");
       throw AREXClientError("Failed to load client configuration.");
     }
 
-    Arc::Loader client_loader(&client_config);
+    client_loader = new Arc::Loader(client_config);
     logger.msg(Arc::INFO, "Client side MCCs are loaded.");
-    client_entry = client_loader["soap"];
+    client_entry = (*client_loader)["soap"];
     if(!client_entry) {
       logger.msg(Arc::ERROR, "Client chain does not have entry point.");
       throw AREXClientError("Client chain does not have entry point.");
@@ -43,6 +43,8 @@ namespace Arc {
   
   AREXClient::~AREXClient()
   {
+    delete client_loader;
+    delete client_config;
   }
   
   std::string AREXClient::submit(std::istream& jsdl_file)
@@ -70,12 +72,7 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     reqmsg.Payload(&req);
-    logger.msg(Arc::DEBUG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    std::cerr << "client_entry = "
-	      << (long)(void*)client_entry
-	      << std::endl;
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    logger.msg(Arc::DEBUG, "????????????????????????????????????????");
     if(!status) {
       logger.msg(Arc::ERROR, "Submission request failed.");
       throw AREXClientError("Submission request failed.");
@@ -100,9 +97,15 @@ namespace Arc {
     };
     Arc::NS ns;
     Arc::XMLNode id(ns);
-    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
+    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]
+		["ReferenceParameters"]["JobID"]);
     id.GetXML(jobid);
-    delete repmsg.Payload();    
+    //jobid=(std::string)id; //Do not work!
+    delete repmsg.Payload();
+    // A hack to extract the Job ID from the XML string...
+    int l = jobid.find(">"), r = jobid.rfind("<");
+    l = jobid.find(">", l+1);
+    jobid = jobid.substr(l+1,r-l-1);
     return jobid;
   }
   
@@ -181,8 +184,6 @@ namespace Arc {
       delete repmsg.Payload();
       throw AREXClientError("The response is not a SOAP message.");
     }
-    //resp->GetXML(str);
-    //std::cout << "Response: " << str << std::endl;
   }
   
 }

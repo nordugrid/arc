@@ -1,14 +1,13 @@
-// arex_test.cpp
-// A small test program that creates an A-REX client and calls its
-// three methods.
-// So far, it shows that the client is not working properly.
+// apsub.cpp
+// A prototype command line tool for job submission to an A-REX
+// service. In the name, "ap" means "Arc Prototype".
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include "arex_client.h"
 
-int main(){
+int main(int argc, char* argv[]){
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -17,13 +16,9 @@ int main(){
   try{
     Arc::AREXClient ac;
     std::string jobid;
-    std::ifstream jsdlfile("jsdl.xml");
+    std::ifstream jsdlfile(argv[1]);
     jobid = ac.submit(jsdlfile);
     std::cout << "Submitted a job with ID: " << jobid << std::endl;
-    std::cout << "Status of the job: " << ac.stat(jobid) << std::endl;
-    ac.kill(jobid);
-    std::cout << "Killed the job!" << std::endl;
-    return 0;
   }
   catch (Arc::AREXClientError err){
     std::cerr << "ERROR: " << err.what() << std::endl;

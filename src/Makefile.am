@@ -1,1 +1,1 @@
-SUBDIRS=libs hed tests services
+SUBDIRS=libs hed tests services clients

@@ -284,6 +284,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/grid-manager/url/Makefile
+                 src/clients/Makefile
+                 src/clients/a-rex/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
