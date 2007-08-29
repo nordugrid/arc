@@ -1,0 +1,2 @@
+SUBDIRS=a-rex
+DIST_SUBDIRS = a-rex
