@@ -103,7 +103,7 @@ namespace Arc {
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
       std::list<std::string> unmatched;
-      if (iter->label.match(path)) {
+      if (iter->label.match(path, unmatched)) {
         request.Attributes()->set("PLEXER:PATTERN",iter->label.getPattern());
         if(unmatched.size() > 0) {
           request.Attributes()->set("PLEXER:EXTENSION",*(unmatched.end()--));
