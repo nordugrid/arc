@@ -1,5 +1,5 @@
 noinst_PROGRAMS=arex_test apsub
-SOURCES = arex_client.cpp
+SOURCES = arex_client.cpp arex_client.h
 
 arex_test_SOURCES=$(SOURCES) arex_test.cpp
 arex_test_CPPFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
