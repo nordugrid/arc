@@ -32,7 +32,6 @@ bool PayloadHTTP::readline(std::string& line) {
       tbuflen_-=(p-tbuf_)+1;
       memmove(tbuf_,p+1,tbuflen_+1); 
       if(line[line.length()-1] == '\r') line.resize(line.length()-1);
-std::cerr<<"readline: "<<line<<std::endl;
       return true;
     };
     line+=tbuf_;
@@ -140,9 +139,6 @@ bool PayloadHTTP::parse_header(void) {
     };
   };
   if(keep_alive_ && (length_ == -1)) length_=0;
-std::cerr<<"parse_header: length_= "<<length_<<std::endl;
-std::cerr<<"parse_header: offset_= "<<offset_<<std::endl;
-std::cerr<<"parse_header: size_= "<<size_<<std::endl;
   return true;
 }
 
@@ -170,7 +166,6 @@ bool PayloadHTTP::get_body(void) {
   char* result = NULL;
   int result_size = 0;
   if(chunked_) {
-std::cerr<<"get_body: chunked"<<std::endl;
     for(;;) {
       std::string line;
       if(!readline(line)) return false;
@@ -188,16 +183,12 @@ std::cerr<<"get_body: chunked"<<std::endl;
       if(!line.empty()) return false;
     };
   } else if(length_ == 0) {
-std::cerr<<"get_body: empty"<<std::endl;
     return true;
   } else if(length_ > 0) {
-std::cerr<<"get_body: length_="<<length_<<std::endl;
     result=(char*)malloc(length_+1);
     if(!read(result,length_)) { free(result); return false; };
     result_size=length_;
-std::cerr<<"get_body: read passed: result_size="<<result_size<<std::endl;
   } else {
-std::cerr<<"get_body: infinite"<<std::endl;
     // Read till connection closed
     for(;;) {
       int chunk_size = 4096;
@@ -207,14 +198,11 @@ std::cerr<<"get_body: infinite"<<std::endl;
       if(!read(result+result_size,chunk_size)) break;
       result_size+=chunk_size;
     };
-std::cerr<<"get_body: read passed: result_size="<<result_size<<std::endl;
   };
   if (result == NULL) {
-std::cerr<<"get_body: no result"<<std::endl;
     return false;
   }
   result[result_size]=0;
-std::cerr<<"get_body: result: "<<result<<std::endl;
   // Attach result to buffer exposed to user
   PayloadRawBuf b;
   b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
