@@ -1,7 +1,6 @@
 // arex_test.cpp
 // A small test program that creates an A-REX client and calls its
 // three methods.
-// So far, it shows that the client is not working properly.
 
 #include <iostream>
 #include <fstream>
@@ -21,8 +20,7 @@ int main(){
     jobid = ac.submit(jsdlfile);
     std::cout << "Submitted a job with ID: " << jobid << std::endl;
     std::cout << "Status of the job: " << ac.stat(jobid) << std::endl;
-    ac.kill(jobid);
-    std::cout << "Killed the job!" << std::endl;
+    std::cout << "Killed the job: " << ac.kill(jobid) << std::endl;
     return 0;
   }
   catch (Arc::AREXClientError err){

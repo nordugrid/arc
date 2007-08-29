@@ -97,15 +97,9 @@ namespace Arc {
     };
     Arc::NS ns;
     Arc::XMLNode id(ns);
-    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]
-		["ReferenceParameters"]["JobID"]);
+    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
     id.GetXML(jobid);
-    //jobid=(std::string)id; //Do not work!
     delete repmsg.Payload();
-    // A hack to extract the Job ID from the XML string...
-    int l = jobid.find(">"), r = jobid.rfind("<");
-    l = jobid.find(">", l+1);
-    jobid = jobid.substr(l+1,r-l-1);
     return jobid;
   }
   
@@ -117,7 +111,8 @@ namespace Arc {
     
     Arc::PayloadSOAP req(arex_ns);
     Arc::XMLNode jobref =
-      req.NewChild("bes-factory:GetActivityStatuses").NewChild(jobid);
+      req.NewChild("bes-factory:GetActivityStatuses").
+      NewChild(Arc::XMLNode(jobid));
     
     // Send job request
     Arc::Message reqmsg;
@@ -148,14 +143,15 @@ namespace Arc {
     return result;
   }
 
-  void AREXClient::kill(const std::string& jobid)
+  std::string AREXClient::kill(const std::string& jobid)
     throw(AREXClientError)
   {
     logger.msg(Arc::INFO, "Creating and sending request to terminate a job.");
     
     Arc::PayloadSOAP req(arex_ns);
     Arc::XMLNode jobref =
-      req.NewChild("bes-factory:TerminateActivities").NewChild(jobid);
+      req.NewChild("bes-factory:TerminateActivities").
+      NewChild(Arc::XMLNode(jobid));
     
     // Send job request
     Arc::Message reqmsg;
@@ -184,6 +180,10 @@ namespace Arc {
       delete repmsg.Payload();
       throw AREXClientError("The response is not a SOAP message.");
     }
+
+    std::string result;
+    resp->GetXML(result);
+    return result;
   }
   
 }

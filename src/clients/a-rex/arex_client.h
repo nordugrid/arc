@@ -88,9 +88,10 @@ namespace Arc {
     /*! This method sends a request to the A-REX service to terminate
       a job.
       @param jobid The Job ID of the job to terminate.
+      @return The response of the termination request.
       @throw An AREXClientError object if an error occurs.
      */
-    void kill(const std::string& jobid) throw(AREXClientError);
+    std::string kill(const std::string& jobid) throw(AREXClientError);
 
   private:
 

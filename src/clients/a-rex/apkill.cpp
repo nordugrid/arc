@@ -1,5 +1,5 @@
-// apsub.cpp
-// A prototype command line tool for job submission to an A-REX
+// apkill.cpp
+// A prototype command line tool for terminating a job of an A-REX
 // service. In the name, "ap" means "Arc Prototype".
 
 #include <iostream>
@@ -16,12 +16,9 @@ int main(int argc, char* argv[]){
   try{
     Arc::AREXClient ac;
     std::string jobid;
-    std::ifstream jsdlfile(argv[1]);
-    std::ofstream jobidfile(argv[2]);
-    jobid = ac.submit(jsdlfile);
-    jobidfile << jobid;
-    std::cout << "Submitted the job!" << std::endl;
-    std::cout << "Job ID stored in: " << argv[2] << std::endl;
+    std::ifstream jobidfile(argv[1]);
+    std::getline<char>(jobidfile, jobid, 0);
+    std::cout << ac.kill(jobid) << std::endl;
   }
   catch (Arc::AREXClientError err){
     std::cerr << "ERROR: " << err.what() << std::endl;
