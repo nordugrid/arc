@@ -25,6 +25,6 @@ jsdl_soap.h: jsdl_complete.xsd jsdl_POSIXApplication.xsd jsdl_arc.xsd typemap.da
 $(SOAPCPP2_OUTPUT): jsdl_soap.h
 	$(SOAPCPP2) -n -p jsdl_soap $<
 
-CLEANFILES = jsdl_soap*
+CLEANFILES = $(SOAPCPP2_OUTPUT)
 
 EXTRA_DIST = *.xsd typemap.dat stlvector.h
