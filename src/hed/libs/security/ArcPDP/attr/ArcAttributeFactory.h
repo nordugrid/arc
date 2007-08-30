@@ -3,13 +3,14 @@
 
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/XMLNode.h"
-#include "../../../../libs/common/Logger.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
+#include "AttributeFactory.h"
 
 namespace Arc {
 
 /** Attribute factory class for Arc specified attributes*/
-class ArcAttributeFactory : public AttributeFactoty {
+class ArcAttributeFactory : public AttributeFactory {
 public:
   ArcAttributeFactory();
   virtual ~ArcAttributeFactory();

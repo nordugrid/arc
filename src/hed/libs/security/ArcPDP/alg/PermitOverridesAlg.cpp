@@ -1,10 +1,11 @@
 #include "PermitOverridesAlg.h"
-#include "Result.h"
 
-Result PermitOverridesAlg::combine(Evaluation* ctx, std::list<Policy*> policies){
-  boolean atleast_onedeny = false;
-  boolean atleast_oneerror = false;
-  boolean potentialpermit = false;
+using namespace Arc;
+
+Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*> policies){
+  bool atleast_onedeny = false;
+  bool atleast_oneerror = false;
+  bool potentialpermit = false;
 
   std::list<Policy*>::iterator it;
   for(it = policies.begin(); it != policies.end(); it++) {
@@ -19,7 +20,7 @@ Result PermitOverridesAlg::combine(Evaluation* ctx, std::list<Policy*> policies)
       
       if (res == DECISION_INDETERMINATE){
         atleast_oneerror = true;
-        if(policy->hasDirectEffect()&&policy->getEffect()==DECISION_PERMIT)
+        if((policy->getEffect()).compare("Permit")==0)
           potentialpermit = true;
       }
       else if(res == DECISION_DENY)

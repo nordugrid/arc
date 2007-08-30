@@ -4,8 +4,9 @@
 #include "Request.h"
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/XMLNode.h"
-#include "../../../../libs/common/Logger.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
+#include "attr/AttributeValue.h"
 
 /** EvaluationCtx, storing some context information for evaluation, including Request, current time, etc. */
 
@@ -23,27 +24,27 @@ class EvaluationCtx {
 
 public:
   //**Construct a new EvaluationCtx based on the given request.*/
-  EvaluationCtx (const Arc::Request* request);
+  EvaluationCtx (Arc::Request* request);
   virtual ~EvaluationCtx();
   
   virtual Arc::Request* getRequest() const;
  
-  virtual void setRequestItem(const Arc::RequestItem* reqit){reqitem = reqit;};
+  virtual void setRequestItem(Arc::RequestItem* reqit){reqitem = reqit;};
 
   virtual Arc::RequestItem* getRequestItem() const {return reqitem;};
 
-  virtual ArrtibuteValue * getSubjectAttribute();
-  virtual ArrtibuteValue * getResourceAttribute();
-  virtual ArrtibuteValue * getActionAttribute();
-  virtual ArrtibuteValue * getEnvironmentAttribute();
+  virtual AttributeValue * getSubjectAttribute();
+  virtual AttributeValue * getResourceAttribute();
+  virtual AttributeValue * getActionAttribute();
+  virtual AttributeValue * getEnvironmentAttribute();
 
   //Convert each RequestItem ( one tuple <SubList, ResList, ActList, EnvList>)  into some <Subject, Resource, Action, Environment> tuples.
   //The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some       //independent <Subject, Resource, Action, Environment>s and the evaluator should deal with them independently. 
   virtual void split();
 
   virtual std::list<RequestTuple> getRequestTuples() const { return reqtuples; };
-  virtual setEvalTuple(RequestTuple tuple){ evaltuple = tuple; };
-  virtual getEvalTuple()const { return evaltuple; };
+  virtual void setEvalTuple(RequestTuple tuple){ evaltuple = tuple; };
+  virtual RequestTuple getEvalTuple()const { return evaltuple; };
   
 private:
   Arc::Request* req;

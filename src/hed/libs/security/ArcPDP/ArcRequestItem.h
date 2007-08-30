@@ -1,10 +1,8 @@
 #ifndef __ARC_ARCREQUESTITEM_H__
-#define __ARC_ARCREQUESTITEM_H_
+#define __ARC_ARCREQUESTITEM_H__
 
 #include "RequestItem.h"
-#include "XMLNode.h"
-#include <list>
-#include "Attribute.h"
+#include "common/XMLNode.h"
 
 namespace Arc {
 
@@ -12,8 +10,8 @@ namespace Arc {
 /**Specified ArcRequestItem which can parse Arc request formate*/
 class ArcRequestItem : public RequestItem{
 public:
-  RequestItem(const Arc::XMLNode& root);
-  virtual ~RequestItem(void) { };
+  ArcRequestItem(XMLNode& node);
+  virtual ~ArcRequestItem();
 
 public:
   virtual SubList getSubjects () const;

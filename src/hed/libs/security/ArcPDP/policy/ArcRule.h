@@ -2,9 +2,10 @@
 #define __ARC_ARCRULE_H__
 
 #include "Policy.h"
+#include "../fn/Function.h"
 #include <list>
 #include "../alg/CombiningAlg.h"
-#include "XMLNode.h"
+#include "common/XMLNode.h"
 
 
 namespace Arc {
@@ -22,23 +23,31 @@ class ArcRule : public Policy {
 
 public:
   ArcRule();
-  ArcRule(const XMLNode& node);  
+  ArcRule(XMLNode& node);  
   virtual ~ArcRule();
 
-  Result getEffect() const;
+  virtual std::string getEffect();
 
-  virtual Result eval(const EvaluationCtx* ctx);
+  virtual Result eval(EvaluationCtx* ctx);
+
+  virtual MatchResult match(EvaluationCtx* ctx);
 
 private:
-  std::string effect = 0;
-  std::string id = NULL;
-  std::string version = NULL;
-  std::string description = NULL;
+  void getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string&
+function_attr);
+
+private:
+  std::string effect;
+  std::string id;
+  std::string version;
+  std::string description;
   
   OrList subjects;
   OrList resources;
   OrList actions;
   OrList conditions;
+
+  static Arc::Logger logger;
 };
 
 } // namespace Arc

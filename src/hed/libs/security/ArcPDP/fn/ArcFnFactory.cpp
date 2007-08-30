@@ -1,10 +1,20 @@
 #include "ArcFnFactory.h"
+#include "EqualFunction.h"
+
+using namespace Arc;
 
 void ArcFnFactory::initFunctions(){
   /**Some Arc specified function types*/
-  fnmap.insert(pair<std::string, Function*>(StringFunction.identify, new StringFunction));
-  fnmap.insert(pair<std::string, Function*>(DateMathFunction.identify, new DateMathFunction));
+  //fnmap.insert(pair<std::string, Function*>(StringFunction.identify, new StringFunction));
+  //fnmap.insert(pair<std::string, Function*>(DateMathFunction.identify, new DateMathFunction));
   /** TODO:  other function type............. */
+  std::string fnName = EqualFunction.getFunctionName(StringAttribute.identify);
+  std::string argType = StringAttribute.identify;
+  fnmap.insert(pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
+
+  fnName = EqualFunction.getFunctionName(DateAttribute.identify);
+  argType = DateAttribute.identity;
+  fnmap.insert(pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
 
 }
 
@@ -12,7 +22,7 @@ ArcFnFactory::ArcFnFactory(){
   initFunctions();
 }
 
-Function* ArcFnFactory::createFunction(const std::string& type){
+Function* ArcFnFactory::createFn(const std::string& type){
   FnMap::iterator it; 
   if((it=fnmap.find(type)) != fnmap.end())
     return (*it).second;

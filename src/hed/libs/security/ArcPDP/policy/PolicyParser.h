@@ -3,7 +3,6 @@
 
 #include <list>
 #include "../alg/CombiningAlg.h"
-#include "XMLNode.h"
 #include "Policy.h"
 
 namespace Arc {

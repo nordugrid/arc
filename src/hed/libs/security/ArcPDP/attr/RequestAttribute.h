@@ -2,7 +2,9 @@
 #define __ARC_ATTRIBUTE_H__
 
 #include "AttributeValue.h"
+#include "AttributeFactory.h"
 #include <list>
+#include <common/XMLNode.h>
 
 namespace Arc {
 
@@ -12,8 +14,8 @@ namespace Arc {
 
 class RequestAttribute {
 public:
-  RequestAttribute(const XMLNode& node, const AttributeFactory* attrfactory);
-  virtual ~Attribute();
+  RequestAttribute(Arc::XMLNode& node, AttributeFactory* attrfactory);
+  virtual ~RequestAttribute();
   
 public:
   std::string getAttributeId () const;
@@ -22,13 +24,13 @@ public:
   void setDataType (const std::string dataType);
   std::string getIssuer () const;
   void setIssuer (const std::string issuer);
-  AttrValList getAttributeValueList () const;
-  void setAttributeValueList (const AttrValList& attributeValueList);
+  //AttrValList getAttributeValueList () const;
+  //void setAttributeValueList (const AttrValList& attributeValueList);
 
   AttributeValue* getAttributeValue() const;
 
-protect:
-  AttrValList avlist;
+//protect:
+  //AttrValList avlist;
 
 private:
  std::string id;

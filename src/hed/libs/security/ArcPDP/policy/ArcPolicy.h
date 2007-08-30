@@ -4,7 +4,7 @@
 #include "Policy.h"
 #include <list>
 #include "../alg/CombiningAlg.h"
-#include "XMLNode.h"
+#include "common/XMLNode.h"
 
 
 namespace Arc {
@@ -15,10 +15,14 @@ class ArcPolicy : public Policy {
 
 public:
   ArcPolicy();
-  ArcPolicy(const XMLNode& node);  
+  ArcPolicy(XMLNode& node);  
   virtual ~ArcPolicy();
 
-  virtual Result eval(const EvaluationCtx* ctx);
+  virtual Result eval(EvaluationCtx* ctx);
+
+  virtual MatchResult match(EvaluationCtx* ctx);
+
+  virtual std::string getEffect(){ return "NOT Effect";};
 
 private:
  // std::list<Arc::Policy*> rules;

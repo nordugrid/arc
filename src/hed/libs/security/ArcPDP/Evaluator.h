@@ -4,12 +4,13 @@
 #include "Request.h"
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/XMLNode.h"
-#include "../../../../libs/common/Logger.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
 
-#include "PolicyStore.h"
-#include "FnFactory.h"
-#include "AttributeFactory.h"
+#include "policy/PolicyStore.h"
+#include "fn/ArcFnFactory.h"
+#include "attr/ArcAttributeFactory.h"
+#include "Response.h"
 
 /** Execute the policy evaluation, based on the request and policy */
 
@@ -22,13 +23,13 @@ private:
   AttributeFactory* attrfactory;  
 
 public:
-  Evaluator (const Arc::ArcConfig& cfg);
+  Evaluator (const XMLNode& cfg);
   Evaluator (const std::string& cfgfile);
   virtual ~Evaluator();
 
   virtual Arc::Response* evaluate(const Arc::Request* request);
   virtual Arc::Response* evaluate(const std::string& reqfile);
-  virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx)
+  virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx);
 };
 
 } // namespace Arc

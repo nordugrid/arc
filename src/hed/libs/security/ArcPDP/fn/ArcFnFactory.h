@@ -3,12 +3,12 @@
 
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/Logger.h"
+#include "FnFactory.h"
 
 namespace Arc {
 
 /** Function factory class for Arc specified attributes*/
-class ArcFnFactory : public FnFactoty {
+class ArcFnFactory : public FnFactory {
 public:
   ArcFnFactory();
   virtual ~ArcFnFactory();

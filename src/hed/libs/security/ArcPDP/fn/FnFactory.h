@@ -2,17 +2,17 @@
 #define __ARC_FUNCTIONFACTORY_H__
 
 #include <map>
-#include "../../../../libs/common/Logger.h"
+#include "Function.h"
 
 namespace Arc {
 
 typedef std::map<std::string, Arc::Function*> FnMap;
 
 /** Base function factory class*/
-cliass FnFactory {
+class FnFactory {
 public:
   FnFactory() {};
-  virtual ~FnFactory();
+  virtual ~FnFactory(){};
 
 public:
   virtual Function* createFn(const std::string& type){};

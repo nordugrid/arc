@@ -3,12 +3,13 @@
 
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/Logger.h"
+#include "common/Logger.h"
+#include "AlgFactory.h"
 
 namespace Arc {
 
 /** Algorithm factory class for Arc*/
-class ArcAlgFactory : public AlgFactoty {
+class ArcAlgFactory : public AlgFactory {
 public:
   ArcAlgFactory();
   virtual ~ArcAlgFactory();

@@ -1,8 +1,11 @@
 #include "ArcPolicy.h"
+#include "ArcRule.h"
 #include <list>
-#include "../Result.h"
+#include "../alg/ArcAlgFactory.h"
 
-ArcPolicy::ArcPolicy(const XMLNode& node){
+using namespace Arc;
+
+ArcPolicy::ArcPolicy(XMLNode& node){
   ArcRule *rule;
   XMLNode nd;
   ArcAlgFactory *algfactory = new ArcAlgFactory(); 
@@ -10,8 +13,8 @@ ArcPolicy::ArcPolicy(const XMLNode& node){
   id = (std::string)(node.Attribute("PolicyID"));
 
   //Setup the rules combining algorithm inside one policy
-  if(node.Attribute("CombiningAlg") != NULL)
-    comalg = algfactory->createCombiningAlg((std::string)(node.Attribute("CombiningAlg")));
+  if((node.Attribute("CombiningAlg")) != NULL)
+    comalg = algfactory->createAlg((std::string)(node.Attribute("CombiningAlg")));
   else comalg = algfactory->createAlg("deny-overides");     
 
   description = (std::string)(node["Description"]);
@@ -25,18 +28,18 @@ ArcPolicy::ArcPolicy(const XMLNode& node){
     
 }
 
-MatchResult ArcPolicy::match(const EvaluationCtx* ctx){
+MatchResult ArcPolicy::match(EvaluationCtx* ctx){
   //Arc::RequestTuple evaltuple = ctx->getEvalTuple();
   
   //Because ArcPolicy definition has no any <Subject, Resource, Action, Environment> directly;
   //All the <Subject, Resource, Action, Environment>s are only in ArcRule.
   //So the function always return "Match" 
 
-  return Match;
+  return MATCH;
   
 }
 
-Result ArcPolicy::eval(const EvaluationCtx* ctx){
+Result ArcPolicy::eval(EvaluationCtx* ctx){
   
   Result result = comalg->combine(ctx, subelements);
 

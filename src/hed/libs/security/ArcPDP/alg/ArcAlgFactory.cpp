@@ -1,9 +1,13 @@
 #include "ArcAlgFactory.h"
+#include "DenyOverridesAlg.h"
+#include "PermitOverridesAlg.h"
+
+using namespace Arc;
 
 void ArcAlgFactory::initCombiningAlgs(){
   /**Some Arc specified algorithm types*/
-  algmap.insert(pair<std::string, CombiningAlg*>(DenyOveride.identify, new DenyOverridesPolicyAlg));
-  algmap.insert(pair<std::string, CombiningAlg*>(PermitOveride.identify, new PermitOverridesPolicyAlg));
+  algmap.insert(std::pair<std::string, CombiningAlg*>("Deny-Overrides", new DenyOverridesCombiningAlg()));
+  algmap.insert(std::pair<std::string, CombiningAlg*>("Permit-Overrides", new PermitOverridesCombiningAlg()));
   /** TODO:  other algorithm type............. */
 
 }

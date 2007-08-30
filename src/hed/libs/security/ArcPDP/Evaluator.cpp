@@ -1,12 +1,10 @@
 #include "Evaluator.h"
-#include "ArcFnFactory.h"
-#include "ArcAttributeFactory.h"
 
 #include "Request.h"
 #include "ArcRequest.h"
 #include "Response.h"
 #include "EvaluationCtx.h"
-#include <ifstream>
+#include <fstream>
 
 
 using namespace Arc;
@@ -36,7 +34,7 @@ Evaluator::Evaluator (const Arc::XMLNode& cfg){
   std::string alg("PERMIT-OVERIDES");
   plstore = new Arc::PolicyStore(filelist, alg);
   fnfactory = new Arc::ArcFnFactory() ;
-  attrfactory = new Arc::AttributeFactory();  
+  attrfactory = new Arc::ArcAttributeFactory();  
 }
 
 Evaluator::Evaluator(const std::string& cfgfile){
@@ -48,8 +46,7 @@ Arc::Response* Evaluator::evaluate(const Arc::Request* request){
 }
 
 Arc::Response* Evaluator::evaluate(const std::string& reqfile){
-  std::ifstream reqstream(reqfile.c_str()); 
-  Arc::Request* request = new Arc::ArcRequest(reqstream);
+  Arc::Request* request = new Arc::ArcRequest(reqfile);
   Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
  
   //evaluate the request based on policy
@@ -73,12 +70,12 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     //match the present RequestTuple
     policies = plstore->findPolicy(ctx);
     
-    Arc::Response resp = new Arc::Response();
+    Arc::Response* resp = new Arc::Response();
     std::list<Arc::Policy*> permitset;
-    boolean atleast_onepermit = false;
+    bool atleast_onepermit = false;
     //Each matched policy evaluates the present RequestTuple, using default combiningalg: DENY-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
-      Arc::Result* res = (*policyit)->eval(ctx);
+      Arc::Result res = (*policyit)->eval(ctx);
       if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
         while(!permitset.empty()) permitset.pop_back();
         break;
@@ -113,10 +110,8 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
 /*  Request* req = ctx->getRequest();
   ReqItemList reqitems = req->getRequestItems();
 */
- 
   
 }
-
 
 Evaluator::~Evaluator(){
 }

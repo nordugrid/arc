@@ -1,15 +1,17 @@
-#include "ArcRequestAttribute.h"
+#include "RequestAttribute.h"
 
-RequestAttribute::RequestAttribute(const XMLNode& node, const AttributeFactory* attrfactory){
-  XMLNode nd;
+using namespace Arc;
+
+RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory){
+  Arc::XMLNode nd;
   if(!(nd=node.Attribute("AttributeID"))){
-    id = (std::sting)nd;
+    id = (std::string)nd;
   }
   if(!(nd=node.Attribute("Type"))){
-    type = (std::sting)nd;
+    type = (std::string)nd;
   }
   if(!(nd=node.Attribute("Issuer"))){
-    issuer = (std::sting)nd;
+    issuer = (std::string)nd;
   }
 
   attrval = attrfactory->createValue(node, type);
@@ -44,12 +46,12 @@ std::string RequestAttribute::getIssuer () const{
 void RequestAttribute::setIssuer (const std::string issuer){
 }
 
-AttrValList RequestAttribute::getAttributeValueList () const{
+/*AttrValList RequestAttribute::getAttributeValueList () const{
 }
 
 void RequestAttribute::setAttributeValueList (const AttrValList& attributeValueList){
 }
-
+*/
 AttributeValue* RequestAttribute::getAttributeValue() const{
   return attrval;
 }

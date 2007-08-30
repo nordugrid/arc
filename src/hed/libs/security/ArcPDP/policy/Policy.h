@@ -2,8 +2,9 @@
 #define __ARC_POLICY_H__
 
 #include <list>
-#include "../alg/CombiningAlg.h"
-#include "XMLNode.h"
+#include "common/XMLNode.h"
+#include "../Result.h"
+#include "../EvaluationCtx.h"
 
 namespace Arc {
 
@@ -16,20 +17,17 @@ protected:
 
 public:
   Policy(){};
-  Policy(const XMLNode& node){};  
+  Policy(XMLNode& node){};  
   virtual ~Policy();
  
-  vitual MatchResult match(const Evaluation* ctx){};
+  virtual MatchResult match(EvaluationCtx* ctx){};
 
-  virtual Result eval(const EvaluationCtx* ctx){};
+  virtual Result eval(EvaluationCtx* ctx){};
 
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
-  //Distinguish ArcRule and ArcPolicy
-  virtual boolean hasDirectEffect() const {return hasDirectEffect };
+  virtual std::string getEffect(){};
 
-protected:
-  boolean hasDirectEffect = false;
 };
 
 } // namespace Arc

@@ -3,8 +3,9 @@
 
 #include <list>
 #include <fstream>
-#include "../../../../libs/common/XMLNode.h"
-#include "../../../../libs/common/Logger.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
+#include "AttributeValue.h"
 
 namespace Arc {
 
@@ -23,7 +24,7 @@ public:
   virtual ~ArcAttributeProxy(){};
 public: 
   virtual AttributeValue* getAttribute(const XMLNode& node);
-}
+};
 
 template <class TheAttribute>
 AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const XMLNode& node){

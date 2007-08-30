@@ -2,7 +2,6 @@
 #define __ARC_POLICYSTORE_H__
 
 #include <list>
-#include "XMLNode.h"
 #include "Policy.h"
 
 namespace Arc {
@@ -17,7 +16,7 @@ public:
   //plist is the list of policy sources, alg is the combing algorithm between these sources
   PolicyStore(const std::list<std::string>& plist, const std::string& alg);
   
-  virtual std::list<Arc::Policy*> findPolicy(const EvaluationCtx* context);
+  virtual std::list<Arc::Policy*> findPolicy(EvaluationCtx* context);
 
 private:
   std::list<std::string> policysrclist;

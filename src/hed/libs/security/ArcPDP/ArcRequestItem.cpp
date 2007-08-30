@@ -1,6 +1,9 @@
 #include "ArcRequestItem.h"
+#include "attr/ArcAttributeFactory.h"
 
-ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
+using namespace Arc;
+
+ArcRequestItem::ArcRequestItem(XMLNode& node) : RequestItem(node) {
   //TODO
   ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
   XMLNode nd;
@@ -94,7 +97,7 @@ ArcRequestItem::ArcRequestItem(const Arc::XMLNode& node){
 
 }
 
-ArcRequestItem:: ~RequestItem(void){
+ArcRequestItem::~ArcRequestItem(void){
   while(!subjects.empty()){
     Subject sub = subjects.back();
     while(!sub.empty()){

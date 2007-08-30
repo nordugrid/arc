@@ -2,14 +2,14 @@
 #define __ARC_ALGFACTORY_H__
 
 #include <map>
-#include "../../../../libs/common/Logger.h"
+#include "CombiningAlg.h"
 
 namespace Arc {
 
 typedef std::map<std::string, Arc::CombiningAlg*> AlgMap;
 
 /** Base algorithm factory class*/
-cliass AlgFactory {
+class AlgFactory {
 public:
   AlgFactory() {};
   virtual ~AlgFactory();

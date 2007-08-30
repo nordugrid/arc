@@ -2,8 +2,9 @@
 #define __ARC_ATTRIBUTEFACTORY_H__
 
 #include <map>
-#include "../../../../libs/common/XMLNode.h"
-#include "../../../../libs/common/Logger.h"
+#include "common/XMLNode.h"
+#include "common/Logger.h"
+#include "AttributeProxy.h"
 
 namespace Arc {
 

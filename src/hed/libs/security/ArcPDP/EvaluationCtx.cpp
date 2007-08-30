@@ -1,6 +1,8 @@
 #include "EvaluationCtx.h"
 
-EvaluationCtx::EvaluationCtx (const Arc::Request* request){
+using namespace Arc;
+
+EvaluationCtx::EvaluationCtx (Arc::Request* request){
   req = request;
 }
 
@@ -10,7 +12,7 @@ EvaluationCtx::~EvaluationCtx(){
 Arc::Request* EvaluationCtx::getRequest () const{
   return req;
 }
-
+/*
 ArrtibuteValue * EvaluationCtx::getSubjectAttribute(){
 
 }
@@ -26,10 +28,7 @@ ArrtibuteValue * EvaluationCtx::getActionAttribute(){
 ArrtibuteValue * EvaluationCtx::getEnvironmentAttribute(){
  
 }
-
-Arc::RequestTuple EvaluationCtx::getRequestTuples(){
-  return reqtuples;
-}
+*/
 
 void EvaluationCtx::split(){
   while(!reqtuples.empty()) { reqtuples.pop_back(); }
@@ -39,7 +38,7 @@ void EvaluationCtx::split(){
   for (it = reqlist.begin(); it != reqlist.end(); it++) {
     Arc::SubList subjects = (*it)->getSubjects();
     Arc::SubList::iterator sit;
-    Arc::ResList resources = (*it)->getResorces();
+    Arc::ResList resources = (*it)->getResources();
     Arc::ResList::iterator rit;
     Arc::ActList actions = (*it)->getActions();
     Arc::ActList::iterator ait;

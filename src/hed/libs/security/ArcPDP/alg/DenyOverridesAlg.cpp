@@ -1,10 +1,11 @@
 #include "DenyOverridesAlg.h"
-#include "Result.h"
 
-Result DenyOverridesAlg::combine(Evaluation* ctx, std::list<Policy*> policies){
-  boolean atleast_onepermit = false;
-  boolean atleast_oneerror = false;
-  boolean potentialdeny = false;
+using namespace Arc;
+
+Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*> policies){
+  bool atleast_onepermit = false;
+  bool atleast_oneerror = false;
+  bool potentialdeny = false;
  
   std::list<Policy*>::iterator it;
   for(it = policies.begin(); it != policies.end(); it++) {
@@ -21,19 +22,19 @@ Result DenyOverridesAlg::combine(Evaluation* ctx, std::list<Policy*> policies){
         atleast_onepermit = true;
       else if(res == DECISION_INDETERMINATE){
         //some indeterminate caused by "Condition"
-        atlease_oneerror = true;
+        atleast_oneerror = true;
   
-        if(policy->hasDirectEffect()&&policy->getEffect()==DECISION_DENY)
+        if((policy->getEffect()).compare("Deny")==0)
           potentialdeny = true; 
       }
     }
     else if(match == INDETERMINATE)
-      atlease_oneerror = true;
+      atleast_oneerror = true;
   }
   
   if(potentialdeny) return DECISION_INDETERMINATE;
   if(atleast_onepermit) return DECISION_PERMIT;
-  if(atleasr_oneerror) return DECISION_INDETERMINATE;
+  if(atleast_oneerror) return DECISION_INDETERMINATE;
   return DECISION_NOT_APPLICABLE;
 }
 
