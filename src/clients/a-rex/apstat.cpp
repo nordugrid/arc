@@ -1,28 +1,42 @@
 // apstat.cpp
-// A prototype command line tool for job status queries to an A-REX
-// service. In the name, "ap" means "Arc Prototype".
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 #include "arex_client.h"
 
+//! A prototype client for job status queries.
+/*! A prototype command line tool for job status queries to an A-REX
+  service. In the name, "ap" means "Arc Prototype".
+  
+  Usage:
+  apstat <JobID-file>
+
+  Arguments:
+  <JobID-file> The name of a file in which the Job ID will be stored.
+*/
 int main(int argc, char* argv[]){
 
-  Arc::LogStream logcerr(std::cerr);
-  Arc::Logger::rootLogger.addDestination(logcerr);
-  Arc::Logger::rootLogger.setThreshold(Arc::FATAL);
-  
   try{
+    if (argc!=2)
+      throw std::invalid_argument("Wrong number of arguments!");
     Arc::AREXClient ac;
     std::string jobid;
     std::ifstream jobidfile(argv[1]);
+    if (!jobidfile)
+      throw std::invalid_argument(std::string("Could not open ")+
+				  std::string(argv[1]));
     std::getline<char>(jobidfile, jobid, 0);
-    std::cout << ac.stat(jobid) << std::endl;
+    if (!jobidfile)
+      throw std::invalid_argument(std::string("Could not read Job ID from ")+
+				  std::string(argv[2]));
+    std::cout << "Job status: " << ac.stat(jobid) << std::endl;
+    return EXIT_SUCCESS;
   }
-  catch (Arc::AREXClientError err){
+  catch (std::exception& err){
     std::cerr << "ERROR: " << err.what() << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
 }

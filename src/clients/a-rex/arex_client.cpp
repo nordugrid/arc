@@ -106,7 +106,7 @@ namespace Arc {
   std::string AREXClient::stat(const std::string& jobid)
     throw(AREXClientError)
   {
-    std::string result;
+    std::string state, substate;
     logger.msg(Arc::INFO, "Creating and sending a status request.");
     
     Arc::PayloadSOAP req(arex_ns);
@@ -139,13 +139,24 @@ namespace Arc {
       delete repmsg.Payload();
       throw AREXClientError("The response is not a SOAP message.");
     }
-    resp->GetXML(result);
-    return result;
+    Arc::NS ns;
+    Arc::XMLNode st(ns);
+    st.NewChild((*resp)["GetActivityStatusesResponse"]["Response"]
+		["ActivityStatus"]);
+    state = (std::string)st.Child().Attribute
+      ("bes-factory:ActivityStateEnumeration");
+    Arc::XMLNode sst(ns);
+    sst.NewChild((*resp)["GetActivityStatusesResponse"]["Response"]
+		 ["ActivityStatus"]["state"]);
+    substate = (std::string)sst.Child();
+    delete repmsg.Payload();
+    return state+"/"+substate;
   }
 
-  std::string AREXClient::kill(const std::string& jobid)
+  void AREXClient::kill(const std::string& jobid)
     throw(AREXClientError)
   {
+    std::string result;
     logger.msg(Arc::INFO, "Creating and sending request to terminate a job.");
     
     Arc::PayloadSOAP req(arex_ns);
@@ -181,9 +192,14 @@ namespace Arc {
       throw AREXClientError("The response is not a SOAP message.");
     }
 
-    std::string result;
-    resp->GetXML(result);
-    return result;
+    Arc::NS ns;
+    Arc::XMLNode cancelled(ns);
+    cancelled.NewChild((*resp)["TerminateActivitiesResponse"]
+		       ["Response"]["Cancelled"]);
+    result = (std::string)cancelled.Child();
+    delete repmsg.Payload();
+    if (result!="true")
+      throw AREXClientError("Job termination failed.");
   }
   
 }
