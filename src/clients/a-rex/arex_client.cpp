@@ -150,6 +150,8 @@ namespace Arc {
 		 ["ActivityStatus"]["state"]);
     substate = (std::string)sst.Child();
     delete repmsg.Payload();
+    if (state=="")
+      throw AREXClientError("The job status could not be retrieved.");
     return state+"/"+substate;
   }
 
