@@ -15,7 +15,7 @@ time_t timegm (struct tm *tm);
 
 namespace Arc {
 
-  /** An enumeration that contains the possible textual timeformats. */
+  /// An enumeration that contains the possible textual timeformats.
   enum TimeFormat {
     MDSTime,       // YYYYMMDDHHMMSSZ
     ASCTime,       // Day Month DD HH:MM:SS YYYY
@@ -25,7 +25,7 @@ namespace Arc {
   };
 
 
-  /** A class for storing and manipulating times. */
+  /// A class for storing and manipulating times.
   class Time {
    public:
     /** Default constructor. The time is put equal the current time. */

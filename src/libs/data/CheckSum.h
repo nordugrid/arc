@@ -3,6 +3,8 @@
 
 namespace Arc {
 
+/// Defines interface for variuos checksum manipulations
+/** This class is used during data transfers through DataBufferPar class */
 class CheckSum {
  public:
   CheckSum(void) { };
@@ -17,7 +19,7 @@ class CheckSum {
   virtual bool operator!(void) const { return true; };
 };
 
-
+/// Implementation of CRC32 checksum
 class CRC32Sum: public CheckSum {
  private:
   uint32_t r;
@@ -37,6 +39,7 @@ class CRC32Sum: public CheckSum {
   uint32_t crc(void) const { return r; };
 };
 
+/// Implementation of MD5 checksum
 class MD5Sum: public CheckSum {
  private:
   bool computed;
@@ -60,6 +63,9 @@ class MD5Sum: public CheckSum {
   virtual bool operator!(void) const { return !computed; };
 };
 
+/// Wraper for CheckSum class
+/** To be used for manipulation of any supported checksum type
+ in a transparent way. */
 class CheckSumAny: public CheckSum {
  public:
   typedef enum {

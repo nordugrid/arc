@@ -8,8 +8,8 @@ namespace Arc {
 
   class CheckSum;
 
-  /// This class represents set of buffers used during
-  /// data transfer.
+  /// Represents set of buffers 
+  /** This class is used used during data transfer using DataPoint classes. */
   class DataBufferPar {
    private:
     /* used to check if configuration changed */

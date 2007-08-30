@@ -8,9 +8,9 @@ namespace Arc {
 
   class URL;
 
-  /// The DataHandle class is a wrapper around the DataPoint class that
-  /// simplifies the construction and use and destruction of DataPoint
-  /// objects
+  /// This clas is a wrapper around the DataPoint class.
+  /** It simplifies the construction and use and destruction of 
+    DataPoint objects. */
 
   class DataHandle {
    public:

@@ -12,12 +12,12 @@ namespace Arc {
 
   class Logger;
 
-  /// DataPoint is an abstraction of URL. It can handle URLs of type file://,
-  /// ftp://, gsiftp://, http://, https://, httpg:// (HTTP over GSI),
-  /// se:// (NG web service over HTTPG) and meta-URLs (URLs of Infexing
-  /// Services) rc://, rls://.
-  /// DataPoint provides means to resolve meta-URL into multiple URLs and
-  /// to loop through them.
+  /// This class is an abstraction of URL. 
+  /** It can handle URLs of type file://, ftp://, gsiftp://, http://, https://,
+   httpg:// (HTTP over GSI), se:// (NG web service over HTTPG) and meta-URLs 
+   (URLs of Infexing Services) rc://, rls://.
+   DataPoint provides means to resolve meta-URL into multiple URLs and
+   to loop through them. */
 
   class DataPoint {
    public:
@@ -351,9 +351,9 @@ namespace Arc {
     int tries_left;
   };
 
-  /// DataPointIndex complements DataPoint with attributes
-  /// common for meta-URLs
-  /// It should never be used directly.
+  /// Complements DataPoint with attributes common for meta-URLs
+  /** It should never be used directly. Instead inherit from it to provide
+    class for specific Indexing Service. */
   class DataPointIndex : public DataPoint {
    protected:
     /// DataPointIndex::Location represents physical service at which

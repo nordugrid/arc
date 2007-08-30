@@ -14,13 +14,13 @@ namespace Arc {
   class DataBufferPar;
   class DataCallback;
 
-  /// DataPointDirect is kind of generalized file handle. Differently
-  /// from file handle it does not support operations read() and
-  /// write(). Instead it initiates operation and uses object of
-  /// class DataBufferPar to pass actual data. It also provides
-  /// other operations like querying parameters of remote object.
-  /// It is used by higher-level classes DataMove and DataMovePar
-  /// to provide data transfer service for application.
+  /// This is kind of generalized file handle. 
+  /** Differently from file handle it does not support operations 
+    read() and write(). Instead it initiates operation and uses object
+    of class DataBufferPar to pass actual data. It also provides
+    other operations like querying parameters of remote object.
+    It is used by higher-level classes DataMove and DataMovePar
+    to provide data transfer service for application. */
   class DataPointDirect : public DataPoint {
    public:
     /// Reason of transfer failure

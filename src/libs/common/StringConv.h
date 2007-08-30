@@ -14,8 +14,7 @@ namespace Arc {
   extern Logger stringLogger;
 
 
-  /** This method converts a string to any type
-   */
+  /// This method converts a string to any type
   template<typename T>
   T stringto(const std::string& s) {
     T t;
@@ -46,7 +45,7 @@ namespace Arc {
 #define stringtold(A) stringto<long double>((A))
 
 
-  /** This method converts a long to any type of the width given. */
+  /// This method converts a long to any type of the width given.
   template<typename T>
   std::string tostring(T t, const int width = 0, const int precision = 0) {
     std::stringstream ss;

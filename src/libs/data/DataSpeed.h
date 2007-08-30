@@ -7,8 +7,8 @@
 
 namespace Arc {
 
-  /// Keeps track of average and instantaneous speed. Also detects data
-  /// transfer inactivity and other transfer timeouts.
+  /// Keeps track of average and instantaneous transfer speed.
+  /** Also detects data transfer inactivity and other transfer timeouts. */
   class DataSpeed {
    private:
     time_t first_time;

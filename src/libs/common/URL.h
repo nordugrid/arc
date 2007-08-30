@@ -26,10 +26,9 @@ namespace Arc {
   class URLLocation;
 
 
-  /**
-   *  Class to hold general URL's. A URL is constructed from a string
-   *  representation and split into protocol, hostname, port and path.
-   */
+  /// Class to hold general URL's.
+  /** A URL is constructed from a string representation and split 
+    into protocol, hostname, port and path.  */
   class URL {
 
    public:
@@ -161,9 +160,8 @@ namespace Arc {
   };
 
 
-  /**
-   *  Class to hold a resolved URL location for an RC or RLS registration.
-   */
+  /// Class to hold a resolved URL location.
+  /** It is specific for an RC or RLS registration. */
   class URLLocation : public URL {
 
    public:

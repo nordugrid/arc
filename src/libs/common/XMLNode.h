@@ -15,8 +15,8 @@ namespace Arc {
 
 typedef std::map<std::string,std::string> NS;
 
-/** Wrapper for LibXML library Tree interface. 
-  This class wraps XML Node, Document and Property/Attribute structures.
+/// Wrapper for LibXML library Tree interface. 
+/** This class wraps XML Node, Document and Property/Attribute structures.
   Each instance serves as pointer to actual LibXML element and provides convenient
   (for chosen purpose) methods for manipulating it.
   This class has no special ties to LibXML library and may be easily rewritten for any XML 

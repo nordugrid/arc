@@ -7,8 +7,8 @@
 
 namespace Arc {
 
-/** Configuration element - represents (sub)tree of ARC configuration.
-   This class is intended to be used to pass configuration details to 
+/// Configuration element - represents (sub)tree of ARC configuration.
+/** This class is intended to be used to pass configuration details to 
   various parts of HED and external modules. Currently it's just a 
   wrapper over XML tree. But than may change in a future, although
   interface should be preserved. 
