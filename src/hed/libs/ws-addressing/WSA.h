@@ -9,9 +9,10 @@
 
 namespace Arc {
 
-/** This class implements interface for manipulating WS-Adressing Endpoint 
-  Reference stored in XML tree.
-  Question: should there be some standalone class for storing EPR information? */
+/// Interface for manipulation of WS-Adressing Endpoint Reference. 
+/** It works on Endpoint Reference stored in XML tree.
+  No information is stored in this object except reference to corresponding
+  XML subtree. */
 class WSAEndpointReference {
  protected:
   XMLNode epr_; /** Link to top level EPR XML node */
@@ -42,7 +43,10 @@ class WSAEndpointReference {
   operator XMLNode(void);
 };
 
-/** Interface to manipulate WS-Addressing related information in SOAP header */
+/// Interface for manipulation WS-Addressing information in SOAP header
+/** It works on Endpoint Reference stored in XML tree.
+  No information is stored in this object except reference to corresponding
+  XML subtree. */
 class WSAHeader {
  protected:
   XMLNode header_; /** SOAP header element */
@@ -99,10 +103,10 @@ class WSAHeader {
   static bool Check(SOAPEnvelope& soap);
 };
 
-/** WS-Addressing possible faults */
+/// WS-Addressing possible faults
 typedef enum {
   WSAFaultNone, /** This is not a fault */
-  WSAFaultUnknown, /** This is not  WS-Addressing fault */
+  WSAFaultUnknown, /** This is not a WS-Addressing fault */
   WSAFaultInvalidAddressingHeader,
   WSAFaultInvalidAddress,
   WSAFaultInvalidEPR,
@@ -118,9 +122,11 @@ typedef enum {
   WSAFaultEndpointUnavailable
 } WSAFault;
 
-/** Fills SOAP Fault message look it like corresponding WS-Addressing fault */
+/// Makes WS-Addressing fault.
+/** It fills SOAP Fault message with WS-Addressing fault related information. */
 void WSAFaultAssign(SOAPEnvelope& mesage,WSAFault fid);
-/** Anylizes SOAP Fault message and returns WS-Addressing fault it represents */
+/// Gets WS-addressing fault.
+/** Analyzes SOAP Fault message and returns WS-Addressing fault it represents. */
 WSAFault WSAFaultExtract(SOAPEnvelope& message);
 
 } // namespace Arc

@@ -6,12 +6,13 @@
 #include "common/XMLNode.h"
 
 namespace Arc {
-  /** SOAPFault provides an interface to conveinet access to elements of SOAP faults.
-    It also tries to expose single interface for both version 1.0 and 1.2 faults.
-    This class is not intended to 'own' any information stored. It's purpose 
-    is to manipulate information which under control of XMLNode or SOAPEnvelope
-    classes. If instance does not refer to valid SOAP Fault structure all 
-    manipulation methods will have no effect. */
+  /// Interface to SOAP Fault message.
+  /** SOAPFault class provides a convenience interface for accessing elements 
+    of SOAP faults.  It also tries to expose single interface for both version 
+    1.0 and 1.2 faults.  This class is not intended to 'own' any information
+    stored. It's purpose is to manipulate information which is kept under 
+    control of XMLNode or SOAPEnvelope classes. If instance does not refer to 
+    valid SOAP Fault structure all manipulation methods will have no effect. */
   class SOAPFault {
    friend class SOAPEnvelope;
    private:
@@ -63,9 +64,9 @@ namespace Arc {
     XMLNode Detail(bool create = false);
   };
 
-/** SOAPEnvelope extends XMLNode class to support structures of SOAP message.
-  All XMLNode methods are exposed with top node translated to Envelope part
-  of SOAP. */
+/// Extends XMLNode class to support structures of SOAP message.
+/** All XMLNode methods are exposed by inheriting from XMLNode and node itself 
+  is translated into Envelope part of SOAP. */
 class SOAPEnvelope: public XMLNode {
  public:
   /** Create new SOAP message from textual representation of XML document.
@@ -96,11 +97,11 @@ class SOAPEnvelope: public XMLNode {
   void Namespaces(const NS& namespaces);
   // Setialize SOAP message into XML document
   void GetXML(std::string& xml) const;
-  // Get SOAP header as XML node
+  /** Get SOAP header as XML node */
   XMLNode Header(void) { return header; };
-  // If message is Fault
+  /** Returns true if message is Fault */
   bool IsFault(void) { return fault != NULL; };
-  // Get Fault part of message. Returns NULL if message is not Fault.
+  /** Get Fault part of message. Returns NULL if message is not Fault. */
   SOAPFault* Fault(void) { return fault; };
  private:
   XMLNode doc;      /** Top XML node - XML document */

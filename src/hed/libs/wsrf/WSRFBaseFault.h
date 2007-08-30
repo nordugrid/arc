@@ -6,6 +6,8 @@ namespace Arc {
 
 extern const char* WSRFBaseFaultAction;
 
+/// Base class for WSRF fault messages
+/** Use classes inherited from it for specific faults. */
 class WSRFBaseFault: public WSRF {
  protected:
   /** set WS-ResourceProperties namespaces and default prefixes in SOAP message */

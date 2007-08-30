@@ -29,9 +29,9 @@ namespace Arc {
 
 
 
-  //! A class for communication of MCC statuses
-  /*! This class is used to communicate status between MCCs. It
-    contains a status kind, a string specifying the origin (MCC) of
+  //! A class for communication of MCC processing results
+  /*! This class is used to communicate result status between MCCs.
+    It contains a status kind, a string specifying the origin (MCC) of
     the status object and an explanation.
   */
   class MCC_Status {

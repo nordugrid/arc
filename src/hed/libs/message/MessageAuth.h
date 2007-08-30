@@ -2,15 +2,16 @@
 #define __ARC_MESSAGEAUTH_H__
 
 #include <stdlib.h>
-
-#include "Message.h"
+#include <string>
+#include <list>
+#include <map>
 
 namespace Arc {
 
 typedef std::string AuthObject;
 
-/** Class MessageAuth will contain authencity information, 
-  authorization tokens and decisions. */
+/// Contains authencity information, authorization tokens and decisions.
+/** Functionality of this class is not defined yet. */
 class MessageAuth {
   private:
     std::map<std::string,std::list<AuthObject> > properties_;

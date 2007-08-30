@@ -10,6 +10,7 @@
 
 namespace Arc {
 
+/// Information System message processor.
 /** This class provides callback for 2 operations of WS-ResourceProperties
   and convenient parsing/generation of corresponding SOAP mesages.
   In a future it may extend range of supported specifications. */
@@ -38,7 +39,8 @@ class InformationInterface {
   SOAPEnvelope* Process(SOAPEnvelope& in);
 };
 
-/* This class inherits form InformationInterface and offers 
+/// Information System document container and processor.
+/** This class inherits form InformationInterface and offers 
   container for storing informational XML document. */
 class InformationContainer: public InformationInterface {
  protected:
@@ -57,28 +59,44 @@ class InformationContainer: public InformationInterface {
   void Release(void);
 };
 
+/// Request for information in InfoSystem
+/** This is a convenience wrapper creating proper WS-ResourceProperties
+  request targeted InfoSystem interface of service. */
 class InformationRequest {
  private:
   WSRP* wsrp_;
  public:
+  /** Dummy constructor */
   InformationRequest(void);
+  /** Request for attribute specified by elements of path. 
+    Currently only first element is used. */
   InformationRequest(const std::list<std::string>& path);
+  /** Request for attribute specified by elements of paths. 
+    Currently only first element of every path is used. */
   InformationRequest(const std::list<std::list<std::string> >& paths);
+  /** Request for attributes specified by XPath query. */
   InformationRequest(XMLNode query);
   ~InformationRequest(void);
   operator bool(void) { return (wsrp_ != NULL); };
   bool operator!(void) { return (wsrp_ == NULL); };
+  /** Returns generated SOAP message */
   SOAPEnvelope* SOAP(void);
 };
 
+/// Informational response from InfoSystem
+/** This is a convenience wrapper analyzing WS-ResourceProperties response 
+  from InfoSystem interface of service. */
 class InformationResponse {
  private:
   WSRF* wsrp_;
  public:
+  /** Constructor parses WS-ResourceProperties ressponse. 
+    Provided SOAPEnvelope object must be valid as long as this object is in use. */
   InformationResponse(SOAPEnvelope& soap);
   ~InformationResponse(void);
   operator bool(void) { return (wsrp_ != NULL); };
   bool operator!(void) { return (wsrp_ == NULL); };
+  /** Returns set of attributes which were in SOAP message passed to constructor. */
   std::list<XMLNode> Result(void);
 };
 

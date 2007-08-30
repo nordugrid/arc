@@ -8,10 +8,11 @@
 
 namespace Arc {
 
-/** Message is passed through chain of MCCs works like the Message but use only 
- * SOAP message
- */
-
+/// Message restricted to SOAP payload
+/** This is a special Message intended to be used in language bindings for
+  programming languages which are not flexible enough to support all kinds of Payloads.
+  It is passed through chain of MCCs and works like the Message but can carry only
+  SOAP content. */
 class SOAPMessage {
  private:
   Arc::PayloadSOAP* payload_; /** Main content of message */

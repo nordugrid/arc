@@ -7,8 +7,8 @@
 
 namespace Arc {
 
-/** Base class for all WS-ResourceProperties structures.
-  Inheriting classes implement specific WS-ResourceProperties messages and
+/// Base class for WS-ResourceProperties structures.
+/** Inheriting classes implement specific WS-ResourceProperties messages and
   their properties/elements. Refer to WS-ResourceProperties specifications
   for things specific to every message. */
 class WSRP: public WSRF {
@@ -28,7 +28,7 @@ class WSRP: public WSRF {
 
 // ==================== Faults ================================
 
-/** Base class for all WS-ResourceProperties faults */
+/// Base class for WS-ResourceProperties faults.
 class WSRPFault: public WSRFBaseFault {
  public:
   /** Constructor - creates object out of supplied SOAP tree. */

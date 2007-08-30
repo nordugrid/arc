@@ -4,31 +4,31 @@
 #include <stdlib.h>
 
 #include "MessageAttributes.h"
+#include "MessageAuth.h"
 
 namespace Arc {
 
-/** Class MessageAuth will contain authencity information, 
-  authorization tokens and decisions. */
-class MessageAuth;
-
-/** Base class for content of message passed through chain. It's not 
-  intended to be used directly. Instead functional classes must be 
-  derived from it. */
+/// Base class for content of message passed through chain.
+/** It's not intended to be used directly. Instead functional 
+  classes must be derived from it. */
 class MessagePayload {
  public:
   virtual ~MessagePayload(void) { };
 };
 
-/** Just a top class for elements contained in context - needed
-  for destruction to work. */
+/// Top class for elements contained in message context.
+/** Objects of classes inherited with this one may be stored in
+  MessageContext container. */
 class MessageContextElement {
  public:
   MessageContextElement(void) { };
   virtual ~MessageContextElement(void) { };
 };
 
-/** Handler for context of message associated to persistent 
-  conenction. */
+/// Handler for context of message context.
+/** This class is a container for objects derived from MessageContextElement.
+ It gets associated with Message object usually by first MCC in a chain and 
+ is kept as long as connection persists. */
 class MessageContext {
  private:
   std::map<std::string,MessageContextElement*> elements_;
@@ -41,11 +41,12 @@ class MessageContext {
   MessageContextElement* operator[](const std::string& id);
 };
 
-/** Message is passed through chain of MCCs. 
-  It refers to objects with main content (payload), authentication/authorization 
- information and common purpose attributes. Message class does not manage pointers
- to objects and theur content. it only serves for grouping those objects.
-  Message objects are supposed to be processed by objects' implementing 
+/// Object being passed through chain of MCCs. 
+/** An instance of this class refers to objects with main content (MessagePayload), 
+ authentication/authorization information (MessageAuth) and common purpose attributes
+ (MessageAttributes). Message class does not manage pointers to objects and their content.
+ It only serves for grouping those objects.
+  Message objects are supposed to be processed by MCCs and Services implementing 
  MCCInterface method process(). All objects constituting content of Message object 
  are subject to following policies:
 
@@ -68,7 +69,7 @@ class MessageContext {
      additional flags in Message object).
 
   4. It is allowed to change content of pointers of 'request' Message. Calling 
-     process() method mus tnot rely on that object to stay intact.
+     process() method must not rely on that object to stay intact.
 
   5. Called process() method should either fill 'response' Message with pointers to 
      valid objects or to keep them intact. This makes it possible for calling 
@@ -80,8 +81,11 @@ class Message {
   MessageAuth* auth_; /** Authentication and authorization related information */
   MessageAttributes* attributes_; /** Various useful attributes */
   /** This element is maintained by MCC/element which handles/knows
-    persistency of connection. It must be created and destroyed by
-    that element. */
+    persistency of connection/session. It must be created and destroyed by
+    that element. This object must survive during whole connectivity session -
+    whatever that means. This is a place for MCCs and services to store information
+    related to connection. All the other objects are only guaranteed to stay
+    during single request. */
   MessageContext* context_;
  public:
   /** Dummy constructor */
@@ -94,23 +98,29 @@ class Message {
   Message& operator=(Message& msg) { payload_=msg.payload_; auth_=msg.auth_, attributes_=msg.attributes_; return *this; };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
-  /** Replace payload with new one */
+  /** Replaces payload with new one. Returns the old one. */
   MessagePayload* Payload(MessagePayload* new_payload) {
     MessagePayload* p = payload_;
     payload_=new_payload;
     return p;
   };
   /** Returns a pointer to the current attributes object or NULL if no
-      attributes object has been assigned. */
+    attributes object has been assigned. */
   MessageAttributes* Attributes(void) { return attributes_; };
   void Attributes(MessageAttributes* attributes) {
     attributes_=attributes;
   };
+  /** Returns a pointer to the current authentication/authorization object 
+    or NULL if no object has been assigned. */
   MessageAuth* Auth(void) { return auth_; };
   void Auth(MessageAuth* auth) {
     auth_ = auth;
   };
+  /** Returns a pointer to the current context object or NULL if no object has 
+    been assigned. Last case can happen only if first MCC in a chain is connectionless
+    like one implementing UDP protocol. */
   MessageContext* Context(void) { return context_; };
+  /** Assigns message context object */
   void Context(MessageContext* context) {
     context_=context;
   };

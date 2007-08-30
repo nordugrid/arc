@@ -13,6 +13,7 @@ namespace Arc {
   class Config;
 }
 
+/// Identifier of Service plugin
 /** This structure describes one of the Services stored in a shared library.
   It contains name of plugin, version number and pointer to function which
   creates an instance of an object inherited from the Service class. */

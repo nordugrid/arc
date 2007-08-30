@@ -6,6 +6,7 @@
 
 namespace Arc {
 
+  /// Service Plugins handler
   /** This class handles shared libraries containing Services */
   class ServiceFactory : public LoaderFactory {
    public:

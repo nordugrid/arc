@@ -6,6 +6,7 @@
 
 namespace Arc {
 
+  /// SecHandler Plugins handler
   /** This class handles shared libraries containing SecHandlers */
   class SecHandlerFactory : public LoaderFactory {
    public:

@@ -6,6 +6,7 @@
 
 namespace Arc {
 
+  /// PDP Plugins handler
   /** This class handles shared libraries containing PDPs */
   class PDPFactory : public LoaderFactory {
    public:

@@ -8,6 +8,7 @@ namespace Arc {
 
 class ChainContext;
 
+/// Identifier of plugin
 /** This structure describes set of elements stored in shared library.
   It contains name of plugin, version number and pointer to function which
   creates an instance of object. */
@@ -24,6 +25,7 @@ typedef loader_descriptor loader_descriptors[];
 
 #define ARC_LOADER_FINAL(desc) ((desc).name == NULL)
 
+/// Plugin handler
 /** This class handles shared libraries containing loadable classes */
 class LoaderFactory: public ModuleManager {
     private:
@@ -35,17 +37,20 @@ class LoaderFactory: public ModuleManager {
           tune loading of modules. */
         LoaderFactory(Config *cfg,const std::string& id);
         /** These methods load shared library named lib'name', locates symbol
-          'id' representing descriptor of elements and calls it's constructor 
-          function. 
-          Supplied configuration tree is passed to constructor.
+          named 'id_' representing descriptor of elements and calls it's 
+          constructor function. 
+          Supplied configuration tree and context are passed to constructor.
           Returns created instance.
-          This classes must be rewritten in real implementation with
-          proper type casting. */
+          This classes must not be used directly. Inheriting classes must implement
+          it with proper type casting. */
         void *get_instance(const std::string& name,Arc::Config *cfg,Arc::ChainContext* ctx);
         void *get_instance(const std::string& name,int version,Arc::Config *cfg,Arc::ChainContext* ctx);
         void *get_instance(const std::string& name,int min_version,int max_version,Arc::Config *cfg,Arc::ChainContext* ctx);
     public:
         ~LoaderFactory();
+        /** Loads shared library named 'libname' and identifies all elements it provides. 
+           Subsequent calls to get_instance() methods will be able to locate needed elements 
+          even if they are not stored in library named after element name. */
         void load_all_instances(const std::string& libname);
 };
 

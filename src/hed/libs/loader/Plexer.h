@@ -72,8 +72,8 @@ namespace Arc {
 
 
   //! The Plexer class, used for routing messages to services.
-  /*! This is the Plexer class. Its purpose is to rout incoming
-    messages to appropriate services.
+  /*! This is the Plexer class. Its purpose is to route incoming
+    messages to appropriate Services and MCC chains.
   */
   class Plexer: public MCC {
   public:

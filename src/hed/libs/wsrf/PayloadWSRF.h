@@ -6,8 +6,9 @@
 
 namespace Arc {
 
-/** This class combines MessagePayload with WSRF to make 
-  it possible to pass WSRF messages through MCC chain */
+/// This class combines MessagePayload with WSRF.
+/** It's intention is to make it possible to pass WSRF messages
+  through MCC chain as one more Payload type. */
 class PayloadWSRF: public MessagePayload {
  protected:
   WSRF& wsrf_;

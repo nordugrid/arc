@@ -11,8 +11,8 @@
 
 namespace Arc {
 
-/** This class defines interface for communication between MCC, Service and Plexer objects.
-  Interface is made of method process() which is called by previous MCC in chain. 
+/// Interface for communication between MCC, Service and Plexer objects.
+/** The Interface is made of method process() which is called by previous MCC in chain. 
   For memory management policies please read description of Message class. */
 class MCCInterface
 {
@@ -35,8 +35,8 @@ class MCCInterface
         virtual ~MCCInterface() {};
 };
 
-/** Message Chain Component - base class for every MCC plugin.
-  This is partialy virtual class which defines interface and common 
+/// Message Chain Component - base class for every MCC plugin.
+/** This is partialy virtual class which defines interface and common 
  functionality for every MCC plugin needed for managing of component
  in a chain. */
 class MCC: public Arc::MCCInterface

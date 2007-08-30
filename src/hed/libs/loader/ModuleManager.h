@@ -11,6 +11,7 @@ namespace Arc {
 
 typedef std::map<std::string, Glib::Module *> plugin_cache_t;
 
+/// Manager of shared libraries
 /** This class loads shared libraries/modules. 
    There supposed to be created one instance of it per executable.
   In such circumstances it would cache handles to loaded modules 

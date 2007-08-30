@@ -6,6 +6,7 @@
 
 namespace Arc {
 
+  /// MCC Plugins handler
   /** This class handles shared libraries containing MCCs */
   class MCCFactory : public LoaderFactory {
    public:

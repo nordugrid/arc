@@ -7,9 +7,11 @@
 
 namespace Arc {
 
-/** Virtual interface for managing arbitrarily accessible Message payload.
-  This class implements memory-resident or memory-mapped content made 
-  of optionally multiple chunks/buffers. Buffers have own size and offset.
+/// Random Access Payload for Message objects
+/** This class is a virtual interface for managing Message payload with 
+  arbitrarily accessible content. Inheriting classes are supposed to implement
+  memory-resident or memory-mapped content made of optionally multiple chunks/buffers.
+  Every buffer has own size and offset.
   This class is purely virtual. */
 class PayloadRawInterface: public MessagePayload {
  public:
@@ -51,7 +53,9 @@ typedef struct {
     bool allocated; /** true if memory has to free by destructor */
 } PayloadRawBuf;
 
-/** Implementation of PayloadRawInterface - raw byte multi-buffer. */ 
+/// Raw byte multi-buffer. 
+/** This is implementation of PayloadRawInterface. Buffers are memory 
+  blocks logically placed one after another. */ 
 class PayloadRaw: public PayloadRawInterface {
  protected:
   int offset_;
@@ -73,8 +77,8 @@ class PayloadRaw: public PayloadRawInterface {
   virtual bool Truncate(unsigned int size);
 };
 
-/** Returns pointer to main buffer of Message payload. 
-  NULL if no buffer is present or if payload is not of PayloadRawInterface type. */ 
+/// Returns pointer to main memory chunk of Message payload. 
+/** If no buffer is present or if payload is not of PayloadRawInterface type NULL is returned. */ 
 const char* ContentFromPayload(const MessagePayload& payload);
 
 } // namespace Arc

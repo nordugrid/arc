@@ -5,7 +5,9 @@
 
 namespace Arc {
 
-/** Base class for every WSRF message to be derived from */
+/// Base class for every WSRF message
+/** This class is not intended to be used directly. Use it like reference while
+ passing through unknown WSRF message or use classes derived from it. */
 class WSRF {
  protected:
   SOAPEnvelope& soap_; /** Associated SOAP message - it's SOAP message after all */

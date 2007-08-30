@@ -8,9 +8,10 @@
 
 namespace Arc {
 
-/** Virtual interface for managing stream-like source and destination.
- It's supposed to passed through MCC chain as payload of Message.
- It must be treated by MCC as dynamic payload. 
+/// Stream-like Payload for Message object.
+/** This class is a virtual interface for managing stream-like source 
+ and destination.  It's supposed to be passed through MCC chain as payload 
+ of Message.  It must be treated by MCCs and Services as dynamic payload. 
  This class is purely virtual. */
 class PayloadStreamInterface: public MessagePayload {
  public:
@@ -43,7 +44,8 @@ class PayloadStreamInterface: public MessagePayload {
   virtual void Timeout(int to) = 0;
 };
 
-/** Implemetation of PayloadStreamInterface for generic POSIX handle. */
+/// POSIX handle as Payload
+/** Thsi is an implemetation of PayloadStreamInterface for generic POSIX handle. */
 class PayloadStream: public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
@@ -65,8 +67,10 @@ class PayloadStream: public PayloadStreamInterface {
   virtual bool operator!(void) { return (handle_ == -1); };
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
-  
-  virtual int GetHandle(void){return handle_;};  //The method is specified for MCCTLS
+  /** Returns POSIX handle of the stream. 
+    This method is deprecated and will be removed soon. Currently it is
+   only used by Transport Layer Security MCC. */
+  virtual int GetHandle(void) { return handle_; };
 };
 }
 #endif /* __ARC_PAYLOADSTREAM_H__ */

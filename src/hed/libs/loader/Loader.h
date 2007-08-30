@@ -19,25 +19,27 @@ namespace Arc {
   class Config;
   class Logger;
 
+  /// Creator of Message Component Chains (MCC).
   /** This class processes XML configration and creates message chains.
      Accepted configuration is defined by XML schema mcc.xsd.
-     Supported components are of types MCC, Service and Plexer. MCC and
-     Service are loaded from dynamic libraries. For Plexer only internal
-     implementation is supported.
+    Supported components are of types MCC, Service and Plexer. MCC and
+    Service are loaded from dynamic libraries. For Plexer only internal
+    implementation is supported.
      This object is also a container for loaded componets. All components
-     are destroyed if this object is destroyed.
+    and chains are destroyed if this object is destroyed.
      Chains are created in 2 steps. First all components are loaded and
-     corresponding objects are created. Constructor are supplied with
-     corresponding configuration subtrees. During next step components
-     are linked together by calling their Next() methods. Each creates
-     labeled link to next component in a chain.
-     2 step method has an advantage over 1 step because it allows loops
-     in chains and makes loading procedure simple. But that also means
-     during short period of time components are only partly configured.
-     Components in such state must produce proper error response if
-     Message arrives.
+    corresponding objects are created. Constructors are supplied with
+    corresponding configuration subtrees. During next step components
+    are linked together by calling their Next() methods. Each call 
+    creates labeled link to next component in a chain.
+     2 step method has an advantage over single step because it allows 
+    loops in chains and makes loading procedure more simple. But that 
+    also means during short period of time components are only partly 
+    configured. Components in such state must produce proper error response 
+    if Message arrives.
      Note: Current implementation requires all components and links
-     to be labeled. All labels must be unique.
+    to be labeled. All labels must be unique. Future implementation will
+    be able to assign labels automatically.
    */
   class Loader {
     friend class ChainContext;
@@ -113,6 +115,11 @@ namespace Arc {
     MCC* operator[](const std::string& id);
   };
 
+  /// Interface to chain specific functionality
+  /** Object of this class is associated with every Loader object. It is
+    acecssible for MCC and Service components and provides an interface
+    to manipulate chains stored in Loader. This makes it possible to 
+    modify chains dynamically - like deploying new services on demand. */
   class ChainContext {
     friend class Loader;
    private:
@@ -120,9 +127,13 @@ namespace Arc {
     ChainContext(Loader& loader) : loader(loader) {};
     ~ChainContext() {};
    public:
+    /** Returns associated ServiceFactory object */
     operator ServiceFactory*()    { return loader.service_factory; };
+    /** Returns associated MCCFactory object */
     operator MCCFactory*()        { return loader.mcc_factory; };
+    /** Returns associated SecHandlerFactory object */
     operator SecHandlerFactory*() { return loader.sechandler_factory; };
+    /** Returns associated PDPFactory object */
     operator PDPFactory*()        { return loader.pdp_factory; };
   };
 
