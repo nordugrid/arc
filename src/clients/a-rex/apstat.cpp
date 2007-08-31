@@ -14,7 +14,7 @@
   apstat <JobID-file>
 
   Arguments:
-  <JobID-file> The name of a file in which the Job ID will be stored.
+  <JobID-file> The name of a file in which the Job ID is stored.
 
   Configuration:
   Which A-REX service to use is specified in a configuration file. The
