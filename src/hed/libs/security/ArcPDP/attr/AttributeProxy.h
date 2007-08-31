@@ -6,6 +6,7 @@
 #include "common/XMLNode.h"
 #include "common/Logger.h"
 #include "AttributeValue.h"
+#include "StringAttribute.h"
 
 namespace Arc {
 
@@ -30,6 +31,7 @@ template <class TheAttribute>
 AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const XMLNode& node){
   std::string value = (std::string)node;
   return new TheAttribute(value);
+  //return new TheAttribute();
 }
 
 } // namespace Arc

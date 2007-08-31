@@ -1,5 +1,6 @@
 #include "ArcAttributeFactory.h"
 #include "AttributeProxy.h"
+#include "StringAttribute.h"
 
 using namespace Arc;
 
@@ -8,6 +9,8 @@ void ArcAttributeFactory::initDatatypes(){
  // apmap.insert(std::pair<std::string, AttributeProxy*>(StringAttribute.identify, new ArcAttributeProxy<StringAttribute>));
  // apmap.insert(std::pair<std::string, AttributeProxy*>(DateAttribute.identify, new ArcAttributeProxy<DateAttribute>));
   /** TODO:  other datetype............. */
+
+  apmap.insert(std::pair<std::string, AttributeProxy*>("arc-string", new ArcAttributeProxy<StringAttribute>));
 
 }
 

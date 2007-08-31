@@ -5,12 +5,12 @@ namespace Arc {
 
 class AttributeValue {
 public:
-  AttributeValue();
-  virtual ~AttributeValue();
+  AttributeValue(){};
+  virtual ~AttributeValue(){};
 
 public:
-  bool equal(const AttributeValue* other){};
-  int compare(const AttributeValue* other){};
+  virtual bool equal(AttributeValue* other){};
+  //virtual int compare(AttributeValue* other){};
 };
 
 } // namespace Arc
