@@ -17,9 +17,16 @@
   <JSDL-file> The name of a file that contains the job specification
   in JSDL format.
   <JobID-file> The name of a file in which the Job ID will be stored.
+
+  Configuration:
+  Which A-REX service to use is specified in a configuration file. The
+  configuration file also specifies how to set up the communication
+  chain for the client. The location of the configuration file is
+  specified by the environment variable ARC_AREX_CONFIG. If there is
+  no such environment variable, the configuration file is assumed to
+  be "arex_client.xml" in the current working directory.
 */
 int main(int argc, char* argv[]){
-
   try{
     if (argc!=3)
       throw std::invalid_argument("Wrong number of arguments!");
@@ -46,5 +53,4 @@ int main(int argc, char* argv[]){
     std::cerr << "ERROR: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }
-
 }
