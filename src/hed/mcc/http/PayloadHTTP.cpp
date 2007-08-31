@@ -139,6 +139,7 @@ bool PayloadHTTP::parse_header(void) {
     };
   };
   if(keep_alive_ && (length_ == -1)) length_=0;
+  if(size_ == 0) size_=offset_+length_;
   return true;
 }
 
