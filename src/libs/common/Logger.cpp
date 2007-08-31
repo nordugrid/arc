@@ -50,8 +50,8 @@ namespace Arc {
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message)/*,
-    v(v)*/ {
+    message(message),
+    v(v) {
     // Nothing else needs to be done.
   }
 
@@ -63,8 +63,8 @@ namespace Arc {
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message)/*,
-    v(v)*/ {
+    message(message),
+    v(v) {
     // Nothing else needs to be done.
   }
 
@@ -89,7 +89,7 @@ namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
     char buf[1024];
-    //vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), message.v);
+    vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), message.v);
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
