@@ -1,5 +1,6 @@
 #include "ArcFnFactory.h"
 #include "EqualFunction.h"
+#include "../attr/StringAttribute.h"
 
 using namespace Arc;
 
@@ -8,14 +9,13 @@ void ArcFnFactory::initFunctions(){
   //fnmap.insert(pair<std::string, Function*>(StringFunction.identify, new StringFunction));
   //fnmap.insert(pair<std::string, Function*>(DateMathFunction.identify, new DateMathFunction));
   /** TODO:  other function type............. */
-  std::string fnName = EqualFunction.getFunctionName(StringAttribute.identify);
-  std::string argType = StringAttribute.identify;
-  fnmap.insert(pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
+  std::string fnName = EqualFunction::getFunctionName(StringAttribute::identify());
+  std::string argType = StringAttribute::identify();
+  fnmap.insert(std::pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
 
-  fnName = EqualFunction.getFunctionName(DateAttribute.identify);
-  argType = DateAttribute.identity;
-  fnmap.insert(pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
-
+  //! fnName = EqualFunction::getFunctionName(DateAttribute::identify());
+  //! argType = DateAttribute::identity();
+  //! fnmap.insert(std::pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
 }
 
 ArcFnFactory::ArcFnFactory(){

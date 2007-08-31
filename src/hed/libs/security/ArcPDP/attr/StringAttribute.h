@@ -16,7 +16,8 @@ public:
 
   virtual bool equal(AttributeValue* other);
   std::string getValue(){ return value; };
-
+  static const std::string& identify(void) { return identifier; };
+ 
 };
 
 }// namespace Arc

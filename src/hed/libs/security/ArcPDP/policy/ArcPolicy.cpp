@@ -13,7 +13,7 @@ ArcPolicy::ArcPolicy(XMLNode& node){
   id = (std::string)(node.Attribute("PolicyID"));
 
   //Setup the rules combining algorithm inside one policy
-  if((node.Attribute("CombiningAlg")) != NULL)
+  if(node.Attribute("CombiningAlg"))
     comalg = algfactory->createAlg((std::string)(node.Attribute("CombiningAlg")));
   else comalg = algfactory->createAlg("deny-overides");     
 
