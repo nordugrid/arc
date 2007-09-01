@@ -24,6 +24,14 @@ BuildRequires: globus_rsl-devel
 %description
 ARC
 
+%package client
+Summary: ARC prototype clients
+Group: Applications/Internet
+Requires: %{name}
+
+%description client
+ARC prototype clients.
+
 %package server
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
@@ -103,7 +111,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/lib*.so.*
 %{_datadir}/locale/*/LC_MESSAGES/Arc.mo
 
+%files client
+%defattr(-,root,root,-)
+%{_bindir}/apsub
+%{_bindir}/apstat
+%{_bindir}/apkill
+
 %files server
+%defattr(-,root,root,-)
 %{_sbindir}/arcserver
 %{_prefix}/libexec/smtp-send
 %doc %{_mandir}/man8/arcserver.8*

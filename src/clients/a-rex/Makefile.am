@@ -1,4 +1,4 @@
-noinst_PROGRAMS = apsub apstat apkill
+bin_PROGRAMS = apsub apstat apkill
 SOURCES = arex_client.cpp arex_client.h
 
 apsub_SOURCES=$(SOURCES) apsub.cpp
