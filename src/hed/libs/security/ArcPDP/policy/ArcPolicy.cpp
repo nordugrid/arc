@@ -5,7 +5,7 @@
 
 using namespace Arc;
 
-ArcPolicy::ArcPolicy(XMLNode& node){
+ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
   ArcRule *rule;
   XMLNode nd;
   ArcAlgFactory *algfactory = new ArcAlgFactory(); 

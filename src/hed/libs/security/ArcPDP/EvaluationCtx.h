@@ -33,10 +33,10 @@ public:
 
   virtual Arc::RequestItem* getRequestItem() const {return reqitem;};
 
-  virtual AttributeValue * getSubjectAttribute();
-  virtual AttributeValue * getResourceAttribute();
-  virtual AttributeValue * getActionAttribute();
-  virtual AttributeValue * getEnvironmentAttribute();
+  virtual AttributeValue * getSubjectAttribute() {};
+  virtual AttributeValue * getResourceAttribute() {};
+  virtual AttributeValue * getActionAttribute() {};
+  virtual AttributeValue * getEnvironmentAttribute() {};
 
   //Convert each RequestItem ( one tuple <SubList, ResList, ActList, EnvList>)  into some <Subject, Resource, Action, Environment> tuples.
   //The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some       //independent <Subject, Resource, Action, Environment>s and the evaluator should deal with them independently. 

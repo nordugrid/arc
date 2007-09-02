@@ -12,7 +12,7 @@ typedef std::map<std::string, Arc::CombiningAlg*> AlgMap;
 class AlgFactory {
 public:
   AlgFactory() {};
-  virtual ~AlgFactory();
+  virtual ~AlgFactory() {};
 
 public:
   virtual CombiningAlg* createAlg(const std::string& type){};

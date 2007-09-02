@@ -14,9 +14,9 @@ namespace Arc {
 class ArcPolicy : public Policy {
 
 public:
-  ArcPolicy();
   ArcPolicy(XMLNode& node);  
-  virtual ~ArcPolicy();
+
+  virtual ~ArcPolicy();  
 
   virtual Result eval(EvaluationCtx* ctx);
 

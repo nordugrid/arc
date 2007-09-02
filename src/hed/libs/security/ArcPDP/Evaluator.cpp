@@ -5,7 +5,7 @@
 #include "Response.h"
 #include "EvaluationCtx.h"
 #include <fstream>
-
+#include <iostream>
 
 using namespace Arc;
 /*
@@ -14,10 +14,18 @@ static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
 }
 */
 
-Evaluator::Evaluator (const Arc::XMLNode& cfg){
+void Evaluator::parsecfg(Arc::XMLNode& cfg){
+  std::string xml;//
+  cfg.GetXML(xml);
+  std::cout<<xml<<std::endl;
+
   Arc::XMLNode child = cfg["PolicyStore"];
   std::string policystore = (std::string)(child.Attribute("name"));
   std::string policylocation =  (std::string)(child.Attribute("location"));
+
+  std::string xml1;
+  child.GetXML(xml1);
+  std::cout<<xml1<<std::endl;
 
   child = cfg["FunctionFactory"];
   std::string functionfactory = (std::string)(child.Attribute("name"));
@@ -29,20 +37,38 @@ Evaluator::Evaluator (const Arc::XMLNode& cfg){
   std::string combingalgfactory = (std::string)(child.Attribute("name"));
   //TODO: load the class by using the configuration information. 
 
+  std::cout<< (std::string)child.Attribute("name") <<std::endl;
+
   std::list<std::string> filelist;
   filelist.push_back("policy.xml");
   std::string alg("PERMIT-OVERIDES");
   plstore = new Arc::PolicyStore(filelist, alg);
   fnfactory = new Arc::ArcFnFactory() ;
-  attrfactory = new Arc::ArcAttributeFactory();  
+  attrfactory = new Arc::ArcAttributeFactory();
 }
 
-Evaluator::Evaluator(const std::string& cfgfile){
- 
+Evaluator::Evaluator (Arc::XMLNode& cfg){
+  parsecfg(cfg);
 }
 
-Arc::Response* Evaluator::evaluate(const Arc::Request* request){
-   
+Evaluator::Evaluator(const char * cfgfile){
+  std::string str;
+  std::string xml_str = "";
+  std::ifstream f(cfgfile);
+
+  while (f >> str) {
+    xml_str.append(str);
+    xml_str.append(" ");
+  }
+  f.close();
+
+  Arc::XMLNode node(xml_str);
+  parsecfg(node); 
+}
+
+Arc::Response* Evaluator::evaluate(Arc::Request* request){
+  Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
+  return (evaluate(evalctx));   
 }
 
 Arc::Response* Evaluator::evaluate(const std::string& reqfile){

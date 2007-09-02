@@ -22,9 +22,7 @@ typedef std::list<Arc::AndList> OrList;
 class ArcRule : public Policy {
 
 public:
-  ArcRule();
   ArcRule(XMLNode& node);  
-  virtual ~ArcRule();
 
   virtual std::string getEffect();
 
@@ -47,7 +45,8 @@ private:
   OrList actions;
   OrList conditions;
 
-  static Arc::Logger logger;
+protected:
+  static Logger logger;
 };
 
 } // namespace Arc

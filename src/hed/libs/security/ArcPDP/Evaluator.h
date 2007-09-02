@@ -23,13 +23,16 @@ private:
   AttributeFactory* attrfactory;  
 
 public:
-  Evaluator (const XMLNode& cfg);
-  Evaluator (const std::string& cfgfile);
+  Evaluator (XMLNode& cfg);
+  Evaluator (const char * cfgfile);
   virtual ~Evaluator();
 
-  virtual Arc::Response* evaluate(const Arc::Request* request);
+  virtual Arc::Response* evaluate(Arc::Request* request);
   virtual Arc::Response* evaluate(const std::string& reqfile);
   virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx);
+
+private:
+  void parsecfg(XMLNode& cfg);
 };
 
 } // namespace Arc

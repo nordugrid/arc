@@ -14,7 +14,7 @@ typedef std::map<std::string, Arc::AttributeProxy*> AttrProxyMap;
 class AttributeFactory {
 public:
   AttributeFactory() {};
-  virtual ~AttributeFactory();
+  virtual ~AttributeFactory(){};
 
 public:
   virtual AttributeValue* createValue(const XMLNode& node, const std::string& type){};

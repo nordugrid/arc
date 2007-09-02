@@ -24,9 +24,7 @@ namespace Arc {
 
 class EqualFunction : public Function {
 public:
-  EqualFunction(){};
   EqualFunction(std::string functionName, std::string argumentType);
-  virtual ~EqualFunction();
 
 public:
   virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1);

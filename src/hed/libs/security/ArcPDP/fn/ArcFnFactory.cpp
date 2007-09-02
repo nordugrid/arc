@@ -9,8 +9,8 @@ void ArcFnFactory::initFunctions(){
   //fnmap.insert(pair<std::string, Function*>(StringFunction.identify, new StringFunction));
   //fnmap.insert(pair<std::string, Function*>(DateMathFunction.identify, new DateMathFunction));
   /** TODO:  other function type............. */
-  std::string fnName = EqualFunction::getFunctionName(StringAttribute::identify());
-  std::string argType = StringAttribute::identify();
+  std::string fnName = EqualFunction::getFunctionName(StringAttribute::getIdentifier());
+  std::string argType = StringAttribute::getIdentifier();
   fnmap.insert(std::pair<std::string, Function*>(fnName, new EqualFunction(fnName, argType)));
 
   //! fnName = EqualFunction::getFunctionName(DateAttribute::identify());

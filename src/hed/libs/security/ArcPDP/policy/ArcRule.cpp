@@ -7,9 +7,13 @@
 #include "../attr/ArcAttributeFactory.h"
 #include "../fn/ArcFnFactory.h"
 
-static Arc::LogStream logcerr(std::cerr);
+#include "../fn/EqualFunction.h"
+//#include "../fn/MatchFunction.h"
 
 using namespace Arc;
+
+//Logger ArcRule::logger(Policy::logger, "ArcRule");
+//Arc::LogStream logcerr(std::cerr);
 
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
   
@@ -33,7 +37,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
 
       if(!(type.empty())&&(tnd.Size()==0)){
         AndList item;
-        if(funcname.empty()) funcname = type + "equal";
+        if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
         item.push_back(Match(attrfactory->createValue(tnd, type), fnfactory->createFn(funcname)));
         items.push_back(item);
         //items.push_back(item);
@@ -48,7 +52,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
           if(!((std::string)(snd.Attribute("Function"))).empty())
             funcname = (std::string)(snd.Attribute("Function"));
           
-          if(funcname.empty()) funcname = type + "equal";
+          if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
           item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
         }
         items.push_back(item);
@@ -61,13 +65,14 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
           if(!((std::string)(snd.Attribute("Function"))).empty())
             funcname = (std::string)(snd.Attribute("Function"));
 
-          if(funcname.empty()) funcname = type + "equal";
+          if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
           item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
         }
         items.push_back(item);
       }
       else{
-        logger.msg(Arc::ERROR, "Error definition in policy"); 
+        std::cerr <<"Error definition in policy"<<std::endl;
+        //logger.msg(Arc::ERROR, "Error definition in policy"); 
         return;
       }
     }
@@ -102,10 +107,10 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   return;
 }
 
-ArcRule::ArcRule(XMLNode& node) : effect(0), id(NULL), version(NULL), description(NULL){
+ArcRule::ArcRule(XMLNode& node) : Policy(node) , effect(0), id(NULL), version(NULL), description(NULL){
   XMLNode nd, tnd;
-  Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
-  logger.addDestination(logcerr);
+  //Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
+  //logger.addDestination(logcerr);
   
   /* "And" relationship means the request should satisfy all of the items 
   <Subject>
@@ -132,8 +137,9 @@ ArcRule::ArcRule(XMLNode& node) : effect(0), id(NULL), version(NULL), descriptio
     effect="Permit";
   else if((std::string)(node.Attribute("Effect"))=="Deny")
     effect="Deny";
-  else 
-    logger.msg(Arc::ERROR, "Invalid Effect");
+  else
+    std::cerr<< "Invalid Effect" <<std::endl; 
+    //logger.msg(Arc::ERROR, "Invalid Effect");
  
   std::string type, funcname;
   //Parse the "Subjects" part of a Rule
@@ -222,3 +228,4 @@ Result ArcRule::eval(EvaluationCtx* ctx){
 std::string ArcRule::getEffect(){
   return effect;
 }
+

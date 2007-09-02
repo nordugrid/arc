@@ -19,14 +19,14 @@ protected:
   ReqItemList rlist;
 public:
   virtual ReqItemList getRequestItems () const {};
-  virtual void setRequestItems (const ReqItemList* sl) {};
+  virtual void setRequestItems (ReqItemList sl) {};
 
   //**Parse request information from a input file*/
   Request (const std::string& filename) {};
 
   //**Parse request information from a xml stucture in memory*/
   Request (const Arc::XMLNode& node) {};
-  virtual ~Request();
+  virtual ~Request(){};
 };
 
 } // namespace Arc

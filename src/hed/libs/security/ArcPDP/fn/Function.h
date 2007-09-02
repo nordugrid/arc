@@ -6,12 +6,13 @@
 
 namespace Arc {
 
+//static std::string FUNCTION_NS = "know-arc:function";
 #define FUNCTION_NS "know-arc:function"
 
 class Function {
 public:
-  Function(){};
-  virtual ~Function();
+  Function(std::string functionName, std::string argumentType){};
+  virtual ~Function(){};
 
 public:
   virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1){};

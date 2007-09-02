@@ -5,7 +5,7 @@ namespace Arc {
 
 std::string EqualFunction::getFunctionName(std::string datatype){
   std::string ret;
-  if (datatype ==  StringAttribute::identify()) ret = NAME_STRING_EQUAL;
+  if (datatype ==  StringAttribute::getIdentifier()) ret = NAME_STRING_EQUAL;
  /* else if(datatype == BooleanAttribute::identify()) ret = NAME_BOOLEAN_EQUAL;
   else if(datatype == IntegerAttribute::identify()) ret = NAME_INTEGER_EQUAL;
   else if(datatype == DoubleAttribute::identify()) ret = NAME_DOUBLE_EQUAL;
@@ -25,7 +25,7 @@ std::string EqualFunction::getFunctionName(std::string datatype){
   return ret;
 }
 
-EqualFunction::EqualFunction(std::string functionName, std::string argumentType){
+EqualFunction::EqualFunction(std::string functionName, std::string argumentType) : Function(functionName, argumentType) {
   fnName = functionName;
   argType = argumentType;
 

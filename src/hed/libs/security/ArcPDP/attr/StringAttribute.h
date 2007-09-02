@@ -16,7 +16,7 @@ public:
 
   virtual bool equal(AttributeValue* other);
   std::string getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
+  static const std::string& getIdentifier(void) { return identifier; };
  
 };
 

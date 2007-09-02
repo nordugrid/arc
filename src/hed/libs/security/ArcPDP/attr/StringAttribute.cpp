@@ -1,7 +1,9 @@
 #include <iostream>
 #include "StringAttribute.h"
 
-using namespace Arc;
+namespace Arc {
+
+std::string StringAttribute::identifier = "string";
 
 bool StringAttribute::equal(AttributeValue* o){
   StringAttribute *other;
@@ -16,4 +18,6 @@ bool StringAttribute::equal(AttributeValue* o){
     return true;
   else 
     return false;
+}
+
 }

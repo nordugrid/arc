@@ -25,7 +25,7 @@ public:
   virtual void setResponseItems (const ResponseList rl) { rlist = rl;};
   virtual void addResponseItem(ResponseItem item) { rlist.push_back(item); };
 
-  virtual ~Response();
+  virtual ~Response() {};
 };
 
 } // namespace Arc

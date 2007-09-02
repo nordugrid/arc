@@ -3,8 +3,10 @@
 
 #include <list>
 #include "common/XMLNode.h"
+#include "common/Logger.h"
 #include "../Result.h"
 #include "../EvaluationCtx.h"
+
 
 namespace Arc {
 
@@ -14,11 +16,11 @@ class Policy {
 
 protected:
   std::list<Policy*> subelements;
-
+  static Logger logger; 
+ 
 public:
-  Policy(){};
   Policy(XMLNode& node){};  
-  virtual ~Policy();
+  virtual ~Policy(){};
  
   virtual MatchResult match(EvaluationCtx* ctx){};
 

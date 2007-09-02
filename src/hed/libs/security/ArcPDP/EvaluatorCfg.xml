@@ -1,0 +1,6 @@
+<config>
+  <PolicyStore name="test" location="./">dsdadad</PolicyStore>
+  <AttributeFactory name="ArcAttributeFactory" />
+  <CombingAlgorithmFactory name="ArcAlgFactory" />
+  <FunctionFactory name="ArcFunctionFactory" />
+</config>
