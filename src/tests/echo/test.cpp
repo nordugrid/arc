@@ -69,6 +69,12 @@ int main(void) {
   Arc::Message reqmsg;
   Arc::Message repmsg;
   reqmsg.Payload(&req);
+  // It is a responsibility of code initiating first Message to 
+  // provide Context and Attributes as well.
+  Arc::MessageAttributes attributes;
+  Arc::MessageContext context;
+  reqmsg.Attributes(&attributes);
+  repmsg.Context(&context);
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
     logger.msg(Arc::ERROR, "Request failed");
