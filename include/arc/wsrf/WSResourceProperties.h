@@ -1,1 +1,1 @@
-#include "src/hed/libs/wsrf/WSResourceProperties.h"
+#include "../../../src/hed/libs/wsrf/WSResourceProperties.h"
