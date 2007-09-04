@@ -1,0 +1,4 @@
+#!/bin/sh
+
+for name in *.h ; do ref=`find /usr/src/KnowARC/trunk/src -name $name | sed 's$^/usr/src/KnowARC/trunk/$$'` ; echo "#include \"$ref\"" > $name ; done
+

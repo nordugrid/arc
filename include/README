@@ -1,0 +1,28 @@
+ This directory contains tree of header files refering to files 
+with same name located in source directory src/ - actual header
+files.
+
+ The refered files constitute API of ARC HED software.
+
+ Files' location in this tree is defined by how API is presented
+to external developer.
+
+ Actual header files are located next to corresponding source 
+files and their location is defined by convenience of developers
+of ARC HED.
+
+ These files are not used during istallation procedure.
+
+ Upon instalaltion actual header files get located under same
+layout as files in this directory.
+
+ Files in this directory are used through all ARC code. All 
+source and header files of entire source tree must refer to 
+actual header files through these ones.
+
+ Code being built outside source tree should refer either to
+installed actual header files or to those located in this 
+directory. Due to similar layout switch between two options
+does not require changes in source and header files of code.
+Only building procedure need to be changed.
+
