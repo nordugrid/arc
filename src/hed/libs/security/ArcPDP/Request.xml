@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
     <RequestItem> 
-        <Subject AttributeId="urn:arc:subject:dn" Type="X500DN">/O=NorduGrid/OU=UIO/CN=test</Subject>
-        <Resource AttributeId="urn:arc:resource:file" Type="xsd:uri">file://home/test</Resource>
-        <Action AttributeId="urn:arc:action:file-action" Type="xsd:string">read</Action>
-        <Action AttributeId="urn:arc:action:file-action" Type="xsd:string">copy</Action>
-        <Context AttributeId="urn:arc:context:time" Type="xsd:time">2007-07-02T12:00:00.00</Context>
+        <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">read</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
+        <Context AttributeId="urn:arc:context:time" Type="string">2007-07-02T12:00:00.00</Context>
     </RequestItem>    
     
     <RequestItem>
         <Subject>
-          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="xsd:string">administrator</Attribute>
-          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="X500DN">/O=NorduGrid/OU=UIO/CN=admin</Attribute>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">administrator</Attribute>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=NorduGrid/OU=UIO/CN=admin</Attribute>
         </Subject>
-        <Resource AttributeId="urn:arc:resource:file" Type="xsd:uri">file://home/data</Resource>
-        <Action AttributeId="urn:arc:action:file-action" Type="xsd:string">write</Action>
-        <Action AttributeId="urn:arc:action:file-action" Type="xsd:string">delete</Action>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/data</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">write</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">delete</Action>
         <Context/>
     </RequestItem>   
 </Request>

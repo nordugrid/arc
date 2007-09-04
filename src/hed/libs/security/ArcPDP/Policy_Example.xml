@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--Sample arc authorization policy for Storage_manager-->
-<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" RuleCombiningAlgId="DenyOveride">
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" RuleCombiningAlgId="Deny-Overrides">
    <Rule RuleId="rule1" Effect="Permit">
       <Description>
          Sample Permit rule for Storage_manager service

@@ -4,17 +4,21 @@ using namespace Arc;
 
 RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory){
   Arc::XMLNode nd;
-  if(!(nd=node.Attribute("AttributeID"))){
-    id = (std::string)nd;
-  }
-  if(!(nd=node.Attribute("Type"))){
-    type = (std::string)nd;
-  }
-  if(!(nd=node.Attribute("Issuer"))){
-    issuer = (std::string)nd;
-  }
+
+  std::string xml;
+
+  node.GetXML(xml);  //for testing
+  std::cout<<"\n"<<xml<<std::endl;
+  
+  id = (std::string)(node.Attribute("AttributeId")); 
+
+  type = (std::string)(node.Attribute("Type"));
+
+  issuer = (std::string)(node.Attribute("Issuer"));
 
   attrval = attrfactory->createValue(node, type);
+
+  std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issurer--"<<issuer<<std::endl;
 
 /*
   if(!(node.Size())){
@@ -28,22 +32,27 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 }
 
 std::string RequestAttribute::getAttributeId () const{
- 
+  return id;
 }
 
 void RequestAttribute::setAttributeId (const std::string attributeId){
+  id = attributeId;
 }
 
 std::string RequestAttribute::getDataType () const{
+  return type;
 }
 
 void RequestAttribute::setDataType (const std::string dataType){
+  type = dataType;
 }
 
 std::string RequestAttribute::getIssuer () const{
+  return issuer;
 }
 
-void RequestAttribute::setIssuer (const std::string issuer){
+void RequestAttribute::setIssuer (const std::string is){
+  issuer = is;
 }
 
 /*AttrValList RequestAttribute::getAttributeValueList () const{

@@ -1,6 +1,7 @@
-<config>
+<?xml version="1.0"?>
+<Config>
   <PolicyStore name="test" location="./">dsdadad</PolicyStore>
   <AttributeFactory name="ArcAttributeFactory" />
   <CombingAlgorithmFactory name="ArcAlgFactory" />
   <FunctionFactory name="ArcFunctionFactory" />
-</config>
+</Config>

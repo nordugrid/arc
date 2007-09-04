@@ -30,6 +30,9 @@ public:
 template <class TheAttribute>
 AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const XMLNode& node){
   std::string value = (std::string)node;
+  
+  std::cout<<value<<std::endl;  //for testing
+  
   return new TheAttribute(value);
   //return new TheAttribute();
 }

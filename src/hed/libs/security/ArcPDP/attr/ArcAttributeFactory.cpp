@@ -10,7 +10,7 @@ void ArcAttributeFactory::initDatatypes(){
  // apmap.insert(std::pair<std::string, AttributeProxy*>(DateAttribute.identify, new ArcAttributeProxy<DateAttribute>));
   /** TODO:  other datetype............. */
 
-  apmap.insert(std::pair<std::string, AttributeProxy*>("arc-string", new ArcAttributeProxy<StringAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(StringAttribute::getIdentifier(), new ArcAttributeProxy<StringAttribute>));
 
 }
 
@@ -20,7 +20,7 @@ ArcAttributeFactory::ArcAttributeFactory(){
 
 /**creat a AttributeValue according to the value in the XML node and the type; It should be the caller to release the AttributeValue Object*/
 AttributeValue* ArcAttributeFactory::createValue(const XMLNode& node, const std::string& type){
-  AttrProxyMap::iterator it; 
+  AttrProxyMap::iterator it;
   if((it=apmap.find(type)) != apmap.end())
     return ((*it).second)->getAttribute(node);
   else return NULL;

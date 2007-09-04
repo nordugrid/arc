@@ -8,10 +8,15 @@ ArcRequestItem::ArcRequestItem(XMLNode& node) : RequestItem(node) {
   ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
   XMLNode nd;
 
+  std::string xml;
+
   for ( int i=0;; i++ ){
     nd = node["Subject"][i];
     if(!nd) break;
     
+    nd.GetXML(xml);  //for testing
+    std::cout<<"\n"<<xml<<std::endl;
+
     /**if is like this: 
      <Subject AttributeId="urn:arc:subject:dn" Type="X500DN">/O=NorduGrid/OU=UIO/CN=test</Subject>  */
     if(nd.AttributesSize()){
@@ -38,6 +43,9 @@ ArcRequestItem::ArcRequestItem(XMLNode& node) : RequestItem(node) {
   for ( int i=0;; i++ ){
     nd = node["Resource"][i];
     if(!nd) break;
+
+    nd.GetXML(xml);  //for testing
+    std::cout<<"\n"<<xml<<std::endl;
 
     if(nd.AttributesSize()){
       Resource res;

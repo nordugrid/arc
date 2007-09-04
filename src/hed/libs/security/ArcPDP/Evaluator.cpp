@@ -15,33 +15,25 @@ static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
 */
 
 void Evaluator::parsecfg(Arc::XMLNode& cfg){
-  std::string xml;//
-  cfg.GetXML(xml);
-  std::cout<<xml<<std::endl;
+  Arc::XMLNode root = cfg.Child();
+  Arc::XMLNode child = root["PolicyStore"];
 
-  Arc::XMLNode child = cfg["PolicyStore"];
   std::string policystore = (std::string)(child.Attribute("name"));
   std::string policylocation =  (std::string)(child.Attribute("location"));
 
-  std::string xml1;
-  child.GetXML(xml1);
-  std::cout<<xml1<<std::endl;
-
-  child = cfg["FunctionFactory"];
+  child = root["FunctionFactory"];
   std::string functionfactory = (std::string)(child.Attribute("name"));
 
-  child = cfg["AttributeFactory"];
+  child = root["AttributeFactory"];
   std::string attributefactory = (std::string)(child.Attribute("name"));
 
-  child = cfg["CombingAlgorithmFactory"];
+  child = root["CombingAlgorithmFactory"];
   std::string combingalgfactory = (std::string)(child.Attribute("name"));
   //TODO: load the class by using the configuration information. 
 
-  std::cout<< (std::string)child.Attribute("name") <<std::endl;
-
   std::list<std::string> filelist;
-  filelist.push_back("policy.xml");
-  std::string alg("PERMIT-OVERIDES");
+  filelist.push_back("Policy_Example.xml");
+  std::string alg("Permit-Overrides");
   plstore = new Arc::PolicyStore(filelist, alg);
   fnfactory = new Arc::ArcFnFactory() ;
   attrfactory = new Arc::ArcAttributeFactory();

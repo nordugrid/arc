@@ -7,22 +7,31 @@ using namespace Arc;
 
 ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
   ArcRule *rule;
-  XMLNode nd;
+  XMLNode root, nd;
   ArcAlgFactory *algfactory = new ArcAlgFactory(); 
+
+  std::string xml;
+  node.GetXML(xml); //for testing
+  std::cout << xml << std::endl;
   
-  id = (std::string)(node.Attribute("PolicyID"));
+  root = node.Child();
+  id = (std::string)(root.Attribute("PolicyID"));
 
   //Setup the rules combining algorithm inside one policy
-  if(node.Attribute("CombiningAlg"))
-    comalg = algfactory->createAlg((std::string)(node.Attribute("CombiningAlg")));
-  else comalg = algfactory->createAlg("deny-overides");     
+  if(root.Attribute("CombiningAlg"))
+    comalg = algfactory->createAlg((std::string)(root.Attribute("CombiningAlg")));
+  else comalg = algfactory->createAlg("Deny-Overrides");     
 
-  description = (std::string)(node["Description"]);
+  description = (std::string)(root["Description"]);
   
   for ( int i=0;; i++ ){
-    nd = node["Rule"][i];
+    nd = root["Rule"][i];
     if(!nd) break;
     rule = new ArcRule(nd);
+
+  node.GetXML(xml); //for testing
+  std::cout << xml << std::endl;
+
     subelements.push_back(rule);
   }
     
