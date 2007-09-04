@@ -7,7 +7,7 @@ namespace Arc {
 
 #define NAME_STRING_EQUAL "know-arc:function:string-equal"
 #define NAME_BOOLEAN_EQUAL "know-arc:function:boolean-equal"
-#define NAME_INTEGER_EQUAL "know-arc:function:integer-equal
+#define NAME_INTEGER_EQUAL "know-arc:function:integer-equal"
 #define NAME_DOUBLE_EQUAL "know-arc:function:double-equal"
 #define NAME_DATE_EQUAL "know-arc:function:date-equal"
 #define NAME_TIME_EQUAL "know-arc:function:time-equal"
