@@ -45,26 +45,24 @@ namespace Arc {
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
-                         va_list va) :
+                         va_list *v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message) {
-    va_copy(v, va);
-  }
+    message(message),
+    v(v) {}
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
                          const std::string& identifier,
-                         va_list va) :
+                         va_list *v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message) {
-    va_copy(v, va);
-  }
+    message(message),
+    v(v) {}
 
   LogLevel LogMessage::getLevel() const {
     return level;
@@ -87,7 +85,7 @@ namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
     char buf[1024];
-    vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), message.v);
+    vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), *message.v);
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
@@ -171,7 +169,7 @@ namespace Arc {
   void Logger::msg(LogLevel level, const std::string& str, ...) {
     va_list v;
     va_start(v, str);
-    msg(LogMessage(level, str, v));
+    msg(LogMessage(level, str, &v));
     va_end(v);
   }
 

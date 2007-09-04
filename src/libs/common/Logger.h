@@ -51,7 +51,7 @@ namespace Arc {
      */
     LogMessage(LogLevel level,
                const std::string& message,
-               va_list v = NULL);
+               va_list *v = NULL);
 
     //! Creates a LogMessage with the specified attributes.
     /*! This constructor creates a LogMessage with the specified
@@ -65,7 +65,7 @@ namespace Arc {
     LogMessage(LogLevel level,
                const std::string& message,
                const std::string& identifier,
-               va_list v = NULL);
+               va_list *v = NULL);
 
     //! Returns the level of the LogMessage.
     /*! Returns the level of the LogMessage.
@@ -115,7 +115,7 @@ namespace Arc {
     std::string message;
 
     //! The variable list.
-    va_list v;
+    va_list *v;
 
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
