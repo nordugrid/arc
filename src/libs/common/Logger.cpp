@@ -45,27 +45,25 @@ namespace Arc {
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
-                         va_list v) :
+                         va_list va) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message),
-    v(v) {
-    // Nothing else needs to be done.
+    message(message) {
+    va_copy(v, va);
   }
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
                          const std::string& identifier,
-                         va_list v) :
+                         va_list va) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message),
-    v(v) {
-    // Nothing else needs to be done.
+    message(message) {
+    va_copy(v, va);
   }
 
   LogLevel LogMessage::getLevel() const {
