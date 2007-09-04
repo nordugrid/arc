@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "../../libs/message/PayloadStream.h"
-#include "../../../libs/common/Logger.h"
+#include <arc/message/PayloadStream.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 

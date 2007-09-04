@@ -3,14 +3,14 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "message/PayloadStream.h"
-#include "message/PayloadRaw.h"
-#include "loader/Loader.h"
-#include "loader/MCCLoader.h"
-#include "common/XMLNode.h"
-#include "common/Thread.h"
-#include "common/Logger.h"
-#include "common/StringConv.h"
+#include <arc/message/PayloadStream.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/loader/Loader.h>
+#include <arc/mcc/MCCLoader.h>
+#include <arc/XMLNode.h>
+#include <arc/Thread.h>
+#include <arc/Logger.h>
+#include <arc/StringConv.h>
 
 #include "MCCTCP.h"
 
