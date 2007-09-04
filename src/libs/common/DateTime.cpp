@@ -141,7 +141,8 @@ namespace Arc {
       }
     }
 
-    else {
+    else if (timestring.length() == 24) {
+      // C time
       tm timestr;
       char day[4];
       char month[4];
@@ -192,6 +193,60 @@ namespace Arc {
       }
 
       gtime = mktime(&timestr);
+    }
+
+    else if (timestring.length() == 29) {
+      // RFC 1123 time (used by HTTP protoccol)
+      tm timestr;
+      char day[4];
+      char month[4];
+
+      if(sscanf(timestring.c_str(),
+		"%3s, %2d %3s %4d %2d:%2d:%2d GMT",
+		day,
+		&timestr.tm_mday,
+		month,
+		&timestr.tm_year,
+		&timestr.tm_hour,
+		&timestr.tm_min,
+		&timestr.tm_sec) != 7) {
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
+			   timestring.c_str());
+	return;
+      }
+
+      timestr.tm_year -= 1900;
+
+      if(strncmp(month, "Jan", 3) == 0)
+	timestr.tm_mon = 0;
+      else if(strncmp(month, "Feb", 3) == 0)
+	timestr.tm_mon = 1;
+      else if(strncmp(month, "Mar", 3) == 0)
+	timestr.tm_mon = 2;
+      else if(strncmp(month, "Apr", 3) == 0)
+	timestr.tm_mon = 3;
+      else if(strncmp(month, "May", 3) == 0)
+	timestr.tm_mon = 4;
+      else if(strncmp(month, "Jun", 3) == 0)
+	timestr.tm_mon = 5;
+      else if(strncmp(month, "Jul", 3) == 0)
+	timestr.tm_mon = 6;
+      else if(strncmp(month, "Aug", 3) == 0)
+	timestr.tm_mon = 7;
+      else if(strncmp(month, "Sep", 3) == 0)
+	timestr.tm_mon = 8;
+      else if(strncmp(month, "Oct", 3) == 0)
+	timestr.tm_mon = 9;
+      else if(strncmp(month, "Nov", 3) == 0)
+	timestr.tm_mon = 10;
+      else if(strncmp(month, "Dec", 3) == 0)
+	timestr.tm_mon = 11;
+      else {
+	dateTimeLogger.msg(ERROR, "Can not parse month: %s", month);
+	return;
+      }
+
+      gtime = timegm(&timestr);
     }
 
     if(gtime == -1)
@@ -312,6 +367,31 @@ namespace Arc {
 	   << std::setw(2) << tmtime.tm_hour << ':'
 	   << std::setw(2) << tmtime.tm_min << ':'
 	   << std::setw(2) << tmtime.tm_sec << 'Z';
+
+	return ss.str();
+      }
+
+    case RFC1123Time:
+      {
+	tm tmtime;
+	gmtime_r(&gtime, &tmtime);
+
+	const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	// C week starts on Sunday - just live with it...
+	const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+			       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+	std::stringstream ss;
+
+	ss << std::setfill('0');
+
+	ss << day[tmtime.tm_wday] << ", "
+	   << std::setw(2) << tmtime.tm_mday << ' '
+	   << month[tmtime.tm_mon] << ' '
+	   << std::setw(4) << tmtime.tm_year + 1900 << ' '
+	   << std::setw(2) << tmtime.tm_hour << ':'
+	   << std::setw(2) << tmtime.tm_min << ':'
+	   << std::setw(2) << tmtime.tm_sec << " GMT";
 
 	return ss.str();
       }

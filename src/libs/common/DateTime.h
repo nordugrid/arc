@@ -18,10 +18,11 @@ namespace Arc {
   /// An enumeration that contains the possible textual timeformats.
   enum TimeFormat {
     MDSTime,       // YYYYMMDDHHMMSSZ
-    ASCTime,       // Day Month DD HH:MM:SS YYYY
+    ASCTime,       // Day Mon DD HH:MM:SS YYYY
     UserTime,      // YYYY-MM-DD HH:MM:SS
     ISOTime,       // YYYY-MM-DDTHH:MM:SS+HH:MM
-    UTCTime        // YYYY-MM-DDTHH:MM:SSZ
+    UTCTime,       // YYYY-MM-DDTHH:MM:SSZ
+    RFC1123Time    // Day, DD Mon YYYY HH:MM:SS GMT
   };
 
 
