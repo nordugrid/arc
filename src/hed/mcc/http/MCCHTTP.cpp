@@ -1,4 +1,5 @@
 #include "common/XMLNode.h"
+#include "common/StringConv.h"
 #include "message/PayloadRaw.h"
 #include "PayloadHTTP.h"
 #include "loader/Loader.h"
@@ -195,6 +196,12 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   if(!(*outpayload)) { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
+  outmsg.Attributes()->set("HTTP:CODE",tostring(outpayload->Code()));
+  outmsg.Attributes()->set("HTTP:REASON",outpayload->Reason());
+  for(std::map<std::string,std::string>::const_iterator i =
+      outpayload->Attributes().begin();i!=outpayload->Attributes().end();++i) {
+    outmsg.Attributes()->set("HTTP:"+i->first,i->second);
+  };
   return MCC_Status(Arc::STATUS_OK);
 }
 
