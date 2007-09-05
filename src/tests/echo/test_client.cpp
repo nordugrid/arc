@@ -63,6 +63,8 @@ int main(void) {
   // provide Context and Attributes as well.
   Arc::MessageAttributes attributes;
   Arc::MessageContext context;
+  reqmsg.Attributes(&attributes);
+  reqmsg.Context(&context);
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
     logger.msg(Arc::ERROR, "Request failed");
