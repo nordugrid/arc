@@ -400,6 +400,8 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       };
    };
    outmsg.Payload(new PayloadTLSMCC(*stream_, logger));
+   outmsg.Attributes(inmsg.Attributes());
+   outmsg.Context(inmsg.Context());
    return MCC_Status(Arc::STATUS_OK);
 }
 
