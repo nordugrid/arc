@@ -170,6 +170,9 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   BIO *in = NULL;
   bool res = false;
 
+  //OpenSSL_add_all_algorithms();
+  EVP_add_digest(EVP_md5());
+
   if(credentials.empty()) {
     return;
   };
@@ -198,7 +201,10 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) goto err;
 
   for(;;) {
-    if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) break;
+    if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) {
+      LogError();
+      break;
+    };
     sk_X509_push(cert_sk,cert); cert=NULL;
   };
 
@@ -251,18 +257,16 @@ std::string DelegationProvider::Delegate(const std::string& request) {
 
   if((pkey=X509_REQ_get_pubkey(req)) == NULL) goto err;
   int i = X509_REQ_verify(req,pkey);
-  EVP_PKEY_free(pkey); pkey=NULL;
-std::cerr<<"X509_REQ_verify returned "<<i<<std::endl;
+  //EVP_PKEY_free(pkey); pkey=NULL;
   if(i <= 0) goto err;
-  //if(X509_REQ_verify(req,pkey) <= 0) goto err; // Checking request signature
-  EVP_PKEY_free(pkey); pkey=NULL;
+  //EVP_PKEY_free(pkey); pkey=NULL;
 
   res = "DDD";
 err:
   if(res.empty()) LogError();
   if(in) BIO_free_all(in);
   if(req) X509_REQ_free(req);
-  if(pkey) EVP_PKEY_free(pkey);
+  //if(pkey) EVP_PKEY_free(pkey);
   return res;
 }
 
