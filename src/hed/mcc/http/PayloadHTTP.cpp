@@ -85,7 +85,7 @@ bool PayloadHTTP::parse_header(void) {
     for(++pos;pos<line.length();++pos) if(!isspace(line[pos])) break;
     if(pos<line.length()) {
       std::string value = line.substr(pos);
-      for(std::string::size_type p=0;p<value.length();++p) value[p]=tolower(value[p]);
+      // for(std::string::size_type p=0;p<value.length();++p) value[p]=tolower(value[p]);
       attributes_[name]=value;
     } else {
       attributes_[name]="";
