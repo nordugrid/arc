@@ -116,28 +116,8 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
       ResponseItem* item = new ResponseItem;
       RequestTuple reqtuple = (*it);
       item->reqtp = reqtuple; 
-/*
-            Arc::Subject sub = (item->reqtp).sub;
-            std::cout<<"Subject size::----------- "<<sub.size()<<std::endl;
-            Arc::Subject::iterator it;
-            for (it = sub.begin(); it!= sub.end(); it++){
-              StringAttribute *attr;
-              attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
-              if(attr!=NULL) std::cout<<"Subject::---------"<<attr->getValue()<<std::endl;
-            }
-*/
       item->pls = permitset;
       resp->addResponseItem(item);
-
-            Arc::Subject sub = (item->reqtp).sub;
-            std::cout<<"Subject size::----------- "<<sub.size()<<std::endl;
-            Arc::Subject::iterator it;
-            for (it = sub.begin(); it!= sub.end(); it++){
-              StringAttribute *attr;
-              attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
-              if(attr!=NULL) std::cout<<"Subject::---------"<<attr->getValue()<<std::endl;
-            }
-
     }
   }
   
