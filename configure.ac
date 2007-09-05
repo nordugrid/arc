@@ -4,7 +4,7 @@
 AC_PREREQ(2.57)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[1.0],[knowarc-support@nordugrid.org])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
