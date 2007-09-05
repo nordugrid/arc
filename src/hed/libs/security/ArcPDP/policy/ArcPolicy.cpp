@@ -7,32 +7,34 @@ using namespace Arc;
 
 ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
   ArcRule *rule;
-  XMLNode root, nd;
   ArcAlgFactory *algfactory = new ArcAlgFactory(); 
+ 
+  XMLNode nd, rnd;
 
-  std::string xml;
-  
-  root = node.Child();
-  
-  root.GetXML(xml); //for testing
-  std::cout << xml << std::endl;
-  id = (std::string)(root.Attribute("PolicyId"));
+  Arc::NS nsList;
+  std::list<XMLNode> res;
+  nsList.insert(std::pair<std::string, std::string>("policy","http://www.nordugrid.org/ws/schemas/policy-arc"));
+
+  res = node.XPathLookup("//policy:Policy", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    id = (std::string)(nd.Attribute("PolicyId"));
+
+    //Setup the rules combining algorithm inside one policy
+    if(nd.Attribute("CombiningAlg"))
+      comalg = algfactory->createAlg((std::string)(nd.Attribute("CombiningAlg")));
+    else comalg = algfactory->createAlg("Deny-Overrides");
+    
+    description = (std::string)(nd["Description"]);  
+  }
   
   std::cout<<id<<std::endl;
-
-  //Setup the rules combining algorithm inside one policy
-  if(root.Attribute("CombiningAlg"))
-    comalg = algfactory->createAlg((std::string)(root.Attribute("CombiningAlg")));
-  else comalg = algfactory->createAlg("Deny-Overrides");     
-
   std::cout<<"Alg is:--------"<<comalg->getalgId()<<std::endl;
-
-  description = (std::string)(root["Description"]); 
  
   for ( int i=0;; i++ ){
-    nd = root["Rule"][i];
-    if(!nd) break;
-    rule = new ArcRule(nd);
+    rnd = nd["Rule"][i];
+    if(!rnd) break;
+    rule = new ArcRule(rnd);
     subelements.push_back(rule);
   }
     

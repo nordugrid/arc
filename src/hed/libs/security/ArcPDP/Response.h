@@ -2,7 +2,6 @@
 #define __ARC_RESPONSE_H__
 
 #include <list>
-#include <map>
 #include "common/XMLNode.h"
 #include "common/Logger.h"
 #include "EvaluationCtx.h"
@@ -38,7 +37,12 @@ public:
   virtual void setResponseItems (const ResponseList rl) { rlist = rl; };
   virtual void addResponseItem(ResponseItem* respitem){ rlist.push_back(respitem); }; 
 
-  //virtual ~Response() {};
+  virtual ~Response() {  
+    while(!rlist.empty()){
+    delete rlist.back();
+    rlist.pop_back();
+    }
+  };
 };
 
 } // namespace Arc

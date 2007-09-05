@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<Config>
-  <PolicyStore name="test" location="./">dsdadad</PolicyStore>
+<Config xmlns="http://www.nordugrid.org/ws/schemas/policycfg-arc">
+  <PolicyStore name="test" location="./"/>
   <AttributeFactory name="ArcAttributeFactory" />
   <CombingAlgorithmFactory name="ArcAlgFactory" />
   <FunctionFactory name="ArcFunctionFactory" />

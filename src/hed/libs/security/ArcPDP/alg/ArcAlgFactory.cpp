@@ -17,10 +17,8 @@ ArcAlgFactory::ArcAlgFactory(){
 }
 
 CombiningAlg* ArcAlgFactory::createAlg(const std::string& type){
-  std::cout<<"Produce Alg"<<std::endl;
   AlgMap::iterator it; 
   if((it=algmap.find(type)) != algmap.end()){
-    std::cout<<"Alg is:"<<std::endl;
     return (*it).second;
   }
   else return NULL;

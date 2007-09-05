@@ -7,8 +7,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "attr/StringAttribute.h"
-
 using namespace Arc;
 /*
 static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
@@ -17,22 +15,42 @@ static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
 */
 
 void Evaluator::parsecfg(Arc::XMLNode& cfg){
-  Arc::XMLNode root = cfg.Child();
-  Arc::XMLNode child = root["PolicyStore"];
+  std::string policystore, policylocation, functionfactory, attributefactory, combingalgfactory;
+  XMLNode nd;
 
-  std::string policystore = (std::string)(child.Attribute("name"));
-  std::string policylocation =  (std::string)(child.Attribute("location"));
+  Arc::NS nsList;
+  std::list<XMLNode> res;
+  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/ws/schemas/policycfg-arc"));
 
-  child = root["FunctionFactory"];
-  std::string functionfactory = (std::string)(child.Attribute("name"));
+  res = cfg.XPathLookup("//config:PolicyStore", nsList);
+  //presently, there can be only one PolicyStore
+  if(!(res.empty())){
+    nd = *(res.begin());
+    policystore = (std::string)(nd.Attribute("name"));
+    policylocation =  (std::string)(nd.Attribute("location"));
+  }
 
-  child = root["AttributeFactory"];
-  std::string attributefactory = (std::string)(child.Attribute("name"));
+  res = cfg.XPathLookup("//config:FunctionFactory", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    functionfactory = (std::string)(nd.Attribute("name"));
+  }           
 
-  child = root["CombingAlgorithmFactory"];
-  std::string combingalgfactory = (std::string)(child.Attribute("name"));
+  res = cfg.XPathLookup("//config:AttributeFactory", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    attributefactory = (std::string)(nd.Attribute("name"));
+  }  
+
+  res = cfg.XPathLookup("//config:CombingAlgorithmFactory", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    combingalgfactory = (std::string)(nd.Attribute("name"));
+  }
+
   //TODO: load the class by using the configuration information. 
 
+  //temporary solution
   std::list<std::string> filelist;
   filelist.push_back("Policy_Example.xml");
   std::string alg("Permit-Overrides");
