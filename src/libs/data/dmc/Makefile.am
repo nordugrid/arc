@@ -8,5 +8,5 @@ if GRIDFTP_ENABLED
 GRIDFTP_SD = gridftp
 endif
 
-SUBDIRS = $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
-DIST_SUBDIRS = rls lfc gridftp
+SUBDIRS = http $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
+DIST_SUBDIRS = http gridftp rls lfc

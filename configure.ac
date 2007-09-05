@@ -251,6 +251,7 @@ AC_CONFIG_FILES([Makefile
                  src/libs/data/Makefile
                  src/libs/data/dmc/Makefile
                  src/libs/data/dmc/gridftp/Makefile
+                 src/libs/data/dmc/http/Makefile
                  src/libs/data/dmc/lfc/Makefile
                  src/libs/data/dmc/rls/Makefile
                  src/hed/Makefile

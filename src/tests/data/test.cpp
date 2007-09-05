@@ -16,13 +16,16 @@ int main () {
     <ArcConfig>\
      <ModuleManager>\
         <Path>../../libs/data/dmc/gridftp/.libs/</Path>\
+        <Path>../../libs/data/dmc/http/.libs/</Path>\
         <Path>../../libs/data/dmc/lfc/.libs/</Path>\
         <Path>../../libs/data/dmc/rls/.libs/</Path>\
      </ModuleManager>\
      <Plugins><Name>dmcgridftp</Name></Plugins>\
+     <Plugins><Name>dmchttp</Name></Plugins>\
      <Plugins><Name>dmclfc</Name></Plugins>\
      <Plugins><Name>dmcrls</Name></Plugins>\
      <DataManager name='gridftp' id='gridftp'></DataManager>\
+     <DataManager name='http' id='http'></DataManager>\
      <DataManager name='rls' id='rls'></DataManager>\
      <DataManager name='lfc' id='lfc'></DataManager>\
     </ArcConfig>");
@@ -36,14 +39,15 @@ int main () {
   Arc::Loader client_loader(&client_config);
   logger.msg(Arc::INFO, "DMCs are loaded");
 
-  Arc::DataHandle dp[4] = {
+  Arc::DataHandle dp[5] = {
     Arc::URL("rls://hermione.hagrid.it.uu.se/test"),
     Arc::URL("gsiftp://harry.hagrid.it.uu.se:2811/vol2/dc2/test"),
     Arc::URL("ftp://download.nordugrid.org/test/README"),
+    Arc::URL("http://www.grid.tsl.uu.se/"),
     Arc::URL("lfc://lfc-atlas.in2p3.fr//grid/atlas/dq2/trig1_misal1_mc12/trig1_misal1_mc12.008248.AlpgenJimmyWtaunuNp2_pt20_filt3jet.recon.AOD.v12000601_tid006559/trig1_misal1_mc12.008248.AlpgenJimmyWtaunuNp2_pt20_filt3jet.recon.AOD.v12000601_tid006559._00024.pool.root.3")
   };
 
-  for (int k = 0; k < 4; k++) {
+  for (int k = 0; k < 5; k++) {
     std::list<Arc::DataPoint::FileInfo> files;
     if(!dp[k]) continue;
     dp[k]->list_files(files);
