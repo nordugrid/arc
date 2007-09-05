@@ -232,22 +232,22 @@ PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(s
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),uri_(url),method_(method),body_(NULL) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),code_(code),reason_(reason),body_(NULL) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),uri_(url),method_(method),body_(NULL) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),code_(code),reason_(reason),body_(NULL) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
