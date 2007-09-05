@@ -10,12 +10,12 @@
     
     <RequestItem>
         <Subject>
-          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">administrator</Attribute>
-          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=NorduGrid/OU=UIO/CN=admin</Attribute>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
         </Subject>
-        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/data</Resource>
-        <Action AttributeId="urn:arc:action:file-action" Type="string">write</Action>
-        <Action AttributeId="urn:arc:action:file-action" Type="string">delete</Action>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">list</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">stat</Action>
         <Context/>
     </RequestItem>   
 </Request>

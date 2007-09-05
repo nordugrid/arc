@@ -7,12 +7,17 @@
 namespace Arc {
 
 class PermitOverridesCombiningAlg : public CombiningAlg {
+private:
+  static std::string algId;
+
 public:
-  PermitOverridesCombiningAlg(){algId = "Permit-Overrides";};
+  PermitOverridesCombiningAlg(){};
   virtual ~PermitOverridesCombiningAlg(){};
 
 public:
   virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies);
+  static const std::string& Identifier(void) { return algId; };
+  virtual std::string& getalgId(void){return algId;};
 };
 
 } // namespace Arc

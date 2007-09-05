@@ -11,27 +11,28 @@ ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
   ArcAlgFactory *algfactory = new ArcAlgFactory(); 
 
   std::string xml;
-  node.GetXML(xml); //for testing
-  std::cout << xml << std::endl;
   
   root = node.Child();
-  id = (std::string)(root.Attribute("PolicyID"));
+  
+  root.GetXML(xml); //for testing
+  std::cout << xml << std::endl;
+  id = (std::string)(root.Attribute("PolicyId"));
+  
+  std::cout<<id<<std::endl;
 
   //Setup the rules combining algorithm inside one policy
   if(root.Attribute("CombiningAlg"))
     comalg = algfactory->createAlg((std::string)(root.Attribute("CombiningAlg")));
   else comalg = algfactory->createAlg("Deny-Overrides");     
 
-  description = (std::string)(root["Description"]);
-  
+  std::cout<<"Alg is:--------"<<comalg->getalgId()<<std::endl;
+
+  description = (std::string)(root["Description"]); 
+ 
   for ( int i=0;; i++ ){
     nd = root["Rule"][i];
     if(!nd) break;
     rule = new ArcRule(nd);
-
-  node.GetXML(xml); //for testing
-  std::cout << xml << std::endl;
-
     subelements.push_back(rule);
   }
     

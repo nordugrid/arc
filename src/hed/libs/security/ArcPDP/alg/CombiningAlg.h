@@ -9,15 +9,13 @@
 namespace Arc {
 
 class CombiningAlg {
-protected:
-  std::string algId;
-
 public:
   CombiningAlg(){};
   virtual ~CombiningAlg(){};
 
 public:
   virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies){};
+  virtual std::string& getalgId(void){};
 };
 
 } // namespace Arc

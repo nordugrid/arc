@@ -1,6 +1,8 @@
 #include "DenyOverridesAlg.h"
 
-using namespace Arc;
+namespace Arc{
+
+std::string DenyOverridesCombiningAlg::algId = "Deny-Overrides";
 
 Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*> policies){
   bool atleast_onepermit = false;
@@ -21,7 +23,8 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
       if(res == DECISION_PERMIT)
         atleast_onepermit = true;
       else if(res == DECISION_INDETERMINATE){
-        //some indeterminate caused by "Condition"
+        //some indeterminate caused by "Condition", will never happen in the existing situation, 
+        //because we don't check condition in the prototype.
         atleast_oneerror = true;
   
         if((policy->getEffect()).compare("Deny")==0)
@@ -38,5 +41,6 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
   return DECISION_NOT_APPLICABLE;
 }
 
+} //namespace Arc
 
 

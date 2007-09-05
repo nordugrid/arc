@@ -1,34 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Sample arc authorization policy for Storage_manager-->
-<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" RuleCombiningAlgId="Deny-Overrides">
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
    <Rule RuleId="rule1" Effect="Permit">
       <Description>
          Sample Permit rule for Storage_manager service
       </Description>
       <Subjects>
-         <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
-         <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
+         <Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupA</Subject>
 	 <Subject>
-	    <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
-	    <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
+	    <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+	    <SubFraction Type="string">urn:mace:shibboleth:examples</SubFraction>
    	 </Subject>
 	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
       </Subjects>
       <Resources>
-         <Resource Type="Storage">localhost:/home/scratch/</Resource>
+         <Resource Type="string">file://home/test</Resource>
       </Resources>
-      <Actions>
-         <Action>Get</Action>
-         <Action>Stat</Action>
-         <Action>List</Action>
+      <Actions Type="string">
+         <Action>read</Action>
+         <Action>stat</Action>
+         <Action>list</Action>
       </Actions>
       <Conditions>
 	 <Condition>
-	   <Expression FunctionId="policy-arc:function:time-equal">
-    		<CondValue DataType="xsd:dateTime">14:00</CondValue>
+	   <Expression FunctionId="know-arc:function:string-equal">
+    		<CondValue Type="string">14:00</CondValue>
   	   </Expression>
 	 </Condition>
-         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>   
+         <GroupIdRef Location="conditiongroup.xml">normalcondition</GroupIdRef>   
       </Conditions>
    </Rule>
    
@@ -37,16 +36,16 @@
          Sample Deny rule for Storage_manager service
       </Description>
       <Subjects>
-         <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ANONYMOS</Subject>
-         <Subject Type="VOMSAttribute">/vo.knowarc/usergroupB</Subject>
+         <Subject Type="string">/O=Grid/OU=KnowARC/CN=ANONYMOS</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupB</Subject>
       </Subjects>
-      <Resources>
+      <Resources Type="string">
          <Resource>localhost:/home/atlas/</Resource>
          <Resource>nordugrid.org:/home/atlas/</Resource>
       </Resources>
-      <Actions>
-         <Action>Put</Action>
-         <Action>Move</Action>
+      <Actions Type="string">
+         <Action>put</Action>
+         <Action>move</Action>
          <Action>Del</Action>
          <Action>Modify</Action>
          <Action>Make</Action>

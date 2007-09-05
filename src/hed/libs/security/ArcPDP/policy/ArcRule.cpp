@@ -20,14 +20,15 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   ArcAttributeFactory* attrfactory = new ArcAttributeFactory();
   ArcFnFactory* fnfactory = new ArcFnFactory();
 
-
   XMLNode tnd;
 
   for(int i=0; i<nd.Size(); i++){
-    std::string type = type_attr;
-    std::string funcname = function_attr;
+    std::cout<<itemtype<<std::endl;
 
     for(int j=0;;j++){
+      std::string type = type_attr;
+      std::string funcname = function_attr;
+
       tnd = nd[itemtype][j];
       if(!tnd) break;
       if(!((std::string)(tnd.Attribute("Type"))).empty())
@@ -57,7 +58,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         }
         items.push_back(item);
       }
-      else if((!type.empty())&&(tnd.Size()>0)){
+      else if(!(type.empty())&&(tnd.Size()>0)){
         AndList item;
         int size = tnd.Size();
         for(int k=0; k<size; k++){
@@ -75,6 +76,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         //logger.msg(Arc::ERROR, "Error definition in policy"); 
         return;
       }
+      std::cout<<type<<funcname<<std::endl; //for testing
     }
 
     for(int l=0;;l++){
@@ -82,6 +84,8 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
       if(!tnd) break;
       std::string location = (std::string)(tnd.Attribute("Location"));
 
+      std::cout<<location<<std::endl; // for testing
+ 
       //Open the reference file and parse it to get external item information
       std::string xml_str = "";
       std::string str;
@@ -92,13 +96,28 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
       }
       f.close();
 
-      XMLNode subref = XMLNode(xml_str);
+      XMLNode root = XMLNode(xml_str);
+      XMLNode subref = root.Child();
+           
+ 
+      std::string xml;
+      subref.GetXML(xml); //for testing
+      std::cout<<xml<<std::endl;
+
       XMLNode snd;
       std::string itemgrouptype = itemtype + "Group";
+
+      std::cout<<itemgrouptype<<std::endl;  //for testing
+
       for(int k=0;;k++){
         snd = subref[itemgrouptype][k];
+        if(!snd) break;
+
+      snd.GetXML(xml); //for testing
+      std::cout<<xml<<std::endl;        
+
         //If the reference ID in the policy file matches the ID in the external file, try to get the subject information from the external file
-        if((std::string)(snd.Attribute("GroupID")) == (std::string)tnd){
+        if((std::string)(snd.Attribute("GroupId")) == (std::string)tnd){
           getItemlist(snd, items, itemtype, type_attr, function_attr);
         }
       }
@@ -107,7 +126,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   return;
 }
 
-ArcRule::ArcRule(XMLNode& node) : Policy(node) , effect(0), id(NULL), version(NULL), description(NULL){
+ArcRule::ArcRule(XMLNode& node) : Policy(node) {
   XMLNode nd, tnd;
   //Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
   //logger.addDestination(logcerr);
@@ -130,8 +149,11 @@ ArcRule::ArcRule(XMLNode& node) : Policy(node) , effect(0), id(NULL), version(NU
   </Subjects>
   */
 
+  std::string xml;
+  node.GetXML(xml);
+  std::cout<<"\n\nRule:------"<<xml<<std::endl;
 
-  id = (std::string)(node.Attribute("RuleID"));
+  id = (std::string)(node.Attribute("RuleId"));
   description = (std::string)(node["Description"]);
   if((std::string)(node.Attribute("Effect"))=="Permit")
     effect="Permit";

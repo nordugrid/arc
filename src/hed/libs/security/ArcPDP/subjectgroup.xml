@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SubjectGroup xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" GroupId="subgrpexample1">         
-  <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
-  <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
+  <Subject Type="string">/O=Grid/OU=KnowARC/CN=ABC</Subject>
+  <Subject Type="string">/vo.knowarc/usergroupA</Subject>
   <Subject>
-    <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
-    <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
+    <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+    <SubFraction Type="string">urn:mace:shibboleth:examples</SubFraction>
   </Subject>
 </SubjectGroup>

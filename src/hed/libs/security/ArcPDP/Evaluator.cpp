@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "attr/StringAttribute.h"
+
 using namespace Arc;
 /*
 static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
@@ -80,20 +82,25 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
   std::list<Arc::Policy*>::iterator policyit;
   std::list<Arc::RequestTuple> reqtuples = ctx->getRequestTuples();
   std::list<Arc::RequestTuple>::iterator it;
+  
+  Arc::Response* resp = new Arc::Response();
   for(it = reqtuples.begin(); it != reqtuples.end(); it++){
     //set the present RequestTuple for evaluation
     ctx->setEvalTuple(*it);
 
-    //get the policies which match the present context (RequestTuple), which means the <subject, action, object, environment> of a policy
+    //get the policies which match the present context (RequestTuple), which means 
+    //the <subject, action, object, environment> of a policy
     //match the present RequestTuple
     policies = plstore->findPolicy(ctx);
     
-    Arc::Response* resp = new Arc::Response();
     std::list<Arc::Policy*> permitset;
     bool atleast_onepermit = false;
     //Each matched policy evaluates the present RequestTuple, using default combiningalg: DENY-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Arc::Result res = (*policyit)->eval(ctx);
+
+      std::cout<<res<<std::endl;
+
       if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
         while(!permitset.empty()) permitset.pop_back();
         break;
@@ -106,11 +113,35 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     //For "Deny" RequestTuple, do we need to give some information?? 
     //TODO
     if(atleast_onepermit){
-      ResponseItem item(*it, permitset);
+      ResponseItem* item = new ResponseItem;
+      RequestTuple reqtuple = (*it);
+      item->reqtp = reqtuple; 
+/*
+            Arc::Subject sub = (item->reqtp).sub;
+            std::cout<<"Subject size::----------- "<<sub.size()<<std::endl;
+            Arc::Subject::iterator it;
+            for (it = sub.begin(); it!= sub.end(); it++){
+              StringAttribute *attr;
+              attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
+              if(attr!=NULL) std::cout<<"Subject::---------"<<attr->getValue()<<std::endl;
+            }
+*/
+      item->pls = permitset;
       resp->addResponseItem(item);
+
+            Arc::Subject sub = (item->reqtp).sub;
+            std::cout<<"Subject size::----------- "<<sub.size()<<std::endl;
+            Arc::Subject::iterator it;
+            for (it = sub.begin(); it!= sub.end(); it++){
+              StringAttribute *attr;
+              attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
+              if(attr!=NULL) std::cout<<"Subject::---------"<<attr->getValue()<<std::endl;
+            }
+
     }
   }
-
+  
+  return resp;
 
 /*
   Arc::Response response = new Arc::Response();
