@@ -138,6 +138,18 @@
       <wsdl:output name="ChangeActivityStatusResponse">
          <soap:body use="literal"/>
       </wsdl:output>
+      <wsdl:fault name="NotAuthorizedFault">
+        <soap:fault name="NotAuthorizedFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="InvalidActivityIdentifierFault">
+        <soap:fault name="InvalidActivityIdentifierFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="CantApplyOperationToCurrentStateFault">
+        <soap:fault name="CantApplyOperationToCurrentStateFault" use="literal" />
+      </wsdl:fault>
+      <wsdl:fault name="OperationWillBeAppliedEventuallyFault">
+        <soap:fault name="OperationWillBeAppliedEventuallyFault" use="literal" />
+      </wsdl:fault>
     </wsdl:operation>
   </wsdl:binding>
 
