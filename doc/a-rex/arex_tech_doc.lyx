@@ -183,7 +183,7 @@ hrulefill
 
 {
 \backslash
-raggedleft NORDUGRID-TECH-2
+raggedleft NORDUGRID-TECH-14
 \backslash
 par}
 \end_layout
@@ -443,7 +443,8 @@ jobid
 
 \begin_layout Standard
 Each job is initiated and controlled through GFS or WS.
- All job parameters (not data) are passed to the GM through GFS in RSL 
+ Complete description of job (not data) is passed to the GM through GFS
+ in RSL 
 \begin_inset LatexCommand \cite{rsl}
 
 \end_inset
@@ -1587,10 +1588,17 @@ Web Service Interface
 \end_layout
 
 \begin_layout Standard
-A-REX Web Service Specific Interface provides means to submit a description
- of a computational job to a computing resource, to stage-in additional
- data, to monitor and control processing of jobs, and obtain data produced
- during the execution of a job.
+A-REX Web Service Interface provides means to submit a description of a
+ computational job to a computing resource, to stage-in additional data,
+ to monitor and control processing of jobs, and obtain data produced during
+ the execution of a job.
+ The WS Interface is built and deployed inside Hosting Envirnoment Daemon
+ [HED] infrastructure
+\begin_inset LatexCommand \cite{hed}
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1662,7 +1670,7 @@ Input
 \emph on
 ActivityStatusType OldStatus
 \emph default
-: Description of the state which the job is supposed to be in during execution
+: Description of the state the job is supposed to be in during execution
  of this request.
  If the current state of the job is different from the one having been given,
  the operation is aborted and a fault is returned.
@@ -1674,7 +1682,7 @@ ActivityStatusType OldStatus
 \emph on
 ActivityStatusType NewStatus
 \emph default
-: Description of the state that the job is to be put into.
+: Description of the state the job is to be put into.
 \end_layout
 
 \end_deeper
@@ -2282,8 +2290,8 @@ ARC service interfaces optionally offer a sub-interface, called the Delegation
 \emph on
 DelegateCredentialsInit
 \emph default
- operation - this operation performs the first half of credentials delegation
- sequence.
+ operation - this operation performs the first half of the credentials delegatio
+n sequence.
 \end_layout
 
 \begin_deeper
@@ -2365,11 +2373,11 @@ Input
 DelegatedTokenType DelegatedToken
 \emph default
 : Contains an X509 proxy certificate based on the public key from the DelegateCr
-edentialsInit signed by the user?s proxy certificate.
+edentialsInit signed by the user's proxy certificate.
  Also includes the Id element which identifies the private key stored at
  the service side associated with these credentials.
- Reference element refers to the object which these credentials should be
- applied to in a way specific to the service.
+ The reference element refers to the object which these credentials should
+ be applied to in a way specific to the service.
  The same element must also be used for delegating credentials as part of
  other operations on service.
 \end_layout
@@ -2473,24 +2481,25 @@ ResourceInformationDocumentType
 \emph on
 BESFactory
 \emph default
- collection of BES Factory attributes as defined in the BES specifications.
+ - collection of BES Factory attributes as defined in the BES specifications.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-Glue2Resource
+Glue2Resource -
 \emph default
  description of a computation resource that uses Glue2 schema.
- This one is going to be specified after the Glue2 XML bindings are be available.
+ This one is going to be specified after the Glue2 XML bindings will be
+ available.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-Activities
+Activities -
 \emph default
  list of maintained activities.
  Each activity contains an identifier (
@@ -2509,8 +2518,8 @@ Glue2Job
 \end_layout
 
 \begin_layout Standard
-All information can be accessed either through requests on a particular
- resources or through XPath queries using WS-Resource Properties operations.
+All information can be accessed either through requests on particular resources
+ or through XPath queries using WS-Resource Properties operations.
 \end_layout
 
 \begin_layout Subsubsection
@@ -2530,7 +2539,7 @@ A-REX supports the following elements from the JSDL version 1.0 specification
 \labelwidthstring 00.00.0000
 
 \emph on
-JobName
+JobName -
 \emph default
  name of the job as assigned by the user.
 \end_layout
@@ -2542,7 +2551,7 @@ JobName
 Executable
 \emph default
 \InsetSpace \space{}
-(POSIX) name of the executable file.
+(POSIX) - name of the executable file.
 \end_layout
 
 \begin_layout List
@@ -2552,7 +2561,7 @@ Executable
 Argument
 \emph default
 \InsetSpace \space{}
-(POSIX) arguments the executable will be launched with.
+(POSIX) - arguments the executable will be launched with.
 \end_layout
 
 \begin_layout List
@@ -2565,7 +2574,7 @@ DataStaging
 \begin_deeper
 \begin_layout List
 \labelwidthstring 00.00.0000
-Filename name of the data file on the executing node.
+Filename - name of the data file on the executing node.
 \end_layout
 
 \begin_layout List
@@ -2574,14 +2583,14 @@ Filename name of the data file on the executing node.
 \emph on
 Source
 \emph default
- source where the file will be taken from before execution.
+ - source where the file will be taken from before execution.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-Target
+Target -
 \emph default
  destination the file will be delivered to after execution.
 \end_layout
@@ -2595,7 +2604,7 @@ Input
 \emph default
 \InsetSpace \thinspace{}
 \InsetSpace \space{}
-(POSIX) file to be used as standard input for the executable.
+(POSIX) - file to be used as standard input for the executable.
 \end_layout
 
 \begin_layout List
@@ -2605,7 +2614,7 @@ Input
 Output
 \emph default
 \InsetSpace \space{}
-(POSIX) file to be used as standard output for the executable.
+(POSIX) - file to be used as standard output for the executable.
 \end_layout
 
 \begin_layout List
@@ -2615,7 +2624,7 @@ Output
 Error
 \emph default
 \InsetSpace \space{}
-(POSIX) file to be used as standard error for the executable.
+(POSIX) - file to be used as standard error for the executable.
 \end_layout
 
 \begin_layout List
@@ -2625,7 +2634,7 @@ Error
 MemoryLimit
 \emph default
 \InsetSpace \space{}
-(POSIX) amount of physical memory needed for execution.
+(POSIX) - amount of physical memory needed for execution.
 \end_layout
 
 \begin_layout List
@@ -2634,7 +2643,7 @@ MemoryLimit
 \emph on
 TotalPhysicalMemory
 \emph default
- same as MemoryLimit.
+ - same as MemoryLimit.
 \end_layout
 
 \begin_layout List
@@ -2643,7 +2652,7 @@ TotalPhysicalMemory
 \emph on
 IndividualPhysicalMemory
 \emph default
- same as MemoryLimit.
+ - same as MemoryLimit.
 \end_layout
 
 \begin_layout List
@@ -2653,7 +2662,7 @@ IndividualPhysicalMemory
 CPUTimeLimit
 \emph default
 \InsetSpace \space{}
-(POSIX) maximal amount of CPU time needed for execution.
+(POSIX) - maximal amount of CPU time needed for execution.
 \end_layout
 
 \begin_layout List
@@ -2662,7 +2671,7 @@ CPUTimeLimit
 \emph on
 TotalCPUTime
 \emph default
- same as CPUTimeLimit.
+ - same as CPUTimeLimit.
 \end_layout
 
 \begin_layout List
@@ -2671,7 +2680,7 @@ TotalCPUTime
 \emph on
 IndividualCPUTime
 \emph default
- same as CPUTimeLimit.
+ - same as CPUTimeLimit.
 \end_layout
 
 \begin_layout List
@@ -2681,14 +2690,14 @@ IndividualCPUTime
 WallTimeLimit
 \emph default
 \InsetSpace \space{}
-(POSIX) amount of clock time needed for execution.
+(POSIX) - amount of clock time needed for execution.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-TotalCPUCount
+TotalCPUCount -
 \emph default
  number of CPUs needed for execution.
 \end_layout
@@ -2699,7 +2708,7 @@ TotalCPUCount
 \emph on
 IndividualCPUCount
 \emph default
- same as TotalCPUCount.
+ - same as TotalCPUCount.
 \end_layout
 
 \begin_layout Subsubsection
@@ -2715,7 +2724,7 @@ A-REX accepts JSDL documents having the following additional elements (see
 \labelwidthstring 00.00.0000
 
 \emph on
-IsExecutable
+IsExecutable -
 \emph default
  marks file to become executable after being delivered to the computing
  resource.
@@ -2727,7 +2736,7 @@ IsExecutable
 \emph on
 RunTimeEnvironment
 \emph default
- specifies the name of the Runtime Environment needed for job execution.
+ - specifies the name of the Runtime Environment needed for job execution.
 \end_layout
 
 \begin_layout List
@@ -2736,14 +2745,14 @@ RunTimeEnvironment
 \emph on
 Middleware
 \emph default
- request for specific middleware on the computing resource frontend.
+ - request for specific middleware on the computing resource frontend.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-RemoteLogging
+RemoteLogging -
 \emph default
  destination for the usage record report of the executed job.
 \end_layout
@@ -2754,7 +2763,7 @@ RemoteLogging
 \emph on
 LocalLogging
 \emph default
- name for the virtual directory available through job interface and containing
+ - name for the virtual directory available through job interface and containing
  various debug information about job execution.
 \end_layout
 
@@ -2764,7 +2773,7 @@ LocalLogging
 \emph on
 AccessControl
 \emph default
- ACL expression which describes the identities of those clients who are
+ - ACL expression which describes the identities of those clients who are
  allowed to perform operations on this job.
 \end_layout
 
@@ -2774,7 +2783,7 @@ AccessControl
 \emph on
 Notify
 \emph default
- Email destination for notification of job state changes.
+ - Email destination for notification of job state changes.
 \end_layout
 
 \begin_layout List
@@ -2783,7 +2792,7 @@ Notify
 \emph on
 SessionLifeTime
 \emph default
- duration for the directory containing job-related files to exist after
+ - duration for the directory containing job-related files to exist after
  the job finished executing.
 \end_layout
 
@@ -2793,14 +2802,14 @@ SessionLifeTime
 \emph on
 JoinOutputs
 \emph default
- specifies if standard output and standard error channels must be merged.
+ - specifies if standard output and standard error channels must be merged.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-Reruns
+Reruns -
 \emph default
  defines how many times a job is allowed to rerun in case of failure.
 \end_layout
@@ -2809,7 +2818,7 @@ Reruns
 \labelwidthstring 00.00.0000
 
 \emph on
-CredentialServer
+CredentialServer -
 \emph default
  URL of MyProxy service which may be used for renewing the expired delegated
  job credentials.
@@ -2819,7 +2828,7 @@ CredentialServer
 \labelwidthstring 00.00.0000
 
 \emph on
-CandidateTarget
+CandidateTarget -
 \emph default
  specifies host name and queue of a computing resource.
 \end_layout
@@ -9333,7 +9342,7 @@ butesDocumentType"/>
 \end_layout
 
 \begin_layout LyX-Code
-          <xsd:complexType name=?Glue2Resource? minOccurs='0'>
+          <xsd:complexType name="Glue2Resource" minOccurs='0'>
 \end_layout
 
 \begin_layout LyX-Code
@@ -9376,12 +9385,12 @@ enceType"/>
 \end_layout
 
 \begin_layout LyX-Code
-                  <xsd:element ref=?bes-factory:ActivityDocument? minOccurs='0'/
+                  <xsd:element ref="bes-factory:ActivityDocument" minOccurs='0'/
 >
 \end_layout
 
 \begin_layout LyX-Code
-                  <xsd:complexType name=?Glue2Job? minOccurs='0'>
+                  <xsd:complexType name="Glue2Job" minOccurs='0'>
 \end_layout
 
 \begin_layout LyX-Code
@@ -9683,6 +9692,57 @@ Type/Fault"/>
 
 \begin_layout LyX-Code
       </wsdl:output>
+\end_layout
+
+\begin_layout LyX-Code
+      <wsdl:fault name="NotAuthorizedFault">
+\end_layout
+
+\begin_layout LyX-Code
+        <soap:fault name="NotAuthorizedFault" use="literal" />
+\end_layout
+
+\begin_layout LyX-Code
+      </wsdl:fault>
+\end_layout
+
+\begin_layout LyX-Code
+      <wsdl:fault name="InvalidActivityIdentifierFault">
+\end_layout
+
+\begin_layout LyX-Code
+        <soap:fault name="InvalidActivityIdentifierFault" use="literal"
+ />
+\end_layout
+
+\begin_layout LyX-Code
+      </wsdl:fault>
+\end_layout
+
+\begin_layout LyX-Code
+      <wsdl:fault name="CantApplyOperationToCurrentStateFault">
+\end_layout
+
+\begin_layout LyX-Code
+        <soap:fault name="CantApplyOperationToCurrentStateFault" use="literal"
+ />
+\end_layout
+
+\begin_layout LyX-Code
+      </wsdl:fault>
+\end_layout
+
+\begin_layout LyX-Code
+      <wsdl:fault name="OperationWillBeAppliedEventuallyFault">
+\end_layout
+
+\begin_layout LyX-Code
+        <soap:fault name="OperationWillBeAppliedEventuallyFault" use="literal"
+ />
+\end_layout
+
+\begin_layout LyX-Code
+      </wsdl:fault>
 \end_layout
 
 \begin_layout LyX-Code

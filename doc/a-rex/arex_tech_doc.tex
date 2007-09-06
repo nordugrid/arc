@@ -107,7 +107,7 @@
 
 \hrulefill
 
-{\raggedleft NORDUGRID-TECH-2\par}
+{\raggedleft NORDUGRID-TECH-14\par}
 
 {\raggedleft \today\par}
 
@@ -183,9 +183,9 @@ System or WS Information Interface of A-Rex.
 Each job gets an identifier (\textit{jobid}). This is a handle which
 identifies the job in the GM and the Information System \cite{is}.
 
-Each job is initiated and controlled through GFS or WS. All job parameters
-(not data) are passed to the GM through GFS in RSL \cite{rsl} or
-through WS in JSDL-coded \cite{jsdl} description (job description
+Each job is initiated and controlled through GFS or WS. Complete description
+of job (not data) is passed to the GM through GFS in RSL \cite{rsl}
+or through WS in JSDL-coded \cite{jsdl} description (job description
 - JD).
 
 
@@ -522,10 +522,11 @@ information about the job.
 
 \subsection{Web Service Interface}
 
-A-REX Web Service Specific Interface provides means to submit a description
+A-REX Web Service Interface provides means to submit a description
 of a computational job to a computing resource, to stage-in additional
 data, to monitor and control processing of jobs, and obtain data produced
-during the execution of a job.
+during the execution of a job. The WS Interface is built and deployed
+inside Hosting Envirnoment Daemon {[}HED] infrastructure\cite{hed}.
 
 
 \subsubsection{Basic Execution Service Interface}
@@ -564,13 +565,13 @@ being processed and corresponding actions.
 \item Input
 
 \begin{itemize}
-\item \emph{ActivityStatusType OldStatus}: Description of the state which
-the job is supposed to be in during execution of this request. If
-the current state of the job is different from the one having been
-given, the operation is aborted and a fault is returned. This parameter
-is optional.
-\item \emph{ActivityStatusType NewStatus}: Description of the state that
-the job is to be put into.
+\item \emph{ActivityStatusType OldStatus}: Description of the state the
+job is supposed to be in during execution of this request. If the
+current state of the job is different from the one having been given,
+the operation is aborted and a fault is returned. This parameter is
+optional.
+\item \emph{ActivityStatusType NewStatus}: Description of the state the
+job is to be put into.
 \end{itemize}
 \item Output
 
@@ -682,7 +683,7 @@ of credentials (UpdateCredentials).
 
 \begin{itemize}
 \item \emph{DelegateCredentialsInit} operation - this operation performs
-the first half of credentials delegation sequence.
+the first half of the credentials delegation sequence.
 
 \begin{itemize}
 \item Input
@@ -718,11 +719,11 @@ credentials being renewed) unrelated to other operations of the service.
 \begin{itemize}
 \item \emph{DelegatedTokenType DelegatedToken}: Contains an X509 proxy certificate
 based on the public key from the DelegateCredentialsInit signed by
-the user?s proxy certificate. Also includes the Id element which identifies
+the user's proxy certificate. Also includes the Id element which identifies
 the private key stored at the service side associated with these credentials.
-Reference element refers to the object which these credentials should
-be applied to in a way specific to the service. The same element must
-also be used for delegating credentials as part of other operations
+The reference element refers to the object which these credentials
+should be applied to in a way specific to the service. The same element
+must also be used for delegating credentials as part of other operations
 on service.
 \end{itemize}
 \item Output(s)
@@ -759,16 +760,16 @@ document type is defined in the A-Rex WSDL as a \emph{ResourceInformationDocumen
 It contains the following elements/resources:
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{BESFactory}}] collection of BES Factory attributes as defined
+\item [{\emph{BESFactory}}] - collection of BES Factory attributes as defined
 in the BES specifications.
-\item [{\emph{Glue2Resource}}] description of a computation resource that
-uses Glue2 schema. This one is going to be specified after the Glue2
-XML bindings are be available.
-\item [{\emph{Activities}}] list of maintained activities. Each activity
-contains an identifier (\emph{ActivityIdentifier}), BES (\emph{ActivityDocument})
+\item [{\emph{Glue2Resource}}] \emph{-} description of a computation resource
+that uses Glue2 schema. This one is going to be specified after the
+Glue2 XML bindings will be available.
+\item [{\emph{Activities}}] \emph{-} list of maintained activities. Each
+activity contains an identifier (\emph{ActivityIdentifier}), BES (\emph{ActivityDocument})
 and Glue2 (\emph{Glue2Job}) descriptions of the activity.
 \end{lyxlist}
-All information can be accessed either through requests on a particular
+All information can be accessed either through requests on particular
 resources or through XPath queries using WS-Resource Properties operations.
 
 
@@ -778,37 +779,37 @@ A-REX supports the following elements from the JSDL version 1.0 specification\ci
 including POSIX Applications extension:
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{JobName}}] name of the job as assigned by the user.
-\item [{\emph{Executable}\ (POSIX)}] name of the executable file.
-\item [{\emph{Argument}\ (POSIX)}] arguments the executable will be launched
-with.
+\item [{\emph{JobName}}] \emph{-} name of the job as assigned by the user.
+\item [{\emph{Executable}\ (POSIX)}] - name of the executable file.
+\item [{\emph{Argument}\ (POSIX)}] - arguments the executable will be
+launched with.
 \item [{\emph{DataStaging}}]~
 
 \begin{lyxlist}{00.00.0000}
-\item [{Filename}] name of the data file on the executing node.
-\item [{\emph{Source}}] source where the file will be taken from before
+\item [{Filename}] - name of the data file on the executing node.
+\item [{\emph{Source}}] - source where the file will be taken from before
 execution.
-\item [{\emph{Target}}] destination the file will be delivered to after
-execution.
+\item [{\emph{Target}}] \emph{-} destination the file will be delivered
+to after execution.
 \end{lyxlist}
-\item [{\emph{Input}\,\ (POSIX)}] file to be used as standard input for
+\item [{\emph{Input}\,\ (POSIX)}] - file to be used as standard input
+for the executable.
+\item [{\emph{Output}\ (POSIX)}] - file to be used as standard output
+for the executable.
+\item [{\emph{Error}\ (POSIX)}] - file to be used as standard error for
 the executable.
-\item [{\emph{Output}\ (POSIX)}] file to be used as standard output for
-the executable.
-\item [{\emph{Error}\ (POSIX)}] file to be used as standard error for
-the executable.
-\item [{\emph{MemoryLimit}\ (POSIX)}] amount of physical memory needed
+\item [{\emph{MemoryLimit}\ (POSIX)}] - amount of physical memory needed
 for execution.
-\item [{\emph{TotalPhysicalMemory}}] same as MemoryLimit.
-\item [{\emph{IndividualPhysicalMemory}}] same as MemoryLimit.
-\item [{\emph{CPUTimeLimit}\ (POSIX)}] maximal amount of CPU time needed
+\item [{\emph{TotalPhysicalMemory}}] - same as MemoryLimit.
+\item [{\emph{IndividualPhysicalMemory}}] - same as MemoryLimit.
+\item [{\emph{CPUTimeLimit}\ (POSIX)}] - maximal amount of CPU time needed
 for execution.
-\item [{\emph{TotalCPUTime}}] same as CPUTimeLimit.
-\item [{\emph{IndividualCPUTime}}] same as CPUTimeLimit.
-\item [{\emph{WallTimeLimit}\ (POSIX)}] amount of clock time needed for
-execution.
-\item [{\emph{TotalCPUCount}}] number of CPUs needed for execution.
-\item [{\emph{IndividualCPUCount}}] same as TotalCPUCount.
+\item [{\emph{TotalCPUTime}}] - same as CPUTimeLimit.
+\item [{\emph{IndividualCPUTime}}] - same as CPUTimeLimit.
+\item [{\emph{WallTimeLimit}\ (POSIX)}] - amount of clock time needed
+for execution.
+\item [{\emph{TotalCPUCount}}] \emph{-} number of CPUs needed for execution.
+\item [{\emph{IndividualCPUCount}}] - same as TotalCPUCount.
 \end{lyxlist}
 
 \subsubsection{ARC-specific JSDL Extensions}
@@ -817,31 +818,31 @@ A-REX accepts JSDL documents having the following additional elements
 (see Appendix F):
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{IsExecutable}}] marks file to become executable after being
-delivered to the computing resource.
-\item [{\emph{RunTimeEnvironment}}] specifies the name of the Runtime Environment
-needed for job execution.
-\item [{\emph{Middleware}}] request for specific middleware on the computing
+\item [{\emph{IsExecutable}}] \emph{-} marks file to become executable
+after being delivered to the computing resource.
+\item [{\emph{RunTimeEnvironment}}] - specifies the name of the Runtime
+Environment needed for job execution.
+\item [{\emph{Middleware}}] - request for specific middleware on the computing
 resource frontend.
-\item [{\emph{RemoteLogging}}] destination for the usage record report
-of the executed job.
-\item [{\emph{LocalLogging}}] name for the virtual directory available
+\item [{\emph{RemoteLogging}}] \emph{-} destination for the usage record
+report of the executed job.
+\item [{\emph{LocalLogging}}] - name for the virtual directory available
 through job interface and containing various debug information about
 job execution.
-\item [{\emph{AccessControl}}] ACL expression which describes the identities
+\item [{\emph{AccessControl}}] - ACL expression which describes the identities
 of those clients who are allowed to perform operations on this job.
-\item [{\emph{Notify}}] Email destination for notification of job state
+\item [{\emph{Notify}}] - Email destination for notification of job state
 changes.
-\item [{\emph{SessionLifeTime}}] duration for the directory containing
+\item [{\emph{SessionLifeTime}}] - duration for the directory containing
 job-related files to exist after the job finished executing.
-\item [{\emph{JoinOutputs}}] specifies if standard output and standard
+\item [{\emph{JoinOutputs}}] - specifies if standard output and standard
 error channels must be merged.
-\item [{\emph{Reruns}}] defines how many times a job is allowed to rerun
-in case of failure.
-\item [{\emph{CredentialServer}}] URL of MyProxy service which may be used
-for renewing the expired delegated job credentials.
-\item [{\emph{CandidateTarget}}] specifies host name and queue of a computing
-resource.
+\item [{\emph{Reruns}}] \emph{-} defines how many times a job is allowed
+to rerun in case of failure.
+\item [{\emph{CredentialServer}}] \emph{-} URL of MyProxy service which
+may be used for renewing the expired delegated job credentials.
+\item [{\emph{CandidateTarget}}] \emph{-} specifies host name and queue
+of a computing resource.
 \end{lyxlist}
 
 \section{Cache\label{sec:cache}}
@@ -2405,7 +2406,7 @@ Submission: Local submission client failed.&
 
 ~~~~~~~~~~~<xsd:element~name=\char`\"{}BESFactory\char`\"{}~type=\char`\"{}bes-factory:FactoryResourceAttributesDocumentType\char`\"{}/>
 
-~~~~~~~~~~<xsd:complexType~name=?Glue2Resource?~minOccurs='0'>
+~~~~~~~~~~<xsd:complexType~name=\char`\"{}Glue2Resource\char`\"{}~minOccurs='0'>
 
 ~~~~~~~~~~~~<xsd:sequence>
 
@@ -2425,9 +2426,9 @@ Submission: Local submission client failed.&
 
 ~~~~~~~~~~~~~~~~~~<xsd:element~name=\char`\"{}ActivityIdentifier\char`\"{}~type=\char`\"{}wsa:EndpointReferenceType\char`\"{}/>
 
-~~~~~~~~~~~~~~~~~~<xsd:element~ref=?bes-factory:ActivityDocument?~minOccurs='0'/>
+~~~~~~~~~~~~~~~~~~<xsd:element~ref=\char`\"{}bes-factory:ActivityDocument\char`\"{}~minOccurs='0'/>
 
-~~~~~~~~~~~~~~~~~~<xsd:complexType~name=?Glue2Job?~minOccurs='0'>
+~~~~~~~~~~~~~~~~~~<xsd:complexType~name=\char`\"{}Glue2Job\char`\"{}~minOccurs='0'>
 
 ~~~~~~~~~~~~~~~~~~~~<xsd:sequence>
 
@@ -2572,6 +2573,30 @@ Submission: Local submission client failed.&
 ~~~~~~~~~<soap:body~use=\char`\"{}literal\char`\"{}/>
 
 ~~~~~~</wsdl:output>
+
+~~~~~~<wsdl:fault~name=\char`\"{}NotAuthorizedFault\char`\"{}>
+
+~~~~~~~~<soap:fault~name=\char`\"{}NotAuthorizedFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
+
+~~~~~~</wsdl:fault>
+
+~~~~~~<wsdl:fault~name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}>
+
+~~~~~~~~<soap:fault~name=\char`\"{}InvalidActivityIdentifierFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
+
+~~~~~~</wsdl:fault>
+
+~~~~~~<wsdl:fault~name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}>
+
+~~~~~~~~<soap:fault~name=\char`\"{}CantApplyOperationToCurrentStateFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
+
+~~~~~~</wsdl:fault>
+
+~~~~~~<wsdl:fault~name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}>
+
+~~~~~~~~<soap:fault~name=\char`\"{}OperationWillBeAppliedEventuallyFault\char`\"{}~use=\char`\"{}literal\char`\"{}~/>
+
+~~~~~~</wsdl:fault>
 
 ~~~~</wsdl:operation>
 
