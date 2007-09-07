@@ -1,1 +1,1 @@
-SUBDIRS=echo data
+SUBDIRS=echo # data

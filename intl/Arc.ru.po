@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-28 20:49+0200\n"
+"POT-Creation-Date: 2007-09-07 20:55+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -11,12 +11,88 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/hed/daemon/daemon.cpp:35
+#: ../src/clients/a-rex/arex_client.cpp:17
+msgid "Creating an A-REX client."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:26
+msgid "Failed to load client configuration."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:31
+msgid "Client side MCCs are loaded."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:34
+msgid "Client chain does not have entry point."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:54
+msgid "Creating and sending request."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:81
+msgid "Submission request failed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:84
+msgid "Submission request succeed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:87
+msgid "There were no response to a submission request."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:97
+msgid "A response to a submission request was not a SOAP message."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:114
+msgid "Creating and sending a status request."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:132
+msgid "A status request failed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:135
+msgid "A status request succeed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:137
+msgid "There were no response to a status request."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:146
+msgid "The response of a status request was not a SOAP message."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:170
+msgid "Creating and sending request to terminate a job."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:188
+msgid "A job termination request failed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:191
+msgid "A job termination request succeed."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:194
+msgid "There was no response to a job termination request."
+msgstr ""
+
+#: ../src/clients/a-rex/arex_client.cpp:204
+msgid "The response of a job termination request was not a SOAP message"
+msgstr ""
+
+#: ../src/hed/daemon/daemon.cpp:38
 #, c-format
 msgid "Daemonization fork failed: %s"
 msgstr ""
 
-#: ../src/hed/daemon/daemon.cpp:72
+#: ../src/hed/daemon/daemon.cpp:75
 msgid "Shutdown daemon"
 msgstr ""
 
@@ -32,11 +108,13 @@ msgstr ""
 msgid "Start foreground"
 msgstr ""
 
-#: ../src/hed/daemon/main.cpp:82 ../src/tests/echo/test.cpp:20
+#: ../src/hed/daemon/main.cpp:87 ../src/services/a-rex/test.cpp:25
+#: ../src/tests/echo/test.cpp:20 ../src/tests/echo/test_service.cpp:20
 msgid "Failed to load service configuration"
 msgstr ""
 
-#: ../src/hed/daemon/main.cpp:105 ../src/tests/echo/test.cpp:24
+#: ../src/hed/daemon/main.cpp:110 ../src/services/a-rex/test.cpp:29
+#: ../src/tests/echo/test.cpp:24 ../src/tests/echo/test_service.cpp:24
 msgid "Service side MCCs are loaded"
 msgstr ""
 
@@ -167,7 +245,6 @@ msgid "Loaded DataManager %s(%s)"
 msgstr ""
 
 #: ../src/hed/libs/loader/Loader.cpp:378
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:109
 #, c-format
 msgid "Unknown element \"%s\" - ignoring"
 msgstr ""
@@ -251,9 +328,19 @@ msgstr ""
 msgid "Loaded %s"
 msgstr ""
 
-#: ../src/hed/libs/loader/Plexer.cpp:74
+#: ../src/hed/libs/loader/Plexer.cpp:27
 #, c-format
 msgid "Bad label: \"%s\""
+msgstr ""
+
+#: ../src/hed/libs/loader/Plexer.cpp:38
+#, c-format
+msgid "Operation on path \"%s\""
+msgstr ""
+
+#: ../src/hed/libs/loader/Plexer.cpp:50
+#, c-format
+msgid "No service at path \"%s\""
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP.cpp:26
@@ -261,24 +348,8 @@ msgstr ""
 msgid "Arc access list location: %s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:5
-msgid "The root node of request is not <Request>"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:28
-msgid "Subject has no Attribute defined"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:52
-msgid "Object has no Attribute defined"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:74
-msgid "Action has no Attribute defined"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Request.cpp:99
-msgid "Context has no Attribute defined"
+#: ../src/hed/libs/security/ArcPDP/test.cpp:25
+msgid "Start test"
 msgstr ""
 
 #: ../src/hed/libs/security/SimpleListAuthZ.cpp:67
@@ -303,6 +374,11 @@ msgstr ""
 
 #: ../src/hed/libs/security/SimpleListPDP.cpp:46
 msgid "UnAuthorized!!!"
+msgstr ""
+
+#: ../src/hed/mcc/http/MCCHTTP.cpp:48
+#, c-format
+msgid "HTTP Error: %d %s"
 msgstr ""
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:46
@@ -365,17 +441,17 @@ msgstr ""
 msgid "client process called"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:310 ../src/hed/mcc/tls/MCCTLS.cpp:394
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:312 ../src/hed/mcc/tls/MCCTLS.cpp:398
 msgid "Failed to send content of buffer"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:22
-#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:27
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:32
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:37
 #, c-format
 msgid "Failed to resolve %s"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:38
+#: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:48
 #, c-format
 msgid "Failed to connect to %s:%i"
 msgstr ""
@@ -400,19 +476,15 @@ msgstr ""
 msgid "SSL_library_init failed"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:196 ../src/hed/mcc/tls/MCCTLS.cpp:351
+#: ../src/hed/mcc/tls/MCCTLS.cpp:196 ../src/hed/mcc/tls/MCCTLS.cpp:354
 msgid "Can not create the SSL Context object"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:214
-msgid "Can not set client CA list from the specified file"
-msgstr ""
-
-#: ../src/hed/mcc/tls/MCCTLS.cpp:224
+#: ../src/hed/mcc/tls/MCCTLS.cpp:226
 msgid "DH set error"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:309
+#: ../src/hed/mcc/tls/MCCTLS.cpp:311
 #, c-format
 msgid "DN name: %s"
 msgstr ""
@@ -455,41 +527,41 @@ msgstr ""
 msgid "Can not parse time zone offset: %s"
 msgstr ""
 
-#: ../src/libs/common/DateTime.cpp:138 ../src/libs/common/DateTime.cpp:158
-#: ../src/libs/common/DateTime.cpp:198
+#: ../src/libs/common/DateTime.cpp:138 ../src/libs/common/DateTime.cpp:159
+#: ../src/libs/common/DateTime.cpp:213 ../src/libs/common/DateTime.cpp:253
 #, c-format
 msgid "Illegal time format: %s"
 msgstr ""
 
-#: ../src/libs/common/DateTime.cpp:190
+#: ../src/libs/common/DateTime.cpp:191 ../src/libs/common/DateTime.cpp:245
 #, c-format
 msgid "Can not parse month: %s"
 msgstr ""
 
-#: ../src/libs/common/DateTime.cpp:385
+#: ../src/libs/common/DateTime.cpp:480
 msgid "Empty period string"
 msgstr ""
 
-#: ../src/libs/common/DateTime.cpp:401 ../src/libs/common/DateTime.cpp:436
+#: ../src/libs/common/DateTime.cpp:496 ../src/libs/common/DateTime.cpp:531
 #, c-format
 msgid "Invalid ISO duration format: %s"
 msgstr ""
 
-#: ../src/libs/common/DateTime.cpp:490
+#: ../src/libs/common/DateTime.cpp:585
 #, c-format
 msgid "Invalid period string: %s"
 msgstr ""
 
-#: ../src/libs/common/StringConv.h:23
+#: ../src/libs/common/StringConv.h:22
 msgid "Empty String"
 msgstr ""
 
-#: ../src/libs/common/StringConv.h:29
+#: ../src/libs/common/StringConv.h:28
 #, c-format
 msgid "Conversion failed: %s"
 msgstr ""
 
-#: ../src/libs/common/StringConv.h:33
+#: ../src/libs/common/StringConv.h:32
 #, c-format
 msgid "Full string not used: %s"
 msgstr ""
@@ -1315,12 +1387,241 @@ msgstr ""
 msgid "Warning: can't get list of senders from server %s: %s"
 msgstr ""
 
-#: ../src/tests/data/test.cpp:33 ../src/tests/echo/test_client.cpp:42
-#: ../src/tests/echo/test.cpp:52
+#: ../src/services/a-rex/arex.cpp:137
+#, c-format
+msgid "process: method: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:138
+#, c-format
+msgid "process: endpoint: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:154
+#, c-format
+msgid "process: id: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:155
+#, c-format
+msgid "process: subpath: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:160
+msgid "Can't obtain configuration"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:169
+msgid "process: POST"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:177
+msgid "input is not SOAP"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:183
+msgid "input does not define operation"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:186
+#, c-format
+msgid "process: operation: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:191
+msgid "process: factory endpoint"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:195
+msgid "process: CreateActivity"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:212
+#, c-format
+msgid "SOAP operation is not supported: %s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:218
+#, c-format
+msgid "process: response=%s"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:236
+msgid "process: GET"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:242
+msgid "process: PUT"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:248
+msgid "PUT: input stream not implemented yet"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:252
+msgid "PUT: input is neither stream nor buffer"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:257
+msgid "process: $s: not supported"
+msgstr ""
+
+#: ../src/services/a-rex/change_activity_status.cpp:27
+#, c-format
+msgid ""
+"ChangeActivityStatus: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/change_activity_status.cpp:106
+#, c-format
+msgid ""
+"ChangeActivityStatus: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:28
+#, c-format
+msgid ""
+"CreateActivity: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:33
+msgid "CreateActivity: no job description found"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:47
+msgid "CreateActivity: Failed to create new job"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:64
+msgid "CreateActivity finished successfully"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:68
+#, c-format
+msgid ""
+"CreateActivity: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_activity_documents.cpp:25
+#, c-format
+msgid ""
+"GetActivityDocuments: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_activity_documents.cpp:62
+#, c-format
+msgid ""
+"GetActivityDocuments: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_activity_statuses.cpp:27
+#, c-format
+msgid ""
+"GetActivityStatuses: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_activity_statuses.cpp:81
+#, c-format
+msgid ""
+"GetActivityStatuses: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_factory_attributes_document.cpp:32
+#, c-format
+msgid ""
+"GetFactoryAttributesDocument: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/get_factory_attributes_document.cpp:55
+#, c-format
+msgid ""
+"GetFactoryAttributesDocument: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/terminate_activities.cpp:25
+#, c-format
+msgid ""
+"TerminateActivities: request = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/terminate_activities.cpp:61
+#, c-format
+msgid ""
+"TerminateActivities: response = \n"
+"%s"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:22 ../src/tests/echo/test.cpp:17
+#: ../src/tests/echo/test_service.cpp:17
+msgid "Creating service side chain"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:30 ../src/tests/echo/test.cpp:26
+#: ../src/tests/echo/test_client.cpp:16
+msgid "Creating client side chain"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:35 ../src/tests/data/test.cpp:36
+#: ../src/tests/echo/test.cpp:52 ../src/tests/echo/test_client.cpp:42
 msgid "Failed to load client configuration"
 msgstr ""
 
-#: ../src/tests/data/test.cpp:37
+#: ../src/services/a-rex/test.cpp:39 ../src/tests/echo/test.cpp:56
+#: ../src/tests/echo/test_client.cpp:46
+msgid "Client side MCCs are loaded"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:42 ../src/tests/echo/test.cpp:59
+#: ../src/tests/echo/test_client.cpp:49
+msgid "Client chain does not have entry point"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:52 ../src/services/a-rex/test.cpp:120
+#: ../src/services/a-rex/test.cpp:164 ../src/services/a-rex/test.cpp:208
+#: ../src/services/a-rex/test.cpp:252 ../src/tests/echo/test.cpp:65
+#: ../src/tests/echo/test_client.cpp:55
+msgid "Creating and sending request"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:83 ../src/services/a-rex/test.cpp:138
+#: ../src/services/a-rex/test.cpp:182 ../src/services/a-rex/test.cpp:226
+#: ../src/services/a-rex/test.cpp:270 ../src/tests/echo/test.cpp:80
+#: ../src/tests/echo/test_client.cpp:70
+msgid "Request failed"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:86 ../src/services/a-rex/test.cpp:141
+#: ../src/services/a-rex/test.cpp:185 ../src/services/a-rex/test.cpp:229
+#: ../src/services/a-rex/test.cpp:273 ../src/tests/echo/test.cpp:84
+msgid "Request succeed!!!"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:88 ../src/services/a-rex/test.cpp:143
+#: ../src/services/a-rex/test.cpp:187 ../src/services/a-rex/test.cpp:231
+#: ../src/services/a-rex/test.cpp:275 ../src/tests/echo/test.cpp:88
+#: ../src/tests/echo/test_client.cpp:76
+msgid "There is no response"
+msgstr ""
+
+#: ../src/services/a-rex/test.cpp:96 ../src/services/a-rex/test.cpp:151
+#: ../src/services/a-rex/test.cpp:195 ../src/services/a-rex/test.cpp:239
+#: ../src/services/a-rex/test.cpp:283 ../src/tests/echo/test.cpp:95
+#: ../src/tests/echo/test_client.cpp:83
+msgid "Response is not SOAP"
+msgstr ""
+
+#: ../src/tests/data/test.cpp:40
 msgid "DMCs are loaded"
 msgstr ""
 
@@ -1333,38 +1634,6 @@ msgstr ""
 msgid "Request is not supported - %s"
 msgstr ""
 
-#: ../src/tests/echo/test_client.cpp:16 ../src/tests/echo/test.cpp:26
-msgid "Creating client side chain"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:46 ../src/tests/echo/test.cpp:56
-msgid "Client side MCCs are loaded"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:49 ../src/tests/echo/test.cpp:59
-msgid "Client chain does not have entry point"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:55 ../src/tests/echo/test.cpp:65
-msgid "Creating and sending request"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:64 ../src/tests/echo/test.cpp:74
-msgid "Request failed"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:70 ../src/tests/echo/test.cpp:82
-msgid "There is no response"
-msgstr ""
-
-#: ../src/tests/echo/test_client.cpp:77 ../src/tests/echo/test.cpp:89
-msgid "Response is not SOAP"
-msgstr ""
-
-#: ../src/tests/echo/test.cpp:17
-msgid "Creating service side chain"
-msgstr ""
-
-#: ../src/tests/echo/test.cpp:78
-msgid "Request succeed!!!"
+#: ../src/tests/echo/test_service.cpp:25
+msgid "Service is waiting for requests"
 msgstr ""

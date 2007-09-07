@@ -7,7 +7,7 @@
 set -e
 
 FIND=find
-gfind -version
+gfind -version > /dev/null
 if test $? = 0; then
 	FIND=gfind
 fi

@@ -5,7 +5,7 @@
 
 #include <list>
 #include <string>
-#include "common/Regex.h"
+#include "common/ArcRegex.h"
 #include "message/MCC.h"
 #include "message/Message.h"
 #include "common/ArcConfig.h"

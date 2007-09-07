@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -9,15 +12,22 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
   struct hostent* host = NULL;
   struct hostent  hostbuf;
   int    errcode = 0;
-#ifndef _AIX
+#ifndef HAVE_GETHOSTBYNAME_R
+  /* According to the developer manual the Darwin's version of gethostbyname
+     is thread-safe */
+  host = gethostbyname(hostname);
+  if (host == NULL) {
+#else
+  #if defined(_AIX)
+  struct hostent_data buf[BUFSIZ];
+  if((errcode=gethostbyname_r(hostname,
+                                  (host=&hostbuf),buf)) != 0) {
+  #else
   char   buf[BUFSIZ];
   if((gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
                                         &host,&errcode) != 0) ||
      (host == NULL)) {
-#else
-  struct hostent_data buf[BUFSIZ];
-  if((errcode=gethostbyname_r(hostname,
-                                  (host=&hostbuf),buf)) != 0) {
+  #endif
 #endif
     logger.msg(WARNING, "Failed to resolve %s", hostname);
     return -1;

@@ -4,7 +4,8 @@
 AC_PREREQ(2.57)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[1.0],[knowarc-support@nordugrid.org])
-AM_INIT_AUTOMAKE([-Wno-portability])
+#AM_INIT_AUTOMAKE([-Wno-portability])
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
@@ -238,7 +239,7 @@ AC_TYPE_OFF_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm])
+AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm gethostbyname_r])
 AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
 AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)

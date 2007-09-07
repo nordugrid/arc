@@ -1,4 +1,4 @@
-#ifdef HAVE_CONFIG
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
@@ -14,6 +14,9 @@
 #include <errno.h>
 #include <string.h>
 #include <fstream>
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
@@ -36,7 +39,7 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
 	  exit(1);
         case 0: // child
             /* clear inherited umasks */
-            umask(0);
+            ::umask(0);
             /*
              * Become a session leader: setsid must succeed because child is
              * guaranteed not to be a process group leader (it belongs to the
