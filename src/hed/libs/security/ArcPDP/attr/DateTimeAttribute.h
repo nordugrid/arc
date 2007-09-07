@@ -28,8 +28,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
   Time getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
-
+  static const std::string& getIdentifier(void) { return identifier; };
 };
 
 //TimeAttribute
@@ -51,8 +50,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   Time getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
-
+  static const std::string& getIdentifier(void) { return identifier; };
 };
 
 //DateAttribute
@@ -71,7 +69,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   Time getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
+  static const std::string& getIdentifier(void) { return identifier; };
 };
 
 
@@ -91,7 +89,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   Period getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
+  static const std::string& getIdentifier(void) { return identifier; };
 };
 
 
@@ -119,7 +117,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   ArcPeriod getValue(){ return value; };
-  static const std::string& identify(void) { return identifier; };
+  static const std::string& getIdentifier(void) { return identifier; };
 };
 
 }// namespace Arc

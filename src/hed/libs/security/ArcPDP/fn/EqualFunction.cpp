@@ -1,5 +1,6 @@
 #include "EqualFunction.h"
 #include "../attr/StringAttribute.h"
+#include "../attr/DateTimeAttribute.h"
 
 namespace Arc {
 
@@ -8,13 +9,15 @@ std::string EqualFunction::getFunctionName(std::string datatype){
   if (datatype ==  StringAttribute::getIdentifier()) ret = NAME_STRING_EQUAL;
  /* else if(datatype == BooleanAttribute::identify()) ret = NAME_BOOLEAN_EQUAL;
   else if(datatype == IntegerAttribute::identify()) ret = NAME_INTEGER_EQUAL;
-  else if(datatype == DoubleAttribute::identify()) ret = NAME_DOUBLE_EQUAL;
-  else if(datatype == DateAttribute::identify()) ret = NAME_DATE_EQUAL;
-  else if(datatype == TimeAttributexi::.identify()) ret = NAME_TIME_EQUAL;
-  else if(datatype == DateTimeAttribute::identify()) ret = NAME_DATETIME_EQUAL;
-  else if(datatype == DayTimeDurationAttribute::identify()) ret = NAME_DAYTIME_DURATION_EQUAL;
-  else if(datatype == YearMonthDurationAttribute::identify()) ret = NAME_YEARMONTH_DURATION_EQUAL;
-  else if(datatype == AnyURIAttribute::identify()) ret = NAME_ANYURI_EQUAL;
+  else if(datatype == DoubleAttribute::identify()) ret = NAME_DOUBLE_EQUAL;*/
+  else if(datatype == DateAttribute::getIdentifier()) ret = NAME_DATE_EQUAL;
+  else if(datatype == TimeAttribute::getIdentifier()) ret = NAME_TIME_EQUAL;
+  else if(datatype == DateTimeAttribute::getIdentifier()) ret = NAME_DATETIME_EQUAL;
+  else if(datatype == DurationAttribute::getIdentifier()) ret = NAME_DURATION_EQUAL;
+  else if(datatype == PeriodAttribute::getIdentifier()) ret = NAME_PERIOD_EQUAL; 
+  //else if(datatype == DayTimeDurationAttribute::identify()) ret = NAME_DAYTIME_DURATION_EQUAL;
+  //else if(datatype == YearMonthDurationAttribute::identify()) ret = NAME_YEARMONTH_DURATION_EQUAL;
+  /*else if(datatype == AnyURIAttribute::identify()) ret = NAME_ANYURI_EQUAL;
   else if(datatype == X500NameAttribute::identify()) ret = NAME_X500NAME_EQUAL;
   else if(datatype == RFC822NameAttribute::identify()) ret = NAME_RFC822NAME_EQUAL;
   else if(datatype == HexBinaryAttribute::identify()) ret = NAME_HEXBINARY_EQUAL;
