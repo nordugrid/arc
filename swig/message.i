@@ -4,7 +4,7 @@
 #include "../src/hed/libs/message/MCC.h"
 #include "../src/hed/libs/message/MCC_Status.h"
 #include "../src/hed/libs/message/MessageAttributes.h"
-#include "../src/hed/libs/message/MessageAuth.h"
+#include "../src/hed/libs/message/MessageAuth.h" 
 #include "../src/hed/libs/message/Message.h"
 #include "../src/hed/libs/message/PayloadRaw.h"
 #include "../src/hed/libs/message/SOAPEnvelope.h"
@@ -25,12 +25,12 @@
 %ignore Arc::PayloadRawInterface::~PayloadRawInterface(void); */
 
 #ifdef SWIGJAVA
-/* %typemap(javainterfaces) Arc::PayloadSOAP "MessagePayload";
+%typemap(javainterfaces) Arc::PayloadSOAP "MessagePayload";
 %typemap(javaclassmodifiers) Arc::MessagePayload "public interface";
 %typemap(javabody) Arc::MessagePayload "";
 %typemap(javafinalize) Arc::MessagePayload "";
 %typemap(javadestruct) Arc::MessagePayload ""; 
-*/
+
 /*
 %typemap(javaclassmodifiers) Arc::PayloadRawInterface "public interface";
 %typemap(javabody) Arc::PayloadRawInterface "";
@@ -62,8 +62,20 @@
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/MCC_Status.h"
 %include "../src/hed/libs/message/MessageAttributes.h"
-%include "../src/hed/libs/message/MessageAuth.h"
+%include "../src/hed/libs/message/MessageAuth.h" 
 %include "../src/hed/libs/message/Message.h"
+/*
+#ifdef SWIGPYTHON
+%extend Arc::PayloadSOAP {
+    Arc::XMLNode get(const char *name) const {
+        return self->operator[](name);
+    }
+    
+    Arc::XMLNode get(const std::string& name) const {
+        return self->operator[](name.c_str());
+    }
+} 
+#endif */
 %include "../src/hed/libs/message/PayloadRaw.h"
 %include "../src/hed/libs/message/SOAPEnvelope.h"
 %include "../src/hed/libs/message/SOAPMessage.h"

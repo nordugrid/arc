@@ -12,9 +12,12 @@ AM_CONFIG_HEADER([config.h])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC_STDC
+AC_PROG_CPP
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
 AM_PROG_LIBTOOL
 
 # Checks for language bindings 
@@ -23,6 +26,7 @@ languages_available=
 
 # Swig
 AC_CHECK_PROGS(SWIG, swig)
+AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
 
 # Java
 dnl Check if Java is explicitly disabled.
@@ -82,6 +86,8 @@ else
     enable_java=no
 fi
 
+echo $enable_java
+
 dnl Conditional java sub dir test.
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 AC_SUBST(JAVAC_FLAGS)
@@ -104,6 +110,7 @@ if test "X$PYTHON" != "X"; then
     PY_EXTRA_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBS']"`
     changequote([, ])dnl
     PY_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
+    PY_EXTRA_LIBS="-lpython$PYTHON_VERSION $PY_EXTRA_LIBS"
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PY_CFLAGS)
     AC_SUBST(PY_EXTRA_LIBS)
@@ -163,25 +170,28 @@ SOAPCPP2=soapcpp2
 AC_SUBST(WSDL2H)
 AC_SUBST(SOAPCPP2)
 
-# gSOAP version
-GSOAP_VERSION=`$SOAPCPP2 -v 2>&1 | grep 'Compiler' | sed 's/^.*\([[0-9]]\.[[0-9]]\.[[0-9]][[a-z]]\).*$/\1/'`
-GSOAP_VERSION_MAJOR=`echo $GSOAP_VERSION | sed 's/^\([[0-9]]\).*/\1/'`
-GSOAP_VERSION_MINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.\([[0-9]]\).*/\1/'`
-GSOAP_VERSION_SUBMINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.[[0-9]]\.\([[0-9]]\).*/\1/'`
-gsoap_279=no
-if test "$GSOAP_VERSION_MAJOR" -gt '2'; then
-  gsoap_279=yes
-elif test "$GSOAP_VERSION_MAJOR" = '2'; then
-  if test "$GSOAP_VERSION_MINOR" -gt '7'; then
-    gsoap_279=yes
-  elif test "$GSOAP_VERSION_MINOR" = '7'; then
-    if test "$GSOAP_VERSION_SUBMINOR" -ge '9'; then
-      gsoap_279=yes
-    fi
-  fi
-fi
-if test "x$gsoap_279" = "xyes"; then
-  AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+if test "x$GSOAP" = "xyes"; then
+	# gSOAP version
+	GSOAP_VERSION=`$SOAPCPP2 -v 2>&1 | grep 'Compiler' | sed 's/^.*\([[0-9]]\.[[0-9]]\.[[0-9]][[a-z]]\).*$/\1/'`
+	echo $GSOAP_VERSION
+	GSOAP_VERSION_MAJOR=`echo $GSOAP_VERSION | sed 's/^\([[0-9]]\).*/\1/'`
+	GSOAP_VERSION_MINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.\([[0-9]]\).*/\1/'`
+	GSOAP_VERSION_SUBMINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.[[0-9]]\.\([[0-9]]\).*/\1/'`
+	gsoap_279=no
+	if test "$GSOAP_VERSION_MAJOR" -gt '2'; then
+	  gsoap_279=yes
+	elif test "$GSOAP_VERSION_MAJOR" = '2'; then
+	  if test "$GSOAP_VERSION_MINOR" -gt '7'; then
+	    gsoap_279=yes
+	  elif test "$GSOAP_VERSION_MINOR" = '7'; then
+	    if test "$GSOAP_VERSION_SUBMINOR" -ge '9'; then
+	      gsoap_279=yes
+	    fi
+	  fi
+	fi
+	if test "x$gsoap_279" = "xyes"; then
+	  AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
+	fi
 fi
 
 # globus/gpt packages
@@ -227,19 +237,46 @@ enable_gsoap=no
 if test x$GSOAP = xyes ; then enable_gsoap=yes; fi
 
 # Checks for header files.
+AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h netdb.h stdlib.h sys/socket.h unistd.h])
+AC_HEADER_RESOLV
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h])
 AC_CXX_HAVE_SSTREAM
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_CONST
+AC_TYPE_UID_T
+AC_C_INLINE
+AC_TYPE_MODE_T
 AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_HEADER_TIME
+AC_STRUCT_TM
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
+AC_FUNC_CHOWN
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_FORK
+AC_FUNC_LSTAT
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_FUNC_MKTIME
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memmove memset socket strcasecmp strchr strncasecmp strtol timegm gethostbyname_r])
+AC_FUNC_SELECT_ARGTYPES
+AC_FUNC_SETPGRP
+AC_TYPE_SIGNAL
+AC_FUNC_STAT
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull tzset])
 AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
 AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)
@@ -272,6 +309,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tls/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
+                 src/services/echo_python/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/cache/Makefile

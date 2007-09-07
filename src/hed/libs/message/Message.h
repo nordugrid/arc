@@ -92,6 +92,8 @@ class Message {
   Message(void):payload_(NULL),auth_(NULL),attributes_(NULL),context_(NULL) { };
   /** Copy constructor. Ensures shallow copy. */
   Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attributes_(msg.attributes_),context_(msg.context_) { };
+  /** Copy constructor. Used by language bindigs */
+  Message(long msg_ptr_addr);
   /** Destructor does not affect refered objects */
   ~Message(void) { };
   /** Assignment. Ensures shallow copy. */

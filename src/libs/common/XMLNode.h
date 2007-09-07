@@ -1,6 +1,7 @@
 #ifndef __ARC_XMLNODE_H__
 #define __ARC_XMLNODE_H__
 
+#include <iostream>
 #include <string>
 #include <list>
 #include <map>
@@ -130,6 +131,11 @@ class XMLNode {
     };
     return n;
   };
+  /** More common get **/
+  XMLNode Get(const std::string& name) const {
+    return operator[](name.c_str());
+  };
+
   /** Returns name of XML node */
   std::string Name(void) const { 
     const char* name = (node_)?((node_->name)?(char*)(node_->name):""):"";
@@ -195,18 +201,19 @@ class XMLNode {
     return operator=(content.c_str());
   };
 
-/*
-  XMLNode& Set(const std::string& content) {
-    return operator=(content);
-  }
-*/
-
   /** Same as previous method */
   XMLNode& operator=(const char* content) {
     if(!node_) return *this;
     xmlNodeSetContent(node_,(xmlChar*)content);
     return *this;
   };
+    
+  /** Common set method **/
+  void Set(const std::string& content) {
+    if (!node_) return;
+    xmlNodeSetContent(node_, (xmlChar*)content.c_str());
+  }
+
   /** Make instance refer to another XML node. Ownership is not inherited. */
   XMLNode& operator=(const XMLNode& node) {
     node_=node.node_;

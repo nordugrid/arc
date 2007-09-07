@@ -35,7 +35,8 @@ arc_wrap.cpp arc.py: $(SWIG_I_FILES)
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
 
 clean-local:
-	-rm arc_wrap.cpp.bak
+	-rm arc_wrap.cpp.bak arc.pyc
+	-rm $(SWIG_OUTPUTS)
 
 # In distribution, swig generated files are present.
 EXTRA_DIST = $(SWIG_OUTPUTS)

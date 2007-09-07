@@ -19,6 +19,7 @@ service_descriptors ARC_SERVICE_LOADER = {
 
 namespace Arc {
 
+Arc::Logger Service_JavaWrapper::logger(Service::logger, "JavaWrapper");
 
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg) 
 {
@@ -87,7 +88,8 @@ Arc::MCC_Status Service_JavaWrapper::java_error(JNIEnv *jenv, const char *str) {
 Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 {
     JNIEnv *jenv = NULL;
-
+    
+    printf(">>>>>>>>>>>>> %p\n", inmsg.Payload());
     /* Attach to the current java engine thread */
     jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
     printf("JEnv: %p\n");
@@ -111,6 +113,7 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
         std::cerr << "ECHO: output is not SOAP" << std::endl;
         return make_fault(outmsg);
     };
+    printf(">>>>>>>>>>>>> %p\n", inmsg_ptr->Payload());
 
     jclass JSOAPMessageClass = jenv->FindClass("org/nordugrid/arc/SOAPMessage");
     if (JSOAPMessageClass == NULL) {
@@ -139,6 +142,7 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     if (jmcc_status == NULL) {
         return java_error(jenv,"Error in call process function of java object");
     }
+    printf (">>>>>>>> status: %p\n", jmcc_status);
     /* Get SWIG specific getCPtr function of Message class */
     jmethodID msg_getCPtrID = jenv->GetStaticMethodID(JSOAPMessageClass, "getCPtr", "(Lorg/nordugrid/arc/SOAPMessage;)J");
     if (msg_getCPtrID == NULL) {
@@ -160,7 +164,12 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     
     /* Convert Java status object to C++ class */
     jlong mcc_status_addr = jenv->CallStaticLongMethod(JMCC_StatusClass, mcc_status_getCPtrID, jmcc_status);
-    printf("%p\n", mcc_status_addr);
+    printf(">>> %d\n", mcc_status_addr);
+    if (!mcc_status_addr) {
+        logger.msg(ERROR, "Java object returned NULL status");
+        return MCC_Status(GENERIC_ERROR);
+    }
+    printf("MCC return status: %p\n", mcc_status_addr);
     Arc::MCC_Status status(*((Arc::MCC_Status *)(long)mcc_status_addr));
     /* Convert Java output message object to C++ class */
     jlong outmsg_addr = jenv->CallStaticLongMethod(JSOAPMessageClass, msg_getCPtrID, joutmsg);

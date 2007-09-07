@@ -22,7 +22,12 @@ public class EchoService {
     public MCC_Status process(SOAPMessage inmsg, SOAPMessage outmsg) {
         System.out.println("EchoService process with messages called");
         // XXX: error handling
-        XMLNode echo_op = new XMLNode(inmsg.Payload().Get("echo"));
+        PayloadSOAP in_payload = inmsg.Payload();
+        if (in_payload == null) {
+            return new MCC_Status(StatusKind.GENERIC_ERROR);
+        }
+        XMLNode echo = in_payload.Get("echo");
+        XMLNode echo_op = new XMLNode(echo);
         String say = new String(echo_op.Get("say").toString());
         System.out.println("Java got: " + say);
         String hear = new String("[ " + say + " ]");

@@ -1,7 +1,13 @@
 if JAVA_ENABLED 
-JAVA_SERVICE = echo_java 
+JAVA_SERVICES = echo_java 
 else
-JAVA_SERVICE =
+JAVA_SERVICES =
+endif
+
+if PYTHON_ENABLED 
+PYTHON_SERVICES = echo_python
+else
+PYTHON_SERVICES =
 endif
 
 if GSOAP_ENABLED
@@ -10,5 +16,5 @@ else
 AREX_SERVICE =
 endif
 
-SUBDIRS=$(JAVA_SERVICE) $(AREX_SERVICE)
-DIST_SUBDIRS = echo_java a-rex
+SUBDIRS=$(JAVA_SERVICES) $(PYTHON_SERVICES) $(AREX_SERVICE)
+DIST_SUBDIRS = echo_java echo_python a-rex

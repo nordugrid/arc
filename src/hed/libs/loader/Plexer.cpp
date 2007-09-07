@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // Plexer.cpp
 
 #include "Plexer.h"
@@ -53,7 +57,8 @@ namespace Arc {
 			   path);  
   }
 
-  Arc::Logger Arc::Plexer::logger(Arc::MCC::logger,"Plexer");
+  //XXX: workaround because the python bindig segmentation fault
+  // Arc::Logger Arc::Plexer::logger(Arc::MCC::logger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
     std::string::size_type ds, ps;

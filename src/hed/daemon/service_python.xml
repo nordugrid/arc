@@ -9,7 +9,7 @@
         <Logger level="VERBOSE">./logfile</Logger>
     </Server>
     <ModuleManager>
-        <Path>../../services/echo_java/.libs/</Path>
+        <Path>../../services/echo_python/.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
@@ -37,9 +37,9 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="arcservice_javawrapper">/Echo</next>
+            <next id="arcservice_pythonwrapper">/Echo</next>
         </Plexer>
-        <Service name="arcservice_javawrapper" id="arcservice_javawrapper">
+        <Service name="arcservice_pythonwrapper" id="arcservice_pythonwrapper">
             <!-- <SecHandler name="simplelist.authz" id="authz" event="incoming">
                 <PDP name="simplelist.pdp" type="plaintxt" location="../../tests/echo/accesslist"/>
             </SecHandler> -->

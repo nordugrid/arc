@@ -94,10 +94,10 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // care about security process. "SecHandler" uses msg.attributes to 
   // exchange security related information
   if((it==hlist.end()) && (hlist.size() > 0)){
-    printf("UnAuthorized\n"); 
+    logger.msg(Arc::INFO, "UnAuthorized"); 
     return MCC_Status(Arc::GENERIC_ERROR);
   } //Do we need to add some status in MCC_Status
-  printf("Authorized\n");
+  logger.msg(Arc::INFO, "Authorized"); 
 
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
@@ -149,6 +149,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Converting payload to Raw
   PayloadRaw nextpayload;
   std::string xml; inpayload->GetXML(xml);
+  logger.msg(Arc::DEBUG, xml.c_str()); 
   nextpayload.Insert(xml.c_str());
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;

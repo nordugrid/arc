@@ -30,7 +30,7 @@ libjobdesc_ladir=$(includedir)
 include_HEADERS=$(RSLHEADERS) $(JSDLHEADERS) runtimeenvironment.h error.h job.h
 libjobdesc_la_SOURCES=$(RSLSOURCES) $(JSDLSOURCES) job.cpp runtimeenvironment.cpp
 #nodist_libjobdesc_la_SOURCES = jsdl_soapClientLib.cpp
-libjobdesc_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS)
+libjobdesc_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS)
 libjobdesc_la_LDFLAGS=
 libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/libs/common/libarccommon.la
 
@@ -40,7 +40,7 @@ libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/libs/common/libarcco
 #job_jsdl.cpp: jsdl_soapClientLib.cpp
 
 #jsdl_soapClientLib.cpp jsdl_soapH.h jsdl_soapStub.h: jsdl_soap.h
-#	$(SOAPCPP2) -n -p jsdl_soap jsdl_soap.h
+#	$(SOAPCXX2) -n -p jsdl_soap jsdl_soap.h
 #	@echo '#include <string>' > jsdl_soapStub.h.fixed
 #	@cat jsdl_soapStub.h >> jsdl_soapStub.h.fixed
 #	@rm jsdl_soapStub.h

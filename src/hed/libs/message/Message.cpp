@@ -26,4 +26,13 @@ MessageContextElement* MessageContext::operator[](const std::string& id) {
   return i->second;
 }
 
+Message::Message(long msg_ptr_addr) 
+{
+    Arc::Message *msg = (Arc::Message *)msg_ptr_addr;
+    auth_ = msg->Auth();
+    attributes_ = msg->Attributes();
+    context_ = msg->Context();
+    payload_ = msg->Payload();
+}
+
 } // namespace Arc
