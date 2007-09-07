@@ -26,6 +26,42 @@ namespace Arc {
   };
 
 
+  class Period {
+   public:
+    /** Default constructor. The period is set to 0 length. */
+    Period();
+
+    /** Constructor that takes a time_t variable and stores it. */
+    Period(const time_t&);
+
+    /** Constructor that tries to convert a string. */
+    Period(const std::string&);
+
+    /** Assignment operator from a time_t. */
+    Period& operator=(const time_t&);
+
+    /** Assignment operator from a Period. */
+    Period& operator=(const Period&);
+
+    /** sets the period */
+    void SetPeriod(const time_t&);
+
+    /** gets the period */
+    time_t GetPeriod() const;
+
+    /** Returns a string representation of the period. */
+    operator std::string() const;
+
+   private:
+    /** The duration of the period */
+    time_t seconds;
+  };
+
+  /** Prints a Period-object to the given ostream -- typically cout. */
+  std::ostream& operator<<(std::ostream&, const Period&);
+
+
+
   /// A class for storing and manipulating times.
   class Time {
    public:
@@ -40,6 +76,9 @@ namespace Arc {
 
     /** Assignment operator from a time_t. */
     Time& operator=(const time_t&);
+
+    /** Assignment operator from a Time. */
+    Time& operator=(const Time&);
 
     /** sets the time */
     void SetTime(const time_t&);
@@ -79,6 +118,12 @@ namespace Arc {
     /** Comparing two Time objects. */
     bool operator!=(const Time&) const;
 
+    /** Adding Time object with Period object. */
+    Time operator+(const Period&) const;
+
+    /** Subtracting Period object from Time object. */
+    Time operator-(const Period&) const;
+
    private:
     /** The time stored -- by default it is equal to the current time. */
     time_t gtime;
@@ -95,37 +140,6 @@ namespace Arc {
 
   /** Returns a time-stamp of some specified time in some format. */
   std::string TimeStamp(Time, const TimeFormat& = Time::GetFormat());
-
-  class Period {
-   public:
-    /** Default constructor. The period is set to 0 length. */
-    Period();
-
-    /** Constructor that takes a time_t variable and stores it. */
-    Period(const time_t&);
-
-    /** Constructor that tries to convert a string. */
-    Period(const std::string&);
-
-    /** Assignment operator from a time_t. */
-    Period& operator=(const time_t&);
-
-    /** sets the period */
-    void SetPeriod(const time_t&);
-
-    /** gets the period */
-    time_t GetPeriod() const;
-
-    /** Returns a string representation of the period. */
-    operator std::string() const;
-
-   private:
-    /** The duration of the period */
-    time_t seconds;
-  };
-
-  /** Prints a Period-object to the given ostream -- typically cout. */
-  std::ostream& operator<<(std::ostream&, const Period&);
 
 } // namespace Arc
 

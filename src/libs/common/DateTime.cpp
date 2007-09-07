@@ -430,12 +430,27 @@ namespace Arc {
     return gtime != othertime.GetTime();
   }
 
+  Time Time::operator+(const Period& duration) const {
+    time_t t;
+    t = gtime + duration.GetPeriod();
+    return(Time(t));
+  } 
+
+  Time Time::operator-(const Period& duration) const {
+    time_t t;
+    t = gtime - duration.GetPeriod();
+    return(Time(t));
+  }
 
   Time& Time::operator=(const time_t& newtime) {
     gtime = newtime;
     return *this;
   }
 
+  Time& Time::operator=(const Time& newtime){
+    gtime = newtime.GetTime();
+    return *this;
+  }
 
   std::ostream& operator<<(std::ostream& out, const Time& time) {
     return (out << time.str());
@@ -587,6 +602,10 @@ namespace Arc {
     return *this;
   }
 
+  Period& Period::operator=(const Period& newperiod) {
+    seconds = newperiod.GetPeriod();
+    return *this;
+  }
 
   void Period::SetPeriod(const time_t& length) {
     seconds = length;
