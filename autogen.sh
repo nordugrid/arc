@@ -6,9 +6,15 @@
 # Conflicts: autoconf 2.13
 set -e
 
+FIND=find
+gfind -version
+if test $? = 0; then
+	FIND=gfind
+fi
+
 cleanup() {
-    find -type d -name autom4te.cache -print0 | xargs -0 rm -rf \;
-    find -type f \( -name missing -o -name install-sh -o -name mkinstalldirs \
+    $FIND -type d -name autom4te.cache -print0 | xargs -0 rm -rf \;
+    $FIND -type f \( -name missing -o -name install-sh -o -name mkinstalldirs \
 	    -o -name depcomp -o -name ltmain.sh -o -name configure \
 	    -o -name config.sub -o -name config.guess \
 	    -o -name Makefile.in -o -name config.h.in -o -name aclocal.m4 \
@@ -28,7 +34,7 @@ echo Cleaning autotools files...
 cleanup
 
 echo Running autoreconf...
-autoreconf --force --install
+autoreconf --verbose --force --install
 
 # For the Debian package build
 test -d debian && {
