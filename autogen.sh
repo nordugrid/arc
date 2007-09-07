@@ -4,11 +4,11 @@
 #
 # Requires: automake 1.9, autoconf 2.57+
 # Conflicts: autoconf 2.13
-set -e
+set -x 
 
 FIND=find
-gfind -version > /dev/null
-if test $? = 0; then
+TFIND="X`which gfind`"
+if test $TFIND != "X"; then
 	FIND=gfind
 fi
 
