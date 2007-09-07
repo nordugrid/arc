@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:echo="urn:echo"><soap-env:Body><echo><say>HELLO</say></echo></soap-env:Body></soap-env:Envelope>

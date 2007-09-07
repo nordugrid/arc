@@ -14,3 +14,6 @@ New generation Advanced Resource Connector (ARC) grid middleware
     - swig (>1.3.28)
     - java sdk for Java bindings
     - python-dev for Python bindings
+    - globus GT 4
+
+svn propset svn:ignore -F .cvsignore .
