@@ -1,0 +1,4 @@
+Update certs:
+openssl genrsa 1024 > key.pem
+openssl req -config ./openssl.cnf -new -x509 -nodes -sha1 -days 365 -key key.pem > cert.pem
+cp cert.pem ca.pem
