@@ -73,7 +73,11 @@ int main(void) {
     // Send job request
     Arc::Message reqmsg;
     Arc::Message repmsg;
+    Arc::MessageAttributes attributes;
+    Arc::MessageContext context;
     reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes);
+    reqmsg.Context(&context);
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
@@ -121,8 +125,12 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
+      Arc::MessageAttributes attributes;
+      Arc::MessageContext context;
       reqmsg.Payload(&req);
-    
+      reqmsg.Attributes(&attributes);
+      reqmsg.Context(&context);
+
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
@@ -161,8 +169,12 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
+      Arc::MessageAttributes attributes;
+      Arc::MessageContext context;
       reqmsg.Payload(&req);
-    
+      reqmsg.Attributes(&attributes);
+      reqmsg.Context(&context);
+
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
@@ -201,8 +213,12 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
+      Arc::MessageAttributes attributes;
+      Arc::MessageContext context;
       reqmsg.Payload(&req);
-    
+      reqmsg.Attributes(&attributes);
+      reqmsg.Context(&context);
+
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
@@ -241,8 +257,12 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
+      Arc::MessageAttributes attributes;
+      Arc::MessageContext context;
       reqmsg.Payload(&req);
-    
+      reqmsg.Attributes(&attributes);
+      reqmsg.Context(&context);
+
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
