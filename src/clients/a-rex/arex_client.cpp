@@ -71,7 +71,11 @@ namespace Arc {
     // Send job request
     Arc::Message reqmsg;
     Arc::Message repmsg;
+    Arc::MessageAttributes attributes;
+    Arc::MessageContext context;
     reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes);
+    reqmsg.Context(&context);
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
       logger.msg(Arc::ERROR, "Submission request failed.");
@@ -114,10 +118,14 @@ namespace Arc {
       req.NewChild("bes-factory:GetActivityStatuses").
       NewChild(Arc::XMLNode(jobid));
     
-    // Send job request
+    // Send status request
     Arc::Message reqmsg;
     Arc::Message repmsg;
+    Arc::MessageAttributes attributes;
+    Arc::MessageContext context;
     reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes);
+    reqmsg.Context(&context);
     
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
@@ -166,10 +174,14 @@ namespace Arc {
       req.NewChild("bes-factory:TerminateActivities").
       NewChild(Arc::XMLNode(jobid));
     
-    // Send job request
+    // Send kill request
     Arc::Message reqmsg;
     Arc::Message repmsg;
+    Arc::MessageAttributes attributes;
+    Arc::MessageContext context;
     reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes);
+    reqmsg.Context(&context);
     
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
