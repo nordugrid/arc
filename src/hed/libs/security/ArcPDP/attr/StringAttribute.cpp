@@ -20,4 +20,4 @@ bool StringAttribute::equal(AttributeValue* o){
     return false;
 }
 
-}
+} //namespace Arc
