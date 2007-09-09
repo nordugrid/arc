@@ -2,7 +2,6 @@
 #include "common/StringConv.h"
 #include "message/PayloadRaw.h"
 #include "PayloadHTTP.h"
-#include "loader/Loader.h"
 #include "loader/MCCLoader.h"
 
 #include "MCCHTTP.h"

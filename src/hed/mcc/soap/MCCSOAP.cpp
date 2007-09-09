@@ -2,7 +2,6 @@
 #include "message/SOAPEnvelope.h"
 #include "message/PayloadSOAP.h"
 #include "common/XMLNode.h"
-#include "loader/Loader.h"
 #include "loader/MCCLoader.h"
 #include "ws-addressing/WSA.h"
 
