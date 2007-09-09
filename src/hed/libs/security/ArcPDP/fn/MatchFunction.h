@@ -10,7 +10,7 @@ namespace Arc {
 #define NAME_ANYURI_REGEXP_MATCH "know-arc:function:anyURI-regexp-match"
 #define NAME_X500NAME_REGEXP_MATCH "know-arc:function:x500Name-regexp-match"
 
-class MatchFunction {
+class MatchFunction : public Function {
 public:
   MatchFunction(std::string functionName, std::string argumentType);
 

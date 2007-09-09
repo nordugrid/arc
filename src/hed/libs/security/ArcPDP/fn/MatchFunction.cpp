@@ -9,8 +9,8 @@ namespace Arc {
 std::string MatchFunction::getFunctionName(std::string datatype){
   std::string ret;
   if (datatype ==  StringAttribute::getIdentifier()) ret = NAME_REGEXP_STRING_MATCH;
-  else if(datatype == AnyURIAttribute::identify()) ret = NAME_ANYURI_REGEXP_MATCH;
-  else if(datatype == X500NameAttribute::identify()) ret = NAME_X500NAME_REGEXP_MATCH;
+  else if(datatype == AnyURIAttribute::getIdentifier()) ret = NAME_ANYURI_REGEXP_MATCH;
+  else if(datatype == X500NameAttribute::getIdentifier()) ret = NAME_X500NAME_REGEXP_MATCH;
   return ret;
 }
 
@@ -26,8 +26,8 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   //arg1 is the attributevalue in request
   std::string label = arg0->encode();
   std::string value = arg1->encode();
-  RegularExpression regex(lable);
-  if(regex.isOK()){
+  RegularExpression regex(label);
+  if(regex.isOk()){
     std::list<std::string> unmatched;
     if(regex.match(value, unmatched))
       return true;
@@ -35,5 +35,6 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   else 
     std::cerr<<"Bad Regex label"<<std::endl;
   return false;
+}
 
 }
