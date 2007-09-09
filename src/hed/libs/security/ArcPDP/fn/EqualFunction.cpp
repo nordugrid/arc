@@ -1,6 +1,8 @@
 #include "EqualFunction.h"
 #include "../attr/StringAttribute.h"
 #include "../attr/DateTimeAttribute.h"
+#include "../attr/X500NameAttribute.h"
+#include "../attr/AnyURIAttribute.h"
 
 namespace Arc {
 
@@ -17,9 +19,9 @@ std::string EqualFunction::getFunctionName(std::string datatype){
   else if(datatype == PeriodAttribute::getIdentifier()) ret = NAME_PERIOD_EQUAL; 
   //else if(datatype == DayTimeDurationAttribute::identify()) ret = NAME_DAYTIME_DURATION_EQUAL;
   //else if(datatype == YearMonthDurationAttribute::identify()) ret = NAME_YEARMONTH_DURATION_EQUAL;
-  /*else if(datatype == AnyURIAttribute::identify()) ret = NAME_ANYURI_EQUAL;
-  else if(datatype == X500NameAttribute::identify()) ret = NAME_X500NAME_EQUAL;
-  else if(datatype == RFC822NameAttribute::identify()) ret = NAME_RFC822NAME_EQUAL;
+  else if(datatype == AnyURIAttribute::getIdentifier()) ret = NAME_ANYURI_EQUAL;
+  else if(datatype == X500NameAttribute::getIdentifier()) ret = NAME_X500NAME_EQUAL;
+  /*else if(datatype == RFC822NameAttribute::identify()) ret = NAME_RFC822NAME_EQUAL;
   else if(datatype == HexBinaryAttribute::identify()) ret = NAME_HEXBINARY_EQUAL;
   else if(datatype == Base64BinaryAttribute::identify()) ret = BASE64BINARY_EQUAL;
   else if(datatype == IPAddressAttribute::identify()) ret = NAME_IPADDRESS_EQUAL;
