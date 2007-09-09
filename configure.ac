@@ -17,7 +17,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+# AC_PROG_RANLIB
 AM_PROG_LIBTOOL
 
 # Checks for language bindings 
@@ -239,7 +239,7 @@ if test x$GSOAP = xyes ; then enable_gsoap=yes; fi
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_HEADER_RESOLV
+# AC_HEADER_RESOLV
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h])
 AC_CXX_HAVE_SSTREAM
@@ -253,12 +253,12 @@ AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_TYPE_SSIZE_T
+#AC_TYPE_SSIZE_T
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_HEADER_TIME
 AC_STRUCT_TM
-AC_TYPE_UINT32_T
-AC_TYPE_UINT64_T
+#AC_TYPE_UINT32_T
+#AC_TYPE_UINT64_T
 AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
@@ -276,7 +276,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
-AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull tzset])
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull tzset sigwaitinfo])
 AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
 AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)
