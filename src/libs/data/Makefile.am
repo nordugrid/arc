@@ -1,5 +1,3 @@
-SUBDIRS = dmc
-
 lib_LTLIBRARIES=libarcdata2.la
 libarcdata2_la_SOURCES=DMC.cpp DataPoint.cpp DataPointDirect.cpp DataBufferPar.cpp CheckSum.cpp DataSpeed.cpp \
                        DMC.h   DataPoint.h   DataPointDirect.h   DataBufferPar.h   CheckSum.h   DataSpeed.h   DataHandle.h
