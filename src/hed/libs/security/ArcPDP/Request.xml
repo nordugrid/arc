@@ -5,7 +5,7 @@
         <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
         <Action AttributeId="urn:arc:action:file-action" Type="string">read</Action>
         <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
-        <Context AttributeId="urn:arc:context:time" Type="string">2007-07-02T12:00:00.00</Context>
+        <Context AttributeId="urn:arc:context:date" Type="period">2007-09-10T20:30:20/P1Y1M</Context>
     </RequestItem>    
     
     <RequestItem>

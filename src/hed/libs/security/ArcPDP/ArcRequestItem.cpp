@@ -84,22 +84,22 @@ ArcRequestItem::ArcRequestItem(XMLNode& node) : RequestItem(node) {
   }
 
   for ( int i=0;; i++ ){
-    nd = node["Environment"][i];
+    nd = node["Context"][i];
     if(!nd) break;
 
     if(nd.AttributesSize()){
-      Environment env;
-      env.push_back(new Arc::RequestAttribute(nd, attrfactory));
-      environments.push_back(env);
+      Context ctx;
+      ctx.push_back(new Arc::RequestAttribute(nd, attrfactory));
+      contexts.push_back(ctx);
     }
     else{
-      Environment env;
+      Context ctx;
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
         if(!tnd) break;
-        env.push_back(new Arc::RequestAttribute(tnd, attrfactory));
+        ctx.push_back(new Arc::RequestAttribute(tnd, attrfactory));
       }
-      environments.push_back(env);
+      contexts.push_back(ctx);
     }
   }
 
@@ -133,13 +133,13 @@ ArcRequestItem::~ArcRequestItem(void){
     actions.pop_back();
   }
 
-  while(!environments.empty()){
-    Environment env = subjects.back();
-    while(!env.empty()){
-      delete env.back();
-      env.pop_back();
+  while(!contexts.empty()){
+    Context ctx = subjects.back();
+    while(!ctx.empty()){
+      delete ctx.back();
+      ctx.pop_back();
     }
-    environments.pop_back();
+    contexts.pop_back();
   }
 }
 
@@ -163,15 +163,15 @@ ActList ArcRequestItem::getActions () const {
   return actions;
 }
 
-void ArcRequestItem::setAction (const ActList& al){
+void ArcRequestItem::setActions (const ActList& al){
   actions = al;
 }
 
-EnvList ArcRequestItem::getEnvironments () const{
-  return environments;
+CtxList ArcRequestItem::getContexts () const{
+  return contexts;
 }
 
-void ArcRequestItem::setEnvironmets (const EnvList& ctx){
-  environments = ctx;
+void ArcRequestItem::setContexts (const CtxList& ctx){
+  contexts = ctx;
 }
 

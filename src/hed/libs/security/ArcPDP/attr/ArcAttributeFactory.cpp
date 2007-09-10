@@ -1,16 +1,24 @@
 #include "ArcAttributeFactory.h"
 #include "AttributeProxy.h"
 #include "StringAttribute.h"
+#include "DateTimeAttribute.h"
+#include "X500NameAttribute.h"
+#include "AnyURIAttribute.h"
 
 using namespace Arc;
 
 void ArcAttributeFactory::initDatatypes(){
   /**Some Arc specified attribute types*/
- // apmap.insert(std::pair<std::string, AttributeProxy*>(StringAttribute.identify, new ArcAttributeProxy<StringAttribute>));
- // apmap.insert(std::pair<std::string, AttributeProxy*>(DateAttribute.identify, new ArcAttributeProxy<DateAttribute>));
-  /** TODO:  other datetype............. */
-
   apmap.insert(std::pair<std::string, AttributeProxy*>(StringAttribute::getIdentifier(), new ArcAttributeProxy<StringAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(DateTimeAttribute::getIdentifier(), new ArcAttributeProxy<DateTimeAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(DateAttribute::getIdentifier(), new ArcAttributeProxy<DateAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(TimeAttribute::getIdentifier(), new ArcAttributeProxy<TimeAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(DurationAttribute::getIdentifier(), new ArcAttributeProxy<DurationAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(PeriodAttribute::getIdentifier(), new ArcAttributeProxy<PeriodAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(X500NameAttribute::getIdentifier(), new ArcAttributeProxy<X500NameAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(AnyURIAttribute::getIdentifier(), new ArcAttributeProxy<AnyURIAttribute>));
+
+ /** TODO:  other datetype............. */
 
 }
 

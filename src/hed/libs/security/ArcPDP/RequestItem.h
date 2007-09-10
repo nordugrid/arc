@@ -7,14 +7,14 @@
 
 namespace Arc {
 
-//typedef std::list<Attribute*> Subject, Resource, Action, Environment;
-typedef std::list<RequestAttribute*> Subject, Resource, Action, Environment;
+//typedef std::list<Attribute*> Subject, Resource, Action, Context;
+typedef std::list<RequestAttribute*> Subject, Resource, Action, Context;
 typedef std::list<Subject> SubList;
 typedef std::list<Resource> ResList;
 typedef std::list<Action> ActList;
-typedef std::list<Environment> EnvList; 
+typedef std::list<Context> CtxList; 
 
-/**<subjects, actions, objects, envs> tuple */
+/**<subjects, actions, objects, ctxs> tuple */
 class RequestItem{
  public:
   RequestItem(XMLNode& node){};
@@ -24,7 +24,7 @@ protected:
   SubList subjects;
   ResList actions;
   ActList resources;
-  EnvList environments;
+  CtxList contexts;
 
 public:
   virtual SubList getSubjects () const {};
@@ -33,8 +33,8 @@ public:
   virtual void setResources (const ResList& rl) {};
   virtual ActList getActions () const {};
   virtual void setAction (const ActList& al) {};
-  virtual EnvList getEnvironments () const {};
-  virtual void setEnvironmets (const EnvList& ctx) {};
+  virtual CtxList getContexts () const {};
+  virtual void setContexts (const CtxList& ctx) {};
 
 };
 

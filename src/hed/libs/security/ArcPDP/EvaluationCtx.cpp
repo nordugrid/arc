@@ -25,7 +25,7 @@ ArrtibuteValue * EvaluationCtx::getActionAttribute(){
 
 }
 
-ArrtibuteValue * EvaluationCtx::getEnvironmentAttribute(){
+ArrtibuteValue * EvaluationCtx::getContextAttribute(){
  
 }
 */
@@ -45,18 +45,18 @@ void EvaluationCtx::split(){
     Arc::ResList::iterator rit;
     Arc::ActList actions = (*it)->getActions();
     Arc::ActList::iterator ait;
-    Arc::EnvList environments = (*it)->getEnvironments();
-    Arc::EnvList::iterator eit;
+    Arc::CtxList contexts = (*it)->getContexts();
+    Arc::CtxList::iterator cit;
 
     for(sit = subjects.begin(); sit != subjects.end(); sit++) {
       for(rit = resources.begin(); rit != resources.end(); rit++){
         for(ait = actions.begin(); ait != actions.end(); ait++){
-          //for(eit = environments.begin(); eit != environments.end(); eit++){
+          for(cit = contexts.begin(); cit != contexts.end(); cit++){
             RequestTuple reqtuple;
             reqtuple.sub = *sit;
             reqtuple.res = *rit;
             reqtuple.act = *ait;
-           // reqtuple.env = *eit;
+            reqtuple.ctx = *cit;
             reqtuples.push_back(reqtuple);  
 
             //for tesing
@@ -67,7 +67,7 @@ void EvaluationCtx::split(){
               attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
               if(attr!=NULL) std::cout<<attr->getValue()<<std::endl;
             }
-          //}
+          }
         }
       }
     }

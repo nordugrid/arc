@@ -18,6 +18,9 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   attrval = attrfactory->createValue(node, type);
 
+  if(attrval == NULL)
+    std::cout<<"No Attribute exists, which can deal with type:"<<type<<std::endl;
+
   std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issurer--"<<issuer<<std::endl;
 
 /*

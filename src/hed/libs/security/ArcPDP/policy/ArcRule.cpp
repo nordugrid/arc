@@ -67,6 +67,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
             funcname = (std::string)(snd.Attribute("Function"));
 
           if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
+          std::cout<<"type:"<<type<<"Function:"<<funcname<<std::endl;
           item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
         }
         items.push_back(item);
@@ -197,7 +198,9 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
   Arc::AndList::iterator andit;
   std::list<Arc::RequestAttribute*>::iterator reqit;
 
-  //For example, go through each <Subject> element in one rule, once one <Subject> is satisfied, skip put.
+  //Go through each <Subject>/<Resource>/<Action>/<Context>
+  //For example, go through each <Subject> element in one rule, 
+  //once one <Subject> element is satisfied, skip out.
   for( orit = items.begin(); orit != items.end(); orit++ ){
 
     int all_fraction_matched = 0;
@@ -208,7 +211,11 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
       //go through each <Attribute> element in one <Subject> in Request.xml, all of the <Attribute> should be satisfied.
       for(reqit = req.begin(); reqit != req.end(); reqit++){
         //evaluate two "AttributeValue*" based on "Function" definition in "Rule"
-        if(((*andit).second)->evaluate((*andit).first, (*reqit)->getAttributeValue()))
+        bool res = false;
+        try{
+          res = ((*andit).second)->evaluate((*andit).first, (*reqit)->getAttributeValue());
+        } catch(std::exception&) { };
+        if(res)
           one_req_matched = true;
       }
       // if one of the Attribute in one Request's Subject does not match any of the Rule.Subjects.SubjectA.SubFractions,
@@ -228,11 +235,9 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
   Arc::RequestTuple evaltuple = ctx->getEvalTuple();  
-
   if(itemMatch(subjects, evaltuple.sub)==MATCH &&
     itemMatch(resources, evaltuple.res)==MATCH &&
-    itemMatch(actions, evaltuple.act)==MATCH)
-    //&&itemMatch(environments, evaltuple.sub)==MATCH)
+    itemMatch(actions, evaltuple.act)==MATCH &&itemMatch(conditions, evaltuple.ctx)==MATCH)
     return MATCH;
   else return NO_MATCH;
 

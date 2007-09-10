@@ -27,7 +27,7 @@ std::string DateTimeAttribute::encode(){
 std::string TimeAttribute::identifier = "time";
 TimeAttribute::TimeAttribute(std::string v){
   std::string v1 = "1970-01-01T" + v;
-  Arc::DateAttribute attr(v1);
+  Arc::DateTimeAttribute attr(v1);
   value = attr.getValue(); 
 }
 
@@ -56,7 +56,7 @@ std::string TimeAttribute::encode(){
 std::string DateAttribute::identifier = "date";
 DateAttribute::DateAttribute(std::string v){
   std::string v1 = v + "T00:00:00+00:00";
-  Arc::DateAttribute attr(v1);
+  Arc::DateTimeAttribute attr(v1);
   value = attr.getValue();
 }
 
@@ -110,7 +110,7 @@ PeriodAttribute::PeriodAttribute(std::string v){
   (value.duration).SetPeriod(0);
 
   std::string::size_type pos = v.find("/");
-  std::string s1 = v.substr(0, pos-1);
+  std::string s1 = v.substr(0, pos);
   std::string s2 = v.substr(pos+1);
 
   Time t1 = Time(s1);
@@ -176,6 +176,8 @@ bool PeriodAttribute::equal(AttributeValue* o){
     os = oe - od;
   else if((os==Time(-1))||(oe==Time(-1)))
     return false;
+  
+  //std::cout<<ls.str()<<(std::string)(ld)<<os.str()<<(std::string)(od)<<std::endl;
 
   if((ls==os)&&(le==oe))
     return true;

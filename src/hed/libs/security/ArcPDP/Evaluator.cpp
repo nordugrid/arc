@@ -95,7 +95,7 @@ Arc::Response* Evaluator::evaluate(const std::string& reqfile){
 Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
   //Split request into <subject, action, object, environment> tuples
   ctx->split();
-
+  
   std::list<Arc::Policy*> policies;
   std::list<Arc::Policy*>::iterator policyit;
   std::list<Arc::RequestTuple> reqtuples = ctx->getRequestTuples();

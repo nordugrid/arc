@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-/**<subjects, actions, objects, envs> tuple */
+/**<subjects, actions, objects, ctxs> tuple */
 /**Specified ArcRequestItem which can parse Arc request formate*/
 class ArcRequestItem : public RequestItem{
 public:
@@ -19,9 +19,9 @@ public:
   virtual ResList getResources () const;
   virtual void setResources (const ResList& rl);
   virtual ActList getActions () const;
-  virtual void setAction (const ActList& actions);
-  virtual EnvList getEnvironments () const;
-  virtual void setEnvironmets (const EnvList& ctx);
+  virtual void setActions (const ActList& actions);
+  virtual CtxList getContexts () const;
+  virtual void setContexts (const CtxList& ctx);
 
 };
 
