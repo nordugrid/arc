@@ -2,6 +2,7 @@
 #include "DateTimeAttribute.h"
 
 namespace Arc {
+
 //DateTimeAttribute
 std::string DateTimeAttribute::identifier = "datetime";
 bool DateTimeAttribute::equal(AttributeValue* o){
@@ -18,6 +19,46 @@ bool DateTimeAttribute::equal(AttributeValue* o){
   else
     return false;
 }
+
+bool DateTimeAttribute::lessthan(AttributeValue* o){
+  DateTimeAttribute *other;
+  try{
+    other = dynamic_cast<DateTimeAttribute*>(o);
+  } catch(std::exception&) { };
+  if(other==NULL){
+    std::cerr<<"not DateTimeAttribute"<<std::endl;
+    return false;
+  }
+  if(value<(other->getValue()))
+    return true;
+  else
+    return false;
+}
+
+bool DateTimeAttribute::inrange(AttributeValue* o){
+  PeriodAttribute *other;
+  try{
+    other = dynamic_cast<PeriodAttribute*>(o);
+  } catch(std::exception&) { };
+  if(other==NULL){
+    std::cerr<<"not PeriodAttribute"<<std::endl;
+    return false;
+  } 
+  ArcPeriod period = other->getValue(); 
+
+  Time st, et;
+  st = period.starttime;
+  et = period.endtime;
+  if(period.starttime == Time(-1))
+    st = period.endtime - period.duration;
+  else if(period.endtime == Time(-1))
+    et = period.starttime + period.duration;
+
+  if((value>=st)&&(value<=et))
+    return true;
+  else
+    return false;  
+} 
 
 std::string DateTimeAttribute::encode(){
   return(value.str(ISOTime));
@@ -41,6 +82,21 @@ bool TimeAttribute::equal(AttributeValue* o){
     return false;
   }
   if(value==(other->getValue()))
+    return true;
+  else
+    return false;
+}
+
+bool TimeAttribute::lessthan(AttributeValue* o){
+  TimeAttribute *other;
+  try{
+    other = dynamic_cast<TimeAttribute*>(o);
+  } catch(std::exception&) { };
+  if(other==NULL){
+    std::cerr<<"not TimeAttribute"<<std::endl;
+    return false;
+  }
+  if(value<(other->getValue()))
     return true;
   else
     return false;
@@ -70,6 +126,21 @@ bool DateAttribute::equal(AttributeValue* o){
     return false;
   }
   if(value==(other->getValue()))
+    return true;
+  else
+    return false;
+}
+
+bool DateAttribute::lessthan(AttributeValue* o){
+  DateAttribute *other;
+  try{
+    other = dynamic_cast<DateAttribute*>(o);
+  } catch(std::exception&) { };
+  if(other==NULL){
+    std::cerr<<"not DateAttribute"<<std::endl;
+    return false;
+  }
+  if(value<(other->getValue()))
     return true;
   else
     return false;

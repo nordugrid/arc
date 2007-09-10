@@ -1,6 +1,7 @@
 #include "ArcFnFactory.h"
 #include "EqualFunction.h"
 #include "MatchFunction.h"
+#include "InRangeFunction.h"
 #include "../attr/StringAttribute.h"
 #include "../attr/DateTimeAttribute.h"
 #include "../attr/X500NameAttribute.h"
@@ -60,6 +61,10 @@ void ArcFnFactory::initFunctions(){
   argType = AnyURIAttribute::getIdentifier();
   fnmap.insert(std::pair<std::string, Function*>(fnName, new MatchFunction(fnName, argType)));
 
+  //InRangeFunctions
+  fnName = InRangeFunction::getFunctionName(PeriodAttribute::getIdentifier());
+  argType = PeriodAttribute::getIdentifier();
+  fnmap.insert(std::pair<std::string, Function*>(fnName, new InRangeFunction(fnName, argType)));
 }
 
 ArcFnFactory::ArcFnFactory(){

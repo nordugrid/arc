@@ -26,6 +26,8 @@ public:
   virtual ~DateTimeAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
+  virtual bool lessthan(AttributeValue* other);
+  virtual bool inrange(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
   Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
@@ -48,6 +50,7 @@ public:
   virtual ~TimeAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
+  virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
@@ -67,6 +70,7 @@ public:
   virtual ~DateAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
+  virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
