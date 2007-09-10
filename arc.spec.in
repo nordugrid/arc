@@ -70,6 +70,7 @@ Requires: python
 %description python
 Python wrapper for ARC
 
+%{!?disable_java:
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
@@ -77,6 +78,7 @@ Requires: %{name}
 
 %description java
 Java wrapper for ARC
+}
 
 %package doc
 Summary: ARC API documentation
@@ -89,7 +91,7 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static
+%configure --disable-static %{?disable_java:--disable-java}
 make %{?_smp_mflags}
 
 
@@ -139,10 +141,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_prefix}/lib/python?.?/site-packages/
 
+%{!?disable_java:
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
 %{_datadir}/java/arc.jar
+}
 
 %files doc
 %defattr(-,root,root,-)
