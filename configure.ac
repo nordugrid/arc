@@ -334,6 +334,7 @@ AC_CONFIG_FILES([Makefile
                  python/Makefile
                  intl/Makefile
                  doc/Makefile
+                 include/Makefile
                  arc.spec
                  src/hed/daemon/arcserver.8
 ])

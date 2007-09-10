@@ -12,6 +12,6 @@ endif
 
 SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) src/hed/mcc src/libs/data/dmc intl doc
 
-DIST_SUBDIRS = src swig java python src/hed/mcc src/libs/data/dmc intl doc
+DIST_SUBDIRS = src swig java python src/hed/mcc src/libs/data/dmc intl doc include
 
 EXTRA_DIST = arc.spec
