@@ -86,7 +86,7 @@ else
     enable_java=no
 fi
 
-echo $enable_java
+AC_MSG_NOTICE([Java enabled: $enable_java])
 
 dnl Conditional java sub dir test.
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
@@ -173,7 +173,7 @@ AC_SUBST(SOAPCPP2)
 if test "x$GSOAP" = "xyes"; then
 	# gSOAP version
 	GSOAP_VERSION=`$SOAPCPP2 -v 2>&1 | grep 'Compiler' | sed 's/^.*\([[0-9]]\.[[0-9]]\.[[0-9]][[a-z]]\).*$/\1/'`
-	echo $GSOAP_VERSION
+        AC_MSG_NOTICE([Found gsoap version: $GSOAP_VERSION])
 	GSOAP_VERSION_MAJOR=`echo $GSOAP_VERSION | sed 's/^\([[0-9]]\).*/\1/'`
 	GSOAP_VERSION_MINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.\([[0-9]]\).*/\1/'`
 	GSOAP_VERSION_SUBMINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.[[0-9]]\.\([[0-9]]\).*/\1/'`
