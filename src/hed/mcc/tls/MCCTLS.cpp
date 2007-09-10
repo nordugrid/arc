@@ -42,30 +42,15 @@ mcc_descriptors ARC_MCC_LOADER = {
 using namespace Arc;
 
 
-#ifndef TLS_ERROR_BUFSIZ
-#define TLS_ERROR_BUFSIZ 2048
-#endif
-void tls_print_error(Logger& logger, const char *fmt, ...){
-   char errbuf[TLS_ERROR_BUFSIZ];
-   va_list args;
-   va_start(args, fmt);
-   bzero((char *)&errbuf, sizeof errbuf);
-   vsnprintf(errbuf, sizeof errbuf, fmt, args);
-   //fputs(errbuf, stderr);
-   logger.msg(ERROR, errbuf);
-   //The error message can also be written to some log file
-   va_end(args);
-}
-
 static void tls_process_error(Logger& logger){
    unsigned long err;
    err = ERR_get_error();
    if (err != 0)
    {
-	tls_print_error(logger, "OpenSSL Error -- %s\n", ERR_error_string(err, NULL));
-      	tls_print_error(logger, "Library  : %s\n", ERR_lib_error_string(err));
-      	tls_print_error(logger, "Function : %s\n", ERR_func_error_string(err));
-      	tls_print_error(logger, "Reason   : %s\n", ERR_reason_error_string(err));
+     logger.msg(ERROR, "OpenSSL Error -- %s", ERR_error_string(err, NULL));
+     logger.msg(ERROR, "Library  : %s", ERR_lib_error_string(err));
+     logger.msg(ERROR, "Function : %s", ERR_func_error_string(err));
+     logger.msg(ERROR, "Reason   : %s", ERR_reason_error_string(err));
    }
    return;
 }
