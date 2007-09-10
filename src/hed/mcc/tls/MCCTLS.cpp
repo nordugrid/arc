@@ -45,26 +45,27 @@ using namespace Arc;
 #ifndef TLS_ERROR_BUFSIZ
 #define TLS_ERROR_BUFSIZ 2048
 #endif
-void tls_print_error(const char *fmt, ...){
+void tls_print_error(Logger& logger, const char *fmt, ...){
    char errbuf[TLS_ERROR_BUFSIZ];
    va_list args;
    va_start(args, fmt);
    bzero((char *)&errbuf, sizeof errbuf);
    vsnprintf(errbuf, sizeof errbuf, fmt, args);
-   fputs(errbuf, stderr);
+   //fputs(errbuf, stderr);
+   logger.msg(ERROR, errbuf);
    //The error message can also be written to some log file
    va_end(args);
 }
 
-static void tls_process_error(){
+static void tls_process_error(Logger& logger){
    unsigned long err;
    err = ERR_get_error();
    if (err != 0)
    {
-	tls_print_error("OpenSSL Error -- %s\n", ERR_error_string(err, NULL));
-      	tls_print_error("Library  : %s\n", ERR_lib_error_string(err));
-      	tls_print_error("Function : %s\n", ERR_func_error_string(err));
-      	tls_print_error("Reason   : %s\n", ERR_reason_error_string(err));
+	tls_print_error(logger, "OpenSSL Error -- %s\n", ERR_error_string(err, NULL));
+      	tls_print_error(logger, "Library  : %s\n", ERR_lib_error_string(err));
+      	tls_print_error(logger, "Function : %s\n", ERR_func_error_string(err));
+      	tls_print_error(logger, "Reason   : %s\n", ERR_reason_error_string(err));
    }
    return;
 }
@@ -78,7 +79,7 @@ static int no_passphrase_callback(char *buf __attribute__((unused)),
 
 static int tls_rand_seeded_p = 0;
 #define my_MIN_SEED_BYTES 256 
-bool MCC_TLS::tls_random_seed(std::string filename, long n)
+static bool tls_random_seed(Logger& logger, std::string filename, long n)
 {
    int r;
    r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? n : LONG_MAX);
@@ -86,7 +87,7 @@ bool MCC_TLS::tls_random_seed(std::string filename, long n)
 	n = my_MIN_SEED_BYTES;
     if (r < n) {
         logger.msg(ERROR, "tls_random_seed from file: could not read files");
-   	tls_process_error();
+   	tls_process_error(logger);
 	return false;
     } else {
 	tls_rand_seeded_p = 1;
@@ -95,7 +96,7 @@ bool MCC_TLS::tls_random_seed(std::string filename, long n)
 }
 
 static DH *tls_dhe1024 = NULL; /* generating these takes a while, so do it just once */
-static void tls_set_dhe1024()
+static void tls_set_dhe1024(Logger& logger)
 {
    int i;
    RAND_bytes((unsigned char *) &i, sizeof i);
@@ -119,13 +120,13 @@ static void tls_set_dhe1024()
 	dsaparams = DSA_generate_parameters(1024, NULL, 0, NULL, NULL, 0, NULL);
     }
     if (dsaparams == NULL) {
-	tls_process_error();
+	tls_process_error(logger);
 	return;
     }
     dhparams = DSA_dup_DH(dsaparams);
     DSA_free(dsaparams);
     if (dhparams == NULL) {
-	tls_process_error();
+	tls_process_error(logger);
 	return;
     }
     if (tls_dhe1024 != NULL)
@@ -142,7 +143,7 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
                SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load certificate file");
-        tls_process_error();
+        tls_process_error(logger);
         return false;
    }
    if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
@@ -150,15 +151,15 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
       (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
                SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load key file");
-        tls_process_error();
+        tls_process_error(logger);
         return false;
    }
    if(!(SSL_CTX_check_private_key(sslctx))) {
         logger.msg(ERROR, "Private key does not match certificate");
-        tls_process_error();
+        tls_process_error(logger);
         return false;
    }
-   if(tls_random_seed(random_file, 0)) {
+   if(tls_random_seed(logger, random_file, 0)) {
      return false;
    }
    return true;
@@ -171,7 +172,7 @@ bool MCC_TLS::do_ssl_init(void) {
    SSL_load_error_strings();
    if(!SSL_library_init()){
         logger.msg(ERROR, "SSL_library_init failed");
-        tls_process_error();
+        tls_process_error(logger);
         ssl_inited=false;
         return false;
    };
@@ -194,7 +195,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    sslctx_=SSL_CTX_new(SSLv23_server_method());
    if(sslctx_==NULL){
         logger.msg(ERROR, "Can not create the SSL Context object");
-	tls_process_error();
+	tls_process_error(logger);
 	return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -203,7 +204,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    if((!ca_file.empty()) || (!ca_dir.empty())){
       r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
       if(!r){
-         tls_process_error();
+         tls_process_error(logger);
          return;
       }   
       /*
@@ -213,18 +214,18 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
          logger.msg(ERROR,
 		    "Can not set client CA list from the specified file");
-   	 tls_process_error();
+   	 tls_process_error(logger);
 	 return;
       }
       */
    }
    if(tls_dhe1024 == NULL){
-   	tls_set_dhe1024();
+   	tls_set_dhe1024(logger);
 	if(tls_dhe1024 == NULL){return;}
    }
    if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)){
            logger.msg(ERROR, "DH set error");
-           tls_process_error();
+           tls_process_error(logger);
 	   return;
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
@@ -232,10 +233,10 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    RSA *tmpkey;
    tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL);
    if (tmpkey == NULL)
-	tls_process_error();
+	tls_process_error(logger);
    if (!SSL_CTX_set_tmp_rsa(sslctx_, tmpkey)) {
 	RSA_free(tmpkey);
-	tls_process_error();
+	tls_process_error(logger);
 	return;
 	}
    RSA_free(tmpkey);
@@ -352,7 +353,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    sslctx_=SSL_CTX_new(SSLv23_client_method());
    if(sslctx_==NULL){
         logger.msg(ERROR, "Can not create the SSL Context object");
-        tls_process_error();
+        tls_process_error(logger);
         return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -361,7 +362,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    if((!ca_file.empty()) || (!ca_dir.empty())) {
         r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
         if(!r){
-           tls_process_error();
+           tls_process_error(logger);
            return;
         }
    }
