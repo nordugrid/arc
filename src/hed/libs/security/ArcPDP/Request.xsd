@@ -20,41 +20,56 @@
   </xsd:sequence>
  </xsd:complexType>
 
+ <xsd:element name="SubjectAttribute" type="request-arc:SubjectAttributeType"/>
+ <xsd:complexType name="SubjectAttributeType">
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
+    <xsd:attribute name="Type" type="xsd:string"/>
+    <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
  <xsd:element name="Subject" type="request-arc:SubjectType"/>
  <xsd:complexType name="SubjectType">
   <xsd:sequence>
-   <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
+   <xsd:element ref="request-arc:SubjectAttribute" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:string"/>
   <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
  <xsd:element name="Resource" type="request-arc:ResourceType"/>
  <xsd:complexType name="ResourceType">
-  <xsd:sequence>
-   <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
-  </xsd:sequence>
-  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="AttributeId" type="xsd:string"/>
+  <xsd:attribute name="Type" type="xsd:anyURI"/>
  </xsd:complexType>
 
  <xsd:element name="Action" type="request-arc:ActionType"/>
  <xsd:complexType name="ActionType">
-  <xsd:sequence>
-   <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
-  </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:string"/>
+ </xsd:complexType>
+
+ <xsd:element name="ContextAttribute" type="request-arc:ContextAttributeType"/>
+ <xsd:complexType name="ContextAttributeType">
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:simpleContent>
  </xsd:complexType>
 
  <xsd:element name="Context" type="request-arc:ContextType"/>
  <xsd:complexType name="ContextType">
   <xsd:sequence>
-   <xsd:any namespace="##any" processContents="lax"  maxOccurs="unbounded"/>
+   <xsd:element ref="request-arc:ContextAttribute" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:string"/>
  </xsd:complexType>
 
 </xsd:schema>

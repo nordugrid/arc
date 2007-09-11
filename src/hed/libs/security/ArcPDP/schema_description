@@ -1,0 +1,349 @@
+
+--------------------------------------------
+Description about the two schemas:
+See Request.xsd Policy.xsd Request.xml Policy_Example.xml for the schema definition and examples
+
+*Request.xsd
+
+<Request>:
+There is only one <Request> element inside one request.xml (<Request> is the root node).
+<Request> consists of one or a few <RequestItem>;
+
+<RequestItem>
+Each <RequestItem> consists of a sequence of four types of elements: <Subject>,< Resource>, <Action>, <Context>.
+There can be more than one element with the same type inside a <RequestItem>.
+Of cause, one <RequestItem> can only includes one tuple with only one <Subject>,< Resource>, <Action> and <Context>; But if some such tuples have the same <Subject>s,< Resource>s, <Action>s or <Context>, they can be classified into one <RequestItem>.
+For example:
+    <RequestItem>
+        <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">read</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
+        <Context AttributeId="urn:arc:context:date" Type="period">2007-09-10T20:30:20/P1Y1M</Context>
+    </RequestItem>
+Two <Action> are classified into one <RequestItem> because all the other elements are the same.
+
+<Subject>
+There are two options two define <Subject>, 
+ One is:
+  <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+ The other is:
+  <Subject>
+     <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
+     <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+  </Subject>
+The <Subject> schema is:
+ <xsd:element name="Subject" type="request-arc:SubjectType"/>
+ <!--One option-->
+ <xsd:complexType name="SubjectType">
+  <xsd:sequence>
+   <xsd:element ref="request-arc:Attribute" maxOccurs="unbounded"/>
+  </xsd:sequence>
+  <!--The other option-->
+  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
+  <xsd:attribute name="Type" type="xsd:string"/>
+  <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
+ </xsd:complexType>
+
+Note: There is some confusion in the schema definition (The schema is not reasonable, even it can be compiled). It seem hard to define the schema, which can constrain the above two examples. The same situation is also in the below <Context> schema, also in the Policy.xsd schema.
+
+The meaning of more than two <Attribute>s inside one <Subject> is that the Requestor provides (or is proved to hold) these <Attribute>s at the same time. In the policy definition, correspondingly, there is <SubFranction> (other name is better?) inside one <Subject>. If and only if all of the <Attribute>s insidea <Subject> satisfy all of the <SubFraction>s inside one <Subject> in some specific policy, we can say that the <Subject> from the Requestor satisfy/match the <Subject> in the policy.
+
+On the other hand, there is no relationship between any two <Subject>s. Whether one <Subject> satisfy the policy or not does not affect the other <Subject> in the same <RequestItem> or <Request>. One thing which needs to mention is, the below two situation will be handled differently in the implementation.
+  <Subject>
+     <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
+     <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+  </Subject>
+  and:
+  <Subject> AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples </Subject>
+  <Subject> AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ </Subject>
+Even the attribute values are the same. The above will be handled as the Requestor provides the two attributes at the same time. In the below definition, two attribute values in two <Subject> are handled independently. So is one policy requires two attribute value (<SubFraction>) inside one <Subject>, only the above will satisfy.
+
+Maybe a user will access some different resources (or even the same resouces, but different actions, or different contexts, or everything except the <Subject> are the same) with different identity/attribute. So it seems to be resonable that there is two or more <Subject> inside one <RequestItem>, or <Request>.
+Or maybe some broker acts as the user, then the <Request> may include request from different users. So the definition is just for general purpose.
+
+
+<Resource>
+The definition is simpler, see schema and example:
+ <xsd:element name="Resource" type="request-arc:ResourceType"/>
+ <xsd:complexType name="ResourceType">
+  <xsd:attribute name="AttributeId" type="xsd:string"/>
+  <xsd:attribute name="Type" type="xsd:anyURI"/>
+ </xsd:complexType>
+
+<Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+
+
+<Action>
+Also simple, See schema and example:
+ <xsd:element name="Action" type="request-arc:ActionType"/>
+ <xsd:complexType name="ActionType">
+  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
+  <xsd:attribute name="Type" type="xsd:string"/>
+ </xsd:complexType>
+
+<Action AttributeId="urn:arc:action:file-action" Type="string">list</Action>
+
+
+<Context>
+<Context> is some context information such as datetime which is provided by Requestor, and will consumed by the policy engine when matching the <Constrains>part in the policy.
+Also, the <Context> has the samilar schema as <Subject>, also the similar meaning.
+
+Some explaination about the <AttributeId> <Type> and <Issuer>
+<AttributeId> is not an obligatory element, and it is also useless in the present implementation. It could be useful if <AttributeDesignator> (defined in XACML schema) is supported.
+<Type> is an obligatory element, it is very important for the policy evaluation, because the producing of AttributeValue object is based on the <Type>. Different element with <Type> have different AttributeValue object.
+<Issuer> is not an obligatory element, and is only appliable for <Subject>
+
+
+ 
+
+*Policy.xsd
+<Policy> and <Policy>s
+ 1. A PDP can be configured with one or a few policies. If there is more than one policies which is configured for a PDP, there is combining relationship between them. At present, Deny-Overrides algorithm is supported between policies.
+ 2. One policy is composed of a few rules. In each policy, there is also combining algorithms between rules, which is explicitly specified as a attribute of policy---RuleCombiningAlgId.
+
+*Combining algorithm:
+ Prensently, two types of combining algorithms are supported 
+  a. Deny Overrides combining algorithm. It allows a single evaluation of Deny to take precedence over any number of permit, not applicable or indeterminate results.
+  b,Permit Overrides combining algorithm. It allows a single evaluation of Permit to take precedence over any number of deny, not applicable or indeterminate results. 
+
+
+Schema for policy:
+
+ <xsd:element name="Policy" type="policy-arc:PolicyType"/>
+ <xsd:complexType name="PolicyType">
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:Description" minOccurs="0"/>
+   <xsd:element ref="policy-arc:Rule" minOccurs="1" maxOccurs="unbounded"/>
+  </xsd:sequence>
+  <xsd:attribute name="PolicyId" type="xsd:anyURI" use="required"/>
+  <!--RuleCombiningAlgId, Combining Algorithm for Rules,  e.g. "DenyOverrides" means any "Deny" evaluation result from some Rule will overide all "Permit" result from the other Rules. -->
+  <xsd:attribute name="RuleCombiningAlgId" type="xsd:anyURI"/>
+ </xsd:complexType>
+
+
+
+<Rule>
+One Rule is composed of a tuple <Subjects, Resources, Actions, Conditions>, and each Rule  has one Effect: Permit or Deny. 
+ One rule is a unit of decision-making, which means there is implicit relationship among <Subjects, Resources, Actios, Conditions>.
+  There are some principles about the Rule definition:
+   1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually <Subjects, Resources, Actios, Conditions, Effect>).
+      The policy administrator should define the rules according to granuality of Actions and Resources, and constraints to Subjects.
+      For example, there is a Rule: <UserA/UserB, FileX, Read/List, 14:00, Permit>, if the administrator wants to add "Delete" permssion
+      for "UserA/UserB" to "FileX" at Condition "14:00", then the constraint can be added to the existing rule: <UserA/UserB, FileX, Read/List/Delete,
+      14:00, Permit>; Otherwise,if any of the other element (Subjects, Resources, Conditions, Effect) does not match, he should add a new Rule.
+   2. Subjects is a must element for each Rule. Each Rule must have one and only one Requests element.
+   3. Each Rule can have zero or one Resources, Actions, Conditions element.
+      If the policy is attached to only one specified Resource, then Resources element is not necessary, just like GACL policy which is attached to each files;
+      If the operation to the Resources are only one, then Actions element can be omitted, just like gridmap in which the operation is the all the permission of a specified system user.
+      If there is no Conditions constrains, the Conditions element can be omitted.
+      Moreover, the absence of one or more elements can make the Rule more general, and then we can need less items of rules. But the price is more coarse granuality.
+
+schema for rule:
+ <xsd:element name="Rule" type="policy-arc:RuleType"/>
+ <xsd:complexType name="RuleType">
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:Description" minOccurs="0"/>
+   <xsd:element ref="policy-arc:Subjects"/>
+   <xsd:element ref="policy-arc:Resources" minOccurs="0"/>
+   <xsd:element ref="policy-arc:Actions" minOccurs="0"/>
+   <xsd:element ref="policy-arc:Conditions" minOccurs="0"/>
+  </xsd:sequence>
+  <xsd:attribute name="RuleId" type="xsd:string" use="required"/>
+  <xsd:attribute name="Effect" type="policy-arc:EffectType" use="required"/>
+ </xsd:complexType>
+
+The policy engine will check whether the <Subject, Resource, Action, Context> tuple in request.xml satisfies the <Subject> <Resource
+> <Action> <Constrain> in each rules.
+
+
+<Subjects>
+schema:
+ <!--Definition of Subjects-->
+ <xsd:element name="Subjects" type="policy-arc:SubjectsType"/>
+ <xsd:complexType name="SubjectsType">
+  <!-- -->
+  <xsd:choice maxOccurs="unbounded">
+   <xsd:element ref="policy-arc:GroupIdRef"/>
+   <xsd:element ref="policy-arc:Subject"/>
+  </xsd:choice>
+  <xsd:attribute name="Type" type="xsd:string"/>
+ </xsd:complexType>
+
+Refer to the <Subjects> in the same file or the the other file, two related schemas:
+<GroupIdRef>
+ <xsd:element name="GroupIdRef" type="policy-arc:IdRefType"/>
+ <xsd:complexType name="IdRefType">
+  <xsd:simpleContent>
+   <!--e.g. Specify the "Id" inside a file "Group" information-->
+   <xsd:extension base="xsd:anyURI">
+    <!--e.g. "Location" specifies the path of "Group" information file-->
+    <xsd:attribute name="Location" type="xsd:anyURI" use="optional"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
+<SubjectGroup>
+ <!--"SubjectGroup" information includes a few Subject, and is stored in a file independent to policy file-->
+ <xsd:element name="SubjectGroup" type="policy-arc:SubjectGroupType"/>
+ <xsd:complexType name="SubjectGroupType">
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:Subject" maxOccures="unbounded"/>
+  </xsd:sequence>
+  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
+ </xsd:complexType>
+
+<Subject> and <SubjectFraction>
+The functionality of <SubjectFraction> has been explained in the Request.xsd part.
+
+ <xsd:element name="Subject" type="policy-arc:SubjectType"/>
+ <xsd:complexType name="SubjectType">
+  <!--One choice, if there are more than two fractions in one Subject, the request should match all of these fractions:
+      <Subject>
+       <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</SubjectFraction>
+       <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubjectFraction>
+      </Subject>-->
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:SubFraction" maxOccurs="unbounded"/>
+  </xsd:sequence>
+   <!-- The other choice:  <Subject Type="X509DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>  -->
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
+ <xsd:element name="SubFraction" type="policy-arc:SubFractionType"/>
+ <xsd:complexType name="SubFractionType">
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
+
+<Resources> 
+schema:
+ <!--Definition of Resources, similar to the definition of Subjects-->
+ <xsd:element name="Resources" type="policy-arc:ResourcesType"/>
+ <xsd:complexType name="ResourcesType">
+  <!-- -->
+  <xsd:choice maxOccurs="unbounded">
+   <xsd:element ref="policy-arc:GroupIdRef"/>
+   <xsd:element ref="policy-arc:Resource"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <!--"ResourceGroup" information includes a few Resource, and is stored in a file independent to policy file-->
+ <xsd:element name="ResourceGroup" type="policy-arc:ResourceGroupType"/>
+ <xsd:complexType name="ResourceGroupType">
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:Resource" maxOccures="unbounded"/>
+  </xsd:sequence>
+  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
+ </xsd:complexType>
+
+ <xsd:element name="Resource" type="policy-arc:ResourceType"/>
+ <xsd:complexType name="ResourceType">
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
+
+
+<Actions>
+schema:
+ <!--Definition of Actions-->
+ <xsd:element name="Actions" type="policy-arc:ActionsType"/>
+ <xsd:complexType name="ActionsType">
+  <!-- -->
+  <xsd:sequence maxOccurs="unbounded">
+   <xsd:element ref="policy-arc:Action"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+ <xsd:element name="Action" type="policy-arc:ActionType"/>
+ <xsd:complexType name="ActionType">
+   <!-- The "Type" is defined to distinguish different types of operations: e.g. Storage (read/write/list ...), Job(submit/list/kill/status ...) -->
+   <!--  <Action Type="Storage">Read</Action>   -->
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="Type" type="xsd:string" use="optional"/>
+   </xsd:extension>
+  </xsd:simpleContent>
+ </xsd:complexType>
+
+
+<Conditions>
+ <!--The relationship between CondFractions is "and"; The relationship between Condition is "or" -->
+ <xsd:element name="Conditions" type="policy-arc:ConditionsType"/>
+ <xsd:complexType name="ConditionsType">
+  <xsd:choice maxOccurs="unbounded">
+   <xsd:element ref="policy-arc:GroupIdRef"/>
+   <xsd:element ref="policy-arc:Condition"/>
+  </xsd:choice>
+ </xsd:complexType>
+
+ <!--"ConditionGroup" information includes a few Conditions, and is stored in a file independent to policy file. It is reasonable when the 
+ administrator wants to define some general condition constraints.-->
+ <xsd:element name="ConditionGroup" type="policy-arc:ConditionGroupType"/>
+ <xsd:complexType name="ConditionGroupType">
+  <xsd:sequence>
+   <xsd:element ref="policy-arc:Condition" maxOccures="unbounded"/>
+  </xsd:sequence>
+  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
+ </xsd:complexType>
+
+ <xsd:element name="Condition" type="policy-arc:ConditionType"/>
+ <xsd:complexType name="ConditionType">
+  <!--One choice, if there are more than two fractions in one Condition, the request should match all of these fractions.-->
+  <xsd:sequence minOccures="2">
+   <xsd:element ref="policy-arc:CondFraction" maxOccurs="unbounded"/>
+  </xsd:sequence>
+
+  <!-- The other choice:  -->
+  <xsd:complexContent>
+   <xsd:extension base="policy-arc:VariableType">
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+
+ <xsd:element name="CondFraction" type="policy-arc:CondFractionType"/>
+ <xsd:complexType name="CondFractionType">
+  <xsd:complexContent>
+   <xsd:extension base="policy-arc:VariableType">
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+
+ <xsd:element name="Variable" type="policy-arc:VariableType" abstract="true"/>
+ <xsd:complexType name="VariableType" abstract="true"/>
+
+</xsd:schema>
+
+*****************
+Not yet finished
+
+-----------------------------
+Description about the code
+
+
+
+
+
+-----------------------------
+Some APIs
+
+
+
+
+
+
+
