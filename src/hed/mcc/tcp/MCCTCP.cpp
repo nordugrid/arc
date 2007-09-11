@@ -6,7 +6,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/loader/Loader.h>
-#include <arc/mcc/MCCLoader.h>
+#include <arc/loader/MCCLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/Logger.h>

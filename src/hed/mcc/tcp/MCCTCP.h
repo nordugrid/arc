@@ -1,7 +1,7 @@
 #ifndef __ARC_MCCTCP_H__
 #define __ARC_MCCTCP_H__
 
-#include <arc/mcc/MCC.h>
+#include <arc/message/MCC.h>
 #include <arc/message/PayloadStream.h>
 #include "PayloadTCPSocket.h"
 
