@@ -2,9 +2,7 @@ lib_LTLIBRARIES= libecho.la
 noinst_PROGRAMS=test test_client test_service perftest
 SOURCES =
 
-libecho_ladir=$(includedir)
-libecho_la_HEADERS=echo.h
-libecho_la_SOURCES=echo.cpp
+libecho_la_SOURCES=echo.cpp echo.h
 libecho_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
 
 test_SOURCES=$(SOURCES) test.cpp

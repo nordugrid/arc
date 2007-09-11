@@ -127,7 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/*.h
+%{_includedir}/%{name}
 #%{_libdir}/lib*.a
 #%{_libdir}/lib*.la
 %{_libdir}/lib*.so

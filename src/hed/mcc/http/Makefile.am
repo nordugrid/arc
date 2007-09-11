@@ -1,9 +1,7 @@
 pkglib_LTLIBRARIES = libmcchttp.la
 noinst_PROGRAMS=test http_test http_test_withtls
 
-libmcchttp_ladir=$(includedir)
-libmcchttp_la_HEADERS=MCCHTTP.h PayloadHTTP.h
-libmcchttp_la_SOURCES=MCCHTTP.cpp PayloadHTTP.cpp
+libmcchttp_la_SOURCES=MCCHTTP.cpp PayloadHTTP.cpp MCCHTTP.h PayloadHTTP.h
 libmcchttp_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs
 libmcchttp_la_LIBADD=$(top_srcdir)/src/hed/libs/message/libmessage.la
 libmcchttp_la_LDFLAGS=$(LIBXML2_LIBS) -no-undefined -avoid-version -module

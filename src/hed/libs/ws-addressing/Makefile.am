@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES= libwsaddressing.la
 noinst_PROGRAMS=test
 
-libwsaddressing_ladir=$(includedir)
+libwsaddressing_ladir=$(pkgincludedir)/ws-addressing
 libwsaddressing_la_HEADERS=WSA.h
 libwsaddressing_la_SOURCES=WSA.cpp
 libwsaddressing_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs

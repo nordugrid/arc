@@ -1,9 +1,6 @@
 lib_LTLIBRARIES=libsecurity.la
-SUBDIRS=
-noinst_PROGRAMS=
-SOURCES = 
 
-libsecurity_ladir=$(includedir)
+libsecurity_ladir=$(pkgincludedir)/security
 libsecurity_la_HEADERS=SimpleListAuthZ.h   SimpleListPDP.h  ArcPDP.h  SecHandler.h  PDP.h Security.h
 libsecurity_la_SOURCES=SimpleListAuthZ.cpp SimpleListPDP.cpp ArcPDP.cpp SecHandler.cpp PDP.cpp Security.cpp PDPplugin.cpp
 libsecurity_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs -I$(top_srcdir)/src/hed/libs

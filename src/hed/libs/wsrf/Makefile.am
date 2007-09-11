@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES= libwsrf.la
 #noinst_PROGRAMS=test
 
-libwsrf_ladir=$(includedir)
+libwsrf_ladir=$(pkgincludedir)/wsrf
 libwsrf_la_HEADERS=WSRF.h   WSRFBaseFault.h   WSResourceProperties.h
 libwsrf_la_SOURCES=WSRF.cpp WSRFBaseFault.cpp WSResourceProperties.cpp 
 libwsrf_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/src/libs
