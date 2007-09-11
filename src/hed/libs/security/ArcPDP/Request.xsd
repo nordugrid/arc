@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/request-arc"
- xmlns:request-arc="http://www.nordugrid.org/ws/schemas/request-arc"
+ xmlns:request-arc="http://www.nordugrid.org/schemas/request-arc"
  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
  
  <xsd:element name="Request" type="request-arc:RequestType"/>
  <xsd:complexType name="RequestType">
   <xsd:sequence>
-   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded/">
+   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded/"/>
   </xsd:sequence>
  </xsd:complexType>
 
  <xsd:element name="RequestItem" type="request-arc:RequestItemType"/>
  <xsd:complexType name="RequestItemType">
   <xsd:sequence>
-   <xsd:element ref="request-arc:Subject"  maxOccurs="unbounded/">
+   <xsd:element ref="request-arc:Subject"  maxOccurs="unbounded/"/>
    <xsd:element ref="request-arc:Resource" minOccurs="0" maxOccurs="unbounded"/>
    <xsd:element ref="request-arc:Action" minOccurs="0" maxOccurs="unbounded"/>
    <xsd:element ref="request-arc:Context" minOccurs="0" maxOccurs="unbounded"/>
@@ -26,7 +26,7 @@
    <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="DataType" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
   <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
@@ -36,7 +36,7 @@
    <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="DataType" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
  </xsd:complexType>
 
  <xsd:element name="Action" type="request-arc:ActionType"/>
@@ -45,7 +45,7 @@
    <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="DataType" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
  </xsd:complexType>
 
  <xsd:element name="Context" type="request-arc:ContextType"/>
@@ -54,7 +54,7 @@
    <xsd:any namespace="##any" processContents="lax"  maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="DataType" type="xsd:anyURI" use="required"/>
+  <xsd:attribute name="Type" type="xsd:anyURI" use="required"/>
  </xsd:complexType>
 
 </xsd:schema>
