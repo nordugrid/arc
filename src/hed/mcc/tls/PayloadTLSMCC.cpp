@@ -39,17 +39,18 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger):
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
    if(!master_) return;
-/*
-   unsigned long err = 0;
+
+/*   unsigned long err = 0;
    int counter=0;
 */
- /*  if(ssl_) { 
+ 
+   if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
 	logger.msg(WARNING, "Failed to shut down SSL");
       };
-*/
-/*
-    while((err==0)&&(counter<60)){
+
+
+/*    while((err==0)&&(counter<60)){
 	err=SSL_shutdown(ssl_);
 	if (err==0){
 	       	sleep(1);
@@ -58,23 +59,10 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     if(err<0)
       logger.msg(ERROR, "Failed to shut down SSL");
   }
-  if(ssl_){
-*/
-  /*  SSL_free(ssl_);
+  if(ssl_){*/
+    SSL_free(ssl_);
     ssl_=NULL;
-  }*/
-  
-  unsigned long res = 0;
-  res = SSL_shutdown(ssl_);
-  if (res == 0){
-    /* Need to call it again to complete the shutdown. */
-    res = SSL_shutdown(ssl_);
-    if (res == 0){
-      logger.msg(ERROR, "Couldn't shut down SSL connection, We will leak memory!");
-    }
   }
-  SSL_free(ssl_);
-  ssl_ = NULL;
 }
 
 } // namespace Arc

@@ -2,8 +2,8 @@
 #define __ARC_POLICY_H__
 
 #include <list>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include "../Result.h"
 #include "../EvaluationCtx.h"
 

@@ -1,4 +1,6 @@
+SUBDIRS = ArcPDP
 lib_LTLIBRARIES=libsecurity.la
+SOURCES =
 
 libsecurity_ladir=$(pkgincludedir)/security
 libsecurity_la_HEADERS=SimpleListAuthZ.h   SimpleListPDP.h  ArcPDP.h  SecHandler.h  PDP.h Security.h

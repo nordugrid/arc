@@ -217,7 +217,8 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
            tls_process_error(logger);
 	   return;
    }
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
+   //SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
+   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
 #ifndef NO_RSA
    RSA *tmpkey;
    tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL);

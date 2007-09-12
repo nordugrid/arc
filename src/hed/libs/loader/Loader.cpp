@@ -154,7 +154,7 @@ namespace Arc {
 
   static SecHandler* MakeSecHandler(Config *cfg, ChainContext *ctx,
       Loader::sechandler_container_t& sechandlers,
-      SecHandlerFactory *sechandler_factory, XMLNode node) {
+      SecHandlerFactory *sechandler_factory, XMLNode& node) {
     if(!node) return NULL;
     XMLNode desc_node;
     std::string refid = node.Attribute("refid");

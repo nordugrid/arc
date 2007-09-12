@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-//#include <iostream>
+#include <iostream>
 //#include <fstream>
 #include <signal.h>
 

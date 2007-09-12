@@ -3,8 +3,8 @@
 
 #include <list>
 #include <fstream>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include "AttributeValue.h"
 #include "StringAttribute.h"
 
