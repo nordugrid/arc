@@ -1,8 +1,0 @@
-test
-http_test
-client
-*.o
-.deps
-.libs
-Makefile
-Makefile.in
