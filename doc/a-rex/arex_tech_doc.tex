@@ -116,7 +116,8 @@
 
 
 \begin{center}
-\textsc{\large The ARC Computational Job Management Module - A-Rex}
+\textsc{\large The ARC Computational Job Management Component
+- A-Rex}
 \par\end{center}{\large \par}
 
 \vspace*{0.5cm}
@@ -169,63 +170,70 @@ is called a \emph{session}.
 
 Each job gets a directory on the CE called the \emph{session directory}
 (SD). Input files are gathered in the SD. The job is supposed to produce
-new data files also in the SD. GM does not guarantee the availability
-of any other places accessible by the job other than SD (unless such
-place is part of requested Runtime Environement). The SD is also the
-only place which is controlled by the GM. It is is accessible by the
-user from outside through HTTPS and GridFTP protocols. Any file created
-outside the SD is not controlled by the GM. Any exchange of data between
-client and GM (including also program modules) is done through GridFTP
-\cite{gridftp} or HTTPS protocols depending on selected interface.
-A URL for accessing input/output files is obtained through the Information
-System or WS Information Interface of A-Rex.
+new data files  in the  SD as well. GM does not guarantee the
+availability of any other places accessible by the job other than
+SD (unless such a place is part of a requested Runtime Environement).
+The SD is also the only place which is controlled by the GM. It is
+is accessible by the user from outside through HTTPS and GridFTP protocols.
+Any file created outside the SD is not controlled by the GM. Any exchange
+of data between client and GM (including also program modules) is
+done through GridFTP \cite{gridftp} or HTTPS protocols depending
+on the selected interface. A URL for accessing input/output files
+is obtained through the Information System or the WS Information Interface
+of A-Rex.
 
 Each job gets an identifier (\textit{jobid}). This is a handle which
 identifies the job in the GM and the Information System \cite{is}.
 
-Each job is initiated and controlled through GFS or WS. Complete description
-of job (not data) is passed to the GM through GFS in RSL \cite{rsl}
-or through WS in JSDL-coded \cite{jsdl} description (job description
-- JD).
+  Jobs are initiated and controlled through GFS or WS. Complete
+job descriptions   (JD)   are passed to the GM either
+through GFS in RSL \cite{rsl} or through WS in JSDL \cite{jsdl}
+coded description     . Input data files
+and job executables are transferred separately through the same interface,
+as described in the next section.
 
 
 \section{Input/output data\label{sec:input/output data}}
 
 The main task of the GM is to take care of processing input and output
-data (files) of the job. Input files are gathered in SD. There are
-2 ways to put file into the SD:
+data (files) of the job. Input files are gathered in the SD. There
+are two ways to put a file into the SD:
 
 \begin{itemize}
-\item Downloads initiated by the GM. Such files (name and source) are defined
-in the JD. It is a sole responsibility of the GM to make sure that
-a file will be available in the SD.\\
-The supported sources are at the moment: GridFTP, FTP, HTTP, HTTPS
-(HTTP over SSLv3) and HTTPg (HTTP over GSI). Also some nonstandard
-sources are supported. Those are described below.
-\item Upload initiated by the user directly or through the User Interface
+\item Download is initiated by the GM --  This is the case for
+files     defined in the JD (with name and source).
+      The GM alone is responsible to make
+sure that all required files will be available in the SD.\\
+The supported protocols for sources  at the moment are: GridFTP,
+FTP, HTTP, HTTPS (HTTP over SSLv3) and HTTPg (HTTP over GSI). Also
+some nonstandard sources are supported. Those are described below.
+\item Upload is initiated by the user directly or through the User Interface
 (UI). Because the SD becomes available immediately at the time of
 submission of JD, UI can (and should) use that to upload data files
-which are not otherwise accessible by the GM. An example of such files
-can be the main executable of the job, files containing job's options/parameters,
-etc. These files can (and should) also be specified in the JD.
+which are not otherwise accessible by the GM.  Examples of such
+files  are the main executable of the job,   the
+job's input files, etc. These files can (and should)
+also be specified in the JD.
 \end{itemize}
 \textbf{There is no} other reliable way for a job to obtain input
 data on the CE belonging to NorduGrid. Access to AFS, NFS, FTP, HTTP
-and any other remote data transport during execution of the job is
+and any other remote data transport during execution of a job is
 not guaranteed (at least not by GM).
 
-Job stores output files in the SD. Those files also belong to 2 groups:
+Jobs should store output files in thir SD. Like input files,
+output files  belong into two groups:
 
 \begin{itemize}
 \item Files which are supposed to be moved to a \emph{Storage Element} (SE)
-and optionally registered in some \emph{Indexing Service} like \emph{Replica
-Catalog} (RC). The GM takes care of those files. They have to be specified
-in the JD. If job fails during any stage of processing no attept is
-taken to transfer those files to their final destination, unless there
-is option \emph{preserve=yes} specified in their URLs.
-\item Files which are supposed to be fetched by the user. The user runs
-UI to obtain those files. They \textbf{must} also be specified in
-the JD.
+and optionally registered in some \emph{Indexing Service} like the
+Globus \emph{Replica Location Service } (RLS)  --
+The GM takes care of these files. They have to be specified in the
+JD. If the job fails during any stage of processing, no attept is
+made to transfer those files to their final destination, unless
+the  option \emph{preserve=yes} is specified in their URLs.
+\item Files which are supposed to be fetched by the user -- The user has
+to use a tool like the UI to obtain these files. They \textbf{must}
+also be specified in the JD.
 \end{itemize}
 
 \section{\label{Section: Job Flow}Job flow}
@@ -242,75 +250,83 @@ states of a job.%
 \caption{\label{job states diagram}Job states}
 \end{figure}
 A user can examine the state of a job by querying the NorduGrid Information
-System (IS) using the UI or any other tool. Please remember that IS
-can manipulate with state names to make them more user friendly and
-to combine them with states introduced by other parts of whole setup.
-Another way is to access virtual informational files through GridFTP
-interface or to use query metod of JCS. 
+System (IS) using the UI or any other suitable tool. Please remember
+that the IS can manipulate  state names to make them more user
+friendly and to combine them with states introduced by other parts
+of the whole setup. Another way is to access virtual informational
+files through GridFTP interface or to use query method of WS interface. 
 
-Configuration can put limits on amout of simultaneous jobs at some
-states. If such limit is reached job stays in it's current state waiting
-for free slot. This situation is presented by prepending current state
-name with \textbf{PENDING:} status mark. 
+Configuration can put limits on the amout of simultaneous jobs in
+some states. If such a limit is reached, a job ready to enter into
+the state in question will stay in it's current state waiting for
+a free slot. This situation is presented by prepending the prefix
+\textbf{PENDING:} to the current state name  \textbf{}
+in the job's status mark. 
 
-Below is description of all actions taken by the GM at every state:
+Below is the description of all actions taken by the GM at every state:
 
 \begin{itemize}
-\item \textbf{Accepted} - At this state the job has been submitted to a
-CE but not processed yet. The GM will analyze the JD and move to the
-next stage. If JD can not be processed the job will be canceled and
-moved to the state \textbf{Finishing}.
-\item \textbf{Preparing} - The input data is being gathered in the SD. The
-GM is downloading files specified in the JD and waiting for files
-which are supposed to be downloaded by the UI. If all files are successfully
-gathered the job moves to the next state. If \textbf{any} file can't
-be downloaded or it takes UI too long to upload a file - the job moves
-to \textbf{Finishing} state. It is possible to put limit on number
-of simultaneous \textbf{Preparing} jobs. Those jobs out of limit will
-stay in previous \textbf{Accepted} state with PENDING mark. Exceptions
-are jobs which has no files to be downloaded. Those are processed
-out of limits.
-\item \textbf{Submitting} - This is a point of interaction with \emph{Local
-Resource Management System} (LRMS). At the moment PBS is supported
-best and correspoding backends are provided with default installation.
-The job is being submitted for execution. If the local job submission
-is successful the job moves to the next state. Otherwise it moves
-to \textbf{Finishing}. It is possible to limit number of jobs in \textbf{Submitting}
-and following \textbf{InLRMS} states.
+\item \textbf{Accepted} - In this state the job has been submitted to
+a CE but is not processed yet. The GM will analyze the JD and move
+to the next stage. If the JD can not be processed the job will be
+canceled and moved to the state \textbf{Finishing}.
+\item \textbf{Preparing} - The input data is being gathered in the SD (stage-in).
+The GM is downloading the files specified in the JD and is waiting
+for files which are supposed to be uploaded by the UI. If
+all files are successfully gathered the job moves to the next state.
+If \textbf{any} file can't be downloaded or it takes the UI too long
+to upload a file,  the job moves to \textbf{Finishing} state. It
+is possible to put a limit on the number of simultaneous \textbf{Preparing}
+jobs. If this limit is exceeded, jobs ready to enter the \textbf{Preparing}
+state      will stay in the \textbf{Accepted}
+state, but prefixed with the PENDING: mark. Exceptions are jobs which
+have no files to be downloaded. These are processed out of limits.
+\item \textbf{Submitting} -      The job is being
+passed for execution to the \emph{Local Resource Management System}
+(LRMS). At the moment PBS is supported best but correspoding backends
+for many other LRMSs are provided with the default installation. 
+      If the local job submission
+is successful the job moves to the \textbf{InLRMS} state. Otherwise
+it moves to \textbf{Finishing}. It is possible to limit the agregate
+number of jobs in \textbf{Submitting} and  \textbf{InLRMS}
+states.
 \item \textbf{InLRMS} - The job is queued or being executed in the LRMS.
-The GM takes no actions except waiting until job finishes.
-\item \textbf{Cancelling} - Necessary action to cancel job in the LRMS is
-being taken.
-\item \textbf{Finishing} - The output data is being processed. Specified
-data files are moved to the specified SEs and are optionally registered
-at RC. The user can download data files from the SD by using UI or
-any other tool. All the files not specified as output files are removed
-from the SD at very beginning of this state. It is possible to limit
-number of simultaneous jobs in this state.
+The GM takes no actions except waiting until the job finishes.
+\item \textbf{Cancelling} - Necessary action to cancel the job in the LRMS
+is being taken.
+\item \textbf{Finishing} - The output data is being processed (stage-out).
+Specified data files are moved to the specified SEs and are optionally
+registered at  an Indexing Service. The user can download data files
+from the SD by using the UI or  other adequate tool. All the files
+not specified as output files are removed from the SD at very beginning
+of this state. It is possible to limit number of simultaneous jobs
+in this state.
 \item \textbf{Finished} - No more processing is performed by the GM. The
 user can continue to download data files from the SD. The SD is kept
-available for some time (default is 1 week). After that it is moved
-to the state \textbf{Deleted}. The 'deletion' time can be queried
-at NorduGrid Information System as attribute \texttt{nordugrid-pbs-job-sessiondirerasetime}
-of \texttt{nordugrid-pbs-job}. If job was moved to \textbf{Finished}
-because of failure, it may be restarted on request of client. Job
-is moved to a state previous to one which failed and is assigned mark
-PENDING. This is needed in order to not break the configuration limits.
-Exception is a job failed in \textbf{InLRMS} state and lacking input
-files specified in JD. Such job is treated like failed in \textbf{Preparing}
-state.
-\item \textbf{Deleted} - Job is moved to this state if user does not request
-job to be cleaned. Only minimal subset of information about such job
-is kept.
+available for some time (default is 1 week). After that the job
+is moved to the state \textbf{Deleted}. The 'deletion' time can be
+obtained by querying the NorduGrid Information System  attribute
+\texttt{nordugrid-pbs-job-sessiondirerasetime} of a \texttt{nordugrid-pbs-job}
+entry. If a job was moved to \textbf{Finished} because of failure,
+it may be restarted on request of a client. When restarted, a job
+is moved to the state previous to the one in which it failed and
+is assigned mark PENDING. This is needed in order to not break the
+configuration limits. Exception is a job failed in \textbf{InLRMS}
+state and lacking input files specified in JD. Such a job is treated
+like failed in \textbf{Preparing} state.
+\item \textbf{Deleted} - The job is moved to this state if the user have
+not requested job to be cleaned before the SD's lifetime expires.
+Only minimal subset of information about such job is kept. The SD
+is not available anymore.
 \end{itemize}
-In the case of the failure special processing is applied to output
+In  case of a failure special processing is applied to output
 files. All specified output files are treated as \textbf{downloadable
-by user}. No files will be moved to the SE.
+by the user}. No files will be moved to their destination SE.
 
 
 \section{URLs}
 
-The GM and it's components support following data transfer protocols
+The GM and it's components support the following data transfer protocols
 and corresponding URLs: \emph{ftp, gsiftp, http, httpg, https, se,
 rc} and \emph{rls.} For more information please see {}``Protocols,
 Uniform Resource Locators (URL) and extensions supported in ARC''
@@ -325,18 +341,18 @@ document \cite{urls}.
 For each local UNIX user listed in the GM configuration a \textit{control
 directory} exists. In this directory the GM stores information about
 jobs belonging to that user. Multiple users can share the same \textit{control
-directory}. To make it easier to recover in the case of failure, the
+directory}. To make it easier to recover in  case of failure, the
 GM stores most information in files rather than in memory. All files
-belonging to same job have names starting with \textbf{job.ID.} here
-ID is the job identifier.
+belonging to same the job have names starting with \textbf{job.ID.,}
+where ID is the job identifier.
 
 The files in the control directory and their formats are described
 below:
 
 \begin{itemize}
-\item \textit{job.ID.status} - current state of the job. It contains one
-word of text representing the current state of the job. Possible values
-are :
+\item \textit{job.ID.status} - current state of the job. This is a plain
+text file containing a single word   representing the current
+state of the job. Possible values are :
 
 \begin{itemize}
 \item ACCEPTED
@@ -350,55 +366,62 @@ are :
 \end{itemize}
 \end{itemize}
 See section \ref{Section: Job Flow} for a description of the various
-states. Additionally each value can be prepended with a prefix {}``PENDING:''
-(like PENDING:ACCEPTED, see section \ref{Section: Job Flow}). That
-is used to show that the job is \emph{ready} to be moved to a next
-state and it stays in a current state \emph{only} because some limits
-set in configuration are exceeded.
+states. Additionally each value can be prepended  the prefix
+{}``PENDING:'' (like PENDING:ACCEPTED, see section \ref{Section: Job Flow}).
+This is used to show that a job  is \emph{ready} to be moved
+to the next state but it has to stay in it's current state \emph{only}
+because otherwise some limits set in the configuration would be
+exceeded.
 
 \begin{itemize}
 \item \textit{job.ID.description} - contains the RSL description of the
 job.
-\item \textit{job.ID.local} - information about job used by the GM. It consists
-of lines of format \textit{{}``name = value''} . Not all of them
-are always available. The following names are defined:
+\item \textit{job.ID.local} - information about the job used by the GM.
+It consists of lines of format \textit{{}``name = value''} . Not
+all of them are always available. The following names are defined:
 
 \begin{itemize}
-\item \textit{subject} - user subject also known as the distinguished name
-(DN)
-\item \textit{starttime} - the GMT time when the job was accepted represented
-in Generalized Time format of LDAP 
-\item \textit{lifetime} - time period to live for the SD after job finished
-in seconds
-\item \textit{cleanuptime} - the GMT time when job to be removed from cluster
-and SD deleted in Generalized Time format
+\item \textit{subject} - user certificate's subject, also known as the distinguished
+name (DN)
+\item \textit{starttime} -  GMT time when the job was accepted represented
+in the Generalized Time format of LDAP 
+\item \textit{lifetime} - time period to  preserve the SD after the
+job has finished in seconds
+\item \textit{cleanuptime} -  GMT time when the job should be removed
+from the cluster and it's SD deleted in Generalized Time format
 \item \textit{notify} - email addresses and flags to send mail to about
-job specified status changes
-\item \textit{processtime} - the GMT time when to start processing the job
+the job specified status changes
+\item \textit{processtime} -  GMT time when to start processing the job
 in Generalized Time format
-\item \textit{exectime} - the GMT time when to start job execution in Generalized
+\item \textit{exectime} -  GMT time when to start job execution in Generalized
 Time format
-\item \textit{expiretime} - the GMT time when credentials delegated to job
-expire in Generalized Time format
-\item \textit{rerun} - number of retries left to run the job
+\item \textit{expiretime} -  GMT time when the credentials delegated
+to the job expire in Generalized Time format
+\item \textit{rerun} - number of retries left to rerun the job
 \item \textit{jobname} - name of the job as supplied by the user
-\item \textit{lrms} - name of LRMS to run the job at
+\item \textit{lrms} - name of the LRMS backend     to be used
+for local submission
 \item \textit{queue} - name of the queue to run the job at
-\item \textit{localid} - job id in LRMS (appears only then the job is at
-state \textbf{InLRMS})
-\item \textit{args} - list of command-line arguments including the executable
-\item \textit{downloads} - number of files to download into SD before execution
-\item \textit{uploads} - number of files to upload from SD after execution
+\item \textit{localid} - job id in LRMS (appears only after the job
+ has reached state \textbf{InLRMS})
+\item \textit{args} - executable name followed by a list of command-line
+arguments   
+\item \textit{downloads} - number of files to download into the SD before
+execution
+\item \textit{uploads} - number of files to upload from the SD after execution
 \item \textit{gmlog} - directory name which holds files containing information
-about job when accessed through GridFTP interface
-\item \textit{clientname} - name and ip address:port of client machine (name
-is provided by user interface)
-\item \textit{clientsoftware} - version of software used to submit job
-\item \textit{sessiondir} - SD of job
-\item \textit{failedstate} - state at which job failed (available only if
-it is possible to restart job)
-\item \textit{jobreport} - URL of \emph{logger service} used to keep track
-of executed jobs (one requested by user)
+about the job when accessed through GridFTP interface
+\item \textit{clientname} - name (as provided by the user interface) and
+ip address:port of the submitting client machine   
+  
+\item \textit{clientsoftware} - version of software used to submit the job
+\item \textit{sessiondir} - the job's SD  
+\item \textit{failedstate} - state in which job failed (available only
+if it is possible to restart the job)
+\item \textit{jobreport} - URL of a user requested \emph{logger service}.
+The GM will also send job records to this service in addition to the
+default logger service configured in the configuration  
+       
 \end{itemize}
 \end{itemize}
 This file is filled partially during job submission and fully when
@@ -532,10 +555,10 @@ inside Hosting Envirnoment Daemon {[}HED] infrastructure\cite{hed}.
 \subsubsection{Basic Execution Service Interface}
 
 The job submission and control interface is based on document produced
-by OGF OGSA Basic Execution Services (BES) Working Group\cite{bes}.
-The exchange of SOAP messages is performed over HTTPS protocol. The
-BES interface is represented by two port-types - BES-Management and
-BES-Factory. The former is made to control the A-REX service itself
+by the OGF OGSA Basic Execution Services (BES) Working Group\cite{bes}.
+The exchange of SOAP messages is performed over the HTTPS protocol.
+The BES interface is represented by two port-types - BES-Management
+and BES-Factory. The former is made to control the A-REX service itself
 and thus defines operations to start and stop the functionality of
 the BES service. A-REX does not implement remote control of service
 functionality. Hence the BES-Management port-type is not implemented.
@@ -582,10 +605,10 @@ of the job.
 \item Fault(s)
 
 \begin{itemize}
-\item \emph{NotAuthorizedFault}: Indicates that client is not allowed to
-do this operation.
+\item \emph{NotAuthorizedFault}: Indicates that the client is not allowed
+to do this operation.
 \item \emph{InvalidActivityIdentifierFault}: There is no such job/activity.
-\item \emph{CantApplyOperationToCurrentStateFault}: Requested transition
+\item \emph{CantApplyOperationToCurrentStateFault}: The requested transition
 is not possible.
 \end{itemize}
 \end{itemize}
@@ -721,8 +744,8 @@ credentials being renewed) unrelated to other operations of the service.
 based on the public key from the DelegateCredentialsInit signed by
 the user's proxy certificate. Also includes the Id element which identifies
 the private key stored at the service side associated with these credentials.
-The reference element refers to the object which these credentials
-should be applied to in a way specific to the service. The same element
+The reference element refers to the object to which these credentials
+should be applied  in a way specific to the service. The same element
 must also be used for delegating credentials as part of other operations
 on service.
 \end{itemize}
@@ -792,8 +815,8 @@ execution.
 \item [{\emph{Target}}] \emph{-} destination the file will be delivered
 to after execution.
 \end{lyxlist}
-\item [{\emph{Input}\,\ (POSIX)}] - file to be used as standard input
-for the executable.
+\item [{\emph{Input}\ (POSIX)}] - file to be used as standard input for
+the executable.
 \item [{\emph{Output}\ (POSIX)}] - file to be used as standard output
 for the executable.
 \item [{\emph{Error}\ (POSIX)}] - file to be used as standard error for
@@ -875,7 +898,7 @@ when corresponding files are removed from cache. They can also be
 handled by some external routines. Every time record is added to \emph{old}
 it is removed from \emph{new}.
 \item \textit{statistics} - consists of strings containing \emph{name=value}
-. Following names are defined:
+pairs. Following names are defined:
 
 \begin{itemize}
 \item \textit{hardsize} -size of file system for storing cached data
@@ -906,37 +929,43 @@ has to be stored on filesystem which has support for files' locking.
 
 \subsection{How it works}
 
-If job requests input file, which can/allowed to be cached, it is
-stored in cache directory instead and soft-link is created in the
-SD, pointing to that file. Or file can be stored in cache and then
-copied to the SD. Last option is more secure and hence advised.
+If a job requests an input file which is subject  for
+cacheing, it is stored in the cache directory instead of the SD.
+The file is made available to the job by either  soft-linking it
+  in the SD         
+    or copying it to the SD. The latter option
+is more secure and hence advised.
 
-Before downloading file the GM tries to determine it's size and to
-preallocate space in cache directory, by writing file of same size.
-If that fails (file system has no more space), it tries to remove
-oldest cache files, which are not being used by any job. That means
-\textbf{hard limit of cache size is space available at file-system}.
-In case cache gets full and it is impossible to free any space, download
-fails and is retried without using cache.
+Before downloading a file the GM tries to determine it's size and
+then tries to preallocate space in the cache directory by writing
+a file of the same size. If this fails (possibly because the file
+system has no more space), it tries to the remove oldest cached files
+which are not being used by any job. This means that \textbf{the
+hard limit of cache size is the space available in the file-system}.
+In case cache gets full and it is impossible to free enough space,
+the download fails and then is retried without using cache.
 
-Before giving access to already cached file the GM contacts initial
-file source to check if user is allowed to do that if protocols allows
-to do that.
+Before giving access to an already cached file, the GM contacts the
+original file source to check if the user     has
+suficient access rights to the file. Not all protocols  
+ make this check possible. 
 
-Also file creation or validity times are checked to make sure cached
-file is fresh enough. If it is impossible to obtain creation and invalidation
-times for file it is invalidated 24 hours after downloaded.
+Also, file creation or validity times are checked to make sure the
+cached file is fresh . If it is impossible to obtain creation
+and invalidation times  , the file is invalidated 24 hours
+after it was downloaded.
 
-Also the GM checks cache periodically. If used space exceeds high
-water-mark given in configuration file (\emph{softsize}) it tries
-to remove oldest unused files to reduce size to low water-mark. This
-sets soft limit of cache size.
+ The GM checks the cache periodically. If  the space used
+by cache exceeds the high water-mark given in the configuration file
+(\emph{softsize}), it tries to remove the oldest unused files until
+cache size drops below the  low water-mark. This sets the
+soft limit of cache size.
 
-There are 2 kinds of caches supported. Files in \textit{private} cache
-are owned by Unix user to which grid user is mapped. Those files are
-readable only by that particular Unix user. Another kind of cache
-is \textit{shared}. Files are owned by Unix user who started GM and
-are readable by everyone.
+There are two kinds of caches supported. Files in \textit{private}
+cache are owned by the Unix user to which a grid user is mapped. Those
+files are readable only by that particular Unix user. Another kind
+of cache is \textit{shared}. Files in the shared cache are owned by
+the Unix user who started GM and are readable by everyone.
 
 
 \section{Files and directories\label{sec:files and directories}}
@@ -944,29 +973,33 @@ are readable by everyone.
 
 \subsection{Modules}
 
-The GM consists of few separate executable modules. Those are:
+The GM consists of several separate executable modules. These
+are:
 
 \begin{itemize}
-\item \textit{grid-manager} - Main module. It is responsible for processing
-the job, moving it through states, running other modules.
+\item \textit{grid-manager} - The main module. It is responsible for processing
+ jobs, moving them through states and running other modules.
 \item \textit{downloader} - This is a module responsible for gathering input
 files in the SD. It processes the \textit{job.ID.input} file and updates
 it.
 \item \textit{uploader} - This module is responsible for delivering output
-files to the specified SEs and registration at the RC. It processes
-and updates the \textit{job.ID.output} file.
-\item \emph{cache-register} - Utility to register cached data into Indexing
-Services like RC and RLS. It reads and modifies cache informational
-files \emph{old} and \emph{new} \ref{sec:cache}. Configuration is
-read directly from the GM's configuration file \ref{SubSection: ConfigFile}.
-It is run by the GM every 5 minutes.
+files to the specified SEs and registration at  an Indexding
+Service (like RLS) as needed. It processes and updates the \textit{job.ID.output}
+file.
+\item \emph{cache-register} - Utility to register cached data into an Indexing
+Service    . It reads and modifies cache informational
+files \emph{old} and \emph{new} (as described in section \ref{sec:cache}).
+Configuration is read directly from the GM's configuration file (see
+section \ref{SubSection: ConfigFile}). It is run by the GM every
+5 minutes.
 \item \emph{frontend-info-collector} - Utility to gather information about
-frontend and to put it into \emph{job.ID.diag} file.
-\item \emph{gm-kick} - Sends signal to the GM though FIFO file to wake it
-up. It's used to increase responsiveness of GM.
+the frontend  . It puts  collected information into the \emph{job.ID.diag}
+file.
+\item \emph{gm-kick} - Sends a signal to the GM though a FIFO file to wake
+it up. It's used to increase responsiveness of GM.
 \end{itemize}
-Following modules are always run under Unix account to which user
-is mapped.
+The following modules are always run under the Unix account to which
+a grid user is mapped.
 
 \begin{itemize}
 \item \textit{smtp-send.sh} and \textit{smtp-send} - These are the modules
@@ -976,97 +1009,108 @@ script \textit{smtp-send.sh}.
 \item \textit{submit-{*}-job} - Here {*} stands for the name of the LRMS.
 Curently supported LRMS are PBS/Torque, Condor and SGE. Also \emph{fork}
 pseudo-LRMS is supported for testing purposes. This module is responsible
-for the job submission to the LRMS.
-\item \textit{cancel-{*}-job} - This one is for canceling the job, which
-was submitted to LRMS.
+for  job submission to the LRMS.
+\item \textit{cancel-{*}-job} - This script is for canceling  jobs
+which have been already submitted to the LRMS.
 \item \textit{scan-{*}-job} -This shell script is responsible for notifying
-the GM about completion of the job. It's implementation for PBS system
+the GM about completion of  jobs. It's implementation for PBS 
 uses server logs to extract information about jobs. If logs are not
-available it uses less reliable \emph{qstat} command for that. other
-backends use different techniques.
+available it uses the less reliable \emph{qstat} command for that.
+Other backends use different techniques.
 \end{itemize}
-Also there is administrator utility:
+ In addition, there is also an administration utility:
 
 \begin{itemize}
-\item \textit{gm-jobs} - prints list of jobs available on cluster and amount
-of jobs in every state.\\
+\item \textit{gm-jobs} - prints a list of jobs available on the cluster
+and the number of jobs in each state.\\
 \hspace*{0.5cm}gm-jobs {[}-h] {[}-l] {[}-u uid] {[}-U name]\\
-\hspace*{0.5cm}-l-l - print more information about each job,\\
-\hspace*{0.5cm}-l-u - pretend utility is run by user with id \emph{uid},\\
-\hspace*{0.5cm}-l-l - pretend utility is run by user with name \emph{name}.
+\hspace*{0.5cm}-l -- print more information about each job,\\
+\hspace*{0.5cm}-u -- pretend utility is run by user with id \emph{uid},\\
+\hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name}.
 \end{itemize}
 GM comes with plugins useable for various authorization purposes (see
-for example description of \emph{authplugin} command below):
+for example the description of \emph{authplugin} command below):
 
 \begin{itemize}
 \item \textit{inputcheck} - checks if all input files specified in job description
 are downloadable.\\
 \hspace*{0.5cm}inputcheck {[}-h] {[}-d debug\_level] RSL\_fle {[}proxy\_file]\\
-\hspace*{0.5cm}-lRSL\_file -file with job description,\\
-\hspace*{0.5cm}-lproxy\_file - credentials proxy.
+\hspace*{0.5cm}- RSL\_file -- file with job description,\\
+\hspace*{0.5cm}- proxy\_file -- credentials proxy.
 \item \textit{lcas} - executes LCAS plugins on credentials and returns 0
 if authorization passed.\\
 \hspace*{0.5cm} lcas credentials description {[}library {[}db {[}directory]]]\\
-\hspace*{0.5cm}-lcredentials - path to file with credentials to authorize,\\
-\hspace*{0.5cm}-ldescription - path to file with job description,\\
-\hspace*{0.5cm}-llibrary - path to LCAS library (full or relative
+\hspace*{0.5cm}- credentials -- path to file with credentials to
+authorize,\\
+\hspace*{0.5cm}- description -- path to file with job description,\\
+\hspace*{0.5cm}- library -- path to LCAS library (full or relative
 to LCAS directory),\\
-\hspace*{0.5cm}-ldb - path to LCAS DB file (full or relative to LCAS
-directory),\\
-\hspace*{0.5cm}-ldirectory - LCAS directory.
+\hspace*{0.5cm}- db -- path to LCAS DB file (full or relative to
+LCAS directory),\\
+\hspace*{0.5cm}- directory -- LCAS directory.
 \end{itemize}
 
 \subsection{Directories}
 
 The GM is installed into a single installation point referred as \$NORDUGRID\_LOCATION
-and following sub-directories are used:
+and the following sub-directories are used:
 
 \begin{LyXParagraphLeftIndent}{1cm}
-\$NORDUGRID\_LOCATION/bin - tools
+\$NORDUGRID\_LOCATION/bin -- tools
 
-\$NORDUGRID\_LOCATION/libexec - program modules used by GM
+\$NORDUGRID\_LOCATION/libexec -- program modules used by GM
 
-\$NORDUGRID\_LOCATION/etc - configuration files, deprecated, central
-configuration file is used by deault
+\$NORDUGRID\_LOCATION/etc -- configuration files, deprecated, central
+configuration file is used by default
 
-\$NORDUGRID\_LOCATION/sbin - daemons
+\$NORDUGRID\_LOCATION/sbin -- daemons
 
-\$NORDUGRID\_LOCATION/lib - gridftp server's plugins and API libraries
-
-The GM also uses following directories:
+\$NORDUGRID\_LOCATION/lib -- gridftp server's plugins and API libraries
 
 \end{LyXParagraphLeftIndent}
+The GM also uses following directories:
+
 \begin{itemize}
-\item \textit{session root directory} - In this directory the SD is created.
-It can be multiple directories for the various users specified in
-the configuration file.\\
-There are 2 processes which need to have a permissions to create new
-files and directories in it. Those are GM and GFS. \\
-If any of those processes processes are run under dedicated user account,
-that account need full permissions in the \textit{session root directory}.\\
-If those processes are run under \emph{root} account make sure \textit{session
-root directory} is not on filesystem which limits capabilities of
-\emph{root} user. For example NFS with \emph{root\_squash} option.\\
-If there is need to run processes under \emph{root} account (to run
-jobs in LRMS under different users' accounts) but there is no way
-to provide suitable \textit{session root directory} use \emph{norootpower}
-command in configuration of the GM. In that case GM and GFS will use
-identity of local user to which Grid identity is mapped to access
-\textit{session root directory}. Hence those users will need full
-access there.\\
-The GM creates SD with proper ownership and permissions for local
-identity used to run job. Some filesystems require \emph{executable}
-permissions on \textit{session root directory} to be set for local
-identity in order to access any file or subdirectory there.\\
-This directory should also be shared among cluster nodes in order
-for job to access input files. Or internal means of LRMS must be used
-to transfer files to executing node. For more see section \ref{sub:LRMS}.
-\item \textit{control directory} - In this directory the SD stores an information
-about the accepted jobs. Both GM and GFS processes must have full
-permissions there.\\
-Also subdirectory called \textit{log} is created there. It is used
+\item \textit{session root directory} -  Tthis is the directory under
+which a user's SDs are created. It's location is configurable
+per UNIX user. Several (or even all) users may share the same session
+root directory.        
+    .\\
+There are 2 processes which need to have  permissions to create new
+files and directories in it  : GM and GFS. \\
+If any of these processes  are run under a dedicated user
+account, that account needs full permissions in the \textit{session
+root directory}.\\
+If these processes are run under the \emph{root} account, make sure
+\textit{session root directory}  resides on a filesystem which
+does not limit the capabilities of the \emph{root} user  (as does
+for example NFS with \emph{root\_squash} option).\\
+If there is a need to run processes under the \emph{root} account
+(to be able to run jobs in LRMS under different users' accounts, for
+example) but there is no way to provide a suitable \textit{session
+root directory,} use the \emph{norootpower} command in GM's configuration
+  file. In that case GM and GFS will use the identity of the
+local user to which a Grid identity is mapped to access the \textit{session
+root directory}. Hence those users will need full access there.\\
+The GM creates SDs with proper ownership and permissions for the local
+identity used to run a job. Some filesystems require users to have
+\emph{execute} permission on the \textit{session root directory}
+      in order to access any file or subdirectory
+there.\\
+         In order
+for jobs to access their input files, session root directories should
+be shared across cluster nodes. Otherwise,    LRMS-specific
+methods must be used to transfer files to execution nodes. For more
+information see section \ref{sub:LRMS}.
+\item \textit{control directory} - In this directory  GM and GFS store
+an information about  accepted jobs. Both    processes
+must have full permissions there.\\
+A subdirectory called \textit{log} is created there. It is used
 to accumulate information about started and finished jobs. This information
-is periodically sent to the \emph{logger service}.
+is periodically sent to the desired \emph{logger service}(s). For
+each job start and stop event, and for each logger service where that
+event must be sent, a separate file is written. Once an event is sent,
+the corresponding file is deleted.
 \end{itemize}
 
 \section{Configuration}
@@ -1074,9 +1118,9 @@ is periodically sent to the \emph{logger service}.
 
 \subsection{\label{SubSection: ConfigFile}Configuration of the Grid Manager}
 
-The GM configuration is done through single configuration file. Historically
-GM supports 2 kinds of configuration files. For old one it looks at
-following places:
+The GM configuration is done through a single configuration file.
+Historically GM supports 2 kinds of configuration files. For old one
+(deprecated) it looks at following places:
 
 \begin{itemize}
 \item \textit{\$NORDUGRID\_LOCATION/etc/grid-manager.conf}
@@ -1095,7 +1139,7 @@ followed by arguments separated from command and between them by spaces.
 
 The new configuration file can also contain empty lines and comments
 starting from \#. It is separated into sections. Each sections starts
-from string containing \emph{}
+from string containing 
 
 \begin{itemize}
 \item \emph{{[}section name/subsection name/subsubsection name]}. 
@@ -1658,8 +1702,8 @@ command.
 
 \textbf{\textit{RUNTIME\_FRONTEND\_SEES\_NODE}} - if defined should
 contain path corresponding to \textit{RUNTIME\_LOCAL\_SCRATCH\_DIR}
-as \textbf{}seen on \textbf{frontend} machine. \emph{shared\_scratch}
-configuration command.
+as seen on \textbf{frontend} machine. \emph{shared\_scratch} configuration
+command.
 
 \textbf{\textit{RUNTIME\_NODE\_SEES\_FRONTEND}} - if set to {}``\emph{no}''
 means computing node does not share filesystem with frontend. In that
@@ -1670,12 +1714,13 @@ way. \emph{shared\_filesystem} configuration command.
 Figures \ref{fig:no node scratch},\ref{fig:node scratch, not vis on front},\ref{fig:node scratch, vis on front}
 present some possible combinations for RUNTIME\_LOCAL\_SCRATCH\_DIR
 and RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is
-performed. Pictures a) correspond to situation right after all input
-files are gathered in session directory and actions taken right after
-job's script starts. Pictures b) show how it looks while job is running
-and actions which are taken right after it finished. Pictures c) stand
-for final situation, when job files are ready to be uploaded to external
-storage element or be downloaded by user.
+performed. Pictures a) corresponds to the situation right after all
+input files have been gathered in the session directory and show
+the actions taken right after the job's script starts. Pictures b)
+shows   the situation while the job is running and the actions
+which are taken right after it has finished. Pictures c)  illustrates
+the final situation, when the job's output files are ready to be uploaded
+to an external storage element or be downloaded by the user.
 
 %
 \begin{figure}[tbh]
@@ -1685,8 +1730,9 @@ storage element or be downloaded by user.
 
 
 \caption{\label{fig:no node scratch}Both RUNTIME\_LOCAL\_SCRATCH\_DIR and
-RUNTIME\_FRONTEND\_SEES\_NODE undefined. Job is executed in session
-directory placed on frontend.}
+RUNTIME\_FRONTEND\_SEES\_NODE are undefined. It is assumed that session
+directories are visible from computing nodes. The job is executed
+directly in the session directory prepared by GM on the frontend.}
 \end{figure}
 %
 \begin{figure}[htbp]
@@ -1696,17 +1742,17 @@ directory placed on frontend.}
 
 
 \caption{\label{fig:node scratch, not vis on front}RUNTIME\_LOCAL\_SCRATCH\_DIR
-is set to value representing sratch directory on computing node, RUNTIME\_FRONTEND\_SEES\_NODE
-undefined.}
+is set to  the location of the scratch directory
+on the computing node, RUNTIME\_FRONTEND\_SEES\_NODE is undefined.}
 
 \begin{lyxlist}{00.00.0000}
-\item [{a)}] After job script starts all input files are moved to 'scratch
-directory' on computing node.
-\item [{b)}] Job runs in separate directory in 'scratch directory'. Only
-files representing job's \textit{stdout} and \textit{stderr} are placed
-in original 'session directory' and soft-linked in 'scratch'. After
-execution all files from 'scratch' are moved back to original 'session
-directory'.
+\item [{a)}] After the job script starts all input files are moved to 'scratch
+directory' on the computing node.
+\item [{b)}] The job runs in a separate directory in 'scratch directory'.
+Only the files representing the job's \textit{stdout} and \textit{stderr}
+are placed in the original 'session directory' and soft-linked in
+'scratch'. After execution all files from 'scratch' are moved back
+to the original 'session directory'.
 \item [{c)}] All output files are in 'session directory' and are ready
 to be uploaded/downloaded.
 \end{lyxlist}
@@ -1720,19 +1766,20 @@ to be uploaded/downloaded.
 
 
 \caption{\label{fig:node scratch, vis on front}Both RUNTIME\_LOCAL\_SCRATCH\_DIR
-and RUNTIME\_FRONTEND\_SEES\_NODE are set to valuea representing sratch
-directory on computing node and way to access that scratch from frontend
-correspondingly.}
+and RUNTIME\_FRONTEND\_SEES\_NODE are set to the  location
+of the scratch directory on the computing node and    the
+location where this scratch directory is accessible from the frontend,
+respectively .}
 
 \begin{lyxlist}{00.00.0000}
-\item [{a)}] After job script starts all input files are moved to 'scratch
-directory' on computing node. Original 'session directory' is removed
-and replaced with soft-link to copy of session directory in 'scratch'
-as seen on frontend.
-\item [{b)}] Job runs in separate directory in 'scratch directory'. All
-files are also available on frontend through soft-link. After execution
-soft-link is replaced with directory and all files from 'scratch'
-are moved back to original 'session directory'.
+\item [{a)}] After the job script starts all input files are moved to 'scratch
+directory' on the computing node. The original 'session directory'
+is removed and replaced with a soft-link to copy of session directory
+in 'scratch directory' as seen on the frontend.
+\item [{b)}] The job runs in a separate directory in 'scratch directory'.
+All files are also available on frontend through the soft-link. After
+execution the soft-link is replaced with a directory and all files
+from 'scratch' are moved back to the original 'session directory'.
 \item [{c)}] All output files are in 'session directory' and are ready
 to be uploaded/downloaded. 
 \end{lyxlist}
@@ -1806,7 +1853,7 @@ The GM is mostly written using C++. It was tested and should compile
 on recent enough \emph{Linux} systems using \emph{gcc} compiler and
 \emph{GNU make} (gcc versions 2.95, 2.96, 3.2, 3.4 were tested). You
 will also need \emph{Globus Toolkit$^{TM}$} of version higher than
-2.2 \emph{}installed \url{http://www-unix.globus.org/toolkit/}.
+2.2 installed \url{http://www-unix.globus.org/toolkit/}.
 
 
 \subsection{Setup of the Grid Manager}
@@ -1849,43 +1896,46 @@ Refer to the description of the \emph{User Interface} part \cite{ui}
 and extensions to RSL \cite{xrsl} for using the GM.
 
 
-\subsection{Unix accounts}
+\subsection{ Running as non-root}
 
-Bot GM and GFS are designed to be run by \emph{root} UNIX account
-and serve multiple local UNIX and global Grid identities. Nevertheless
-it is possible to use \emph{non-root} accounts to run those services.
-Although this means some functionality loss described below.
+Bot GM and GFS are primarily designed to be run by the \emph{root}
+UNIX account and serve multiple    global Grid identities
+mapped to several UNIX accounts. Nevertheless it is possible to use
+\emph{non-root} accounts to run these services   
+at the cost of some functionality loss as described below.
 
-There are no implication on running GFS with \emph{gaclplugin} or
-\emph{fileplugin} under \emph{non-root} account as long as only Grid
-identity of user is used and all served files and directories are
-owned by server's account. 
+There are no drawbacks of running GFS with \emph{gaclplugin}
+or \emph{fileplugin} under a \emph{non-root} account as long as the
+only Grid identity used is that of the user   who runs the services
+and all served files and directories are owned by the server's account. 
 
-For combination of GM and GFS with \emph{jobplugin} both services
-must be run either by same account or one of services must be run
-under \emph{root} account. That is needed because services communicate
-over local filesystem, hence must have \emph{full} access to same
-set of files.
+  In order for GM and GFS with \emph{jobplugin} to
+be able to cooperate, both services must be run either by the same
+non-root account or one of the services must be run under the \emph{root}
+account. This is needed because the two services communicate over
+a local filesystem, hence they must have \emph{full} access to the
+same set of files.
 
-As long as GFS with \emph{jobplugin} is run under non-root account
-there is no mapping from Grid identity to local UNIX account taking
-place. All alowed Grid users are assigned server's account and are
-then processes by GM using same account. Only way to overcome this
-limitation is to run one GFS per local account with proper access
+As long as GFS with \emph{jobplugin} is run under a non-root account
+ , no mapping from Grid identity to local UNIX account takes
+place. All alowed Grid users are assigned the server's account and
+are then processes by GM using same account. The only way to overcome
+this limitation is to run one GFS per local account with proper access
 control configured.
 
-Because GM has to represent user's local account while communication
-with LRMS, it can serve only account it is run under (unless it is
-run under \emph{root} account, of course). Like in case of GFS, multiple
-instances of GM may be run, one per local account. That solution causes
-another implications. The GM looses possibility to share cached files
-among serviced users. It is not also possible to control load on a
-frontend by limiting number of simultatenuosly running \emph{downloader}
-and \emph{uploader} modules.
+Because GM has to impersonate a user's local account while
+communicating with the LRMS, it can serve only the account it is
+run under (unless it is run under the \emph{root} account, of course).
+As in the case of GFS, multiple instances of GM may be run, one
+per local account. This solution   has
+some drawbacks. The GM looses possibility to share cached files among
+serviced users. In addition, it is not  possible to control the
+load on a frontend by limiting the number of simultatenuosly running
+\emph{downloader} and \emph{uploader} modules.
 
-One has also take into account that private part of GSI infrastructure
-(private key of a host at least) has to be duplicated for every account
-used to run GFS.
+One  also has to take into account that the private part of the
+GSI infrastructure (private key of a host at least) has to be duplicated
+for every account used to run GFS.
 
 
 \section*{Appendix A. Job control over jobplugin.so}
@@ -1893,88 +1943,103 @@ used to run GFS.
 
 \subsection*{Virtual tree}
 
-Under mount point of jobplugin gridftp client can see directories
-representing job belonging to user, who started client. Directory
-per job. Directory names are same as jobs' identifiers. Those directories
-are directly connected to session directories of jobs and contain
-same files and subdirectories. Except if jobs session directory is
-moved to computing node. In that case directories only contain files
-with redirected stdout and strderr as specified in xRSL.
+Under the mount point of the jobplugin, a user connecting with a gridftp
+client will see virtual directories representing the jobs belonging
+to    him/her. Directory names are job identifiers,
+each representing one job      
+  . These directories are directly connected to
+session directories of jobs and contain the  files and subdirectories
+that are visible on the frontend.     
+          
+         
 
-If job's xRSL has \emph{gmlog} specified job's directory also contains
-virtual subdirectory with same name, which contains files with information
-about job as created by GM. The most important are 'errors' and 'status'.
-'errors' contains stderr of separate modules run by GM in order to
-process job (downloader, uploader, job's submission to LRMS). 'status'
-contains one word representing state of job. 
+If a job's xRSL has \emph{gmlog} specified, then the job's directory
+also contains a virtual subdirectory  of that name 
+ holding files with information about the job as created by
+GM. The    'errors' and 'status' files are especially
+usefull for troubleshooting. 'errors' contains the stderr output of
+the various modules run by GM   during job processing
+stages (downloader, uploader, job's submission to LRMS). 'status'
+contains one word representing the job's state  . 
 
-Also under mount point there is additional directory named \char`\"{}new\char`\"{}
-used to submit new jobs. And another directory {}``info'' with subdirectories
-named after job ids. Those subdirectories contain files with information
-about job identical to those in subdirectory specified through \emph{gmlog}.
+Also under the jobplugin's mount point there is an additional directory
+named \char`\"{}new\char`\"{} -- used to submit new jobs -- and
+another directory named ''info''. The latter has subdirectories
+named after job ids  , each of which contains
+files with information about a job. These are the same files 
+ that can be accessed in the subdirectory specified through
+\emph{gmlog}.
 
 
 \subsection*{Submission}
 
-Each xRSL put into directory \char`\"{}new\char`\"{} is accepted as
-job's description. jobplugin parses it and client gets positive response
-if there are no errors in request.
+Each xRSL put into the {}``new'' directory by a gridftp client
+is treated as a new job's description. GFS's jobplugin parses
+the xRSL and returns the client a positive response if there
+were no errors in the request.
 
-Job gets identifier and directory with corresponding name appears.
-If job's description contains input files which should be delivered
-from client's machine, client must upload them to that directory under
-specified names.
+The new job gets an identifier and a directory with the corresponding
+name appears. If the job's description contains input files which
+should be transferred from the client's machine, the client
+must upload them to that directory under specified names.
 
-Because each job gets identifier there should be a way for client
-to obtain it. For that prior to providing xRSL client sends command
-CWD to change current directory to \char`\"{}new\char`\"{}. In this
-way job's identifier is reserved, new directory corresponding to that
-identifier is created and client is redirected to it (as specified
-in FTP protocol). Job's description put into \char`\"{}new\char`\"{}
-will get reserved identifier.
+           
+   The job identifier reserved by GFS to a new job must
+be somehow communicated back to the client. Within the bounds of the
+FTP protocol, this is achieved in the following way. Prior to uploading
+the xRSL, the client issues a CWD command to change the current directory
+to {}``new''. In turn, the server responds with a redirect to the
+new session directory named after the reserved identifier. The client
+has now found out the job's id, and proceeds with uploading the xRLS.
+           
+          
+         
+         
+      
 
 
 \subsection*{Actions}
 
-Various actions to affect processing of existing job are performed
-by uploading xRSL files into directory {}``new''. Content of xRSL
-may consist of only 2 parameters - action for \emph{action} to be
-performed, and \emph{jobid} to identify job to be affected. Rest of
-parameters are ignored.
+Various actions to affect processing of an existing job are requested
+by uploading special xRSL files into directory {}``new''. Such an
+  xRSL may consist of only 2 parameters - \emph{action} for
+action to be performed, and \emph{jobid} to identify the job to be
+affected.  All other parameters are ignored.
 
-Currently supported actions are:
+The currently supported actions are:
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{cancel}}] to cancel job
-\item [{\emph{clean}}] to remove job from computing resource
-\item [{\emph{renew}}] to renew credentials delegated to job
-\item [{\emph{restart}}] to restart job after failure at some phases
+\item [{\emph{cancel}}] to cancel a job
+\item [{\emph{clean}}] to remove a job from computing resource
+\item [{\emph{renew}}] to renew credentials delegated to a job
+\item [{\emph{restart}}] to restart a job after failure at some phases
 \end{lyxlist}
-It is also possible to perform some actions by using shortcut FTP
-operations described below.
+Alternatively, it is also possible to perform some of these actions
+by using the shortcut FTP operations described below.
 
 
 \subsubsection*{Cancel}
 
-Job is canceled by performing DELE (delete file) command on directory
-representing job. It can take some time (few minutes) before job is
-actually canceled. Nevertheless client gets response immediately.
+A job is canceled by performing a DELE (delete file) command on the
+directory representing the job. It can take some time (a few minutes)
+before the job is actually canceled. Nevertheless, the client gets
+a response immediately.
 
 
 \subsubsection*{Clean}
 
-Job's content is cleaned by performing RMD (remove directory) command
-on directory representing job. If job is in \char`\"{}FINISHED\char`\"{}
+A job's content is cleaned by performing a RMD (remove directory)
+command on the directory representing the job. If the job is in \char`\"{}FINISHED\char`\"{}
 state it will be cleaned immediately. Otherwise it will be cleaned
 after it reaches state \char`\"{}FINISHED\char`\"{}.
 
 
 \subsubsection*{Renew}
 
-If client requests CWD to session directory credentials passed during
-authentication are compared to current credentials of the job. If
-validity time of the new credentials is longer job's credentials are
-replaced with new.
+If a client requests CWD to a job's session directory, credentials
+passed during authentication are compared to the current credentials
+of the job. If the validity time of the new credentials is longer,
+the job's current credentials are replaced with the new ones.
 
 
 \section*{Appendix B. Library \textit{libarcdata}}
