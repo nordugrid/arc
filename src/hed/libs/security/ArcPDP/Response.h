@@ -2,8 +2,8 @@
 #define __ARC_RESPONSE_H__
 
 #include <list>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include "EvaluationCtx.h"
 #include "policy/Policy.h"
 

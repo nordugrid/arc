@@ -1,8 +1,8 @@
 #ifndef __ARC_AREX_H__
 #define __ARC_AREX_H__
 
-#include "message/Service.h"
-#include "message/PayloadRaw.h"
+#include <arc/message/Service.h>
+#include <arc/message/PayloadRaw.h>
 
 namespace ARex {
 

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 #include "../run/run_plugin.h"
 #include "../files/delete.h"

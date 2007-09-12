@@ -1,3 +1,5 @@
+#ifndef __ARC_GM_JSDL_JOB_H__
+#define __ARC_GM_JSDL_JOB_H__
 #include <iostream>
 #include <stdsoap2.h>
 
@@ -56,3 +58,4 @@ class JSDLJob {
   bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add = NULL);
 };
 
+#endif

@@ -1,8 +1,16 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 //@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
 //@ 
 #include "commfifo.h"
 

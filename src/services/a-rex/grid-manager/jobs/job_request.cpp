@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 
 #include <iostream>
@@ -9,10 +13,12 @@
 //@ #include "../transfer/replica_utils.h"
 //@ #include "../misc/inttostring.h"
 #include "../url/url_options.h"
+#ifdef HAVE_RSL
 #include "../jobdesc/rsl/parse_rsl.h"
-#ifndef JSDL_MISSING
-#include "../jobdesc/jsdl/jsdl_job.h"
 #endif
+// #ifndef JSDL_MISSING
+#include "../jobdesc/jsdl/jsdl_job.h"
+// #endif
 #include "../run/run_commands.h"
 
 /*
@@ -29,7 +35,7 @@
 */
 
 //@ 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define inttostring Arc::tostring
 #if defined __GNUC__ && __GNUC__ >= 3
 
@@ -55,20 +61,24 @@
 //static 
 typedef enum {
   job_req_unknown,
+#ifdef HAVE_RSL
   job_req_rsl,
-#ifndef JSDL_MISSING
-  job_req_jsdl
 #endif
+// #ifndef JSDL_MISSING
+  job_req_jsdl
+// #endif
 } job_req_type_t;
 
 static job_req_type_t detect_job_req_type(const char* fname) {
   // RSL starts from &(
+#ifdef HAVE_RSL
   static char* rsl_pattern = "&(";
-#ifndef JSDL_MISSING
+#endif
+// #ifndef JSDL_MISSING
   // JSDL starts from <?xml
   //@ static char* jsdl_pattern = "<?xml";
   static char* jsdl_pattern = "<";
-#endif
+// #endif
   std::ifstream f(fname);
   if(!f.is_open()) return job_req_unknown;
   unsigned int l = 0;
@@ -82,11 +92,13 @@ static job_req_type_t detect_job_req_type(const char* fname) {
     if(l >= (sizeof(buf)-1)) break;
   };
   buf[l]=0;
+#ifdef HAVE_RSL
   if(strncasecmp(rsl_pattern,buf,2) == 0) return job_req_rsl;
-#ifndef JSDL_MISSING
+#endif
+// #ifndef JSDL_MISSING
   //@ if(strncasecmp(jsdl_pattern,buf,5) == 0) return job_req_jsdl;
   if(strncasecmp(jsdl_pattern,buf,1) == 0) return job_req_jsdl;
-#endif
+// #endif
   return job_req_unknown;
 }
 
@@ -180,10 +192,12 @@ static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
 /* parse job request, fill job description (local) */
 bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl) {
   switch(detect_job_req_type(fname.c_str())) {
+#ifdef HAVE_RSL
     case job_req_rsl: {
       return parse_rsl(fname,job_desc,acl);
     }; break;
-#ifndef JSDL_MISSING
+#endif
+//#ifndef JSDL_MISSING
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
@@ -191,7 +205,7 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
       if(!j) return false;
       return j.parse(job_desc,acl);
     }; break;
-#endif
+//#endif
     default: break;
   };
   return false;
@@ -201,10 +215,12 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
 /* then write file back */
 bool preprocess_job_req(const std::string &fname,const std::string &session_dir,const std::string &jobid) {
   switch(detect_job_req_type(fname.c_str())) {
+#ifdef HAVE_RSL
     case job_req_rsl: {
       return preprocess_rsl(fname,session_dir,jobid);
     }; break;
-#ifndef JSDL_MISSING
+#endif
+//#ifndef JSDL_MISSING
     case job_req_jsdl: {
       // JSDL does not support substitutions,
       // so here we just parse it for testing
@@ -214,7 +230,7 @@ bool preprocess_job_req(const std::string &fname,const std::string &session_dir,
       if(!j) return false;
       return true;
     }; break;
-#endif
+//#endif
     default: break;
   };
   return false;
@@ -224,6 +240,7 @@ bool preprocess_job_req(const std::string &fname,const std::string &session_dir,
 bool set_execs(const JobDescription &desc,const JobUser &user,const std::string &session_dir) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
   switch(detect_job_req_type(fname.c_str())) {
+#ifdef HAVE_RSL
     case job_req_rsl: {
       globus_rsl_t *rsl_tree = NULL;
       rsl_tree=read_rsl(fname);
@@ -237,7 +254,10 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       };
       return set_execs(rsl_tree,session_dir);
     }; break;
-#ifndef JSDL_MISSING
+#endif
+/* XXX: someting missing below */
+#if 0
+//#ifndef JSDL_MISSING
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
@@ -246,35 +266,23 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
         RunElement* re = RunCommands::fork(tmp_user,"set_execs");
-        if(re == NULL) return false;
-        if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs");
-        _exit(j.set_execs(session_dir));
+#ifdef HAVE_RSL
+        case job_req_rsl: {
+          return write_grami_rsl(desc,user,opt_add);
+        }; break;
+#endif
+//#ifndef JSDL_MISSING
+        case job_req_jsdl: {
+            std::ifstream f(fname.c_str());
+            if(!f.is_open()) return false;
+            JSDLJob j(f);
+            if(!j) return false;
+            return j.write_grami(desc,user,opt_add);
+        }; break;
+//#endif
+#endif
+        default: break;
       };
-      return j.set_execs(session_dir);
-    }; break;
-#endif
-    default: break;
-  };
-  return false;
-}
-
-bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
-  switch(detect_job_req_type(fname.c_str())) {
-    case job_req_rsl: {
-      return write_grami_rsl(desc,user,opt_add);
-    }; break;
-#ifndef JSDL_MISSING
-    case job_req_jsdl: {
-      std::ifstream f(fname.c_str());
-      if(!f.is_open()) return false;
-      JSDLJob j(f);
-      if(!j) return false;
-      return j.write_grami(desc,user,opt_add);
-    }; break;
-#endif
-    default: break;
-  };
   return false;
 }
 

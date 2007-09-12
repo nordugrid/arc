@@ -1,3 +1,5 @@
+#ifndef __ARC_GM_PARSE_RSL_H__
+#define __ARC_GM_PARSE_RSL_H__
 #include <string>
 
 #include "../../jobs/users.h"
@@ -82,3 +84,4 @@ globus_rsl_t* read_rsl(const std::string &fname);
 #define NG_RSL_DEFAULT_STDOUT     "/dev/null"
 #define NG_RSL_DEFAULT_STDERR     "/dev/null"
 
+#endif

@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 //@ #include "../std.h"
 #include <dlfcn.h>
 
@@ -145,12 +148,14 @@ void* Run::signal_handler(void *arg) {
     sigaddset(&sig,SIGCHLD);
     siginfo_t info;
 #ifndef NONPOSIX_SIGNALS_IN_THREADS
+#ifdef HAVE_SIGWAITINFO
     sigwaitinfo(&sig,&info);
     if(info.si_signo == SIGCHLD) {
       pthread_mutex_lock(&list_lock);
       sig_chld_process(SIGCHLD,&info,NULL);
       pthread_mutex_unlock(&list_lock);
     };
+#endif
 #else
     struct timespec tm;
     tm.tv_sec=60; tm.tv_nsec=0;

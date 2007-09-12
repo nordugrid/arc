@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "ArcAttributeFactory.h"
 #include "AttributeProxy.h"
 #include "StringAttribute.h"

@@ -1,7 +1,7 @@
 #ifndef __ARC_LOADERFACTORY_H__
 #define __ARC_LOADERFACTORY_H__
 
-#include "common/ArcConfig.h"
+#include <arc/ArcConfig.h>
 #include "ModuleManager.h"
 
 namespace Arc {

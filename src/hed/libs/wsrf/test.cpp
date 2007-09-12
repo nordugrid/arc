@@ -1,8 +1,12 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <iostream>
 #include <string>
 
-#include "common/XMLNode.h"
-#include "../libs/message/SOAPMessage.h"
+#include <arc/XMLNode.h>
+#include <arc/message/SOAPMessage.h>
 #include "WSResourceProperties.h"
 
 // Examples are taken from OASIS WSRF-WSRP specifications documnent

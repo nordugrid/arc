@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // perftest.cpp
 
 #include <iostream>
@@ -6,10 +10,10 @@
 #include <glibmm/thread.h>
 #include <glibmm/timer.h>
 
-#include "../../libs/common/ArcConfig.h"
-#include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/message/SOAPEnvelope.h"
-#include "../../hed/libs/message/PayloadSOAP.h"
+#include <arc/ArcConfig.h>
+#include <arc/loader/Loader.h>
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/message/PayloadSOAP.h>
 
 // Some global shared variables...
 Glib::Mutex* mutex;

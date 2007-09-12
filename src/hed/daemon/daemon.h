@@ -2,8 +2,7 @@
 #define __ARC_DAEMON_H__
 
 #include <string>
-
-#include "common/Logger.h"
+#include <arc/Logger.h>
 
 namespace Arc {
 

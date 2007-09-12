@@ -1,7 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 //@ #include "inttostring.h"
 //@ 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define inttostring Arc::tostring
 //@ 
 #include "url_options.h"

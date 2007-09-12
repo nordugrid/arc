@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 #include <string>
 #include <list>
@@ -22,7 +26,7 @@
 #include "parse_rsl.h"
 
 //@ 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define inttostring Arc::tostring
 #define olog std::cerr
 static bool stringtoint(const std::string& s,int& i) {

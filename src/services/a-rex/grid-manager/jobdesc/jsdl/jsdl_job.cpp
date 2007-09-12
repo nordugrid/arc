@@ -20,10 +20,13 @@
 //@ #include "../../misc/log_time.h"
 
 // For some constants
-#include "../rsl/parse_rsl.h"
+//#include "../rsl/parse_rsl.h"
+#include "../../jobs/users.h"
+#include "../../files/info_files.h"
+#include "../../files/info_types.h"
 
 //@ 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define olog std::cerr
 #define odlog(level) std::cerr
 #define inttostring Arc::tostring

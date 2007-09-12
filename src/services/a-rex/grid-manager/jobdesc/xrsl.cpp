@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include <list>
@@ -7,7 +7,7 @@
 #include <string>
 
 //@ #include <arc/notify.h>
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #include "xrsl.h"
 
 #ifdef HAVE_LIBINTL_H

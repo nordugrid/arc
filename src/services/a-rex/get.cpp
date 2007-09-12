@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -6,8 +10,8 @@
 
 #include <string>
 
-#include <src/libs/common/StringConv.h>
-#include <message/PayloadRaw.h>
+#include <arc/StringConv.h>
+#include <arc/message/PayloadRaw.h>
 #include "PayloadFile.h"
 #include "job.h"
 

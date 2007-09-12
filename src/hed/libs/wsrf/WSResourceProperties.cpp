@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include "../ws-addressing/WSA.h"
+#include <arc/ws-addressing/WSA.h>
 #include "WSResourceProperties.h"
 
 namespace Arc {

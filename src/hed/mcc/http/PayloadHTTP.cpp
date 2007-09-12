@@ -1,7 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #include "PayloadHTTP.h"
-#include "../../../libs/common/StringConv.h"
+#include <arc/StringConv.h>
 
 namespace Arc {
 

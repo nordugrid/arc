@@ -1,10 +1,11 @@
 #ifndef __ARC_ARCREQUEST_H__
 #define __ARC_ARCREQUEST_H__
 
-#include "Request.h"
 #include <list>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
+
+#include "Request.h"
 
 /** ArcRequest, Parsing the specified Arc request format*/
 

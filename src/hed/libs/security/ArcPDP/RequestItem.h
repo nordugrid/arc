@@ -2,8 +2,8 @@
 #define __ARC_REQUESTITEM_H__
 
 #include <list>
+#include <arc/XMLNode.h>
 #include "attr/RequestAttribute.h"
-#include "common/XMLNode.h"
 
 namespace Arc {
 

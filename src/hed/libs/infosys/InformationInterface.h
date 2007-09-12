@@ -4,9 +4,9 @@
 #include <string>
 #include <list>
 #include <glibmm/thread.h>
-#include "../../../libs/common/XMLNode.h"
-#include "../../../hed/libs/message/SOAPEnvelope.h"
-#include "../../../hed/libs/wsrf/WSResourceProperties.h"
+#include <arc/XMLNode.h>
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/wsrf/WSResourceProperties.h>
 
 namespace Arc {
 

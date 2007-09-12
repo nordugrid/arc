@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <string>
 #include <list>
 #include <map>
@@ -8,8 +11,8 @@
 
 #include "../../mcc/tcp/PayloadTCPSocket.h"
 #include "PayloadHTTP.h"
-#include "../../libs/message/PayloadSOAP.h"
-#include "../../../libs/common/Logger.h"
+#include <arc/message/PayloadSOAP.h>
+#include <arc/Logger.h>
 
 void test1(void) {
   std::cout<<std::endl;

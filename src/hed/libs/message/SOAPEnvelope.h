@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "common/XMLNode.h"
+#include <arc/XMLNode.h>
 
 namespace Arc {
   /// Interface to SOAP Fault message.

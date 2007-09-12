@@ -1,9 +1,13 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 
 #include "grid-manager/conf/environment.h"
 #include "grid-manager/conf/conf_pre.h"

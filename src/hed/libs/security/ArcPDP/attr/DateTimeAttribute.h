@@ -2,7 +2,7 @@
 #define __ARC_DATETIMEATTRIBUTE_H__
 
 #include "AttributeValue.h"
-#include "common/DateTime.h"
+#include <arc/DateTime.h>
 
 namespace Arc {
 //DateTimeAttribute, TimeAttribute, DateAttribute, DurationAttribute, PeriodAttribute

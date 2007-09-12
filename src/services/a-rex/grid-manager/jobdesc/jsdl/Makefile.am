@@ -2,13 +2,13 @@ noinst_LTLIBRARIES = libnamespace.la libjsdl.la
 
 libjsdl_la_SOURCES=jsdl_job.cpp jsdl_job.h
 nodist_libjsdl_la_SOURCES = jsdl_soapClient.cpp jsdl_soapC.cpp jsdl_soapStub.h stlvector.h
-libjsdl_la_CPPFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS) $(GSOAP_CFLAGS)
-libjsdl_la_LIBADD=$(top_srcdir)/src/libs/common/libarccommon.la 
+libjsdl_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS) $(GSOAP_CFLAGS) -I$(top_srcdir)/include
+libjsdl_la_LIBADD=$(top_srcdir)/src/hed/libs/common/libarccommon.la 
 #../../files/libfiles.la ../../misc/libmisc.la ../../url/liburl.la
 libjsdl_la_LDFLAGS=$(GSOAP_LIBS)
 
 libnamespace_la_SOURCES=namespace.cpp
-libnamespace_la_CPPFLAGS=$(GSOAP_CFLAGS)
+libnamespace_la_CXXFLAGS=$(GSOAP_CFLAGS)
 libnamespace_la_LDFLAGS=
 
 BUILT_SOURCES = $(SOAPCPP2_OUTPUT) jsdl_soap.h

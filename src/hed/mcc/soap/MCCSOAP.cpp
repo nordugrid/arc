@@ -1,11 +1,14 @@
-#include "message/PayloadRaw.h"
-#include "message/SOAPEnvelope.h"
-#include "message/PayloadSOAP.h"
-#include "common/XMLNode.h"
-#include "loader/MCCLoader.h"
-#include "ws-addressing/WSA.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#include "security/SecHandler.h"
+#include <arc/message/PayloadRaw.h>
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/message/PayloadSOAP.h>
+#include <arc/XMLNode.h>
+#include <arc/loader/MCCLoader.h>
+#include <arc/ws-addressing/WSA.h>
+#include <arc/security/SecHandler.h>
 
 #include "MCCSOAP.h"
 

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
   Filename: states.cc
   keeps list of states
@@ -32,7 +36,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define olog std::cerr
 #define odlog(level) std::cerr
 #define inttostring Arc::tostring

@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
-#include "common/ArcConfig.h"
-#include "security/PDP.h"
+#include <arc/ArcConfig.h>
+#include <arc/security/PDP.h>
 
 namespace Arc {
 

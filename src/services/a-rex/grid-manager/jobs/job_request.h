@@ -1,3 +1,6 @@
+#ifndef __ARC_GM_JOB_REQUEST_H__
+#define __ARC_GM_JOB_REQUEST_H__
+
 #include <string>
 
 //#include "../jobs/users.h"
@@ -12,4 +15,6 @@ bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_
 std::string read_grami(const JobId &job_id,const JobUser &user);
 bool set_execs(const JobDescription &desc,const JobUser &user,const std::string
 &session_dir); 
+
+#endif
 

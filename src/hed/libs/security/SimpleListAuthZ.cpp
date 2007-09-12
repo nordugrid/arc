@@ -1,8 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <sys/types.h>
 
-#include "loader/SecHandlerLoader.h"
-#include "loader/Loader.h"
-#include "common/XMLNode.h"
+#include <arc/loader/SecHandlerLoader.h>
+#include <arc/loader/Loader.h>
+#include <arc/XMLNode.h>
 
 #include "SimpleListAuthZ.h"
 

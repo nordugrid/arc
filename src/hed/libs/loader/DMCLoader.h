@@ -6,7 +6,7 @@
 #define ARC_DMC_LOADER __arc_dmc_modules__
 #define ARC_DMC_LOADER_ID QUOTE(ARC_DMC_LOADER)
 
-#include "data/DMC.h"
+#include <arc/data/DMC.h>
 
 namespace Arc {
   class ChainContext;

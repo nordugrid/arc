@@ -3,6 +3,9 @@
   from address 'from'. It tries to connect directly to SMTP server 
   responsible for destination address.
 */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

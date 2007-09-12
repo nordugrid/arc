@@ -2,7 +2,7 @@
 #define __ARC_MATCH_FUNCTION_H__
 
 #include "Function.h"
-#include "common/ArcRegex.h"
+#include <arc/ArcRegex.h>
 
 namespace Arc {
 

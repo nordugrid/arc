@@ -1,9 +1,13 @@
-#include "common/ArcConfig.h"
-#include "common/Logger.h"
-#include "common/URL.h"
-#include "data/DMC.h"
-#include "data/DataHandle.h"
-#include "../../hed/libs/loader/Loader.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
+#include <arc/URL.h>
+#include <arc/data/DMC.h>
+#include <arc/data/DataHandle.h>
+#include <arc/loader/Loader.h>
 
 int main () {
 

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // MessageAttributes.h
 
 #include "MessageAttributes.h"

@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <string>
 
-#include "../../libs/message/Message.h"
-#include "../../libs/message/PayloadStream.h"
+#include <arc/message/Message.h>
+#include <arc/message/PayloadStream.h>
 
 #include <openssl/ssl.h>
 

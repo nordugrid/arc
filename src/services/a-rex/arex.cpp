@@ -1,15 +1,19 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <iostream>
 
 #include <sys/types.h>
 #include <pwd.h>
 
-#include "loader/Loader.h"
-#include "loader/ServiceLoader.h"
-#include "loader/Plexer.h"
-#include "message/PayloadSOAP.h"
-#include "message/PayloadRaw.h"
-#include "message/PayloadStream.h"
-#include "ws-addressing/WSA.h"
+#include <arc/loader/Loader.h>
+#include <arc/loader/ServiceLoader.h>
+#include <arc/loader/Plexer.h>
+#include <arc/message/PayloadSOAP.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadStream.h>
+#include <arc/ws-addressing/WSA.h>
 #include "job.h"
 
 #include "arex.h"

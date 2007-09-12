@@ -2,15 +2,15 @@
 #include <config.h>
 #endif
 
-#include "daemon.h"
-#include "options.h"
 #include <fstream>
 #include <glibmm.h>
 #include <signal.h>
-#include "loader/Loader.h"
-#include "common/ArcConfig.h"
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/ArcConfig.h>
+#include <arc/loader/Loader.h>
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
+#include "daemon.h"
+#include "options.h"
 
 Arc::Daemon *main_daemon;
 Arc::Config config;

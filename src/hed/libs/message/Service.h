@@ -1,11 +1,10 @@
 #ifndef __ARC_SERVICE_H__
 #define __ARC_SERVICE_H__
 
-#include "common/Logger.h"
-#include "common/ArcConfig.h"
-#include "../message/MCC.h"
-
-#include "../security/SecHandler.h"
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
+#include <arc/message/MCC.h>
+#include <arc/security/SecHandler.h>
 
 namespace Arc {
 

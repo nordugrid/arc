@@ -1,8 +1,12 @@
-#include "loader/PDPLoader.h"
-#include "common/XMLNode.h"
-#include "common/Thread.h"
-#include "common/ArcConfig.h"
-#include "common/Logger.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/loader/PDPLoader.h>
+#include <arc/XMLNode.h>
+#include <arc/Thread.h>
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 
 #include "ArcPDP.h"
 /*

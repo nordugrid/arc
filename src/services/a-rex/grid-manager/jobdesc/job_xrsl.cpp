@@ -1,7 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "job_xrsl.h"
-#include <src/libs/common/StringConv.h>
-#include <src/libs/common/DateTime.h>
-#include <src/libs/common/URL.h>
+#include <arc/StringConv.h>
+#include <arc/DateTime.h>
+#include <arc/URL.h>
 
 class URLModifier: public Arc::URL {
 	public:

@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "common/ArcConfig.h"
+#include <arc/ArcConfig.h>
 #include "MCC.h"
 #include "Message.h"
 

@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 #include <glibmm/module.h>
-#include "common/ArcConfig.h"
+#include <arc/ArcConfig.h>
 
 namespace Arc {
 

@@ -1,9 +1,13 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <openssl/ssl.h>
 #include <errno.h>
-#include "../../libs/message/PayloadRaw.h"
-#include "../../libs/message/PayloadStream.h"
-#include "../../libs/message/MCC.h"
-#include "../../libs/message/Message.h"
+#include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadStream.h>
+#include <arc/message/MCC.h>
+#include <arc/message/Message.h>
 
 #include "BIOMCC.h"
 

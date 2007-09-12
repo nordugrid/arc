@@ -1,12 +1,13 @@
 #ifndef __ARC_ARCEVALUATIONCTX_H__
 #define __ARC_ARCEVALUATIONCTX_H__
 
-#include "Request.h"
 #include <list>
 #include <fstream>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include "attr/AttributeValue.h"
+
+#include "Request.h"
 
 /** EvaluationCtx, storing some context information for evaluation, including Request, current time, etc. */
 

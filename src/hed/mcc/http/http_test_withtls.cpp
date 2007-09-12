@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 #include <list>
 #include <map>
@@ -24,7 +28,7 @@
 #include "../../mcc/tcp/PayloadTCPSocket.h"
 #include "../../mcc/tls/PayloadTLSSocket.h"
 #include "PayloadHTTP.h"
-#include "../../libs/message/PayloadSOAP.h"
+#include <arc/message/PayloadSOAP.h>
 
 
 SSL_CTX * sslctx_;

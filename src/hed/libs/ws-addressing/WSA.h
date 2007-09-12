@@ -1,8 +1,8 @@
 #ifndef __ARC_WSA_H__
 #define __ARC_WSA_H__
 
-#include "common/XMLNode.h"
-#include "../message/SOAPEnvelope.h"
+#include <arc/XMLNode.h>
+#include <arc/message/SOAPEnvelope.h>
 
 // WS-Adressing
 // wsa="http://www.w3.org/2005/08/addressing"

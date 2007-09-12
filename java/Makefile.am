@@ -1,4 +1,4 @@
-JAVA_PATH = org/nordugrid/arc
+JAVA_PATH = nordugrid/arc
 JDK_INCLUDES = @JDK_INCLUDE@ -I$(top_builddir)
 CLASSPATH = .
 
@@ -19,8 +19,8 @@ javalib_LTLIBRARIES = libjarc.la
 #                        -Wl,--add-stdcall-alias 
 
 libjarc_la_SOURCES =	arc_wrap.cpp
-libjarc_la_CPPFLAGS = $(JDK_INCLUDES) -I$(top_srcdir) -I$(top_srcdir)/src/libs/ -I$(top_srcdir)/src/hed/libs $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-libjarc_la_LIBADD =	$(top_srcdir)/src/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
+libjarc_la_CPPFLAGS = $(JDK_INCLUDES) -I$(top_srcdir) -I$(top_srcdir)/includes $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libjarc_la_LIBADD =	$(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
 libjarc_la_LDFLAGS =	-no-undefined -avoid-version -module
 
 javashare_DATA = arc.jar
@@ -40,7 +40,7 @@ SWIG_I_FILES=$(shell find $(top_srcdir)/swig/ -name '*.[ih]')
 arc_wrap.cpp $(JAVA_PATH)/*.java: $(SWIG_I_FILES)
 	../install-sh -d $(JAVA_PATH)
 	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
-		-package org.nordugrid.arc -o arc_wrap.cpp \
+		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) -D'__attribute__(x)=' \
 		$(top_srcdir)/swig/Arc.i
 

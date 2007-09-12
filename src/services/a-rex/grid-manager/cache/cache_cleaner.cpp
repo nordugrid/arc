@@ -1,12 +1,22 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 //@ #include "../std.h"
 
 #include <string>
 #include <list>
 
 //@ 
+#ifdef HAVE_SYS_VFS_H
 #include <sys/vfs.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
+//#if MAC
+#include <sys/param.h>
+#include <sys/mount.h>
+//#endif
+
 #include <unistd.h>
 #include <dirent.h>
 #include <iostream>

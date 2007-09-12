@@ -1,6 +1,6 @@
 #include "WSRF.h"
-#include "../ws-addressing/WSA.h"
-#include "../../../../src/libs/common/DateTime.h"
+#include <arc/ws-addressing/WSA.h>
+#include <arc/DateTime.h>
 
 namespace Arc {
 

@@ -1,4 +1,7 @@
-#include "../../libs/common/XMLNode.h"
+#ifndef __ARC_AREX_JOB_H__
+#define __ARC_AREX_JOB_H__
+
+#include <arc/XMLNode.h>
 #include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
 
@@ -71,16 +74,4 @@ class ARexJob {
 
 }; // namespace ARex
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif

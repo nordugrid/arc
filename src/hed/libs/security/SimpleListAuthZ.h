@@ -3,11 +3,11 @@
 
 #include <stdlib.h>
 
-#include "common/ArcConfig.h"
-#include "message/Message.h"
+#include <arc/ArcConfig.h>
+#include <arc/message/Message.h>
 #include "SecHandler.h"
 #include "PDP.h"
-#include "loader/PDPFactory.h"
+#include <arc/loader/PDPFactory.h>
 
 namespace Arc {
 class SimpleListAuthZ : public SecHandler {

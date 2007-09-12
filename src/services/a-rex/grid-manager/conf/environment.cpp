@@ -1,4 +1,8 @@
-//@ #include "../std.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+/@ #include "../std.h"
 //@ #include "../misc/log_time.h"
 //@ 
 #include <iostream>

@@ -1,6 +1,9 @@
-#include "../../../hed/libs/wsrf/WSResourceProperties.h"
-#include "InformationInterface.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include <arc/wsrf/WSResourceProperties.h>
+#include "InformationInterface.h"
 
 namespace Arc {
 

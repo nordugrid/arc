@@ -2,7 +2,7 @@
 #define __ARC_WSRP_H__
 
 #include <vector>
-#include "../message/SOAPEnvelope.h"
+#include <arc/message/SOAPEnvelope.h>
 #include "WSRFBaseFault.h"
 
 namespace Arc {

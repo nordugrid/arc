@@ -3,11 +3,11 @@
 
 #include <list>
 #include <map>
-#include "common/ArcConfig.h"
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
+#include <arc/security/SecHandler.h>
 #include "Message.h"
 #include "MCC_Status.h"
-#include "../security/SecHandler.h"
-#include "../../../libs/common/Logger.h"
 
 namespace Arc {
 

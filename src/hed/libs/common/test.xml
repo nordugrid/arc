@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<ArcConfig>
+    <ModuleLoader>
+        <Path>../ize/bize</Path>
+        <Path>../foo/bar</Path>
+    </ModuleLoader>
+    <Services>
+        <Service name="echo">
+            <Config1>Value2</Config1>
+        </Service>
+        <Service name="echo2">
+            <Config2>Value3</Config2>
+        </Service>
+    </Services>
+    <Communication>
+        <MessageChainComponent name="tcp">
+            <Config1>Value1</Config1>
+        </MessageChainComponent>
+        <MessageChainComponent name="http"/>
+        <MessageChainComponent name="soap"/>
+        <MessageChain name="normalChain">
+            <Component name="none">
+                <Next name="default">tcp</Next>
+            </Component>
+            <Component name="tcp">
+                <Next name="default">http</Next>
+            </Component>
+            <Component name="http">
+                <Next name="POST">soap</Next>
+                <Next name="default">plexer</Next>
+            </Component>
+        </MessageChain>
+    </Communication>
+    <Plexer>
+        <Service name="echo">
+            <Chain>normalChain</Chain>
+        </Service>
+        <Service name="echo2">
+            <Chain>normalChain</Chain>
+        </Service>
+    </Plexer>
+</ArcConfig>

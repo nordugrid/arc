@@ -6,7 +6,7 @@
 #define ARC_SERVICE_LOADER __arc_service_modules__
 #define ARC_SERVICE_LOADER_ID QUOTE(ARC_SERVICE_LOADER)
 
-#include "message/Service.h"
+#include <arc/message/Service.h>
 
 namespace Arc {
   class ChainContext;

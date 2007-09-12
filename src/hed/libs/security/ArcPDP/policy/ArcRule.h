@@ -5,7 +5,7 @@
 #include "../fn/Function.h"
 #include <list>
 #include "../alg/CombiningAlg.h"
-#include "common/XMLNode.h"
+#include <arc/XMLNode.h>
 
 
 namespace Arc {

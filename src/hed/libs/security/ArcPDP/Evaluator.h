@@ -1,15 +1,15 @@
 #ifndef __ARC_ARCEVALUATE_H__
 #define __ARC_ARCEVALUATE_H__
 
-#include "Request.h"
 #include <list>
 #include <fstream>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 
 #include "policy/PolicyStore.h"
 #include "fn/ArcFnFactory.h"
 #include "attr/ArcAttributeFactory.h"
+#include "Request.h"
 #include "Response.h"
 
 /** Execute the policy evaluation, based on the request and policy */

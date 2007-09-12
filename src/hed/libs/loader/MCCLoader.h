@@ -6,7 +6,7 @@
 #define ARC_MCC_LOADER __arc_mcc_modules__
 #define ARC_MCC_LOADER_ID QUOTE(ARC_MCC_LOADER)
 
-#include "message/MCC.h"
+#include <arc/message/MCC.h>
 
 namespace Arc {
   class ChainContext;

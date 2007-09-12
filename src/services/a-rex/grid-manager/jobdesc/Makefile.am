@@ -29,9 +29,9 @@ noinst_LTLIBRARIES = libjobdesc.la
 libjobdesc_la_SOURCES=$(RSLSOURCES) $(JSDLSOURCES) job.cpp runtimeenvironment.cpp \
                       $(RSLHEADERS) $(JSDLHEADERS) job.h   runtimeenvironment.h   error.h
 #nodist_libjobdesc_la_SOURCES = jsdl_soapClientLib.cpp
-libjobdesc_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS)
+libjobdesc_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS) -I$(top_srcdir)/include
 libjobdesc_la_LDFLAGS=
-libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/libs/common/libarccommon.la
+libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 
 #job_jsdl.cpp: jsdl_soapStub.h jsdl_soapH.h

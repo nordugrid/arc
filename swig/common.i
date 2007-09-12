@@ -1,9 +1,9 @@
 %{
-#include "../src/libs/common/ArcConfig.h"
+#include <arc/ArcConfig.h>
 /* #include "../src/libs/common/BasicDT.h" */
-#include "../src/libs/common/Logger.h"
+#include <arc/Logger.h>
 /* #include "../src/libs/common/Thread.h" */
-#include "../src/libs/common/XMLNode.h"
+#include <arc/XMLNode.h>
 %}
 
 %ignore Arc::Config(char const *);
@@ -36,7 +36,7 @@
 %rename(toBool) operator bool;
 #endif
 
-%include "../src/libs/common/XMLNode.h"
+%include <arc/XMLNode.h>
 /*
 #ifdef SWIGPYTHON
 %extend Arc::XMLNode {
@@ -49,7 +49,7 @@
     }
 } 
 #endif */
-%include "../src/libs/common/ArcConfig.h"
+%include <arc/ArcConfig.h>
 /* %include "../src/libs/common/BasicDT.h" */
-%include "../src/libs/common/Logger.h"
+%include <arc/Logger.h>
 /* %include "../src/libs/common/Thread.h" */

@@ -1,3 +1,6 @@
+#ifndef __ARC_GM_ESCAPED_H__
+#define __ARC_GM_ESCAPED_H__
+
 #include <string>
 
 /*
@@ -18,3 +21,6 @@ int input_escaped_string(const char* buf,std::string &str,char separator = ' ',c
 */
 char* make_unescaped_string(char* str,char e = 0);
 void make_unescaped_string(std::string &str);
+
+#endif
+

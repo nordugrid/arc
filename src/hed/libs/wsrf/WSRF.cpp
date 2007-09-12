@@ -1,4 +1,8 @@
-#include "../ws-addressing/WSA.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/ws-addressing/WSA.h>
 #include "WSRF.h"
 
 namespace Arc {

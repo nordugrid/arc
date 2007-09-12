@@ -1,3 +1,5 @@
+#ifndef __ARC_GM_CANONICAL_DIR__
+#define __ARC_GM_CANONICAL_DIR__
 #include <string>
 
 /*
@@ -9,3 +11,6 @@
   todo: move to bool return type (??).
 */
 int canonical_dir(std::string &name,bool leading_slash = true);
+
+#endif
+

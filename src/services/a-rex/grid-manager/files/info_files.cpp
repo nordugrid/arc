@@ -1,9 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
  routines to work with informational files
 */
 //@ #include "../std.h"
-
-#include <string>
 
 #include <string>
 #include <list>
@@ -14,7 +16,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define olog std::cerr
 #define inttostring Arc::tostring
 #if defined __GNUC__ && __GNUC__ >= 3

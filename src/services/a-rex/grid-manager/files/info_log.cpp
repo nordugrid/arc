@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 
 #include <string>
@@ -15,7 +19,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pwd.h>
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #include <../jobdesc/job_jsdl.h>
 #include <../jobdesc/job_xrsl.h>
 //@ 

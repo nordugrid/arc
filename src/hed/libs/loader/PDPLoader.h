@@ -6,7 +6,7 @@
 #define ARC_PDP_LOADER __arc_pdp_modules__
 #define ARC_PDP_LOADER_ID QUOTE(ARC_PDP_LOADER)
 
-#include "security/PDP.h"
+#include <arc/security/PDP.h>
 
 namespace Arc {
   class ChainContext;

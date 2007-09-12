@@ -1,4 +1,8 @@
-#include "loader/PDPLoader.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/loader/PDPLoader.h>
 #include "SimpleListPDP.h"
 #include "ArcPDP.h"
 

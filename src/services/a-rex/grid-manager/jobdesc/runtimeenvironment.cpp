@@ -1,7 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <vector>
 
 #include "runtimeenvironment.h"
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 
 RuntimeEnvironment::RuntimeEnvironment(const std::string& re) {
 

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
   Handle cache:
     lookup
@@ -12,6 +16,9 @@
 #include <sys/file.h>
 #include <errno.h>
 #include <iostream>
+
+#include <sys/stat.h>
+
 #define olog std::cerr
 //@ 
 //@ #include "../misc/log_time.h"

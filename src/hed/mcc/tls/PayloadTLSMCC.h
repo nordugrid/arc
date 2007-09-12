@@ -5,10 +5,10 @@
 #include <openssl/ssl.h>
 
 #include "PayloadTLSStream.h"
-#include "../../libs/message/PayloadStream.h"
-#include "../../libs/message/MCC.h"
+#include <arc/message/PayloadStream.h>
+#include <arc/message/MCC.h>
 #include "BIOMCC.h"
-#include "../../../libs/common/Logger.h"
+#include <arc/Logger.h>
 
 namespace Arc {
 // This class extends PayloadTLSStream with initialization procedure to 

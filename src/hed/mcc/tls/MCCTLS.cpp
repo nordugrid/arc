@@ -1,13 +1,17 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "message/PayloadStream.h"
-#include "message/PayloadRaw.h"
-#include "loader/Loader.h"
-#include "loader/MCCLoader.h"
-#include "common/XMLNode.h"
+#include <arc/message/PayloadStream.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/loader/Loader.h>
+#include <arc/loader/MCCLoader.h>
+#include <arc/XMLNode.h>
 
 #include "PayloadTLSStream.h"
 #include "PayloadTLSSocket.h"

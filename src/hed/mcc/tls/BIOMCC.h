@@ -1,3 +1,6 @@
+#ifndef __ARC_BIOMCC_H__
+#define __ARC_BIOMCC_H__
+
 #include <openssl/ssl.h>
 
 namespace Arc {
@@ -9,3 +12,5 @@ BIO* BIO_new_MCC(MCCInterface* mcc);
 void BIO_set_MCC(BIO* b,MCCInterface* mcc);
 
 } // namespace Arc
+
+#endif // __ARC_BIOMCC_H__

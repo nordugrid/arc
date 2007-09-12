@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 /* 
   Filename: users.cc
   keeps list of users
@@ -11,7 +14,7 @@
 #include <pwd.h>
 #define olog std::cerr
 #define inttostring(N) Arc::tostring(N)
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 //@ 
 
 #include <string>

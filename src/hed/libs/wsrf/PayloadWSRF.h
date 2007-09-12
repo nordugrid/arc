@@ -1,7 +1,7 @@
 #ifndef __ARC_PAYLOADWSRF_H__
 #define __ARC_PAYLOADWSRF_H__
 
-#include "../libs/message/Message.h"
+#include <arc/message/Message.h>
 #include "WSRF.h"
 
 namespace Arc {

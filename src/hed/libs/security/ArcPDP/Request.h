@@ -2,8 +2,8 @@
 #define __ARC_REQUEST_H__
 
 #include <list>
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include "RequestItem.h"
 
 /** Basic class for Request*/

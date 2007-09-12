@@ -1,3 +1,5 @@
+#ifndef __ARC_CACHE_CLEANER_H__
+#define __ARC_CACHE_CLEANER_H__
 #include "../jobs/users.h"
 
 /*
@@ -11,3 +13,4 @@
 
 int cache_cleaner(const JobUsers &users);
 
+#endif 

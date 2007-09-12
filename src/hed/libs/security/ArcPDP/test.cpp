@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //#include <iostream>
 //#include <fstream>
 #include <signal.h>
@@ -7,8 +11,8 @@
 #include "EvaluationCtx.h"
 #include "Evaluator.h"
 #include "Response.h"
-#include "common/XMLNode.h"
-#include "common/Logger.h"
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 
 #include "attr/StringAttribute.h"
 

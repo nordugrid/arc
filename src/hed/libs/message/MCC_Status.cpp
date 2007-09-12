@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // MCC_Status.cpp
 
 #include "MCC_Status.h"

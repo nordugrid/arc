@@ -5,10 +5,10 @@
 
 #include <list>
 #include <string>
-#include "common/ArcRegex.h"
-#include "message/MCC.h"
-#include "message/Message.h"
-#include "common/ArcConfig.h"
+#include <arc/ArcRegex.h>
+#include <arc/ArcConfig.h>
+#include <arc/message/MCC.h>
+#include <arc/message/Message.h>
 
 namespace Arc {
 

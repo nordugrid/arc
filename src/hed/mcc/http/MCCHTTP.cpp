@@ -1,9 +1,13 @@
-#include "common/XMLNode.h"
-#include "common/StringConv.h"
-#include "message/PayloadRaw.h"
-#include "PayloadHTTP.h"
-#include "loader/MCCLoader.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include <arc/XMLNode.h>
+#include <arc/StringConv.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/loader/MCCLoader.h>
+
+#include "PayloadHTTP.h"
 #include "MCCHTTP.h"
 
 

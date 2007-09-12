@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "Loader.h"
-#include "common/ArcConfig.h"
+#include <arc/ArcConfig.h>
 
 int main(void)
 {

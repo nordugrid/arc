@@ -3,7 +3,7 @@
 
 #include <list>
 #include <fstream>
-#include "common/Logger.h"
+#include <arc/Logger.h>
 #include "AlgFactory.h"
 
 namespace Arc {

@@ -1,8 +1,8 @@
 #ifndef __ARC_ARCREQUESTITEM_H__
 #define __ARC_ARCREQUESTITEM_H__
 
+#include <arc/XMLNode.h>
 #include "RequestItem.h"
-#include "common/XMLNode.h"
 
 namespace Arc {
 

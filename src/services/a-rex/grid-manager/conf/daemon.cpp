@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 #include <sys/resource.h>
 //@ #include "../misc/log_time.h"

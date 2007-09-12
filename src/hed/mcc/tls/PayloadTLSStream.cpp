@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <unistd.h>
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -7,7 +11,7 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-#include "../../../libs/common/Logger.h"
+#include <arc/Logger.h>
 #include "PayloadTLSStream.h"
 
 namespace Arc {

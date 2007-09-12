@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <openssl/rsa.h>
 #include <openssl/bn.h>
 #include <openssl/bio.h>

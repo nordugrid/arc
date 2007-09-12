@@ -1,10 +1,13 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <iostream>
 
-#include "loader/Loader.h"
-#include "loader/ServiceLoader.h"
-#include "message/PayloadSOAP.h"
-
-#include "security/SecHandler.h"
+#include <arc/loader/Loader.h>
+#include <arc/loader/ServiceLoader.h>
+#include <arc/message/PayloadSOAP.h>
+#include <arc/security/SecHandler.h>
 
 #include "echo.h"
 

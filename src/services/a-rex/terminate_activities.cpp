@@ -1,5 +1,9 @@
-#include "message/SOAPEnvelope.h"
-#include "ws-addressing/WSA.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/ws-addressing/WSA.h>
 #include "job.h"
 
 #include "arex.h"

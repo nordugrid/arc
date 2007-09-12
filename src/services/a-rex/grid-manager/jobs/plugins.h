@@ -1,3 +1,6 @@
+#ifndef __ARC_GM_PLUGINS_H__
+#define __ARC_GM_PLUGINS_H__
+
 #include <string>
 
 class ContinuationPlugins {
@@ -27,3 +30,4 @@ class ContinuationPlugins {
   action_t run(const JobDescription &job,const JobUser& user,int& result,std::string& response);
 };
 
+#endif

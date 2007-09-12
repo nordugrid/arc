@@ -1,3 +1,5 @@
+#ifndef __ARC_GM_DELETE_H__
+#define __ARC_GM_DELETE_H__
 #include <string>
 #include <list>
 #include "../files/info_types.h"
@@ -23,3 +25,4 @@ int delete_all_files(const std::string &dir_base,std::list<FileData> &files,
 */
 int delete_all_links(const std::string &dir_base,std::list<FileData> &files);
 
+#endif 

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //@ #include "../std.h"
 #include <limits.h>
 #include "../misc/canonical_dir.h"
@@ -9,7 +13,7 @@
 //@ 
 #include <iostream>
 #define olog std::cerr
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \

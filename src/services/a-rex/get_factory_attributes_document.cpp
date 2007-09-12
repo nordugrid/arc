@@ -1,6 +1,10 @@
-#include <src/libs/common/StringConv.h>
-#include "message/SOAPEnvelope.h"
-#include "ws-addressing/WSA.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/StringConv.h>
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/ws-addressing/WSA.h>
 #include "job.h"
 
 #include "arex.h"

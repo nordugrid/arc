@@ -16,4 +16,11 @@ New generation Advanced Resource Connector (ARC) grid middleware
     - python-dev for Python bindings
     - globus GT 4
 
+
 svn propset svn:ignore -F .cvsignore .
+
+Compile on Mac OS
+install darwin ports
+
+export ACLOCAL=aclocal -I /opt/local/share/aclocal
+export LIBTOOLIZE=/opt/local/bin/glibtoolize

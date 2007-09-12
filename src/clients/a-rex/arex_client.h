@@ -8,12 +8,12 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
-#include "../../libs/common/ArcConfig.h"
-#include "../../libs/common/Logger.h"
-#include "../../libs/common/XMLNode.h"
-#include "../../hed/libs/loader/Loader.h"
-#include "../../hed/libs/message/SOAPEnvelope.h"
-#include "../../hed/libs/message/PayloadSOAP.h"
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
+#include <arc/XMLNode.h>
+#include <arc/loader/Loader.h>
+#include <arc/message/SOAPEnvelope.h>
+#include <arc/message/PayloadSOAP.h>
 
 namespace Arc {
 

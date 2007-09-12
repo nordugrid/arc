@@ -284,15 +284,9 @@ AC_SUBST(LIBRESOLV)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 src/libs/Makefile
-                 src/libs/common/Makefile
-                 src/libs/data/Makefile
-                 src/libs/data/dmc/Makefile
-                 src/libs/data/dmc/gridftp/Makefile
-                 src/libs/data/dmc/http/Makefile
-                 src/libs/data/dmc/lfc/Makefile
-                 src/libs/data/dmc/rls/Makefile
                  src/hed/Makefile
+                 src/hed/libs/common/Makefile
+                 src/hed/libs/data/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
                  src/hed/libs/message/Makefile
@@ -307,6 +301,11 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tcp/Makefile
                  src/hed/mcc/http/Makefile
                  src/hed/mcc/tls/Makefile
+                 src/hed/dmc/Makefile
+                 src/hed/dmc/gridftp/Makefile
+                 src/hed/dmc/http/Makefile
+                 src/hed/dmc/lfc/Makefile
+                 src/hed/dmc/rls/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile

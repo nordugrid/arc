@@ -4,8 +4,8 @@
 #include <string>
 #include <map>
 
-#include "../../libs/message/PayloadRaw.h"
-#include "../../libs/message/PayloadStream.h"
+#include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadStream.h>
 
 #define HTTP_OK           (200)
 #define HTTP_BAD_REQUEST  (400)

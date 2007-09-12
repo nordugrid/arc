@@ -6,7 +6,7 @@
 #define ARC_SECHANDLER_LOADER __arc_sechandler_modules__
 #define ARC_SECHANDLER_LOADER_ID QUOTE(ARC_SECHANDLER_LOADER)
 
-#include "security/SecHandler.h"
+#include <arc/security/SecHandler.h>
 
 namespace Arc {
   class ChainContext;

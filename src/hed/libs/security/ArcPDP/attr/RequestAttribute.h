@@ -4,7 +4,7 @@
 #include "AttributeValue.h"
 #include "AttributeFactory.h"
 #include <list>
-#include <common/XMLNode.h>
+#include <arc/XMLNode.h>
 
 namespace Arc {
 
