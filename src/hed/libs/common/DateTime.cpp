@@ -298,14 +298,31 @@ namespace Arc {
 
   std::string Time::str(const TimeFormat& format) const {
 
+    const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    // C week starts on Sunday - just live with it...
+    const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+			   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    
     switch(format) {
 
-    case ASCTime:
+    case ASCTime:  // Day Mon DD HH:MM:SS YYYY
       {
-	char timestr[26];
-	ctime_r(&gtime, timestr);
-	// chop the trailing \n
-	return std::string(timestr, 24);
+	tm tmtime;
+	localtime_r(&gtime, &tmtime);
+
+	std::stringstream ss;
+
+	ss << std::setfill('0');
+
+	ss << day[tmtime.tm_wday] << ' '
+	   << month[tmtime.tm_mon] << ' '
+	   << std::setw(2) << tmtime.tm_mday << ' '
+	   << std::setw(2) << tmtime.tm_hour << ':'
+	   << std::setw(2) << tmtime.tm_min << ':'
+	   << std::setw(2) << tmtime.tm_sec << ' '
+	   << std::setw(4) << tmtime.tm_year + 1900;
+
+	return ss.str();
       }
 
     case UserTime:
@@ -391,11 +408,6 @@ namespace Arc {
       {
 	tm tmtime;
 	gmtime_r(&gtime, &tmtime);
-
-	const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	// C week starts on Sunday - just live with it...
-	const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-			       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 	std::stringstream ss;
 
