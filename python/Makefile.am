@@ -1,12 +1,9 @@
-INCLUDES = -I$(top_srcdir) \
-	-I$(top_builddir)
-
 pythondir= $(PY_SITE_PACKAGES)
 python_DATA = arc.py
 python_LTLIBRARIES = _arc.la
 
 _arc_la_SOURCES = arc_wrap.cpp
-_arc_la_CPPFLAGS = -DSWIG_COBJECT_TYPES $(PY_CFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+_arc_la_CPPFLAGS = -DSWIG_COBJECT_TYPES $(PY_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 _arc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
 #if DARWIN
 #_arc_la_LDFLAGS = -no-undefined -module -avoid-version -Wl,-F. -Wl,-F. -bundle -framework Python 
@@ -20,7 +17,8 @@ _arc_la_LDFLAGS = -no-undefined -module -avoid-version
 SWIG_I_FILES=$(shell find $(top_srcdir)/swig/ -name '*.[ih]')
 arc_wrap.cpp arc.py: $(SWIG_I_FILES)
 	$(SWIG) -v -c++ -python -module arc -o arc_wrap.cpp \
-		-D'__attribute__(x)=' $(top_srcdir)/swig/Arc.i
+		-D'__attribute__(x)=' -I$(top_srcdir)/include \
+		 $(top_srcdir)/swig/Arc.i
 	cp arc_wrap.cpp arc_wrap.cpp.bak
 	sed -e 's/^  int res = 0;$$//' \
 			< arc_wrap.cpp.bak > arc_wrap.cpp
