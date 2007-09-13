@@ -43,6 +43,24 @@ time_t timegm (struct tm *tm) {
 #endif
 
 
+#ifndef HAVE_LOCALTIME_R
+struct tm* localtime_r(const time_t *timep, struct tm *result) {
+  struct tm* TM = localtime(timep);
+  *result = *TM;
+  return result;
+}
+#endif
+
+
+#ifndef HAVE_GMTIME_R
+struct tm* gmtime_r(const time_t *timep, struct tm *result) {
+  struct tm* TM = gmtime(timep);
+  *result = *TM;
+  return result;
+}
+#endif
+
+
 namespace Arc {
 
   static Logger dateTimeLogger(Logger::rootLogger, "DateTime");
