@@ -14,13 +14,29 @@
 #ifndef HAVE_TIMEGM
 time_t timegm (struct tm *tm) {
   char *tz = getenv("TZ");
+#ifdef HAVE_SETENV
   setenv("TZ", "", 1);
+#else
+  putenv("TZ=");
+#endif
   tzset();
   time_t ret = mktime(tm);
-  if(tz)
+  if(tz) {
+#ifdef HAVE_SETENV
     setenv("TZ", tz, 1);
-  else
+#else
+    static std::string oldtz;
+    oldtz = std::string("TZ=") + tz;
+    putenv(const_cast<char*>(oldtz.c_str()));
+#endif
+  }
+  else {
+#ifdef HAVE_UNSETENV
     unsetenv("TZ");
+#else
+    putenv("TZ");
+#endif
+  }
   tzset();
   return ret;
 }
