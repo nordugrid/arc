@@ -8,7 +8,7 @@
 #include <globus_ftp_client.h>
 
 #include <arc/data/DataPointDirect.h>
-#include <glibmm.h>
+#include <glibmm/thread.h>
 
 namespace Arc {
 

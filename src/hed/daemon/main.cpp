@@ -3,7 +3,6 @@
 #endif
 
 #include <fstream>
-#include <glibmm.h>
 #include <signal.h>
 #include <arc/ArcConfig.h>
 #include <arc/loader/Loader.h>

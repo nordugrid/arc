@@ -5,7 +5,6 @@
 #include <list>
 
 #include <arc/data/DataPointDirect.h>
-#include <glibmm.h>
 
 namespace Arc {
 
