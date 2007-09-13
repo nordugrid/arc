@@ -255,8 +255,6 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       return set_execs(rsl_tree,session_dir);
     }; break;
 #endif
-/* XXX: someting missing below */
-#if 0
 //#ifndef JSDL_MISSING
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
@@ -266,6 +264,21 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
         RunElement* re = RunCommands::fork(tmp_user,"set_execs");
+        if(re == NULL) return false; 
+        if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs"); 
+        _exit(j.set_execs(session_dir));
+      };
+      return j.set_execs(session_dir);
+    }; break;
+//#endif
+    default: break;
+  };
+  return false;
+}
+
+bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) { 
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description"; 
+  switch(detect_job_req_type(fname.c_str())) { 
 #ifdef HAVE_RSL
         case job_req_rsl: {
           return write_grami_rsl(desc,user,opt_add);
@@ -280,7 +293,6 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
             return j.write_grami(desc,user,opt_add);
         }; break;
 //#endif
-#endif
         default: break;
       };
   return false;

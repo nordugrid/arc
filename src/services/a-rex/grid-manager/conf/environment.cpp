@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-/@ #include "../std.h"
+//@ #include "../std.h"
 //@ #include "../misc/log_time.h"
 //@ 
 #include <iostream>
