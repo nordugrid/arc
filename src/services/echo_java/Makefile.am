@@ -1,4 +1,4 @@
-JDK_INCLUDES = @JDK_INCLUDE@ -I$(top_builddir)
+JDK_INCLUDES = @JDK_INCLUDE@
 
 lib_LTLIBRARIES= libarcservice_javawrapper.la
 

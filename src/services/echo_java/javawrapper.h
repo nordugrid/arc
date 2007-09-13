@@ -2,8 +2,8 @@
 #define __ARC_SERVICE_JAVA_WRAPPER_H__
 
 #include <jni.h>
-#include "message/Service.h"
-#include "common/Logger.h"
+#include <arc/message/Service.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 class Service_JavaWrapper: public Arc::Service {

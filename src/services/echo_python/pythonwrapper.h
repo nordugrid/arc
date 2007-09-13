@@ -2,8 +2,8 @@
 #define __ARC_SERVICE_PYTHON_WRAPPER_H__
 
 #include <Python.h>
-#include "message/Service.h"
-#include "common/Logger.h"
+#include <arc/message/Service.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 class Service_PythonWrapper: public Arc::Service {

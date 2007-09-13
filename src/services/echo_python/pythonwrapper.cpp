@@ -4,9 +4,9 @@
 #endif
 
 #include <iostream>
-#include "loader/Loader.h"
-#include "loader/ServiceLoader.h"
-#include "message/SOAPMessage.h"
+#include <arc/loader/Loader.h>
+#include <arc/loader/ServiceLoader.h>
+#include <arc/message/SOAPMessage.h>
 #include "pythonwrapper.h"
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
