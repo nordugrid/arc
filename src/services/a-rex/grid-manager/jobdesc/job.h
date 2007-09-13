@@ -8,8 +8,8 @@
 #include <iostream>
 
 #include "runtimeenvironment.h"
-#include <src/libs/common/URL.h>
-#include <src/libs/common/DateTime.h>
+#include <arc/URL.h>
+#include <arc/DateTime.h>
 
 
 /** Exception class thrown in case of errors with the JobRequest class. */

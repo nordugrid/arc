@@ -9,7 +9,7 @@
 #include "job_log.h"
 
 //@ 
-#include <src/libs/common/StringConv.h>
+#include <arc/StringConv.h>
 #define inttostring Arc::tostring
 #if defined __GNUC__ && __GNUC__ >= 3
 
