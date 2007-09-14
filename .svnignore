@@ -1,3 +1,5 @@
+arc.spec
+mkinstalldirs
 aclocal.m4
 autom4te.cache
 config.guess
