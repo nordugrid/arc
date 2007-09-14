@@ -3,3 +3,5 @@ Makefile.in
 .libs
 .deps
 test
+*.mo
+Arc.pot
