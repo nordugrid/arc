@@ -1,8 +1,6 @@
 %{
 #include <arc/ArcConfig.h>
-/* #include "../src/libs/common/BasicDT.h" */
 #include <arc/Logger.h>
-/* #include "../src/libs/common/Thread.h" */
 #include <arc/XMLNode.h>
 %}
 
@@ -36,20 +34,6 @@
 %rename(toBool) operator bool;
 #endif
 
-%include <arc/XMLNode.h>
-/*
-#ifdef SWIGPYTHON
-%extend Arc::XMLNode {
-    Arc::XMLNode __getitem__(const char *name) const {
-        return self->operator[](name);
-    }
-    
-    Arc::XMLNode __getitem__(const std::string& name) const {
-        return self->operator[](name.c_str());
-    }
-} 
-#endif */
-%include <arc/ArcConfig.h>
-/* %include "../src/libs/common/BasicDT.h" */
-%include <arc/Logger.h>
-/* %include "../src/libs/common/Thread.h" */
+%include "../src/hed/libs/common/ArcConfig.h"
+%include "../src/hed/libs/common/Logger.h"
+%include "../src/hed/libs/common/XMLNode.h"
