@@ -7,14 +7,18 @@
 #include <signal.h>
 
 #include <string>
-#include "ArcRequest.h"
-#include "EvaluationCtx.h"
-#include "Evaluator.h"
-#include "Response.h"
+//#include "ArcRequest.h"
+//#include "EvaluationCtx.h"
+//#include "Evaluator.h"
+//#include "Response.h"
+#include <arc/security/ArcPDP/ArcRequest.h>
+#include <arc/security/ArcPDP/EvaluationCtx.h>
+#include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "attr/StringAttribute.h"
+#include "attr/StringAttribute.h"   //this head file will not usually been used in real application
 
 int main(void){
 

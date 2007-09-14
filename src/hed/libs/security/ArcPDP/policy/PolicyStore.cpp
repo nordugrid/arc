@@ -5,7 +5,7 @@
 #include "PolicyStore.h"
 #include <fstream>
 #include <iostream>
-#include "ArcPolicy.h" 
+#include "Policy.h" 
 #include "PolicyParser.h"
 
 using namespace Arc;

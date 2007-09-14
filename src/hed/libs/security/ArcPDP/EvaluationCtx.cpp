@@ -3,6 +3,7 @@
 #endif
 
 #include "EvaluationCtx.h"
+#include "attr/StringAttribute.h"
 
 using namespace Arc;
 

@@ -6,7 +6,7 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include "AttributeValue.h"
-#include "StringAttribute.h"
+//#include "StringAttribute.h"
 
 namespace Arc {
 
