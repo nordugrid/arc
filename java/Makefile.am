@@ -39,7 +39,7 @@ MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 SWIG_I_FILES=$(shell find $(top_srcdir)/swig/ -name '*.[ih]')
 arc_wrap.cpp $(JAVA_PATH)/*.java: $(SWIG_I_FILES)
 	../install-sh -d $(JAVA_PATH)
-	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
+	$(SWIG) -v -c++ -java -nodefault -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) -D'__attribute__(x)=' \
 		-I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
