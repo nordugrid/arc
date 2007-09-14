@@ -34,7 +34,9 @@ class DelegationConsumer {
 class DelegationProvider {
   void* key_;
   void* cert_;
+  void* chain_;
   void LogError(void);
+  void CleanError(void);
  public:
   DelegationProvider(const std::string& credentials);
   ~DelegationProvider(void);
