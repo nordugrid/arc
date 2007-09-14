@@ -11,7 +11,13 @@
 int main(int argc,char* argv[]) {
   std::string credentials;
   std::ifstream ic(argv[1]);
-  ic>>credentials;
+  for(;!ic.eof();) {
+    char buf[256];
+    ic.get(buf,sizeof(buf),0);
+    if(ic.gcount() <= 0) break;
+    credentials.append(buf,ic.gcount());
+  };
+std::cerr<<credentials<<std::endl;
   std::string s;
   Arc::DelegationConsumer c;
   c.Backup(s);
