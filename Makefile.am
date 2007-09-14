@@ -10,7 +10,7 @@ if SWIG_ENABLED
 SWIG_SD = swig
 endif
 
-SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD)
+SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) intl
 
 DIST_SUBDIRS = src swig java python intl doc include 
 
