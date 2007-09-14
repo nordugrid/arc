@@ -3,3 +3,5 @@ Makefile.in
 .libs
 .deps
 test
+*.loT
+jsdl_soap*
