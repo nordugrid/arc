@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[1.0],[knowarc-support@nordugrid.org])
 #AM_INIT_AUTOMAKE([-Wno-portability])
@@ -276,7 +276,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
-AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull tzset unsetenv])
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull tzset unsetenv getpid])
 AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
 AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)
