@@ -6,9 +6,14 @@
 
 #include <sstream>
 #include <glib.h>
+#ifdef HAVE_LIBINTL_H
 #include <libintl.h>
+#endif
 #include "Logger.h"
 #include "DateTime.h"
+#ifdef WIN32
+#include <process.h>
+#endif
 
 namespace Arc {
 
@@ -78,8 +83,12 @@ namespace Arc {
 
   std::string LogMessage::getDefaultIdentifier() {
     std::ostringstream sout;
+#ifdef HAVE_GETPID
     sout << getpid() << "/"
          << (unsigned long int)(void*)Glib::Thread::self();
+#else
+    sout << (unsigned long int)(void*)Glib::Thread::self();
+#endif
     return sout.str();
   }
 
@@ -89,7 +98,11 @@ namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
     char buf[1024];
+#ifdef HAVE_LIBINTL_H    
     vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), *message.v);
+#else
+    vsnprintf(buf, 1024, message.message.c_str(), *message.v);
+#endif
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
