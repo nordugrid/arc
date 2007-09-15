@@ -2,16 +2,12 @@
 #define __ARC_DELEGATIONINTERFACE_H__
 
 #include <string>
-//#include <list>
-//#include <glibmm/thread.h>
-//#include "../../../libs/common/XMLNode.h"
-//#include "../../../hed/libs/message/SOAPEnvelope.h"
+
+#include <arc/message/SOAPEnvelope.h>
 
 namespace Arc {
 
-
-
-/// This class manages private key of delegation procedure.
+/// Manages private key of delegation procedure.
 /** */
 class DelegationConsumer {
  protected:
@@ -29,8 +25,11 @@ class DelegationConsumer {
   bool Backup(std::string& content);
   bool Restore(const std::string& content);
   bool Request(std::string& content);
+  bool Acquire(std::string& content);
 };
 
+/// Manages creddentials of delegation issuer.
+/** */
 class DelegationProvider {
   void* key_;
   void* cert_;
@@ -43,6 +42,32 @@ class DelegationProvider {
   std::string Delegate(const std::string& request);
 };
 
+
+class DelegationConsumerSOAP: public DelegationConsumer {
+ protected:
+ public:
+  DelegationConsumerSOAP(void);
+  DelegationConsumerSOAP(const std::string& content);
+  ~DelegationConsumerSOAP(void);
+  bool DelegateCredentialsInit(const std::string& id,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+};
+
+class DelegationProviderSOAP: public DelegationProvider {
+ protected:
+ public:
+  DelegationProviderSOAP(const std::string& credentials);
+  ~DelegationProviderSOAP(void);
+  bool DelegateCredentialsInitRequest(SOAPEnvelope& req);
+  bool DelegateCredentialsInitResponse(std::string& id,const SOAPEnvelope& resp);
+  bool UpdateCredentialsRequest(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+};
+
+
+
+
 } // namespace Arc
+
 
 #endif /* __ARC_DELEGATIONINTERFACE_H__ */

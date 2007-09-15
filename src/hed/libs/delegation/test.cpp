@@ -17,7 +17,8 @@ int main(int argc,char* argv[]) {
     if(ic.gcount() <= 0) break;
     credentials.append(buf,ic.gcount());
   };
-std::cerr<<credentials<<std::endl;
+  std::cerr<<"Credentials:"<<std::endl;
+  std::cerr<<credentials<<std::endl;
   std::string s;
   Arc::DelegationConsumer c;
   c.Backup(s);
@@ -27,6 +28,9 @@ std::cerr<<credentials<<std::endl;
   Arc::DelegationProvider p(credentials);
   s=p.Delegate(s);
   std::cerr<<"Delegation:\n"<<s<<std::endl;
+  c.Acquire(s);
+  std::ofstream oc("proxy.pem");
+  oc<<s<<std::endl;
   return 0;
 }
 

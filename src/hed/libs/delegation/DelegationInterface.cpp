@@ -33,7 +33,7 @@ error:
   return ret;
 }
 
-static bool cert_to_string(X509* cert,std::string& str) {
+static bool x509_to_string(X509* cert,std::string& str) {
   BIO *out = BIO_new(BIO_s_mem());
   if(!out) return false;
   if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
@@ -44,6 +44,67 @@ static bool cert_to_string(X509* cert,std::string& str) {
     str.append(s,l);;
   };
   BIO_free_all(out);
+  return true;
+}
+
+static bool x509_to_string(EVP_PKEY* key,std::string& str) {
+  BIO *out = BIO_new(BIO_s_mem());
+  if(!out) return false;
+  EVP_CIPHER *enc = NULL;
+  if(!PEM_write_bio_PrivateKey(out,key,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+  for(;;) {
+    char s[256];
+    int l = BIO_read(out,s,sizeof(s));
+    if(l <= 0) break;
+    str.append(s,l);;
+  };
+  BIO_free_all(out);
+  return true;
+}
+
+static bool x509_to_string(RSA* key,std::string& str) {
+  BIO *out = BIO_new(BIO_s_mem());
+  if(!out) return false;
+  EVP_CIPHER *enc = NULL;
+  if(!PEM_write_bio_RSAPrivateKey(out,key,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+  for(;;) {
+    char s[256];
+    int l = BIO_read(out,s,sizeof(s));
+    if(l <= 0) break;
+    str.append(s,l);;
+  };
+  BIO_free_all(out);
+  return true;
+}
+
+static bool string_to_x509(const std::string& str,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
+  BIO *in = NULL;
+  if(str.empty()) return false;
+  if(!(in=BIO_new_mem_buf((void*)(str.c_str()),str.length()))) return false;
+  if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) { BIO_free_all(in); return false; };
+  if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) { BIO_free_all(in); return false; };
+  if(!(cert_sk=sk_X509_new_null())) { BIO_free_all(in); return false; };
+  for(;;) {
+    X509* c = NULL;
+    if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
+    sk_X509_push(cert_sk,c);
+  };
+  BIO_free_all(in);
+  return true;
+}
+
+static bool string_to_x509(const std::string& str,X509* &cert,STACK_OF(X509)* &cert_sk) {
+  BIO *in = NULL;
+  if(str.empty()) return false;
+  if(!(in=BIO_new_mem_buf((void*)(str.c_str()),str.length()))) return false;
+  if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) { BIO_free_all(in); return false; };
+  if(!(cert_sk=sk_X509_new_null())) { BIO_free_all(in); return false; };
+  for(;;) {
+    X509* c = NULL;
+    if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
+    sk_X509_push(cert_sk,c);
+  };
+  BIO_free_all(in);
   return true;
 }
 
@@ -169,9 +230,6 @@ bool DelegationConsumer::Request(std::string& content) {
           //if(X509_REQ_set_version(req,0L)) {
           if(X509_REQ_set_version(req,2L)) {
             if(X509_REQ_set_pubkey(req,pkey)) {
-//X509_NAME *n = parse_name(subject, chtype, multirdn);
-//X509_REQ_set_subject_name(req, n);
-//X509_NAME_free(n);
               if(X509_REQ_sign(req,pkey,digest)) {
                 BIO *out = BIO_new(BIO_s_mem());
                 if(out) {
@@ -201,20 +259,51 @@ bool DelegationConsumer::Request(std::string& content) {
   return res;
 }
 
+bool DelegationConsumer::Acquire(std::string& content) {
+  X509 *cert = NULL;
+  STACK_OF(X509) *cert_sk = NULL;
+  bool res = false;
+
+  if(!key_) return false;
+
+  if(!string_to_x509(content,cert,cert_sk)) goto err;
+
+  content.resize(0);
+  if(!x509_to_string(cert,content)) goto err;
+  if(!x509_to_string((RSA*)key_,content)) goto err;
+  if(cert_sk) {
+    for(int n=0;n<sk_X509_num((STACK_OF(X509) *)cert_sk);++n) {
+      X509* v = sk_X509_value((STACK_OF(X509) *)cert_sk,n);
+      if(!v) goto err;
+      if(!x509_to_string(v,content)) goto err;
+    };
+  };
+
+  res=true;
+err:
+  if(!res) LogError();
+  if(cert) X509_free(cert);
+  if(cert_sk) {
+    for(int i = 0;i<sk_X509_num(cert_sk);++i) {
+      X509* v = sk_X509_value(cert_sk,i);
+      if(v) X509_free(v);
+    };
+    sk_X509_free(cert_sk);
+  };
+}
+
+// ---------------------------------------------------------------------------------
+
 DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL),cert_(NULL),chain_(NULL) {
   EVP_PKEY *pkey = NULL;
   X509 *cert = NULL;
   STACK_OF(X509) *cert_sk = NULL;
-  BIO *in = NULL;
   bool res = false;
 
   //OpenSSL_add_all_algorithms();
   EVP_add_digest(EVP_md5());
 
-  if(credentials.empty()) {
-    return;
-  };
-
+  /*
   if(key_) { EVP_PKEY_free((EVP_PKEY*)key_); key_=NULL; };
   if(cert_) { X509_free((X509*)cert_); cert_=NULL; };
   if(chain_) {
@@ -225,29 +314,13 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
       X509_free(v);
     };
     sk_X509_free(sv);
-    cert_=NULL;
+    chain_=NULL;
   };
-
-  in = BIO_new_mem_buf((void*)(credentials.c_str()),credentials.length());
-  if(!in) goto err;
-
-  if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) goto err;
+  */
+  if(!string_to_x509(credentials,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
-
-  if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) goto err;
   key_=pkey; pkey=NULL;
-
-  cert_sk = sk_X509_new_null();
-  if(!cert_sk) goto err;
-  for(;;) {
-    if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) {
-      CleanError();
-      break;
-    };
-    sk_X509_push(cert_sk,cert); cert=NULL;
-  };
   chain_=cert_sk; cert_sk=NULL;
-
   res=true;
 err:
   if(!res) LogError();
@@ -260,7 +333,6 @@ err:
     };
     sk_X509_free(cert_sk);
   };
-  if(in) BIO_free_all(in);
 }
 
 DelegationProvider::~DelegationProvider(void) {
@@ -397,7 +469,8 @@ std::string DelegationProvider::Delegate(const std::string& request) {
   //ASN1_TIME* t = ASN1_TIME_new();
   //ASN1_TIME_set(t,time(NUL));
   X509_gmtime_adj(X509_get_notBefore(cert),0);
-  X509_gmtime_adj(X509_get_notAfter(cert),(long)60*60*24);
+  //X509_gmtime_adj(X509_get_notAfter(cert),(long)60*60*24);
+  X509_set_notAfter(cert,X509_get_notAfter((X509*)cert_));
   /*
   int             X509_set_notBefore(X509 *x, ASN1_TIME *tm);
   int             X509_set_notAfter(X509 *x, ASN1_TIME *tm);
@@ -432,14 +505,14 @@ std::string DelegationProvider::Delegate(const std::string& request) {
   }
   */
 
-  if(!cert_to_string(cert,res)) { res=""; goto err; };
+  if(!x509_to_string(cert,res)) { res=""; goto err; };
   // Append chain of certificates
-  if(!cert_to_string((X509*)cert_,res)) { res=""; goto err; };
+  if(!x509_to_string((X509*)cert_,res)) { res=""; goto err; };
   if(chain_) {
     for(int n=0;n<sk_X509_num((STACK_OF(X509) *)chain_);++n) {
       X509* v = sk_X509_value((STACK_OF(X509) *)chain_,n);
       if(!v) { res=""; goto err; };
-      if(!cert_to_string(v,res)) { res=""; goto err; };
+      if(!x509_to_string(v,res)) { res=""; goto err; };
     };
   };
 
@@ -467,5 +540,59 @@ void DelegationProvider::CleanError(void) {
   ERR_print_errors_cb(&ssl_err_cb,&ssl_err);
 }
 
+// ---------------------------------------------------------------------------------
+
+DelegationConsumerSOAP::DelegationConsumerSOAP(const std::string& content):DelegationConsumer(content) {
+}
+
+DelegationConsumerSOAP::~DelegationConsumerSOAP(void) {
+}
+
+bool DelegationConsumerSOAP::DelegateCredentialsInit(const std::string& id,const SOAPEnvelope& in,SOAPEnvelope& out) {
+/*
+  DelegateCredentialsInit
+
+  DelegateCredentialsInitResponse
+    TokenRequest - Format (=x509)
+      Id (string)
+      Value (string)
+*/
+  if(!in["DelegateCredentialsInit"]) return false;
+  std::string x509_request;
+  Request(x509_request);
+  NS ns; ns["deleg"]="http://www.nordugrid.org/schemas/delegation";
+  out.Namespaces(ns);
+  XMLNode resp = out.NewChild("deleg:DelegateCredentialsInitResponse");
+  XMLNode token = resp.NewChild("deleg:TokenRequest");
+  token.NewAttribute("deleg:Format")="x509";
+  token.NewChild("deleg:Id")=id;
+  token.NewChild("deleg:Value")=x509_request;
+  return true;
+}
+
+bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+/*
+  UpdateCredentials
+    DelegatedToken - Format (=x509)
+      Id (string)
+      Value (string)
+      Reference (any, optional)
+
+  UpdateCredentialsResponse
+*/
+  XMLNode req = in["UpdateCredentials"];
+  if(!req) return false;
+  credentials = (std::string)(req["DelegatedToken"]["Value"]);
+  if(credentials.empty()) {
+    // TODO: Fault
+    return false;
+  };
+  if(((std::string)(req["DelegatedToken"].Attribute("Format"))) != "x509") {
+    // TODO: Fault
+    return false;
+  };
+  return true;
+}
 
 } // namespace Arc
+
