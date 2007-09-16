@@ -4,6 +4,8 @@
 #include <string>
 
 #include <arc/message/SOAPEnvelope.h>
+#include <arc/message/MCC.h>
+#include <arc/message/Message.h>
 
 namespace Arc {
 
@@ -55,13 +57,13 @@ class DelegationConsumerSOAP: public DelegationConsumer {
 
 class DelegationProviderSOAP: public DelegationProvider {
  protected:
+  std::string request_;
+  std::string id_;
  public:
   DelegationProviderSOAP(const std::string& credentials);
   ~DelegationProviderSOAP(void);
-  bool DelegateCredentialsInitRequest(SOAPEnvelope& req);
-  bool DelegateCredentialsInitResponse(std::string& id,const SOAPEnvelope& resp);
-  bool UpdateCredentialsRequest(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
-  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
 };
 
 

@@ -13,11 +13,13 @@
 
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
+#include <arc/message/PayloadSOAP.h>
 
 #include "DelegationInterface.h"
 
 namespace Arc {
 
+#define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 //#define SERIAL_RAND_BITS 64
 #define SERIAL_RAND_BITS 31
 
@@ -560,7 +562,7 @@ bool DelegationConsumerSOAP::DelegateCredentialsInit(const std::string& id,const
   if(!in["DelegateCredentialsInit"]) return false;
   std::string x509_request;
   Request(x509_request);
-  NS ns; ns["deleg"]="http://www.nordugrid.org/schemas/delegation";
+  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   out.Namespaces(ns);
   XMLNode resp = out.NewChild("deleg:DelegateCredentialsInitResponse");
   XMLNode token = resp.NewChild("deleg:TokenRequest");
@@ -593,6 +595,71 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
   };
   return true;
 }
+
+// ---------------------------------------------------------------------------------
+
+DelegationProviderSOAP::DelegationProviderSOAP(const std::string& credentials):DelegationProvider(credentials) {
+}
+
+DelegationProviderSOAP::~DelegationProviderSOAP(void) {
+}
+
+bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context) {
+  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+  PayloadSOAP req_soap(ns);
+  req_soap.NewChild("deleg:DelegateCredentialsInit");
+  Message req;
+  Message resp;
+  req.Attributes(attributes);
+  req.Context(context);
+  req.Payload(&req_soap);
+  MCC_Status r = interface.process(req,resp);
+  if(r != STATUS_OK) return false;
+  if(!resp.Payload()) return false;
+  PayloadSOAP* resp_soap = NULL;
+  try {
+    resp_soap=dynamic_cast<PayloadSOAP*>(resp.Payload());
+  } catch(std::exception& e) { };
+  if(!resp_soap) { delete resp.Payload(); return false; };
+  XMLNode token = (*resp_soap)["DelegateCredentialsInitResponse"]["TokenRequest"];
+  if(!token) { delete resp_soap; return false; };
+  if(((std::string)(token.Attribute("Format"))) != "x509") { delete resp_soap; return false; };
+  id_=(std::string)(token["Id"]);
+  request_=(std::string)(token["Value"]);
+  delete resp_soap;
+  if(id_.empty() || request_.empty()) return false;
+  return true;
+}
+
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context) {
+  if(id_.empty()) return false;
+  if(request_.empty()) return false;
+  std::string delegation = Delegate(request_);
+  if(delegation.empty()) return false;
+  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+  PayloadSOAP req_soap(ns);
+  XMLNode token = req_soap.NewChild("deleg:UpdateCredentials").NewChild("DelegatedToken");
+  token.NewAttribute("deleg:Format")="x509";
+  token.NewChild("deleg:Id")=id_;
+  token.NewChild("deleg:Value")=delegation;
+  Message req;
+  Message resp;
+  req.Attributes(attributes);
+  req.Context(context);
+  req.Payload(&req_soap);
+  MCC_Status r = interface.process(req,resp);
+  if(r != STATUS_OK) return false;
+  if(!resp.Payload()) return false;
+  PayloadSOAP* resp_soap = NULL;
+  try {
+    resp_soap=dynamic_cast<PayloadSOAP*>(resp.Payload());
+  } catch(std::exception& e) { };
+  if(!resp_soap) { delete resp.Payload(); return false; };
+  if(!(*resp_soap)["UpdateCredentialsResponse"]) 
+  delete resp_soap;
+  return true;
+}
+
 
 } // namespace Arc
 
