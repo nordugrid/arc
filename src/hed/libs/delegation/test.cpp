@@ -7,6 +7,37 @@
 #include <fstream>
 
 #include "DelegationInterface.h"
+#include <arc/message/PayloadSOAP.h>
+
+static Arc::DelegationConsumerSOAP* deleg_service = NULL;
+
+class DirectMCC: public Arc::MCCInterface {
+ public:
+  Arc::MCC_Status process(Arc::Message& in,Arc::Message& out);
+};
+
+Arc::MCC_Status DirectMCC::process(Arc::Message& in,Arc::Message& out) {
+  if(!deleg_service) return Arc::MCC_Status();
+  if(!in.Payload()) return Arc::MCC_Status();
+  Arc::PayloadSOAP* in_payload = NULL;
+  try {
+    in_payload = dynamic_cast<Arc::PayloadSOAP*>(in.Payload());
+  } catch(std::exception& e) { };
+  if(!in_payload) return Arc::MCC_Status();
+  Arc::MCC_Status r;
+  Arc::NS ns;
+  Arc::PayloadSOAP* out_payload = new Arc::PayloadSOAP(ns);
+  out.Payload(out_payload);
+  if((*in_payload)["DelegateCredentialsInit"]) {
+    std::string id("delegation_id");
+    if(!deleg_service->DelegateCredentialsInit(id,*in_payload,*out_payload)) return Arc::MCC_Status();
+  } else if((*in_payload)["UpdateCredentials"]) {
+    std::string cred;
+    if(!deleg_service->UpdateCredentials(cred,*in_payload,*out_payload)) return Arc::MCC_Status();
+    std::cout<<"Delegated credentials:\n"<<cred<<std::cerr;
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
 
 int main(int argc,char* argv[]) {
   std::string credentials;
@@ -19,6 +50,7 @@ int main(int argc,char* argv[]) {
   };
   std::cerr<<"Credentials:"<<std::endl;
   std::cerr<<credentials<<std::endl;
+  /*
   std::string s;
   Arc::DelegationConsumer c;
   c.Backup(s);
@@ -31,6 +63,21 @@ int main(int argc,char* argv[]) {
   c.Acquire(s);
   std::ofstream oc("proxy.pem");
   oc<<s<<std::endl;
+  */
+  Arc::DelegationConsumerSOAP c;
+  Arc::DelegationProviderSOAP p(credentials);
+  deleg_service=&c;
+  Arc::MessageAttributes attr;
+  Arc::MessageContext context;
+  DirectMCC interface;
+  if(!p.DelegateCredentialsInit(interface,&attr,&context)) {
+    std::cerr<<"DelegateCredentialsInit failed"<<std::cerr;
+    return -1;
+  };
+  if(!p.UpdateCredentials(interface,&attr,&context)) {
+    std::cerr<<"UpdateCredentials failed"<<std::cerr;
+    return -1;
+  };
   return 0;
 }
 

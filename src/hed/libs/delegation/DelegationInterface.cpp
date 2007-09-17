@@ -544,6 +544,9 @@ void DelegationProvider::CleanError(void) {
 
 // ---------------------------------------------------------------------------------
 
+DelegationConsumerSOAP::DelegationConsumerSOAP(void):DelegationConsumer() {
+}
+
 DelegationConsumerSOAP::DelegationConsumerSOAP(const std::string& content):DelegationConsumer(content) {
 }
 
@@ -593,6 +596,10 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
     // TODO: Fault
     return false;
   };
+  if(!Acquire(credentials)) return false;
+  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+  out.Namespaces(ns);
+  out.NewChild("deleg:UpdateCredentialsResponse");
   return true;
 }
 
@@ -638,7 +645,7 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   if(delegation.empty()) return false;
   NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   PayloadSOAP req_soap(ns);
-  XMLNode token = req_soap.NewChild("deleg:UpdateCredentials").NewChild("DelegatedToken");
+  XMLNode token = req_soap.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
   token.NewAttribute("deleg:Format")="x509";
   token.NewChild("deleg:Id")=id_;
   token.NewChild("deleg:Value")=delegation;
