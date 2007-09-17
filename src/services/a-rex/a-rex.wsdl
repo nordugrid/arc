@@ -47,7 +47,7 @@
       <xsd:complexType name="ResourceInformationDocumentType">
         <xsd:sequence>
 	   <xsd:element name="BESFactory" type="bes-factory:FactoryResourceAttributesDocumentType"/>
-          <xsd:complexType name=?Glue2Resource? minOccurs='0'>
+          <xsd:complexType name="Glue2Resource" minOccurs='0'>
             <xsd:sequence>
               <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
@@ -57,8 +57,8 @@
               <xsd:complexType name="Activity" minOccurs='0' maxOccurs='unbounded'>
                 <xsd:sequence>
                   <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
-                  <xsd:element ref=?bes-factory:ActivityDocument? minOccurs='0'/>
-                  <xsd:complexType name=?Glue2Job? minOccurs='0'>
+                  <xsd:element ref="bes-factory:ActivityDocument" minOccurs='0'/>
+                  <xsd:complexType name="Glue2Job" minOccurs='0'>
                     <xsd:sequence>
                       <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
                     </xsd:sequence>
