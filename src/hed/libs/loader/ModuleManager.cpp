@@ -7,7 +7,8 @@
 
 namespace Arc {
 ModuleManager::ModuleManager(Arc::Config *cfg)
-{
+{ 
+  if(cfg!=NULL){
   Loader::logger.msg(INFO, "Module Manager Init");
   XMLNode mm = (*cfg)["ArcConfig"]["ModuleManager"];
   for (int n = 0;;++n) {
@@ -18,6 +19,7 @@ ModuleManager::ModuleManager(Arc::Config *cfg)
     if (MatchXMLName(path, "Path")) {
       plugin_dir.push_back((std::string)path);
     }
+  }
   }
 }
 
