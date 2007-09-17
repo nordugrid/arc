@@ -13,7 +13,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/delegation/DelegationInterface.h"
+#include <arc/delegation/DelegationInterface.h>
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
