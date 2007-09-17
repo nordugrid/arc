@@ -37,9 +37,10 @@ class ClassLoader : public ModuleManager{
 
 };
 
+/*
 template <class LC>
 void ClassLoader::Instance(const std::string classId, LC *&p, Config* cfg){
-  LoadableClass *object  = Instance(classId);
+  LoadableClass *object  = Instance(classId, cfg);
   //void *object = Instance(classId, cfg);
   p = dynamic_cast<LC *>(object);
   if(object && !p){
@@ -47,6 +48,7 @@ void ClassLoader::Instance(const std::string classId, LC *&p, Config* cfg){
     p = NULL;
   }
 }
+*/
 
 } // namespace Arc
 
