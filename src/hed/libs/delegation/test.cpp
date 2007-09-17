@@ -9,7 +9,7 @@
 #include "DelegationInterface.h"
 #include <arc/message/PayloadSOAP.h>
 
-static Arc::DelegationConsumerSOAP* deleg_service = NULL;
+static Arc::DelegationContainerSOAP* deleg_service = NULL;
 
 class DirectMCC: public Arc::MCCInterface {
  public:
@@ -28,14 +28,18 @@ Arc::MCC_Status DirectMCC::process(Arc::Message& in,Arc::Message& out) {
   Arc::NS ns;
   Arc::PayloadSOAP* out_payload = new Arc::PayloadSOAP(ns);
   out.Payload(out_payload);
+  std::string xml;
+  in_payload->GetXML(xml);
+  std::cout<<"Request:\n"<<xml<<std::endl;
   if((*in_payload)["DelegateCredentialsInit"]) {
-    std::string id("delegation_id");
-    if(!deleg_service->DelegateCredentialsInit(id,*in_payload,*out_payload)) return Arc::MCC_Status();
+    if(!deleg_service->DelegateCredentialsInit(*in_payload,*out_payload)) return Arc::MCC_Status();
   } else if((*in_payload)["UpdateCredentials"]) {
     std::string cred;
     if(!deleg_service->UpdateCredentials(cred,*in_payload,*out_payload)) return Arc::MCC_Status();
-    std::cout<<"Delegated credentials:\n"<<cred<<std::cerr;
+    std::cout<<"Delegated credentials:\n"<<cred<<std::endl;
   };
+  out_payload->GetXML(xml);
+  std::cout<<"Response:\n"<<xml<<std::endl;
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -64,7 +68,7 @@ int main(int argc,char* argv[]) {
   std::ofstream oc("proxy.pem");
   oc<<s<<std::endl;
   */
-  Arc::DelegationConsumerSOAP c;
+  Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
   deleg_service=&c;
   Arc::MessageAttributes attr;

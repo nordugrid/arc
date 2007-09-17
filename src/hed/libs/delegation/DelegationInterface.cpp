@@ -603,6 +603,14 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
   return true;
 }
 
+bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+  credentials = (std::string)(token["Value"]);
+  if(credentials.empty()) return false;
+  if(((std::string)(((XMLNode&)token).Attribute("Format"))) != "x509") return false;
+  if(!Acquire(credentials)) return false;
+  return true;
+}
+
 // ---------------------------------------------------------------------------------
 
 DelegationProviderSOAP::DelegationProviderSOAP(const std::string& credentials):DelegationProvider(credentials) {
@@ -667,6 +675,65 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   return true;
 }
 
+bool DelegationProviderSOAP::DelegatedToken(XMLNode& parent) {
+  if(id_.empty()) return false;
+  if(request_.empty()) return false;
+  std::string delegation = Delegate(request_);
+  if(delegation.empty()) return false;
+  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+  parent.Namespaces(ns);
+  XMLNode token = parent.NewChild("deleg:DelegatedToken");
+  token.NewAttribute("deleg:Format")="x509";
+  token.NewChild("deleg:Id")=id_;
+  token.NewChild("deleg:Value")=delegation;
+  return true;
+}
+
+// ---------------------------------------------------------------------------------
+// TODO:
+// 1. Add access control by assigning user's DN to id.
+// 2. Add expiration 
+
+DelegationContainerSOAP::DelegationContainerSOAP(void) {
+}
+
+DelegationContainerSOAP::~DelegationContainerSOAP(void) {
+  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.begin();
+  for(;i!=consumers_.end();++i) {
+    if(i->second) delete i->second;
+  };
+}
+
+bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out) {
+  std::string id;
+  for(int tries = 0;tries<1000;++tries) {
+    GUID(id);
+    std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+    if(i == consumers_.end()) break;
+    id.resize(0);
+  };
+  if(id.empty()) return false;
+  DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+  if(!(consumer->DelegateCredentialsInit(id,in,out))) { delete consumer; return false; };
+  consumers_[id]=consumer;
+  return true;
+}
+
+bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+  std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
+  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+  if(i == consumers_.end()) return false;
+  if(!(i->second)) return false;
+  return i->second->UpdateCredentials(credentials,in,out);
+}
+
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+  std::string id = (std::string)(token["Id"]);
+  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+  if(i == consumers_.end()) return false;
+  if(!(i->second)) return false;
+  return i->second->DelegatedToken(credentials,token);
+}
 
 } // namespace Arc
 

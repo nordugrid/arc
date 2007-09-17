@@ -53,6 +53,7 @@ class DelegationConsumerSOAP: public DelegationConsumer {
   ~DelegationConsumerSOAP(void);
   bool DelegateCredentialsInit(const std::string& id,const SOAPEnvelope& in,SOAPEnvelope& out);
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool DelegatedToken(std::string& credentials,const XMLNode& token);
 };
 
 class DelegationProviderSOAP: public DelegationProvider {
@@ -64,10 +65,19 @@ class DelegationProviderSOAP: public DelegationProvider {
   ~DelegationProviderSOAP(void);
   bool DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
   bool UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
+  bool DelegatedToken(XMLNode& parent);
 };
 
-
-
+class DelegationContainerSOAP {
+ protected:
+  std::map<std::string,DelegationConsumerSOAP*> consumers_;
+ public:
+  DelegationContainerSOAP(void);
+  ~DelegationContainerSOAP(void);
+  bool DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool DelegatedToken(std::string& credentials,const XMLNode& token);
+};
 
 } // namespace Arc
 
