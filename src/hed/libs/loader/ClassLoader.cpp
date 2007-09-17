@@ -24,45 +24,45 @@ ClassLoader::~ClassLoader(){
 
 void ClassLoader::load_all_instances(Config *cfg){
 
-  XMLNode plugins = (*cfg)["ArcConfig"]["Plugins"];
+  XMLNode root = (*cfg)["ArcConfig"];
   for (int i = 0;;++i) {
-    XMLNode plugin = plugins.Child(i);
-    if (!plugin) {
+    XMLNode plugins = root["Plugins"][i];
+    if (!plugins) {
       break;
     }
-    if (MatchXMLName(plugin, "Plugin")) {
-      std::string share_lib_name = (std::string)(plugin.Attribute("Name"));
-      if(!(share_lib_name.empty())){
-        Glib::Module * module = ModuleManager::load(share_lib_name);
-        if(module == NULL){
-          std::cout<<"Share library"<<share_lib_name<<"could not be loaded"<<std::endl;
-          return;
-        }
-        
-        for (int j = 0;;++j) {
-          XMLNode id = plugin.Child(j);
-          if (!id) {
-            break;
-          }
+    std::string share_lib_name = (std::string)(plugins.Attribute("Name"));
+    
+    Glib::Module *module = NULL;
+    if(!(share_lib_name.empty())){
+      module = ModuleManager::load(share_lib_name);
+      if(module == NULL){
+        std::cout<<"Share library"<<share_lib_name<<"could not be loaded"<<std::endl;
+        return;
+      }
+    }
 
-          std::string tmp;
-          id.GetXML(tmp);
-          std::cout<<tmp<<std::endl;         
+    for(int j = 0;;++j){
+      XMLNode plugin = plugins.Child(j);
+      if(!plugin){
+        break;
+      }
+      if (MatchXMLName(plugin, "Plugin")) {
+         
+        std::string tmp;
+        plugin.GetXML(tmp);
+        std::cout<<tmp<<std::endl;         
  
-          if (MatchXMLName(id, "ID")) {
-            std::string id_name = (std::string)(id.Attribute("Name"));
+        std::string plugin_name = (std::string)(plugin.Attribute("Name"));
 
-            std::cout<<id_name<<std::endl;
+        std::cout<<plugin_name<<std::endl;
             
-            void *ptr = NULL;
-            if (module->get_symbol(id_name.c_str(), ptr)) {
-              id_list.push_back(ptr);
-            }
-            else 
-              std::cout<<"There is no" << id_name <<"type plugin"<<std::endl;
-              
-          }
+        void *ptr = NULL;
+        if (module->get_symbol(plugin_name.c_str(), ptr)) {
+          id_list.push_back(ptr);
         }
+        else 
+          std::cout<<"There is no" << plugin_name <<"type plugin"<<std::endl;
+           
       }
     }
   }
