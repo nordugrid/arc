@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <glibmm/thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/MCC.h>
 #include <arc/message/Message.h>
@@ -71,6 +72,7 @@ class DelegationProviderSOAP: public DelegationProvider {
 class DelegationContainerSOAP {
  protected:
   std::map<std::string,DelegationConsumerSOAP*> consumers_;
+  Glib::Mutex lock_;
  public:
   DelegationContainerSOAP(void);
   ~DelegationContainerSOAP(void);

@@ -141,7 +141,6 @@ static int ssl_err_cb(const char *str, size_t len, void *u) {
 void DelegationConsumer::LogError(void) {
   std::string ssl_err;
   ERR_print_errors_cb(&ssl_err_cb,&ssl_err);
-std::cerr<<ssl_err<<std::endl;
 }
 
 bool DelegationConsumer::Backup(std::string& content) {
@@ -292,6 +291,7 @@ err:
     };
     sk_X509_free(cert_sk);
   };
+  return res;
 }
 
 // ---------------------------------------------------------------------------------
@@ -534,7 +534,6 @@ err:
 void DelegationProvider::LogError(void) {
   std::string ssl_err;
   ERR_print_errors_cb(&ssl_err_cb,&ssl_err);
-std::cerr<<ssl_err<<std::endl;
 }
 
 void DelegationProvider::CleanError(void) {
@@ -698,13 +697,16 @@ DelegationContainerSOAP::DelegationContainerSOAP(void) {
 }
 
 DelegationContainerSOAP::~DelegationContainerSOAP(void) {
+  lock_.lock();
   std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.begin();
   for(;i!=consumers_.end();++i) {
     if(i->second) delete i->second;
   };
+  lock_.unlock();
 }
 
 bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out) {
+  lock_.lock();
   std::string id;
   for(int tries = 0;tries<1000;++tries) {
     GUID(id);
@@ -712,27 +714,34 @@ bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOA
     if(i == consumers_.end()) break;
     id.resize(0);
   };
-  if(id.empty()) return false;
+  if(id.empty()) { lock_.unlock(); return false; };
   DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
-  if(!(consumer->DelegateCredentialsInit(id,in,out))) { delete consumer; return false; };
+  if(!(consumer->DelegateCredentialsInit(id,in,out))) { lock_.unlock(); delete consumer; return false; };
   consumers_[id]=consumer;
+  lock_.unlock();
   return true;
 }
 
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+  lock_.lock();
   std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
   std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
-  if(i == consumers_.end()) return false;
-  if(!(i->second)) return false;
-  return i->second->UpdateCredentials(credentials,in,out);
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
+  if(!(i->second)) { lock_.unlock(); return false; };
+  bool r = i->second->UpdateCredentials(credentials,in,out);
+  lock_.unlock();
+  return r;
 }
 
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
+  lock_.lock();
   std::string id = (std::string)(token["Id"]);
   std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
-  if(i == consumers_.end()) return false;
-  if(!(i->second)) return false;
-  return i->second->DelegatedToken(credentials,token);
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
+  if(!(i->second)) { lock_.unlock(); return false; };
+  bool r = i->second->DelegatedToken(credentials,token);
+  lock_.unlock();
+  return r;
 }
 
 } // namespace Arc

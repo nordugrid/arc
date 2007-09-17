@@ -10,5 +10,5 @@ libdelegation_la_LDFLAGS=-L$(top_srcdir)/../openssl/lib -lssl -lcrypto
 
 test_SOURCES=test.cpp
 test_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS=
+test_LDFLAGS=$(GLIBMM_LIBS)
 test_LDADD=libdelegation.la

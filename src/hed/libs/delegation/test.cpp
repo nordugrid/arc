@@ -79,7 +79,7 @@ int main(int argc,char* argv[]) {
     return -1;
   };
   if(!p.UpdateCredentials(interface,&attr,&context)) {
-    std::cerr<<"UpdateCredentials failed"<<std::cerr;
+    std::cerr<<"UpdateCredentials failed"<<std::endl;
     return -1;
   };
   return 0;
