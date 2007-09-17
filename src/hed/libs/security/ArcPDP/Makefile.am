@@ -1,6 +1,6 @@
 SUBDIRS = attr fn policy alg
 lib_LTLIBRARIES = libarcpdp.la
-noinst_PROGRAMS = test
+noinst_PROGRAMS = test classload_test
 
 libarcpdp_ladir = $(pkgincludedir)/security/ArcPDP
 libarcpdp_la_HEADERS = ArcRequest.h   EvaluationCtx.h   Evaluator.h \
@@ -20,3 +20,12 @@ test_LDADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/message/libmessage.la \
 	libarcpdp.la
+
+classload_test_SOURCES = classload_test.cpp
+classload_test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+classload_test_LDFLAGS = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+classload_test_LDADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+        $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+        $(top_srcdir)/src/hed/libs/message/libmessage.la \
+        libarcpdp.la
+

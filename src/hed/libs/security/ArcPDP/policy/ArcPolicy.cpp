@@ -5,14 +5,14 @@
 #include "ArcPolicy.h"
 #include "ArcRule.h"
 #include <list>
-#include "../alg/ArcAlgFactory.h"
 
 using namespace Arc;
 
-ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
+ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
   ArcRule *rule;
-  ArcAlgFactory *algfactory = new ArcAlgFactory(); 
- 
+  //ArcAlgFactory *algfactory = new ArcAlgFactory(); 
+  algfactory = (AlgFactory*)(*ctx); 
+
   XMLNode nd, rnd;
 
   Arc::NS nsList;
@@ -38,7 +38,7 @@ ArcPolicy::ArcPolicy(XMLNode& node) : Policy(node) {
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
     if(!rnd) break;
-    rule = new ArcRule(rnd);
+    rule = new ArcRule(rnd, ctx);
     subelements.push_back(rule);
   }
     

@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arc/loader/ClassLoader.h>
+
 #include "ArcFnFactory.h"
 #include "EqualFunction.h"
 #include "MatchFunction.h"
@@ -10,6 +12,17 @@
 #include "../attr/DateTimeAttribute.h"
 #include "../attr/X500NameAttribute.h"
 #include "../attr/AnyURIAttribute.h"
+
+
+static Arc::LoadableClass* get_fn_factory (Arc::Config *cfg) {
+    return new Arc::ArcFnFactory();
+}
+
+loader_descriptors __arc_fnfactory_modules__  = {
+    { "fn.factory", 0, &get_fn_factory },
+    { NULL, 0, NULL }
+};
+
 
 using namespace Arc;
 

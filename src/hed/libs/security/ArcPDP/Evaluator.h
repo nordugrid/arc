@@ -9,6 +9,7 @@
 #include "policy/PolicyStore.h"
 #include "fn/ArcFnFactory.h"
 #include "attr/ArcAttributeFactory.h"
+#include "alg/ArcAlgFactory.h"
 #include "Request.h"
 #include "Response.h"
 
@@ -17,23 +18,44 @@
 namespace Arc {
 
 class Evaluator {
+friend class EvaluatorContext;
 private:
   PolicyStore *plstore;
   FnFactory* fnfactory;
   AttributeFactory* attrfactory;  
+  AlgFactory* algfactory;
+  
+  EvaluatorContext* context;
 
 public:
   Evaluator (XMLNode& cfg);
   Evaluator (const char * cfgfile);
   virtual ~Evaluator();
 
-  virtual Arc::Response* evaluate(Arc::Request* request);
+ // virtual Arc::Response* evaluate(Arc::Request* request);
   virtual Arc::Response* evaluate(const std::string& reqfile);
   virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx);
 
 private:
   void parsecfg(XMLNode& cfg);
 };
+
+
+class EvaluatorContext {
+  friend class Evaluator;
+  private:
+    Evaluator& evaluator;
+    EvaluatorContext(Evaluator& evaluator) : evaluator(evaluator) {};
+    ~EvaluatorContext() {};
+   public:
+    /** Returns associated AttributeFactory object */
+    operator AttributeFactory*()    { return evaluator.attrfactory; };
+    /** Returns associated FnFactory object */
+    operator FnFactory*()        { return evaluator.fnfactory; };
+    /** Returns associated AlgFactory object */
+    operator AlgFactory*() { return evaluator.algfactory; };
+  };
+
 
 } // namespace Arc
 

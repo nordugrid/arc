@@ -4,7 +4,7 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-
+#include "attr/AttributeFactory.h"
 #include "Request.h"
 
 /** ArcRequest, Parsing the specified Arc request format*/
@@ -21,14 +21,14 @@ public:
   
 
   //**Parse request information from a file*/
-  ArcRequest (const std::string& filename);
+  ArcRequest (const std::string& filename, AttributeFactory* attrfactory);
 
   //**Parse request information from a xml stucture in memory*/
-  ArcRequest (XMLNode& node);
+  ArcRequest (XMLNode& node, AttributeFactory* attrfactory);
   virtual ~ArcRequest();
 
 private:
-  void make_request(XMLNode& node);
+  void make_request(XMLNode& node, AttributeFactory* attrfactory);
 
 };
 

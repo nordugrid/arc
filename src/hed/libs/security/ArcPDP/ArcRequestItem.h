@@ -3,6 +3,7 @@
 
 #include <arc/XMLNode.h>
 #include "RequestItem.h"
+#include "attr/AttributeFactory.h"
 
 namespace Arc {
 
@@ -10,7 +11,7 @@ namespace Arc {
 /**Specified ArcRequestItem which can parse Arc request formate*/
 class ArcRequestItem : public RequestItem{
 public:
-  ArcRequestItem(XMLNode& node);
+  ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory);
   virtual ~ArcRequestItem();
 
 public:

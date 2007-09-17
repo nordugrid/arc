@@ -7,9 +7,9 @@
 
 using namespace Arc;
 
-ArcRequestItem::ArcRequestItem(XMLNode& node) : RequestItem(node) {
+ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : RequestItem(node) {
   //TODO
-  ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
+  //ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
   XMLNode nd;
 
   std::string xml;

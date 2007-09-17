@@ -2,19 +2,33 @@
 #include <config.h>
 #endif
 
+//#include <arc/loader/ClassLoader.h>
+
 #include "PolicyStore.h"
 #include <fstream>
 #include <iostream>
 #include "Policy.h" 
 #include "PolicyParser.h"
 
+/*
+//Should we provide different ClassLoader for different "get" function with different arguments?
+static Arc::LoadableClass* get_policy_store (const std::list<std::string>& filelist, const std::string& alg) {
+    return new Arc::PolicyStore(filelist, alg);
+}
+
+loader_descriptors __arc_policystore_modules__  = {
+    { "policy.store", 0, &get_policy_store },
+    { NULL, 0, NULL }
+};
+*/
+
 using namespace Arc;
 
-PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg){
+PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
   combalg = alg;
   PolicyParser plparser;
   for(std::list<std::string>::const_iterator it = filelist.begin(); it != filelist.end(); it++){
-    policies.push_back(plparser.parsePolicy(*it));
+    policies.push_back(plparser.parsePolicy(*it, ctx));
   }    
 
 }

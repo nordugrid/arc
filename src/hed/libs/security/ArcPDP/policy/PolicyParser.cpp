@@ -12,7 +12,7 @@ using namespace Arc;
 PolicyParser::PolicyParser(){
 }
 
-Policy* PolicyParser::parsePolicy(const std::string filename){
+Policy* PolicyParser::parsePolicy(const std::string filename, EvaluatorContext* ctx){
   std::string xml_str = "";
   std::string str;
   std::ifstream f(filename.c_str());
@@ -25,6 +25,6 @@ Policy* PolicyParser::parsePolicy(const std::string filename){
   
   XMLNode node(xml_str);
   
-  return(new ArcPolicy(node));
+  return(new ArcPolicy(node, ctx));
   
 }

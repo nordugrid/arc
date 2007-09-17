@@ -4,6 +4,9 @@
 #include <map>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+
+#include <arc/loader/LoadableClass.h>
+
 #include "AttributeProxy.h"
 
 namespace Arc {
@@ -11,7 +14,7 @@ namespace Arc {
 typedef std::map<std::string, Arc::AttributeProxy*> AttrProxyMap;
 
 /** Base attribute factory class*/
-class AttributeFactory {
+class AttributeFactory : public LoadableClass {
 public:
   AttributeFactory() {};
   virtual ~AttributeFactory(){};

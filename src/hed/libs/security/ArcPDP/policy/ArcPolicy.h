@@ -1,11 +1,12 @@
 #ifndef __ARC_ARCPOLICY_H__
 #define __ARC_ARCPOLICY_H__
 
-#include "Policy.h"
 #include <list>
-#include "../alg/CombiningAlg.h"
 #include <arc/XMLNode.h>
-
+#include "Policy.h"
+#include "../alg/CombiningAlg.h"
+#include "../alg/AlgFactory.h"
+#include "../Evaluator.h"
 
 namespace Arc {
 
@@ -14,7 +15,7 @@ namespace Arc {
 class ArcPolicy : public Policy {
 
 public:
-  ArcPolicy(XMLNode& node);  
+  ArcPolicy(XMLNode& node, EvaluatorContext* ctx);  
 
   virtual ~ArcPolicy();  
 
@@ -30,6 +31,8 @@ private:
   std::string version;
   CombiningAlg *comalg;
   std::string description;
+
+  AlgFactory *algfactory;
 
 };
 

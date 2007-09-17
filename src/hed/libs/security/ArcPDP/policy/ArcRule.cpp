@@ -8,9 +8,6 @@
 #include "ArcRule.h"
 #include <list>
 
-#include "../attr/ArcAttributeFactory.h"
-#include "../fn/ArcFnFactory.h"
-
 #include "../fn/EqualFunction.h"
 //#include "../fn/MatchFunction.h"
 
@@ -21,8 +18,8 @@ using namespace Arc;
 
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
   
-  ArcAttributeFactory* attrfactory = new ArcAttributeFactory();
-  ArcFnFactory* fnfactory = new ArcFnFactory();
+  //ArcAttributeFactory* attrfactory = new ArcAttributeFactory();
+  //ArcFnFactory* fnfactory = new ArcFnFactory();
 
   XMLNode tnd;
 
@@ -131,7 +128,11 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   return;
 }
 
-ArcRule::ArcRule(XMLNode& node) : Policy(node) {
+ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
+  attrfactory = (AttributeFactory*)(*ctx);
+  fnfactory = (FnFactory*)(*ctx);
+  
+
   XMLNode nd, tnd;
   //Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
   //logger.addDestination(logcerr);

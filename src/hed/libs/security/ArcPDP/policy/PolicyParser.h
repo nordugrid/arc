@@ -5,6 +5,8 @@
 #include "../alg/CombiningAlg.h"
 #include "Policy.h"
 
+#include "../Evaluator.h"
+
 namespace Arc {
 
 /**A interface which will isolate the policy object from actual policy storage (files, urls, database) */
@@ -14,7 +16,7 @@ class PolicyParser {
 
 public:
   PolicyParser();
-  virtual Policy* parsePolicy(const std::string filename);
+  virtual Policy* parsePolicy(const std::string filename, EvaluatorContext* ctx);
   virtual ~PolicyParser(){};
 
 };

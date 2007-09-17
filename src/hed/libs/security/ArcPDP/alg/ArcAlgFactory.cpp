@@ -2,9 +2,22 @@
 #include <config.h>
 #endif
 
+#include <arc/loader/ClassLoader.h>
+
+#include <arc/ArcConfig.h>
 #include "ArcAlgFactory.h"
 #include "DenyOverridesAlg.h"
 #include "PermitOverridesAlg.h"
+
+static Arc::LoadableClass* get_alg_factory (Arc::Config *cfg) {
+    return new Arc::ArcAlgFactory();
+}
+
+loader_descriptors __arc_algfactory_modules__  = {
+    { "alg.factory", 0, &get_alg_factory },
+    { NULL, 0, NULL }
+};
+
 
 using namespace Arc;
 

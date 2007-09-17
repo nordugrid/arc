@@ -1,12 +1,16 @@
 #ifndef __ARC_ARCRULE_H__
 #define __ARC_ARCRULE_H__
 
+#include <arc/XMLNode.h>
+#include <list>
+
 #include "Policy.h"
 #include "../fn/Function.h"
-#include <list>
 #include "../alg/CombiningAlg.h"
-#include <arc/XMLNode.h>
+#include "../attr/AttributeFactory.h"
+#include "../fn/FnFactory.h"
 
+#include "../Evaluator.h"
 
 namespace Arc {
 
@@ -22,7 +26,7 @@ typedef std::list<Arc::AndList> OrList;
 class ArcRule : public Policy {
 
 public:
-  ArcRule(XMLNode& node);  
+  ArcRule(XMLNode& node, EvaluatorContext* ctx);  
 
   virtual std::string getEffect();
 
@@ -44,6 +48,10 @@ private:
   OrList resources;
   OrList actions;
   OrList conditions;
+
+  AttributeFactory* attrfactory;
+  FnFactory* fnfactory;
+
 
 protected:
   static Logger logger;

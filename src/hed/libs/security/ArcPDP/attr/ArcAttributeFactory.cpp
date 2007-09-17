@@ -2,12 +2,24 @@
 #include <config.h>
 #endif
 
+#include <arc/loader/ClassLoader.h>
+
 #include "ArcAttributeFactory.h"
 #include "AttributeProxy.h"
 #include "StringAttribute.h"
 #include "DateTimeAttribute.h"
 #include "X500NameAttribute.h"
 #include "AnyURIAttribute.h"
+
+
+static Arc::LoadableClass* get_attr_factory (Arc::Config *cfg) {
+    return new Arc::ArcAttributeFactory();
+}
+
+loader_descriptors __arc_attrfactory_modules__  = {
+    { "attr.factory", 0, &get_attr_factory },
+    { NULL, 0, NULL }
+};
 
 using namespace Arc;
 

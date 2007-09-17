@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arc/loader/ClassLoader.h>
+
 #include "Evaluator.h"
 
 #include "Request.h"
@@ -24,7 +26,7 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
 
   Arc::NS nsList;
   std::list<XMLNode> res;
-  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/ws/schemas/policycfg-arc"));
+  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/schemas/ArcConfig/2007"));
 
   res = cfg.XPathLookup("//config:PolicyStore", nsList);
   //presently, there can be only one PolicyStore
@@ -54,13 +56,37 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
 
   //TODO: load the class by using the configuration information. 
 
+  //fnfactory = new Arc::ArcFnFactory() ;
+  //attrfactory = new Arc::ArcAttributeFactory();
+
+
+  Config modulecfg(cfg);
+  ClassLoader classloader(&modulecfg);
+  attrfactory=NULL;
+  attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
+  if(attrfactory == NULL)
+    std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
+
+  fnfactory=NULL;
+  fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
+  if(fnfactory == NULL)
+    std::cout<<"Can not dynamic produce ArcFnFactory!!"<<std::endl;
+
+  algfactory=NULL;
+  algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
+  if(algfactory == NULL)
+    std::cout<<"Can not dynamic produce ArcAlgFactory!!"<<std::endl;
+
+  context = new EvaluatorContext(*this);
+
+  
   //temporary solution
   std::list<std::string> filelist;
   filelist.push_back("Policy_Example.xml");
   std::string alg("Permit-Overrides");
-  plstore = new Arc::PolicyStore(filelist, alg);
-  fnfactory = new Arc::ArcFnFactory() ;
-  attrfactory = new Arc::ArcAttributeFactory();
+  plstore = new Arc::PolicyStore(filelist, alg, context);
+
+
 }
 
 Evaluator::Evaluator (Arc::XMLNode& cfg){
@@ -71,7 +97,7 @@ Evaluator::Evaluator(const char * cfgfile){
   std::string str;
   std::string xml_str = "";
   std::ifstream f(cfgfile);
-
+  //The module configuration information should be inside the top-level configuration file later.
   while (f >> str) {
     xml_str.append(str);
     xml_str.append(" ");
@@ -82,13 +108,15 @@ Evaluator::Evaluator(const char * cfgfile){
   parsecfg(node); 
 }
 
+/*
 Arc::Response* Evaluator::evaluate(Arc::Request* request){
   Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
   return (evaluate(evalctx));   
 }
+*/
 
 Arc::Response* Evaluator::evaluate(const std::string& reqfile){
-  Arc::Request* request = new Arc::ArcRequest(reqfile);
+  Arc::Request* request = new Arc::ArcRequest(reqfile, attrfactory);
   Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
  
   //evaluate the request based on policy
@@ -165,5 +193,6 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
 }
 
 Evaluator::~Evaluator(){
+  //TODO delete all the object
 }
 

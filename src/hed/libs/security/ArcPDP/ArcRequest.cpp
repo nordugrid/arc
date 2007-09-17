@@ -17,7 +17,7 @@ void ArcRequest::setRequestItems (ReqItemList sl){
 }
 
 
-void ArcRequest::make_request(XMLNode& node){
+void ArcRequest::make_request(XMLNode& node, AttributeFactory* attrfactory){
   Arc::NS nsList;
 
   std::string xml;
@@ -34,12 +34,12 @@ void ArcRequest::make_request(XMLNode& node){
       itemnd.GetXML(xml); //for testing
       std::cout<<xml<<std::endl;
 
-      rlist.push_back(new ArcRequestItem(itemnd));
+      rlist.push_back(new ArcRequestItem(itemnd, attrfactory));
     }
   }
 }
 
-ArcRequest::ArcRequest(const std::string& filename) : Request(filename){
+ArcRequest::ArcRequest(const std::string& filename, AttributeFactory* attrfactory) : Request(filename){
   std::string str;
   std::string xml_str = "";
   std::ifstream f(filename.c_str());
@@ -52,11 +52,11 @@ ArcRequest::ArcRequest(const std::string& filename) : Request(filename){
   f.close();
 
   Arc::XMLNode node(xml_str);
-  make_request(node);
+  make_request(node, attrfactory);
 }
 
-ArcRequest::ArcRequest (XMLNode& node) : Request(node) {
-  make_request(node);
+ArcRequest::ArcRequest (XMLNode& node, AttributeFactory* attrfactory) : Request(node) {
+  make_request(node, attrfactory);
 }
 
 ArcRequest::~ArcRequest(){
