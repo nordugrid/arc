@@ -50,10 +50,10 @@ clean-local:
 
 all-local: arc.jar
 
-$(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
+$(JAVA_PATH)/%.class: $(JAVA_PATH)/%.java
 	$(JAVAC) $(JAVAC_FLAGS) $(JAVA_PATH)/*.java
 
-arc.jar: $(JAVA_PATH)/arc.class 
+arc.jar: $(patsubst %.java,%.class,$(shell ls $(JAVA_PATH)/*.java))
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class 
 
