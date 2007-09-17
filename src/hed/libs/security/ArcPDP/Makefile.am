@@ -19,4 +19,4 @@ test_LDFLAGS = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_LDADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/message/libmessage.la \
-	$(top_srcdir)/src/hed/libs/security/ArcPDP/libarcpdp.la
+	libarcpdp.la
