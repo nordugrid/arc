@@ -13,6 +13,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include "../../hed/libs/delegation/DelegationInterface.h"
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
@@ -47,6 +48,40 @@ int main(void) {
     return -1;
   };
 
+  Arc::MessageAttributes attributes;
+  Arc::MessageContext context;
+
+  // -------------------------------------------------------
+  //    Preparing delegation
+  // -------------------------------------------------------
+  std::string credentials;
+  {
+    std::ifstream ic("cert.pem");
+    for(;!ic.eof();) {
+      char buf[256];
+      ic.get(buf,sizeof(buf),0);
+      if(ic.gcount() <= 0) break;
+      credentials.append(buf,ic.gcount());
+    };
+  };
+  {
+    std::ifstream ic("key.pem");
+    for(;!ic.eof();) {
+      char buf[256];
+      ic.get(buf,sizeof(buf),0);
+      if(ic.gcount() <= 0) break;
+      credentials.append(buf,ic.gcount());
+    };
+  };
+  Arc::DelegationProviderSOAP deleg(credentials);
+  if(!credentials.empty()) {
+    logger.msg(Arc::INFO, "Initiating delegation procedure");
+    if(!deleg.DelegateCredentialsInit(*client_entry,&attributes,&context)) {
+      logger.msg(Arc::ERROR, "Failed to initiate delegation");
+      return -1;
+    };
+  };
+
   for(int n = 0;n<1;n++) {
 
 
@@ -67,18 +102,18 @@ int main(void) {
     arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
     arex_ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
     Arc::PayloadSOAP req(arex_ns);
-    Arc::XMLNode act_doc = req.NewChild("bes-factory:CreateActivity").NewChild("bes-factory:ActivityDocument");
+    Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
+    Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     std::ifstream jsdl_file("jsdl.xml");
     std::string jsdl_str; 
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
+    deleg.DelegatedToken(op);
     req.GetXML(jsdl_str);
 
     // Send job request
     Arc::Message reqmsg;
     Arc::Message repmsg;
-    Arc::MessageAttributes attributes;
-    Arc::MessageContext context;
     reqmsg.Payload(&req);
     reqmsg.Attributes(&attributes);
     reqmsg.Context(&context);
