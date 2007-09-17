@@ -48,7 +48,7 @@ class ARexJob {
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config);
   /** Create new job with provided JSDL description */
-  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config);
+  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string credentials);
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */

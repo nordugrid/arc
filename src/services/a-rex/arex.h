@@ -3,6 +3,7 @@
 
 #include <arc/message/Service.h>
 #include <arc/message/PayloadRaw.h>
+#include "../../hed/libs/delegation/DelegationInterface.h"
 
 namespace ARex {
 
@@ -13,6 +14,7 @@ class ARexService: public Arc::Service {
  protected:
   Arc::NS ns_;
   Arc::Logger logger_;
+  Arc::DelegationContainerSOAP delegations_;
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;

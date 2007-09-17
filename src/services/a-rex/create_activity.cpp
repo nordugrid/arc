@@ -42,7 +42,22 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     };
     return Arc::MCC_Status();
   };
-  ARexJob job(jsdl,config);
+  std::string delegation;
+  Arc::XMLNode delegated_token = in["deleg:DelegatedToken"];
+  if(delegated_token) {
+    // Client wants to delegate credentials
+    if(!delegations_.DelegatedToken(delegation,delegated_token)) {
+      // Failed to accept delegation (generic SOAP error)
+      Arc::SOAPEnvelope fault(ns_,true);
+      if(fault) {
+        fault.Fault()->Code(Arc::SOAPFault::Receiver);
+        fault.Fault()->Reason("Failed to accept delegation");
+        out.Replace(fault.Child());
+      };
+      return Arc::MCC_Status();
+    };
+  };
+  ARexJob job(jsdl,config,delegation);
   if(!job) {
     logger.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
     // Failed to create new job (generic SOAP error)

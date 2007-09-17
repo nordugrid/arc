@@ -212,6 +212,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         StartAcceptingNewActivities(*config,op,res.NewChild("bes-factory:StartAcceptingNewActivitiesResponse"));
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
         ChangeActivityStatus(*config,op,res.NewChild("bes-factory:ChangeActivityStatusResponse"));
+      } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
+        if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
+          return make_soap_fault(outmsg);
+        };
       } else {
         logger.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
         return make_soap_fault(outmsg);
@@ -269,6 +273,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   logger_.addDestination(logcerr);
   ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
   ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+  ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
   endpoint_=(std::string)((*cfg)["endpoint"]);

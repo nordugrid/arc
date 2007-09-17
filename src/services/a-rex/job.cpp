@@ -119,7 +119,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):config_(config),id_
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("") {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string credentials):config_(config),id_("") {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -192,42 +192,34 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config):config_(config),id_("")
        inttostring(port);
   };
   */
-  /*@
   // Try to create proxy
-  if(proxy_fname.length() != 0) {
-    std::string fname=user->ControlDir()+"/job."+job_id+".proxy";
+  if(!credentials.empty()) {
+    std::string fname=config.User()->ControlDir()+"/job."+id_+".proxy";
     int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
     if(h == -1) {
-      error_description="Failed to store credentials.";
-      return 1;
+      //@ error_description="Failed to store credentials.";
+      delete_job_id();
+      return;
     };
-    int hh=::open(proxy_fname.c_str(),O_RDONLY);
-    if(hh == -1) {
+    fix_file_owner(fname,*config.User());
+    const char* s = credentials.c_str();
+    int ll = credentials.length();
+    int l = 0;
+    for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
+    if(l==-1) {
       ::close(h);
-      ::remove(fname.c_str());
-      error_description="Failed to read credentials.";
-      return 1;
-    };
-    fix_file_owner(fname,*user);
-    int l,ll;
-    const char* s;
-    char buf[256];
-    for(;;) {
-      ll=::read(hh,buf,sizeof(buf));
-      if((ll==0) || (ll==-1)) break;
-      for(l=0,s=buf;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
-      if(l==-1) break;
+      //@ error_description="Failed to store credentials.";
+      delete_job_id();
+      return;
     };
     ::close(h);
-    ::close(hh);
-    try {
-      Certificate ci(PROXY,fname);
-      job_desc.expiretime = ci.Expires().GetTime();
-    } catch (std::exception) {
-      job_desc.expiretime = time(NULL);
-    };
+    //@ try {
+    //@   Certificate ci(PROXY,fname);
+    //@   job_desc.expiretime = ci.Expires().GetTime();
+    //@ } catch (std::exception) {
+    //@   job_desc.expiretime = time(NULL);
+    //@ };
   };
-  */
   // Write local file
   JobDescription job(id_,"",JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,*config_.User(),job_)) {
