@@ -300,6 +300,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/infosys/Makefile
+                 src/hed/libs/delegation/Makefile
                  src/hed/daemon/Makefile
                  src/hed/mcc/Makefile
                  src/hed/mcc/soap/Makefile
