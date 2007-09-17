@@ -70,7 +70,7 @@ Requires: python
 %description python
 Python wrapper for ARC
 
-%if "%{?disable_java}"
+%if "%{!?disable_java:java}"
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
@@ -141,7 +141,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_prefix}/lib/python?.?/site-packages/
 
-%if "%{?disable_java}"
+%if "%{!?disable_java:java}"
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
