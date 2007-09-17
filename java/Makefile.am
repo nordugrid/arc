@@ -45,15 +45,14 @@ arc_wrap.cpp $(JAVA_PATH)/*.java: $(SWIG_I_FILES)
 		-I$(top_srcdir)/include $(top_srcdir)/swig/Arc.i
 
 clean-local:
-	rm -f *.class
-	rm -rf org
+	rm -rf nordugrid
 
 all-local: arc.jar
 
-$(JAVA_PATH)/%.class: $(JAVA_PATH)/%.java
+$(JAVA_PATH)/arc.class $(JAVA_PATH)/%.class: $(JAVA_PATH)/arc.java
 	$(JAVAC) $(JAVAC_FLAGS) $(JAVA_PATH)/*.java
 
-arc.jar: $(patsubst %.java,%.class,$(shell ls $(JAVA_PATH)/*.java))
+arc.jar: $(JAVA_PATH)/arc.class $(patsubst %.java,%.class,$(shell ls $(JAVA_PATH)/*.java))
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class 
 
