@@ -4,19 +4,35 @@
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:echo="urn:echo_config"
 >
+
     <ModuleManager>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
-	    <Path>../../hed/libs/security/.libs/</Path>
+	<Path>../../hed/libs/security/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>security</Name></Plugins>
+
+    <Plugins Name="security">
+          <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
+          <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
+          <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
+          <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
+    </Plugins>
+
+    <PDPConfig>
+          <PolicyStore name="test" location="./"/>
+          <AttributeFactory name="attr.factory" />
+          <CombingAlgorithmFactory name="alg.factory" />
+          <FunctionFactory name="fn.factory" />
+    </PDPConfig>
+
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
