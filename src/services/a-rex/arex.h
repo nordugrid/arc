@@ -3,7 +3,7 @@
 
 #include <arc/message/Service.h>
 #include <arc/message/PayloadRaw.h>
-#include "../../hed/libs/delegation/DelegationInterface.h"
+#include <arc/delegation/DelegationInterface.h>
 
 namespace ARex {
 
