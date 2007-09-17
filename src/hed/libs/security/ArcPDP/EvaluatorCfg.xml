@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
     <ModuleManager>
-        <Path>../../security/ArcPDP/.libs/</Path>
+        <Path>../../security/.libs/</Path>
     </ModuleManager>
-    <Plugins Name="arcpdp">
+    <Plugins Name="security">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>

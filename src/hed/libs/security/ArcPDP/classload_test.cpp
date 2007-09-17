@@ -11,7 +11,7 @@
 #include "attr/AttributeValue.h"
 int main(void)
 {
-    Arc::Config cfg("plugins.xml");
+    Arc::Config cfg("EvaluatorCfg.xml");
     Arc::ClassLoader classloader(&cfg);
     std::string id = "attr.factory";
     Arc::ArcAttributeFactory* attrfactory=NULL;
