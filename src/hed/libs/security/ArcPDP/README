@@ -1,0 +1,22 @@
+Some description about the ArcPDP directory:
+
+test.cpp: test file which call the existing ArcPDP api. It can be merged to any PDP (policy decision point).
+
+classload_test.cpp: test file which is just to test the functionalith of the class ClassLoad.
+
+ArcRequest.cpp, ArcRequestItem: parse the specific request.xml which specified by request.xsd schema.
+
+Evaluator.cpp: central class which accept request.xml and policy.xml, and make decision.
+
+EvaluationCtx.cpp: context class which includes some information related with each request.xml.
+
+attr directory: includes all the XYZAttribute classes which can understand different types of datatype, and AttributeFactory which will produce the XYZAttributes.So far, the XYZAttributes are statically related with XXAttributeFactory, which means if you want to support a new type of Attribute, you need to modify the XXAttributeFactory, or write a new AttributeFactory. Solution is make the attribute-support dynamically parsed from configuration file, but so far, it has not been implemented. 
+          The XXAttributeFactory can be dynamically loaded by parsing the configuration file.
+
+
+fn directory: includes all the function which operate on the attributes, and FnFactory which will produce the Functions.
+            The XXFnAttributeFactory can be dynamically loaded.
+
+alg directory: includes all the algorithms which can define the composition relationship between the rules or policies.
+
+policy directory: include all the classes which can parse rule or policy, and evaluate each request against policy or rule according to the datatyoe and function definition in the policy or rule.   
