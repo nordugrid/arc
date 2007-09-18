@@ -387,8 +387,7 @@ std::string DelegationProvider::Delegate(const std::string& request) {
   //OPENSSL_free(buf);
 
   if((pkey=X509_REQ_get_pubkey(req)) == NULL) goto err;
-  int i = X509_REQ_verify(req,pkey);
-  if(i <= 0) goto err;
+  if(X509_REQ_verify(req,pkey) <= 0) goto err;
 
   cert=X509_new();
   if(!cert) goto err;
