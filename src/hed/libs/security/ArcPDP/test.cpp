@@ -43,7 +43,8 @@ int main(void){
   for(respit = rlist.begin(); respit != rlist.end(); ++respit){
     Arc::RequestTuple* tp = (*respit)->reqtp;
     Arc::Subject::iterator it;
-    for (it = (tp->sub).begin(); it!= (tp->sub).end(); it++){
+    Arc::Subject subject = tp->sub;
+    for (it = subject.begin(); it!= subject.end(); it++){
       Arc::StringAttribute *attrval;
       Arc::RequestAttribute *attr;
       attr = dynamic_cast<Arc::RequestAttribute*>(*it);

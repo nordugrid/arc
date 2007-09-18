@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
 
 namespace Arc {
@@ -12,10 +13,10 @@ class ArcPDP : public PDP {
  public:
   static PDP* get_arc_pdp(Config *cfg, ChainContext *ctx);
   ArcPDP(Config* cfg);
-  virtual ~ArcPDP() {};
+  virtual ~ArcPDP();
   virtual bool isPermitted(std::string subject);
  private:
-  std::string location;
+  Evaluator *eval;
 };
 
 } // namespace Arc

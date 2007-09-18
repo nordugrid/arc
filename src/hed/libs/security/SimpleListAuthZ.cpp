@@ -65,9 +65,9 @@ void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
     for(int n = 0;;++n) {
        XMLNode can = cn[n];
        if(!can) break;
-       Arc::Config cfg_(cn);
-       std::string name = cn.Attribute("name");
-       logger.msg(DEBUG, "PDP name: %s", name.c_str());
+       Arc::Config cfg_(can);
+       std::string name = can.Attribute("name");
+       logger.msg(DEBUG, "PDP name\n\n\n: %s %d", name.c_str(), n);
        PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
        if(!pdp) continue;
        pdps_[name]=pdp;

@@ -43,10 +43,11 @@ bool SimpleListPDP::isPermitted(std::string subject){
      logger.msg(INFO, "subject: %s", subject.c_str());
      if(!(line.compare(subject))){
         fs.close();
+        logger.msg(INFO, "Authorized from arc.pdp!!!");
         return true;
      }
   }
   fs.close();
-  logger.msg(ERROR, "UnAuthorized!!!");
+  logger.msg(ERROR, "UnAuthorized from simplelist.pdp!!!");
   return false;
 }
