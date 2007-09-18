@@ -267,7 +267,11 @@ class XMLNode {
   */ 
   std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
 
+  /**Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
+  
+  /** Do a recursive copy (properties, namespaces and children when applicable)*/
+  void Duplicate(XMLNode& new_node);
 };
 
 /** Returns true if XML elements have same names */
