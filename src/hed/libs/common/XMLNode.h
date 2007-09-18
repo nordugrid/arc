@@ -266,6 +266,8 @@ class XMLNode {
     belong to (e.g. xx="uri:test").
   */ 
   std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
+
+  XMLNode GetRoot(void);
 };
 
 /** Returns true if XML elements have same names */

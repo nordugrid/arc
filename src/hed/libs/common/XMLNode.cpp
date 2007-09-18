@@ -294,4 +294,14 @@ std::list<XMLNode> XMLNode::XPathLookup(const std::string& xpathExpr, const Arc:
   return retlist;
 }
 
+XMLNode XMLNode::GetRoot(void) {
+  xmlNodePtr parent = node_->parent;
+  while(parent->parent){
+    parent= parent->parent;
+  }
+  if(!(node_->parent)) parent = node_;
+
+  return XMLNode(parent);
+}
+
 } // namespace Arc
