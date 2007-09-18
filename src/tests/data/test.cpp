@@ -19,10 +19,10 @@ int main () {
   Arc::XMLNode client_doc("\
     <ArcConfig>\
      <ModuleManager>\
-        <Path>../../libs/data/dmc/gridftp/.libs/</Path>\
-        <Path>../../libs/data/dmc/http/.libs/</Path>\
-        <Path>../../libs/data/dmc/lfc/.libs/</Path>\
-        <Path>../../libs/data/dmc/rls/.libs/</Path>\
+        <Path>../../hed/dmc/gridftp/.libs/</Path>\
+        <Path>../../hed/dmc/http/.libs/</Path>\
+        <Path>../../hed/dmc/lfc/.libs/</Path>\
+        <Path>../../hed/dmc/rls/.libs/</Path>\
      </ModuleManager>\
      <Plugins><Name>dmcgridftp</Name></Plugins>\
      <Plugins><Name>dmchttp</Name></Plugins>\
