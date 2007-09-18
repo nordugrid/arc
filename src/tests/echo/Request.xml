@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
+    <RequestItem> 
+        <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">read</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
+        <Context AttributeId="urn:arc:context:date" Type="period">2007-09-10T20:30:20/P1Y1M</Context>
+    </RequestItem>    
+    
+    <RequestItem>
+        <Subject>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
+          <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+        </Subject>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">list</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">stat</Action>
+        <Context/>
+    </RequestItem>   
+</Request>
+
