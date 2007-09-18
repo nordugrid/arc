@@ -8,7 +8,7 @@
 
 using namespace Arc;
 
-ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
+ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
   ArcRule *rule;
   //ArcAlgFactory *algfactory = new ArcAlgFactory(); 
   algfactory = (AlgFactory*)(*ctx); 
@@ -64,9 +64,8 @@ Result ArcPolicy::eval(EvaluationCtx* ctx){
 }
 
 ArcPolicy::~ArcPolicy(){
-  while(!subelements.empty()){
+  while(!(subelements.empty())){
       delete subelements.back();
       subelements.pop_back();
   }
-
 }

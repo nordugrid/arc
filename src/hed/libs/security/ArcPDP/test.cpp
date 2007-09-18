@@ -34,16 +34,16 @@ int main(void){
   
   //std::string cfg("EvaluatorCfg.xml");  
   Arc::Evaluator eval("EvaluatorCfg.xml");
-  Arc::Response *resp;
+  Arc::Response *resp = NULL;
   resp = eval.evaluate("Request.xml");
 
   Arc::ResponseList::iterator respit;
   std::cout<<"There is: "<<(resp->getResponseItems()).size()<<" Subjects, which satisfy at least one policy!"<< std::endl;
   Arc::ResponseList rlist = resp->getResponseItems();
   for(respit = rlist.begin(); respit != rlist.end(); ++respit){
-    Arc::RequestTuple tp = (*respit)->reqtp;
+    Arc::RequestTuple* tp = (*respit)->reqtp;
     Arc::Subject::iterator it;
-    for (it = (tp.sub).begin(); it!= (tp.sub).end(); it++){
+    for (it = (tp->sub).begin(); it!= (tp->sub).end(); it++){
       Arc::StringAttribute *attrval;
       Arc::RequestAttribute *attr;
       attr = dynamic_cast<Arc::RequestAttribute*>(*it);
@@ -53,6 +53,9 @@ int main(void){
       }
     }
   }
+  
+  if(resp)
+    delete resp;
 
   return 0;
 }

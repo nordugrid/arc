@@ -239,10 +239,10 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
 }
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
-  Arc::RequestTuple evaltuple = ctx->getEvalTuple();  
-  if(itemMatch(subjects, evaltuple.sub)==MATCH &&
-    itemMatch(resources, evaltuple.res)==MATCH &&
-    itemMatch(actions, evaltuple.act)==MATCH &&itemMatch(conditions, evaltuple.ctx)==MATCH)
+  Arc::RequestTuple* evaltuple = ctx->getEvalTuple();  
+  if(itemMatch(subjects, evaltuple->sub)==MATCH &&
+    itemMatch(resources, evaltuple->res)==MATCH &&
+    itemMatch(actions, evaltuple->act)==MATCH &&itemMatch(conditions, evaltuple->ctx)==MATCH)
     return MATCH;
   else return NO_MATCH;
 
@@ -261,3 +261,50 @@ std::string ArcRule::getEffect(){
   return effect;
 }
 
+ArcRule::~ArcRule(){
+  while(!(subjects.empty())){
+    AndList list = subjects.back();
+    while(!(list.empty())){
+      Match match = list.back();
+      if(match.first){
+        delete match.first;
+      }
+      list.pop_back();
+    }
+    subjects.pop_back();
+  }
+
+  while(!(resources.empty())){
+    AndList list = resources.back();
+    while(!(list.empty())){
+      Match match = list.back();
+      if(match.first)
+        delete match.first;
+      list.pop_back();
+    }
+    resources.pop_back();
+  }
+
+  while(!(actions.empty())){
+    AndList list = actions.back();
+    while(!(list.empty())){
+      Match match = list.back();
+      if(match.first)
+        delete match.first;
+      list.pop_back();
+    }
+    actions.pop_back();
+  }
+
+  while(!(conditions.empty())){
+    AndList list = conditions.back();
+    while(!(list.empty())){
+      Match match = list.back();
+      if(match.first)
+        delete match.first;
+      list.pop_back();
+    }
+    conditions.pop_back();
+  }
+
+}

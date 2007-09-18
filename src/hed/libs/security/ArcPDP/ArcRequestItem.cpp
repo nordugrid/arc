@@ -110,36 +110,36 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
 }
 
 ArcRequestItem::~ArcRequestItem(void){
-  while(!subjects.empty()){
+  while(!(subjects.empty())){
     Subject sub = subjects.back();
-    while(!sub.empty()){
+    while(!(sub.empty())){
       delete sub.back();
       sub.pop_back();
     }
     subjects.pop_back();
   }
-
-  while(!resources.empty()){
+  
+  while(!(resources.empty())){
     Resource res = resources.back();
-    while(!res.empty()){
+    while(!(res.empty())){
       delete res.back();
       res.pop_back();
     }
     resources.pop_back();
   }
 
-  while(!actions.empty()){
+  while(!(actions.empty())){
     Action act = actions.back();
-    while(!act.empty()){
+    while(!(act.empty())){
       delete act.back();
       act.pop_back();
     }
     actions.pop_back();
   }
 
-  while(!contexts.empty()){
+  while(!(contexts.empty())){
     Context ctx = subjects.back();
-    while(!ctx.empty()){
+    while(!(ctx.empty())){
       delete ctx.back();
       ctx.pop_back();
     }

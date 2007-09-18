@@ -6,7 +6,7 @@
 
 using namespace Arc;
 
-RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory){
+RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory) : attrval(NULL), attrfactory(attrfactory) {
   Arc::XMLNode nd;
 
   std::string xml;
@@ -25,7 +25,9 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   if(attrval == NULL)
     std::cout<<"No Attribute exists, which can deal with type:"<<type<<std::endl;
 
-  std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issurer--"<<issuer<<std::endl;
+  std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issuer--"<<issuer<<std::endl;
+
+  node.Duplicate(node_);
 
 /*
   if(!(node.Size())){
@@ -36,6 +38,14 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
       avlist.push_back(attrfactory->createValue(node.Child(i), type));
   }
 */
+}
+
+RequestAttribute::RequestAttribute() {
+
+}
+
+XMLNode RequestAttribute::getNode() {
+  return node_;
 }
 
 std::string RequestAttribute::getAttributeId () const{
@@ -72,9 +82,26 @@ AttributeValue* RequestAttribute::getAttributeValue() const{
   return attrval;
 }
 
+AttributeFactory* RequestAttribute::getAttributeFactory() const {
+  return attrfactory;
+}
+
+RequestAttribute& RequestAttribute::duplicate(RequestAttribute& req_attr) {
+  id = req_attr.getAttributeId();
+  type = req_attr.getDataType();
+  issuer = req_attr.getIssuer();
+  node_ = req_attr.getNode();
+ /*std::string tmp;
+  node_.GetXML(tmp);
+  std::cout<<tmp<<std::endl;*/
+  attrval = (req_attr.getAttributeFactory())->createValue(node_, type);
+  return *this;
+}
+
 
 RequestAttribute::~RequestAttribute(){
-  delete attrval;
+  if(attrval)
+    delete attrval;
   /*while(!avlist.empty()){
     delete (*(avlist.back()));
     avlist.pop_back();

@@ -15,9 +15,11 @@ namespace Arc {
 class RequestAttribute {
 public:
   RequestAttribute(Arc::XMLNode& node, AttributeFactory* attrfactory);
+  RequestAttribute();
   virtual ~RequestAttribute();
   
 public:
+  XMLNode getNode();
   std::string getAttributeId () const;
   void setAttributeId (const std::string attributeId);
   std::string getDataType () const;
@@ -29,15 +31,21 @@ public:
 
   AttributeValue* getAttributeValue() const;
 
+  AttributeFactory* getAttributeFactory() const;
+
+  RequestAttribute& duplicate(RequestAttribute&);
+
 //protect:
   //AttrValList avlist;
 
 private:
+ XMLNode node_;
  std::string id;
  std::string type;
  std::string issuer;
  //AttrValList avlist;
  AttributeValue* attrval;
+ AttributeFactory* attrfactory;
 };
 
 } // namespace Arc

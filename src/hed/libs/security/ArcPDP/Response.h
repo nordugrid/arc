@@ -14,7 +14,7 @@ namespace Arc {
 typedef std::list<Arc::Policy*> Policies;
 //typedef std::pair<Arc::RequestTuple, Policies> ResponseItem;
 typedef struct{
-  Arc::RequestTuple reqtp;
+  RequestTuple* reqtp;
   Policies pls;
 } ResponseItem;
 /*
@@ -39,8 +39,11 @@ public:
 
   virtual ~Response() {  
     while(!rlist.empty()){
-    delete rlist.back();
-    rlist.pop_back();
+      RequestTuple* tpl = (rlist.back())->reqtp;
+      if(tpl!=NULL)
+        tpl->erase(); 
+      delete rlist.back();
+      rlist.pop_back();
     }
   };
 };

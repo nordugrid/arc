@@ -90,6 +90,13 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
 }
 
 Evaluator::Evaluator (Arc::XMLNode& cfg){
+  plstore = NULL;;
+  fnfactory = NULL;
+  attrfactory = NULL;
+  algfactory = NULL;
+
+  context = NULL;
+
   parsecfg(cfg);
 }
 
@@ -116,12 +123,14 @@ Arc::Response* Evaluator::evaluate(Arc::Request* request){
 */
 
 Arc::Response* Evaluator::evaluate(const std::string& reqfile){
-  Arc::Request* request = new Arc::ArcRequest(reqfile, attrfactory);
-  Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
+  Arc::Request* request = NULL;
+  request = new Arc::ArcRequest(reqfile, attrfactory);
+  Arc::EvaluationCtx * evalctx = NULL;
+  evalctx =  new Arc::EvaluationCtx(request);
  
   //evaluate the request based on policy
-  return(evaluate(evalctx));
-  
+  if(evalctx)
+    return(evaluate(evalctx));
 }
 
 Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
@@ -130,8 +139,8 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
   
   std::list<Arc::Policy*> policies;
   std::list<Arc::Policy*>::iterator policyit;
-  std::list<Arc::RequestTuple> reqtuples = ctx->getRequestTuples();
-  std::list<Arc::RequestTuple>::iterator it;
+  std::list<Arc::RequestTuple*> reqtuples = ctx->getRequestTuples();
+  std::list<Arc::RequestTuple*>::iterator it;
   
   Arc::Response* resp = new Arc::Response();
   for(it = reqtuples.begin(); it != reqtuples.end(); it++){
@@ -149,7 +158,7 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Arc::Result res = (*policyit)->eval(ctx);
 
-      std::cout<<res<<std::endl;
+      std::cout<<"Result:"<<res<<std::endl;
 
       if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
         while(!permitset.empty()) permitset.pop_back();
@@ -164,13 +173,17 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     //TODO
     if(atleast_onepermit){
       ResponseItem* item = new ResponseItem;
-      RequestTuple reqtuple = (*it);
+      RequestTuple* reqtuple = new RequestTuple;
+      reqtuple->duplicate(*(*it));
       item->reqtp = reqtuple; 
       item->pls = permitset;
       resp->addResponseItem(item);
     }
   }
-  
+
+  if(ctx)
+    delete ctx; 
+ 
   return resp;
 
 /*
@@ -194,5 +207,16 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
 
 Evaluator::~Evaluator(){
   //TODO delete all the object
+  if(plstore)
+    delete plstore;
+  if(context)
+    delete context;
+  if(fnfactory)
+    delete fnfactory;
+  if(attrfactory)
+    delete attrfactory;
+  if(algfactory)
+    delete algfactory;
+  
 }
 

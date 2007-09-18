@@ -14,10 +14,12 @@ class EvaluatorContext;
 class PolicyStore : public LoadableClass {
 
 public:
-  PolicyStore(){};
+  PolicyStore();
 
   //plist is the list of policy sources, alg is the combing algorithm between these sources
   PolicyStore(const std::list<std::string>& plist, const std::string& alg, EvaluatorContext* ctx);
+
+  virtual ~PolicyStore();
   
   virtual std::list<Arc::Policy*> findPolicy(EvaluationCtx* context);
 

@@ -13,12 +13,27 @@
 
 namespace Arc {
 
+/*
 typedef struct{
   Arc::Subject sub;
   Arc::Resource res;
   Arc::Action act;
   Arc::Context ctx;
 } RequestTuple;
+*/
+
+class RequestTuple {
+public:
+  Arc::Subject sub;
+  Arc::Resource res;
+  Arc::Action act;
+  Arc::Context ctx;
+public:
+  RequestTuple& duplicate(const RequestTuple&);
+public:
+  ~RequestTuple();
+  void erase();
+};
 
 
 class EvaluationCtx {
@@ -43,19 +58,19 @@ public:
   //The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some       //independent <Subject, Resource, Action, Context>s and the evaluator should deal with them independently. 
   virtual void split();
 
-  virtual std::list<RequestTuple> getRequestTuples() const { return reqtuples; };
-  virtual void setEvalTuple(RequestTuple tuple){ evaltuple = tuple; };
-  virtual RequestTuple getEvalTuple()const { return evaltuple; };
+  virtual std::list<RequestTuple*> getRequestTuples() const { return reqtuples; };
+  virtual void setEvalTuple(RequestTuple* tuple){ evaltuple = tuple; };
+  virtual RequestTuple* getEvalTuple()const { return evaltuple; };
   
 private:
   Arc::Request* req;
  
   Arc::RequestItem* reqitem;
 
-  std::list<RequestTuple> reqtuples;
+  std::list<RequestTuple*> reqtuples;
   
   //The RequestTuple for evaluation at present
-  RequestTuple evaltuple;
+  RequestTuple* evaltuple;
  
 };
 

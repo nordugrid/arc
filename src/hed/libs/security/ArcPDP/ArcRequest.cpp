@@ -60,7 +60,7 @@ ArcRequest::ArcRequest (XMLNode& node, AttributeFactory* attrfactory) : Request(
 }
 
 ArcRequest::~ArcRequest(){
-  while(!rlist.empty()){
+  while(!(rlist.empty())){
     delete rlist.back();
     rlist.pop_back();
   }

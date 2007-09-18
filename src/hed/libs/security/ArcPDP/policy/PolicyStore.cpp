@@ -51,3 +51,10 @@ std::list<Arc::Policy*> PolicyStore::findPolicy(EvaluationCtx* ctx){
 */
  //TODO 
 }
+
+PolicyStore::~PolicyStore(){
+  while(!(policies.empty())){
+    delete policies.back();
+    policies.pop_back();
+  }
+}

@@ -34,6 +34,8 @@ public:
 
   virtual MatchResult match(EvaluationCtx* ctx);
 
+  virtual ~ArcRule();
+
 private:
   void getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string&
 function_attr);
