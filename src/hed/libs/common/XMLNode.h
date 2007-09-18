@@ -84,7 +84,10 @@ class XMLNode {
     Also destroys underlying XML document if owned by this instance */
   ~XMLNode(void) {
     if(is_owner_ && node_) {
-      xmlFreeDoc((xmlDocPtr)node_);
+      if(node_->type == XML_DOCUMENT_NODE)
+        xmlFreeDoc((xmlDocPtr)node_);
+      else if(node_->type == XML_ELEMENT_NODE)
+        Destroy();        
     };
   };
   /** Creates a copy of XML (sub)tree.
