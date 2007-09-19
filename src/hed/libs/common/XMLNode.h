@@ -86,8 +86,8 @@ class XMLNode {
     if(is_owner_ && node_) {
       if(node_->type == XML_DOCUMENT_NODE)
         xmlFreeDoc((xmlDocPtr)node_);
-      else if(node_->type == XML_ELEMENT_NODE)
-        Destroy();        
+      //else if(node_->type == XML_ELEMENT_NODE)
+        //Destroy();        
     };
   };
   /** Creates a copy of XML (sub)tree.
@@ -274,7 +274,7 @@ class XMLNode {
   XMLNode GetRoot(void);
   
   /** Do a recursive copy (properties, namespaces and children when applicable)*/
-  void Duplicate(XMLNode& new_node);
+  //void Duplicate(XMLNode& new_node);
 };
 
 /** Returns true if XML elements have same names */

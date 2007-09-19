@@ -296,14 +296,17 @@ std::list<XMLNode> XMLNode::XPathLookup(const std::string& xpathExpr, const Arc:
 
 XMLNode XMLNode::GetRoot(void) {
   xmlNodePtr parent = node_->parent;
-  while(parent->parent){
-    parent= parent->parent;
+  if(parent){
+    while(parent->parent){
+      parent= parent->parent;
+    }
   }
   if(!(node_->parent)) parent = node_;
 
   return XMLNode(parent);
 }
 
+/*
 void XMLNode::Duplicate(XMLNode& new_node) {
   if(!(*this)) return;
   new_node.Destroy();
@@ -313,5 +316,5 @@ void XMLNode::Duplicate(XMLNode& new_node) {
   new_node.is_owner_=true;
   return;
 }
-
+*/
 } // namespace Arc
