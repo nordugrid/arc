@@ -27,7 +27,8 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issuer--"<<issuer<<std::endl;
 
-  node.Duplicate(node_);
+  //node.Duplicate(node_);
+  node.New(node_);
 
 /*
   if(!(node.Size())){
@@ -90,7 +91,7 @@ RequestAttribute& RequestAttribute::duplicate(RequestAttribute& req_attr) {
   id = req_attr.getAttributeId();
   type = req_attr.getDataType();
   issuer = req_attr.getIssuer();
-  node_ = req_attr.getNode();
+  node_ = (req_attr.getNode()).Child();
  /*std::string tmp;
   node_.GetXML(tmp);
   std::cout<<tmp<<std::endl;*/
