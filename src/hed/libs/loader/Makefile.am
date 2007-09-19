@@ -1,4 +1,5 @@
-lib_LTLIBRARIES = libarcloader.la libtestmcc.la libtestservice.la
+lib_LTLIBRARIES = libarcloader.la
+noinst_LTLIBRARIES = libtestmcc.la libtestservice.la
 
 libarcloader_ladir=$(pkgincludedir)/loader
 libarcloader_la_HEADERS=Loader.h   LoaderFactory.h   MCCFactory.h   ServiceFactory.h   SecHandlerFactory.h   PDPFactory.h   DMCFactory.h   ModuleManager.h  Plexer.h    MCCLoader.h ServiceLoader.h SecHandlerLoader.h PDPLoader.h DMCLoader.h ClassLoader.h LoadableClass.h
