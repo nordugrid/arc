@@ -305,11 +305,9 @@ XMLNode XMLNode::GetRoot(void) {
 }
 
 void XMLNode::Duplicate(XMLNode& new_node) {
-  if(new_node.is_owner_ && new_node.node_) {
-    xmlFreeDoc((xmlDocPtr)(new_node.node_));
-  };
-  new_node.is_owner_=false; new_node.node_=NULL;
   if(!(*this)) return;
+  new_node.Destroy();
+  new_node.is_owner_=false; new_node.node_=NULL;
   new_node.node_=(xmlNodePtr)xmlCopyNode((xmlNodePtr)node_,1);
   if(!new_node) return;
   new_node.is_owner_=true;
