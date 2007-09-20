@@ -1,46 +1,46 @@
-#ifndef __ARC_ATTRIBUTE_H__
-#define __ARC_ATTRIBUTE_H__
+#ifndef __ARC_ARCREQUESTATTRIBUTE_H__
+#define __ARC_ARCREQUESTATTRIBUTE_H__
 
 #include "AttributeValue.h"
 #include "AttributeFactory.h"
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+#include "attr/RequestAttribute.h"
 
 namespace Arc {
 
 //typedef std::list<AttributeValue*> AttrValList;
 
-/**Parsing the attribute in Request.xml according to DateType*/
+/**Parsing the attribute in Request.xml according to DateType*/ 
 
-class RequestAttribute {
+class ArcRequestAttribute : public RequestAttribute {
 public:
-  RequestAttribute(Arc::XMLNode& node, AttributeFactory* attrfactory);
-  RequestAttribute();
-  virtual ~RequestAttribute();
+  ArcRequestAttribute(Arc::XMLNode& node, AttributeFactory* attrfactory);
+  ArcRequestAttribute();
+  virtual ~ArcRequestAttribute();
   
 public:
-  XMLNode getNode();
+  virtual XMLNode getNode();
   std::string getAttributeId () const;
   void setAttributeId (const std::string attributeId);
-  std::string getDataType () const;
-  void setDataType (const std::string dataType);
+  virtual std::string getDataType () const;
+  virtual void setDataType (const std::string dataType);
   std::string getIssuer () const;
   void setIssuer (const std::string issuer);
   //AttrValList getAttributeValueList () const;
   //void setAttributeValueList (const AttrValList& attributeValueList);
 
-  AttributeValue* getAttributeValue() const;
+  virtual AttributeValue* getAttributeValue() const;
 
-  AttributeFactory* getAttributeFactory() const;
+  virtual AttributeFactory* getAttributeFactory() const;
 
-  RequestAttribute& duplicate(RequestAttribute&);
+  virtual RequestAttribute* duplicate(RequestAttribute*);
 
 //protect:
   //AttrValList avlist;
 
 private:
- static Logger logger;
  XMLNode node_;
  std::string id;
  std::string type;
@@ -52,4 +52,4 @@ private:
 
 } // namespace Arc
 
-#endif /* __ARC_ATTRIBUTE_H__ */
+#endif /* __ARC_ARCREQUESTATTRIBUTE_H__ */
