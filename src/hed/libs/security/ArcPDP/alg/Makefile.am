@@ -1,6 +1,8 @@
 lib_LTLIBRARIES = libarcalg.la
 
-libarcalg_la_SOURCES = AlgFactory.h CombiningAlg.h \
+libarcalg_ladir = $(pkgincludedir)/security/ArcPDP/alg
+libarcalg_la_HEADERS = AlgFactory.h CombiningAlg.h
+libarcalg_la_SOURCES = \
 	ArcAlgFactory.cpp	ArcAlgFactory.h \
 	DenyOverridesAlg.cpp	DenyOverridesAlg.h \
 	PermitOverridesAlg.cpp	PermitOverridesAlg.h

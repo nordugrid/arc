@@ -4,9 +4,9 @@ noinst_PROGRAMS = test classload_test
 
 libarcpdp_ladir = $(pkgincludedir)/security/ArcPDP
 libarcpdp_la_HEADERS = ArcRequest.h   EvaluationCtx.h   Evaluator.h \
-	Response.h
+	Response.h Request.h RequestItem.h Result.h
 libarcpdp_la_SOURCES = ArcRequest.cpp EvaluationCtx.cpp Evaluator.cpp \
-	ArcRequestItem.cpp ArcRequestItem.h Request.h RequestItem.h Result.h
+	ArcRequestItem.cpp ArcRequestItem.h
 libarcpdp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	-I$(top_srcdir)/include
 libarcpdp_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \

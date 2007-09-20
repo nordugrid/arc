@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES=libdelegation.la
 noinst_PROGRAMS=test
 
-libdelegation_ladir=$(pkgincludedir)
+libdelegation_ladir=$(pkgincludedir)/delegation
 libdelegation_la_HEADERS=DelegationInterface.h
 libdelegation_la_SOURCES=DelegationInterface.cpp
 libdelegation_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

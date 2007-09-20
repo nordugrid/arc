@@ -1,7 +1,9 @@
 lib_LTLIBRARIES = libarcattr.la
 
-libarcattr_la_SOURCES = AttributeValue.h AttributeProxy.h AttributeFactory.h \
-	RequestAttribute.cpp	RequestAttribute.h \
+libarcattr_ladir = $(pkgincludedir)/security/ArcPDP/attr
+libarcattr_la_HEADERS = AttributeValue.h AttributeProxy.h AttributeFactory.h \
+	RequestAttribute.h
+libarcattr_la_SOURCES = RequestAttribute.cpp \
 	ArcAttributeFactory.cpp	ArcAttributeFactory.h \
 	StringAttribute.cpp	StringAttribute.h \
 	DateTimeAttribute.cpp	DateTimeAttribute.h \
