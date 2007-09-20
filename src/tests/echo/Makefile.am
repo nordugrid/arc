@@ -1,9 +1,10 @@
-lib_LTLIBRARIES= libecho.la
+pkglib_LTLIBRARIES = libecho.la
 noinst_PROGRAMS=test test_client test_service perftest
 SOURCES =
 
 libecho_la_SOURCES=echo.cpp echo.h
 libecho_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+libecho_la_LDFLAGS = -no-undefined -avoid-version -module
 
 test_SOURCES=$(SOURCES) test.cpp
 test_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
