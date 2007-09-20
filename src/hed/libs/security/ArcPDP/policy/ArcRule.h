@@ -4,13 +4,13 @@
 #include <arc/XMLNode.h>
 #include <list>
 
-#include "Policy.h"
-#include "../fn/Function.h"
-#include "../alg/CombiningAlg.h"
-#include "../attr/AttributeFactory.h"
-#include "../fn/FnFactory.h"
+#include <arc/security/ArcPDP/policy/Policy.h>
+#include <arc/security/ArcPDP/fn/Function.h>
+#include <arc/security/ArcPDP/alg/CombiningAlg.h>
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/fn/FnFactory.h>
 
-#include "../Evaluator.h"
+#include <arc/security/ArcPDP/Evaluator.h>
 
 namespace Arc {
 

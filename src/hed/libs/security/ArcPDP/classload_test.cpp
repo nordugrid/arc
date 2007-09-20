@@ -3,19 +3,19 @@
 #endif
 
 #include <iostream>
-#include "../../../libs/loader/ClassLoader.h"
-#include "../../../libs/loader/LoadableClass.h"
+#include <arc/loader/ClassLoader.h>
+#include <arc/loader/LoadableClass.h>
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
-#include "attr/ArcAttributeFactory.h"
-#include "attr/AttributeValue.h"
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 int main(void)
 {
     Arc::Config cfg("EvaluatorCfg.xml");
     Arc::ClassLoader classloader(&cfg);
     std::string id = "attr.factory";
-    Arc::ArcAttributeFactory* attrfactory=NULL;
-    attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(id, &cfg));
+    Arc::AttributeFactory* attrfactory=NULL;
+    attrfactory = (Arc::AttributeFactory*)(classloader.Instance(id, &cfg));
 
     if(attrfactory == NULL)
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
@@ -32,7 +32,7 @@ int main(void)
     Arc::ClassLoader classloader1(NULL);
     id = "attr.factory";
     attrfactory=NULL;
-    attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(id, &cfg));
+    attrfactory = (Arc::AttributeFactory*)(classloader.Instance(id, &cfg));
 
     if(attrfactory == NULL)
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;

@@ -1,7 +1,7 @@
 #ifndef __ARC_ANYURIATTRIBUTE_H__
 #define __ARC_ANYURIATTRIBUTE_H__
 
-#include "AttributeValue.h"
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 namespace Arc {
 class AnyURIAttribute : public AttributeValue {

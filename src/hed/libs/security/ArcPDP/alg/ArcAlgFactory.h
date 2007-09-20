@@ -4,7 +4,7 @@
 #include <list>
 #include <fstream>
 #include <arc/Logger.h>
-#include "AlgFactory.h"
+#include <arc/security/ArcPDP/alg/AlgFactory.h>
 
 namespace Arc {
 

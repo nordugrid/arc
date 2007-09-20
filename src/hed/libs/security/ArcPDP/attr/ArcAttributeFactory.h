@@ -5,7 +5,7 @@
 #include <fstream>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "AttributeFactory.h"
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
 
 namespace Arc {
 

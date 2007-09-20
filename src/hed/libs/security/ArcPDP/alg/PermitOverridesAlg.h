@@ -1,8 +1,8 @@
 #ifndef __ARC_PERMITOVERRIDESCOMBININGALG_H__
 #define __ARC_PERMITOVERRIDESCOMBININGALG_H__
 
-#include "CombiningAlg.h"
-#include "../EvaluationCtx.h"
+#include <arc/security/ArcPDP/alg/CombiningAlg.h>
+#include <arc/security/ArcPDP/EvaluationCtx.h>
 
 namespace Arc {
 

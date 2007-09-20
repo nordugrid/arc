@@ -3,10 +3,10 @@
 
 #include <list>
 #include <arc/XMLNode.h>
-#include "Policy.h"
-#include "../alg/CombiningAlg.h"
-#include "../alg/AlgFactory.h"
-#include "../Evaluator.h"
+#include <arc/security/ArcPDP/policy/Policy.h>
+#include <arc/security/ArcPDP/alg/CombiningAlg.h>
+#include <arc/security/ArcPDP/alg/AlgFactory.h>
+#include <arc/security/ArcPDP/Evaluator.h>
 
 namespace Arc {
 

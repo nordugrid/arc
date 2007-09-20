@@ -2,7 +2,7 @@
 #define __ARC_FUNCTION_H__
 
 #include <string>
-#include "../attr/AttributeValue.h"
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 namespace Arc {
 

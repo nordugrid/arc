@@ -5,7 +5,7 @@
 #include <arc/loader/ClassLoader.h>
 
 #include "ArcAttributeFactory.h"
-#include "AttributeProxy.h"
+#include <arc/security/ArcPDP/attr/AttributeProxy.h>
 #include "StringAttribute.h"
 #include "DateTimeAttribute.h"
 #include "X500NameAttribute.h"

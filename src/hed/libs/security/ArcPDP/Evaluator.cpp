@@ -66,17 +66,20 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
   Config modulecfg(cfg);
   ClassLoader classloader(&modulecfg);
   attrfactory=NULL;
-  attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
+  //attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
+  attrfactory = (AttributeFactory*)(classloader.Instance(attributefactory, NULL));
   if(attrfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce AttributeFactory");
 
   fnfactory=NULL;
-  fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
+  //fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
+  fnfactory = (FnFactory*)(classloader.Instance(functionfactory, NULL));
   if(fnfactory == NULL)
     logger.msg(INFO, "Can not dynamically produce FnFactory");
 
   algfactory=NULL;
-  algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
+  //algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
+  algfactory = (AlgFactory*)(classloader.Instance(combingalgfactory, NULL));
   if(algfactory == NULL)
     logger.msg(INFO, "Can not dynamically produce AlgFacroty");
 

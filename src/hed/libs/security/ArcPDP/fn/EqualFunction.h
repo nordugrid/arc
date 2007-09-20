@@ -1,7 +1,7 @@
 #ifndef __ARC_EQUAL_FUNCTION_H__
 #define __ARC_EQUAL_FUNCTION_H__
 
-#include "Function.h"
+#include <arc/security/ArcPDP/fn/Function.h>
 
 namespace Arc {
 

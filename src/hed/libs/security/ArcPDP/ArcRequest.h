@@ -4,8 +4,8 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "attr/AttributeFactory.h"
-#include "Request.h"
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/Request.h>
 
 /** ArcRequest, Parsing the specified Arc request format*/
 

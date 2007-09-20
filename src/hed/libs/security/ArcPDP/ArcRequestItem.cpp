@@ -4,6 +4,7 @@
 
 #include "ArcRequestItem.h"
 #include "attr/ArcAttributeFactory.h"
+#include <arc/security/ArcPDP/attr/RequestAttribute.h>
 
 using namespace Arc;
 
@@ -20,7 +21,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
      <Subject AttributeId="urn:arc:subject:dn" Type="X500DN">/O=NorduGrid/OU=UIO/CN=test</Subject>  */
     if(nd.AttributesSize()){
       Subject sub;
-      sub.push_back(new Arc::RequestAttribute(nd, attrfactory));
+      sub.push_back(new RequestAttribute(nd, attrfactory));
       subjects.push_back(sub);  
     }
     /**else like this:
@@ -33,7 +34,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
         if(!tnd) break;
-        sub.push_back(new Arc::RequestAttribute(tnd, attrfactory));
+        sub.push_back(new RequestAttribute(tnd, attrfactory));
       }
       subjects.push_back(sub);
     }
@@ -45,7 +46,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
 
     if(nd.AttributesSize()){
       Resource res;
-      res.push_back(new Arc::RequestAttribute(nd, attrfactory));
+      res.push_back(new RequestAttribute(nd, attrfactory));
       resources.push_back(res);
     }
     else{
@@ -53,7 +54,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
         if(!tnd) break;
-        res.push_back(new Arc::RequestAttribute(tnd, attrfactory));
+        res.push_back(new RequestAttribute(tnd, attrfactory));
       }
       resources.push_back(res);
     }
@@ -65,7 +66,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
 
     if(nd.AttributesSize()){
       Action act;
-      act.push_back(new Arc::RequestAttribute(nd, attrfactory));
+      act.push_back(new RequestAttribute(nd, attrfactory));
       actions.push_back(act);
     }
     else{
@@ -73,7 +74,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
         if(!tnd) break;
-        act.push_back(new Arc::RequestAttribute(tnd, attrfactory));
+        act.push_back(new RequestAttribute(tnd, attrfactory));
       }
       actions.push_back(act);
     }
@@ -85,7 +86,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
 
     if(nd.AttributesSize()){
       Context ctx;
-      ctx.push_back(new Arc::RequestAttribute(nd, attrfactory));
+      ctx.push_back(new RequestAttribute(nd, attrfactory));
       contexts.push_back(ctx);
     }
     else{
@@ -93,7 +94,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       for(int j=0;;j++){
         XMLNode tnd = nd.Child(j);
         if(!tnd) break;
-        ctx.push_back(new Arc::RequestAttribute(tnd, attrfactory));
+        ctx.push_back(new RequestAttribute(tnd, attrfactory));
       }
       contexts.push_back(ctx);
     }

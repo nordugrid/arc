@@ -38,7 +38,7 @@ ArcRequest::ArcRequest(const std::string& filename, AttributeFactory* attrfactor
   std::string xml_str = "";
   std::ifstream f(filename.c_str());
 
-  std::cout<<filename<<std::endl;
+  //std::cout<<filename<<std::endl;
   while (f >> str) {
     xml_str.append(str);
     xml_str.append(" ");

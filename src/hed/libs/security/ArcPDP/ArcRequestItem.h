@@ -2,7 +2,7 @@
 #define __ARC_ARCREQUESTITEM_H__
 
 #include <arc/XMLNode.h>
-#include "RequestItem.h"
+#include <arc/security/ArcPDP/RequestItem.h>
 
 namespace Arc {
 

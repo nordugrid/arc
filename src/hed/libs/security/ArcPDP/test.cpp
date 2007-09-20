@@ -3,22 +3,16 @@
 #endif
 
 #include <iostream>
-//#include <fstream>
 #include <signal.h>
 
 #include <string>
-//#include "ArcRequest.h"
-//#include "EvaluationCtx.h"
-//#include "Evaluator.h"
-//#include "Response.h"
 #include <arc/security/ArcPDP/ArcRequest.h>
-#include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "attr/AttributeValue.h"
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 int main(void){
   signal(SIGTTOU,SIG_IGN);

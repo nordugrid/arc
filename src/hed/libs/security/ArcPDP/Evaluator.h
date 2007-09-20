@@ -7,9 +7,9 @@
 #include <arc/Logger.h>
 
 #include "policy/PolicyStore.h"
-#include "fn/ArcFnFactory.h"
-#include "attr/ArcAttributeFactory.h"
-#include "alg/ArcAlgFactory.h"
+#include "fn/FnFactory.h"
+#include "attr/AttributeFactory.h"
+#include "alg/AlgFactory.h"
 #include "Request.h"
 #include "Response.h"
 

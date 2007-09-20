@@ -10,10 +10,9 @@
 #include <arc/Logger.h>
 
 #include <arc/security/ArcPDP/ArcRequest.h>
-#include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <arc/security/ArcPDP/Response.h>
 
-#include "ArcPDP/attr/AttributeValue.h"
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 #include "ArcPDP.h"
 /*
@@ -57,7 +56,7 @@ bool ArcPDP::isPermitted(std::string peer_subject __attribute__((unused))){
       attr = dynamic_cast<RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) std::cout<<attrval->encode()<<std::endl;
+        if(attrval) logger.msg(INFO, "%s", (attrval->encode()).c_str());
       }
     }
   } 
