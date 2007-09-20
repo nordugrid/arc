@@ -1,5 +1,7 @@
 ACLOCAL_FLAGS=-I m4
 
+distdir = nordugrid-arc1-@VERSION@
+
 if JAVA_ENABLED 
 JAVA_SD = java 
 endif

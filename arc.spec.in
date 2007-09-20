@@ -1,4 +1,5 @@
-Name: @PACKAGE@
+%define pkgdir arc
+Name: nordugrid-arc1
 Version: @VERSION@
 Release: 1%{?dist}
 Summary: ARC
@@ -70,7 +71,7 @@ Requires: python
 %description python
 Python wrapper for ARC
 
-%if "%{!?disable_java:java}"
+%if "%{?enable_java:java}"
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
@@ -91,7 +92,7 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static %{?disable_java:--disable-java}
+%configure --disable-static %{?enable_java:--enable-java}
 make %{?_smp_mflags}
 
 
@@ -127,21 +128,24 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(-,root,root,-)
-%{_includedir}/%{name}
+%{_includedir}/%{pkgdir}
 #%{_libdir}/lib*.a
 #%{_libdir}/lib*.la
 %{_libdir}/lib*.so
 
 %files plugins
 %defattr(-,root,root,-)
-%{_libdir}/%{name}/libmcc*.so
-%{_libdir}/%{name}/libdmc*.so
+%{_libdir}/%{pkgdir}/libmcc*.so
+%{_libdir}/%{pkgdir}/libdmc*.so
+%{_libdir}/%{pkgdir}/libarcservice_pythonwrapper.so
+%{_libdir}/%{pkgdir}/libarex.so
+%{_libdir}/%{pkgdir}/libecho.so
 
 %files python
 %defattr(-,root,root,-)
 %{_prefix}/lib/python?.?/site-packages/
 
-%if "%{!?disable_java:java}"
+%if "%{?enable_java:java}"
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
