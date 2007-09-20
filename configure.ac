@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
-AC_INIT([nordugrid-arc1],[0.9.0],[http://bugzilla.nordugrid.org/])
+AC_INIT([arc],[0.9.0],[http://bugzilla.nordugrid.org/])
 #AM_INIT_AUTOMAKE([-Wno-portability])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
