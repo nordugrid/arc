@@ -28,7 +28,7 @@ Dependencies
     - doxygen
     - pkg-config
     - automake
-    - autoconf
+    - autoconf (>=2.56)
     - libtool
 
 - Optional requirements
