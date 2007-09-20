@@ -26,6 +26,7 @@ public:
   virtual std::string getEffect(){ return "NOT Effect";};
 
 private:
+  static Logger logger;
  // std::list<Arc::Policy*> rules;
   std::string id;
   std::string version;

@@ -5,6 +5,7 @@
 #include "AttributeFactory.h"
 #include <list>
 #include <arc/XMLNode.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 
@@ -39,6 +40,7 @@ public:
   //AttrValList avlist;
 
 private:
+ static Logger logger;
  XMLNode node_;
  std::string id;
  std::string type;

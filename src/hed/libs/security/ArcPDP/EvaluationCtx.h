@@ -63,12 +63,10 @@ public:
   virtual RequestTuple* getEvalTuple()const { return evaltuple; };
   
 private:
+  static Logger logger;
   Arc::Request* req;
- 
   Arc::RequestItem* reqitem;
-
   std::list<RequestTuple*> reqtuples;
-  
   //The RequestTuple for evaluation at present
   RequestTuple* evaltuple;
  

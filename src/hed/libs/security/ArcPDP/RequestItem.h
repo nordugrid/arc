@@ -3,6 +3,7 @@
 
 #include <list>
 #include <arc/XMLNode.h>
+#include "attr/AttributeFactory.h"
 #include "attr/RequestAttribute.h"
 
 namespace Arc {
@@ -17,7 +18,7 @@ typedef std::list<Context> CtxList;
 /**<subjects, actions, objects, ctxs> tuple */
 class RequestItem{
  public:
-  RequestItem(XMLNode& node){};
+  RequestItem(XMLNode& node, AttributeFactory* attrfactory){};
   virtual ~RequestItem(){};
 
 protected:

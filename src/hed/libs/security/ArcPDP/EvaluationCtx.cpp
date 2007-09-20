@@ -3,10 +3,12 @@
 #endif
 
 #include "EvaluationCtx.h"
-#include "attr/StringAttribute.h"
+#include "attr/AttributeValue.h"
 #include "attr/RequestAttribute.h"
 
 using namespace Arc;
+
+Logger EvaluationCtx::logger(Arc::Logger::rootLogger, "EvaluationCtx");
 
 RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
 
@@ -85,7 +87,6 @@ RequestTuple::~RequestTuple() {
   }
 }
 
-
 EvaluationCtx::EvaluationCtx(Arc::Request* request) : req(NULL) {
   req = request;
 }
@@ -127,8 +128,8 @@ void EvaluationCtx::split(){
   }
 
   Arc::ReqItemList reqlist = req->getRequestItems();
-  
-  std::cout<<"There is "<<reqlist.size()<<" RequestItem!"<<std::endl;
+ 
+  logger.msg(INFO,"There is %d RequestItems", reqlist.size()); 
   
   std::list<Arc::RequestItem*>::iterator it;
   for (it = reqlist.begin(); it != reqlist.end(); it++) {
@@ -152,13 +153,13 @@ void EvaluationCtx::split(){
             reqtuple->ctx = *cit;
             reqtuples.push_back(reqtuple);  
 
-            //for tesing
-            std::cout<<"Subject size "<<(*sit).size()<<std::endl;
+            logger.msg(INFO, "Subject size:  %d", (*sit).size());
             Arc::Subject::iterator it;
             for (it = (*sit).begin(); it!= (*sit).end(); it++){
-              StringAttribute *attr;
-              attr = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
-              if(attr!=NULL) std::cout<<attr->getValue()<<std::endl;
+              AttributeValue *attr;
+              attr = (*it)->getAttributeValue();
+              if(attr!=NULL) 
+                logger.msg(INFO, "%s", (attr->encode()).c_str());
             }
           }
         }

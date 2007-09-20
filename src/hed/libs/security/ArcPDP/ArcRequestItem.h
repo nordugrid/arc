@@ -3,7 +3,6 @@
 
 #include <arc/XMLNode.h>
 #include "RequestItem.h"
-#include "attr/AttributeFactory.h"
 
 namespace Arc {
 

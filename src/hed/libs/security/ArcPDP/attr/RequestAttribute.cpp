@@ -6,13 +6,10 @@
 
 using namespace Arc;
 
+Logger RequestAttribute::logger(Arc::Logger::rootLogger, "RequestAttribute");
+
 RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory) : attrval(NULL), attrfactory(attrfactory) {
   Arc::XMLNode nd;
-
-  std::string xml;
-
-  node.GetXML(xml);  //for testing
-  std::cout<<"\n"<<xml<<std::endl;
   
   id = (std::string)(node.Attribute("AttributeId")); 
 
@@ -23,11 +20,10 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   attrval = attrfactory->createValue(node, type);
 
   if(attrval == NULL)
-    std::cout<<"No Attribute exists, which can deal with type:"<<type<<std::endl;
+    logger.msg(ERROR,"No Attribute exists, which can deal with type: %s", type.c_str());
 
-  std::cout<<"Id--"<<id<<"  Type--"<<type<<"  Issuer--"<<issuer<<std::endl;
+  logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id.c_str(), type.c_str(), issuer.c_str(), (attrval->encode()).c_str());
 
-  //node.Duplicate(node_);
   node.New(node_);
 
 /*
@@ -92,9 +88,6 @@ RequestAttribute& RequestAttribute::duplicate(RequestAttribute& req_attr) {
   type = req_attr.getDataType();
   issuer = req_attr.getIssuer();
   node_ = (req_attr.getNode()).Child();
- /*std::string tmp;
-  node_.GetXML(tmp);
-  std::cout<<tmp<<std::endl;*/
   attrval = (req_attr.getAttributeFactory())->createValue(node_, type);
   return *this;
 }

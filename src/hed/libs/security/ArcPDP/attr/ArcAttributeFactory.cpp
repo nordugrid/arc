@@ -53,7 +53,8 @@ AttributeValue* ArcAttributeFactory::createValue(const XMLNode& node, const std:
 ArcAttributeFactory::~ArcAttributeFactory(){
   AttrProxyMap::iterator it;
   for(it = apmap.begin(); it != apmap.end(); it++){
-    delete (*it).second;
+    AttributeProxy* attrproxy = (*it).second;
     apmap.erase(it);
+    if(attrproxy) delete attrproxy;
   }
 }

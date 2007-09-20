@@ -20,6 +20,7 @@ namespace Arc {
 class Evaluator {
 friend class EvaluatorContext;
 private:
+  static Logger logger;
   PolicyStore *plstore;
   FnFactory* fnfactory;
   AttributeFactory* attrfactory;  
@@ -35,6 +36,7 @@ public:
  // virtual Arc::Response* evaluate(Arc::Request* request);
   virtual Arc::Response* evaluate(const std::string& reqfile);
   virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx);
+  virtual Arc::Response* evaluate(XMLNode& node);
 
 private:
   void parsecfg(XMLNode& cfg);

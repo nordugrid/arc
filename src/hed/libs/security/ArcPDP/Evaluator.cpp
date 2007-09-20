@@ -14,6 +14,9 @@
 #include <iostream>
 
 using namespace Arc;
+
+Logger Evaluator::logger(Arc::Logger::rootLogger, "Evaluator");
+
 /*
 static Arc::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::Evaluator(cfg);
@@ -65,17 +68,17 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
   attrfactory=NULL;
   attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
   if(attrfactory == NULL)
-    std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
+    logger.msg(ERROR, "Can not dynamically produce AttributeFactory");
 
   fnfactory=NULL;
   fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
   if(fnfactory == NULL)
-    std::cout<<"Can not dynamic produce ArcFnFactory!!"<<std::endl;
+    logger.msg(INFO, "Can not dynamically produce FnFactory");
 
   algfactory=NULL;
   algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
   if(algfactory == NULL)
-    std::cout<<"Can not dynamic produce ArcAlgFactory!!"<<std::endl;
+    logger.msg(INFO, "Can not dynamically produce AlgFacroty");
 
   context = new EvaluatorContext(*this);
 
@@ -85,7 +88,7 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
   filelist.push_back("Policy_Example.xml");
   std::string alg("Permit-Overrides");
   plstore = new Arc::PolicyStore(filelist, alg, context);
-
+  
 
 }
 
@@ -133,6 +136,17 @@ Arc::Response* Evaluator::evaluate(const std::string& reqfile){
     return(evaluate(evalctx));
 }
 
+Arc::Response* Evaluator::evaluate(XMLNode& node){
+  Arc::Request* request = NULL;
+  request = new Arc::ArcRequest(node, attrfactory);
+  Arc::EvaluationCtx * evalctx = NULL;
+  evalctx =  new Arc::EvaluationCtx(request);
+
+  //evaluate the request based on policy
+  if(evalctx)
+    return(evaluate(evalctx));
+}
+
 Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
   //Split request into <subject, action, object, environment> tuples
   ctx->split();
@@ -158,7 +172,7 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Arc::Result res = (*policyit)->eval(ctx);
 
-      std::cout<<"Result:"<<res<<std::endl;
+      logger.msg(INFO,"Result value (0 means success): %d", res);
 
       if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
         while(!permitset.empty()) permitset.pop_back();

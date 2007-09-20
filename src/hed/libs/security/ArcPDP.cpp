@@ -13,7 +13,7 @@
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <arc/security/ArcPDP/Response.h>
 
-#include "ArcPDP/attr/StringAttribute.h"
+#include "ArcPDP/attr/AttributeValue.h"
 
 #include "ArcPDP.h"
 /*
@@ -52,12 +52,12 @@ bool ArcPDP::isPermitted(std::string peer_subject __attribute__((unused))){
     Subject::iterator it;
     Arc::Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
-      StringAttribute *attrval;
+      AttributeValue *attrval;
       RequestAttribute *attr;
       attr = dynamic_cast<RequestAttribute*>(*it);
       if(attr){
-        attrval = dynamic_cast<StringAttribute*>((*it)->getAttributeValue());
-        if(attrval) std::cout<<attrval->getValue()<<std::endl;
+        attrval = (*it)->getAttributeValue();
+        if(attrval) std::cout<<attrval->encode()<<std::endl;
       }
     }
   } 

@@ -8,6 +8,8 @@
 
 using namespace Arc;
 
+Logger ArcPolicy::logger(Logger::rootLogger,"ArcPolicy");
+
 ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
   ArcRule *rule;
   //ArcAlgFactory *algfactory = new ArcAlgFactory(); 
@@ -32,8 +34,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     description = (std::string)(nd["Description"]);  
   }
   
-  std::cout<<id<<std::endl;
-  std::cout<<"Alg is:--------"<<comalg->getalgId()<<std::endl;
+  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id.c_str(), (comalg->getalgId()).c_str());
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];

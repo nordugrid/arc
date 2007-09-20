@@ -44,7 +44,8 @@ CombiningAlg* ArcAlgFactory::createAlg(const std::string& type){
 ArcAlgFactory::~ArcAlgFactory(){
   AlgMap::iterator it;
   for(it = algmap.begin(); it != algmap.end(); it++){
-    delete (*it).second;
+    CombiningAlg * alg = (*it).second;
     algmap.erase(it);
+    if(alg) delete alg;;
   }
 }

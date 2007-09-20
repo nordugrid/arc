@@ -98,7 +98,8 @@ Function* ArcFnFactory::createFn(const std::string& type){
 ArcFnFactory::~ArcFnFactory(){
   FnMap::iterator it;
   for(it = fnmap.begin(); it != fnmap.end(); it++){
-    delete (*it).second;
+    Function* fn = (*it).second;
     fnmap.erase(it);
+    if(fn) delete fn;
   }
 }
