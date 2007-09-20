@@ -288,7 +288,7 @@ namespace Arc {
       return undefined;
   }
 
-  std::string URL::str() const {
+  std::string URL::fullstr() const {
 
     std::string urlstr;
     if(!protocol.empty())
@@ -304,7 +304,7 @@ namespace Arc {
         it != locations.end(); it++) {
       if(it != locations.begin())
 	urlstr += '|';
-      urlstr += it->str();
+      urlstr += it->fullstr();
     }
 
     if(!locations.empty() && !commonlocoptions.empty())
@@ -337,7 +337,7 @@ namespace Arc {
     return urlstr;
   }
 
-  std::string URL::CanonicalURL() const {
+  std::string URL::str() const {
 
     std::string urlstr;
     if(!protocol.empty())
@@ -460,6 +460,14 @@ namespace Arc {
 
     if(name.empty())
       return URL::str();
+    else
+      return name;
+  }
+
+  std::string URLLocation::fullstr() const {
+
+    if(name.empty())
+      return URL::fullstr();
     else if(urloptions.empty())
       return name;
     else

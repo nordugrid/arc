@@ -225,7 +225,7 @@ namespace Arc {
                  "No GUID defined for LFN - probably not preregistered");
       return false;
     }
-    std::string pfn(location->url.CanonicalURL());
+    std::string pfn(location->url.str());
     if(lfc_startsess(const_cast<char*>((url.Host() + ':' +
                                         tostring(url.Port())).c_str()),
                      "ARC") != 0)

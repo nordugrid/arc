@@ -175,7 +175,7 @@ namespace Arc {
             (globus_rls_string2_t*)globus_list_first(list_p);
           URL pfn(str2->s2);
           // for RLS URLs are used instead of metanames
-          if(pfn.CanonicalURL() == loc->url.CanonicalURL()) {
+          if(pfn == loc->url) {
             logger.msg(DEBUG, "Adding location: %s - %s",
                        str2->s2, pfn.str().c_str());
             if(source) {
@@ -412,7 +412,7 @@ namespace Arc {
 
     std::string pfn;
     std::string guid;
-    pfn = location->url.CanonicalURL();
+    pfn = location->url;
     // it is always better to register pure url
     std::string rls_lfn = url.Path();
     if(!replication) {

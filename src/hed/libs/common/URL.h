@@ -69,16 +69,20 @@ namespace Arc {
     /** Returns HTTP options if any. */
     const std::map<std::string, std::string>& HTTPOptions() const;
 
-    /** Returns the value of the HTTP option \param option.
-	Returns \param undefined if the HTTP option is not defined. */
+    /** Returns the value of an HTTP option.
+	\param option     The option whose value is returned.
+	\param undefined  This value is returned if the HTTP option is
+				not defined. */
     const std::string& HTTPOption(const std::string& option,
 				  const std::string& undefined = "") const;
 
     /** Returns URL options if any. */
     const std::map<std::string, std::string>& Options() const;
 
-    /** Returns the value of the URL option \param option.
-	Returns \param undefined if the URL option is not defined. */
+    /** Returns the value of a URL option.
+	\param option     The option whose value is returned.
+	\param undefined  This value is returned if the URL option is
+				not defined. */
     const std::string& Option(const std::string& option,
 			      const std::string& undefined = "") const;
 
@@ -92,9 +96,10 @@ namespace Arc {
     /** Returns the common location options if any. */
     const std::map<std::string, std::string>& CommonLocOptions() const;
 
-    /** Returns the value of the common location option \param option.
-	Returns \param undefined if the common location option is not
-	defined. */
+    /** Returns the value of a common location option.
+	\param option     The option whose value is returned.
+	\param undefined  This value is returned if the common location
+				 option is not defined. */
     const std::string& CommonLocOption(const std::string& option,
 				       const std::string&
 				         undefined = "") const;
@@ -102,8 +107,8 @@ namespace Arc {
     /** Returns a string representation of the URL. */
     virtual std::string str() const;
 
-    /** Returns the URL string representation w/o options and locations */
-    virtual std::string CanonicalURL() const;
+    /** Returns a string representation including options and locations */
+    virtual std::string fullstr() const;
 
     /** Returns a string representation with protocol, host and port only */
     virtual std::string ConnectionURL() const;
@@ -179,6 +184,9 @@ namespace Arc {
 
     /** Returns a string representation of the URL Location. */
     virtual std::string str() const;
+
+    /** Returns a string representation including options and locations */
+    virtual std::string fullstr() const;
 
    protected:
     /** the URL Location name (used for RC registrations). */
