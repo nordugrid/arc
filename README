@@ -1,4 +1,25 @@
-New generation Advanced Resource Connector (ARC) grid middleware
+Some Old Text
+=============
+
+[This should be moved somewhere else...]
+
+svn propset svn:ignore -F .svnignore .
+
+Compile on Mac OS
+install darwin ports
+
+export ACLOCAL=aclocal -I /opt/local/share/aclocal
+export LIBTOOLIZE=/opt/local/bin/glibtoolize
+
+
+ARC Middleware
+==============
+
+New generation Advanced Resource Connector (ARC) grid middleware.
+
+
+Dependencies
+============
 
 - Requirements for build from source tree
     - g++
@@ -17,10 +38,162 @@ New generation Advanced Resource Connector (ARC) grid middleware
     - globus GT 4
 
 
-svn propset svn:ignore -F .svnignore .
+Getting the software
+====================
 
-Compile on Mac OS
-install darwin ports
+The middleware is free to deploy anywhere by anybody. The software is
+released under the GNU General Public License (GPL) (see the LICENSE
+file). The NorduGrid repository hosts the source code, and provides
+all the required external software which are not part of a standard
+Linux distribution.
 
-export ACLOCAL=aclocal -I /opt/local/share/aclocal
-export LIBTOOLIZE=/opt/local/bin/glibtoolize
+
+Building & Installation
+=======================
+
+The ARC middleware can be built from the openly available source code
+provided as a tarball. The build is using the GNU autotools. This
+means that a standard installation can be made with:
+
+  ./configure
+  make
+  make install
+
+
+Setup & Configuration
+=====================
+
+The configuration of the ARC server is specified in an XML file, the
+location of which is specified as a command line argument with the -c
+option. An example of a configuration file that sets up an A-REX
+execution service is shown below:
+
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+>
+  <Server>
+    <Foreground/>
+    <Pidfile>./arcserver.pid</Pidfile>
+    <Logger level="WARNING">./logfile</Logger>
+  </Server>
+  <ModuleManager>
+    <Path>/usr/local/lib/nordugrid-arc1/</Path>
+    <Path>/usr/local/lib/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+  <Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/> 
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <KeyPath>/etc/grid-security/key.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
+      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="a-rex">/arex</next>
+    </Plexer>
+    <Service name="a-rex" id="a-rex">
+      <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
+      <arex:username>nobody</arex:username>
+      <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
+
+The configuration of the ARC client is specified in an XML file. The
+location of the configuration file is specified by the environment
+variable ARC_AREX_CONFIG. If there is no such environment variable,
+the configuration file is assumed to be arex_client.xml in the current
+working directory. An example configuration file is shown below:
+
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
+  <ModuleManager>
+    <Path>/usr/local/lib/nordugrid-arc1/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Chain>
+    <Component name='tcp.client' id='tcp'>
+      <tcp:Connect>
+        <tcp:Host>127.0.0.1</tcp:Host>
+        <tcp:Port>60000</tcp:Port>
+      </tcp:Connect>
+    </Component>
+    <Component name='tls.client' id='tls'>
+      <next id='tcp'/>
+      <KeyPath>/etc/grid-security/key.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
+      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+    </Component>
+    <Component name='http.client' id='http'>
+      <next id='tls'/>
+      <Method>POST</Method>
+      <Endpoint>/arex</Endpoint>
+    </Component>
+    <Component name='soap.client' id='soap' entry='soap'>
+      <next id='http'/>
+    </Component>
+  </Chain>
+</ArcConfig>
+
+
+Starting the Server
+===================
+
+To start the ARC server, type the following on the command line:
+
+  /usr/local/sbin/arcserver -c /etc/arcserv.xml &
+
+In order to use the A-REX service, you need to run a Grid Manager as
+well. This is explained in detail in NORDUGRID-TECH-14 "The ARC
+Computational Job Management Module - A-REX: Description and
+Administrator's Manual"
+
+
+Using the Client
+================
+
+To submit a job, type
+
+  /usr/local/bin/apsub <JSDL-file> <JobID-file>
+
+where <JSDL-file> is the location of a file that contains the job
+specification in JSDL format and <JobID-file> the location of a file
+in which the Job ID will be stored.
+
+To query the status of a job, type
+
+  /usr/local/bin/apstat <JobID-file>
+
+where <JobID-file> the location of the file in which the Job ID is
+stored (the file created when the job was submitted).
+
+To terminate a job, type
+
+  /usr/local/bin/apkill <JobID-file>
+
+where <JobID-file> the location of the file in which the Job ID is
+stored (the file created when the job was submitted).
+
+More detailed about how to use the client tools are explained in
+NORDUGRID-TECH-14 "WS-Based ARC Clients".
