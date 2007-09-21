@@ -14,7 +14,7 @@ class ArcPDP : public PDP {
   static PDP* get_arc_pdp(Config *cfg, ChainContext *ctx);
   ArcPDP(Config* cfg);
   virtual ~ArcPDP();
-  virtual bool isPermitted(std::string subject);
+  virtual bool isPermitted(Message *msg);
  private:
   Evaluator *eval;
 };

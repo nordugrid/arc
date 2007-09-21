@@ -141,6 +141,90 @@ void EvaluationCtx::split(){
     Arc::CtxList contexts = (*it)->getContexts();
     Arc::CtxList::iterator cit;
 
+    for(sit = subjects.begin(); sit != subjects.end(); sit++) { //The subject part will never be empty
+      if(!resources.empty()) {
+        for(rit = resources.begin(); rit != resources.end(); rit++){
+          if(!actions.empty()){
+            for(ait = actions.begin(); ait != actions.end(); ait++){
+              if(!contexts.empty()){
+                for(cit = contexts.begin(); cit != contexts.end(); cit++){
+                  RequestTuple* reqtuple = new RequestTuple;
+                  reqtuple->sub = *sit;
+                  reqtuple->res = *rit;
+                  reqtuple->act = *ait;
+                  reqtuple->ctx = *cit;
+                  reqtuples.push_back(reqtuple);
+                }
+              }
+              else {
+                RequestTuple* reqtuple = new RequestTuple;
+                reqtuple->sub = *sit;
+                reqtuple->res = *rit;
+                reqtuple->act = *ait;
+                reqtuples.push_back(reqtuple);             
+              }         
+            }
+          }
+          else {
+            if(!contexts.empty()){
+              for(cit = contexts.begin(); cit != contexts.end(); cit++){
+                RequestTuple* reqtuple = new RequestTuple;
+                reqtuple->sub = *sit;
+                reqtuple->res = *rit;
+                reqtuple->ctx = *cit;
+                reqtuples.push_back(reqtuple);
+              }
+            }
+            else {
+              RequestTuple* reqtuple = new RequestTuple;
+              reqtuple->sub = *sit;
+              reqtuple->res = *rit;
+              reqtuples.push_back(reqtuple);
+            }
+          }
+        }
+      }
+      
+      else{
+        if(!actions.empty()){
+          for(ait = actions.begin(); ait != actions.end(); ait++){
+            if(!contexts.empty()){
+              for(cit = contexts.begin(); cit != contexts.end(); cit++){
+                RequestTuple* reqtuple = new RequestTuple;
+                reqtuple->sub = *sit;
+                reqtuple->act = *ait;
+                reqtuple->ctx = *cit;
+                reqtuples.push_back(reqtuple);
+              }
+            }
+            else {
+              RequestTuple* reqtuple = new RequestTuple;
+              reqtuple->sub = *sit;
+              reqtuple->act = *ait;
+              reqtuples.push_back(reqtuple);
+            }
+          }
+        }
+        else {
+          if(!contexts.empty()){
+            for(cit = contexts.begin(); cit != contexts.end(); cit++){
+              RequestTuple* reqtuple = new RequestTuple;
+              reqtuple->sub = *sit;
+              reqtuple->ctx = *cit;
+              reqtuples.push_back(reqtuple);
+            }
+          }
+          else {
+            RequestTuple* reqtuple = new RequestTuple;
+            reqtuple->sub = *sit;
+            reqtuples.push_back(reqtuple);
+          }
+        }
+      }
+    }
+
+
+/*
     for(sit = subjects.begin(); sit != subjects.end(); sit++) {
       for(rit = resources.begin(); rit != resources.end(); rit++){
         for(ait = actions.begin(); ait != actions.end(); ait++){
@@ -163,7 +247,7 @@ void EvaluationCtx::split(){
           }
         }
       }
-    }
-  } 
+    }*/
+  }
 
 }

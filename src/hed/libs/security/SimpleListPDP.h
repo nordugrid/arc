@@ -13,7 +13,7 @@ class SimpleListPDP : public PDP {
   static PDP* get_simplelist_pdp(Config *cfg, ChainContext *ctx);
   SimpleListPDP(Config* cfg);
   virtual ~SimpleListPDP() {};
-  virtual bool isPermitted(std::string subject);
+  virtual bool isPermitted(Message *msg);
  private:
   std::string location;
 };

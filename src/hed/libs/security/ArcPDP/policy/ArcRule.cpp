@@ -228,9 +228,10 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
   Arc::RequestTuple* evaltuple = ctx->getEvalTuple();  
-  if(itemMatch(subjects, evaltuple->sub)==MATCH &&
-    itemMatch(resources, evaltuple->res)==MATCH &&
-    itemMatch(actions, evaltuple->act)==MATCH &&itemMatch(conditions, evaltuple->ctx)==MATCH)
+  if((subjects.empty()||(!subjects.empty())&&(itemMatch(subjects, evaltuple->sub)==MATCH)) &&
+    (resources.empty()||(!resources.empty())&&(itemMatch(resources, evaltuple->res)==MATCH)) &&
+    (actions.empty()||(!actions.empty())&&(itemMatch(actions, evaltuple->act)==MATCH)) &&
+    (conditions.empty()||(!conditions.empty())&&(itemMatch(conditions, evaltuple->ctx)==MATCH)))
     return MATCH;
   else return NO_MATCH;
 

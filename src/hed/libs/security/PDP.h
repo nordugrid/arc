@@ -2,6 +2,7 @@
 #define __ARC_PDP_H__
 
 #include <string>
+#include <arc/message/Message.h>
 
 namespace Arc {
 
@@ -12,7 +13,7 @@ namespace Arc {
    public:
     PDP(Config*) {};
     virtual ~PDP() {};
-    virtual bool isPermitted(std::string subject) = 0;
+    virtual bool isPermitted(Message *msg) = 0;
    protected:
     static Logger logger;
   };

@@ -40,9 +40,45 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
 
 }
 
-bool ArcPDP::isPermitted(std::string){
+bool ArcPDP::isPermitted(Message *msg){
+  std::string remotehost=msg->Attributes()->get("TCP:REMOTEHOST");
+  std::string subject=msg->Attributes()->get("TLS:PEERDN");
+  std::string action=msg->Attributes()->get("HTTP:METHOD");
+  
+  NS ns;
+  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  XMLNode req(ns);
+  XMLNode requestitem = req.NewChild("Request").NewChild("RequestItem");
+
+  XMLNode sub = requestitem.NewChild("Subject");
+  XMLNode subattr1 = sub.NewChild("Attribute");
+  subattr1 = remotehost;
+  XMLNode subattr1Id = subattr1.NewAttribute("AttributeId");
+  subattr1Id = "123";
+  XMLNode subattr1Type = subattr1.NewAttribute("Type");
+  subattr1Type = "string";
+
+  XMLNode subattr2 = sub.NewChild("Attribute");
+  subattr2 = subject;
+  XMLNode subattr2Id = subattr2.NewAttribute("AttributeId");
+  subattr2Id = "xyz";
+  XMLNode subattr2Type = subattr2.NewAttribute("Type");
+  subattr2Type = "string";
+
+  XMLNode act = requestitem.NewChild("Action");
+  act=action;
+  XMLNode actionId = act.NewAttribute("AttributeId");
+  actionId = "ijk";
+  XMLNode actionType = act.NewAttribute("Type");
+  actionType = "string";
+
+  std::string req_str;  
+  req.GetXML(req_str);
+  logger.msg(INFO, "%s", req_str.c_str());
+
   Response *resp = NULL;
   resp = eval->evaluate("Request.xml");
+  //resp = eval->evaluate(req);
   ResponseList::iterator respit;
   logger.msg(INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();

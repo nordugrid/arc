@@ -75,10 +75,10 @@ void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
 }
 
 bool SimpleListAuthZ::Handle(Message* msg){
-  std::string subject=msg->Attributes()->get("TLS:PEERDN");
+  //std::string subject=msg->Attributes()->get("TLS:PEERDN");
   pdp_container_t::iterator it;
   for(it=pdps_.begin();it!=pdps_.end();it++){
-     if(it->second->isPermitted(subject))
+     if(it->second->isPermitted(msg))
         return true;  
   }
   return false;

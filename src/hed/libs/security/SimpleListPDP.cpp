@@ -33,7 +33,8 @@ SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
   logger.msg(INFO, "Access list location: %s", location.c_str());
 }
 
-bool SimpleListPDP::isPermitted(std::string subject){
+bool SimpleListPDP::isPermitted(Message *msg){
+  std::string subject=msg->Attributes()->get("TLS:PEERDN");
   std::string line;
   std::ifstream fs(location.c_str());
   
