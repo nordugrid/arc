@@ -478,9 +478,7 @@ namespace Arc {
     return;
   }
 
-  bool DataPointGridFTP::start_writing(DataBufferPar& buf,
-                                       DataCallback *space_cb
-                                     ) {
+  bool DataPointGridFTP::start_writing(DataBufferPar& buf, DataCallback*) {
     if(!DataPointDirect::start_writing(buf)) return false;
     buffer = &buf;
     /* size of file first */
