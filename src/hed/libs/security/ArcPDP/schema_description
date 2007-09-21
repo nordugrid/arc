@@ -1,19 +1,26 @@
 
 --------------------------------------------
-Description about the two schemas:
-See Request.xsd Policy.xsd Request.xml Policy_Example.xml for the schema definition and examples
+ This description is about two schemas - Request.xsd and Policy.xsd.
+See also Request.xml and Policy_Example.xml for examples.
 
-*Request.xsd
+* Request.xsd
 
-<Request>:
-There is only one <Request> element inside one request.xml (<Request> is the root node).
-<Request> consists of one or a few <RequestItem>;
 
-<RequestItem>
-Each <RequestItem> consists of a sequence of four types of elements: <Subject>,< Resource>, <Action>, <Context>.
-There can be more than one element with the same type inside a <RequestItem>.
-Of cause, one <RequestItem> can only includes one tuple with only one <Subject>,< Resource>, <Action> and <Context>; But if some such tuples have the same <Subject>s,< Resource>s, <Action>s or <Context>, they can be classified into one <RequestItem>.
-For example:
+** <Request>
+
+ There is only one <Request> element inside one request.xml (<Request> is the root node).
+<Request> consists of one or more <RequestItem>;
+
+
+** <RequestItem>
+
+ Each <RequestItem> consists of a sequence of four types of elements: <Subject>,< Resource>, 
+<Action>, <Context>.
+There can be more than one element with the same type inside a <RequestItem>. In such case
+<RequestItem> element should be treated as multiple elements containing only one of every 
+<Subject>,< Resource>, <Action> and <Context> elements in all combinattions possible.
+
+ For example:
     <RequestItem>
         <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
         <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
@@ -21,78 +28,115 @@ For example:
         <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
         <Context AttributeId="urn:arc:context:date" Type="period">2007-09-10T20:30:20/P1Y1M</Context>
     </RequestItem>
-Two <Action> are classified into one <RequestItem> because all the other elements are the same.
+Here two <Action> elements split into two <RequestItem> elements with all the other elements the same.
 
-<Subject>
-There are two options two define <Subject>, 
- One is:
+
+** <Subject>
+
+ There are two options to define <Subject>. One is:
   <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
- The other is:
+And the other is:
   <Subject>
      <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
-     <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+     <Attribute AttributeId="urn:arc:subject:dn" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
   </Subject>
 The <Subject> schema is:
  <xsd:element name="Subject" type="request-arc:SubjectType"/>
- <!--One option-->
  <xsd:complexType name="SubjectType">
+  <!--First option-->
   <xsd:sequence>
    <xsd:element ref="request-arc:Attribute" maxOccurs="unbounded"/>
   </xsd:sequence>
-  <!--The other option-->
+  <!--Second option-->
   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
   <xsd:attribute name="Type" type="xsd:string"/>
   <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
-Note: There is some confusion in the schema definition (The schema is not reasonable, even it can be compiled). It seem hard to define the schema, which can constrain the above two examples. The same situation is also in the below <Context> schema, also in the Policy.xsd schema.
+ Note: There is some confusion in the schema definition (The schema is not reasonable, even if it can be compiled). 
+It id impossible to define the schema, which can constrain the above two examples. The same situation is also in the 
+below <Context> schema, also in the Policy.xsd schema.
 
-The meaning of more than two <Attribute>s inside one <Subject> is that the Requestor provides (or is proved to hold) these <Attribute>s at the same time. In the policy definition, correspondingly, there is <SubFranction> (other name is better?) inside one <Subject>. If and only if all of the <Attribute>s insidea <Subject> satisfy all of the <SubFraction>s inside one <Subject> in some specific policy, we can say that the <Subject> from the Requestor satisfy/match the <Subject> in the policy.
+%COMMENT% I see no reason in second option except saving few lines in XML document. It may be covered using
+%COMMENT% second option with single <Attribute> element.
 
-On the other hand, there is no relationship between any two <Subject>s. Whether one <Subject> satisfy the policy or not does not affect the other <Subject> in the same <RequestItem> or <Request>. One thing which needs to mention is, the below two situation will be handled differently in the implementation.
+ The meaning of more than one <Attribute>s inside one <Subject> is that the Requestor provides (or is proved to 
+hold) these <Attribute>s at the same time. In the policy definition, correspondingly, there is <SubFraction> 
+(other name is better?) inside one <Subject>. Only if all of the <Attribute>s inside <Subject> satisfy all of the 
+<SubFraction>s inside one <Subject> in some specific policy, we can say that the <Subject> from the Requestor 
+satisfy/match the <Subject> in the policy.
+
+%COMMENT% Why not tio use same name in policy - <Attribute>
+%COMEMNT% I think there is a mistake in the logic of last sentence. It seems to me like impossible
+%COMEMNT% for every <Attribute> to satisfy every <SubFraction> because <Attribute> elements represent different
+%COMMENT% capabilities of Subject/User. May be claiming that every <SubFraction> must have at least one 
+%COMMENT% fitting <Attribute> woulf be better.
+
+ On the other hand, there is no relationship between any two <Subject>s. Whether one <Subject> satisfy the policy 
+or not does not affect the other <Subject> in the same <RequestItem> or <Request>. For example following two 
+statements will be treated differently 
   <Subject>
      <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
      <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
   </Subject>
-  and:
+and:
   <Subject> AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples </Subject>
   <Subject> AttributeId="urn:arc:subject:voms-attribute" Type="string">/O=Grid/OU=KnowARC/CN=XYZ </Subject>
-Even the attribute values are the same. The above will be handled as the Requestor provides the two attributes at the same time. In the below definition, two attribute values in two <Subject> are handled independently. So is one policy requires two attribute value (<SubFraction>) inside one <Subject>, only the above will satisfy.
+The first one will be handled as the same Requestor provides the two attributes at the same time. In the second 
+definition, two attribute values in two <Subject> are handled independently. So if the policy requires two 
+attribute values (<SubFraction>) inside one <Subject>, only the fisrt one will satisfy.
 
-Maybe a user will access some different resources (or even the same resouces, but different actions, or different contexts, or everything except the <Subject> are the same) with different identity/attribute. So it seems to be resonable that there is two or more <Subject> inside one <RequestItem>, or <Request>.
-Or maybe some broker acts as the user, then the <Request> may include request from different users. So the definition is just for general purpose.
+ The second case of the above example may be caused by the user accessing some different resources or different 
+actions, or different contexts with different identity/attribute. So it seems to be resonable that there may be 
+multiple <Subject> elements inside one <RequestItem>.
 
-
-<Resource>
-The definition is simpler, see schema and example:
- <xsd:element name="Resource" type="request-arc:ResourceType"/>
- <xsd:complexType name="ResourceType">
-  <xsd:attribute name="AttributeId" type="xsd:string"/>
-  <xsd:attribute name="Type" type="xsd:anyURI"/>
- </xsd:complexType>
-
-<Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+ Another possible scenario is broker acting on behalf of the user. Then the <Request> may include request from 
+different users. So the definition is just for general purpose.
 
 
-<Action>
-Also simple, See schema and example:
- <xsd:element name="Action" type="request-arc:ActionType"/>
- <xsd:complexType name="ActionType">
-  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:string"/>
- </xsd:complexType>
+** <Resource>
 
-<Action AttributeId="urn:arc:action:file-action" Type="string">list</Action>
+ The definition is simpler, see schema and example:
+ 
+  <xsd:element name="Resource" type="request-arc:ResourceType"/>
+  <xsd:complexType name="ResourceType">
+   <xsd:attribute name="AttributeId" type="xsd:string"/>
+   <xsd:attribute name="Type" type="xsd:anyURI"/>
+  </xsd:complexType>
+
+  <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
 
 
-<Context>
-<Context> is some context information such as datetime which is provided by Requestor, and will consumed by the policy engine when matching the <Constrains>part in the policy.
-Also, the <Context> has the samilar schema as <Subject>, also the similar meaning.
+** <Action>
+ Also simple, See schema and example:
+ 
+  <xsd:element name="Action" type="request-arc:ActionType"/>
+  <xsd:complexType name="ActionType">
+   <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
+   <xsd:attribute name="Type" type="xsd:string"/>
+  </xsd:complexType>
 
-Some explaination about the <AttributeId> <Type> and <Issuer>
-<AttributeId> is not an obligatory element, and it is also useless in the present implementation. It could be useful if <AttributeDesignator> (defined in XACML schema) is supported.
-<Type> is an obligatory element, it is very important for the policy evaluation, because the producing of AttributeValue object is based on the <Type>. Different element with <Type> have different AttributeValue object.
-<Issuer> is not an obligatory element, and is only appliable for <Subject>
+  <Action AttributeId="urn:arc:action:file-action" Type="string">list</Action>
+
+
+** <Context>
+
+ <Context> represent general information such as request createion time which is provided by 
+Requestor, and will be consumed by the policy engine when matching the <Constrains> part in the policy.
+The <Context> has the schema similar to <Subject> with the similar meaning of elements.
+
+
+** Some explainations about the AttributeId Type and Issuer attributes.
+
+ AttributeId is not an obligatory attribute, and it is also useless in the present implementation. 
+It could be useful if <AttributeDesignator> (defined in XACML schema) was supported.
+ Type is an obligatory attribute. It is very important for the policy evaluation, because the producing of 
+AttributeValue object is based on the Type. Elements with different Type attribute have different 
+AttributeValue object.
+
+%COMMENT% This does not explain meaning of <Type>. Also AttributeValue is introduced without explanation.
+
+Issuer is not an obligatory attribute and is only applicable for <Subject> element.
 
 
  
