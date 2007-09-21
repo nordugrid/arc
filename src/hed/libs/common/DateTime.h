@@ -1,19 +1,9 @@
 #ifndef ARCLIB_TIME
 #define ARCLIB_TIME
 
-/*
-#ifdef HAVE_CONFIG_H
-#include "config.h" // to get HAVE_TIMEGM
-#endif
-*/
-
 #include <ctime>
 #include <iostream>
 #include <string>
-
-#ifndef HAVE_TIMEGM
-time_t timegm (struct tm *tm);
-#endif
 
 namespace Arc {
 
