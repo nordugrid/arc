@@ -9,15 +9,15 @@ namespace Arc {
 
 #define XPATH_1_0_URI "http://www.w3.org/TR/1999/REC-xpath-19991116"
 
-std::list<XMLNode> InformationInterface::Get(const std::list<std::string>& path __attribute__((unused))) {
+std::list<XMLNode> InformationInterface::Get(const std::list<std::string>&) {
   return std::list<XMLNode>();
 }
 
-std::list<XMLNode> InformationInterface::Get(XMLNode xpath __attribute__((unused))) {
+std::list<XMLNode> InformationInterface::Get(XMLNode) {
   return std::list<XMLNode>();
 }
 
-InformationInterface::InformationInterface(bool safe __attribute__((unused))):to_lock_(to_lock_) {
+InformationInterface::InformationInterface(bool safe):to_lock_(safe) {
 }
 
 InformationInterface::~InformationInterface(void) {
@@ -180,7 +180,7 @@ std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path)
   return cur_list;
 }
 
-std::list<XMLNode> InformationContainer::Get(XMLNode xpath __attribute__((unused))) {
+std::list<XMLNode> InformationContainer::Get(XMLNode) {
   // TODO: implement
   return std::list<XMLNode>();
 }

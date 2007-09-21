@@ -17,8 +17,7 @@ namespace Arc {
 
   DataPointHTTP::~DataPointHTTP() {}
 
-  bool DataPointHTTP::list_files(std::list<FileInfo>& files,
-                                 bool resolve __attribute__((unused))) {
+  bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
     Arc::NS ns;
     Arc::Config c(ns);
     c.NewChild("ArcConfig");

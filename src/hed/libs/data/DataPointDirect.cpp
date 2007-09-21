@@ -70,8 +70,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointDirect::start_reading(DataBufferPar& buffer
-                                      __attribute__((unused))) {
+  bool DataPointDirect::start_reading(DataBufferPar&) {
     failure_code = common_failure;
     failure_description = "";
     if(reading || writing || !url)
@@ -89,10 +88,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointDirect::start_writing(DataBufferPar& buffer
-                                      __attribute__((unused)),
-                                      DataCallback *space_cb
-                                      __attribute__((unused))) {
+  bool DataPointDirect::start_writing(DataBufferPar&, DataCallback*) {
     failure_code = common_failure;
     failure_description = "";
     if(reading || writing || !url)
@@ -110,9 +106,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointDirect::list_files(std::list<FileInfo>& files
-                                   __attribute__((unused)),
-                                   bool resolve __attribute__((unused))) {
+  bool DataPointDirect::list_files(std::list<FileInfo>&, bool) {
     failure_code = common_failure;
     failure_description = "";
     if(reading || writing || !url)

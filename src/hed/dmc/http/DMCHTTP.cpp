@@ -19,8 +19,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC* DMCHTTP::Instance(Arc::Config *cfg,
-                         Arc::ChainContext *ctx __attribute__((unused))) {
+  DMC* DMCHTTP::Instance(Arc::Config *cfg, Arc::ChainContext*) {
     return new DMCHTTP(cfg);
   }
 

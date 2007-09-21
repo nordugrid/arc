@@ -31,7 +31,7 @@ Arc::Message TestMCC::process(Arc::Message)
     return msg;
 }
 
-Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext* ctx __attribute__((unused))) 
+Arc::MCC *get_mcc_instance(Arc::Config *cfg,Arc::ChainContext*) 
 {
     return (Arc::MCC *)(new TestMCC(cfg));
 }

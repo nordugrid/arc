@@ -14,7 +14,7 @@ namespace Arc {
 
   class DMC {
    protected:
-    DMC(Config *cfg __attribute__((unused))) {};
+    DMC(Config*) {};
    public:
     virtual ~DMC() {};
     virtual DataPoint* iGetDataPoint(const URL& url) = 0;

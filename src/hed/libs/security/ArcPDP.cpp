@@ -27,7 +27,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 */
 using namespace Arc;
 
-PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext *ctx __attribute__((unused))) {
+PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
     return new ArcPDP(cfg);
 }
 
@@ -40,7 +40,7 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
 
 }
 
-bool ArcPDP::isPermitted(std::string peer_subject __attribute__((unused))){
+bool ArcPDP::isPermitted(std::string){
   Response *resp = NULL;
   resp = eval->evaluate("Request.xml");
   ResponseList::iterator respit;

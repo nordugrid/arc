@@ -63,7 +63,7 @@ class MCC: public Arc::MCCInterface
     public:
         /** Example contructor - MCC takes at least it's configuration
             subtree */
-        MCC(Arc::Config *cfg __attribute__((unused))) { };
+        MCC(Arc::Config*) { };
         virtual ~MCC(void) { };
         /** Add reference to next MCC in chain.
           This method is called by Loader for every potentially labeled link to next 
@@ -78,7 +78,7 @@ class MCC: public Arc::MCCInterface
         /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);
         /** Dummy Message processing method. Just a placeholder. */
-        virtual Arc::MCC_Status process(Arc::Message& request __attribute__((unused)), Arc::Message& response __attribute__((unused))) { return MCC_Status(); };
+        virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&) { return MCC_Status(); };
 
 };
 

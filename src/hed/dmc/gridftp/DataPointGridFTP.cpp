@@ -23,7 +23,7 @@ namespace Arc {
   Logger DataPointGridFTP::logger(DataPoint::logger, "GridFTP");
 
   void DataPointGridFTP::ftp_complete_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
+  (void *arg, globus_ftp_client_handle_t*,
    globus_object_t *error) {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if(error == GLOBUS_SUCCESS) {
@@ -40,10 +40,10 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_check_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
-   globus_object_t *error, globus_byte_t *buffer __attribute__((unused)),
-   globus_size_t length __attribute__((unused)),
-   globus_off_t offset __attribute__((unused)), globus_bool_t eof) {
+  (void *arg, globus_ftp_client_handle_t*,
+   globus_object_t *error, globus_byte_t*,
+   globus_size_t,
+   globus_off_t, globus_bool_t eof) {
     logger.msg(DEBUG, "ftp_check_callback");
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if(error != GLOBUS_SUCCESS) {
@@ -446,7 +446,7 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_read_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
+  (void *arg, globus_ftp_client_handle_t*,
    globus_object_t *error, globus_byte_t *buffer, globus_size_t length,
    globus_off_t offset, globus_bool_t eof) {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
@@ -462,7 +462,7 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_get_complete_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
+  (void *arg, globus_ftp_client_handle_t*,
    globus_object_t *error) {
     logger.msg(DEBUG, "ftp_get_complete_callback");
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
@@ -480,7 +480,7 @@ namespace Arc {
 
   bool DataPointGridFTP::start_writing(DataBufferPar& buf,
                                        DataCallback *space_cb
-                                       __attribute__((unused))) {
+                                     ) {
     if(!DataPointDirect::start_writing(buf)) return false;
     buffer = &buf;
     /* size of file first */
@@ -592,11 +592,11 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_write_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
+  (void *arg, globus_ftp_client_handle_t*,
    globus_object_t *error, globus_byte_t *buffer,
-   globus_size_t length __attribute__((unused)),
-   globus_off_t offset __attribute__((unused)),
-   globus_bool_t eof __attribute__((unused))) {
+   globus_size_t,
+   globus_off_t,
+   globus_bool_t) {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     // if(it->ftp_eof_flag) return; /* eof callback */
     if(error != GLOBUS_SUCCESS) {
@@ -610,7 +610,7 @@ namespace Arc {
   }
 
   void DataPointGridFTP::ftp_put_complete_callback
-  (void *arg, globus_ftp_client_handle_t *handle __attribute__((unused)),
+  (void *arg, globus_ftp_client_handle_t*,
    globus_object_t *error) {
     logger.msg(DEBUG, "ftp_put_complete_callback");
     DataPointGridFTP *it = (DataPointGridFTP*)arg;

@@ -18,11 +18,11 @@ Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
 Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::MCC_SOAP_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::MCC_SOAP_Client(cfg);
 }
 
@@ -47,7 +47,7 @@ MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC_SOAP(cfg) {
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
-static MCC_Status make_raw_fault(Message& outmsg,const char* desc __attribute__((unused)) = NULL) {
+static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL) {
   SOAPEnvelope soap(Arc::NS(),true);
   soap.Fault()->Code(SOAPFault::Receiver);
   std::string xml; soap.GetXML(xml);
@@ -57,7 +57,7 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc __attribute__(
   return MCC_Status(Arc::GENERIC_ERROR);
 }
 
-static MCC_Status make_soap_fault(Message& outmsg,const char* desc __attribute__((unused)) = NULL) {
+static MCC_Status make_soap_fault(Message& outmsg,const char* = NULL) {
   PayloadSOAP* soap = new PayloadSOAP(Arc::NS(),true);
   soap->Fault()->Code(SOAPFault::Receiver);
   outmsg.Payload(soap);

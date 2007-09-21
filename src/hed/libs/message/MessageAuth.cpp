@@ -6,19 +6,17 @@
 
 namespace Arc {
 
-void MessageAuth::set(const std::string& key __attribute__((unused)),
-		      const AuthObject& value __attribute__((unused))) 
+void MessageAuth::set(const std::string&, const AuthObject&) 
 {
     // NOP
 }
 
-AuthObject MessageAuth::get(const std::string& key __attribute__((unused)),
-			    int index __attribute__((unused)))
+AuthObject MessageAuth::get(const std::string&, int)
 {
     return NULL;
 }
 
-void MessageAuth::remove(const std::string& key __attribute__((unused)))
+void MessageAuth::remove(const std::string&)
 {
     // NOP
 }

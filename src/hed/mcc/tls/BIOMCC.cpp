@@ -145,9 +145,7 @@ static int mcc_write(BIO *b, const char *in, int inl) {
 }
 
 
-static long mcc_ctrl(BIO *b __attribute__((unused)), int cmd,
-                     long num __attribute__((unused)),
-                     void *ptr __attribute__((unused))) {
+static long mcc_ctrl(BIO*, int cmd, long, void*) {
   long ret=0;
 
   switch (cmd) {

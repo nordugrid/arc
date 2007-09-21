@@ -60,10 +60,7 @@ static void tls_process_error(){
    return;
 }
 
-static int no_passphrase_callback(char *buf __attribute__((unused)),
-                                  int size __attribute__((unused)),
-                                  int rwflag __attribute__((unused)),
-                                  void *password __attribute__((unused))) {
+static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
 
@@ -85,7 +82,7 @@ static bool tls_random_seed(std::string filename, long n)
     }
 }
 
-static bool tls_load_certificate(SSL_CTX* sslctx, std::string cert_file, std::string key_file, std::string password __attribute__((unused)), std::string random_file)
+static bool tls_load_certificate(SSL_CTX* sslctx, std::string cert_file, std::string key_file, std::string, std::string random_file)
 {
   // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password);
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.

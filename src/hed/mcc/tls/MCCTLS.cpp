@@ -28,11 +28,11 @@ Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
 }
 
-static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
+static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::MCC_TLS_Service(cfg);
 }
 
-static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
+static Arc::MCC* get_mcc_client(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::MCC_TLS_Client(cfg);
 }
 
@@ -59,10 +59,7 @@ static void tls_process_error(Logger& logger){
    return;
 }
 
-static int no_passphrase_callback(char *buf __attribute__((unused)),
-                                  int size __attribute__((unused)),
-                                  int rwflag __attribute__((unused)),
-                                  void *password __attribute__((unused))) {
+static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
 
@@ -123,7 +120,7 @@ static void tls_set_dhe1024(Logger& logger)
     	tls_dhe1024 = dhparams;
 }
 
-bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string& password __attribute__((unused)), const std::string& random_file)
+bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.

@@ -25,8 +25,7 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
-  DMC* DMCGridFTP::Instance(Arc::Config *cfg,
-                            Arc::ChainContext *ctx __attribute__((unused))) {
+  DMC* DMCGridFTP::Instance(Arc::Config *cfg, Arc::ChainContext*) {
     return new DMCGridFTP(cfg);
   }
 

@@ -71,7 +71,7 @@ WSAEndpointReference WSRFBaseFault::Originator(void) {
   return WSAEndpointReference(fault->Detail()[0]["wsrf-bf:Originator"]);
 }
 
-void WSRFBaseFault::ErrorCode(const std::string& dialect __attribute__((unused)),const XMLNode& error __attribute__((unused))) {
+void WSRFBaseFault::ErrorCode(const std::string&,const XMLNode&) {
 }
 
 XMLNode WSRFBaseFault::ErrorCode(void) {

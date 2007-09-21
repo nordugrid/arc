@@ -24,7 +24,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 */
 using namespace Arc;
 
-PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext *ctx __attribute__((unused))) {
+PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext*) {
     return new SimpleListPDP(cfg);
 }
 

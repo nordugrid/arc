@@ -18,14 +18,14 @@ TestService::~TestService(void)
     std::cout << "Destroy: TestService " << std::endl;
 }
 
-Arc::MCC_Status TestService::process(Arc::Message& request __attribute__((unused)),Arc::Message& response __attribute__((unused)))
+Arc::MCC_Status TestService::process(Arc::Message&,Arc::Message&)
 {
     std::cout << "process: TestService" << std::endl;
     std::cout << "private variable: " << a << std::endl;
     return Arc::MCC_Status(Arc::STATUS_OK, "TestService");
 }
 
-Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext* ctx __attribute__((unused))) 
+Arc::Service *get_service_instance(Arc::Config *cfg,Arc::ChainContext*) 
 {
     return (Arc::Service *)(new TestService(cfg));
 }

@@ -124,8 +124,8 @@ namespace Arc {
     globus_mutex_unlock(&mutex);
   }
 
-  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t *h
-                             __attribute__((unused)), globus_object_t *error,
+  void Lister::resp_callback(void *arg, globus_ftp_control_handle_t*,
+                             globus_object_t *error,
                              globus_ftp_control_response_t *response) {
     Lister *it = (Lister*)arg;
     globus_mutex_lock(&(it->mutex));
@@ -160,13 +160,11 @@ namespace Arc {
   }
 
   void Lister::list_read_callback(void *arg,
-                                  globus_ftp_control_handle_t *hctrl
-                                  __attribute__((unused)),
+                                  globus_ftp_control_handle_t*,
                                   globus_object_t *error,
-                                  globus_byte_t *buffer
-                                  __attribute__((unused)),
+                                  globus_byte_t*,
                                   globus_size_t length,
-                                  globus_off_t offset __attribute__((unused)),
+                                  globus_off_t,
                                   globus_bool_t eof) {
     Lister *it = (Lister*)arg;
     length += it->list_shift;
@@ -264,9 +262,8 @@ namespace Arc {
 
   void Lister::list_conn_callback(void *arg,
                                   globus_ftp_control_handle_t *hctrl,
-                                  unsigned int stripe_ndx
-                                  __attribute__((unused)),
-                                  globus_bool_t reused __attribute__((unused)),
+                                  unsigned int,
+                                  globus_bool_t,
                                   globus_object_t *error) {
     /* if(!callback_active) return; */
     Lister *it = (Lister*)arg;
