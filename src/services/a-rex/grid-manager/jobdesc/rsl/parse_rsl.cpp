@@ -247,7 +247,7 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
     _exit(set_execs(rsl_tree,session_dir));
   };
   return set_execs(rsl_tree,session_dir);
-};
+}
 */
 
 /* parse rsl (and local configuration) and write grami file.
@@ -268,7 +268,7 @@ std::ostream& operator<<(std::ostream &o,const value_for_shell &s) {
 std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s) {
   o<<s.n;
   return o;
-};
+}
   
 bool write_grami_rsl(const JobDescription &desc,const JobUser &user,const char* opt_add) {
   bool res=false;

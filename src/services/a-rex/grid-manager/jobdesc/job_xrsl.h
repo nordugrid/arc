@@ -21,7 +21,7 @@ class JobRequestXRSL: public JobRequest {
     public:
 		typedef enum {
 			UserFriendly,
-			NoUnits,
+			NoUnits
 		} Type;
         JobRequestXRSL(const JobRequest& j,Type type = UserFriendly) throw(JobRequestError);
         JobRequestXRSL(const char* s,Type type = UserFriendly) throw(JobRequestError);

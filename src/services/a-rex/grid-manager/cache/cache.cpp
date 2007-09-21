@@ -485,7 +485,7 @@ static int cache_read_list(int h,std::string &url,std::string &fname) {
     break;
   };
   return 0;
-};
+}
 
 /*
     file_name url\0\0...\0file_name url\noptions...\0\0\0...\0...

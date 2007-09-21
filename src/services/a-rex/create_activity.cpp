@@ -85,5 +85,5 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-}; // namespace ARex
+} // namespace ARex
 

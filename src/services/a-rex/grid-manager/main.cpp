@@ -59,7 +59,7 @@ void* wakeup_func(void* arg) {
     pthread_mutex_unlock(&(sleep_mutex));
   };
   return NULL;
-};
+}
 
 void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
@@ -109,7 +109,7 @@ void* cache_func(void* arg) {
     for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
   };
   return NULL;
-};
+}
 
 int main(int argc,char* argv[]) {
   unsigned int clean_first_level=0;

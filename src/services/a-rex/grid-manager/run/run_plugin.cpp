@@ -20,7 +20,7 @@ void free_args(char** args) {
   if(args == NULL) return;
   for(int i=0;args[i];i++) free(args[i]);
   free(args);
-};
+}
 
 char** string_to_args(const std::string& command) {
   if(command.length() == 0) return NULL;

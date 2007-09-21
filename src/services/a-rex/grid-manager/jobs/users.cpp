@@ -41,7 +41,7 @@ JobUser::JobUser(void) {
   cred_plugin=NULL;
   strict_session=false;
   sharelevel=jobinfo_share_private;
-};
+}
 
 void JobUser::SetLRMS(const std::string &lrms_name,const std::string &queue_name) {
   default_lrms=lrms_name;
@@ -245,7 +245,7 @@ JobUser::JobUser(const std::string &u_name,RunPlugin* cred) {
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   sharelevel=jobinfo_share_private;
-};
+}
 
 JobUser::JobUser(const JobUser &user) {
   uid=user.uid; gid=user.gid;
@@ -268,16 +268,16 @@ JobUser::JobUser(const JobUser &user) {
   cred_plugin=user.cred_plugin;
   strict_session=user.strict_session;
   sharelevel=user.sharelevel;
-};
+}
 
 JobUser::~JobUser(void) { 
-};
+}
 
 JobUsers::JobUsers(void) {
-};
+}
 
 JobUsers::~JobUsers(void) {
-};
+}
 
 JobUsers::iterator JobUsers::AddUser(const std::string &unix_name,RunPlugin* cred_plugin,const std::string &control_dir, const std::string &session_root) {
   JobUser user(unix_name,cred_plugin);
@@ -285,12 +285,12 @@ JobUsers::iterator JobUsers::AddUser(const std::string &unix_name,RunPlugin* cre
   user.SetSessionRoot(session_root);
   if(user.is_valid()) { return users.insert(users.end(),user); };
   return users.end();
-};
+}
 
 std::string JobUsers::ControlDir(iterator user) {
   if(user == users.end()) return std::string("");
   return (*user).ControlDir();
-};
+}
 
 JobUsers::iterator JobUsers::find(const std::string user) {
   iterator i;

@@ -266,4 +266,4 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     return Arc::MCC_Status();
 }
 
-}; // namespace Arc
+} // namespace Arc

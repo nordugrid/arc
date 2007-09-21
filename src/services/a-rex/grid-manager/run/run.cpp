@@ -199,7 +199,7 @@ bool Run::was_hup(void) {
   bool res = hup_detected;
   hup_detected = false;
   return res;
-};
+}
 
 // Termination signal
 void Run::sig_term(int signum,siginfo_t *info,void* arg) {

@@ -72,6 +72,6 @@ class ARexJob {
   int CreateFile(const std::string& filename);
 };
 
-}; // namespace ARex
+} // namespace ARex
 
 #endif

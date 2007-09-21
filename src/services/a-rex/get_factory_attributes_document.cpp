@@ -61,5 +61,5 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-}; // namespace ARex
+} // namespace ARex
 

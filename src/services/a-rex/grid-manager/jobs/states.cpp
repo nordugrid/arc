@@ -130,7 +130,7 @@ bool JobsList::AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid){
     };
   };
   return AddJob(id,uid,gid);
-};
+}
 
 #ifndef NO_GLOBUS_CODE
 

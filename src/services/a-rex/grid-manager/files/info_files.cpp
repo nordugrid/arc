@@ -813,7 +813,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
   };
   f.close();
   return true;
-};
+}
 
 bool job_local_read_var(const std::string &fname,const std::string &vnam,std::string &value) {
   char buf[1024];
@@ -831,7 +831,7 @@ bool job_local_read_var(const std::string &fname,const std::string &vnam,std::st
   };
   f.close();
   return found;
-};
+}
 
 bool job_local_read_lifetime(const JobId &id,const JobUser &user,time_t &lifetime) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_local;
@@ -842,7 +842,7 @@ bool job_local_read_lifetime(const JobId &id,const JobUser &user,time_t &lifetim
   if((*str_e) != 0) return false;
   lifetime=t;
   return true;
-};
+}
 
 bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &cleanuptime) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_local;
@@ -852,13 +852,13 @@ bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &clea
   cupt = str;
   cleanuptime=(time_t)cupt;
   return true;
-};
+}
 
 bool job_local_read_notify(const JobId &id,const JobUser &user,std::string &notify) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_local;
   if(!job_local_read_var(fname,"notify",notify)) return false;
   return true;
-};
+}
 
 bool job_local_read_string(const std::string &fname,unsigned int num,std::string &str) {
   std::ifstream f(fname.c_str());

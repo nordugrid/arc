@@ -155,7 +155,7 @@ static int delete_links_recur(const std::string &dir_base,const std::string &dir
 int delete_all_links(const std::string &dir_base,std::list<FileData> &files) {
   std::string dir_cur("");
   return delete_links_recur(dir_base,dir_cur);
-};
+}
 
 /* filenames should start from / and not to have / at end */
 int delete_all_files(const std::string &dir_base,std::list<FileData> &files,

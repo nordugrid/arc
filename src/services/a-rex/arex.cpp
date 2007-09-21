@@ -284,7 +284,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
 ARexService::~ARexService(void) {
 }
 
-}; // namespace ARex
+} // namespace ARex
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "a-rex", 0, &ARex::get_service },

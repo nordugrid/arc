@@ -18,7 +18,7 @@ typedef enum {
   JOB_STATE_FINISHED  = 5,
   JOB_STATE_DELETED   = 6,
   JOB_STATE_CANCELING = 7,
-  JOB_STATE_UNDEFINED = 8,
+  JOB_STATE_UNDEFINED = 8
 } job_state_t;
 
 typedef struct {

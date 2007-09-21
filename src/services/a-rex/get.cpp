@@ -152,5 +152,5 @@ std::cerr<<"http:get: file: size: "<<size<<std::endl;
   return NULL;
 }
 
-}; // namespace ARex
+} // namespace ARex
 

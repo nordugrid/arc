@@ -38,7 +38,7 @@ class ARexService: public Arc::Service {
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
 };
 
-}; // namespace ARex
+} // namespace ARex
 
 #endif
 
