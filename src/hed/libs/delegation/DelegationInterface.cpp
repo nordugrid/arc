@@ -690,18 +690,97 @@ bool DelegationProviderSOAP::DelegatedToken(XMLNode& parent) {
 // ---------------------------------------------------------------------------------
 // TODO:
 // 1. Add access control by assigning user's DN to id.
-// 2. Add expiration 
+
+class DelegationContainerSOAP::Consumer {
+ public:
+  DelegationConsumerSOAP* deleg;
+  int usage_count;
+  time_t last_used;
+  std::string dn;
+  DelegationContainerSOAP::ConsumerIterator previous;
+  DelegationContainerSOAP::ConsumerIterator next;
+  Consumer(void):deleg(NULL),usage_count(0),last_used(time(NULL)) {
+  };
+  Consumer(DelegationConsumerSOAP* d):deleg(d),usage_count(0),last_used(time(NULL)) {
+  };
+  Consumer& operator=(DelegationConsumerSOAP* d) {
+    deleg=d; usage_count=0; last_used=time(NULL);
+  };
+};
 
 DelegationContainerSOAP::DelegationContainerSOAP(void) {
+  max_size_=0;         // unlimited size of container
+  max_duration_=30;    // 30 seconds for delegation
+  max_usage_=2;        // allow 1 failure
+  context_lock_=false;
+  restricted_=true;
+  consumers_first_=consumers_.end();
+  consumers_last_=consumers_.end();
 }
 
 DelegationContainerSOAP::~DelegationContainerSOAP(void) {
   lock_.lock();
-  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.begin();
+  ConsumerIterator i = consumers_.begin();
   for(;i!=consumers_.end();++i) {
-    if(i->second) delete i->second;
+    if(i->second.deleg) delete i->second.deleg;
   };
   lock_.unlock();
+}
+
+void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer) {
+  Consumer c;
+  c.deleg=consumer; 
+  c.previous=consumers_.end();
+  c.next=consumers_first_;
+  ConsumerIterator i = consumers_.insert(consumers_.begin(),make_pair(id,c)); 
+  if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
+  consumers_first_=i;
+  if(consumers_last_ == consumers_.end()) consumers_last_=i;
+std::cerr<<"Consumer added: "<<consumers_.size()<<std::endl;
+}
+
+void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
+  i->second.last_used=time(NULL);
+  if(i == consumers_first_) return;
+  ConsumerIterator previous = i->second.previous;
+  ConsumerIterator next = i->second.next;
+  if(previous != consumers_.end()) previous->second.next=next;
+  if(next != consumers_.end()) next->second.previous=previous;
+  i->second.previous=consumers_.end();
+  i->second.next=consumers_first_;
+  if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
+  consumers_first_=i;
+std::cerr<<"Consumer touched: "<<consumers_.size()<<std::endl;
+}
+
+void DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
+  ConsumerIterator previous = i->second.previous;
+  ConsumerIterator next = i->second.next;
+  if(previous != consumers_.end()) previous->second.next=next;
+  if(next != consumers_.end()) next->second.previous=previous;
+  if(consumers_first_ == i) consumers_first_=next; 
+  if(consumers_last_ == i) consumers_last_=previous; 
+  if(i->second.deleg) delete i->second.deleg;
+  consumers_.erase(i);
+std::cerr<<"Consumer removed: "<<consumers_.size()<<std::endl;
+}
+
+void DelegationContainerSOAP::CheckConsumers(void) {
+  if(max_size_ > 0) {
+    while(consumers_.size() > max_size_) {
+      RemoveConsumer(consumers_last_);
+    };
+  };
+  if(max_duration_ > 0) {
+    time_t t = time(NULL);
+    for(ConsumerIterator i = consumers_last_;i!=consumers_.end();i=i->second.previous) {
+      if(((unsigned int)(t - i->second.last_used)) > max_duration_) {
+        RemoveConsumer(i);
+      } else {
+        break;
+      };
+    };
+  };
 }
 
 bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out) {
@@ -709,14 +788,15 @@ bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOA
   std::string id;
   for(int tries = 0;tries<1000;++tries) {
     GUID(id);
-    std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+    ConsumerIterator i = consumers_.find(id);
     if(i == consumers_.end()) break;
     id.resize(0);
   };
   if(id.empty()) { lock_.unlock(); return false; };
   DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
   if(!(consumer->DelegateCredentialsInit(id,in,out))) { lock_.unlock(); delete consumer; return false; };
-  consumers_[id]=consumer;
+  AddConsumer(id,consumer);
+  CheckConsumers();
   lock_.unlock();
   return true;
 }
@@ -724,21 +804,36 @@ bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOA
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
   lock_.lock();
   std::string id = (std::string)(in["UpdateCredentials"]["DelegatedToken"]["Id"]);
-  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+  ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
-  if(!(i->second)) { lock_.unlock(); return false; };
-  bool r = i->second->UpdateCredentials(credentials,in,out);
+  if(!(i->second.deleg)) { lock_.unlock(); return false; };
+  if(restricted_) {
+
+
+  };
+  bool r = i->second.deleg->UpdateCredentials(credentials,in,out);
+  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
+    RemoveConsumer(i);
+  } else {
+    TouchConsumer(i);
+  };
   lock_.unlock();
   return r;
 }
 
+
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
   lock_.lock();
   std::string id = (std::string)(token["Id"]);
-  std::map<std::string,DelegationConsumerSOAP*>::iterator i = consumers_.find(id);
+  ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
-  if(!(i->second)) { lock_.unlock(); return false; };
-  bool r = i->second->DelegatedToken(credentials,token);
+  if(!(i->second.deleg)) { lock_.unlock(); return false; };
+  bool r = i->second.deleg->DelegatedToken(credentials,token);
+  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
+    RemoveConsumer(i);
+  } else {
+    TouchConsumer(i);
+  };
   lock_.unlock();
   return r;
 }

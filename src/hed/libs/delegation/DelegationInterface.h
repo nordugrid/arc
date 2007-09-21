@@ -2,6 +2,8 @@
 #define __ARC_DELEGATIONINTERFACE_H__
 
 #include <string>
+#include <list>
+#include <map>
 
 #include <glibmm/thread.h>
 #include <arc/message/SOAPEnvelope.h>
@@ -70,9 +72,29 @@ class DelegationProviderSOAP: public DelegationProvider {
 };
 
 class DelegationContainerSOAP {
+ private:
+  class Consumer;
+  typedef std::map<std::string,Consumer> ConsumerMap;
+  typedef ConsumerMap::iterator ConsumerIterator;
+  ConsumerMap consumers_;
+  ConsumerIterator consumers_first_;
+  ConsumerIterator consumers_last_;
+  void AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer);
+  void TouchConsumer(ConsumerIterator i);
+  void RemoveConsumer(ConsumerIterator i);
+  void CheckConsumers(void);
  protected:
-  std::map<std::string,DelegationConsumerSOAP*> consumers_;
   Glib::Mutex lock_;
+  /** Max. number of delagation consumers */
+  int max_size_;
+  /** Lifetime of unused delegation consumer */
+  int max_duration_;
+  /** Max. times same delegation consumer may accept credentials */
+  int max_usage_;
+  /** If true delegation consumer is deleted when connection context is destroyed */
+  bool context_lock_;
+  /** If true all delegation phases must be performed by same identity */
+  bool restricted_;
  public:
   DelegationContainerSOAP(void);
   ~DelegationContainerSOAP(void);
