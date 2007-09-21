@@ -71,6 +71,11 @@ satisfy/match the <Subject> in the policy.
 %COMEMNT% for every <Attribute> to satisfy every <SubFraction> because <Attribute> elements represent different
 %COMMENT% capabilities of Subject/User. May be claiming that every <SubFraction> must have at least one 
 %COMMENT% fitting <Attribute> woulf be better.
+%ANSWER% I think it is reasonable. for example: a <Subject> in policy could required the request has a DN /O=UiO/OU=EPF/CN=XYZ, 
+        and at the same time is from IP address 202.114.12.138.  Even the situation is seldom.
+        "claiming that every <SubFraction> must have at least one fitting <Attribute> woulf be better", this can be expressed only by <Subject>(in policy),
+        <SubjectFraction> is not neccesary then.
+  
 
  On the other hand, there is no relationship between any two <Subject>s. Whether one <Subject> satisfy the policy 
 or not does not affect the other <Subject> in the same <RequestItem> or <Request>. For example following two 
