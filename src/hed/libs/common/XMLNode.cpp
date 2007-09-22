@@ -206,7 +206,7 @@ XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   xmlNodePtr new_node = xmlNewNode(ns,(const xmlChar*)name_);
   if(new_node == NULL) return XMLNode();
   if(node_->type == XML_DOCUMENT_NODE) {
-    if(Child()) return XMLNode();
+    if(Child()) { xmlFreeNode(new_node); return XMLNode(); };
     xmlDocSetRootElement((xmlDocPtr)node_,new_node); 
     return Child();
   };
