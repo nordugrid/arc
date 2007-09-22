@@ -20,7 +20,7 @@ public:
   virtual ~AttributeFactory(){};
 
 public:
-  virtual AttributeValue* createValue(const XMLNode& node, const std::string& type){};
+  virtual AttributeValue* createValue(const XMLNode& node, const std::string& type) = 0;
 
 protected:
   AttrProxyMap apmap;

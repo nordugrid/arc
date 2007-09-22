@@ -237,8 +237,8 @@ MatchResult ArcRule::match(EvaluationCtx* ctx){
 
 }
 
-Result ArcRule::eval(EvaluationCtx* ctx){
-  Result result;
+Result ArcRule::eval(EvaluationCtx*){// ctx){
+  Result result = DECISION_NOT_APPLICABLE;
   //TODO
   // need to evaluate the "Condition"
   if (effect == "Permit") result = DECISION_PERMIT;

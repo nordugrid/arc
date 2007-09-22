@@ -18,14 +18,14 @@ class Request {
 protected:
   ReqItemList rlist;
 public:
-  virtual ReqItemList getRequestItems () const {};
-  virtual void setRequestItems (ReqItemList sl) {};
+  virtual ReqItemList getRequestItems () const = 0;
+  virtual void setRequestItems (ReqItemList sl) = 0;
 
   //**Parse request information from a input file*/
-  Request (const std::string& filename) {};
+  Request (const std::string&) {};
 
   //**Parse request information from a xml stucture in memory*/
-  Request (const Arc::XMLNode& node) {};
+  Request (const Arc::XMLNode&) {};
   virtual ~Request(){};
 };
 

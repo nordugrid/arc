@@ -45,8 +45,8 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     
 }
 
-MatchResult ArcPolicy::match(EvaluationCtx* ctx){
-  //Arc::RequestTuple evaltuple = ctx->getEvalTuple();
+MatchResult ArcPolicy::match(EvaluationCtx*){// ctx){
+  //RequestTuple* evaltuple = ctx->getEvalTuple();
   
   //Because ArcPolicy definition has no any <Subject, Resource, Action, Environment> directly;
   //All the <Subject, Resource, Action, Environment>s are only in ArcRule.

@@ -19,16 +19,16 @@ protected:
   static Logger logger; 
  
 public:
-  Policy(XMLNode& node){};  
+  Policy(XMLNode&){};  
   virtual ~Policy(){};
  
-  virtual MatchResult match(EvaluationCtx* ctx){};
+  virtual MatchResult match(EvaluationCtx* ctx) = 0;
 
-  virtual Result eval(EvaluationCtx* ctx){};
+  virtual Result eval(EvaluationCtx* ctx) = 0;
 
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
-  virtual std::string getEffect(){};
+  virtual std::string getEffect() = 0;
 
 };
 

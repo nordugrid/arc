@@ -9,7 +9,7 @@
 #include "DenyOverridesAlg.h"
 #include "PermitOverridesAlg.h"
 
-static Arc::LoadableClass* get_alg_factory (Arc::Config *cfg) {
+static Arc::LoadableClass* get_alg_factory (Arc::Config *) {
     return new Arc::ArcAlgFactory();
 }
 

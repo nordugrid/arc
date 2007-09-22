@@ -12,7 +12,7 @@
 #include "AnyURIAttribute.h"
 
 
-static Arc::LoadableClass* get_attr_factory (Arc::Config *cfg) {
+static Arc::LoadableClass* get_attr_factory (Arc::Config*) {
     return new Arc::ArcAttributeFactory();
 }
 

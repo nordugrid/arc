@@ -17,7 +17,7 @@ public:
   virtual ~AlgFactory() {};
 
 public:
-  virtual CombiningAlg* createAlg(const std::string& type){};
+  virtual CombiningAlg* createAlg(const std::string& type) = 0;
 
 protected:
   AlgMap algmap;

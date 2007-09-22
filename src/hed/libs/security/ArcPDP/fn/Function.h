@@ -11,11 +11,11 @@ namespace Arc {
 
 class Function {
 public:
-  Function(std::string functionName, std::string argumentType){};
+  Function(std::string, std::string){};
   virtual ~Function(){};
 
 public:
-  virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1){};
+  virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1) = 0;
 
 };
 

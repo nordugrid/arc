@@ -137,6 +137,7 @@ Arc::Response* Evaluator::evaluate(const std::string& reqfile){
   //evaluate the request based on policy
   if(evalctx)
     return(evaluate(evalctx));
+  else return NULL;
 }
 
 Arc::Response* Evaluator::evaluate(XMLNode& node){
@@ -148,6 +149,8 @@ Arc::Response* Evaluator::evaluate(XMLNode& node){
   //evaluate the request based on policy
   if(evalctx)
     return(evaluate(evalctx));
+  else
+    return NULL;
 }
 
 Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){

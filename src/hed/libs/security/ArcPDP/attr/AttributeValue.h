@@ -11,10 +11,10 @@ public:
   virtual ~AttributeValue(){};
 
 public:
-  virtual bool equal(AttributeValue* other){};
+  virtual bool equal(AttributeValue* value) = 0;
   //virtual int compare(AttributeValue* other){};
   //encode the value in a string format, which is suitable for printing
-  virtual std::string encode(){};
+  virtual std::string encode() = 0;
 };
 
 } // namespace Arc

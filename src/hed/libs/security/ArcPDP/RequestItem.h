@@ -18,7 +18,7 @@ typedef std::list<Context> CtxList;
 /**<subjects, actions, objects, ctxs> tuple */
 class RequestItem{
  public:
-  RequestItem(XMLNode& node, AttributeFactory* attrfactory){};
+  RequestItem(XMLNode&, AttributeFactory*){};
   virtual ~RequestItem(){};
 
 protected:
@@ -28,14 +28,14 @@ protected:
   CtxList contexts;
 
 public:
-  virtual SubList getSubjects () const {};
-  virtual void setSubjects (const SubList& sl) {};
-  virtual ResList getResources () const {};
-  virtual void setResources (const ResList& rl) {};
-  virtual ActList getActions () const {};
-  virtual void setAction (const ActList& al) {};
-  virtual CtxList getContexts () const {};
-  virtual void setContexts (const CtxList& ctx) {};
+  virtual SubList getSubjects () const  = 0;
+  virtual void setSubjects (const SubList& sl) = 0;
+  virtual ResList getResources () const  = 0;
+  virtual void setResources (const ResList& rl) = 0;
+  virtual ActList getActions () const  = 0;
+  virtual void setActions (const ActList& al) = 0;
+  virtual CtxList getContexts () const  = 0;
+  virtual void setContexts (const CtxList& ctx) = 0;
 
 };
 

@@ -14,8 +14,8 @@ public:
   virtual ~CombiningAlg(){};
 
 public:
-  virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies){};
-  virtual std::string& getalgId(void){};
+  virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies) = 0;
+  virtual std::string& getalgId(void) = 0;
 };
 
 } // namespace Arc

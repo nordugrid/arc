@@ -14,7 +14,7 @@
 #include "../attr/AnyURIAttribute.h"
 
 
-static Arc::LoadableClass* get_fn_factory (Arc::Config *cfg) {
+static Arc::LoadableClass* get_fn_factory (Arc::Config *) {
     return new Arc::ArcFnFactory();
 }
 

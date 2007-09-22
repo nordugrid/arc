@@ -17,7 +17,7 @@ public:
   virtual ~FnFactory(){};
 
 public:
-  virtual Function* createFn(const std::string& type){};
+  virtual Function* createFn(const std::string& type) = 0;
 
 protected:
   FnMap fnmap;

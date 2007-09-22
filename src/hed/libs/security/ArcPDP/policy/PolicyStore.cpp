@@ -34,7 +34,7 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
 }
 
 //use list, there also can be a class "PolicySet", which includes a few policies
-std::list<Arc::Policy*> PolicyStore::findPolicy(EvaluationCtx* ctx){
+std::list<Arc::Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
   //For the existing Arc policy expression, we only need to return all the policies, because there is no Target definition in ArcPolicy (the Target is only in ArcRule)
 
   return policies;
