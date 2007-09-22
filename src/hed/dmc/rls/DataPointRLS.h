@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 
-#include <arc/data/DataPoint.h>
+#include <arc/data/DataPointIndex.h>
 
 extern "C" {
 #include <globus_rls_client.h>

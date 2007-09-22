@@ -3,7 +3,7 @@
 
 #include <list>
 
-#include <arc/data/DataPoint.h>
+#include <arc/data/DataPointIndex.h>
 
 namespace Arc {
   class Logger;
