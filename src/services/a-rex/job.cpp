@@ -59,8 +59,9 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
                           *cont_plugins,*cred_plugin,
                           allowsubmit,strict_session)) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
-    delete user_; user_=NULL; return;
+    delete user_; user_=NULL; delete cred_plugin; return;
   };
+  delete cred_plugin;
   if(default_queue.empty() && (queues_.size() == 1)) {
     default_queue=*(queues_.begin());
   };
