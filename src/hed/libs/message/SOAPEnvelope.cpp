@@ -15,6 +15,7 @@ SOAPEnvelope::SOAPEnvelope(const char* s,int l):XMLNode(s,l) {
 }
 
 SOAPEnvelope::~SOAPEnvelope(void) {
+  if(fault) delete fault;
 }
 
 SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {

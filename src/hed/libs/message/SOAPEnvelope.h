@@ -108,7 +108,7 @@ class SOAPEnvelope: public XMLNode {
   XMLNode envelope; /** Envelope element of SOAP */
   XMLNode header;   /** Header element of SOAP */
   XMLNode body;     /** Body element of SOAP */
-  SOAPFault* fault; //**Fault element of SOAP, NULL is message is not fault. */
+  SOAPFault* fault; //**Fault element of SOAP, NULL if message is not a fault. */
   bool ver12;       /** Is true if SOAP version 1.2 is used */
   /** Fill instance variables parent XMLNode class. 
     This method is called from constructors. */
