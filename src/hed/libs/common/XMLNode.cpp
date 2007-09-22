@@ -47,6 +47,38 @@ bool MatchXMLName(xmlNodePtr node,const char* name) {
   return (ns == (const char*)(ns_->prefix));
 }
 
+XMLNode::XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
+  xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
+  if(!doc) return;
+  node_=(xmlNodePtr)doc;
+  is_owner_=true;
+}
+
+XMLNode::XMLNode(const char* xml,int len):node_(NULL),is_owner_(false),is_temporary_(false) {
+  if(!xml) return;
+  if(len == -1) len=strlen(xml);
+  xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,0);
+  if(!doc) return;
+  node_=(xmlNodePtr)doc;
+  is_owner_=true;
+}
+
+XMLNode::XMLNode(const Arc::NS& ns):node_(NULL),is_owner_(false),is_temporary_(false) {
+  node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
+  if(node_ != NULL) is_owner_=true;
+  Namespaces(ns);
+}
+
+XMLNode::~XMLNode(void) {
+  if(is_owner_ && node_) {
+    if(node_->type == XML_DOCUMENT_NODE) {
+      xmlFreeDoc((xmlDocPtr)node_);
+    } else if(node_->type == XML_ELEMENT_NODE) {
+      Destroy();
+    };
+  };
+}
+
 XMLNode XMLNode::operator[](int n) const {
   if(!node_) return XMLNode();
   xmlNodePtr p = n<0?NULL:node_;

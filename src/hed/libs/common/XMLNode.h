@@ -54,42 +54,15 @@ class XMLNode {
   XMLNode(const XMLNode& node):node_(node.node_),is_owner_(false),is_temporary_(false) {};
   /** Creates XML document structure from textual representation of XML document.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
-    xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
-    if(!doc) return;
-    node_=(xmlNodePtr)doc;
-    is_owner_=true;
-    //XMLNode::NS ns;
-    //ns["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
-    //ns["xsd"]="http://www.w3.org/2001/XMLSchema";
-    //Namespaces(ns);
-  };
+  XMLNode(const std::string& xml);
   /** Same as previous */
-  XMLNode(const char* xml,int len = -1):node_(NULL),is_owner_(false),is_temporary_(false) {
-    if(!xml) return;
-    if(len == -1) len=strlen(xml);
-    xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,0);
-    if(!doc) return;
-    node_=(xmlNodePtr)doc;
-    is_owner_=true;
-  } 
+  XMLNode(const char* xml,int len = -1);
   /** Creates empty XML document structure with specified namespaces.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const Arc::NS& ns):node_(NULL),is_owner_(false),is_temporary_(false) {
-    node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
-    if(!node_) is_owner_=true;
-    Namespaces(ns);
-  };
+  XMLNode(const Arc::NS& ns);
   /** Destructor
     Also destroys underlying XML document if owned by this instance */
-  ~XMLNode(void) {
-    if(is_owner_ && node_) {
-      if(node_->type == XML_DOCUMENT_NODE)
-        xmlFreeDoc((xmlDocPtr)node_);
-      //else if(node_->type == XML_ELEMENT_NODE)
-        //Destroy();        
-    };
-  };
+  ~XMLNode(void);
   /** Creates a copy of XML (sub)tree.
      If object does not represent whole document - top level document
     is created. 'new_node' becomes a pointer owning new XML document. */
