@@ -163,6 +163,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   if(!config) {
     logger.msg(Arc::ERROR, "Can't obtain configuration");
     // Service is not operational
+    delete inmsg.Payload();
     return Arc::MCC_Status();
   };
 
@@ -178,6 +179,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
+      delete inmsg.Payload();
       logger.msg(Arc::ERROR, "input is not SOAP");
       return make_soap_fault(outmsg);
     };
@@ -185,6 +187,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
       logger.msg(Arc::ERROR, "input does not define operation");
+      delete inpayload;
       return make_soap_fault(outmsg);
     };
     logger.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
@@ -214,10 +217,12 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         ChangeActivityStatus(*config,op,res.NewChild("bes-factory:ChangeActivityStatusResponse"));
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
+          delete inpayload;
           return make_soap_fault(outmsg);
         };
       } else {
         logger.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
+        delete inpayload;
         return make_soap_fault(outmsg);
       };
       {
@@ -229,6 +234,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } else {
       // Listing operations for session directories
     };
+    delete inpayload;
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else {
     // HTTP plugin either provides buffer or stream
@@ -243,6 +249,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(method == "GET") {
       logger.msg(Arc::DEBUG, "process: GET");
       Arc::PayloadRawInterface* buf = Get(*config,id,subpath);
+      delete inmsg.Payload();
       if(!buf) { return make_soap_fault(outmsg); };
       outmsg.Payload(buf);
       return Arc::MCC_Status(Arc::STATUS_OK);
@@ -250,22 +257,28 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
         Arc::MCC_Status ret = Put(*config,id,subpath,*inbufpayload);
+        delete inmsg.Payload();
         if(!ret) return make_fault(outmsg);
       } else if(instreampayload) {
         // Not implemented yet
         logger.msg(Arc::ERROR, "PUT: input stream not implemented yet");
+        delete inmsg.Payload();
         return make_fault(outmsg);
       } else {
         // Method PUT requres input
+        delete inmsg.Payload();
         logger.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
         return make_fault(outmsg);
       };
+      delete inmsg.Payload();
       return make_response(outmsg);
     } else {
+      delete inmsg.Payload();
       logger.msg(Arc::DEBUG, "process: $s: not supported",method.c_str());
       return Arc::MCC_Status();
     };
   };
+  delete inmsg.Payload();
   return Arc::MCC_Status();
 }
  
