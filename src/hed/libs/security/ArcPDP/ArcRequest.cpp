@@ -21,16 +21,19 @@ void ArcRequest::make_request(XMLNode& node, AttributeFactory* attrfactory){
   Arc::NS nsList;
 
   nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/ws/schemas/request-arc"));
-  std::list<XMLNode> reqlist = node.XPathLookup("//request:Request", nsList);
+//  std::list<XMLNode> reqlist = node.XPathLookup("//request:Request", nsList);
 
   std::list<XMLNode>::iterator itemit;
-  if(!(reqlist.empty())){
+//  if(!(reqlist.empty())){
     std::list<XMLNode> itemlist = node.XPathLookup("//request:RequestItem", nsList);
     for ( itemit=itemlist.begin() ; itemit != itemlist.end(); itemit++ ){
       XMLNode itemnd=*itemit;
+    std::string tmp; 
+    itemnd.GetXML(tmp);
+    std::cout<<tmp<<std::endl;
       rlist.push_back(new ArcRequestItem(itemnd, attrfactory));
     }
-  }
+//  }
 }
 
 ArcRequest::ArcRequest(const std::string& filename, AttributeFactory* attrfactory) : Request(filename){
