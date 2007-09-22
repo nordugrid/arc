@@ -11,7 +11,7 @@
     </Plugins>
 
     <PDPConfig>
-          <PolicyStore name="test" location="./"/>
+          <PolicyStore name="test" location="Policy_Example.xml"/>
           <AttributeFactory name="attr.factory" />
           <CombingAlgorithmFactory name="alg.factory" />
           <FunctionFactory name="fn.factory" />

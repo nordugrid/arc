@@ -88,7 +88,8 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
   
   //temporary solution
   std::list<std::string> filelist;
-  filelist.push_back("Policy_Example.xml");
+  //filelist.push_back("Policy_Example.xml");
+  filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
   plstore = new Arc::PolicyStore(filelist, alg, context);
   
