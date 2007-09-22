@@ -205,6 +205,11 @@ XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   };
   xmlNodePtr new_node = xmlNewNode(ns,(const xmlChar*)name_);
   if(new_node == NULL) return XMLNode();
+  if(node_->type == XML_DOCUMENT_NODE) {
+    if(Child()) return XMLNode();
+    xmlDocSetRootElement((xmlDocPtr)node_,new_node); 
+    return Child();
+  };
   XMLNode old_node = global_order?Child(n):operator[](name)[n];
   if(!old_node) {
     // TODO: find last old_node

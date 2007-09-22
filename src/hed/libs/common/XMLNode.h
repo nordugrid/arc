@@ -226,10 +226,10 @@ class XMLNode {
   /** Same as previous method */
   XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
   /** Link a copy of supplied XML node as child.
-    Returns instance refering to new child. XML element is a copy on supplied
+    Returns instance refering to new child. XML element is a copy of supplied
     one but not owned by returned instance */
   XMLNode NewChild(const XMLNode& node,int n = -1,bool global_order = false);
-  // Make a copy of supplied node and place it to this one
+  /** Makes a copy of supplied node and place it to this one */
   void Replace(const XMLNode& node);
   /** Destroys underlying XML element. 
     XML element is unlinked from XML tree and destroyed.
