@@ -242,6 +242,7 @@ void XMLNode::Replace(const XMLNode& node) {
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
   if(new_node == NULL) return;
   xmlReplaceNode(node_,new_node);
+  xmlFreeNode(node_); node_=new_node;
   return;
 }
 
