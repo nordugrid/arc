@@ -66,7 +66,7 @@ class XMLNode {
   /** Creates a copy of XML (sub)tree.
      If object does not represent whole document - top level document
     is created. 'new_node' becomes a pointer owning new XML document. */
-  void New(XMLNode& new_node);
+  void New(XMLNode& new_node) const;
   /** Returns true if instance points to XML element - valid instance */
   operator bool(void) const { return ((node_ != NULL) && (!is_temporary_)); };
   /** Returns true if instance does not point to XML element - invalid instance */
@@ -191,12 +191,7 @@ class XMLNode {
   }
 
   /** Make instance refer to another XML node. Ownership is not inherited. */
-  XMLNode& operator=(const XMLNode& node) {
-    node_=node.node_;
-    is_owner_=false;
-    is_temporary_=node.is_temporary_;
-    return *this;
-  };
+  XMLNode& operator=(const XMLNode& node);
   /** Returns list of all attributes of node */
   // std::list<XMLNode> Attributes(void);
   /** Returns XMLNode instance reresenting n-th attribute of node. */

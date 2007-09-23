@@ -246,7 +246,7 @@ void XMLNode::Replace(const XMLNode& node) {
   return;
 }
 
-void XMLNode::New(XMLNode& new_node) {
+void XMLNode::New(XMLNode& new_node) const {
   if(new_node.is_owner_ && new_node.node_) {
     xmlFreeDoc((xmlDocPtr)(new_node.node_));
   };
@@ -342,6 +342,20 @@ XMLNode XMLNode::GetRoot(void) {
   if(!(node_->parent)) parent = node_;
 
   return XMLNode(parent);
+}
+
+XMLNode& XMLNode::operator=(const XMLNode& node) {
+  if(is_owner_ && node_) {
+    if(node_->type == XML_DOCUMENT_NODE) {
+      xmlFreeDoc((xmlDocPtr)node_);
+    } else if(node_->type == XML_ELEMENT_NODE) {
+      Destroy();
+    };
+  };
+  node_=node.node_;
+  is_owner_=false;
+  is_temporary_=node.is_temporary_;
+  return *this;
 }
 
 /*
