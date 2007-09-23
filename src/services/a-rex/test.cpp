@@ -14,6 +14,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/infosys/InformationInterface.h>
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
@@ -82,8 +83,59 @@ int main(void) {
     };
   };
 
-  for(int n = 0;n<1;n++) {
 
+  // -------------------------------------------------------
+  //    Requesting information about service
+  // -------------------------------------------------------
+  {
+    Arc::NS ns;
+    Arc::InformationRequest inforeq;
+    Arc::PayloadSOAP req(*(inforeq.SOAP()));
+    Arc::Message reqmsg;
+    Arc::Message repmsg;
+    reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes);
+    reqmsg.Context(&context);
+    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+    if(!status) {
+      logger.msg(Arc::ERROR, "Request failed");
+      return -1;
+    };
+    logger.msg(Arc::INFO, "Request succeed!!!");
+    if(repmsg.Payload() == NULL) {
+      logger.msg(Arc::ERROR, "There is no response");
+      return -1;
+    };
+    Arc::PayloadSOAP* resp = NULL;
+    try {
+      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+    } catch(std::exception&) { };
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR, "Response is not SOAP");
+      delete repmsg.Payload();
+      return -1;
+    };
+    {
+      std::string str;
+      resp->GetXML(str);
+      std::cout << "Response: " << str << std::endl;
+    };
+    Arc::InformationResponse inforesp(*resp);
+    if(!inforesp) {
+      logger.msg(Arc::ERROR, "Response is not expected WS-RP");
+      delete repmsg.Payload();
+      return -1;
+    };
+    std::list<Arc::XMLNode> results = inforesp.Result();
+    int n = 0;
+    for(std::list<Arc::XMLNode>::iterator i = results.begin();i!=results.end();++i) {
+      std::string str;
+      i->GetXML(str);
+      std::cout << "Response("<<n<<"): " << str << std::endl;
+    };
+  };
+
+  for(int n = 0;n<1;n++) {
 
     // -------------------------------------------------------
     //    Sending job request to service

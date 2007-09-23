@@ -217,7 +217,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         ChangeActivityStatus(*config,op,res.NewChild("bes-factory:ChangeActivityStatusResponse"));
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
-          delete inpayload;
+          delete inpayload; delete outpayload;
+          return make_soap_fault(outmsg);
+        };
+      } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rw-2")) {
+        Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
+        if(out_) {
+          *outpayload=*out_;
+          delete out_;
+        } else {
+          delete inpayload; delete outpayload;
           return make_soap_fault(outmsg);
         };
       } else {
@@ -284,14 +293,22 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
  
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {
   logger_.addDestination(logcerr);
+  // Define supported namespaces
   ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
   ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
   ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
+  ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
+  ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+  // Obtain information from configuration
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["username"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
+  // Create empty LIDI container
+  Arc::XMLNode doc(ns_);
+  infodoc_.Assign(doc,true);
 }
 
 ARexService::~ARexService(void) {
