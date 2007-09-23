@@ -14,6 +14,11 @@ SOAPEnvelope::SOAPEnvelope(const char* s,int l):XMLNode(s,l) {
   set();
 }
 
+SOAPEnvelope::SOAPEnvelope(const SOAPEnvelope& soap):XMLNode(),fault(NULL) {
+  soap.doc.New(*this);
+  set();
+}
+
 SOAPEnvelope::~SOAPEnvelope(void) {
   if(fault) delete fault;
 }
@@ -299,6 +304,17 @@ XMLNode SOAPFault::Detail(bool create) {
   if(!create) return XMLNode();
   detail=fault.NewChild("soap-env:Detail");
   return detail;
+}
+
+SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
+  if(fault) delete fault;
+  fault=NULL;
+  doc=XMLNode();
+  envelope=XMLNode();
+  header=XMLNode();
+  body=XMLNode();
+  soap.doc.New(*this);
+  set();
 }
 
 } // namespace Arc
