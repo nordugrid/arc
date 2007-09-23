@@ -26,13 +26,13 @@ class InformationInterface {
   virtual std::list<XMLNode> Get(const std::list<std::string>& path);
   virtual std::list<XMLNode> Get(XMLNode xpath);
  public:
-  /** Constructor. If 'safe' i true all calls to Get will be locked. */
+  /** Constructor. If 'safe' is true all calls to Get will be locked. */
   InformationInterface(bool safe = true);
   virtual ~InformationInterface(void);
   /* This method is called by service which wants to process WSRF request.
     It parses 'in' message, calls appropriate 'Get' method and fills
     response in initially empty 'out' message.
-    It case of error it produces proper fault in 'out' and returns
+    In case of error it produces proper fault in 'out' and returns
     negative MCC_Status.
     If message is not WSRF information request then 'out' is not filled
     and returned value is positive. */
@@ -50,6 +50,8 @@ class InformationContainer: public InformationInterface {
   virtual std::list<XMLNode> Get(XMLNode xpath);
  public:
   InformationContainer(void);
+  /** Cretes an instance with XML document @doc. 
+    If @copy is true this method makes a copy of @doc for intenal use. */
   InformationContainer(XMLNode doc,bool copy = false);
   virtual ~InformationContainer(void);
   /** Get a lock on contained XML document.
@@ -57,6 +59,9 @@ class InformationContainer: public InformationInterface {
     release it with  Release() */
   XMLNode Acquire(void);
   void Release(void);
+  /** Replaces internal XML document with @doc. 
+    If @copy is true this method makes a copy of @doc for intenal use. */
+  void Assign(XMLNode doc,bool copy = false);
 };
 
 /// Request for information in InfoSystem

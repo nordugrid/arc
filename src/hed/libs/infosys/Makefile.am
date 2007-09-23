@@ -10,5 +10,5 @@ libinfosys_la_LDFLAGS=$(LIBXML2_LIBS)
 
 test_SOURCES=test.cpp
 test_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS=$(LIBXML2_LIBS) 
+test_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) 
 test_LDADD=libinfosys.la

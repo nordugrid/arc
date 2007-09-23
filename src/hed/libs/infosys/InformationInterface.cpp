@@ -160,6 +160,16 @@ void InformationContainer::Release(void) {
   lock_.unlock();
 }
 
+void InformationContainer::Assign(XMLNode doc,bool copy) {
+  lock_.lock();
+  if(copy) {
+    doc.New(doc_);
+  } else {
+    doc_=doc;
+  };
+  lock_.unlock();
+}
+
 
 std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path) {
   std::list<XMLNode> cur_list;
