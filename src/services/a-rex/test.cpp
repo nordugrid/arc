@@ -193,6 +193,7 @@ int main(void) {
       };
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
+      delete resp;
     };
 
     // -------------------------------------------------------
@@ -237,6 +238,7 @@ int main(void) {
       };
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
+      delete resp;
     };
 
     // -------------------------------------------------------
@@ -281,6 +283,7 @@ int main(void) {
       };
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
+      delete resp;
     };
 
     // -------------------------------------------------------
@@ -325,17 +328,12 @@ int main(void) {
       };
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
+      delete resp;
     };
 
   };
 
   for(;;) sleep(10);
 
-/*
-
-
-  
-  };
-*/ 
   return 0;
 }
