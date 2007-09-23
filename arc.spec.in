@@ -21,6 +21,9 @@ BuildRequires: globus_ftp_client-devel
 BuildRequires: globus_ftp_control-devel
 BuildRequires: globus_rls_client-devel
 BuildRequires: globus_rsl-devel
+#
+# A-REX needs gSoap
+BuildRequires: gsoap-devel
 
 %description
 ARC
@@ -45,6 +48,8 @@ ARC Hosting Environment Daemon (HED).
 Summary: ARC plugins
 Group: System Environment/Libraries
 Requires: %{name}
+# A-REX needs gSoap
+Requires: gsoap
 
 %description plugins
 ARC plugins. This includes the Message Chain Components (MCCs) and
