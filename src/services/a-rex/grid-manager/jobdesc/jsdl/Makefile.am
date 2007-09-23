@@ -13,7 +13,7 @@ libnamespace_la_LDFLAGS=
 
 BUILT_SOURCES = $(SOAPCPP2_OUTPUT) jsdl_soap.h
 
-SOAPCPP2_OUTPUT = jsdl_soapClientLib.cpp jsdl_soapClient.cpp jsdl_soapC.cpp jsdl_soapStub.h
+SOAPCPP2_OUTPUT = jsdl_soapStub.h jsdl_soapH.h jsdl_soapC.cpp jsdl_soapClient.cpp jsdl_soapClientLib.cpp jsdl_soapServer.cpp jsdl_soapServerLib.cpp jsdl_soap.nsmap
 
 jsdl_soap.h: jsdl_complete.xsd jsdl_POSIXApplication.xsd jsdl_arc.xsd typemap.dat
 	$(WSDL2H) -t typemap.dat -o jsdl_soap.h jsdl_POSIXApplication.xsd jsdl_arc.xsd jsdl_complete.xsd
@@ -21,6 +21,6 @@ jsdl_soap.h: jsdl_complete.xsd jsdl_POSIXApplication.xsd jsdl_arc.xsd typemap.da
 $(SOAPCPP2_OUTPUT): jsdl_soap.h
 	$(SOAPCPP2) -n -p jsdl_soap $<
 
-CLEANFILES = $(SOAPCPP2_OUTPUT)
+CLEANFILES = $(SOAPCPP2_OUTPUT) jsdl_soap.h
 
 EXTRA_DIST = *.xsd typemap.dat stlvector.h
