@@ -97,11 +97,11 @@ namespace Arc {
   }
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
-    char buf[1024];
+    char buf[2048];
 #ifdef HAVE_LIBINTL_H    
-    vsnprintf(buf, 1024, dgettext("Arc", message.message.c_str()), *message.v);
+    vsnprintf(buf, 2048, dgettext("Arc", message.message.c_str()), *message.v);
 #else
-    vsnprintf(buf, 1024, message.message.c_str(), *message.v);
+    vsnprintf(buf, 2048, message.message.c_str(), *message.v);
 #endif
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
