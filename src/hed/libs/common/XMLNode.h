@@ -107,7 +107,7 @@ class XMLNode {
     };
     return n;
   };
-  /** More common get **/
+  /** Same as operator[] **/
   XMLNode Get(const std::string& name) const {
     return operator[](name.c_str());
   };
@@ -116,6 +116,12 @@ class XMLNode {
   std::string Name(void) const { 
     const char* name = (node_)?((node_->name)?(char*)(node_->name):""):"";
     return std::string(name);
+  };
+  /** Returns namespace prefix of XML node */
+  std::string Prefix(void) const;
+  /** Returns prefix:name of XML node */
+  std::string FullName(void) const {
+    return Prefix()+":"+Name();
   };
   /** Assign new name to XML node */
   void Name(const std::string& name);

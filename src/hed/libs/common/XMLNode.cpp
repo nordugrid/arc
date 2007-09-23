@@ -171,6 +171,14 @@ XMLNode XMLNode::NewAttribute(const char* name) {
   return XMLNode((xmlNodePtr)xmlNewNsProp(node_,ns,(const xmlChar*)name_,NULL));
 }
 
+std::string XMLNode::Prefix(void) const {
+  if(!node_) return "";
+  xmlNsPtr ns = GetNamespace(node_);
+  if(!ns) return "";
+  if(!(ns->prefix)) return "";
+  return (const char*)(ns->prefix);
+}
+
 void XMLNode::Name(const std::string& name) {
   Name(name.c_str());
 }
