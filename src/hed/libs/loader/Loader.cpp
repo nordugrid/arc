@@ -90,6 +90,7 @@ namespace Arc {
     l.msg(DEBUG, "after delete context");
     if(service_factory) delete service_factory;
     if(mcc_factory) delete mcc_factory;
+    if(sechandler_factory) delete sechandler_factory;
     if(pdp_factory) delete pdp_factory;
     if(dmc_factory) delete dmc_factory;
   }
