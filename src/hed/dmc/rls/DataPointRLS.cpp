@@ -84,7 +84,7 @@ namespace Arc {
     DataPointRLS& it = ((meta_resolve_rls_t*)arg)->url;
     const std::string& lfn = it.url.Path();
     bool source = arg_->source;
-    char errmsg[MAXERRMSG];
+    char errmsg[MAXERRMSG + 32];
     globus_result_t err;
     int errcode;
 
@@ -101,7 +101,7 @@ namespace Arc {
                                               globus_rls_attr_op_eq, &opr,
                                               NULL, &off, 1, &guids);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
                    url.str().c_str(), errmsg);
@@ -133,7 +133,7 @@ namespace Arc {
                                           0, 0, &pfns_list);
     }
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode == GLOBUS_RLS_INVSERVER) {
         return true;
@@ -208,7 +208,7 @@ namespace Arc {
                                                &attr_list);
       }
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if(errcode == GLOBUS_RLS_ATTR_NEXIST) {
           return true;
@@ -398,13 +398,13 @@ namespace Arc {
 
   bool DataPointRLS::meta_postregister(bool replication) {
     globus_rls_handle_t *h;
-    char errmsg[MAXERRMSG];
+    char errmsg[MAXERRMSG + 32];
     globus_result_t err;
     int errcode;
 
     err = globus_rls_client_connect((char*)url.ConnectionURL().c_str(), &h);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG, GLOBUS_FALSE);
+      globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32, GLOBUS_FALSE);
       logger.msg(INFO, "Failed to connect to RLS server: %s", errmsg);
       return false;
     }
@@ -435,7 +435,7 @@ namespace Arc {
           break;
         }
         if(err != GLOBUS_SUCCESS) {
-          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Failed to create GUID in RLS: %s", errmsg);
           globus_rls_client_close(h);
@@ -452,7 +452,7 @@ namespace Arc {
                                                 globus_rls_attr_op_eq,
                                                 &opr, NULL, &off, 1, &guids);
         if(err != GLOBUS_SUCCESS) {
-          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           if((errcode != GLOBUS_RLS_LFN_NEXIST) &&
              (errcode != GLOBUS_RLS_ATTR_NEXIST) &&
@@ -478,7 +478,7 @@ namespace Arc {
         err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                              &attr, 0);
         if(err != GLOBUS_SUCCESS) {
-          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Failed to add LFN-GUID to RLS: %s", errmsg);
           globus_rls_client_close(h);
@@ -512,7 +512,7 @@ namespace Arc {
                                                 globus_rls_attr_op_eq,
                                                 &opr, NULL, &off, 1, &guids);
         if(err != GLOBUS_SUCCESS) {
-          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
                      url.str().c_str(), errmsg);
@@ -535,7 +535,7 @@ namespace Arc {
                                       (char*)pfn.c_str());
     }
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode != GLOBUS_RLS_MAPPING_EXIST) {
         logger.msg(INFO, "Failed to create/add LFN-PFN mapping: %s", errmsg);
@@ -551,7 +551,7 @@ namespace Arc {
     attr.val.s = "file";
     err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(), &attr, 0);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode != GLOBUS_RLS_ATTR_EXIST) {
         logger.msg(INFO, "Warning: failed to add attribute to RLS: %s",
@@ -565,7 +565,7 @@ namespace Arc {
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if(errcode != GLOBUS_RLS_ATTR_EXIST) {
           logger.msg(INFO, "Warning: failed to add attribute to RLS: %s",
@@ -580,7 +580,7 @@ namespace Arc {
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if(errcode != GLOBUS_RLS_ATTR_EXIST) {
           logger.msg(INFO, "Warning: failed to add attribute to RLS: %s",
@@ -595,7 +595,7 @@ namespace Arc {
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if(errcode != GLOBUS_RLS_ATTR_EXIST) {
           logger.msg(INFO, "Warning: failed to add attribute to RLS: %s",
@@ -611,7 +611,7 @@ namespace Arc {
         err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                              &attr, 0);
         if(err != GLOBUS_SUCCESS) {
-          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+          globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           if(errcode != GLOBUS_RLS_ATTR_EXIST) {
             logger.msg(INFO, "Warning: failed to add attribute to RLS: %s",
@@ -647,7 +647,7 @@ namespace Arc {
     int lrc_limit = 0;
     globus_result_t err;
     int errcode;
-    char errmsg[MAXERRMSG];
+    char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns_list;
     std::string lfn = it.url.Path();
     if(it.guid_enabled && !arg_->guid.length()) {
@@ -662,7 +662,7 @@ namespace Arc {
                                               globus_rls_attr_op_eq,
                                               &opr, NULL, &off, 1, &guids);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(VERBOSE, "Failed to find GUID for specified LFN in %s: %s",
                    url.str().c_str(), errmsg);
@@ -683,7 +683,7 @@ namespace Arc {
       err = globus_rls_client_lrc_get_pfn(h, (char*)lfn.c_str(), &lrc_offset,
                                           lrc_limit, &pfns_list);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Warning: Failed to retrieve LFN/PFNs from %s: %s",
                    url.str().c_str(), errmsg);
@@ -702,7 +702,7 @@ namespace Arc {
           err = globus_rls_client_lrc_delete(h, (char*)lfn.c_str(),
                                              (char*)pfn.str().c_str());
           if(err != GLOBUS_SUCCESS) {
-            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
             if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
                (errcode != GLOBUS_RLS_LFN_NEXIST) &&
@@ -721,7 +721,7 @@ namespace Arc {
       err = globus_rls_client_lrc_delete(h, (char*)lfn.c_str(), (char*)
                                          it.location->url.str().c_str());
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
            (errcode != GLOBUS_RLS_LFN_NEXIST) &&
@@ -748,14 +748,14 @@ namespace Arc {
     }
     if(!guid_enabled) {
       globus_rls_handle_t *h;
-      char errmsg[MAXERRMSG];
+      char errmsg[MAXERRMSG + 32];
       globus_result_t err;
       int errcode;
       globus_list_t *pfns_list;
 
       err = globus_rls_client_connect((char*)url.ConnectionURL().c_str(), &h);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to connect to RLS server: %s", errmsg);
         return false;
@@ -771,7 +771,7 @@ namespace Arc {
       err = globus_rls_client_rli_get_lrc(h, (char*)url.Path().c_str(),
                                           &lrc_offset, lrc_limit, &lrcs);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         if(errcode == GLOBUS_RLS_LFN_NEXIST) {
           logger.msg(INFO, "LFN must be already deleted, try LRC anyway");
@@ -800,7 +800,7 @@ namespace Arc {
         if(lrc) {
           err = globus_rls_client_connect(lrc, &h_);
           if(err != GLOBUS_SUCCESS) {
-            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
             logger.msg(INFO, "Warning: Failed to connect to LRC at %s: %s",
                        lrc, errmsg);
@@ -816,7 +816,7 @@ namespace Arc {
                                               &lrc_offset, lrc_limit,
                                               &pfns_list);
           if(err != GLOBUS_SUCCESS) {
-            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
             if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
                (errcode != GLOBUS_RLS_LFN_NEXIST) &&
@@ -844,7 +844,7 @@ namespace Arc {
               err = globus_rls_client_lrc_delete(h_, (char*)url.Path().c_str(),
                                                  (char*)pfn.str().c_str());
               if(err != GLOBUS_SUCCESS) {
-                globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+                globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                              GLOBUS_FALSE);
                 if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
                    (errcode != GLOBUS_RLS_LFN_NEXIST) &&
@@ -866,7 +866,7 @@ namespace Arc {
                                               (char*)
                                               location->url.str().c_str());
           if(err != GLOBUS_SUCCESS) {
-            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+            globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
             if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
                (errcode != GLOBUS_RLS_LFN_NEXIST) &&
@@ -907,14 +907,14 @@ namespace Arc {
   static bool get_attributes(globus_rls_handle_t *h, const std::string& lfn,
                              DataPoint::FileInfo& f) {
     globus_list_t *attr_list;
-    char errmsg[MAXERRMSG];
+    char errmsg[MAXERRMSG + 32];
     globus_result_t err;
     int errcode;
     err = globus_rls_client_lrc_attr_value_get(h, (char*)lfn.c_str(), NULL,
                                                globus_rls_obj_lrc_lfn,
                                                &attr_list);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode != GLOBUS_RLS_ATTR_NEXIST) {
         // logger.msg(INFO, "Warning: Failed to retrieve attributes: %s",
@@ -970,7 +970,7 @@ namespace Arc {
     int lrc_offset = 0;
     globus_result_t err;
     int errcode;
-    char errmsg[MAXERRMSG];
+    char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns = NULL;
     if(it.guid_enabled && it.url.Path().length() && !arg_->guid.length()) {
       // looking gor guid only once
@@ -984,7 +984,7 @@ namespace Arc {
                                               globus_rls_attr_op_eq,
                                               &opr, NULL, &off, 1, &guids);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+        globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
                    url.str().c_str(), errmsg);
@@ -1013,7 +1013,7 @@ namespace Arc {
                                              &lrc_offset, 1000, &pfns);
     }
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG,
+      globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode == GLOBUS_RLS_LFN_NEXIST) {
         logger.msg(DEBUG, "No LFNs found in %s", url.str().c_str());
@@ -1045,7 +1045,7 @@ namespace Arc {
                                                  &lfn_list);
           if(err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg,
-                                         MAXERRMSG, GLOBUS_FALSE);
+                                         MAXERRMSG + 32, GLOBUS_FALSE);
             continue;
           }
           if(lfn_list == NULL) continue;

@@ -72,14 +72,14 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,rls_lrc_callback_t ca
 }
 
 #define say_rls_error { \
- globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE); \
+ globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE); \
  logger.msg(INFO, "Warning: can't connect to RLS server %s: %s", url.str().c_str(), errmsg); \
 }
 
 bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls_lrc_callback_t callback,void* arg) {
   globus_result_t err;
   int errcode;
-  char errmsg[MAXERRMSG];
+  char errmsg[MAXERRMSG + 32];
 
   globus_rls_client_set_timeout(30);
 
@@ -99,7 +99,7 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
     };
     err = globus_rls_client_lrc_rli_list(h,&rliinfo_list);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE);
+      globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE);
       if(errcode == GLOBUS_RLS_INVSERVER) { // Not LRC
         globus_rls_client_close(h); lrc_p=lrcs.erase(lrc_p); continue;
       } else if(errcode == GLOBUS_RLS_RLI_NEXIST) { // Top level LRC server !?
@@ -129,7 +129,7 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
       bool bad_rli = false;
       err = globus_rls_client_rli_rli_list(h,&rliinfo_list);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE);
+        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE);
         if(errcode == GLOBUS_RLS_INVSERVER) { // Not an RLI server
           bad_rli=true;
         } else if(errcode == GLOBUS_RLS_RLI_NEXIST) { // Top level server ?
@@ -145,7 +145,7 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
       bool good_lrc = true;
       err = globus_rls_client_lrc_rli_list(h,&rliinfo_list);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE);
+        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE);
         if(errcode == GLOBUS_RLS_INVSERVER) {
           good_lrc=false;
         } else if(errcode == GLOBUS_RLS_RLI_NEXIST) { // Top level LRC server !?
@@ -183,7 +183,7 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
       globus_list_t* senderinfo_list;
       err = globus_rls_client_rli_sender_list(h,&senderinfo_list);
       if(err != GLOBUS_SUCCESS) {
-        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE);
+        globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE);
         if(errcode == GLOBUS_RLS_INVSERVER) { // Not an RLI server
           globus_rls_client_close(h);
           rli_p=rlis.erase(rli_p); continue;
@@ -215,7 +215,7 @@ bool rls_find_lrcs(std::list<URL> rlis,std::list<URL> lrcs,bool down,bool up,rls
     };
     err = globus_rls_client_lrc_rli_list(h,&rliinfo_list);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG,GLOBUS_FALSE);
+      globus_rls_client_error_info(err,&errcode,errmsg,MAXERRMSG + 32,GLOBUS_FALSE);
       if(errcode == GLOBUS_RLS_INVSERVER) { // Not LRC
         globus_rls_client_close(h); lrc_p=lrcs.erase(lrc_p); continue;
       } else if(errcode == GLOBUS_RLS_RLI_NEXIST) { // Top level LRC server !?
