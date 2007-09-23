@@ -76,9 +76,9 @@ namespace Arc {
     l["http"]->process(request,response);
 
     std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
-    f->type = FileInfo::file_type_file;
-    f->size = stringtoull(response.Attributes()->get("HTTP:content-length"));
-    f->created = response.Attributes()->get("HTTP:last-modified");
+    f->SetType(FileInfo::file_type_file);
+    f->SetSize(stringtoull(response.Attributes()->get("HTTP:content-length")));
+    f->SetCreated(response.Attributes()->get("HTTP:last-modified"));
     return true;
   }
 

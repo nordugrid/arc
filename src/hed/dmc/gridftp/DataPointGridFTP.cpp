@@ -634,7 +634,7 @@ namespace Arc {
     }
     lister.close_connection();
     bool result = true;
-    for(std::list <ListerFile>::iterator i = lister.begin();
+    for(std::list<FileInfo>::iterator i = lister.begin();
         i != lister.end(); ++i) {
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo(i->GetLastName()));
@@ -646,10 +646,10 @@ namespace Arc {
         int modify_utime;
         // Lister should always return full path to file
         std::string f_url = url.ConnectionURL() + i->GetName();
-        f->type = (FileInfo::Type)(i->GetType());
+        f->SetType(i->GetType());
         if(i->CheckSize())
-          f->size = i->GetSize();
-        else if(i->GetType() != ListerFile::file_type_dir) {
+          f->SetSize(i->GetSize());
+        else if(i->GetType() != FileInfo::file_type_dir) {
           logger.msg(VERBOSE, "list_files_ftp: looking for size of %s",
                      f_url.c_str());
           res = globus_ftp_client_size(&ftp_handle, f_url.c_str(), &ftp_opattr,
@@ -669,16 +669,16 @@ namespace Arc {
             logger.msg(INFO, "list_files_ftp: failed to get file's size");
             result = false;
             // Guessing - directories usually have no size
-            f->type = FileInfo::file_type_dir;
+            f->SetType(FileInfo::file_type_dir);
           }
           else {
-            f->size = size;
+            f->SetSize(size);
             // Guessing - only files usually have size
-            f->type = FileInfo::file_type_file;
+            f->SetType(FileInfo::file_type_file);
           }
         }
         if(i->CheckCreated())
-          f->created = i->GetCreated();
+          f->SetCreated(i->GetCreated());
         else {
           logger.msg(VERBOSE, "list_files_ftp: "
                      "looking for modification time of %s", f_url.c_str());
@@ -706,7 +706,7 @@ namespace Arc {
           }
           else {
             GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-            f->created = modify_time;
+            f->SetCreated(modify_time);
           }
         }
       }

@@ -3,7 +3,7 @@ lib_LTLIBRARIES=libarcdata2.la
 libarcdata2_ladir=$(pkgincludedir)/data
 libarcdata2_la_HEADERS=DMC.h   DataPoint.h   DataPointDirect.h   \
 	DataPointIndex.h   DataBufferPar.h   CheckSum.h   DataSpeed.h   \
-	DataHandle.h
+	DataHandle.h FileInfo.h
 libarcdata2_la_SOURCES=DMC.cpp DataPoint.cpp DataPointDirect.cpp \
 	DataPointIndex.cpp DataBufferPar.cpp CheckSum.cpp DataSpeed.cpp
 

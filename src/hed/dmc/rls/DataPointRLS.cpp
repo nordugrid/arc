@@ -230,7 +230,7 @@ namespace Arc {
         }
         else if(strcmp(attr->name, "size") == 0) {
           if(!it.meta_size_available())
-            it.meta_size(stringtoi(attr->val.s));
+            it.meta_size(stringtoull(attr->val.s));
         }
         else if(strcmp(attr->name, "modifytime") == 0) {
           if(!it.meta_created_available()) {
@@ -905,7 +905,7 @@ namespace Arc {
   }
 
   static bool get_attributes(globus_rls_handle_t *h, const std::string& lfn,
-                             DataPoint::FileInfo& f) {
+                             FileInfo& f) {
     globus_list_t *attr_list;
     char errmsg[MAXERRMSG + 32];
     globus_result_t err;
@@ -929,22 +929,22 @@ namespace Arc {
       if(attr->type != globus_rls_attr_type_str) continue;
       // logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
       if(strcmp(attr->name, "filechecksum") == 0) {
-        f.checksum = attr->val.s;
+        f.SetCheckSum(attr->val.s);
       }
       else if(strcmp(attr->name, "size") == 0) {
-        f.size = stringtoi(attr->val.s);
+        f.SetSize(stringtoull(attr->val.s));
       }
       else if(strcmp(attr->name, "modifytime") == 0) {
         Time created(attr->val.s);
         if(created == -1)
           created.SetTime(stringtoull(attr->val.s));
-        f.created = created;
+        f.SetCreated(created);
       }
       else if(strcmp(attr->name, "created") == 0) {
         Time created(attr->val.s);
         if(created == -1)
           created.SetTime(stringtoull(attr->val.s));
-        f.created = created;
+        f.SetCreated(created);
       }
     }
     globus_rls_client_free_list(attr_list);
@@ -953,12 +953,12 @@ namespace Arc {
 
   typedef class list_files_rls_t {
    public:
-    std::list<DataPoint::FileInfo> &files;
+    std::list<FileInfo> &files;
     DataPointRLS & url;
     bool success;
     bool resolve;
     std::string guid;
-    list_files_rls_t(std::list<DataPoint::FileInfo>& f, DataPointRLS& u,
+    list_files_rls_t(std::list<FileInfo>& f, DataPointRLS& u,
                      bool r) : files(f), url(u), success(false), resolve(r) {};
   };
 
@@ -1064,27 +1064,27 @@ namespace Arc {
                      last_lfn.c_str(), last_guid.c_str(), pfn.str().c_str());
           std::list<FileInfo>::iterator f;
           for(f = files.begin(); f != files.end(); ++f)
-            if(f->name == last_lfn)
+            if(f->GetName() == last_lfn)
               break;
           if(f == files.end()) {
             f = files.insert(files.end(), FileInfo(last_lfn.c_str()));
             if(((list_files_rls_t*)arg)->resolve)
               get_attributes(h, last_guid, *f);
           }
-          f->urls.push_back(pfn);
+          f->AddURL(pfn);
         }
       }
       else { // !guid_enabled
         logger.msg(DEBUG, "lfn: %s - pfn: %s", lfn.c_str(), pfn.str().c_str());
         std::list<FileInfo>::iterator f;
         for(f = files.begin(); f != files.end(); ++f)
-          if(f->name == lfn)
+          if(f->GetName() == lfn)
             break;
         if(f == files.end()) {
           f = files.insert(files.end(), FileInfo(lfn));
           if(((list_files_rls_t*)arg)->resolve) get_attributes(h, lfn, *f);
         }
-        f->urls.push_back(pfn);
+        f->AddURL(pfn);
       }
     }
     globus_rls_client_free_list(pfns);

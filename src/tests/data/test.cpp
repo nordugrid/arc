@@ -52,22 +52,22 @@ int main () {
   };
 
   for (int k = 0; k < 5; k++) {
-    std::list<Arc::DataPoint::FileInfo> files;
+    std::list<Arc::FileInfo> files;
     if(!dp[k]) continue;
     dp[k]->list_files(files);
-    for (std::list<Arc::DataPoint::FileInfo>::iterator i = files.begin();
+    for (std::list<Arc::FileInfo>::iterator i = files.begin();
 	 i != files.end(); i++) {
-      std::cout << "Name: " << i->name << std::endl;
-      if(i->size != (unsigned long long int)(-1))
-	std::cout << "Size: " << i->size << std::endl;
-      if(i->created != -1)
-	std::cout << "Created: " << i->created << std::endl;
-      if(i->valid != -1)
-	std::cout << "Valid: " << i->created << std::endl;
-      if(!i->checksum.empty())
-	std::cout << "Checksum: " << i->checksum << std::endl;
-      for(std::list<Arc::URL>::iterator j = i->urls.begin();
-	  j != i->urls.end(); j++)
+      std::cout << "Name: " << i->GetName() << std::endl;
+      if(i->CheckSize())
+	std::cout << "Size: " << i->GetSize() << std::endl;
+      if(i->CheckCreated())
+	std::cout << "Created: " << i->GetCreated() << std::endl;
+      if(i->CheckValid())
+	std::cout << "Valid: " << i->GetValid() << std::endl;
+      if(i->CheckCheckSum())
+	std::cout << "Checksum: " << i->GetCheckSum() << std::endl;
+      for(std::list<Arc::URL>::const_iterator j = i->GetURLs().begin();
+	  j != i->GetURLs().end(); j++)
 	std::cout << "Location: " << *j << std::endl;
     }
   }

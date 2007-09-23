@@ -7,6 +7,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/data/FileInfo.h>
 
 namespace Arc {
 
@@ -21,34 +22,6 @@ namespace Arc {
 
   class DataPoint {
    public:
-    /// FileInfo stores information about file (meta-information). Although all
-    /// members are public it is mot desirable to modify them directly outside
-    /// DataPoint class.
-    class FileInfo {
-     public:
-      typedef enum {
-        file_type_unknown = 0,
-        file_type_file = 1,
-        file_type_dir = 2
-      } Type;
-      std::string name;
-      std::list<URL> urls;         // Physical enpoints/URLs.
-      unsigned long long int size; // Size of file in bytes.
-      std::string checksum;        // Checksum of file.
-      Time created;                // Creation/modification time.
-      Time valid;                  // Valid till time.
-      Type type;                   // File type - usually file_type_file
-      FileInfo(const std::string& name = "") : name(name),
-                                               size(-1),
-                                               created(-1),
-                                               valid(-1),
-                                               type(file_type_unknown) {};
-      /// If object is valid
-      operator bool() {
-        return (name.length() != 0);
-      }
-    };
-
     /// Constructor requires URL or meta-URL to be provided
     DataPoint(const URL& url);
     virtual ~DataPoint() {};

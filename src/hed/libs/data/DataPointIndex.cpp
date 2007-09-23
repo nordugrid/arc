@@ -32,19 +32,19 @@ namespace Arc {
     if(!meta_resolve(true)) {
       return false;
     }
-    fi.name = url.Path();
+    fi = url.Path();
     for(std::list<Location>::iterator i = locations.begin();
         i != locations.end(); ++i)
-      fi.urls.push_back(i->url);
+      fi.AddURL(i->url);
     if(meta_size_available())
-      fi.size = meta_size_;
+      fi.SetSize(meta_size_);
     if(meta_checksum_available())
-      fi.checksum = meta_checksum_;
+      fi.SetCheckSum(meta_checksum_);
     if(meta_created_available())
-      fi.created = meta_created_;
+      fi.SetCreated(meta_created_);
     if(meta_validtill_available())
-      fi.valid = meta_validtill_;
-    fi.type = FileInfo::file_type_file;
+      fi.SetValid(meta_validtill_);
+    fi.SetType(FileInfo::file_type_file);
     return true;
   }
 

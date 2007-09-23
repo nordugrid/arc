@@ -13,6 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/data/FileInfo.h>
 
 #include "GlobusErrorUtils.h"
 #include "Lister.h"
@@ -37,7 +38,7 @@ namespace Arc {
 
   static Logger logger(Logger::rootLogger, "Lister");
 
-  bool ListerFile::SetAttributes(const char *facts) {
+  bool SetAttributes(FileInfo& fi, const char *facts) {
     const char *name;
     const char *value;
     const char *p = facts;
@@ -66,31 +67,24 @@ namespace Arc {
         continue; // skip empty values
       if(((value - name - 1) == 4) && (strncasecmp(name, "type", 4) == 0)) {
         if(((p - value) == 3) && (strncasecmp(value, "dir", 3) == 0))
-          type = file_type_dir;
+          fi.SetType(FileInfo::file_type_dir);
         else if(((p - value) == 4) && (strncasecmp(value, "file", 4) == 0))
-          type = file_type_file;
+          fi.SetType(FileInfo::file_type_file);
         else
-          type = file_type_unknown;
+          fi.SetType(FileInfo::file_type_unknown);
       }
       else if(((value - name - 1) == 4) &&
               (strncasecmp(name, "size", 4) == 0)) {
         std::string tmp_s(value, (int)(p - value));
-        size = stringtoi(tmp_s);
+        fi.SetSize(stringtoull(tmp_s));
       }
       else if(((value - name - 1) == 6) &&
               (strncasecmp(name, "modify", 6) == 0)) {
         std::string tmp_s(value, (int)(p - value));
-        created = stringtoi(tmp_s);
+        fi.SetCreated(stringtoi(tmp_s));
       }
     }
     return true;
-  }
-
-  const char* ListerFile::GetLastName() const {
-    std::string::size_type n = name.rfind('/');
-    if(n == std::string::npos)
-      return name.c_str();
-    return name.c_str() + n + 1;
   }
 
   Lister::callback_status_t Lister::wait_for_callback() {
@@ -218,17 +212,17 @@ namespace Arc {
           }
           name++;
         }
-      std::list<ListerFile>::iterator i;
+      std::list<FileInfo>::iterator i;
       if(name[0] == '/')
-        i = it->fnames.insert(it->fnames.end(), ListerFile(name));
+        i = it->fnames.insert(it->fnames.end(), FileInfo(name));
       else {
         std::string name_ = !it->path.empty() ? it->path : "/";
         name_ += "/";
         name_ += name;
-        i = it->fnames.insert(it->fnames.end(), ListerFile(name_));
+        i = it->fnames.insert(it->fnames.end(), FileInfo(name_));
       }
       if(it->facts)
-        i->SetAttributes(attrs);
+        SetAttributes(*i, attrs);
       if(nlen == length)
         break;
       name += (nlen + 1);

@@ -5,6 +5,7 @@
 #include <list>
 
 #include <arc/DateTime.h>
+#include <arc/data/FileInfo.h>
 
 #include <globus_ftp_control.h>
 
@@ -15,48 +16,6 @@ namespace Arc {
   class Time;
   class URL;
 
-  class ListerFile {
-   public:
-    typedef enum {
-      file_type_unknown = 0,
-      file_type_file = 1,
-      file_type_dir = 2
-    } Type;
-   private:
-    std::string name;
-    unsigned long long int size;
-    Time created;
-    Type type;
-   public:
-    ListerFile(const std::string& name) : name(name), size(-1), created(-1),
-                                          type(file_type_unknown) {};
-    ~ListerFile(void) {};
-
-    const std::string& GetName() const {
-      return name;
-    };
-    const char *GetLastName() const;
-    bool CheckSize() const {
-      return (size != (unsigned long long int)(-1));
-    };
-    unsigned long long int GetSize() const {
-      return size;
-    };
-    bool CheckCreated() const {
-      return (created != -1);
-    };
-    Time GetCreated() const {
-      return created;
-    };
-    bool CheckType() const {
-      return (type != file_type_unknown);
-    };
-    Type GetType() const {
-      return type;
-    };
-    bool SetAttributes(const char *facts);
-  };
-
   class Lister {
    private:
     bool inited;
@@ -65,7 +24,7 @@ namespace Arc {
     globus_cond_t cond;
     globus_mutex_t mutex;
     globus_ftp_control_handle_t *handle;
-    std::list<ListerFile> fnames;
+    std::list<FileInfo> fnames;
     globus_ftp_control_response_t resp[LISTER_MAX_RESPONSES];
     int resp_n;
     typedef enum callback_status_t {
@@ -112,10 +71,10 @@ namespace Arc {
     operator bool() {
       return inited;
     };
-    std::list<ListerFile>::iterator begin() {
+    std::list<FileInfo>::iterator begin() {
       return fnames.begin();
     };
-    std::list<ListerFile>::iterator end() {
+    std::list<FileInfo>::iterator end() {
       return fnames.end();
     };
     int size() const {

@@ -350,21 +350,18 @@ namespace Arc {
     }
     std::list<FileInfo>::iterator f = files.insert(files.end(),
                                                    FileInfo(url.Path()));
-    f->size = st.filesize;
-    if(st.csumvalue[0]) {
-      f->checksum = st.csumtype;
-      f->checksum += ":";
-      f->checksum += st.csumvalue;
-    }
-    f->created = st.mtime;
-    f->type = (st.filemode & S_IFDIR) ? FileInfo::file_type_dir :
-      FileInfo::file_type_file;
+    f->SetSize(st.filesize);
+    if(st.csumvalue[0])
+      f->SetCheckSum(std::string(st.csumtype) + ':' + st.csumvalue);
+    f->SetCreated(st.mtime);
+    f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir :
+               FileInfo::file_type_file);
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
     if(lfc_getreplica(url.Path().c_str(), NULL, NULL, &nbentries,
                       &entries) == 0) {
       for(int n = 0; n < nbentries; n++) {
-        f->urls.push_back(std::string(entries[n].sfn));
+        f->AddURL(std::string(entries[n].sfn));
       }
     }
     return true;
