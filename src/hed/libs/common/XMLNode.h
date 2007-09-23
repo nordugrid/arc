@@ -29,6 +29,8 @@ typedef std::map<std::string,std::string> NS;
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
+ friend bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
+ friend bool MatchXMLNamespace(const XMLNode& node,const char* uri);
 
  protected:
   xmlNodePtr node_;
@@ -262,6 +264,18 @@ bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
 
 /** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(const XMLNode& node,const char* name);
+
+/** Returns true if XML elements belong to same namespaces */
+bool MatchXMLNamespace(xmlNodePtr node1,xmlNodePtr node2);
+
+/** Returns true if 'namespace' matches 'node's namespace. */
+bool MatchXMLNamespace(xmlNodePtr node,const char* uri);
+
+/** Returns true if underlying XML elements belong to same namespaces */
+bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
+
+/** Returns true if 'namespace' matches 'node's namespace. */
+bool MatchXMLNamespace(const XMLNode& node,const char* uri);
 
 
 } // namespace Arc 

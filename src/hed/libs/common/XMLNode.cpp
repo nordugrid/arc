@@ -47,6 +47,29 @@ bool MatchXMLName(xmlNodePtr node,const char* name) {
   return (ns == (const char*)(ns_->prefix));
 }
 
+bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2) {
+  return MatchXMLNamespace(node1.node_,node2.node_);
+}
+
+bool MatchXMLNamespace(const XMLNode& node,const char* uri) {
+  return MatchXMLNamespace(node.node_,uri);
+}
+
+bool MatchXMLNamespace(xmlNodePtr node1,xmlNodePtr node2) {
+  if(node1->type != node2->type) return false;
+  if((node1->type != XML_ELEMENT_NODE) && (node1->type != XML_ATTRIBUTE_NODE)) return false;
+  xmlNsPtr ns1 = GetNamespace(node1);
+  xmlNsPtr ns2 = GetNamespace(node2);
+  return (ns1 == ns2);
+}
+
+bool MatchXMLNamespace(xmlNodePtr node,const char* uri) {
+  if(uri == NULL) return false;
+  xmlNsPtr ns_ = GetNamespace(node);
+  if((ns_ == NULL) || (ns_->href == NULL)) return false;
+  return (strcmp(uri,(const char*)(ns_->href)) == 0);
+}
+
 XMLNode::XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
   xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
   if(!doc) return;
