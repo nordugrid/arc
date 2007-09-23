@@ -27,7 +27,7 @@
 %typemap(javaclassmodifiers) Arc::MessagePayload "public interface";
 %typemap(javabody) Arc::MessagePayload "";
 %typemap(javafinalize) Arc::MessagePayload "";
-%typemap(javadestruct) Arc::MessagePayload ""; 
+%typemap(javadestruct,methodname="delete") Arc::MessagePayload "";
 
 /*
 %typemap(javaclassmodifiers) Arc::PayloadRawInterface "public interface";
