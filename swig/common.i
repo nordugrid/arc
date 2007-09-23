@@ -1,13 +1,13 @@
 %{
+#include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/XMLNode.h>
 %}
 
-%ignore Arc::Config(char const *);
 %ignore Arc::XMLNode(char const *);
 %ignore Arc::XMLNode::operator [](char const *) const;
 %ignore Arc::XMLNode::operator =(char const *);
+%ignore Arc::Config(char const *);
 %ignore Arc::NewChild(char const *,int,bool);
 %ignore Arc::NewChild(char const *,int);
 %ignore Arc::NewChild(char const *);
@@ -34,6 +34,6 @@
 %rename(toBool) operator bool;
 #endif
 
+%include "../src/hed/libs/common/XMLNode.h"
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/Logger.h"
-%include "../src/hed/libs/common/XMLNode.h"
