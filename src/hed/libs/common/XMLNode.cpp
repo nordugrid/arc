@@ -89,6 +89,8 @@ XMLNode::XMLNode(const char* xml,int len):node_(NULL),is_owner_(false),is_tempor
 XMLNode::XMLNode(const Arc::NS& ns):node_(NULL),is_owner_(false),is_temporary_(false) {
   node_=(xmlNodePtr)xmlNewDoc((const xmlChar*)"1.0");
   if(node_ != NULL) is_owner_=true;
+  // Hack - temporary
+  NewChild("");
   Namespaces(ns);
 }
 
@@ -237,7 +239,14 @@ XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   xmlNodePtr new_node = xmlNewNode(ns,(const xmlChar*)name_);
   if(new_node == NULL) return XMLNode();
   if(node_->type == XML_DOCUMENT_NODE) {
-    if(Child()) { xmlFreeNode(new_node); return XMLNode(); };
+    XMLNode root = Child();
+    if(root) {
+      // Hack - root element must be always present
+      if(root.Name().empty()) {
+        root.Name(name); return root; 
+      };
+      xmlFreeNode(new_node); return XMLNode(); 
+    };
     xmlDocSetRootElement((xmlDocPtr)node_,new_node); 
     return Child();
   };
@@ -256,7 +265,9 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(node.node_ == NULL) return XMLNode();
   if(node.node_->type == XML_DOCUMENT_NODE) {
-    return NewChild(XMLNode(node.node_->children),n,global_order);
+    XMLNode root = node.Child();
+    if(root.Name().empty()) return XMLNode();
+    return NewChild(root,n,global_order);
   };
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
   if(new_node == NULL) return XMLNode();
