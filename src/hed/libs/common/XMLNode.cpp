@@ -266,8 +266,11 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
 void XMLNode::Replace(const XMLNode& node) {
   if(node_ == NULL) return;
   if(node.node_ == NULL) return;
+  if(node_->type == XML_DOCUMENT_NODE) {
+    XMLNode(((xmlDocPtr)node_)->children).Replace(node);
+  };
   if(node.node_->type == XML_DOCUMENT_NODE) {
-    Replace(XMLNode(node.node_->children));
+    Replace(XMLNode(((xmlDocPtr)(node.node_))->children));
     return;
   };
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
