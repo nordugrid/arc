@@ -21,57 +21,6 @@ int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
-
-
-/*
-     Arc::NS ns;
-     Arc::Config c(ns);
-     //Arc::XMLNode c(ns);
-     c.NewChild("ArcConfig");
-     c["ArcConfig"].NewChild("ModuleManager");
-     c["ArcConfig"]["ModuleManager"].NewChild("Path");
-     c["ArcConfig"]["ModuleManager"].NewChild("Path");
-     c["ArcConfig"]["ModuleManager"]["Path"][0] = "../../hed/mcc/tcp/.libs";
-     c["ArcConfig"]["ModuleManager"]["Path"][1] = "../../hed/mcc/http/.libs";
-     c["ArcConfig"].NewChild("Plugins");
-     c["ArcConfig"].NewChild("Plugins");
-     c["ArcConfig"]["Plugins"][0].NewChild("Name");
-     c["ArcConfig"]["Plugins"][0]["Name"] = "mcctcp";
-     c["ArcConfig"]["Plugins"][1].NewChild("Name");
-     c["ArcConfig"]["Plugins"][1]["Name"] = "mcchttp";
-     c["ArcConfig"].NewChild("Chain");
-     c["ArcConfig"]["Chain"].NewChild("Component");
-     c["ArcConfig"]["Chain"].NewChild("Component");
-     c["ArcConfig"]["Chain"]["Component"][0].NewAttribute("name");
-     c["ArcConfig"]["Chain"]["Component"][0].Attribute("name") = "tcp.client";
-     c["ArcConfig"]["Chain"]["Component"][0].NewAttribute("id");
-     c["ArcConfig"]["Chain"]["Component"][0].Attribute("id") = "tcp";
-     c["ArcConfig"]["Chain"]["Component"][0].NewChild("Connect");
-     c["ArcConfig"]["Chain"]["Component"][0]["Connect"].NewChild("Host");
-     c["ArcConfig"]["Chain"]["Component"][0]["Connect"]["Host"] = "http://somehost";
-     c["ArcConfig"]["Chain"]["Component"][0]["Connect"].NewChild("Port");
-     c["ArcConfig"]["Chain"]["Component"][0]["Connect"]["Port"] = "80";
-     c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("name");
-     c["ArcConfig"]["Chain"]["Component"][1].Attribute("name") = "http.client";
-     c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("id");
-     c["ArcConfig"]["Chain"]["Component"][1].Attribute("id") = "http";
-     c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("entry");
-     c["ArcConfig"]["Chain"]["Component"][1].Attribute("entry") = "http";
-     c["ArcConfig"]["Chain"]["Component"][1].NewChild("next");
-     c["ArcConfig"]["Chain"]["Component"][1]["next"].NewAttribute("id");
-     c["ArcConfig"]["Chain"]["Component"][1]["next"].Attribute("id") = "tcp";
-     c["ArcConfig"]["Chain"]["Component"][1].NewChild("Method");
-     c["ArcConfig"]["Chain"]["Component"][1]["Method"] = "GET";
-     c["ArcConfig"]["Chain"]["Component"][1].NewChild("Endpoint");
-     c["ArcConfig"]["Chain"]["Component"][1]["Endpoint"] = "http://somehost/somefile";
-     std::string str;
-     c.GetXML(str);
-     std::cerr<<str<<std::endl;
-     return 0;
-*/
-
-
-
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
