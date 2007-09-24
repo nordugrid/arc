@@ -20,8 +20,10 @@ namespace Arc {
  */
 class Config: public Arc::XMLNode {
     public:
-	/** Dummy constructor - produces empty structure */
+	/** Dummy constructor - produces invalid structure */
         Config() { };
+	/** Creates empty XML tree */
+        Config(const NS& ns): XMLNode(ns) { };
 	/** Loads configuration document from file 'filename' */
         Config(const char *filename);
 	/** Parse configuration document from memory */
