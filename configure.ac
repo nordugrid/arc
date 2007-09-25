@@ -224,6 +224,15 @@ AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
 
+# Setup defines
+if test -n "$GLOBUS_RLS_VERSION"; then
+    AC_DEFINE(HAVE_GLOBUS_RSL,,[define if GLOBUS RSL package is avaialble])
+fi
+if test x"$GSOAP" = xyes; then
+    AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is avaialble])
+fi
+
+
 # Setup messages for reporting
 enable_rls=no
 if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enable_rls=yes; fi
