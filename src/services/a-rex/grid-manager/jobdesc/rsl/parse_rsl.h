@@ -5,8 +5,8 @@
 #include "../../jobs/users.h"
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"
-#include <globus_common.h>
-#include <globus_rsl.h>
+
+typedef struct globus_rsl_t;
 
 class value_for_shell {
  friend std::ostream& operator<<(std::ostream&,const value_for_shell&);
