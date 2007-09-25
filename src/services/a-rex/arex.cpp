@@ -217,7 +217,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           delete inpayload;
           return make_soap_fault(outmsg);
         };
-      } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rw-2")) {
+      } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
         if(out_) {
           *outpayload=*out_;

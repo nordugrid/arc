@@ -16,6 +16,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/StringConv.h>
+#include <arc/XMLNode.h>
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
