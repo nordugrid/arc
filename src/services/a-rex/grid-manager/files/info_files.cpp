@@ -59,8 +59,8 @@ static bool stringtoint(const std::string& s,long long unsigned int& i) {
 #include "info_types.h"
 #include "info_files.h"
 //@ #include <arc/stringconv.h>
-#include <../jobdesc/job_jsdl.h>
-#include <../jobdesc/job_xrsl.h>
+//#include <../jobdesc/job_jsdl.h>
+//#include <../jobdesc/job_xrsl.h>
 //@ #include <arc/certificate.h>
 #include "../conf/conf.h"
 

@@ -20,8 +20,13 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <arc/StringConv.h>
+#include <../jobdesc/job.h>
+#ifdef HAVE_GSOAP
 #include <../jobdesc/job_jsdl.h>
+#endif
+#ifdef HAVE_GLOBUS_RSL
 #include <../jobdesc/job_xrsl.h>
+#endif
 //@ 
 
 #include "info_log.h"
@@ -138,17 +143,19 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   {
   fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
   JobRequest* job = NULL;
-  try {
+#ifdef HAVE_GSOAP
+  if(job == NULL) try {
     std::ifstream i_src(fname_src.c_str());
     job = new JobRequestJSDL(i_src); 
-  } catch (std::exception e) {
-    try {
+  } catch (std::exception e) { };
+#endif
+#ifdef HAVE_GLOBUS_RSL
+  if(job == NULL) try {
       std::ifstream i_src(fname_src.c_str());
       job = new JobRequestXRSL(i_src); 
-    } catch (std::exception e) {
-      goto error;
-    };
-  };
+  } catch (std::exception e) { };
+#endif
+  if(job == NULL) goto error;
   if(job->Memory()>=0) o_dst<<"requestedmemory="<<job->Memory()<<std::endl;
   if(job->CPUTime()>=0) o_dst<<"requestedcputime="<<job->CPUTime()<<std::endl;
   if(job->WallTime()>=0) o_dst<<"requestedwalltime="<<job->WallTime()<<std::endl;
