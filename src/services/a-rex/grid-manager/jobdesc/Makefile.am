@@ -26,8 +26,8 @@ SUBDIRS = $(JSDLDIR) $(RSLDIR)
 
 noinst_LTLIBRARIES = libjobdesc.la
 
-libjobdesc_la_SOURCES=$(RSLSOURCES) $(JSDLSOURCES) job.cpp runtimeenvironment.cpp \
-                      $(RSLHEADERS) $(JSDLHEADERS) job.h   runtimeenvironment.h   error.h
+libjobdesc_la_SOURCES=$(RSLSOURCES) $(JSDLSOURCES) job.cpp runtimeenvironment.cpp jobdesc_util.cpp \
+                      $(RSLHEADERS) $(JSDLHEADERS) job.h   runtimeenvironment.h   jobdesc_util.h   error.h
 #nodist_libjobdesc_la_SOURCES = jsdl_soapClientLib.cpp
 libjobdesc_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_RSL_CFLAGS) -I$(top_srcdir)/include
 libjobdesc_la_LDFLAGS=

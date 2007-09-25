@@ -20,7 +20,7 @@
 //@ #include "../../misc/log_time.h"
 
 // For some constants
-#include "../rsl/parse_rsl.h"
+#include "../jobdesc_util.h"
 #include "../../jobs/users.h"
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"

@@ -6,31 +6,6 @@
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"
 
-typedef struct globus_rsl_t;
-
-class value_for_shell {
- friend std::ostream& operator<<(std::ostream&,const value_for_shell&);
- private:
-  const char* str;
-  bool quote;
- public:
-  value_for_shell(const char *str_,bool quote_):str(str_),quote(quote_) { };
-  value_for_shell(const std::string &str_,bool quote_):str(str_.c_str()),quote(quote_) { };
-};
-std::ostream& operator<<(std::ostream &o,const value_for_shell &s);
-
-class numvalue_for_shell {
- friend std::ostream& operator<<(std::ostream&,const numvalue_for_shell&);
- private:
-  long int n;
- public:
-  numvalue_for_shell(const char *str) { n=0; sscanf(str,"%li",&n); };
-  numvalue_for_shell(int n_) { n=n_; };
-  numvalue_for_shell operator/(int d) { return numvalue_for_shell(n/d); };
-  numvalue_for_shell operator*(int d) { return numvalue_for_shell(n*d); };
-};
-std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s);
-
 bool parse_rsl_for_action(const char* fname,std::string &action_s,std::string &jobid_s,std::string &lrms,std::string &queue);
 bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL);
 bool preprocess_rsl(const std::string &fname,const std::string &session_dir,const std::string &jobid);
@@ -80,8 +55,5 @@ globus_rsl_t* read_rsl(const std::string &fname);
 #define NG_RSL_STDIN_PARAM3       "stdin"
 #define NG_RSL_STDOUT_PARAM       "stdout"
 #define NG_RSL_STDERR_PARAM       "stderr"
-#define NG_RSL_DEFAULT_STDIN      "/dev/null"
-#define NG_RSL_DEFAULT_STDOUT     "/dev/null"
-#define NG_RSL_DEFAULT_STDERR     "/dev/null"
 
 #endif

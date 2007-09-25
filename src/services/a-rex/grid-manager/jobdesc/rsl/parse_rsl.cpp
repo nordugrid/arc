@@ -22,6 +22,7 @@
 //@ #include "../../misc/log_time.h"
 #include "../../conf/environment.h"
 #include "../../run/run_commands.h"
+#include "../jobdesc_util.h"
 #include "subst_rsl.h"
 #include "parse_rsl.h"
 
@@ -253,23 +254,6 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
 /* parse rsl (and local configuration) and write grami file.
    it also returns job local description (for not to parse twice) */
 
-std::ostream& operator<<(std::ostream &o,const value_for_shell &s) {
-  if(s.str == NULL) return o;
-  if(s.quote) o<<"'";
-  const char* p = s.str;
-  for(;;) {
-    char* pp = strchr(p,'\'');
-    if(pp == NULL) { o<<p; if(s.quote) o<<"'"; break; };
-    o.write(p,pp-p); o<<"'\\''"; p=pp+1;
-  };
-  return o;
-}
-
-std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s) {
-  o<<s.n;
-  return o;
-}
-  
 bool write_grami_rsl(const JobDescription &desc,const JobUser &user,const char* opt_add) {
   bool res=false;
   bool use_executable = true;
