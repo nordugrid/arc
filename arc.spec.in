@@ -149,7 +149,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files python
 %defattr(-,root,root,-)
-%{_prefix}/lib/python?.?/site-packages/
+%{_libdir}/python?.?/site-packages/
 
 %if "%{?enable_java:java}"
 %files java
