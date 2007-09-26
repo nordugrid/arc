@@ -1,14 +1,14 @@
-SUBDIRS = grid-manager
+SUBDIRS = grid-manager ldif
 DIST_SUBDIRS = grid-manager ldif
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
 GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la grid-manager/url/liburl.la grid-manager/mail/libmail.la grid-manager/jobdesc/jsdl/libnamespace.la
 
-libarex_la_SOURCES=arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp terminate_activities.cpp get_factory_attributes_document.cpp get.cpp put.cpp arex.h job.h PayloadFile.h
+libarex_la_SOURCES=arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp terminate_activities.cpp get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp arex.h job.h PayloadFile.h
 libarex_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
-libarex_la_LIBADD= $(GRIDMANAGER_LIBS) $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/delegation/libdelegation.la $(top_srcdir)/src/hed/libs/infosys/libinfosys.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libarex_la_LIBADD= $(GRIDMANAGER_LIBS) $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/delegation/libdelegation.la $(top_srcdir)/src/hed/libs/infosys/libinfosys.la $(top_srcdir)/src/hed/libs/common/libarccommon.la ldif/libldif.la
 libarex_la_LDFLAGS=-no-undefined -avoid-version -module
 
 test_SOURCES=test.cpp

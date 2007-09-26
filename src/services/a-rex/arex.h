@@ -38,6 +38,7 @@ class ARexService: public Arc::Service {
   ARexService(Arc::Config *cfg);
   virtual ~ARexService(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
+  void InformationCollector(void);
 };
 
 } // namespace ARex

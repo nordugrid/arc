@@ -14,6 +14,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
+#include <arc/Thread.h>
 #include "job.h"
 
 #include "arex.h"
@@ -279,6 +280,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
   return Arc::MCC_Status();
 }
+
+static void thread_starter(void* arg) {
+  if(!arg) return;
+  ((ARexService*)arg)->InformationCollector();
+}
  
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {
   logger_.addDestination(logcerr);
@@ -298,6 +304,8 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   // Create empty LIDI container
   Arc::XMLNode doc(ns_);
   infodoc_.Assign(doc,true);
+  CreateThreadFunction(&thread_starter,this);
+
 }
 
 ARexService::~ARexService(void) {
