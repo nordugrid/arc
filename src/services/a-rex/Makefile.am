@@ -1,4 +1,5 @@
 SUBDIRS = grid-manager
+DIST_SUBDIRS = grid-manager a-rex
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
