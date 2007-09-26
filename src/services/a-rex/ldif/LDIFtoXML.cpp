@@ -68,11 +68,17 @@ static Arc::XMLNode path_to_XML(const std::list<std::pair<std::string,std::strin
   std::list<std::pair<std::string,std::string> >::const_iterator i = path.begin();
   for(;i!=path.end();++i) {
     Arc::XMLNode n = cur[i->first];
-    if(!n) {
-      n=cur.NewChild(i->first);
-      n.NewAttribute("name")=i->second;
+    Arc::XMLNode nn;
+    for(int num = 0;;++num) {
+      nn=n[num];
+      if(!nn) break;
+      if((std::string)(nn.Attribute("name")) == i->second) break;
     };
-    cur=n;
+    if(!nn) {
+      nn=cur.NewChild(i->first);
+      nn.NewAttribute("name")=i->second;
+    };
+    cur=nn;
   };
   return cur;  
 }
