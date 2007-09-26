@@ -325,6 +325,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/services/a-rex/Makefile
+                 src/services/a-rex/ldif/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/cache/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
