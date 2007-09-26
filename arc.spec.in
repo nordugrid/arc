@@ -9,6 +9,7 @@ URL: http://www.nordugrid.org/
 Source:	%{name}-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #
+BuildRequires: pkgconfig
 BuildRequires: gettext
 BuildRequires: swig
 BuildRequires: python-devel
