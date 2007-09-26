@@ -1,0 +1,52 @@
+dn: nordugrid-cluster-name=grid.uio.no,Mds-Vo-name=local,o=grid
+objectClass: Mds
+objectClass: nordugrid-cluster
+nordugrid-cluster-name: grid.uio.no
+nordugrid-cluster-aliasname: EPF (UiO/FI)
+nordugrid-cluster-owner: University of Oslo
+Mds-validfrom: 20070925162548Z
+Mds-validto: 20070925162618Z
+
+dn: nordugrid-queue-name=bigmem,nordugrid-cluster-name=grid.uio.no,Mds-Vo-name=local,o=grid
+objectClass: Mds
+objectClass: nordugrid-queue
+nordugrid-queue-name: bigmem
+nordugrid-queue-status: active
+nordugrid-queue-homogeneity: TRUE
+nordugrid-queue-nodecpu: Intel(R) Pentium(R) D CPU @ 3000 MHz
+Mds-validfrom: 20070925162548Z
+Mds-validto: 20070925162618Z
+
+dn: nordugrid-info-group-name=jobs, nordugrid-queue-name=bigmem,nordugrid-cluster-name=grid.uio.no,Mds-Vo-name=local,o=grid
+objectClass: Mds
+objectClass: nordugrid-info-group
+nordugrid-info-group-name: jobs
+Mds-validfrom: 20070925162548Z
+Mds-validto: 20070925162618Z
+
+dn: nordugrid-job-globalid=gsiftp://grid.uio.no:2811/jobs/2288011907374131619643632, nordugrid-info-group-name=jobs, nordugrid-queue-name=bigmem,nordugrid-cluster-name=grid.uio.no,Mds-Vo-name=local,o=grid
+objectClass: Mds
+objectClass: nordugrid-job
+nordugrid-job-globalid: gsiftp://grid.uio.no:2811/jobs/2288011907374131619643632
+nordugrid-job-globalowner: /C=CH/O=Universite de Geneve/CN=Xin Zhou/emailAddress=xin.zhou@medecine.unige.ch
+nordugrid-job-jobname: geneva-gift0
+nordugrid-job-execcluster: grid.uio.no
+nordugrid-job-execqueue: bigmem
+nordugrid-job-status: FINISHED
+Mds-validfrom: 20070925162548Z
+Mds-validto: 20070925162618Z
+
+dn: nordugrid-authuser-name=Marko Niinimaki...15, nordugrid-info-group-name=users, nordugrid-queue-name=smallmem,nordugrid-cluster-name=grid.uio.no,Mds-Vo-name=local,o=grid
+objectClass: Mds
+objectClass: nordugrid-authuser
+nordugrid-authuser-name: Marko Niinimaki...15
+nordugrid-authuser-sn: /O=Grid/O=NorduGrid/OU=hip.fi/CN=Marko Niinimaki
+nordugrid-authuser-freecpus: 4
+nordugrid-authuser-diskspace: 22211
+nordugrid-authuser-queuelength: 0
+Mds-validfrom: 20070925162548Z
+Mds-validto: 20070925162618Z
+
+dn: Mds-Vo-name=local,o=grid
+objectClass: GlobusStub
+
