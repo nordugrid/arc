@@ -122,6 +122,16 @@ DelegationConsumer::~DelegationConsumer(void) {
   if(key_) RSA_free((RSA*)key_);
 }
  
+#ifdef HAVE_OPENSSL_OLDRSA
+static void progress_cb(int p, int n, void *cb) {
+  char c='*';
+  if (p == 0) c='.';
+  if (p == 1) c='+';
+  if (p == 2) c='*';
+  if (p == 3) c='\n';
+  std::cerr<<c;
+}
+#else
 static int progress_cb(int p, int n, BN_GENCB *cb) {
   char c='*';
   if (p == 0) c='.';
@@ -131,6 +141,7 @@ static int progress_cb(int p, int n, BN_GENCB *cb) {
   std::cerr<<c;
   return 1;
 }
+#endif
 
 static int ssl_err_cb(const char *str, size_t len, void *u) {
   std::string& ssl_err = *((std::string*)u);
@@ -187,8 +198,20 @@ bool DelegationConsumer::Restore(const std::string& content) {
 
 bool DelegationConsumer::Generate(void) {
   bool res = false;
-  BN_GENCB cb;
   int num = 1024;
+#ifdef HAVE_OPENSSL_OLDRSA
+  unsigned long bn = RSA_F4;
+  RSA *rsa=RSA_generate_key(num,bn,&progress_cb,NULL);
+  if(rsa) {
+    if(key_) RSA_free((RSA*)key_);
+    key_=rsa; rsa=NULL; res=true;
+  } else {
+    LogError();
+    std::cerr<<"RSA_generate_key failed"<<std::endl;
+  };
+  if(rsa) RSA_free(rsa);
+#else
+  BN_GENCB cb;
   BIGNUM *bn = BN_new();
   RSA *rsa = RSA_new();
 
@@ -212,6 +235,7 @@ bool DelegationConsumer::Generate(void) {
   };
   if(bn) BN_free(bn);
   if(rsa) RSA_free(rsa);
+#endif
   return res;
 }
 
@@ -220,8 +244,6 @@ bool DelegationConsumer::Request(std::string& content) {
   content.resize(0);
   EVP_PKEY *pkey = EVP_PKEY_new();
   const EVP_MD *digest = EVP_md5();
-  BN_GENCB cb;
-  BN_GENCB_set(&cb,&progress_cb,NULL);
   if(pkey) {
     RSA *rsa = (RSA*)key_;
     if(rsa) {
@@ -351,6 +373,7 @@ DelegationProvider::~DelegationProvider(void) {
 }
 
 std::string DelegationProvider::Delegate(const std::string& request) {
+#ifdef HAVE_OPENSSL_PROXY
   X509 *cert = NULL;
   X509_REQ *req = NULL;
   BIO* in = NULL;
@@ -528,6 +551,9 @@ err:
   if(obj) ASN1_OBJECT_free(obj);
   if(subject) X509_NAME_free(subject);
   return res;
+#else
+  return "";
+#endif
 }
 
 void DelegationProvider::LogError(void) {
