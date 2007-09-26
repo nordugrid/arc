@@ -161,6 +161,19 @@ AC_SUBST(LIBXML2_LIBS)
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
+OPENSSL_PROXY=no
+"$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
+if test "$?" = '0' ; then
+	OPENSSL_PROXY=yes
+        AC_MSG_NOTICE([Found OpenSSL with PROXY support])
+else
+        AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
+fi
+OPENSSL_OLDRSA=yes
+"$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
+if test "$?" = '0' ; then
+	OPENSSL_OLDRSA=no
+fi
 # check gSOAP
 PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [GSOAP=yes], [GSOAP=no])
 AC_SUBST(GSOAP_CFLAGS)
@@ -223,6 +236,7 @@ AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
+AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 
 # Setup defines
 if test -n "$GLOBUS_RLS_VERSION"; then
@@ -231,7 +245,12 @@ fi
 if test x"$GSOAP" = xyes; then
     AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is avaialble])
 fi
-
+if test x"$OPENSSL_PROXY" = xyes; then
+    AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
+fi
+if test x"$OPENSSL_OLDRSA" = xyes; then
+    AC_DEFINE(HAVE_OPENSSL_OLDRSA,,[define if OPENSSL has old RSA generation interface])
+fi
 
 # Setup messages for reporting
 enable_rls=no
