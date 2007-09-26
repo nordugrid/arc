@@ -38,7 +38,7 @@ AC_CHECK_PROGS(JAVAC, javac gcj ecj)
 AC_CHECK_PROGS(JAR, fastjar jar)
 
 JAVAC_FLAGS=
-if test "X`basename $JAVAC`" = "Xgcj"; then
+if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
     JAVAC_FLAGS=-C
 fi
 
