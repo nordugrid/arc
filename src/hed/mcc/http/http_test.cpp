@@ -1,76 +1,89 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include <string>
-#include <list>
-#include <map>
-#include <iostream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
-#include "../../mcc/tcp/PayloadTCPSocket.h"
-#include "PayloadHTTP.h"
-#include <arc/message/PayloadSOAP.h>
-#include <arc/Logger.h>
+#include <string>
+#include <iostream>
+
+#include <arc/loader/Loader.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/ArcConfig.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
 
 void test1(void) {
-  std::cout<<std::endl;
-  std::cout<<"------- Testing simple file download ------"<<std::endl;
-  Arc::PayloadTCPSocket socket("grid.uio.no",80,Arc::Logger::rootLogger);
-  Arc::PayloadHTTP request("GET","/index.html",socket);
-  if(!request.Flush()) {
-    std::cout<<"Failed to send HTTP request"<<std::endl;
-    return;
-  };
-  Arc::PayloadHTTP response(socket);
-  std::cout<<"*** RESPONSE ***"<<std::endl;
-  for(int n = 0;n<response.Size();++n) std::cout<<response[n];
-  std::cout<<std::endl;
-}
+  std::cout<<"------ Testing simple file download ------"<<std::endl;
 
-void test2(void) {
-  std::cout<<std::endl;
-  std::cout<<"------- Testing Google Web Service ------"<<std::endl;
-  Arc::PayloadTCPSocket socket("api.google.com",80,Arc::Logger::rootLogger);
-  Arc::PayloadHTTP request("POST","http://api.google.com/search/beta2",socket);
+  Arc::URL url("http://grid.uio.no/index.html");
+
   Arc::NS ns;
-  ns["google"]="urn:GoogleSearch";
-  Arc::SOAPEnvelope soap_req(ns);
-  std::string xml;
-  soap_req.GetXML(xml);
-  request.Insert(xml.c_str());
-  std::cout<<"*** REQUEST ***"<<std::endl;
-  std::cout<<xml<<std::endl;
-  if(!request.Flush()) {
-    std::cout<<"Failed to send HTTP request"<<std::endl;
-    return;
-  };
-  Arc::PayloadHTTP response(socket);
-  Arc::PayloadSOAP soap_resp(response);
-  soap_resp.GetXML(xml);
+  Arc::Config c(ns);
+  Arc::XMLNode cfg = c.NewChild("ArcConfig");
+  Arc::XMLNode mgr = cfg.NewChild("ModuleManager");
+  Arc::XMLNode pth1 = mgr.NewChild("Path");
+  pth1 = "../tcp/.libs";
+  Arc::XMLNode pth2 = mgr.NewChild("Path");
+  pth2 = ".libs";
+  Arc::XMLNode plg1 = cfg.NewChild("Plugins");
+  Arc::XMLNode mcctcp = plg1.NewChild("Name");
+  mcctcp = "mcctcp";
+  Arc::XMLNode plg2 = cfg.NewChild("Plugins");
+  Arc::XMLNode mcchttp = plg2.NewChild("Name");
+  mcchttp = "mcchttp";
+  Arc::XMLNode chn = cfg.NewChild("Chain");
+
+  Arc::XMLNode tcp = chn.NewChild("Component");
+  Arc::XMLNode tcpname = tcp.NewAttribute("name");
+  tcpname = "tcp.client";
+  Arc::XMLNode tcpid = tcp.NewAttribute("id");
+  tcpid = "tcp";
+  Arc::XMLNode tcpcnt = tcp.NewChild("Connect");
+  Arc::XMLNode tcphost = tcpcnt.NewChild("Host");
+  tcphost = url.Host();
+  Arc::XMLNode tcpport = tcpcnt.NewChild("Port");
+  tcpport = Arc::tostring(url.Port());
+
+  Arc::XMLNode http = chn.NewChild("Component");
+  Arc::XMLNode httpname = http.NewAttribute("name");
+  httpname = "http.client";
+  Arc::XMLNode httpid = http.NewAttribute("id");
+  httpid = "http";
+  Arc::XMLNode httpentry = http.NewAttribute("entry");
+  httpentry = "http";
+  Arc::XMLNode httpnext = http.NewChild("next");
+  Arc::XMLNode httpnextid = httpnext.NewAttribute("id");
+  httpnextid = "tcp";
+  Arc::XMLNode httpmeth = http.NewChild("Method");
+  httpmeth = "GET";
+  Arc::XMLNode httpep = http.NewChild("Endpoint");
+  httpep = url.str();
+
+  std::cout<<"------ Configureation ------"<<std::endl;
+  std::string cfgstr;
+  c.GetXML(cfgstr);
+  std::cerr << cfgstr << std::endl;
+
+  Arc::Loader l(&c);
+
+  Arc::Message request;
+  Arc::PayloadRaw msg;
+  Arc::MessageAttributes attributes;
+  Arc::MessageContext context;
+  request.Payload(&msg);
+  request.Attributes(&attributes);
+  request.Context(&context);
+  Arc::Message response;
+
+  l["http"]->process(request,response);
+
   std::cout<<"*** RESPONSE ***"<<std::endl;
-  std::cout<<xml<<std::endl;
-  if(soap_resp.IsFault()) {
-    Arc::SOAPFault& fault = *soap_resp.Fault();
-    std::cout<<"Fault code: "<<fault.Code()<<std::endl;
-    for(int n = 0;;++n) {
-      std::string subcode = fault.Subcode(n);
-      if(subcode.empty()) break;
-      std::cout<<"Fault subcode "<<n<<": "<<subcode<<std::endl;
-    };
-    for(int n = 0;;++n) {
-      std::string reason = fault.Reason(n);
-      if(reason.empty()) break;
-      std::cout<<"Fault reason "<<n<<": "<<reason<<std::endl;
-    };
-    std::cout<<"Fault node: "<<fault.Node()<<std::endl;
-    std::cout<<"Fault role: "<<fault.Role()<<std::endl;
-  };
+  Arc::PayloadRaw& payload =
+    dynamic_cast<Arc::PayloadRaw&>(*response.Payload());
+  for(int n = 0;n<payload.Size();++n) std::cout<<payload[n];
+  std::cout<<std::endl;
 }
 
 int main(void) {
   test1();
-//  test2();
   return 0;
 }
