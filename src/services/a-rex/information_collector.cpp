@@ -104,12 +104,12 @@ void ARexService::InformationCollector(void) {
     std::istringstream ldif(s);
     // Convert result to XML
     Arc::NS ns;
-    Arc::XMLNode xml(ns);
     ns["n"]="urn:nordugrid";
-    xml.NewChild("n:nordugrid");
-    if(LDIFtoXML(ldif,"Mds-Vo-name=local,o=Grid",xml)) {
+    Arc::XMLNode xml(ns);
+    Arc::XMLNode root = xml.NewChild("n:nordugrid");
+    if(LDIFtoXML(ldif,"Mds-Vo-name=local,o=Grid",root)) {
       // Put result into container
-      infodoc_.Assign(xml.Child());
+      infodoc_.Assign(root);
 std::cerr<<"Assigned new informational document"<<std::endl;
     } else {
 std::cerr<<"Failed to create informational document"<<std::endl;
