@@ -231,7 +231,11 @@ XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   xmlNsPtr ns = NULL;
   if(name_ != NULL) {
     std::string ns_(name,name_-name);
-    ns=xmlSearchNs(node_->doc,node_,(const xmlChar*)(ns_.c_str()));
+    if(node_->type == XML_DOCUMENT_NODE) {
+      ns=xmlSearchNs((xmlDocPtr)node_,node_->children,(const xmlChar*)(ns_.c_str()));
+    } else {
+      ns=xmlSearchNs(node_->doc,node_,(const xmlChar*)(ns_.c_str()));
+    };
     ++name_;
   } else {
     name_=name;
@@ -265,10 +269,9 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(node.node_ == NULL) return XMLNode();
   if(node.node_->type == XML_DOCUMENT_NODE) {
-    XMLNode root = node.Child();
-    if(root.Name().empty()) return XMLNode();
-    return NewChild(root,n,global_order);
+    return NewChild(node.Child(),n,global_order);
   };
+  if(node.Name().empty()) return XMLNode();
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
   if(new_node == NULL) return XMLNode();
   return XMLNode(xmlAddChild(node_,new_node));
