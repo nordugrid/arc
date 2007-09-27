@@ -37,9 +37,10 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="arcservice_pythonwrapper">/Echo</next>
+            <next id="echo">/Echo</next>
         </Plexer>
-        <Service name="arcservice_pythonwrapper" id="arcservice_pythonwrapper">
+        <Service name="arcservice_pythonwrapper" id="echo">
+            <ClassName>EchoService</ClassName>
             <!-- <SecHandler name="simplelist.authz" id="authz" event="incoming">
                 <PDP name="simplelist.pdp" type="plaintxt" location="../../tests/echo/accesslist"/>
             </SecHandler> -->

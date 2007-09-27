@@ -37,9 +37,11 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="arcservice_javawrapper">/Echo</next>
+            <next id="echo">/Echo</next>
         </Plexer>
-        <Service name="arcservice_javawrapper" id="arcservice_javawrapper">
+        <Service name="arcservice_javawrapper" id="echo">
+            <ClassPath>.:/home/szferi/arc1/src/services/echo_java/:/home/szferi/arc1/java/arc.jar</ClassPath>
+            <ClassName>EchoService</ClassName>
             <!-- <SecHandler name="simplelist.authz" id="authz" event="incoming">
                 <PDP name="simplelist.pdp" type="plaintxt" location="../../tests/echo/accesslist"/>
             </SecHandler> -->
