@@ -57,11 +57,11 @@ void GUID(std::string& guid) {
     if (host != NULL) {
 #else 
  #if defined(_AIX)
-    char   buf[BUFSIZ];
-    if(gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),&host,&errcode) == 0) {
- #else
     struct hostent_data buf[BUFSIZ];
     if((errcode=gethostbyname_r(hostname,(host=&hostbuf),buf)) == 0) {
+ #else
+    char   buf[BUFSIZ];
+    if(gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),&host,&errcode) == 0) {
  #endif
 #endif
       if(host->h_length >= sizeof(struct in_addr)) {
