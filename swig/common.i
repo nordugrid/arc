@@ -3,37 +3,37 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 %}
-
-%ignore Arc::XMLNode(char const *);
-%ignore Arc::XMLNode::operator [](char const *) const;
-%ignore Arc::XMLNode::operator =(char const *);
-%ignore Arc::Config(char const *);
-%ignore Arc::NewChild(char const *,int,bool);
-%ignore Arc::NewChild(char const *,int);
-%ignore Arc::NewChild(char const *);
-
 %template(NS) std::map<std::string, std::string>;
 
 #ifdef SWIGJAVA
-%rename(not_equal) operator !;
-/* %rename(Get) operator []; */
+%ignore Arc::MatchXMLName(const XMLNode& node1,const XMLNode& node2);
+%ignore Arc::MatchXMLName(const XMLNode& node,const char* name);
+%ignore XMLNode(const char* xml,int len = -1);
+%ignore Name(const char *name);
+%ignore NewAttribute(const char *);
+%ignore NewChild(const char *);
+%ignore NewChild(const char *, int);
+%ignore NewChild(const char *, int, bool);
+%ignore Config(const char *);
+%ignore operator !;
+%ignore operator [];
+%ignore operator =;
+%ignore operator <<;
+%ignore operator ++;
 %rename(toString) operator std::string;
-/* %rename(equal) operator =; */
-/* %rename(Set) Arc::XMLNode::operator =; */
 %rename(toBool) operator bool;
 #endif
-
 #ifdef SWIGPYTHON
-%ignore Arc::XMLNode::operator [](const std::string&) const;
-%ignore Arc::XMLNode::operator [](int) const;
-%rename(__ne__) operator !;
-/* %rename(__getitem__) operator[];  */
-%rename(__str__) operator std::string;
-/* %rename(Set) Arc::XMLNode::operator =; */
-/* %rename(__eq__) operator =; */
+%ignore operator !;
+%ignore operator [];
+%ignore operator =;
+%ignore operator ++;
+%ignore operator <<;
 %rename(toBool) operator bool;
+%rename(__str__) operator std::string;
 #endif
 
+%include "../src/hed/libs/common/XMLNode.h"
 %include "../src/hed/libs/common/XMLNode.h"
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/Logger.h"

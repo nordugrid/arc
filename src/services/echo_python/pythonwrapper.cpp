@@ -1,5 +1,5 @@
 // based on: http://www.codeproject.com/cpp/embedpython_1.asp
-#ifdef HAVE_CONFIG
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
@@ -8,6 +8,56 @@
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
 #include "pythonwrapper.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* SWIG Specific object SHOULD BE SYNC WITH generated SWIG CODE */
+typedef void *(*swig_converter_func)(void *);
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
+
+typedef struct swig_type_info {
+  const char             *name;			/* mangled name of this type */
+  const char             *str;			/* human readable name of this type */
+  swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
+  struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
+  void                   *clientdata;		/* language specific type data */
+  int                    owndata;		/* flag if the structure owns the clientdata */
+} swig_type_info;
+
+/* Structure to store a type and conversion function used for casting */
+typedef struct swig_cast_info {
+  swig_type_info         *type;			/* pointer to type that is equivalent to this type */
+  swig_converter_func     converter;		/* function to cast the void pointers */
+  struct swig_cast_info  *next;			/* pointer to next cast in linked list */
+  struct swig_cast_info  *prev;			/* pointer to the previous cast */
+} swig_cast_info;
+
+typedef struct {
+  PyObject_HEAD
+  void *ptr;
+  swig_type_info *ty;
+  int own;
+  PyObject *next;
+} PySwigObject;
+
+#ifdef __cplusplus
+}
+#endif
+
+void *extract_swig_wrappered_pointer(PyObject *obj)
+{
+    char this_str[] = "this";
+    if (!PyObject_HasAttrString(obj, this_str)) {
+        return NULL;
+    }
+    PyObject *thisAttr = PyObject_GetAttrString(obj, this_str);
+    if (thisAttr == NULL) {
+        return NULL;
+    }
+    return (((PySwigObject *)thisAttr)->ptr);
+}
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new Arc::Service_PythonWrapper(cfg);
@@ -27,10 +77,13 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *module_name = NULL;
     PyObject *dict = NULL;
     
+    std::string class_name = (std::string)(*cfg)["ClassName"];
+    logger.msg(Arc::DEBUG, "class name: %s\n", class_name.c_str());
+    
     // Initialize the Python Interpreter
     Py_Initialize();
     // Convert module name to Python string
-    module_name = PyString_FromString("EchoService");
+    module_name = PyString_FromString(class_name.c_str());
     if (module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert module name to Python string");
         if (PyErr_Occurred() != NULL) {
@@ -62,7 +115,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     }
     
     // Get the class 
-    klass = PyDict_GetItemString(dict, "EchoService");
+    klass = PyDict_GetItemString(dict, class_name.c_str());
     if (klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find service class");
         if (PyErr_Occurred() != NULL) {
@@ -83,7 +136,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
             return;
         }
     } else {
-        logger.msg(Arc::ERROR, "%s is not an object", "EchoService");
+        logger.msg(Arc::ERROR, "%s is not an object", class_name.c_str());
         return;
     }
 
@@ -166,8 +219,6 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     PyObject *py_status = NULL;
     PyObject *py_inmsg = NULL;
     PyObject *py_outmsg = NULL;
-    PyObject *inmsg_addr = NULL;
-    PyObject *outmsg_addr = NULL;
     PyObject *arg = NULL;
 
     logger.msg(Arc::DEBUG, "Python wrapper process called");
@@ -187,34 +238,13 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         return make_fault(outmsg);
     };
 
-    // Convert address of C++ class to Python object 
-    inmsg_addr = PyLong_FromVoidPtr(inmsg_ptr);
-    if (inmsg_addr == NULL) {
-        logger.msg(Arc::ERROR, "Cannot convert inmsg to address");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
-    }
-
-    outmsg_addr = PyLong_FromVoidPtr(outmsg_ptr);
-    if (outmsg_addr == NULL) {
-        logger.msg(Arc::ERROR, "Cannot convert outmsg to address");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
-        Py_DECREF(inmsg_addr);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
-    }
     // Convert incomming and outcoming messages to python objects
-    arg = Py_BuildValue("(I)", inmsg_addr);
+    arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(inmsg_addr);
-        Py_DECREF(outmsg_addr);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
 
@@ -224,21 +254,17 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(inmsg_addr);
-        Py_DECREF(outmsg_addr);
         Py_DECREF(arg);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
-    Py_DECREF(inmsg_addr);
     Py_DECREF(arg);
 
-    arg = Py_BuildValue("(I)", outmsg_addr);
+    arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(outmsg_addr);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
     py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
@@ -247,11 +273,9 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(outmsg_addr);
         Py_DECREF(arg);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
-    Py_DECREF(outmsg_addr);
     Py_DECREF(arg);
     
     // Call the process method
@@ -263,7 +287,23 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         }
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
-    return Arc::MCC_Status();
+    
+    MCC_Status *status_ptr2 = (MCC_Status *)extract_swig_wrappered_pointer(py_status);
+    Arc::MCC_Status status(*status_ptr2);
+    std::string str = (std::string)status;
+    std::cout << "status: " << str << std::endl;   
+    SOAPMessage *outmsg_ptr2 = (SOAPMessage *)extract_swig_wrappered_pointer(py_outmsg);
+    std::string xml;
+    PayloadSOAP *p = outmsg_ptr2->Payload();
+    p->GetXML(xml);
+    std::cout << "XML: " << xml << std::endl; 
+
+    Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
+    // pl->GetXML(xml);   
+    
+    outmsg.Payload((MessagePayload *)pl);
+
+    return status;
 }
 
 } // namespace Arc

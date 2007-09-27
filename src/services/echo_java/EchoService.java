@@ -1,4 +1,4 @@
-import org.nordugrid.arc.*;
+import nordugrid.arc.*;
 
 public class EchoService {
     // private NS ns_;
