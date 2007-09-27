@@ -44,14 +44,14 @@ fi
 
 JDK_INCLUDE=$with_jdk
 # XXX: temporaly solution
-#JDK_LDFLAGS="-L$with_jdk/jre/lib/i386/server/ -ljvm"
+JDK_LDFLAGS="-L$with_jdk/jre/lib/i386/server/ -ljvm"
 if test "X$JAVAC" != "X"; then
     if test "X$JDK_INCLUDE" == "X"; then
         JDK_INCLUDE=`which $JAVAC`
         JDK_INCLUDE=`dirname $JDK_INCLUDE`
         JDK_INCLUDE=`dirname $JDK_INCLUDE`
         # XXX: temporaly solution
-#        JDK_LDFLAGS="-L$JDK_INCLUDE/jre/lib/i386/server/ -ljvm"
+        JDK_LDFLAGS="-L$JDK_INCLUDE/jre/lib/i386/server/ -ljvm"
     fi
 
     if test "x$JDK_INCLUDE" = "x/" || test "x$JDK_INCLUDE" = "x/usr"; then
@@ -363,6 +363,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
+                 src/tests/xpath/Makefile
                  swig/Makefile
                  java/Makefile
                  python/Makefile
