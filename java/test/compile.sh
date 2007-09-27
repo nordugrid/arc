@@ -1,1 +1,1 @@
-javac -verbose -classpath ../arc.jar test.java
+javac -verbose -g -classpath ../arc.jar test.java
