@@ -15,6 +15,8 @@
 #include <process.h>
 #endif
 
+#undef rootLogger
+
 namespace Arc {
 
   std::ostream& operator<<(std::ostream& os, LogLevel level) {
@@ -145,7 +147,16 @@ namespace Arc {
     exit(EXIT_FAILURE);
   }
 
-  Logger Logger::rootLogger;
+  Logger* Logger::rootLogger = NULL;
+  unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
+
+  Logger& Logger::getRootLogger(void) {
+    if((rootLogger == NULL) || (rootLoggerMark != rootLoggerMagic)) {
+      rootLogger = new Logger();
+      rootLoggerMark = rootLoggerMagic;
+    }
+    return *rootLogger;
+  }
 
   // LogStream Logger::cerr(std::cerr);
 

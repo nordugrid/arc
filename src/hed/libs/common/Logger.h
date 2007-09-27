@@ -256,7 +256,8 @@ namespace Arc {
     /*! This is the root Logger. It is an ancestor of any other Logger
       and allways exists.
      */
-    static Logger rootLogger;
+    //static Logger rootLogger;
+    static Logger& getRootLogger();
 
     //! Creates a logger.
     /*! Creates a logger. The threshold is inherited from its parent
@@ -366,6 +367,9 @@ namespace Arc {
     //! The threshold of this Logger.
     LogLevel threshold;
 
+#define rootLoggerMagic (0xF6569201)
+    static Logger* rootLogger;
+    static unsigned int rootLoggerMark;
   };
 
 }
@@ -384,5 +388,7 @@ namespace Arc {
 #define MSG(logger, level, message) {			\
     if(level >= logger.getThreshold())			\
       logger.msg(Arc::LogMessage(level, message));}
+
+#define rootLogger getRootLogger()
 
 #endif
