@@ -1,6 +1,5 @@
 #!/bin/sh
-ROOT=/home/szferi/Projects/knowarc/arc1
-export LDLIBRARY_PATH=$ROOT/src/libs/common/.libs/:$ROOT/src/libs/data/.libs/:$ROOT/src/hed/libs/loader/.libs/:$ROOT/src/hed/libs/message/.libs/
-export PYTHONPATH=$ROOT/python:$ROOT/python/.libs
-# gdb /usr/bin/python
-python test.py
+export LDLIBRARY_PATH=/home/szferi/arc1/src/hed/libs/common/.libs/:/home/szferi/arc1/src/hed/libs/data/.libs/:/home/szferi1/arc1/src/hed/libs/loader/.libs/:/home/szferi/arc1/src/hed/libs/message/.libs/
+export PYTHONPATH=/home/szferi/arc1/python:/home/szferi/arc1/python/.libs
+#gdb /usr/bin/python
+ python test.py
