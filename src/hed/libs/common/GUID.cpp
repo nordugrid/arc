@@ -52,12 +52,17 @@ void GUID(std::string& guid) {
     struct hostent* host;
     struct hostent  hostbuf;
     int    errcode;
-#ifndef _AIX
+#ifndef HAVE_GETHOSTBYNAME_R
+    host = gethostbyname(hostname);
+    if (host != NULL) {
+#else 
+ #if defined(_AIX)
     char   buf[BUFSIZ];
     if(gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),&host,&errcode) == 0) {
-#else
+ #else
     struct hostent_data buf[BUFSIZ];
     if((errcode=gethostbyname_r(hostname,(host=&hostbuf),buf)) == 0) {
+ #endif
 #endif
       if(host->h_length >= sizeof(struct in_addr)) {
         struct in_addr** addr = (struct in_addr**)host->h_addr_list;
