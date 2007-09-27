@@ -8,6 +8,9 @@
 
 namespace Arc {
 
+typedef std::list<void*> identifier_list_t;
+static identifier_list_t id_list;
+
 ClassLoader::ClassLoader(Config * cfg) : ModuleManager(cfg){
   if(cfg!=NULL)
     load_all_instances(cfg); 

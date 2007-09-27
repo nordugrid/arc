@@ -15,8 +15,6 @@ typedef struct {
 
 typedef loader_descriptor loader_descriptors[];
 
-typedef std::list<void*> identifier_list_t;
-identifier_list_t id_list;
 
 namespace Arc{
 
