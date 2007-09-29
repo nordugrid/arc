@@ -14,7 +14,9 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     Glib::OptionEntry entry1;
     entry1.set_long_name("foreground");
     entry1.set_short_name('f');
+#ifdef HAVE_GLIBMM_OPTIONFLAGS
     entry1.set_flags(Glib::OptionEntry::FLAG_NO_ARG | Glib::OptionEntry::FLAG_OPTIONAL_ARG);
+#endif
     entry1.set_description("run daemon in foreground");
     add_entry(entry1, foreground);
     
@@ -22,7 +24,9 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     Glib::OptionEntry entry2;
     entry2.set_long_name("config");
     entry2.set_short_name('c');
+#ifdef HAVE_GLIBMM_OPTIONFLAGS
     entry2.set_flags(Glib::OptionEntry::FLAG_FILENAME);
+#endif
     entry2.set_description("full path of config file");
     add_entry_filename(entry2, config_file);
     
@@ -30,7 +34,9 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     Glib::OptionEntry entry3;
     entry3.set_long_name("pid-file");
     entry3.set_short_name('p');
+#ifdef HAVE_GLIBMM_OPTIONFLAGS
     entry3.set_flags(Glib::OptionEntry::FLAG_FILENAME);
+#endif
     entry3.set_description("full path of pid file");
     add_entry_filename(entry3, pid_file);
 }
