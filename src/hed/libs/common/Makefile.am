@@ -1,8 +1,8 @@
 lib_LTLIBRARIES = libarccommon.la
 libarccommon_ladir=$(pkgincludedir)
-libarccommon_la_HEADERS=ArcConfig.h   XMLNode.h   Thread.h   BasicDT.h   DateTime.h   URL.h   StringConv.h   Logger.h   ArcRegex.h   GUID.h
-libarccommon_la_SOURCES=ArcConfig.cpp XMLNode.cpp Thread.cpp BasicDT.cpp DateTime.cpp URL.cpp StringConv.cpp Logger.cpp ArcRegex.cpp GUID.cpp
-libarccommon_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libarccommon_la_HEADERS=Logger.h   ArcConfig.h   XMLNode.h   Thread.h   BasicDT.h   DateTime.h   URL.h   StringConv.h   ArcRegex.h   GUID.h
+libarccommon_la_SOURCES=Logger.cpp ArcConfig.cpp XMLNode.cpp Thread.cpp BasicDT.cpp DateTime.cpp URL.cpp StringConv.cpp ArcRegex.cpp GUID.cpp
+libarccommon_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 libarccommon_la_LDFLAGS=$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
 
 noinst_PROGRAMS = DTtest testxpath
