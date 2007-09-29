@@ -63,7 +63,7 @@ struct tm* gmtime_r(const time_t *timep, struct tm *result) {
 
 namespace Arc {
 
-  static Logger dateTimeLogger(Logger::rootLogger, "DateTime");
+  static Logger dateTimeLogger(Logger::getRootLogger(), "DateTime");
 
 
   TimeFormat Time::time_format = UserTime;

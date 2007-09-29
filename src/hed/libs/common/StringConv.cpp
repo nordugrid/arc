@@ -6,6 +6,6 @@
 
 namespace Arc {
 
-  Logger stringLogger(Logger::rootLogger, "StringConv");
+  Logger stringLogger(Logger::getRootLogger(), "StringConv");
 
 } // namespace Arc

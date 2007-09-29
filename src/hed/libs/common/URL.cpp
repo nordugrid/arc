@@ -8,7 +8,7 @@
 
 namespace Arc {
 
-  static Logger URLLogger(Logger::rootLogger, "URL");
+  static Logger URLLogger(Logger::getRootLogger(), "URL");
 
   static std::map<std::string, std::string>
   ParseOptions (const std::string& optstring, char separator) {

@@ -10,7 +10,7 @@
 int main(void)
 {  
    Arc::LogStream cerr(std::cerr);
-   Arc::Logger::rootLogger.addDestination(cerr);
+   Arc::Logger::getRootLogger().addDestination(cerr);
 
   //Test class DateTime
    Arc::Time now;

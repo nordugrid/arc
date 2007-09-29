@@ -7,7 +7,7 @@
 
 namespace Arc {
 
-  static Logger threadLogger(Logger::rootLogger, "Thread");
+static Logger threadLogger(Logger::getRootLogger(), "Thread");
 
 class ThreadInitializer {
 public:
@@ -26,6 +26,9 @@ class ThreadArgument {
         void thread(void) { (*func)(arg); delete this; };
 };
 
+// TODO: do something to make sure this static object is 
+// initialized before any other static object which uses 
+// mutexes, semaphors, etc.
 static ThreadInitializer thread_initializer;
 
 bool CreateThreadFunction(void (*func)(void*), void* arg) {
