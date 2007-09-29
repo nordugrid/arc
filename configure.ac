@@ -148,11 +148,19 @@ AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 CXXFLAGS="$CXXFLAGS $GLIBMM_CFLAGS"
 AC_TRY_COMPILE([#include <glibmm/optiongroup.h>],[],[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
-AC_LANG_RESTORE
-CXXFLAGS=$SAVE_CXXFLAGS
 if test "$glibmm_optiongroup_h" = yes; then
   AC_DEFINE(HAVE_GLIBMM_OPTIONS,,[define if glibmm have support for command line arguments])
+  AC_TRY_COMPILE([#include <glibmm.h>],[Glib::OptionEntry::Flags flags = Glib::OptionEntry::FLAG_NO_ARG;],[glibmm_optionflags=yes],[glibmm_optionflags=no])
+  if test "$glibmm_optionflags" = yes; then
+    AC_DEFINE(HAVE_GLIBMM_OPTIONFLAGS,,[define if glibmm have proper support for option flags])
+  else  
+    AC_MSG_NOTICE([WARNING: glibmm has no all arguments flags defined - arguments parsing may be inconsistent])
+  fi
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no supoort for command lineparsing - using reduced functionality])  
 fi
+AC_LANG_RESTORE
+CXXFLAGS=$SAVE_CXXFLAGS
 # check libxml
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.6.0])
 AC_SUBST(LIBXML2_CFLAGS)
