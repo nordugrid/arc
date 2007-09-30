@@ -31,12 +31,13 @@ Dependencies
     - automake
     - autoconf (>=2.56)
     - libtool
+    - e2fsprogs-devel
 
 - Optional requirements
     - swig (>1.3.28)
     - java sdk for Java bindings
-    - python-dev for Python bindings
-    - globus GT 4
+    - python-devel for Python bindings
+    - Globus GT 4
 
 
 Getting the software
