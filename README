@@ -1,53 +1,76 @@
-
-Some Old Text
-=============
-
-[This should be moved somewhere else...]
-
-svn propset svn:ignore -F .svnignore .
-
-Compile on Mac OS
-install darwin ports
-
-export ACLOCAL=aclocal -I /opt/local/share/aclocal
-export LIBTOOLIZE=/opt/local/bin/glibtoolize
-
-
 ARC Middleware
 ==============
 
-New generation Advanced Resource Connector (ARC) grid middleware.
+The NorduGrid middleware (or the Advanced Resource Connector, ARC) is
+an open source software solution enabling production quality
+computational and data grids.
+
+Since the first release (May 2002) the middleware is deployed and
+being used in production environments. Emphasis is put on scalability,
+stability, reliability and performance of the middleware. A growing
+number of grid projects, like Swegrid, DCGC, NDGF chose ARC as their
+middleware. The largest production grid of the world is running on ARC
+too.
+
+This release (October 2007) is a technology preview version of the
+next generation of ARC. It is based on a service container - the
+Hosting Environment Daemon (HED) - and different grid capabilities are
+implemented as Web Services residing in HED. Currently, an OGSA BES
+compliant execution service - ARC Resource-coupled EXecution service
+(A-REX) - and an echo service (for testing purposes) are included, but
+the set of services is rapidly growing.
 
 
 Dependencies
 ============
 
-- Requirements for build from source tree
-    - g++
-    - libxml2
-    - glibmm
-    - doxygen
-    - pkg-config
-    - automake
-    - autoconf (>=2.56)
-    - libtool
-    - e2fsprogs-devel
+The middleware is written in C/C++ and some smaller part in Perl. ARC
+builds upon standard Open Source libraries and solutions. Building the
+software from source or installing a precompiled binary requires
+different external packages, furthermore the client and server
+packages have different dependencies too. The detailed compile and
+runtime external dependencies are given in the INSTALL file, below a
+merged list of the requirements (build, install, server, client) is
+shown:
 
-- Optional requirements
-    - swig (>1.3.28)
-    - java sdk for Java bindings
-    - python-devel for Python bindings
-    - Globus GT 4
+  Mandatory:
+    o gnu make, autotools (autoconf>=2.56)
+    o C++ compiler and library
+    o libtool
+    o pkg-config
+    o gthread-2.0 version 2.4.7 or later
+    o glibmm-2.4 version 2.4.7 or later
+    o libxml-2.0 version 2.6.0 or later
+    o openssl version 0.9.7a or later
+    o gsoap++ version 2.7 or later
+      (http://www.cs.fsu.edu/~engelen/soap.html)
+    o e2fsprogs-devel
+    o doxygen
+
+  Optional:
+    o swig version 1.3.28 or later
+    o java sdk 1.4 or later for Java bindings
+    o python-devel for Python bindings
+    o Grid Packaging Tools (GPT) (http://www.gridpackagingtools.org/)
+    o Globus Toolkit 4 (http://www.globus.org/) which contains
+      - Globus RLS client
+      - Globus FTP client
+      - Globus RSL
 
 
 Getting the software
 ====================
 
-The middleware is free to deploy anywhere by anybody. The software is
-released under the GNU General Public License (GPL) (see the LICENSE
-file). The NorduGrid repository hosts the source code, and provides
-all the required external software which are not part of a standard
-Linux distribution.
+The middleware is free to deploy anywhere by anybody. Pre-built binary
+releases for a dozen of Linux platforms can be downloaded from
+ftp.nordugrid.org.
+
+The software is released under the GNU General Public License (GPL)
+(see the LICENSE file).
+
+The NorduGrid repository hosts the source code, and provides all the
+required external software which are not part of a standard Linux
+distribution.
 
 
 Building & Installation
@@ -62,8 +85,16 @@ means that a standard installation can be made with:
   make install
 
 
-Setup & Configuration
-=====================
+Grid Certificates
+=================
+
+In order to use ARC a grid certificate is necessary. More information
+about grid certificates and how to get one can be found on
+http://www.nordugrid.org/documents/certificate_howto.html
+
+
+ARC Server Setup & Configuration
+================================
 
 The configuration of the ARC server is specified in an XML file, the
 location of which is specified as a command line argument with the -c
@@ -82,7 +113,6 @@ execution service is shown below:
     <Logger level="WARNING">./logfile</Logger>
   </Server>
   <ModuleManager>
-    <Path>/usr/local/lib/nordugrid-arc1/</Path>
     <Path>/usr/local/lib/</Path>
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
@@ -118,6 +148,22 @@ execution service is shown below:
   </Chain>
 </ArcConfig>
 
+Starting the Server
+===================
+
+To start the ARC server, type the following on the command line:
+
+  /usr/local/sbin/arcserver -c /etc/arcserv.xml &
+
+In order to use the A-REX service, you need to run a Grid Manager as
+well. This is explained in detail in NORDUGRID-TECH-14 "The ARC
+Computational Job Management Module - A-REX: Description and
+Administrator's Manual"
+
+
+The A-REX Client
+================
+
 The configuration of the ARC client is specified in an XML file. The
 location of the configuration file is specified by the environment
 variable ARC_AREX_CONFIG. If there is no such environment variable,
@@ -128,7 +174,7 @@ working directory. An example configuration file is shown below:
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
   <ModuleManager>
-    <Path>/usr/local/lib/nordugrid-arc1/</Path>
+    <Path>/usr/local/lib/</Path>
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
   <Plugins><Name>mcctls</Name></Plugins>
@@ -159,19 +205,6 @@ working directory. An example configuration file is shown below:
 </ArcConfig>
 
 
-Starting the Server
-===================
-
-To start the ARC server, type the following on the command line:
-
-  /usr/local/sbin/arcserver -c /etc/arcserv.xml &
-
-In order to use the A-REX service, you need to run a Grid Manager as
-well. This is explained in detail in NORDUGRID-TECH-14 "The ARC
-Computational Job Management Module - A-REX: Description and
-Administrator's Manual"
-
-
 Using the Client
 ================
 
@@ -199,3 +232,44 @@ stored (the file created when the job was submitted).
 
 More detailed about how to use the client tools are explained in
 NORDUGRID-TECH-14 "WS-Based ARC Clients".
+
+
+Contributing
+============
+
+The open source development of the ARC middleware is coordinated by
+the NorduGrid Collaboration. Currently, the main contributor is the
+KnowARC project (www.knowarc.eu), but the Collaboration is open to new
+members. Contributions from the community to the software and the
+documentation is welcomed. Sources can be downloaded from the Web site
+or Subversion.
+
+The developers maintain a Task List which describes outstanding issues
+that have to be addressed in the framework of the NorduGrid
+development. Bugs marked as 'feature requests' in the NorduGrid
+bugzilla also contain open development areas. For a more detailed
+description, write access to Subversion and further questions, write
+to the nordugrid-discuss mailing list. Ongoing and completed Grid
+Research projects and student assignments related to the middleware
+are listed on the Web site as well.
+
+
+Support, documentation, mailing lists, contact
+==============================================
+
+User support and site installation assistance is provided via the
+request tracking system available at nordugrid-support@nordugrid.org.
+In addition, NorduGrid runs a couple of mailing lists, among which the
+nordugrid-discuss mailing list is a general forum for all kind of
+issues related to the ARC middleware.
+
+NorduGrid deploys the Bugzilla problem tracking system. Feature and
+enhancement requests, as well as discovered problems, should be
+reported there.
+
+Research papers, overview talks, reference manuals, user guides,
+installation instructions, conference presentations, FAQ and even
+tutorial materials can be fetched from the documentation section of
+www.nordugrid.org
+
+Contact information is kept updated on the www.nordugrid.org web site.
