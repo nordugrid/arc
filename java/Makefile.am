@@ -19,7 +19,7 @@ javalib_LTLIBRARIES = libjarc.la
 #                        -Wl,--add-stdcall-alias 
 
 libjarc_la_SOURCES =	arc_wrap.cpp
-libjarc_la_CXXFLAGS = $(JDK_INCLUDES) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_INCLUDES) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libjarc_la_LIBADD =	$(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
 libjarc_la_LDFLAGS =	-no-undefined -avoid-version -module
 
