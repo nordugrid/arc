@@ -96,6 +96,7 @@ void sendRequests(){
     }
     connected=true;
 
+    Arc::MessageContext context;
     while(run and connected){
       // Prepare the request.
       Arc::NS echo_ns;
@@ -104,6 +105,10 @@ void sendRequests(){
       req.NewChild("echo").NewChild("say")="HELLO";
       Arc::Message reqmsg;
       Arc::Message repmsg;
+      Arc::MessageAttributes attributes;
+
+      reqmsg.Context(&context);
+      reqmsg.Attributes(&attributes);
       reqmsg.Payload(&req);
       
       // Send the request and time it.
