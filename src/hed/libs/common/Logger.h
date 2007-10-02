@@ -113,9 +113,6 @@ namespace Arc {
     //! The message text.
     std::string message;
 
-    //! The variable list.
-    va_list *v;
-
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
       conveniently by LogDestinations.

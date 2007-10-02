@@ -61,8 +61,15 @@ namespace Arc {
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message),
-    v(v) {}
+    message(message) {
+    char buf[2048];
+#ifdef HAVE_LIBINTL_H
+    vsnprintf(buf, 2048, dgettext("Arc", LogMessage::message.c_str()), *v);
+#else
+    vsnprintf(buf, 2048, LogMessage::message.c_str(), *v);
+#endif
+    LogMessage::message=buf;
+  }
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
@@ -72,8 +79,15 @@ namespace Arc {
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message),
-    v(v) {}
+    message(message) {
+    char buf[2048];
+#ifdef HAVE_LIBINTL_H
+    vsnprintf(buf, 2048, dgettext("Arc", LogMessage::message.c_str()), *v);
+#else
+    vsnprintf(buf, 2048, LogMessage::message.c_str(), *v);
+#endif
+    LogMessage::message=buf;
+  }
 
   LogLevel LogMessage::getLevel() const {
     return level;
@@ -99,17 +113,11 @@ namespace Arc {
   }
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
-    char buf[2048];
-#ifdef HAVE_LIBINTL_H    
-    vsnprintf(buf, 2048, dgettext("Arc", message.message.c_str()), *message.v);
-#else
-    vsnprintf(buf, 2048, message.message.c_str(), *message.v);
-#endif
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
        << "[" << message.identifier << "] "
-       << buf;
+       << message.message;
     return os;
   }
 
