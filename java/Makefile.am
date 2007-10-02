@@ -1,27 +1,16 @@
 JAVA_PATH = nordugrid/arc
-JDK_INCLUDES = @JDK_INCLUDE@
 CLASSPATH = .
 
 javalibdir = $(prefix)/lib/java
 javasharedir = $(prefix)/share/java
 
 # Shared library.
-#if MINGW
-#javalib_LTLIBRARIES = jarc.la
-#else
 javalib_LTLIBRARIES = libjarc.la
-#endif
 
-#jarc_la_SOURCES =	arc_wrap.c
-#jarc_la_CFLAGS = $(JDK_INCLUDES) -I$(top_srcdir)
-## jarc_la_LIBADD = $(top_builddir)/lasso/liblasso.la $(LASSO_LIBS)
-#jarc_la_LDFLAGS =	-no-undefined -avoid-version -module \
-#                        -Wl,--add-stdcall-alias 
-
-libjarc_la_SOURCES =	arc_wrap.cpp
-libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_INCLUDES) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-libjarc_la_LIBADD =	$(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
-libjarc_la_LDFLAGS =	-no-undefined -avoid-version -module
+libjarc_la_SOURCES = arc_wrap.cpp
+libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libjarc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
+libjarc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 javashare_DATA = arc.jar
 
@@ -55,4 +44,3 @@ $(JAVA_PATH)/arc.class $(JAVA_PATH)/%.class: $(JAVA_PATH)/arc.java
 arc.jar: $(JAVA_PATH)/arc.class $(patsubst %.java,%.class,$(shell ls $(JAVA_PATH)/*.java))
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class 
-

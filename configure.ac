@@ -42,22 +42,18 @@ if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
     JAVAC_FLAGS=-C
 fi
 
-JDK_INCLUDE=$with_jdk
-# XXX: temporaly solution
-JDK_LDFLAGS="-L$with_jdk/jre/lib/i386/server/ -ljvm"
+JDK_CFLAGS=$with_jdk
 if test "X$JAVAC" != "X"; then
-    if test "X$JDK_INCLUDE" == "X"; then
-        JDK_INCLUDE=`which $JAVAC`
-        JDK_INCLUDE=`dirname $JDK_INCLUDE`
-        JDK_INCLUDE=`dirname $JDK_INCLUDE`
-        # XXX: temporaly solution
-        JDK_LDFLAGS="-L$JDK_INCLUDE/jre/lib/i386/server/ -ljvm"
+    if test "X$JDK_CFLAGS" == "X"; then
+        JDK_CFLAGS=`which $JAVAC`
+        JDK_CFLAGS=`dirname $JDK_CFLAGS`
+        JDK_CFLAGS=`dirname $JDK_CFLAGS`
     fi
 
-    if test "x$JDK_INCLUDE" = "x/" || test "x$JDK_INCLUDE" = "x/usr"; then
-        JDK_INCLUDE=
+    if test "x$JDK_CFLAGS" = "x/" || test "x$JDK_CFLAGS" = "x/usr"; then
+        JDK_CFLAGS=
     else
-        JDK_INCLUDE=-I$JDK_INCLUDE/include
+        JDK_CFLAGS=-I$JDK_CFLAGS/include
         SUN_EXTRA_INCLUDE=
         case "${host}" in
             *-pc-mingw32)
@@ -70,12 +66,12 @@ if test "X$JAVAC" != "X"; then
                 SUN_EXTRA_INCLUDE="linux"
                 ;;
         esac
-        JDK_INCLUDE="$JDK_INCLUDE $JDK_INCLUDE/$SUN_EXTRA_INCLUDE"
+        JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
     fi
 fi
 
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="$CPPFLAGS $JDK_INCLUDE"
+CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
 AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
 CPPFLAGS=$SAVE_CPPFLAGS
 
@@ -91,8 +87,7 @@ AC_MSG_NOTICE([Java enabled: $enable_java])
 dnl Conditional java sub dir test.
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 AC_SUBST(JAVAC_FLAGS)
-AC_SUBST(JDK_INCLUDE)
-AC_SUBST(JDK_LDFLAGS)
+AC_SUBST(JDK_CFLAGS)
 
 # Python
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")

@@ -34,6 +34,5 @@
 #endif
 
 %include "../src/hed/libs/common/XMLNode.h"
-%include "../src/hed/libs/common/XMLNode.h"
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/Logger.h"
