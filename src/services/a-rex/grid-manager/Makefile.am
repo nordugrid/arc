@@ -1,6 +1,6 @@
 SUBDIRS=jobs cache run conf misc url log mail jobdesc files 
 
-noinst_PROGRAMS=grid-manager
+sbin_PROGRAMS=grid-manager
 SOURCES =
 
 #grid_manager_HEADERS=

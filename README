@@ -78,9 +78,15 @@ Building & Installation
 
 The ARC middleware can be built from the openly available source code
 provided as a tarball. The build is using the GNU autotools. This
-means that a standard installation can be made with:
+means that a standard installation into /usr/local can be made with:
 
   ./configure
+  make
+  make install
+
+If you wish to install into <directory>, use the following instead:
+
+  ./configure --prefix=<directory>
   make
   make install
 
@@ -88,8 +94,8 @@ means that a standard installation can be made with:
 Grid Certificates
 =================
 
-In order to use ARC a grid certificate is necessary. More information
-about grid certificates and how to get one can be found on
+In order to use ARC, a grid certificate is necessary. More information
+about grid certificates and how to get them can be found on
 http://www.nordugrid.org/documents/certificate_howto.html
 
 
@@ -113,7 +119,7 @@ execution service is shown below:
     <Logger level="WARNING">./logfile</Logger>
   </Server>
   <ModuleManager>
-    <Path>/usr/local/lib/</Path>
+    <Path>/usr/local/lib/arc/</Path>
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
   <Plugins><Name>mcctls</Name></Plugins>
@@ -148,6 +154,22 @@ execution service is shown below:
   </Chain>
 </ArcConfig>
 
+
+Grid Manager Setup & Configuration
+==================================
+
+In order to use the A-REX service, you need to run a Grid Manager as
+well. This is explained in detail in NORDUGRID-TECH-14 "The ARC
+Computational Job Management Module - A-REX: Description and
+Administrator's Manual" An example of a configuration file for running
+the Grid Manager is shown below:
+
+########################################
+THIS REMAINS TO BE WRITTEN.
+DOES ANYBODY KNOW ANYTHING ABOUT THIS?
+########################################
+
+
 Starting the Server
 ===================
 
@@ -155,10 +177,12 @@ To start the ARC server, type the following on the command line:
 
   /usr/local/sbin/arcserver -c /etc/arcserv.xml &
 
-In order to use the A-REX service, you need to run a Grid Manager as
-well. This is explained in detail in NORDUGRID-TECH-14 "The ARC
-Computational Job Management Module - A-REX: Description and
-Administrator's Manual"
+To start the Grid Manager, type the following on the command line:
+
+########################################
+THIS REMAINS TO BE WRITTEN.
+DOES ANYBODY KNOW ANYTHING ABOUT THIS?
+########################################
 
 
 The A-REX Client
@@ -174,7 +198,7 @@ working directory. An example configuration file is shown below:
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
   <ModuleManager>
-    <Path>/usr/local/lib/</Path>
+    <Path>/usr/local/lib/arc/</Path>
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
   <Plugins><Name>mcctls</Name></Plugins>
