@@ -180,7 +180,7 @@ namespace Arc {
     virtual ~URLLocation();
 
     /** Returns the URL Location name (used for RC registrations). */
-    std::string Name() const;
+    const std::string& Name() const;
 
     /** Returns a string representation of the URL Location. */
     virtual std::string str() const;

@@ -450,7 +450,7 @@ namespace Arc {
     urloptions = ParseOptions(optstring, ';');
   }
 
-  std::string URLLocation::Name() const {
+  const std::string& URLLocation::Name() const {
     return name;
   }
 
