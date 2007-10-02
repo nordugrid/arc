@@ -11,6 +11,7 @@ BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #
 BuildRequires: pkgconfig
 BuildRequires: e2fsprogs-devel
+BuildRequires: gcc-java
 BuildRequires: gettext
 BuildRequires: swig
 BuildRequires: python-devel
