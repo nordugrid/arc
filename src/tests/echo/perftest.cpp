@@ -5,6 +5,7 @@
 // perftest.cpp
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <stdlib.h>
 #include <glibmm/thread.h>
@@ -14,6 +15,8 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/StringConv.h>
+#include <arc/Logger.h>
 
 // Some global shared variables...
 Glib::Mutex* mutex;
@@ -37,6 +40,7 @@ std::string confString = "\
         <Path>../../hed/mcc/soap/.libs/</Path>\
         <Path>../../hed/mcc/tls/.libs/</Path>\
         <Path>../../hed/mcc/tcp/.libs/</Path>\
+        <Path>../../lib/arc/</Path>\
      </ModuleManager>\
      <Plugins><Name>mcctcp</Name></Plugins>\
      <Plugins><Name>mcctls</Name></Plugins>\
@@ -45,7 +49,7 @@ std::string confString = "\
      <Chain>\
       <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>HOSTNAME</tcp:Host><tcp:Port>PORTNUMBER</tcp:Port></tcp:Connect></Component>\
       <Component name='tls.client' id='tls'><next id='tcp'/></Component> \
-      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/Echo</Endpoint></Component>\
+      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>HTTPPATH</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
      </Chain>\
     </ArcConfig>";
@@ -165,23 +169,56 @@ int main(int argc, char* argv[]){
   // Some variables...
   std::string serviceHost;
   std::string portNumber;
+  std::string httpPath("/Echo");
   int numberOfThreads;
   int duration;
   int i;
   Glib::Thread** threads;
+  const char* config_file = NULL;
+  int debug_level = -1;
+  Arc::LogStream logcerr(std::cerr);
 
+  // Process options - quick hack, must use Glib options later
+  while(argc >= 3) {
+    if(strcmp(argv[1],"-c") == 0) {
+      config_file = argv[2];
+      argv[2]=argv[0]; argv+=2; argc-=2;
+    } else if(strcmp(argv[1],"-d") == 0) {
+      debug_level=Arc::string_to_level(argv[2]);
+      argv[2]=argv[0]; argv+=2; argc-=2;
+    } else {
+      break;
+    };
+  } 
+  if(config_file) {
+    std::ifstream f(config_file);
+    if(!f) {
+      std::cerr << "File "<<config_file<<" can't be open for reading!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    std::getline<char>(f, confString, 0);
+  }
+  if(debug_level >= 0) {
+    Arc::Logger::getRootLogger().setThreshold((Arc::LogLevel)debug_level);
+    Arc::Logger::getRootLogger().addDestination(logcerr);
+  }
   // Extract command line arguments.
   if (argc!=5){
     std::cerr << "Wrong number of arguments!" << std::endl
 	      << std::endl
 	      << "Usage:" << std::endl
-	      << "perftest host port threads duration" << std::endl
+	      << "perftest [-c config] [-d debug] host port threads duration" << std::endl
 	      << std::endl
 	      << "Arguments:" << std::endl
 	      << "host     The name of the host of the service." << std::endl
 	      << "port     The port to use on the host." << std::endl
 	      << "threads  The number of concurrent requests." << std::endl
-	      << "duration The duration of the test in seconds." << std::endl;
+	      << "duration The duration of the test in seconds." << std::endl
+	      << "config   The file containing client chain XML configuration with " << std::endl
+              << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
+              << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
+	      << "debug    The textual representation of desired debug level. Available " << std::endl
+              << "         levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL." << std::endl;
     exit(EXIT_FAILURE);
   }
   serviceHost = std::string(argv[1]);
@@ -192,6 +229,7 @@ int main(int argc, char* argv[]){
   // Insert host name and port number into the configuration string.
   replace(confString, "HOSTNAME", serviceHost);
   replace(confString, "PORTNUMBER", portNumber);
+  replace(confString, "HTTPPATH", httpPath);
 
   // Start threads.
   run=true;

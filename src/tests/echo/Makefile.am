@@ -1,5 +1,6 @@
 pkglib_LTLIBRARIES = libecho.la
-noinst_PROGRAMS=test test_client test_service perftest
+noinst_PROGRAMS=test test_client test_service
+bin_PROGRAMS=perftest
 SOURCES =
 
 libecho_la_SOURCES=echo.cpp echo.h
