@@ -30,7 +30,7 @@ AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
 
 # Java
 dnl Check if Java is explicitly disabled.
-AC_ARG_ENABLE(java, AC_HELP_STRING([--enable-java], [enable the Java binding]),enable_java="yes",enable_java="no")
+AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),[],enable_java="yes")
 AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [set the full path JDK include]))
 
 AC_CHECK_PROGS(JAVA, java gij)
