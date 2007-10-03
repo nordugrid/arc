@@ -71,7 +71,7 @@ bool MatchXMLNamespace(xmlNodePtr node,const char* uri) {
 }
 
 XMLNode::XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
-  xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,0);
+  xmlDocPtr doc = xmlParseMemory((char*)(xml.c_str()),xml.length());
   if(!doc) return;
   node_=(xmlNodePtr)doc;
   is_owner_=true;
@@ -80,7 +80,7 @@ XMLNode::XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_tempora
 XMLNode::XMLNode(const char* xml,int len):node_(NULL),is_owner_(false),is_temporary_(false) {
   if(!xml) return;
   if(len == -1) len=strlen(xml);
-  xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,0);
+  xmlDocPtr doc = xmlParseMemory((char*)xml,len);
   if(!doc) return;
   node_=(xmlNodePtr)doc;
   is_owner_=true;
@@ -353,6 +353,7 @@ std::string XMLNode::NamespacePrefix(const char* urn) {
 
 void XMLNode::Destroy(void) {
   if(node_ == NULL) return;
+  // TODO: check for doc node
   xmlUnlinkNode(node_);
   xmlFreeNode(node_);
   node_=NULL;

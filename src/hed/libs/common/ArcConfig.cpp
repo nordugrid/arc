@@ -20,7 +20,7 @@ static xmlDocPtr _parse(const char *filename)
         xml_str.append(" ");
     }
     f.close();
-    return xmlReadMemory(xml_str.c_str(),xml_str.length(),NULL,NULL,0);
+    return xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
 }
 
 Config::Config(const char *filename)

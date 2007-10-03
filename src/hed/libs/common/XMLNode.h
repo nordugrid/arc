@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 
+#include <libxml/xmlmemory.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -143,10 +144,9 @@ class XMLNode {
       };
     } else {
       xmlBufferPtr buf = xmlBufferCreate();
-      if(xmlNodeDump(buf,node_->doc,node_,0,0) > 0) {
-        xml=(char*)(buf->content);
-        xmlBufferFree(buf);
-      };
+      xmlNodeDump(buf,node_->doc,node_,0,0);
+      xml=(char*)(buf->content);
+      xmlBufferFree(buf);
     };
   };
 /*
