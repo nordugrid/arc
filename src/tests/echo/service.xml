@@ -42,7 +42,7 @@
             <next id="http"/>
 	    <KeyPath>./key.pem</KeyPath>
 	    <CertificatePath>./cert.pem</CertificatePath>
-	    <CACertificatePath>./ca.pe</CACertificatePath>
+	    <CACertificatePath>./ca.pem</CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
