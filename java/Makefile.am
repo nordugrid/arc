@@ -1,7 +1,7 @@
 JAVA_PATH = nordugrid/arc
 CLASSPATH = .
 
-javalibdir = $(prefix)/lib/java
+javalibdir = $(libdir)/java
 javasharedir = $(prefix)/share/java
 
 # Shared library.
