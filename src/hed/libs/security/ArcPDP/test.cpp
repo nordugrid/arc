@@ -6,7 +6,6 @@
 #include <signal.h>
 
 #include <string>
-#include <arc/security/ArcPDP/ArcRequest.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>

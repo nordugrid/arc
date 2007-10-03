@@ -9,7 +9,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 
-#include <arc/security/ArcPDP/ArcRequest.h>
 #include <arc/security/ArcPDP/Response.h>
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
@@ -47,8 +46,10 @@ bool ArcPDP::isPermitted(Message *msg){
   
   NS ns;
   ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  XMLNode req(ns);
-  XMLNode requestitem = req.NewChild("ra:Request").NewChild("ra:RequestItem");
+  XMLNode reqdoc(ns);
+  XMLNode request = reqdoc.NewChild("ra:Request");
+  request.Namespaces(ns);
+  XMLNode requestitem = request.NewChild("ra:RequestItem");
 
   XMLNode sub = requestitem.NewChild("ra:Subject");
   XMLNode subattr1 = sub.NewChild("ra:Attribute");
@@ -73,12 +74,12 @@ bool ArcPDP::isPermitted(Message *msg){
   actionType = "string";
 
   std::string req_str;  
-  req.GetXML(req_str);
+  reqdoc.GetXML(req_str);
   logger.msg(INFO, "%s", req_str.c_str());
 
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml");
-  resp = eval->evaluate(req);
+  resp = eval->evaluate(reqdoc);
   ResponseList::iterator respit;
   logger.msg(INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();

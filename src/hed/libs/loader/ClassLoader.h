@@ -2,6 +2,7 @@
 #define __ARC_CLASSLOADER_H__
 
 #include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 #include "ModuleManager.h"
 #include "LoadableClass.h"
 #include <map>
@@ -32,7 +33,9 @@ class ClassLoader : public ModuleManager{
     void Instance(const std::string className, LC *&p, Config* cfg);
 
     ~ClassLoader();
-
+  
+  private:
+    static Logger logger;
 };
 
 /*

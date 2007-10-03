@@ -98,6 +98,11 @@ In order to use ARC, a grid certificate is necessary. More information
 about grid certificates and how to get them can be found on
 http://www.nordugrid.org/documents/certificate_howto.html
 
+So far, only the certificates without password can be used for MCCTLS (both 
+the client side and server side).
+Certificate with password (for client side) will be supported when certificate 
+delegation is available.
+
 
 ARC Server Setup & Configuration
 ================================

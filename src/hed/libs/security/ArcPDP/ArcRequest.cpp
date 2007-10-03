@@ -28,9 +28,6 @@ void ArcRequest::make_request(XMLNode& node, AttributeFactory* attrfactory){
     std::list<XMLNode> itemlist = node.XPathLookup("//request:RequestItem", nsList);
     for ( itemit=itemlist.begin() ; itemit != itemlist.end(); itemit++ ){
       XMLNode itemnd=*itemit;
-    std::string tmp; 
-    itemnd.GetXML(tmp);
-    std::cout<<tmp<<std::endl;
       rlist.push_back(new ArcRequestItem(itemnd, attrfactory));
     }
 //  }

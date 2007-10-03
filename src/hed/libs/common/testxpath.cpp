@@ -55,12 +55,18 @@ int main(void)
       std::cout << (*it).Name() << std::endl;
     }   
 
+    //tmp = doc; 
+    tmp = doc.Child();
+    std::string tmpndstr;
+    tmp.GetXML(tmpndstr);
+    std::cout<<"Now the current node is: "<< tmpndstr <<std::endl;
     //Find the "child2" node with namespace "uri:ccc" and inside the "parent" node, does not work.
     nsList.erase("test2");
     nsList.insert(std::pair<std::string, std::string>("test3","uri:bbb"));
-    list = tmp.XPathLookup("//test3:child1", nsList);      //To illustrate only "root" can call XPathLookup method
+    list = tmp.XPathLookup("//test3:child2", nsList);      //To illustrate only "root" can call XPathLookup method
     for ( it=list.begin() ; it != list.end(); it++ ){
       std::cout << (*it).Name() << std::endl;
+      std::cout <<"Can get the node by search from the non-doc node"<< std::endl;
     }
     
     return 0;
