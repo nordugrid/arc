@@ -19,11 +19,16 @@ public:
 
 class ThreadArgument {
     public:
+        typedef void (*func_t)(void*);
         void* arg;
-        void (*func)(void*);
-        ThreadArgument(void (*f)(void*), void* a):arg(a),func(f) { }
+        func_t func;
+        ThreadArgument(func_t f, void* a):arg(a),func(f) { }
         ~ThreadArgument(void) { };
-        void thread(void) { (*func)(arg); delete this; };
+        void thread(void) {
+            func_t f_temp = func;
+            delete this;
+            (*f_temp)(arg);
+        };
 };
 
 // TODO: do something to make sure this static object is 
