@@ -23,6 +23,9 @@
 
 #include "MCCTLS.h"
 
+bool Arc::MCC_TLS::ssl_initialized_ = false;
+Glib::Mutex Arc::MCC_TLS::lock_;
+Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
 Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
@@ -151,18 +154,52 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
    return true;
 }
 
+void MCC_TLS::ssl_locking_cb(int mode, int n, const char *, int) {
+  if(!ssl_locks_) return;
+  if(mode & CRYPTO_LOCK) {
+    ssl_locks_[n].lock();
+  } else {
+    ssl_locks_[n].unlock();
+  };
+}
+
+unsigned long MCC_TLS::ssl_id_cb(void) {
+  return (unsigned long)(Glib::Thread::self());
+}
+
+//void* MCC_TLS::ssl_idptr_cb(void) {
+//  return (void*)(Glib::Thread::self());
+//}
+
 bool MCC_TLS::do_ssl_init(void) {
-   static bool ssl_inited = false;
-   if(ssl_inited) return true;
-   ssl_inited=true;
-   SSL_load_error_strings();
-   if(!SSL_library_init()){
-        logger.msg(ERROR, "SSL_library_init failed");
-        tls_process_error(logger);
-        ssl_inited=false;
-        return false;
+std::cerr<<"*** MCC_TLS::do_ssl_init ***"<<std::endl;
+   if(ssl_initialized_) return true;
+   lock_.lock();
+   if(!ssl_initialized_) {
+std::cerr<<"*** MCC_TLS::do_ssl_init do ***"<<std::endl;
+     SSL_load_error_strings();
+     if(!SSL_library_init()){
+       logger.msg(ERROR, "SSL_library_init failed");
+       tls_process_error(logger);
+     } else {
+       int num_locks = CRYPTO_num_locks();
+       if(num_locks) {
+         ssl_locks_=new Glib::Mutex[num_locks];
+         if(ssl_locks_) {
+           CRYPTO_set_locking_callback(&ssl_locking_cb);
+           CRYPTO_set_id_callback(&ssl_id_cb);
+           //CRYPTO_set_idptr_callback(&ssl_idptr_cb);
+           ssl_initialized_=true;
+         } else {
+           logger.msg(ERROR, "Failed to allocate SSL locks");
+         };
+       } else {
+         ssl_initialized_=true;
+       };
+     };
    };
-   return true;
+   lock_.unlock();
+   return ssl_initialized_;
 }
 
 

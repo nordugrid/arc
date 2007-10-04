@@ -21,7 +21,13 @@ namespace Arc {
 			      const std::string& password,
 			      const std::string& random_file);
     bool do_ssl_init(void);
-    static Arc::Logger logger;
+    static bool ssl_initialized_;
+    static Glib::Mutex lock_;
+    static Glib::Mutex* ssl_locks_;
+    static Logger logger;
+    static void ssl_locking_cb(int mode, int n, const char *file, int line);
+    static unsigned long ssl_id_cb(void);
+    //static void* ssl_idptr_cb(void);
   };
 
 /** This two classed are MCCs implementing TLS functionality. Upon creation this 
