@@ -11,6 +11,7 @@
 #endif
 #include "Logger.h"
 #include "DateTime.h"
+#include <unistd.h>
 #ifdef WIN32
 #include <process.h>
 #endif
