@@ -121,42 +121,37 @@ void sendRequests(){
 	failedRequests++;
 	failedTime+=tAfter-tBefore;
 	connected=false;
+      } else {
+        Arc::PayloadSOAP* resp = NULL;
+        if(repmsg.Payload() != NULL) {
+          // There is response.
+          try{
+            resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+          }
+          catch(std::exception&){ };
+        }
+        if(resp == NULL) {
+          // Response was not SOAP or no response at all.
+          failedRequests++;
+          failedTime+=tAfter-tBefore;
+          connected=false;
+        } else {
+          std::string xml;
+          resp->GetXML(xml);
+          if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
+            // The response was not what it should be.
+            failedRequests++;
+            failedTime+=tAfter-tBefore;
+            connected=false;
+          }
+          else{
+            // Everything worked just fine!
+            completedRequests++;
+            completedTime+=tAfter-tBefore;
+          }
+        }
       }
-      Arc::PayloadSOAP* resp = NULL;
-      if(repmsg.Payload() == NULL) {
-	// There were no response.
-	failedRequests++;
-	failedTime+=tAfter-tBefore;
-	connected=false;
-      }
-      try{
-	resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-      }
-      catch(std::exception&){
-	// Payload had wrong type.
-	failedRequests++;
-	failedTime+=tAfter-tBefore;
-	connected=false;
-      }
-      if(resp == NULL) {
-	// Response was not SOAP.
-	failedRequests++;
-	failedTime+=tAfter-tBefore;
-	connected=false;
-      }
-      std::string xml;
-      resp->GetXML(xml);
-      if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
-	// The response was not what it should be.
-	failedRequests++;
-	failedTime+=tAfter-tBefore;
-	connected=false;
-      }
-      else{
-	// Everything worked just fine!
-	completedRequests++;
-	completedTime+=tAfter-tBefore;
-      }
+      if(repmsg.Payload()) delete repmsg.Payload();
     }
   }
 
