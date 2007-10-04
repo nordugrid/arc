@@ -50,7 +50,7 @@ namespace Arc {
      */
     LogMessage(LogLevel level,
                const std::string& message,
-               va_list *v = NULL);
+               va_list& v);
 
     //! Creates a LogMessage with the specified attributes.
     /*! This constructor creates a LogMessage with the specified
@@ -64,7 +64,7 @@ namespace Arc {
     LogMessage(LogLevel level,
                const std::string& message,
                const std::string& identifier,
-               va_list *v = NULL);
+               va_list& v);
 
     //! Returns the level of the LogMessage.
     /*! Returns the level of the LogMessage.
@@ -113,6 +113,9 @@ namespace Arc {
     //! The message text.
     std::string message;
 
+    //! Reference to the message's va_list
+    va_list& v;
+
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
       conveniently by LogDestinations.
@@ -146,10 +149,14 @@ namespace Arc {
    protected:
 
     //! Default constructor.
-    /*! The only constructor needed by subclasses, since the
-      LogDestination class has no attributes.
+    /*! This destination will use the default locale.
      */
     LogDestination();
+
+    //! Constructor with specific locale.
+    /*! This destination will use the specified locale.
+     */
+    LogDestination(const std::string& locale);
 
    private:
 
@@ -165,6 +172,9 @@ namespace Arc {
      */
     void operator=(const LogDestination& unique);
 
+   protected:
+
+    std::string locale;
   };
 
 
@@ -188,6 +198,12 @@ namespace Arc {
       @param destination The ostream to which to erite LogMessages.
      */
     LogStream(std::ostream& destination);
+
+    //! Creates a LogStream connected to an ostream.
+    /*! Creates a LogStream connected to the specified ostream.
+      The output will be localised to the specified locale.
+     */
+    LogStream(std::ostream& destination, const std::string& locale);
 
     //! Writes a LogMessage to the stream.
     /*! This method writes a LogMessage to the ostream that is
@@ -368,23 +384,7 @@ namespace Arc {
     static Logger* rootLogger;
     static unsigned int rootLoggerMark;
   };
-
 }
-
-
-//! A preprocessor macro for efficiency
-/*! This preprocessor macro can be used to make logging more
-  efficient. It eliminates the construction of the message text (which
-  can be time consuming) if the level is below the threshold of the
-  logger.
-  @param logger The logegr to which to send the message.
-  @param level The level of the message.
-  @param message The message text, possibly in the form of an
-  expression that evaluates to a string.
- */
-#define MSG(logger, level, message) {			\
-    if(level >= logger.getThreshold())			\
-      logger.msg(Arc::LogMessage(level, message));}
 
 #define rootLogger getRootLogger()
 

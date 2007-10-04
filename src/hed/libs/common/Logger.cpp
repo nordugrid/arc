@@ -57,38 +57,24 @@ namespace Arc {
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
-                         va_list *v) :
+                         va_list& v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message) {
-    char buf[2048];
-#ifdef HAVE_LIBINTL_H
-    vsnprintf(buf, 2048, dgettext("Arc", LogMessage::message.c_str()), *v);
-#else
-    vsnprintf(buf, 2048, LogMessage::message.c_str(), *v);
-#endif
-    LogMessage::message=buf;
-  }
+    message(message),
+    v(v) {}
 
   LogMessage::LogMessage(LogLevel level,
                          const std::string& message,
                          const std::string& identifier,
-                         va_list *v) :
+                         va_list& v) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message) {
-    char buf[2048];
-#ifdef HAVE_LIBINTL_H
-    vsnprintf(buf, 2048, dgettext("Arc", LogMessage::message.c_str()), *v);
-#else
-    vsnprintf(buf, 2048, LogMessage::message.c_str(), *v);
-#endif
-    LogMessage::message=buf;
-  }
+    message(message),
+    v(v) {}
 
   LogLevel LogMessage::getLevel() const {
     return level;
@@ -114,17 +100,26 @@ namespace Arc {
   }
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
+    char buf[2048];
+    va_list v;
+    va_copy(v, message.v);
+#ifdef HAVE_LIBINTL_H
+    vsnprintf(buf, 2048, dgettext("Arc", message.message.c_str()), v);
+#else
+    vsnprintf(buf, 2048, message.message.c_str(), v);
+#endif
+    va_end(v);
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
        << "[" << message.identifier << "] "
-       << message.message;
+       << buf;
     return os;
   }
 
-  LogDestination::LogDestination() {
-    // Nothing needs to be done here.
-  }
+  LogDestination::LogDestination() {}
+
+  LogDestination::LogDestination(const std::string& locale) : locale(locale) {}
 
   LogDestination::LogDestination(const LogDestination&) {
     // Executing this code should be impossible!
@@ -136,13 +131,17 @@ namespace Arc {
     exit(EXIT_FAILURE);
   }
 
-  LogStream::LogStream(std::ostream& destination) : destination(destination) {
-    // Nothing else needs to be done.
-  }
+  LogStream::LogStream(std::ostream& destination) : destination(destination) {}
+
+  LogStream::LogStream(std::ostream& destination,
+                       const std::string& locale) : LogDestination(locale),
+                                                    destination(destination) {}
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
+    const char* loc = setlocale(LC_ALL, locale.c_str());
     destination << message << std::endl;
+    setlocale(LC_ALL, loc);
   }
 
   LogStream::LogStream(const LogStream&) : LogDestination(),
@@ -206,7 +205,7 @@ namespace Arc {
   void Logger::msg(LogLevel level, const std::string& str, ...) {
     va_list v;
     va_start(v, str);
-    msg(LogMessage(level, str, &v));
+    msg(LogMessage(level, str, v));
     va_end(v);
   }
 

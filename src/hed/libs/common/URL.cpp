@@ -149,8 +149,8 @@ namespace Arc {
     if(pos2 != std::string::npos) {
       pos3 = host.find(";", pos2);
       port = stringtoi(pos3 == std::string::npos ?
-               host.substr(pos2 + 1) :
-               host.substr(pos2 + 1, pos3 - pos2 - 1));
+                       host.substr(pos2 + 1) :
+                       host.substr(pos2 + 1, pos3 - pos2 - 1));
     }
     else {
       pos3 = host.find(";");
