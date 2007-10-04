@@ -245,11 +245,12 @@ XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   if(node_->type == XML_DOCUMENT_NODE) {
     XMLNode root = Child();
     if(root) {
+      xmlFreeNode(new_node);
       // Hack - root element must be always present
       if(root.Name().empty()) {
         root.Name(name); return root; 
       };
-      xmlFreeNode(new_node); return XMLNode(); 
+      return XMLNode(); 
     };
     xmlDocSetRootElement((xmlDocPtr)node_,new_node); 
     return Child();
