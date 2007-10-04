@@ -27,19 +27,15 @@ namespace Arc {
 
 
   /// Class to hold general URL's.
-  /** A URL is constructed from a string representation and split 
-    into protocol, hostname, port and path.  */
+  /** The URL is split into protocol, hostname, port and path. */
   class URL {
 
    public:
     /** Empty constructor. Necessary when the class is part of
-     *  another class and the like.
-     */
+        another class and the like. */
     URL();
 
-    /** Constructs a new URL from a string representation. The string
-     *	is split into protocol, hostname, port and path.
-     */
+    /** Constructs a new URL from a string representation. */
     URL(const std::string& url);
 
     /** URL Destructor */
@@ -74,7 +70,7 @@ namespace Arc {
 	\param undefined  This value is returned if the HTTP option is
 				not defined. */
     const std::string& HTTPOption(const std::string& option,
-				  const std::string& undefined = "") const;
+                                  const std::string& undefined = "") const;
 
     /** Returns URL options if any. */
     const std::map<std::string, std::string>& Options() const;
@@ -84,11 +80,11 @@ namespace Arc {
 	\param undefined  This value is returned if the URL option is
 				not defined. */
     const std::string& Option(const std::string& option,
-			      const std::string& undefined = "") const;
+                              const std::string& undefined = "") const;
 
     /** Adds a URL option. */
     void AddOption(const std::string& option, const std::string& value,
-		   bool overwrite = true);
+                   bool overwrite = true);
 
     /** Returns the locations if any. */
     const std::list<URLLocation>& Locations() const;
@@ -99,10 +95,10 @@ namespace Arc {
     /** Returns the value of a common location option.
 	\param option     The option whose value is returned.
 	\param undefined  This value is returned if the common location
-				 option is not defined. */
+				option is not defined. */
     const std::string& CommonLocOption(const std::string& option,
-				       const std::string&
-				         undefined = "") const;
+                                       const std::string&
+                                         undefined = "") const;
 
     /** Returns a string representation of the URL. */
     virtual std::string str() const;
@@ -142,7 +138,7 @@ namespace Arc {
     /** the url path. */
     std::string path;
 
-    /** http-options of the url. */
+    /** HTTP options of the url. */
     std::map<std::string, std::string> httpoptions;
 
     /** options of the url. */
@@ -166,30 +162,40 @@ namespace Arc {
 
 
   /// Class to hold a resolved URL location.
-  /** It is specific for an RC or RLS registration. */
+  /** It is specific to file indexing service registrations. */
   class URLLocation : public URL {
 
    public:
-    /** Creates a URL Location from a URL. */
+    /** Creates a URLLocation from a string representaion. */
     URLLocation(const std::string& url);
 
-    /** Creates a URL Location from a name and an option string. */
-    URLLocation(const std::string& name, const std::string& optstring);
+    /** Creates a URLLocation from a string representaion and a name. */
+    URLLocation(const std::string& url, const std::string& name);
 
-    /** URL Location destructor. */
+    /** Creates a URLLocation from a URL. */
+    URLLocation(const URL& url);
+
+    /** Creates a URLLocation from a URL and a name. */
+    URLLocation(const URL& url, const std::string& name);
+
+    /** Creates a URLLocation from options and a name. */
+    URLLocation(const std::map<std::string, std::string>& options,
+                const std::string& name);
+
+    /** URLLocation destructor. */
     virtual ~URLLocation();
 
-    /** Returns the URL Location name (used for RC registrations). */
+    /** Returns the URLLocation name. */
     const std::string& Name() const;
 
-    /** Returns a string representation of the URL Location. */
+    /** Returns a string representation of the URLLocation. */
     virtual std::string str() const;
 
     /** Returns a string representation including options and locations */
     virtual std::string fullstr() const;
 
    protected:
-    /** the URL Location name (used for RC registrations). */
+    /** the URLLocation name as registered in the indexing service. */
     std::string name;
   };
 

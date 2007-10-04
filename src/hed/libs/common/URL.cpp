@@ -42,7 +42,7 @@ namespace Arc {
 
 
   static std::string OptionString(const std::map<std::string,
-				  std::string>& options, char separator) {
+                                  std::string>& options, char separator) {
 
     std::string optstring;
 
@@ -82,7 +82,7 @@ namespace Arc {
     if(pos2 != std::string::npos) {
 
       if(protocol == "rc" || protocol == "rls" ||
-	 protocol == "fireman" || protocol == "lfc") {
+         protocol == "fireman" || protocol == "lfc") {
 
 	std::string locstring = url.substr(pos, pos2 - pos);
 	pos = pos2 + 1;
@@ -104,10 +104,11 @@ namespace Arc {
 	    if(protocol == "rc") {
 	      pos3 = loc.find(';');
 	      if(pos3 == std::string::npos)
-		locations.push_back(URLLocation(loc, ""));
+		locations.push_back(URLLocation(ParseOptions("", ';'), loc));
 	      else
-		locations.push_back(URLLocation(loc.substr(0, pos3),
-						loc.substr(pos3 + 1)));
+		locations.push_back(URLLocation
+		                    (ParseOptions(loc.substr(pos3 + 1), ';'),
+		                     loc.substr(pos3 + 1)));
 	    }
 	    else
 	      locations.push_back(loc);
@@ -240,7 +241,7 @@ namespace Arc {
   }
 
   const std::string& URL::HTTPOption(const std::string& option,
-				     const std::string& undefined) const {
+                                     const std::string& undefined) const {
     std::map<std::string, std::string>::const_iterator
       opt = httpoptions.find(option);
     if(opt != httpoptions.end())
@@ -254,7 +255,7 @@ namespace Arc {
   }
 
   const std::string& URL::Option(const std::string& option,
-				 const std::string& undefined) const {
+                                 const std::string& undefined) const {
     std::map<std::string, std::string>::const_iterator
       opt = urloptions.find(option);
     if(opt != urloptions.end())
@@ -264,7 +265,7 @@ namespace Arc {
   }
 
   void URL::AddOption(const std::string& option, const std::string& value,
-		      bool overwrite) {
+                      bool overwrite) {
     if(!overwrite && urloptions.find(option) != urloptions.end())
       return;
     urloptions[option] = value;
@@ -279,7 +280,7 @@ namespace Arc {
   }
 
   const std::string& URL::CommonLocOption(const std::string& option,
-					  const std::string& undefined) const {
+                                          const std::string& undefined) const {
     std::map<std::string, std::string>::const_iterator
       opt = commonlocoptions.find(option);
     if(opt != commonlocoptions.end())
@@ -445,9 +446,17 @@ namespace Arc {
 
   URLLocation::URLLocation(const std::string& url) : URL(url) {}
 
-  URLLocation::URLLocation(const std::string& name,
-                           const std::string& optstring) : URL(), name(name) {
-    urloptions = ParseOptions(optstring, ';');
+  URLLocation::URLLocation(const std::string& url,
+                           const std::string& name) : URL(url), name(name) {}
+
+  URLLocation::URLLocation(const URL& url) : URL(url) {}
+
+  URLLocation::URLLocation(const URL& url,
+                           const std::string& name) : URL(url), name(name) {}
+
+  URLLocation::URLLocation(const std::map<std::string, std::string>& options,
+                           const std::string& name) : URL(), name(name) {
+    urloptions = options;
   }
 
   const std::string& URLLocation::Name() const {
