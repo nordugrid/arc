@@ -72,8 +72,8 @@ int round(double x){
 // Send requests and collect statistics.
 void sendRequests(){
   // Some variables...
-  unsigned long completedRequests;
-  unsigned long failedRequests;
+  unsigned long completedRequests = 0;
+  unsigned long failedRequests = 0;
   Glib::TimeVal completedTime(0,0);
   Glib::TimeVal failedTime(0,0);
   Glib::TimeVal tBefore;
