@@ -26,8 +26,9 @@ class ThreadArgument {
         ~ThreadArgument(void) { };
         void thread(void) {
             func_t f_temp = func;
+            void* a_temp = arg;
             delete this;
-            (*f_temp)(arg);
+            (*f_temp)(a_temp);
         };
 };
 
