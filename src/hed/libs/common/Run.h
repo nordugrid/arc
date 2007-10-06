@@ -36,6 +36,8 @@ class Run {
   bool started_;
   bool running_;
   int result_;
+  Glib::Mutex lock_;
+  Glib::Cond  cond_;
  public:
   Run(const std::string& cmdline);
   Run(const std::list<std::string>& argv);

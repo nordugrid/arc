@@ -37,28 +37,23 @@ RunPump* RunPump::instance_ = NULL;
 int RunPump::mark_ = ~RunPumpMagic;
 
 RunPump::RunPump(void):thread_(NULL) {
-std::cerr<<"RumPump"<<std::endl;
   try {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this,&RunPump::Pump), false);
   } catch (std::exception& e) { };
   if(thread_ == NULL) return;
-std::cerr<<"RumPump: thread created"<<std::endl;
   // Wait for context_ to be intialized
   // TODO: what to do if context never initialized
   for(;;) {
-std::cerr<<"RumPump: waiting context"<<std::endl;
     if(context_) break;
     thread_->yield(); // This is simpler than condition+mutex
   };
 }
 
 RunPump& RunPump::Instance(void) {
-std::cerr<<"Instance"<<std::endl;
   if((instance_ == NULL) || (mark_ != RunPumpMagic)) {
     instance_=new RunPump();
     mark_=RunPumpMagic;
   };
-std::cerr<<"Instance: "<<(bool)(*instance_)<<std::endl;
   return *instance_;
 }
 
@@ -67,32 +62,24 @@ void RunPump::Pump(void) {
   context_ = Glib::MainContext::create();
   // In infinite loop monitor state of children processes
   // and pump information to/from std* channels if requested
+  //context_->acquire();
   for(;;) {
     list_lock_.lock();
-std::cerr<<"list_lock acquired"<<std::endl;
     list_lock_.unlock();
     pump_lock_.lock();
-std::cerr<<"starting iteration"<<std::endl;
     context_->iteration(true);
-std::cerr<<"leaving iteration"<<std::endl;
     pump_lock_.unlock();
     thread_->yield();
   };
 }
 
 void RunPump::Add(Run* r) {
-std::cerr<<"Add 0"<<std::endl;
   if(!r) return;
-std::cerr<<"Add 1"<<std::endl;
   if(!(*r)) return;
-std::cerr<<"Add 2"<<std::endl;
   if(!(*this)) return;
-std::cerr<<"Add 3"<<std::endl;
   // Take full control over context
-std::cerr<<"Add: acquiring list_lock"<<std::endl;
   list_lock_.lock();
   context_->wakeup();
-std::cerr<<"Add: acquiring pump_lock"<<std::endl;
   pump_lock_.lock();
   // Add sources to context
   if(r->stdout_str_)
@@ -101,15 +88,13 @@ std::cerr<<"Add: acquiring pump_lock"<<std::endl;
     r->stderr_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stderr_handler),r->stderr_, Glib::IO_IN | Glib::IO_HUP);
   if(r->stdin_str_)
     r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
-  r->child_conn_ =context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
-  if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
-std::cerr<<"Add: added sources"<<std::endl;
+  r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
+  //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
   pump_lock_.unlock();
   list_lock_.unlock();
 }
 
 void RunPump::Remove(Run* r) {
-std::cerr<<"Remove"<<std::endl;
   if(!r) return;
   if(!(*r)) return;
   if(!(*this)) return;
@@ -122,7 +107,6 @@ std::cerr<<"Remove"<<std::endl;
   r->stderr_conn_.disconnect();
   r->stdin_conn_.disconnect();
   r->child_conn_.disconnect();
-std::cerr<<"Removed"<<std::endl;
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -146,10 +130,8 @@ bool Run::Start(void) {
   if(started_) return false;
   if(argv_.size() < 1) return false;
   // TODO: Windows paths
-  running_=true;
-std::cerr<<"Starting application"<<std::endl;
-  spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(0),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
-std::cerr<<"Started application"<<std::endl;
+  running_=true; started_=true;
+  spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
   RunPump::Instance().Add(this);
 }
 
@@ -158,14 +140,12 @@ void Run::Kill(int timeout) {
 #ifndef WIN32
   if(timeout > 0) {
     // Kill softly
-std::cerr<<"kill "<<pid_<<" SIGTERM"<<std::endl;
     ::kill(pid_,SIGTERM);
     Wait(5);
   };
   if(!running_) return;
   // Kill with no merci
   running_=false;
-std::cerr<<"kill "<<pid_<<" SIGKILL"<<std::endl;
   ::kill(pid_,SIGKILL);
   pid_=0;
 #else
@@ -226,11 +206,14 @@ bool Run::stdin_handler(Glib::IOCondition cond) {
 }
 
 void Run::child_handler(Glib::Pid pid,int result) {
-std::cerr<<"child_handler: pid="<<pid<<", result="<<result<<std::endl;
   CloseStdout();
   CloseStderr();
   CloseStdin();
+  lock_.lock();
+  cond_.signal();
+  result_=(result >> 8); // Why ?
   running_=false;
+  lock_.unlock();
 }
 
 void Run::CloseStdout(void) {
@@ -264,8 +247,18 @@ int Run::WriteStdin(int timeout,const char* buf,int size) {
 }
 
 bool Run::Wait(int timeout) {
-  ::sleep(timeout);
-  return (Result() != -1);
+  if(!started_) return false;
+  if(!running_) return true;
+  Glib::TimeVal till;
+  till.assign_current_time(); till+=timeout;
+  lock_.lock();
+  while(running_) {
+    Glib::TimeVal t; t.assign_current_time(); t.subtract(till);
+    if(!t.negative()) break;
+    cond_.timed_wait(lock_,till);
+  };
+  lock_.unlock();
+  return (!running_);
 }
 
 }
