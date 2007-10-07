@@ -16,7 +16,7 @@ class RunPump {
  friend class Run;
  private:
   static RunPump* instance_;
-  static int mark_;
+  static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
   //std::list<Run*> runs_;
   Glib::Mutex list_lock_;
@@ -34,7 +34,7 @@ class RunPump {
 };
 
 RunPump* RunPump::instance_ = NULL;
-int RunPump::mark_ = ~RunPumpMagic;
+unsigned int RunPump::mark_ = ~RunPumpMagic;
 
 RunPump::RunPump(void):thread_(NULL) {
   try {
@@ -217,7 +217,7 @@ void Run::child_handler(Glib::Pid pid,int result) {
 }
 
 void Run::CloseStdout(void) {
-  if(stdout_ != -1) ::close(stdout_); stdout_==-1;
+  if(stdout_ != -1) ::close(stdout_); stdout_=-1;
 }
 
 void Run::CloseStderr(void) {
