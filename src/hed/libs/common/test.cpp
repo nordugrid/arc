@@ -7,7 +7,7 @@
 #include <iostream>
 
 void func(void* arg) {
-    std::cout << "Thread argument = " << (int)arg << std::endl;
+    std::cout << "Thread argument = " << arg << std::endl;
 }
 
 int main(void)
