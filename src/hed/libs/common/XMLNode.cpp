@@ -289,7 +289,7 @@ void XMLNode::Replace(const XMLNode& node) {
   if(node_ == NULL) return;
   if(node.node_ == NULL) return;
   if(node_->type == XML_DOCUMENT_NODE) {
-    XMLNode(((xmlDocPtr)node_)->children).Replace(node);
+    (XMLNode(((xmlDocPtr)node_)->children)).Replace(node);
   };
   if(node.node_->type == XML_DOCUMENT_NODE) {
     Replace(XMLNode(((xmlDocPtr)(node.node_))->children));
