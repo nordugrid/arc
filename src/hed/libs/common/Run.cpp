@@ -111,10 +111,10 @@ void RunPump::Remove(Run* r) {
   list_lock_.unlock();
 }
 
-Run::Run(const std::string& cmdline):pid_(0),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_(-1),stderr_(-1),stdin_(-1),running_(false),started_(false),result_(-1),argv_(Glib::shell_parse_argv(cmdline)) {
+Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),started_(false),running_(false),result_(-1) {
 }
 
-Run::Run(const std::list<std::string>& argv):pid_(0),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_(-1),stderr_(-1),stdin_(-1),running_(false),started_(false),result_(-1),argv_(argv) {
+Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),started_(false),running_(false),result_(-1) {
 }
 
 Run::~Run(void) {
