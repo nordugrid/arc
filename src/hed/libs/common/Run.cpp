@@ -133,6 +133,7 @@ bool Run::Start(void) {
   running_=true; started_=true;
   spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
   RunPump::Instance().Add(this);
+  return true;
 }
 
 void Run::Kill(int timeout) {
