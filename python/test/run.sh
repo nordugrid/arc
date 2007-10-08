@@ -1,5 +1,4 @@
 #!/bin/sh
-export LDLIBRARY_PATH=/home/szferi/arc1/src/hed/libs/common/.libs/:/home/szferi/arc1/src/hed/libs/data/.libs/:/home/szferi1/arc1/src/hed/libs/loader/.libs/:/home/szferi/arc1/src/hed/libs/message/.libs/
-export PYTHONPATH=/home/szferi/arc1/python:/home/szferi/arc1/python/.libs
-#gdb /usr/bin/python
- python test.py
+export LDLIBRARY_PATH=../../src/hed/libs/common/.libs/:../../src/hed/libs/data/.libs/:../../src/hed/libs/loader/.libs/:../../src/hed/libs/message/.libs/
+export PYTHONPATH=..:../.libs
+python test.py

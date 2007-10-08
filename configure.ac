@@ -4,7 +4,6 @@
 AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
 AC_INIT([arc],[0.9.0],[http://bugzilla.nordugrid.org/])
-#AM_INIT_AUTOMAKE([-Wno-portability])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
@@ -17,12 +16,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-# AC_PROG_RANLIB
 AM_PROG_LIBTOOL
-
-# Checks for language bindings 
-dnl Detect available languages binding.
-languages_available=
 
 # Swig
 AC_CHECK_PROGS(SWIG, swig)
@@ -75,17 +69,22 @@ CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
 AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
 CPPFLAGS=$SAVE_CPPFLAGS
 
-if test "x$jni_h" = "xyes" && test "X$SWIG" != "X" &&
+JAVAWRAP=no
+if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+    JAVAWRAP=yes
+fi
+
+if test "X$jni_h" = "Xyes" && test "X$JAVAWRAP" = "Xyes" &&
    test "X$JAVAC" != "X" && test "X$JAR" != "X"; then
-    languages_available="$languages_available Java($JAVAC)"
+    AC_MSG_NOTICE([Java available: $JAVAC])
 else
     enable_java=no
 fi
 
 AC_MSG_NOTICE([Java enabled: $enable_java])
 
-dnl Conditional java sub dir test.
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
+
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
@@ -112,11 +111,18 @@ if test "X$PYTHON" != "X"; then
     AC_SUBST(PY_SITE_PACKAGES)
 fi
 
-if test "X$SWIG" != "X" && test "X$PYTHON" != "X"; then
-    languages_available="$languages_available Python($PYTHON_VERSION)"
+PYTHONWRAP=no
+if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+    PYTHONWRAP=yes
+fi
+
+if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X"; then
+    AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
 else
     enable_python=no
 fi
+
+AC_MSG_NOTICE([Python enabled: $enable_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enable_python" = "xyes"])
 
@@ -127,7 +133,6 @@ else
         pkgconfigdir=${libdir}/pkgconfig
         AC_SUBST(pkgconfigdir)
 fi
-
 
 # using pkgconfig
 # check gthread
@@ -141,8 +146,8 @@ AC_SUBST(GLIBMM_LIBS)
 SAVE_CXXFLAGS=$CXXFLAGS
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
-CXXFLAGS="$CXXFLAGS $GLIBMM_CFLAGS"
-AC_TRY_COMPILE([#include <glibmm/optiongroup.h>],[],[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
+CPPFLAGS="$CPPFLAGS $GLIBMM_CFLAGS"
+AC_CHECK_HEADER(glibmm/optiongroup.h,[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
 if test "$glibmm_optiongroup_h" = yes; then
   AC_DEFINE(HAVE_GLIBMM_OPTIONS,,[define if glibmm have support for command line arguments])
   AC_TRY_COMPILE([#include <glibmm.h>],[Glib::OptionEntry::Flags flags = Glib::OptionEntry::FLAG_NO_ARG;],[glibmm_optionflags=yes],[glibmm_optionflags=no])
@@ -152,7 +157,7 @@ if test "$glibmm_optiongroup_h" = yes; then
     AC_MSG_NOTICE([WARNING: glibmm has no all arguments flags defined - arguments parsing may be inconsistent])
   fi
 else
-  AC_MSG_NOTICE([WARNING: glibmm has no supoort for command lineparsing - using reduced functionality])  
+  AC_MSG_NOTICE([WARNING: glibmm has no support for command lineparsing - using reduced functionality])  
 fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then
@@ -161,7 +166,7 @@ else
   AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
 fi
 AC_LANG_RESTORE
-CXXFLAGS=$SAVE_CXXFLAGS
+CPPFLAGS=$SAVE_CPPFLAGS
 
 # check libxml
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.4.0])
@@ -261,10 +266,10 @@ AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 
 # Setup defines
 if test -n "$GLOBUS_RLS_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS_RSL,,[define if GLOBUS RSL package is avaialble])
+    AC_DEFINE(HAVE_GLOBUS_RSL,,[define if GLOBUS RSL package is available])
 fi
 if test x"$GSOAP" = xyes; then
-    AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is avaialble])
+    AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is available])
 fi
 if test x"$OPENSSL_PROXY" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
@@ -288,7 +293,6 @@ if test x$GSOAP = xyes ; then enable_gsoap=yes; fi
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-# AC_HEADER_RESOLV
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h])
 AC_CXX_HAVE_SSTREAM
@@ -302,12 +306,9 @@ AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-#AC_TYPE_SSIZE_T
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_HEADER_TIME
 AC_STRUCT_TM
-#AC_TYPE_UINT32_T
-#AC_TYPE_UINT64_T
 AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
@@ -396,10 +397,7 @@ AC_CONFIG_FILES([Makefile
 ])
 AC_OUTPUT
 
-languages_available=`echo $languages_available | sed -e "s/^ //" `
 AC_MSG_RESULT([
-Available languages: ${languages_available}
-
 Java binding:       ${enable_java}
 Python binding:     ${enable_python}
 
@@ -413,5 +411,4 @@ gSOAP:              ${enable_gsoap}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}
-
 ])
