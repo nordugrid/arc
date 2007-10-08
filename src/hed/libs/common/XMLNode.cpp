@@ -275,7 +275,12 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
   if(node.Name().empty()) return XMLNode();
   if(node_->type == XML_DOCUMENT_NODE) {
     XMLNode root = Child();
-    if(!root) return XMLNode();
+    if(!root) {
+      xmlNodePtr new_node = xmlDocCopyNode(node.node_,(xmlDocPtr)node_,1);
+      if(new_node == NULL) return XMLNode();
+      xmlDocSetRootElement((xmlDocPtr)node_,new_node); 
+      return Child();
+    };
     if(!(root.Name().empty())) return XMLNode();
     root.Replace(node);
     return Child();
