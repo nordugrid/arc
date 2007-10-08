@@ -154,12 +154,20 @@ if test "$glibmm_optiongroup_h" = yes; then
 else
   AC_MSG_NOTICE([WARNING: glibmm has no supoort for command lineparsing - using reduced functionality])  
 fi
+AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
+if test "$glibmm_childwatch" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH,,[define if glibmm have support for controling state of children processes])
+else  
+  AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
+fi
 AC_LANG_RESTORE
 CXXFLAGS=$SAVE_CXXFLAGS
+
 # check libxml
 PKG_CHECK_MODULES(LIBXML2, [libxml-2.0 >= 2.4.0])
 AC_SUBST(LIBXML2_CFLAGS)
 AC_SUBST(LIBXML2_LIBS)
+
 # check openssl
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
@@ -177,6 +185,7 @@ OPENSSL_OLDRSA=yes
 if test "$?" = '0' ; then
 	OPENSSL_OLDRSA=no
 fi
+
 # check gSOAP
 PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [GSOAP=yes], [GSOAP=no])
 AC_SUBST(GSOAP_CFLAGS)
@@ -232,6 +241,15 @@ LIBS=$SAVE_LIBS
 
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+
+# Check for explicitely disabled packages
+# A-Rex
+AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes")
+if test x$GSOAP != xyes ; then
+  enable_a_rex_service="no"
+fi
+AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
+AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
@@ -392,5 +410,8 @@ GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
 gSOAP:              ${enable_gsoap}
+
+Included components:
+A-Rex service:      ${enable_a_rex_service}
 
 ])
