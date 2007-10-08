@@ -7,6 +7,7 @@
 #include <arc/security/ArcPDP/attr/RequestAttribute.h>
 
 using namespace Arc;
+using namespace ArcSec;
 
 ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : RequestItem(node, attrfactory) {
   //TODO

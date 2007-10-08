@@ -1,9 +1,9 @@
-#ifndef __ARC_EQUAL_FUNCTION_H__
-#define __ARC_EQUAL_FUNCTION_H__
+#ifndef __ARC_SEC_EQUAL_FUNCTION_H__
+#define __ARC_SEC_EQUAL_FUNCTION_H__
 
 #include <arc/security/ArcPDP/fn/Function.h>
 
-namespace Arc {
+namespace ArcSec {
 
 #define NAME_STRING_EQUAL "know-arc:function:string-equal"
 #define NAME_BOOLEAN_EQUAL "know-arc:function:boolean-equal"
@@ -39,7 +39,7 @@ private:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_EQUAL_FUNCTION_H__ */
+#endif /* __ARC_SEC_EQUAL_FUNCTION_H__ */
 

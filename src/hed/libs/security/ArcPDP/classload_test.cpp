@@ -14,14 +14,14 @@ int main(void)
     Arc::Config cfg("EvaluatorCfg.xml");
     Arc::ClassLoader classloader(&cfg);
     std::string id = "attr.factory";
-    Arc::AttributeFactory* attrfactory=NULL;
-    attrfactory = (Arc::AttributeFactory*)(classloader.Instance(id, &cfg));
+    ArcSec::AttributeFactory* attrfactory=NULL;
+    attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id, &cfg));
 
     if(attrfactory == NULL)
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
    
     Arc::XMLNode nd = cfg["ArcConfig"]["Plugins"]["Plugin"]; 
-    Arc::AttributeValue * val;
+    ArcSec::AttributeValue * val;
     val = attrfactory->createValue(nd,"string");
     std::string tmp1 = val->encode();
     std::cout<<tmp1<<std::endl;
@@ -32,7 +32,7 @@ int main(void)
     Arc::ClassLoader classloader1(NULL);
     id = "attr.factory";
     attrfactory=NULL;
-    attrfactory = (Arc::AttributeFactory*)(classloader.Instance(id, &cfg));
+    attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id, &cfg));
 
     if(attrfactory == NULL)
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;

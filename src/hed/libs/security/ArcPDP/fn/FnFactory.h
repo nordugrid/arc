@@ -1,17 +1,17 @@
-#ifndef __ARC_FUNCTIONFACTORY_H__
-#define __ARC_FUNCTIONFACTORY_H__
+#ifndef __ARC_SEC_FUNCTIONFACTORY_H__
+#define __ARC_SEC_FUNCTIONFACTORY_H__
 
 #include <arc/loader/LoadableClass.h>
 
 #include <map>
 #include "Function.h"
 
-namespace Arc {
+namespace ArcSec {
 
-typedef std::map<std::string, Arc::Function*> FnMap;
+typedef std::map<std::string, Function*> FnMap;
 
 /** Base function factory class*/
-class FnFactory : public LoadableClass {
+class FnFactory : public Arc::LoadableClass {
 public:
   FnFactory() {};
   virtual ~FnFactory(){};
@@ -23,7 +23,7 @@ protected:
   FnMap fnmap;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_FUNCTIONFACTORY_H__ */
+#endif /* __ARC_SEC_FUNCTIONFACTORY_H__ */
 

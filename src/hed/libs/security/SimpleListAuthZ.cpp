@@ -9,8 +9,8 @@
 
 #include "SimpleListAuthZ.h"
 
-static Arc::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new Arc::SimpleListAuthZ(cfg,ctx);
+static ArcSec::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
+    return new ArcSec::SimpleListAuthZ(cfg,ctx);
 }
 
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
@@ -19,8 +19,9 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 };
 
 using namespace Arc;
+using namespace ArcSec;
 
-SimpleListAuthZ::SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx):SecHandler(cfg){
+SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
   
   pdp_factory = (PDPFactory*)(*ctx);
   if(pdp_factory) {
@@ -40,7 +41,7 @@ SimpleListAuthZ::~SimpleListAuthZ() {
 }
 
 /**Producing PDPs */
-void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
+void SimpleListAuthZ::MakePDPs(Config* cfg) {
     /**Creating the PDP plugins*/
  /*   XMLNode cn, an, can;
     for(int i=0;;++i){
@@ -74,7 +75,7 @@ void SimpleListAuthZ::MakePDPs(Arc::Config* cfg) {
     } 
 }
 
-bool SimpleListAuthZ::Handle(Message* msg){
+bool SimpleListAuthZ::Handle(Arc::Message* msg){
   //std::string subject=msg->Attributes()->get("TLS:PEERDN");
   pdp_container_t::iterator it;
   for(it=pdps_.begin();it!=pdps_.end();it++){

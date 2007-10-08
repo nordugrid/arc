@@ -1,9 +1,9 @@
-#ifndef __ARC_X500NAMEATTRIBUTE_H__
-#define __ARC_X500NAMEATTRIBUTE_H__
+#ifndef __ARC_SEC_X500NAMEATTRIBUTE_H__
+#define __ARC_SEC_X500NAMEATTRIBUTE_H__
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
-namespace Arc {
+namespace ArcSec {
 class X500NameAttribute : public AttributeValue {
 private:
   static std::string identifier;
@@ -21,8 +21,8 @@ public:
  
 };
 
-}// namespace Arc
+}// namespace ArcSec
 
-#endif /* __ARC_X500NAMEATTRIBUTE_H__ */
+#endif /* __ARC_SEC_X500NAMEATTRIBUTE_H__ */
 
 

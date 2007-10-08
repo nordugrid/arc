@@ -1,9 +1,9 @@
-#ifndef __ARC_STRINGATTRIBUTE_H__
-#define __ARC_STRINGATTRIBUTE_H__
+#ifndef __ARC_SEC_STRINGATTRIBUTE_H__
+#define __ARC_SEC_STRINGATTRIBUTE_H__
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
-namespace Arc {
+namespace ArcSec {
 class StringAttribute : public AttributeValue {
 private:
   static std::string identifier;
@@ -21,8 +21,8 @@ public:
  
 };
 
-}// namespace Arc
+}// namespace ArcSec
 
-#endif /* __ARC_STRINGATTRIBUTE_H__ */
+#endif /* __ARC_SEC_STRINGATTRIBUTE_H__ */
 
 

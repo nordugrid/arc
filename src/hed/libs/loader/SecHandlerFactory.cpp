@@ -11,21 +11,21 @@ namespace Arc {
 
   SecHandlerFactory::~SecHandlerFactory() {}
 
-  SecHandler* SecHandlerFactory::get_instance(const std::string& name,
+  ArcSec::SecHandler* SecHandlerFactory::get_instance(const std::string& name,
 					      Config *cfg, ChainContext *ctx) {
-    return (SecHandler*)LoaderFactory::get_instance(name, cfg, ctx);
+    return (ArcSec::SecHandler*)LoaderFactory::get_instance(name, cfg, ctx);
   }
 
-  SecHandler* SecHandlerFactory::get_instance(const std::string& name,
+  ArcSec::SecHandler* SecHandlerFactory::get_instance(const std::string& name,
 					      int version,
 					      Config *cfg, ChainContext *ctx) {
-    return (SecHandler*)LoaderFactory::get_instance(name, version, cfg, ctx);
+    return (ArcSec::SecHandler*)LoaderFactory::get_instance(name, version, cfg, ctx);
   }
 
-  SecHandler* SecHandlerFactory::get_instance(const std::string& name,
+  ArcSec::SecHandler* SecHandlerFactory::get_instance(const std::string& name,
 					      int min_version, int max_version,
 					      Config *cfg, ChainContext *ctx) {
-    return (SecHandler*)LoaderFactory::get_instance(name, min_version,
+    return (ArcSec::SecHandler*)LoaderFactory::get_instance(name, min_version,
 						    max_version, cfg, ctx);
   }
 

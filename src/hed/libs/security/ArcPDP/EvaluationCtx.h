@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCEVALUATIONCTX_H__
-#define __ARC_ARCEVALUATIONCTX_H__
+#ifndef __ARC_SEC_ARCEVALUATIONCTX_H__
+#define __ARC_SEC_ARCEVALUATIONCTX_H__
 
 #include <list>
 #include <fstream>
@@ -11,7 +11,7 @@
 
 /** EvaluationCtx, storing some context information for evaluation, including Request, current time, etc. */
 
-namespace Arc {
+namespace ArcSec {
 
 /*
 typedef struct{
@@ -24,10 +24,10 @@ typedef struct{
 
 class RequestTuple {
 public:
-  Arc::Subject sub;
-  Arc::Resource res;
-  Arc::Action act;
-  Arc::Context ctx;
+  Subject sub;
+  Resource res;
+  Action act;
+  Context ctx;
 public:
   RequestTuple& duplicate(const RequestTuple&);
 public:
@@ -40,14 +40,14 @@ class EvaluationCtx {
 
 public:
   //**Construct a new EvaluationCtx based on the given request.*/
-  EvaluationCtx (Arc::Request* request);
+  EvaluationCtx (Request* request);
   virtual ~EvaluationCtx();
   
-  virtual Arc::Request* getRequest() const;
+  virtual Request* getRequest() const;
  
-  virtual void setRequestItem(Arc::RequestItem* reqit){reqitem = reqit;};
+  virtual void setRequestItem(RequestItem* reqit){reqitem = reqit;};
 
-  virtual Arc::RequestItem* getRequestItem() const {return reqitem;};
+  virtual RequestItem* getRequestItem() const {return reqitem;};
 /*
   virtual AttributeValue * getSubjectAttribute();
   virtual AttributeValue * getResourceAttribute();
@@ -63,15 +63,15 @@ public:
   virtual RequestTuple* getEvalTuple()const { return evaltuple; };
   
 private:
-  static Logger logger;
-  Arc::Request* req;
-  Arc::RequestItem* reqitem;
+  static Arc::Logger logger;
+  Request* req;
+  RequestItem* reqitem;
   std::list<RequestTuple*> reqtuples;
   //The RequestTuple for evaluation at present
   RequestTuple* evaltuple;
  
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_EVALUATIONCTX_H__ */
+#endif /* __ARC_SEC_EVALUATIONCTX_H__ */

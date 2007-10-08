@@ -13,7 +13,7 @@
 /*
 //Should we provide different ClassLoader for different "get" function with different arguments?
 static Arc::LoadableClass* get_policy_store (const std::list<std::string>& filelist, const std::string& alg) {
-    return new Arc::PolicyStore(filelist, alg);
+    return new ArcSec::PolicyStore(filelist, alg);
 }
 
 loader_descriptors __arc_policystore_modules__  = {
@@ -23,6 +23,7 @@ loader_descriptors __arc_policystore_modules__  = {
 */
 
 using namespace Arc;
+using namespace ArcSec;
 
 PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
   combalg = alg;
@@ -34,7 +35,7 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
 }
 
 //use list, there also can be a class "PolicySet", which includes a few policies
-std::list<Arc::Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
+std::list<Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
   //For the existing Arc policy expression, we only need to return all the policies, because there is no Target definition in ArcPolicy (the Target is only in ArcRule)
 
   return policies;

@@ -5,8 +5,8 @@
 
 #include "Security.h"
 
-namespace Arc{
+namespace ArcSec{
  
-  Logger Security::logger(Logger::rootLogger, "Security");
+  Arc::Logger Security::logger(Arc::Logger::rootLogger, "Security");
 
 }

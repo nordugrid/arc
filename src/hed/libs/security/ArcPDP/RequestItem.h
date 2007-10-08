@@ -1,12 +1,12 @@
-#ifndef __ARC_REQUESTITEM_H__
-#define __ARC_REQUESTITEM_H__
+#ifndef __ARC_SEC_REQUESTITEM_H__
+#define __ARC_SEC_REQUESTITEM_H__
 
 #include <list>
 #include <arc/XMLNode.h>
 #include "attr/AttributeFactory.h"
 #include "attr/RequestAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 //typedef std::list<Attribute*> Subject, Resource, Action, Context;
 typedef std::list<RequestAttribute*> Subject, Resource, Action, Context;
@@ -18,7 +18,7 @@ typedef std::list<Context> CtxList;
 /**<subjects, actions, objects, ctxs> tuple */
 class RequestItem{
  public:
-  RequestItem(XMLNode&, AttributeFactory*){};
+  RequestItem(Arc::XMLNode&, AttributeFactory*){};
   virtual ~RequestItem(){};
 
 protected:
@@ -41,5 +41,5 @@ public:
 
 } // namespace Arc
 
-#endif /* __ARC_REQUESTITEM_H__ */
+#endif /* __ARC_SEC_REQUESTITEM_H__ */
 

@@ -1,17 +1,17 @@
-#ifndef __ARC_POLICYSTORE_H__
-#define __ARC_POLICYSTORE_H__
+#ifndef __ARC_SEC_POLICYSTORE_H__
+#define __ARC_SEC_POLICYSTORE_H__
 
 #include <arc/loader/LoadableClass.h>
 #include <list>
 #include "Policy.h"
 
-namespace Arc {
+namespace ArcSec {
 
 class EvaluatorContext;
 
 /**Storage place for policy objects */
 
-class PolicyStore : public LoadableClass {
+class PolicyStore : public Arc::LoadableClass {
 
 public:
   PolicyStore();
@@ -21,16 +21,16 @@ public:
 
   virtual ~PolicyStore();
   
-  virtual std::list<Arc::Policy*> findPolicy(EvaluationCtx* context);
+  virtual std::list<Policy*> findPolicy(EvaluationCtx* context);
 
 private:
   std::list<std::string> policysrclist;
-  std::list<Arc::Policy*> policies;
+  std::list<Policy*> policies;
   std::string combalg;
  
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_POLICYSTORE_H__ */
+#endif /* __ARC_SEC_POLICYSTORE_H__ */
 

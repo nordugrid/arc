@@ -15,7 +15,7 @@
 
 
 static Arc::LoadableClass* get_fn_factory (Arc::Config *) {
-    return new Arc::ArcFnFactory();
+    return new ArcSec::ArcFnFactory();
 }
 
 loader_descriptors __arc_fnfactory_modules__  = {
@@ -25,6 +25,7 @@ loader_descriptors __arc_fnfactory_modules__  = {
 
 
 using namespace Arc;
+using namespace ArcSec;
 
 void ArcFnFactory::initFunctions(){
   /**Some Arc specified function types*/

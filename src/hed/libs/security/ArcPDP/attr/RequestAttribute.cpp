@@ -5,6 +5,7 @@
 #include "RequestAttribute.h"
 
 using namespace Arc;
+using namespace ArcSec;
 
 Logger RequestAttribute::logger(Logger::rootLogger, "RequestAttribute");
 

@@ -74,7 +74,7 @@ namespace Arc {
 	sechandler_i != sechandlers_.end();
 	sechandler_i = sechandlers_.begin()) {
       l.msg(DEBUG, "sechandler erase");
-      SecHandler* sechandler = sechandler_i->second;
+      ArcSec::SecHandler* sechandler = sechandler_i->second;
       sechandlers_.erase(sechandler_i);
       if(sechandler) delete sechandler;
     }
@@ -153,7 +153,7 @@ namespace Arc {
     return XMLNode();
   }
 
-  static SecHandler* MakeSecHandler(Config *cfg, ChainContext *ctx,
+  static ArcSec::SecHandler* MakeSecHandler(Config *cfg, ChainContext *ctx,
       Loader::sechandler_container_t& sechandlers,
       SecHandlerFactory *sechandler_factory, XMLNode& node) {
     if(!node) return NULL;
@@ -187,7 +187,7 @@ namespace Arc {
     }
     // Create new security handler
     Config cfg_(desc_node);
-    SecHandler* sechandler =
+    ArcSec::SecHandler* sechandler =
       sechandler_factory->get_instance(name, &cfg_, ctx);
     Loader::logger.msg(INFO, "SecHandler name: %s", name.c_str());
     if(sechandler) sechandlers[refid] = sechandler;
@@ -262,7 +262,7 @@ namespace Arc {
 	for(int n = 0;; ++n) {
 	  XMLNode can = an[n];
 	  if(!can) break;
-	  SecHandler* sechandler = MakeSecHandler(cfg, context_, sechandlers_,
+	  ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_, sechandlers_,
 						  sechandler_factory, can);
 	  if(!sechandler) continue;
 	  std::string event = can.Attribute("event");
@@ -344,7 +344,7 @@ namespace Arc {
 	for(int n = 0;; ++n) {
 	  XMLNode can = an[n];
 	  if(!can) break;
-	  SecHandler* sechandler = MakeSecHandler(cfg, context_, sechandlers_,
+	  ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_, sechandlers_,
 						  sechandler_factory, can);
 	  if(!sechandler) continue;
 	  std::string event = can.Attribute("event");

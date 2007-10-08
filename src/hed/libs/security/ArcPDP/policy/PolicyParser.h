@@ -1,5 +1,5 @@
-#ifndef __ARC_POLICYPARSER_H__
-#define __ARC_POLICYPARSER_H__
+#ifndef __ARC_SEC_POLICYPARSER_H__
+#define __ARC_SEC_POLICYPARSER_H__
 
 #include <list>
 #include "../alg/CombiningAlg.h"
@@ -7,7 +7,7 @@
 
 #include "../Evaluator.h"
 
-namespace Arc {
+namespace ArcSec {
 
 /**A interface which will isolate the policy object from actual policy storage (files, urls, database) */
 /**Parse the policy from policy source (e.g. files, urls, database, etc.). */
@@ -21,7 +21,7 @@ public:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_POLICYPARSER_H__ */
+#endif /* __ARC_SEC_POLICYPARSER_H__ */
 

@@ -12,6 +12,7 @@
 //#include "../fn/MatchFunction.h"
 
 using namespace Arc;
+using namespace ArcSec;
 
 //Logger ArcRule::logger(Policy::logger, "ArcRule");
 //Arc::LogStream logcerr(std::cerr);
@@ -185,11 +186,11 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
 }
 
 
-static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttribute*> req){
+static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::RequestAttribute*> req){
 
-  Arc::OrList::iterator orit;
-  Arc::AndList::iterator andit;
-  std::list<Arc::RequestAttribute*>::iterator reqit;
+  ArcSec::OrList::iterator orit;
+  ArcSec::AndList::iterator andit;
+  std::list<ArcSec::RequestAttribute*>::iterator reqit;
 
   //Go through each <Subject>/<Resource>/<Action>/<Context>
   //For example, go through each <Subject> element in one rule, 
@@ -227,7 +228,7 @@ static Arc::MatchResult itemMatch(Arc::OrList items, std::list<Arc::RequestAttri
 }
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
-  Arc::RequestTuple* evaltuple = ctx->getEvalTuple();  
+  ArcSec::RequestTuple* evaltuple = ctx->getEvalTuple();  
   if((subjects.empty()||(!subjects.empty())&&(itemMatch(subjects, evaltuple->sub)==MATCH)) &&
     (resources.empty()||(!resources.empty())&&(itemMatch(resources, evaltuple->res)==MATCH)) &&
     (actions.empty()||(!actions.empty())&&(itemMatch(actions, evaltuple->act)==MATCH)) &&

@@ -25,24 +25,24 @@ int main(void){
   logger.msg(Arc::INFO, "Start test");
   
   //std::string cfg("EvaluatorCfg.xml");  
-  Arc::Evaluator eval("EvaluatorCfg.xml");
-  Arc::Response *resp = NULL;
+  ArcSec::Evaluator eval("EvaluatorCfg.xml");
+  ArcSec::Response *resp = NULL;
   resp = eval.evaluate("Request.xml");
 
-  Arc::ResponseList::iterator respit;
+  ArcSec::ResponseList::iterator respit;
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
-  Arc::ResponseList rlist = resp->getResponseItems();
+  ArcSec::ResponseList rlist = resp->getResponseItems();
   for(respit = rlist.begin(); respit != rlist.end(); ++respit){
-    Arc::RequestTuple* tp = (*respit)->reqtp;
-    Arc::Subject::iterator it;
-    Arc::Subject subject = tp->sub;
+    ArcSec::RequestTuple* tp = (*respit)->reqtp;
+    ArcSec::Subject::iterator it;
+    ArcSec::Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
-      Arc::AttributeValue *attrval;
-      Arc::RequestAttribute *attr;
-      attr = dynamic_cast<Arc::RequestAttribute*>(*it);
+      ArcSec::AttributeValue *attrval;
+      ArcSec::RequestAttribute *attr;
+      attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"%s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value: %s", (attrval->encode()).c_str());
       }
     }
   }

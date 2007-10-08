@@ -5,7 +5,7 @@
 #include <iostream>
 #include "StringAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string StringAttribute::identifier = "string";
 
@@ -24,4 +24,4 @@ bool StringAttribute::equal(AttributeValue* o){
     return false;
 }
 
-} //namespace Arc
+} //namespace ArcSec

@@ -20,7 +20,7 @@ namespace Arc {
 typedef struct {
   const char* name;
   int version;
-  Arc::PDP* (*get_instance)(Arc::Config *cfg, Arc::ChainContext *ctx);
+  ArcSec::PDP* (*get_instance)(Arc::Config *cfg, Arc::ChainContext *ctx);
 } pdp_descriptor;
 
 /** PDPs are detected by the presence of an element named

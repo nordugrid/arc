@@ -1,4 +1,4 @@
-namespace Arc {
+namespace ArcSec {
   
   enum Result {
     DECISION_PERMIT = 0,

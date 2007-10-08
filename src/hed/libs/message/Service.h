@@ -36,14 +36,14 @@ class Service: public MCCInterface
       MCC calls sequence of handlers at specific point depending
       on associated identifier. in most aces those are "in" and "out"
       for incoming and outgoing messages correspondingly. */
-        std::map<std::string,std::list<Arc::SecHandler*> > sechandlers_;
+        std::map<std::string,std::list<ArcSec::SecHandler*> > sechandlers_;
         static Logger logger;
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
         Service(Arc::Config*) { };
         virtual ~Service(void) { };
         /** SecHandler */
-        virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");
+        virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
 };
 
 } // namespace Arc

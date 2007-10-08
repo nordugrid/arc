@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCPOLICY_H__
-#define __ARC_ARCPOLICY_H__
+#ifndef __ARC_SEC_ARCPOLICY_H__
+#define __ARC_SEC_ARCPOLICY_H__
 
 #include <list>
 #include <arc/XMLNode.h>
@@ -8,14 +8,14 @@
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 
-namespace Arc {
+namespace ArcSec {
 
 /**ArcPolicy class to parsing Arc specific policy format*/
 
 class ArcPolicy : public Policy {
 
 public:
-  ArcPolicy(XMLNode& node, EvaluatorContext* ctx);  
+  ArcPolicy(Arc::XMLNode& node, EvaluatorContext* ctx);  
 
   virtual ~ArcPolicy();  
 
@@ -26,7 +26,7 @@ public:
   virtual std::string getEffect(){ return "NOT Effect";};
 
 private:
-  static Logger logger;
+  static Arc::Logger logger;
  // std::list<Arc::Policy*> rules;
   std::string id;
   std::string version;
@@ -37,7 +37,7 @@ private:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCPOLICY_H__ */
+#endif /* __ARC_SEC_ARCPOLICY_H__ */
 

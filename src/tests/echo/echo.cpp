@@ -46,10 +46,10 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Check authorization
-  std::list<Arc::SecHandler*> hlist=sechandlers_["incoming"];
-  std::list<Arc::SecHandler*>::iterator it;
+  std::list<ArcSec::SecHandler*> hlist=sechandlers_["incoming"];
+  std::list<ArcSec::SecHandler*>::iterator it;
   for(it=hlist.begin(); it!=hlist.end(); it++){
-    Arc::SecHandler* h = *it;
+    ArcSec::SecHandler* h = *it;
     if(h->Handle(&inmsg)) break;
   }
   // The "Handle" method only returns true/false; The MCC/Service doesn't 

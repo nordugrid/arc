@@ -13,7 +13,7 @@
 
 
 static Arc::LoadableClass* get_attr_factory (Arc::Config*) {
-    return new Arc::ArcAttributeFactory();
+    return new ArcSec::ArcAttributeFactory();
 }
 
 loader_descriptors __arc_attrfactory_modules__  = {
@@ -22,6 +22,7 @@ loader_descriptors __arc_attrfactory_modules__  = {
 };
 
 using namespace Arc;
+using namespace ArcSec;
 
 void ArcAttributeFactory::initDatatypes(){
   /**Some Arc specified attribute types*/

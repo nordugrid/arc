@@ -14,6 +14,7 @@
 #include <iostream>
 
 using namespace Arc;
+using namespace ArcSec;
 
 Logger Evaluator::logger(Arc::Logger::rootLogger, "Evaluator");
 
@@ -91,7 +92,7 @@ void Evaluator::parsecfg(Arc::XMLNode& cfg){
   //filelist.push_back("Policy_Example.xml");
   filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
-  plstore = new Arc::PolicyStore(filelist, alg, context);
+  plstore = new PolicyStore(filelist, alg, context);
   
 
 }
@@ -123,17 +124,17 @@ Evaluator::Evaluator(const char * cfgfile){
 }
 
 /*
-Arc::Response* Evaluator::evaluate(Arc::Request* request){
+Response* Evaluator::evaluate(Arc::Request* request){
   Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
   return (evaluate(evalctx));   
 }
 */
 
-Arc::Response* Evaluator::evaluate(const std::string& reqfile){
-  Arc::Request* request = NULL;
-  request = new Arc::ArcRequest(reqfile, attrfactory);
-  Arc::EvaluationCtx * evalctx = NULL;
-  evalctx =  new Arc::EvaluationCtx(request);
+Response* Evaluator::evaluate(const std::string& reqfile){
+  Request* request = NULL;
+  request = new ArcRequest(reqfile, attrfactory);
+  EvaluationCtx * evalctx = NULL;
+  evalctx =  new EvaluationCtx(request);
  
   //evaluate the request based on policy
   if(evalctx)
@@ -141,11 +142,11 @@ Arc::Response* Evaluator::evaluate(const std::string& reqfile){
   else return NULL;
 }
 
-Arc::Response* Evaluator::evaluate(XMLNode& node){
-  Arc::Request* request = NULL;
-  request = new Arc::ArcRequest(node, attrfactory);
-  Arc::EvaluationCtx * evalctx = NULL;
-  evalctx =  new Arc::EvaluationCtx(request);
+Response* Evaluator::evaluate(XMLNode& node){
+  Request* request = NULL;
+  request = new ArcRequest(node, attrfactory);
+  EvaluationCtx * evalctx = NULL;
+  evalctx =  new EvaluationCtx(request);
 
   //evaluate the request based on policy
   if(evalctx)
@@ -154,16 +155,16 @@ Arc::Response* Evaluator::evaluate(XMLNode& node){
     return NULL;
 }
 
-Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
+Response* Evaluator::evaluate(EvaluationCtx* ctx){
   //Split request into <subject, action, object, environment> tuples
   ctx->split();
   
-  std::list<Arc::Policy*> policies;
-  std::list<Arc::Policy*>::iterator policyit;
-  std::list<Arc::RequestTuple*> reqtuples = ctx->getRequestTuples();
-  std::list<Arc::RequestTuple*>::iterator it;
+  std::list<Policy*> policies;
+  std::list<Policy*>::iterator policyit;
+  std::list<RequestTuple*> reqtuples = ctx->getRequestTuples();
+  std::list<RequestTuple*>::iterator it;
   
-  Arc::Response* resp = new Arc::Response();
+  Response* resp = new Response();
   for(it = reqtuples.begin(); it != reqtuples.end(); it++){
     //set the present RequestTuple for evaluation
     ctx->setEvalTuple(*it);
@@ -173,11 +174,11 @@ Arc::Response* Evaluator::evaluate(Arc::EvaluationCtx* ctx){
     //match the present RequestTuple
     policies = plstore->findPolicy(ctx);
     
-    std::list<Arc::Policy*> permitset;
+    std::list<Policy*> permitset;
     bool atleast_onepermit = false;
     //Each matched policy evaluates the present RequestTuple, using default combiningalg: DENY-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
-      Arc::Result res = (*policyit)->eval(ctx);
+      Result res = (*policyit)->eval(ctx);
 
       logger.msg(INFO,"Result value (0 means success): %d", res);
 

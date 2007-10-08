@@ -1,5 +1,5 @@
-#ifndef __ARC_RESPONSE_H__
-#define __ARC_RESPONSE_H__
+#ifndef __ARC_SEC_RESPONSE_H__
+#define __ARC_SEC_RESPONSE_H__
 
 #include <list>
 #include <arc/XMLNode.h>
@@ -9,10 +9,10 @@
 
 /** Class for Response*/
 
-namespace Arc {
+namespace ArcSec {
 
-typedef std::list<Arc::Policy*> Policies;
-//typedef std::pair<Arc::RequestTuple, Policies> ResponseItem;
+typedef std::list<Policy*> Policies;
+//typedef std::pair<RequestTuple, Policies> ResponseItem;
 typedef struct{
   RequestTuple* reqtp;
   Policies pls;
@@ -48,6 +48,6 @@ public:
   };
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_RESPONSE_H__ */
+#endif /* __ARC_SEC_RESPONSE_H__ */

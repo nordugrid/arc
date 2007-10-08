@@ -18,11 +18,11 @@ namespace Arc {
 	representing descriptor of PDP and calls it's constructor
 	function. Supplied configuration tree is passed to constructor.
 	Returns created PDP instance. */
-    PDP* get_instance(const std::string& name,
+    ArcSec::PDP* get_instance(const std::string& name,
 		      Config *cfg, ChainContext *ctx);
-    PDP* get_instance(const std::string& name, int version,
+    ArcSec::PDP* get_instance(const std::string& name, int version,
 		      Config *cfg, ChainContext *ctx);
-    PDP* get_instance(const std::string& name,
+    ArcSec::PDP* get_instance(const std::string& name,
 		      int min_version, int max_version,
 		      Config *cfg, ChainContext *ctx);
   };

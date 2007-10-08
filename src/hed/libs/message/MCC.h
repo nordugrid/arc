@@ -52,7 +52,7 @@ class MCC: public Arc::MCCInterface
       MCC calls sequence of handlers at specific point depending
       on associated identifier. in most aces those are "in" and "out"
       for incoming and outgoing messages correspondingly. */
-  std::map<std::string,std::list<Arc::SecHandler*> > sechandlers_;
+  std::map<std::string,std::list<ArcSec::SecHandler*> > sechandlers_;
   
   //! A logger for MCCs.
   /*! A logger intended to be the parent of loggers in the different
@@ -73,7 +73,7 @@ class MCC: public Arc::MCCInterface
         virtual void Next(Arc::MCCInterface* next,const std::string& label = "");
         
         /** SecHandler */
-        virtual void AddSecHandler(Arc::Config *cfg,Arc::SecHandler* sechandler,const std::string& label = "");
+        virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
         
         /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);

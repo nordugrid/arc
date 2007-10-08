@@ -1,21 +1,25 @@
-#ifndef __ARC_SECHANDLER_H__
-#define __ARC_SECHANDLER_H__
+#ifndef __ARC_SEC_SECHANDLER_H__
+#define __ARC_SEC_SECHANDLER_H__
 
-namespace Arc {
+#include <arc/ArcConfig.h>
+#include <arc/message/Message.h>
+#include <arc/Logger.h>
 
-  class Config;
-  class Logger;
-  class Message;
+namespace ArcSec {
+
+//  class Arc::Config;
+//  class Arc::Logger;
+//  class Arc::Message;
 
   class SecHandler {
    public:
-    SecHandler(Config*) {};
+    SecHandler(Arc::Config*) {};
     virtual ~SecHandler() {};
-    virtual bool Handle(Message *msg) = 0;
+    virtual bool Handle(Arc::Message *msg) = 0;
    protected:
-    static Logger logger;
+    static Arc::Logger logger;
   };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_SECHANDLER_H__ */
+#endif /* __ARC_SEC_SECHANDLER_H__ */

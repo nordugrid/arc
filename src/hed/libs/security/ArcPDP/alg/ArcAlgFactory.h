@@ -1,12 +1,12 @@
-#ifndef __ARC_ARCALGFACTORY_H__
-#define __ARC_ARCALGFACTORY_H__
+#ifndef __ARC_SEC_ARCALGFACTORY_H__
+#define __ARC_SEC_ARCALGFACTORY_H__
 
 #include <list>
 #include <fstream>
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 
-namespace Arc {
+namespace ArcSec {
 
 /** Algorithm factory class for Arc*/
 class ArcAlgFactory : public AlgFactory {
@@ -21,7 +21,7 @@ private:
   void initCombiningAlgs();
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCALGFACTORY_H__ */
+#endif /* __ARC_SEC_ARCALGFACTORY_H__ */
 

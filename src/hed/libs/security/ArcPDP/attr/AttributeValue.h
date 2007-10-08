@@ -1,9 +1,9 @@
-#ifndef __ARC_ATTRIBUTEVALUE_H__
-#define __ARC_ATTRIBUTEVALUE_H__
+#ifndef __ARC_SEC_ATTRIBUTEVALUE_H__
+#define __ARC_SEC_ATTRIBUTEVALUE_H__
 
 #include <string>
 
-namespace Arc {
+namespace ArcSec {
 
 class AttributeValue {
 public:
@@ -17,7 +17,7 @@ public:
   virtual std::string encode() = 0;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ATTRIBUTEVALUE_H__ */
+#endif /* __ARC_SEC_ATTRIBUTEVALUE_H__ */
 

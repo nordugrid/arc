@@ -1,16 +1,16 @@
-#ifndef __ARC_ARCREQUESTITEM_H__
-#define __ARC_ARCREQUESTITEM_H__
+#ifndef __ARC_SEC_ARCREQUESTITEM_H__
+#define __ARC_SEC_ARCREQUESTITEM_H__
 
 #include <arc/XMLNode.h>
 #include <arc/security/ArcPDP/RequestItem.h>
 
-namespace Arc {
+namespace ArcSec {
 
 /**<subjects, actions, objects, ctxs> tuple */
 /**Specified ArcRequestItem which can parse Arc request formate*/
 class ArcRequestItem : public RequestItem{
 public:
-  ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory);
+  ArcRequestItem(Arc::XMLNode& node, AttributeFactory* attrfactory);
   virtual ~ArcRequestItem();
 
 public:
@@ -25,7 +25,7 @@ public:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCREQUESTITEM_H__ */
+#endif /* __ARC_SEC_ARCREQUESTITEM_H__ */
 

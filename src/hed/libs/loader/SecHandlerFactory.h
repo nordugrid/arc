@@ -18,11 +18,11 @@ namespace Arc {
 	representing descriptor of SecHandler and calls it's constructor
 	function. Supplied configuration tree is passed to constructor.
 	Returns created SecHandler instance. */
-    SecHandler* get_instance(const std::string& name,
+    ArcSec::SecHandler* get_instance(const std::string& name,
 			     Config *cfg, ChainContext *ctx);
-    SecHandler* get_instance(const std::string& name, int version,
+    ArcSec::SecHandler* get_instance(const std::string& name, int version,
 			     Config *cfg, ChainContext *ctx);
-    SecHandler* get_instance(const std::string& name,
+    ArcSec::SecHandler* get_instance(const std::string& name,
 			     int min_version, int max_version,
 			     Config *cfg, ChainContext *ctx);
   };

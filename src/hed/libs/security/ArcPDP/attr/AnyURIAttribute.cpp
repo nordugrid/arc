@@ -5,7 +5,7 @@
 #include <iostream>
 #include "AnyURIAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string AnyURIAttribute::identifier = "anyURI";
 
@@ -24,4 +24,4 @@ bool AnyURIAttribute::equal(AttributeValue* o){
     return false;
 }
 
-} //namespace Arc
+} //namespace ArcSec

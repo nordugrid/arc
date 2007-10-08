@@ -4,7 +4,7 @@
 
 #include "PermitOverridesAlg.h"
 
-namespace Arc{
+namespace ArcSec{
 
 std::string PermitOverridesCombiningAlg::algId = "Permit-Overrides";
 
@@ -43,5 +43,5 @@ Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy
   return DECISION_NOT_APPLICABLE;
 }
 
-} //namespace Arc
+} //namespace ArcSec
 

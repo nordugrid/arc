@@ -1,5 +1,5 @@
-#ifndef __ARC_REQUESTATTRIBUTE_H__
-#define __ARC_REQUESTATTRIBUTE_H__
+#ifndef __ARC_SEC_REQUESTATTRIBUTE_H__
+#define __ARC_SEC_REQUESTATTRIBUTE_H__
 
 #include "AttributeValue.h"
 #include "AttributeFactory.h"
@@ -7,7 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-namespace Arc {
+namespace ArcSec {
 
 //typedef std::list<AttributeValue*> AttrValList;
 
@@ -20,7 +20,7 @@ public:
   virtual ~RequestAttribute();
   
 public:
-  XMLNode getNode();
+  Arc::XMLNode getNode();
   std::string getAttributeId () const;
   void setAttributeId (const std::string attributeId);
   std::string getDataType () const;
@@ -40,8 +40,8 @@ public:
   //AttrValList avlist;
 
 private:
- static Logger logger;
- XMLNode node_;
+ static Arc::Logger logger;
+ Arc::XMLNode node_;
  std::string id;
  std::string type;
  std::string issuer;
@@ -50,6 +50,6 @@ private:
  AttributeFactory* attrfactory;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_REQUESTATTRIBUTE_H__ */
+#endif /* __ARC_SEC_REQUESTATTRIBUTE_H__ */

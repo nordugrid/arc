@@ -5,7 +5,7 @@
 
 #include <arc/Logger.h>
 
-namespace Arc{
+namespace ArcSec{
 
   //! Common stuff used by security related slasses.
   /*! This class is just a place where to put common stuff that is
@@ -14,7 +14,7 @@ namespace Arc{
    */
   class Security {
   private:
-    static Logger logger;
+    static Arc::Logger logger;
     friend class SecHandler;
     friend class PDP;
   };

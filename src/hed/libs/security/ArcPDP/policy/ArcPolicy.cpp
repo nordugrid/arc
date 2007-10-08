@@ -7,6 +7,7 @@
 #include <list>
 
 using namespace Arc;
+using namespace ArcSec;
 
 Logger ArcPolicy::logger(Logger::rootLogger,"ArcPolicy");
 

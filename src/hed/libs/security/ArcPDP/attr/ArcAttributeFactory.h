@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCATTRIBUTEFACTORY_H__
-#define __ARC_ARCATTRIBUTEFACTORY_H__
+#ifndef __ARC_SEC_ARCATTRIBUTEFACTORY_H__
+#define __ARC_SEC_ARCATTRIBUTEFACTORY_H__
 
 #include <list>
 #include <fstream>
@@ -7,7 +7,7 @@
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 
-namespace Arc {
+namespace ArcSec {
 
 /** Attribute factory class for Arc specified attributes*/
 class ArcAttributeFactory : public AttributeFactory {
@@ -16,13 +16,13 @@ public:
   virtual ~ArcAttributeFactory();
 
 public:
-  virtual AttributeValue* createValue(const XMLNode& node, const std::string& type);
+  virtual AttributeValue* createValue(const Arc::XMLNode& node, const std::string& type);
 
 private:
   void initDatatypes();
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCATTRIBUTEFACTORY_H__ */
+#endif /* __ARC_SEC_ARCATTRIBUTEFACTORY_H__ */
 

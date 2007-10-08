@@ -1,23 +1,25 @@
-#ifndef __ARC_PDP_H__
-#define __ARC_PDP_H__
+#ifndef __ARC_SEC_PDP_H__
+#define __ARC_SEC_PDP_H__
 
 #include <string>
 #include <arc/message/Message.h>
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 
-namespace Arc {
+namespace ArcSec {
 
-  class Config;
-  class Logger;
+ // class Arc::Config;
+ // class Arc::Logger;
 
   class PDP {
    public:
-    PDP(Config*) {};
+    PDP(Arc::Config*) {};
     virtual ~PDP() {};
-    virtual bool isPermitted(Message *msg) = 0;
+    virtual bool isPermitted(Arc::Message *msg) = 0;
    protected:
-    static Logger logger;
+    static Arc::Logger logger;
   };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_PDP_H__ */
+#endif /* __ARC_SEC_PDP_H__ */

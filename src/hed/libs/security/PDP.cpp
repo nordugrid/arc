@@ -7,8 +7,8 @@
 #include "Security.h"
 #include "PDP.h"
 
-namespace Arc{
+namespace ArcSec{
   
-  Logger PDP::logger(Security::logger, "PDP");
+  Arc::Logger PDP::logger(Security::logger, "PDP");
 
 }

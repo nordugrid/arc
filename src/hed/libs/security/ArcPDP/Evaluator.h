@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCEVALUATE_H__
-#define __ARC_ARCEVALUATE_H__
+#ifndef __ARC_SEC_ARCEVALUATE_H__
+#define __ARC_SEC_ARCEVALUATE_H__
 
 #include <list>
 #include <fstream>
@@ -15,12 +15,12 @@
 
 /** Execute the policy evaluation, based on the request and policy */
 
-namespace Arc {
+namespace ArcSec {
 
 class Evaluator {
 friend class EvaluatorContext;
 private:
-  static Logger logger;
+  static Arc::Logger logger;
   PolicyStore *plstore;
   FnFactory* fnfactory;
   AttributeFactory* attrfactory;  
@@ -29,17 +29,17 @@ private:
   EvaluatorContext* context;
 
 public:
-  Evaluator (XMLNode& cfg);
+  Evaluator (Arc::XMLNode& cfg);
   Evaluator (const char * cfgfile);
   virtual ~Evaluator();
 
- // virtual Arc::Response* evaluate(Arc::Request* request);
-  virtual Arc::Response* evaluate(const std::string& reqfile);
-  virtual Arc::Response* evaluate(Arc::EvaluationCtx* ctx);
-  virtual Arc::Response* evaluate(XMLNode& node);
+ // virtual Response* evaluate(Request* request);
+  virtual Response* evaluate(const std::string& reqfile);
+  virtual Response* evaluate(EvaluationCtx* ctx);
+  virtual Response* evaluate(Arc::XMLNode& node);
 
 private:
-  void parsecfg(XMLNode& cfg);
+  void parsecfg(Arc::XMLNode& cfg);
 };
 
 
@@ -59,6 +59,6 @@ class EvaluatorContext {
   };
 
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_EVALUATOR_H__ */
+#endif /* __ARC_SEC_EVALUATOR_H__ */

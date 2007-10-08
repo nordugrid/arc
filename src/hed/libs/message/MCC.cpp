@@ -27,7 +27,7 @@ void MCC::Unlink(void) {
                                      n != next_.end();n = next_.begin()) next_.erase(n);
 }
 
-void MCC::AddSecHandler(Config* cfg,SecHandler* sechandler,const std::string& label) {
+void MCC::AddSecHandler(Config* cfg, ArcSec::SecHandler* sechandler,const std::string& label) {
     if(sechandler) {
         sechandlers_[label].push_back(sechandler); //need polishing to put the SecHandlerFactory->getinstance here
         XMLNode cn = (*cfg)["Handler"];

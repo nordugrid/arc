@@ -1,5 +1,5 @@
-#ifndef __ARC_SIMPLELISTAUTHZ_H__
-#define __ARC_SIMPLELISTAUTHZ_H__
+#ifndef __ARC_SEC_SIMPLELISTAUTHZ_H__
+#define __ARC_SEC_SIMPLELISTAUTHZ_H__
 
 #include <stdlib.h>
 
@@ -9,27 +9,27 @@
 #include "PDP.h"
 #include <arc/loader/PDPFactory.h>
 
-namespace Arc {
+namespace ArcSec {
 class SimpleListAuthZ : public SecHandler {
  public:
   typedef std::map<std::string, PDP *>  pdp_container_t;
 
  private:
   /** Link to Factory responsible for loading and creation of PDP objects */
-  PDPFactory *pdp_factory;
+  Arc::PDPFactory *pdp_factory;
   /** One Handler can include few PDP */
   pdp_container_t pdps_;
   /** PDP*/
   void MakePDPs(Arc::Config* cfg);
  public:
-  SimpleListAuthZ(Arc::Config *cfg,ChainContext* ctx);
+  SimpleListAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SimpleListAuthZ(void);
   
   /** Get authorization decision*/
-  virtual bool Handle(Message* msg);  
+  virtual bool Handle(Arc::Message* msg);  
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_SIMPLELISTAUTHZ_H__ */
+#endif /* __ARC_SEC_SIMPLELISTAUTHZ_H__ */
 

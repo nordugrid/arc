@@ -1,9 +1,9 @@
-#ifndef __ARC_INRANGE_FUNCTION_H__
-#define __ARC_INRANGE_FUNCTION_H__
+#ifndef __ARC_SEC_INRANGE_FUNCTION_H__
+#define __ARC_SEC_INRANGE_FUNCTION_H__
 
 #include <arc/security/ArcPDP/fn/Function.h>
 
-namespace Arc {
+namespace ArcSec {
 
 #define NAME_TIME_IN_RANGE "know-arc:function:time-in-range"
 
@@ -21,7 +21,7 @@ private:
   std::string argType;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_INRANGE_FUNCTION_H__ */
+#endif /* __ARC_SEC_INRANGE_FUNCTION_H__ */
 

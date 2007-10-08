@@ -1,17 +1,17 @@
-#ifndef __ARC_ALGFACTORY_H__
-#define __ARC_ALGFACTORY_H__
+#ifndef __ARC_SEC_ALGFACTORY_H__
+#define __ARC_SEC_ALGFACTORY_H__
 
 #include <arc/loader/LoadableClass.h>
 
 #include <map>
 #include "CombiningAlg.h"
 
-namespace Arc {
+namespace ArcSec {
 
-typedef std::map<std::string, Arc::CombiningAlg*> AlgMap;
+typedef std::map<std::string, CombiningAlg*> AlgMap;
 
 /** Base algorithm factory class*/
-class AlgFactory : public LoadableClass {
+class AlgFactory : public Arc::LoadableClass {
 public:
   AlgFactory() {};
   virtual ~AlgFactory() {};
@@ -23,7 +23,7 @@ protected:
   AlgMap algmap;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ALGFACTORY_H__ */
+#endif /* __ARC_SEC_ALGFACTORY_H__ */
 

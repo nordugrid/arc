@@ -1,10 +1,10 @@
-#ifndef __ARC_DATETIMEATTRIBUTE_H__
-#define __ARC_DATETIMEATTRIBUTE_H__
+#ifndef __ARC_SEC_DATETIMEATTRIBUTE_H__
+#define __ARC_SEC_DATETIMEATTRIBUTE_H__
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 #include <arc/DateTime.h>
 
-namespace Arc {
+namespace ArcSec {
 //DateTimeAttribute, TimeAttribute, DateAttribute, DurationAttribute, PeriodAttribute
 //As reference: See http://www.ietf.org/rfc/rfc3339.txt
 
@@ -18,7 +18,7 @@ namespace Arc {
 class DateTimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
-  Time value; //using the Time class definition in DateTime.h
+  Arc::Time value; //using the Time class definition in DateTime.h
 
 public:
   DateTimeAttribute(){ };
@@ -29,7 +29,7 @@ public:
   virtual bool lessthan(AttributeValue* other);
   virtual bool inrange(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
-  Time getValue(){ return value; };
+  Arc::Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -42,7 +42,7 @@ public:
 class TimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
-  Time value;
+  Arc::Time value;
 
 public:
   TimeAttribute(){ };
@@ -52,7 +52,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
-  Time getValue(){ return value; };
+  Arc::Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -62,7 +62,7 @@ public:
 class DateAttribute : public AttributeValue {
 private:
   static std::string identifier;
-  Time value;
+  Arc::Time value;
 
 public:
   DateAttribute(){ };
@@ -72,7 +72,7 @@ public:
   virtual bool equal(AttributeValue* other);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
-  Time getValue(){ return value; };
+  Arc::Time getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -83,7 +83,7 @@ public:
 class DurationAttribute : public AttributeValue {
 private:
   static std::string identifier;
-  Period value;
+  Arc::Period value;
 
 public:
   DurationAttribute(){ };
@@ -92,7 +92,7 @@ public:
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
-  Period getValue(){ return value; };
+  Arc::Period getValue(){ return value; };
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -103,9 +103,9 @@ public:
 //datetime"/"datetime
 //duration"/"datetime 
 typedef struct{
-  Time starttime;
-  Time endtime;
-  Period duration;
+  Arc::Time starttime;
+  Arc::Time endtime;
+  Arc::Period duration;
 }ArcPeriod;
 
 class PeriodAttribute : public AttributeValue {
@@ -124,7 +124,7 @@ public:
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
-}// namespace Arc
+}// namespace ArcSec
 
-#endif /* __ARC_DATETIMEATTRIBUTE_H__ */
+#endif /* __ARC_SEC_DATETIMEATTRIBUTE_H__ */
 

@@ -7,8 +7,8 @@
 #include "Security.h"
 #include "SecHandler.h"
 
-namespace Arc{
+namespace ArcSec{
   
-  Logger SecHandler::logger(Security::logger, "SecHandler");
+  Arc::Logger SecHandler::logger(Security::logger, "SecHandler");
 
 }

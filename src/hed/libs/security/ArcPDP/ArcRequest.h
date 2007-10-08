@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCREQUEST_H__
-#define __ARC_ARCREQUEST_H__
+#ifndef __ARC_SEC_ARCREQUEST_H__
+#define __ARC_SEC_ARCREQUEST_H__
 
 #include <list>
 #include <arc/XMLNode.h>
@@ -9,7 +9,7 @@
 
 /** ArcRequest, Parsing the specified Arc request format*/
 
-namespace Arc {
+namespace ArcSec {
 
 //typedef std::list<RequestItem*> ReqItemList;
 
@@ -19,19 +19,26 @@ public:
   virtual ReqItemList getRequestItems () const;
   virtual void setRequestItems (ReqItemList sl);
   
+  virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx);
 
+  //***/
+  ArcRequest (AttributeFactory* attrfactory);
+  
   //**Parse request information from a file*/
   ArcRequest (const std::string& filename, AttributeFactory* attrfactory);
 
   //**Parse request information from a xml stucture in memory*/
-  ArcRequest (XMLNode& node, AttributeFactory* attrfactory);
+  ArcRequest (Arc::XMLNode& node, AttributeFactory* attrfactory);
   virtual ~ArcRequest();
 
 private:
-  void make_request(XMLNode& node, AttributeFactory* attrfactory);
+  void make_request(Arc::XMLNode& node);
+
+private:
+  AttributeFactory * attrfactory;
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCREQUEST_H__ */
+#endif /* __ARC_SEC_ARCREQUEST_H__ */

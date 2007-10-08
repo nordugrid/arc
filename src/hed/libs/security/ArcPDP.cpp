@@ -15,8 +15,8 @@
 
 #include "ArcPDP.h"
 /*
-static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
-    return new Arc::ArcPDP(cfg);
+static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
+    return new ArcSec::ArcPDP(cfg);
 }
 
 pdp_descriptors ARC_PDP_LOADER = {
@@ -25,6 +25,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 };
 */
 using namespace Arc;
+using namespace ArcSec;
 
 PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
     return new ArcPDP(cfg);
@@ -86,7 +87,7 @@ bool ArcPDP::isPermitted(Message *msg){
   for(respit = rlist.begin(); respit != rlist.end(); ++respit){
     RequestTuple* tp = (*respit)->reqtp;
     Subject::iterator it;
-    Arc::Subject subject = tp->sub;
+    Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
       AttributeValue *attrval;
       RequestAttribute *attr;

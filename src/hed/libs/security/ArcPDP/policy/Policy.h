@@ -1,5 +1,5 @@
-#ifndef __ARC_POLICY_H__
-#define __ARC_POLICY_H__
+#ifndef __ARC_SEC_POLICY_H__
+#define __ARC_SEC_POLICY_H__
 
 #include <list>
 #include <arc/XMLNode.h>
@@ -8,7 +8,7 @@
 #include "../EvaluationCtx.h"
 
 
-namespace Arc {
+namespace ArcSec {
 
 /**Base class for Policy, PolicySet, or Rule*/
 
@@ -16,10 +16,10 @@ class Policy {
 
 protected:
   std::list<Policy*> subelements;
-  static Logger logger; 
+  static Arc::Logger logger; 
  
 public:
-  Policy(XMLNode&){};  
+  Policy(Arc::XMLNode&){};  
   virtual ~Policy(){};
  
   virtual MatchResult match(EvaluationCtx* ctx) = 0;
@@ -32,7 +32,7 @@ public:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_POLICY_H__ */
+#endif /* __ARC_SEC_POLICY_H__ */
 

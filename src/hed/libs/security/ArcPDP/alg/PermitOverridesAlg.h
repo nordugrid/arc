@@ -1,10 +1,10 @@
-#ifndef __ARC_PERMITOVERRIDESCOMBININGALG_H__
-#define __ARC_PERMITOVERRIDESCOMBININGALG_H__
+#ifndef __ARC_SEC_PERMITOVERRIDESCOMBININGALG_H__
+#define __ARC_SEC_PERMITOVERRIDESCOMBININGALG_H__
 
 #include <arc/security/ArcPDP/alg/CombiningAlg.h>
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 
-namespace Arc {
+namespace ArcSec {
 
 class PermitOverridesCombiningAlg : public CombiningAlg {
 private:
@@ -20,7 +20,7 @@ public:
   virtual std::string& getalgId(void){return algId;};
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_PERMITOVERRIDESCOMBININGALG_H__ */
+#endif /* __ARC_SEC_PERMITOVERRIDESCOMBININGALG_H__ */
 

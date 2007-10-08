@@ -1,10 +1,10 @@
-#ifndef __ARC_FUNCTION_H__
-#define __ARC_FUNCTION_H__
+#ifndef __ARC_SEC_FUNCTION_H__
+#define __ARC_SEC_FUNCTION_H__
 
 #include <string>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
-namespace Arc {
+namespace ArcSec {
 
 //static std::string FUNCTION_NS = "know-arc:function";
 #define FUNCTION_NS "know-arc:function"
@@ -19,7 +19,7 @@ public:
 
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_FUNCTION_H__ */
+#endif /* __ARC_SEC_FUNCTION_H__ */
 

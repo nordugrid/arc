@@ -1,5 +1,5 @@
-#ifndef __ARC_ATTRIBUTEFACTORY_H__
-#define __ARC_ATTRIBUTEFACTORY_H__
+#ifndef __ARC_SEC_ATTRIBUTEFACTORY_H__
+#define __ARC_SEC_ATTRIBUTEFACTORY_H__
 
 #include <map>
 #include <arc/XMLNode.h>
@@ -9,24 +9,24 @@
 
 #include "AttributeProxy.h"
 
-namespace Arc {
+namespace ArcSec {
 
-typedef std::map<std::string, Arc::AttributeProxy*> AttrProxyMap;
+typedef std::map<std::string, AttributeProxy*> AttrProxyMap;
 
 /** Base attribute factory class*/
-class AttributeFactory : public LoadableClass {
+class AttributeFactory : public Arc::LoadableClass {
 public:
   AttributeFactory() {};
   virtual ~AttributeFactory(){};
 
 public:
-  virtual AttributeValue* createValue(const XMLNode& node, const std::string& type) = 0;
+  virtual AttributeValue* createValue(const Arc::XMLNode& node, const std::string& type) = 0;
 
 protected:
   AttrProxyMap apmap;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ATTRIBUTEFACTORY_H__ */
+#endif /* __ARC_SEC_ATTRIBUTEFACTORY_H__ */
 

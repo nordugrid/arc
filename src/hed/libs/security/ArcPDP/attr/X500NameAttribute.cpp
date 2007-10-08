@@ -5,7 +5,7 @@
 #include <iostream>
 #include "X500NameAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string X500NameAttribute::identifier = "x500Name";
 
@@ -24,4 +24,4 @@ bool X500NameAttribute::equal(AttributeValue* o){
     return false;
 }
 
-} //namespace Arc
+} //namespace ArcSec

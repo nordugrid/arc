@@ -5,7 +5,7 @@
 #include "InRangeFunction.h"
 #include "../attr/DateTimeAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string InRangeFunction::getFunctionName(std::string datatype){
   std::string ret;

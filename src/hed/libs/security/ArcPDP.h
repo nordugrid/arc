@@ -1,5 +1,5 @@
-#ifndef __ARC_ARCPDP_H__
-#define __ARC_ARCPDP_H__
+#ifndef __ARC_SEC_ARCPDP_H__
+#define __ARC_SEC_ARCPDP_H__
 
 #include <stdlib.h>
 
@@ -7,18 +7,18 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
 
-namespace Arc {
+namespace ArcSec {
 
 class ArcPDP : public PDP {
  public:
-  static PDP* get_arc_pdp(Config *cfg, ChainContext *ctx);
-  ArcPDP(Config* cfg);
+  static PDP* get_arc_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
+  ArcPDP(Arc::Config* cfg);
   virtual ~ArcPDP();
-  virtual bool isPermitted(Message *msg);
+  virtual bool isPermitted(Arc::Message *msg);
  private:
   Evaluator *eval;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCPDP_H__ */
+#endif /* __ARC_SEC_ARCPDP_H__ */

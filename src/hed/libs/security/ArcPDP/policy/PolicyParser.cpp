@@ -8,6 +8,7 @@
 #include "ArcPolicy.h" 
 
 using namespace Arc;
+using namespace ArcSec;
 
 PolicyParser::PolicyParser(){
 }

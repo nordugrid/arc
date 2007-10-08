@@ -20,7 +20,7 @@ namespace Arc {
 typedef struct {
   const char* name;
   int version;
-  Arc::SecHandler* (*get_instance)(Arc::Config *cfg, Arc::ChainContext *ctx);
+  ArcSec::SecHandler* (*get_instance)(Arc::Config *cfg, Arc::ChainContext *ctx);
 } sechandler_descriptor;
 
 /** SecHandlers are detected by the presence of an element named

@@ -8,7 +8,7 @@
 #include "../attr/X500NameAttribute.h"
 #include "../attr/AnyURIAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string EqualFunction::getFunctionName(std::string datatype){
   std::string ret;

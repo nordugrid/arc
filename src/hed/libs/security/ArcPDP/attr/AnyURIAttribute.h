@@ -1,9 +1,9 @@
-#ifndef __ARC_ANYURIATTRIBUTE_H__
-#define __ARC_ANYURIATTRIBUTE_H__
+#ifndef __ARC_SEC_ANYURIATTRIBUTE_H__
+#define __ARC_SEC_ANYURIATTRIBUTE_H__
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
-namespace Arc {
+namespace ArcSec {
 class AnyURIAttribute : public AttributeValue {
 private:
   static std::string identifier;
@@ -21,8 +21,8 @@ public:
  
 };
 
-}// namespace Arc
+}// namespace ArcSec
 
-#endif /* __ARC_AnyURIATTRIBUTE_H__ */
+#endif /* __ARC_SEC_ANYURIATTRIBUTE_H__ */
 
 

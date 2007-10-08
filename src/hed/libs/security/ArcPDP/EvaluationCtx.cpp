@@ -6,6 +6,7 @@
 #include "attr/AttributeValue.h"
 
 using namespace Arc;
+using namespace ArcSec;
 
 Logger EvaluationCtx::logger(Arc::Logger::rootLogger, "EvaluationCtx");
 
@@ -17,6 +18,13 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*sit));
     sub.push_back(attr); 
+
+    
+    AttributeValue *attrval;
+
+    attrval = (*sit)->getAttributeValue();
+    if(attrval) std::cout<< "Attribute Value:"<< (attrval->encode()).c_str() << std::endl;
+
   }
   
   Resource::iterator rit;
@@ -86,7 +94,7 @@ RequestTuple::~RequestTuple() {
   }
 }
 
-EvaluationCtx::EvaluationCtx(Arc::Request* request) : req(NULL) {
+EvaluationCtx::EvaluationCtx(Request* request) : req(NULL) {
   req = request;
 }
 
@@ -99,7 +107,7 @@ EvaluationCtx::~EvaluationCtx(){
   } 
 }
 
-Arc::Request* EvaluationCtx::getRequest () const{
+Request* EvaluationCtx::getRequest () const{
   return req;
 }
 /*
@@ -126,20 +134,20 @@ void EvaluationCtx::split(){
     reqtuples.pop_back(); 
   }
 
-  Arc::ReqItemList reqlist = req->getRequestItems();
+  ReqItemList reqlist = req->getRequestItems();
  
   logger.msg(INFO,"There is %d RequestItems", reqlist.size()); 
   
-  std::list<Arc::RequestItem*>::iterator it;
+  std::list<RequestItem*>::iterator it;
   for (it = reqlist.begin(); it != reqlist.end(); it++) {
-    Arc::SubList subjects = (*it)->getSubjects();
-    Arc::SubList::iterator sit;
-    Arc::ResList resources = (*it)->getResources();
-    Arc::ResList::iterator rit;
-    Arc::ActList actions = (*it)->getActions();
-    Arc::ActList::iterator ait;
-    Arc::CtxList contexts = (*it)->getContexts();
-    Arc::CtxList::iterator cit;
+    SubList subjects = (*it)->getSubjects();
+    SubList::iterator sit;
+    ResList resources = (*it)->getResources();
+    ResList::iterator rit;
+    ActList actions = (*it)->getActions();
+    ActList::iterator ait;
+    CtxList contexts = (*it)->getContexts();
+    CtxList::iterator cit;
 
     for(sit = subjects.begin(); sit != subjects.end(); sit++) { //The subject part will never be empty
       if(!resources.empty()) {

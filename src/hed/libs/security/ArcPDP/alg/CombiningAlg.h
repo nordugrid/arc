@@ -1,12 +1,12 @@
-#ifndef __ARC_COMBININGALG_H__
-#define __ARC_COMBININGALG_H__
+#ifndef __ARC_SEC_COMBININGALG_H__
+#define __ARC_SEC_COMBININGALG_H__
 
 #include <string>
 #include <list>
 #include "../EvaluationCtx.h"
 #include "../policy/Policy.h"
 
-namespace Arc {
+namespace ArcSec {
 
 class CombiningAlg {
 public:
@@ -18,7 +18,7 @@ public:
   virtual std::string& getalgId(void) = 0;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_COMBININGALG_H__ */
+#endif /* __ARC_SEC_COMBININGALG_H__ */
 

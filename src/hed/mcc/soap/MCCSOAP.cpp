@@ -86,10 +86,10 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // msg.attributes(e.g. the Identity extracted from authentication will 
   // be used by authorization to make access control decision).
   
-  std::list<Arc::SecHandler*> hlist=sechandlers_["incoming"];
-  std::list<Arc::SecHandler*>::iterator it;
+  std::list<ArcSec::SecHandler*> hlist=sechandlers_["incoming"];
+  std::list<ArcSec::SecHandler*>::iterator it;
   for(it=hlist.begin(); it!=hlist.end(); it++){
-    Arc::SecHandler* h = *it;
+    ArcSec::SecHandler* h = *it;
     if(h->Handle(&inmsg)) break;   
   }  
   // The "Handle" method only returns true/false; The MCC/Service doesn't 

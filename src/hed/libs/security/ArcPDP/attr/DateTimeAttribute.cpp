@@ -5,7 +5,7 @@
 #include <iostream>
 #include "DateTimeAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 //DateTimeAttribute
 std::string DateTimeAttribute::identifier = "datetime";
@@ -50,12 +50,12 @@ bool DateTimeAttribute::inrange(AttributeValue* o){
   } 
   ArcPeriod period = other->getValue(); 
 
-  Time st, et;
+  Arc::Time st, et;
   st = period.starttime;
   et = period.endtime;
-  if(period.starttime == Time(-1))
+  if(period.starttime == Arc::Time(-1))
     st = period.endtime - period.duration;
-  else if(period.endtime == Time(-1))
+  else if(period.endtime == Arc::Time(-1))
     et = period.starttime + period.duration;
 
   if((value>=st)&&(value<=et))
@@ -65,14 +65,14 @@ bool DateTimeAttribute::inrange(AttributeValue* o){
 } 
 
 std::string DateTimeAttribute::encode(){
-  return(value.str(ISOTime));
+  return(value.str(Arc::ISOTime));
 }
 
 //TimeAttribute
 std::string TimeAttribute::identifier = "time";
 TimeAttribute::TimeAttribute(std::string v){
   std::string v1 = "1970-01-01T" + v;
-  Arc::DateTimeAttribute attr(v1);
+  DateTimeAttribute attr(v1);
   value = attr.getValue(); 
 }
 
@@ -108,7 +108,7 @@ bool TimeAttribute::lessthan(AttributeValue* o){
 
 std::string TimeAttribute::encode(){
   std::string v;
-  v = value.str(ISOTime);
+  v = value.str(Arc::ISOTime);
   return(v.substr(11));
 }
 
@@ -116,7 +116,7 @@ std::string TimeAttribute::encode(){
 std::string DateAttribute::identifier = "date";
 DateAttribute::DateAttribute(std::string v){
   std::string v1 = v + "T00:00:00+00:00";
-  Arc::DateTimeAttribute attr(v1);
+  DateTimeAttribute attr(v1);
   value = attr.getValue();
 }
 
@@ -152,7 +152,7 @@ bool DateAttribute::lessthan(AttributeValue* o){
 
 std::string DateAttribute::encode(){
   std::string v;
-  v = value.str(ISOTime);
+  v = value.str(Arc::ISOTime);
   return(v.substr(0,9));
 }
 
@@ -188,10 +188,10 @@ PeriodAttribute::PeriodAttribute(std::string v){
   std::string s1 = v.substr(0, pos);
   std::string s2 = v.substr(pos+1);
 
-  Time t1 = Time(s1);
-  Time t2 = Time(s2);
-  Period d1 = Period(s1);
-  Period d2 = Period(s2);
+  Arc::Time t1 = Arc::Time(s1);
+  Arc::Time t2 = Arc::Time(s2);
+  Arc::Period d1 = Arc::Period(s1);
+  Arc::Period d2 = Arc::Period(s2);
   if(t1.GetTime()!=-1){
     if(t2.GetTime()!=-1){
       value.starttime = t1;
@@ -229,8 +229,8 @@ bool PeriodAttribute::equal(AttributeValue* o){
   }
   
   ArcPeriod oth = other->getValue();
-  Time ls, le, os, oe;
-  Period ld, od;
+  Arc::Time ls, le, os, oe;
+  Arc::Period ld, od;
   ls = value.starttime;
   le = value.endtime;
   os = oth.starttime;
@@ -238,18 +238,18 @@ bool PeriodAttribute::equal(AttributeValue* o){
   ld = value.duration;
   od = oth.duration;
 
-  if((ls!=Time(-1))&&(le==Time(-1)))
+  if((ls!=Arc::Time(-1))&&(le==Arc::Time(-1)))
     le = ls + ld;
-  else if((ls==Time(-1))&&(le!=Time(-1)))
+  else if((ls==Arc::Time(-1))&&(le!=Arc::Time(-1)))
     ls = le - ld;
-  else if((ls==Time(-1))||(le==Time(-1)))
+  else if((ls==Arc::Time(-1))||(le==Arc::Time(-1)))
     return false;
 
-  if((os!=Time(-1))&&(oe==Time(-1)))
+  if((os!=Arc::Time(-1))&&(oe==Arc::Time(-1)))
     oe = os + od;
-  else if((os==Time(-1))&&(oe!=Time(-1)))
+  else if((os==Arc::Time(-1))&&(oe!=Arc::Time(-1)))
     os = oe - od;
-  else if((os==Time(-1))||(oe==Time(-1)))
+  else if((os==Arc::Time(-1))||(oe==Arc::Time(-1)))
     return false;
   
   //std::cout<<ls.str()<<(std::string)(ld)<<os.str()<<(std::string)(od)<<std::endl;
@@ -265,12 +265,12 @@ std::string PeriodAttribute::encode(){
   std::string s2 = (std::string)(value.endtime);
   std::string s3 = (std::string)(value.duration);
 
-  if(value.starttime==Time(-1))
+  if(value.starttime==Arc::Time(-1))
     return(s3+"/"+s2);
-  else if(value.endtime==Time(-1))
+  else if(value.endtime==Arc::Time(-1))
     return(s1+"/"+s3);
   else
     return(s1+"/"+s2);
 }
 
-}  //namespace Arc
+}  //namespace ArcSec

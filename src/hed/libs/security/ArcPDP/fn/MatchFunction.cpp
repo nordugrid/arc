@@ -8,7 +8,7 @@
 #include "../attr/X500NameAttribute.h"
 #include "../attr/AnyURIAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 std::string MatchFunction::getFunctionName(std::string datatype){
   std::string ret;
@@ -30,7 +30,7 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   //arg1 is the attributevalue in request
   std::string label = arg0->encode();
   std::string value = arg1->encode();
-  RegularExpression regex(label);
+  Arc::RegularExpression regex(label);
   if(regex.isOk()){
     std::list<std::string> unmatched;
     if(regex.match(value, unmatched))

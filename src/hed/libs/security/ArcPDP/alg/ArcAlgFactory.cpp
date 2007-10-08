@@ -10,7 +10,7 @@
 #include "PermitOverridesAlg.h"
 
 static Arc::LoadableClass* get_alg_factory (Arc::Config *) {
-    return new Arc::ArcAlgFactory();
+    return new ArcSec::ArcAlgFactory();
 }
 
 loader_descriptors __arc_algfactory_modules__  = {
@@ -20,6 +20,7 @@ loader_descriptors __arc_algfactory_modules__  = {
 
 
 using namespace Arc;
+using namespace ArcSec;
 
 void ArcAlgFactory::initCombiningAlgs(){
   /**Some Arc specified algorithm types*/

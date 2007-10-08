@@ -1,5 +1,5 @@
-#ifndef __ARC_ATTRIBUTEPROXY_H__
-#define __ARC_ATTRIBUTEPROXY_H__
+#ifndef __ARC_SEC_ATTRIBUTEPROXY_H__
+#define __ARC_SEC_ATTRIBUTEPROXY_H__
 
 #include <list>
 #include <fstream>
@@ -8,14 +8,14 @@
 #include "AttributeValue.h"
 //#include "StringAttribute.h"
 
-namespace Arc {
+namespace ArcSec {
 
 class AttributeProxy {
 public:
   AttributeProxy() {};
   virtual ~AttributeProxy(){};
 public:
-  virtual AttributeValue* getAttribute(const XMLNode& node) = 0;
+  virtual AttributeValue* getAttribute(const Arc::XMLNode& node) = 0;
 };
 
 template <class TheAttribute>
@@ -24,11 +24,11 @@ public:
   ArcAttributeProxy(){};
   virtual ~ArcAttributeProxy(){};
 public: 
-  virtual AttributeValue* getAttribute(const XMLNode& node);
+  virtual AttributeValue* getAttribute(const Arc::XMLNode& node);
 };
 
 template <class TheAttribute>
-AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const XMLNode& node){
+AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const Arc::XMLNode& node){
   std::string value = (std::string)node;
   
  // std::cout<<value<<std::endl;  //for testing
@@ -37,7 +37,7 @@ AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const XMLNode& nod
   //return new TheAttribute();
 }
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ATTRIBUTEPROXY_H__ */
+#endif /* __ARC_SEC_ATTRIBUTEPROXY_H__ */
 

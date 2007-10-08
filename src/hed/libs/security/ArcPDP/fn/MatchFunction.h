@@ -1,10 +1,10 @@
-#ifndef __ARC_MATCH_FUNCTION_H__
-#define __ARC_MATCH_FUNCTION_H__
+#ifndef __ARC_SEC_MATCH_FUNCTION_H__
+#define __ARC_SEC_MATCH_FUNCTION_H__
 
 #include <arc/security/ArcPDP/fn/Function.h>
 #include <arc/ArcRegex.h>
 
-namespace Arc {
+namespace ArcSec {
 
 #define NAME_REGEXP_STRING_MATCH "know-arc:function:regexp-string-match"
 #define NAME_ANYURI_REGEXP_MATCH "know-arc:function:anyURI-regexp-match"
@@ -24,7 +24,7 @@ private:
   std::string argType;
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_MATCH_FUNCTION_H__ */
+#endif /* __ARC_SEC_MATCH_FUNCTION_H__ */
 

@@ -13,8 +13,8 @@
 
 #include "SimpleListPDP.h"
 
-/*static Arc::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
-    return new Arc::SimpleListPDP(cfg);
+/*static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
+    return new ArcSec::SimpleListPDP(cfg);
 }
 
 pdp_descriptors ARC_PDP_LOADER = {
@@ -23,6 +23,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 };
 */
 using namespace Arc;
+using namespace ArcSec;
 
 PDP* SimpleListPDP::get_simplelist_pdp(Config *cfg,ChainContext*) {
     return new SimpleListPDP(cfg);
@@ -44,7 +45,7 @@ bool SimpleListPDP::isPermitted(Message *msg){
      logger.msg(INFO, "subject: %s", subject.c_str());
      if(!(line.compare(subject))){
         fs.close();
-        logger.msg(INFO, "Authorized from arc.pdp!!!");
+        logger.msg(INFO, "Authorized from simplelist.pdp!!!");
         return true;
      }
   }

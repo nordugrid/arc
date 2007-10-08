@@ -46,7 +46,7 @@ namespace Arc {
    public:
     typedef std::map<std::string, MCC*>        mcc_container_t;
     typedef std::map<std::string, Service*>    service_container_t;
-    typedef std::map<std::string, SecHandler*> sechandler_container_t;
+    typedef std::map<std::string, ArcSec::SecHandler*> sechandler_container_t;
     typedef std::map<std::string, DMC*>        dmc_container_t;
     typedef std::map<std::string, Plexer*>     plexer_container_t;
 

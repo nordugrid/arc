@@ -4,7 +4,7 @@
 
 #include "DenyOverridesAlg.h"
 
-namespace Arc{
+namespace ArcSec{
 
 std::string DenyOverridesCombiningAlg::algId = "Deny-Overrides";
 
@@ -45,6 +45,6 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
   return DECISION_NOT_APPLICABLE;
 }
 
-} //namespace Arc
+} //namespace ArcSec
 
 

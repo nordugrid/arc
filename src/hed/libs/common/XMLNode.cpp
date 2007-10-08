@@ -273,13 +273,14 @@ XMLNode XMLNode::NewChild(const XMLNode& node,int n,bool global_order) {
     return NewChild(node.Child(),n,global_order);
   };
   if(node.Name().empty()) return XMLNode();
-  if(node_->type == XML_DOCUMENT_NODE) {
+  //Can not make new "root" child, if the existing "root" is empty?
+  /*if(node_->type == XML_DOCUMENT_NODE) {
     XMLNode root = Child();
     if(!root) return XMLNode();
     if(!(root.Name().empty())) return XMLNode();
     root.Replace(node);
     return Child();
-  };
+  };*/
   xmlNodePtr new_node = xmlDocCopyNode(node.node_,node_->doc,1);
   if(new_node == NULL) return XMLNode();
   return XMLNode(xmlAddChild(node_,new_node));

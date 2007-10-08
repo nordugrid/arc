@@ -1,11 +1,11 @@
-#ifndef __ARC_ARCFUNCTIONFACTORY_H__
-#define __ARC_ARCFUNCTIONFACTORY_H__
+#ifndef __ARC_SEC_ARCFUNCTIONFACTORY_H__
+#define __ARC_SEC_ARCFUNCTIONFACTORY_H__
 
 #include <list>
 #include <fstream>
 #include "FnFactory.h"
 
-namespace Arc {
+namespace ArcSec {
 
 /** Function factory class for Arc specified attributes*/
 class ArcFnFactory : public FnFactory {
@@ -20,7 +20,7 @@ private:
   void initFunctions();
 };
 
-} // namespace Arc
+} // namespace ArcSec
 
-#endif /* __ARC_ARCFUNCTIONFACTORY_H__ */
+#endif /* __ARC_SEC_ARCFUNCTIONFACTORY_H__ */
 
