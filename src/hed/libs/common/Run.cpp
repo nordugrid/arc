@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <glibmm.h>
 
 #include <iostream>
@@ -6,9 +10,13 @@
 #ifndef WIN32
 #include <sys/types.h>
 #include <signal.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #endif
 
 #include "Run.h"
+
 
 namespace Arc {
 
@@ -88,8 +96,10 @@ void RunPump::Add(Run* r) {
     r->stderr_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stderr_handler),r->stderr_, Glib::IO_IN | Glib::IO_HUP);
   if(r->stdin_str_)
     r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
+#ifdef HAVE_GLIBMM_CHILDWATCH
   r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
   //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
+#endif
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -256,7 +266,26 @@ bool Run::Wait(int timeout) {
   while(running_) {
     Glib::TimeVal t; t.assign_current_time(); t.subtract(till);
     if(!t.negative()) break;
+#ifdef HAVE_GLIBMM_CHILDWATCH
     cond_.timed_wait(lock_,till);
+#else
+#ifndef WIN32
+    int status;
+    int r = waitpid(pid_,&status,WNOHANG);
+    if(r == 0) {
+      sleep(1); continue;
+    };
+    if(r == -1) { // Child lost?
+      status=-1;
+    } else {
+      status=WEXITSTATUS(status);
+    };
+    // Child exited
+    child_handler(pid_,status << 8);
+#else
+#error Must use newer version of GLibmm for Windows
+#endif
+#endif
   };
   lock_.unlock();
   return (!running_);
