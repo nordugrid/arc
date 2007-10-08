@@ -27,6 +27,14 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   node.New(node_);
 
+  std::string str1;
+  node.GetXML(str1);
+  std::cout<<"Original node: "<<str1<<std::endl;
+
+  std::string str2;
+  node_.GetXML(str2);
+  std::cout<<"Copied node: "<<str2<<std::endl;
+
 /*
   if(!(node.Size())){
     avlist.push_back(attrfactory->createValue(node, type));
