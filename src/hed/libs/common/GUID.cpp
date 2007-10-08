@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <unistd.h>
 
 //#include "../misc/condition.h"
 //#include "../misc/random.h"
