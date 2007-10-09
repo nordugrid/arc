@@ -315,6 +315,7 @@ SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
   body=XMLNode();
   soap.doc.New(*this);
   set();
+  return *this;
 }
 
 } // namespace Arc

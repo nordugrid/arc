@@ -164,7 +164,7 @@ void Run::Kill(int timeout) {
 #endif
 }
 
-bool Run::stdout_handler(Glib::IOCondition cond) {
+bool Run::stdout_handler(Glib::IOCondition) {
   if(stdout_str_) {
     char buf[256];
     int l = ReadStdout(0,buf,sizeof(buf));
@@ -180,7 +180,7 @@ bool Run::stdout_handler(Glib::IOCondition cond) {
   return true;
 }
 
-bool Run::stderr_handler(Glib::IOCondition cond) {
+bool Run::stderr_handler(Glib::IOCondition) {
   if(stderr_str_) {
     char buf[256];
     int l = ReadStderr(0,buf,sizeof(buf));
@@ -196,7 +196,7 @@ bool Run::stderr_handler(Glib::IOCondition cond) {
   return true;
 }
 
-bool Run::stdin_handler(Glib::IOCondition cond) {
+bool Run::stdin_handler(Glib::IOCondition) {
   if(stdin_str_) {
     if(stdin_str_->length() == 0) {
       CloseStdin(); stdin_str_=NULL;
@@ -216,7 +216,7 @@ bool Run::stdin_handler(Glib::IOCondition cond) {
   return true;
 }
 
-void Run::child_handler(Glib::Pid pid,int result) {
+void Run::child_handler(Glib::Pid,int result) {
   CloseStdout();
   CloseStderr();
   CloseStdin();
@@ -239,19 +239,19 @@ void Run::CloseStdin(void) {
   if(stdin_ != -1) ::close(stdin_); stdin_=-1;
 }
 
-int Run::ReadStdout(int timeout,char* buf,int size) {
+int Run::ReadStdout(int /*timeout*/,char* buf,int size) {
   if(stdout_ == -1) return -1;
   // TODO: do it through context for timeout
   return ::read(stdout_,buf,size);
 }
 
-int Run::ReadStderr(int timeout,char* buf,int size) {
+int Run::ReadStderr(int /*timeout*/,char* buf,int size) {
   if(stderr_ == -1) return -1;
   // TODO: do it through context for timeout
   return ::read(stderr_,buf,size);
 }
 
-int Run::WriteStdin(int timeout,const char* buf,int size) {
+int Run::WriteStdin(int /*timeout*/,const char* buf,int size) {
   if(stdin_ == -1) return -1;
   // TODO: do it through context for timeout
   return write(stdin_,buf,size);
