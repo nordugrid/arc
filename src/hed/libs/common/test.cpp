@@ -5,6 +5,7 @@
 #include "ArcConfig.h"
 #include "Thread.h"
 #include <iostream>
+#include <unistd.h>
 
 void func(void* arg) {
     std::cout << "Thread argument = " << arg << std::endl;
