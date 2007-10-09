@@ -32,8 +32,6 @@ std::cerr<<"Put: there is no job: "<<id<<std::endl;
     // TODO: make proper html message
     return Arc::MCC_Status();
   };
-  uint64_t offset = 0;
-  uint64_t size = MAX_CHUNK_SIZE;
   return http_put(job,config.Endpoint()+"/"+id,subpath,buf);
 } 
 

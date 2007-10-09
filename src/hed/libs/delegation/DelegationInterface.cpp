@@ -123,7 +123,7 @@ DelegationConsumer::~DelegationConsumer(void) {
 }
  
 #ifdef HAVE_OPENSSL_OLDRSA
-static void progress_cb(int p, int n, void *cb) {
+static void progress_cb(int p, int, void*) {
   char c='*';
   if (p == 0) c='.';
   if (p == 1) c='+';
@@ -132,7 +132,7 @@ static void progress_cb(int p, int n, void *cb) {
   std::cerr<<c;
 }
 #else
-static int progress_cb(int p, int n, BN_GENCB *cb) {
+static int progress_cb(int p, int, BN_GENCB*) {
   char c='*';
   if (p == 0) c='.';
   if (p == 1) c='+';
@@ -730,7 +730,7 @@ class DelegationContainerSOAP::Consumer {
   Consumer(DelegationConsumerSOAP* d):deleg(d),usage_count(0),last_used(time(NULL)) {
   };
   Consumer& operator=(DelegationConsumerSOAP* d) {
-    deleg=d; usage_count=0; last_used=time(NULL);
+    deleg=d; usage_count=0; last_used=time(NULL); return *this;
   };
 };
 

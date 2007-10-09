@@ -259,7 +259,6 @@ bool write_grami_rsl(const JobDescription &desc,const JobUser &user,const char* 
   bool use_executable = true;
   bool use_seconds = true;
   int runtime_num = 0;
-  const char version_header[] = "nordugrid-";
   /* 'local' parameters are requied */
   if(desc.get_local() == NULL) return false;
   std::string session_dir = desc.SessionDir();
@@ -815,7 +814,6 @@ exit:
 /* do rsl substitution and nordugrid specific stuff */
 /* then write file back */
 bool preprocess_rsl(const std::string &fname,const std::string &session_dir,const std::string &jobid) {
-  char** tmp_param;
   globus_rsl_t *rsl_tree = NULL;
   rsl_subst_table_t *symbol_table = NULL;
 
@@ -876,7 +874,7 @@ static void rsl_print_to_grami(std::ostream &o,globus_rsl_t *cur) {
     };
   }
   else if(globus_rsl_is_relation(cur)) {
-    if(cur->req.relation.my_operator=GLOBUS_RSL_EQ) {
+    if(cur->req.relation.my_operator==GLOBUS_RSL_EQ) {
       std::string attribute_name = cur->req.relation.attribute_name;
       for(int n = 0;n<attribute_name.length();++n) {
         attribute_name[n]=tolower(attribute_name[n]);
@@ -948,7 +946,6 @@ static int globus_rsl_params_get(globus_rsl_t *cur,const char* name,char*** tmp_
     };
   } else if(globus_rsl_is_relation(cur)) {
     if(strcasecmp(cur->req.relation.attribute_name,name) == 0) {
-      char** tmp_param_ = NULL;
       return globus_rsl_param_get(cur,GLOBUS_RSL_PARAM_MULTI_LITERAL,(char*)name,tmp_param);
     };
   };

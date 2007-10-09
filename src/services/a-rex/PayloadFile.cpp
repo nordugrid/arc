@@ -11,7 +11,7 @@
 
 namespace ARex {
 
-PayloadFile::PayloadFile(const char* filename):handle_(-1),size_(0),addr_(NULL) {
+PayloadFile::PayloadFile(const char* filename):handle_(-1),addr_(NULL),size_(0) {
 std::cerr<<"PayloadFile: filename="<<filename<<std::endl;
   handle_=open(filename,O_RDONLY);
   if(handle_ == -1) return;
@@ -58,13 +58,13 @@ std::cerr<<"PayloadFile: Size"<<std::endl;
   return size_;
 }
 
-char* PayloadFile::Insert(int pos,int size) {
+char* PayloadFile::Insert(int /*pos*/,int /*size*/) {
 std::cerr<<"PayloadFile: Insert"<<std::endl;
   // Not supported
   return NULL;
 }
 
-char* PayloadFile::Insert(const char* s,int pos,int size) {
+char* PayloadFile::Insert(const char*,int /*pos*/,int /*size*/) {
 std::cerr<<"PayloadFile: Insert"<<std::endl;
   // Not supported
   return NULL;
@@ -86,12 +86,12 @@ std::cerr<<"PayloadFile: BufferSize"<<std::endl;
   return size_;
 }
 
-int PayloadFile::BufferPos(unsigned int num) const {
+int PayloadFile::BufferPos(unsigned int /*num*/) const {
 std::cerr<<"PayloadFile: BufferPos"<<std::endl;
   return 0;
 }
 
-bool PayloadFile::Truncate(unsigned int size) {
+bool PayloadFile::Truncate(unsigned int /*size*/) {
 std::cerr<<"PayloadFile: Truncate"<<std::endl;
   return false;
 }

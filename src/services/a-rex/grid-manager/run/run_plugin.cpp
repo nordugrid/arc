@@ -39,7 +39,7 @@ char** string_to_args(const std::string& command) {
         free_args(args);
         return NULL;
       };
-      args=args_; for(int i_=i;i<n;i++) args_[i]=NULL;
+      args=args_; for(;i<n;i++) args_[i]=NULL;
     };
     arg_s=config_next_arg(args_s);
     if(arg_s.length() == 0) break;
@@ -107,9 +107,10 @@ bool RunPlugin::run(void) {
   } else {
     void* lib_h = dlopen(lib.c_str(),RTLD_NOW);
     if(lib_h == NULL) { free(args); return false; };
-    lib_plugin_t f = (lib_plugin_t)dlsym(lib_h,args[0]);
-    if(f == NULL) { dlclose(lib_h); free(args); return false; };
-    result_ = (*f)(args[1],args[2],args[3],args[4],args[5],
+    lib_plugin_t f;
+    f.v = dlsym(lib_h,args[0]);
+    if(f.v == NULL) { dlclose(lib_h); free(args); return false; };
+    result_ = (*f.f)(args[1],args[2],args[3],args[4],args[5],
                    args[6],args[7],args[8],args[9],args[10],
                    args[11],args[12],args[13],args[14],args[15],
                    args[16],args[17],args[18],args[19],args[20],
@@ -162,11 +163,12 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
     if(lib_h == NULL) { 
       free(args); return false;
     };
-    lib_plugin_t f = (lib_plugin_t)dlsym(lib_h,args[0]);
-    if(f == NULL) { 
+    lib_plugin_t f;
+    f.v = dlsym(lib_h,args[0]);
+    if(f.v == NULL) { 
       dlclose(lib_h); free(args); return false;
     };
-    result_ = (*f)(args[1],args[2],args[3],args[4],args[5],
+    result_ = (*f.f)(args[1],args[2],args[3],args[4],args[5],
                    args[6],args[7],args[8],args[9],args[10],
                    args[11],args[12],args[13],args[14],args[15],
                    args[16],args[17],args[18],args[19],args[20],

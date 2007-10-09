@@ -3,7 +3,7 @@
 
 #include "LDIFtoXML.h"
 
-int main(int args,char* argv[]) {
+int main(int /*args*/,char* argv[]) {
   std::ifstream f(argv[1]);
   std::string ldif_base = "Mds-Vo-name=local,O=Grid";
   Arc::NS ns;

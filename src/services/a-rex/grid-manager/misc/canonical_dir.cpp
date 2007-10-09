@@ -25,7 +25,7 @@ int canonical_dir(std::string &name,bool leading_slash) {
             /* go 1 directory up */
             for(;;) {
               ii--;
-              if(ii<0) {
+              if(ii == std::string::npos) {
                  /* bad dir */
                 return 1;
               };

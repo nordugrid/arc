@@ -674,9 +674,9 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   return true;
 }
 
-void JobsList::ActJobUndefined(JobsList::iterator &i,bool hard_job,
-                               bool& once_more,bool& delete_job,
-                               bool& job_error,bool& state_changed) {
+void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
+                               bool& once_more,bool& /*delete_job*/,
+                               bool& job_error,bool& /*state_changed*/) {
         /* read state from file */
         /* undefined means job just detected - read it's status */
         /* but first check if it's not too many jobs in system  */
@@ -723,11 +723,11 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool hard_job,
             job_state_write_file(*i,*user,i->job_state);
           };
         }; // Not doing JobPending here because that job kind of does not exist.
-		return;
+        return;
 }
 
-void JobsList::ActJobAccepted(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
+void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
+                              bool& once_more,bool& /*delete_job*/,
                               bool& job_error,bool& state_changed) {
       /* accepted state - job was just accepted by jobmager-ng and we already
          know that it is accepted - now we are analyzing/parsing request,
@@ -775,9 +775,9 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool hard_job,
         return;
 }
 
-void JobsList::ActJobPreparing(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
+                               bool& once_more,bool& /*delete_job*/,
+                               bool& job_error,bool& state_changed) {
         /* preparing state - means job is parsed and we are going to download or
            already downloading input files. process downloader is run for
            that. it also checks for files user interface have to upload itself*/
@@ -801,9 +801,9 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool hard_job,
         return;
 }
 
-void JobsList::ActJobSubmiting(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+void JobsList::ActJobSubmiting(JobsList::iterator &i,bool /*hard_job*/,
+                               bool& once_more,bool& /*delete_job*/,
+                               bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
            so run submission */
         odlog(VERBOSE)<<i->job_id<<": State: SUBMITTING"<<std::endl;
@@ -819,9 +819,9 @@ void JobsList::ActJobSubmiting(JobsList::iterator &i,bool hard_job,
         return;
 }
 
-void JobsList::ActJobCanceling(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
+                               bool& once_more,bool& /*delete_job*/,
+                               bool& job_error,bool& state_changed) {
         /* This state is like submitting, only -rm instead of -submit */
         odlog(VERBOSE)<<i->job_id<<": State: CANCELING"<<std::endl;
         if(state_submiting(i,state_changed,true)) {
@@ -834,9 +834,9 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool hard_job,
         return;
 }
 
-void JobsList::ActJobInlrms(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
+                            bool& once_more,bool& /*delete_job*/,
+                            bool& job_error,bool& state_changed) {
         odlog(VERBOSE)<<i->job_id<<": State: INLRMS"<<std::endl;
         if(!GetLocalDescription(i)) {
           i->AddFailure("Failed reading local job information");
@@ -894,8 +894,8 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool hard_job,
 }
 
 void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+                               bool& once_more,bool& /*delete_job*/,
+                               bool& job_error,bool& state_changed) {
         odlog(VERBOSE)<<i->job_id<<": State: FINISHING"<<std::endl;
         if(state_loading(i,state_changed,true)) {
           if(state_changed) {
@@ -928,8 +928,8 @@ static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::
 }
 
 void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+                              bool& /*once_more*/,bool& /*delete_job*/,
+                              bool& /*job_error*/,bool& state_changed) {
         if(job_clean_mark_check(i->job_id,*user)) {
           olog<<i->job_id<<": Job is requested to clean - deleting."<<std::endl;
           /* delete everything */
@@ -998,8 +998,8 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
 }
 
 void JobsList::ActJobDeleted(JobsList::iterator &i,bool hard_job,
-                              bool& once_more,bool& delete_job,
-                              bool& job_error,bool& state_changed) {
+                             bool& /*once_more*/,bool& /*delete_job*/,
+                             bool& /*job_error*/,bool& /*state_changed*/) {
         if(hard_job) { /* try to minimize load */
           time_t t = -1;
           if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
@@ -1238,7 +1238,7 @@ class JobFDesc {
 };
 
 /* find new jobs - sort by date to implement FIFO */
-bool JobsList::ScanNewJobs(bool hard_job) {
+bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   struct dirent file_;
   struct dirent *file;
   std::string cdir=user->ControlDir();

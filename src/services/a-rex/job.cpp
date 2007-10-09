@@ -50,7 +50,7 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   std::string control_dir;
   std::string default_lrms;
   std::string default_queue;
-  ContinuationPlugins* cont_plugins;
+  ContinuationPlugins* cont_plugins = NULL;
   RunPlugin* cred_plugin = new RunPlugin;
   std::string allowsubmit;
   bool strict_session;
@@ -110,7 +110,7 @@ bool ARexJob::is_allowed(void) {
   return true;
 }
 
-ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):config_(config),id_(id) {
+ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):id_(id),config_(config) {
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
@@ -120,7 +120,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):config_(config),id_
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string credentials):config_(config),id_("") {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string credentials):id_(""),config_(config) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id

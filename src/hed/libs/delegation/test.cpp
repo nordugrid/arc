@@ -43,7 +43,7 @@ Arc::MCC_Status DirectMCC::process(Arc::Message& in,Arc::Message& out) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-int main(int argc,char* argv[]) {
+int main(int /*argc*/,char* argv[]) {
   std::string credentials;
   std::ifstream ic(argv[1]);
   for(;!ic.eof();) {

@@ -152,7 +152,7 @@ static int delete_links_recur(const std::string &dir_base,const std::string &dir
   return res;
 }
 
-int delete_all_links(const std::string &dir_base,std::list<FileData> &files) {
+int delete_all_links(const std::string &dir_base,std::list<FileData>&) {
   std::string dir_cur("");
   return delete_links_recur(dir_base,dir_cur);
 }

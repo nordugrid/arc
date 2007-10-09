@@ -22,6 +22,6 @@ class Service_JavaWrapper: public Arc::Service {
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // __ARC_SERVICE_JAVA_WRAPPER_H__

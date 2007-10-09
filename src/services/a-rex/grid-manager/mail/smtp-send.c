@@ -89,11 +89,11 @@ int send_mail(char* mail_server,char* mail_from,char* mail_to) {
 }
 
 int connect_mail(char* domain,char* mail_from,char* mail_to) { 
-  unsigned char mxbuf[1024];
+  char mxbuf[1024];
   unsigned short mxtype;
   unsigned short mxpref;
   answer_t answer;
-  int i,l,na,nq;
+  int l,na,nq;
   unsigned char *sp;
   unsigned char *cp;
   unsigned char *ep;

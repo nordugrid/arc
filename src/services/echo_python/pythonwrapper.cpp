@@ -59,7 +59,7 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
     return (((PySwigObject *)thisAttr)->ptr);
 }
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::Service_PythonWrapper(cfg);
 }
 

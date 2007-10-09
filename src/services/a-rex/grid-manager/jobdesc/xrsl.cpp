@@ -21,7 +21,7 @@
 typedef enum {
 	WARNING
 } notify_level_t;
-static std::ostream& notify(notify_level_t level) {
+static std::ostream& notify(notify_level_t) {
 	return std::cerr;
 }
 //@ 
@@ -378,7 +378,7 @@ void Xrsl::AddRelation(const XrslRelation& relation,
 void Xrsl::AddSimpleRelation(const std::string& attr,
                              xrsl_operator op,
                              const std::string& val,
-                             bool force) throw(XrslError) {
+                             bool /*force*/) throw(XrslError) {
 
 	XrslRelation relation(attr, op, val);
 	AddRelation(relation);

@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& o,JobRequest& j) throw(JobRequestError) {
 	return o;
 }
 
-bool JobRequest::print(std::string& s) throw(JobRequestError) {
+bool JobRequest::print(std::string&) throw(JobRequestError) {
 	throw JobRequestError("Printing of job request is not implemented");
 	return false;
 }

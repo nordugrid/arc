@@ -425,7 +425,7 @@ bool job_lrmsoutput_mark_get(JobDescription &desc,JobUser &user) {
 }
 */
 
-bool job_stdlog_move(const JobDescription &desc,JobUser &user,const std::string &logname) {
+bool job_stdlog_move(const JobDescription& /*desc*/,JobUser& /*user*/,const std::string& /*logname*/) {
 /*
 
  Status data is now available during runtime.
@@ -519,7 +519,7 @@ long int job_mark_size(const std::string &fname) {
   return st.st_size;
 }
 
-bool job_diskusage_create_file(const JobDescription &desc,JobUser &user,unsigned long long int &requested) {
+bool job_diskusage_create_file(const JobDescription &desc,JobUser& /*user*/,unsigned long long int &requested) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
@@ -529,7 +529,7 @@ bool job_diskusage_create_file(const JobDescription &desc,JobUser &user,unsigned
   close(h); return true;
 }
 
-bool job_diskusage_read_file(const JobDescription &desc,JobUser &user,unsigned long long int &requested,unsigned long long int &used) {
+bool job_diskusage_read_file(const JobDescription &desc,JobUser& /*user*/,unsigned long long int &requested,unsigned long long int &used) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_RDONLY);
   if(h==-1) return false;
@@ -543,7 +543,7 @@ bool job_diskusage_read_file(const JobDescription &desc,JobUser &user,unsigned l
   close(h); return true;
 }
 
-bool job_diskusage_change_file(const JobDescription &desc,JobUser &user,signed long long int used,bool &result) {
+bool job_diskusage_change_file(const JobDescription &desc,JobUser& /*user*/,signed long long int used,bool &result) {
   // lock file, read, write, unlock
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_RDWR);
@@ -587,7 +587,7 @@ bool job_diskusage_change_file(const JobDescription &desc,JobUser &user,signed l
   close(h); return true;
 }
 
-bool job_diskusage_remove_file(const JobDescription &desc,JobUser &user) {
+bool job_diskusage_remove_file(const JobDescription &desc,JobUser& /*user*/) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   return job_mark_remove(fname);
 }

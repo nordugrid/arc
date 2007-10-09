@@ -239,7 +239,7 @@ namespace Arc {
     /* size of file first */
     globus_off_t size = 0;
     bool limit_length = false;
-    unsigned long long int range_length;
+    unsigned long long int range_length = 0;
     if(range_end > range_start) {
       range_length = range_end - range_start;
       limit_length = true;
@@ -484,7 +484,7 @@ namespace Arc {
     /* size of file first */
     //globus_off_t size;
     bool limit_length = false;
-    unsigned long long int range_length;
+    unsigned long long int range_length = 0;
     if(range_end > range_start) {
       range_length = range_end - range_start;
       limit_length = true;

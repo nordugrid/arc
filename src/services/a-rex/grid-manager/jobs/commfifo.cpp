@@ -69,7 +69,7 @@ JobUser* CommFIFO::wait(int timeout) {
     };
     if(kick_out >= 0) {
       if(FD_ISSET(kick_out,&fin)) {
-        char buf[256]; ssize_t l = read(kick_out,buf,256);
+        char buf[256]; read(kick_out,buf,256);
         continue;
       };
     };
@@ -80,7 +80,7 @@ JobUser* CommFIFO::wait(int timeout) {
       if(FD_ISSET(i->fd,&fin)) {
         //@ lock.unblock();
         lock.unlock();
-        char buf[256]; ssize_t l = read(i->fd,buf,256);
+        char buf[256]; read(i->fd,buf,256);
         // -1 ???
         return i->user;
       };
@@ -113,7 +113,7 @@ bool CommFIFO::add(JobUser& user) {
   lock.unlock();
   if(kick_in >= 0) {
     char c = 0;
-    int l = write(kick_in,&c,1);
+    write(kick_in,&c,1);
   };
   return true;
 }

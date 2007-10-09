@@ -8,7 +8,7 @@
 #include <arc/message/SOAPMessage.h>
 #include "javawrapper.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Arc::Service_JavaWrapper(cfg);
 }
 
@@ -94,7 +94,7 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     JNIEnv *jenv = NULL;
     
     /* Attach to the current java engine thread */
-    jint aret = jvm->AttachCurrentThread((void **)&jenv, NULL);
+    jvm->AttachCurrentThread((void **)&jenv, NULL);
     /* Get the process function of service */
     jmethodID processID = jenv->GetMethodID(serviceClass, "process", "(Lnordugrid/arc/SOAPMessage;Lnordugrid/arc/SOAPMessage;)Lnordugrid/arc/MCC_Status;");
     if (processID == NULL) {
@@ -184,4 +184,4 @@ Arc::MCC_Status Service_JavaWrapper::process(Arc::Message& inmsg, Arc::Message& 
     return status;
 }
 
-}; // namespace Arc
+} // namespace Arc

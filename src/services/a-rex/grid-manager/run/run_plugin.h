@@ -24,7 +24,10 @@ class RunPlugin {
   void set(char const * const * args);
  public:
   typedef void (*substitute_t)(std::string& str,void* arg);
-  typedef int (*lib_plugin_t)(...);
+  union lib_plugin_t {
+    int (*f)(...);
+    void* v;
+  };
   RunPlugin(void):timeout_(10),result_(0) { };
   RunPlugin(const std::string& cmd):timeout_(10),result_(0) { set(cmd); };
   RunPlugin(char const * const * args):timeout_(10),result_(0) { set(args); };

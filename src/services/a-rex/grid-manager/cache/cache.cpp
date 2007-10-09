@@ -299,7 +299,6 @@ static int cache_history_add_record(const char* fname,const char* name) {
 }
 
 static int cache_history_rem_record(int h,const char* name) {
-  int name_l = strlen(name);
   off_t record_start;
   unsigned int record_length;
   lseek(h,0,SEEK_SET);
@@ -684,7 +683,6 @@ static int cache_add_list(int h,const char *url,const char* cache_path,const cha
   strcpy(name_claim,dir); strcat(name_claim,"/");
   int i = 0;
   for(;i<INT_MAX;i++) {
-    struct stat sb;
     cache_file_name(i,name_);
     /* Although O_EXCL is broken on NFS, there is no race condition here
        because list is locked */
@@ -762,7 +760,7 @@ static int cache_add_list(int h,const char *url,const char* cache_path,const cha
   it does not check if that file is claimed - should be called ONLY for
   non-claimed files 
 */
-static int cache_remove_list(int h,const char *fname,const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid) {
+static int cache_remove_list(int h,const char *fname,const char* cache_path,const char* cache_data_path,uid_t /*cache_uid*/,gid_t /*cache_gid*/) {
   if(h==-1) return -1;
   const char* dir = cache_path;
   const char* data_dir = cache_data_path;
@@ -775,9 +773,6 @@ static int cache_remove_list(int h,const char *fname,const char* cache_path,cons
   if(name == NULL) return -1;
   char* name_info = name+data_dir_len+sizeof(int)*2+2;
   char* name_claim = name_info+dir_len+sizeof(int)*2+2+5;
-  char* name_ = name+data_dir_len+1;
-  char* name_info_ = name_info+dir_len+1;
-  char* name_claim_ = name_claim+dir_len+1;
   strcpy(name,data_dir); strcat(name,"/");
   strcat(name,fname);
   strcpy(name_info,dir); strcat(name_info,"/");
@@ -805,7 +800,7 @@ static int cache_remove_list(int h,const char *fname,const char* cache_path,cons
   free(name); return 0;
 }
 
-static int cache_invalidate_list(int h,const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *fname) {
+static int cache_invalidate_list(int h,const char* cache_path,const char* /*cache_data_path*/,uid_t /*cache_uid*/,gid_t /*cache_gid*/,const char *fname) {
   if(h==-1) return -1;
   lseek(h,0,SEEK_SET);
   /* look through file for given name */
@@ -1089,7 +1084,6 @@ static char cache_read_info_nonblock(const char* cache_path,const char* fname) {
 */
 int cache_find_url(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *url,const std::string &id,std::string &options,std::string& fname) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) {
@@ -1130,9 +1124,8 @@ int cache_find_url(const char* cache_path,const char* cache_data_path,uid_t cach
   return 0;
 }
 
-int cache_find_file(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *fname,std::string &url,std::string &options) {
+int cache_find_file(const char* cache_path,const char* /*cache_data_path*/,uid_t cache_uid,gid_t cache_gid,const char *fname,std::string &url,std::string &options) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) {
@@ -1173,7 +1166,6 @@ int cache_find_file(const char* cache_path,const char* cache_data_path,uid_t cac
 
 int cache_release_url(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string &id,bool remove) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) return 1;
@@ -1212,7 +1204,6 @@ int cache_release_url(const char* cache_path,const char* cache_data_path,uid_t c
 
 int cache_release_url(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *url,const std::string &id,bool remove) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) return 1;
@@ -1246,7 +1237,6 @@ int cache_release_url(const char* cache_path,const char* cache_data_path,uid_t c
 
 int cache_release_file(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *fname,const std::string &id,bool remove) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) return 1;
@@ -1270,7 +1260,6 @@ int cache_release_file(const char* cache_path,const char* cache_data_path,uid_t 
 
 int cache_invalidate_url(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *fname) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) return 1;
@@ -1294,7 +1283,6 @@ int cache_invalidate_url(const char* cache_path,const char* cache_data_path,uid_
 int cache_download_url_start(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *url,const std::string &id,cache_download_handler &handler) {
   if((cache_path == NULL) || ((*cache_path) == 0)) return 1;
   if(handler.h != -1) return 0;  /* already locked */
-  int res;
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_uid,cache_gid);
   if(ch == -1) {
@@ -1366,7 +1354,7 @@ int cache_download_file_start(const char* cache_path,const char* cache_data_path
   };
 }
 
-int cache_download_url_end(const char* cache_path,const char* cache_data_path,uid_t cache_uid,gid_t cache_gid,const char *url,cache_download_handler &handler,bool success) {
+int cache_download_url_end(const char* cache_path,const char* /*cache_data_path*/,uid_t cache_uid,gid_t cache_gid,const char *url,cache_download_handler &handler,bool success) {
   if(url) {
     /* open + lock list file */
     int ch = cache_open_list(cache_path,cache_uid,cache_gid);
@@ -1427,10 +1415,8 @@ static unsigned long long int cache_clean(const char* cache_path,const char* cac
     ch=h; lseek(h,0,SEEK_SET);
   };
   std::list<cache_file_p> files;
-  int res;
   std::string fname;
   std::string url;
-  bool fail = false;
   lseek(ch,0,SEEK_SET);
   bool finished=false;
   for(;;) {
@@ -1478,7 +1464,6 @@ int cache_files_list(const char* cache_path,uid_t cache_uid,gid_t cache_gid,std:
   if(ch == -1) return -1;
   std::string fname;
   std::string url;
-  bool fail = false;
   lseek(ch,0,SEEK_SET);
   bool finished=false;
   for(;;) {

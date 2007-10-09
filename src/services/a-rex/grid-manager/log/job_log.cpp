@@ -69,6 +69,7 @@ bool JobLog::start_info(JobDescription &job,const JobUser &user) {
     };
     o<<std::endl;
     o.close();
+    return true;
 }
 
 bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
@@ -98,6 +99,7 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
     };
     o<<std::endl;
     o.close();
+    return true;
 } 
 
 
@@ -113,7 +115,7 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   if((*p) == ' ') p++;
   // struct tm t;
   /* read time */
-  if(sscanf(p,"%u-%u-%u %u:%u:%u ",
+  if(sscanf(p,"%d-%d-%d %d:%d:%d ",
        &t.tm_mday,&t.tm_mon,&t.tm_year,&t.tm_hour,&t.tm_min,&t.tm_sec) != 6) {
     return false;
   };

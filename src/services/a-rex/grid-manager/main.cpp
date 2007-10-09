@@ -32,7 +32,6 @@
 #include <pwd.h>
 #define olog std::cerr
 #define odlog(level) std::cerr
-#define VERSION "undefined"
 //@
 
 /* do job cleaning every 2 hours */
@@ -153,8 +152,6 @@ int main(int argc,char* argv[]) {
   std::string my_username("");
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
-  bool statusowner = true;  /* daemon user is owner of status directory,
-                               in the future also of status files */
   if(!read_env_vars()) exit(1);
   
   /* recognize itself */

@@ -41,9 +41,9 @@ pthread_mutex_t Run::list_lock = PTHREAD_MUTEX_INITIALIZER;
 /* Linux specific - stupid g++ limitation */
 // struct sigaction Run::old_sig_chld = { SIG_ERR, { }, ~SA_SIGINFO };
 // struct sigaction Run::old_sig_hup  = { SIG_ERR, { }, ~SA_SIGINFO };
-struct sigaction Run::old_sig_chld = {  };
-struct sigaction Run::old_sig_hup  = {  };
-struct sigaction Run::old_sig_term  = {  };
+struct sigaction Run::old_sig_chld;
+struct sigaction Run::old_sig_hup;
+struct sigaction Run::old_sig_term;
 bool Run::old_sig_chld_inited = false;
 bool Run::old_sig_hup_inited  = false;
 bool Run::old_sig_term_inited  = false;
@@ -141,7 +141,7 @@ bool Run::init(void) {
   return true;
 }
 
-void* Run::signal_handler(void *arg) {
+void* Run::signal_handler(void*) {
   for(;;) {
     sigset_t sig;
     sigemptyset(&sig);
@@ -202,14 +202,14 @@ bool Run::was_hup(void) {
 }
 
 // Termination signal
-void Run::sig_term(int signum,siginfo_t *info,void* arg) {
+void Run::sig_term(int /*signum*/,siginfo_t* /*info*/,void* /*arg*/) {
   /* propagate to all children */
   kill(0,SIGTERM);
   exit(1);
 }
 
 // Wake up kind signal
-void Run::sig_hup(int signum,siginfo_t *info,void* arg) {
+void Run::sig_hup(int /*signum*/,siginfo_t* /*info*/,void* /*arg*/) {
   hup_detected = true;
   if(cond) { pthread_cond_signal(cond); };
 //  else { olog << "Warning: sleep condition is undefined" << endl; };
@@ -241,7 +241,7 @@ void Run::sig_hup(int signum,siginfo_t *info,void* arg) {
 }
 
 // Child terminated signal
-void Run::sig_chld(int signum,siginfo_t *info,void* arg) {
+void Run::sig_chld(int /*signum*/,siginfo_t* /*info*/,void* /*arg*/) {
   // Make sure signal is re-delivered to proper thread
 #ifndef NONPOSIX_SIGNALS_IN_THREADS
   pthread_kill(handler_thread,SIGCHLD);
@@ -251,7 +251,7 @@ void Run::sig_chld(int signum,siginfo_t *info,void* arg) {
 }
 
 // Process child terminated signal synchronously
-void Run::sig_chld_process(int signum,siginfo_t *info,void* arg) {
+void Run::sig_chld_process(int /*signum*/,siginfo_t *info,void* /*arg*/) {
  /* You can not be sure if current implementation of
     posix threads does not use SIGCHLD, so lets check
     only our children */
@@ -335,7 +335,6 @@ bool Run::plain_run_redirected(char *const args[],int din,int dout,int derr,int&
   };
   block();
   pid_t* p_pid = &(re->pid);
-  pid_t cpid;
   // { sigset_t sig; sigemptyset(&sig); sigaddset(&sig,SIGCHLD); if(sigprocmask(SIG_BLOCK,&sig,NULL)) perror("sigprocmask"); };
   (*p_pid)=fork();
   if((*p_pid)==-1) {
@@ -435,7 +434,6 @@ bool Run::plain_run_piped(char *const args[],const std::string *Din,std::string 
   };
   block();
   pid_t* p_pid = &(re->pid);
-  pid_t cpid;
   // { sigset_t sig; sigemptyset(&sig); sigaddset(&sig,SIGCHLD); if(sigprocmask(SIG_BLOCK,&sig,NULL)) perror("sigprocmask"); };
   (*p_pid)=fork();
   if((*p_pid)==-1) {

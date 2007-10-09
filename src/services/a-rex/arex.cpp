@@ -24,7 +24,7 @@ namespace ARex {
 
 static Arc::LogStream logcerr(std::cerr);
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new ARexService(cfg);
 }
 
@@ -48,15 +48,15 @@ static std::string GetPath(std::string url){
 }
 
 
-Arc::MCC_Status ARexService::StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::StopAcceptingNewActivities(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
   return Arc::MCC_Status();
 }
 
@@ -71,7 +71,7 @@ Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status ARexService::make_fault(Arc::Message& outmsg) {
+Arc::MCC_Status ARexService::make_fault(Arc::Message& /*outmsg*/) {
   return Arc::MCC_Status();
 }
 

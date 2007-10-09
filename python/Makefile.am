@@ -4,7 +4,7 @@ python_DATA = arc.py
 python_LTLIBRARIES = _arc.la
 
 _arc_la_SOURCES = arc_wrap.cpp
-_arc_la_CXXFLAGS = -DSWIG_COBJECT_TYPES $(PY_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+_arc_la_CXXFLAGS = -fno-strict-aliasing -DSWIG_COBJECT_TYPES $(PY_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 _arc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la
 _arc_la_LDFLAGS = -no-undefined -module -avoid-version
 

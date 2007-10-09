@@ -9,7 +9,7 @@
 #include <arc/XMLNode.h>
 #include <stdlib.h>
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
     int filenum = atoi(argv[1]);
     int attrnum = atoi(argv[2]);

@@ -213,7 +213,7 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
 
 /* do rsl substitution and nordugrid specific stuff */
 /* then write file back */
-bool preprocess_job_req(const std::string &fname,const std::string &session_dir,const std::string &jobid) {
+bool preprocess_job_req(const std::string &fname,const std::string& /*session_dir*/,const std::string& /*jobid*/) {
   switch(detect_job_req_type(fname.c_str())) {
 #ifdef HAVE_RSL
     case job_req_rsl: {

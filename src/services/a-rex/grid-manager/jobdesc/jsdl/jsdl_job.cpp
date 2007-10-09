@@ -321,6 +321,8 @@ bool JSDLJob::get_notification(std::string& s) {
               case jsdlARC__GMState_USCOREType__FINISHED: s_+="e"; break;
               case jsdlARC__GMState_USCOREType__DELETED: s_+="d"; break;
               case jsdlARC__GMState_USCOREType__CANCELING: s_+="c"; break;
+              case jsdlARC__GMState_USCOREType__ACCEPTED: break;
+              case jsdlARC__GMState_USCOREType__SUBMIT: break;
             };
           };
           if(s_.length()) {
@@ -639,44 +641,44 @@ NG_RSL_DRY_RUN_PARAM if(!strcasecmp(tmp_param[0],"yes")) job_desc.dryrun=true;
 */
 
 /*
-  std::string jobid;         /* job's unique identificator *
-  * attributes stored in job.ID.local *
-  std::string queue;         /* queue name  - default *
-  std::string localid;       /* job's id in lrms *
-  std::list<std::string> arguments;    /* executable + arguments *
-  std::string DN;            /* user's distinguished name aka subject name *
-  mds_time starttime;        /* job submission time *
-  std::string lifetime;      /* time to live for submission directory *
-  std::string notify;        /* notification flags used and email address *
-  mds_time processtime;      /* time to start job processing (downloading) *
-  mds_time exectime;         /* time to start execution *
-  std::string clientname;    /* IP+port of user interface + info given by ui *
-  std::string clientsoftware; /* Client's version *
-  int    reruns;             /* number of allowed reruns left *
-  int    downloads;          /* number of downloadable files requested *
-  int    uploads;            /* number of uploadable files requested *
-  std::string jobname;       /* name of job given by user *
-  std::string jobreport;     /* URL of user's/VO's logger *
-  mds_time cleanuptime;      /* time to remove job completely *
-  mds_time expiretime;       /* when delegation expires *
-  std::string stdlog;        /* dirname to which log messages will be
-                                put after job finishes *
-  std::string sessiondir;    /* job's session directory *
-  std::string failedstate;   /* state at which job failed, used for rerun *
-  /* attributes stored in other files *
-  std::list<FileData> inputdata;  /* input files *
-  std::list<FileData> outputdata; /* output files *
-  /* attributes taken from RSL *
-  std::string action;        /* what to do - must be 'request' *
-  std::string rc;            /* url to contact replica collection *
-  std::string stdin_;         /* file name for stdin handle *
-  std::string stdout_;        /* file name for stdout handle *
-  std::string stderr_;        /* file name for stderr handle *
-  std::string cache;         /* cache default, yes/no *
-  int    gsiftpthreads;      /* number of parallel connections to use
-                                during gsiftp down/uploads *
-  bool   dryrun;             /* if true, this is test job *
-  unsigned long long int diskspace;  /* anount of requested space on disk *
+  std::string jobid;         /+ job's unique identificator +/
+  /+ attributes stored in job.ID.local +/
+  std::string queue;         /+ queue name  - default +/
+  std::string localid;       /+ job's id in lrms +/
+  std::list<std::string> arguments;    /+ executable + arguments +/
+  std::string DN;            /+ user's distinguished name aka subject name +/
+  mds_time starttime;        /+ job submission time +/
+  std::string lifetime;      /+ time to live for submission directory +/
+  std::string notify;        /+ notification flags used and email address +/
+  mds_time processtime;      /+ time to start job processing (downloading) +/
+  mds_time exectime;         /+ time to start execution +/
+  std::string clientname;    /+ IP+port of user interface + info given by ui +/
+  std::string clientsoftware; /+ Client's version +/
+  int    reruns;             /+ number of allowed reruns left +/
+  int    downloads;          /+ number of downloadable files requested +/
+  int    uploads;            /+ number of uploadable files requested +/
+  std::string jobname;       /+ name of job given by user +/
+  std::string jobreport;     /+ URL of user's/VO's logger +/
+  mds_time cleanuptime;      /+ time to remove job completely +/
+  mds_time expiretime;       /+ when delegation expires +/
+  std::string stdlog;        /+ dirname to which log messages will be
+                                put after job finishes +/
+  std::string sessiondir;    /+ job's session directory +/
+  std::string failedstate;   /+ state at which job failed, used for rerun +/
+  /+ attributes stored in other files +/
+  std::list<FileData> inputdata;  /+ input files +/
+  std::list<FileData> outputdata; /+ output files +/
+  /+ attributes taken from RSL +/
+  std::string action;        /+ what to do - must be 'request' +/
+  std::string rc;            /+ url to contact replica collection +/
+  std::string stdin_;         /+ file name for stdin handle +/
+  std::string stdout_;        /+ file name for stdout handle +/
+  std::string stderr_;        /+ file name for stderr handle +/
+  std::string cache;         /+ cache default, yes/no +/
+  int    gsiftpthreads;      /+ number of parallel connections to use
+                                during gsiftp down/uploads +/
+  bool   dryrun;             /+ if true, this is test job +/
+  unsigned long long int diskspace;  /+ anount of requested space on disk +/
 */
   return true;
 }
@@ -809,6 +811,6 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   return true;
 }
 
-void JSDLJob::print_to_grami(std::ostream &o) {
+void JSDLJob::print_to_grami(std::ostream&) {
 }
 

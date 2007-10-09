@@ -35,16 +35,16 @@ const char * const sfx_local       = ".local";
 const char * const sfx_rsl         = ".description";
 const char * const sfx_diag        = ".diag";
 
-static void extract_integer(std::string& s,unsigned int n = 0) {
-  for(std::string::size_type n=0;n<s.length();n++) {
+static void extract_integer(std::string& s,std::string::size_type n = 0) {
+  for(;n<s.length();n++) {
     if(isdigit(s[n])) continue;
     s.resize(n); break;
   };
   return;
 }
 
-static void extract_float(std::string& s,unsigned int n = 0) {
-  for(n=0;n<s.length();n++) {
+static void extract_float(std::string& s,std::string::size_type n = 0) {
+  for(;n<s.length();n++) {
     if(isdigit(s[n])) continue;
     if(s[n] == '.') { extract_integer(s,n+1); return; };
     s.resize(n); break;
