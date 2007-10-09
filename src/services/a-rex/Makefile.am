@@ -1,5 +1,5 @@
-SUBDIRS = grid-manager ldif
-DIST_SUBDIRS = grid-manager ldif
+SUBDIRS = grid-manager ldif config
+DIST_SUBDIRS = grid-manager ldif config
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
 
