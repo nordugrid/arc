@@ -881,8 +881,8 @@ static void rsl_print_to_grami(std::ostream &o,globus_rsl_t *cur) {
       };
       o<<"joboption_rsl_"<<attribute_name<<"='";
       rsl_value_to_grami(o,cur->req.relation.value_sequence);
+      o<<"'"<<std::endl;
     };
-    o<<"'"<<std::endl;
   }
   else {
   };
