@@ -10,47 +10,100 @@ using namespace ArcSec;
 
 Logger EvaluationCtx::logger(Arc::Logger::rootLogger, "EvaluationCtx");
 
-RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
+RequestTuple::RequestTuple() {
+  NS ns;
+  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  XMLNode tupledoc(ns);
+  tupledoc.New(tuple);
+}
 
+RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {  
+  XMLNode root = tuple.NewChild("ra:RequestItem");
+  NS ns;
+  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  root.Namespaces(ns);
+
+  int n;
+  
   Subject::iterator sit;
   Subject req_sub = req_tpl.sub;
+  XMLNode subject;
+  if(!req_sub.empty())
+    subject = root.NewChild("ra:Subject");
+  n = req_sub.size();
   for(sit = req_sub.begin(); sit != req_sub.end(); sit++){
+    //Record the object of the Attribute
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*sit));
     sub.push_back(attr); 
+     
+    //Record the xml node of the Attribute
+    XMLNode subjectattr = subject.NewChild("ra:Attribute");
+    subjectattr = ((*sit)->getAttributeValue())->encode();
+    XMLNode subjectattr_attr = subjectattr.NewAttribute("ra:Type");
+    subjectattr_attr = ((*sit)->getAttributeValue())->getType();
 
-    
-    AttributeValue *attrval;
-
+/*  AttributeValue *attrval;
     attrval = (*sit)->getAttributeValue();
     if(attrval) std::cout<< "Attribute Value:"<< (attrval->encode()).c_str() << std::endl;
-
+*/           
   }
   
   Resource::iterator rit;
   Resource req_res = req_tpl.res;
+  XMLNode resource;
+  if(!req_res.empty())
+    resource = root.NewChild("ra:Resource");
+  n = req_res.size();
   for(rit = req_res.begin(); rit != req_res.end(); rit++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*rit));
     res.push_back(attr);
+
+    XMLNode resourceattr = resource.NewChild("ra:Attribute");
+    resourceattr = ((*rit)->getAttributeValue())->encode();
+    XMLNode resourceattr_attr = resourceattr.NewAttribute("ra:Type");
+    resourceattr_attr = ((*rit)->getAttributeValue())->getType();
   }
 
   Action::iterator ait;
   Action req_act = req_tpl.act;
+  XMLNode action;
+  if(!req_act.empty())
+    action = root.NewChild("ra:Action");
+  n = req_act.size();
   for(ait = req_act.begin(); ait != req_act.end(); ait++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*ait));
     act.push_back(attr);
+
+    XMLNode actionattr = action.NewChild("ra:Attribute");
+    actionattr = ((*ait)->getAttributeValue())->encode();
+    XMLNode actionattr_attr = actionattr.NewAttribute("ra:Type");
+    actionattr_attr = ((*ait)->getAttributeValue())->getType();
   }
 
   Context::iterator cit;
   Context req_ctx = req_tpl.ctx;
+  XMLNode context;
+  if(!req_ctx.empty())
+    context = root.NewChild("ra:Context");
+  n = req_ctx.size();
   for(cit = req_ctx.begin(); cit != req_ctx.end(); cit++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*cit));
     ctx.push_back(attr);
+
+    XMLNode contextattr = context.NewChild("ra:Attribute");
+    contextattr = ((*cit)->getAttributeValue())->encode();
+    XMLNode contextattr_attr = contextattr.NewAttribute("ra:Type");
+    contextattr_attr = ((*cit)->getAttributeValue())->getType();
   }
-  
+
+  std::string xml;
+  tuple.GetXML(xml);
+  std::cout<<xml<<std::endl;
+
   return *this;
 }
 

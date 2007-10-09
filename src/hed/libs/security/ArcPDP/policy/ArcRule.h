@@ -21,7 +21,6 @@ typedef std::pair<AttributeValue*, Function*> Match;
 typedef std::list<Match> AndList;
 typedef std::list<AndList> OrList;
 
-
 /**ArcRule class to parsing Arc specific rule format*/
 class ArcRule : public Policy {
 
@@ -35,6 +34,8 @@ public:
   virtual MatchResult match(EvaluationCtx* ctx);
 
   virtual ~ArcRule();
+
+  virtual EvalResult& getEvalResult();
 
 private:
   void getItemlist(Arc::XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string&
@@ -54,6 +55,8 @@ private:
   AttributeFactory* attrfactory;
   FnFactory* fnfactory;
 
+  EvalResult evalres;
+  Arc::XMLNode rulenode;
 
 protected:
   static Arc::Logger logger;

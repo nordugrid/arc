@@ -19,10 +19,11 @@ class DateTimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value; //using the Time class definition in DateTime.h
+  std::string type;
 
 public:
-  DateTimeAttribute(){ };
-  DateTimeAttribute(std::string v) : value(v){};
+  DateTimeAttribute() : type(identifier){ };
+  DateTimeAttribute(std::string v) : value(v), type(identifier) {};
   virtual ~DateTimeAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
@@ -30,6 +31,7 @@ public:
   virtual bool inrange(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
   Arc::Time getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -43,9 +45,10 @@ class TimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value;
+  std::string type;
 
 public:
-  TimeAttribute(){ };
+  TimeAttribute() : type(identifier){ };
   TimeAttribute(std::string v);
   virtual ~TimeAttribute(){ };
 
@@ -53,6 +56,7 @@ public:
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -63,9 +67,10 @@ class DateAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value;
+  std::string type;
 
 public:
-  DateAttribute(){ };
+  DateAttribute() : type(identifier){ };
   DateAttribute(std::string v);
   virtual ~DateAttribute(){ };
 
@@ -73,6 +78,7 @@ public:
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -84,15 +90,17 @@ class DurationAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Period value;
+  std::string type;
 
 public:
-  DurationAttribute(){ };
-  DurationAttribute(std::string v) : value(v){};
+  DurationAttribute() : type(identifier){ };
+  DurationAttribute(std::string v) : value(v), type(identifier){};
   virtual ~DurationAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   Arc::Period getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -112,15 +120,17 @@ class PeriodAttribute : public AttributeValue {
 private:
   static std::string identifier;
   ArcPeriod value;
+  std::string type;
 
 public:
-  PeriodAttribute(){ };
+  PeriodAttribute() : type(identifier){ };
   PeriodAttribute(std::string v);
   virtual ~PeriodAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   ArcPeriod getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 

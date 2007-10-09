@@ -15,7 +15,9 @@ typedef std::list<Policy*> Policies;
 //typedef std::pair<RequestTuple, Policies> ResponseItem;
 typedef struct{
   RequestTuple* reqtp;
+  Arc::XMLNode reqxml;
   Policies pls;
+  std::list<Arc::XMLNode> plsxml;
 } ResponseItem;
 /*
 class ResponseItem{

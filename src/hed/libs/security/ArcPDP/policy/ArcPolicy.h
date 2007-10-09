@@ -23,7 +23,9 @@ public:
 
   virtual MatchResult match(EvaluationCtx* ctx);
 
-  virtual std::string getEffect(){ return "NOT Effect";};
+  virtual std::string getEffect(){ return "Not_applicable";};
+
+  virtual EvalResult& getEvalResult();
 
 private:
   static Arc::Logger logger;
@@ -35,6 +37,8 @@ private:
 
   AlgFactory *algfactory;
 
+  EvalResult evalres;
+  Arc::XMLNode policynode;
 };
 
 } // namespace ArcSec

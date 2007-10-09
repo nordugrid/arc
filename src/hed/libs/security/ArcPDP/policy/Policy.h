@@ -30,6 +30,8 @@ public:
 
   virtual std::string getEffect() = 0;
 
+  virtual EvalResult& getEvalResult() = 0;
+
 };
 
 } // namespace ArcSec

@@ -30,9 +30,12 @@ public:
   Context ctx;
 public:
   RequestTuple& duplicate(const RequestTuple&);
-public:
+  Arc::XMLNode& getNode() {return tuple;};
+  RequestTuple();
   ~RequestTuple();
   void erase();
+private:
+  Arc::XMLNode tuple;
 };
 
 

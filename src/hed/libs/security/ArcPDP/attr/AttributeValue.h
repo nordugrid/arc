@@ -15,6 +15,8 @@ public:
   //virtual int compare(AttributeValue* other){};
   //encode the value in a string format, which is suitable for printing
   virtual std::string encode() = 0;
+  virtual std::string getType() = 0;
+
 };
 
 } // namespace ArcSec

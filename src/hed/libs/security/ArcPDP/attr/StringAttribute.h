@@ -8,15 +8,17 @@ class StringAttribute : public AttributeValue {
 private:
   static std::string identifier;
   std::string value;
+  std::string type;
 
 public:
-  StringAttribute(){ };
-  StringAttribute(std::string v) : value(v){ };
+  StringAttribute() : type(identifier){ };
+  StringAttribute(std::string v) : value(v), type(identifier){ };
   virtual ~StringAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode() {return value;};
   std::string getValue(){ return value; };
+  virtual std::string getType() {return type;};
   static const std::string& getIdentifier(void) { return identifier; };
  
 };

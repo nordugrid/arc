@@ -197,8 +197,19 @@ Response* Evaluator::evaluate(EvaluationCtx* ctx){
       ResponseItem* item = new ResponseItem;
       RequestTuple* reqtuple = new RequestTuple;
       reqtuple->duplicate(*(*it));
+
       item->reqtp = reqtuple; 
       item->pls = permitset;
+
+      item->reqxml = reqtuple->getNode();
+      
+      std::list<Policy*>::iterator permit_it;
+      for(permit_it = permitset.begin(); permit_it != permitset.end(); permit_it++){
+        EvalResult evalres = (*permit_it)->getEvalResult();
+        //TODO, handle policyset
+        XMLNode policyxml = evalres.node;
+        (item->plsxml).push_back(policyxml);
+      }
       resp->addResponseItem(item);
     }
   }

@@ -18,7 +18,6 @@ using namespace ArcSec;
 //Arc::LogStream logcerr(std::cerr);
 
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
-  
   //ArcAttributeFactory* attrfactory = new ArcAttributeFactory();
   //ArcFnFactory* fnfactory = new ArcFnFactory();
 
@@ -122,10 +121,13 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
 }
 
 ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
+  rulenode = node;
+  evalres.node = node;
+  evalres.effect = "Not_applicable";
+
   attrfactory = (AttributeFactory*)(*ctx);
   fnfactory = (FnFactory*)(*ctx);
   
-
   XMLNode nd, tnd;
   //Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
   //logger.addDestination(logcerr);
@@ -185,7 +187,6 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
  
 }
 
-
 static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::RequestAttribute*> req){
 
   ArcSec::OrList::iterator orit;
@@ -222,9 +223,7 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
       return MATCH;
     }
   }
-
   return NO_MATCH;
-
 }
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
@@ -235,20 +234,29 @@ MatchResult ArcRule::match(EvaluationCtx* ctx){
     (conditions.empty()||(!conditions.empty())&&(itemMatch(conditions, evaltuple->ctx)==MATCH)))
     return MATCH;
   else return NO_MATCH;
-
 }
 
 Result ArcRule::eval(EvaluationCtx*){// ctx){
   Result result = DECISION_NOT_APPLICABLE;
   //TODO
   // need to evaluate the "Condition"
-  if (effect == "Permit") result = DECISION_PERMIT;
-  else if (effect == "Deny") result = DECISION_DENY;
+  if (effect == "Permit") { 
+    result = DECISION_PERMIT;
+    evalres.effect = "Permit";
+  }
+  else if (effect == "Deny") {
+    result = DECISION_DENY;
+    evalres.effect = "Deny";
+  }
   return result;
 }
 
 std::string ArcRule::getEffect(){
   return effect;
+}
+
+EvalResult& ArcRule::getEvalResult(){
+  return evalres;
 }
 
 ArcRule::~ArcRule(){
@@ -296,5 +304,4 @@ ArcRule::~ArcRule(){
     }
     conditions.pop_back();
   }
-
 }

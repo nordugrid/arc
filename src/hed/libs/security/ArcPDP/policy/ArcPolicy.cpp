@@ -12,6 +12,12 @@ using namespace ArcSec;
 Logger ArcPolicy::logger(Logger::rootLogger,"ArcPolicy");
 
 ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+  node.New(policynode);
+  
+  //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, EvalResult.node can include rule(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all the original rules.
+  evalres.node = policynode;
+  evalres.effect = "Not_applicable";
+
   ArcRule *rule;
   //ArcAlgFactory *algfactory = new ArcAlgFactory(); 
   algfactory = (AlgFactory*)(*ctx); 
@@ -22,7 +28,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
   std::list<XMLNode> res;
   nsList.insert(std::pair<std::string, std::string>("policy","http://www.nordugrid.org/ws/schemas/policy-arc"));
 
-  res = node.XPathLookup("//policy:Policy", nsList);
+  res = policynode.XPathLookup("//policy:Policy", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
     id = (std::string)(nd.Attribute("PolicyId"));
@@ -43,7 +49,6 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     rule = new ArcRule(rnd, ctx);
     subelements.push_back(rule);
   }
-    
 }
 
 MatchResult ArcPolicy::match(EvaluationCtx*){// ctx){
@@ -58,11 +63,16 @@ MatchResult ArcPolicy::match(EvaluationCtx*){// ctx){
 }
 
 Result ArcPolicy::eval(EvaluationCtx* ctx){
-  
   Result result = comalg->combine(ctx, subelements);
+  if(result == DECISION_PERMIT) evalres.effect = "Permit";
+  else if(result == DECISION_DENY) evalres.effect = "Deny";
+  else if(result == DECISION_INDETERMINATE) evalres.effect = "Indeterminate";
 
   return result;
-   
+}
+
+EvalResult& ArcPolicy::getEvalResult(){
+  return evalres;
 }
 
 ArcPolicy::~ArcPolicy(){
