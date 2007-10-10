@@ -59,7 +59,7 @@ AC_REQUIRE([GPT_PROG_GPT_QUERY])
 AC_REQUIRE([GPT_ARG_GPT_FLAVOR])
 if test -n "$GPT_QUERY" && test -n "$GPT_FLAVOR"; then
    gpt_cv_[]$1[]_version=`$GPT_QUERY $1[]-[]$GPT_FLAVOR[]-dev | \\
-	grep 'pkg version' | sed 's%.*:\s*%%'`
+	grep 'pkg version' | sed 's%.*: *%%'`
 fi
 ])
 
@@ -74,7 +74,7 @@ GPT_PKG_VERSION($1)
 if test -n "$gpt_cv_[]$1[]_version"; then
    if test -n "$GLOBUS_MAKEFILE_HEADER" && test -n "$GPT_FLAVOR" ; then
       gpt_cv_tmp=`$GLOBUS_MAKEFILE_HEADER --flavor=$GPT_FLAVOR $1 | \\
-		  sed 's%\s*=\s*\(.*\)%="\1"%'`
+		  sed 's% *= *\(.*\)%="\1"%'`
       gpt_cv_[]$1[]_cflags=`eval "$gpt_cv_tmp" \\
 			    echo '$GLOBUS_INCLUDES'`
       gpt_cv_[]$1[]_libs=`eval "$gpt_cv_tmp" \\
