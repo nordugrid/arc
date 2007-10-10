@@ -85,10 +85,6 @@ namespace Arc {
       throw EchoClientError
 	("The response to the echo request was not a SOAP message.");
     };
-    //Arc::NS ns;
-    //Arc::XMLNode id(ns);
-    //id.NewChild((*resp)["EchoResponse"]);
-    //id.GetXML(answer);
     answer = (std::string)((*resp)["echoResponse"]["hear"]);
     delete repmsg.Payload();
     return answer;
