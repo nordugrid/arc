@@ -65,7 +65,7 @@ void replace(std::string& str,
 }
 
 // Round off a double to an integer.
-int round(double x){
+int Round(double x){
   return int(x+0.5);
 }
 
@@ -265,22 +265,22 @@ int main(int argc, char* argv[]){
 	    << totalRequests << std::endl;
   std::cout << "Completed requests: "
 	    << completedRequests << " ("
-	    << round(completedRequests*100.0/totalRequests)
+	    << Round(completedRequests*100.0/totalRequests)
 	    << "%)" << std::endl;
   std::cout << "Failed requests: "
 	    << failedRequests << " ("
-	    << round(failedRequests*100.0/totalRequests)
+	    << Round(failedRequests*100.0/totalRequests)
 	    << "%)" << std::endl;
   std::cout << "Average response time for all requests: "
-	    << round(1000*totalTime.as_double()/totalRequests)
+	    << Round(1000*totalTime.as_double()/totalRequests)
 	    << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-	      << round(1000*completedTime.as_double()/completedRequests)
+	      << Round(1000*completedTime.as_double()/completedRequests)
 	      << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-	      << round(1000*failedTime.as_double()/failedRequests)
+	      << Round(1000*failedTime.as_double()/failedRequests)
 	      << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
