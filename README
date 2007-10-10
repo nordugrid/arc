@@ -5,10 +5,10 @@ The NorduGrid middleware (or the Advanced Resource Connector, ARC) is
 an open source software solution enabling production quality
 computational and data grids.
 
-Since the first release (May 2002) the middleware is deployed and
-being used in production environments. Emphasis is put on scalability,
+Since the first release (May 2002) the middleware has been deployed and
+been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
-number of grid projects, like Swegrid, DCGC, NDGF chose ARC as their
+number of grid projects, like Swegrid, DCGC, NDGF has chosen ARC as their
 middleware. The largest production grid of the world is running on ARC
 too.
 
@@ -77,7 +77,7 @@ Building & Installation
 =======================
 
 The ARC middleware can be built from the openly available source code
-provided as a tarball. The build is using the GNU autotools. This
+provided as a tarball. The build uses the GNU autotools. This
 means that a standard installation into /usr/local can be made with:
 
   ./configure
@@ -172,7 +172,7 @@ than what is provided by the Hosting Environment Daemon (HED).
 In order to use the A-REX service, however, you need to run a
 Grid-Manager as well. There is not yet a Grid-Manager available in the
 new generation of ARC, but the Grid-Manager from ARC 0.6.x can be used
-meanwhile. How to install and set up that Grid-Manager is described in
+in the meantime. How to install and set up that Grid-Manager is described in
 detail on http://www.nordugrid.org/documents/ng-server-install.html
 and in NORDUGRID-TECH-14 "The ARC Computational Job Management Module
 - A-REX: Description and Administrator's Manual". Worth mentioning is
@@ -318,8 +318,7 @@ To use the echo client, type
 
   /usr/local/bin/apecho <message>
 
-where <message> is the message which the echo service shall return
-back again.
+where <message> is the message which the echo service will return.
 
 
 Contributing
