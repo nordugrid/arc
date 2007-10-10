@@ -81,11 +81,12 @@ bool ArcPDP::isPermitted(Message *msg){
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml");
   resp = eval->evaluate(reqdoc);
-  ResponseList::iterator respit;
   logger.msg(INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
-  for(respit = rlist.begin(); respit != rlist.end(); ++respit){
-    RequestTuple* tp = (*respit)->reqtp;
+  int size = rlist.size();
+  for(int i = 0; i < size; i++){
+    ResponseItem* item = rlist[i];
+    RequestTuple* tp = item->reqtp;
     Subject::iterator it;
     Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
