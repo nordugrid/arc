@@ -1,16 +1,15 @@
 ARC Middleware
 ==============
 
-The NorduGrid middleware (or the Advanced Resource Connector, ARC) is
-an open source software solution enabling production quality
-computational and data grids.
+The Advanced Resource Connector (ARC) middleware, introduced by
+NorduGrid (www.nordugrid.org), is an open source software solution
+enabling production quality computational and data grids.
 
 Since the first release (May 2002) the middleware has been deployed and
 been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
 number of grid projects, like Swegrid, DCGC, NDGF has chosen ARC as their
-middleware. The largest production grid of the world is running on ARC
-too.
+middleware.
 
 This release (October 2007) is a technology preview version of the
 next generation of ARC. It is based on a service container - the
@@ -30,8 +29,8 @@ software from source or installing a precompiled binary requires
 different external packages, furthermore the client and server
 packages have different dependencies too. The detailed compile and
 runtime external dependencies are given in the INSTALL file, below a
-merged list of the requirements (build, install, server, client) is
-shown:
+merged list of the explicit requirements (build, install, server, 
+client) is shown:
 
   Mandatory (on client as well as server side):
     o gnu make, autotools (autoconf>=2.56)
@@ -47,7 +46,7 @@ shown:
     o e2fsprogs-devel
     o doxygen
 
-  Optional (mainly aplicable on server side):
+  Optional (mainly applicable on server side):
     o swig version 1.3.28 or later
     o java sdk 1.4 or later for Java bindings
     o python-devel for Python bindings
@@ -62,14 +61,14 @@ Getting the software
 ====================
 
 The middleware is free to deploy anywhere by anybody. Pre-built binary
-releases for a dozen of Linux platforms can be downloaded from
-ftp.nordugrid.org.
+releases for a dozen of Linux platforms can be downloaded from the
+NorduGrid software repository at download.nordugrid.org.
 
 The software is released under the GNU General Public License (GPL)
 (see the LICENSE file).
 
-The NorduGrid repository hosts the source code, and provides all the
-required external software which are not part of a standard Linux
+The NorduGrid repository hosts the source code, and provides most of
+the required external software which are not part of a standard Linux
 distribution.
 
 
@@ -98,9 +97,9 @@ In order to use ARC, a grid certificate is necessary. More information
 about grid certificates and how to get them can be found on
 http://www.nordugrid.org/documents/certificate_howto.html
 
-So far, only the certificates without password can be used for MCCTLS (both 
-the client side and server side).
-Certificate with password (for client side) will be supported when certificate 
+For this technology preview, only the certificates without password can be 
+used (both the client side and server side).
+Certificates with password (for client side) will be supported when certificate 
 delegation is available.
 
 
@@ -166,7 +165,7 @@ is shown below:
 </ArcConfig>
 
 
-The echo service is "atomic" and have no additional dependencies other
+The echo service is "atomic" and has no additional dependencies other
 than what is provided by the Hosting Environment Daemon (HED).
 
 In order to use the A-REX service, however, you need to run a
@@ -243,7 +242,7 @@ Using the A-REX Client
 
 To submit a job, type
 
-  /usr/local/bin/apsub <JSDL-file> <JobID-file>
+  <install-prefix>/bin/apsub <JSDL-file> <JobID-file>
 
 where <JSDL-file> is the location of a file that contains the job
 specification in JSDL format and <JobID-file> the location of a file
@@ -251,20 +250,20 @@ in which the Job ID will be stored.
 
 To query the status of a job, type
 
-  /usr/local/bin/apstat <JobID-file>
+  <install-prefix>/bin/apstat <JobID-file>
 
 where <JobID-file> the location of the file in which the Job ID is
 stored (the file created when the job was submitted).
 
 To terminate a job, type
 
-  /usr/local/bin/apkill <JobID-file>
+  <install-prefix>/bin/apkill <JobID-file>
 
 where <JobID-file> the location of the file in which the Job ID is
 stored (the file created when the job was submitted).
 
-More detailed about how to use the client tools are explained in
-NORDUGRID-TECH-15 "WS-Based ARC Clients".
+More detailed information about how to use the client tools is
+available in NORDUGRID-TECH-15 "WS-Based ARC Clients".
 
 
 The Echo Client
@@ -316,7 +315,7 @@ Using the Echo Client
 
 To use the echo client, type
 
-  /usr/local/bin/apecho <message>
+  <install-prefix>/bin/apecho <message>
 
 where <message> is the message which the echo service will return.
 
@@ -328,17 +327,19 @@ The open source development of the ARC middleware is coordinated by
 the NorduGrid Collaboration. Currently, the main contributor is the
 KnowARC project (www.knowarc.eu), but the Collaboration is open to new
 members. Contributions from the community to the software and the
-documentation is welcomed. Sources can be downloaded from the Web site
-or Subversion.
+documentation is welcomed. Sources can be downloaded from the software
+repository at download.nordugrid.org or the Subversion code repository at
+svn.nordugrid.org.
 
-The developers maintain a Task List which describes outstanding issues
-that have to be addressed in the framework of the NorduGrid
-development. Bugs marked as 'feature requests' in the NorduGrid
-bugzilla also contain open development areas. For a more detailed
-description, write access to Subversion and further questions, write
-to the nordugrid-discuss mailing list. Ongoing and completed Grid
-Research projects and student assignments related to the middleware
-are listed on the Web site as well.
+The technical coordination group defines outstanding issues that have
+to be addressed in the framework of the ARC development. Feature
+requests and enhancement proposals are recorded in the Bugzilla bug
+tracking system at bugzilla.nordugrid.org. For a more detailed
+description, write access to the code repository and further
+questions, write to the nordugrid-discuss mailing list (see
+www.nordugrid.org for details). Ongoing and completed Grid Research
+projects and student assignments related to the middleware are listed
+on the NorduGrid Web site as well.
 
 
 Support, documentation, mailing lists, contact
@@ -350,9 +351,9 @@ In addition, NorduGrid runs a couple of mailing lists, among which the
 nordugrid-discuss mailing list is a general forum for all kind of
 issues related to the ARC middleware.
 
-NorduGrid deploys the Bugzilla problem tracking system. Feature and
-enhancement requests, as well as discovered problems, should be
-reported there.
+NorduGrid deploys the Bugzilla problem tracking system
+(bugzilla.nordugrid.org). Feature and enhancement requests, as well as
+discovered problems, should be reported there.
 
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
