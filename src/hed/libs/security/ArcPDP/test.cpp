@@ -35,11 +35,12 @@ int main(void){
   //Evaluate the request
   resp = eval.evaluate("Request.xml");
   //Get the response
-  ArcSec::ResponseList::iterator respit;
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ArcSec::ResponseList rlist = resp->getResponseItems();
-  for(respit = rlist.begin(); respit != rlist.end(); ++respit){
-    ArcSec::RequestTuple* tp = (*respit)->reqtp;
+  int size = rlist.size();
+  for(int i = 0; i< size; i++){
+    ArcSec::ResponseItem* respitem = rlist[i];
+    ArcSec::RequestTuple* tp = respitem->reqtp;
     ArcSec::Subject::iterator it;
     ArcSec::Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
@@ -114,8 +115,10 @@ int main(void){
   //Get the response
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   rlist = resp->getResponseItems();
-  for(respit = rlist.begin(); respit != rlist.end(); ++respit){
-    ArcSec::RequestTuple* tp = (*respit)->reqtp;
+  size = rlist.size();
+  for(int i = 0; i < size; i++){
+    ArcSec::ResponseItem* respitem = rlist[i];
+    ArcSec::RequestTuple* tp = respitem->reqtp;
     ArcSec::Subject::iterator it;
     ArcSec::Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){

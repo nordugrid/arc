@@ -27,7 +27,32 @@ public:
   Policies pls; 
 };
 */
-typedef std::list<ResponseItem*> ResponseList;
+
+//typedef std::list<ResponseItem*> ResponseList;
+
+class ResponseList {
+public:
+  void addItem(ResponseItem* item) {
+    int n = (resps.size());
+    resps.insert(std::pair<int, ResponseItem*>(n, item));
+  };
+  int size() { return resps.size();};
+  ResponseItem* getItem(int n) { return resps[n]; };
+  ResponseItem* operator[](int n) { return resps[n]; };
+  bool empty() { return resps.empty(); };
+  void clear() {
+    std::map<int, ResponseItem*>::iterator it;
+    for(it = resps.begin(); it != resps.end(); it++){
+      RequestTuple* tpl = ((*it).second)->reqtp;
+      if(tpl!=NULL)
+        tpl->erase();
+      resps.erase(it);
+    }
+  };
+private:
+  std::map<int, ResponseItem*> resps;
+};
+
 
 /**A request can has a few <subjects, actions, objects> tuples */
 //**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
@@ -35,19 +60,11 @@ class Response {
 protected:
   ResponseList rlist;
 public:
-  virtual ResponseList getResponseItems () { return rlist; };
-  virtual void setResponseItems (const ResponseList rl) { rlist = rl; };
-  virtual void addResponseItem(ResponseItem* respitem){ rlist.push_back(respitem); }; 
+  virtual ResponseList& getResponseItems () { return rlist; };
+  virtual void setResponseItems (const ResponseList& rl) { rlist = rl; };
+  virtual void addResponseItem(ResponseItem* respitem){ rlist.addItem(respitem); }; 
 
-  virtual ~Response() {  
-    while(!rlist.empty()){
-      RequestTuple* tpl = (rlist.back())->reqtp;
-      if(tpl!=NULL)
-        tpl->erase(); 
-      delete rlist.back();
-      rlist.pop_back();
-    }
-  };
+  virtual ~Response() { rlist.clear(); };
 };
 
 } // namespace ArcSec
