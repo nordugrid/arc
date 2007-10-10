@@ -383,6 +383,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/config/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
+                 src/clients/echo/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
