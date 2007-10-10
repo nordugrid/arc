@@ -127,6 +127,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/apsub
 %{_bindir}/apstat
 %{_bindir}/apkill
+%{_bindir}/apecho
 %{_bindir}/perftest
 
 %files server

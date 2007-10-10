@@ -110,7 +110,8 @@ ARC Server Setup & Configuration
 The configuration of the ARC server is specified in an XML file, the
 location of which is specified as a command line argument with the -c
 option. An example of a configuration file that sets up an A-REX
-execution service is shown below:
+execution service and an echo service (intended for testing purposes)
+is shown below:
 
 <?xml version="1.0"?>
 <ArcConfig 
@@ -150,26 +151,35 @@ execution service is shown below:
     </Component>
     <Plexer name="plexer.service" id="plexer">
       <next id="a-rex">/arex</next>
+      <next id="echo">/echo</next>
     </Plexer>
     <Service name="a-rex" id="a-rex">
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
       <arex:username>nobody</arex:username>
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
     </Service>
+    <Service name="echo" id="echo">
+      <echo:prefix>[ </echo:prefix>
+      <echo:suffix> ]</echo:suffix>
+    </Service>
   </Chain>
 </ArcConfig>
 
 
-Grid Manager
-============
+The echo service is "atomic" and have no additional dependencies other
+than what is provided by the Hosting Environment Daemon (HED).
 
-In order to use the A-REX service, you need to run a Grid-Manager as
-well. There is not yet a Grid-Manager available in the new generation
-of version of ARC, but the Grid-Manager from ARC 0.6.x can be used
+In order to use the A-REX service, however, you need to run a
+Grid-Manager as well. There is not yet a Grid-Manager available in the
+new generation of ARC, but the Grid-Manager from ARC 0.6.x can be used
 meanwhile. How to install and set up that Grid-Manager is described in
 detail on http://www.nordugrid.org/documents/ng-server-install.html
 and in NORDUGRID-TECH-14 "The ARC Computational Job Management Module
-- A-REX: Description and Administrator's Manual".
+- A-REX: Description and Administrator's Manual". Worth mentioning is
+also that the user account from which the HED containing the A-REX
+service is run, will be the owner of the jobs in the local batch
+system, and that this account must have write permission in the
+session and control directories of the Grid-Manager.
 
 
 Starting the Server
@@ -179,15 +189,19 @@ To start the ARC server, type the following on the command line:
 
   /usr/local/sbin/arcserver -c /etc/arcserv.xml &
 
+Remember to also start the Grid-Manager, as described above, in order
+to be able to use the A-REX service.
+
 
 The A-REX Client
 ================
 
-The configuration of the ARC client is specified in an XML file. The
-location of the configuration file is specified by the environment
-variable ARC_AREX_CONFIG. If there is no such environment variable,
-the configuration file is assumed to be arex_client.xml in the current
-working directory. An example configuration file is shown below:
+The configuration of the ARC A-REX client is specified in an XML
+file. The location of the configuration file is specified by the
+environment variable ARC_AREX_CONFIG. If there is no such environment
+variable, the configuration file is assumed to be arex_client.xml in
+the current working directory. An example configuration file is shown
+below:
 
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
@@ -224,8 +238,8 @@ working directory. An example configuration file is shown below:
 </ArcConfig>
 
 
-Using the Client
-================
+Using the A-REX Client
+======================
 
 To submit a job, type
 
@@ -251,6 +265,61 @@ stored (the file created when the job was submitted).
 
 More detailed about how to use the client tools are explained in
 NORDUGRID-TECH-15 "WS-Based ARC Clients".
+
+
+The Echo Client
+===============
+
+The configuration of the ARC echo client is specified in an XML
+file. The location of the configuration file is specified by the
+environment variable ARC_ECHO_CONFIG. If there is no such environment
+variable, the configuration file is assumed to be echo_client.xml in
+the current working directory. An example configuration file is shown
+below:
+
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
+  <ModuleManager>
+    <Path>/usr/local/lib/arc/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Chain>
+    <Component name='tcp.client' id='tcp'>
+      <tcp:Connect>
+        <tcp:Host>127.0.0.1</tcp:Host>
+        <tcp:Port>60000</tcp:Port>
+      </tcp:Connect>
+    </Component>
+    <Component name='tls.client' id='tls'>
+      <next id='tcp'/>
+      <KeyPath>/etc/grid-security/key.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
+      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+    </Component>
+    <Component name='http.client' id='http'>
+      <next id='tls'/><Method>POST</Method>
+      <Endpoint>/echo</Endpoint>
+    </Component>
+    <Component name='soap.client' id='soap' entry='soap'>
+      <next id='http'/>
+    </Component>
+  </Chain>
+</ArcConfig>
+
+
+Using the Echo Client
+======================
+
+To use the echo client, type
+
+  /usr/local/bin/apecho <message>
+
+where <message> is the message which the echo service shall return
+back again.
 
 
 Contributing
