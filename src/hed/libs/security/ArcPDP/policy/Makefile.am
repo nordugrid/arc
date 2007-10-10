@@ -2,7 +2,8 @@ lib_LTLIBRARIES = libarcpolicy.la
 
 libarcpolicy_ladir = $(pkgincludedir)/security/ArcPDP/policy
 libarcpolicy_la_HEADERS = Policy.h PolicyParser.h
-libarcpolicy_la_SOURCES = PolicyParser.cpp \
+libarcpolicy_la_SOURCES = Policy.cpp \
+        PolicyParser.cpp \
 	ArcPolicy.cpp		ArcPolicy.h \
 	ArcRule.cpp		ArcRule.h \
 	PolicyStore.cpp		PolicyStore.h

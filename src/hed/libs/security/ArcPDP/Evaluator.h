@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_ARCEVALUATE_H__
-#define __ARC_SEC_ARCEVALUATE_H__
+#ifndef __ARC_SEC_EVALUATOR_H__
+#define __ARC_SEC_EVALUATOR_H__
 
 #include <list>
 #include <fstream>
@@ -18,46 +18,47 @@
 namespace ArcSec {
 
 class Evaluator {
-friend class EvaluatorContext;
-private:
+protected:
   static Arc::Logger logger;
+/*private:
   PolicyStore *plstore;
   FnFactory* fnfactory;
   AttributeFactory* attrfactory;  
   AlgFactory* algfactory;
-  
   EvaluatorContext* context;
-
+*/
 public:
-  Evaluator (Arc::XMLNode& cfg);
-  Evaluator (const char * cfgfile);
-  virtual ~Evaluator();
+  Evaluator (Arc::XMLNode&) {};
+  Evaluator (const char *) {};
+  virtual ~Evaluator() {};
 
-  virtual Response* evaluate(Request* request);
-  virtual Response* evaluate(const std::string& reqfile);
-  virtual Response* evaluate(EvaluationCtx* ctx);
-  virtual Response* evaluate(Arc::XMLNode& node);
+  virtual Response* evaluate(Request* request) = 0;
+  virtual Response* evaluate(const std::string& reqfile) = 0;
+  virtual Response* evaluate(EvaluationCtx* ctx) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node) = 0;
+
+  virtual AttributeFactory* getAttrFactory () = 0;
+  virtual FnFactory* getFnFactory () = 0;
+  virtual AlgFactory* getAlgFactory () = 0;
 
 private:
-  void parsecfg(Arc::XMLNode& cfg);
+  virtual void parsecfg(Arc::XMLNode& cfg) = 0;
 };
 
-
 class EvaluatorContext {
-  friend class Evaluator;
   private:
-    Evaluator& evaluator;
-    EvaluatorContext(Evaluator& evaluator) : evaluator(evaluator) {};
+    Evaluator* evaluator;
+  public:
+    EvaluatorContext(Evaluator* evaluator) : evaluator(evaluator) {};
     ~EvaluatorContext() {};
    public:
     /** Returns associated AttributeFactory object */
-    operator AttributeFactory*()    { return evaluator.attrfactory; };
+    operator AttributeFactory*()    { return evaluator->getAttrFactory(); };
     /** Returns associated FnFactory object */
-    operator FnFactory*()        { return evaluator.fnfactory; };
+    operator FnFactory*()        { return evaluator->getFnFactory(); };
     /** Returns associated AlgFactory object */
-    operator AlgFactory*() { return evaluator.algfactory; };
+    operator AlgFactory*() { return evaluator->getAlgFactory(); };
   };
-
 
 } // namespace ArcSec
 

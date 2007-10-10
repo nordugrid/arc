@@ -13,7 +13,6 @@ namespace ArcSec {
 /**Base class for Policy, PolicySet, or Rule*/
 
 class Policy {
-
 protected:
   std::list<Policy*> subelements;
   static Arc::Logger logger; 

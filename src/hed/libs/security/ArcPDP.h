@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include <arc/ArcConfig.h>
-#include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/ArcEvaluator.h>
 #include <arc/security/PDP.h>
 
 namespace ArcSec {
@@ -16,7 +16,7 @@ class ArcPDP : public PDP {
   virtual ~ArcPDP();
   virtual bool isPermitted(Arc::Message *msg);
  private:
-  Evaluator *eval;
+  ArcEvaluator *eval;
 };
 
 } // namespace ArcSec

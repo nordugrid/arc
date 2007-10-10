@@ -11,11 +11,11 @@
 #include "../fn/EqualFunction.h"
 //#include "../fn/MatchFunction.h"
 
+//Arc::Logger ArcSec::ArcRule::logger(ArcSec::Policy::logger, "ArcRule");
+Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");
+
 using namespace Arc;
 using namespace ArcSec;
-
-//Logger ArcRule::logger(Policy::logger, "ArcRule");
-//Arc::LogStream logcerr(std::cerr);
 
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
   //ArcAttributeFactory* attrfactory = new ArcAttributeFactory();

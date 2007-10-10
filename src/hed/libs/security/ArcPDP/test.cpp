@@ -6,13 +6,13 @@
 #include <signal.h>
 
 #include <string>
-#include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/ArcEvaluator.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include <./ArcRequest.h>
+#include <arc/security/ArcPDP/ArcRequest.h>
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
@@ -23,11 +23,10 @@ int main(void){
   Arc::Logger logger(Arc::Logger::rootLogger, "PDPTest");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
-    
 
   logger.msg(Arc::INFO, "Start test");
   
-  ArcSec::Evaluator eval("EvaluatorCfg.xml");
+  ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
   ArcSec::Response *resp = NULL;
 
   //Input request from a file: Request.xml
@@ -74,7 +73,7 @@ int main(void){
  
 */
 
-//Data Structure
+//Data Structure to compose a request
 /*
   typedef struct{
     std::string value;

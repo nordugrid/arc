@@ -6,13 +6,18 @@
 #include "ArcRule.h"
 #include <list>
 
+//Arc::Logger ArcSec::ArcPolicy::logger(ArcSec::Policy::logger, "ArcPolicy");
+Arc::Logger ArcSec::ArcPolicy::logger(Arc::Logger::rootLogger, "ArcPolicy");
+
 using namespace Arc;
 using namespace ArcSec;
 
-Logger ArcPolicy::logger(Logger::rootLogger,"ArcPolicy");
-
 ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
   node.New(policynode);
+
+  std::string xml;
+  policynode.GetXML(xml);
+  std::cout<<xml<<std::endl;
   
   //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, EvalResult.node can include rule(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all the original rules.
   evalres.node = policynode;

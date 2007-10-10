@@ -36,7 +36,7 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
   XMLNode nd = node.GetRoot();
   Config topcfg(nd);
 
-  eval = new Evaluator(topcfg);
+  eval = new ArcEvaluator(topcfg);
 
 }
 

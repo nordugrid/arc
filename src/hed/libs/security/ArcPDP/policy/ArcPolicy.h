@@ -13,7 +13,6 @@ namespace ArcSec {
 /**ArcPolicy class to parsing Arc specific policy format*/
 
 class ArcPolicy : public Policy {
-
 public:
   ArcPolicy(Arc::XMLNode& node, EvaluatorContext* ctx);  
 
@@ -28,7 +27,6 @@ public:
   virtual EvalResult& getEvalResult();
 
 private:
-  static Arc::Logger logger;
  // std::list<Arc::Policy*> rules;
   std::string id;
   std::string version;
@@ -39,6 +37,10 @@ private:
 
   EvalResult evalres;
   Arc::XMLNode policynode;
+
+protected:
+  static Arc::Logger logger;
+
 };
 
 } // namespace ArcSec

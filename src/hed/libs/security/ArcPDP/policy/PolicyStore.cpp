@@ -31,7 +31,6 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
   for(std::list<std::string>::const_iterator it = filelist.begin(); it != filelist.end(); it++){
     policies.push_back(plparser.parsePolicy(*it, ctx));
   }    
-
 }
 
 //use list, there also can be a class "PolicySet", which includes a few policies
