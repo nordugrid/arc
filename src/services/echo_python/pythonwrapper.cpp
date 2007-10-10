@@ -78,7 +78,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *dict = NULL;
     
     std::string class_name = (std::string)(*cfg)["ClassName"];
-    logger.msg(Arc::DEBUG, "class name: %s\n", class_name.c_str());
+    logger.msg(Arc::DEBUG, "class name: %s", class_name.c_str());
     
     // Initialize the Python Interpreter
     Py_Initialize();

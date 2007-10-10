@@ -25,7 +25,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
 {
     std::string path = "-Djava.class.path=" + (std::string)((*cfg)["ClassPath"]);
     std::string class_name = (std::string)(*cfg)["ClassName"];
-    logger.msg(Arc::DEBUG, "config: %s, class name: %s\n", path.c_str(), class_name.c_str());
+    logger.msg(Arc::DEBUG, "config: %s, class name: %s", path.c_str(), class_name.c_str());
     JNIEnv *jenv = NULL;
     JavaVMInitArgs jvm_args;
     JavaVMOption options[1];

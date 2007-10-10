@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-10 11:40+0200\n"
+"POT-Creation-Date: 2007-10-10 18:32+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -1240,6 +1240,27 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:72
+msgid "Can not dynamically produce AttributeFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:78
+msgid "Can not dynamically produce FnFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:84
+msgid "Can not dynamically produce AlgFacroty"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:131
+msgid "Request object can not be cast into ArcRequest"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:203
+#, c-format
+msgid "Result value (0 means success): %d"
+msgstr ""
+
 #: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:24
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
@@ -1251,21 +1272,21 @@ msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP.cpp:79
-#: ../src/hed/libs/security/ArcPDP.cpp:97
+#: ../src/hed/libs/security/ArcPDP.cpp:98
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP.cpp:85
+#: ../src/hed/libs/security/ArcPDP.cpp:84
 #, c-format
 msgid "There is : %d subjects, which satisty at least one policy"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP.cpp:103
+#: ../src/hed/libs/security/ArcPDP.cpp:104
 msgid "Authorized from arc.pdp!!!"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP.cpp:109
+#: ../src/hed/libs/security/ArcPDP.cpp:110
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr ""
 
@@ -1274,48 +1295,27 @@ msgstr ""
 msgid "There is %d RequestItems"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:73
-msgid "Can not dynamically produce AttributeFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:79
-msgid "Can not dynamically produce FnFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:85
-msgid "Can not dynamically produce AlgFacroty"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:134
-msgid "Request object can not be cast into ArcRequest"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:206
-#, c-format
-msgid "Result value (0 means success): %d"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/policy/ArcPolicy.cpp:44
+#: ../src/hed/libs/security/ArcPDP/policy/ArcPolicy.cpp:49
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:28
+#: ../src/hed/libs/security/ArcPDP/test.cpp:27
 msgid "Start test"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:34
+#: ../src/hed/libs/security/ArcPDP/test.cpp:33
 msgid "Input request from a file: Request.xml"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:39
+#: ../src/hed/libs/security/ArcPDP/test.cpp:37
 #: ../src/hed/libs/security/ArcPDP/test.cpp:115
 #, c-format
 msgid "There is: %d Subjects, which satisfy at least one policy"
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP/test.cpp:51
-#: ../src/hed/libs/security/ArcPDP/test.cpp:127
+#: ../src/hed/libs/security/ArcPDP/test.cpp:129
 #, c-format
 msgid "Attribute Value: %s"
 msgstr ""
@@ -1598,7 +1598,8 @@ msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:277
-msgid "process: $s: not supported"
+#, c-format
+msgid "process: %s: not supported"
 msgstr ""
 
 #: ../src/services/a-rex/change_activity_status.cpp:31
@@ -1781,7 +1782,7 @@ msgstr ""
 
 #: ../src/services/echo_java/javawrapper.cpp:28
 #, c-format
-msgid "config: %s, class name: %s\n"
+msgid "config: %s, class name: %s"
 msgstr ""
 
 #: ../src/services/echo_java/javawrapper.cpp:42
@@ -1821,7 +1822,7 @@ msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:81
 #, c-format
-msgid "class name: %s\n"
+msgid "class name: %s"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:88

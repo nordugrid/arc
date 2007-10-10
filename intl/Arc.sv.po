@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-10 11:40+0200\n"
-"PO-Revision-Date: 2007-07-12 13:12+0200\n"
+"POT-Creation-Date: 2007-10-10 18:32+0200\n"
+"PO-Revision-Date: 2007-10-10 18:33+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -13,116 +13,104 @@ msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:17
 msgid "Creating an A-REX client."
-msgstr ""
+msgstr "Skapar en A-REX-klient."
 
 #: ../src/clients/a-rex/arex_client.cpp:26
 #: ../src/clients/echo/echo_client.cpp:26
-#, fuzzy
 msgid "Failed to load client configuration."
-msgstr "Misslyckades med att ladda klientinställningar"
+msgstr "Misslyckades med att ladda klientinställningar."
 
 #: ../src/clients/a-rex/arex_client.cpp:31
 #: ../src/clients/echo/echo_client.cpp:31
-#, fuzzy
 msgid "Client side MCCs are loaded."
-msgstr "Klientsidans MCC:er har laddats"
+msgstr "Klientsidans MCC:er har laddats."
 
 #: ../src/clients/a-rex/arex_client.cpp:34
 #: ../src/clients/echo/echo_client.cpp:34
-#, fuzzy
 msgid "Client chain does not have entry point."
-msgstr "Klientkedjan har ingen ingångspunkt"
+msgstr "Klientkedjan har ingen ingångspunkt."
 
 #: ../src/clients/a-rex/arex_client.cpp:54
 #: ../src/clients/echo/echo_client.cpp:51
-#, fuzzy
 msgid "Creating and sending request."
-msgstr "Skapar och skickar förfrågan"
+msgstr "Skapar och sänder förfrågan."
 
 #: ../src/clients/a-rex/arex_client.cpp:81
-#, fuzzy
 msgid "Submission request failed."
-msgstr "Förfrågan misslyckades"
+msgstr "Insändningsförfrågan misslyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:84
-#, fuzzy
 msgid "Submission request succeed."
-msgstr "Förfrågan lyckades!!!"
+msgstr "Insändningsförfrågan lyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:87
 msgid "There were no response to a submission request."
-msgstr ""
+msgstr "Det kom inget svar på en insändningsförfrågan."
 
 #: ../src/clients/a-rex/arex_client.cpp:97
 msgid "A response to a submission request was not a SOAP message."
-msgstr ""
+msgstr "Ett svar på en insändningsförfrågan var inget SOAP-meddelande."
 
 #: ../src/clients/a-rex/arex_client.cpp:114
-#, fuzzy
 msgid "Creating and sending a status request."
-msgstr "Skapar och skickar förfrågan"
+msgstr "Skapar och sänder en statusförfrågan."
 
 #: ../src/clients/a-rex/arex_client.cpp:132
-#, fuzzy
 msgid "A status request failed."
-msgstr "Förfrågan misslyckades"
+msgstr "En statusförfrågan misslyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:135
-#, fuzzy
 msgid "A status request succeed."
-msgstr "Förfrågan lyckades!!!"
+msgstr "En statusförfrågan lyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:137
 msgid "There were no response to a status request."
-msgstr ""
+msgstr "Det kom inget svar på en statusförfrågan."
 
 #: ../src/clients/a-rex/arex_client.cpp:146
 msgid "The response of a status request was not a SOAP message."
-msgstr ""
+msgstr "Ett svar på en statusförfrågan var inget SOAP-meddelande."
 
 #: ../src/clients/a-rex/arex_client.cpp:170
-#, fuzzy
 msgid "Creating and sending request to terminate a job."
-msgstr "Skapar och skickar förfrågan"
+msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
 
 #: ../src/clients/a-rex/arex_client.cpp:188
 msgid "A job termination request failed."
-msgstr ""
+msgstr "En förfrågan för att avsluta ett jobb misslyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:191
 msgid "A job termination request succeed."
-msgstr ""
+msgstr "En förfrågan för att avsluta ett jobb lyckades."
 
 #: ../src/clients/a-rex/arex_client.cpp:194
 msgid "There was no response to a job termination request."
-msgstr ""
+msgstr "Det kom inget svar på en förfrågan för att avsluta ett jobb."
 
 #: ../src/clients/a-rex/arex_client.cpp:204
 msgid "The response of a job termination request was not a SOAP message"
 msgstr ""
+"Ett svar på en förfrågan för att avsluta ett jobb var inget SOAP-meddelande."
 
 #: ../src/clients/echo/echo_client.cpp:17
-#, fuzzy
 msgid "Creating an echo client."
-msgstr "Skapar och skickar förfrågan"
+msgstr "Skapar en echo-klient."
 
 #: ../src/clients/echo/echo_client.cpp:67
-#, fuzzy
 msgid "Echo request failed."
-msgstr "Förfrågan misslyckades"
+msgstr "Echo-förfrågan misslyckades"
 
 #: ../src/clients/echo/echo_client.cpp:70
-#, fuzzy
 msgid "Echo request succeed."
-msgstr "Förfrågan lyckades!!!"
+msgstr "Echo-förfrågan lyckades."
 
 #: ../src/clients/echo/echo_client.cpp:73
 msgid "There were no response to an echo request."
-msgstr ""
+msgstr "Det kom inget svar på en echo-förfrågan."
 
 #: ../src/clients/echo/echo_client.cpp:83
 msgid "A response to an echo request was not a SOAP message."
-msgstr ""
+msgstr "Ett svar på en echo-förfrågan var inget SOAP-meddelande."
 
 #: ../src/hed/daemon/daemon.cpp:38
 #, c-format
@@ -157,16 +145,16 @@ msgstr "Servicesidans MCC:er har laddats"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:30
 msgid "ftp_complete_callback: success"
-msgstr ""
+msgstr "ftp_complete_callback: OK"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:36
 #, c-format
 msgid "ftp_complete_callback: error: %s"
-msgstr ""
+msgstr "ftp_complete_callback: fel: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:47
 msgid "ftp_check_callback"
-msgstr ""
+msgstr "ftp_check_callback"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:50
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:62
@@ -368,9 +356,8 @@ msgid "ftp_get_complete_callback"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:471
-#, fuzzy
 msgid "Failed to get ftp file"
-msgstr "Misslyckades med att koppla upp mot %s:%i"
+msgstr "Misslyckades med att hämta ftp-fil"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:492
 msgid "start_writing_ftp"
@@ -417,14 +404,13 @@ msgid "ftp_put_complete_callback"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:617
-#, fuzzy
 msgid "Failed to store ftp file"
-msgstr "Misslyckades med att skicka innehåll till buffer"
+msgstr "Misslyckades med att spara ftp-fil"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:631
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to obtain listing from ftp: %s"
-msgstr "Misslyckades med att lyssna till socket"
+msgstr "Misslyckades med att erhålla lista från ftp: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:653
 #, c-format
@@ -504,9 +490,9 @@ msgstr ""
 #: ../src/hed/dmc/gridftp/Lister.cpp:131 ../src/hed/dmc/gridftp/Lister.cpp:150
 #: ../src/hed/dmc/gridftp/Lister.cpp:349 ../src/hed/dmc/gridftp/Lister.cpp:356
 #: ../src/hed/dmc/gridftp/Lister.cpp:378
-#, fuzzy, c-format
+#, c-format
 msgid "Response: %s"
-msgstr "Svaret är inte SOAP"
+msgstr "Svar: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:167
 msgid "Error getting list of files (in list)"
@@ -534,32 +520,30 @@ msgid "Memory allocation error"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:314
-#, fuzzy, c-format
+#, c-format
 msgid "Command: %s"
-msgstr "Laddade %s"
+msgstr "Kommando: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:318
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed"
-msgstr "Förfrågan misslyckades"
+msgstr "%s misslyckades"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:323
 msgid "Command is being sent"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:328
-#, fuzzy
 msgid "Waiting for response"
-msgstr "Det finns inget svar"
+msgstr "Väntar på svar"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:333
 msgid "Callback got failure"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:409
-#, fuzzy
 msgid "Failed initing condition"
-msgstr "Misslyckades med att ladda klientinställningar"
+msgstr "Misslyckades med att initiera villkor"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:413
 msgid "Failed initing mutex"
@@ -574,24 +558,20 @@ msgid "Failed initing handle"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:438
-#, fuzzy
 msgid "Closing connection"
-msgstr "init-funktion saknas"
+msgstr "Stänger förbindelse"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:443
-#, fuzzy
 msgid "Failed to close connection 1"
-msgstr "Misslyckades med att acceptera uppkopplingsförfrågan"
+msgstr "Misslyckades med att stänga förbindelse 1"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:450
-#, fuzzy
 msgid "Failed to close connection 2"
-msgstr "Misslyckades med att acceptera uppkopplingsförfrågan"
+msgstr "Misslyckades med att stänga förbindelse 2"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:454
-#, fuzzy
 msgid "Failed to close connection 3"
-msgstr "Misslyckades med att acceptera uppkopplingsförfrågan"
+msgstr "Misslyckades med att stänga förbindelse 3"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:459
 msgid "Closed successfuly"
@@ -602,13 +582,13 @@ msgid "Memory leak (globus_ftp_control_handle_t)"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:485
-#, fuzzy, c-format
+#, c-format
 msgid "PASV failed: %s"
-msgstr "Konvertering misslyckades: %s"
+msgstr "PASV misslyckades: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:489
 msgid "PASV failed"
-msgstr ""
+msgstr "PASV misslyckades"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:503
 msgid "Can't parse host and port in response to PASV"
@@ -629,19 +609,18 @@ msgid "Unsupported protocol in url %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:541
-#, fuzzy
 msgid "Reusing connection"
-msgstr "init-funktion saknas"
+msgstr "Återanvänder förbindelse"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:566
-#, fuzzy, c-format
+#, c-format
 msgid "Failed connecting to server %s:%d"
-msgstr "Misslyckades med att koppla upp mot %s:%i"
+msgstr "Misslyckades med att koppla upp mot %s:%d"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:572
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to connect to server %s:%d"
-msgstr "Misslyckades med att koppla upp mot %s:%i"
+msgstr "Misslyckades med att koppla upp mot %s:%d"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:589 ../src/hed/dmc/gridftp/Lister.cpp:602
 msgid "Bad authentication information"
@@ -652,23 +631,21 @@ msgid "Failed authenticating"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:628
-#, fuzzy, c-format
+#, c-format
 msgid "DCAU failed: %s"
-msgstr "Konvertering misslyckades: %s"
+msgstr "DCAU misslyckades: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:632
 msgid "DCAU failed"
-msgstr ""
+msgstr "DCAU misslyckades"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:650
-#, fuzzy
 msgid "Failed to open data channel"
-msgstr "Misslyckades med att skapa socket"
+msgstr "Misslyckades med att öppna datakanal"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:655
-#, fuzzy
 msgid "MLSD is not supported - trying NLST"
-msgstr "Förfrågan understöds inte - %s"
+msgstr "MSLD understöds inte - försöker med NLST"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:662
 #, c-format
@@ -694,9 +671,8 @@ msgid "Data transfer aborted"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:702
-#, fuzzy
 msgid "Failed to transfer data"
-msgstr "Misslyckades med att skapa socket"
+msgstr "Misslyckades med att överföra data"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:45
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:264
@@ -716,9 +692,9 @@ msgstr ""
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:94
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:164
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:179
-#, fuzzy, c-format
+#, c-format
 msgid "Adding location: %s - %s"
-msgstr "Tillträdeslista: %s"
+msgstr "Lägger till plats: %s - %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:126
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:309
@@ -729,9 +705,9 @@ msgstr ""
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:284
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:340
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:355
-#, fuzzy, c-format
+#, c-format
 msgid "Using location: %s - %s"
-msgstr "Tillträdeslista: %s"
+msgstr "Använder plats: %s - %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:150
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:363
@@ -785,9 +761,8 @@ msgid "Failed to remove location from LFC"
 msgstr ""
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:321
-#, fuzzy
 msgid "Failed to remove LFN in LFC"
-msgstr "Misslyckades med att slå upp %s"
+msgstr "Misslyckades med att ta bort LFN i LFC"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:106
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:517
@@ -822,9 +797,9 @@ msgstr ""
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:279
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:346
-#, fuzzy, c-format
+#, c-format
 msgid "Removing location: %s - %s"
-msgstr "Tillträdeslista: %s"
+msgstr "Tar bort plats: %s - %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:301
 msgid ""
@@ -842,14 +817,14 @@ msgstr ""
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:408
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:760
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to connect to RLS server: %s"
-msgstr "Misslyckades med att koppla upp mot %s:%i"
+msgstr "Misslyckades med att koppla upp mot RLS-servern: %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:440
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create GUID in RLS: %s"
-msgstr "Misslyckades med att skapa socket"
+msgstr "Misslyckades med att skapa GUID i RLS: %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:460
 #, c-format
@@ -899,14 +874,14 @@ msgid "LFN must be already deleted, try LRC anyway"
 msgstr ""
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:781
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to retrieve LFN/LRC: %s"
-msgstr "Misslyckades med att slå upp %s"
+msgstr "Misslyckades med att hämta LFN/LRC: %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:805
-#, fuzzy, c-format
+#, c-format
 msgid "Warning: Failed to connect to LRC at %s: %s"
-msgstr "Misslyckades med att koppla upp mot %s:%i"
+msgstr "Varning: Misslyckades med att koppla upp mot LRC på %s: %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:1019
 #, c-format
@@ -1034,12 +1009,12 @@ msgstr "Bas-dn är endast definierat för ldap-protokoll"
 #: ../src/hed/libs/data/DataPointIndex.cpp:110
 #, c-format
 msgid "Add location: metaname: %s"
-msgstr ""
+msgstr "Lägg till plats: metanamn: %s"
 
 #: ../src/hed/libs/data/DataPointIndex.cpp:111
-#, fuzzy, c-format
+#, c-format
 msgid "Add location: location: %s"
-msgstr "Tillträdeslista: %s"
+msgstr "Lägg till plats: plats: %s"
 
 #: ../src/hed/libs/loader/Loader.cpp:38
 msgid "before loop"
@@ -1214,9 +1189,9 @@ msgstr "Plexer (%s) - nästa %s(%s) saknar mål"
 
 #: ../src/hed/libs/loader/LoaderFactory.cpp:44
 #: ../src/hed/libs/loader/LoaderFactory.cpp:83
-#, fuzzy, c-format
+#, c-format
 msgid "Not a '%s' type plugin"
-msgstr "Ingen plugin"
+msgstr "Ingen plugin av typen '%s'"
 
 #: ../src/hed/libs/loader/LoaderFactory.cpp:63
 #, c-format
@@ -1266,6 +1241,27 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:72
+msgid "Can not dynamically produce AttributeFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:78
+msgid "Can not dynamically produce FnFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:84
+msgid "Can not dynamically produce AlgFacroty"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:131
+msgid "Request object can not be cast into ArcRequest"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:203
+#, c-format
+msgid "Result value (0 means success): %d"
+msgstr ""
+
 #: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:24
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
@@ -1277,73 +1273,50 @@ msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP.cpp:79
-#: ../src/hed/libs/security/ArcPDP.cpp:97
+#: ../src/hed/libs/security/ArcPDP.cpp:98
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP.cpp:85
+#: ../src/hed/libs/security/ArcPDP.cpp:84
 #, c-format
 msgid "There is : %d subjects, which satisty at least one policy"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP.cpp:103
-#, fuzzy
+#: ../src/hed/libs/security/ArcPDP.cpp:104
 msgid "Authorized from arc.pdp!!!"
-msgstr "Oautoriserad!!!"
+msgstr "Autoriserad från arc.pdp!!!"
 
-#: ../src/hed/libs/security/ArcPDP.cpp:109
-#, fuzzy
+#: ../src/hed/libs/security/ArcPDP.cpp:110
 msgid "UnAuthorized from arc.pdp!!!"
-msgstr "Oautoriserad!!!"
+msgstr "Oautoriserad från arc.pdp!!!"
 
 #: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:188
 #, c-format
 msgid "There is %d RequestItems"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:73
-msgid "Can not dynamically produce AttributeFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:79
-msgid "Can not dynamically produce FnFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:85
-msgid "Can not dynamically produce AlgFacroty"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:134
-msgid "Request object can not be cast into ArcRequest"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/Evaluator.cpp:206
-#, c-format
-msgid "Result value (0 means success): %d"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/policy/ArcPolicy.cpp:44
+#: ../src/hed/libs/security/ArcPDP/policy/ArcPolicy.cpp:49
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:28
+#: ../src/hed/libs/security/ArcPDP/test.cpp:27
 msgid "Start test"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:34
+#: ../src/hed/libs/security/ArcPDP/test.cpp:33
 msgid "Input request from a file: Request.xml"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:39
+#: ../src/hed/libs/security/ArcPDP/test.cpp:37
 #: ../src/hed/libs/security/ArcPDP/test.cpp:115
 #, c-format
 msgid "There is: %d Subjects, which satisfy at least one policy"
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP/test.cpp:51
-#: ../src/hed/libs/security/ArcPDP/test.cpp:127
+#: ../src/hed/libs/security/ArcPDP/test.cpp:129
 #, c-format
 msgid "Attribute Value: %s"
 msgstr ""
@@ -1353,9 +1326,9 @@ msgid "Input request from code"
 msgstr ""
 
 #: ../src/hed/libs/security/SimpleListAuthZ.cpp:71
-#, fuzzy, c-format
+#, c-format
 msgid "PDP name: %s %d"
-msgstr "PDP-namn: %s"
+msgstr "PDP-namn: %s &d"
 
 #: ../src/hed/libs/security/SimpleListPDP.cpp:34
 #, c-format
@@ -1374,12 +1347,11 @@ msgstr "subjekt: %s"
 
 #: ../src/hed/libs/security/SimpleListPDP.cpp:48
 msgid "Authorized from simplelist.pdp!!!"
-msgstr ""
+msgstr "Autoriserad från simplelist.pdp!!!"
 
 #: ../src/hed/libs/security/SimpleListPDP.cpp:53
-#, fuzzy
 msgid "UnAuthorized from simplelist.pdp!!!"
-msgstr "Oautoriserad!!!"
+msgstr "Oautoriserad från simplelist.pdp!!!"
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:51
 #, c-format
@@ -1387,14 +1359,12 @@ msgid "HTTP Error: %d %s"
 msgstr ""
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:100
-#, fuzzy
 msgid "UnAuthorized"
-msgstr "Oautoriserad!!!"
+msgstr "Oautoriserad"
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:103
-#, fuzzy
 msgid "Authorized"
-msgstr "Oautoriserad!!!"
+msgstr "Autoriserad"
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:49
 msgid "Missing Port in Listen element"
@@ -1430,11 +1400,11 @@ msgstr "Misslyckades med att starta tråd för kommunikation"
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:135
 msgid "Failed while waiting for connection request"
-msgstr "Misslyckades under väntan på uppkopplingsförfrågan"
+msgstr "Misslyckades under väntan på förbindelseförfrågan"
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:158
 msgid "Failed to accept connection request"
-msgstr "Misslyckades med att acceptera uppkopplingsförfrågan"
+msgstr "Misslyckades med att acceptera förbindelseförfrågan"
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:222
 msgid "next chain element called"
@@ -1487,9 +1457,9 @@ msgid "Function : %s"
 msgstr ""
 
 #: ../src/hed/mcc/tls/MCCTLS.cpp:60
-#, fuzzy, c-format
+#, c-format
 msgid "Reason   : %s"
-msgstr "Svaret är inte SOAP"
+msgstr "Anledning: %s"
 
 #: ../src/hed/mcc/tls/MCCTLS.cpp:78
 msgid "tls_random_seed from file: could not read files"
@@ -1512,9 +1482,8 @@ msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
 #: ../src/hed/mcc/tls/MCCTLS.cpp:194
-#, fuzzy
 msgid "Failed to allocate SSL locks"
-msgstr "Misslyckades med att skapa socket"
+msgstr "Misslyckades med att allokera SSL-lås"
 
 #: ../src/hed/mcc/tls/MCCTLS.cpp:220 ../src/hed/mcc/tls/MCCTLS.cpp:378
 msgid "Can not create the SSL Context object"
@@ -1525,9 +1494,9 @@ msgid "DH set error"
 msgstr "DH-fel"
 
 #: ../src/hed/mcc/tls/MCCTLS.cpp:335
-#, fuzzy, c-format
+#, c-format
 msgid "DN name: %s"
-msgstr "PDP-namn: %s"
+msgstr "DN-namn: %s"
 
 #: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:49
 #: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:76
@@ -1563,9 +1532,9 @@ msgid "process: endpoint: %s"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:159
-#, fuzzy, c-format
+#, c-format
 msgid "process: id: %s"
-msgstr "policyrad: %s"
+msgstr "process: id: %s"
 
 #: ../src/services/a-rex/arex.cpp:160
 #, c-format
@@ -1573,9 +1542,8 @@ msgid "process: subpath: %s"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:165
-#, fuzzy
 msgid "Can't obtain configuration"
-msgstr "Misslyckades med att ladda klientinställningar"
+msgstr "Misslyckades med att ladda inställningar"
 
 #: ../src/services/a-rex/arex.cpp:174
 msgid "process: POST"
@@ -1584,18 +1552,17 @@ msgstr ""
 #: ../src/services/a-rex/arex.cpp:182
 #: ../src/services/echo_java/javawrapper.cpp:111
 #: ../src/services/echo_python/pythonwrapper.cpp:233
-#, fuzzy
 msgid "input is not SOAP"
-msgstr "Indata är inte SOAP"
+msgstr "indata är inte SOAP"
 
 #: ../src/services/a-rex/arex.cpp:188
 msgid "input does not define operation"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:191
-#, fuzzy, c-format
+#, c-format
 msgid "process: operation: %s"
-msgstr "Tillträdeslista: %s"
+msgstr "process: operation: %s"
 
 #: ../src/services/a-rex/arex.cpp:196
 msgid "process: factory endpoint"
@@ -1606,14 +1573,14 @@ msgid "process: CreateActivity"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:231
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP operation is not supported: %s"
-msgstr "Förfrågan understöds inte - %s"
+msgstr "SOAP-process understöds inte: %s"
 
 #: ../src/services/a-rex/arex.cpp:237
-#, fuzzy, c-format
+#, c-format
 msgid "process: response=%s"
-msgstr "Det finns inget svar"
+msgstr "process: svar=%s"
 
 #: ../src/services/a-rex/arex.cpp:255
 msgid "process: GET"
@@ -1632,9 +1599,9 @@ msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:277
-#, fuzzy
-msgid "process: $s: not supported"
-msgstr "Förfrågan understöds inte - %s"
+#, c-format
+msgid "process: %s: not supported"
+msgstr "process: %s: understöds inte"
 
 #: ../src/services/a-rex/change_activity_status.cpp:31
 #, c-format
@@ -1651,14 +1618,14 @@ msgid ""
 msgstr ""
 
 #: ../src/services/a-rex/config/configcore.cpp:174
-#, fuzzy, c-format
+#, c-format
 msgid "Using cached configuration: %s"
-msgstr "Misslyckades med att ladda klientinställningar"
+msgstr "Använder cachade inställningar: %s"
 
 #: ../src/services/a-rex/config/configcore.cpp:178
-#, fuzzy, c-format
+#, c-format
 msgid "Reading configuration file: %s"
-msgstr "Demonisering av fork misslyckades: %s"
+msgstr "Läser inställningsfil: %s"
 
 #: ../src/services/a-rex/create_activity.cpp:28
 #, c-format
@@ -1769,12 +1736,11 @@ msgstr "Klientkedjan har ingen ingångspunkt"
 
 #: ../src/services/a-rex/test.cpp:81
 msgid "Initiating delegation procedure"
-msgstr ""
+msgstr "Initialiserar delegeringsprocess"
 
 #: ../src/services/a-rex/test.cpp:83
-#, fuzzy
 msgid "Failed to initiate delegation"
-msgstr "Misslyckades med att ladda klientinställningar"
+msgstr "Misslyckades med att initiera delegering"
 
 #: ../src/services/a-rex/test.cpp:103 ../src/services/a-rex/test.cpp:176
 #: ../src/services/a-rex/test.cpp:231 ../src/services/a-rex/test.cpp:276
@@ -1805,9 +1771,8 @@ msgid "Response is not SOAP"
 msgstr "Svaret är inte SOAP"
 
 #: ../src/services/a-rex/test.cpp:127
-#, fuzzy
 msgid "Response is not expected WS-RP"
-msgstr "Svaret är inte SOAP"
+msgstr "Svaret är inte förväntad WS-RP"
 
 #: ../src/services/a-rex/test.cpp:145 ../src/services/a-rex/test.cpp:213
 #: ../src/services/a-rex/test.cpp:258 ../src/services/a-rex/test.cpp:303
@@ -1818,8 +1783,8 @@ msgstr "Skapar och skickar förfrågan"
 
 #: ../src/services/echo_java/javawrapper.cpp:28
 #, c-format
-msgid "config: %s, class name: %s\n"
-msgstr ""
+msgid "config: %s, class name: %s"
+msgstr "inställningar: %s, klassnamn: %s"
 
 #: ../src/services/echo_java/javawrapper.cpp:42
 msgid "JVM started"
@@ -1845,9 +1810,8 @@ msgstr ""
 
 #: ../src/services/echo_java/javawrapper.cpp:115
 #: ../src/services/echo_python/pythonwrapper.cpp:237
-#, fuzzy
 msgid "output is not SOAP"
-msgstr "Indata är inte SOAP"
+msgstr "utdata är inte SOAP"
 
 #: ../src/services/echo_java/javawrapper.cpp:154
 msgid "Cannot find MCC_Status object"
@@ -1858,27 +1822,25 @@ msgid "Java object returned NULL status"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:81
-#, fuzzy, c-format
-msgid "class name: %s\n"
-msgstr "PDP-namn: %s"
+#, c-format
+msgid "class name: %s"
+msgstr "klassnamn: %s"
 
 #: ../src/services/echo_python/pythonwrapper.cpp:88
 msgid "Cannot convert module name to Python string"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:97
-#, fuzzy
 msgid "Cannot import module"
-msgstr "Kunde inte lokalisera modulen %s"
+msgstr "Kunde inte importera modulen %s"
 
 #: ../src/services/echo_python/pythonwrapper.cpp:110
 msgid "Cannot get dictionary of module"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:120
-#, fuzzy
 msgid "Cannot find service class"
-msgstr "Skapar servicesidokedjan"
+msgstr "Hittar inte serviceklass"
 
 #: ../src/services/echo_python/pythonwrapper.cpp:132
 msgid "Cannot create instance of python class"
@@ -1918,9 +1880,8 @@ msgid "Python Wrapper destructor called"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:224
-#, fuzzy
 msgid "Python wrapper process called"
-msgstr "klientprocess kallad"
+msgstr "Python-wrapper-process kallad"
 
 #: ../src/services/echo_python/pythonwrapper.cpp:244
 #: ../src/services/echo_python/pythonwrapper.cpp:264
@@ -1932,9 +1893,8 @@ msgid "Cannot convert inmsg to python object"
 msgstr ""
 
 #: ../src/services/echo_python/pythonwrapper.cpp:272
-#, fuzzy
 msgid "Cannot convert outmsg to python object"
-msgstr "Kan inte skapa SSL-kontextobjekt"
+msgstr "Kan inte omvandle outmsg till pythonobjekt"
 
 #: ../src/tests/data/test.cpp:44
 msgid "DMCs are loaded"
@@ -1950,31 +1910,5 @@ msgid "Request is not supported - %s"
 msgstr "Förfrågan understöds inte - %s"
 
 #: ../src/tests/echo/test_service.cpp:29
-#, fuzzy
 msgid "Service is waiting for requests"
-msgstr "Misslyckades under väntan på uppkopplingsförfrågan"
-
-#~ msgid "Arc access list location: %s"
-#~ msgstr "Arc tillträdeslista: %s"
-
-#~ msgid "The root node of request is not <Request>"
-#~ msgstr "Förfrågans rotnod är inte <Request>"
-
-#~ msgid "Subject has no Attribute defined"
-#~ msgstr "Subjektet har inget attribut definierat"
-
-#~ msgid "Object has no Attribute defined"
-#~ msgstr "Objektet har inget attribut definierat"
-
-#~ msgid "Action has no Attribute defined"
-#~ msgstr "Handlingen har inget attribut definierat"
-
-#~ msgid "Context has no Attribute defined"
-#~ msgstr "Kontexten har inget attribut definierat"
-
-#~ msgid "Can not set client CA list from the specified file"
-#~ msgstr "Kan inte sätta klientens CA-lista från den specificerade filen"
-
-#, fuzzy
-#~ msgid "Failed parsing url %s"
-#~ msgstr "Misslyckades med att slå upp %s"
+msgstr "Servicen väntar på förfrågningar"

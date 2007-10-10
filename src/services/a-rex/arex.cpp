@@ -274,7 +274,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_response(outmsg);
     } else {
       delete inmsg.Payload();
-      logger.msg(Arc::DEBUG, "process: $s: not supported",method.c_str());
+      logger.msg(Arc::DEBUG, "process: %s: not supported",method.c_str());
       return Arc::MCC_Status();
     };
   };
