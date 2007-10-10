@@ -21,21 +21,23 @@ public:
   
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx);
 
-  //***/
-  ArcRequest (AttributeFactory* attrfactory);
+  void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
+
+  //**Default constructor*/
+  ArcRequest ();
   
   //**Parse request information from a file*/
-  ArcRequest (const std::string& filename, AttributeFactory* attrfactory);
+  ArcRequest (const std::string& filename);
 
   //**Parse request information from a xml stucture in memory*/
-  ArcRequest (Arc::XMLNode& node, AttributeFactory* attrfactory);
+  ArcRequest (Arc::XMLNode& node);
   virtual ~ArcRequest();
 
-private:
-  void make_request(Arc::XMLNode& node);
+  void make_request();
 
 private:
   AttributeFactory * attrfactory;
+  Arc::XMLNode reqnode;
 
 };
 

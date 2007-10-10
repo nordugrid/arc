@@ -123,16 +123,36 @@ Evaluator::Evaluator(const char * cfgfile){
   parsecfg(node); 
 }
 
-/*
-Response* Evaluator::evaluate(Arc::Request* request){
-  Arc::EvaluationCtx * evalctx = new Arc::EvaluationCtx(request);
-  return (evaluate(evalctx));   
+
+Response* Evaluator::evaluate(Request* request){
+  ArcRequest* req = NULL;
+  try {
+    req = dynamic_cast<ArcRequest*>(request);
+  } catch(std::exception& e) { };
+
+  if(!req) {
+    logger.msg(ERROR,"Request object can not be cast into ArcRequest");
+    return NULL;
+  }
+  req->setAttributeFactory(attrfactory);
+  req->make_request();
+
+  EvaluationCtx * evalctx = NULL;
+  evalctx =  new EvaluationCtx(req);
+
+  //evaluate the request based on policy
+  if(evalctx)
+    return(evaluate(evalctx));
+  else return NULL;
 }
-*/
+
 
 Response* Evaluator::evaluate(const std::string& reqfile){
-  Request* request = NULL;
-  request = new ArcRequest(reqfile, attrfactory);
+  ArcRequest* request = NULL;
+  request = new ArcRequest(reqfile);
+  request->setAttributeFactory(attrfactory);
+  request->make_request();
+
   EvaluationCtx * evalctx = NULL;
   evalctx =  new EvaluationCtx(request);
  
@@ -143,8 +163,11 @@ Response* Evaluator::evaluate(const std::string& reqfile){
 }
 
 Response* Evaluator::evaluate(XMLNode& node){
-  Request* request = NULL;
-  request = new ArcRequest(node, attrfactory);
+  ArcRequest* request = NULL;
+  request = new ArcRequest(node);
+  request->setAttributeFactory(attrfactory);
+  request->make_request();
+
   EvaluationCtx * evalctx = NULL;
   evalctx =  new EvaluationCtx(request);
 

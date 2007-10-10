@@ -33,7 +33,7 @@ public:
   Evaluator (const char * cfgfile);
   virtual ~Evaluator();
 
- // virtual Response* evaluate(Request* request);
+  virtual Response* evaluate(Request* request);
   virtual Response* evaluate(const std::string& reqfile);
   virtual Response* evaluate(EvaluationCtx* ctx);
   virtual Response* evaluate(Arc::XMLNode& node);

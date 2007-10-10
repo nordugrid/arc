@@ -100,10 +100,6 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     contextattr_attr = ((*cit)->getAttributeValue())->getType();
   }
 
-  std::string xml;
-  tuple.GetXML(xml);
-  std::cout<<xml<<std::endl;
-
   return *this;
 }
 

@@ -26,7 +26,7 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id.c_str(), type.c_str(), issuer.c_str(), (attrval->encode()).c_str());
 
   node.New(node_);
-
+/*
   std::string str1;
   node.GetXML(str1);
   std::cout<<"Original node: "<<str1<<std::endl;
@@ -34,7 +34,7 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   std::string str2;
   node_.GetXML(str2);
   std::cout<<"Copied node: "<<str2<<std::endl;
-
+*/
 /*
   if(!(node.Size())){
     avlist.push_back(attrfactory->createValue(node, type));

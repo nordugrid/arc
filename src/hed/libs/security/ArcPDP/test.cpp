@@ -7,9 +7,12 @@
 
 #include <string>
 #include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+
+#include <./ArcRequest.h>
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
@@ -24,11 +27,14 @@ int main(void){
 
   logger.msg(Arc::INFO, "Start test");
   
-  //std::string cfg("EvaluatorCfg.xml");  
   ArcSec::Evaluator eval("EvaluatorCfg.xml");
   ArcSec::Response *resp = NULL;
-  resp = eval.evaluate("Request.xml");
 
+  //Input request from a file: Request.xml
+  logger.msg(Arc::INFO, "Input request from a file: Request.xml");  
+  //Evaluate the request
+  resp = eval.evaluate("Request.xml");
+  //Get the response
   ArcSec::ResponseList::iterator respit;
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ArcSec::ResponseList rlist = resp->getResponseItems();
@@ -47,8 +53,86 @@ int main(void){
     }
   }
   
-  if(resp)
+  if(resp){
     delete resp;
+    resp = NULL;
+  }
+
+  //Input/Set request from code
+  logger.msg(Arc::INFO, "Input request from code");
+
+//Request example
+/*
+     <RequestItem>
+        <Subject AttributeId="urn:arc:subject:dn" Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+        <Resource AttributeId="urn:arc:resource:file" Type="string">file://home/test</Resource>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">read</Action>
+        <Action AttributeId="urn:arc:action:file-action" Type="string">copy</Action>
+        <Context AttributeId="urn:arc:context:date" Type="period">2007-09-10T20:30:20/P1Y1M</Context>
+    </RequestItem>
+ 
+*/
+
+//Data Structure
+/*
+  typedef struct{
+    std::string value;
+    std::string type;
+  } Attr;
+  typedef std::list<Attr> Attrs;
+
+*/
+  ArcSec::Attr subject_attr1, subject_attr2, resource_attr1, action_attr1, action_attr2, context_attr1;
+  ArcSec::Attrs sub, res, act, ctx;
+  subject_attr1.type = "string";
+  subject_attr1.value = "/O=NorduGrid/OU=UIO/CN=test";
+  sub.addItem(subject_attr1);
+
+  resource_attr1.type = "string";
+  resource_attr1.value = "file://home/test";
+  res.addItem(resource_attr1);
+
+  action_attr1.type = "string";
+  action_attr1.value = "read";
+  act.addItem(action_attr1);
+
+  action_attr2.type = "string";
+  action_attr2.value = "copy";
+  act.addItem(action_attr2);
+
+  context_attr1.type = "period";
+  context_attr1.value = "2007-09-10T20:30:20/P1Y1M";
+  ctx.addItem(context_attr1);
+
+  ArcSec::ArcRequest* request = NULL;
+  //It shoud not be the caller to delete the ArcRequest object?
+  request = new ArcSec::ArcRequest;
+  request->addRequestItem(sub, res, act, ctx);
+
+  //Evaluate the request
+  resp = eval.evaluate(request);
+  //Get the response
+  logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
+  rlist = resp->getResponseItems();
+  for(respit = rlist.begin(); respit != rlist.end(); ++respit){
+    ArcSec::RequestTuple* tp = (*respit)->reqtp;
+    ArcSec::Subject::iterator it;
+    ArcSec::Subject subject = tp->sub;
+    for (it = subject.begin(); it!= subject.end(); it++){
+      ArcSec::AttributeValue *attrval;
+      ArcSec::RequestAttribute *attr;
+      attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
+      if(attr){
+        attrval = (*it)->getAttributeValue();
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value: %s", (attrval->encode()).c_str());
+      }
+    }
+  }
+
+  if(resp){
+    delete resp;
+    resp = NULL;
+  }
 
   return 0;
 }

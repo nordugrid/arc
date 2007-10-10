@@ -16,7 +16,21 @@ typedef struct{
   std::string value;
   std::string type;
 } Attr;
-typedef std::list<Attr> Attrs;
+
+//typedef std::map<int,Attr> Attrs;
+
+class Attrs {
+public:
+  void addItem(Attr attr) { 
+    int n = (attrs.size());  
+    attrs.insert(std::pair<int, Attr>(n, attr)); 
+  };
+  int size() { return attrs.size();};
+  Attr& getItem(int n) { return attrs[n]; };
+  Attr& operator[](int n) { return attrs[n]; };
+private:
+  std::map<int, Attr> attrs;
+};
 
 
 /**A request can has a few <subjects, actions, objects> tuples */
@@ -30,6 +44,9 @@ public:
 
   //**add request tuple from non-XMLNode*/
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx)=0;
+
+  //**Default constructor*/
+  Request () {};
 
   //**Constructor: Parse request information from a input file*/
   Request (const std::string&) {};
