@@ -98,17 +98,29 @@ AC_CHECK_PROGS(PYTHON, $with_python python)
 if test "X$PYTHON" != "X"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
+    PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
+    PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBS']"`
+    PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['SYSLIBS']"`
+    PY_LIBPL=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBPL']"`
+    PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
     changequote([, ])dnl
-    PY_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
-    changequote(<<, >>)dnl
-    PY_EXTRA_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBS']"`
-    changequote([, ])dnl
-    PY_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
-    PY_EXTRA_LIBS="-lpython$PYTHON_VERSION $PY_EXTRA_LIBS"
+    PYTHON_LIBS="$PY_LIBS $PY_SYSLIBS"
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="$PYTHON_LIBS $LDFLAGS"
+    AC_CHECK_LIB([python$PYTHON_VERSION], [Py_Initialize],[
+        AC_MSG_NOTICE([No additional path to python library needed])
+        PYTHON_LIBS="-lpython$PYTHON_VERSION $PYTHON_LIBS"],[
+        LDFLAGS="-L$PY_LIBPL $LDFLAGS"
+        # check a different symbol or else configure will used cached value
+        AC_CHECK_LIB([python$PYTHON_VERSION], [Py_Finalize],[
+            AC_MSG_NOTICE([Adding path to python library])
+            PYTHON_LIBS="-L$PY_LIBPL -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
+            AC_ERROR([Can't find python library])])])
+    LDFLAGS=$SAVE_LDFLAGS
     AC_SUBST(PYTHON_VERSION)
-    AC_SUBST(PY_CFLAGS)
-    AC_SUBST(PY_EXTRA_LIBS)
-    AC_SUBST(PY_SITE_PACKAGES)
+    AC_SUBST(PYTHON_CFLAGS)
+    AC_SUBST(PYTHON_LIBS)
+    AC_SUBST(PYTHON_SITE_PACKAGES)
 fi
 
 PYTHONWRAP=no
