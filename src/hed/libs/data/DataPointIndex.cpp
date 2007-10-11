@@ -36,14 +36,10 @@ namespace Arc {
     for(std::list<Location>::iterator i = locations.begin();
         i != locations.end(); ++i)
       fi.AddURL(i->url);
-    if(meta_size_available())
-      fi.SetSize(meta_size_);
-    if(meta_checksum_available())
-      fi.SetCheckSum(meta_checksum_);
-    if(meta_created_available())
-      fi.SetCreated(meta_created_);
-    if(meta_validtill_available())
-      fi.SetValid(meta_validtill_);
+    fi.SetSize(GetSize());
+    fi.SetCheckSum(GetCheckSum());
+    fi.SetCreated(GetCreated());
+    fi.SetValid(GetValid());
     fi.SetType(FileInfo::file_type_file);
     return true;
   }

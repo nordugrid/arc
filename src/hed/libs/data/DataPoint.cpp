@@ -13,9 +13,9 @@ namespace Arc {
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
   DataPoint::DataPoint(const URL& url) : url(url),
-                                         meta_size_(-1),
-                                         meta_created_(-1),
-                                         meta_validtill_(-1),
+                                         size(-1),
+                                         created(-1),
+                                         valid(-1),
                                          tries_left(5) {}
 
   std::string DataPoint::empty_string_;

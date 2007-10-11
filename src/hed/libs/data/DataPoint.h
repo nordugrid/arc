@@ -98,88 +98,63 @@ namespace Arc {
      */
 
     /// Check if meta-information 'size' is available.
-    virtual bool meta_size_available() const {
-      return (meta_size_ != (unsigned long long int)(-1));
-    };
-
-    /// Set value of meta-information 'size' if not already set.
-    virtual void meta_size(unsigned long long int val) {
-      if(!meta_size_available())
-        meta_size_ = val;
+    virtual bool CheckSize() const {
+      return (size != (unsigned long long int)(-1));
     };
 
     /// Set value of meta-information 'size'.
-    virtual void meta_size_force(unsigned long long int val) {
-      meta_size_ = val;
+    virtual void SetSize(const unsigned long long int val) {
+      size = val;
     };
 
     /// Get value of meta-information 'size'.
-    virtual unsigned long long int meta_size() const {
-      return meta_size_;
+    virtual unsigned long long int GetSize() const {
+      return size;
     };
 
     /// Check if meta-information 'checksum' is available.
-    virtual bool meta_checksum_available() const {
-      return (!meta_checksum_.empty());
-    };
-
-    /// Set value of meta-information 'checksum' if not already set.
-    virtual void meta_checksum(const std::string& val) {
-      if(!meta_checksum_available())
-        meta_checksum_ = val;
+    virtual bool CheckCheckSum() const {
+      return (!checksum.empty());
     };
 
     /// Set value of meta-information 'checksum'.
-    virtual void meta_checksum_force(const std::string& val) {
-      meta_checksum_ = val;
+    virtual void SetCheckSum(const std::string& val) {
+      checksum = val;
     };
 
     /// Get value of meta-information 'checksum'.
-    virtual const std::string& meta_checksum() const {
-      return meta_checksum_;
+    virtual const std::string& GetCheckSum() const {
+      return checksum;
     };
 
     /// Check if meta-information 'creation/modification time' is available.
-    virtual bool meta_created_available() const {
-      return (meta_created_ != -1);
-    };
-
-    /// Set value of meta-information 'creation/modification time' if not
-    /// already set.
-    virtual void meta_created(Time val) {
-      if(!meta_created_available())
-        meta_created_ = val;
+    virtual bool CheckCreated() const {
+      return (created != -1);
     };
 
     /// Set value of meta-information 'creation/modification time'.
-    virtual void meta_created_force(Time val) {
-      meta_created_ = val;
+    virtual void SetCreated(const Time& val) {
+      created = val;
     };
 
     /// Get value of meta-information 'creation/modification time'.
-    virtual Time meta_created() const {
-      return meta_created_;
+    virtual const Time& GetCreated() const {
+      return created;
     };
 
     /// Check if meta-information 'validity time' is available.
-    virtual bool meta_validtill_available() const {
-      return (meta_validtill_ != -1);
-    };
-
-    /// Set value of meta-information 'validity time' if not already set.
-    virtual void meta_validtill(Time val) {
-      if(!meta_validtill_available())
-        meta_validtill_ = val;
+    virtual bool CheckValid() const {
+      return (valid != -1);
     };
 
     /// Set value of meta-information 'validity time'.
-    virtual void meta_validtill_force(Time val) {
-      meta_validtill_ = val;
+    virtual void SetValid(const Time& val) {
+      valid = val;
     };
 
     /// Get value of meta-information 'validity time'.
-    virtual Time meta_validtill() const {
-      return meta_validtill_;
+    virtual const Time& GetValid() const {
+      return valid;
     };
 
     /// Check if URL is meta-URL.
@@ -197,36 +172,36 @@ namespace Arc {
       return false;
     };
 
-    /// Acquire meta-information from another object. Defined values a
+    /// Acquire meta-information from another object. Defined values are
     /// not overwritten.
     /// \param p object from which information is taken.
     virtual void meta(const DataPoint& p) {
-      if(p.meta_size_available())
-        meta_size(p.meta_size());
-      if(p.meta_checksum_available())
-        meta_checksum(p.meta_checksum());
-      if(p.meta_created_available())
-        meta_created(p.meta_created());
-      if(p.meta_validtill_available())
-        meta_validtill(p.meta_validtill());
+      if(!CheckSize())
+        SetSize(p.GetSize());
+      if(!CheckCheckSum())
+        SetCheckSum(p.GetCheckSum());
+      if(!CheckCreated())
+        SetCreated(p.GetCreated());
+      if(!CheckValid())
+        SetValid(p.GetValid());
     };
 
     /// Compare meta-information form another object. Undefined values
     /// are not used for comparison. Default result is 'true'.
     /// \param p object to which compare.
     virtual bool meta_compare(const DataPoint& p) const {
-      if(p.meta_size_available() && meta_size_available())
-        if(meta_size_ != p.meta_size())
+      if(CheckSize() && p.CheckSize())
+        if(GetSize() != p.GetSize())
           return false;
       // TODO: compare checksums properly
-      if(p.meta_checksum_available() && meta_checksum_available())
-        if(strcasecmp(meta_checksum_.c_str(), p.meta_checksum().c_str()))
+      if(CheckCheckSum() && p.CheckCheckSum())
+        if(strcasecmp(GetCheckSum().c_str(), p.GetCheckSum().c_str()))
           return false;
-      if(p.meta_created_available() && meta_created_available())
-        if(meta_created_ != p.meta_created())
+      if(CheckCreated() && p.CheckCreated())
+        if(GetCreated() != p.GetCreated())
           return false;
-      if(p.meta_validtill_available() && meta_validtill_available())
-        if(meta_validtill_ != p.meta_validtill())
+      if(CheckValid() && p.CheckValid())
+        if(GetValid() != p.GetValid())
           return false;
       return true;
     };
@@ -314,10 +289,10 @@ namespace Arc {
     static std::string empty_string_;
     static URL empty_url_;
     // attributes
-    unsigned long long int meta_size_;
-    std::string meta_checksum_;
-    Time meta_created_;
-    Time meta_validtill_;
+    unsigned long long int size;
+    std::string checksum;
+    Time created;
+    Time valid;
     int tries_left;
   };
 

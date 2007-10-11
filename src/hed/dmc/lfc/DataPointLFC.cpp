@@ -110,13 +110,13 @@ namespace Arc {
     struct lfc_filestatg st;
     if(lfc_statg(url.Path().c_str(), NULL, &st) == 0) {
       is_metaexisting = true;
-      meta_size(st.filesize);
-      meta_created(st.mtime);
+      SetSize(st.filesize);
+      SetCreated(st.mtime);
       if(st.csumtype[0] && st.csumvalue[0]) {
         std::string csum = st.csumtype;
         csum += ":";
         csum += st.csumvalue;
-        meta_checksum(csum);
+        SetCheckSum(csum);
       }
       guid = st.guid;
     }
@@ -147,10 +147,10 @@ namespace Arc {
         ++loc;
       }
     }
-    logger.msg(DEBUG, "meta_get_data: checksum: %s", meta_checksum().c_str());
-    logger.msg(DEBUG, "meta_get_data: size: %ull", meta_size());
+    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
+    logger.msg(DEBUG, "meta_get_data: size: %ull", GetSize());
     logger.msg(DEBUG, "meta_get_data: created: %s",
-               meta_created().str().c_str());
+               GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {
       std::list<Location>::iterator loc = locations.begin();
       for(; loc != locations.end(); ++loc) {
@@ -190,9 +190,9 @@ namespace Arc {
       lfc_endsess();
       return false;
     }
-    if(meta_checksum_available()) {
+    if(CheckCheckSum()) {
       std::string ckstype;
-      std::string cksumvalue = meta_checksum();
+      std::string cksumvalue = GetCheckSum();
       std::string::size_type p = cksumvalue.find(':');
       if(p == std::string::npos) {
         ckstype = "cksum";
@@ -201,18 +201,19 @@ namespace Arc {
         ckstype = cksumvalue.substr(0, p);
         cksumvalue = cksumvalue.substr(p + 1);
       }
-      if(meta_size_available()) {
-        lfc_setfsizeg(guid.c_str(), meta_size(), ckstype.c_str(),
+      if(CheckSize()) {
+        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
                       (char*)(cksumvalue.c_str()));
       }
       else {
-        lfc_setfsizeg(guid.c_str(), meta_size(), NULL, NULL);
+        lfc_setfsizeg(guid.c_str(), -1, ckstype.c_str(),
+                      (char*)(cksumvalue.c_str()));
       }
     }
-    else if(meta_size_available()) {
-      lfc_setfsizeg(guid.c_str(), meta_size(), NULL, NULL);
+    else if(CheckSize()) {
+      lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
     }
-    //if((meta_created_available()) {
+    //if(CheckCreated()) {
     //}
     lfc_endsess();
     return true;
@@ -234,9 +235,9 @@ namespace Arc {
       lfc_endsess();
       return false;
     }
-    if(meta_checksum_available()) {
+    if(CheckCheckSum()) {
       std::string ckstype;
-      std::string cksumvalue = meta_checksum();
+      std::string cksumvalue = GetCheckSum();
       std::string::size_type p = cksumvalue.find(':');
       if(p == std::string::npos) {
         ckstype = "cksum";
@@ -245,18 +246,19 @@ namespace Arc {
         ckstype = cksumvalue.substr(0, p);
         cksumvalue = cksumvalue.substr(p + 1);
       }
-      if(meta_size_available()) {
-        lfc_setfsizeg(guid.c_str(), meta_size(), ckstype.c_str(),
+      if(CheckSize()) {
+        lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
                       (char*)(cksumvalue.c_str()));
       }
       else {
-        lfc_setfsizeg(guid.c_str(), meta_size(), NULL, NULL);
+        lfc_setfsizeg(guid.c_str(), -1, ckstype.c_str(),
+                      (char*)(cksumvalue.c_str()));
       }
     }
-    else if(meta_size_available()) {
-      lfc_setfsizeg(guid.c_str(), meta_size(), NULL, NULL);
+    else if(CheckSize()) {
+      lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL);
     }
-    //if((meta_created_available()) {
+    //if(CheckCreated()) {
     //}
     lfc_endsess();
     return true;

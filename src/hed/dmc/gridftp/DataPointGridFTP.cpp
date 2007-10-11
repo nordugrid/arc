@@ -94,7 +94,7 @@ namespace Arc {
       // return false;
     }
     else {
-      meta_size(size);
+      SetSize(size);
       size_available = true;
     }
     res = globus_ftp_client_modification_time(&ftp_handle,
@@ -119,7 +119,7 @@ namespace Arc {
     }
     else {
       GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-      meta_created(modify_time);
+      SetCreated(modify_time);
     }
     // Do not use partial_get for ordinary ftp. Stupid globus tries to
     // use non-standard commands anyway.
@@ -248,7 +248,7 @@ namespace Arc {
     ftp_eof_flag = false;
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
     GlobusResult res;
-    if((!no_checks) && (!(meta_size_available()))) {
+    if((!no_checks) && (!(CheckSize()))) {
       logger.msg(DEBUG, "start_reading_ftp: size: url: %s",
                  url.str().c_str());
       res = globus_ftp_client_size(&ftp_handle, url.str().c_str(),
@@ -286,10 +286,10 @@ namespace Arc {
       else {
         /* provide some metadata */
         logger.msg(INFO, "start_reading_ftp: obtained size: %ull", size);
-        meta_size(size);
+        SetSize(size);
       }
     }
-    if((!no_checks) && (!(meta_created_available()))) {
+    if((!no_checks) && (!(CheckCreated()))) {
       globus_abstime_t gl_modify_time;
       res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
                                                 &ftp_opattr, &gl_modify_time,
@@ -325,7 +325,7 @@ namespace Arc {
         int modify_utime;
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
         logger.msg(DEBUG, "start_reading_ftp: creation time: %s", modify_time);
-        meta_created(modify_time);
+        SetCreated(modify_time);
       }
       if(limit_length) {
         if((unsigned long long int)size < range_end) {

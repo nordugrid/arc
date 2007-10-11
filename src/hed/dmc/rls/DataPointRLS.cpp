@@ -129,7 +129,7 @@ namespace Arc {
       }
     }
     else {
-      err = globus_rls_client_lrc_get_pfn(h, (char*)"__storage_service__",
+      err = globus_rls_client_lrc_get_pfn(h, "__storage_service__",
                                           0, 0, &pfns_list);
     }
     if(err != GLOBUS_SUCCESS) {
@@ -225,27 +225,27 @@ namespace Arc {
         if(attr->type != globus_rls_attr_type_str) continue;
         logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
         if(strcmp(attr->name, "filechecksum") == 0) {
-          if(!it.meta_checksum_available())
-            it.meta_checksum(attr->val.s);
+          if(!it.CheckCheckSum())
+            it.SetCheckSum(attr->val.s);
         }
         else if(strcmp(attr->name, "size") == 0) {
-          if(!it.meta_size_available())
-            it.meta_size(stringtoull(attr->val.s));
+          if(!it.CheckSize())
+            it.SetSize(stringtoull(attr->val.s));
         }
         else if(strcmp(attr->name, "modifytime") == 0) {
-          if(!it.meta_created_available()) {
+          if(!it.CheckCreated()) {
             Time created(attr->val.s);
             if(created == -1)
               created.SetTime(stringtoull(attr->val.s));
-            it.meta_created(created);
+            it.SetCreated(created);
           }
         }
         else if(strcmp(attr->name, "created") == 0) {
-          if(!it.meta_created_available()) {
+          if(!it.CheckCreated()) {
             Time created(attr->val.s);
             if(created == -1)
               created.SetTime(stringtoull(attr->val.s));
-            it.meta_created(created);
+            it.SetCreated(created);
           }
         }
       }
@@ -360,10 +360,10 @@ namespace Arc {
         }
       }
     }
-    logger.msg(DEBUG, "meta_get_data: checksum: %s", meta_checksum().c_str());
-    logger.msg(DEBUG, "meta_get_data: size: %ull", meta_size());
+    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
+    logger.msg(DEBUG, "meta_get_data: size: %ull", GetSize());
     logger.msg(DEBUG, "meta_get_data: created: %s",
-               meta_created().str().c_str());
+               GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {
       std::list<Location>::iterator loc = locations.begin();
       for(; loc != locations.end(); ++loc) {
@@ -558,9 +558,9 @@ namespace Arc {
                    errmsg);
       }
     }
-    if(meta_size_available()) {
+    if(CheckSize()) {
       attr.name = "size";
-      attr_val = tostring(meta_size_);
+      attr_val = tostring(GetSize());
       attr.val.s = (char*)attr_val.c_str();
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
@@ -573,9 +573,9 @@ namespace Arc {
         }
       }
     }
-    if(meta_checksum_available()) {
+    if(CheckCheckSum()) {
       attr.name = "filechecksum";
-      attr_val = meta_checksum_;
+      attr_val = GetCheckSum();
       attr.val.s = (char*)attr_val.c_str();
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
@@ -588,9 +588,9 @@ namespace Arc {
         }
       }
     }
-    if(meta_created_available()) {
+    if(CheckCreated()) {
       attr.name = "modifytime";
-      attr_val = meta_created_;
+      attr_val = GetCreated();
       attr.val.s = (char*)attr_val.c_str();
       err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
                                            &attr, 0);
