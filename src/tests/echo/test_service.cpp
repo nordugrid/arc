@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <signal.h>
+#include <unistd.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
