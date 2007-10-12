@@ -153,7 +153,7 @@ namespace Arc {
       return (condstatus == 0);
     }
     else {
-      // Do not use it at all. It does not give too much usefull
+      // Do not use it at all. It does not give too much useful
       // information anyway. But request at least existence of file.
       if(!size_available) return false;
       return true;

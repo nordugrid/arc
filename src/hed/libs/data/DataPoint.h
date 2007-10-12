@@ -268,7 +268,7 @@ namespace Arc {
     };
 
     /// Returns number of retries left.
-    virtual int GetTries();
+    virtual int GetTries() const;
 
     /// Set number of retries.
     virtual void SetTries(const int n);

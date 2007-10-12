@@ -153,10 +153,9 @@ namespace Arc {
       arg_->locations_empty = (it.locations.size() == 0);
     }
     if(arg_->locations_empty) {
-      globus_list_t *list_p;
-      for(list_p = pfns_list; list_p; list_p = globus_list_rest(list_p)) {
+      for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
-          (globus_rls_string2_t*)globus_list_first(list_p);
+          (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
         std::list<Location>::iterator loc =
           it.locations.insert(it.locations.end(), Location(str2->s2, pfn));
@@ -166,13 +165,12 @@ namespace Arc {
       }
     }
     else {
-      std::list<Location>::iterator loc = it.locations.begin();
-      for(; loc != it.locations.end(); ++loc) {
+      for(std::list<Location>::iterator loc = it.locations.begin();
+          loc != it.locations.end(); loc++) {
         if(loc->arg != NULL) continue;
-        globus_list_t *list_p;
-        for(list_p = pfns_list; list_p; list_p = globus_list_rest(list_p)) {
+        for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
           globus_rls_string2_t *str2 =
-            (globus_rls_string2_t*)globus_list_first(list_p);
+            (globus_rls_string2_t*)globus_list_first(lp);
           URL pfn(str2->s2);
           // for RLS URLs are used instead of metanames
           if(pfn == loc->url) {
@@ -218,10 +216,9 @@ namespace Arc {
         return true;
       }
       it.is_metaexisting = true; // even for destination
-      for(globus_list_t *list_pa = attr_list; list_pa;
-          list_pa = globus_list_rest(list_pa)) {
+      for(globus_list_t *lpa = attr_list; lpa; lpa = globus_list_rest(lpa)) {
         globus_rls_attribute_t *attr =
-          (globus_rls_attribute_t*)globus_list_first(list_pa);
+          (globus_rls_attribute_t*)globus_list_first(lpa);
         if(attr->type != globus_rls_attr_type_str) continue;
         logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
         if(strcmp(attr->name, "filechecksum") == 0) {
@@ -273,8 +270,8 @@ namespace Arc {
                     &meta_resolve_callback, (void*)&arg);
       if(!arg.success) return false;
       // Remove unresolved locations
-      std::list<Location>::iterator loc = locations.begin();
-      for(; loc != locations.end();) {
+      for(std::list<Location>::iterator loc = locations.begin();
+          loc != locations.end();) {
         if(loc->arg == NULL) {
           logger.msg(DEBUG, "Removing location: %s - %s",
                      loc->meta.c_str(), loc->url.str().c_str());
@@ -310,9 +307,9 @@ namespace Arc {
         return false;
       }
       // Make pfns
-      std::list<Location>::iterator loc = locations.begin();
       std::list<URL>::iterator lrc_p = lrcs.begin();
-      for(; loc != locations.end();) {
+      for(std::list<Location>::iterator loc = locations.begin();
+          loc != locations.end();) {
         bool se_uses_lfn = false;
         std::string u = loc->url.str();
         if(loc->url.Path() == "se") {
@@ -365,8 +362,8 @@ namespace Arc {
     logger.msg(DEBUG, "meta_get_data: created: %s",
                GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {
-      std::list<Location>::iterator loc = locations.begin();
-      for(; loc != locations.end(); ++loc) {
+      for(std::list<Location>::iterator loc = locations.begin();
+          loc != locations.end(); loc++) {
         for(std::map<std::string, std::string>::const_iterator i =
               url.CommonLocOptions().begin();
             i != url.CommonLocOptions().end(); i++)
@@ -604,8 +601,8 @@ namespace Arc {
       }
     }
     if(url.Options().size() > 0) {
-      std::map<std::string, std::string>::const_iterator pos;
-      for(pos = url.Options().begin(); pos != url.Options().end(); ++pos) {
+      for(std::map<std::string, std::string>::const_iterator pos =
+            url.Options().begin(); pos != url.Options().end(); pos++) {
         attr.name = (char*)pos->first.c_str();
         attr.val.s = (char*)pos->second.c_str();
         err = globus_rls_client_lrc_attr_put(h, (char*)rls_lfn.c_str(),
@@ -690,10 +687,9 @@ namespace Arc {
         arg_->failure = true;
         return true;
       }
-      globus_list_t *list_p;
-      for(list_p = pfns_list; list_p; list_p = globus_list_rest(list_p)) {
+      for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
-          (globus_rls_string2_t*)globus_list_first(list_p);
+          (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s1);
         if(pfn.Protocol() == "se") {
           logger.msg(DEBUG, "SE location will be unregistered automatically");
@@ -788,11 +784,10 @@ namespace Arc {
       else {
         free_lrcs = GLOBUS_TRUE;
       }
-      globus_list_t *p;
       err = GLOBUS_SUCCESS;
       // TODO: sort by lrc and cache connections
       bool failure = false;
-      for(p = lrcs; p; p = globus_list_rest(p)) {
+      for(globus_list_t *p = lrcs; p; p = globus_list_rest(p)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(p);
         char *lrc = str2->s2;
@@ -831,10 +826,9 @@ namespace Arc {
             // Probably no such LFN - good, less work to do
             pfns_list = NULL;
           }
-          globus_list_t *list_p;
-          for(list_p = pfns_list; list_p; list_p = globus_list_rest(list_p)) {
+          for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
             globus_rls_string2_t *str2 =
-              (globus_rls_string2_t*)globus_list_first(list_p);
+              (globus_rls_string2_t*)globus_list_first(lp);
             URL pfn(str2->s1);
             if(pfn.Protocol() == "se") {
               logger.msg(DEBUG,
@@ -1027,8 +1021,7 @@ namespace Arc {
     ((list_files_rls_t*)arg)->success = true;
     std::string last_lfn = "";
     std::string last_guid = "";
-    globus_list_t *p;
-    for(p = pfns; p; p = globus_list_rest(p)) {
+    for(globus_list_t *p = pfns; p; p = globus_list_rest(p)) {
       globus_rls_string2_t *str2 =
         (globus_rls_string2_t*)globus_list_first(p);
       std::string lfn = str2->s1;

@@ -25,7 +25,7 @@ namespace Arc {
     return url;
   }
 
-  int DataPoint::GetTries() {
+  int DataPoint::GetTries() const {
     return tries_left;
   }
 
