@@ -172,11 +172,10 @@ unsigned long MCC_TLS::ssl_id_cb(void) {
 //}
 
 bool MCC_TLS::do_ssl_init(void) {
-std::cerr<<"*** MCC_TLS::do_ssl_init ***"<<std::endl;
    if(ssl_initialized_) return true;
    lock_.lock();
    if(!ssl_initialized_) {
-std::cerr<<"*** MCC_TLS::do_ssl_init do ***"<<std::endl;
+     logger.msg(INFO, "MCC_TLS::do_ssl_init");     
      SSL_load_error_strings();
      if(!SSL_library_init()){
        logger.msg(ERROR, "SSL_library_init failed");
