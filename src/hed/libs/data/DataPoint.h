@@ -268,10 +268,10 @@ namespace Arc {
     };
 
     /// Returns number of retries left.
-    virtual int tries();
+    virtual int GetTries();
 
     /// Set number of retries.
-    virtual void tries(int n);
+    virtual void SetTries(const int n);
 
     /// Returns URL which was passed to constructor
     virtual const URL& base_url() const;

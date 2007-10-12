@@ -78,7 +78,7 @@ namespace Arc {
       return is_metaexisting;
     };
 
-    virtual void tries(int n);
+    virtual void SetTries(const int n);
   };
 
 } // namespace Arc

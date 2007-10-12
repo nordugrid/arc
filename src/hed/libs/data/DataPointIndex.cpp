@@ -113,11 +113,9 @@ namespace Arc {
     return true;
   }
 
-  void DataPointIndex::tries(int n) {
-    if(n < 0)
-      n = 0;
-    tries_left = n;
-    if(n == 0)
+  void DataPointIndex::SetTries(const int n) {
+    tries_left = std::max(0, n);
+    if(tries_left == 0)
       location = locations.end();
     else if(location == locations.end())
       location = locations.begin();

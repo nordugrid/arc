@@ -25,14 +25,12 @@ namespace Arc {
     return url;
   }
 
-  int DataPoint::tries() {
+  int DataPoint::GetTries() {
     return tries_left;
   }
 
-  void DataPoint::tries(int n) {
-    if(n < 0)
-      n = 0;
-    tries_left = n;
+  void DataPoint::SetTries(const int n) {
+    tries_left = std::max(0, n);
   }
 
 } // namespace Arc
