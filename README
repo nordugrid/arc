@@ -166,7 +166,9 @@ is shown below:
 
 
 The echo service is "atomic" and has no additional dependencies other
-than what is provided by the Hosting Environment Daemon (HED).
+than what is provided by the Hosting Environment Daemon (HED). If you
+do not want to run the echo service, simply remove the lines '<Service
+name="echo" id="echo"> [...] </Service>' from the configuration file.
 
 In order to use the A-REX service, however, you need to run a
 Grid-Manager as well. There is not yet a Grid-Manager available in the
@@ -174,11 +176,22 @@ new generation of ARC, but the Grid-Manager from ARC 0.6.x can be used
 in the meantime. How to install and set up that Grid-Manager is described in
 detail on http://www.nordugrid.org/documents/ng-server-install.html
 and in NORDUGRID-TECH-14 "The ARC Computational Job Management Module
-- A-REX: Description and Administrator's Manual". Worth mentioning is
-also that the user account from which the HED containing the A-REX
-service is run, will be the owner of the jobs in the local batch
-system, and that this account must have write permission in the
-session and control directories of the Grid-Manager.
+- A-REX: Description and Administrator's Manual".
+
+Please note, that there is a reference to the configuration file for
+the Grid-Manager in the configuration file for the HED:
+"<arex:gmconfig>/etc/arc.conf</arex:gmconfig>". If your configuration
+file for the Grid-Manager is located somewhere else or has another
+name, you must update the configuration file for HED accordingly.
+
+Worth mentioning is also that the user account from which the HED
+containing the A-REX service is run, will be the owner of the jobs in
+the local batch system, and that this account must have write
+permission in the session and control directories of the Grid-Manager.
+
+If you do not want to run the A-REX service, simply remove the lines
+'<Service name="a-rex" id="a-rex"> [...] </Service>' from the
+configuration file.
 
 
 Starting the Server
