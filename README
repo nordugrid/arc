@@ -173,7 +173,7 @@ is shown below:
   </Chain>
 </ArcConfig>
 
-If you generated your own vertificate according to the instructions in
+If you generated your own certificate according to the instructions in
 the previous section, remember to update the KeyPath, CertificatePath,
 and CACertificatePath elements accordingly.
 
