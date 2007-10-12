@@ -228,8 +228,6 @@ In the current release, the server prints some warnings and messages
 that can safely be ignored. Those are:
 - Unknown element "Server" - ignoring
 - Not a '__arc_***_modules__' type plugin
-- *** MCC_TLS::do_ssl_init ***
-- *** MCC_TLS::do_ssl_init do ***
 - Assigned new informational document
 
 Remember to also start the Grid-Manager, as described above, in order
