@@ -19,7 +19,7 @@ static bool get_ldif_string(std::istream& ldif,std::string& str) {
 static void strtolower(std::string& str) {
   std::string::size_type l = str.length();
   char* s = (char*)(str.c_str());
-  for(;l>0;--l) *s=tolower(*s);
+  for(;l>0;--l,++s) *s=tolower(*s);
 }
 
 static void trim(std::string& str) {
