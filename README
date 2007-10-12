@@ -117,6 +117,7 @@ is shown below:
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:echo="urn:echo_config"
 >
   <Server>
     <Foreground/>
@@ -131,6 +132,7 @@ is shown below:
   <Plugins><Name>mcchttp</Name></Plugins>
   <Plugins><Name>mccsoap</Name></Plugins>
   <Plugins><Name>arex</Name></Plugins>
+  <Plugins><Name>echo</Name></Plugins>
   <Chain>
     <Component name="tcp.service" id="tcp">
       <next id="tls"/> 
@@ -167,16 +169,19 @@ is shown below:
 
 The echo service is "atomic" and has no additional dependencies other
 than what is provided by the Hosting Environment Daemon (HED). If you
-do not want to run the echo service, simply remove the lines '<Service
-name="echo" id="echo"> [...] </Service>' from the configuration file.
+do not want to run the echo service, simply remove the lines
+'xmlns:echo="urn:echo_config"', '<Plugins><Name>echo</Name></Plugins>',
+'<next id="echo">/echo</next>', and '<Service name="echo" id="echo">
+[...] </Service>' from the configuration file.
 
 In order to use the A-REX service, however, you need to run a
 Grid-Manager as well. There is not yet a Grid-Manager available in the
 new generation of ARC, but the Grid-Manager from ARC 0.6.x can be used
-in the meantime. How to install and set up that Grid-Manager is described in
-detail on http://www.nordugrid.org/documents/ng-server-install.html
-and in NORDUGRID-TECH-14 "The ARC Computational Job Management Module
-- A-REX: Description and Administrator's Manual".
+in the meantime. How to install and set up that Grid-Manager is
+described in detail on
+http://www.nordugrid.org/documents/ng-server-install.html and in
+NORDUGRID-TECH-14 "The ARC Computational Job Management Module -
+A-REX: Description and Administrator's Manual".
 
 Please note, that there is a reference to the configuration file for
 the Grid-Manager in the configuration file for the HED:
@@ -190,7 +195,9 @@ the local batch system, and that this account must have write
 permission in the session and control directories of the Grid-Manager.
 
 If you do not want to run the A-REX service, simply remove the lines
-'<Service name="a-rex" id="a-rex"> [...] </Service>' from the
+'xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"'
+'<Plugins><Name>arex</Name></Plugins>', '<next id="a-rex">/arex</next>',
+and '<Service name="a-rex" id="a-rex"> [...] </Service>' from the
 configuration file.
 
 
