@@ -67,18 +67,20 @@ RunPump& RunPump::Instance(void) {
 
 void RunPump::Pump(void) {
   // TODO: put try/catch everythere for glibmm errors
-  context_ = Glib::MainContext::create();
-  // In infinite loop monitor state of children processes
-  // and pump information to/from std* channels if requested
-  //context_->acquire();
-  for(;;) {
-    list_lock_.lock();
-    list_lock_.unlock();
-    pump_lock_.lock();
-    context_->iteration(true);
-    pump_lock_.unlock();
-    thread_->yield();
-  };
+  try {
+    context_ = Glib::MainContext::create();
+    // In infinite loop monitor state of children processes
+    // and pump information to/from std* channels if requested
+    //context_->acquire();
+    for(;;) {
+      list_lock_.lock();
+      list_lock_.unlock();
+      pump_lock_.lock();
+      context_->iteration(true);
+      pump_lock_.unlock();
+      thread_->yield();
+    };
+  } catch (std::exception& e) { };
 }
 
 void RunPump::Add(Run* r) {
@@ -89,17 +91,19 @@ void RunPump::Add(Run* r) {
   list_lock_.lock();
   context_->wakeup();
   pump_lock_.lock();
-  // Add sources to context
-  if(r->stdout_str_)
-    r->stdout_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdout_handler),r->stdout_, Glib::IO_IN | Glib::IO_HUP);
-  if(r->stderr_str_)
-    r->stderr_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stderr_handler),r->stderr_, Glib::IO_IN | Glib::IO_HUP);
-  if(r->stdin_str_)
-    r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
+  try {
+    // Add sources to context
+    if(r->stdout_str_)
+      r->stdout_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdout_handler),r->stdout_, Glib::IO_IN | Glib::IO_HUP);
+    if(r->stderr_str_)
+      r->stderr_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stderr_handler),r->stderr_, Glib::IO_IN | Glib::IO_HUP);
+    if(r->stdin_str_)
+      r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
 #ifdef HAVE_GLIBMM_CHILDWATCH
-  r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
-  //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
+    r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
+    //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
+  } catch (std::exception& e) { };
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -112,11 +116,13 @@ void RunPump::Remove(Run* r) {
   list_lock_.lock();
   context_->wakeup();
   pump_lock_.lock();
-  // Disconnect sources from context
-  r->stdout_conn_.disconnect();
-  r->stderr_conn_.disconnect();
-  r->stdin_conn_.disconnect();
-  r->child_conn_.disconnect();
+  try {
+    // Disconnect sources from context
+    r->stdout_conn_.disconnect();
+    r->stderr_conn_.disconnect();
+    r->stdin_conn_.disconnect();
+    r->child_conn_.disconnect();
+  } catch (std::exception& e) { };
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -140,8 +146,11 @@ bool Run::Start(void) {
   if(started_) return false;
   if(argv_.size() < 1) return false;
   // TODO: Windows paths
-  running_=true; started_=true;
-  spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
+  try {
+    running_=true;
+    spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
+    started_=true;
+  } catch (std::exception& e) { running_=false; };
   RunPump::Instance().Add(this);
   return true;
 }
@@ -217,6 +226,8 @@ bool Run::stdin_handler(Glib::IOCondition) {
 }
 
 void Run::child_handler(Glib::Pid,int result) {
+  if(stdout_str_) for(;;) if(!stdout_handler(Glib::IO_IN)) break;
+  if(stderr_str_) for(;;) if(!stderr_handler(Glib::IO_IN)) break;
   CloseStdout();
   CloseStderr();
   CloseStdin();
@@ -289,6 +300,18 @@ bool Run::Wait(int timeout) {
   };
   lock_.unlock();
   return (!running_);
+}
+
+void Run::AssignStdout(std::string& str) {
+  if(!running_) stdout_str_=&str;
+}
+
+void Run::AssignStderr(std::string& str) {
+  if(!running_) stderr_str_=&str;
+}
+
+void Run::AssignStdin(std::string& str) {
+  if(!running_) stdin_str_=&str;
 }
 
 }
