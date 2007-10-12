@@ -115,7 +115,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     }
     
     // Get the class 
-    klass = PyDict_GetItemString(dict, class_name.c_str());
+    klass = PyDict_GetItemString(dict, (char*)class_name.c_str());
     if (klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find service class");
         if (PyErr_Occurred() != NULL) {
