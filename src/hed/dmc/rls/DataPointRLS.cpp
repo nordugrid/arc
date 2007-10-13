@@ -61,33 +61,39 @@ namespace Arc {
 
   typedef class meta_resolve_rls_t {
    public:
-    DataPointRLS& url;
+    DataPointRLS& dprls;
     bool source;
     bool success;
     bool obtained_info;
     std::string guid;
-    meta_resolve_rls_t(DataPointRLS& u, bool s) : url(u), source(s),
+    meta_resolve_rls_t(DataPointRLS& d, bool s) : dprls(d), source(s),
                                                   success(false),
                                                   obtained_info(false) {};
   };
 
-  bool DataPointRLS::meta_resolve_callback(globus_rls_handle_t *h,
-                                           const URL& url, void *arg) {
-    meta_resolve_rls_t *arg_ = (meta_resolve_rls_t*)arg;
-    DataPointRLS& it = ((meta_resolve_rls_t*)arg)->url;
-    const std::string& lfn = it.url.Path();
-    bool source = arg_->source;
+  static bool meta_resolve_callback(globus_rls_handle_t *h,
+                                    const URL& rlsurl, void *arg) {
+    ((meta_resolve_rls_t*)arg)->dprls.ResolveCallback(h, rlsurl, arg);
+  }
+
+  bool DataPointRLS::ResolveCallback(globus_rls_handle_t *h,
+                                     const URL& rlsurl, void *arg) {
+    bool& source(((meta_resolve_rls_t*)arg)->source);
+    bool& success(((meta_resolve_rls_t*)arg)->success);
+    bool& obtained_info(((meta_resolve_rls_t*)arg)->obtained_info);
+    std::string& guid(((meta_resolve_rls_t*)arg)->guid);
+
     char errmsg[MAXERRMSG + 32];
     globus_result_t err;
     int errcode;
 
     // Ask LRC if it contains file of interest
 
-    if(it.guid_enabled && source && arg_->guid.empty()) {
+    if(guid_enabled && source && guid.empty()) {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(it.url.Path().c_str());
+      opr.val.s = const_cast<char*>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, "lfn", globus_rls_obj_lrc_lfn,
@@ -97,28 +103,28 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-                   url.str().c_str(), errmsg);
+                   rlsurl.str().c_str(), errmsg);
         return true;
       }
       if(!guids) {
         logger.msg(INFO, "There is no GUID for specified LFN in %s",
-                   url.str().c_str());
+                   rlsurl.str().c_str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
         (globus_rls_attribute_object_t*)globus_list_first(guids);
-      arg_->guid = obattr->key;
+      guid = obattr->key;
       globus_rls_client_free_list(guids);
     }
     globus_list_t *pfns_list = NULL;
     if(source) {
-      if(!arg_->guid.empty()) {
+      if(!guid.empty()) {
         err = globus_rls_client_lrc_get_pfn
-          (h, const_cast<char*>(arg_->guid.c_str()), 0, 0, &pfns_list);
+          (h, const_cast<char*>(guid.c_str()), 0, 0, &pfns_list);
       }
       else {
         err = globus_rls_client_lrc_get_pfn
-          (h, const_cast<char*>(lfn.c_str()), 0, 0, &pfns_list);
+          (h, const_cast<char*>(url.Path().c_str()), 0, 0, &pfns_list);
       }
     }
     else {
@@ -136,28 +142,28 @@ namespace Arc {
       }
       else { // do not know
         logger.msg(INFO, "Warning: can't get PFNs from server %s: %s",
-                   url.str().c_str(), errmsg);
+                   rlsurl.str().c_str(), errmsg);
         return true;
       }
     }
-    if(!(arg_->success)) {
-      arg_->success = true; // got something
-      if(source) it.is_metaexisting = true;
+    if(!success) {
+      success = true; // got something
+      if(source)
+        is_metaexisting = true;
     }
-    if(it.url.Locations().size() == 0) {
+    if(url.Locations().size() == 0) {
       for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
-        it.locations.push_back(URLLocation(pfn, url.str()));
+        locations.push_back(URLLocation(pfn, rlsurl.str()));
         logger.msg(DEBUG, "Adding location: %s - %s",
-                   url.str().c_str(), pfn.str().c_str());
+                   rlsurl.str().c_str(), pfn.str().c_str());
       }
     }
     else {
-      for(std::list<URLLocation>::const_iterator loc =
-            it.url.Locations().begin();
-          loc != it.url.Locations().end(); loc++) {
+      for(std::list<URLLocation>::const_iterator loc = url.Locations().begin();
+          loc != url.Locations().end(); loc++) {
         for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
           globus_rls_string2_t *str2 =
             (globus_rls_string2_t*)globus_list_first(lp);
@@ -165,12 +171,12 @@ namespace Arc {
           // for RLS URLs are used instead of metanames
           if(pfn == *loc) {
             logger.msg(DEBUG, "Adding location: %s - %s",
-                       url.str().c_str(), pfn.str().c_str());
+                       rlsurl.str().c_str(), pfn.str().c_str());
             if(source) {
-              it.locations.push_back(URLLocation(pfn, url.str()));
+              locations.push_back(URLLocation(pfn, rlsurl.str()));
             }
             else {
-              it.locations.push_back(URLLocation(*loc, url.str()));
+              locations.push_back(URLLocation(*loc, rlsurl.str()));
             }
             break;
           }
@@ -178,17 +184,17 @@ namespace Arc {
       }
     }
     globus_rls_client_free_list(pfns_list);
-    if(!arg_->obtained_info) {
+    if(!obtained_info) {
       /* obtain metadata - assume it is same everywhere */
       globus_list_t *attr_list;
-      if(!arg_->guid.empty()) {
+      if(!guid.empty()) {
         err = globus_rls_client_lrc_attr_value_get
-          (h, const_cast<char*>(arg_->guid.c_str()),
+          (h, const_cast<char*>(guid.c_str()),
            NULL, globus_rls_obj_lrc_lfn, &attr_list);
       }
       else {
         err = globus_rls_client_lrc_attr_value_get
-          (h, const_cast<char*>(lfn.c_str()),
+          (h, const_cast<char*>(url.Path().c_str()),
            NULL, globus_rls_obj_lrc_lfn, &attr_list);
       }
       if(err != GLOBUS_SUCCESS) {
@@ -198,42 +204,42 @@ namespace Arc {
           return true;
         }
         logger.msg(INFO, "Warning: Failed to obtain attributes from %s: %s",
-                   url.str().c_str(), errmsg);
+                   rlsurl.str().c_str(), errmsg);
         return true;
       }
-      it.is_metaexisting = true; // even for destination
+      is_metaexisting = true; // even for destination
       for(globus_list_t *lpa = attr_list; lpa; lpa = globus_list_rest(lpa)) {
         globus_rls_attribute_t *attr =
           (globus_rls_attribute_t*)globus_list_first(lpa);
         if(attr->type != globus_rls_attr_type_str) continue;
         logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
         if(strcmp(attr->name, "filechecksum") == 0) {
-          if(!it.CheckCheckSum())
-            it.SetCheckSum(attr->val.s);
+          if(!CheckCheckSum())
+            SetCheckSum(attr->val.s);
         }
         else if(strcmp(attr->name, "size") == 0) {
-          if(!it.CheckSize())
-            it.SetSize(stringtoull(attr->val.s));
+          if(!CheckSize())
+            SetSize(stringtoull(attr->val.s));
         }
         else if(strcmp(attr->name, "modifytime") == 0) {
-          if(!it.CheckCreated()) {
+          if(!CheckCreated()) {
             Time created(attr->val.s);
             if(created == -1)
               created.SetTime(stringtoull(attr->val.s));
-            it.SetCreated(created);
+            SetCreated(created);
           }
         }
         else if(strcmp(attr->name, "created") == 0) {
-          if(!it.CheckCreated()) {
+          if(!CheckCreated()) {
             Time created(attr->val.s);
             if(created == -1)
               created.SetTime(stringtoull(attr->val.s));
-            it.SetCreated(created);
+            SetCreated(created);
           }
         }
       }
       globus_rls_client_free_list(attr_list);
-      arg_->obtained_info = true;
+      obtained_info = true;
     }
     return true;
   }
@@ -603,30 +609,36 @@ namespace Arc {
 
   typedef class meta_unregister_rls_t {
   public:
-    DataPointRLS& url;
+    DataPointRLS& dprls;
     bool all;
     bool failure;
     std::string guid;
-    meta_unregister_rls_t(bool a, DataPointRLS& u) : url(u), all(a),
+    meta_unregister_rls_t(DataPointRLS& d, bool a) : dprls(d), all(a),
                                                      failure(false) {};
   };
 
-  bool DataPointRLS::meta_unregister_callback(globus_rls_handle_t *h,
-                                              const URL& url, void *arg) {
-    meta_unregister_rls_t *arg_ = (meta_unregister_rls_t*)arg;
-    DataPointRLS& it = ((meta_unregister_rls_t*)arg)->url;
+  static bool meta_unregister_callback(globus_rls_handle_t *h,
+                                       const URL& rlsurl, void *arg) {
+    ((meta_unregister_rls_t*)arg)->dprls.UnregisterCallback(h, rlsurl, arg);
+  }
+
+  bool DataPointRLS::UnregisterCallback(globus_rls_handle_t *h,
+                                        const URL& rlsurl, void *arg) {
+    bool& all(((meta_unregister_rls_t*)arg)->all);
+    bool& failure(((meta_unregister_rls_t*)arg)->failure);
+    std::string& guid(((meta_unregister_rls_t*)arg)->guid);
+
     int lrc_offset = 0;
     int lrc_limit = 0;
     globus_result_t err;
     int errcode;
     char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns_list;
-    std::string lfn = it.url.Path();
-    if(it.guid_enabled && arg_->guid.empty()) {
+    if(guid_enabled && guid.empty()) {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(it.url.Path().c_str());
+      opr.val.s = const_cast<char*>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, "lfn",
@@ -637,42 +649,47 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(VERBOSE, "Failed to find GUID for specified LFN in %s: %s",
-                   url.str().c_str(), errmsg);
+                   rlsurl.str().c_str(), errmsg);
         return true;
       }
       if(!guids) {
         logger.msg(VERBOSE, "There is no GUID for specified LFN in %s",
-                   url.str().c_str());
+                   rlsurl.str().c_str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
         (globus_rls_attribute_object_t*)globus_list_first(guids);
-      arg_->guid = obattr->key;
+      guid = obattr->key;
       globus_rls_client_free_list(guids);
-      lfn = arg_->guid.c_str();
     }
-    if(arg_->all) {
-      err = globus_rls_client_lrc_get_pfn
-        (h, const_cast<char*>(lfn.c_str()),
-         &lrc_offset, lrc_limit, &pfns_list);
+    if(all) {
+      if(!guid.empty()) {
+        err = globus_rls_client_lrc_get_pfn
+          (h, const_cast<char*>(guid.c_str()),
+           &lrc_offset, lrc_limit, &pfns_list);
+      }
+      else {
+        err = globus_rls_client_lrc_get_pfn
+          (h, const_cast<char*>(url.Path().c_str()),
+           &lrc_offset, lrc_limit, &pfns_list);
+      }
       if(err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Warning: Failed to retrieve LFN/PFNs from %s: %s",
-                   url.str().c_str(), errmsg);
-        arg_->failure = true;
+                   rlsurl.str().c_str(), errmsg);
+        failure = true;
         return true;
       }
       for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(lp);
-        URL pfn(str2->s1);
+        URL pfn(str2->s2);
         if(pfn.Protocol() == "se") {
           logger.msg(DEBUG, "SE location will be unregistered automatically");
         }
         else {
-          err = globus_rls_client_lrc_delete
-            (h, const_cast<char*>(lfn.c_str()), str2->s1);
+          err = globus_rls_client_lrc_delete(h, str2->s1, str2->s2);
           if(err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
@@ -680,8 +697,8 @@ namespace Arc {
                (errcode != GLOBUS_RLS_LFN_NEXIST) &&
                (errcode != GLOBUS_RLS_PFN_NEXIST)) {
               logger.msg(INFO, "Warning: Failed to delete LFN/PFN from %s: %s",
-                         url.str().c_str(), errmsg);
-              arg_->failure = true;
+                         rlsurl.str().c_str(), errmsg);
+              failure = true;
               continue;
             }
           }
@@ -691,8 +708,8 @@ namespace Arc {
     }
     else { // ! all
       err = globus_rls_client_lrc_delete
-        (h, const_cast<char*>(lfn.c_str()),
-         const_cast<char*>(it.location->str().c_str()));
+        (h, const_cast<char*>(url.Path().c_str()),
+         const_cast<char*>(location->str().c_str()));
       if(err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -700,8 +717,8 @@ namespace Arc {
            (errcode != GLOBUS_RLS_LFN_NEXIST) &&
            (errcode != GLOBUS_RLS_PFN_NEXIST)) {
           logger.msg(INFO, "Warning: Failed to delete LFN/PFN from %s: %s",
-                     url.str().c_str(), errmsg);
-          arg_->failure = true;
+                     rlsurl.str().c_str(), errmsg);
+          failure = true;
         }
       }
     }
@@ -873,7 +890,7 @@ namespace Arc {
       std::list<URL> lrcs;
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
-      meta_unregister_rls_t arg(all, *this);
+      meta_unregister_rls_t arg(*this, all);
       rls_find_lrcs(rlis, lrcs, true, false,
                     &meta_unregister_callback, (void*)&arg);
       if(!arg.failure) {
@@ -934,31 +951,39 @@ namespace Arc {
 
   typedef class list_files_rls_t {
    public:
+    DataPointRLS& dprls;
     std::list<FileInfo>& files;
-    DataPointRLS& url;
     bool success;
     bool resolve;
     std::string guid;
-    list_files_rls_t(std::list<FileInfo>& f, DataPointRLS& u,
-                     bool r) : files(f), url(u), success(false), resolve(r) {};
+    list_files_rls_t(DataPointRLS& d, std::list<FileInfo>& f,
+                     bool r) : dprls(d), files(f),
+                               success(false), resolve(r) {};
   };
 
-  bool DataPointRLS::list_files_callback(globus_rls_handle_t *h,
-                                         const URL& url, void *arg) {
-    list_files_rls_t *arg_ = (list_files_rls_t*)arg;
-    DataPointRLS& it = ((list_files_rls_t*)arg)->url;
-    std::list<FileInfo>& files = ((list_files_rls_t*)arg)->files;
+  static bool list_files_callback(globus_rls_handle_t *h,
+                                  const URL& rlsurl, void *arg) {
+    ((list_files_rls_t*)arg)->dprls.ListFilesCallback(h, rlsurl, arg);
+  }
+
+  bool DataPointRLS::ListFilesCallback(globus_rls_handle_t *h,
+                                       const URL& rlsurl, void *arg) {
+    std::list<FileInfo>& files(((list_files_rls_t*)arg)->files);
+    bool& success(((list_files_rls_t*)arg)->success);
+    bool& resolve(((list_files_rls_t*)arg)->resolve);
+    std::string& guid(((list_files_rls_t*)arg)->guid);
+
     int lrc_offset = 0;
     globus_result_t err;
     int errcode;
     char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns = NULL;
-    if(it.guid_enabled && !it.url.Path().empty() && arg_->guid.empty()) {
+    if(guid_enabled && !url.Path().empty() && guid.empty()) {
       // looking gor guid only once
       // looking for guid only if lfn specified
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
-      opr.val.s = const_cast<char*>(it.url.Path().c_str());
+      opr.val.s = const_cast<char*>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
       err = globus_rls_client_lrc_attr_search(h, "lfn", globus_rls_obj_lrc_lfn,
@@ -968,27 +993,26 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-                   url.str().c_str(), errmsg);
+                   rlsurl.str().c_str(), errmsg);
         return true;
       }
       if(!guids) {
         logger.msg(INFO, "There is no GUID for specified LFN in %s",
-                   url.str().c_str());
+                   rlsurl.str().c_str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
         (globus_rls_attribute_object_t*)globus_list_first(guids);
-      arg_->guid = obattr->key;
+      guid = obattr->key;
       globus_rls_client_free_list(guids);
     }
-    if(!arg_->guid.empty()) {
+    if(!guid.empty()) {
       err = globus_rls_client_lrc_get_pfn
-        (h, const_cast<char*>(arg_->guid.c_str()), &lrc_offset, 1000, &pfns);
+        (h, const_cast<char*>(guid.c_str()), &lrc_offset, 1000, &pfns);
     }
-    else if(!it.url.Path().empty()) {
+    else if(!url.Path().empty()) {
       err = globus_rls_client_lrc_get_pfn
-        (h, const_cast<char*>(it.url.Path().c_str()), &lrc_offset, 1000,
-         &pfns);
+        (h, const_cast<char*>(url.Path().c_str()), &lrc_offset, 1000, &pfns);
     }
     else {
       err = globus_rls_client_lrc_get_pfn_wc(h, "*", rls_pattern_unix,
@@ -998,23 +1022,23 @@ namespace Arc {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if(errcode == GLOBUS_RLS_LFN_NEXIST) {
-        logger.msg(DEBUG, "No LFNs found in %s", url.str().c_str());
-        ((list_files_rls_t*)arg)->success = true;
+        logger.msg(DEBUG, "No LFNs found in %s", rlsurl.str().c_str());
+        success = true;
         return true;
       }
       logger.msg(INFO, "Failed to retrieve list of LFNs/PFNs from %s",
-                 url.str().c_str());
+                 rlsurl.str().c_str());
       return true;
     }
-    ((list_files_rls_t*)arg)->success = true;
+    success = true;
     std::string last_lfn = "";
     std::string last_guid = "";
     for(globus_list_t *p = pfns; p; p = globus_list_rest(p)) {
       globus_rls_string2_t *str2 =
         (globus_rls_string2_t*)globus_list_first(p);
-      std::string lfn = str2->s1;
+      std::string lfn(str2->s1);
       URL pfn(str2->s2);
-      if(it.guid_enabled) {
+      if(guid_enabled) {
         if(lfn != last_guid) {
           last_guid = lfn;
           last_lfn = "";
@@ -1048,7 +1072,7 @@ namespace Arc {
               break;
           if(f == files.end()) {
             f = files.insert(files.end(), FileInfo(last_lfn.c_str()));
-            if(((list_files_rls_t*)arg)->resolve)
+            if(resolve)
               get_attributes(h, last_guid, *f);
           }
           f->AddURL(pfn);
@@ -1062,7 +1086,8 @@ namespace Arc {
             break;
         if(f == files.end()) {
           f = files.insert(files.end(), FileInfo(lfn));
-          if(((list_files_rls_t*)arg)->resolve) get_attributes(h, lfn, *f);
+          if(resolve)
+            get_attributes(h, lfn, *f);
         }
         f->AddURL(pfn);
       }
@@ -1077,7 +1102,7 @@ namespace Arc {
     rlis.push_back(url.ConnectionURL());
     lrcs.push_back(url.ConnectionURL());
 
-    list_files_rls_t arg(files, *this, resolve);
+    list_files_rls_t arg(*this, files, resolve);
     rls_find_lrcs(rlis, lrcs, true, false,
                   &list_files_callback, (void*)&arg);
     return arg.success;

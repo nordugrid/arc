@@ -24,16 +24,13 @@ namespace Arc {
     virtual bool meta_preunregister(bool replication);
     virtual bool meta_unregister(bool all);
     virtual bool list_files(std::list<FileInfo> &files, bool resolve = true);
+    bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
+    bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
+    bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);
    protected:
     static Logger logger;
     bool guid_enabled;
     std::string pfn_path;
-    static bool meta_resolve_callback(globus_rls_handle_t *h,
-                                      const URL& url, void *arg);
-    static bool list_files_callback(globus_rls_handle_t *h,
-                                    const URL& url, void *arg);
-    static bool meta_unregister_callback(globus_rls_handle_t *h,
-                                         const URL& url, void *arg);
   };
 
 } // namespace Arc
