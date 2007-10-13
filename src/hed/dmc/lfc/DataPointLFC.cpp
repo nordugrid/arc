@@ -78,7 +78,7 @@ namespace Arc {
     }
     else {
       for(std::list<URLLocation>::const_iterator loc = url.Locations().begin();
-          loc != locations.end(); ++loc) {
+          loc != url.Locations().end(); ++loc) {
         for(int n = 0; n < nbentries; n++) {
           if(strncmp(entries[n].sfn, loc->Name().c_str(),
                      loc->Name().length()) == 0) {
@@ -118,7 +118,7 @@ namespace Arc {
       }
       // Make pfns
       for(std::list<URLLocation>::iterator loc = locations.begin();
-          loc != locations.end();) {
+          loc != locations.end(); loc++) {
         std::string u = loc->str();
         if(url.Protocol() == "se") {
           u += "?";
@@ -130,7 +130,6 @@ namespace Arc {
         *loc = URLLocation(u, loc->Name());
         logger.msg(DEBUG, "Using location: %s - %s",
                    loc->Name().c_str(), loc->str().c_str());
-        ++loc;
       }
     }
     logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
@@ -276,7 +275,9 @@ namespace Arc {
       }
       if(url.Protocol() == "se") {
         logger.msg(DEBUG, "SE location will be unregistered automatically");
-        fix_unregistered(all);
+        is_metaexisting = false;
+        locations.clear();
+        location = locations.end();
         return true;
       }
     }
@@ -291,7 +292,9 @@ namespace Arc {
                         &entries) != 0) {
         lfc_endsess();
         if((serrno == ENOENT) || (serrno == ENOTDIR)) {
-          fix_unregistered(all);
+          is_metaexisting = false;
+          locations.clear();
+          location = locations.end();
           return true;
         }
         return false;
@@ -320,7 +323,9 @@ namespace Arc {
       }
     }
     lfc_endsess();
-    fix_unregistered(all);
+    is_metaexisting = false;
+    locations.clear();
+    location = locations.end();
     return true;
   }
 

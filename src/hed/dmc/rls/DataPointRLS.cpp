@@ -44,8 +44,7 @@ namespace Arc {
       err = globus_rls_client_error_info(err, &errcode, NULL, 0, GLOBUS_TRUE);
       if((overwrite) && (errcode == GLOBUS_RLS_DBERROR)) {
         /* guess this can mean duplicate entry */
-        globus_result_t err_;
-        err_ = globus_rls_client_lrc_attr_remove(h, key, attr);
+        globus_result_t err_ = globus_rls_client_lrc_attr_remove(h, key, attr);
         globus_rls_free_result(err_);
         if(err_ != GLOBUS_SUCCESS) return err;
         return globus_rls_client_lrc_attr_put(h, key, attr, 0);
@@ -374,7 +373,8 @@ namespace Arc {
 
     err = globus_rls_client_connect((char*)url.ConnectionURL().c_str(), &h);
     if(err != GLOBUS_SUCCESS) {
-      globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32, GLOBUS_FALSE);
+      globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32,
+                                   GLOBUS_FALSE);
       logger.msg(INFO, "Failed to connect to RLS server: %s", errmsg);
       return false;
     }
@@ -854,7 +854,11 @@ namespace Arc {
       else {
         globus_list_free(lrcs);
       }
-      if(!failure) fix_unregistered(all);
+      if(!failure) {
+        is_metaexisting = false;
+        locations.clear();
+        location = locations.end();
+      }
       return !failure;
     }
     else { // guid_enabled
@@ -865,7 +869,11 @@ namespace Arc {
       meta_unregister_rls_t arg(all, *this);
       rls_find_lrcs(rlis, lrcs, true, false,
                     &meta_unregister_callback, (void*)&arg);
-      if(!arg.failure) fix_unregistered(all);
+      if(!arg.failure) {
+        is_metaexisting = false;
+        locations.clear();
+        location = locations.end();
+      }
       return !arg.failure;
     }
   }

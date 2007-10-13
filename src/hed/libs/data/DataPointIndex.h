@@ -16,10 +16,8 @@ namespace Arc {
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
-   protected:
     bool is_metaexisting;
     bool is_resolved;
-    void fix_unregistered(bool all);
    public:
     DataPointIndex(const URL& url);
     virtual ~DataPointIndex() {};

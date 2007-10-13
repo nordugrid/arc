@@ -16,18 +16,6 @@ namespace Arc {
     location = locations.end();
   }
 
-  void DataPointIndex::fix_unregistered(bool all) {
-    if(all) {
-      is_metaexisting = false;
-      locations.clear();
-      location = locations.end();
-    }
-    else {
-      location = locations.erase(location);
-      if(location == locations.end()) location = locations.begin();
-    }
-  }
-
   bool DataPointIndex::get_info(FileInfo& fi) {
     if(!meta_resolve(true)) {
       return false;
@@ -52,8 +40,7 @@ namespace Arc {
   bool DataPointIndex::have_location() const {
     if(!url) return false;
     if(tries_left <= 0) return false;
-    std::list<URLLocation>::const_iterator l = location;
-    if(l == locations.end()) return false;
+    if(location == locations.end()) return false;
     return true;
   }
 
