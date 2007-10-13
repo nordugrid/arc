@@ -74,7 +74,6 @@ namespace Arc {
     globus_abstime_t gl_modify_time;
     time_t modify_time;
     int modify_utime;
-    bool size_available = false;
     res = globus_ftp_client_size(&ftp_handle, url.str().c_str(),
                                  &ftp_opattr, &size,
                                  &ftp_complete_callback, this);
@@ -95,7 +94,6 @@ namespace Arc {
     }
     else {
       SetSize(size);
-      size_available = true;
     }
     res = globus_ftp_client_modification_time(&ftp_handle,
                                               url.str().c_str(),
@@ -155,7 +153,7 @@ namespace Arc {
     else {
       // Do not use it at all. It does not give too much useful
       // information anyway. But request at least existence of file.
-      if(!size_available) return false;
+      if(!CheckSize()) return false;
       return true;
     }
   }

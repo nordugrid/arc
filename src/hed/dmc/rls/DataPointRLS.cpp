@@ -83,7 +83,7 @@ namespace Arc {
 
     // Ask LRC if it contains file of interest
 
-    if(it.guid_enabled && source && !arg_->guid.length()) {
+    if(it.guid_enabled && source && arg_->guid.empty()) {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
@@ -112,7 +112,7 @@ namespace Arc {
     }
     globus_list_t *pfns_list = NULL;
     if(source) {
-      if(arg_->guid.length()) {
+      if(!arg_->guid.empty()) {
         err = globus_rls_client_lrc_get_pfn
           (h, const_cast<char*>(arg_->guid.c_str()), 0, 0, &pfns_list);
       }
@@ -181,7 +181,7 @@ namespace Arc {
     if(!arg_->obtained_info) {
       /* obtain metadata - assume it is same everywhere */
       globus_list_t *attr_list;
-      if(arg_->guid.length()) {
+      if(!arg_->guid.empty()) {
         err = globus_rls_client_lrc_attr_value_get
           (h, const_cast<char*>(arg_->guid.c_str()),
            NULL, globus_rls_obj_lrc_lfn, &attr_list);
@@ -243,7 +243,7 @@ namespace Arc {
     is_resolved = false;
     is_metaexisting = false;
     if(source) {
-      if(url.Path().length() == 0) {
+      if(url.Path().empty()) {
         logger.msg(INFO, "Source must contain LFN");
         return false;
       }
@@ -257,7 +257,7 @@ namespace Arc {
       if(!arg.success) return false;
     }
     else {
-      if(url.Path().length() == 0) {
+      if(url.Path().empty()) {
         logger.msg(INFO, "Destination must contain LFN");
         return false;
       }
@@ -265,7 +265,7 @@ namespace Arc {
       std::list<URL> lrcs;
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
-      if(locations.size() == 0) {
+      if(url.Locations().size() == 0) {
         logger.msg(INFO, "Locations are missing in destination RLS url - "
                    "will use those registered with special name");
       }
@@ -622,7 +622,7 @@ namespace Arc {
     char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns_list;
     std::string lfn = it.url.Path();
-    if(it.guid_enabled && !arg_->guid.length()) {
+    if(it.guid_enabled && arg_->guid.empty()) {
       // map lfn->guid (only once)
       globus_rls_attribute_t opr;
       opr.type = globus_rls_attr_type_str;
@@ -817,8 +817,8 @@ namespace Arc {
               err = globus_rls_client_lrc_delete
                 (h_, const_cast<char*>(url.Path().c_str()), str2->s1);
               if(err != GLOBUS_SUCCESS) {
-                globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
-                                             GLOBUS_FALSE);
+                globus_rls_client_error_info(err, &errcode, errmsg,
+                                             MAXERRMSG + 32, GLOBUS_FALSE);
                 if((errcode != GLOBUS_RLS_MAPPING_NEXIST) &&
                    (errcode != GLOBUS_RLS_LFN_NEXIST) &&
                    (errcode != GLOBUS_RLS_PFN_NEXIST)) {
@@ -953,7 +953,7 @@ namespace Arc {
     int errcode;
     char errmsg[MAXERRMSG + 32];
     globus_list_t *pfns = NULL;
-    if(it.guid_enabled && it.url.Path().length() && !arg_->guid.length()) {
+    if(it.guid_enabled && !it.url.Path().empty() && arg_->guid.empty()) {
       // looking gor guid only once
       // looking for guid only if lfn specified
       globus_rls_attribute_t opr;
@@ -981,13 +981,14 @@ namespace Arc {
       arg_->guid = obattr->key;
       globus_rls_client_free_list(guids);
     }
-    if(arg_->guid.length()) {
+    if(!arg_->guid.empty()) {
       err = globus_rls_client_lrc_get_pfn
         (h, const_cast<char*>(arg_->guid.c_str()), &lrc_offset, 1000, &pfns);
     }
-    else if(it.url.Path().length()) {
+    else if(!it.url.Path().empty()) {
       err = globus_rls_client_lrc_get_pfn
-        (h, const_cast<char*>(it.url.Path().c_str()), &lrc_offset, 1000, &pfns);
+        (h, const_cast<char*>(it.url.Path().c_str()), &lrc_offset, 1000,
+         &pfns);
     }
     else {
       err = globus_rls_client_lrc_get_pfn_wc(h, "*", rls_pattern_unix,
@@ -1038,7 +1039,7 @@ namespace Arc {
           last_lfn = attr->val.s;
           globus_rls_client_free_list(lfn_list);
         }
-        if(last_lfn.length()) {
+        if(!last_lfn.empty()) {
           logger.msg(DEBUG, "lfn: %s(%s) - %s",
                      last_lfn.c_str(), last_guid.c_str(), pfn.str().c_str());
           std::list<FileInfo>::iterator f;

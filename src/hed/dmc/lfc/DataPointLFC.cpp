@@ -36,17 +36,17 @@ namespace Arc {
     is_resolved = false;
     is_metaexisting = false;
     if(source) {
-      if(url.Path().length() == 0) {
+      if(url.Path().empty()) {
         logger.msg(INFO, "Source must contain LFN");
         return false;
       }
     }
     else {
-      if(url.Path().length() == 0) {
+      if(url.Path().empty()) {
         logger.msg(INFO, "Destination must contain LFN");
         return false;
       }
-      if(locations.size() == 0) {
+      if(url.Locations().size() == 0) {
         logger.msg(INFO, "Locations are missing in destination LFC URL");
         return false;
       }
