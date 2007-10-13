@@ -33,9 +33,9 @@ namespace Arc {
       return false;
     }
     fi = url.Path();
-    for(std::list<Location>::iterator i = locations.begin();
+    for(std::list<URLLocation>::iterator i = locations.begin();
         i != locations.end(); ++i)
-      fi.AddURL(i->url);
+      fi.AddURL(*i);
     fi.SetSize(GetSize());
     fi.SetCheckSum(GetCheckSum());
     fi.SetCreated(GetCreated());
@@ -52,7 +52,7 @@ namespace Arc {
   bool DataPointIndex::have_location() const {
     if(!url) return false;
     if(tries_left <= 0) return false;
-    std::list<Location>::const_iterator l = location;
+    std::list<URLLocation>::const_iterator l = location;
     if(l == locations.end()) return false;
     return true;
   }
@@ -78,12 +78,12 @@ namespace Arc {
   bool DataPointIndex::remove_locations(const DataPoint& p_) {
     if(!(p_.have_locations())) return true;
     const DataPointIndex& p = dynamic_cast<const DataPointIndex &>(p_);
-    std::list<Location>::iterator p_int;
-    std::list<Location>::const_iterator p_ext;
+    std::list<URLLocation>::iterator p_int;
+    std::list<URLLocation>::const_iterator p_ext;
     for(p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext) {
       for(p_int = locations.begin(); p_int != locations.end();) {
         // Compare protocol+host+port part
-        if((p_int->url.ConnectionURL() == p_ext->url.ConnectionURL())) {
+        if((p_int->ConnectionURL() == p_ext->ConnectionURL())) {
           if(location == p_int) {
             p_int = locations.erase(p_int);
             location = p_int;
@@ -105,11 +105,11 @@ namespace Arc {
                                     const URL& loc) {
     logger.msg(DEBUG, "Add location: metaname: %s", meta_loc.c_str());
     logger.msg(DEBUG, "Add location: location: %s", loc.str().c_str());
-    for(std::list<Location>::iterator i = locations.begin();
+    for(std::list<URLLocation>::iterator i = locations.begin();
         i != locations.end(); ++i) {
-      if(i->meta == meta_loc) return true; // Already exists
+      if(i->Name() == meta_loc) return true; // Already exists
     }
-    locations.insert(locations.end(), Location(meta_loc, loc, false));
+    locations.insert(locations.end(), URLLocation(loc, meta_loc));
     return true;
   }
 

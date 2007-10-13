@@ -29,12 +29,7 @@ namespace Arc {
 
   Logger DataPointLFC::logger(DataPoint::logger, "LFC");
 
-  DataPointLFC::DataPointLFC(const URL& url) : DataPointIndex(url) {
-    for(std::list<URLLocation>::const_iterator i = url.Locations().begin();
-        i != url.Locations().end(); i++)
-      locations.push_back(Location(i->str(), *i));
-    location = locations.begin();
-  }
+  DataPointLFC::DataPointLFC(const URL& url) : DataPointIndex(url) {}
 
   /* perform resolve operation, which can take long time */
   bool DataPointLFC::meta_resolve(bool source) {
@@ -74,33 +69,28 @@ namespace Arc {
     else {
       is_metaexisting = true;
     }
-    if(locations.size() == 0) {
+    if(url.Locations().size() == 0) {
       for(int n = 0; n < nbentries; n++) {
-        std::list<Location>::iterator loc =
-          locations.insert(locations.end(),
-            Location(url.ConnectionURL(), std::string(entries[n].sfn)));
-        loc->arg = (void*)1; // marker
+        locations.push_back(URLLocation(entries[n].sfn, url.ConnectionURL()));
         logger.msg(DEBUG, "Adding location: %s - %s",
                    url.ConnectionURL().c_str(), entries[n].sfn);
       }
     }
     else {
-      std::list<Location>::iterator loc = locations.begin();
-      for(; loc != locations.end(); ++loc) {
-        if(loc->arg != NULL) continue;
+      for(std::list<URLLocation>::const_iterator loc = url.Locations().begin();
+          loc != locations.end(); ++loc) {
         for(int n = 0; n < nbentries; n++) {
-          if(strncmp(entries[n].sfn, loc->meta.c_str(),
-                     loc->meta.length()) == 0) {
+          if(strncmp(entries[n].sfn, loc->Name().c_str(),
+                     loc->Name().length()) == 0) {
             logger.msg(DEBUG, "Adding location: %s - %s",
                        url.ConnectionURL().c_str(), entries[n].sfn);
             if(source) {
-              loc->meta = url.ConnectionURL();
-              loc->url = std::string(entries[n].sfn);
+              locations.push_back(URLLocation(entries[n].sfn,
+                                              url.ConnectionURL()));
             }
             else {
-              loc->meta = url.ConnectionURL();
+              locations.push_back(URLLocation(*loc, url.ConnectionURL()));
             }
-            loc->arg = (void*)1;
             break;
           }
         }
@@ -127,13 +117,9 @@ namespace Arc {
         return false;
       }
       // Make pfns
-      std::list<Location>::iterator loc = locations.begin();
-      for(; loc != locations.end();) {
-        if(loc->arg != NULL) {
-          loc = locations.erase(loc);
-          continue;
-        }
-        std::string u = loc->url.str();
+      for(std::list<URLLocation>::iterator loc = locations.begin();
+          loc != locations.end();) {
+        std::string u = loc->str();
         if(url.Protocol() == "se") {
           u += "?";
         }
@@ -141,9 +127,9 @@ namespace Arc {
           u += "/";
         }
         u += url.Path();
-        loc->url = u;
+        *loc = URLLocation(u, loc->Name());
         logger.msg(DEBUG, "Using location: %s - %s",
-                   loc->meta.c_str(), loc->url.str().c_str());
+                   loc->Name().c_str(), loc->str().c_str());
         ++loc;
       }
     }
@@ -152,12 +138,12 @@ namespace Arc {
     logger.msg(DEBUG, "meta_get_data: created: %s",
                GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {
-      std::list<Location>::iterator loc = locations.begin();
-      for(; loc != locations.end(); ++loc) {
+      for(std::list<URLLocation>::iterator loc = locations.begin();
+          loc != locations.end(); ++loc) {
         for(std::map<std::string, std::string>::const_iterator i =
               url.CommonLocOptions().begin();
             i != url.CommonLocOptions().end(); i++)
-          loc->url.AddOption(i->first, i->second, false);
+          loc->AddOption(i->first, i->second, false);
       }
     }
     location = locations.begin();
@@ -225,12 +211,12 @@ namespace Arc {
                  "No GUID defined for LFN - probably not preregistered");
       return false;
     }
-    std::string pfn(location->url.str());
+    std::string pfn(location->str());
     if(lfc_startsess(const_cast<char*>((url.Host() + ':' +
                                         tostring(url.Port())).c_str()),
                      "ARC") != 0)
       return false;
-    if(lfc_addreplica(guid.c_str(), NULL, location->url.Host().c_str(),
+    if(lfc_addreplica(guid.c_str(), NULL, location->Host().c_str(),
                       pfn.c_str(), '-', 'P', NULL, NULL) != 0) {
       lfc_endsess();
       return false;
@@ -327,8 +313,7 @@ namespace Arc {
       }
     }
     else {
-      if(lfc_delreplica(guid.c_str(), NULL,
-                        location->url.str().c_str()) != 0) {
+      if(lfc_delreplica(guid.c_str(), NULL, location->str().c_str()) != 0) {
         lfc_endsess();
         logger.msg(ERROR, "Failed to remove location from LFC");
         return false;

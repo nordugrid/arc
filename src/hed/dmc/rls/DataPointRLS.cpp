@@ -31,10 +31,6 @@ namespace Arc {
     std::string guidopt = url.Option("guid", "no");
     if((guidopt == "yes") || (guidopt == ""))
       guid_enabled = true;
-    for(std::list<URLLocation>::const_iterator i = url.Locations().begin();
-        i != url.Locations().end(); i++)
-      locations.push_back(Location(i->str(), *i));
-    location = locations.begin();
   }
 
   static globus_result_t
@@ -66,15 +62,13 @@ namespace Arc {
 
   typedef class meta_resolve_rls_t {
    public:
-    DataPointRLS & url;
+    DataPointRLS& url;
     bool source;
     bool success;
-    bool locations_empty;
     bool obtained_info;
     std::string guid;
     meta_resolve_rls_t(DataPointRLS& u, bool s) : url(u), source(s),
                                                   success(false),
-                                                  locations_empty(false),
                                                   obtained_info(false) {};
   };
 
@@ -150,40 +144,35 @@ namespace Arc {
     if(!(arg_->success)) {
       arg_->success = true; // got something
       if(source) it.is_metaexisting = true;
-      arg_->locations_empty = (it.locations.size() == 0);
     }
-    if(arg_->locations_empty) {
+    if(it.url.Locations().size() == 0) {
       for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
-        std::list<Location>::iterator loc =
-          it.locations.insert(it.locations.end(), Location(str2->s2, pfn));
-        loc->arg = (void*)1; // marker
+        it.locations.push_back(URLLocation(pfn, url.str()));
         logger.msg(DEBUG, "Adding location: %s - %s",
-                   str2->s2, pfn.str().c_str());
+                   url.str().c_str(), pfn.str().c_str());
       }
     }
     else {
-      for(std::list<Location>::iterator loc = it.locations.begin();
-          loc != it.locations.end(); loc++) {
-        if(loc->arg != NULL) continue;
+      for(std::list<URLLocation>::const_iterator loc =
+            it.url.Locations().begin();
+          loc != it.url.Locations().end(); loc++) {
         for(globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
           globus_rls_string2_t *str2 =
             (globus_rls_string2_t*)globus_list_first(lp);
           URL pfn(str2->s2);
           // for RLS URLs are used instead of metanames
-          if(pfn == loc->url) {
+          if(pfn == *loc) {
             logger.msg(DEBUG, "Adding location: %s - %s",
-                       str2->s2, pfn.str().c_str());
+                       url.str().c_str(), pfn.str().c_str());
             if(source) {
-              loc->meta = url;
-              loc->url = pfn;
+              it.locations.push_back(URLLocation(pfn, url.str()));
             }
             else {
-              loc->meta = url;
+              it.locations.push_back(URLLocation(*loc, url.str()));
             }
-            loc->arg = (void*)1;
             break;
           }
         }
@@ -269,21 +258,6 @@ namespace Arc {
       rls_find_lrcs(rlis, lrcs, true, false,
                     &meta_resolve_callback, (void*)&arg);
       if(!arg.success) return false;
-      // Remove unresolved locations
-      for(std::list<Location>::iterator loc = locations.begin();
-          loc != locations.end();) {
-        if(loc->arg == NULL) {
-          logger.msg(DEBUG, "Removing location: %s - %s",
-                     loc->meta.c_str(), loc->url.str().c_str());
-          loc = locations.erase(loc);
-        }
-        else {
-          logger.msg(DEBUG, "Using location: %s - %s",
-                     loc->meta.c_str(), loc->url.str().c_str());
-          loc->arg = (void*)1;
-          ++loc;
-        }
-      }
     }
     else {
       if(url.Path().length() == 0) {
@@ -308,11 +282,11 @@ namespace Arc {
       }
       // Make pfns
       std::list<URL>::iterator lrc_p = lrcs.begin();
-      for(std::list<Location>::iterator loc = locations.begin();
+      for(std::list<URLLocation>::iterator loc = locations.begin();
           loc != locations.end();) {
         bool se_uses_lfn = false;
-        std::string u = loc->url.str();
-        if(loc->url.Path() == "se") {
+        std::string u = loc->str();
+        if(loc->Protocol() == "se") {
           u += "?";
           se_uses_lfn = true;
         }
@@ -330,28 +304,27 @@ namespace Arc {
           if((!se_uses_lfn) && (!pfn_path.empty()))
             u += pfn_path;
           else
-            u = url.Path();
+            u += url.Path();
         }
-        loc->url = u;
-        if(loc->arg != NULL) {
+        *loc = URLLocation(u, loc->Name());
+        if(!loc->Name().empty()) {
           logger.msg(DEBUG, "Using location: %s - %s",
-                     loc->meta.c_str(), loc->url.str().c_str());
+                     loc->Name().c_str(), loc->str().c_str());
           ++loc;
         }
         else { // Use arbitrary lrc
           if(lrc_p == lrcs.end()) { // no LRC
             logger.msg(DEBUG, "Removing location: %s - %s",
-                       loc->meta.c_str(), loc->url.str().c_str());
+                       loc->Name().c_str(), loc->str().c_str());
             loc = locations.erase(loc);
           }
           else {
-            loc->meta = *lrc_p;
+            *loc = URLLocation(*loc, lrc_p->str());
             ++lrc_p;
             if(lrc_p == lrcs.end())
               lrc_p = lrcs.begin();
             logger.msg(DEBUG, "Using location: %s - %s",
-                       loc->meta.c_str(), loc->url.str().c_str());
-            loc->arg = (void*)1;
+                       loc->Name().c_str(), loc->str().c_str());
             ++loc;
           }
         }
@@ -362,12 +335,12 @@ namespace Arc {
     logger.msg(DEBUG, "meta_get_data: created: %s",
                GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {
-      for(std::list<Location>::iterator loc = locations.begin();
+      for(std::list<URLLocation>::iterator loc = locations.begin();
           loc != locations.end(); loc++) {
         for(std::map<std::string, std::string>::const_iterator i =
               url.CommonLocOptions().begin();
             i != url.CommonLocOptions().end(); i++)
-          loc->url.AddOption(i->first, i->second, false);
+          loc->AddOption(i->first, i->second, false);
       }
     }
     location = locations.begin();
@@ -409,7 +382,7 @@ namespace Arc {
 
     std::string pfn;
     std::string guid;
-    pfn = location->url;
+    pfn = *location;
     // it is always better to register pure url
     std::string rls_lfn = url.Path();
     if(!replication) {
@@ -628,7 +601,7 @@ namespace Arc {
 
   typedef class meta_unregister_rls_t {
   public:
-    DataPointRLS & url;
+    DataPointRLS& url;
     bool all;
     bool failure;
     std::string guid;
@@ -715,7 +688,7 @@ namespace Arc {
     }
     else { // ! all
       err = globus_rls_client_lrc_delete(h, (char*)lfn.c_str(), (char*)
-                                         it.location->url.str().c_str());
+                                         it.location->str().c_str());
       if(err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -737,7 +710,7 @@ namespace Arc {
         logger.msg(ERROR, "Location is missing");
         return false;
       }
-      if(location->url.Path() == "se") {
+      if(location->Protocol() == "se") {
         logger.msg(DEBUG, "SE location will be unregistered automatically");
         return true;
       }
@@ -857,8 +830,7 @@ namespace Arc {
         }
         else { // ! all
           err = globus_rls_client_lrc_delete (h_, (char*)url.Path().c_str(),
-                                              (char*)
-                                              location->url.str().c_str());
+                                              (char*)location->str().c_str());
           if(err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
@@ -947,8 +919,8 @@ namespace Arc {
 
   typedef class list_files_rls_t {
    public:
-    std::list<FileInfo> &files;
-    DataPointRLS & url;
+    std::list<FileInfo>& files;
+    DataPointRLS& url;
     bool success;
     bool resolve;
     std::string guid;

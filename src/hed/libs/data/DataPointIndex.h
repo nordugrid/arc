@@ -13,27 +13,9 @@ namespace Arc {
     class for specific Indexing Service. */
   class DataPointIndex : public DataPoint {
    protected:
-    /// DataPointIndex::Location represents physical service at which
-    /// files are located aka "base URL" inculding it's name (as given
-    /// in Indexing Service).
-    /// Currently it is used only internally by classes derived from
-    /// DataPointIndex class and for printing debug information.
-    class Location {
-     public:
-      std::string meta; // Given name of location
-      URL url;          // location aka pfn aka access point
-      bool existing;
-      void *arg; // to be used by different pieces of soft differently
-      Location() : existing(true), arg(NULL) {};
-      Location(const URL& url) : url(url), existing(true), arg(NULL) {};
-      Location(const std::string& meta, const URL& url,
-               bool existing = true) : meta(meta), url(url),
-                                       existing(existing), arg(NULL) {};
-    };
-
     /// List of locations at which file can be probably found.
-    std::list<Location> locations;
-    std::list<Location>::iterator location;
+    std::list<URLLocation> locations;
+    std::list<URLLocation>::iterator location;
    protected:
     bool is_metaexisting;
     bool is_resolved;
@@ -45,13 +27,13 @@ namespace Arc {
 
     virtual const URL& current_location() const {
       if(location != locations.end())
-        return location->url;
+        return *location;
       return empty_url_;
     };
 
     virtual const std::string& current_meta_location() const {
       if(location != locations.end())
-        return location->meta;
+        return location->Name();
       return empty_string_;
     };
 
