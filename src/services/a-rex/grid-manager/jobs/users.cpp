@@ -10,6 +10,7 @@
 //@ 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
 #define olog std::cerr
