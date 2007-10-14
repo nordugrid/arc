@@ -4,6 +4,7 @@
 
 //@ #include "../std.h"
 #include "escaped.h"
+#include <ctype.h>
 
 // TODO: not all functions can handle tabs and other non-space spaces.
 

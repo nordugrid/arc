@@ -7,6 +7,7 @@
 //@ #include "../misc/inttostring.h"
 //@ #include "../misc/log_time.h"
 #include "job_log.h"
+#include <unistd.h>
 
 //@ 
 #include <arc/StringConv.h>
