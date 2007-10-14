@@ -9,7 +9,7 @@ namespace Arc {
   {
   }
 
-  Arc::Logger EchoClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
+  Arc::Logger EchoClient::logger(Arc::Logger::rootLogger, "ECHO-Client");
 
   EchoClient::EchoClient(std::string configFile)
     throw(EchoClientError)
