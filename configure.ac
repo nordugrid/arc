@@ -99,9 +99,9 @@ if test "X$PYTHON" != "X"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
-    PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBS']"`
-    PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['SYSLIBS']"`
-    PY_LIBPL=`$PYTHON -c "from distutils import sysconfig; print sysconfig.parse_makefile(sysconfig.get_makefile_filename())['LIBPL']"`
+    PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBS')" | sed s/None//`
+    PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('SYSLIBS')" | sed s/None//`
+    PY_LIBPL=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBPL')" | sed s/None//`
     PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
     changequote([, ])dnl
     PYTHON_LIBS="$PY_LIBS $PY_SYSLIBS"
