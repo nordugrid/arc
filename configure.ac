@@ -101,7 +101,7 @@ if test "X$PYTHON" != "X"; then
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBS')" | sed s/None//`
     PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('SYSLIBS')" | sed s/None//`
-    PY_LIBPL=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBPL')" | sed s/None//`
+    PY_LIBDEST=`$PYTHON -c "from distutils import sysconfig; print sysconfig.get_config_vars().get('LIBDEST')" | sed s/None//`
     PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
     changequote([, ])dnl
     PYTHON_LIBS="$PY_LIBS $PY_SYSLIBS"
@@ -110,11 +110,11 @@ if test "X$PYTHON" != "X"; then
     AC_CHECK_LIB([python$PYTHON_VERSION], [Py_Initialize],[
         AC_MSG_NOTICE([No additional path to python library needed])
         PYTHON_LIBS="-lpython$PYTHON_VERSION $PYTHON_LIBS"],[
-        LDFLAGS="-L$PY_LIBPL $LDFLAGS"
+        LDFLAGS="-L$PY_LIBDEST/config $LDFLAGS"
         # check a different symbol or else configure will used cached value
         AC_CHECK_LIB([python$PYTHON_VERSION], [Py_Finalize],[
             AC_MSG_NOTICE([Adding path to python library])
-            PYTHON_LIBS="-L$PY_LIBPL -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
+            PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             AC_ERROR([Can't find python library])])])
     LDFLAGS=$SAVE_LDFLAGS
     AC_SUBST(PYTHON_VERSION)
