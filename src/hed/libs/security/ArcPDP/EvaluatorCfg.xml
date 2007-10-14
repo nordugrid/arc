@@ -12,6 +12,7 @@
 
     <PDPConfig>
           <PolicyStore name="test" location="Policy_Example.xml"/>
+          <!--PolicyStore name="test" location="http://www.w3schools.com/xml/plant_catalog.xml"/-->
           <AttributeFactory name="attr.factory" />
           <CombingAlgorithmFactory name="alg.factory" />
           <FunctionFactory name="fn.factory" />
