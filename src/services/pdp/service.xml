@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+>
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../hed/libs/security/.libs/</Path>
+	<Path>./.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>security</Name></Plugins>
+    <Plugins><Name>pdpservice</Name></Plugins>
+
+    <Plugins Name="security">
+          <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
+          <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
+          <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
+          <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
+    </Plugins>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <KeyPath>./key.pem</KeyPath>
+	    <CertificatePath>./cert.pem</CertificatePath>
+	    <CACertificatePath>./ca.pem</CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+	    <next id="pdpservice"/>
+        </Component>
+        <Service name="pdp.service" id="pdpservice">
+            <pdp:PDPConfig>
+                <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+                <pdp:AttributeFactory name="attr.factory" />
+                <pdp:CombingAlgorithmFactory name="alg.factory" />
+                <pdp:FunctionFactory name="fn.factory" />
+            </pdp:PDPConfig>
+        </Service>
+    </Chain>
+</ArcConfig>
