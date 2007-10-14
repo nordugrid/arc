@@ -2,6 +2,7 @@
 <ArcConfig 
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
   xmlns:echo="urn:echo_config"
 >
 
@@ -26,12 +27,12 @@
           <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
     </Plugins>
 
-    <PDPConfig>
-          <PolicyStore name="test" location="Policy_Example.xml"/>
-          <AttributeFactory name="attr.factory" />
-          <CombingAlgorithmFactory name="alg.factory" />
-          <FunctionFactory name="fn.factory" />
-    </PDPConfig>
+    <pdp:PDPConfig>
+          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+          <pdp:AttributeFactory name="attr.factory" />
+          <pdp:CombingAlgorithmFactory name="alg.factory" />
+          <pdp:FunctionFactory name="fn.factory" />
+    </pdp:PDPConfig>
 
     <Chain>
         <Component name="tcp.service" id="tcp">
