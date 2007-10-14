@@ -30,7 +30,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
   Arc::NS nsList;
   std::list<XMLNode> res;
-  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/schemas/ArcConfig/2007"));
+  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/schemas/pdp/Config"));
 
   res = cfg.XPathLookup("//config:PolicyStore", nsList);
   //presently, there can be only one PolicyStore

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config">
     <ModuleManager>
         <Path>../../security/.libs/</Path>
     </ModuleManager>
@@ -10,12 +10,12 @@
           <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
     </Plugins>
 
-    <PDPConfig>
-          <PolicyStore name="test" location="Policy_Example.xml"/>
-          <!--PolicyStore name="test" location="http://www.w3schools.com/xml/plant_catalog.xml"/-->
-          <AttributeFactory name="attr.factory" />
-          <CombingAlgorithmFactory name="alg.factory" />
-          <FunctionFactory name="fn.factory" />
-    </PDPConfig>
+    <pdp:PDPConfig>
+          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+          <!--pdp:PolicyStore name="test" location="http://www.w3schools.com/xml/plant_catalog.xml"/-->
+          <pdp:AttributeFactory name="attr.factory" />
+          <pdp:CombingAlgorithmFactory name="alg.factory" />
+          <pdp:FunctionFactory name="fn.factory" />
+    </pdp:PDPConfig>
 
 </ArcConfig>
