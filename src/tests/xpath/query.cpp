@@ -9,8 +9,9 @@
 #include <arc/XMLNode.h>
 #include <stdlib.h>
 
-int main(int /*argc*/, char **argv)
+int main(int argc, char **argv)
 {
+    if(argc < 3) return -1;
     int filenum = atoi(argv[1]);
     int attrnum = atoi(argv[2]);
 
@@ -42,4 +43,5 @@ int main(int /*argc*/, char **argv)
 	        std::cout << fname << ":" << (*it).Name() << ":" << std::string(*it) << std::endl;
 	    }
     }
+    return 0;
 }
