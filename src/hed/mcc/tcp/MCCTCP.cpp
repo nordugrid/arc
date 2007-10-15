@@ -2,10 +2,44 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
+
+#ifdef WIN32
+#define NOGDI
+#include <winsock2.h>
+typedef int socklen_t;
+#define ErrNo WSAGetLastError()
+
+#include <stdio.h>
+// There is no inet_ntop on WIN32
+inline const char *inet_ntop(int af, const void *__restrict src, char *__restrict dest, socklen_t size)
+{
+	// IPV6 not supported (yet?)
+	if(AF_INET!=af)
+	{
+		printf("inet_ntop is only implemented for AF_INET address family on win32/msvc8");
+		abort();
+	}
+
+	// Format address
+	char *s=inet_ntoa(*reinterpret_cast<const in_addr*>(src));
+	if(!s)
+		return 0;
+
+	// Copy to given buffer
+	socklen_t len=(socklen_t)strlen(s);
+	if(len>=size)
+		return 0;
+	return strncpy(dest, s, len);
+}
+
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#define ErrNo errno
+#endif
 
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
@@ -41,6 +75,13 @@ using namespace Arc;
 
 
 MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
+#ifdef WIN32
+    WSADATA wsadata;
+    if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
+    	logger.msg(Arc::ERROR, "Cannot initialize winsock libraray");
+        return;
+    }
+#endif
     for(int i = 0;;++i) {
         XMLNode l = (*cfg)["Listen"][i];
         if(!l) break;
@@ -91,10 +132,18 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
     };
     // Wait for threads to exit
     while(executers_.size() > 0) {
+#ifdef WIN32
+        lock_.unlock(); Sleep(100); lock_.lock();
+#else
         lock_.unlock(); sleep(1); lock_.lock();
+#endif
     };
     while(handles_.size() > 0) {
+#ifdef WIN32
+        lock_.unlock(); Sleep(1000); lock_.lock();
+#else
         lock_.unlock(); sleep(1); lock_.lock();
+#endif
     };
     lock_.unlock();
 }
@@ -107,7 +156,11 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o)
     std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this); 
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
         logger.msg(Arc::ERROR, "Failed to start thread for communication");
+#ifdef WIN32
+	::closesocket(handle); handle=-1; o->executers_.erase(e);
+#else
         ::close(handle);  handle=-1; o->executers_.erase(e);
+#endif
     };
 }
 
@@ -130,7 +183,7 @@ void MCC_TCP_Service::listener(void* arg) {
         struct timeval tv; tv.tv_sec = 2; tv.tv_usec = 0;
         int n = select(max_s+1,&readfds,NULL,NULL,&tv);
         if(n < 0) {
-            if(errno != EINTR) {
+            if(ErrNo != EINTR) {
 	        logger.msg(Arc::ERROR,
 			"Failed while waiting for connection request");
                 it.lock_.lock();
