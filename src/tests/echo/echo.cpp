@@ -59,7 +59,8 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     printf("echo_UnAuthorized\n");
     return Arc::MCC_Status(Arc::GENERIC_ERROR);
   } //Do we need to add some status in MCC_Status
-  printf("echo_Authorized\n");
+  else if (hlist.empty()) logger.msg(Arc::INFO, "No authorization requirement for echo service");
+  else logger.msg(Arc::INFO, "echo_Authorized");
 
   // Both input and output are supposed to be SOAP 
   // Extracting payload
