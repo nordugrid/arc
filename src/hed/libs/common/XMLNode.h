@@ -61,8 +61,9 @@ class XMLNode {
   /** Same as previous */
   XMLNode(const char* xml,int len = -1);
   /** Creates empty XML document structure with specified namespaces.
+    Created XML contains only root element named 'name'.
     Created structure is pointed and owned by constructed instance */
-  XMLNode(const Arc::NS& ns);
+  XMLNode(const Arc::NS& ns,const char* name);
   /** Destructor
     Also destroys underlying XML document if owned by this instance */
   ~XMLNode(void);
@@ -78,13 +79,12 @@ class XMLNode {
     If such does not exist invalid XMLNode instance is returned */
   XMLNode Child(int n = 0) const {
     if(!node_) return XMLNode();
+    if(node_->type != XML_ELEMENT_NODE) return XMLNode();
     xmlNodePtr p = n<0?NULL:node_->children;
     for(;p;p=p->next) {
       if(p->type == XML_TEXT_NODE) continue;
       if((--n) < 0) break;
     };
-    if(p) return XMLNode(p);
-    // New invalid node
     return XMLNode(p);
   };
   /** Returns XMLNode instance representing first child element with specified name. 
@@ -92,9 +92,7 @@ class XMLNode {
     If such node does not exist invalid XMLNode instance is returned */
   XMLNode operator[](const char* name) const;
   /** Similar to previous method */
-  XMLNode operator[](const std::string& name) const {
-    return operator[](name.c_str());
-  };
+  XMLNode operator[](const std::string& name) const { return operator[](name.c_str()); };
   /** Returns XMLNode instance representing n-th node in sequence of siblings of same name.
     It's main purpose is to be used to retrieve element in array of children of same name
     like  node["name"][5] */
@@ -111,9 +109,9 @@ class XMLNode {
     return n;
   };
   /** Same as operator[] **/
-  XMLNode Get(const std::string& name) const {
-    return operator[](name.c_str());
-  };
+  //XMLNode Get(const std::string& name) const {
+  //  return operator[](name.c_str());
+  //};
 
   /** Returns name of XML node */
   std::string Name(void) const { 
@@ -127,46 +125,11 @@ class XMLNode {
     return Prefix()+":"+Name();
   };
   /** Assign new name to XML node */
-  void Name(const std::string& name);
   void Name(const char* name);
-  /** Fills argument with this instance XML (sub)tree textual representation */
-  void GetXML(std::string& xml) const {
-    xml.resize(0);
-    if(!node_) return;
-    if(node_->type == XML_DOCUMENT_NODE) {
-      xmlDocPtr doc = (xmlDocPtr)node_;
-      xmlChar* buf = NULL;
-      int bufsize = 0;
-      xmlDocDumpMemory(doc,&buf,&bufsize);
-      if(buf) {
-        xml=(char*)buf;
-        xmlFree(buf);
-      };
-    } else {
-      xmlBufferPtr buf = xmlBufferCreate();
-      xmlNodeDump(buf,node_->doc,node_,0,0);
-      xml=(char*)(buf->content);
-      xmlBufferFree(buf);
-    };
-  };
-/*
-  void SetXML(const std::string& xml) {
-    xmlDocPtr doc = NULL;
-    if(node_->type == XML_DOCUMENT_NODE) {
-      doc=(xmlDocPtr)node_;
-    } else {
-      doc=xmlNewDoc(BAD_CAST "1.0");
-      xmlDocSetRootElement(doc,node_);
-    };
-    xmlChar* buf = NULL;
-    int bufsize = 0;
-    xmlDocDumpMemory(doc,&buf,&bufsize);
-    if(buf) {
-      xml=(char*)buf;
-      xmlFree(buf);
-    };
-  }
-*/
+  /** Fills argument with this instance XML subtree textual representation */
+  void GetXML(std::string& xml) const;
+  /** Fills argument with whole XML document textual representation */
+  void GetDoc(std::string& xml) const;
   /** Returns textual content of node excluding content of children nodes */
   operator std::string(void) const {
     std::string content;
@@ -181,37 +144,34 @@ class XMLNode {
     return content;
   };
   /** Sets textual content of node. All existing children nodes are discarded. */
-  XMLNode& operator=(const std::string& content) {
-    return operator=(content.c_str());
-  };
-
-  /** Same as previous method */
   XMLNode& operator=(const char* content) {
     if(!node_) return *this;
     xmlNodeSetContent(node_,(xmlChar*)content);
     return *this;
   };
+  /** Sets textual content of node. All existing children nodes are discarded. */
+  XMLNode& operator=(const std::string& content) {
+    return operator=(content.c_str());
+  };
     
   /** Common set method **/
-  void Set(const std::string& content) {
-    if (!node_) return;
-    xmlNodeSetContent(node_, (xmlChar*)content.c_str());
-  }
+  //void Set(const std::string& content) {
+  //  if (!node_) return;
+  //  xmlNodeSetContent(node_, (xmlChar*)content.c_str());
+  //}
 
   /** Make instance refer to another XML node. Ownership is not inherited. */
   XMLNode& operator=(const XMLNode& node);
   /** Returns list of all attributes of node */
   // std::list<XMLNode> Attributes(void);
   /** Returns XMLNode instance reresenting n-th attribute of node. */
-  XMLNode Attribute(int n = 0);
-  /** Creates new attribute with specified name. */
-  XMLNode NewAttribute(const std::string& name);
-  /** Same as previous method */
-  XMLNode NewAttribute(const char* name);
+  XMLNode Attribute(int n = 0) const;
   /** Returns XMLNode instance representing first attribute of node with specified by name */
-  XMLNode Attribute(const std::string& name); 
+  XMLNode Attribute(const char* name) const; 
+  /** Creates new attribute with specified name. */
+  XMLNode NewAttribute(const char* name);
   /** Returns number of attributes of node */
-  int AttributesSize(void);
+  int AttributesSize(void) const;
   /** Assign namespaces of XML document at point specified by this instance.
     If namespace already exists it gets new prefix. New namespaces are added.
     It is usefull to apply this method to XML being processed in order to refer to it's 
@@ -223,9 +183,9 @@ class XMLNode {
   /** Creates new child XML element at specified position with specified name.
     Default is to put it at end of list. If global order is true position
     applies to whole set of children, otherwise only to children of same name */
-  XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
-    return NewChild(name.c_str(),n,global_order);
-  };
+  //XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
+  //  return NewChild(name.c_str(),n,global_order);
+  //};
   /** Same as previous method */
   XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
   /** Link a copy of supplied XML node as child.
@@ -253,23 +213,11 @@ class XMLNode {
   //void Duplicate(XMLNode& new_node);
 };
 
-/** Returns true if XML elements have same names */
-bool MatchXMLName(xmlNodePtr node1,xmlNodePtr node2);
-
-/** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
-bool MatchXMLName(xmlNodePtr node,const char* name);
-
 /** Returns true if underlying XML elements have same names */
 bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
 
 /** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(const XMLNode& node,const char* name);
-
-/** Returns true if XML elements belong to same namespaces */
-bool MatchXMLNamespace(xmlNodePtr node1,xmlNodePtr node2);
-
-/** Returns true if 'namespace' matches 'node's namespace. */
-bool MatchXMLNamespace(xmlNodePtr node,const char* uri);
 
 /** Returns true if underlying XML elements belong to same namespaces */
 bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
