@@ -134,7 +134,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_sbindir}/arcserver
 %{_sbindir}/grid-manager
-%{_prefix}/libexec/smtp-send
+%{_libexecdir}/smtp-send
 %doc %{_mandir}/man8/arcserver.8*
 
 %files devel
