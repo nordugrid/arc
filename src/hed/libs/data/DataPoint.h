@@ -12,6 +12,8 @@
 namespace Arc {
 
   class Logger;
+  class DataBufferPar;
+  class DataCallback;
 
   /// This class is an abstraction of URL. 
   /** It can handle URLs of type file://, ftp://, gsiftp://, http://, https://,
@@ -26,6 +28,109 @@ namespace Arc {
     DataPoint(const URL& url);
     virtual ~DataPoint() {};
 
+    /// Reason of transfer failure
+    typedef enum {
+      common_failure = 0,
+      credentials_expired_failure = 1
+    } failure_reason_t;
+
+    /*
+     *  Direct actions. Valid only for direct URLs
+     */
+
+    /// Start reading data from URL.
+    /// Separate thread to transfer data will be created. No other operation
+    /// can be performed while 'reading' is in progress.
+    /// \param buffer operation will use this buffer to put information into.
+    /// Should not be destroyed before stop_reading was called and returned.
+    /// Returns true on success.
+    virtual bool start_reading(DataBufferPar& buffer) = 0;
+
+    /// Start writing data to URL.
+    /// Separate thread to transfer data will be created. No other operation
+    /// can be performed while 'writing' is in progress.
+    /// \param buffer operation will use this buffer to get information from.
+    /// Should not be destroyed before stop_writing was called and returned.
+    /// space_cb callback which is called if there is not enough to space
+    /// storing data. Currently implemented only for file:/// URL.
+    /// Returns true on success.
+    virtual bool start_writing(DataBufferPar& buffer,
+                               DataCallback *space_cb = NULL) = 0;
+
+    /// Stop reading. It MUST be called after corressponding start_reading
+    /// method. Either after whole data is transfered or to cancel transfer.
+    /// Use 'buffer' object to find out when data is transfered.
+    virtual bool stop_reading() = 0;
+
+    /// Same as stop_reading but for corresponding start_writing.
+    virtual bool stop_writing() = 0;
+
+    /// Structure used in analyze() call.
+    /// \param bufsize returns suggested size of buffers to store data.
+    /// \param bufnum returns suggested number of buffers.
+    /// \param cache returns true if url is allowed to be cached.
+    /// \param local return true if URL is accessed locally (file://)
+    class analyze_t {
+     public:
+      long int bufsize;
+      int bufnum;
+      bool cache;
+      bool local;
+      bool readonly;
+      analyze_t() : bufsize(-1), bufnum(1), cache(true),
+                    local(false), readonly(true) {};
+    };
+
+    /// Analyze url and provide hints.
+    /// \param arg returns suggested values.
+    virtual bool analyze(analyze_t& arg) = 0;
+
+    /// Query remote server or local file system to check if object is
+    /// accessible. If possible this function will also try to fill meta
+    /// information about object in associated DataPoint.
+    virtual bool check() = 0;
+
+    /// Remove/delete object at URL.
+    virtual bool remove() = 0;
+
+    /// Returns true if URL can accept scatterd data (like arbitrary access
+    /// to local file) for 'writing' operation.
+    virtual bool out_of_order() = 0;
+
+    /// Allow/disallow DataPoint to produce scattered data during
+    /// 'reading' operation.
+    /// \param v true if allowed.
+    virtual void out_of_order(bool v) = 0;
+
+    /// Allow/disallow to make check for existance of remote file
+    /// (and probably other checks too) before initiating 'reading' and
+    /// 'writing' operations.
+    /// \param v true if allowed (default is true).
+    virtual void additional_checks(bool v) = 0;
+
+    /// Check if additional checks before 'reading' and 'writing' will
+    /// be performed.
+    virtual bool additional_checks() = 0;
+
+    /// Allow/disallow heavy security during data transfer.
+    /// \param v true if allowed (default is true only for gsiftp://).
+    virtual void secure(bool v) = 0;
+
+    /// Check if heavy security during data transfer is allowed.
+    virtual bool secure() = 0;
+
+    /// Request passive transfers for FTP-like protocols.
+    /// \param true to request.
+    virtual void passive(bool v) = 0;
+
+    /// Returns reason of transfer failure.
+    virtual failure_reason_t failure_reason() = 0;
+
+    /// Set range of bytes to retrieve. Default values correspond to
+    /// whole file.
+    virtual void range(unsigned long long int start = 0,
+                       unsigned long long int end = 0) = 0;
+
     /*
      *  META actions. Valid only for meta-URLs
      */
@@ -34,9 +139,7 @@ namespace Arc {
     /// about file. Can be called for object representing ordinary URL or
     /// already resolved object.
     /// \param source true if DataPoint object represents source of information
-    virtual bool meta_resolve(bool) {
-      return false;
-    };
+    virtual bool meta_resolve(bool source) = 0;
 
     /// This function registers physical location of file into Indexing
     /// Service. It should be called *before* actual transfer to that
@@ -45,17 +148,13 @@ namespace Arc {
     /// 2 locations registered in Indexing Service under same name.
     /// \param force if true, perform registration of new file even if it
     /// already exists. Should be used to fix failures in Indexing Service.
-    virtual bool meta_preregister(bool, bool = false) {
-      return false;
-    };
+    virtual bool meta_preregister(bool replication, bool force = false) = 0;
 
     /// Used for same purpose as meta_preregister. Should be called after
     /// actual transfer of file successfully finished.
     /// \param replication if true then file is being replicated between
     /// 2 locations registered in Indexing Service under same name.
-    virtual bool meta_postregister(bool) {
-      return false;
-    };
+    virtual bool meta_postregister(bool replication) = 0;
 
     // Same operation as meta_preregister and meta_postregister together.
     virtual bool meta_register(bool replication) {
@@ -66,31 +165,17 @@ namespace Arc {
 
     /// Should be called if file transfer failed. It removes changes made
     /// by meta_preregister.
-    virtual bool meta_preunregister(bool) {
-      return false;
-    };
+    virtual bool meta_preunregister(bool replication) = 0;
 
     /// Remove information about file registered in Indexing Service.
     /// \param all if true information about file itself is (LFN) is removed.
     /// Otherwise only particular physical instance is unregistered.
-    virtual bool meta_unregister(bool) {
-      return false;
-    };
-
-    /// Obtain information about objects and their properties available
-    /// under meta-URL of DataPoint object. It works only for meta-URL.
-    /// \param files list of obtained objects.
-    /// \param resolve if false, do not try to obtain propertiers of objects.
-    virtual bool list_files(std::list<FileInfo>&, bool = true) {
-      return false;
-    };
+    virtual bool meta_unregister(bool all) = 0;
 
     /// Retrieve properties of object pointed by meta-URL of DataPoint
     /// object. It works only for meta-URL.
     /// \param fi contains retrieved information.
-    virtual bool get_info(FileInfo&) {
-      return false;
-    };
+    virtual bool get_info(FileInfo& fi) = 0;
 
     /*
      * Set and get corresponding meta-information related to URL.
@@ -158,19 +243,13 @@ namespace Arc {
     };
 
     /// Check if URL is meta-URL.
-    virtual bool meta() const {
-      return false;
-    };
+    virtual bool meta() const = 0;
 
     /// If endpoint can have any use from meta information.
-    virtual bool accepts_meta() {
-      return false;
-    };
+    virtual bool accepts_meta() = 0;
 
     /// If endpoint can provide at least some meta information directly.
-    virtual bool provides_meta() {
-      return false;
-    };
+    virtual bool provides_meta() = 0;
 
     /// Acquire meta-information from another object. Defined values are
     /// not overwritten.
@@ -208,14 +287,10 @@ namespace Arc {
 
     /// Check if file is registered in Indexing Service. Proper value is
     /// obtainable only after meta-resolve.
-    virtual bool meta_stored() {
-      return false;
-    };
+    virtual bool meta_stored() = 0;
 
     /// Check if file is local (URL is something like file://).
-    virtual bool local() const {
-      return false;
-    };
+    virtual bool local() const = 0;
 
     virtual operator bool () const {
       return (bool)url;
@@ -230,42 +305,37 @@ namespace Arc {
      */
 
     /// Returns current (resolved) URL.
-    virtual const URL& current_location() const {
-      return empty_url_;
-    };
+    virtual const URL& current_location() const = 0;
 
     /// Returns meta information used to create curent URL. For RC that is
     ///  location's name. For RLS that is equal to pfn.
-    virtual const std::string& current_meta_location() const {
-      return empty_string_;
-    };
+    virtual const std::string& current_meta_location() const = 0;
 
     /// Switch to next location in list of URLs. At last location
     /// switch to first if number of allowed retries does not exceeded.
     /// Returns false if no retries left.
-    virtual bool next_location() {
-      return false;
-    };
+    virtual bool next_location() = 0;
 
     /// Returns false if out of retries.
-    virtual bool have_location() const {
-      return false;
-    };
+    virtual bool have_location() const = 0;
 
     /// Returns true if number of resolved URLs is not 0.
-    virtual bool have_locations() const {
-      return false;
-    };
+    virtual bool have_locations() const = 0;
+
+    /// Add URL to list.
+    /// \param meta meta-name (name of location/service).
+    /// \param loc URL.
+    virtual bool add_location(const std::string& meta, const URL& loc) = 0;
 
     /// Remove current URL from list
-    virtual bool remove_location() {
-      return false;
-    };
+    virtual bool remove_location() = 0;
 
-    /// Remove locations present in another DataPoint object
-    virtual bool remove_locations(const DataPoint&) {
-      return false;
-    };
+    /// List files in directory or service.
+    /// \param files will contain list of file names and optionally
+    /// their attributes.
+    /// \param resolve if false, do not try to obtain properties of objects.
+    virtual bool list_files(std::list<FileInfo>& files,
+                            bool resolve = true) = 0;
 
     /// Returns number of retries left.
     virtual int GetTries() const;
@@ -276,18 +346,9 @@ namespace Arc {
     /// Returns URL which was passed to constructor
     virtual const URL& base_url() const;
 
-    /// Add URL to list.
-    /// \param meta meta-name (name of location/service).
-    /// \param loc URL.
-    virtual bool add_location(const std::string&, const URL&) {
-      return false;
-    };
-
    protected:
     URL url;
     static Logger logger;
-    static std::string empty_string_;
-    static URL empty_url_;
     // attributes
     unsigned long long int size;
     std::string checksum;

@@ -18,9 +18,6 @@ namespace Arc {
                                          valid(-1),
                                          tries_left(5) {}
 
-  std::string DataPoint::empty_string_;
-  URL DataPoint::empty_url_;
-
   const URL& DataPoint::base_url() const {
     return url;
   }

@@ -177,4 +177,14 @@ namespace Arc {
     range_end = end;
   }
 
+  const URL& DataPointDirect::current_location() const {
+    static const URL empty;
+    return empty;
+  }
+
+  const std::string& DataPointDirect::current_meta_location() const {
+    static const std::string empty;
+    return empty;
+  }
+
 } // namespace Arc

@@ -32,28 +32,38 @@ namespace Arc {
     return true;
   }
 
+  const URL& DataPointIndex::current_location() const {
+    static const URL empty;
+    if(location == locations.end())
+      return empty;
+    return *location;
+  };
+
+  const std::string& DataPointIndex::current_meta_location() const {
+    static const std::string empty;
+    if(location == locations.end())
+      return empty;
+    return location->Name();
+  };
+
   bool DataPointIndex::have_locations() const {
-    if(!url) return false;
     return (locations.size() != 0);
   }
 
   bool DataPointIndex::have_location() const {
-    if(!url) return false;
     if(tries_left <= 0) return false;
     if(location == locations.end()) return false;
     return true;
   }
 
   bool DataPointIndex::next_location() {
-    if(tries_left <= 0) return false;
-    if(location == locations.end()) return false;
+    if(!have_location()) return false;
     ++location;
     if(location == locations.end()) {
-      tries_left--;
-      if(tries_left <= 0) return false;
-      location = locations.begin();
+      if(--tries_left > 0)
+        location = locations.begin();
     }
-    return true;
+    return have_location();
   }
 
   bool DataPointIndex::remove_location() {

@@ -23,17 +23,8 @@ namespace Arc {
     virtual ~DataPointIndex() {};
     virtual bool get_info(FileInfo& fi);
 
-    virtual const URL& current_location() const {
-      if(location != locations.end())
-        return *location;
-      return empty_url_;
-    };
-
-    virtual const std::string& current_meta_location() const {
-      if(location != locations.end())
-        return location->Name();
-      return empty_string_;
-    };
+    virtual const URL& current_location() const;
+    virtual const std::string& current_meta_location() const;
 
     virtual bool next_location();
     virtual bool have_location() const;
@@ -59,6 +50,27 @@ namespace Arc {
     };
 
     virtual void SetTries(const int n);
+
+    // Not supported for index data points:
+    virtual bool start_reading(DataBufferPar&) { return false; };
+    virtual bool start_writing(DataBufferPar&,
+                               DataCallback* = NULL) { return false; };
+    virtual bool stop_reading() { return false; };
+    virtual bool stop_writing() { return false; };
+    virtual bool analyze(analyze_t&) { return false; };
+    virtual bool check() { return false; };
+    virtual bool local() const { return false; };
+    virtual bool remove() { return false; };
+    virtual bool out_of_order() { return false; };
+    virtual void out_of_order(bool) {};
+    virtual void additional_checks(bool) {};
+    virtual bool additional_checks() { return false; };
+    virtual void secure(bool) {};
+    virtual bool secure() { return false; };
+    virtual void passive(bool) {};
+    virtual failure_reason_t failure_reason() { return common_failure; };
+    virtual void range(unsigned long long int = 0,
+                       unsigned long long int = 0) {};
   };
 
 } // namespace Arc
