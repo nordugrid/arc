@@ -28,8 +28,8 @@ Config::Config(const char *filename)
     // create XMLNode
     xmlDocPtr doc = _parse(filename);
     if(!doc) return;
-    node_=(xmlNodePtr)doc;
-    is_owner_=true;
+    node_=doc->children;
+    if(node_) is_owner_=true;
 }
 
 Config::~Config(void) 
@@ -63,8 +63,8 @@ void Config::parse(const char *filename)
     // create XMLNode
     xmlDocPtr doc = _parse(filename);
     if(!doc) return;
-    node_=(xmlNodePtr)doc;
-    is_owner_=true;
+    node_=doc->children;
+    if(node_) is_owner_=true;
 }
 
 } // namespace Arc

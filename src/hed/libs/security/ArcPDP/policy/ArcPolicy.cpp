@@ -16,7 +16,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
   node.New(policynode);
 
   std::string xml;
-  policynode.GetXML(xml);
+  policynode.GetDoc(xml);
   std::cout<<xml<<std::endl;
   
   //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, EvalResult.node can include rule(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all the original rules.
@@ -46,7 +46,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     description = (std::string)(nd["Description"]);  
   }
   
-  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id.c_str(), (comalg->getalgId()).c_str());
+  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id.c_str(), comalg?(comalg->getalgId()).c_str():"");
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
@@ -68,7 +68,7 @@ MatchResult ArcPolicy::match(EvaluationCtx*){// ctx){
 }
 
 Result ArcPolicy::eval(EvaluationCtx* ctx){
-  Result result = comalg->combine(ctx, subelements);
+  Result result = comalg?comalg->combine(ctx, subelements):DECISION_INDETERMINATE;
   if(result == DECISION_PERMIT) evalres.effect = "Permit";
   else if(result == DECISION_DENY) evalres.effect = "Deny";
   else if(result == DECISION_INDETERMINATE) evalres.effect = "Indeterminate";

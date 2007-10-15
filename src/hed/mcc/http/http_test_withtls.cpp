@@ -18,7 +18,7 @@ void test1(void) {
 
   Arc::NS ns;
   Arc::Config c(ns);
-  Arc::XMLNode cfg = c.NewChild("ArcConfig");
+  Arc::XMLNode cfg = c;
   Arc::XMLNode mgr = cfg.NewChild("ModuleManager");
   Arc::XMLNode pth1 = mgr.NewChild("Path");
   pth1 = "../tcp/.libs";
@@ -72,7 +72,7 @@ void test1(void) {
   Arc::XMLNode httpep = http.NewChild("Endpoint");
   httpep = url.str();
 
-  std::cout<<"------ Configureation ------"<<std::endl;
+  std::cout<<"------ Configuration ------"<<std::endl;
   std::string cfgstr;
   c.GetXML(cfgstr);
   std::cerr << cfgstr << std::endl;

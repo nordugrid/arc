@@ -26,7 +26,7 @@ static void shutdown(int)
 
 static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 {   
-    Arc::XMLNode srv = cfg["ArcConfig"]["Server"];
+    Arc::XMLNode srv = cfg["Server"];
     if (!(bool)srv) {
       logger.msg(Arc::ERROR, "No server config part of config file");
       return;
@@ -48,7 +48,7 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 static std::string init_logger(Arc::Config& cfg)
 {   
     /* setup root logger */
-    Arc::XMLNode log = cfg["ArcConfig"]["Server"]["Logger"];
+    Arc::XMLNode log = cfg["Server"]["Logger"];
     std::string log_file = (std::string)log;
     std::string str = (std::string)log.Attribute("level");
     Arc::LogLevel level = Arc::string_to_level(str);
@@ -56,7 +56,7 @@ static std::string init_logger(Arc::Config& cfg)
     std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::app);
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
     Arc::Logger::rootLogger.addDestination(*sd);
-    if ((bool)cfg["ArcConfig"]["Server"]["Foreground"]) {
+    if ((bool)cfg["Server"]["Foreground"]) {
       logger.msg(Arc::INFO, "Start foreground");
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
       Arc::Logger::rootLogger.addDestination(*err);
@@ -86,10 +86,14 @@ int main(int argc, char **argv)
 	      logger.msg(Arc::ERROR, "Failed to load service configuration");
 	      exit(1);
             };
+            if(!MatchXMLName(config,"ArcConfig")) {
+              logger.msg(Arc::ERROR, "Configuration root element is not ArcConfig");
+	      exit(1);
+            }
 
             /* overwrite config variables by cmdline options */
             merge_options_and_config(config, options);
-            std::string pid_file = (std::string)config["ArcServer"]["Server"]["PidFile"];
+            std::string pid_file = (std::string)config["Server"]["PidFile"];
             /* initalize logger infrastucture */
             std::string root_log_file = init_logger(config);
 
@@ -97,7 +101,7 @@ int main(int argc, char **argv)
             signal(SIGTERM, shutdown);
             
             // demonize if the foreground options was not set
-            if (!(bool)config["ArcConfig"]["Server"]["Foreground"]) {
+            if (!(bool)config["Server"]["Foreground"]) {
                 main_daemon = new Arc::Daemon(pid_file, root_log_file);
             } else {
                 signal(SIGINT, shutdown);

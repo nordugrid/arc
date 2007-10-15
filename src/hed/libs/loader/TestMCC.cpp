@@ -10,7 +10,10 @@ namespace Test {
 
 TestMCC::TestMCC(Arc::Config *cfg) : MCC(cfg)
 {
+    std::string s;
     std::cout << "Init: TestMCC" << std::endl;
+    cfg->GetXML(s);
+    std::cout << "Configuration:\n" << s << std::endl;
     a = 1;
 }
 

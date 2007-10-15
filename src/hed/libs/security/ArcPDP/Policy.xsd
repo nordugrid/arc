@@ -1,48 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:policy-arc="http://www.nordugrid.org/schemas/policy-arc" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.nordugrid.org/schemas/policy-arc" elementFormDefault="qualified" attributeFormDefault="unqualified">
+<xsd:schema
+   xmlns:policy-arc="http://www.nordugrid.org/schemas/policy-arc"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/policy-arc"
+   elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
 
-<!--One Policy is composed of a few Rules; one Rule is composed of a tuple <Subjects, Resources, Actions, Conditions>, and each Rule 
- has one Effect: Permit or Deny.-->
+<!--One Policy is composed of a few Rules; 
+    one Rule is composed of a tuple <Subjects, Resources, Actions, Conditions>, 
+    and each Rule has one Decision: Permit or Deny.
+  -->
 <!--The policy definition is inspired by XACML and GACL;
-It is not complicated as XACML, but not so adapatable and general as XACML as well. We need to implement a specific PDP for Arc in order to use it, just lik
-e GACL does;
-The element and attribute in the policy can only be understood by ArcPDP;
-Because of the similiarity with XACML, the policy can be conventially translated into XACML by implemeting some special translating package. And then the ge
-neral XACML policy expression and PDP can be used, if we need to use some standard XACML policy and do not want to write some complicated XACML policy;
-Each servicei or resource can has one authorization policy file. 
-It the policy enforcement point only includes one entity, then "Resources" can be omitted;
+    It is not as complicated as XACML, but not so adapatable and general as XACML as well.
+    We need to implement a specific PDP for Arc in order to use it, just like GACL does;
+    The elements and attributes in the policy can only be understood by ArcPDP;
+    Because of the similiarity with XACML, the policy can be conventially translated into XACML by 
+    implemeting some special translating package. And then the general XACML policy expression and 
+    PDP can be used, if we need to use some standard XACML policy and do not want to write some 
+    complicated XACML policy;
+    Each service or resource can have one authorization policy file. 
+    It the policy enforcement point only includes one entity, then "Resources" can be omitted;
   -->
 
+ <!-- Human-readable description of element -->
  <xsd:element name="Description" type="xsd:string"/>
 
+ <!-- Authorization policy is combination of Rules. Rules evalutaion results
+      are combined according to specified rule combinning algorithm. -->
  <xsd:element name="Policy" type="policy-arc:PolicyType"/>
  <xsd:complexType name="PolicyType">
   <xsd:sequence>
    <xsd:element ref="policy-arc:Description" minOccurs="0"/>
    <xsd:element ref="policy-arc:Rule" minOccurs="1" maxOccurs="unbounded"/>
   </xsd:sequence>
-  <xsd:attribute name="PolicyId" type="xsd:anyURI" use="required"/>
-  <!--RuleCombiningAlgId, Combining Algorithm for Rules,  e.g. "DenyOveride" means any "Deny" evaluation result from some Rule will overide 
-  all "Permit" result from the other Rules. -->
-  <xsd:attribute name="RuleCombiningAlgId" type="xsd:anyURI"/> 
+  <xsd:attribute name="Id" type="xsd:anyURI" use="required"/>
+  <!-- Combining Algorithm for Rules,  e.g. "DenyOverride" means any "Deny" evaluation 
+       resulting from any Rule will override all "Permit" results from the other Rules. -->
+  <xsd:attribute name="RuleCombiningAlg" type="xsd:anyURI"/> 
  </xsd:complexType>
 
 
- <!--One rule is a unit of decision-making, which means there is implicit relationship among <Subjects, Resources, Actios, Conditions>. 
+ <!--One rule is a unit of decision-making, which means there is implicit relationship 
+  among <Subjects, Resources, Actions, Conditions>. 
   There are some principles about the Rule definition:
-   1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually <Subjects, Resources, Actios, Conditions, Effect>). 
-      The policy administrator should define the rules according to granuality of Actions and Resources, and constraints to Subjects. 
-      For example, there is a Rule: <UserA/UserB, FileX, Read/List, 14:00, Permit>, if the administrator wants to add "Delete" permssion 
-      for "UserA/UserB" to "FileX" at Condition "14:00", then the constraint can be added to the existing rule: <UserA/UserB, FileX, Read/List/Delete, 
-      14:00, Permit>; Otherwise,if any of the other element (Subjects, Resources, Conditions, Effect) does not match, he should add a new Rule.
+   1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually 
+      <Subjects, Resources, Actios, Conditions, Effect>). The policy administrator should 
+      define the rules according to granularity of Actions and Resources, and constraints 
+      to Subjects. For example, there is a Rule: <UserA/UserB, FileX, Read/List, 14:00, Permit>.
+      If the administrator wants to add "Delete" permssion for "UserA/UserB" to "FileX" at Condition 
+      "14:00", then the constraint can be added to the existing rule: <UserA/UserB, FileX, Read/List/Delete, 
+      14:00, Permit>; Otherwise, if any of the other element (Subjects, Resources, Conditions, Effect) 
+      does not match, he should add a new Rule.
    2. Subjects is a must element for each Rule. Each Rule must have one and only one Requests element.
    3. Each Rule can have zero or one Resources, Actions, Conditions element. 
-      If the policy is attached to some specified Resource, then Resources element is not necessary, just like GACL policy which is attached to each files;
-      If the operation to the Resources are only one, then Actions element can be missing, just lile gridmap in which the operation is the all the
-      permission of a specified system user.
-      If there is no Conditions constrains, the Conditions element can be missing.
-      Moreover, the absence of one or more elements can make the Rule more general, and then we can need less items of rules. But the price is more
-      coarse granuality. -->
+      If the policy is attached to some specified Resource, then Resources element is not necessary, 
+      just like GACL policy which is attached to each files. If there is only one operation applicable to 
+      the Resources then Actions element can be omittes, just lile gridmap in which the operation is to grant
+      all permissions of a specified system to user.
+      If there is no Conditions constrains, the Conditions element can be omittted.
+      Moreover, the absence of one or more elements can make the Rule more general, and then we can need less 
+      items of rules. But the price is more coarse granularity. -->
  <xsd:element name="Rule" type="policy-arc:RuleType"/>
  <xsd:complexType name="RuleType">
   <xsd:sequence> 
@@ -52,115 +69,102 @@ It the policy enforcement point only includes one entity, then "Resources" can b
    <xsd:element ref="policy-arc:Actions" minOccurs="0"/>
    <xsd:element ref="policy-arc:Conditions" minOccurs="0"/>
   </xsd:sequence>
-  <xsd:attribute name="RuleId" type="xsd:string" use="required"/>
-  <xsd:attribute name="Effect" type="policy-arc:EffectType" use="required"/>
+  <xsd:attribute name="Id" type="xsd:string" use="required"/>
+  <xsd:attribute name="Decision" type="policy-arc:DecisionType" use="required"/>
  </xsd:complexType> 
 
 
- <!--Some common definition-->
+ <!--Some common definitions-->
  
- <xsd:simpleType name="EffectType">
+ <!-- Decision to be made by evaluation of Rule. -->
+ <xsd:simpleType name="DecisionType">
   <xsd:restriction base="xsd:string">
    <xsd:enumeration value="Permit"/>
    <xsd:enumeration value="Deny"/>
   </xsd:restriction>
  </xsd:simpleType>
 
- <xsd:element name="GroupIdRef" type="policy-arc:IdRefType"/>
-
- <xsd:complexType name="IdRefType">
+ <!--Ref element is used to by Subjects, Resources, Actions and Conditions to 
+   refer to other set of corresponding elements defined out of scope of 
+   refering element.
+   -->
+ <xsd:element name="Ref" type="policy-arc:RefType"/>
+ <xsd:complexType name="RefType">
   <xsd:simpleContent>
-   <!--e.g. Specify the "Id" inside a file "Group" information-->
+   <!--Identifier of refered element-->
    <xsd:extension base="xsd:anyURI">
-    <!--e.g. "Location" specifies the path of "Group" information file-->
+    <!--Location specifies location (usually local path) of file containing refered element-->
     <xsd:attribute name="Location" type="xsd:anyURI" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
 
- 
-
  <!--Definition of Subjects-->
  <xsd:element name="Subjects" type="policy-arc:SubjectsType"/>
+ <xsd:element name="SubjectsRef" type="policy-arc:RefType"/>
  <xsd:complexType name="SubjectsType">
-  <!-- -->
   <xsd:choice maxOccurs="unbounded">
-   <xsd:element ref="policy-arc:GroupIdRef"/>   
+   <!--Reference to external Subjects element which is optionally stored in a separate file--> 
+   <xsd:element ref="policy-arc:SubjectsRef"/>
+   <!--Subject to which rule should be applied-->
    <xsd:element ref="policy-arc:Subject"/>
   </xsd:choice>
+  <!-- ??? -->
   <xsd:attribute name="Type" type="xsd:string"/>
+  <!-- Identifier for external reference-->
+  <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
  </xsd:complexType>
-
- <!--"SubjectGroup" information includes a few Subject, and is stored in a file independent to policy file--> 
- <xsd:element name="SubjectGroup" type="policy-arc:SubjectGroupType"/>
- <xsd:complexType name="SubjectGroupType">
-  <xsd:sequence>
-   <xsd:element ref="policy-arc:Subject" maxOccures="unbounded"/>
-  </xsd:sequence>
-  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
- </xsd:complexType> 
 
  <xsd:element name="Subject" type="policy-arc:SubjectType"/>
  <xsd:complexType name="SubjectType">
-  <!--One choice, if there are more than two fractions in one Subject, the request should match all of these fractions: 
+  <!--If there are more than one Elements in one Subject, the request should match all of these: 
       <Subject>
-       <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</SubjectFraction>
-       <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubjectFraction>
+       <Element Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Element>
+       <Element Type="ShibName">urn:mace:shibboleth:examples</Element>
       </Subject>-->
   <xsd:sequence>
-   <xsd:element ref="policy-arc:SubFraction" maxOccurs="unbounded"/>
+   <xsd:element name="Element" maxOccurs="unbounded">
+     <xsd:complexType>
+      <xsd:simpleContent>
+       <xsd:extension base="xsd:string">
+        <xsd:attribute name="Type" type="xsd:string"/>
+       </xsd:extension>
+      </xsd:simpleContent>
+     </xsd:complexType>
+   </xsd:element>
   </xsd:sequence>
-   <!-- The other choice:  <Subject Type="X509DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>  -->
-  <xsd:simpleContent>
-   <xsd:extension base="xsd:string">
-    <xsd:attribute name="Type" type="xsd:string"/>
-   </xsd:extension>
-  </xsd:simpleContent>
  </xsd:complexType>
 
- <xsd:element name="SubFraction" type="policy-arc:SubFractionType"/>
- <xsd:complexType name="SubFractionType">
-  <xsd:simpleContent>
-   <xsd:extension base="xsd:string">
-    <xsd:attribute name="Type" type="xsd:string"/>
-   </xsd:extension>
-  </xsd:simpleContent>
- </xsd:complexType>
- 
- 
  <!--Definition of Resources, similar to the definition of Subjects-->
+ <xsd:element name="ResourcesRef" type="policy-arc:RefType"/>
  <xsd:element name="Resources" type="policy-arc:ResourcesType"/>
  <xsd:complexType name="ResourcesType">
   <!-- -->
   <xsd:choice maxOccurs="unbounded">
-   <xsd:element ref="policy-arc:GroupIdRef"/>
+   <xsd:element ref="policy-arc:ResourcesRef"/>
    <xsd:element ref="policy-arc:Resource"/>
   </xsd:choice>
+  <!-- Type ??? -->
+  <!-- Identifier for external reference-->
+  <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
  </xsd:complexType>
 
- <!--"ResourceGroup" information includes a few Resource, and is stored in a file independent to policy file-->
- <xsd:element name="ResourceGroup" type="policy-arc:ResourceGroupType"/>
- <xsd:complexType name="ResourceGroupType">
-  <xsd:sequence>
-   <xsd:element ref="policy-arc:Resource" maxOccures="unbounded"/>
-  </xsd:sequence>
-  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
- </xsd:complexType>
-
+ <!--Definition of Resource to which policy applies-->
  <xsd:element name="Resource" type="policy-arc:ResourceType"/>
  <xsd:complexType name="ResourceType">
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
+    <!-- ??? -->
     <xsd:attribute name="Type" type="xsd:string"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
 
 
- <!--Definition of Actions-->
+ <!--Definition of Actions which may be requested-->
  <xsd:element name="Actions" type="policy-arc:ActionsType"/>
  <xsd:complexType name="ActionsType">
-  <!-- -->
+  <!--Set of Action elements each of which corresponding rule covers-->
   <xsd:sequence maxOccurs="unbounded">
    <xsd:element ref="policy-arc:Action"/>
   </xsd:sequence>
@@ -168,8 +172,9 @@ It the policy enforcement point only includes one entity, then "Resources" can b
 
  <xsd:element name="Action" type="policy-arc:ActionType"/>
  <xsd:complexType name="ActionType">
-   <!-- The "Type" is defined to distinguish different types of operations: e.g. Storage (read/write/list ...), Job(submit/list/kill/status ...) -->
-   <!--  <Action Type="Storage">Read</Action>   -->
+   <!-- The "Type" is defined to distinguish different types of services for operations:
+      e.g. Storage (Read/Write/List ...), Job(Submit/List/Kill/Status ...)
+      Like <Action Type="Storage">Read</Action>   -->
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
     <xsd:attribute name="Type" type="xsd:string" use="optional"/>
@@ -178,51 +183,40 @@ It the policy enforcement point only includes one entity, then "Resources" can b
  </xsd:complexType>
 
 
- <!--Definition of Conditions, Conditions is more complicated than Resouces, Subjects or Actions:
-   The definition of Conditions is complicated, because there can be many types of conditions: Time, Duration, URI, etc.;
-   The match-making of Conditions with Request.Contex (See schema definition of Request) is complicated, because for each types of Condition, the
-   match-making algorithm should be different.  Not like the situation, we implicitly use simple "string1 == string2" for match-making. -->
+ <!--Definition of Conditions. 
+   The definition of Conditions is complicated, because there can be many types of conditions: 
+   Time, Duration, URI, etc.;
+   The match-making of Conditions with Request.Contex (See schema definition of Request) is complicated, 
+   because for each type of Condition requires own match-making algorithm. Simple "string1 == string2" 
+   match-making is not adequate in this case. -->
  <!--The relationship between CondFractions is "and"; The relationship between Condition is "or" -->
  <xsd:element name="Conditions" type="policy-arc:ConditionsType"/>
+ <xsd:element name="ConditionsRef" type="policy-arc:RefType"/>
  <xsd:complexType name="ConditionsType">
   <xsd:choice maxOccurs="unbounded">
-   <xsd:element ref="policy-arc:GroupIdRef"/>
+   <!--Reference to Conditions optionally stored in a separate file. It is reasonable when the 
+     administrator wants to define some general condition constraints.-->
+   <xsd:element ref="policy-arc:ConditionsRef"/>
    <xsd:element ref="policy-arc:Condition"/>
   </xsd:choice>
- </xsd:complexType>
-
- <!--"ConditionGroup" information includes a few Conditions, and is stored in a file independent to policy file. It is reasonable when the 
- administrator wants to define some general condition constraints.-->
- <xsd:element name="ConditionGroup" type="policy-arc:ConditionGroupType"/>
- <xsd:complexType name="ConditionGroupType">
-  <xsd:sequence>
-   <xsd:element ref="policy-arc:Condition" maxOccures="unbounded"/>
-  </xsd:sequence>
-  <xsd:attribute name="GroupId" type="xsd:anyURI" use="required"/>
+  <!-- Identifier for external reference-->  
+  <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
  </xsd:complexType>
 
  <xsd:element name="Condition" type="policy-arc:ConditionType"/>
  <xsd:complexType name="ConditionType">
-  <!--One choice, if there are more than two fractions in one Condition, the request should match all of these fractions.-->
-  <xsd:sequence minOccures="2">
-   <xsd:element ref="policy-arc:CondFraction" maxOccurs="unbounded"/>
+  <!--If there are more than one elements in one Condition, the request should match all of these.-->
+  <xsd:sequence>
+   <xsd:element name="Element" maxOccurs="unbounded">
+    <xsd:complexType>
+     <xsd:complexContent>
+      <xsd:extension base="policy-arc:VariableType">
+       <xsd:attribute name="Type" type="xsd:string"/>
+      </xsd:extension>
+     </xsd:complexContent>
+    </xsd:complexType>
+   </xsd:element>
   </xsd:sequence>
-
-  <!-- The other choice:  -->
-  <xsd:complexContent>
-   <xsd:extension base="policy-arc:VariableType">
-    <xsd:attribute name="Type" type="xsd:string"/>
-   </xsd:extension>
-  </xsd:complexContent>
- </xsd:complexType>
-
- <xsd:element name="CondFraction" type="policy-arc:CondFractionType"/>
- <xsd:complexType name="CondFractionType">
-  <xsd:complexContent>
-   <xsd:extension base="policy-arc:VariableType">
-    <xsd:attribute name="Type" type="xsd:string"/>
-   </xsd:extension>
-  </xsd:complexContent>
  </xsd:complexType>
 
  <xsd:element name="Variable" type="policy-arc:VariableType" abstract="true"/>

@@ -67,15 +67,32 @@ PayloadTLSSocket::PayloadTLSSocket(PayloadStream& s, SSL_CTX *ctx,
 
 
 PayloadTLSSocket::~PayloadTLSSocket(void) {
+  if(ssl_) {
+    int count = 10;
+    while(count > 0) {
+      int err = SSL_shutdown(ssl_);
+      if(err == 1) break;
+      count++; sleep(1);
+      if(err == 0) continue;
+      err=SSL_get_error(ssl_,err);
+      if(err == SSL_ERROR_WANT_READ) {
+      } else if(err == SSL_ERROR_WANT_WRITE) {
+      } else {
+	logger.msg(WARNING, "Failed to shut down SSL");
+        SSL_set_shutdown(ssl_,SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
+        break;
+      };
+    };
+
 /*
    unsigned long err = 0;
    int counter=0;
-*/
+*
    if(ssl_) { 
       if(SSL_shutdown(ssl_) == 0) {
 	logger.msg(WARNING, "Failed to shut down SSL");
       };
-/*
+*
     while((err==0)&&(counter<60)){
 	err=SSL_shutdown(ssl_);
 	if (err==0){

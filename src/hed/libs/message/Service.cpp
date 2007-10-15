@@ -6,7 +6,7 @@
 
 namespace Arc {
 
-Logger Service::logger(Logger::rootLogger, "Service");
+Logger Service::logger(Logger::getRootLogger(), "Service");
 
 void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std::string& label) {
     if(sechandler) {

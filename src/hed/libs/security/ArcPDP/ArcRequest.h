@@ -30,7 +30,7 @@ public:
   ArcRequest (const std::string& filename);
 
   //**Parse request information from a xml stucture in memory*/
-  ArcRequest (Arc::XMLNode& node);
+  ArcRequest (const Arc::XMLNode& node);
   virtual ~ArcRequest();
 
   void make_request();

@@ -18,7 +18,7 @@ void ArcRequest::setRequestItems (ReqItemList sl){
 }
 
 void ArcRequest::addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx){
-  XMLNode request = reqnode.Child();
+  XMLNode request = reqnode;
   XMLNode requestitem = request.NewChild("ra:RequestItem");
 
   XMLNode subject = requestitem.NewChild("ra:Subject");
@@ -91,7 +91,7 @@ void ArcRequest::addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx){
   }
 
   std::string xml;
-  reqnode.GetXML(xml);
+  reqnode.GetDoc(xml);
   std::cout<<xml<<std::endl; 
 
 }
@@ -125,21 +125,21 @@ ArcRequest::ArcRequest(const std::string& filename) : Request(filename) {
   f.close();
 
   Arc::XMLNode node(xml_str);
+  NS ns;
+  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  node.Namespaces(ns);
   node.New(reqnode);
 }
 
-ArcRequest::ArcRequest (XMLNode& node) : Request(node) {
+ArcRequest::ArcRequest (const XMLNode& node) : Request(node) {
   node.New(reqnode);
 }
 
 ArcRequest::ArcRequest () {
   NS ns;
   ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  XMLNode reqdoc(ns);
-  XMLNode request = reqdoc.NewChild("ra:Request");
-  request.Namespaces(ns);
-  
-  reqdoc.New(reqnode);
+  XMLNode request(ns,"ra:Request");
+  request.New(reqnode);
 }
 
 ArcRequest::~ArcRequest(){

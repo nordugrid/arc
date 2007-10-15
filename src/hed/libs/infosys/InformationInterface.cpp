@@ -174,7 +174,7 @@ void InformationContainer::Assign(XMLNode doc,bool copy) {
 std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path) {
   std::list<XMLNode> cur_list;
   std::list<std::string>::const_iterator cur_name = path.begin();
-  cur_list.push_back(doc_.Child());
+  cur_list.push_back(doc_);
   for(;cur_name != path.end(); ++cur_name) {
     std::list<XMLNode> new_list;
     for(std::list<XMLNode>::iterator cur_node = cur_list.begin();

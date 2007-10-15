@@ -82,7 +82,7 @@ class SOAPEnvelope: public XMLNode {
   SOAPEnvelope(const NS& ns,bool fault = false);
   /** Acquire XML document as SOAP message.
     Created XML structure is NOT owned by this instance. */
-  SOAPEnvelope(XMLNode doc);
+  SOAPEnvelope(XMLNode root);
   /** Create a copy of another SOAPEnvelope object. */
   SOAPEnvelope(const SOAPEnvelope& soap);
   ~SOAPEnvelope(void);
@@ -108,8 +108,7 @@ class SOAPEnvelope: public XMLNode {
   /** Makes this object a copy of another SOAPEnvelope object. */
   SOAPEnvelope& operator=(const SOAPEnvelope& soap);
  private:
-  XMLNode doc;      /** Top XML node - XML document */
-  XMLNode envelope; /** Envelope element of SOAP */
+  XMLNode envelope; /** Envelope element of SOAP and owner of XML tree */
   XMLNode header;   /** Header element of SOAP */
   XMLNode body;     /** Body element of SOAP */
   SOAPFault* fault; //**Fault element of SOAP, NULL if message is not a fault. */

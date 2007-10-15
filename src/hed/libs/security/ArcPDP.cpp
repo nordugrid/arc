@@ -47,9 +47,7 @@ bool ArcPDP::isPermitted(Message *msg){
   
   NS ns;
   ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  XMLNode reqdoc(ns);
-  XMLNode request = reqdoc.NewChild("ra:Request");
-  request.Namespaces(ns);
+  XMLNode request(ns,"ra:Request");
   XMLNode requestitem = request.NewChild("ra:RequestItem");
 
   XMLNode sub = requestitem.NewChild("ra:Subject");
@@ -75,12 +73,12 @@ bool ArcPDP::isPermitted(Message *msg){
   actionType = "string";
 
   std::string req_str;  
-  reqdoc.GetXML(req_str);
+  request.GetDoc(req_str);
   logger.msg(INFO, "%s", req_str.c_str());
 
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml");
-  resp = eval->evaluate(reqdoc);
+  resp = eval->evaluate(request);
   logger.msg(INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();

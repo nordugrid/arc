@@ -24,49 +24,57 @@ int main(void)
     }
     f.close();
 
-    //Get the "chile2" node with namespace "uri:bbb" inside the root node
+    std::cout << "Get the \"child2\" node with namespace \"uri:bbb\" inside the root node" << std::endl;
+
     Arc::NS nsList;
     nsList.insert(std::pair<std::string, std::string>("test","uri:bbb"));
-    Arc::XMLNode doc(xml_str);
-    std::list<Arc::XMLNode> list = doc.XPathLookup("//test:child2", nsList);
+    Arc::XMLNode root(xml_str);
+    std::list<Arc::XMLNode> list = root.XPathLookup("//test:child2", nsList);
     std::list<Arc::XMLNode>::iterator it;
     for ( it=list.begin() ; it != list.end(); it++ ){
-      std::cout << (*it).Name() << std::endl;       
+      std::cout << (*it).FullName() << ":" << (std::string)(*it) << std::endl;       
     }
     
     std::cout << "************************" << std::endl;
     
-    //Get the "child2" node with namespace "uri:ccc" inside the root node
+    std::cout << "Get the \"child2\" node with namespace \"uri:ccc\" inside the root node" << std::endl;
+
     nsList.erase("test");
     nsList.insert(std::pair<std::string, std::string>("test1","uri:ccc"));
-    list = doc.XPathLookup("//test1:child2", nsList);
+    list = root.XPathLookup("//test1:child2", nsList);
     for ( it=list.begin() ; it != list.end(); it++ ){
-      std::cout << (*it).Name() << std::endl;
+      std::cout << (*it).FullName() << ":" << (std::string)(*it) << std::endl;
     }
 
+    std::cout << "************************" << std::endl;
    
-    //Get the "parent"node with namespace "uri:bbb" inside the root node
+    std::cout << "Get the \"parent\" node with namespace \"uri:bbb\" inside the root node" << std::endl;
+
     nsList.erase("test1");
     nsList.insert(std::pair<std::string, std::string>("test2","uri:bbb"));
-    list = doc.XPathLookup("//test2:parent", nsList);
+    list = root.XPathLookup("//test2:parent", nsList);
     Arc::XMLNode tmp;
     for ( it=list.begin() ; it != list.end(); it++ ){
       tmp=*it;
-      std::cout << (*it).Name() << std::endl;
+      std::cout << (*it).FullName() << ":" << (std::string)(*it) << std::endl;
     }   
 
-    //tmp = doc; 
-    tmp = doc.Child();
+    tmp = root.Child();
     std::string tmpndstr;
     tmp.GetXML(tmpndstr);
+
+    std::cout << "************************" << std::endl;
+   
     std::cout<<"Now the current node is: "<< tmpndstr <<std::endl;
-    //Find the "child2" node with namespace "uri:ccc" and inside the "parent" node, does not work.
+
+    std::cout<<"Looking for the \"child2\" node with namespace \"uri:ccc\"" <<std::endl;
+
     nsList.erase("test2");
-    nsList.insert(std::pair<std::string, std::string>("test3","uri:bbb"));
-    list = tmp.XPathLookup("//test3:child2", nsList);      //To illustrate only "root" can call XPathLookup method
+    nsList.insert(std::pair<std::string, std::string>("test3","uri:ccc"));
+    list = tmp.XPathLookup("//test3:child2", nsList);
     for ( it=list.begin() ; it != list.end(); it++ ){
-      std::cout << (*it).Name() << std::endl;
-      std::cout <<"Can get the node by search from the non-doc node"<< std::endl;
+      std::cout << (*it).FullName() << ":" << (std::string)(*it) << std::endl;
+      std::cout <<"Can get the node by search from the non-root node"<< std::endl;
     }
     
     return 0;

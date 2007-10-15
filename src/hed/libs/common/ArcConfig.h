@@ -23,7 +23,7 @@ class Config: public Arc::XMLNode {
 	/** Dummy constructor - produces invalid structure */
         Config() { };
 	/** Creates empty XML tree */
-        Config(const NS& ns): XMLNode(ns) { };
+        Config(const NS& ns): XMLNode(ns,"ArcConfig") { };
 	/** Loads configuration document from file 'filename' */
         Config(const char *filename);
 	/** Parse configuration document from memory */

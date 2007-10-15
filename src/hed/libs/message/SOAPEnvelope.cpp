@@ -15,18 +15,13 @@ SOAPEnvelope::SOAPEnvelope(const char* s,int l):XMLNode(s,l) {
 }
 
 SOAPEnvelope::SOAPEnvelope(const SOAPEnvelope& soap):XMLNode(),fault(NULL) {
-  soap.doc.New(*this);
+  soap.envelope.New(*this);
   set();
 }
 
-SOAPEnvelope::~SOAPEnvelope(void) {
-  if(fault) delete fault;
-}
-
-SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
+SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns,"Envelope"),fault(NULL) {
   XMLNode& it = *this;
   if(!it) return;
-  envelope=NewChild(":soap-env:Envelope");
   ver12=false;
   for(NS::const_iterator i = ns.begin();i!=ns.end();++i) {
     if(i->second == "http://www.w3.org/2003/05/soap-envelope") {
@@ -43,13 +38,13 @@ SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   };
   ns_["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
   ns_["xsd"]="http://www.w3.org/2001/XMLSchema";
-  Namespaces(ns_);
-  Namespaces(ns);
-  envelope.Name("soap-env:Envelope");
-  header=envelope.NewChild("soap-env:Header");
-  body=envelope.NewChild("soap-env:Body");
-  doc=it; ((SOAPEnvelope*)(&doc))->is_owner_=true;
-  is_owner_=false; node_=((SOAPEnvelope*)(&body))->node_;
+  XMLNode::Namespaces(ns_);
+  // XMLNode::Namespaces(ns); 
+  XMLNode::Name("soap-env:Envelope"); // Fixing namespace
+  header=XMLNode::NewChild("soap-env:Header");
+  body=XMLNode::NewChild("soap-env:Body");
+  envelope=it; ((SOAPEnvelope*)(&envelope))->is_owner_=true;
+  XMLNode::is_owner_=false; XMLNode::node_=((SOAPEnvelope*)(&body))->node_;
   if(f) {
     XMLNode fault_n = body.NewChild("soap-env:Fault");
     if(ver12) {
@@ -67,18 +62,23 @@ SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns),fault(NULL) {
   };
 }
 
-SOAPEnvelope::SOAPEnvelope(XMLNode doc):XMLNode(doc),fault(NULL) {
+SOAPEnvelope::SOAPEnvelope(XMLNode root):XMLNode(root),fault(NULL) {
+  if(!node_) return;
+  if(node_->type != XML_ELEMENT_NODE) { node_=NULL; return; };
   set();
+}
+
+SOAPEnvelope::~SOAPEnvelope(void) {
+  if(fault) delete fault;
 }
 
 // This function is only called from constructor
 void SOAPEnvelope::set(void) {
-  // TODO: check type of node = DOCUMENT
   fault=NULL;
   XMLNode& it = *this;
   if(!it) return;
   ver12=false;
-  if(!it.Child().NamespacePrefix("http://www.w3.org/2003/05/soap-envelope").empty()) ver12=true;
+  if(!it.NamespacePrefix("http://www.w3.org/2003/05/soap-envelope").empty()) ver12=true;
   Arc::NS ns;
   if(ver12) {
     ns["soap-enc"]="http://www.w3.org/2003/05/soap-encoding";
@@ -90,10 +90,10 @@ void SOAPEnvelope::set(void) {
   ns["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
   ns["xsd"]="http://www.w3.org/2001/XMLSchema";
   it.Namespaces(ns);
-  envelope = it.Child();
+  envelope = it;
   if((!envelope) || (!MatchXMLName(envelope,"soap-env:Envelope"))) {
     // No SOAP Envelope found
-    if(is_owner_) xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
+    if(is_owner_) xmlFreeDoc(node_->doc); node_=NULL;
     return;
   };
   if(MatchXMLName(envelope.Child(0),"soap-env:Header")) {
@@ -105,13 +105,13 @@ void SOAPEnvelope::set(void) {
     body=envelope.Child(0);
     header=envelope.NewChild("soap-env:Header",0,true);
   };
-  if(!MatchXMLName(((SOAPEnvelope*)(&body))->node_,"soap-env:Body")) {
+  if(!MatchXMLName(body,"soap-env:Body")) {
     // No SOAP Body found
-    if(is_owner_) xmlFreeDoc((xmlDocPtr)node_); node_=NULL;
+    if(is_owner_) xmlFreeDoc(node_->doc); node_=NULL;
     return;
   };
-  // Store reference to XML document in doc.
-  doc=it; ((SOAPEnvelope*)(&doc))->is_owner_=is_owner_; // true
+  // Transfer ownership.
+  ((SOAPEnvelope*)(&envelope))->is_owner_=is_owner_; // true
   // Make this object represent SOAP Body
   is_owner_=false; 
   this->node_=((SOAPEnvelope*)(&body))->node_;
@@ -121,12 +121,12 @@ void SOAPEnvelope::set(void) {
 }
 
 SOAPEnvelope* SOAPEnvelope::New(void) {
-  XMLNode new_doc;
-  doc.New(new_doc);
-  SOAPEnvelope* new_soap = new SOAPEnvelope(new_doc);
+  XMLNode new_envelope;
+  envelope.New(new_envelope);
+  SOAPEnvelope* new_soap = new SOAPEnvelope(new_envelope);
   if(new_soap) {
-    ((SOAPEnvelope*)(&(new_soap->doc)))->is_owner_=true;
-    ((SOAPEnvelope*)(&new_doc))->is_owner_=false;
+    ((SOAPEnvelope*)(&(new_soap->envelope)))->is_owner_=true;
+    ((SOAPEnvelope*)(&new_envelope))->is_owner_=false;
   };
   return new_soap;
 }
@@ -139,11 +139,11 @@ void SOAPEnvelope::GetXML(std::string& xml) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
     it.header.Destroy();
-    doc.GetXML(xml);
+    envelope.GetDoc(xml);
     it.header=it.envelope.NewChild("soap-env:Header",0,true); 
     return;
   };
-  doc.GetXML(xml);
+  envelope.GetDoc(xml);
 }
 
 SOAPFault::SOAPFault(XMLNode& body) {
@@ -309,11 +309,10 @@ XMLNode SOAPFault::Detail(bool create) {
 SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
   if(fault) delete fault;
   fault=NULL;
-  doc=XMLNode();
   envelope=XMLNode();
   header=XMLNode();
   body=XMLNode();
-  soap.doc.New(*this);
+  soap.envelope.New(*this);
   set();
   return *this;
 }

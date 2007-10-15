@@ -27,7 +27,8 @@ ClassLoader::~ClassLoader(){
 
 void ClassLoader::load_all_instances(Config *cfg){
 
-  XMLNode root = (*cfg)["ArcConfig"];
+  XMLNode root = (*cfg);
+  if(!MatchXMLName(root,"ArcConfig")) return;
   for (int i = 0;;++i) {
     XMLNode plugins = root["Plugins"][i];
     if (!plugins) {
@@ -39,7 +40,7 @@ void ClassLoader::load_all_instances(Config *cfg){
     if(!(share_lib_name.empty())){
       module = ModuleManager::load(share_lib_name);
       if(module == NULL){
-        std::cout<<"Share library"<<share_lib_name<<"could not be loaded"<<std::endl;
+        std::cout<<"Loadable module "<<share_lib_name<<" could not be loaded"<<std::endl;
         return;
       }
     }
@@ -64,7 +65,7 @@ void ClassLoader::load_all_instances(Config *cfg){
           id_list.push_back(ptr);
         }
         else 
-          std::cout<<"There is no" << plugin_name <<"type plugin"<<std::endl;
+          std::cout<<"There is no " << plugin_name <<" type plugin"<<std::endl;
            
       }
     }

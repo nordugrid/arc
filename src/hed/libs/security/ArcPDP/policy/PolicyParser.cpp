@@ -35,7 +35,7 @@ void getfromURL(const std::string name, std::string& xml_policy){
 
   Arc::NS ns;
   Arc::Config c(ns);
-  Arc::XMLNode cfg = c.NewChild("ArcConfig");
+  Arc::XMLNode cfg = c;
   Arc::XMLNode mgr = cfg.NewChild("ModuleManager");
   Arc::XMLNode pth1 = mgr.NewChild("Path");
   pth1 = "../../../mcc/tcp/.libs";
@@ -75,9 +75,9 @@ void getfromURL(const std::string name, std::string& xml_policy){
   Arc::XMLNode httpep = http.NewChild("Endpoint");
   httpep = url.str();
 
-  std::cout<<"------ Configureation ------"<<std::endl;
+  std::cout<<"------ Configuration ------"<<std::endl;
   std::string cfgstr;
-  c.GetXML(cfgstr);
+  c.GetDoc(cfgstr);
   std::cerr << cfgstr << std::endl;
 
   Arc::Loader l(&c);

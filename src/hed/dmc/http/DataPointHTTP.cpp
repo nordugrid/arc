@@ -20,47 +20,46 @@ namespace Arc {
   bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
     Arc::NS ns;
     Arc::Config c(ns);
-    c.NewChild("ArcConfig");
-    c["ArcConfig"].NewChild("ModuleManager");
-    c["ArcConfig"]["ModuleManager"].NewChild("Path");
-    c["ArcConfig"]["ModuleManager"].NewChild("Path");
-    c["ArcConfig"]["ModuleManager"]["Path"][0] =
+    c.NewChild("ModuleManager");
+    c["ModuleManager"].NewChild("Path");
+    c["ModuleManager"].NewChild("Path");
+    c["ModuleManager"]["Path"][0] =
       "../../hed/mcc/tcp/.libs";
-    c["ArcConfig"]["ModuleManager"]["Path"][1] =
+    c["ModuleManager"]["Path"][1] =
       "../../hed/mcc/http/.libs";
-    c["ArcConfig"].NewChild("Plugins");
-    c["ArcConfig"].NewChild("Plugins");
-    c["ArcConfig"]["Plugins"][0].NewChild("Name");
-    c["ArcConfig"]["Plugins"][0]["Name"] = "mcctcp";
-    c["ArcConfig"]["Plugins"][1].NewChild("Name");
-    c["ArcConfig"]["Plugins"][1]["Name"] = "mcchttp";
-    c["ArcConfig"].NewChild("Chain");
-    c["ArcConfig"]["Chain"].NewChild("Component");
-    c["ArcConfig"]["Chain"].NewChild("Component");
-    c["ArcConfig"]["Chain"]["Component"][0].NewAttribute("name");
-    c["ArcConfig"]["Chain"]["Component"][0].Attribute("name") = "tcp.client";
-    c["ArcConfig"]["Chain"]["Component"][0].NewAttribute("id");
-    c["ArcConfig"]["Chain"]["Component"][0].Attribute("id") = "tcp";
-    c["ArcConfig"]["Chain"]["Component"][0].NewChild("Connect");
-    c["ArcConfig"]["Chain"]["Component"][0]["Connect"].NewChild("Host");
-    c["ArcConfig"]["Chain"]["Component"][0]["Connect"]["Host"] =
+    c.NewChild("Plugins");
+    c.NewChild("Plugins");
+    c["Plugins"][0].NewChild("Name");
+    c["Plugins"][0]["Name"] = "mcctcp";
+    c["Plugins"][1].NewChild("Name");
+    c["Plugins"][1]["Name"] = "mcchttp";
+    c.NewChild("Chain");
+    c["Chain"].NewChild("Component");
+    c["Chain"].NewChild("Component");
+    c["Chain"]["Component"][0].NewAttribute("name");
+    c["Chain"]["Component"][0].Attribute("name") = "tcp.client";
+    c["Chain"]["Component"][0].NewAttribute("id");
+    c["Chain"]["Component"][0].Attribute("id") = "tcp";
+    c["Chain"]["Component"][0].NewChild("Connect");
+    c["Chain"]["Component"][0]["Connect"].NewChild("Host");
+    c["Chain"]["Component"][0]["Connect"]["Host"] =
       url.Host();
-    c["ArcConfig"]["Chain"]["Component"][0]["Connect"].NewChild("Port");
-    c["ArcConfig"]["Chain"]["Component"][0]["Connect"]["Port"] =
+    c["Chain"]["Component"][0]["Connect"].NewChild("Port");
+    c["Chain"]["Component"][0]["Connect"]["Port"] =
       tostring(url.Port());
-    c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("name");
-    c["ArcConfig"]["Chain"]["Component"][1].Attribute("name") = "http.client";
-    c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("id");
-    c["ArcConfig"]["Chain"]["Component"][1].Attribute("id") = "http";
-    c["ArcConfig"]["Chain"]["Component"][1].NewAttribute("entry");
-    c["ArcConfig"]["Chain"]["Component"][1].Attribute("entry") = "http";
-    c["ArcConfig"]["Chain"]["Component"][1].NewChild("next");
-    c["ArcConfig"]["Chain"]["Component"][1]["next"].NewAttribute("id");
-    c["ArcConfig"]["Chain"]["Component"][1]["next"].Attribute("id") = "tcp";
-    c["ArcConfig"]["Chain"]["Component"][1].NewChild("Method");
-    c["ArcConfig"]["Chain"]["Component"][1]["Method"] = "GET";
-    c["ArcConfig"]["Chain"]["Component"][1].NewChild("Endpoint");
-    c["ArcConfig"]["Chain"]["Component"][1]["Endpoint"] = url.str();
+    c["Chain"]["Component"][1].NewAttribute("name");
+    c["Chain"]["Component"][1].Attribute("name") = "http.client";
+    c["Chain"]["Component"][1].NewAttribute("id");
+    c["Chain"]["Component"][1].Attribute("id") = "http";
+    c["Chain"]["Component"][1].NewAttribute("entry");
+    c["Chain"]["Component"][1].Attribute("entry") = "http";
+    c["Chain"]["Component"][1].NewChild("next");
+    c["Chain"]["Component"][1]["next"].NewAttribute("id");
+    c["Chain"]["Component"][1]["next"].Attribute("id") = "tcp";
+    c["Chain"]["Component"][1].NewChild("Method");
+    c["Chain"]["Component"][1]["Method"] = "GET";
+    c["Chain"]["Component"][1].NewChild("Endpoint");
+    c["Chain"]["Component"][1]["Endpoint"] = url.str();
 
     Arc::Loader l(&c);
 

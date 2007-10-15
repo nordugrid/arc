@@ -17,32 +17,33 @@ int main(void)
     ArcSec::AttributeFactory* attrfactory=NULL;
     attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id, &cfg));
 
-    if(attrfactory == NULL)
+    if(attrfactory == NULL) {
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
-   
-    Arc::XMLNode nd = cfg["ArcConfig"]["Plugins"]["Plugin"]; 
-    ArcSec::AttributeValue * val;
-    val = attrfactory->createValue(nd,"string");
-    std::string tmp1 = val->encode();
-    std::cout<<tmp1<<std::endl;
-    
-    delete attrfactory;
-     
+    } else {
+      Arc::XMLNode nd = cfg["Plugins"]["Plugin"]; 
+      ArcSec::AttributeValue * val;
+      val = attrfactory->createValue(nd,"string");
+      std::string tmp1 = val->encode();
+      std::cout<<tmp1<<std::endl;
+      delete attrfactory;
+    }
     
     Arc::ClassLoader classloader1(NULL);
     id = "attr.factory";
     attrfactory=NULL;
     attrfactory = (ArcSec::AttributeFactory*)(classloader.Instance(id, &cfg));
 
-    if(attrfactory == NULL)
+    if(attrfactory == NULL) {
       std::cout<<"Can not dynamic produce ArcAttributeFactory!!"<<std::endl;
+    } else {
+      Arc::XMLNode nd = cfg["Plugins"]["Plugin"]; 
+      ArcSec::AttributeValue * val;
+      val = attrfactory->createValue(nd,"string");
+      std::string tmp2 = val->encode();
+      std::cout<<tmp2<<std::endl;
+      delete attrfactory;
+    }
  
-    val = attrfactory->createValue(nd,"string");
-    std::string tmp2 = val->encode();
-    std::cout<<tmp2<<std::endl;
-
- 
-    delete attrfactory;
     return 0;
 
 }

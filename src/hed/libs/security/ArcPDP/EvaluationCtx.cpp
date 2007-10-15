@@ -13,16 +13,12 @@ Logger EvaluationCtx::logger(Arc::Logger::rootLogger, "EvaluationCtx");
 RequestTuple::RequestTuple() {
   NS ns;
   ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  XMLNode tupledoc(ns);
+  XMLNode tupledoc(ns,"ra:RequestItem");
   tupledoc.New(tuple);
 }
 
 RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {  
-  XMLNode root = tuple.NewChild("ra:RequestItem");
-  NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  root.Namespaces(ns);
-
+  XMLNode root = tuple;
   int n;
   
   Subject::iterator sit;

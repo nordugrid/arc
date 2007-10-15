@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007">
+    <ModuleManager>
+        <Path>.libs/</Path>
+    </ModuleManager>
     <Chain>
         <Component name="testmcc" id="mcc1">
             <next id="mcc2"/>

@@ -630,7 +630,7 @@ bool DelegationConsumerSOAP::UpdateCredentials(std::string& credentials,const SO
 bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNode& token) {
   credentials = (std::string)(token["Value"]);
   if(credentials.empty()) return false;
-  if(((std::string)(((XMLNode&)token).Attribute("Format"))) != "x509") return false;
+  if(((std::string)(token.Attribute("Format"))) != "x509") return false;
   if(!Acquire(credentials)) return false;
   return true;
 }

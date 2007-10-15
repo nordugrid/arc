@@ -6,20 +6,20 @@
 #include "InformationInterface.h"
 
 const char* doc = "\
-<?xml version=\"1.0\"?>\
-<InfoDoc xmlns=\"urn:info\">\
-    <Resource>\
-        <Memory>A lot</Memory>\
-        <Performance>Turltle-like</Performance>\
-    </Resource>\
-    <Owner>\
-        <Name>Unknown</Name>\
-    </Owner>\
-    <Resource>\
-        <Memory>640kb enough for everyone</Memory>\
-        <Performance>Quantum computer</Performance>\
-    </Resource>\
-</InfoDoc>\
+<?xml version=\"1.0\"?>\n\
+<InfoDoc xmlns=\"urn:info\">\n\
+    <Resource>\n\
+        <Memory>A lot</Memory>\n\
+        <Performance>Turltle-like</Performance>\n\
+    </Resource>\n\
+    <Owner>\n\
+        <Name>Unknown</Name>\n\
+    </Owner>\n\
+    <Resource>\n\
+        <Memory>640kb enough for everyone</Memory>\n\
+        <Performance>Quantum computer</Performance>\n\
+    </Resource>\n\
+</InfoDoc>\n\
 ";
 
 
@@ -27,10 +27,12 @@ int main(void) {
   // Creating service container
   Arc::XMLNode infodoc(doc);
   Arc::InformationContainer container(infodoc);
-  
+  std::cout<<"Document:\n"<<doc<<std::endl;
+ 
   // Creating client request
   std::list<std::string> name;
   name.push_back("Resource");
+  std::cout<<"Request for elements: "<<*(name.begin())<<std::endl;
   Arc::InformationRequest request(name);
   if(!request) return -1;
   
