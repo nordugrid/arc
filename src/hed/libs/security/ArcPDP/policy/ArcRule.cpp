@@ -50,7 +50,8 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         for(int k=0; k<size; k++){
           XMLNode snd = tnd.Child(k);
           type = (std::string)(snd.Attribute("Type"));
-          // The priority of function definition: Subelement.Attribute("Function") > Element.Attribute("Function") > Subelement.Attribute("Type") + "equal"
+          // The priority of function definition: Subelement.Attribute("Function")
+          // > Element.Attribute("Function") > Subelement.Attribute("Type") + "equal"
           if(!((std::string)(snd.Attribute("Function"))).empty())
             funcname = (std::string)(snd.Attribute("Function"));
           
