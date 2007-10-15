@@ -39,6 +39,10 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
     policystore = (std::string)(nd.Attribute("name"));
     policylocation =  (std::string)(nd.Attribute("location"));
   }
+  else if (res.empty()){ 
+    logger.msg(ERROR, "No any policy exists, the policy engine can not be loaded");
+    exit(1);
+  }
 
   res = cfg.XPathLookup("//config:FunctionFactory", nsList);
   if(!(res.empty())){
