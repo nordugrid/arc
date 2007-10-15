@@ -100,7 +100,8 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     logger.msg(Arc::INFO, "UnAuthorized"); 
     return MCC_Status(Arc::GENERIC_ERROR);
   } //Do we need to add some status in MCC_Status
-  logger.msg(Arc::INFO, "Authorized"); 
+  else if (hlist.empty()) logger.msg(Arc::INFO, "No authorization requirement for SOAP MCC");
+  else logger.msg(Arc::INFO, "soap_Authorized"); 
 
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
