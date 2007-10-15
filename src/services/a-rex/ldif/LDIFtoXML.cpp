@@ -7,7 +7,7 @@ namespace ARex {
 
 
 static bool get_ldif_string(std::istream& ldif,std::string& str) {
-  while((!ldif.eof()) && (!ldif.bad())) {
+  while(ldif) {
     getline(ldif,str);
     if(str.empty()) continue;
     if(str[0] == '#') continue;
