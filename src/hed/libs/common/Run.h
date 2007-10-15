@@ -1,3 +1,6 @@
+#ifndef __ARC_RUN_H__
+#define __ARC_RUN_H__
+
 #include <glibmm.h>
 
 namespace Arc {
@@ -64,3 +67,4 @@ class Run {
 
 }
 
+#endif // __ARC_RUN_H__
