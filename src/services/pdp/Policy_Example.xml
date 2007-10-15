@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+   <Rule RuleId="rule1" Effect="Permit">
+      <Description>
+         Sample Permit rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupA</Subject>
+	 <Subject>
+	    <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+	    <SubFraction Type="string">urn:mace:shibboleth:examples</SubFraction>
+   	 </Subject>
+	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
+      </Subjects>
+      <Resources>
+         <Resource Type="string">file://home/test</Resource>
+      </Resources>
+      <Actions Type="string">
+         <Action>read</Action>
+         <Action>stat</Action>
+         <Action>list</Action>
+      </Actions>
+      <Conditions>
+	 <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
+         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>   
+      </Conditions>
+   </Rule>
+   
+   <Rule RuleId="rule2" Effect="Deny">
+      <Description>
+         Sample Deny rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="string">/O=Grid/OU=KnowARC/CN=ANONYMOS</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupB</Subject>
+      </Subjects>
+      <Resources Type="string">
+         <Resource>localhost:/home/atlas/</Resource>
+         <Resource>nordugrid.org:/home/atlas/</Resource>
+      </Resources>
+      <Actions Type="string">
+         <Action>put</Action>
+         <Action>move</Action>
+         <Action>Del</Action>
+         <Action>Modify</Action>
+         <Action>Make</Action>
+      </Actions>
+      <Conditions/>
+   </Rule>
+
+   <Rule RuleId="rule3" Effect="Permit">
+     <Description>
+       Example rule for test in pdp service
+     </Description>
+      <Subjects>
+         <Subject>
+            <SubFraction Type="string">127.0.0.1</SubFraction>
+            <SubFraction Type="string">/O=Grid/O=Test/CN=CA</SubFraction>
+         </Subject>
+      </Subjects>
+      <!--Resources Type="string"><Resource>aaa</Resource></Resources-->
+      <Actions Type="string">
+         <Action>POST</Action>
+         <Action>GET</Action>
+      </Actions>
+      <!--Conditions Type="string"><Condition>bbb</Condition></Conditions-->
+   </Rule>
+
+</Policy>
+

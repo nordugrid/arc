@@ -39,6 +39,8 @@ Arc::MCC_Status Service_PDP::make_soap_fault(Arc::Message& outmsg) {
 
 Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   
+  std::cout<<"Into pdp service!!!!!!!!!!!!!!!!!!"<<std::endl;
+  
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
   // Identify which of served endpoints request is for.
@@ -70,7 +72,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     resp = eval->evaluate(request);
     logger.msg(Arc::INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
     ResponseList rlist = resp->getResponseItems();
-    if(!(rlist.empty())) logger.msg(Arc::INFO, "Authorized");
+    if(!(rlist.empty())) logger.msg(Arc::INFO, "Authorized from Service_PDP");
     int size = rlist.size();
     int i;
     for(i = 0; i < size; i++){
@@ -88,18 +90,19 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         }
       }
     }
-    
+
+    //Put those request items which satisfy the policies into the response SOAP message (implicitly
+    //means the decision result: <ItemA, yes>, <ItemB, yes>, <ItemC, no>(ItemC is not in the 
+    //response SOAP message)
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);   
-    Arc::XMLNode response_doc(ns_);
-    Arc::XMLNode res_body = response_doc.NewChild("Response");
+    Arc::XMLNode res_body = outpayload->NewChild("Response");
     for(i = 0; i<size; i++){
       ResponseItem* item = rlist[i];
-      res_body.NewChild(Arc::XMLNode((item->reqxml)).Child());
+      res_body.NewChild(Arc::XMLNode(item->reqxml).Child());
     } 
-
     if(resp)
       delete resp;
-  
+    
     outmsg.Payload(outpayload);
     return Arc::MCC_Status(Arc::STATUS_OK);
   } 
@@ -131,7 +134,7 @@ Service_PDP::~Service_PDP(void) {
 } // namespace ArcSec
 
 service_descriptors ARC_SERVICE_LOADER = {
-    { "pdp_service", 0, &ArcSec::get_service },
+    { "pdp.service", 0, &ArcSec::get_service },
     { NULL, 0, NULL }
 };
 

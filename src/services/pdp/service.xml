@@ -42,9 +42,9 @@
             <next id="soap">POST</next>
         </Component>
         <Component name="soap.service" id="soap">
-	    <next id="pdpservice"/>
+	    <next id="pdp_service"/>
         </Component>
-        <Service name="pdp.service" id="pdpservice">
+        <Service name="pdp.service" id="pdp_service">
             <pdp:PDPConfig>
                 <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
                 <pdp:AttributeFactory name="attr.factory" />
