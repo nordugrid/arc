@@ -99,10 +99,9 @@ namespace Arc {
       throw AREXClientError
 	("The response to the submission request was not a SOAP message.");
     };
-    Arc::NS ns;
-    Arc::XMLNode id(ns);
-    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
-    id.GetXML(jobid);
+    Arc::XMLNode id;
+    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
+    id.GetDoc(jobid);
     delete repmsg.Payload();
     return jobid;
   }
@@ -147,15 +146,14 @@ namespace Arc {
       delete repmsg.Payload();
       throw AREXClientError("The response is not a SOAP message.");
     }
-    Arc::NS ns;
-    Arc::XMLNode st(ns);
-    st.NewChild((*resp)["GetActivityStatusesResponse"]["Response"]
-		["ActivityStatus"]);
+    Arc::XMLNode st;
+    (*resp)["GetActivityStatusesResponse"]["Response"]
+           ["ActivityStatus"].New(st);
     state = (std::string)st.Child().Attribute
       ("bes-factory:ActivityStateEnumeration");
-    Arc::XMLNode sst(ns);
-    sst.NewChild((*resp)["GetActivityStatusesResponse"]["Response"]
-		 ["ActivityStatus"]["state"]);
+    Arc::XMLNode sst;
+    (*resp)["GetActivityStatusesResponse"]["Response"]
+           ["ActivityStatus"]["state"].New(sst);
     substate = (std::string)sst.Child();
     delete repmsg.Payload();
     if (state=="")
@@ -206,10 +204,9 @@ namespace Arc {
       throw AREXClientError("The response is not a SOAP message.");
     }
 
-    Arc::NS ns;
-    Arc::XMLNode cancelled(ns);
-    cancelled.NewChild((*resp)["TerminateActivitiesResponse"]
-		       ["Response"]["Cancelled"]);
+    Arc::XMLNode cancelled;
+    (*resp)["TerminateActivitiesResponse"]
+           ["Response"]["Cancelled"].New(cancelled);
     result = (std::string)cancelled.Child();
     delete repmsg.Payload();
     if (result!="true")
