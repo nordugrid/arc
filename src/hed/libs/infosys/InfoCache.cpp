@@ -57,13 +57,10 @@ void InfoCache::Set(const char *key, std::string &value)
 
 std::string InfoCache::Get(const char *key)
 {
-    std::string out;
     std::string id(key);
     std::string path = Glib::build_filename(path_base, id);
-    std::ifstream in(path.c_str(), std::ios::in);
-    if (!in) return NULL;    
-    in >> out;
-    in.close();
+    std::string out = Glib::file_get_contents(path);
+    return out;
 }
 
 std::list<Arc::XMLNode> InfoCache::query_one(const char *key, const char *q)
@@ -81,15 +78,27 @@ std::list<Arc::XMLNode> InfoCache::query_one(const char *key, const char *q)
 std::list<Arc::XMLNode> InfoCache::query_any(const char *q)
 {
     Glib::Dir dir(path_base);
+    std::list<Arc::XMLNode> result;
     std::string d;
+    
     while ((d = dir.read_name()) != "") {
-       std::cout << d << std::endl; 
+       std::list<Arc::XMLNode> r = query_one(d.c_str(), q);
+    std::list<Arc::XMLNode>::iterator it;
+        for (it = r.begin(); it != r.end(); it++) {
+            std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
+        }
+       result.merge(r);
+        for (it = result.begin(); it != result.end(); it++) {
+            std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
+        }
     }
+    
+    return result; 
 }
 
 std::list<Arc::XMLNode> InfoCache::Query(const char *key, const char *q)
 {
-    if (key == "any") {
+    if (strcmp(key, "any") == 0) {
         return query_any(q);
     }
     return query_one(key, q);

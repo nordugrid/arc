@@ -4,7 +4,7 @@
 
 std::string doc1 = "\
 <?xml version=\"1.0\"?>\
-<InfoDoc xmlns=\"urn:info\">\
+<InfoDoc>\
     <Resource>\
         <Memory>A lot</Memory>\
         <Performance>Turltle-like</Performance>\
@@ -21,7 +21,7 @@ std::string doc1 = "\
 
 std::string doc2 = "\
 <?xml version=\"1.0\"?>\
-<InfoDoc xmlns=\"urn:info\">\
+<InfoDoc>\
     <Resource>\
         <Memory>2000</Memory>\
         <Performance>Turltle-like</Performance>\
@@ -42,7 +42,8 @@ int main(void)
     Arc::InfoCache cache(cfg, "test_service");
     cache.Set("1", doc1);
     cache.Set("2", doc2);
-    std::cout << cache.Get("1") << std::endl;
+    std::string r = cache.Get("1");
+    std::cout << r << std::endl;
     std::list<Arc::XMLNode> result = cache.Query("any", "//Memory");
     std::list<Arc::XMLNode>::iterator it;
     for (it = result.begin(); it != result.end(); it++) {
