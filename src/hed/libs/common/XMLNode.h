@@ -183,9 +183,9 @@ class XMLNode {
   /** Creates new child XML element at specified position with specified name.
     Default is to put it at end of list. If global order is true position
     applies to whole set of children, otherwise only to children of same name */
-  //XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
-  //  return NewChild(name.c_str(),n,global_order);
-  //};
+  XMLNode NewChild(const std::string& name,int n = -1,bool global_order = false) {
+    return NewChild(name.c_str(),n,global_order);
+  };
   /** Same as previous method */
   XMLNode NewChild(const char* name,int n = -1,bool global_order = false);
   /** Link a copy of supplied XML node as child.
