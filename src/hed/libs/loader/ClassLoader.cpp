@@ -27,7 +27,8 @@ ClassLoader::~ClassLoader(){
 
 void ClassLoader::load_all_instances(Config *cfg){
 
-  XMLNode root = (*cfg);
+  XMLNode root = (*cfg).GetRoot();
+
   if(!MatchXMLName(root,"ArcConfig")) return;
   for (int i = 0;;++i) {
     XMLNode plugins = root["Plugins"][i];
@@ -73,7 +74,7 @@ void ClassLoader::load_all_instances(Config *cfg){
 
 }
 
-LoadableClass* ClassLoader::Instance(std::string& classId, Config* cfg){
+LoadableClass* ClassLoader::Instance(std::string& classId, void** arg){
   identifier_list_t::iterator it;
   void* ptr;
 
@@ -83,8 +84,7 @@ LoadableClass* ClassLoader::Instance(std::string& classId, Config* cfg){
       if(desc->name == classId){ 
         loader_descriptor &descriptor =*desc; 
         LoadableClass * res = NULL;
-        
-        res = (*descriptor.get_instance)(cfg);
+        res = (*descriptor.get_instance)(arg);
         return res;
       }
     } 
