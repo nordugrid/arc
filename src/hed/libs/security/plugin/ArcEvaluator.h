@@ -30,12 +30,12 @@ private:
   EvaluatorContext* context;
 
 public:
-  ArcEvaluator (Arc::XMLNode& cfg);
+  ArcEvaluator (Arc::XMLNode* cfg);
   ArcEvaluator (const char * cfgfile);
   virtual ~ArcEvaluator();
 
-  virtual Response* evaluate(Request* request);
   virtual Response* evaluate(const std::string& reqfile);
+  virtual Response* evaluate(Request* request);
   virtual Response* evaluate(EvaluationCtx* ctx);
   virtual Response* evaluate(Arc::XMLNode& node);
 

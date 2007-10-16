@@ -7,7 +7,8 @@
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
-          <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
+          <Plugin Name="__arc_evaluator_modules__">evaluator</Plugin>
+          <Plugin Name="__arc_request_modules__">request</Plugin>
     </Plugins>
 
     <pdp:PDPConfig>
@@ -16,6 +17,8 @@
           <pdp:AttributeFactory name="attr.factory" />
           <pdp:CombingAlgorithmFactory name="alg.factory" />
           <pdp:FunctionFactory name="fn.factory" />
+          <pdp:Evaluator name="arc.evaluator" />
+          <pdp:Request name="arc.request" />
     </pdp:PDPConfig>
 
 </ArcConfig>

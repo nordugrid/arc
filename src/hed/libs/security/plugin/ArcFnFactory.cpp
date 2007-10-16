@@ -14,7 +14,7 @@
 #include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 
 
-static Arc::LoadableClass* get_fn_factory (Arc::Config *) {
+static Arc::LoadableClass* get_fn_factory (void**) {
     return new ArcSec::ArcFnFactory();
 }
 

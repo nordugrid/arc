@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <arc/loader/PDPLoader.h>
+#include <arc/loader/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -34,13 +35,19 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
     return new ArcPDP(cfg);
 }
 
-ArcPDP::ArcPDP(Config* cfg):PDP(cfg){
+ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   XMLNode node(*cfg);
-  XMLNode nd = node.GetRoot();
-  Config topcfg(nd);
+  XMLNode topcfg = node.GetRoot();
 
-  eval = new ArcEvaluator(topcfg);
+  Config modulecfg(topcfg);
+  
+  Arc::ClassLoader classloader(&modulecfg);
+  std::string evaluator = "arc.evaluator";
+  eval = (Evaluator*)(classloader.Instance(evaluator, (void**)&topcfg));
+  if(eval == NULL)
+    logger.msg(ERROR, "Can not dynamically produce Evaluator");
 
+  //eval = new ArcEvaluator(topcfg);
 }
 
 bool ArcPDP::isPermitted(Message *msg){

@@ -2,9 +2,26 @@
 #include <config.h>
 #endif
 
+#include <arc/loader/ClassLoader.h>
+
 #include <fstream>
 #include "ArcRequest.h"
 #include "ArcRequestItem.h"
+
+static Arc::LoadableClass* get_request(void** arg) {
+    std::cout<<"wdfqwdwrddddddddddddddddddddddd"<<std::endl;
+    if(arg==NULL) return new ArcSec::ArcRequest();
+
+    std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
+
+    return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
+}
+
+loader_descriptors __arc_request_modules__  = {
+    { "arc.request", 0, &get_request },
+    { NULL, 0, NULL }
+};
+
 
 using namespace Arc;
 using namespace ArcSec;
@@ -112,10 +129,10 @@ void ArcRequest::make_request(){
 //  }
 }
 
-ArcRequest::ArcRequest(const std::string& filename) : Request(filename) {
+ArcRequest::ArcRequest(const char* filename) : Request(filename) {
   std::string str;
   std::string xml_str = "";
-  std::ifstream f(filename.c_str());
+  std::ifstream f(filename);
 
   //std::cout<<filename<<std::endl;
   while (f >> str) {
@@ -131,8 +148,8 @@ ArcRequest::ArcRequest(const std::string& filename) : Request(filename) {
   node.New(reqnode);
 }
 
-ArcRequest::ArcRequest (const XMLNode& node) : Request(node) {
-  node.New(reqnode);
+ArcRequest::ArcRequest (const XMLNode* node) : Request(node) {
+  node->New(reqnode);
 }
 
 ArcRequest::ArcRequest () {

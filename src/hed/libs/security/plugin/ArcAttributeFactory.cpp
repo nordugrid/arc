@@ -12,7 +12,7 @@
 #include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 
 
-static Arc::LoadableClass* get_attr_factory (Arc::Config*) {
+static Arc::LoadableClass* get_attr_factory (void**) {
     return new ArcSec::ArcAttributeFactory();
 }
 

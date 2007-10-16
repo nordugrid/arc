@@ -6,11 +6,13 @@
 #include <signal.h>
 
 #include <string>
-//#include <arc/security/ArcPDP/ArcEvaluator.h>
-#include "ArcEvaluator.h"
+#include <arc/security/ArcPDP/Evaluator.h>
+//#include "ArcEvaluator.h"
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfig.h>
+#include <arc/loader/ClassLoader.h>
 #include <arc/Logger.h>
 
 //#include <arc/security/ArcPDP/ArcRequest.h>
@@ -26,14 +28,24 @@ int main(void){
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   logger.msg(Arc::INFO, "Start test");
+
+  //Load the Evaluator
+  ArcSec::Evaluator* eval;
+  Arc::Config modulecfg("EvaluatorCfg.xml");
+  Arc::ClassLoader classloader(&modulecfg);
+  std::string evaluator = "arc.evaluator";
+  eval = (ArcSec::Evaluator*)(classloader.Instance(evaluator, (void**)&modulecfg));
+  if(eval == NULL)
+    logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
+  //ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
   
-  ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
+
   ArcSec::Response *resp = NULL;
 
   //Input request from a file: Request.xml
   logger.msg(Arc::INFO, "Input request from a file: Request.xml");  
   //Evaluate the request
-  resp = eval.evaluate("Request.xml");
+  resp = eval->evaluate("Request.xml");
   //Get the response
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ArcSec::ResponseList rlist = resp->getResponseItems();
@@ -105,13 +117,20 @@ int main(void){
   context_attr1.value = "2007-09-10T20:30:20/P1Y1M";
   ctx.addItem(context_attr1);
 
-  ArcSec::ArcRequest* request = NULL;
+  //ArcSec::ArcRequest* request = NULL;
   //It shoud not be the caller to delete the ArcRequest object?
-  request = new ArcSec::ArcRequest;
+  //request = new ArcSec::ArcRequest;
+  ArcSec::Request* request = NULL;
+  std::string requestor = "arc.request";
+   request = (ArcSec::Request*)(classloader.Instance(requestor, NULL));
+  if(request == NULL)
+    logger.msg(Arc::ERROR, "Can not dynamically produce Request");
+
+  //Add the request information into Request object
   request->addRequestItem(sub, res, act, ctx);
 
   //Evaluate the request
-  resp = eval.evaluate(request);
+  resp = eval->evaluate(request);
   //Get the response
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   rlist = resp->getResponseItems();
@@ -136,6 +155,9 @@ int main(void){
     delete resp;
     resp = NULL;
   }
+ 
+  if(eval) delete eval;
+  if(request) delete request;
 
   return 0;
 }

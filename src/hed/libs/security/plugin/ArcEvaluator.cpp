@@ -13,6 +13,15 @@
 #include <fstream>
 #include <iostream>
 
+static Arc::LoadableClass* get_evaluator(void** arg) {
+    return new ArcSec::ArcEvaluator((Arc::XMLNode*) arg);
+}
+
+loader_descriptors __arc_evaluator_modules__  = {
+    { "arc.evaluator", 0, &get_evaluator },
+    { NULL, 0, NULL }
+};
+
 using namespace Arc;
 using namespace ArcSec;
 
@@ -98,7 +107,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
 }
 
-ArcEvaluator::ArcEvaluator(Arc::XMLNode& cfg) : Evaluator(cfg) {
+ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg) {
   plstore = NULL;;
   fnfactory = NULL;
   attrfactory = NULL;
@@ -106,7 +115,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode& cfg) : Evaluator(cfg) {
 
   context = NULL;
 
-  parsecfg(cfg);
+  parsecfg(*cfg);
 }
 
 ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
@@ -153,7 +162,7 @@ Response* ArcEvaluator::evaluate(Request* request){
 
 Response* ArcEvaluator::evaluate(const std::string& reqfile){
   ArcRequest* request = NULL;
-  request = new ArcRequest(reqfile);
+  request = new ArcRequest(reqfile.c_str());
   request->setAttributeFactory(attrfactory);
   request->make_request();
 
@@ -168,7 +177,7 @@ Response* ArcEvaluator::evaluate(const std::string& reqfile){
 
 Response* ArcEvaluator::evaluate(XMLNode& node){
   ArcRequest* request = NULL;
-  request = new ArcRequest(node);
+  request = new ArcRequest(&node);
   request->setAttributeFactory(attrfactory);
   request->make_request();
 
