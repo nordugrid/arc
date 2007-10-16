@@ -1,6 +1,8 @@
 #ifndef __ARC_SEC_REQUEST_H__
 #define __ARC_SEC_REQUEST_H__
 
+#include <arc/loader/LoadableClass.h>
+
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
@@ -35,7 +37,7 @@ private:
 
 /**A request can has a few <subjects, actions, objects> tuples */
 //**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
-class Request {
+class Request : public Arc::LoadableClass {
 protected:
   ReqItemList rlist;
 public:
@@ -49,10 +51,10 @@ public:
   Request () {};
 
   //**Constructor: Parse request information from a input file*/
-  Request (const std::string&) {};
+  Request (const char*) {};
 
   //**Constructor: Parse request information from a xml stucture in memory*/
-  Request (const Arc::XMLNode&) {};
+  Request (const Arc::XMLNode*) {};
   virtual ~Request(){};
 };
 

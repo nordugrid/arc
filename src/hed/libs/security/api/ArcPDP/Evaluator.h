@@ -5,6 +5,7 @@
 #include <fstream>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+#include <arc/loader/LoadableClass.h>
 
 #include "fn/FnFactory.h"
 #include "attr/AttributeFactory.h"
@@ -16,7 +17,7 @@
 
 namespace ArcSec {
 
-class Evaluator {
+class Evaluator : public Arc::LoadableClass {
 protected:
   static Arc::Logger logger;
 /*private:
@@ -27,7 +28,7 @@ protected:
   EvaluatorContext* context;
 */
 public:
-  Evaluator (Arc::XMLNode&) {};
+  Evaluator (Arc::XMLNode*) {};
   Evaluator (const char *) {};
   virtual ~Evaluator() {};
 
