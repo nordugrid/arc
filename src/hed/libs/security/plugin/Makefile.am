@@ -1,5 +1,5 @@
 SUBDIRS = 
-noinst_PROGRAMS = test 
+# noinst_PROGRAMS = test 
 
 pkglib_LTLIBRARIES=libsecurityplugin.la
 libsecurityplugin_la_SOURCES=SimpleListAuthZ.cpp SimpleListPDP.cpp ArcPDP.cpp PDPplugin.cpp ArcEvaluator.cpp ArcRequest.cpp ArcRequestItem.cpp ArcAttributeFactory.cpp ArcPolicy.cpp ArcRule.cpp ArcFnFactory.cpp ArcAlgFactory.cpp SimpleListAuthZ.h SimpleListPDP.h  ArcPDP.h ArcEvaluator.h ArcRequest.h ArcRequestItem.h ArcAttributeFactory.h ArcPolicy.h ArcRule.h PolicyParser.cpp PolicyParser.h PolicyStore.cpp PolicyStore.h ArcFnFactory.h ArcAlgFactory.h 
