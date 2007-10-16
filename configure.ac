@@ -402,6 +402,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
+                 src/tests/wrapper/Makefile
                  src/tests/xpath/Makefile
                  swig/Makefile
                  java/Makefile

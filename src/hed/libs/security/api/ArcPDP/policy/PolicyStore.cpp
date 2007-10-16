@@ -8,7 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include "Policy.h" 
-#include "../../../plugin/PolicyParser.h"
+#include "PolicyParser.h"
 
 /*
 //Should we provide different ClassLoader for different "get" function with different arguments?

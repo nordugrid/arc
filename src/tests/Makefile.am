@@ -1,1 +1,1 @@
-SUBDIRS=echo data xpath
+SUBDIRS=echo data xpath wrapper

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-10 18:32+0200\n"
+"POT-Creation-Date: 2007-10-16 20:00+0200\n"
 "PO-Revision-Date: 2007-10-10 18:33+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -51,43 +51,43 @@ msgstr "Det kom inget svar på en insändningsförfrågan."
 msgid "A response to a submission request was not a SOAP message."
 msgstr "Ett svar på en insändningsförfrågan var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:114
+#: ../src/clients/a-rex/arex_client.cpp:113
 msgid "Creating and sending a status request."
 msgstr "Skapar och sänder en statusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:132
+#: ../src/clients/a-rex/arex_client.cpp:131
 msgid "A status request failed."
 msgstr "En statusförfrågan misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:135
+#: ../src/clients/a-rex/arex_client.cpp:134
 msgid "A status request succeed."
 msgstr "En statusförfrågan lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:137
+#: ../src/clients/a-rex/arex_client.cpp:136
 msgid "There were no response to a status request."
 msgstr "Det kom inget svar på en statusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:146
+#: ../src/clients/a-rex/arex_client.cpp:145
 msgid "The response of a status request was not a SOAP message."
 msgstr "Ett svar på en statusförfrågan var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:170
+#: ../src/clients/a-rex/arex_client.cpp:168
 msgid "Creating and sending request to terminate a job."
 msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
 
-#: ../src/clients/a-rex/arex_client.cpp:188
+#: ../src/clients/a-rex/arex_client.cpp:186
 msgid "A job termination request failed."
 msgstr "En förfrågan för att avsluta ett jobb misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:191
+#: ../src/clients/a-rex/arex_client.cpp:189
 msgid "A job termination request succeed."
 msgstr "En förfrågan för att avsluta ett jobb lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:194
+#: ../src/clients/a-rex/arex_client.cpp:192
 msgid "There was no response to a job termination request."
 msgstr "Det kom inget svar på en förfrågan för att avsluta ett jobb."
 
-#: ../src/clients/a-rex/arex_client.cpp:204
+#: ../src/clients/a-rex/arex_client.cpp:202
 msgid "The response of a job termination request was not a SOAP message"
 msgstr ""
 "Ett svar på en förfrågan för att avsluta ett jobb var inget SOAP-meddelande."
@@ -133,13 +133,21 @@ msgstr "Ingen serverinställningsdel i inställningsfilen"
 msgid "Start foreground"
 msgstr "Startar i förgrunden"
 
-#: ../src/hed/daemon/main.cpp:86 ../src/services/a-rex/test.cpp:33
-#: ../src/tests/echo/test.cpp:26 ../src/tests/echo/test_service.cpp:24
+#: ../src/hed/daemon/main.cpp:86 ../src/services/a-rex/test.cpp:37
+#: ../src/services/pdp/test.cpp:31 ../src/tests/echo/test.cpp:26
+#: ../src/tests/echo/test_service.cpp:25 ../src/tests/wrapper/test.cpp:26
+#: ../src/tests/wrapper/test_service.cpp:25
 msgid "Failed to load service configuration"
 msgstr "Misslyckades med att ladda serviceinställningar"
 
-#: ../src/hed/daemon/main.cpp:109 ../src/services/a-rex/test.cpp:37
-#: ../src/tests/echo/test.cpp:30 ../src/tests/echo/test_service.cpp:28
+#: ../src/hed/daemon/main.cpp:90
+msgid "Configuration root element is not ArcConfig"
+msgstr ""
+
+#: ../src/hed/daemon/main.cpp:113 ../src/services/a-rex/test.cpp:41
+#: ../src/services/pdp/test.cpp:35 ../src/tests/echo/test.cpp:30
+#: ../src/tests/echo/test_service.cpp:29 ../src/tests/wrapper/test.cpp:30
+#: ../src/tests/wrapper/test_service.cpp:29
 msgid "Service side MCCs are loaded"
 msgstr "Servicesidans MCC:er har laddats"
 
@@ -158,23 +166,23 @@ msgstr "ftp_check_callback"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:50
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:62
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:83
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:107
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:133
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:171
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:219
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:259
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:300
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:358
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:473
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:520
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:619
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:692
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:737
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:745
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:752
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:760
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:768
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:82
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:105
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:131
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:169
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:217
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:257
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:298
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:356
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:471
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:518
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:617
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:690
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:735
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:743
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:750
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:758
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:766
 #, c-format
 msgid "Globus error: %s"
 msgstr ""
@@ -183,300 +191,300 @@ msgstr ""
 msgid "Registration of Globus FTP buffer failed - cancel check"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:82
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:81
 msgid "check_ftp: globus_ftp_client_size failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:87
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:86
 msgid "check_ftp: timeout waiting for size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:93
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:92
 msgid "check_ftp: failed to get file's size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:106
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:104
 msgid "check_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:111
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:109
 msgid "check_ftp: timeout waiting for modification_time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:117
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:115
 msgid "check_ftp: failed to get file's modification time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:132
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:130
 msgid "check_ftp: globus_ftp_client_get failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:137
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:135
 msgid "check_ftp: globus_ftp_client_register_read"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:148
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:146
 msgid "check_ftp: timeout waiting for partial get"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:170
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:168
 msgid "delete_ftp: globus_ftp_client_delete failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:175
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:173
 msgid "delete_ftp: globus_ftp_client_delete timeout"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:214
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:212
 msgid "mkdir_ftp: making &s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:223
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:221
 msgid "mkdir_ftp: timeout waiting for mkdir"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:247
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:245
 msgid "start_reading_ftp"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:252
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:250
 #, c-format
 msgid "start_reading_ftp: size: url: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:258
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:256
 msgid "start_reading_ftp: failure"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:267
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:265
 msgid "start_reading_ftp: timeout waiting for file size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:270
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:268
 msgid "Timeout waiting for FTP file size - cancel transfer"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:281
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:279
 msgid "start_reading_ftp: failed to get file's size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:288
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:286
 #, c-format
 msgid "start_reading_ftp: obtained size: %ull"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:298
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:296
 msgid "start_reading_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:306
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:304
 msgid "start_reading_ftp: timeout waiting for modification_time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:317
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:315
 msgid "start_reading_ftp: failed to get file's modification time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:327
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:325
 #, c-format
 msgid "start_reading_ftp: creation time: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:334
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:332
 msgid "start_reading_ftp: range is out of size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:344
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:342
 msgid "start_reading_ftp: globus_ftp_client_get"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:357
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:355
 msgid "start_reading_ftp: globus_ftp_client_get failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:366
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:364
 msgid "start_reading_ftp: globus_thread_create failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:382
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:380
 msgid "stop_reading_ftp: aborting connection"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:385
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:383
 msgid "stop_reading_ftp: waiting for transfer to finish"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:387
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:385
 #, c-format
 msgid "stop_reading_ftp: exiting: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:398
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:396
 msgid "ftp_read_thread: get and register buffers"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:404
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:402
 #, c-format
 msgid "ftp_read_thread: for_read failed - aborting: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:415
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:413
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:423
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:421
 #, c-format
 msgid "ftp_read_thread: too many registration failures - abort: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:428
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:426
 #, c-format
 msgid "ftp_read_thread: failed to register globus buffer - will try later: %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:440
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:438
 msgid "ftp_read_thread: waiting for eof"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:442
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:440
 msgid "ftp_read_thread: exiting"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:454
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:452
 msgid "ftp_read_callback: failure"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:458
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:456
 msgid "ftp_read_callback: success"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:467
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:465
 msgid "ftp_get_complete_callback"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:471
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:469
 msgid "Failed to get ftp file"
 msgstr "Misslyckades med att hämta ftp-fil"
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:492
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:490
 msgid "start_writing_ftp"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:499
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:497
 msgid "start_writing_ftp: mkdir"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:502
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:500
 msgid "start_writing_ftp: mkdir failed - still trying to write"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:505
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:503
 msgid "start_writing_ftp: put"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:518
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:516
 msgid "start_writing_ftp: put failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:528
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:526
 msgid "start_writing_ftp: globus_thread_create failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:556
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:554
 msgid "ftp_write_thread: get and register buffers"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:561
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:559
 msgid "ftp_write_thread: for_write failed - aborting"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:601
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:599
 msgid "ftp_write_callback: failure"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:605
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:603
 msgid "ftp_write_callback: success"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:611
 msgid "ftp_put_complete_callback"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:617
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:615
 msgid "Failed to store ftp file"
 msgstr "Misslyckades med att spara ftp-fil"
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:631
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:629
 #, c-format
 msgid "Failed to obtain listing from ftp: %s"
 msgstr "Misslyckades med att erhålla lista från ftp: %s"
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:653
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:651
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:658
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:656
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:659
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:657
 #, c-format
 msgid "Globus error %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:663
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:661
 msgid "list_files_ftp: timeout waiting for size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:669
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:667
 msgid "list_files_ftp: failed to get file's size"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:683
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:681
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:690
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:688
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:696
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
 msgid "list_files_ftp: timeout waiting for modification_time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:703
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:701
 msgid "list_files_ftp: failed to get file's modification time"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:736
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:734
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:743
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:741
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:751
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:759
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:749
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:757
 msgid "init_handle: globus_ftp_client_handle_init failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:766
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:764
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:822
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:820
 msgid "Using secure data transfer"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:835
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:833
 msgid "Using insecure data transfer"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:850
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:848
 msgid "DataPoint::deinit_handle: destroy ftp_handle"
 msgstr ""
 
@@ -489,7 +497,7 @@ msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:131 ../src/hed/dmc/gridftp/Lister.cpp:150
 #: ../src/hed/dmc/gridftp/Lister.cpp:349 ../src/hed/dmc/gridftp/Lister.cpp:356
-#: ../src/hed/dmc/gridftp/Lister.cpp:378
+#: ../src/hed/dmc/gridftp/Lister.cpp:378 ../src/services/pdp/test.cpp:127
 #, c-format
 msgid "Response: %s"
 msgstr "Svar: %s"
@@ -674,231 +682,229 @@ msgstr ""
 msgid "Failed to transfer data"
 msgstr "Misslyckades med att överföra data"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:45
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:264
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:40
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:253
 msgid "Source must contain LFN"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:51
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:293
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:46
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:267
 msgid "Destination must contain LFN"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:55
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:50
 msgid "Locations are missing in destination LFC URL"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:83
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:94
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:164
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:179
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:75
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:85
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:160
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:173
 #, c-format
 msgid "Adding location: %s - %s"
 msgstr "Lägger till plats: %s - %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:126
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:309
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:116
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:283
 msgid "No locations found for destination"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:145
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:284
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:340
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:355
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:131
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:314
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:329
 #, c-format
 msgid "Using location: %s - %s"
 msgstr "Använder plats: %s - %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:150
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:363
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:135
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:336
 #, c-format
 msgid "meta_get_data: checksum: %s"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:151
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:364
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:136
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:337
 #, c-format
 msgid "meta_get_data: size: %ull"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:152
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:365
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:137
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:338
 #, c-format
 msgid "meta_get_data: created: %s"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:171
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:156
 msgid "LFN is missing in LFC (needed for replication)"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:178
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:163
 msgid "LFN already exists in LFC"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:224
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:210
 msgid "No GUID defined for LFN - probably not preregistered"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:273
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:260
 msgid "Failed to remove LFN in LFC - You may need to do that by hand"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:286
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:741
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:273
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:731
 msgid "Location is missing"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:290
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:699
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:745
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:841
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:277
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:689
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:735
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:831
 msgid "SE location will be unregistered automatically"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:315
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:331
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:306
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:321
 msgid "Failed to remove location from LFC"
 msgstr ""
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:321
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:312
 msgid "Failed to remove LFN in LFC"
 msgstr "Misslyckades med att ta bort LFN i LFC"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:106
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:517
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:667
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:989
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:105
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:493
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:651
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:995
 #, c-format
 msgid "Failed to find GUID for specified LFN in %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:111
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:523
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:672
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:994
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:110
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:499
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:656
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1000
 #, c-format
 msgid "There is no GUID for specified LFN in %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:145
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:144
 #, c-format
 msgid "Warning: can't get PFNs from server %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:216
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:206
 #, c-format
 msgid "Warning: Failed to obtain attributes from %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:226
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:215
 #, c-format
 msgid "Attribute: %s - %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:279
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:346
-#, c-format
-msgid "Removing location: %s - %s"
-msgstr "Tar bort plats: %s - %s"
-
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:301
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:275
 msgid ""
 "Locations are missing in destination RLS url - will use those registered "
 "with special name"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:384
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:320
+#, c-format
+msgid "Removing location: %s - %s"
+msgstr "Tar bort plats: %s - %s"
+
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:357
 msgid "LFN is missing in RLS (needed for replication)"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:391
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:364
 msgid "LFN already exists in replica"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:408
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:760
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:383
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:751
 #, c-format
 msgid "Failed to connect to RLS server: %s"
 msgstr "Misslyckades med att koppla upp mot RLS-servern: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:440
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:415
 #, c-format
 msgid "Failed to create GUID in RLS: %s"
 msgstr "Misslyckades med att skapa GUID i RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:460
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:435
 #, c-format
 msgid "Failed to check for existing LFN in %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:468
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:443
 #, c-format
 msgid "There is same LFN in %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:483
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:458
 #, c-format
 msgid "Failed to add LFN-GUID to RLS: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:541
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:518
 #, c-format
 msgid "Failed to create/add LFN-PFN mapping: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:557
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:571
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:586
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:601
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:617
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:535
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:549
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:564
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:579
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:595
 #, c-format
 msgid "Warning: failed to add attribute to RLS: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:688
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:825
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:679
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:816
 #, c-format
 msgid "Warning: Failed to retrieve LFN/PFNs from %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:710
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:729
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:853
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:874
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:699
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:719
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:843
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:864
 #, c-format
 msgid "Warning: Failed to delete LFN/PFN from %s: %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:777
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:769
 msgid "LFN must be already deleted, try LRC anyway"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:781
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:773
 #, c-format
 msgid "Failed to retrieve LFN/LRC: %s"
 msgstr "Misslyckades med att hämta LFN/LRC: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:805
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:796
 #, c-format
 msgid "Warning: Failed to connect to LRC at %s: %s"
 msgstr "Varning: Misslyckades med att koppla upp mot LRC på %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1019
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1025
 #, c-format
 msgid "No LFNs found in %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1023
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1029
 #, c-format
 msgid "Failed to retrieve list of LFNs/PFNs from %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1063
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1067
 #, c-format
 msgid "lfn: %s(%s) - %s"
 msgstr ""
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1078
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1082
 #, c-format
 msgid "lfn: %s - pfn: %s"
 msgstr ""
@@ -1006,12 +1012,12 @@ msgstr "Ogiltig URL - inget värdnamn givet"
 msgid "Basedn only defined for ldap protocol"
 msgstr "Bas-dn är endast definierat för ldap-protokoll"
 
-#: ../src/hed/libs/data/DataPointIndex.cpp:110
+#: ../src/hed/libs/data/DataPointIndex.cpp:103
 #, c-format
 msgid "Add location: metaname: %s"
 msgstr "Lägg till plats: metanamn: %s"
 
-#: ../src/hed/libs/data/DataPointIndex.cpp:111
+#: ../src/hed/libs/data/DataPointIndex.cpp:104
 #, c-format
 msgid "Add location: location: %s"
 msgstr "Lägg till plats: plats: %s"
@@ -1241,117 +1247,128 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:72
-msgid "Can not dynamically produce AttributeFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:78
-msgid "Can not dynamically produce FnFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:84
-msgid "Can not dynamically produce AlgFacroty"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:131
-msgid "Request object can not be cast into ArcRequest"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/ArcEvaluator.cpp:203
-#, c-format
-msgid "Result value (0 means success): %d"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:24
-#, c-format
-msgid "No Attribute exists, which can deal with type: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:26
-#, c-format
-msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP.cpp:79
-#: ../src/hed/libs/security/ArcPDP.cpp:98
-#, c-format
-msgid "%s"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP.cpp:84
-#, c-format
-msgid "There is : %d subjects, which satisty at least one policy"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP.cpp:104
-msgid "Authorized from arc.pdp!!!"
-msgstr "Autoriserad från arc.pdp!!!"
-
-#: ../src/hed/libs/security/ArcPDP.cpp:110
-msgid "UnAuthorized from arc.pdp!!!"
-msgstr "Oautoriserad från arc.pdp!!!"
-
-#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:188
+#: ../src/hed/libs/security/api/ArcPDP/EvaluationCtx.cpp:184
 #, c-format
 msgid "There is %d RequestItems"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/policy/ArcPolicy.cpp:49
+#: ../src/hed/libs/security/api/ArcPDP/attr/RequestAttribute.cpp:24
+#, c-format
+msgid "No Attribute exists, which can deal with type: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/api/ArcPDP/attr/RequestAttribute.cpp:26
+#, c-format
+msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:43
+msgid "No any policy exists, the policy engine can not be loaded"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:76
+msgid "Can not dynamically produce AttributeFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:82
+msgid "Can not dynamically produce FnFactory"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:88
+msgid "Can not dynamically produce AlgFacroty"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:138
+msgid "Request object can not be cast into ArcRequest"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:210
+#, c-format
+msgid "Result value (0 means success): %d"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:80
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:99
+#: ../src/services/pdp/pdpservice.cpp:87
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:85
+#: ../src/services/pdp/pdpservice.cpp:71
+#, c-format
+msgid "There is : %d subjects, which satisty at least one policy"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:105
+msgid "Authorized from arc.pdp!!!"
+msgstr "Autoriserad från arc.pdp!!!"
+
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:111
+msgid "UnAuthorized from arc.pdp!!!"
+msgstr "Oautoriserad från arc.pdp!!!"
+
+#: ../src/hed/libs/security/plugin/ArcPolicy.cpp:49
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/test.cpp:27
-msgid "Start test"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/test.cpp:33
-msgid "Input request from a file: Request.xml"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/test.cpp:37
-#: ../src/hed/libs/security/ArcPDP/test.cpp:115
-#, c-format
-msgid "There is: %d Subjects, which satisfy at least one policy"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/test.cpp:51
-#: ../src/hed/libs/security/ArcPDP/test.cpp:129
-#, c-format
-msgid "Attribute Value: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/ArcPDP/test.cpp:62
-msgid "Input request from code"
-msgstr ""
-
-#: ../src/hed/libs/security/SimpleListAuthZ.cpp:71
+#: ../src/hed/libs/security/plugin/SimpleListAuthZ.cpp:71
 #, c-format
 msgid "PDP name: %s %d"
 msgstr "PDP-namn: %s &d"
 
-#: ../src/hed/libs/security/SimpleListPDP.cpp:34
+#: ../src/hed/libs/security/plugin/SimpleListAuthZ.cpp:75
+#, fuzzy, c-format
+msgid "PDP: %s can not be loaded, exit!"
+msgstr "Modul %s kunde inte laddas"
+
+#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:37
 #, c-format
 msgid "Access list location: %s"
 msgstr "Tillträdeslista: %s"
 
-#: ../src/hed/libs/security/SimpleListPDP.cpp:44
+#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:47
 #, c-format
 msgid "policy line: %s"
 msgstr "policyrad: %s"
 
-#: ../src/hed/libs/security/SimpleListPDP.cpp:45
+#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:48
 #, c-format
 msgid "subject: %s"
 msgstr "subjekt: %s"
 
-#: ../src/hed/libs/security/SimpleListPDP.cpp:48
+#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:51
 msgid "Authorized from simplelist.pdp!!!"
 msgstr "Autoriserad från simplelist.pdp!!!"
 
-#: ../src/hed/libs/security/SimpleListPDP.cpp:53
+#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:56
 msgid "UnAuthorized from simplelist.pdp!!!"
 msgstr "Oautoriserad från simplelist.pdp!!!"
+
+#: ../src/hed/libs/security/plugin/test.cpp:28
+msgid "Start test"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/test.cpp:34
+msgid "Input request from a file: Request.xml"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/test.cpp:38
+#: ../src/hed/libs/security/plugin/test.cpp:116
+#, c-format
+msgid "There is: %d Subjects, which satisfy at least one policy"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/test.cpp:52
+#: ../src/hed/libs/security/plugin/test.cpp:130
+#, c-format
+msgid "Attribute Value: %s"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/test.cpp:63
+msgid "Input request from code"
+msgstr ""
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:51
 #, c-format
@@ -1363,70 +1380,79 @@ msgid "UnAuthorized"
 msgstr "Oautoriserad"
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:103
-msgid "Authorized"
+msgid "No authorization requirement for SOAP MCC"
+msgstr ""
+
+#: ../src/hed/mcc/soap/MCCSOAP.cpp:104
+#, fuzzy
+msgid "soap_Authorized"
 msgstr "Autoriserad"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:49
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:81
+msgid "Cannot initialize winsock libraray"
+msgstr ""
+
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:90
 msgid "Missing Port in Listen element"
 msgstr "Port saknas i Listen-element"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:55
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:96
 msgid "Failed to create socket"
 msgstr "Misslyckades med att skapa socket"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:64
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:105
 msgid "Failed to bind socket"
 msgstr "Misslyckades med att binda socket"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:68
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:109
 msgid "Failed to listen on socket"
 msgstr "Misslyckades med att lyssna till socket"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:74
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:115
 msgid "No listening ports configured"
 msgstr "Inga lyssnande portar inställda"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:78
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:119
 msgid "Failed to start thread for listening"
 msgstr "Misslyckades med att starta tråd för att lyssna"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:84
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:125
 msgid "TCP_Service destroy"
 msgstr "Ta bort TPC-service"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:109
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:158
 msgid "Failed to start thread for communication"
 msgstr "Misslyckades med att starta tråd för kommunikation"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:135
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:188
 msgid "Failed while waiting for connection request"
 msgstr "Misslyckades under väntan på förbindelseförfrågan"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:158
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:211
 msgid "Failed to accept connection request"
 msgstr "Misslyckades med att acceptera förbindelseförfrågan"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:222
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:275
 msgid "next chain element called"
 msgstr "nästa kedjeelement kallat"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:247
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:300
 msgid "No Connect element specified"
 msgstr "Inget Connect-element specificerat"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:253
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:306
 msgid "Missing Port in Connect element"
 msgstr "Port saknas i Connect-element"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:259
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:312
 msgid "Missing Host in Connect element"
 msgstr "Värd saknas i Connect-element"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:277
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:330
 msgid "client process called"
 msgstr "klientprocess kallad"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:294 ../src/hed/mcc/tls/MCCTLS.cpp:422
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:347 ../src/hed/mcc/tls/MCCTLS.cpp:421
 msgid "Failed to send content of buffer"
 msgstr "Misslyckades med att skicka innehåll till buffer"
 
@@ -1477,29 +1503,33 @@ msgstr "Kunde inte ladda nyckelfil"
 msgid "Private key does not match certificate"
 msgstr "Den privata nyckeln passar inte certifikatet"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:182
+#: ../src/hed/mcc/tls/MCCTLS.cpp:178
+msgid "MCC_TLS::do_ssl_init"
+msgstr ""
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:181
 msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:194
+#: ../src/hed/mcc/tls/MCCTLS.cpp:193
 msgid "Failed to allocate SSL locks"
 msgstr "Misslyckades med att allokera SSL-lås"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:220 ../src/hed/mcc/tls/MCCTLS.cpp:378
+#: ../src/hed/mcc/tls/MCCTLS.cpp:219 ../src/hed/mcc/tls/MCCTLS.cpp:377
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:250
+#: ../src/hed/mcc/tls/MCCTLS.cpp:249
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:335
+#: ../src/hed/mcc/tls/MCCTLS.cpp:334
 #, c-format
 msgid "DN name: %s"
 msgstr "DN-namn: %s"
 
 #: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:49
-#: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:76
+#: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:81
 msgid "Failed to shut down SSL"
 msgstr "Misslyckades med att stänga av SSL"
 
@@ -1545,13 +1575,14 @@ msgstr ""
 msgid "Can't obtain configuration"
 msgstr "Misslyckades med att ladda inställningar"
 
-#: ../src/services/a-rex/arex.cpp:174
+#: ../src/services/a-rex/arex.cpp:174 ../src/services/pdp/pdpservice.cpp:47
 msgid "process: POST"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:182
 #: ../src/services/echo_java/javawrapper.cpp:111
 #: ../src/services/echo_python/pythonwrapper.cpp:233
+#: ../src/services/pdp/pdpservice.cpp:55
 msgid "input is not SOAP"
 msgstr "indata är inte SOAP"
 
@@ -1598,7 +1629,7 @@ msgstr ""
 msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:277
+#: ../src/services/a-rex/arex.cpp:277 ../src/services/pdp/pdpservice.cpp:109
 #, c-format
 msgid "process: %s: not supported"
 msgstr "process: %s: understöds inte"
@@ -1695,6 +1726,70 @@ msgid ""
 "%s"
 msgstr ""
 
+#: ../src/services/a-rex/information_collector.cpp:22
+#, fuzzy
+msgid "Failed to initialize GM environment"
+msgstr "Misslyckades med att initiera delegering"
+
+#: ../src/services/a-rex/information_collector.cpp:27
+#, fuzzy, c-format
+msgid "Failed to read GM configuation file at %s"
+msgstr "Misslyckades med att ladda klientinställningar"
+
+#: ../src/services/a-rex/information_collector.cpp:41
+#, c-format
+msgid "Configuration: Section: %s, Subsection: %s"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:47
+#, fuzzy, c-format
+msgid "Configuration: LRMS: %s"
+msgstr "Läser inställningsfil: %s"
+
+#: ../src/services/a-rex/information_collector.cpp:51
+#, fuzzy, c-format
+msgid "Configuration: Queue: %s"
+msgstr "Läser inställningsfil: %s"
+
+#: ../src/services/a-rex/information_collector.cpp:74
+#, c-format
+msgid "Cluster information provider result: %i"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:75
+#, c-format
+msgid "Cluster information provider error: %s"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:92
+#, c-format
+msgid "Queue information provider result: %i"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:93
+#, c-format
+msgid "Queue information provider error: %s"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:95
+#, c-format
+msgid "Obtained LDIF: %s"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:104
+msgid "Assigned new informational document"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:106
+#, c-format
+msgid "Obtained XML: %s"
+msgstr ""
+
+#: ../src/services/a-rex/information_collector.cpp:108
+#, fuzzy
+msgid "Failed to create informational document"
+msgstr "Misslyckades med att skapa socket"
+
 #: ../src/services/a-rex/terminate_activities.cpp:29
 #, c-format
 msgid ""
@@ -1709,75 +1804,89 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/test.cpp:30 ../src/tests/echo/test.cpp:23
-#: ../src/tests/echo/test_service.cpp:21
+#: ../src/services/a-rex/test.cpp:34 ../src/services/pdp/test.cpp:28
+#: ../src/tests/echo/test.cpp:23 ../src/tests/echo/test_service.cpp:22
+#: ../src/tests/wrapper/test.cpp:23 ../src/tests/wrapper/test_service.cpp:22
 msgid "Creating service side chain"
 msgstr "Skapar servicesidokedjan"
 
-#: ../src/services/a-rex/test.cpp:38 ../src/tests/echo/test_client.cpp:20
-#: ../src/tests/echo/test.cpp:32
+#: ../src/services/a-rex/test.cpp:42 ../src/services/pdp/test.cpp:36
+#: ../src/tests/echo/test.cpp:32 ../src/tests/echo/test_client.cpp:20
+#: ../src/tests/wrapper/test.cpp:32 ../src/tests/wrapper/test_client.cpp:20
 msgid "Creating client side chain"
 msgstr "Skapar klientsidokedjan"
 
-#: ../src/services/a-rex/test.cpp:43 ../src/tests/data/test.cpp:40
-#: ../src/tests/echo/test_client.cpp:46 ../src/tests/echo/test.cpp:58
+#: ../src/services/a-rex/test.cpp:48 ../src/services/pdp/test.cpp:41
+#: ../src/tests/data/test.cpp:40 ../src/tests/echo/test.cpp:58
+#: ../src/tests/echo/test_client.cpp:46 ../src/tests/wrapper/test.cpp:58
+#: ../src/tests/wrapper/test_client.cpp:46
 msgid "Failed to load client configuration"
 msgstr "Misslyckades med att ladda klientinställningar"
 
-#: ../src/services/a-rex/test.cpp:47 ../src/tests/echo/test_client.cpp:50
-#: ../src/tests/echo/test.cpp:62
+#: ../src/services/a-rex/test.cpp:52 ../src/services/pdp/test.cpp:45
+#: ../src/tests/echo/test.cpp:62 ../src/tests/echo/test_client.cpp:50
+#: ../src/tests/wrapper/test.cpp:62 ../src/tests/wrapper/test_client.cpp:50
 msgid "Client side MCCs are loaded"
 msgstr "Klientsidans MCC:er har laddats"
 
-#: ../src/services/a-rex/test.cpp:50 ../src/tests/echo/test_client.cpp:53
-#: ../src/tests/echo/test.cpp:65
+#: ../src/services/a-rex/test.cpp:55 ../src/services/pdp/test.cpp:48
+#: ../src/tests/echo/test.cpp:65 ../src/tests/echo/test_client.cpp:53
+#: ../src/tests/wrapper/test.cpp:65 ../src/tests/wrapper/test_client.cpp:53
 msgid "Client chain does not have entry point"
 msgstr "Klientkedjan har ingen ingångspunkt"
 
-#: ../src/services/a-rex/test.cpp:81
+#: ../src/services/a-rex/test.cpp:86
 msgid "Initiating delegation procedure"
 msgstr "Initialiserar delegeringsprocess"
 
-#: ../src/services/a-rex/test.cpp:83
+#: ../src/services/a-rex/test.cpp:88
 msgid "Failed to initiate delegation"
 msgstr "Misslyckades med att initiera delegering"
 
-#: ../src/services/a-rex/test.cpp:103 ../src/services/a-rex/test.cpp:176
-#: ../src/services/a-rex/test.cpp:231 ../src/services/a-rex/test.cpp:276
-#: ../src/services/a-rex/test.cpp:321 ../src/services/a-rex/test.cpp:366
-#: ../src/tests/echo/test_client.cpp:74 ../src/tests/echo/test.cpp:86
+#: ../src/services/a-rex/test.cpp:108 ../src/services/a-rex/test.cpp:181
+#: ../src/services/a-rex/test.cpp:235 ../src/services/a-rex/test.cpp:280
+#: ../src/services/a-rex/test.cpp:325 ../src/services/a-rex/test.cpp:370
+#: ../src/services/pdp/test.cpp:107 ../src/tests/echo/test.cpp:86
+#: ../src/tests/echo/test_client.cpp:74 ../src/tests/wrapper/test.cpp:86
+#: ../src/tests/wrapper/test_client.cpp:74
 msgid "Request failed"
 msgstr "Förfrågan misslyckades"
 
-#: ../src/services/a-rex/test.cpp:106 ../src/services/a-rex/test.cpp:179
-#: ../src/services/a-rex/test.cpp:234 ../src/services/a-rex/test.cpp:279
-#: ../src/services/a-rex/test.cpp:324 ../src/services/a-rex/test.cpp:369
-#: ../src/tests/echo/test.cpp:90
+#: ../src/services/a-rex/test.cpp:111 ../src/services/a-rex/test.cpp:184
+#: ../src/services/a-rex/test.cpp:238 ../src/services/a-rex/test.cpp:283
+#: ../src/services/a-rex/test.cpp:328 ../src/services/a-rex/test.cpp:373
+#: ../src/services/pdp/test.cpp:110 ../src/tests/echo/test.cpp:90
+#: ../src/tests/wrapper/test.cpp:90
 msgid "Request succeed!!!"
 msgstr "Förfrågan lyckades!!!"
 
-#: ../src/services/a-rex/test.cpp:108 ../src/services/a-rex/test.cpp:181
-#: ../src/services/a-rex/test.cpp:236 ../src/services/a-rex/test.cpp:281
-#: ../src/services/a-rex/test.cpp:326 ../src/services/a-rex/test.cpp:371
-#: ../src/tests/echo/test_client.cpp:80 ../src/tests/echo/test.cpp:94
+#: ../src/services/a-rex/test.cpp:113 ../src/services/a-rex/test.cpp:186
+#: ../src/services/a-rex/test.cpp:240 ../src/services/a-rex/test.cpp:285
+#: ../src/services/a-rex/test.cpp:330 ../src/services/a-rex/test.cpp:375
+#: ../src/services/pdp/test.cpp:112 ../src/tests/echo/test.cpp:94
+#: ../src/tests/echo/test_client.cpp:80 ../src/tests/wrapper/test.cpp:94
+#: ../src/tests/wrapper/test_client.cpp:80
 msgid "There is no response"
 msgstr "Det finns inget svar"
 
-#: ../src/services/a-rex/test.cpp:116 ../src/services/a-rex/test.cpp:189
-#: ../src/services/a-rex/test.cpp:244 ../src/services/a-rex/test.cpp:289
-#: ../src/services/a-rex/test.cpp:334 ../src/services/a-rex/test.cpp:379
-#: ../src/tests/echo/test_client.cpp:87 ../src/tests/echo/test.cpp:101
+#: ../src/services/a-rex/test.cpp:121 ../src/services/a-rex/test.cpp:194
+#: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:293
+#: ../src/services/a-rex/test.cpp:338 ../src/services/a-rex/test.cpp:383
+#: ../src/services/pdp/test.cpp:120 ../src/tests/echo/test.cpp:101
+#: ../src/tests/echo/test_client.cpp:87 ../src/tests/wrapper/test.cpp:101
+#: ../src/tests/wrapper/test_client.cpp:87
 msgid "Response is not SOAP"
 msgstr "Svaret är inte SOAP"
 
-#: ../src/services/a-rex/test.cpp:127
+#: ../src/services/a-rex/test.cpp:132
 msgid "Response is not expected WS-RP"
 msgstr "Svaret är inte förväntad WS-RP"
 
-#: ../src/services/a-rex/test.cpp:145 ../src/services/a-rex/test.cpp:213
-#: ../src/services/a-rex/test.cpp:258 ../src/services/a-rex/test.cpp:303
-#: ../src/services/a-rex/test.cpp:348 ../src/tests/echo/test_client.cpp:59
-#: ../src/tests/echo/test.cpp:71
+#: ../src/services/a-rex/test.cpp:150 ../src/services/a-rex/test.cpp:217
+#: ../src/services/a-rex/test.cpp:262 ../src/services/a-rex/test.cpp:307
+#: ../src/services/a-rex/test.cpp:352 ../src/tests/echo/test.cpp:71
+#: ../src/tests/echo/test_client.cpp:59 ../src/tests/wrapper/test.cpp:71
+#: ../src/tests/wrapper/test_client.cpp:59
 msgid "Creating and sending request"
 msgstr "Skapar och skickar förfrågan"
 
@@ -1896,19 +2005,48 @@ msgstr ""
 msgid "Cannot convert outmsg to python object"
 msgstr "Kan inte omvandle outmsg till pythonobjekt"
 
+#: ../src/services/pdp/pdpservice.cpp:61
+msgid "input does not include any request"
+msgstr ""
+
+#: ../src/services/pdp/pdpservice.cpp:66
+#, fuzzy, c-format
+msgid "request: %s"
+msgstr "subjekt: %s"
+
+#: ../src/services/pdp/pdpservice.cpp:73
+#, fuzzy
+msgid "Authorized from Service_PDP"
+msgstr "Autoriserad från arc.pdp!!!"
+
+#: ../src/services/pdp/test.cpp:97
+#, fuzzy, c-format
+msgid "Request: %s"
+msgstr "subjekt: %s"
+
 #: ../src/tests/data/test.cpp:44
 msgid "DMCs are loaded"
 msgstr "DMC:erna har laddats"
 
-#: ../src/tests/echo/echo.cpp:71
+#: ../src/tests/echo/echo.cpp:62
+msgid "No authorization requirement for echo service"
+msgstr ""
+
+#: ../src/tests/echo/echo.cpp:63
+#, fuzzy
+msgid "echo_Authorized"
+msgstr "Autoriserad"
+
+#: ../src/tests/echo/echo.cpp:72 ../src/tests/wrapper/wrapper.cpp:103
 msgid "Input is not SOAP"
 msgstr "Indata är inte SOAP"
 
-#: ../src/tests/echo/echo.cpp:77
+#: ../src/tests/echo/echo.cpp:78 ../src/tests/wrapper/wrapper.cpp:109
 #, c-format
 msgid "Request is not supported - %s"
 msgstr "Förfrågan understöds inte - %s"
 
-#: ../src/tests/echo/test_service.cpp:29
+#: ../src/tests/echo/test_service.cpp:30
+#: ../src/tests/wrapper/test_service.cpp:30
 msgid "Service is waiting for requests"
 msgstr "Servicen väntar på förfrågningar"
