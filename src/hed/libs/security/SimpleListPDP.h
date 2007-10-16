@@ -16,6 +16,8 @@ class SimpleListPDP : public PDP {
   virtual bool isPermitted(Arc::Message *msg);
  private:
   std::string location;
+ protected:
+  static Arc::Logger logger;
 };
 
 } // namespace ArcSec

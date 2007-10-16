@@ -79,13 +79,13 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   //fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
   fnfactory = (FnFactory*)(classloader.Instance(functionfactory, NULL));
   if(fnfactory == NULL)
-    logger.msg(INFO, "Can not dynamically produce FnFactory");
+    logger.msg(ERROR, "Can not dynamically produce FnFactory");
 
   algfactory=NULL;
   //algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
   algfactory = (AlgFactory*)(classloader.Instance(combingalgfactory, NULL));
   if(algfactory == NULL)
-    logger.msg(INFO, "Can not dynamically produce AlgFacroty");
+    logger.msg(ERROR, "Can not dynamically produce AlgFacroty");
 
   context = new EvaluatorContext(this);
 
@@ -121,6 +121,9 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
   f.close();
 
   Arc::XMLNode node(xml_str);
+  std::string tmp;
+  node.GetXML(tmp);
+  std::cout<<tmp<<std::endl;
   parsecfg(node); 
 }
 

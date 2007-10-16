@@ -6,14 +6,15 @@
 #include <signal.h>
 
 #include <string>
-#include <arc/security/ArcPDP/ArcEvaluator.h>
+//#include <arc/security/ArcPDP/ArcEvaluator.h>
+#include "ArcEvaluator.h"
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include <arc/security/ArcPDP/ArcRequest.h>
-
+//#include <arc/security/ArcPDP/ArcRequest.h>
+#include "ArcRequest.h"
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 int main(void){

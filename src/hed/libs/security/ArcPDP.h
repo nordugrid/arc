@@ -17,6 +17,8 @@ class ArcPDP : public PDP {
   virtual bool isPermitted(Arc::Message *msg);
  private:
   ArcEvaluator *eval;
+ protected:
+  static Arc::Logger logger;
 };
 
 } // namespace ArcSec

@@ -54,7 +54,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
         if(!tnd) break;
         std::string type_fullname = (nd.Attribute("Type")).Prefix();
         type_fullname = type_fullname + ":Type";
-        XMLNode type_prop = tnd.NewAttribute(type_fullname);
+        XMLNode type_prop = tnd.NewAttribute(type_fullname.c_str());
         type_prop = type;
         sub.push_back(new RequestAttribute(tnd, attrfactory));
       }
@@ -89,7 +89,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
         if(!tnd) break;
         std::string type_fullname = (nd.Attribute("Type")).Prefix();
         type_fullname = type_fullname + ":Type";
-        XMLNode type_prop = tnd.NewAttribute(type_fullname);
+        XMLNode type_prop = tnd.NewAttribute(type_fullname.c_str());
         type_prop = type;
         res.push_back(new RequestAttribute(tnd, attrfactory));
       }
@@ -124,7 +124,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
         if(!tnd) break;
         std::string type_fullname = (nd.Attribute("Type")).Prefix();
         type_fullname = type_fullname + ":Type";
-        XMLNode type_prop = tnd.NewAttribute(type_fullname);
+        XMLNode type_prop = tnd.NewAttribute(type_fullname.c_str());
         type_prop = type;
         act.push_back(new RequestAttribute(tnd, attrfactory));
       }
@@ -159,7 +159,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
         if(!tnd) break;
         std::string type_fullname = (nd.Attribute("Type")).Prefix();
         type_fullname = type_fullname + ":Type";
-        XMLNode type_prop = tnd.NewAttribute(type_fullname);
+        XMLNode type_prop = tnd.NewAttribute(type_fullname.c_str());
         type_prop = type;
         ctx.push_back(new RequestAttribute(tnd, attrfactory));
       }

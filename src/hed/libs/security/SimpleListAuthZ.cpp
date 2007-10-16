@@ -69,8 +69,12 @@ void SimpleListAuthZ::MakePDPs(Config* cfg) {
        Arc::Config cfg_(can);
        std::string name = can.Attribute("name");
        logger.msg(DEBUG, "PDP name: %s %d", name.c_str(), n);
-       PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
-       if(!pdp) continue;
+       PDP* pdp = NULL;
+       pdp = pdp_factory->get_instance(name,&cfg_,NULL);
+       if(!pdp) { 
+         logger.msg(ERROR, "PDP: %s can not be loaded, exit!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11", name.c_str()); 
+         exit(1); 
+       };
        pdps_[name]=pdp;
     } 
 }

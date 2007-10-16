@@ -3,7 +3,7 @@
     <ModuleManager>
         <Path>../../security/.libs/</Path>
     </ModuleManager>
-    <Plugins Name="security">
+    <Plugins Name="securityplugin">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>

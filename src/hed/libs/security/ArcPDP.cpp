@@ -14,6 +14,9 @@
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 #include "ArcPDP.h"
+
+//Arc::Logger ArcSec::ArcPDP::logger(ArcSec::PDP::logger,"ArcPDP");
+Arc::Logger ArcSec::ArcPDP::logger(Arc::Logger::rootLogger, "ArcPDP");
 /*
 static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new ArcSec::ArcPDP(cfg);
