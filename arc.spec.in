@@ -148,7 +148,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmcc*.so
 %{_libdir}/%{pkgdir}/libdmc*.so
-%{_libdir}/%{pkgdir}/libsecurity.so
+%{_libdir}/%{pkgdir}/libpdpservice.so
+%{_libdir}/%{pkgdir}/libsecurityplugin.so
 %{_libdir}/%{pkgdir}/libarcservice_pythonwrapper.so
 %if "%{!?disable_java:java}"
 %{_libdir}/%{pkgdir}/libarcservice_javawrapper.so
