@@ -17,14 +17,14 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>security</Name></Plugins>
+    <Plugins><Name>securityplugin</Name></Plugins>
     <Plugins><Name>pdpservice</Name></Plugins>
 
     <Plugins Name="securityplugin">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
-          <Plugin Name="__arc_xxxfactory_modules__">xxxfactory</Plugin>
+          <Plugin Name="__arc_evaluator_modules__">evaluator</Plugin>
     </Plugins>
 
     <Chain>
@@ -50,6 +50,7 @@
                 <pdp:AttributeFactory name="attr.factory" />
                 <pdp:CombingAlgorithmFactory name="alg.factory" />
                 <pdp:FunctionFactory name="fn.factory" />
+                <pdp:Evaluator name="arc.evaluator" />
             </pdp:PDPConfig>
         </Service>
     </Chain>

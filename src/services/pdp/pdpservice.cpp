@@ -8,6 +8,7 @@
 #include <pwd.h>
 
 #include <arc/loader/Loader.h>
+#include <arc/loader/ClassLoader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/loader/Plexer.h>
 #include <arc/message/PayloadSOAP.h>
@@ -118,9 +119,16 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   ns_["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
 
   Arc::XMLNode node(*cfg);
-  Arc::XMLNode nd = node.GetRoot();
-  Arc::Config topcfg(nd);
-  eval = new ArcEvaluator(topcfg);
+  Arc::XMLNode topcfg = node.GetRoot();
+  Arc::Config modulecfg(topcfg);
+
+  Arc::ClassLoader classloader(&modulecfg);
+  std::string evaluator = "arc.evaluator";
+  eval = (ArcSec::Evaluator*)(classloader.Instance(evaluator, (void**)&topcfg));
+  if(eval == NULL)
+    logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
+
+  //eval = new ArcEvaluator(&node);
 }
 
 Service_PDP::~Service_PDP(void) {

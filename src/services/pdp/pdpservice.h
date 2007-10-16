@@ -3,7 +3,7 @@
 
 #include <arc/message/Service.h>
 
-#include <arc/security/ArcPDP/ArcEvaluator.h>
+#include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
 
 namespace ArcSec {
@@ -18,7 +18,7 @@ class Service_PDP: public Arc::Service {
   virtual ~Service_PDP(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
  private:
-  ArcEvaluator* eval;
+  Evaluator* eval;
 };
 
 } // namespace ArcSec
