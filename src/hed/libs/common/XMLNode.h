@@ -30,8 +30,10 @@ typedef std::map<std::string,std::string> NS;
 class XMLNode {
  friend bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLName(const XMLNode& node,const char* name);
+ friend bool MatchXMLName(const XMLNode& node,const std::string& name);
  friend bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLNamespace(const XMLNode& node,const char* uri);
+ friend bool MatchXMLNamespace(const XMLNode& node,const std::string& uri);
 
  protected:
   xmlNodePtr node_;
@@ -124,8 +126,10 @@ class XMLNode {
   std::string FullName(void) const {
     return Prefix()+":"+Name();
   };
-  /** Assign new name to XML node */
+  /** Assigns new name to XML node */
   void Name(const char* name);
+  /** Assigns new name to XML node */
+  void Name(const std::string& name) { Name(name.c_str()); };
   /** Fills argument with this instance XML subtree textual representation */
   void GetXML(std::string& xml) const;
   /** Fills argument with whole XML document textual representation */
@@ -153,23 +157,25 @@ class XMLNode {
   XMLNode& operator=(const std::string& content) {
     return operator=(content.c_str());
   };
-    
-  /** Common set method **/
-  //void Set(const std::string& content) {
-  //  if (!node_) return;
-  //  xmlNodeSetContent(node_, (xmlChar*)content.c_str());
-  //}
-
+  /** Same as operator=. Used for bindings. **/
+  void Set(const std::string& content) {
+    if (!node_) return;
+    xmlNodeSetContent(node_, (xmlChar*)content.c_str());
+  }
   /** Make instance refer to another XML node. Ownership is not inherited. */
   XMLNode& operator=(const XMLNode& node);
-  /** Returns list of all attributes of node */
+  /// Returns list of all attributes of node
   // std::list<XMLNode> Attributes(void);
   /** Returns XMLNode instance reresenting n-th attribute of node. */
   XMLNode Attribute(int n = 0) const;
   /** Returns XMLNode instance representing first attribute of node with specified by name */
   XMLNode Attribute(const char* name) const; 
+  /** Returns XMLNode instance representing first attribute of node with specified by name */
+  XMLNode Attribute(const std::string& name) const { return Attribute(name); }; 
   /** Creates new attribute with specified name. */
   XMLNode NewAttribute(const char* name);
+  /** Creates new attribute with specified name. */
+  XMLNode NewAttribute(const std::string& name) { return NewAttribute(name.c_str()); };
   /** Returns number of attributes of node */
   int AttributesSize(void) const;
   /** Assign namespaces of XML document at point specified by this instance.
@@ -202,7 +208,8 @@ class XMLNode {
     Returns a list of XMLNode points. The xpathExpr should be like 
     "//xx:child1/" which indicates the namespace and node that you 
     would like to find; The nsList is the namespace the result should 
-    belong to (e.g. xx="uri:test").
+    belong to (e.g. xx="uri:test"). Query is run on whole XML document
+    but only the elements belonging to this XML subtree are returned.
   */ 
   std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
 
@@ -219,11 +226,17 @@ bool MatchXMLName(const XMLNode& node1,const XMLNode& node2);
 /** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
 bool MatchXMLName(const XMLNode& node,const char* name);
 
+/** Returns true if 'name' matches name of 'node'. If name contains prefix it's checked too */
+bool MatchXMLName(const XMLNode& node,const std::string& name);
+
 /** Returns true if underlying XML elements belong to same namespaces */
 bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
 
 /** Returns true if 'namespace' matches 'node's namespace. */
 bool MatchXMLNamespace(const XMLNode& node,const char* uri);
+
+/** Returns true if 'namespace' matches 'node's namespace. */
+bool MatchXMLNamespace(const XMLNode& node,const std::string& uri);
 
 
 } // namespace Arc 

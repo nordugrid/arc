@@ -62,12 +62,20 @@ bool MatchXMLName(const XMLNode& node,const char* name) {
   return MatchXMLName(node.node_,name);
 }
 
+bool MatchXMLName(const XMLNode& node,const std::string& name) {
+  return MatchXMLName(node.node_,name.c_str());
+}
+
 bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2) {
   return MatchXMLNamespace(node1.node_,node2.node_);
 }
 
 bool MatchXMLNamespace(const XMLNode& node,const char* uri) {
   return MatchXMLNamespace(node.node_,uri);
+}
+
+bool MatchXMLNamespace(const XMLNode& node,const std::string& uri) {
+  return MatchXMLNamespace(node.node_,uri.c_str());
 }
 
 static void SetNamespaces(const Arc::NS& namespaces,xmlNodePtr node_) {
