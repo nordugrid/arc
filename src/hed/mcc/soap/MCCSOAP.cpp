@@ -74,50 +74,26 @@ static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* de
 }
 
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
-  //Checking authentication and authorization; 
-  //Each MCC/Service can define security handler chains in the configuration 
-  // file, the chains are distinguished by "event" attribute;
-  // Security SecHandlers in one handler chain are called one by one. For one 
-  // type ("event") of handlers, each one should be configured carefully, 
-  // because there should be some sequencial relationship between them (e.g. 
-  // authentication should be put in front of authorization).
-  // The h->Handle(msg) only return true/false; If any SecHandler in the 
-  // handler chain produces some information which will be used by some 
-  // following handler, the information should be stored in the 
-  // msg.attributes(e.g. the Identity extracted from authentication will 
-  // be used by authorization to make access control decision).
-  
-  std::list<ArcSec::SecHandler*> hlist=sechandlers_["incoming"];
-  std::list<ArcSec::SecHandler*>::iterator it;
-  for(it=hlist.begin(); it!=hlist.end(); it++){
-    ArcSec::SecHandler* h = *it;
-    if(h->Handle(&inmsg)) break;   
-  }  
-  // The "Handle" method only returns true/false; The MCC/Service doesn't 
-  // care about security process. "SecHandler" uses msg.attributes to 
-  // exchange security related information
-  if((it==hlist.end()) && (hlist.size() > 0)){
-    logger.msg(Arc::INFO, "UnAuthorized"); 
-    return MCC_Status(Arc::GENERIC_ERROR);
-  } //Do we need to add some status in MCC_Status
-  else if (hlist.empty()) logger.msg(Arc::INFO, "No authorization requirement for SOAP MCC");
-  else logger.msg(Arc::INFO, "soap_Authorized"); 
-
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
-  if(!inpayload) return make_raw_fault(inmsg);
+  if(!inpayload) return make_raw_fault(outmsg);
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
   if(!nextpayload) return make_raw_fault(outmsg);
   // Creating message to pass to next MCC and setting new payload.. 
   // Using separate message. But could also use same inmsg.
-  // Just trying to keep intact as much as possible.
+  // Just trying to keep it intact as much as possible.
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   if(WSAHeader::Check(nextpayload)) {
     std::string endpoint_attr = WSAHeader(nextpayload).To();
     nextinmsg.Attributes()->set("SOAP:ENDPOINT",endpoint_attr);
     nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
+  };
+  //Checking authentication and authorization; 
+  if(!ProcessSecHandlers(nextinmsg,"incoming")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
+    return make_raw_fault(outmsg);
   };
   // Call next MCC 
   MCCInterface* next = Next();
@@ -133,6 +109,11 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   } catch(std::exception& e) { };
   if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
   if(!(*retpayload)) { delete retpayload; return make_raw_fault(outmsg); };
+  //Checking authentication and authorization; 
+  if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
+    delete retpayload; return make_raw_fault(outmsg);
+  };
   // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
   std::string xml; retpayload->GetXML(xml);
@@ -150,6 +131,11 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     inpayload = dynamic_cast<PayloadSOAP*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) return make_soap_fault(outmsg);
+  //Checking authentication and authorization;
+  if(!ProcessSecHandlers(inmsg,"incoming")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
+    return make_soap_fault(outmsg);
+  };
   // Converting payload to Raw
   PayloadRaw nextpayload;
   std::string xml; inpayload->GetXML(xml);
@@ -171,12 +157,16 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
   if(!outpayload) return make_soap_fault(outmsg,nextoutmsg);
   if(!(*outpayload)) {
-    delete outpayload;
-    return make_soap_fault(outmsg,nextoutmsg);
+    delete outpayload; return make_soap_fault(outmsg,nextoutmsg);
   };
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);
   delete retpayload;
+  //Checking authentication and authorization; 
+  if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
+    delete outpayload; return make_soap_fault(outmsg);
+  };
   return MCC_Status(Arc::STATUS_OK);
 }
 
