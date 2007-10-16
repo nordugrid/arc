@@ -16,4 +16,22 @@ void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std
     }
 }
 
+bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
+    std::map<std::string,std::list<ArcSec::SecHandler*> >::iterator q = sechandlers_.find(label);
+    if(q == sechandlers_.end()) {
+        logger.msg(Arc::VERBOSE, "No security processing/check required");
+        return true;
+    }
+    std::list<ArcSec::SecHandler*>::iterator h = q->second.begin();
+    for(;h!=q->second.end();++h) {
+        ArcSec::SecHandler* handler = *h;
+        if(handler) if(handler->Handle(&message)) {
+            logger.msg(Arc::VERBOSE, "Security processing/check passed");
+            return true;
+        }
+    }
+    logger.msg(Arc::VERBOSE, "Security processing/check failed");
+    return false;
+}
+
 } // namespace Arc

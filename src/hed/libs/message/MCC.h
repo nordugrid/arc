@@ -41,42 +41,57 @@ class MCCInterface
  in a chain. */
 class MCC: public Arc::MCCInterface
 {
- protected:
-  /** Set of labeled "next" components. 
-      Each implemented MCC must call process() metthod of 
-      corresponding MCCInterface from this set in own process() method. */
-  std::map<std::string,Arc::MCCInterface*> next_;
-  Arc::MCCInterface* Next(const std::string& label = "");
+    protected:
+        /** Set of labeled "next" components. 
+            Each implemented MCC must call process() metthod of 
+            corresponding MCCInterface from this set in own process() method. */
+        std::map<std::string,Arc::MCCInterface*> next_;
+        Arc::MCCInterface* Next(const std::string& label = "");
   
-  /** Set o flabeled authentication and authorization handlers.
-      MCC calls sequence of handlers at specific point depending
-      on associated identifier. in most aces those are "in" and "out"
-      for incoming and outgoing messages correspondingly. */
-  std::map<std::string,std::list<ArcSec::SecHandler*> > sechandlers_;
+        /** Set o flabeled authentication and authorization handlers.
+            MCC calls sequence of handlers at specific point depending
+            on associated identifier. In most aces those are "in" and "out"
+            for incoming and outgoing messages correspondingly. */
+        std::map<std::string,std::list<ArcSec::SecHandler*> > sechandlers_;
   
-  //! A logger for MCCs.
-  /*! A logger intended to be the parent of loggers in the different
-    MCCs.
-  */
-  static Arc::Logger logger;
+        /** Executes security handlers of specified queue.
+           Returns true if message is authorized for further processing or if there
+           are no security handlers which implement authorization functionality. 
+           This is a convenience method and has to be called by implemention of MCC. */
+        bool ProcessSecHandlers(Arc::Message& message,const std::string& label = "");
+        
+        //! A logger for MCCs.
+        /*! A logger intended to be the parent of loggers in the different
+          MCCs.
+         */
+        static Arc::Logger logger;
   
     public:
         /** Example contructor - MCC takes at least it's configuration
             subtree */
         MCC(Arc::Config*) { };
+
         virtual ~MCC(void) { };
+
         /** Add reference to next MCC in chain.
           This method is called by Loader for every potentially labeled link to next 
-         component which implements MCCInterface. If next is set NULL corresponding
+         component which implements MCCInterface. If next is NULL corresponding
          link is removed.  */
-        
         virtual void Next(Arc::MCCInterface* next,const std::string& label = "");
         
-        /** SecHandler */
+        /** Add security components/handlers to this MCC.
+          Security handlers are stacked into few queues with each queue identified
+          by it's label. Queue labeled 'incoming' is executed for every 'request' 
+          message after message is processes by MCC for service side and before 
+          processing on client side. Queue 'outgoing' is run for response message 
+          before it is processed by MCC algorithms on service side and after processing
+          on client side. Those labels are just a matter of agreement and some MCCs 
+          may implement different queues executed at various message processing steps. */
         virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
-        
+
         /** Removing all links. Useful for destroying chains. */
         virtual void Unlink(void);
+
         /** Dummy Message processing method. Just a placeholder. */
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&) { return MCC_Status(); };
 

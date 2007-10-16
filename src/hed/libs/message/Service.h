@@ -32,17 +32,25 @@ namespace Arc {
 class Service: public MCCInterface
 {
     protected:
-      /** Set of labeled authentication and authorization handlers.
-      MCC calls sequence of handlers at specific point depending
-      on associated identifier. in most aces those are "in" and "out"
-      for incoming and outgoing messages correspondingly. */
+        /** Set of labeled authentication and authorization handlers.
+        MCC calls sequence of handlers at specific point depending
+        on associated identifier. in most aces those are "in" and "out"
+        for incoming and outgoing messages correspondingly. */
         std::map<std::string,std::list<ArcSec::SecHandler*> > sechandlers_;
         static Logger logger;
+
+        /** Executes security handlers of specified queue.
+          For more information please see description of MCC::ProcessSecHandlers */
+        bool ProcessSecHandlers(Arc::Message& message,const std::string& label = "");
+
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
         Service(Arc::Config*) { };
+
         virtual ~Service(void) { };
-        /** SecHandler */
+
+        /** Add security components/handlers to this MCC.
+          For more information please see description of MCC::AddSecHandler */
         virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
 };
 
