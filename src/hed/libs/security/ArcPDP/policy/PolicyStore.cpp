@@ -22,8 +22,7 @@ loader_descriptors __arc_policystore_modules__  = {
 };
 */
 
-using namespace Arc;
-using namespace ArcSec;
+namespace ArcSec {
 
 PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
   combalg = alg;
@@ -58,3 +57,6 @@ PolicyStore::~PolicyStore(){
     policies.pop_back();
   }
 }
+
+}
+

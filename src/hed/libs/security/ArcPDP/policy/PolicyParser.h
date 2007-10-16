@@ -16,7 +16,7 @@ class PolicyParser {
 
 public:
   PolicyParser();
-  virtual Policy* parsePolicy(const std::string filename, EvaluatorContext* ctx);
+  virtual Policy* parsePolicy(const std::string& filename, EvaluatorContext* ctx);
   virtual ~PolicyParser(){};
 
 };
