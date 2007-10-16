@@ -6,10 +6,10 @@
 
 #include "ArcAttributeFactory.h"
 #include <arc/security/ArcPDP/attr/AttributeProxy.h>
-#include "StringAttribute.h"
-#include "DateTimeAttribute.h"
-#include "X500NameAttribute.h"
-#include "AnyURIAttribute.h"
+#include <arc/security/ArcPDP/attr/StringAttribute.h>
+#include <arc/security/ArcPDP/attr/DateTimeAttribute.h>
+#include <arc/security/ArcPDP/attr/X500NameAttribute.h>
+#include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 
 
 static Arc::LoadableClass* get_attr_factory (Arc::Config*) {

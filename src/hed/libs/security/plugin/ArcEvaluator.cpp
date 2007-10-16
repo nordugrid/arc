@@ -6,10 +6,10 @@
 
 #include "ArcEvaluator.h"
 
-#include "Request.h"
+#include <arc/security/ArcPDP/Request.h>
 #include "ArcRequest.h"
-#include "Response.h"
-#include "EvaluationCtx.h"
+#include <arc/security/ArcPDP/Response.h>
+#include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <fstream>
 #include <iostream>
 

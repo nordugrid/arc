@@ -6,14 +6,14 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "Evaluator.h"
+#include <arc/security/ArcPDP/Evaluator.h>
 
-#include "policy/PolicyStore.h"
-#include "fn/FnFactory.h"
-#include "attr/AttributeFactory.h"
-#include "alg/AlgFactory.h"
-#include "Request.h"
-#include "Response.h"
+#include "PolicyStore.h"
+#include <arc/security/ArcPDP/fn/FnFactory.h>
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/alg/AlgFactory.h>
+#include <arc/security/ArcPDP/Request.h>
+#include <arc/security/ArcPDP/Response.h>
 
 /** Execute the policy evaluation, based on the request and policy */
 

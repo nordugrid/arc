@@ -8,7 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include "Policy.h" 
-#include "PolicyParser.h"
+#include "../../../plugin/PolicyParser.h"
 
 /*
 //Should we provide different ClassLoader for different "get" function with different arguments?
@@ -22,7 +22,8 @@ loader_descriptors __arc_policystore_modules__  = {
 };
 */
 
-namespace ArcSec {
+using namespace Arc;
+using namespace ArcSec;
 
 PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
   combalg = alg;
@@ -57,6 +58,3 @@ PolicyStore::~PolicyStore(){
     policies.pop_back();
   }
 }
-
-}
-

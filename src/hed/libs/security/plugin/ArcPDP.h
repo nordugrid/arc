@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include <arc/ArcConfig.h>
-#include <arc/security/ArcPDP/ArcEvaluator.h>
+#include "ArcEvaluator.h"
 #include <arc/security/PDP.h>
 
 namespace ArcSec {

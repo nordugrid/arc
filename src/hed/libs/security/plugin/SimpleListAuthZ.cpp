@@ -72,7 +72,7 @@ void SimpleListAuthZ::MakePDPs(Config* cfg) {
        PDP* pdp = NULL;
        pdp = pdp_factory->get_instance(name,&cfg_,NULL);
        if(!pdp) { 
-         logger.msg(ERROR, "PDP: %s can not be loaded, exit!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11", name.c_str()); 
+         logger.msg(ERROR, "PDP: %s can not be loaded, exit!", name.c_str()); 
          exit(1); 
        };
        pdps_[name]=pdp;

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config">
     <ModuleManager>
-        <Path>../../security/.libs/</Path>
+        <Path>.libs/</Path>
     </ModuleManager>
     <Plugins Name="securityplugin">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>

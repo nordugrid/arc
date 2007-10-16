@@ -6,8 +6,8 @@
 
 #include <arc/ArcConfig.h>
 #include "ArcAlgFactory.h"
-#include "DenyOverridesAlg.h"
-#include "PermitOverridesAlg.h"
+#include <arc/security/ArcPDP/alg/DenyOverridesAlg.h>
+#include <arc/security/ArcPDP/alg/PermitOverridesAlg.h>
 
 static Arc::LoadableClass* get_alg_factory (Arc::Config *) {
     return new ArcSec::ArcAlgFactory();

@@ -3,7 +3,7 @@
 #endif
 
 #include "ArcRequestItem.h"
-#include "attr/ArcAttributeFactory.h"
+#include "ArcAttributeFactory.h"
 #include <arc/security/ArcPDP/attr/RequestAttribute.h>
 
 using namespace Arc;

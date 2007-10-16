@@ -2,10 +2,10 @@
 #define __ARC_SEC_POLICYPARSER_H__
 
 #include <list>
-#include "../alg/CombiningAlg.h"
-#include "Policy.h"
+#include <arc/security/ArcPDP/alg/CombiningAlg.h>
+#include <arc/security/ArcPDP/policy/Policy.h>
 
-#include "../Evaluator.h"
+#include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {
 
@@ -16,7 +16,7 @@ class PolicyParser {
 
 public:
   PolicyParser();
-  virtual Policy* parsePolicy(const std::string& filename, EvaluatorContext* ctx);
+  virtual Policy* parsePolicy(const std::string filename, EvaluatorContext* ctx);
   virtual ~PolicyParser(){};
 
 };

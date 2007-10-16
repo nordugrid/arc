@@ -8,8 +8,9 @@
 #include "ArcRule.h"
 #include <list>
 
-#include "../fn/EqualFunction.h"
-//#include "../fn/MatchFunction.h"
+#include <arc/security/ArcPDP/fn/EqualFunction.h>
+
+//#include <arc/security/ArcPDP/fn/MatchFunction.h>
 
 //Arc::Logger ArcSec::ArcRule::logger(ArcSec::Policy::logger, "ArcRule");
 Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");

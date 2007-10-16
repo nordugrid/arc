@@ -5,13 +5,13 @@
 #include <arc/loader/ClassLoader.h>
 
 #include "ArcFnFactory.h"
-#include "EqualFunction.h"
-#include "MatchFunction.h"
-#include "InRangeFunction.h"
-#include "../attr/StringAttribute.h"
-#include "../attr/DateTimeAttribute.h"
-#include "../attr/X500NameAttribute.h"
-#include "../attr/AnyURIAttribute.h"
+#include <arc/security/ArcPDP/fn/EqualFunction.h>
+#include <arc/security/ArcPDP/fn/MatchFunction.h>
+#include <arc/security/ArcPDP/fn/InRangeFunction.h>
+#include <arc/security/ArcPDP/attr/StringAttribute.h>
+#include <arc/security/ArcPDP/attr/DateTimeAttribute.h>
+#include <arc/security/ArcPDP/attr/X500NameAttribute.h>
+#include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
 
 
 static Arc::LoadableClass* get_fn_factory (Arc::Config *) {

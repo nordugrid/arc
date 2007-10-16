@@ -14,7 +14,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 
-namespace ArcSec {
+using namespace Arc;
+using namespace ArcSec;
 
 PolicyParser::PolicyParser(){
 }
@@ -99,7 +100,7 @@ void getfromURL(const std::string name, std::string& xml_policy){
   xml_policy.append(" ");
 }
 
-Policy* PolicyParser::parsePolicy(const std::string& sourcename, EvaluatorContext* ctx){
+Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext* ctx){
   std::string xml_policy;
   int pos = sourcename.find("://");
   if(pos == std::string::npos) {
@@ -111,11 +112,8 @@ Policy* PolicyParser::parsePolicy(const std::string& sourcename, EvaluatorContex
 
   std::cout<<xml_policy<<std::endl;   
 
-  Arc::XMLNode node(xml_policy);
+  XMLNode node(xml_policy);
   
   return(new ArcPolicy(node, ctx));
   
 }
-
-}
-
