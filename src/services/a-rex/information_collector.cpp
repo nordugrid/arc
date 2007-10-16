@@ -93,8 +93,7 @@ std::cerr<<"GM configuration file: "<<nordugrid_config_loc<<std::endl;
     std::istringstream ldif(ldif_str);
     Arc::NS ns;
     ns["n"]="urn:nordugrid";
-    Arc::XMLNode xml(ns);
-    Arc::XMLNode root = xml.NewChild("n:nordugrid");
+    Arc::XMLNode root(ns,"n:nordugrid");
     if(LDIFtoXML(ldif,"o=grid",root)) {
       // Put result into container
       infodoc_.Assign(root);

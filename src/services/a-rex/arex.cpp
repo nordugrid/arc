@@ -302,8 +302,8 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   uname_=(std::string)((*cfg)["username"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
   // Create empty LIDI container
-  Arc::XMLNode doc(ns_);
-  infodoc_.Assign(doc,true);
+  // Arc::XMLNode doc(ns_);
+  // infodoc_.Assign(doc,true);
   CreateThreadFunction(&thread_starter,this);
 
 }

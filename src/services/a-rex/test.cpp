@@ -19,10 +19,13 @@
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 
+#include <glibmm.h>
+
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
+
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -37,6 +40,7 @@ int main(void) {
   Arc::Loader service_loader(&service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
   logger.msg(Arc::INFO, "Creating client side chain");
+
 
   // Create client chain
   Arc::Config client_config("client.xml");
@@ -196,12 +200,11 @@ int main(void) {
       resp->GetXML(str);
       std::cout << "Response: " << str << std::endl;
     };
-    Arc::NS ns;
-    Arc::XMLNode id(ns);
-    id.NewChild((*resp)["CreateActivityResponse"]["ActivityIdentifier"]);
+    Arc::XMLNode id;
+    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
     {
       std::string str;
-      id.GetXML(str);
+      id.GetDoc(str);
       std::cout << "Job ID: " << std::endl << str << std::endl;
     };
     delete repmsg.Payload();
