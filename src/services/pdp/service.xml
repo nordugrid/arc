@@ -10,7 +10,7 @@
         <Path>../../hed/mcc/tls/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
-        <Path>../../hed/libs/security/.libs/</Path>
+        <Path>../../hed/libs/security/plugin/.libs/</Path>
 	<Path>./.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
@@ -20,7 +20,7 @@
     <Plugins><Name>security</Name></Plugins>
     <Plugins><Name>pdpservice</Name></Plugins>
 
-    <Plugins Name="security">
+    <Plugins Name="securityplugin">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
           <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
           <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>

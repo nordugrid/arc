@@ -39,8 +39,6 @@ Arc::MCC_Status Service_PDP::make_soap_fault(Arc::Message& outmsg) {
 
 Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   
-  std::cout<<"Into pdp service!!!!!!!!!!!!!!!!!!"<<std::endl;
-  
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
 
   // Identify which of served endpoints request is for.
