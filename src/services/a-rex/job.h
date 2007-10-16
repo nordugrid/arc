@@ -24,6 +24,7 @@ class ARexGMConfig {
   const std::string& GridName(void) const { return grid_name_; };
   const std::string& Endpoint(void) const { return service_endpoint_; };
   const std::list<std::string>& Queues(void) const { return queues_; };
+  static bool InitEnvironment(const std::string& configfile);
 };
 
 

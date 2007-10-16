@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <glibmm/thread.h>
 #include <arc/StringConv.h>
 
 #include "grid-manager/conf/environment.h"
@@ -24,23 +25,25 @@
 using namespace ARex;
 
 static bool env_initialized = false;
+Glib::StaticMutex env_lock = GLIBMM_STATIC_MUTEX_INIT;
+
+bool ARexGMConfig::InitEnvironment(const std::string& configfile) {
+  if(env_initialized) return true;
+  env_lock.lock();
+  if(!env_initialized) {
+    if(!configfile.empty()) nordugrid_config_loc=configfile;
+    env_initialized=read_env_vars();
+  };
+  env_lock.unlock();
+  return env_initialized;
+}
 
 ARexGMConfig::~ARexGMConfig(void) {
   if(user_) delete user_;
 }
 
 ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
-  if(!configfile.empty()) nordugrid_config_loc=configfile;
-  if(!env_initialized) {
-    //if(!run.is_initialized()) {
-    //  // olog<<"Warning: Initialization of signal environment failed"<<std::endl;
-    //  return;
-    //};
-    if(read_env_vars()) {
-      env_initialized=true;
-    };
-  };
-  if(!env_initialized) return;
+  if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
   user_=new JobUser(uname);

@@ -7,21 +7,25 @@
 #include "ldif/LDIFtoXML.h"
 #include "config/ngconfig.h"
 #include "grid-manager/conf/environment.h"
+#include "job.h"
 #include "arex.h"
 
 namespace ARex {
 
 void ARexService::InformationCollector(void) {
-  nordugrid_config_loc=gmconfig_;
-std::cerr<<"GM configuration file: "<<nordugrid_config_loc<<std::endl;
-  read_env_vars();
   for(;;) {
     std::string lrms;
     std::list<std::string> queues;
 
     // Parse configuration to construct command lines for information providers
+    if(!ARexGMConfig::InitEnvironment(gmconfig_)) {
+      logger_.msg(Arc::ERROR,"Failed to initialize GM environment");
+      sleep(60); continue;
+    };
     std::ifstream f(nordugrid_config_loc.c_str());
     if(!f) {
+      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc.c_str());
+      sleep(60); continue;
     };
     try {
       Config cfg = NGConfig().Read(f);
