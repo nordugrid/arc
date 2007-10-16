@@ -354,11 +354,13 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/message/Makefile
                  src/hed/libs/counter/Makefile
                  src/hed/libs/security/Makefile
-                 src/hed/libs/security/ArcPDP/Makefile
-                 src/hed/libs/security/ArcPDP/attr/Makefile
-                 src/hed/libs/security/ArcPDP/policy/Makefile
-                 src/hed/libs/security/ArcPDP/alg/Makefile
-                 src/hed/libs/security/ArcPDP/fn/Makefile
+                 src/hed/libs/security/api/Makefile
+                 src/hed/libs/security/plugin/Makefile
+                 src/hed/libs/security/api/ArcPDP/Makefile
+                 src/hed/libs/security/api/ArcPDP/attr/Makefile
+                 src/hed/libs/security/api/ArcPDP/policy/Makefile
+                 src/hed/libs/security/api/ArcPDP/alg/Makefile
+                 src/hed/libs/security/api/ArcPDP/fn/Makefile
                  src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/infosys/Makefile
