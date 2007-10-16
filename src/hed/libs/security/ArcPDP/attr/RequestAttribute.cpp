@@ -96,7 +96,7 @@ RequestAttribute& RequestAttribute::duplicate(RequestAttribute& req_attr) {
   id = req_attr.getAttributeId();
   type = req_attr.getDataType();
   issuer = req_attr.getIssuer();
-  node_ = (req_attr.getNode()).Child();
+  node_ = req_attr.getNode();//.Child();
   attrval = (req_attr.getAttributeFactory())->createValue(node_, type);
   return *this;
 }
