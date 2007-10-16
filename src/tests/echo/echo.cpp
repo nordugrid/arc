@@ -46,22 +46,10 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Check authorization
-  std::list<ArcSec::SecHandler*> hlist=sechandlers_["incoming"];
-  std::list<ArcSec::SecHandler*>::iterator it;
-  for(it=hlist.begin(); it!=hlist.end(); it++){
-    ArcSec::SecHandler* h = *it;
-    if(h->Handle(&inmsg)) break;
-  }
-  // The "Handle" method only returns true/false; The MCC/Service doesn't 
-  // care about security process. "SecHandler" uses msg.attributes to 
-  // exchange security related information
-  if((it==hlist.end()) && (hlist.size() > 0)){
-    printf("echo_UnAuthorized\n");
+  if(!ProcessSecHandlers(inmsg)) {
+    logger.msg(Arc::ERROR, "echo: Unauthorized");
     return Arc::MCC_Status(Arc::GENERIC_ERROR);
-  } //Do we need to add some status in MCC_Status
-  else if (hlist.empty()) logger.msg(Arc::INFO, "No authorization requirement for echo service");
-  else logger.msg(Arc::INFO, "echo_Authorized");
-
+  };
   // Both input and output are supposed to be SOAP 
   // Extracting payload
   Arc::PayloadSOAP* inpayload = NULL;
