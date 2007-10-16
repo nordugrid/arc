@@ -383,7 +383,8 @@ XMLNode XMLNode::GetRoot(void) {
 
 XMLNode& XMLNode::operator=(const XMLNode& node) {
   if(is_owner_ && node_) {
-    xmlFreeDoc((xmlDocPtr)node_);
+    xmlDocPtr doc = node_->doc;
+    if(doc != NULL) xmlFreeDoc(doc);
   };
   node_=node.node_;
   is_owner_=false;
@@ -395,6 +396,7 @@ void XMLNode::GetDoc(std::string& xml) const {
   xml.resize(0);
   if(!node_) return;
   xmlDocPtr doc = node_->doc;
+  if(doc == NULL) return;
   xmlChar* buf = NULL;
   int bufsize = 0;
   xmlDocDumpMemory(doc,&buf,&bufsize);
