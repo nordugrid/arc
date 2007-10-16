@@ -16,5 +16,5 @@ else
 AREX_SERVICE =
 endif
 
-SUBDIRS=$(JAVA_SERVICES) $(PYTHON_SERVICES) $(AREX_SERVICE)
-DIST_SUBDIRS = echo_java echo_python a-rex
+SUBDIRS=$(JAVA_SERVICES) $(PYTHON_SERVICES) $(AREX_SERVICE) pdp
+DIST_SUBDIRS = echo_java echo_python a-rex pdp
