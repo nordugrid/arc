@@ -269,11 +269,14 @@ void MCC_TCP_Service::executer(void* arg) {
         nextinmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
         nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
         nextinmsg.Context(&context);
+        if(!it.ProcessSecHandlers(nextinmsg,"incoming")) break;
         // Call next MCC 
         MCCInterface* next = it.Next();
         if(!next) break;
         logger.msg(Arc::DEBUG, "next chain element called");
         MCC_Status ret = next->process(nextinmsg,nextoutmsg);
+        if(!it.ProcessSecHandlers(nextoutmsg,"outgoing")) break;
+        // TODO: if nextoutmsg contains some useful payload send it here.
         if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
         if(!ret) break;
     };
@@ -338,6 +341,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!ProcessSecHandlers(inmsg,"incoming")) return MCC_Status(Arc::GENERIC_ERROR);
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
@@ -349,6 +353,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         };
     };
     outmsg.Payload(new PayloadStream(*s_));
+    if(!ProcessSecHandlers(outmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
     return MCC_Status(Arc::STATUS_OK);
 }
 
