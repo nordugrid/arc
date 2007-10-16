@@ -3,7 +3,7 @@
 
 #include <arc/loader/LoadableClass.h>
 #include <list>
-#include "Policy.h"
+#include <arc/security/ArcPDP/policy/Policy.h>
 
 namespace ArcSec {
 

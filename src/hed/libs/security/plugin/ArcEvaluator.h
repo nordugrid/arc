@@ -7,13 +7,12 @@
 #include <arc/Logger.h>
 
 #include <arc/security/ArcPDP/Evaluator.h>
-
-#include <arc/security/ArcPDP/policy/PolicyStore.h>
 #include <arc/security/ArcPDP/fn/FnFactory.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
+#include "PolicyStore.h"
 
 /** Execute the policy evaluation, based on the request and policy */
 

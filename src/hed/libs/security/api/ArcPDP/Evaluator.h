@@ -6,7 +6,6 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "policy/PolicyStore.h"
 #include "fn/FnFactory.h"
 #include "attr/AttributeFactory.h"
 #include "alg/AlgFactory.h"

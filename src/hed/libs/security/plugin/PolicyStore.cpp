@@ -4,11 +4,10 @@
 
 //#include <arc/loader/ClassLoader.h>
 
-#include "PolicyStore.h"
 #include <fstream>
 #include <iostream>
-#include "Policy.h" 
 #include "PolicyParser.h"
+#include "PolicyStore.h"
 
 /*
 //Should we provide different ClassLoader for different "get" function with different arguments?
