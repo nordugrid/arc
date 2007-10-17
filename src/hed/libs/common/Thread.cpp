@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <glibmm/init.h>
+
 #include "Thread.h"
 #include "Logger.h"
 
@@ -12,6 +14,7 @@ static Logger threadLogger(Logger::getRootLogger(), "Thread");
 class ThreadInitializer {
 public:
   ThreadInitializer(void) {
+    Glib::init();
     threadLogger.msg(INFO, "Initialize thread system");
     if(!Glib::thread_supported()) Glib::thread_init();
   };
