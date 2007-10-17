@@ -122,9 +122,10 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   Arc::XMLNode topcfg = node.GetRoot();
   Arc::Config modulecfg(topcfg);
 
-  Arc::ClassLoader classloader(&modulecfg);
+  Arc::ClassLoader *classloader;
+  classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
-  eval = (ArcSec::Evaluator*)(classloader.Instance(evaluator, (void**)&topcfg));
+  eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)&topcfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
 
