@@ -16,6 +16,7 @@
 #include <iostream>
 #include <pwd.h>
 #include <arc/StringConv.h>
+#include <glibmm/miscutils.h>
 #define olog std::cerr
 
 static bool stringtoint(const std::string& s,long long int& i) {
@@ -124,24 +125,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     };
     // pbs,gnu_time,etc. it is ugly hack here
     if(central_configuration && (command == "pbs_bin_path")) {
-      setenv("PBS_BIN_PATH",rest.c_str(),1);
+      Glib::setenv("PBS_BIN_PATH",rest,1);
     } else if(central_configuration && (command == "pbs_log_path")) {
-      setenv("PBS_LOG_PATH",rest.c_str(),1);
+      Glib::setenv("PBS_LOG_PATH",rest,1);
     } else if(central_configuration && (command == "gnu_time")) {
-      setenv("GNU_TIME",rest.c_str(),1);
+      Glib::setenv("GNU_TIME",rest,1);
     } else if(central_configuration && (command == "tmpdir")) {
-      setenv("TMP_DIR",rest.c_str(),1);
+      Glib::setenv("TMP_DIR",rest,1);
     } else if(central_configuration && (command == "runtimedir")) {
-      setenv("RUNTIME_CONFIG_DIR",rest.c_str(),1);
+      Glib::setenv("RUNTIME_CONFIG_DIR",rest,1);
     } else if(central_configuration && (command == "shared_filesystem")) {
       if(rest == "NO") rest="no";
-      setenv("RUNTIME_NODE_SEES_FRONTEND",rest.c_str(),1);
+      Glib::setenv("RUNTIME_NODE_SEES_FRONTEND",rest,1);
     } else if(central_configuration && (command == "scratchdir")) {
-      setenv("RUNTIME_LOCAL_SCRATCH_DIR",rest.c_str(),1);
+      Glib::setenv("RUNTIME_LOCAL_SCRATCH_DIR",rest,1);
     } else if(central_configuration && (command == "shared_scratch")) {
-      setenv("RUNTIME_FRONTEND_SEES_NODE",rest.c_str(),1);
+      Glib::setenv("RUNTIME_FRONTEND_SEES_NODE",rest,1);
     } else if(central_configuration && (command == "nodename")) {
-      setenv("NODENAME",rest.c_str(),1);
+      Glib::setenv("NODENAME",rest,1);
     } else if((!central_configuration && (command == "cache")) || 
               (central_configuration  && (command == "cachedir"))) { 
       cache_dir = config_next_arg(rest);
