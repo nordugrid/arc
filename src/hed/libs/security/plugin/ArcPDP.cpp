@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <arc/loader/PDPLoader.h>
-#include <arc/loader/ClassLoader.h>
+//#include <arc/loader/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -41,9 +41,10 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
 
   Config modulecfg(topcfg);
   
-  Arc::ClassLoader classloader(&modulecfg);
+  classloader = NULL;
+  classloader = ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
-  eval = (Evaluator*)(classloader.Instance(evaluator, (void**)&topcfg));
+  eval = (Evaluator*)(classloader->Instance(evaluator, (void**)&topcfg));
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
 

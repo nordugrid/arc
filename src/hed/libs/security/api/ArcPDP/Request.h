@@ -50,12 +50,13 @@ public:
   //**Default constructor*/
   Request () {};
 
-  //**Constructor: Parse request information from a input file*/
-  Request (const char*) {};
-
   //**Constructor: Parse request information from a xml stucture in memory*/
   Request (const Arc::XMLNode*) {};
   virtual ~Request(){};
+
+protected:
+  //**Constructor: Parse request information from a input file*/
+  Request (const char*) {};
 };
 
 } // namespace ArcSec

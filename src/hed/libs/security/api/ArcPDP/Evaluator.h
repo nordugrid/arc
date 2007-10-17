@@ -33,13 +33,15 @@ public:
   virtual ~Evaluator() {};
 
   virtual Response* evaluate(Request* request) = 0;
-  virtual Response* evaluate(const std::string& reqfile) = 0;
-  virtual Response* evaluate(EvaluationCtx* ctx) = 0;
   virtual Response* evaluate(Arc::XMLNode& node) = 0;
+  virtual Response* evaluate(const std::string& reqfile) = 0;
 
   virtual AttributeFactory* getAttrFactory () = 0;
   virtual FnFactory* getFnFactory () = 0;
   virtual AlgFactory* getAlgFactory () = 0;
+
+protected:
+  virtual Response* evaluate(EvaluationCtx* ctx) = 0;
 
 private:
   virtual void parsecfg(Arc::XMLNode& cfg) = 0;

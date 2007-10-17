@@ -9,12 +9,9 @@
 #include "ArcRequestItem.h"
 
 static Arc::LoadableClass* get_request(void** arg) {
-    std::cout<<"wdfqwdwrddddddddddddddddddddddd"<<std::endl;
+    //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
     if(arg==NULL) return new ArcSec::ArcRequest();
-
-    std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
-
-    return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
+    else return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
 }
 
 loader_descriptors __arc_request_modules__  = {

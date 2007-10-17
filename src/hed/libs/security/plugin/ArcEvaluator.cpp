@@ -76,23 +76,28 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   //fnfactory = new Arc::ArcFnFactory() ;
   //attrfactory = new Arc::ArcAttributeFactory();
 
-  Config modulecfg(cfg);
-  ClassLoader classloader(&modulecfg);
+  //Since the ArcEvaluator will never be directly "new" (which means there should be some object load the configure information about "plugin"
+  //before ArcEvaluator), so it is not necessary to load "plugin" information here
+  //Config modulecfg(cfg);
+  //ClassLoader classloader(&modulecfg);
+  ClassLoader* classloader;
+  classloader=ClassLoader::getClassLoader();
+
   attrfactory=NULL;
   //attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
-  attrfactory = (AttributeFactory*)(classloader.Instance(attributefactory, NULL));
+  attrfactory = (AttributeFactory*)(classloader->Instance(attributefactory));
   if(attrfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce AttributeFactory");
 
   fnfactory=NULL;
   //fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
-  fnfactory = (FnFactory*)(classloader.Instance(functionfactory, NULL));
+  fnfactory = (FnFactory*)(classloader->Instance(functionfactory));
   if(fnfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce FnFactory");
 
   algfactory=NULL;
   //algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
-  algfactory = (AlgFactory*)(classloader.Instance(combingalgfactory, NULL));
+  algfactory = (AlgFactory*)(classloader->Instance(combingalgfactory));
   if(algfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce AlgFacroty");
 
@@ -130,9 +135,6 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
   f.close();
 
   Arc::XMLNode node(xml_str);
-  std::string tmp;
-  node.GetXML(tmp);
-  std::cout<<tmp<<std::endl;
   parsecfg(node); 
 }
 
@@ -170,9 +172,13 @@ Response* ArcEvaluator::evaluate(const std::string& reqfile){
   evalctx =  new EvaluationCtx(request);
  
   //evaluate the request based on policy
+  Response* resp = NULL;
   if(evalctx)
-    return(evaluate(evalctx));
-  else return NULL;
+    resp = evaluate(evalctx);
+  if(request)
+    delete request;
+
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(XMLNode& node){
@@ -185,10 +191,13 @@ Response* ArcEvaluator::evaluate(XMLNode& node){
   evalctx =  new EvaluationCtx(request);
 
   //evaluate the request based on policy
+  Response* resp = NULL;
   if(evalctx)
-    return(evaluate(evalctx));
-  else
-    return NULL;
+    resp = evaluate(evalctx);
+  if(request)
+    delete request;
+
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){

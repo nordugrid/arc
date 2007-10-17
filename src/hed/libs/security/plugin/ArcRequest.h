@@ -7,6 +7,8 @@
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/Request.h>
 
+#include "ArcEvaluator.h"
+
 /** ArcRequest, Parsing the specified Arc request format*/
 
 namespace ArcSec {
@@ -14,6 +16,7 @@ namespace ArcSec {
 //typedef std::list<RequestItem*> ReqItemList;
 
 class ArcRequest : public Request {
+friend class ArcEvaluator;
 
 public:
   virtual ReqItemList getRequestItems () const;
@@ -25,15 +28,16 @@ public:
 
   //**Default constructor*/
   ArcRequest ();
-  
-  //**Parse request information from a file*/
-  ArcRequest (const char* filename);
 
   //**Parse request information from a xml stucture in memory*/
   ArcRequest (const Arc::XMLNode* node);
   virtual ~ArcRequest();
 
   void make_request();
+
+protected:
+  //**Parse request information from a file*/
+  ArcRequest (const char* filename);
 
 private:
   AttributeFactory * attrfactory;

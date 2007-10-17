@@ -34,14 +34,16 @@ public:
   ArcEvaluator (const char * cfgfile);
   virtual ~ArcEvaluator();
 
-  virtual Response* evaluate(const std::string& reqfile);
   virtual Response* evaluate(Request* request);
-  virtual Response* evaluate(EvaluationCtx* ctx);
   virtual Response* evaluate(Arc::XMLNode& node);
+  virtual Response* evaluate(const std::string& reqfile);
 
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};
   virtual FnFactory* getFnFactory () { return fnfactory; };
   virtual AlgFactory* getAlgFactory () { return algfactory; };
+
+protected:
+  virtual Response* evaluate(EvaluationCtx* ctx);
 
 private:
   virtual void parsecfg(Arc::XMLNode& cfg);

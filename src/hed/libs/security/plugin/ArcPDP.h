@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+#include <arc/loader/ClassLoader.h>
 #include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
@@ -17,6 +18,7 @@ class ArcPDP : public PDP {
   virtual bool isPermitted(Arc::Message *msg);
  private:
   Evaluator *eval;
+  Arc::ClassLoader* classloader;
  protected:
   static Arc::Logger logger;
 };

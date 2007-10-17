@@ -144,8 +144,8 @@ EvaluationCtx::EvaluationCtx(Request* request) : req(NULL) {
 }
 
 EvaluationCtx::~EvaluationCtx(){
-  if(req)
-    delete req;
+  //if(req)
+  //  delete req;
   while(!(reqtuples.empty())) {
     delete reqtuples.back();
     reqtuples.pop_back();

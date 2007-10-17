@@ -32,9 +32,10 @@ int main(void){
   //Load the Evaluator
   ArcSec::Evaluator* eval;
   Arc::Config modulecfg("EvaluatorCfg.xml");
-  Arc::ClassLoader classloader(&modulecfg);
+  Arc::ClassLoader* classloader = NULL;
+  classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
-  eval = (ArcSec::Evaluator*)(classloader.Instance(evaluator, (void**)&modulecfg));
+  eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)&modulecfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
   //ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
@@ -61,7 +62,7 @@ int main(void){
       attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"Attribute Value: %s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value (1): %s", (attrval->encode()).c_str());
       }
     }
   }
@@ -122,7 +123,13 @@ int main(void){
   //request = new ArcSec::ArcRequest;
   ArcSec::Request* request = NULL;
   std::string requestor = "arc.request";
-   request = (ArcSec::Request*)(classloader.Instance(requestor, NULL));
+
+  Arc::ClassLoader* classloader1 = NULL;
+  Arc::Config modulecfg1("EvaluatorCfg.xml");
+  classloader1 = Arc::ClassLoader::getClassLoader(&modulecfg1);
+
+
+  request = (ArcSec::Request*)(classloader1->Instance(requestor));
   if(request == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Request");
 
@@ -146,7 +153,7 @@ int main(void){
       attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"Attribute Value: %s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value (2): %s", (attrval->encode()).c_str());
       }
     }
   }
