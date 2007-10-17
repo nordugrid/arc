@@ -323,6 +323,21 @@ AC_HEADER_TIME
 AC_STRUCT_TM
 AC_CHECK_TYPES([ptrdiff_t])
 
+AC_CHECK_MEMBERS([struct statfs.f_bavail],,,[#include <sys/statfs.h>])
+
+AC_MSG_CHECKING([if statfs(2) requires 4 arguments])
+AC_RUN_IFELSE([
+    AC_LANG_SOURCE([[
+#include <sys/statfs.h>
+        main() {
+            struct statfs sfs;
+            exit (statfs(".", &sfs, sizeof(sfs), 0));
+        }]])],[
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(STAT_STATFS4, 1, [Define if statfs() takes 4 arguments])],[
+    AC_MSG_RESULT(no)],[
+    AC_MSG_RESULT(no)])
+
 # Checks for library functions.
 AC_FUNC_CHOWN
 AC_FUNC_CLOSEDIR_VOID

@@ -1,6 +1,7 @@
 #ifndef __ARC_DATA_CHECKSUM_H__
 #define __ARC_DATA_CHECKSUM_H__
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <string.h>
 

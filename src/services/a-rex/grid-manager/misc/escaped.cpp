@@ -117,7 +117,7 @@ int input_escaped_string(const char* buf,std::string &str,char separator,char qu
   std::string::size_type i,ii;
   str="";
   /* skip initial separators and blank spaces */
-  for(i=0;isblank(buf[i]) || buf[i]==separator;i++);
+  for(i=0;isspace(buf[i]) || buf[i]==separator;i++);
   ii=i;
   if((quotes) && (buf[i] == quotes)) { 
     char* e = strchr(buf+ii+1,quotes);
@@ -140,7 +140,7 @@ int input_escaped_string(const char* buf,std::string &str,char separator,char qu
       i++; if(buf[i]==0) break; continue;
     };
     if(separator == ' ') {
-      if(isblank(buf[i])) break;
+      if(isspace(buf[i])) break;
     } else {
       if(buf[i]==separator) break;
     };

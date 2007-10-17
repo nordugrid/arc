@@ -5,6 +5,7 @@
 #include "../jobs/users.h"
 #include "../jobs/states.h"
 #include <sys/resource.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <pthread.h>
 #include <string>
@@ -20,7 +21,7 @@ class RunElement {
  friend class RunParallel;
  friend class RunCommands;
  private:
-  int pid;
+  pid_t pid;
   int exit_code;
   bool released;
   RunElement* next;

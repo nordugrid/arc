@@ -16,6 +16,7 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 //#endif
+#include <sys/statfs.h>
 
 #include <unistd.h>
 #include <dirent.h>
@@ -79,14 +80,20 @@ int cache_cleaner(const JobUsers &users) {
 
     /* get available space */
     struct statfs dst;
+#ifdef STAT_STATFS4
+    if(statfs((char*)(cache_data_dir.c_str()),&dst,0,0) != 0) {
+#else
     if(statfs((char*)(cache_data_dir.c_str()),&dst) != 0) {
+#endif
       olog<<"Cache: can't obtain info about file system at "<<cache_data_dir<<std::endl;
       if((cache_max < 0) || (cache_min < 0)) continue;
       available=0;
       space_hardsize=0;
     }
     else {
+#ifdef HAVE_STRUCT_STATFS_F_BAVAIL
       available = (long long int)dst.f_bavail * dst.f_bsize;
+#endif
       space_hardsize = (long long int)dst.f_blocks * dst.f_bsize;
     };
     // olog<<"Cache: space available: "<<available<<" bytes"<<std::endl;
