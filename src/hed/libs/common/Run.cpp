@@ -44,10 +44,12 @@ class RunPump {
 RunPump* RunPump::instance_ = NULL;
 unsigned int RunPump::mark_ = ~RunPumpMagic;
 
-RunPump::RunPump(void):thread_(NULL) {
+RunPump::RunPump(void):thread_(NULL),context_(NULL) {
   try {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this,&RunPump::Pump), false);
-  } catch (std::exception& e) { };
+  } catch (Glib::Exception& e) { 
+  } catch (std::exception& e) {
+  };
   if(thread_ == NULL) return;
   // Wait for context_ to be intialized
   // TODO: what to do if context never initialized
@@ -80,7 +82,9 @@ void RunPump::Pump(void) {
       pump_lock_.unlock();
       thread_->yield();
     };
-  } catch (std::exception& e) { };
+  } catch (Glib::Exception& e) { 
+  } catch (std::exception& e) {
+  };
 }
 
 void RunPump::Add(Run* r) {
@@ -103,7 +107,9 @@ void RunPump::Add(Run* r) {
     r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
     //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
-  } catch (std::exception& e) { };
+  } catch (Glib::Exception& e) { 
+  } catch (std::exception& e) {
+  };
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -122,7 +128,9 @@ void RunPump::Remove(Run* r) {
     r->stderr_conn_.disconnect();
     r->stdin_conn_.disconnect();
     r->child_conn_.disconnect();
-  } catch (std::exception& e) { };
+  } catch (Glib::Exception& e) { 
+  } catch (std::exception& e) {
+  };
   pump_lock_.unlock();
   list_lock_.unlock();
 }
@@ -145,13 +153,21 @@ Run::~Run(void) {
 bool Run::Start(void) {
   if(started_) return false;
   if(argv_.size() < 1) return false;
+  RunPump& pump = RunPump::Instance();
   // TODO: Windows paths
   try {
     running_=true;
     spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
     started_=true;
-  } catch (std::exception& e) { running_=false; };
-  RunPump::Instance().Add(this);
+  } catch (Glib::Exception& e) { 
+    running_=false;
+    // TODO: report error    
+    return false;
+  } catch (std::exception& e) {
+    running_=false;
+    return false;
+  };
+  pump.Add(this);
   return true;
 }
 
