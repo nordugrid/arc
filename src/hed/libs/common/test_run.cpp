@@ -23,5 +23,7 @@ int main(void)
         } 
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
+    } catch (Glib::SpawnError &e) {
+        std::cout << e.what() << std::endl;
     }
 }
