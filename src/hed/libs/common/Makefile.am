@@ -5,7 +5,7 @@ libarccommon_la_SOURCES=Logger.cpp ArcConfig.cpp XMLNode.cpp Thread.cpp BasicDT.
 libarccommon_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 libarccommon_la_LDFLAGS=$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
 
-noinst_PROGRAMS = DTtest testxpath test
+noinst_PROGRAMS = DTtest testxpath test test_run
 
 DTtest_SOURCES=DTtest.cpp
 DTtest_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
@@ -21,3 +21,8 @@ test_SOURCES=test.cpp
 test_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 test_LDFLAGS=$(LIBXML2_LIBS)
 test_LDADD=./libarccommon.la
+
+test_run_SOURCES=test_run.cpp
+test_run_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+test_run_LDFLAGS=$(LIBXML2_LIBS)
+test_run_LDADD=./libarccommon.la
