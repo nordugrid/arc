@@ -70,5 +70,29 @@ Glib::Module *ModuleManager::load(const std::string& name)
   return module;
 }
 
+void ModuleManager::setCfg (Arc::Config *cfg) {
+  if(cfg==NULL) return;
+  Loader::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
+
+  if(!MatchXMLName(*cfg,"ArcConfig")) return;
+  XMLNode mm = (*cfg)["ModuleManager"];
+  for (int n = 0;;++n) {
+    XMLNode path = mm.Child(n);
+    if (!path) {
+      break;
+    }
+    if (MatchXMLName(path, "Path")) {
+      std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
+      std::vector<std::string>::const_iterator it;
+      for( it = plugin_dir.begin(); it != plugin_dir.end(); it++){
+        //std::cout<<(std::string)path<<"*********"<<(*it)<<std::endl;
+        if(((*it).compare((std::string)path)) == 0)break;
+      }
+      if(it == plugin_dir.end())
+        plugin_dir.push_back((std::string)path);
+    }
+  }
+}
+
 } // namespace Arc
 
