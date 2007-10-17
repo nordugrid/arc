@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "Run.h"
 #include <string>
 #include <iostream>
@@ -15,7 +16,10 @@ int main(void)
         executer.AssignStdout(std_out);
         executer.AssignStderr(std_err);
 
-        if ( !executer.Start() ) {};
+        if ( !executer.Start() ) {
+            std::cout << "Failed to start" << std::endl;
+            return -1;
+        };
         if ( executer.Wait(60) ) {
             std::cout << std_out << std::endl;
         } else {
@@ -26,4 +30,5 @@ int main(void)
     } catch (Glib::SpawnError &e) {
         std::cout << e.what() << std::endl;
     }
+    return 0;
 }
