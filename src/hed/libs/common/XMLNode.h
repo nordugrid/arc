@@ -184,7 +184,8 @@ class XMLNode {
     If namespace already exists it gets new prefix. New namespaces are added.
     It is usefull to apply this method to XML being processed in order to refer to it's 
     elements by known prefix. */
-  void Namespaces(const Arc::NS& namespaces);
+  void Namespaces(const NS& namespaces);
+  NS Namespaces(void);
   /** Returns prefix of specified namespace. 
     Empty string if no such namespace. */
   std::string NamespacePrefix(const char* urn);

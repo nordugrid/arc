@@ -78,7 +78,7 @@ bool MatchXMLNamespace(const XMLNode& node,const std::string& uri) {
   return MatchXMLNamespace(node.node_,uri.c_str());
 }
 
-static void SetNamespaces(const Arc::NS& namespaces,xmlNodePtr node_) {
+static void SetNamespaces(const NS& namespaces,xmlNodePtr node_) {
   // TODO: Check for duplicate prefixes
   for(Arc::NS::const_iterator ns = namespaces.begin();
          ns!=namespaces.end();++ns) {
@@ -90,6 +90,18 @@ static void SetNamespaces(const Arc::NS& namespaces,xmlNodePtr node_) {
       xmlNewNs(node_,(const xmlChar*)(ns->second.c_str()),(const xmlChar*)(ns->first.c_str()));
     };
   };
+}
+
+static void GetNamespaces(NS& namespaces,xmlNodePtr node_) {
+  if(node_ == NULL) return;
+  if(node_->type != XML_ELEMENT_NODE) return;
+  // TODO: Check for duplicate prefixes
+  xmlNsPtr ns = node_->nsDef;
+  for(;ns;ns=ns->next) {
+    std::string prefix = ns->prefix?(char*)(ns->prefix):"";
+    if(ns->href) if(namespaces[prefix].empty()) namespaces[prefix]=(char*)(ns->href);
+  };
+  GetNamespaces(namespaces,node_->parent);
 }
 
 XMLNode::XMLNode(const std::string& xml):node_(NULL),is_owner_(false),is_temporary_(false) {
@@ -324,6 +336,14 @@ void XMLNode::Namespaces(const Arc::NS& namespaces) {
   if(node_ == NULL) return;
   if(node_->type != XML_ELEMENT_NODE) return;
   SetNamespaces(namespaces,node_);
+}
+
+NS XMLNode::Namespaces(void) {
+  NS namespaces;
+  if(node_ == NULL) return namespaces;
+  if(node_->type != XML_ELEMENT_NODE) return namespaces;
+  GetNamespaces(namespaces,node_);
+  return namespaces;
 }
 
 std::string XMLNode::NamespacePrefix(const char* urn) {
