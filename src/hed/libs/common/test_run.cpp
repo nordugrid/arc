@@ -10,7 +10,7 @@ int main(void)
         std::string std_out;
         std::string std_err;
 
-        Arc::Run executer("ls");
+        Arc::Run executer("/bin/ls -l");
     
         executer.AssignStdin(std_in);
         executer.AssignStdout(std_out);
