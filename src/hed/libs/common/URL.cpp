@@ -6,6 +6,8 @@
 #include "StringConv.h"
 #include "URL.h"
 
+#include <unistd.h>
+
 namespace Arc {
 
   static Logger URLLogger(Logger::getRootLogger(), "URL");
@@ -71,7 +73,14 @@ namespace Arc {
 
     pos = url.find("://");
     if(pos == std::string::npos) {
-      URLLogger.msg(ERROR, "Malformed URL: %s", url.c_str());
+      protocol = "file";
+      if(url[0] == '/')
+	path = url;
+      else {
+	char cwd[PATH_MAX];
+	getcwd(cwd, PATH_MAX);
+	path = cwd + ('/' + url);
+      }
       return;
     }
 
@@ -187,11 +196,9 @@ namespace Arc {
     }
 
     // parse basedn in case of ldap-protocol
-    if(protocol == "ldap" && !path.empty()) {
-      if(path.find(",") != std::string::npos) {           // probably a basedn
+    if(protocol == "ldap" && !path.empty())
+      if(path.find(",") != std::string::npos)             // probably a basedn
 	path = BaseDN2Path(path);
-      }
-    }
 
     // expand SRM short URLs
     if(protocol == "srm" && httpoptions.find("SFN") == httpoptions.end()) {
@@ -207,6 +214,10 @@ namespace Arc {
 
   const std::string& URL::Protocol() const {
     return protocol;
+  }
+
+  void URL::ChangeProtocol(const std::string& newprot) {
+    protocol = newprot;
   }
 
   const std::string& URL::Username() const {
@@ -227,6 +238,14 @@ namespace Arc {
 
   const std::string& URL::Path() const {
     return path;
+  }
+
+  void URL::ChangePath(const std::string& newpath) {
+    path = newpath;
+    // parse basedn in case of ldap-protocol
+    if(protocol == "ldap" && !path.empty())
+      if(path.find(",") != std::string::npos)             // probably a basedn
+	path = BaseDN2Path(path);
   }
 
   std::string URL::BaseDN() const {
@@ -467,7 +486,7 @@ namespace Arc {
 
   std::string URLLocation::str() const {
 
-    if(name.empty())
+    if(*this)
       return URL::str();
     else
       return name;
@@ -475,7 +494,7 @@ namespace Arc {
 
   std::string URLLocation::fullstr() const {
 
-    if(name.empty())
+    if(*this)
       return URL::fullstr();
     else if(urloptions.empty())
       return name;

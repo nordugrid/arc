@@ -44,6 +44,9 @@ namespace Arc {
     /** Returns the protocol of the URL. */
     const std::string& Protocol() const;
 
+    /** Changes the protocol of the URL. */
+    void ChangeProtocol(const std::string& newprot);
+
     /** Returns the username of the URL. */
     const std::string& Username() const;
 
@@ -58,6 +61,9 @@ namespace Arc {
 
     /** Returns the path of the URL. */
     const std::string& Path() const;
+
+    /** Changes the path of the URL. */
+    void ChangePath(const std::string& newpath);
 
     /** In case of ldap-protocol, return the basedn of the URL. */
     std::string BaseDN() const;
