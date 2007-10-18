@@ -131,6 +131,8 @@ namespace Arc {
     virtual void range(unsigned long long int start = 0,
                        unsigned long long int end = 0) = 0;
 
+    virtual std::string failure_text() = 0;
+
     /*
      *  META actions. Valid only for meta-URLs
      */
@@ -330,6 +332,9 @@ namespace Arc {
     /// Remove current URL from list
     virtual bool remove_location() = 0;
 
+    /// Remove locations present in another DataPoint object
+    virtual bool remove_locations(const DataPoint& p) = 0;
+
     /// List files in directory or service.
     /// \param files will contain list of file names and optionally
     /// their attributes.
@@ -345,6 +350,9 @@ namespace Arc {
 
     /// Returns URL which was passed to constructor
     virtual const URL& base_url() const;
+
+    /// Returns a string representation of the DataPoint.
+    virtual std::string str() const;
 
    protected:
     URL url;

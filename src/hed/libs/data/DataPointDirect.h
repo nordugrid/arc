@@ -83,6 +83,7 @@ namespace Arc {
     virtual bool have_locations() const { return false; };
     virtual bool add_location(const std::string&, const URL&) { return false; };
     virtual bool remove_location() { return false; };
+    virtual bool remove_locations(const DataPoint& p) { return false; };
 
    protected:
     DataBufferPar *buffer;

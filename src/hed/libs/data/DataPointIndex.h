@@ -69,6 +69,7 @@ namespace Arc {
     virtual bool secure() { return false; };
     virtual void passive(bool) {};
     virtual failure_reason_t failure_reason() { return common_failure; };
+    std::string failure_text() { return ""; };
     virtual void range(unsigned long long int = 0,
                        unsigned long long int = 0) {};
   };

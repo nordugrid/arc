@@ -22,6 +22,10 @@ namespace Arc {
     return url;
   }
 
+  std::string DataPoint::str() const {
+    return url.str();
+  }
+
   int DataPoint::GetTries() const {
     return tries_left;
   }
