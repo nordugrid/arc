@@ -1,3 +1,3 @@
 # order is important!
-SUBDIRS = libs mcc dmc daemon
-DIST_SUBDIRS = libs mcc dmc daemon
+SUBDIRS = libs mcc dmc pdc daemon
+DIST_SUBDIRS = libs mcc dmc pdc daemon
