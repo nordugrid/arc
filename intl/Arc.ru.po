@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-16 22:09+0200\n"
+"POT-Creation-Date: 2007-10-18 17:42+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -1138,26 +1138,471 @@ msgstr ""
 msgid "Full string not used: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/Thread.cpp:15
+#: ../src/hed/libs/common/Thread.cpp:18
 msgid "Initialize thread system"
 msgstr ""
 
-#: ../src/hed/libs/common/URL.cpp:68
+#: ../src/hed/libs/common/URL.cpp:70
 #, c-format
 msgid "URL is not valid: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/URL.cpp:74
-#, c-format
-msgid "Malformed URL: %s"
-msgstr ""
-
-#: ../src/hed/libs/common/URL.cpp:203
+#: ../src/hed/libs/common/URL.cpp:210
 msgid "Illegal URL - no hostname given"
 msgstr ""
 
-#: ../src/hed/libs/common/URL.cpp:235
+#: ../src/hed/libs/common/URL.cpp:254
 msgid "Basedn only defined for ldap protocol"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1190
+#, c-format
+msgid "cache_download_url_start: cache_open_list failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1199
+#, c-format
+msgid "cache_download_url_start: url not found: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1203
+#, c-format
+msgid "cache_download_url_start: unknown result from cache_search_list: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1208
+#, c-format
+msgid "cache_download_url_start: locking url: %s (%s)"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1218
+#, c-format
+msgid "cache_download_file_start: failed to lock file: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1221
+#, c-format
+msgid "cache_download_file_start: locked file: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1229
+#, c-format
+msgid "cache_download_file_start: cache_read_info failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1234
+#, c-format
+msgid "cache_download_file_start: state - dead: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1240
+#, c-format
+msgid "cache_download_file_start: state - new/failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1245
+#, c-format
+msgid "cache_download_file_start: state - ready: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1249
+#, c-format
+msgid "cache_download_file_start: state - UNKNOWN: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1263
+#, c-format
+msgid "cache_download_url_end: cache_open_list failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1267
+#, c-format
+msgid "cache_download_url_end: file not found in list: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1351
+#, c-format
+msgid "Removing cache file: name = %s, url = %s"
+msgstr ""
+
+#: ../src/hed/libs/data/Cache.cpp:1358
+#, c-format
+msgid "Cleaned %ull bytes in cache"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:16
+msgid "DataCache: constructor with copy"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:26
+msgid "DataCache: constructor with copy: calling start"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:81
+msgid "Error while locking file in cache"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:117
+msgid "Unknown error while locking file in cache"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:157
+#, c-format
+msgid "Cache cleaning requested: %s, %ull bytes"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:159
+#, c-format
+msgid "Cache cleaned: %s, %ull bytes"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:188
+#: ../src/hed/libs/data/DataCache.cpp:223
+#, c-format
+msgid "Failed to create/find directory %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:204
+#, c-format
+msgid "Failed to make symbolic link %s to %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:236
+#, c-format
+msgid "Failed to create file for writing: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:244
+#, c-format
+msgid "Failed to open file for reading: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:252
+#, c-format
+msgid "Failed to read file: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataCache.cpp:261
+#, c-format
+msgid "Failed to write file: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:91
+msgid "No locations found - probably no more physical instances"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:96
+#, c-format
+msgid "Removing %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:107
+msgid "This instance was already deleted"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:111
+msgid "Failed to delete physical file"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:122
+#, c-format
+msgid "Removing metadata in %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:125
+msgid "Failed to delete meta-information"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:132
+msgid "Failed to remove all physical instances"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:137
+#, c-format
+msgid "Removing logical file from metadata %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:140
+msgid "Failed to delete logical file"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:188
+msgid "DataMover::Transfer : starting new thread"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:219
+#, c-format
+msgid "Transfer from %s to %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:221
+msgid "Not valid source"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:225
+msgid "Not valid destination"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:232
+#, c-format
+msgid "No locations for source found: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:233
+#, c-format
+msgid "Failed to resolve source: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:242
+#: ../src/hed/libs/data/DataMover.cpp:292
+#, c-format
+msgid "No locations for destination found: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:243
+#: ../src/hed/libs/data/DataMover.cpp:293
+#, c-format
+msgid "Failed to resolve destination: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:256
+#, c-format
+msgid "No locations for destination different from source found: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:274
+#, c-format
+msgid "DataMover::Transfer: trying to destroy/overwrite destination: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:282
+#, c-format
+msgid "Failed to delete %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:300
+#, c-format
+msgid "Deleted but still have locations at %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:309
+msgid "DataMover: cycle"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:311
+msgid "DataMover: no retries requested - exit"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:315
+msgid "DataMover: source out of tries - exit"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:316
+msgid "DataMover: destination out of tries - exit"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:325
+#, c-format
+msgid "Real transfer from %s to %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:355
+#, c-format
+msgid "Creating buffer: %i x %i"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:363
+#, c-format
+msgid "DataMover::Transfer: checksum type is %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:366
+#: ../src/hed/libs/data/DataMover.cpp:369
+msgid "DataMover::Transfer: will try to compute crc"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:375
+msgid "Buffer creation failed !"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:399
+#, c-format
+msgid "Url is mapped to: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:426
+msgid "Failed to initiate cache"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:430
+msgid "File is cached - checking permissions"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:432
+#, c-format
+msgid "Permission checking failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:436
+#: ../src/hed/libs/data/DataMover.cpp:490
+#: ../src/hed/libs/data/DataMover.cpp:521
+#: ../src/hed/libs/data/DataMover.cpp:541
+msgid "source.next_location"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:440
+#: ../src/hed/libs/data/DataMover.cpp:496
+msgid "Permission checking passed"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:452
+msgid "Cached file is outdated"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:456
+#: ../src/hed/libs/data/DataMover.cpp:668
+msgid "Linking/copying cached file"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:464
+msgid "Copying cached file"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:486
+msgid "URL is mapped to local access - checking permissions on original URL"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:488
+#, c-format
+msgid "Permission checking on original URL failed: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:498
+msgid "Linking local file"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:519
+#, c-format
+msgid "Failed to create/find directory %s : %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:539
+#, c-format
+msgid "Failed to make symbolic link %s to %s : %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:562
+#, c-format
+msgid "cache file: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:577
+#, c-format
+msgid "Failed to start reading from source: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:582
+#: ../src/hed/libs/data/DataMover.cpp:694
+#: ../src/hed/libs/data/DataMover.cpp:718
+#: ../src/hed/libs/data/DataMover.cpp:725
+msgid "(Re)Trying next source"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:591
+msgid "Metadata of source and destination are different"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:605
+#, c-format
+msgid "Failed to preregister destination: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:607
+#: ../src/hed/libs/data/DataMover.cpp:751
+msgid "destination.next_location"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:619
+#, c-format
+msgid "Failed to start writing to destination: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:623
+#, c-format
+msgid ""
+"Failed to unregister preregistered lfn, You may need to unregister it "
+"manually: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:626
+#: ../src/hed/libs/data/DataMover.cpp:701
+#: ../src/hed/libs/data/DataMover.cpp:713
+#: ../src/hed/libs/data/DataMover.cpp:729
+msgid "(Re)Trying next destination"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:634
+msgid "Failed to start writing to cache"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:641
+#: ../src/hed/libs/data/DataMover.cpp:674
+msgid ""
+"Failed to unregister preregistered lfn, You may need to unregister it "
+"manually"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:646
+msgid "Waiting for buffer"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:650
+#, c-format
+msgid "buffer: read eof : %i"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:651
+#, c-format
+msgid "buffer: write eof: %i"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:652
+#, c-format
+msgid "buffer: error    : %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:653
+msgid "Closing read channel"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:659
+msgid "Closing write channel"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:686
+msgid ""
+"WARNING: Failed to unregister preregistered lfn, You may need to unregister "
+"it manually"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:721
+msgid "Cause of failure unclear - choosing randomly"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:741
+msgid "DataMover::Transfer: have valid checksum"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:746
+#, c-format
+msgid "Failed to postregister destination %s"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:748
+#, c-format
+msgid ""
+"Failed to unregister preregistered lfn, You may need to unregister it "
+"manually %s"
 msgstr ""
 
 #: ../src/hed/libs/data/DataPointIndex.cpp:103
@@ -1168,6 +1613,16 @@ msgstr ""
 #: ../src/hed/libs/data/DataPointIndex.cpp:104
 #, c-format
 msgid "Add location: location: %s"
+msgstr ""
+
+#: ../src/hed/libs/data/URLMap.cpp:30
+#, c-format
+msgid "file %s is not accessible"
+msgstr ""
+
+#: ../src/hed/libs/data/URLMap.cpp:40
+#, c-format
+msgid "Mapping %s to %s"
 msgstr ""
 
 #: ../src/hed/libs/loader/Loader.cpp:38
@@ -1380,6 +1835,10 @@ msgstr ""
 msgid "Loaded %s"
 msgstr ""
 
+#: ../src/hed/libs/loader/ModuleManager.cpp:75
+msgid "Module Manager Init by ModuleManager::setCfg"
+msgstr ""
+
 #: ../src/hed/libs/loader/Plexer.cpp:31
 #, c-format
 msgid "Bad label: \"%s\""
@@ -1395,137 +1854,31 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
-#: ../src/hed/libs/security/api/ArcPDP/attr/RequestAttribute.cpp:24
+#: ../src/hed/libs/message/MCC.cpp:53 ../src/hed/libs/message/Service.cpp:22
+msgid "No security processing/check required"
+msgstr ""
+
+#: ../src/hed/libs/message/MCC.cpp:60 ../src/hed/libs/message/Service.cpp:29
+msgid "Security processing/check passed"
+msgstr ""
+
+#: ../src/hed/libs/message/MCC.cpp:64 ../src/hed/libs/message/Service.cpp:33
+msgid "Security processing/check failed"
+msgstr ""
+
+#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:24
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
 msgstr ""
 
-#: ../src/hed/libs/security/api/ArcPDP/attr/RequestAttribute.cpp:26
+#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:26
 #, c-format
 msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
 msgstr ""
 
-#: ../src/hed/libs/security/api/ArcPDP/EvaluationCtx.cpp:184
+#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:184
 #, c-format
 msgid "There is %d RequestItems"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:52
-msgid "No any policy exists, the policy engine can not be loaded"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:85
-msgid "Can not dynamically produce AttributeFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:91
-msgid "Can not dynamically produce FnFactory"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:97
-msgid "Can not dynamically produce AlgFacroty"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:147
-msgid "Request object can not be cast into ArcRequest"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:219
-#, c-format
-msgid "Result value (0 means success): %d"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:48
-#: ../src/hed/libs/security/plugin/test.cpp:39
-#: ../src/services/pdp/pdpservice.cpp:129
-msgid "Can not dynamically produce Evaluator"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:87
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:106
-#: ../src/services/pdp/pdpservice.cpp:88
-#, c-format
-msgid "%s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:92
-#: ../src/services/pdp/pdpservice.cpp:72
-#, c-format
-msgid "There is : %d subjects, which satisty at least one policy"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:112
-msgid "Authorized from arc.pdp!!!"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:118
-msgid "UnAuthorized from arc.pdp!!!"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/ArcPolicy.cpp:49
-#, c-format
-msgid "PolicyId: %s  Alg inside this policy is:-- %s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListAuthZ.cpp:71
-#, c-format
-msgid "PDP name: %s %d"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListAuthZ.cpp:75
-#, c-format
-msgid "PDP: %s can not be loaded, exit!"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:37
-#, c-format
-msgid "Access list location: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:47
-#, c-format
-msgid "policy line: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:48
-#, c-format
-msgid "subject: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:51
-msgid "Authorized from simplelist.pdp!!!"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/SimpleListPDP.cpp:56
-msgid "UnAuthorized from simplelist.pdp!!!"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:30
-msgid "Start test"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:46
-msgid "Input request from a file: Request.xml"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:50
-#: ../src/hed/libs/security/plugin/test.cpp:135
-#, c-format
-msgid "There is: %d Subjects, which satisfy at least one policy"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:64
-#: ../src/hed/libs/security/plugin/test.cpp:149
-#, c-format
-msgid "Attribute Value: %s"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:75
-msgid "Input request from code"
-msgstr ""
-
-#: ../src/hed/libs/security/plugin/test.cpp:127
-msgid "Can not dynamically produce Request"
 msgstr ""
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:51
@@ -1533,16 +1886,12 @@ msgstr ""
 msgid "HTTP Error: %d %s"
 msgstr ""
 
-#: ../src/hed/mcc/soap/MCCSOAP.cpp:100
-msgid "UnAuthorized"
+#: ../src/hed/mcc/soap/MCCSOAP.cpp:95 ../src/hed/mcc/soap/MCCSOAP.cpp:136
+msgid "Security check failed in SOAP MCC for incoming message"
 msgstr ""
 
-#: ../src/hed/mcc/soap/MCCSOAP.cpp:103
-msgid "No authorization requirement for SOAP MCC"
-msgstr ""
-
-#: ../src/hed/mcc/soap/MCCSOAP.cpp:104
-msgid "soap_Authorized"
+#: ../src/hed/mcc/soap/MCCSOAP.cpp:114 ../src/hed/mcc/soap/MCCSOAP.cpp:167
+msgid "Security check failed in SOAP MCC for outgoing message"
 msgstr ""
 
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:81
@@ -1589,27 +1938,27 @@ msgstr ""
 msgid "Failed to accept connection request"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:275
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:276
 msgid "next chain element called"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:300
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:303
 msgid "No Connect element specified"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:306
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:309
 msgid "Missing Port in Connect element"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:312
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:315
 msgid "Missing Host in Connect element"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:330
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:333
 msgid "client process called"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:347 ../src/hed/mcc/tls/MCCTLS.cpp:421
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:351 ../src/hed/mcc/tls/MCCTLS.cpp:489
 msgid "Failed to send content of buffer"
 msgstr ""
 
@@ -1624,69 +1973,68 @@ msgstr ""
 msgid "Failed to connect to %s:%i"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:57
+#: ../src/hed/mcc/tls/MCCTLS.cpp:56
 #, c-format
 msgid "OpenSSL Error -- %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:58
+#: ../src/hed/mcc/tls/MCCTLS.cpp:57
 #, c-format
 msgid "Library  : %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:59
+#: ../src/hed/mcc/tls/MCCTLS.cpp:58
 #, c-format
 msgid "Function : %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:60
+#: ../src/hed/mcc/tls/MCCTLS.cpp:59
 #, c-format
 msgid "Reason   : %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:78
+#: ../src/hed/mcc/tls/MCCTLS.cpp:77
 msgid "tls_random_seed from file: could not read files"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:134
+#: ../src/hed/mcc/tls/MCCTLS.cpp:133
 msgid "Can not load certificate file"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:142
+#: ../src/hed/mcc/tls/MCCTLS.cpp:141
 msgid "Can not load key file"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:147
+#: ../src/hed/mcc/tls/MCCTLS.cpp:146
 msgid "Private key does not match certificate"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:178
+#: ../src/hed/mcc/tls/MCCTLS.cpp:177
 msgid "MCC_TLS::do_ssl_init"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:181
+#: ../src/hed/mcc/tls/MCCTLS.cpp:180
 msgid "SSL_library_init failed"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:193
+#: ../src/hed/mcc/tls/MCCTLS.cpp:192
 msgid "Failed to allocate SSL locks"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:219 ../src/hed/mcc/tls/MCCTLS.cpp:377
+#: ../src/hed/mcc/tls/MCCTLS.cpp:260 ../src/hed/mcc/tls/MCCTLS.cpp:446
 msgid "Can not create the SSL Context object"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:249
+#: ../src/hed/mcc/tls/MCCTLS.cpp:287
 msgid "DH set error"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:334
+#: ../src/hed/mcc/tls/MCCTLS.cpp:359
 #, c-format
 msgid "DN name: %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:49
-#: ../src/hed/mcc/tls/PayloadTLSSocket.cpp:81
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:60
 msgid "Failed to shut down SSL"
 msgstr ""
 
@@ -1706,6 +2054,137 @@ msgstr ""
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:95
 msgid "Peer cert verification fail"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:52
+msgid "No any policy exists, the policy engine can not be loaded"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:61
+msgid "Can not parse classname for FunctionFactory from configuration"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:69
+msgid "Can not parse classname for AttributeFactory from configuration"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:77
+msgid ""
+"Can not parse classname for CombiningAlgorithmFactory from configuration"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:85
+msgid "Can not parse classname for Request from configuration"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:104
+msgid "Can not dynamically produce AttributeFactory"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:110
+msgid "Can not dynamically produce FnFactory"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:116
+msgid "Can not dynamically produce AlgFacroty"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:167 ../src/hed/pdc/test.cpp:134
+msgid "Can not dynamically produce Request"
+msgstr ""
+
+#: ../src/hed/pdc/ArcEvaluator.cpp:281
+#, c-format
+msgid "Result value (0 means success): %d"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:49 ../src/hed/pdc/test.cpp:40
+#: ../src/services/pdp/pdpservice.cpp:130
+msgid "Can not dynamically produce Evaluator"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:88 ../src/hed/pdc/ArcPDP.cpp:107
+#: ../src/services/pdp/pdpservice.cpp:88
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:93 ../src/services/pdp/pdpservice.cpp:72
+#, c-format
+msgid "There is : %d subjects, which satisty at least one policy"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:113
+msgid "Authorized from arc.pdp!!!"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:119
+msgid "UnAuthorized from arc.pdp!!!"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPolicy.cpp:49
+#, c-format
+msgid "PolicyId: %s  Alg inside this policy is:-- %s"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:71
+#, c-format
+msgid "PDP name: %s %d"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:75
+#, c-format
+msgid "PDP: %s can not be loaded, exit!"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListPDP.cpp:37
+#, c-format
+msgid "Access list location: %s"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListPDP.cpp:47
+#, c-format
+msgid "policy line: %s"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListPDP.cpp:48
+#, c-format
+msgid "subject: %s"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListPDP.cpp:51
+msgid "Authorized from simplelist.pdp!!!"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListPDP.cpp:56
+msgid "UnAuthorized from simplelist.pdp!!!"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:30
+msgid "Start test"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:47
+msgid "Input request from a file: Request.xml"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:51 ../src/hed/pdc/test.cpp:142
+#, c-format
+msgid "There is: %d Subjects, which satisfy at least one policy"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:65
+#, c-format
+msgid "Attribute Value (1): %s"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:76
+msgid "Input request from code"
+msgstr ""
+
+#: ../src/hed/pdc/test.cpp:156
+#, c-format
+msgid "Attribute Value (2): %s"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:142
@@ -2172,19 +2651,15 @@ msgstr ""
 msgid "DMCs are loaded"
 msgstr ""
 
-#: ../src/tests/echo/echo.cpp:62
-msgid "No authorization requirement for echo service"
+#: ../src/tests/echo/echo.cpp:50
+msgid "echo: Unauthorized"
 msgstr ""
 
-#: ../src/tests/echo/echo.cpp:63
-msgid "echo_Authorized"
-msgstr ""
-
-#: ../src/tests/echo/echo.cpp:72
+#: ../src/tests/echo/echo.cpp:60
 msgid "Input is not SOAP"
 msgstr ""
 
-#: ../src/tests/echo/echo.cpp:78
+#: ../src/tests/echo/echo.cpp:66
 #, c-format
 msgid "Request is not supported - %s"
 msgstr ""
