@@ -28,19 +28,19 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
   WSRF& wsrp = CreateWSRP(in);
   if(!wsrp) { delete &wsrp; return NULL; };
   // Check if operation is supported
+  if(to_lock_) lock_.lock();
   try {
     WSRPGetResourcePropertyDocumentRequest* req = 
          dynamic_cast<WSRPGetResourcePropertyDocumentRequest*>(&wsrp);
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     // Requesting whole document
-    if(to_lock_) lock_.lock();
     std::list<XMLNode> presp = Get(std::list<std::string>());
-    if(to_lock_) lock_.unlock();
     XMLNode xresp; if(presp.size() > 0) xresp=*(presp.begin());
     WSRPGetResourcePropertyDocumentResponse* resp = 
          new WSRPGetResourcePropertyDocumentResponse(xresp);
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
+    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = NULL; if(resp) out=resp->SOAP().New();
     return out;
   } catch(std::exception& e) { };
@@ -50,9 +50,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     std::list<std::string> name; name.push_back(req->Name());
-    if(to_lock_) lock_.lock();
     std::list<XMLNode> presp = Get(name); // Requesting sub-element
-    if(to_lock_) lock_.unlock();
     WSRPGetResourcePropertyResponse* resp = 
          new WSRPGetResourcePropertyResponse();
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
@@ -62,6 +60,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
         resp->Property(*xresp);
       };
     };
+    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = NULL;
     if(resp) out=resp->SOAP().New();
     return out;
@@ -79,15 +78,14 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       for(std::vector<std::string>::iterator iname = names.begin();
                                 iname != names.end(); ++iname) {
         std::list<std::string> name; name.push_back(*iname);
-        if(to_lock_) lock_.lock();
         std::list<XMLNode> presp = Get(name); // Requesting sub-element
-        if(to_lock_) lock_.unlock();
         for(std::list<XMLNode>::iterator xresp = presp.begin(); 
                                   xresp != presp.end(); ++xresp) {
           resp->Property(*xresp);
         };
       };
     };
+    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = NULL;
     if(resp) out=resp->SOAP().New();
     return out;
@@ -98,6 +96,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     if(req->Dialect() != XPATH_1_0_URI) {
+      if(to_lock_) lock_.unlock();
       // TODO: generate proper fault
       SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
       if(out) {
@@ -109,9 +108,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       };
       return out;
     }
-    if(to_lock_) lock_.lock();
     std::list<XMLNode> presp = Get(req->Query());
-    if(to_lock_) lock_.unlock();
     WSRPQueryResourcePropertiesResponse* resp =
          new WSRPQueryResourcePropertiesResponse();
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
@@ -121,10 +118,12 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
         resp->Properties().NewChild(*xresp);
       };
     };
+    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = NULL;
     if(resp) out=resp->SOAP().New();
     return out;
   } catch(std::exception& e) { };
+  if(to_lock_) lock_.unlock();
   // This operaion is not supported - generate fault
   SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
   if(out) {
@@ -190,9 +189,12 @@ std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path)
   return cur_list;
 }
 
-std::list<XMLNode> InformationContainer::Get(XMLNode) {
-  // TODO: implement
-  return std::list<XMLNode>();
+std::list<XMLNode> InformationContainer::Get(XMLNode query) {
+  std::list<XMLNode> result;
+  std::string q = query;
+  NS ns = query.Namespaces();
+  result=doc_.XPathLookup(q,ns);
+  return result;
 }
 
 InformationRequest::InformationRequest(void):wsrp_(NULL) {
