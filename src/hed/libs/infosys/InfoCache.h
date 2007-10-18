@@ -11,12 +11,12 @@ namespace Arc {
 class InfoCache {
     protected:
         std::string path_base;
-        std::list<Arc::XMLNode> query_one(const char *key, const char *q);
-        std::list<Arc::XMLNode> query_any(const char *q);
+        void query_one(const char *key, const char *q, std::list<Arc::XMLNode> &result);
+        std::list<Arc::XMLNode> *query_any(const char *q);
 
     public:
-        std::list<Arc::XMLNode> Query(const char *key, const char *q);
-        std::list<Arc::XMLNode> Query(std::string &key, std::string &q) { Query(key.c_str(), q.c_str()); };
+        void Query(const char *key, const char *q, std::list<Arc::XMLNode> &result);
+        void Query(std::string &key, std::string &q, std::list<Arc::XMLNode> &result) { Query(key.c_str(), q.c_str(), result); };
         void Set(const char *key, std::string &value);
         void Set(std::string &key, std::string &value) { Set(key.c_str(), value) ; };
         std::string Get(const char *key);

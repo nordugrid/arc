@@ -19,7 +19,7 @@ InfoCache::InfoCache(Arc::Config &cfg, std::string &service_id)
 
 InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
 {
-    std::string root = std::string(cfg["ArcConfig"]["InformationSystem"]["CacheRoot"]);
+    std::string root = std::string(cfg["InformationSystem"]["CacheRoot"]);
     if (!Glib::file_test(root, Glib::FILE_TEST_IS_DIR)) {
         // create root directory
         if (mkdir(root.c_str(), 0700) != 0) {
@@ -63,7 +63,7 @@ std::string InfoCache::Get(const char *key)
     return out;
 }
 
-std::list<Arc::XMLNode> InfoCache::query_one(const char *key, const char *q)
+void InfoCache::query_one(const char *key, const char *q, std::list<Arc::XMLNode> &result)
 {
     std::string id(key);
     std::string query(q);
@@ -71,37 +71,43 @@ std::list<Arc::XMLNode> InfoCache::query_one(const char *key, const char *q)
     std::string xml = Glib::file_get_contents(path);
     Arc::XMLNode doc(xml);
     Arc::NS ns;
-    std::list<Arc::XMLNode> result = doc.XPathLookup(query, ns);
-    return result;
+    result = doc.XPathLookup(query, ns);
+    std::list<Arc::XMLNode>::iterator it;
+    std::cout << "query_one" << std::endl;
+    for (it = result.begin(); it != result.end(); it++) {
+        std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
+    }
 }
 
-std::list<Arc::XMLNode> InfoCache::query_any(const char *q)
+/*
+std::list<Arc::XMLNode> *InfoCache::query_any(const char *q)
 {
     Glib::Dir dir(path_base);
-    std::list<Arc::XMLNode> result;
+    std::list<Arc::XMLNode> *result;
     std::string d;
     
     while ((d = dir.read_name()) != "") {
-       std::list<Arc::XMLNode> r = query_one(d.c_str(), q);
-    std::list<Arc::XMLNode>::iterator it;
-        for (it = r.begin(); it != r.end(); it++) {
+        std::list<Arc::XMLNode> *r = query_one(d.c_str(), q);
+        std::list<Arc::XMLNode>::iterator it;
+        for (it = r->begin(); it != r->end(); it++) {
             std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
         }
-       result.merge(r);
-        for (it = result.begin(); it != result.end(); it++) {
+        result->merge(*r);
+        for (it = result->begin(); it != result->end(); it++) {
             std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
         }
     }
     
     return result; 
 }
+*/
 
-std::list<Arc::XMLNode> InfoCache::Query(const char *key, const char *q)
+void InfoCache::Query(const char *key, const char *q, std::list<Arc::XMLNode> &result)
 {
-    if (strcmp(key, "any") == 0) {
+   /* if (strcmp(key, "any") == 0) {
         return query_any(q);
-    }
-    return query_one(key, q);
+    } */
+    return query_one(key, q, result);
 }
 
 }
