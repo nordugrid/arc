@@ -20,7 +20,10 @@
 #include <iostream>
 #include <pwd.h>
 #include <arc/StringConv.h>
+#ifndef HAVE_SETENV
 #include <glibmm/miscutils.h>
+#define setenv Glib::setenv
+#endif
 #define olog std::cerr
 
 static bool stringtoint(const std::string& s,long long int& i) {
@@ -128,7 +131,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
     };
     // pbs,gnu_time,etc. it is ugly hack here
-#ifdef HAVE_SETENV
     if(central_configuration && (command == "pbs_bin_path")) {
       setenv("PBS_BIN_PATH",rest.c_str(),1);
     } else if(central_configuration && (command == "pbs_log_path")) {
@@ -148,27 +150,6 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       setenv("RUNTIME_FRONTEND_SEES_NODE",rest.c_str(),1);
     } else if(central_configuration && (command == "nodename")) {
       setenv("NODENAME",rest.c_str(),1);
-#else
-    if(central_configuration && (command == "pbs_bin_path")) {
-      Glib::setenv("PBS_BIN_PATH",rest,1);
-    } else if(central_configuration && (command == "pbs_log_path")) {
-      Glib::setenv("PBS_LOG_PATH",rest,1);
-    } else if(central_configuration && (command == "gnu_time")) {
-      Glib::setenv("GNU_TIME",rest,1);
-    } else if(central_configuration && (command == "tmpdir")) {
-      Glib::setenv("TMP_DIR",rest,1);
-    } else if(central_configuration && (command == "runtimedir")) {
-      Glib::setenv("RUNTIME_CONFIG_DIR",rest,1);
-    } else if(central_configuration && (command == "shared_filesystem")) {
-      if(rest == "NO") rest="no";
-      Glib::setenv("RUNTIME_NODE_SEES_FRONTEND",rest,1);
-    } else if(central_configuration && (command == "scratchdir")) {
-      Glib::setenv("RUNTIME_LOCAL_SCRATCH_DIR",rest,1);
-    } else if(central_configuration && (command == "shared_scratch")) {
-      Glib::setenv("RUNTIME_FRONTEND_SEES_NODE",rest,1);
-    } else if(central_configuration && (command == "nodename")) {
-      Glib::setenv("NODENAME",rest,1);
-#endif
     } else if((!central_configuration && (command == "cache")) || 
               (central_configuration  && (command == "cachedir"))) { 
       cache_dir = config_next_arg(rest);

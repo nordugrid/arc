@@ -24,7 +24,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef HAVE_SETENV
 #include <glibmm/miscutils.h>
+#define setenv Glib::setenv
+#endif
+#ifndef HAVE_UNSETENV
+#include <glibmm/miscutils.h>
+#define unsetenv Glib::unsetenv
+#endif
 #define olog std::cerr
 //@
 
@@ -139,50 +146,25 @@ bool RunParallel::run(JobUser& user,const char* jobid,char *const args[],RunElem
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   /* setting environment  - TODO - better environment */
   if(job_proxy) {
-#ifdef HAVE_SETENV
     setenv("GLOBUS_LOCATION",globus_loc.c_str(),1);
-#else
-    Glib::setenv("GLOBUS_LOCATION",globus_loc,1);
-#endif
-#ifdef HAVE_UNSETENV
     unsetenv("X509_USER_KEY");
     unsetenv("X509_USER_CERT");
     unsetenv("X509_USER_PROXY");
     unsetenv("X509_RUN_AS_SERVER");
-#else
-    Glib::unsetenv("X509_USER_KEY");
-    Glib::unsetenv("X509_USER_CERT");
-    Glib::unsetenv("X509_USER_PROXY");
-    Glib::unsetenv("X509_RUN_AS_SERVER");
-#endif
     if(jobid) {
       std::string proxy = user.ControlDir() + "/job." + jobid + ".proxy";
-#ifdef HAVE_SETENV
       setenv("X509_USER_PROXY",proxy.c_str(),1);
-#else
-      Glib::setenv("X509_USER_PROXY",proxy,1);
-#endif
       /* for Globus 2.2 set fake cert and key, or else it takes 
          those from host in case of root user.
          2.4 needs names and 2.2 will work too.
          3.x requires fake ones again.
       */
 #if GLOBUS_IO_VERSION>=5
-#ifdef HAVE_SETENV
       setenv("X509_USER_KEY","fake",1);
       setenv("X509_USER_CERT","fake",1);
 #else
-      Glib::setenv("X509_USER_KEY","fake",1);
-      Glib::setenv("X509_USER_CERT","fake",1);
-#endif
-#else
-#ifdef HAVE_SETENV
       setenv("X509_USER_KEY",proxy.c_str(),1);
       setenv("X509_USER_CERT",proxy.c_str(),1);
-#else
-      Glib::setenv("X509_USER_KEY",proxy,1);
-      Glib::setenv("X509_USER_CERT",proxy,1);
-#endif
 #endif
     };
   };

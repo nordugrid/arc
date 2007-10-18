@@ -15,7 +15,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef HAVE_SETENV
 #include <glibmm/miscutils.h>
+#define setenv Glib::setenv
+#endif
 #define olog std::cerr
 //@ 
 
@@ -89,7 +92,6 @@ int Daemon::arg(char c) {
 
 int Daemon::config(const std::string& cmd,std::string& rest) {
   if(central_configuration) {
-#ifdef HAVE_SETENV
     if(cmd == "gridmap") {
       setenv("GRIDMAP",rest.c_str(),1); return 0;
     } else if(cmd == "hostname") {
@@ -107,25 +109,6 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
     } else if(cmd == "http_proxy") {
       setenv("ARC_HTTP_PROXY",rest.c_str(),1); return 0;
     };
-#else
-    if(cmd == "gridmap") {
-      Glib::setenv("GRIDMAP",rest,1); return 0;
-    } else if(cmd == "hostname") {
-      Glib::setenv("GLOBUS_HOSTNAME",rest,1); return 0;
-    } else if(cmd == "globus_tcp_port_range") {
-      Glib::setenv("GLOBUS_TCP_PORT_RANGE",rest,1); return 0;
-    } else if(cmd == "globus_udp_port_range") {
-      Glib::setenv("GLOBUS_UDP_PORT_RANGE",rest,1); return 0;
-    } else if(cmd == "x509_user_key") {
-      Glib::setenv("X509_USER_KEY",rest,1); return 0;
-    } else if(cmd == "x509_user_cert") {
-      Glib::setenv("X509_USER_CERT",rest,1); return 0;
-    } else if(cmd == "x509_cert_dir") {
-      Glib::setenv("X509_CERT_DIR",rest,1); return 0;
-    } else if(cmd == "http_proxy") {
-      Glib::setenv("ARC_HTTP_PROXY",rest,1); return 0;
-    };
-#endif
   };
   if(cmd == "daemon") {
     if(daemon_) {
