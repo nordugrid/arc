@@ -3,9 +3,13 @@ lib_LTLIBRARIES=libarcdata2.la
 libarcdata2_ladir=$(pkgincludedir)/data
 libarcdata2_la_HEADERS=DMC.h   DataPoint.h   DataPointDirect.h   \
 	DataPointIndex.h   DataBufferPar.h   CheckSum.h   DataSpeed.h   \
-	DataHandle.h FileInfo.h
+	Cache.h   DataMover.h   DataCache.h   URLMap.h   \
+	DataCallback.h DataHandle.h FileInfo.h
 libarcdata2_la_SOURCES=DMC.cpp DataPoint.cpp DataPointDirect.cpp \
-	DataPointIndex.cpp DataBufferPar.cpp CheckSum.cpp DataSpeed.cpp
+	DataPointIndex.cpp DataBufferPar.cpp CheckSum.cpp DataSpeed.cpp \
+	Cache.cpp DataMover.cpp DataCache.cpp URLMap.cpp \
+	CheckFile.cpp MkDirRecursive.cpp \
+	CheckFile.h   MkDirRecursive.h
 
 libarcdata2_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcdata2_la_LIBADD=$(GLIBMM_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la
