@@ -130,10 +130,17 @@ bool read_env_vars(bool guess) {
     if(tmp) nordugrid_config_loc=tmp;
   };
   // Set all environement variables for other tools
+#ifdef HAVE_SETENV
+  setenv("ARC_CONFIG",nordugrid_config_loc.c_str(),1);
+  setenv("NORDUGRID_CONFIG",nordugrid_config_loc.c_str(),1);
+  setenv("ARC_LOCATION",nordugrid_loc.c_str(),1);
+  setenv("NORDUGRID_LOCATION",nordugrid_loc.c_str(),1);
+#else
   Glib::setenv("ARC_CONFIG",nordugrid_config_loc,1);
   Glib::setenv("NORDUGRID_CONFIG",nordugrid_config_loc,1);
   Glib::setenv("ARC_LOCATION",nordugrid_loc,1);
   Glib::setenv("NORDUGRID_LOCATION",nordugrid_loc,1);
+#endif
   if(support_mail_address.length() == 0) {
     char hn[100];
     support_mail_address="grid.manager@";

@@ -314,8 +314,13 @@ std::string JobUsers::ControlDir(const std::string user) {
 /* change effective user - real switch is done only if running as root */
 bool JobUser::SwitchUser(bool su) const {
   std::string uid_s = inttostring(uid);
+#ifdef HAVE_SETENV
+  if(setenv("USER_ID",uid_s.c_str(),1) != 0) if(!su) return false;
+  if(setenv("USER_NAME",unix_name.c_str(),1) != 0) if(!su) return false;
+#else
   if(Glib::setenv("USER_ID",uid_s,1) != 0) if(!su) return false;
   if(Glib::setenv("USER_NAME",unix_name,1) != 0) if(!su) return false;
+#endif
   /* set proper umask */
   umask(0177);
   if(!su) return true;
