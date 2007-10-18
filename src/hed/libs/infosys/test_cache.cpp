@@ -38,7 +38,7 @@ std::string doc2 = "\
 
 int main(void)
 {
-    Arc::XMLNodeContainer c;
+/*    Arc::XMLNodeContainer c;
     Arc::XMLNode doc(doc1);
     Arc::NS ns;
     std::list<Arc::XMLNode> xresult = doc.XPathLookup("//Memory", ns);
@@ -52,12 +52,13 @@ int main(void)
     for (int i = 0; i < c.Size(); i++) {
         std::cout << c[i].Name() << std::endl;
     }
-//    Arc::Config cfg("./service.xml");
+*/
+    Arc::Config cfg("./service.xml");
     /* cfg.print();
     std::string root = std::string(cfg["InformationSystem"]["CacheRoot"]);
     std::cout << root << std::endl;
 */
-/*    Arc::InfoCache cache(cfg, "test_service");
+    Arc::InfoCache cache(cfg, "test_service");
     cache.Set("1", doc1);
     std::cout << "Set 1" << std::endl;
     cache.Set("2", doc2);
@@ -70,7 +71,12 @@ int main(void)
     std::cout << "test_cache" << std::endl;
     for (int it = 0; it < result.Size(); it++) {
         std::cout << result[it].Name() << ":" << std::string(result[it]) << std::endl;
-    } 
-*/
+    }
+    Arc::XMLNodeContainer result2;
+    cache.Query("any", "//Memory", result2);
+    for (int it = 0; it < result2.Size(); it++) {
+        std::cout << result2[it].Name() << ":" << std::string(result2[it]) << std::endl;
+    }
+
     return 0;
 }

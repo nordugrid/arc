@@ -12,7 +12,7 @@ class InfoCache {
     protected:
         std::string path_base;
         void query_one(const char *key, const char *q, Arc::XMLNodeContainer &result);
-        std::list<Arc::XMLNode> *query_any(const char *q);
+        void query_any(const char *q, Arc::XMLNodeContainer &result);
 
     public:
         void Query(const char *key, const char *q, Arc::XMLNodeContainer &result);
