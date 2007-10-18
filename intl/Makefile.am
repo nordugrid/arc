@@ -2,7 +2,7 @@ LANGUAGES = sv ru
 
 TRANSLATIONS = $(foreach lang, $(LANGUAGES), Arc.$(lang).po)
 
-SRC_FILES = $(shell find .. -name *.cpp -o -name *.h | sort)
+SRC_FILES = $(shell find ../src -name *.cpp -o -name *.h | sort)
 
 localedir = $(prefix)/share/locale
 
