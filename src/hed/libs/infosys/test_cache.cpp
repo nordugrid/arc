@@ -51,12 +51,11 @@ int main(void)
     std::string r = cache.Get("1");
     std::cout << "Get 1" << std::endl;
     std::cout << r << std::endl;
-    std::list<Arc::XMLNode> result;
+    Arc::XMLNodeContainer result;
     cache.Query("1", "//Memory", result);
-    std::list<Arc::XMLNode>::iterator it;
     std::cout << "test_cache" << std::endl;
-    for (it = result.begin(); it != result.end(); it++) {
-        std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
+    for (int it = 0; it < result.Size(); it++) {
+        std::cout << result[it].Name() << ":" << std::string(result[it]) << std::endl;
     } 
     return 0;
 }

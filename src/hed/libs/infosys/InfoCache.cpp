@@ -63,7 +63,7 @@ std::string InfoCache::Get(const char *key)
     return out;
 }
 
-void InfoCache::query_one(const char *key, const char *q, std::list<Arc::XMLNode> &result)
+void InfoCache::query_one(const char *key, const char *q, Arc::XMLNodeContainer &result)
 {
     std::string id(key);
     std::string query(q);
@@ -71,11 +71,11 @@ void InfoCache::query_one(const char *key, const char *q, std::list<Arc::XMLNode
     std::string xml = Glib::file_get_contents(path);
     Arc::XMLNode doc(xml);
     Arc::NS ns;
-    result = doc.XPathLookup(query, ns);
-    std::list<Arc::XMLNode>::iterator it;
+    std::list<Arc::XMLNode> xresult = doc.XPathLookup(query, ns);
+    result.AddNew(xresult);
     std::cout << "query_one" << std::endl;
-    for (it = result.begin(); it != result.end(); it++) {
-        std::cout << (*it).Name() << ":" << std::string(*it) << std::endl;
+    for (int it = 0; it < result.Size(); it++) {
+        std::cout << result[it].Name() << ":" << std::string(result[it]) << std::endl;
     }
 }
 
@@ -102,7 +102,7 @@ std::list<Arc::XMLNode> *InfoCache::query_any(const char *q)
 }
 */
 
-void InfoCache::Query(const char *key, const char *q, std::list<Arc::XMLNode> &result)
+void InfoCache::Query(const char *key, const char *q, Arc::XMLNodeContainer &result)
 {
    /* if (strcmp(key, "any") == 0) {
         return query_any(q);
