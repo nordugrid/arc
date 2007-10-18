@@ -18,6 +18,7 @@ namespace Arc {
     DataHandle(const URL& url) : p(DMC::GetDataPoint(url)) {};
     ~DataHandle() { if (p) delete p; };
     DataPoint* operator->() { return p; };
+    DataPoint& operator*() { return *p; };
     bool operator!() { return !p; };
     operator bool() { return !!p; };
    private:
