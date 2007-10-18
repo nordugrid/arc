@@ -39,9 +39,9 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
   Arc::NS nsList;
   std::list<XMLNode> res;
-  nsList.insert(std::pair<std::string, std::string>("config","http://www.nordugrid.org/schemas/pdp/Config"));
+  nsList.insert(std::pair<std::string, std::string>("pdp","http://www.nordugrid.org/schemas/pdp/Config"));
 
-  res = cfg.XPathLookup("//config:PolicyStore", nsList);
+  res = cfg.XPathLookup("//pdp:PolicyStore", nsList);
   //presently, there can be only one PolicyStore
   if(!(res.empty())){
     nd = *(res.begin());
@@ -53,23 +53,37 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
     exit(1);
   }
 
-  res = cfg.XPathLookup("//config:FunctionFactory", nsList);
+  res = cfg.XPathLookup("//pdp:FunctionFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
     functionfactory = (std::string)(nd.Attribute("name"));
-  }           
+  } 
+  else { logger.msg(ERROR, "Can not parse classname for FunctionFactory from configuration"); return;}
+          
 
-  res = cfg.XPathLookup("//config:AttributeFactory", nsList);
+  res = cfg.XPathLookup("//pdp:AttributeFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
     attributefactory = (std::string)(nd.Attribute("name"));
   }  
+  else { logger.msg(ERROR, "Can not parse classname for AttributeFactory from configuration"); return;}
 
-  res = cfg.XPathLookup("//config:CombingAlgorithmFactory", nsList);
+
+  res = cfg.XPathLookup("//pdp:CombingAlgorithmFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
     combingalgfactory = (std::string)(nd.Attribute("name"));
   }
+  else { logger.msg(ERROR, "Can not parse classname for CombiningAlgorithmFactory from configuration"); return;}
+
+  //Get the name of the "request" class
+  res = m_cfg->XPathLookup("//pdp:Request", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    request_classname = (std::string)(nd.Attribute("name"));
+  }
+  else { logger.msg(ERROR, "Can not parse classname for Request from configuration"); return;}
+
 
   //TODO: load the class by using the configuration information. 
 
@@ -112,7 +126,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
 }
 
-ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg) {
+ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
   plstore = NULL;;
   fnfactory = NULL;
   attrfactory = NULL;
@@ -120,7 +134,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg) {
 
   context = NULL;
 
-  parsecfg(*cfg);
+  parsecfg(*m_cfg);
 }
 
 ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
@@ -138,17 +152,34 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
   parsecfg(node); 
 }
 
+Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
+  Request* request = NULL;
+  std::string requestor;
+
+  Arc::ClassLoader* classloader = NULL;
+  //Since the configuration file has been parsed before, 
+  //it is not necessary to parse once more here
+  classloader = ClassLoader::getClassLoader();
+
+  //Load the Request object
+  request = (ArcSec::Request*)(classloader->Instance(request_classname, (void**)&reqnode));
+  if(request == NULL)
+    logger.msg(Arc::ERROR, "Can not dynamically produce Request");
+
+  return request;
+}
 
 Response* ArcEvaluator::evaluate(Request* request){
-  ArcRequest* req = NULL;
+  /*ArcRequest* req = NULL;
   try {
     req = dynamic_cast<ArcRequest*>(request);
   } catch(std::exception& e) { };
-
   if(!req) {
     logger.msg(ERROR,"Request object can not be cast into ArcRequest");
     return NULL;
-  }
+  }*/
+
+  Request* req = request;
   req->setAttributeFactory(attrfactory);
   req->make_request();
 
@@ -163,15 +194,34 @@ Response* ArcEvaluator::evaluate(Request* request){
 
 
 Response* ArcEvaluator::evaluate(const std::string& reqfile){
-  ArcRequest* request = NULL;
-  request = new ArcRequest(reqfile.c_str());
+  //1.Parse the request file
+  std::string str;
+  std::string xml_str = "";
+  std::ifstream f(reqfile.c_str());
+
+  while (f >> str) {
+    xml_str.append(str);
+    xml_str.append(" ");
+  }
+  f.close();
+
+  Arc::XMLNode node(xml_str);
+  NS ns;
+  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  node.Namespaces(ns);
+
+  //2.Create the request object according to the configuration
+  Request* request = NULL;
+  request = make_reqobj(node); 
+ 
+  //3.Pre-process the Request object
   request->setAttributeFactory(attrfactory);
   request->make_request();
 
   EvaluationCtx * evalctx = NULL;
   evalctx =  new EvaluationCtx(request);
  
-  //evaluate the request based on policy
+  //4.evaluate the request based on policy
   Response* resp = NULL;
   if(evalctx)
     resp = evaluate(evalctx);
@@ -182,15 +232,18 @@ Response* ArcEvaluator::evaluate(const std::string& reqfile){
 }
 
 Response* ArcEvaluator::evaluate(XMLNode& node){
-  ArcRequest* request = NULL;
-  request = new ArcRequest(&node);
+  //1.Create the request object according to the configuration
+  Request* request = NULL;
+  request = make_reqobj(node);
+  
+  //2.Pre-process the Request object
   request->setAttributeFactory(attrfactory);
   request->make_request();
-
+  
   EvaluationCtx * evalctx = NULL;
   evalctx =  new EvaluationCtx(request);
-
-  //evaluate the request based on policy
+  
+  //3.evaluate the request based on policy
   Response* resp = NULL;
   if(evalctx)
     resp = evaluate(evalctx);

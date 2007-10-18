@@ -8,10 +8,19 @@
 #include "ArcRequest.h"
 #include "ArcRequestItem.h"
 
+/** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
+
 static Arc::LoadableClass* get_request(void** arg) {
     //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
     if(arg==NULL) return new ArcSec::ArcRequest();
-    else return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
+    else{
+    /*std::cout<<"Inside ArcRequest"<<std::endl;
+    std::string xml;
+    Arc::XMLNode node(*((Arc::XMLNode*)arg));
+    node.GetXML(xml);
+    std::cout<<"node inside ArcRequest:"<<xml<<std::endl;*/
+    return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
+   }
 }
 
 loader_descriptors __arc_request_modules__  = {

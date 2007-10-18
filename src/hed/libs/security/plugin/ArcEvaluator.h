@@ -29,6 +29,9 @@ private:
   
   EvaluatorContext* context;
 
+  Arc::XMLNode* m_cfg;
+  std::string request_classname;
+
 public:
   ArcEvaluator (Arc::XMLNode* cfg);
   ArcEvaluator (const char * cfgfile);
@@ -47,6 +50,7 @@ protected:
 
 private:
   virtual void parsecfg(Arc::XMLNode& cfg);
+  virtual Request* make_reqobj(Arc::XMLNode& reqnode);
 };
 
 } // namespace ArcSec

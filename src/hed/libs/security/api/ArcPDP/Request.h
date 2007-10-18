@@ -6,7 +6,8 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "RequestItem.h"
+#include <arc/security/ArcPDP/attr/AttributeFactory.h>
+#include <arc/security/ArcPDP/RequestItem.h>
 
 /** Basic class for Request*/
 
@@ -46,6 +47,12 @@ public:
 
   //**add request tuple from non-XMLNode*/
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx)=0;
+
+  //**set the attribute factory for the usage of Request*/
+  virtual void setAttributeFactory(AttributeFactory* attributefactory) = 0;
+
+  //**create the objects included in Request according to the node attached to the Request object*/
+  virtual void make_request() = 0;
 
   //**Default constructor*/
   Request () {};

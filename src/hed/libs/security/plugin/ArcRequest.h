@@ -24,7 +24,7 @@ public:
   
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx);
 
-  void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
+  virtual void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
 
   //**Default constructor*/
   ArcRequest ();
@@ -33,7 +33,7 @@ public:
   ArcRequest (const Arc::XMLNode* node);
   virtual ~ArcRequest();
 
-  void make_request();
+  virtual void make_request();
 
 protected:
   //**Parse request information from a file*/
