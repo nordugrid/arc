@@ -469,12 +469,14 @@ void XMLNodeContainer::AddNew(const XMLNode& node) {
 }
 
 void XMLNodeContainer::AddNew(const std::list<XMLNode>& nodes) {
-  for(std::list<XMLNode>::const_iterator n = nodes.begin();
-              n!=nodes.end();++n) AddNew(*n);
+  for(std::list<XMLNode>::const_iterator n = nodes.begin(); 
+       n!=nodes.end();++n) {
+       AddNew(*n);
+    }
 }
 
 int XMLNodeContainer::Size(void) {
-  nodes_.size();
+  return nodes_.size();
 }
 
 XMLNode XMLNodeContainer::operator[](int n) {
