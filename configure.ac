@@ -354,7 +354,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/message/Makefile
                  src/hed/libs/counter/Makefile
                  src/hed/libs/security/Makefile
-                 src/hed/libs/security/plugin/Makefile
                  src/hed/libs/security/ArcPDP/Makefile
                  src/hed/libs/security/ArcPDP/attr/Makefile
                  src/hed/libs/security/ArcPDP/policy/Makefile
@@ -375,6 +374,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/http/Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
+                 src/hed/pdc/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile

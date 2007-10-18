@@ -1,4 +1,4 @@
-SUBDIRS = ArcPDP plugin
+SUBDIRS = ArcPDP
 
 lib_LTLIBRARIES=libsecurity.la
 libsecurity_ladir=$(pkgincludedir)/security
