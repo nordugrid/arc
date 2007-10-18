@@ -426,5 +426,62 @@ void XMLNode::GetXML(std::string& xml) const {
   xmlBufferFree(buf);
 }
 
+XMLNodeContainer::XMLNodeContainer(void) {
+}
+
+XMLNodeContainer::XMLNodeContainer(const XMLNodeContainer& container) {
+  operator=(container);
+}
+
+XMLNodeContainer::~XMLNodeContainer(void) {
+  for(std::vector<XMLNode*>::iterator n = nodes_.begin();
+              n!=nodes_.end();++n) delete *n;
+}
+
+XMLNodeContainer& XMLNodeContainer::operator=(const XMLNodeContainer& container) {
+  for(std::vector<XMLNode*>::iterator n = nodes_.begin();
+              n!=nodes_.end();++n) delete *n;
+  for(std::vector<XMLNode*>::const_iterator n = container.nodes_.begin();
+              n!=container.nodes_.end();++n) {
+    if((*n)->is_owner_) {
+      AddNew(*(*n));
+    } else {
+      Add(*(*n));
+    };
+  };
+  return *this;
+}
+
+void XMLNodeContainer::Add(const XMLNode& node) {
+  XMLNode* new_node = new XMLNode(node);
+  nodes_.push_back(new_node);
+}
+
+void XMLNodeContainer::Add(const std::list<XMLNode>& nodes) {
+  for(std::list<XMLNode>::const_iterator n = nodes.begin();
+              n!=nodes.end();++n) Add(*n);
+}
+
+void XMLNodeContainer::AddNew(const XMLNode& node) {
+  XMLNode* new_node = new XMLNode();
+  node.New(*new_node);
+  nodes_.push_back(new_node);
+}
+
+void XMLNodeContainer::AddNew(const std::list<XMLNode>& nodes) {
+  for(std::list<XMLNode>::const_iterator n = nodes.begin();
+              n!=nodes.end();++n) AddNew(*n);
+}
+
+int XMLNodeContainer::Size(void) {
+  nodes_.size();
+}
+
+XMLNode XMLNodeContainer::operator[](int n) {
+  if(n < 0) return XMLNode();
+  if(n >= nodes_.size()) return XMLNode();
+  return *nodes_[n];
+}
+
 
 } // namespace Arc

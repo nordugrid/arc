@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <vector>
 #include <map>
 
 #include <libxml/xmlmemory.h>
@@ -34,6 +35,7 @@ class XMLNode {
  friend bool MatchXMLNamespace(const XMLNode& node1,const XMLNode& node2);
  friend bool MatchXMLNamespace(const XMLNode& node,const char* uri);
  friend bool MatchXMLNamespace(const XMLNode& node,const std::string& uri);
+ friend class XMLNodeContainer;
 
  protected:
   xmlNodePtr node_;
@@ -218,6 +220,22 @@ class XMLNode {
   
   /** Do a recursive copy (properties, namespaces and children when applicable)*/
   //void Duplicate(XMLNode& new_node);
+};
+
+class XMLNodeContainer {
+ private:
+  std::vector<XMLNode*> nodes_;
+ public:
+  XMLNodeContainer(void);
+  XMLNodeContainer(const XMLNodeContainer&);
+  ~XMLNodeContainer(void);
+  XMLNodeContainer& operator=(const XMLNodeContainer&);
+  void Add(const XMLNode&);
+  void Add(const std::list<XMLNode>&);
+  void AddNew(const XMLNode&);
+  void AddNew(const std::list<XMLNode>&);
+  int Size(void);
+  XMLNode operator[](int);
 };
 
 /** Returns true if underlying XML elements have same names */
