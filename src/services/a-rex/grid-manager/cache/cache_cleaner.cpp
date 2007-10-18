@@ -80,8 +80,8 @@ int cache_cleaner(const JobUsers &users) {
       space_hardsize=0;
     }
     else {
-      available = (long long int)dst.f_bavail * dst.f_bsize;
-      space_hardsize = (long long int)dst.f_blocks * dst.f_bsize;
+      available = (long long int)dst.f_bavail * (dst.f_frsize ? dst.f_frsize : dst.f_bsize);
+      space_hardsize = (long long int)dst.f_blocks * (dst.f_frsize ? dst.f_frsize : dst.f_bsize);
     };
     // olog<<"Cache: space available: "<<available<<" bytes"<<std::endl;
     space_hardfree=available;
