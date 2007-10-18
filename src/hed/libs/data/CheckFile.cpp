@@ -2,6 +2,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #include <arc/StringConv.h>

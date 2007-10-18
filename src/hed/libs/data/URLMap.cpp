@@ -3,6 +3,7 @@
 #include "URLMap.h"
 
 #include <string>
+#include <unistd.h>
 #include <fcntl.h>
 
 namespace Arc {
