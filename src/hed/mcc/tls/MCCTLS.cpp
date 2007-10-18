@@ -14,7 +14,6 @@
 #include <arc/XMLNode.h>
 
 #include "PayloadTLSStream.h"
-#include "PayloadTLSSocket.h"
 #include "PayloadTLSMCC.h"
 
 #include <openssl/err.h>
@@ -201,9 +200,51 @@ bool MCC_TLS::do_ssl_init(void) {
    return ssl_initialized_;
 }
 
+class MCC_TLS_Context:public MessageContextElement {
+ public:
+  PayloadTLSMCC* stream;
+  MCC_TLS_Context(PayloadTLSMCC* s = NULL):stream(s) { };
+  virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*The main functionality of the constructor method is creat SSL context object*/
-MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
+MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    std::string cert_file = (*cfg)["CertificatePath"];
    if(cert_file.empty()) cert_file="/etc/grid-security/hostcert.pem";
    std::string key_file = (*cfg)["KeyPath"];
@@ -230,22 +271,19 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
          return;
       }   
       /*
-      SSL_CTX_set_client_CA_list(sslctx_, 
-         SSL_load_client_CA_file(ca_file.c_str())
-      ); //Scan all certificates in CAfile and list them as acceptable CAs
+      SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
-         logger.msg(ERROR,
-		    "Can not set client CA list from the specified file");
+         logger.msg(ERROR, "Can not set client CA list from the specified file");
    	 tls_process_error(logger);
 	 return;
       }
       */
    }
-   if(tls_dhe1024 == NULL){
+   if(tls_dhe1024 == NULL) { // TODO: Is it needed?
    	tls_set_dhe1024(logger);
 	if(tls_dhe1024 == NULL){return;}
    }
-   if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)){
+   if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)) { // TODO: Is it needed?
            logger.msg(ERROR, "DH set error");
            tls_process_error(logger);
 	   return;
@@ -253,7 +291,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
 #ifndef NO_RSA
    RSA *tmpkey;
-   tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL);
+   tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL); // TODO: Is it needed?
    if (tmpkey == NULL)
 	tls_process_error(logger);
    if (!SSL_CTX_set_tmp_rsa(sslctx_, tmpkey)) {
@@ -263,9 +301,6 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg) {
 	}
    RSA_free(tmpkey);
 #endif
-   // The SSL object will be created when MCC_TCP_Service call 
-   // the MCC_TLS_Service's process() method, and the SSL object 
-   // can be reused just like socket object
 }
 
 
@@ -273,28 +308,21 @@ MCC_TLS_Service::~MCC_TLS_Service(void) {
    if(sslctx_!=NULL)SSL_CTX_free(sslctx_);
 }
 
-
-class MCC_TLS_Context:public MessageContextElement {
- public:
-  PayloadTLSSocket* stream;
-  MCC_TLS_Context(PayloadTLSSocket* s = NULL):stream(s) { };
-  virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
-};
-
-
 MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
-   // MCC_TCP_Service ---> MCC_TLS_Service ---> MCC_HTTP_Service ---> MCC_SOAP_Service
-   // Accepted payload is Stream - not a StreamInterface, needed for 
-   // otaining handle from it.
+   // Accepted payload is StreamInterface 
    // Returned payload is undefined - currently holds no information
+
+   if(!sslctx_) return MCC_Status();
+
+   // Obtaining underlying stream
    if(!inmsg.Payload()) return MCC_Status();
-   PayloadStream* inpayload = NULL;
+   PayloadStreamInterface* inpayload = NULL;
    try {
-      	inpayload = dynamic_cast<PayloadStream*>(inmsg.Payload());
+      	inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
-   // Obtaining previously created stream or creating a new one
-   PayloadTLSSocket *nextpayload = NULL;
+
+   // Obtaining previously created stream context or creating a new one
    MCC_TLS_Context* context = NULL;
    {   
       MessageContextElement* mcontext = (*inmsg.Context())["tls.service"];
@@ -304,30 +332,27 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
          } catch(std::exception& e) { };
       };
    };
+   PayloadTLSMCC *stream = NULL;
    if(context) {
-      nextpayload=context->stream;
+      // Old connection - using available SSL stream
+      stream=context->stream;
    } else {
-      context=new MCC_TLS_Context;
+      // Creating new SSL object bound to stream of previous MCC
+      // TODO: renew stream because it may be recreated by TCP MCC
+      stream = new PayloadTLSMCC(inpayload,sslctx_,logger);
+      context=new MCC_TLS_Context(stream);
       inmsg.Context()->Add("tls.service",context);
    };
-   if(!nextpayload) {
-      // Adding ssl to socket stream, the "ssl" object is created and 
-      // binded to socket fd in PayloadTLSSocket
-      // TODO: create ssl object only once per connection. - done ?
-      nextpayload = new PayloadTLSSocket(*inpayload, sslctx_, false, logger);
-      context->stream=nextpayload;
-   };
-   if(!nextpayload) return MCC_Status();
  
    // Creating message to pass to next MCC
    Message nextinmsg = inmsg;
-   nextinmsg.Payload(nextpayload);
+   nextinmsg.Payload(stream);
    Message nextoutmsg;
 
    //Getting the subject name of peer(client) certificate
    X509* peercert = NULL;
    char buf[100];     
-   peercert = (dynamic_cast<PayloadTLSStream*>(nextpayload))->GetPeercert();
+   peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeercert();
    if (peercert != NULL) {
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       std::string peer_dn = buf;
@@ -339,25 +364,69 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    
    // Call next MCC 
    MCCInterface* next = Next();
-   if(!next) { 
-      //delete nextpayload;
-      return MCC_Status();
-   };
+   if(!next)  return MCC_Status();
    MCC_Status ret = next->process(nextinmsg,nextoutmsg);
+   // TODO: If next MCC returns anything redirect it to stream
    if(nextoutmsg.Payload()) {
       delete nextoutmsg.Payload();
       nextoutmsg.Payload(NULL);
    };
-   if(!ret) {
-      //delete nextpayload;
-      return MCC_Status();
-   };
+   if(!ret) return MCC_Status();
    // For nextoutmsg, nothing to do for payload of msg, but 
    // transfer some attributes of msg
    outmsg = nextoutmsg;
-   //delete nextpayload;
    return MCC_Status(Arc::STATUS_OK);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    stream_=NULL;
@@ -400,7 +469,6 @@ MCC_TLS_Client::~MCC_TLS_Client(void) {
 }
 
 MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
-   //  MCC_SOAP_Client ---> MCC_HTTP_Client ---> MCC_TLS_Client ---> MCC_TCP_Client
    // Accepted payload is Raw
    // Returned payload is Stream
    // Extracting payload
@@ -422,7 +490,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
          return MCC_Status();
       };
    };
-   outmsg.Payload(new PayloadTLSMCC(*stream_, logger));
+   outmsg.Payload(new PayloadTLSMCC(*stream_,logger));
    outmsg.Attributes(inmsg.Attributes());
    outmsg.Context(inmsg.Context());
    return MCC_Status(Arc::STATUS_OK);

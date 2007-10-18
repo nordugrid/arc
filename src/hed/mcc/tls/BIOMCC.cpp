@@ -15,11 +15,11 @@ namespace Arc {
 
 class BIOMCC {
   private:
-    //BIO* bio_;
     PayloadStreamInterface* stream_;
     MCCInterface* next_;
   public:
     BIOMCC(MCCInterface* next) { next_=next; stream_=NULL; };
+    BIOMCC(PayloadStreamInterface* stream) { next_=NULL; stream_=stream; };
     ~BIOMCC(void) { if(stream_) delete stream_; };
     PayloadStreamInterface* Stream() { return stream_; };
     void Stream(PayloadStreamInterface* stream) { stream_=stream; /*free ??*/ };
@@ -59,10 +59,26 @@ BIO *BIO_new_MCC(MCCInterface* mcc) {
   return(ret);
 }
 
+BIO* BIO_new_MCC(PayloadStreamInterface* stream) {
+  BIO *ret;
+  ret=BIO_new(BIO_s_MCC());
+  if (ret == NULL) return(NULL);
+  BIO_set_MCC(ret,stream);
+  return(ret);
+}
+
 void BIO_set_MCC(BIO* b,MCCInterface* mcc) {
   BIOMCC* biomcc = (BIOMCC*)(b->ptr);
   if(biomcc == NULL) {
     biomcc=new BIOMCC(mcc);
+    b->ptr=biomcc;
+  };
+}
+
+void BIO_set_MCC(BIO* b,PayloadStreamInterface* stream) {
+  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
+  if(biomcc == NULL) {
+    biomcc=new BIOMCC(stream);
     b->ptr=biomcc;
   };
 }
@@ -107,17 +123,18 @@ static int mcc_write(BIO *b, const char *in, int inl) {
   if(b->ptr == NULL) return(ret);
   BIOMCC* biomcc = (BIOMCC*)(b->ptr);
   if(biomcc == NULL) return(ret);
-  MCCInterface* next = biomcc->Next();
-  if(next == NULL) return(ret);
   PayloadStreamInterface* stream = biomcc->Stream();
   if(stream != NULL) {
     // If available just use stream directly
+    // TODO: check if stream has changed ???
     bool r = stream->Put(in,inl);
     BIO_clear_retry_flags(b);
     if(r) { ret=inl; } else { ret=-1; };
     return(ret);
   };
 
+  MCCInterface* next = biomcc->Next();
+  if(next == NULL) return(ret);
   PayloadRaw nextpayload;
   nextpayload.Insert(in,0,inl); // Not efficient !!!!
   Message nextinmsg;
