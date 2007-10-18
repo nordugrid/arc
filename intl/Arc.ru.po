@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-16 20:32+0200\n"
+"POT-Creation-Date: 2007-10-16 22:09+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -134,8 +134,7 @@ msgstr ""
 
 #: ../src/hed/daemon/main.cpp:86 ../src/services/a-rex/test.cpp:37
 #: ../src/services/pdp/test.cpp:31 ../src/tests/echo/test.cpp:26
-#: ../src/tests/echo/test_service.cpp:25 ../src/tests/wrapper/test.cpp:26
-#: ../src/tests/wrapper/test_service.cpp:25
+#: ../src/tests/echo/test_service.cpp:25
 msgid "Failed to load service configuration"
 msgstr ""
 
@@ -145,21 +144,23 @@ msgstr ""
 
 #: ../src/hed/daemon/main.cpp:113 ../src/services/a-rex/test.cpp:41
 #: ../src/services/pdp/test.cpp:35 ../src/tests/echo/test.cpp:30
-#: ../src/tests/echo/test_service.cpp:29 ../src/tests/wrapper/test.cpp:30
-#: ../src/tests/wrapper/test_service.cpp:29
+#: ../src/tests/echo/test_service.cpp:29
 msgid "Service side MCCs are loaded"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:30
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:27
 msgid "ftp_complete_callback: success"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:36
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:33
 #, c-format
 msgid "ftp_complete_callback: error: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:47
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:44
 msgid "ftp_check_callback"
 msgstr ""
 
@@ -182,502 +183,650 @@ msgstr ""
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:750
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:758
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:766
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:47
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:59
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:80
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:104
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:130
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:168
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:216
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:257
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:299
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:357
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:476
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:526
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:628
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:701
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:746
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:754
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:761
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:769
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:777
 #, c-format
 msgid "Globus error: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:61
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:58
 msgid "Registration of Globus FTP buffer failed - cancel check"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:81
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:79
 msgid "check_ftp: globus_ftp_client_size failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:86
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:84
 msgid "check_ftp: timeout waiting for size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:92
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:90
 msgid "check_ftp: failed to get file's size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:104
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:103
 msgid "check_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:109
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:108
 msgid "check_ftp: timeout waiting for modification_time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:115
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:114
 msgid "check_ftp: failed to get file's modification time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:130
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:129
 msgid "check_ftp: globus_ftp_client_get failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:135
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:134
 msgid "check_ftp: globus_ftp_client_register_read"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:146
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:145
 msgid "check_ftp: timeout waiting for partial get"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:168
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:167
 msgid "delete_ftp: globus_ftp_client_delete failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:173
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:172
 msgid "delete_ftp: globus_ftp_client_delete timeout"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:212
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:211
 msgid "mkdir_ftp: making &s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:221
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:220
 msgid "mkdir_ftp: timeout waiting for mkdir"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:245
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:244
 msgid "start_reading_ftp"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:250
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:250
 #, c-format
 msgid "start_reading_ftp: size: url: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:256
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:256
 msgid "start_reading_ftp: failure"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:265
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:265
 msgid "start_reading_ftp: timeout waiting for file size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:268
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:268
 msgid "Timeout waiting for FTP file size - cancel transfer"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:279
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:279
 msgid "start_reading_ftp: failed to get file's size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:286
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:286
 #, c-format
 msgid "start_reading_ftp: obtained size: %ull"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:296
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:297
 msgid "start_reading_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:304
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:305
 msgid "start_reading_ftp: timeout waiting for modification_time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:315
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:316
 msgid "start_reading_ftp: failed to get file's modification time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:325
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:326
 #, c-format
 msgid "start_reading_ftp: creation time: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:332
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:333
 msgid "start_reading_ftp: range is out of size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:342
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:343
 msgid "start_reading_ftp: globus_ftp_client_get"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:355
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:356
 msgid "start_reading_ftp: globus_ftp_client_get failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:364
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:366
 msgid "start_reading_ftp: globus_thread_create failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:380
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:383
 msgid "stop_reading_ftp: aborting connection"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:383
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:386
 msgid "stop_reading_ftp: waiting for transfer to finish"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:385
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:388
 #, c-format
 msgid "stop_reading_ftp: exiting: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:396
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:401
 msgid "ftp_read_thread: get and register buffers"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:402
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:407
 #, c-format
 msgid "ftp_read_thread: for_read failed - aborting: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:413
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:418
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:421
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:426
 #, c-format
 msgid "ftp_read_thread: too many registration failures - abort: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:426
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:431
 #, c-format
 msgid "ftp_read_thread: failed to register globus buffer - will try later: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:438
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:443
 msgid "ftp_read_thread: waiting for eof"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:440
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:445
 msgid "ftp_read_thread: exiting"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:452
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:457
 msgid "ftp_read_callback: failure"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:456
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:461
 msgid "ftp_read_callback: success"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:465
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:470
 msgid "ftp_get_complete_callback"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:469
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:474
 msgid "Failed to get ftp file"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:490
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:497
 msgid "start_writing_ftp"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:497
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:505
 msgid "start_writing_ftp: mkdir"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:500
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:508
 msgid "start_writing_ftp: mkdir failed - still trying to write"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:503
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:511
 msgid "start_writing_ftp: put"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:516
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:524
 msgid "start_writing_ftp: put failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:526
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:535
 msgid "start_writing_ftp: globus_thread_create failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:554
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:565
 msgid "ftp_write_thread: get and register buffers"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:559
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:570
 msgid "ftp_write_thread: for_write failed - aborting"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:599
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:610
 msgid "ftp_write_callback: failure"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:603
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:614
 msgid "ftp_write_callback: success"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:611
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:622
 msgid "ftp_put_complete_callback"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:615
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:626
 msgid "Failed to store ftp file"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:629
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:640
 #, c-format
 msgid "Failed to obtain listing from ftp: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:651
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:662
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:656
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:667
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:657
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:668
 #, c-format
 msgid "Globus error %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:661
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:672
 msgid "list_files_ftp: timeout waiting for size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:667
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:678
 msgid "list_files_ftp: failed to get file's size"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:681
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:692
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:688
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:699
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:705
 msgid "list_files_ftp: timeout waiting for modification_time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:701
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:712
 msgid "list_files_ftp: failed to get file's modification time"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:734
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:745
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:741
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:752
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:749
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:757
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:760
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:768
 msgid "init_handle: globus_ftp_client_handle_init failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:764
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:775
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:820
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:831
 msgid "Using secure data transfer"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:833
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:844
 msgid "Using insecure data transfer"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:848
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:859
 msgid "DataPoint::deinit_handle: destroy ftp_handle"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:129 ../src/hed/dmc/gridftp/Lister.cpp:169
 #: ../src/hed/dmc/gridftp/Lister.cpp:266 ../src/hed/dmc/gridftp/Lister.cpp:514
 #: ../src/hed/dmc/gridftp/Lister.cpp:568
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:130
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:172
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:270
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:518
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:572
 #, c-format
 msgid "Failure: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:131 ../src/hed/dmc/gridftp/Lister.cpp:150
 #: ../src/hed/dmc/gridftp/Lister.cpp:349 ../src/hed/dmc/gridftp/Lister.cpp:356
-#: ../src/hed/dmc/gridftp/Lister.cpp:378 ../src/services/pdp/test.cpp:127
+#: ../src/hed/dmc/gridftp/Lister.cpp:378
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:132
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:151
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:353
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:360
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:382
+#: ../src/services/pdp/test.cpp:127
 #, c-format
 msgid "Response: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:167
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:170
 msgid "Error getting list of files (in list)"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:170
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:173
 msgid "Assuming - file not found"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:189
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:192
 #, c-format
 msgid "list record: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:242
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:245
 msgid "Failed reading list of files"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:279
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:283
 msgid "Failed reading data"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:306 ../src/hed/dmc/gridftp/Lister.cpp:352
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:310
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:356
 msgid "Memory allocation error"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:314
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:318
 #, c-format
 msgid "Command: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:318
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:322
 #, c-format
 msgid "%s failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:323
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:327
 msgid "Command is being sent"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:328
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:332
 msgid "Waiting for response"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:333
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:337
 msgid "Callback got failure"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:409
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:413
 msgid "Failed initing condition"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:413
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:417
 msgid "Failed initing mutex"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:420
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:424
 msgid "Failed allocating memory for handle"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:425
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:429
 msgid "Failed initing handle"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:438
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:442
 msgid "Closing connection"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:443
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:447
 msgid "Failed to close connection 1"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:450
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:454
 msgid "Failed to close connection 2"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:454
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:458
 msgid "Failed to close connection 3"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:459
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:463
 msgid "Closed successfuly"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:471
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:475
 msgid "Memory leak (globus_ftp_control_handle_t)"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:485
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:489
 #, c-format
 msgid "PASV failed: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:489
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:493
 msgid "PASV failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:503
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:507
 msgid "Can't parse host and port in response to PASV"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:509
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:513
 #, c-format
 msgid "Data channel: %d.%d.%d.%d %d"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:513
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:517
 msgid "Obtained host and address are not acceptable"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:528
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:532
 #, c-format
 msgid "Unsupported protocol in url %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:541
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:545
 msgid "Reusing connection"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:566
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:570
 #, c-format
 msgid "Failed connecting to server %s:%d"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:572
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:576
 #, c-format
 msgid "Failed to connect to server %s:%d"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:589 ../src/hed/dmc/gridftp/Lister.cpp:602
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:593
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:606
 msgid "Bad authentication information"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:610 ../src/hed/dmc/gridftp/Lister.cpp:614
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:614
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:618
 msgid "Failed authenticating"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:628
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:632
 #, c-format
 msgid "DCAU failed: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:632
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:636
 msgid "DCAU failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:650
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:654
 msgid "Failed to open data channel"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:655
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:659
 msgid "MLSD is not supported - trying NLST"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:662
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:666
 #, c-format
 msgid "Immediate completion: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:670
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:674
 #, c-format
 msgid "NLST/MLSD failed: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:674
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:678
 msgid "NLST/MLSD failed"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:687
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:691
 #, c-format
 msgid "Data transfer aborted: %s"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:691
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:695
 msgid "Data transfer aborted"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:702
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:706
 msgid "Failed to transfer data"
 msgstr ""
 
@@ -1246,11 +1395,6 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
-#: ../src/hed/libs/security/api/ArcPDP/EvaluationCtx.cpp:184
-#, c-format
-msgid "There is %d RequestItems"
-msgstr ""
-
 #: ../src/hed/libs/security/api/ArcPDP/attr/RequestAttribute.cpp:24
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
@@ -1261,49 +1405,60 @@ msgstr ""
 msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:43
+#: ../src/hed/libs/security/api/ArcPDP/EvaluationCtx.cpp:184
+#, c-format
+msgid "There is %d RequestItems"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:52
 msgid "No any policy exists, the policy engine can not be loaded"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:76
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:85
 msgid "Can not dynamically produce AttributeFactory"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:82
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:91
 msgid "Can not dynamically produce FnFactory"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:88
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:97
 msgid "Can not dynamically produce AlgFacroty"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:138
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:147
 msgid "Request object can not be cast into ArcRequest"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:210
+#: ../src/hed/libs/security/plugin/ArcEvaluator.cpp:219
 #, c-format
 msgid "Result value (0 means success): %d"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:80
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:99
-#: ../src/services/pdp/pdpservice.cpp:87
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:48
+#: ../src/hed/libs/security/plugin/test.cpp:39
+#: ../src/services/pdp/pdpservice.cpp:129
+msgid "Can not dynamically produce Evaluator"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:87
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:106
+#: ../src/services/pdp/pdpservice.cpp:88
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:85
-#: ../src/services/pdp/pdpservice.cpp:71
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:92
+#: ../src/services/pdp/pdpservice.cpp:72
 #, c-format
 msgid "There is : %d subjects, which satisty at least one policy"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:105
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:112
 msgid "Authorized from arc.pdp!!!"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/ArcPDP.cpp:111
+#: ../src/hed/libs/security/plugin/ArcPDP.cpp:118
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr ""
 
@@ -1345,28 +1500,32 @@ msgstr ""
 msgid "UnAuthorized from simplelist.pdp!!!"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/test.cpp:28
+#: ../src/hed/libs/security/plugin/test.cpp:30
 msgid "Start test"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/test.cpp:34
+#: ../src/hed/libs/security/plugin/test.cpp:46
 msgid "Input request from a file: Request.xml"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/test.cpp:38
-#: ../src/hed/libs/security/plugin/test.cpp:116
+#: ../src/hed/libs/security/plugin/test.cpp:50
+#: ../src/hed/libs/security/plugin/test.cpp:135
 #, c-format
 msgid "There is: %d Subjects, which satisfy at least one policy"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/test.cpp:52
-#: ../src/hed/libs/security/plugin/test.cpp:130
+#: ../src/hed/libs/security/plugin/test.cpp:64
+#: ../src/hed/libs/security/plugin/test.cpp:149
 #, c-format
 msgid "Attribute Value: %s"
 msgstr ""
 
-#: ../src/hed/libs/security/plugin/test.cpp:63
+#: ../src/hed/libs/security/plugin/test.cpp:75
 msgid "Input request from code"
+msgstr ""
+
+#: ../src/hed/libs/security/plugin/test.cpp:127
+msgid "Can not dynamically produce Request"
 msgstr ""
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:51
@@ -1573,14 +1732,14 @@ msgstr ""
 msgid "Can't obtain configuration"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:174 ../src/services/pdp/pdpservice.cpp:47
+#: ../src/services/a-rex/arex.cpp:174 ../src/services/pdp/pdpservice.cpp:48
 msgid "process: POST"
 msgstr ""
 
 #: ../src/services/a-rex/arex.cpp:182
 #: ../src/services/echo_java/javawrapper.cpp:111
 #: ../src/services/echo_python/pythonwrapper.cpp:233
-#: ../src/services/pdp/pdpservice.cpp:55
+#: ../src/services/pdp/pdpservice.cpp:56
 msgid "input is not SOAP"
 msgstr ""
 
@@ -1627,7 +1786,7 @@ msgstr ""
 msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:277 ../src/services/pdp/pdpservice.cpp:109
+#: ../src/services/a-rex/arex.cpp:277 ../src/services/pdp/pdpservice.cpp:110
 #, c-format
 msgid "process: %s: not supported"
 msgstr ""
@@ -1802,32 +1961,27 @@ msgstr ""
 
 #: ../src/services/a-rex/test.cpp:34 ../src/services/pdp/test.cpp:28
 #: ../src/tests/echo/test.cpp:23 ../src/tests/echo/test_service.cpp:22
-#: ../src/tests/wrapper/test.cpp:23 ../src/tests/wrapper/test_service.cpp:22
 msgid "Creating service side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:42 ../src/services/pdp/test.cpp:36
-#: ../src/tests/echo/test.cpp:32 ../src/tests/echo/test_client.cpp:20
-#: ../src/tests/wrapper/test.cpp:32 ../src/tests/wrapper/test_client.cpp:20
+#: ../src/tests/echo/test_client.cpp:20 ../src/tests/echo/test.cpp:32
 msgid "Creating client side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:48 ../src/services/pdp/test.cpp:41
-#: ../src/tests/data/test.cpp:40 ../src/tests/echo/test.cpp:58
-#: ../src/tests/echo/test_client.cpp:46 ../src/tests/wrapper/test.cpp:58
-#: ../src/tests/wrapper/test_client.cpp:46
+#: ../src/tests/data/test.cpp:40 ../src/tests/echo/test_client.cpp:46
+#: ../src/tests/echo/test.cpp:58
 msgid "Failed to load client configuration"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:52 ../src/services/pdp/test.cpp:45
-#: ../src/tests/echo/test.cpp:62 ../src/tests/echo/test_client.cpp:50
-#: ../src/tests/wrapper/test.cpp:62 ../src/tests/wrapper/test_client.cpp:50
+#: ../src/tests/echo/test_client.cpp:50 ../src/tests/echo/test.cpp:62
 msgid "Client side MCCs are loaded"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:55 ../src/services/pdp/test.cpp:48
-#: ../src/tests/echo/test.cpp:65 ../src/tests/echo/test_client.cpp:53
-#: ../src/tests/wrapper/test.cpp:65 ../src/tests/wrapper/test_client.cpp:53
+#: ../src/tests/echo/test_client.cpp:53 ../src/tests/echo/test.cpp:65
 msgid "Client chain does not have entry point"
 msgstr ""
 
@@ -1842,9 +1996,8 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:108 ../src/services/a-rex/test.cpp:181
 #: ../src/services/a-rex/test.cpp:235 ../src/services/a-rex/test.cpp:280
 #: ../src/services/a-rex/test.cpp:325 ../src/services/a-rex/test.cpp:370
-#: ../src/services/pdp/test.cpp:107 ../src/tests/echo/test.cpp:86
-#: ../src/tests/echo/test_client.cpp:74 ../src/tests/wrapper/test.cpp:86
-#: ../src/tests/wrapper/test_client.cpp:74
+#: ../src/services/pdp/test.cpp:107 ../src/tests/echo/test_client.cpp:74
+#: ../src/tests/echo/test.cpp:86
 msgid "Request failed"
 msgstr ""
 
@@ -1852,25 +2005,22 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:238 ../src/services/a-rex/test.cpp:283
 #: ../src/services/a-rex/test.cpp:328 ../src/services/a-rex/test.cpp:373
 #: ../src/services/pdp/test.cpp:110 ../src/tests/echo/test.cpp:90
-#: ../src/tests/wrapper/test.cpp:90
 msgid "Request succeed!!!"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:113 ../src/services/a-rex/test.cpp:186
 #: ../src/services/a-rex/test.cpp:240 ../src/services/a-rex/test.cpp:285
 #: ../src/services/a-rex/test.cpp:330 ../src/services/a-rex/test.cpp:375
-#: ../src/services/pdp/test.cpp:112 ../src/tests/echo/test.cpp:94
-#: ../src/tests/echo/test_client.cpp:80 ../src/tests/wrapper/test.cpp:94
-#: ../src/tests/wrapper/test_client.cpp:80
+#: ../src/services/pdp/test.cpp:112 ../src/tests/echo/test_client.cpp:80
+#: ../src/tests/echo/test.cpp:94
 msgid "There is no response"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:121 ../src/services/a-rex/test.cpp:194
 #: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:293
 #: ../src/services/a-rex/test.cpp:338 ../src/services/a-rex/test.cpp:383
-#: ../src/services/pdp/test.cpp:120 ../src/tests/echo/test.cpp:101
-#: ../src/tests/echo/test_client.cpp:87 ../src/tests/wrapper/test.cpp:101
-#: ../src/tests/wrapper/test_client.cpp:87
+#: ../src/services/pdp/test.cpp:120 ../src/tests/echo/test_client.cpp:87
+#: ../src/tests/echo/test.cpp:101
 msgid "Response is not SOAP"
 msgstr ""
 
@@ -1880,9 +2030,8 @@ msgstr ""
 
 #: ../src/services/a-rex/test.cpp:150 ../src/services/a-rex/test.cpp:217
 #: ../src/services/a-rex/test.cpp:262 ../src/services/a-rex/test.cpp:307
-#: ../src/services/a-rex/test.cpp:352 ../src/tests/echo/test.cpp:71
-#: ../src/tests/echo/test_client.cpp:59 ../src/tests/wrapper/test.cpp:71
-#: ../src/tests/wrapper/test_client.cpp:59
+#: ../src/services/a-rex/test.cpp:352 ../src/tests/echo/test_client.cpp:59
+#: ../src/tests/echo/test.cpp:71
 msgid "Creating and sending request"
 msgstr ""
 
@@ -2001,16 +2150,16 @@ msgstr ""
 msgid "Cannot convert outmsg to python object"
 msgstr ""
 
-#: ../src/services/pdp/pdpservice.cpp:61
+#: ../src/services/pdp/pdpservice.cpp:62
 msgid "input does not include any request"
 msgstr ""
 
-#: ../src/services/pdp/pdpservice.cpp:66
+#: ../src/services/pdp/pdpservice.cpp:67
 #, c-format
 msgid "request: %s"
 msgstr ""
 
-#: ../src/services/pdp/pdpservice.cpp:73
+#: ../src/services/pdp/pdpservice.cpp:74
 msgid "Authorized from Service_PDP"
 msgstr ""
 
@@ -2031,16 +2180,15 @@ msgstr ""
 msgid "echo_Authorized"
 msgstr ""
 
-#: ../src/tests/echo/echo.cpp:72 ../src/tests/wrapper/wrapper.cpp:103
+#: ../src/tests/echo/echo.cpp:72
 msgid "Input is not SOAP"
 msgstr ""
 
-#: ../src/tests/echo/echo.cpp:78 ../src/tests/wrapper/wrapper.cpp:109
+#: ../src/tests/echo/echo.cpp:78
 #, c-format
 msgid "Request is not supported - %s"
 msgstr ""
 
 #: ../src/tests/echo/test_service.cpp:30
-#: ../src/tests/wrapper/test_service.cpp:30
 msgid "Service is waiting for requests"
 msgstr ""
