@@ -69,6 +69,10 @@ class SOAPFault {
   is translated into Envelope part of SOAP. */
 class SOAPEnvelope: public XMLNode {
  public:
+  typedef enum {
+    Version_1_1,
+    Version_1_2
+  } SOAPVersion;
   /** Create new SOAP message from textual representation of XML document.
     Created XML structure is owned by this instance.
     This constructor also sets default namespaces to default prefixes 
@@ -107,6 +111,7 @@ class SOAPEnvelope: public XMLNode {
   SOAPFault* Fault(void) { return fault; };
   /** Makes this object a copy of another SOAPEnvelope object. */
   SOAPEnvelope& operator=(const SOAPEnvelope& soap);
+  SOAPVersion Version(void) { return ver12?Version_1_2:Version_1_1; };
  private:
   XMLNode envelope; /** Envelope element of SOAP and owner of XML tree */
   XMLNode header;   /** Header element of SOAP */
