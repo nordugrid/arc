@@ -24,6 +24,10 @@ namespace Arc {
     return &(current_->second);
   }
 
+  const std::string& AttributeIterator::key(void) const {
+    return current_->first;
+  }
+
   const AttributeIterator& AttributeIterator::operator++() {
     ++current_;
     return *this;
@@ -80,6 +84,11 @@ namespace Arc {
   AttributeIterator MessageAttributes::getAll(const std::string& key) const {
     return AttributeIterator(attributes_.lower_bound(key),
 			     attributes_.upper_bound(key));
+  }
+
+  AttributeIterator MessageAttributes::getAll(void) const {
+    return AttributeIterator(attributes_.begin(),
+			     attributes_.end());
   }
 
 }

@@ -71,6 +71,12 @@ namespace Arc {
      */
     const std::string* operator->() const;
 
+    //! The key of attribute.
+    /*! This method returns reference to key of attribute to which
+      iterator refers.
+     */
+    const std::string& key(void) const;
+
     //! The prefix advance operator.
     /*! Advances the iterator to the next value. Works intuitively.
       \return A const reference to this iterator.
@@ -229,6 +235,9 @@ namespace Arc {
       attribute.
      */    
     AttributeIterator getAll(const std::string& key) const;
+
+    //! Access all value and attributes.
+    AttributeIterator getAll(void) const;
 
   protected:
 
