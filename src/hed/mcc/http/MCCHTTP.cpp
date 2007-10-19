@@ -93,6 +93,9 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {
     nextinmsg.Attributes()->set("HTTP:"+i->first,i->second);
   };
+  if(!ProcessSecHandlers(nextinmsg,"incoming")) {
+    return make_http_fault(logger,*inpayload,outmsg,400); // Maybe not 400 ?
+  };
   // Call next MCC 
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) return make_http_fault(logger,*inpayload,outmsg,404);
@@ -106,6 +109,9 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     retpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
   if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,500); };
+  if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
+    delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,400); // Maybe not 400 ?
+  };
   //if(!(*retpayload)) { delete retpayload; return make_http_fault(logger,*inpayload,outmsg); };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
@@ -127,19 +133,20 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
   PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload);
-
-  //for(int i = 0;;++i) {
-  //  char* buf = retpayload->Buffer(i);
-  //  if(!buf) break;
-  //  outpayload->Insert(buf,retpayload->BufferPos(i),retpayload->BufferSize(i));
-  //};
-  //outpayload->Truncate(retpayload->Size());
-  //delete retpayload;
+  // Use attributes which higher level MCC may have produced for HTTP
+  for(AttributeIterator i = nextoutmsg.Attributes()->getAll();i.hasMore();++i) {
+    const char* key = i.key().c_str();
+    if(strncmp("HTTP:",key,5) == 0) {
+      key+=5;
+      // TODO: check for special attributes: method, code, reason, endpoint, etc.
+      outpayload->Attribute(std::string(key),*i);
+    };
+  };
   outpayload->Body(*retpayload);
   if(!outpayload->Flush()) return make_http_fault(logger,*inpayload,outmsg,500);
   delete outpayload;
   outmsg = nextoutmsg;
-  // Returning empty payload because response is already sent
+  // Returning empty payload because response is already sent through Flush
   PayloadRaw* outpayload_e = new PayloadRaw;
   outmsg.Payload(outpayload_e);
   return MCC_Status(Arc::STATUS_OK);
@@ -165,7 +172,23 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   } catch(std::exception& e) { };
   if(!inpayload) return make_raw_fault(outmsg);
   // Making HTTP request
-  PayloadHTTP nextpayload(method_,endpoint_);
+  // Use attributes which higher level MCC may have produced for HTTP
+  std::string http_method = inmsg.Attributes()->get("HTTP:METHOD");
+  std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  if(http_method.empty()) http_method=method_;
+  if(http_endpoint.empty()) http_endpoint=endpoint_;
+  PayloadHTTP nextpayload(http_method,http_endpoint);
+  for(AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
+    const char* key = i.key().c_str();
+    if(strncmp("HTTP:",key,5) == 0) {
+      key+=5;
+      // TODO: check for special attributes: method, code, reason, endpoint, etc.
+      if(strcmp(key,"METHOD") == 0) continue;
+      if(strcmp(key,"ENDPOINT") == 0) continue;
+      nextpayload.Attribute(std::string(key),*i);
+    };
+  };
+  nextpayload.Attribute("User-Agent","ARC");
   // Bad solution - copying buffers between payloads
   int l = 0;
   for(int n = 0;;++n) {
