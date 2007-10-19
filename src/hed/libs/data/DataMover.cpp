@@ -683,7 +683,7 @@ DataMover::result DataMover::Transfer(
     };
     if(buffer.error()) {
       if(!destination.meta_preunregister(replication || destination_meta_initially_stored)) {
-        logger.msg(ERROR, "WARNING: Failed to unregister preregistered lfn, You may need to unregister it manually");
+        logger.msg(ERROR, "Failed to unregister preregistered lfn, You may need to unregister it manually");
       };
       // Analyze errors
       // Easy part first - if either read or write part report error

@@ -64,7 +64,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     std::string req_xml;
     request.GetXML(req_xml);
-    logger.msg(Arc::DEBUG, "request: %s",req_xml.c_str());
+    logger.msg(Arc::DEBUG, "Request: %s",req_xml.c_str());
     
     //Call the functionality of policy engine
     Response *resp = NULL;
