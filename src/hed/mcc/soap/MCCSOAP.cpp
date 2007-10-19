@@ -90,7 +90,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("SOAP:ENDPOINT",endpoint_attr);
     nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
   };
-  //Checking authentication and authorization; 
+  // Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
     return make_raw_fault(outmsg);
@@ -119,6 +119,12 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   std::string xml; retpayload->GetXML(xml);
   outpayload->Insert(xml.c_str());
   outmsg = nextoutmsg;
+  // Specifying attributes for binding to underlying protocols - HTTP so far
+  if(retpayload->Version() == SOAPEnvelope::Version_1_2) {
+    outmsg.Attributes()->set("HTTP:Content-Type","applicatioin/soap+xml");
+  } else {
+    outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
+  };
   delete outmsg.Payload(outpayload);
   return MCC_Status(Arc::STATUS_OK);
 }
@@ -144,6 +150,12 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
+  // Specifying attributes for binding to underlying protocols - HTTP so far
+  if(inpayload->Version() == SOAPEnvelope::Version_1_2) {
+    nextinmsg.Attributes()->set("HTTP:Content-Type","applicatioin/soap+xml");
+  } else {
+    nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
+  };
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_soap_fault(outmsg);
