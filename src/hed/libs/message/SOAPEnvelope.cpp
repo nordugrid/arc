@@ -139,11 +139,11 @@ void SOAPEnvelope::GetXML(std::string& xml) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
     it.header.Destroy();
-    envelope.GetDoc(xml);
+    envelope.GetXML(xml);
     it.header=it.envelope.NewChild("soap-env:Header",0,true); 
     return;
   };
-  envelope.GetDoc(xml);
+  envelope.GetXML(xml);
 }
 
 SOAPFault::SOAPFault(XMLNode& body) {
