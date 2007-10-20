@@ -1,4 +1,4 @@
-ACLOCAL_FLAGS = -I m4 -I /opt/local/share/aclocal
+ACLOCAL_FLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
 distdir = nordugrid-arc1-@VERSION@
 
