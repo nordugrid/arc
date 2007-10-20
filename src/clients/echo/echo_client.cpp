@@ -57,11 +57,14 @@ namespace Arc {
     // Send job request
     Arc::Message reqmsg;
     Arc::Message repmsg;
-    Arc::MessageAttributes attributes;
+    Arc::MessageAttributes attributes_req;
+    Arc::MessageAttributes attributes_rep;
     Arc::MessageContext context;
     reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes);
+    reqmsg.Attributes(&attributes_req);
     reqmsg.Context(&context);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
       logger.msg(Arc::ERROR, "Echo request failed.");
