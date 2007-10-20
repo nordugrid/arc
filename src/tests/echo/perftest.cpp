@@ -105,11 +105,13 @@ void sendRequests(){
       req.NewChild("echo").NewChild("say")="HELLO";
       Arc::Message reqmsg;
       Arc::Message repmsg;
-      Arc::MessageAttributes attributes;
-
+      Arc::MessageAttributes attributes_req;
+      Arc::MessageAttributes attributes_rep;
+      reqmsg.Attributes(&attributes_req);
       reqmsg.Context(&context);
-      reqmsg.Attributes(&attributes);
       reqmsg.Payload(&req);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
       
       // Send the request and time it.
       tBefore.assign_current_time();
