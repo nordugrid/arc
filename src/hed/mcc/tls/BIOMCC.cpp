@@ -20,7 +20,7 @@ class BIOMCC {
   public:
     BIOMCC(MCCInterface* next) { next_=next; stream_=NULL; };
     BIOMCC(PayloadStreamInterface* stream) { next_=NULL; stream_=stream; };
-    ~BIOMCC(void) { if(stream_) delete stream_; };
+    ~BIOMCC(void) { if(stream_ && next_) delete stream_; };
     PayloadStreamInterface* Stream() { return stream_; };
     void Stream(PayloadStreamInterface* stream) { stream_=stream; /*free ??*/ };
     MCCInterface* Next(void) { return next_; };
