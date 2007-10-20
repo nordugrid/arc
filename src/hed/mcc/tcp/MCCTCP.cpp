@@ -254,14 +254,15 @@ void MCC_TCP_Service::executer(void* arg) {
     };
     // Creating stream payload
     PayloadStream stream(s);
-    MessageAttributes attributes;
+    MessageAttributes attributes_in;
+    MessageAttributes attributes_out;
     MessageContext context;
     for(;;) {
         // Preparing Message objects for chain
         Message nextinmsg;
         Message nextoutmsg;
         nextinmsg.Payload(&stream);
-        nextinmsg.Attributes(&attributes);
+        nextinmsg.Attributes(&attributes_in);
         nextinmsg.Attributes()->set("TCP:HOST",host_attr);
         nextinmsg.Attributes()->set("TCP:PORT",port_attr);
         nextinmsg.Attributes()->set("TCP:REMOTEHOST",remotehost_attr);
@@ -269,6 +270,8 @@ void MCC_TCP_Service::executer(void* arg) {
         nextinmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
         nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
         nextinmsg.Context(&context);
+        nextoutmsg.Attributes(&attributes_out);
+        nextoutmsg.Context(&context);
         if(!it.ProcessSecHandlers(nextinmsg,"incoming")) break;
         // Call next MCC 
         MCCInterface* next = it.Next();
