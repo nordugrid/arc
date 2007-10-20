@@ -121,9 +121,21 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   outmsg = nextoutmsg;
   // Specifying attributes for binding to underlying protocols - HTTP so far
   if(retpayload->Version() == SOAPEnvelope::Version_1_2) {
+    // TODO: For SOAP 1.2 Content-Type is not sent in casse of error - probably harmless
     outmsg.Attributes()->set("HTTP:Content-Type","applicatioin/soap+xml");
   } else {
     outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
+  };
+  if(retpayload->Fault() != NULL) {
+    // Maybe MCC_Status should be used instead ?
+    outmsg.Attributes()->set("HTTP:CODE","500"); // TODO: For SOAP 1.2 :Sender fault must generate 400
+    outmsg.Attributes()->set("HTTP:REASON","SOAP FAULT");
+    // CONFUSED: SOAP 1.2 says that SOAP message is sent in response only if
+    // HTTP code is 200 "Only if status line is 200, the SOAP message serialized according 
+    // to the rules for carrying SOAP messages in the media type given by the Content-Type 
+    // header field ...". But it also associates SOAP faults with HTTP error codes. So it 
+    // looks like in case of SOAP fault SOAP fault messages is not sent. That sounds 
+    // stupid - not implementing.
   };
   delete outmsg.Payload(outpayload);
   return MCC_Status(Arc::STATUS_OK);
@@ -151,10 +163,15 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Specifying attributes for binding to underlying protocols - HTTP so far
+  std::string soap_action = inmsg.Attributes()->get("SOAP:ACTION");
+  if(soap_action.empty()) soap_action=WSAHeader(*inpayload).Action();
   if(inpayload->Version() == SOAPEnvelope::Version_1_2) {
-    nextinmsg.Attributes()->set("HTTP:Content-Type","applicatioin/soap+xml");
+    std::string mime_type("applicatioin/soap+xml");
+    if(!soap_action.empty()) mime_type+=" ;action=\""+soap_action+"\"";
+    nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
+    outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   // Call next MCC 
   MCCInterface* next = Next();
