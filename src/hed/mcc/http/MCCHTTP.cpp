@@ -99,7 +99,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Call next MCC 
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) return make_http_fault(logger,*inpayload,outmsg,404);
-  Message nextoutmsg;
+  Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract raw response
   if(!ret) return make_http_fault(logger,*inpayload,outmsg,500);
@@ -206,7 +206,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg);
-  Message nextoutmsg;
+  Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and process response - supported response so far is stream
   // Generated result is HTTP payload with Raw interface

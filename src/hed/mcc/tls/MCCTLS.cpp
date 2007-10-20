@@ -207,42 +207,6 @@ class MCC_TLS_Context:public MessageContextElement {
   virtual ~MCC_TLS_Context(void) { if(stream) delete stream; };
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    std::string cert_file = (*cfg)["CertificatePath"];
@@ -347,7 +311,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    // Creating message to pass to next MCC
    Message nextinmsg = inmsg;
    nextinmsg.Payload(stream);
-   Message nextoutmsg;
+   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
    //Getting the subject name of peer(client) certificate
    X509* peercert = NULL;
@@ -377,56 +341,6 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    outmsg = nextoutmsg;
    return MCC_Status(Arc::STATUS_OK);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    stream_=NULL;
@@ -484,15 +398,14 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       char* buf = inpayload->Buffer(n);
       if(!buf) break;
       int bufsize = inpayload->BufferSize(n);
-      int ret = stream_->Put(buf,bufsize);
-      if(ret == false) {
+      if(!(stream_->Put(buf,bufsize))) {
          logger.msg(ERROR, "Failed to send content of buffer");
          return MCC_Status();
       };
    };
    outmsg.Payload(new PayloadTLSMCC(*stream_,logger));
-   outmsg.Attributes(inmsg.Attributes());
-   outmsg.Context(inmsg.Context());
+   //outmsg.Attributes(inmsg.Attributes());
+   //outmsg.Context(inmsg.Context());
    return MCC_Status(Arc::STATUS_OK);
 }
 

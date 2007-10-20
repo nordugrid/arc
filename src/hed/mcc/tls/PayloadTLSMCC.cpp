@@ -50,6 +50,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger):
 {
    master_=false;
    sslctx_=stream.sslctx_; 
+   ssl_=stream.ssl_; 
 }
 
 

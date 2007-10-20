@@ -334,8 +334,8 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Returned payload is Stream
     
     logger.msg(Arc::DEBUG, "client process called");
-    outmsg.Attributes(inmsg.Attributes());
-    outmsg.Context(inmsg.Context());
+    //outmsg.Attributes(inmsg.Attributes());
+    //outmsg.Context(inmsg.Context());
     if(!s_) return MCC_Status(Arc::GENERIC_ERROR);
     // Extracting payload
     if(!inmsg.Payload()) return MCC_Status(Arc::GENERIC_ERROR);

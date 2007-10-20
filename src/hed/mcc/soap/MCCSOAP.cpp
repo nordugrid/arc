@@ -98,7 +98,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg);
-  Message nextoutmsg;
+  Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
   if(!ret) return make_raw_fault(outmsg);
@@ -159,7 +159,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_soap_fault(outmsg);
-  Message nextoutmsg;
+  Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
   if(!ret) return make_soap_fault(outmsg,nextoutmsg);
