@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MkDirRecursive.h"
 #include <arc/StringConv.h>
 #include "CheckFile.h"
@@ -230,17 +234,17 @@ bool DataCache::copy(const std::string& link_path,uid_t uid,gid_t gid) {
 
 bool DataCache::copy_file(const std::string& link_path,uid_t uid,gid_t gid) {
   char buf[65536];
-  int fd = open64(link_path.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+  int fd = open(link_path.c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
   if(fd == -1) {
-    perror("open64");
+    perror("open");
     logger.msg(ERROR, "Failed to create file for writing: %s", link_path.c_str());
     return false;
   };
   fchown(fd,uid,gid);
-  int fd_ = open64(cache_file.c_str(),O_RDONLY);
+  int fd_ = open(cache_file.c_str(),O_RDONLY);
   if(fd_==-1) {
     close(fd);
-    perror("open64");
+    perror("open");
     logger.msg(ERROR, "Failed to open file for reading: %s", cache_file.c_str());
     return false;
   };

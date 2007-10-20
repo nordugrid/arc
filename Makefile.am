@@ -1,4 +1,4 @@
-ACLOCAL_FLAGS=-I m4
+ACLOCAL_FLAGS = -I m4 -I /opt/local/share/aclocal
 
 distdir = nordugrid-arc1-@VERSION@
 

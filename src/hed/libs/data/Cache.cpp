@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <unistd.h>
 #include "Cache.h"
+#include <sys/stat.h>
 #include <fcntl.h>
 
 namespace Arc {

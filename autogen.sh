@@ -6,18 +6,13 @@
 # Conflicts: autoconf 2.13
 set -x 
 
-FIND=find
-TFIND="X`which gfind`"
-if test $TFIND != "X"; then
-	FIND=gfind
-fi
-
 cleanup() {
-    $FIND -type d -name autom4te.cache -print0 | xargs -0 rm -rf \;
-    $FIND -type f \( -name missing -o -name install-sh -o -name mkinstalldirs \
-	    -o -name depcomp -o -name ltmain.sh -o -name configure \
-	    -o -name config.sub -o -name config.guess \
-	    -o -name Makefile.in -o -name config.h.in -o -name aclocal.m4 \
+    find . -type d -name autom4te.cache -print0 | xargs -0 rm -rf \;
+    find . -type f \( -name missing -o -name install-sh \
+        -o -name mkinstalldirs \
+        -o -name depcomp -o -name ltmain.sh -o -name configure \
+        -o -name config.sub -o -name config.guess \
+        -o -name Makefile.in -o -name config.h.in -o -name aclocal.m4 \
         -o -name autoscan.log -o -name configure.scan -o -name config.log \
         -o -name config.status -o -name config.h -o -name stamp-h1 \
         -o -name Makefile -o -name libtool \) \
@@ -32,6 +27,8 @@ fi
 # Refresh GNU autotools toolchain.
 echo Cleaning autotools files...
 cleanup
+
+type glibtoolize > /dev/null 2>&1 && export LIBTOOLIZE=glibtoolize
 
 echo Running autoreconf...
 autoreconf --verbose --force --install
@@ -49,7 +46,7 @@ test -d debian && {
 	[ "$1" == "updateexec" ] && {
 		echo Generating list of executable files...
 		rm -f debian/executable.files
-		find -type f -perm +111 ! -name '.*' -fprint debian/executable.files
+		find . -type f -perm +111 ! -name '.*' -fprint debian/executable.files
 	}
 
 	# Remove any files in upstream tarball that we don't have in the Debian

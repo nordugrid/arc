@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 #include <pwd.h>
 #include <grp.h>
@@ -30,20 +34,20 @@ gid_t get_user_group(uid_t uid) {
 
 int check_file_access(const char* path,int flags,uid_t uid,gid_t gid) {
   int h;
-  struct stat64 st;
+  struct stat st;
   mode_t m;
   char** grmem;
 
   flags&=O_RDWR | O_RDONLY | O_WRONLY;
   if((flags != O_RDWR) && (flags != O_RDONLY) && (flags != O_WRONLY)) return -1;
   if(getuid() != 0) { /* not root - just try to open */
-    if((h=open64(path,flags)) == -1) return -1;
+    if((h=open(path,flags)) == -1) return -1;
     close(h);
     return 0;
   };
   if(uid == 0) return 0;
   /* check for file */
-  if(stat64(path,&st) != 0) return -1;
+  if(stat(path,&st) != 0) return -1;
   if(!S_ISREG(st.st_mode)) return -1;
   m=0;
   if(st.st_uid == uid) {

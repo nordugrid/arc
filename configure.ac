@@ -18,6 +18,9 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 
+# Portable 64bit file offsets
+AC_SYS_LARGEFILE
+
 # Swig
 AC_CHECK_PROGS(SWIG, swig)
 AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
@@ -66,8 +69,21 @@ fi
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
-AC_CHECK_HEADER(jni.h,[jni_h=yes],[jni_h=no])
+AC_CHECK_HEADERS(jni.h JavaVM/jni.h)
 CPPFLAGS=$SAVE_CPPFLAGS
+
+if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
+    JNIH='<JavaVM/jni.h>'
+    JDK_LIBS="-Wl,-framework -Wl,JavaVM"
+elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
+    JNIH='<jni.h>'
+fi
+
+jni_h=no
+if test "X$ac_cv_header_jni_h" == "Xyes" ||
+   test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
+    jni_h=yes
+fi
 
 JAVAWRAP=no
 if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
@@ -87,6 +103,8 @@ AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
+AC_SUBST(JDK_LIBS)
+AC_SUBST(JNIH)
 
 # Python
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")
@@ -337,8 +355,9 @@ AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
+AC_FUNC_STRERROR_R
 AC_FUNC_STAT
-AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strerror_r strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv])
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv])
 AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
 AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)

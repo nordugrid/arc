@@ -510,7 +510,7 @@ DataMover::result DataMover::Transfer(
               if(errno != EEXIST) {
                 char* err;
                 char errbuf[BUFLEN];
-#ifndef _AIX
+#ifdef STRERROR_R_CHAR_P
                 err=strerror_r(errno,errbuf,sizeof(errbuf));
 #else
                 errbuf[0]=0; err=errbuf;
@@ -530,7 +530,7 @@ DataMover::result DataMover::Transfer(
           if(symlink(file_name.c_str(),link_name.c_str()) == -1) {
             char* err;
             char errbuf[BUFLEN];
-#ifndef _AIX
+#ifdef STRERROR_R_CHAR_P
             err=strerror_r(errno,errbuf,sizeof(errbuf));
 #else
             errbuf[0]=0; err=errbuf;

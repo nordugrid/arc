@@ -1,7 +1,14 @@
 #ifndef __ARC_SERVICE_JAVA_WRAPPER_H__
 #define __ARC_SERVICE_JAVA_WRAPPER_H__
 
+#ifdef HAVE_JNI_H
 #include <jni.h>
+#else
+#ifdef HAVE_JAVAVM_JNI_H
+#include <JavaVM/jni.h>
+#endif
+#endif
+
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
 
