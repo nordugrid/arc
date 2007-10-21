@@ -304,6 +304,9 @@ bool PayloadHTTP::Flush(void) {
   if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=true;
   // TODO: use keep-alive from request in response as well
   if(keep_alive) header+="Connection: keep-alive\r\n";
+  for(std::map<std::string,std::string>::iterator a = attributes_.begin();a!=attributes_.end();++a) {
+    header+=(a->first)+": "+(a->second)+"\r\n";
+  };
   header+="\r\n";
   if(to_stream) {
     if(!stream_.Put(header)) return false;
