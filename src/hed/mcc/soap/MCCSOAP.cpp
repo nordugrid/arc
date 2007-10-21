@@ -171,7 +171,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   // Call next MCC 
   MCCInterface* next = Next();
