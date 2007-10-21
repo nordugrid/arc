@@ -69,9 +69,16 @@ int main(void) {
   for(int n = 0;n<1;) {
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
+  Arc::NS echo_ns;
   Arc::PayloadSOAP req(echo_ns);
-  req.NewChild("echo").NewChild("say")="HELLO";
+  // Making echo namespace appear at operation level only
+  // This is probably not needed and is here for demonstration
+  // purposes only.
+  Arc::XMLNode op = req.NewChild("");
+  echo_ns["echo"]="urn:echo";
+  op.Namespaces(echo_ns);
+  op.Name("echo:echo");
+  op.NewChild("echo:say")="HELLO";
   Arc::Message reqmsg;
   Arc::Message repmsg;
   reqmsg.Payload(&req);
