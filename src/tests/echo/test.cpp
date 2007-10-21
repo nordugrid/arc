@@ -74,10 +74,8 @@ int main(void) {
   // Making echo namespace appear at operation level only
   // This is probably not needed and is here for demonstration
   // purposes only.
-  Arc::XMLNode op = req.NewChild("");
   echo_ns["echo"]="urn:echo";
-  op.Namespaces(echo_ns);
-  op.Name("echo:echo");
+  Arc::XMLNode op = req.NewChild("echo:echo",echo_ns);
   op.NewChild("echo:say")="HELLO";
   Arc::Message reqmsg;
   Arc::Message repmsg;
