@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns:echo="urn:echo_config"
+>
+
+    <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+	    <next id="echo"/>
+        </Component>
+        <Service name="echo" id="echo">
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+	    <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
+</ArcConfig>
