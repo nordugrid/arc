@@ -121,8 +121,8 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   outmsg = nextoutmsg;
   // Specifying attributes for binding to underlying protocols - HTTP so far
   if(retpayload->Version() == SOAPEnvelope::Version_1_2) {
-    // TODO: For SOAP 1.2 Content-Type is not sent in casse of error - probably harmless
-    outmsg.Attributes()->set("HTTP:Content-Type","applicatioin/soap+xml");
+    // TODO: For SOAP 1.2 Content-Type is not sent in case of error - probably harmless
+    outmsg.Attributes()->set("HTTP:Content-Type","application/soap+xml");
   } else {
     outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
   };
@@ -166,7 +166,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   std::string soap_action = inmsg.Attributes()->get("SOAP:ACTION");
   if(soap_action.empty()) soap_action=WSAHeader(*inpayload).Action();
   if(inpayload->Version() == SOAPEnvelope::Version_1_2) {
-    std::string mime_type("applicatioin/soap+xml");
+    std::string mime_type("application/soap+xml");
     if(!soap_action.empty()) mime_type+=" ;action=\""+soap_action+"\"";
     nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
