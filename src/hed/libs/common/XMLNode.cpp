@@ -249,7 +249,13 @@ void XMLNode::Name(const char* name) {
 }
 
 
-// TODO: XMLNode XMLNode::NewChild(const char* name,const NS& ns,int n,bool global_order) {
+XMLNode XMLNode::NewChild(const char* name,const NS& namespaces,int n,bool global_order) {
+  XMLNode x = NewChild("",n,global_order); // placeholder
+  x.Namespaces(namespaces);
+  x.Name(name);
+  return x;
+}
+
 XMLNode XMLNode::NewChild(const char* name,int n,bool global_order) {
   if(node_ == NULL) return XMLNode();
   if(node_->type != XML_ELEMENT_NODE) return XMLNode();
