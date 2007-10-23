@@ -643,15 +643,23 @@ DelegationProviderSOAP::DelegationProviderSOAP(const std::string& credentials):D
 DelegationProviderSOAP::~DelegationProviderSOAP(void) {
 }
 
-bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context) {
+bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageContext* context) {
+  MessageAttributes attributes_in;
+  MessageAttributes attributes_out;
+  return DelegateCredentialsInit(interface,&attributes_in,&attributes_out,context);
+}
+
+bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context) {
   NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
   PayloadSOAP req_soap(ns);
   req_soap.NewChild("deleg:DelegateCredentialsInit");
   Message req;
   Message resp;
-  req.Attributes(attributes);
+  req.Attributes(attributes_in);
   req.Context(context);
   req.Payload(&req_soap);
+  resp.Attributes(attributes_out);
+  resp.Context(context);
   MCC_Status r = interface.process(req,resp);
   if(r != STATUS_OK) return false;
   if(!resp.Payload()) return false;
@@ -670,7 +678,13 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
   return true;
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context) {
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context) {
+  MessageAttributes attributes_in;
+  MessageAttributes attributes_out;
+  return UpdateCredentials(interface,&attributes_in,&attributes_out,context);
+}
+
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context) {
   if(id_.empty()) return false;
   if(request_.empty()) return false;
   std::string delegation = Delegate(request_);
@@ -683,9 +697,11 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   token.NewChild("deleg:Value")=delegation;
   Message req;
   Message resp;
-  req.Attributes(attributes);
+  req.Attributes(attributes_in);
   req.Context(context);
   req.Payload(&req_soap);
+  resp.Attributes(attributes_out);
+  resp.Context(context);
   MCC_Status r = interface.process(req,resp);
   if(r != STATUS_OK) return false;
   if(!resp.Payload()) return false;

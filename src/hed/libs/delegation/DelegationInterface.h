@@ -66,8 +66,10 @@ class DelegationProviderSOAP: public DelegationProvider {
  public:
   DelegationProviderSOAP(const std::string& credentials);
   ~DelegationProviderSOAP(void);
-  bool DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
-  bool UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& interface,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& interface,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
   bool DelegatedToken(XMLNode& parent);
 };
 

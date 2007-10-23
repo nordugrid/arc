@@ -71,14 +71,13 @@ int main(int /*argc*/,char* argv[]) {
   Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
   deleg_service=&c;
-  Arc::MessageAttributes attr;
   Arc::MessageContext context;
   DirectMCC interface;
-  if(!p.DelegateCredentialsInit(interface,&attr,&context)) {
+  if(!p.DelegateCredentialsInit(interface,&context)) {
     std::cerr<<"DelegateCredentialsInit failed"<<std::cerr;
     return -1;
   };
-  if(!p.UpdateCredentials(interface,&attr,&context)) {
+  if(!p.UpdateCredentials(interface,&context)) {
     std::cerr<<"UpdateCredentials failed"<<std::endl;
     return -1;
   };
