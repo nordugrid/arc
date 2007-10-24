@@ -84,7 +84,7 @@ int main(void) {
   Arc::DelegationProviderSOAP deleg(credentials);
   if(!credentials.empty()) {
     logger.msg(Arc::INFO, "Initiating delegation procedure");
-    if(!deleg.DelegateCredentialsInit(*client_entry,&attributes,&context)) {
+    if(!deleg.DelegateCredentialsInit(*client_entry,&context)) {
       logger.msg(Arc::ERROR, "Failed to initiate delegation");
       return -1;
     };
