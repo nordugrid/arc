@@ -15,10 +15,11 @@
 #include "PayloadTLSStream.h"
 
 namespace Arc {
-static void handle_ssl_error(int code)
+
+void PayloadTLSStream::handle_ssl_error(int code)
 {
-    switch (code) {
-        case SSL_ERROR_SSL: {
+//    switch (code) {
+//        case SSL_ERROR_SSL: {
             int e = ERR_get_error();
             while(e != 0) {
                 Logger::rootLogger.msg(ERROR, "DEBUG: SSL_write error: %d %s:%s:%s", 
@@ -28,12 +29,12 @@ static void handle_ssl_error(int code)
                                       ERR_reason_error_string(e));
                 e = ERR_get_error();
             }
-            break;
-        }
-        default:
+//            break;
+//        }
+//        default:
             Logger::rootLogger.msg(DEBUG, "SSL error Code: %d", code);
-            break;
-    }
+//            break;
+//    }
 }
 
 PayloadTLSStream::PayloadTLSStream(SSL* ssl):ssl_(ssl) {
@@ -81,7 +82,8 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
 
 X509* PayloadTLSStream::GetPeercert(void){
   X509* peercert;
-  if((SSL_get_verify_result(ssl_)) == X509_V_OK){
+  int err;
+  if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peercert=SSL_get_peer_certificate (ssl_);
     if(peercert!=NULL){
        return peercert;
@@ -93,6 +95,8 @@ X509* PayloadTLSStream::GetPeercert(void){
   }
   else{
       Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
+      Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+      handle_ssl_error(err);
       return NULL;
   }
 }

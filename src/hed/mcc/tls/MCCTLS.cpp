@@ -27,6 +27,21 @@ Glib::Mutex Arc::MCC_TLS::lock_;
 Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
+static int verify_callback(int ok,X509_STORE_CTX *sctx) {
+  if (ok != 1) {
+    int err = X509_STORE_CTX_get_error(sctx);
+    if(err == X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED) {
+      X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
+      // Calling X509_verify_cert will cause a recursive call to verify_callback.
+      // But there should be no loop because CERTIFICATES_NOT_ALLOWED error 
+      // can't happen anymore.
+      ok=X509_verify_cert(sctx);
+      if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+    };
+  };
+  return ok;
+}
+
 Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
 }
 
@@ -92,11 +107,11 @@ static void tls_set_dhe1024(Logger& logger)
        i = -i;
    DSA *dsaparams;
    DH *dhparams;
-   const char *seed[] = { ";-)  :-(  :-)  :-(  ",
-			   ";-)  :-(  :-)  :-(  ",
-			   "Random String no. 12",
-			   ";-)  :-(  :-)  :-(  ",
-			   "hackers have even mo", /* from jargon file */
+   const char *seed[] = { "2007-10-12: KnowARC ",
+                          "makes available the ",
+                          "first technology pre",
+                          "view of the next gen",
+                          "eration ARC1 middlew",
    };
    unsigned char seedbuf[20];
    if (i >= 0) {
@@ -125,19 +140,17 @@ static void tls_set_dhe1024(Logger& logger)
 bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
-   SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);  //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
-   if((SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
-               SSL_FILETYPE_PEM) != 1) && 
-      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),
-               SSL_FILETYPE_ASN1) != 1)) {
+   //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
+   SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
+   if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
+      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
+      (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load certificate file");
         tls_process_error(logger);
         return false;
    }
-   if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
-               SSL_FILETYPE_PEM) != 1) &&
-      (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),
-               SSL_FILETYPE_ASN1) != 1)) {
+   if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
+      (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load key file");
         tls_process_error(logger);
         return false;
@@ -227,7 +240,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, NULL);
+   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    if((!ca_file.empty()) || (!ca_dir.empty())){
       r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
       if(!r){
@@ -363,7 +376,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
-   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+   SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
    if((!ca_file.empty()) || (!ca_dir.empty())) {
         r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
         if(!r){

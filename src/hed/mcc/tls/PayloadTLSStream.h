@@ -16,6 +16,7 @@ class PayloadTLSStream: public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
   SSL* ssl_; 
+  void handle_ssl_error(int code);
 public:
   /** Constructor. Attaches to already open handle.
     Handle is not managed by this class and must be closed by external code. */

@@ -7,6 +7,8 @@
 namespace Arc {
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, SSL_CTX *ctx, Logger& logger):sslctx_(ctx),logger(logger) { 
+   // Client mode
+   int err;
    master_=true;
    ssl_ = SSL_new(ctx);
    if (ssl_ == NULL){
@@ -14,21 +16,20 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, SSL_CTX *ctx, Logger& logger):ss
    }
    BIO* bio = BIO_new_MCC(mcc);
    SSL_set_bio(ssl_,bio,bio);
-   // Client mode
    //SSL_set_connect_state(ssl_);
-   SSL_connect(ssl_);
-   //handle error
-   /*
-	//SSL_set_accept_state(ssl_);
-	SSL_accept(ssl_);
-	//handle error
-   */
+   if((err=SSL_connect(ssl_)) != 1) {
+     logger.msg(ERROR, "Failed to establish SSL connection");
+     handle_ssl_error(err);
+     //TODO: handle error
+   };
    // if(SSL_in_init(ssl_)){
    //handle error
    // }
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, SSL_CTX* ctx, Logger& logger):sslctx_(ctx),logger(logger) {
+   // Server mode
+   int err;
    master_=true;
    ssl_ = SSL_new(ctx);
    if (ssl_ == NULL){
@@ -36,9 +37,12 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, SSL_CTX* ctx, Logge
    }
    BIO* bio = BIO_new_MCC(stream);
    SSL_set_bio(ssl_,bio,bio);
-   // Server mode
    //SSL_set_accept_state(ssl_);
-   SSL_accept(ssl_);
+   if((err=SSL_accept(ssl_)) != 1) {
+     logger.msg(ERROR, "Failed to establish SSL connection");
+     handle_ssl_error(err);
+     //TODO: handle error
+   };
    //handle error
    // if(SSL_in_init(ssl_)){
    //handle error
