@@ -69,8 +69,8 @@ std::cerr<<"http:get: burl: "<<burl<<std::endl;
 std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
 std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
 std::cerr<<"http:get: path: "<<path<<std::endl;
-  struct stat64 st;
-  if(lstat64(path.c_str(),&st) == 0) {
+  struct stat st;
+  if(lstat(path.c_str(),&st) == 0) {
     if(S_ISDIR(st.st_mode)) {
 std::cerr<<"http:get: directory"<<std::endl;
       DIR *dir=opendir(path.c_str());
@@ -86,7 +86,7 @@ std::cerr<<"http:get: directory"<<std::endl;
           if(strcmp(file->d_name,".") == 0) continue;
           if(strcmp(file->d_name,"..") == 0) continue;
           std::string fpath = path+"/"+file->d_name;
-          if(lstat64(fpath.c_str(),&st) == 0) {
+          if(lstat(fpath.c_str(),&st) == 0) {
             if(S_ISREG(st.st_mode)) {
               std::string line = "<LI><I>file</I> <A HREF=\"";
               line+=burl+"/"+hpath+"/"+file->d_name;
@@ -119,10 +119,10 @@ std::cerr<<"http:get: file: "<<path<<std::endl;
       PayloadFile* h = new PayloadFile(path.c_str());
       return h;
 /*
-      int h = open64(path.c_str(),O_RDONLY);
+      int h = open(path.c_str(),O_RDONLY);
       if(h != -1) {
 std::cerr<<"http:get: file is opened"<<std::endl;
-        off_t o = lseek64(h,offset,SEEK_SET);
+        off_t o = lseek(h,offset,SEEK_SET);
         if(o != offset) {
           // Out of file
 std::cerr<<"http:get: file has ended"<<std::endl;

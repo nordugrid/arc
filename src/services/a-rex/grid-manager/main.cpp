@@ -114,7 +114,7 @@ int main(int argc,char* argv[]) {
   unsigned int clean_first_level=0;
   int n;
  
-  setpgrp();
+  setpgid(0,0);
   opterr=0;
   nordugrid_config_loc="";
 

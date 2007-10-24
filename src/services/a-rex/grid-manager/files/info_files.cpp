@@ -514,8 +514,8 @@ time_t job_mark_time(const std::string &fname) {
 }
 
 long int job_mark_size(const std::string &fname) {
-  struct stat64 st;
-  if(lstat64(fname.c_str(),&st) != 0) return 0;
+  struct stat st;
+  if(lstat(fname.c_str(),&st) != 0) return 0;
   if(!S_ISREG(st.st_mode)) return 0;
   return st.st_size;
 }

@@ -44,7 +44,6 @@ static bool stringtoint(const std::string& s,unsigned int& i) {
 
 //@ 
 
-extern long int timezone;
 
 void output_escaped_string(std::ostream &o,const std::string &str) {
   std::string::size_type n,nn;
