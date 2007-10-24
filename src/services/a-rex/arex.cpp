@@ -239,6 +239,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       outmsg.Payload(outpayload);
     } else {
       // Listing operations for session directories
+      // TODO: proper failure like interface is not supported
     };
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else {

@@ -56,7 +56,6 @@ int main(void) {
     return -1;
   };
 
-  Arc::MessageAttributes attributes;
   Arc::MessageContext context;
 
   // -------------------------------------------------------
@@ -100,9 +99,13 @@ int main(void) {
     Arc::PayloadSOAP req(*(inforeq.SOAP()));
     Arc::Message reqmsg;
     Arc::Message repmsg;
+    Arc::MessageAttributes attributes_in;
+    Arc::MessageAttributes attributes_out;
     reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes);
+    reqmsg.Attributes(&attributes_in);
     reqmsg.Context(&context);
+    repmsg.Attributes(&attributes_out);
+    repmsg.Context(&context);
     Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
     if(!status) {
       logger.msg(Arc::ERROR, "Request failed");
@@ -160,54 +163,60 @@ int main(void) {
     arex_ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
     arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
     arex_ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-    Arc::PayloadSOAP req(arex_ns);
-    Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
-    Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
-    std::ifstream jsdl_file("jsdl.xml");
-    std::string jsdl_str; 
-    std::getline<char>(jsdl_file,jsdl_str,0);
-    act_doc.NewChild(Arc::XMLNode(jsdl_str));
-    deleg.DelegatedToken(op);
-    req.GetXML(jsdl_str);
-
-    // Send job request
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes);
-    reqmsg.Context(&context);
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    if(!status) {
-      logger.msg(Arc::ERROR, "Request failed");
-      return -1;
-    };
-    logger.msg(Arc::INFO, "Request succeed!!!");
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There is no response");
-      return -1;
-    };
-    Arc::PayloadSOAP* resp = NULL;
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR, "Response is not SOAP");
-      delete repmsg.Payload();
-      return -1;
-    };
-    {
-      std::string str;
-      resp->GetXML(str);
-      std::cout << "Response: " << str << std::endl;
-    };
     Arc::XMLNode id;
-    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
     {
-      std::string str;
-      id.GetDoc(str);
-      std::cout << "Job ID: " << std::endl << str << std::endl;
+      Arc::PayloadSOAP req(arex_ns);
+      Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
+      Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
+      std::ifstream jsdl_file("jsdl.xml");
+      std::string jsdl_str; 
+      std::getline<char>(jsdl_file,jsdl_str,0);
+      act_doc.NewChild(Arc::XMLNode(jsdl_str));
+      deleg.DelegatedToken(op);
+      req.GetXML(jsdl_str);
+
+      // Send job request
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_in;
+      Arc::MessageAttributes attributes_out;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_in);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_out);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Request failed");
+        return -1;
+      };
+      logger.msg(Arc::INFO, "Request succeed!!!");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There is no response");
+        return -1;
+      };
+      Arc::PayloadSOAP* resp = NULL;
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR, "Response is not SOAP");
+        delete repmsg.Payload();
+        return -1;
+      };
+      {
+        std::string str;
+        resp->GetXML(str);
+        std::cout << "Response: " << str << std::endl;
+      };
+      (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
+      {
+        std::string str;
+        id.GetDoc(str);
+        std::cout << "Job ID: " << std::endl << str << std::endl;
+      };
+      delete repmsg.Payload();
     };
-    delete repmsg.Payload();
 
     // -------------------------------------------------------
     //    Requesting job's JSDL from service
@@ -222,11 +231,14 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
-      Arc::MessageAttributes attributes;
+      Arc::MessageAttributes attributes_in;
+      Arc::MessageAttributes attributes_out;
       Arc::MessageContext context;
       reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes);
+      reqmsg.Attributes(&attributes_in);
       reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_out);
+      repmsg.Context(&context);
 
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
@@ -267,11 +279,14 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
-      Arc::MessageAttributes attributes;
+      Arc::MessageAttributes attributes_in;
+      Arc::MessageAttributes attributes_out;
       Arc::MessageContext context;
       reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes);
+      reqmsg.Attributes(&attributes_in);
       reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_out);
+      repmsg.Context(&context);
 
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
@@ -312,11 +327,14 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
-      Arc::MessageAttributes attributes;
+      Arc::MessageAttributes attributes_in;
+      Arc::MessageAttributes attributes_out;
       Arc::MessageContext context;
       reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes);
+      reqmsg.Attributes(&attributes_in);
       reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_out);
+      repmsg.Context(&context);
 
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
@@ -357,11 +375,14 @@ int main(void) {
       // Send job request
       Arc::Message reqmsg;
       Arc::Message repmsg;
-      Arc::MessageAttributes attributes;
+      Arc::MessageAttributes attributes_in;
+      Arc::MessageAttributes attributes_out;
       Arc::MessageContext context;
       reqmsg.Payload(&req);
-      reqmsg.Attributes(&attributes);
+      reqmsg.Attributes(&attributes_in);
       reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_out);
+      repmsg.Context(&context);
 
       req.GetXML(str);
       std::cout << "REQUEST: " << str << std::endl;
