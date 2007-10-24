@@ -229,6 +229,10 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    std::string ca_file = (*cfg)["CACertificatePath"];
    std::string ca_dir = (*cfg)["CACertificatesDir"];
    if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
+   std::string proxy_file = (*cfg)["ProxyPath"];
+   if(!proxy_file.empty()) {
+     key_file=proxy_file; cert_file=proxy_file;
+   };
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -365,6 +369,10 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    if(ca_file.empty()) ca_file="ca.pem";
    std::string ca_dir = (*cfg)["CACertificatesDir"];
    if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
+   std::string proxy_file = (*cfg)["ProxyPath"];
+   if(!proxy_file.empty()) {
+     key_file=proxy_file; cert_file=proxy_file;
+   };
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
