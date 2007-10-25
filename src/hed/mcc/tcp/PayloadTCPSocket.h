@@ -19,11 +19,16 @@ class PayloadTCPSocket: public PayloadStream {
   PayloadTCPSocket(const char* hostname,int port,Logger& logger);
   /** Constructor - connects to TCP server at specified endpoint - hostname:port */
   PayloadTCPSocket(const std::string endpoint,Logger& logger);
-  /** Constructor - creates object of already connected socket */
+  /** Constructor - creates object of already connected socket.
+    Socket is NOT closed in destructor. */
   PayloadTCPSocket(int s,Logger& logger):
     PayloadStream(s),acquired_(false),logger(logger) { };
+  /** Copy constructor - inherits socket of copied object.
+    Socket is NOT closed in destructor. */
   PayloadTCPSocket(PayloadTCPSocket& s,Logger& logger):
     PayloadStream(s),acquired_(false),logger(logger) { };
+  /** Copy constructor - inherits handle of copied object.
+    Handle is NOT closed in destructor. */
   PayloadTCPSocket(PayloadStream& s,Logger& logger):
     PayloadStream(s),acquired_(false),logger(logger) { };
   virtual ~PayloadTCPSocket(void);
