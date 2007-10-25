@@ -70,7 +70,7 @@ class PayloadHTTP: public PayloadRaw {
   /** Returns HTTP header attribute with specified name.
     Empty string if no such attribute. */
   virtual const std::string& Attribute(const std::string& name);
-  /** Returns HTTP all header attributes. */
+  /** Returns all HTTP header attributes. */
   virtual const std::map<std::string,std::string>& Attributes(void);
   /** Sets HTTP header attribute 'name' to 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
