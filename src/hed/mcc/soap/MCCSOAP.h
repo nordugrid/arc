@@ -34,7 +34,7 @@ class MCC_SOAP_Service: public MCC_SOAP
 
 /* This is client side of SOAP processing MCC.
   It accepts and produces PayloadSOAP kind of payloads in it's
- process() method. Comminication to next MCC is done over payloads
+ process() method. Communication to next MCC is done over payloads
  implementing PayloadRawInterface. */
 class MCC_SOAP_Client: public MCC_SOAP
 {
