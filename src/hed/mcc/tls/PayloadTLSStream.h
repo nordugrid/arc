@@ -11,7 +11,7 @@
 
 namespace Arc {
 
-/** Implemetation of PayloadStreamInterface for "ssl" handle. */
+/** Implemetation of PayloadStreamInterface for SSL handle. */
 class PayloadTLSStream: public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
@@ -20,7 +20,7 @@ class PayloadTLSStream: public PayloadStreamInterface {
 public:
   /** Constructor. Attaches to already open handle.
     Handle is not managed by this class and must be closed by external code. */
-  PayloadTLSStream(SSL* ssl=NULL);  /***************/
+  PayloadTLSStream(SSL* ssl=NULL);
   /** Destructor. */
   virtual ~PayloadTLSStream(void) { };
   
@@ -35,7 +35,9 @@ public:
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
 
-  /**Getting peer certificate from the established ssl*/
+  /**Getting peer certificate from the established ssl.
+    Obtained X509 object is owned by this instance and becomes invalid
+    after destruction. */
   X509* GetPeercert(void);
 };
 

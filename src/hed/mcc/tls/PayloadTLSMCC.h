@@ -12,21 +12,27 @@
 
 namespace Arc {
 // This class extends PayloadTLSStream with initialization procedure to 
-// connect it to next MCC. So far it woks only for client side.
+// connect it to next MCC or Stream interface.
 class PayloadTLSMCC: public PayloadTLSStream {
  private:
+  /** Specifies if this object own internal SSL object */
   bool master_;
+  /** SSL context */
   SSL_CTX* sslctx_;
   Logger& logger;
   PayloadTLSMCC(PayloadTLSMCC& stream);
  public:
-  /** Constructor - creat ssl object which is bound to next MCC.
-    This onstance is tuned for client side. It obtains Stream interface
-    from next MCC dynamically */
+  /** Constructor - creates ssl object which is bound to next MCC.
+    This instance must be used on client side. It obtains Stream interface
+    from next MCC dynamically. */
   PayloadTLSMCC(MCCInterface* mcc, SSL_CTX* ctx, Logger& logger);
-  /** Constructor - creat ssl object which is bound to stream. */
+  /** Constructor - creates ssl object which is bound to stream. 
+    This constructor to be used on server side. Provided stream
+    is NOT destroyed in destructor. */
   PayloadTLSMCC(PayloadStreamInterface* stream, SSL_CTX* ctx, Logger& logger);
-  /** Copy constructor with new logger. */
+  /** Copy constructor with new logger.
+    Created object shares same SSL object but does not destroy it in destructor.
+    Main instance must be destroyed after all copied ones. */
   PayloadTLSMCC(PayloadTLSMCC& stream, Logger& logger);
   virtual ~PayloadTLSMCC(void);
 };

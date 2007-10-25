@@ -13,14 +13,14 @@
     <xsd:element name="Key" type="xsd:string">
     <!-- Location of public certificate.
       Default is /etc/grid-security/hostcert.pem for service
-      and none for client. -->
+      and ./cert.pem for client. -->
     <xsd:element name="CertificatePath" type="xsd:string">
     <!-- Content of public certificate - not supported -->
     <xsd:element name="Certificate" type="xsd:string">
-    <!-- Location of proxy credentials - include certificates, key and 
-      chain of involved certificates. Elements Key, KeyPath, Certificate
-      and CertificatePath overwrite those in Proxy. 
-      Default is /tmp/x509_up#PID# for client and none for service. -->
+    <!-- Location of proxy credentials - includes certificates, key and 
+      chain of involved certificates. Overwrites elements Key, KeyPath, 
+      Certificate and CertificatePath. 
+      Default is none for client and none for service. -->
     <xsd:element name="ProxyPath" type="xsd:string">
     <!-- Content of proxy credentials - not supported -->
     <xsd:element name="Proxy" type="xsd:string">
@@ -32,4 +32,3 @@
       Default is /etc/grid-security/ . -->
     <xsd:element name="CAcertificatesDir" type="xsd:string">
 </xsd:schema>
-
