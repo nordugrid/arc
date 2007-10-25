@@ -29,6 +29,13 @@ namespace Arc {
  with PayloadRawInterface is expected. Alternatively called MCC 
  may use provided PayloadStreamInterface to send it's response back 
  directly.
+  During processing of request this MCC generates following attributes:
+   TCP:HOST - IP address of interface to which local TCP socket is bound 
+   TCP:PORT - port number to which local TCP socket is bound
+   TCP:REMOTEHOST - IP address from which connection is accepted
+   TCP:REMOTEPORT - TCP port from which connection is accepted
+   TCP:ENDPOINT - URL-like representation of remote connection - ://HOST:PORT
+   ENDPOINT - global attribute equal to TCP:ENDPOINT
 */
 class MCC_TCP_Service: public MCC_TCP
 {
@@ -57,8 +64,8 @@ class MCC_TCP_Service: public MCC_TCP
 
 /** This class is MCC implementing TCP client.
   Upon creation it connects to specified TCP post at specified host. 
- process() method ccepts PayloadRawInterface type of payload. Specified
- payload is sent over TCP socket. It returns PayloadStreamInterface 
+ process() method accepts PayloadRawInterface type of payload. Content
+ of payload is sent over TCP socket. It returns PayloadStreamInterface 
  payload for previous MCC to read response.
 */
 class MCC_TCP_Client: public MCC_TCP
