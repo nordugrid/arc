@@ -8,14 +8,23 @@
 
 namespace Arc {
 
+/** Configuration for client interface.
+   It contains information which can't be expressed in 
+  class constructor arguments. Most probably common things
+  like software installation location, identity of user, etc. */
 class BaseConfig {
  protected:
   std::string prefix_;
   std::list<std::string> plugin_paths_;
  public:
+  /** Constructor accepts software installation prefix */
   BaseConfig(const std::string& prefix = "");
   ~BaseConfig(void) { };
+  /** Adds non-standard location of plugins */ 
   void AddPluginsPath(const std::string& path);
+  /** Adds configuration part corresponding to stored 
+    information into common configuration tree supplied in 
+    'cfg' argument. */
   XMLNode MakeConfig(XMLNode cfg) const;
 };
 
@@ -46,12 +55,23 @@ class ClientHTTP: public ClientTCP {
                     int* code,std::string& reason,PayloadRawInterface** response);  
 };
 
+/** Class with easy interface for sending/receiving SOAP messages over HTTP(S).
+  It takes care of configuring MCC chain and making an entry point. */
 class ClientSOAP: public ClientHTTP {
  protected:
   MCC* soap_entry_;
  public:
+  /** Constructor creates MCC chain and connects to server.
+     cfg - common configuration,
+     host - hostname of remote server,
+     port - TCP port of remote server,
+     tls - true if connection to use HTTPS, false for HTTP,
+     path - internal path of service to be contacted.
+    TODO: use URL.
+  */
   ClientSOAP(const BaseConfig& cfg,const std::string& host,int port,bool tls,const std::string& path);
   ~ClientSOAP(void);
+  /** Send SOAP request and receive response. */
   MCC_Status process(PayloadSOAP* request,PayloadSOAP** response);  
 };
 
