@@ -1,7 +1,6 @@
 #ifndef __ARC_PAYLOADSTREAM_H__
 #define __ARC_PAYLOADSTREAM_H__
 
-#include <unistd.h>
 #include <string>
 
 #include "Message.h"
