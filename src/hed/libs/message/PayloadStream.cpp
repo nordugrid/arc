@@ -2,13 +2,15 @@
 #include <config.h>
 #endif
 
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifndef WIN32
+#include <unistd.h>
 #include <sys/poll.h>
 #else
-#include <winbase.h>
+#define NOGDI
+#include <objbase.h>
+#include <io.h>
 #endif
 
 #include "PayloadStream.h"
@@ -22,13 +24,13 @@ PayloadStream::PayloadStream(int h):timeout_(60),handle_(h),seekable_(false) {
   seekable_=true;
 #ifdef WIN32
   COMMTIMEOUTS to;
-  if(GetCommTimeouts(handle_,&to)) {
+  if(GetCommTimeouts((HANDLE)handle_,&to)) {
     to.ReadIntervalTimeout=timeout_*1000;
     to.ReadTotalTimeoutMultiplier=0;
     to.ReadTotalTimeoutConstant=timeout_*1000;
     to.WriteTotalTimeoutMultiplier=0;
     to.WriteTotalTimeoutConstant=timeout_*1000;
-    SetCommTimeouts(handle_,&to);
+    SetCommTimeouts((HANDLE)handle_,&to);
   };
 #endif  
   return;
