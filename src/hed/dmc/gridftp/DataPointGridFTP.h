@@ -8,7 +8,7 @@
 #include <globus_ftp_client.h>
 
 #include <arc/data/DataPointDirect.h>
-#include <glibmm/thread.h>
+#include <arc/Thread.h>
 
 namespace Arc {
 
@@ -23,8 +23,7 @@ namespace Arc {
     globus_thread_t ftp_control_thread;
     int ftp_threads;
 
-    Glib::Cond cond;
-    Glib::Mutex mutex;
+    SimpleCondition cond;
     int condstatus;
 
     bool ftp_eof_flag;

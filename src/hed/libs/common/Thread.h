@@ -80,14 +80,19 @@ class SimpleCondition {
     flag_=false;
   };
   /** Wait for condition no longer than t milliseconds */
-  void wait(int t) {
+  bool wait(int t) {
     lock_.lock();
     Glib::TimeVal etime;
     etime.assign_current_time();
     etime.add_milliseconds(t);
-    while(!flag_) if(!cond_.timed_wait(lock_,etime)) break;
+    bool res(true);
+    while(!flag_) {
+      res=cond_.timed_wait(lock_,etime);
+      if(!res) break;
+    }
     flag_=false;
     lock_.unlock();
+    return res;
   };
   /** Reset object to initial state */
   void reset(void) {
