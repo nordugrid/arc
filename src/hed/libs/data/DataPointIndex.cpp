@@ -63,12 +63,20 @@ namespace Arc {
       if(--tries_left > 0)
         location = locations.begin();
     }
+    if(location != locations.end())
+      h = *location;
+    else
+      h.Clear();
     return have_location();
   }
 
   bool DataPointIndex::remove_location() {
     if(location == locations.end()) return false;
     location = locations.erase(location);
+    if(location != locations.end())
+      h = *location;
+    else
+      h.Clear();
     return true;
   }
 
@@ -95,6 +103,10 @@ namespace Arc {
     }
     if(location == locations.end())
       location = locations.begin();
+    if(location != locations.end())
+      h = *location;
+    else
+      h.Clear();
     return true;
   }
 
@@ -116,6 +128,96 @@ namespace Arc {
       location = locations.end();
     else if(location == locations.end())
       location = locations.begin();
+    if(location != locations.end())
+      h = *location;
+    else
+      h.Clear();
+  }
+
+  bool DataPointIndex::start_reading(DataBufferPar& buffer) {
+    if(!h) return false;
+    return h->start_reading(buffer);
+  }
+
+  bool DataPointIndex::start_writing(DataBufferPar& buffer, DataCallback *cb) {
+    if(!h) return false;
+    return h->start_writing(buffer, cb);
+  }
+
+  bool DataPointIndex::stop_reading() {
+    if(!h) return false;
+    return h->stop_reading();
+  }
+
+  bool DataPointIndex::stop_writing() {
+    if(!h) return false;
+    return h->stop_writing();
+  }
+
+  bool DataPointIndex::analyze(analyze_t& arg) {
+    if(!h) return false;
+    return h->analyze(arg);
+  }
+
+  bool DataPointIndex::check() {
+    if(!h) return false;
+    return h->check();
+  }
+
+  bool DataPointIndex::local() const {
+    if(!h) return false;
+    return h->local();
+  }
+
+  bool DataPointIndex::remove() {
+    if(!h) return false;
+    return h->remove();
+  }
+
+  void DataPointIndex::out_of_order(bool v) {
+    if(h) h->out_of_order(v);
+  }
+
+  bool DataPointIndex::out_of_order() {
+    if(!h) return false;
+    return h->out_of_order();
+  }
+
+  void DataPointIndex::additional_checks(bool v) {
+    if(h) h->additional_checks(v);
+  }
+
+  bool DataPointIndex::additional_checks() {
+    if(!h) return false;
+    return h->additional_checks();
+  }
+
+  void DataPointIndex::secure(bool v) {
+    if(h) h->secure(v);
+  }
+
+  bool DataPointIndex::secure() {
+    if(!h) return false;
+    return h->secure();
+  }
+
+  void DataPointIndex::passive(bool v) {
+    if(h) h->passive(v);
+  }
+
+  DataPointIndex::failure_reason_t DataPointIndex::failure_reason() {
+    if(!h) return common_failure;
+    return h->failure_reason();
+  }
+
+  std::string DataPointIndex::failure_text() {
+    if(!h) return "";
+    return h->failure_text();
+  }
+
+  void DataPointIndex::range(unsigned long long int start,
+                             unsigned long long int end) {
+    if(h) h->range(start, end);
   }
 
 } // namespace Arc

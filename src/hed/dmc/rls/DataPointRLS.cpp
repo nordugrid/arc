@@ -387,7 +387,7 @@ namespace Arc {
 
     std::string pfn;
     std::string guid;
-    pfn = *location;
+    pfn = location->str();
     // it is always better to register pure url
     std::string rls_lfn = url.Path();
     if(!replication) {

@@ -5,6 +5,7 @@
 #include <list>
 
 #include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc {
 
@@ -16,6 +17,7 @@ namespace Arc {
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
+    DataHandle h;
     bool is_metaexisting;
     bool is_resolved;
    public:
@@ -51,27 +53,34 @@ namespace Arc {
 
     virtual void SetTries(const int n);
 
-    // Not supported for index data points:
-    virtual bool start_reading(DataBufferPar&) { return false; };
-    virtual bool start_writing(DataBufferPar&,
-                               DataCallback* = NULL) { return false; };
-    virtual bool stop_reading() { return false; };
-    virtual bool stop_writing() { return false; };
-    virtual bool analyze(analyze_t&) { return false; };
-    virtual bool check() { return false; };
-    virtual bool local() const { return false; };
-    virtual bool remove() { return false; };
-    virtual bool out_of_order() { return false; };
-    virtual void out_of_order(bool) {};
-    virtual void additional_checks(bool) {};
-    virtual bool additional_checks() { return false; };
-    virtual void secure(bool) {};
-    virtual bool secure() { return false; };
-    virtual void passive(bool) {};
-    virtual failure_reason_t failure_reason() { return common_failure; };
-    std::string failure_text() { return ""; };
-    virtual void range(unsigned long long int = 0,
-                       unsigned long long int = 0) {};
+    // the following are relayed to the current location
+    virtual bool start_reading(DataBufferPar& buffer);
+    virtual bool start_writing(DataBufferPar& buffer,
+                               DataCallback *space_cb = NULL);
+    virtual bool stop_reading();
+    virtual bool stop_writing();
+
+    virtual bool analyze(analyze_t& arg);
+    virtual bool check();
+    virtual bool local() const;
+
+    virtual bool remove();
+
+    virtual void out_of_order(bool v);
+    virtual bool out_of_order();
+    virtual void additional_checks(bool v);
+    virtual bool additional_checks();
+
+    virtual void secure(bool v);
+    virtual bool secure();
+
+    virtual void passive(bool v);
+
+    virtual failure_reason_t failure_reason();
+    virtual std::string failure_text();
+
+    virtual void range(unsigned long long int start = 0,
+                       unsigned long long int end = 0);
   };
 
 } // namespace Arc

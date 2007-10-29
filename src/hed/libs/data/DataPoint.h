@@ -90,6 +90,9 @@ namespace Arc {
     /// information about object in associated DataPoint.
     virtual bool check() = 0;
 
+    /// Check if file is local (URL is something like file://).
+    virtual bool local() const = 0;
+
     /// Remove/delete object at URL.
     virtual bool remove() = 0;
 
@@ -290,9 +293,6 @@ namespace Arc {
     /// Check if file is registered in Indexing Service. Proper value is
     /// obtainable only after meta-resolve.
     virtual bool meta_stored() = 0;
-
-    /// Check if file is local (URL is something like file://).
-    virtual bool local() const = 0;
 
     virtual operator bool () const {
       return (bool)url;

@@ -66,11 +66,11 @@ namespace Arc {
                        unsigned long long int end = 0);
 
     // Not supported for direct data points:
-    virtual bool meta_resolve(bool) { return false; };
-    virtual bool meta_preregister(bool, bool force = false) { return false; };
-    virtual bool meta_postregister(bool) { return false; };
-    virtual bool meta_preunregister(bool) { return false; };
-    virtual bool meta_unregister(bool all) { return false; };
+    virtual bool meta_resolve(bool) { return true; };
+    virtual bool meta_preregister(bool, bool force = false) { return true; };
+    virtual bool meta_postregister(bool) { return true; };
+    virtual bool meta_preunregister(bool) { return true; };
+    virtual bool meta_unregister(bool all) { return true; };
     virtual bool get_info(FileInfo& fi) { return false; };
     virtual bool accepts_meta() { return false; };
     virtual bool provides_meta() { return false; };
@@ -79,8 +79,8 @@ namespace Arc {
     virtual const URL& current_location() const;
     virtual const std::string& current_meta_location() const;
     virtual bool next_location() { return false; };
-    virtual bool have_location() const { return false; };
-    virtual bool have_locations() const { return false; };
+    virtual bool have_location() const { return true; };
+    virtual bool have_locations() const { return true; };
     virtual bool add_location(const std::string&, const URL&) { return false; };
     virtual bool remove_location() { return false; };
     virtual bool remove_locations(const DataPoint& p) { return false; };

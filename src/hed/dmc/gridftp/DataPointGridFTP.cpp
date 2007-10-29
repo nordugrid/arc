@@ -316,8 +316,8 @@ namespace Arc {
         time_t modify_time;
         int modify_utime;
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-        logger.msg(DEBUG, "start_reading_ftp: creation time: %s", modify_time);
         SetCreated(modify_time);
+        logger.msg(DEBUG, "start_reading_ftp: creation time: %s", GetCreated().str().c_str());
       }
       if(limit_length) {
         if((unsigned long long int)size < range_end) {

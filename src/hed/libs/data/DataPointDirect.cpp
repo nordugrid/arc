@@ -135,6 +135,10 @@ namespace Arc {
     return true;
   }
 
+  void DataPointDirect::out_of_order(bool val) {
+    allow_out_of_order = val;
+  }
+
   bool DataPointDirect::out_of_order() {
     return false;
   }
@@ -147,10 +151,6 @@ namespace Arc {
     return !no_checks;
   }
 
-  void DataPointDirect::passive(bool val) {
-    force_passive = val;
-  }
-
   void DataPointDirect::secure(bool val) {
     force_secure = val;
   }
@@ -159,8 +159,8 @@ namespace Arc {
     return is_secure;
   }
 
-  void DataPointDirect::out_of_order(bool val) {
-    allow_out_of_order = val;
+  void DataPointDirect::passive(bool val) {
+    force_passive = val;
   }
 
   DataPointDirect::failure_reason_t DataPointDirect::failure_reason() {
@@ -178,8 +178,7 @@ namespace Arc {
   }
 
   const URL& DataPointDirect::current_location() const {
-    static const URL empty;
-    return empty;
+    return url;
   }
 
   const std::string& DataPointDirect::current_meta_location() const {
