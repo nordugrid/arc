@@ -29,15 +29,19 @@ Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if (ok != 1) {
+    #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     int err = X509_STORE_CTX_get_error(sctx);
     if(err == X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED) {
       X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
+    #endif
       // Calling X509_verify_cert will cause a recursive call to verify_callback.
       // But there should be no loop because CERTIFICATES_NOT_ALLOWED error 
       // can't happen anymore.
       ok=X509_verify_cert(sctx);
       if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+    #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     };
+    #endif
   };
   return ok;
 }
