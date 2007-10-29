@@ -113,7 +113,7 @@ AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [set the full path 
 
 AC_CHECK_PROGS(PYTHON, $with_python python)
 
-if test "X$PYTHON" != "X"; then
+if test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print sys.version[:3]'`
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_inc()'`
