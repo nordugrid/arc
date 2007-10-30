@@ -22,19 +22,19 @@ class SOAPMessage {
     persistency of connection. It must be created and destroyed by
     that element. */
   Arc::MessageContext* context_;
+  /** No copying is allowed */
+  SOAPMessage(SOAPMessage& msg);
+  /** No assignment is allowed. */
+  SOAPMessage& operator=(SOAPMessage& msg);
  public:
   /** Dummy constructor */
   SOAPMessage(void):payload_(NULL),auth_(NULL),attributes_(NULL) { };
   /** Copy constructor. Used by language bindigs */
   SOAPMessage(long msg_ptr_addr);
   /** Copy constructor. Ensures shallow copy. */
-  SOAPMessage(SOAPMessage& msg):payload_(msg.payload_),auth_(msg.auth_),attributes_(msg.attributes_) { };
-  /** Copy constructor. Ensures shallow copy. */
   SOAPMessage(Arc::Message& msg);
   /** Destructor does not affect refered objects */
-  ~SOAPMessage(void) { };
-  /** Assignment. Ensures shallow copy. */
-  SOAPMessage& operator=(SOAPMessage& msg) { payload_=msg.payload_; auth_=msg.auth_; attributes_=msg.attributes_; return *this; };
+  ~SOAPMessage(void);
   /** Returns pointer to current payload or NULL if no payload assigned. */
   Arc::SOAPEnvelope* Payload(void);
   /** Replace payload with a COPY of new one */
