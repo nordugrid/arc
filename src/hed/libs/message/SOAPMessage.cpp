@@ -13,7 +13,6 @@ SOAPMessage::SOAPMessage(long msg_ptr_addr):payload_(NULL)
     attributes_ = msg->Attributes();
     context_ = msg->Context();
     Payload(msg->Payload());
-std::cerr<<"!!!!!!! SOAPMessage::SOAPMessage: "<<this<<" - "<<this->payload_<<std::endl;
 }
 
 SOAPMessage::SOAPMessage(Message& msg):payload_(NULL)
@@ -22,7 +21,6 @@ SOAPMessage::SOAPMessage(Message& msg):payload_(NULL)
     attributes_ = msg.Attributes();
     context_ = msg.Context();
     Payload(dynamic_cast<SOAPEnvelope*>(msg.Payload()));
-std::cerr<<"!!!!!!! SOAPMessage::SOAPMessage!: "<<this<<" - "<<this->payload_<<std::endl;
 }
 
 
@@ -40,7 +38,6 @@ void SOAPMessage::Payload(Arc::SOAPEnvelope* new_payload) {
 }
 
 SOAPMessage::~SOAPMessage(void) {
-std::cerr<<"!!!!!!! SOAPMessage::~SOAPMessage: "<<this<<" - "<<payload_<<std::endl;
     if(payload_) delete payload_;
 }
 
