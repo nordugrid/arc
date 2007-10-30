@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/URL.h>
 #include <arc/StringConv.h>
 #include <arc/data/MkDirRecursive.h>
@@ -48,10 +52,10 @@ void* DataPointFile::read_file(void* arg) {
   if(it->range_end > it->range_start) {
     range_length = it->range_end - it->range_start;
     limit_length = true;
-    lseek64(it->fd,it->range_start,SEEK_SET);
+    lseek(it->fd,it->range_start,SEEK_SET);
     offset=it->range_start;
   } else {
-    lseek64(it->fd,0,SEEK_SET);
+    lseek(it->fd,0,SEEK_SET);
   };
   for(;;) {
     if(limit_length) if(range_length==0) break;
@@ -70,7 +74,7 @@ void* DataPointFile::read_file(void* arg) {
     };
   /* 2. read */
     if(limit_length) if(l>range_length) l=range_length;
-    unsigned long long int p = lseek64(it->fd,0,SEEK_CUR);
+    unsigned long long int p = lseek(it->fd,0,SEEK_CUR);
     if(p == (unsigned long long int)(-1)) p=offset;
     int ll = read(it->fd,(*(it->buffer))[h],l);
     if(ll == -1) { /* error */
@@ -116,7 +120,7 @@ void* DataPointFile::write_file(void* arg) {
       break;
     };
   /* 2. write */
-    lseek64(it->fd,p,SEEK_SET);
+    lseek(it->fd,p,SEEK_SET);
     int l_=0;
     int ll = 0;
     for(;l_<l;) {
@@ -146,8 +150,8 @@ bool DataPointFile::check(void) {
     logger.msg(INFO, "File is not accessible: %s", url.Path().c_str());
     return false;
   };
-  struct stat64 st;
-  if(stat64(url.Path().c_str(),&st) != 0) {
+  struct stat st;
+  if(stat(url.Path().c_str(),&st) != 0) {
     logger.msg(INFO, "Can't stat file: %s", url.Path().c_str());
     return false;
   };
@@ -176,15 +180,15 @@ bool DataPointFile::start_reading(DataBufferPar &buf) {
       DataPointDirect::stop_reading();
       return false;
     };
-    fd=open64(url.Path().c_str(),O_RDONLY);
+    fd=open(url.Path().c_str(),O_RDONLY);
   };
   if(fd == -1) {
     DataPointDirect::stop_reading();
     return false;
   };
   /* provide some metadata */
-  struct stat64 st;
-  if(fstat64(fd,&st) == 0) {
+  struct stat st;
+  if(fstat(fd,&st) == 0) {
     SetSize(st.st_size);
     SetCreated(st.st_mtime);
   };
@@ -255,9 +259,9 @@ bool DataPointFile::start_writing(DataBufferPar &buf,DataCallback *space_cb) {
       }; 
     };
     /* try to create file, if failed - try to open it */
-    fd=open64(url.Path().c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
+    fd=open(url.Path().c_str(),O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
     if(fd == -1) {
-      fd=open64(url.Path().c_str(),O_WRONLY | O_TRUNC,S_IRUSR | S_IWUSR);
+      fd=open(url.Path().c_str(),O_WRONLY | O_TRUNC,S_IRUSR | S_IWUSR);
     }
     else { /* this file was created by us. Hence we can set it's owner */
       fchown(fd,uid,gid);
@@ -275,13 +279,13 @@ bool DataPointFile::start_writing(DataBufferPar &buf,DataCallback *space_cb) {
     if(fsize > 0) {
       logger.msg(INFO, "setting file %s to size %llu", url.Path().c_str(), fsize);
       /* because filesytem can skip empty blocks do real write */
-      unsigned long long int old_size=lseek64(fd,0,SEEK_END);
+      unsigned long long int old_size=lseek(fd,0,SEEK_END);
       if(old_size < fsize) {
         char buf[65536];
         memset(buf,0xFF,sizeof(buf));
         unsigned int l=1;
         for(;l>0;) {
-          old_size=lseek64(fd,0,SEEK_END);
+          old_size=lseek(fd,0,SEEK_END);
           l=sizeof(buf);
           if(l > (fsize-old_size)) l=fsize-old_size;
           if(write(fd,buf,l) == -1) {
@@ -290,8 +294,8 @@ bool DataPointFile::start_writing(DataBufferPar &buf,DataCallback *space_cb) {
             if(space_cb != NULL) {
               if(space_cb->cb((unsigned long long int)l)) continue;
             };
-            lseek64(fd,0,SEEK_SET); 
-            ftruncate64(fd,0);
+            lseek(fd,0,SEEK_SET); 
+            ftruncate(fd,0);
             close(fd); fd=-1; 
             logger.msg(INFO, "Failed to preallocate space");
             buffer->speed.reset();
@@ -337,10 +341,10 @@ bool DataPointFile::list_files(std::list<FileInfo> &files,bool resolve) {
   DIR *dir=opendir(dirname.c_str());
   if(dir == NULL) {
     // maybe a file
-    struct stat64 st;
+    struct stat st;
     std::list<FileInfo>::iterator f = 
                files.insert(files.end(),FileInfo(dirname));
-    if(stat64(dirname.c_str(),&st) == 0) {
+    if(stat(dirname.c_str(),&st) == 0) {
       f->SetSize(st.st_size);
       f->SetCreated(st.st_mtime);
       if(S_ISDIR(st.st_mode)) {
@@ -367,8 +371,8 @@ bool DataPointFile::list_files(std::list<FileInfo> &files,bool resolve) {
                files.insert(files.end(),FileInfo(file->d_name));
     if(resolve) {
       std::string fname =  dirname+"/"+file->d_name;
-      struct stat64 st;
-      if(stat64(fname.c_str(),&st) == 0) {
+      struct stat st;
+      if(stat(fname.c_str(),&st) == 0) {
         f->SetSize(st.st_size);
         f->SetCreated(st.st_mtime);
         if(S_ISDIR(st.st_mode)) {
