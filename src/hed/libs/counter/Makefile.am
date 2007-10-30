@@ -1,6 +1,6 @@
-lib_LTLIBRARIES=libcounter.la
+lib_LTLIBRARIES = libarccounter.la
 
-libcounter_ladir=$(pkgincludedir)/counter
-libcounter_la_HEADERS=Counter.h IntraProcessCounter.h
-libcounter_la_SOURCES=Counter.cpp IntraProcessCounter.cpp
-libcounter_la_CXXFLAGS=$(GLIBMM_CFLAGS)
+libarccounter_ladir = $(pkgincludedir)/counter
+libarccounter_la_HEADERS  = Counter.h IntraProcessCounter.h
+libarccounter_la_SOURCES  = Counter.cpp IntraProcessCounter.cpp
+libarccounter_la_CXXFLAGS = $(GLIBMM_CFLAGS)

@@ -5,7 +5,7 @@ python_LTLIBRARIES = _arc.la
 
 _arc_la_SOURCES = arc_wrap.cpp
 _arc_la_CXXFLAGS = -fno-strict-aliasing -DSWIG_COBJECT_TYPES $(PYTHON_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-_arc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libmessage.la $(PYTHON_LIBS)
+_arc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(PYTHON_LIBS)
 _arc_la_LDFLAGS = -no-undefined -module -avoid-version
 
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
