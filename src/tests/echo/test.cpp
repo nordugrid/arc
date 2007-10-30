@@ -39,7 +39,7 @@ int main(void) {
   Arc::ClientSOAP client(client_cfg,"127.0.0.1",60000,true,"/echo1");
   logger.msg(Arc::INFO, "Client side MCCs are loaded");
 
-  for(int n = 0;n<1;) {
+  for(int n = 0;n<1;n++) {
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
   Arc::NS echo_ns;

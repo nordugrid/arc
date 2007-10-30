@@ -11,9 +11,7 @@ libecho_la_LDFLAGS  = -no-undefined -avoid-version -module
 test_SOURCES =  $(SOURCES) test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_LDADD    = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-                $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/mcc/tls/libmcctls.la $(top_srcdir)/src/hed/mcc/tcp/libmcctcp.la \
-                $(top_srcdir)/src/hed/mcc/http/libmcchttp.la $(top_srcdir)/src/hed/mcc/soap/libmccsoap.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la libecho.la
+test_LDADD    = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la
 
 test_client_SOURCES  = $(SOURCES) test_client.cpp
 test_client_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
