@@ -113,9 +113,9 @@ class XMLNode {
     return n;
   };
   /** Same as operator[] **/
-  //XMLNode Get(const std::string& name) const {
-  //  return operator[](name.c_str());
-  //};
+  XMLNode Get(const std::string& name) const {
+    return operator[](name.c_str());
+  };
 
   /** Returns name of XML node */
   std::string Name(void) const { 
