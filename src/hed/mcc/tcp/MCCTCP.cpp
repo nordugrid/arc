@@ -3,6 +3,7 @@
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifdef WIN32
 #define NOGDI
@@ -78,7 +79,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-    	logger.msg(Arc::ERROR, "Cannot initialize winsock libraray");
+    	logger.msg(Arc::ERROR, "Cannot initialize winsock library");
         return;
     }
 #endif
