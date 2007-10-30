@@ -13,7 +13,7 @@
              and hence can't be located automatically.
         -->
         <xsd:sequence>
-        <xsd:element name="Name" type="xsd:string">
+            <xsd:element name="Name" type="xsd:string"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
@@ -28,6 +28,23 @@
         </xsd:simpleContent>
     </xsd:complexType>
     <xsd:element name="next" type="next_Type"/>
+
+    <xsd:complexType name="SecHandler_Type">
+        <!--
+             This element specifies security handler plugin to be called
+            at various stages of message processing. Depending on produced
+            result message may be either sint farther through chain or 
+            processing would be cancelled.
+        -->
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="event" type="xsd:string" use="optional"/>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:element name="SecHandler" type="SecHandler_Type"/>
 
     <xsd:complexType name="Component_Type">
         <!--
