@@ -32,7 +32,7 @@ gid_t get_user_group(uid_t uid) {
   return (pwd_p->pw_gid);
 }
 
-int check_file_access(const char* path,int flags,uid_t uid,gid_t gid) {
+int check_file_access(const std::string& path,int flags,uid_t uid,gid_t gid) {
   int h;
   struct stat st;
   mode_t m;
@@ -41,13 +41,13 @@ int check_file_access(const char* path,int flags,uid_t uid,gid_t gid) {
   flags&=O_RDWR | O_RDONLY | O_WRONLY;
   if((flags != O_RDWR) && (flags != O_RDONLY) && (flags != O_WRONLY)) return -1;
   if(getuid() != 0) { /* not root - just try to open */
-    if((h=open(path,flags)) == -1) return -1;
+    if((h=open(path.c_str(),flags)) == -1) return -1;
     close(h);
     return 0;
   };
   if(uid == 0) return 0;
   /* check for file */
-  if(stat(path,&st) != 0) return -1;
+  if(stat(path.c_str(),&st) != 0) return -1;
   if(!S_ISREG(st.st_mode)) return -1;
   m=0;
   if(st.st_uid == uid) {
