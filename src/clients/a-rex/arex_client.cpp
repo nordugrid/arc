@@ -156,12 +156,12 @@ namespace Arc {
     Arc::XMLNode st;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"].New(st);
-    state = (std::string)st.Child().Attribute
+    state = (std::string)st.Attribute
       ("bes-factory:ActivityStateEnumeration");
     Arc::XMLNode sst;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"]["state"].New(sst);
-    substate = (std::string)sst.Child();
+    substate = (std::string)sst;
     delete repmsg.Payload();
     if (state=="")
       throw AREXClientError("The job status could not be retrieved.");
@@ -217,7 +217,7 @@ namespace Arc {
     Arc::XMLNode cancelled;
     (*resp)["TerminateActivitiesResponse"]
            ["Response"]["Cancelled"].New(cancelled);
-    result = (std::string)cancelled.Child();
+    result = (std::string)cancelled;
     delete repmsg.Payload();
     if (result!="true")
       throw AREXClientError("Job termination failed.");
