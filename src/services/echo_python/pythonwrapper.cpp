@@ -258,7 +258,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         Py_DECREF(arg);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
-    Py_DECREF(arg);
+    Py_DECREF(arg); delete inmsg_ptr;
 
     arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
@@ -278,7 +278,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         Py_DECREF(arg);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
-    Py_DECREF(arg);
+    Py_DECREF(arg); delete outmsg_ptr;
     
     // Call the process method
     py_status = PyObject_CallMethod(object, "process", "(OO)", 
@@ -304,8 +304,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 
     Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
     // pl->GetXML(xml);   
-    Py_DECREF(py_inmsg);
     Py_DECREF(py_outmsg);
+    Py_DECREF(py_inmsg);
     
     outmsg.Payload(pl);
 
