@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/grid-manager
 %{_libexecdir}/smtp-send
 %doc %{_mandir}/man8/arcserver.8*
+%{_libdir}/%{pkgdir}/libecho.so
+%{_libdir}/%{pkgdir}/libpdp.so
+%{_libdir}/%{pkgdir}/libarex.so
 
 %files devel
 %defattr(-,root,root,-)
@@ -148,10 +151,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmcc*.so
 %{_libdir}/%{pkgdir}/libdmc*.so
-%{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
-%{_libdir}/%{pkgdir}/libarex.so
-%{_libdir}/%{pkgdir}/libecho.so
 
 %files python
 %defattr(-,root,root,-)
