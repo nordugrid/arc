@@ -150,22 +150,20 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/%{pkgdir}/libdmc*.so
 %{_libdir}/%{pkgdir}/libpdpservice.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
-%{_libdir}/%{pkgdir}/libarcservice_pythonwrapper.so
-%if "%{!?disable_java:java}"
-%{_libdir}/%{pkgdir}/libarcservice_javawrapper.so
-%endif
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libecho.so
 
 %files python
 %defattr(-,root,root,-)
 %{_libdir}/python?.?/site-packages/
+%{_libdir}/%{pkgdir}/libarcservice_pythonwrapper.so
 
 %if "%{!?disable_java:java}"
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
 %{_datadir}/java/arc.jar
+%{_libdir}/%{pkgdir}/libarcservice_javawrapper.so
 %endif
 
 %files doc
