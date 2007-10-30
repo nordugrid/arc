@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "PayloadSOAP.h"
+#include "SOAPEnvelope.h"
 #include "Message.h"
 
 namespace Arc {
@@ -15,7 +15,7 @@ namespace Arc {
   SOAP content. */
 class SOAPMessage {
  private:
-  Arc::PayloadSOAP* payload_; /** Main content of message */
+  Arc::SOAPEnvelope* payload_; /** Main content of message */
   Arc::MessageAuth* auth_; /** Authentication and authorization related information */
   Arc::MessageAttributes* attributes_; /** Various useful attributes */
   /** This element is maintained by MCC/element which handles/knows
@@ -36,13 +36,9 @@ class SOAPMessage {
   /** Assignment. Ensures shallow copy. */
   SOAPMessage& operator=(SOAPMessage& msg) { payload_=msg.payload_; auth_=msg.auth_; attributes_=msg.attributes_; return *this; };
   /** Returns pointer to current payload or NULL if no payload assigned. */
-  Arc::PayloadSOAP* Payload(void) { return payload_; };
-  /** Replace payload with new one */
-  Arc::PayloadSOAP* Payload(Arc::PayloadSOAP* new_payload) {
-    PayloadSOAP* p = payload_;
-    payload_=new_payload;
-    return p;
-  };
+  Arc::SOAPEnvelope* Payload(void);
+  /** Replace payload with a COPY of new one */
+  void Payload(Arc::SOAPEnvelope* new_payload);
   /** Returns a pointer to the current attributes object or NULL if no
       attributes object has been assigned. */
   Arc::MessageAttributes* Attributes(void) { return attributes_; };
