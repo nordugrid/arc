@@ -43,6 +43,10 @@ ARC prototype clients.
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
 Requires: %{name}
+# A-REX needs gSoap and Globus commond,rsl
+Requires: gsoap
+Requires: globus_common
+Requires: globus_rsl
 
 %description server
 ARC Hosting Environment Daemon (HED).
@@ -51,12 +55,26 @@ ARC Hosting Environment Daemon (HED).
 Summary: ARC plugins
 Group: System Environment/Libraries
 Requires: %{name}
-# A-REX needs gSoap
-Requires: gsoap
 
 %description plugins
 ARC plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
+
+%package plugins-globus
+Summary: ARC Globus plugins
+Group: System Environment/Libraries
+Requires: %{name}
+Requires: globus_common
+Requires: globus_ftp_client
+Requires: globus_ftp_control
+Requires: globus_rls_client
+
+%description plugins-globus
+ARC Globus plugins. This includes the Globus dependent Data Manager
+Components (DMCs):
+
+  libdmcgridftp.so
+  libdmcrls.so
 
 %package devel
 Summary: ARC development files
@@ -150,8 +168,13 @@ rm -rf $RPM_BUILD_ROOT
 %files plugins
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmcc*.so
-%{_libdir}/%{pkgdir}/libdmc*.so
+%{_libdir}/%{pkgdir}/libdmcfile.so
+%{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
+
+%files plugins-globus
+%{_libdir}/%{pkgdir}/libdmcgridftp.so
+%{_libdir}/%{pkgdir}/libdmcrls.so
 
 %files python
 %defattr(-,root,root,-)
