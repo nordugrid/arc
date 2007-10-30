@@ -148,7 +148,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmcc*.so
 %{_libdir}/%{pkgdir}/libdmc*.so
-%{_libdir}/%{pkgdir}/libpdpservice.so
+%{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libecho.so
