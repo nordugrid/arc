@@ -277,7 +277,7 @@ namespace Arc {
       }
       else {
         /* provide some metadata */
-        logger.msg(INFO, "start_reading_ftp: obtained size: %ull", size);
+        logger.msg(INFO, "start_reading_ftp: obtained size: %llu", size);
         SetSize(size);
       }
     }

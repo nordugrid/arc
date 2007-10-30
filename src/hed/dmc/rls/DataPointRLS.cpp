@@ -334,7 +334,7 @@ namespace Arc {
       }
     }
     logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
-    logger.msg(DEBUG, "meta_get_data: size: %ull", GetSize());
+    logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
     logger.msg(DEBUG, "meta_get_data: created: %s",
                GetCreated().str().c_str());
     if(!url.CommonLocOptions().empty()) {

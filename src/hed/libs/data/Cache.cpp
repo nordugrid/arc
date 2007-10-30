@@ -1356,7 +1356,7 @@ static unsigned long long int cache_clean(const std::string& cache_path,const st
     if(!(i->valid)) continue; // Remove all invalidated files
     if(total_size>=size) break;
   };
-  logger.msg(INFO, "Cleaned %ull bytes in cache", total_size);
+  logger.msg(INFO, "Cleaned %llu bytes in cache", total_size);
   if(h == -1) cache_close_list(ch);
   return total_size;
 }

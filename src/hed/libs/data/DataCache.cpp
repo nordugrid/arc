@@ -158,9 +158,9 @@ bool DataCache::stop(int file_state) {
 }
 
 bool DataCache::clean(unsigned long long int size) {
-  logger.msg(INFO, "Cache cleaning requested: %s, %ull bytes", cache_path.c_str(), size);
+  logger.msg(INFO, "Cache cleaning requested: %s, %llu bytes", cache_path.c_str(), size);
   unsigned long long int freed=cache_clean(cache_path,cache_data_path,cache_uid,cache_gid,size);
-  logger.msg(DEBUG, "Cache cleaned: %s, %ull bytes", cache_path.c_str(), freed);
+  logger.msg(DEBUG, "Cache cleaned: %s, %llu bytes", cache_path.c_str(), freed);
   if(freed < size) return false;
   return true;
 }
