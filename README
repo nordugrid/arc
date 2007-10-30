@@ -244,6 +244,7 @@ variable, the configuration file is assumed to be arex_client.xml in
 the current working directory. An example configuration file is shown
 below:
 
+<?xml version="1.0"?>
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
@@ -318,6 +319,7 @@ variable, the configuration file is assumed to be echo_client.xml in
 the current working directory. An example configuration file is shown
 below:
 
+<?xml version="1.0"?>
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
