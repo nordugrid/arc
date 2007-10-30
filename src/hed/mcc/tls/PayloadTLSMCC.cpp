@@ -62,7 +62,8 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
    if(!master_) return;
    if(ssl_) { 
      if(SSL_shutdown(ssl_) == 0) {
-       logger.msg(WARNING, "Failed to shut down SSL");
+       //logger.msg(WARNING, "Failed to shut down SSL");
+       logger.msg(VERBOSE, "Failed to shut down SSL");
      };
 /*
      while((err==0)&&(counter<60)){
