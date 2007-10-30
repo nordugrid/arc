@@ -48,10 +48,7 @@ int main(void) {
     logger.msg(Arc::ERROR, "Client chain does not have entry point");
     return -1;
   };
-
-  Arc::MessageAttributes attributes;
-  Arc::MessageContext context;
-
+  
   // -------------------------------------------------------
   //    Compose request and send to pdp service
   // -------------------------------------------------------
@@ -97,11 +94,17 @@ int main(void) {
   logger.msg(Arc::INFO, "Request: %s", req_str.c_str()); 
 
   // Send request
+  Arc::MessageContext context;
   Arc::Message reqmsg;
   Arc::Message repmsg;
+  Arc::MessageAttributes attributes_in;
+  Arc::MessageAttributes attributes_out;
   reqmsg.Payload(&reqdoc);
-  reqmsg.Attributes(&attributes);
+  reqmsg.Attributes(&attributes_in);
   reqmsg.Context(&context);
+  repmsg.Attributes(&attributes_out);
+  repmsg.Context(&context);
+
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
     logger.msg(Arc::ERROR, "Request failed");
