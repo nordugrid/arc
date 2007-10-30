@@ -7,6 +7,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
+#include <arc/message/PayloadSOAP.h>
 #include "pythonwrapper.h"
 
 #ifdef __cplusplus
@@ -261,12 +262,13 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
 
     arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
-        logger.msg(Arc::ERROR, "Cannot create inmsg argument");
+        logger.msg(Arc::ERROR, "Cannot create outmsg argument");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
+
     py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
     if (py_outmsg == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert outmsg to python object");
@@ -285,6 +287,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred() != NULL) {
                 PyErr_Print();
         }
+        Py_DECREF(py_inmsg);
+        Py_DECREF(py_outmsg);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
     
@@ -294,14 +298,16 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     std::cout << "status: " << str << std::endl;   
     SOAPMessage *outmsg_ptr2 = (SOAPMessage *)extract_swig_wrappered_pointer(py_outmsg);
     std::string xml;
-    PayloadSOAP *p = outmsg_ptr2->Payload();
+    SOAPEnvelope *p = outmsg_ptr2->Payload();
     p->GetXML(xml);
     std::cout << "XML: " << xml << std::endl; 
 
     Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
     // pl->GetXML(xml);   
+    Py_DECREF(py_inmsg);
+    Py_DECREF(py_outmsg);
     
-    outmsg.Payload((MessagePayload *)pl);
+    outmsg.Payload(pl);
 
     return status;
 }
