@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libarcattr.la
+noinst_LTLIBRARIES = libarcattr.la
 libarcattr_ladir = $(pkgincludedir)/security/ArcPDP/attr
 libarcattr_la_HEADERS = AttributeValue.h AttributeProxy.h AttributeFactory.h RequestAttribute.h
 libarcattr_la_SOURCES = RequestAttribute.cpp StringAttribute.cpp StringAttribute.h DateTimeAttribute.cpp DateTimeAttribute.h X500NameAttribute.cpp X500NameAttribute.h AnyURIAttribute.cpp AnyURIAttribute.h
