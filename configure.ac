@@ -382,6 +382,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/infosys/Makefile
                  src/hed/libs/delegation/Makefile
+                 src/hed/libs/ws/Makefile
                  src/hed/libs/misc/Makefile
                  src/hed/daemon/Makefile
                  src/hed/mcc/Makefile
@@ -419,6 +420,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/echo/Makefile
+                 src/clients/wsrf/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
