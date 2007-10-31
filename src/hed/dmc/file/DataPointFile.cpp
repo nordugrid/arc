@@ -12,6 +12,7 @@
 #include "DataPointFile.h"
 
 #include <fcntl.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <cerrno>
 
