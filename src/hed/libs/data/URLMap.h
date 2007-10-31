@@ -6,28 +6,26 @@
 
 namespace Arc {
 
-class URLMap {
- private:
-  class map_entry {
+  class URLMap {
+   private:
+    class map_entry {
+     public:
+      URL initial;
+      URL replacement;
+      URL access;
+      map_entry() {};
+      map_entry(const URL& templ, const URL& repl, const URL& accs = URL()) :
+        initial(templ), replacement(repl), access(accs) {};
+    };
+    std::list<map_entry> entries;
+    static Logger logger;
    public:
-    URL initial;
-    URL replacement;
-    URL access;
-    map_entry(void) {
-    };
-    map_entry(const URL& templ,const URL& repl,const URL& accs = URL()) :
-      initial(templ), replacement(repl), access(accs) {
-    };
+    URLMap();
+    ~URLMap();
+    bool map(URL& url) const;
+    bool local(const URL& url) const;
+    void add(const URL& templ, const URL& repl, const URL& accs = URL());
   };
-  std::list<map_entry> entries;
-  static Logger logger;
- public:
-  URLMap(void);
-  ~URLMap(void);
-  bool map(URL& url) const;
-  bool local(const URL& url) const;
-  void add(const URL& templ,const URL& repl,const URL& accs = URL());
-};
 
 } // namespace Arc
 
