@@ -1,1 +1,1 @@
-#include "../../../src/hed/libs/counter/IntraProcessCounter.h"
+#include "../../../src/hed/libs/common/counter/IntraProcessCounter.h"
