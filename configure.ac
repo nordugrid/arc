@@ -367,11 +367,11 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
                  src/hed/libs/common/Makefile
+                 src/hed/libs/common/counter/Makefile
                  src/hed/libs/data/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
                  src/hed/libs/message/Makefile
-                 src/hed/libs/counter/Makefile
                  src/hed/libs/security/Makefile
                  src/hed/libs/security/ArcPDP/Makefile
                  src/hed/libs/security/ArcPDP/attr/Makefile
