@@ -18,7 +18,7 @@
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>arcpdc</Name></Plugins>
-    <Plugins><Name>pdpservice</Name></Plugins>
+    <Plugins><Name>pdp</Name></Plugins>
 
     <Plugins Name="arcpdc">
           <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
