@@ -51,13 +51,13 @@ Requires: globus_rsl
 %description server
 ARC Hosting Environment Daemon (HED).
 
-%package plugins
-Summary: ARC plugins
+%package plugins-base
+Summary: ARC base plugins
 Group: System Environment/Libraries
 Requires: %{name}
 
-%description plugins
-ARC plugins. This includes the Message Chain Components (MCCs) and
+%description plugins-base
+ARC base plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
 
 %package plugins-globus
@@ -165,7 +165,7 @@ rm -rf $RPM_BUILD_ROOT
 #%{_libdir}/lib*.la
 %{_libdir}/lib*.so
 
-%files plugins
+%files plugins-base
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libmcc*.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
