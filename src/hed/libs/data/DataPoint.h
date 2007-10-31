@@ -43,7 +43,7 @@ namespace Arc {
     /// can be performed while 'reading' is in progress.
     /// \param buffer operation will use this buffer to put information into.
     /// Should not be destroyed before stop_reading was called and returned.
-    /// Returns true on success.
+    /// \returns true on success.
     virtual bool start_reading(DataBufferPar& buffer) = 0;
 
     /// Start writing data to URL.
@@ -51,9 +51,10 @@ namespace Arc {
     /// can be performed while 'writing' is in progress.
     /// \param buffer operation will use this buffer to get information from.
     /// Should not be destroyed before stop_writing was called and returned.
-    /// space_cb callback which is called if there is not enough to space
-    /// storing data. Currently implemented only for file:/// URL.
-    /// Returns true on success.
+    /// \param space_cb callback which is called if there is not
+    /// enough to space storing data. Currently implemented only for
+    /// file:/// URL. 
+    /// \returns true on success.
     virtual bool start_writing(DataBufferPar& buffer,
                                DataCallback *space_cb = NULL) = 0;
 
