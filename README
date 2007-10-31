@@ -128,7 +128,7 @@ is shown below:
 >
   <Server>
     <Foreground/>
-    <Pidfile>./arcserver.pid</Pidfile>
+    <Pidfile>./arched.pid</Pidfile>
     <Logger level="WARNING">./logfile</Logger>
   </Server>
   <ModuleManager>
@@ -216,7 +216,7 @@ Starting the Server
 
 To start the ARC server, type the following on the command line:
 
-  /usr/local/sbin/arcserver -c /etc/arcserv.xml &
+  /usr/local/sbin/arched -c /etc/arcserv.xml &
 
 If the server complains about "libglobus..." and that it cannot open a
 shared object file, try to add "/opt/globus/lib" to your

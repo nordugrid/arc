@@ -1,14 +1,14 @@
 .\" -*- nroff -*-
-.TH ARCSERVER "8" "July 2007" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.TH ARCHED "8" "July 2007" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
 .SH NAME
-arcserver \- ARC Hosting Environment Daemon
+arched \- ARC Hosting Environment Daemon
 .SH SYNOPSIS
-.B arcserver
+.B arched
 [\fIOPTION\fR]...
 .SH DESCRIPTION
 .\" Add any additional description here
 .PP
-arcserver is the ARC Hosting Environment Daemon and is responsible for...
+arched is the ARC Hosting Environment Daemon and is responsible for...
 .SH OPTIONS
 .TP
 \fB\-f\fR, \fB\-\-foreground\fR

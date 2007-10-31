@@ -10,7 +10,7 @@ BaseConfig::BaseConfig(const std::string& prefix):prefix_(prefix) {
 #ifndef WIN32
   if(prefix_.empty()) prefix_=Glib::getenv("ARC_LOCATION");
   if(prefix_.empty()) {
-    prefix_=Glib::find_program_in_path("arcserver");
+    prefix_=Glib::find_program_in_path("arched");
     if(!prefix_.empty()) {
       prefix_=Glib::path_get_dirname(prefix_);
       prefix_=Glib::path_get_dirname(prefix_);

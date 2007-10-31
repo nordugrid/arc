@@ -150,10 +150,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files server
 %defattr(-,root,root,-)
-%{_sbindir}/arcserver
+%{_sbindir}/arched
 %{_sbindir}/grid-manager
 %{_libexecdir}/smtp-send
-%doc %{_mandir}/man8/arcserver.8*
+%doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libarex.so

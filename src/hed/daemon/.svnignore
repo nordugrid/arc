@@ -1,5 +1,5 @@
-arcserver.8
-arcserver
+arched.8
+arched
 Makefile
 Makefile.in
 .libs
