@@ -50,7 +50,7 @@ namespace Arc {
   std::string AREXClient::submit(std::istream& jsdl_file)
     throw(AREXClientError)
   {
-    std::string jobid;
+    std::string jobid, faultstring;
     logger.msg(Arc::INFO, "Creating and sending request.");
 
     // Create job request
@@ -102,17 +102,22 @@ namespace Arc {
       throw AREXClientError
 	("The response to the submission request was not a SOAP message.");
     };
-    Arc::XMLNode id;
+    Arc::XMLNode id, fs;
     (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
+    (*resp)["Fault"]["faultstring"].New(fs);
     id.GetDoc(jobid);
+    faultstring=(std::string)fs;
     delete repmsg.Payload();
-    return jobid;
+    if (faultstring=="")
+      return jobid;
+    else
+      throw AREXClientError(faultstring);
   }
   
   std::string AREXClient::stat(const std::string& jobid)
     throw(AREXClientError)
   {
-    std::string state, substate;
+    std::string state, substate, faultstring;
     logger.msg(Arc::INFO, "Creating and sending a status request.");
     
     Arc::PayloadSOAP req(arex_ns);
@@ -153,7 +158,7 @@ namespace Arc {
       delete repmsg.Payload();
       throw AREXClientError("The response is not a SOAP message.");
     }
-    Arc::XMLNode st;
+    Arc::XMLNode st, fs;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"].New(st);
     state = (std::string)st.Attribute
@@ -162,16 +167,21 @@ namespace Arc {
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"]["state"].New(sst);
     substate = (std::string)sst;
+    (*resp)["Fault"]["faultstring"].New(fs);
+    faultstring=(std::string)fs;
     delete repmsg.Payload();
-    if (state=="")
+    if (faultstring!="")
+      throw AREXClientError(faultstring);
+    else if (state=="")
       throw AREXClientError("The job status could not be retrieved.");
-    return state+"/"+substate;
+    else
+      return state+"/"+substate;
   }
 
   void AREXClient::kill(const std::string& jobid)
     throw(AREXClientError)
   {
-    std::string result;
+    std::string result, faultstring;
     logger.msg(Arc::INFO, "Creating and sending request to terminate a job.");
     
     Arc::PayloadSOAP req(arex_ns);
@@ -214,11 +224,15 @@ namespace Arc {
       throw AREXClientError("The response is not a SOAP message.");
     }
 
-    Arc::XMLNode cancelled;
+    Arc::XMLNode cancelled, fs;
     (*resp)["TerminateActivitiesResponse"]
            ["Response"]["Cancelled"].New(cancelled);
     result = (std::string)cancelled;
+    (*resp)["Fault"]["faultstring"].New(fs);
+    faultstring=(std::string)fs;
     delete repmsg.Payload();
+    if (faultstring!="")
+      throw AREXClientError(faultstring);
     if (result!="true")
       throw AREXClientError("Job termination failed.");
   }
