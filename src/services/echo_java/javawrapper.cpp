@@ -6,6 +6,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/SOAPMessage.h>
+#include <arc/message/PayloadSOAP.h>
 #include "javawrapper.h"
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
