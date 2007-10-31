@@ -25,7 +25,6 @@ BuildRequires: globus_ftp_control-devel
 BuildRequires: globus_rls_client-devel
 BuildRequires: globus_rsl-devel
 #
-# A-REX needs gSoap
 BuildRequires: gsoap-devel
 
 %description
@@ -43,13 +42,21 @@ ARC prototype clients.
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
 Requires: %{name}
-# A-REX needs gSoap and Globus commond,rsl
+
+%description server
+ARC Hosting Environment Daemon (HED).
+
+%package arex
+Summary: ARC Remote EXecution service
+Group: System Environment/Libraries
+Requires: %{name}
+Requires: %{name}-server
 Requires: gsoap
 Requires: globus_common
 Requires: globus_rsl
 
-%description server
-ARC Hosting Environment Daemon (HED).
+%description arex
+ARC Remote EXecution service (AREX)
 
 %package plugins-base
 Summary: ARC base plugins
@@ -151,12 +158,14 @@ rm -rf $RPM_BUILD_ROOT
 %files server
 %defattr(-,root,root,-)
 %{_sbindir}/arched
-%{_sbindir}/grid-manager
-%{_libexecdir}/smtp-send
 %doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
+
+%files arex
 %{_libdir}/%{pkgdir}/libarex.so
+%{_sbindir}/grid-manager
+%{_libexecdir}/smtp-send
 
 %files devel
 %defattr(-,root,root,-)
@@ -179,14 +188,14 @@ rm -rf $RPM_BUILD_ROOT
 %files python
 %defattr(-,root,root,-)
 %{_libdir}/python?.?/site-packages/
-%{_libdir}/%{pkgdir}/libarcservice_pythonwrapper.so
+%{_libdir}/%{pkgdir}/libpythonservice.so
 
 %if "%{!?disable_java:java}"
 %files java
 %defattr(-,root,root,-)
 %{_libdir}/java/libjarc.so
 %{_datadir}/java/arc.jar
-%{_libdir}/%{pkgdir}/libarcservice_javawrapper.so
+%{_libdir}/%{pkgdir}/libjavaservice.so
 %endif
 
 %files doc

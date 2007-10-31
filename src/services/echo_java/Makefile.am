@@ -1,6 +1,7 @@
-pkglib_LTLIBRARIES = libarcservice_javawrapper.la
+pkglib_LTLIBRARIES = libjavaservice.la
 
-libarcservice_javawrapper_la_SOURCES  = javawrapper.cpp javawrapper.h
-libarcservice_javawrapper_la_CXXFLAGS = -fno-strict-aliasing $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(JDK_CFLAGS)
-libarcservice_javawrapper_la_LDFLAGS  = -no-undefined -avoid-version -module
-libarcservice_javawrapper_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(JDK_LIBS)
+libjavaservice_la_SOURCES  = javawrapper.cpp javawrapper.h
+libjavaservice_la_CXXFLAGS = -fno-strict-aliasing $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(JDK_CFLAGS)
+libjavaservice_la_LDFLAGS  = -no-undefined -avoid-version -module
+libjavaservice_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                             $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(JDK_LIBS)
