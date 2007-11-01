@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 #include <pwd.h>
+#include <unistd.h>
 
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
