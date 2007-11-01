@@ -154,6 +154,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/apkill
 %{_bindir}/apecho
 %{_bindir}/apinfo
+%{_bindir}/arccp
+%{_bindir}/arcls
+%{_bindir}/arcrm
 %{_bindir}/perftest
 
 %files server

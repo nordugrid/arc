@@ -419,6 +419,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/pdp/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
+                 src/clients/data/Makefile
                  src/clients/echo/Makefile
                  src/clients/wsrf/Makefile
                  src/tests/Makefile

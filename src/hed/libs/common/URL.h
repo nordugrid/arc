@@ -205,6 +205,10 @@ namespace Arc {
     std::string name;
   };
 
+
+  /// Reads a list of URLs from a file
+  std::list<URL> ReadURLList(const URL& urllist);
+
 } // namespace Arc
 
 #endif //  __ARC_URL_H__

@@ -6,6 +6,7 @@
 #include "StringConv.h"
 #include "URL.h"
 
+#include <fstream>
 #include <unistd.h>
 
 namespace Arc {
@@ -73,13 +74,18 @@ namespace Arc {
 
     pos = url.find("://");
     if(pos == std::string::npos) {
-      protocol = "file";
-      if(url[0] == '/')
-	path = url;
+      if(url[0] == '@') {
+	protocol = "urllist";
+	path = url.substr(1);
+      }
       else {
+	protocol = "file";
+	path = url;
+      }
+      if(path[0] != '/') {
 	char cwd[PATH_MAX];
 	getcwd(cwd, PATH_MAX);
-	path = cwd + ('/' + url);
+	path = cwd + ('/' + path);
       }
       return;
     }
@@ -196,9 +202,16 @@ namespace Arc {
     }
 
     // parse basedn in case of ldap-protocol
-    if(protocol == "ldap" && !path.empty())
+    if(protocol == "ldap")
       if(path.find(",") != std::string::npos)             // probably a basedn
 	path = BaseDN2Path(path);
+
+    // add absolute path for relative file URLs
+    if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
+      char cwd[PATH_MAX];
+      getcwd(cwd, PATH_MAX);
+      path = cwd + ('/' + path);
+    }
 
     // expand SRM short URLs
     if(protocol == "srm" && httpoptions.find("SFN") == httpoptions.end()) {
@@ -206,7 +219,7 @@ namespace Arc {
       path = "srm/managerv1";
     }
 
-    if(host.empty() && protocol != "file")
+    if(host.empty() && protocol != "file" && protocol != "urllist")
       URLLogger.msg(ERROR, "Illegal URL - no hostname given");
   }
 
@@ -242,10 +255,18 @@ namespace Arc {
 
   void URL::ChangePath(const std::string& newpath) {
     path = newpath;
+
     // parse basedn in case of ldap-protocol
-    if(protocol == "ldap" && !path.empty())
+    if(protocol == "ldap")
       if(path.find(",") != std::string::npos)             // probably a basedn
 	path = BaseDN2Path(path);
+
+    // add absolute path for relative file URLs
+    if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
+      char cwd[PATH_MAX];
+      getcwd(cwd, PATH_MAX);
+      path = cwd + ('/' + path);
+    }
   }
 
   std::string URL::BaseDN() const {
@@ -421,9 +442,9 @@ namespace Arc {
 
     pos = basedn.size();
     while((pos2 = basedn.rfind(",", pos - 1)) != std::string::npos) {
-      std::string tmppath = basedn.substr(pos2 + 1, pos - pos2 - 1) + "/";
-      while(tmppath[0] == ' ') tmppath = tmppath.substr(1);
-      newpath += tmppath;
+      std::string tmppath = basedn.substr(pos2 + 1, pos - pos2 - 1);
+      tmppath = tmppath.substr(tmppath.find_first_not_of(' '));
+      newpath += tmppath + '/';
       pos = pos2;
     }
 
@@ -500,6 +521,28 @@ namespace Arc {
       return name;
     else
       return name + ';' + OptionString(urloptions, ';');
+  }
+
+
+  std::list<URL> ReadURLList(const URL& url) {
+
+    std::list<URL> urllist;
+    if(url.Protocol() == "urllist") {
+      std::ifstream f(url.Path().c_str());
+      std::string line;
+      while(getline(f, line)) {
+	Arc::URL url(line);
+	if(url)
+	  urllist.push_back(url);
+	else
+	  URLLogger.msg(ERROR, "urllist %s contains invalid URL: %s",
+	                url.Path().c_str(), line.c_str());
+      }
+    }
+    else
+      URLLogger.msg(ERROR, "URL protocol is not urllist: %s",
+                    url.str().c_str());
+    return urllist;
   }
 
 } // namespace Arc

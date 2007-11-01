@@ -1,2 +1,2 @@
-SUBDIRS = a-rex echo wsrf
-DIST_SUBDIRS = a-rex echo wsrf
+SUBDIRS = a-rex data echo wsrf
+DIST_SUBDIRS = a-rex data echo wsrf
