@@ -1,6 +1,7 @@
 #include <getopt.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/misc/ClientInterface.h>
 #include <arc/loader/Loader.h>
 
 #define _(A) (A)
@@ -369,34 +370,10 @@ int main(int argc, char ** argv) {
 
 		while (argc > optind) params.push_back(argv[optind++]);
 
-		Arc::XMLNode client_doc("\
-    <ArcConfig>\
-     <ModuleManager>\
-        <Path>../../hed/dmc/file/.libs/</Path>\
-        <Path>../../hed/dmc/gridftp/.libs/</Path>\
-        <Path>../../hed/dmc/http/.libs/</Path>\
-        <Path>../../hed/dmc/lfc/.libs/</Path>\
-        <Path>../../hed/dmc/rls/.libs/</Path>\
-     </ModuleManager>\
-     <Plugins><Name>dmcfile</Name></Plugins>\
-     <Plugins><Name>dmcgridftp</Name></Plugins>\
-     <Plugins><Name>dmchttp</Name></Plugins>\
-     <Plugins><Name>dmclfc</Name></Plugins>\
-     <Plugins><Name>dmcrls</Name></Plugins>\
-     <DataManager name='file' id='file'></DataManager>\
-     <DataManager name='gridftp' id='gridftp'></DataManager>\
-     <DataManager name='http' id='http'></DataManager>\
-     <DataManager name='rls' id='rls'></DataManager>\
-     <DataManager name='lfc' id='lfc'></DataManager>\
-    </ArcConfig>\
-");
-
-		Arc::Config client_config(client_doc);
-
-		if(!client_config) {
-			logger.msg(Arc::ERROR, "Failed to load client configuration");
-			return 1;
-		}
+		Arc::DMCConfig dmcconf;
+		Arc::NS ns;
+		Arc::Config client_config(ns);
+		dmcconf.MakeConfig(client_config);
 		Arc::Loader client_loader(&client_config);
 		logger.msg(Arc::INFO, "DMCs are loaded");
 

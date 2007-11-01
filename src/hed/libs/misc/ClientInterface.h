@@ -14,11 +14,9 @@ namespace Arc {
   like software installation location, identity of user, etc. */
 class BaseConfig {
  protected:
-  std::string prefix_;
   std::list<std::string> plugin_paths_;
  public:
-  /** Constructor accepts software installation prefix */
-  BaseConfig(const std::string& prefix = "");
+  BaseConfig();
   ~BaseConfig(void) { };
   /** Adds non-standard location of plugins */ 
   void AddPluginsPath(const std::string& path);
@@ -75,5 +73,11 @@ class ClientSOAP: public ClientHTTP {
   MCC_Status process(PayloadSOAP* request,PayloadSOAP** response);  
 };
 
-}
+class DMCConfig : public BaseConfig {
+ public:
+  DMCConfig() : BaseConfig() {};
+  ~DMCConfig() {};
+  XMLNode MakeConfig(XMLNode cfg) const;
+};
 
+}

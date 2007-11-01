@@ -1,23 +1,27 @@
 #include <stdlib.h>
-#include <glibmm/miscutils.h>
+#include <glibmm/fileutils.h>
 #include <arc/StringConv.h>
 
 #include "ClientInterface.h"
 
 namespace Arc {
 
-BaseConfig::BaseConfig(const std::string& prefix):prefix_(prefix) {
+BaseConfig::BaseConfig() {
 #ifndef WIN32
-  if(prefix_.empty()) prefix_=Glib::getenv("ARC_LOCATION");
-  if(prefix_.empty()) {
-    prefix_=Glib::find_program_in_path("arched");
-    if(!prefix_.empty()) {
-      prefix_=Glib::path_get_dirname(prefix_);
-      prefix_=Glib::path_get_dirname(prefix_);
-    };
-  };
-  if(prefix_.empty()) prefix_="/usr/local";
-  plugin_paths_.push_back(prefix_+"/lib/arc");
+  if(getenv("ARC_PLUGIN_PATH")) {
+    std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
+    std::string::size_type pos = 0;
+    while(pos != std::string::npos) {
+      std::string::size_type pos2 = arcpluginpath.find(':', pos);
+      AddPluginsPath(pos2 == std::string::npos ?
+                    arcpluginpath.substr(pos) :
+                    arcpluginpath.substr(pos, pos2 - pos));
+      pos = pos2;
+      if(pos != std::string::npos) pos++;
+    }
+  }
+  else
+    AddPluginsPath(PKGLIBDIR);
 #endif
 }
 
@@ -116,5 +120,29 @@ MCC_Status ClientSOAP::process(PayloadSOAP* request,PayloadSOAP** response) {
   return r;
 }
 
+XMLNode DMCConfig::MakeConfig(XMLNode cfg) const {
+  XMLNode mm = BaseConfig::MakeConfig(cfg);
+  std::list<std::string> dmcs;
+  for(std::list<std::string>::const_iterator path = plugin_paths_.begin();
+      path != plugin_paths_.end(); path++) {
+    try {
+      Glib::Dir dir(*path);
+      for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
+	if((*file).substr(0, 6) == "libdmc") {
+	  std::string name = (*file).substr(6, (*file).find('.') - 6);
+	  if(std::find(dmcs.begin(), dmcs.end(), name) == dmcs.end()) {
+	    dmcs.push_back(name);
+	    cfg.NewChild("Plugins").NewChild("Name") = "dmc" + name;
+	    XMLNode dm = cfg.NewChild("DataManager");
+	    dm.NewAttribute("name") = name;
+	    dm.NewAttribute("id") = name;
+	  }
+	}
+      }
+    }
+    catch (Glib::FileError) {}
+  }
+  return mm;
 }
 
+}

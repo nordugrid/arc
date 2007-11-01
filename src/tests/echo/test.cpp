@@ -31,7 +31,7 @@ int main(void) {
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
 
   logger.msg(Arc::INFO, "Creating client interface");
-  Arc::BaseConfig client_cfg(".");
+  Arc::BaseConfig client_cfg;
   client_cfg.AddPluginsPath("../../hed/mcc/http/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/soap/.libs");
   client_cfg.AddPluginsPath("../../hed/mcc/tls/.libs");
