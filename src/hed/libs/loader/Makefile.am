@@ -15,7 +15,7 @@ libtestservice_la_SOURCES  = TestService.cpp TestService.h
 libtestservice_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 
 noinst_PROGRAMS = test
-test_SOURCES  = test.cpp
+test_SOURCES  = test.cpp 
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_LDADD    = ./libarcloader.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
+test_LDADD    = ./libarcloader.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la 

@@ -20,9 +20,11 @@
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 
 int main(void){
+#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
+#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "PDPTest");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);

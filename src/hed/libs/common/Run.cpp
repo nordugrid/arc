@@ -10,11 +10,11 @@
 #ifndef WIN32
 #include <sys/types.h>
 #include <signal.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #endif
 
+#include <unistd.h>
 #include "Run.h"
 
 
@@ -185,7 +185,7 @@ void Run::Kill(int timeout) {
   ::kill(pid_,SIGKILL);
   pid_=0;
 #else
-#error Must implement kill functionality for Windows
+#warning Must implement kill functionality for Windows
 #endif
 }
 

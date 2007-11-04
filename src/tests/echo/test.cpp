@@ -13,8 +13,10 @@
 #include <arc/misc/ClientInterface.h>
 
 int main(void) {
+#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
+#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr1(std::cerr, "C");
   Arc::Logger::rootLogger.addDestination(logcerr1);

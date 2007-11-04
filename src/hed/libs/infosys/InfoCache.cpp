@@ -22,7 +22,11 @@ InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
     std::string root = std::string(cfg["InformationSystem"]["CacheRoot"]);
     if (!Glib::file_test(root, Glib::FILE_TEST_IS_DIR)) {
         // create root directory
+#ifndef WIN32
         if (mkdir(root.c_str(), 0700) != 0) {
+#else
+	if (mkdir(root.c_str()) != 0) {
+#endif
             // rootLogger.msg(Arc::ERROR, "cannot create directory:" + root);
             std::cerr << "cannot create directory: " << root << std::endl;
             return;
@@ -32,7 +36,11 @@ InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
     path_base = Glib::build_filename(root, id);
     if (!Glib::file_test(path_base, Glib::FILE_TEST_IS_DIR)) {
         // create path_base directory
+#ifndef WIN32
         if (mkdir(path_base.c_str(), 0700) != 0) {
+#else
+	if (mkdir(path_base.c_str()) != 0) {
+#endif
             std::cerr << "cannot create directory: " << path_base << std::endl;
             // rootLogger.msg(Arc::ERROR, "cannot create directory:" + path_base);
             return;

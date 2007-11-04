@@ -66,8 +66,8 @@ namespace Arc {
     virtual MCC_Status process(Message& request, Message& response);
 
   /* protected:
-    XXX: workaround because the python segmentation fault
-    static Arc::Logger logger; */
+    XXX: workaround because the python segmentation fault */
+    static Arc::Logger logger;
 
   private:
 

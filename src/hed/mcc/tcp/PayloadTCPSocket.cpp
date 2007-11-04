@@ -1,8 +1,15 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#ifdef WIN32
+#define NOGDI
+#include <winsock2.h>
+typedef int socklen_t;
+#define ErrNo WSAGetLastError()
+#else
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
 #include <unistd.h>
 
 #include "PayloadTCPSocket.h"

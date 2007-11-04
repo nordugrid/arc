@@ -18,7 +18,9 @@ int main(void)
     std::cout << "ArcConfig:ModuleLoader:Path = " << (*config)["ArcConfig"]["ModuleLoader"]["Path"] << std::endl;
 
     Arc::CreateThreadFunction(func,(void*)5);
+#ifndef WIN32
     sleep(1);
+#endif
 
     return 0;
 }

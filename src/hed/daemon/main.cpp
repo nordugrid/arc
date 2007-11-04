@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+
 #include <fstream>
 #include <signal.h>
 #include <arc/ArcConfig.h>
@@ -10,6 +11,11 @@
 #include <arc/Logger.h>
 #include "daemon.h"
 #include "options.h"
+
+#ifdef WIN32
+#define NOGDI
+#include <windows.h>
+#endif
 
 Arc::Daemon *main_daemon;
 Arc::Config config;
@@ -113,7 +119,11 @@ int main(int argc, char **argv)
             logger.msg(Arc::INFO, "Service side MCCs are loaded");
             // sleep forever
             for (;;) {
+#ifndef WIN32
                 sleep(INT_MAX);
+#else
+		Sleep(INT_MAX);
+#endif
             }
         }
     } catch (const Glib::Error& error) {

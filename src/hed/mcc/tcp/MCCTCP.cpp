@@ -134,7 +134,7 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
     // Wait for threads to exit
     while(executers_.size() > 0) {
 #ifdef WIN32
-        lock_.unlock(); Sleep(100); lock_.lock();
+        lock_.unlock(); Sleep(1000); lock_.lock();
 #else
         lock_.unlock(); sleep(1); lock_.lock();
 #endif

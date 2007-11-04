@@ -363,6 +363,20 @@ AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
 AC_SUBST(LIBRESOLV)
 
 
+# check for platfom specific extra libraries
+
+EXTRA_LIBS=""
+REGEX_LIBS=""
+
+case "${host}" in
+  *-*-mingw32)
+    REGEX_LIBS="-lgnurx"
+    EXTRA_LIBS="-lole32" 
+ ;;
+esac
+AC_SUBST(EXTRA_LIBS)
+AC_SUBST(REGEX_LIBS)
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile

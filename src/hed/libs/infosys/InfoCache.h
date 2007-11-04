@@ -5,6 +5,9 @@
 #include <list>
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
+#ifdef WIN32
+#include <io.h>
+#endif
 
 namespace Arc {
 

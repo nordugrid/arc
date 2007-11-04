@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "Cache.h"
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <fcntl.h>
 
 namespace Arc {
