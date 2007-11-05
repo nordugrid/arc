@@ -58,7 +58,7 @@ namespace Arc {
   }
 
   //XXX: workaround because the python bindig segmentation fault
-  Arc::Logger Arc::Plexer::logger(Arc::MCC::logger,"Plexer");
+  Arc::Logger Arc::Plexer::logger(Arc::Logger::rootLogger,"Plexer");
 
   std::string Plexer::getPath(std::string url){
     std::string::size_type ds, ps;

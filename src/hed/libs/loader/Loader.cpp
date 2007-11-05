@@ -16,7 +16,8 @@ namespace Arc {
 
   Logger Loader::logger(Logger::rootLogger, "Loader");
 
-  Loader::Loader(Config *cfg) {
+  Loader::Loader(Config *cfg) : service_factory(NULL),mcc_factory(NULL),sechandler_factory(NULL),
+    pdp_factory(NULL),dmc_factory(NULL),context_(NULL){
     service_factory    = new ServiceFactory(cfg);
     mcc_factory        = new MCCFactory(cfg);
     sechandler_factory = new SecHandlerFactory(cfg);
