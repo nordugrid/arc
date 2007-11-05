@@ -131,7 +131,12 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string creden
   if(!make_job_id()) return;
   // Turn JSDL into text
   std::string job_desc_str;
-  jsdl.GetXML(job_desc_str);
+  // Make full XML doc out of subtree
+  {
+    Arc::XMLNode jsdldoc;
+    jsdl.New(jsdldoc);
+    jsdldoc.GetDoc(job_desc_str);
+  };
   // Store description
   std::string fname = config_.User()->ControlDir() + "/job." + id_ + ".description";
   if(!job_description_write_file(fname,job_desc_str)) {
