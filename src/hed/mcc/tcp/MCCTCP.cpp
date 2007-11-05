@@ -123,7 +123,7 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
-    logger.msg(Arc::DEBUG, "TCP_Service destroy");
+    //logger.msg(Arc::DEBUG, "TCP_Service destroy");
     lock_.lock();
     for(std::list<int>::iterator i = handles_.begin();i!=handles_.end();++i) {
         ::close(*i); *i=-1;
