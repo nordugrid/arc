@@ -370,7 +370,6 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    std::string key_file = (*cfg)["KeyPath"];
    if(key_file.empty()) key_file="key.pem";
    std::string ca_file = (*cfg)["CACertificatePath"];
-   if(ca_file.empty()) ca_file="ca.pem";
    std::string ca_dir = (*cfg)["CACertificatesDir"];
    if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
    std::string proxy_file = (*cfg)["ProxyPath"];
