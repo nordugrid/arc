@@ -284,7 +284,7 @@ namespace Arc {
 	    continue;
 	  }
 	  std::string label = cnn;
-	  mcc_connector.nexts[nid] = label;
+	  mcc_connector.nexts[label] = nid;
 	}
 	mcc_connector.name = name;
 	mcc_connectors->push_back(mcc_connector);
@@ -309,7 +309,7 @@ namespace Arc {
 	    continue;
 	  }
 	  std::string label = cnn;
-	  plexer_connector.nexts[nid] = label;
+	  plexer_connector.nexts[label] = nid;
 	}
 	plexer_connector.name = name;
 	plexer_connectors->push_back(plexer_connector);
@@ -392,8 +392,8 @@ namespace Arc {
       for(std::map<std::string, std::string>::iterator next =
 	    mcc->nexts.begin();
 	  next != mcc->nexts.end(); next = mcc->nexts.begin()) {
-	std::string id = next->first;
-	std::string label = next->second;
+	std::string label = next->first;
+	std::string id = next->second;
 	mcc_container_t::iterator mcc_l = mccs_.find(id);
 	if(mcc_l != mccs_.end()) {
 	  // Make link MCC->MCC
@@ -436,8 +436,8 @@ namespace Arc {
       for(std::map<std::string, std::string>::iterator next =
 	    plexer->nexts.begin();
 	  next != plexer->nexts.end(); next = plexer->nexts.begin()) {
-	std::string id = next->first;
-	std::string label = next->second;
+	std::string label = next->first;
+	std::string id = next->second;
 	mcc_container_t::iterator mcc_l = mccs_.find(id);
 	if(mcc_l != mccs_.end()) {
 	  // Make link Plexer->MCC
