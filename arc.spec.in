@@ -168,7 +168,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files arex
 %{_libdir}/%{pkgdir}/libarex.so
-%{_libexecdir}/smtp-send
+#%{_libexecdir}/smtp-send
 
 %files devel
 %defattr(-,root,root,-)
