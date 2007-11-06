@@ -1,3 +1,5 @@
+SUBDIRS = scripts
+
 sbin_PROGRAMS = arched
 SOURCES = main.cpp options.cpp options.h daemon.cpp daemon.h
 

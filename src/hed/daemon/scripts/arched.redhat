@@ -1,0 +1,70 @@
+#! /bin/sh
+#
+# chkconfig: - 60 20
+# description: ARC HED service
+# processname: arched
+
+# Get config.
+. /etc/sysconfig/network
+
+# Get functions
+. /etc/init.d/functions
+
+if [ -f /etc/sysconfig/arched ]; then
+  . /etc/sysconfig/arched
+fi
+
+# Check that networking is up.
+if [ ${NETWORKING} = "no" ] ; then
+	exit 0
+fi
+
+RETVAL=0
+
+start() {
+ 	echo -n $"Starting ARC HED service: "
+	daemon arched
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/arched
+	return $RETVAL
+}	
+
+stop() {
+	echo -n $"Stopping ARC HED service: "
+	killproc arched
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/arched
+	return $RETVAL
+}	
+
+restart() {
+	stop
+	start
+}	
+
+# See how we were called.
+case "$1" in
+ start)
+ 	start
+	;;
+ stop)
+ 	stop
+	;;
+ status)
+ 	status arched
+	;;
+ restart)
+ 	restart
+	;;
+ condrestart)
+ 	[ -f /var/lock/subsys/arched ] && restart || :
+	;;
+ *)
+	echo $"Usage: $0 {start|stop|status|restart}"
+	exit 1
+	;;
+esac
+
+exit $?
