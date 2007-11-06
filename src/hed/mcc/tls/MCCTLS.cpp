@@ -84,6 +84,22 @@ static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
 
+/**Input the passphrase for key file*/
+static int passphrase_callback(char* buf, int size, int rwflag, void *) {
+   int len;
+   std::cout<<"Enter passphrase for your key file:"<<std::endl;
+   if(!(fgets(buf, size, stdin))) {
+     std::cerr<< "Failed to read passphrase from stdin"<<std::endl;
+     return -1;
+   }
+   len = strlen(buf);
+   if(buf[len-1] == '\n') {
+     buf[len-1] = '\0';
+     len--;
+   }
+   return len;
+}
+
 static int tls_rand_seeded_p = 0;
 #define my_MIN_SEED_BYTES 256 
 static bool tls_random_seed(Logger& logger, std::string filename, long n)
@@ -145,7 +161,9 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
-   SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
+   //SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
+   SSL_CTX_set_default_passwd_cb(sslctx, passphrase_callback);
+
    if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
