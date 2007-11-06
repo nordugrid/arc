@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# chkconfig: - 60 20
+# chkconfig: 345 87 13
 # description: ARC HED service
 # processname: arched
 
@@ -22,12 +22,15 @@ fi
 RETVAL=0
 
 start() {
- 	echo -n $"Starting ARC HED service: "
-	daemon arched
-	RETVAL=$?
-	echo
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/arched
-	return $RETVAL
+        # Check if it is already running
+        if [ ! -f /var/lock/subsys/arched ]; then
+ 	    echo -n $"Starting ARC HED service: "
+	    daemon arched
+            RETVAL=$?
+            [ $RETVAL -eq 0 ] && touch /var/lock/subsys/arched
+            echo
+        fi
+        return $RETVAL
 }	
 
 stop() {
