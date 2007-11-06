@@ -77,6 +77,11 @@ if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
     JDK_LIBS="-Wl,-framework -Wl,JavaVM"
 elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
     JNIH='<jni.h>'
+    if test -e /usr/lib/gcj-`gcc -dumpversion`/libjvm.so ; then
+        JDK_LIBS="-L/usr/lib/gcj-`gcc -dumpversion` -ljvm"
+    else
+        JDK_LIBS=-lgcj
+    fi
 fi
 
 jni_h=no
