@@ -34,7 +34,7 @@ echo Running autoreconf...
 autoreconf --verbose --force --install
 
 # For the Debian package build
-test -d debian && {
+test -d debian_dummy && {
 	# link these in Debian builds
 	rm -f config.sub config.guess
 	ln -s /usr/share/misc/config.sub .
