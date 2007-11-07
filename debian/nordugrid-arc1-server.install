@@ -1,0 +1,4 @@
+usr/sbin/arched
+usr/lib/arc/libecho.so
+usr/lib/arc/libpdp.so
+usr/share/man/man8/arched.8*

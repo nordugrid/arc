@@ -454,6 +454,7 @@ AC_CONFIG_FILES([Makefile
                  intl/Makefile
                  doc/Makefile
                  include/Makefile
+                 debian/Makefile 
                  arc.spec
                  src/hed/daemon/arched.8
 ])

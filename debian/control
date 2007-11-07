@@ -1,0 +1,64 @@
+Source: nordugrid-arc1
+Section: unknown
+Priority: extra
+Maintainer: Anders Waananen <waananen@nbi.dk>
+Build-Depends: debhelper (>= 5), autotools-dev, build-essential, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgcj-dev
+Standards-Version: 3.7.2
+
+Package: nordugrid-arc1
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ ARC shared libraries
+
+Package: nordugrid-arc1-client
+Architecture: any
+Description: ARC prototype clients
+ ARC prototype clients.
+
+Package: nordugrid-arc1-server
+Architecture: any
+Description: ARC Hosting Environment Daemon
+ ARC Hosting Environment Daemon (HED).
+
+#Package: nordugrid-arc1-arex
+#Architecture: any
+#Description: ARC Remote EXecution service
+# ARC Remote EXecution service (AREX)
+
+Package: nordugrid-arc1-plugins-base
+Architecture: any
+Description: ARC base plugins
+ ARC base plugins. This includes the Message Chain Components (MCCs)
+ and Data Manager Components (DMCs).
+
+#Package: nordugrid-arc1-plugins-globus
+#Architecture: any
+#Description: ARC Globus plugins
+#
+# ARC Globus plugins. This includes the Globus dependent Data Manager
+# Components (DMCs):
+# . 
+#   libdmcgridftp.so
+#   libdmcrls.so
+
+Package: nordugrid-arc1-dev
+Architecture: any
+Depends: libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
+Description: ARC development files
+ Development files for ARC
+
+Package: nordugrid-arc1-python
+Architecture: any
+Description: ARC Python wrapper
+ Python wrapper for ARC
+
+Package: nordugrid-arc1-java
+Architecture: any
+Description: ARC Java wrapper
+ Java wrapper for ARC
+
+Package: nordugrid-arc1-doc
+Architecture: all
+Description: ARC API documentation
+ ARC API docmentation
