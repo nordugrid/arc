@@ -79,6 +79,8 @@ elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
     JNIH='<jni.h>'
     if test -e /usr/lib/gcj-`gcc -dumpversion`/libjvm.so ; then
         JDK_LIBS="-L/usr/lib/gcj-`gcc -dumpversion` -ljvm"
+    elif test -e /usr/lib/gcj-`gcc -dumpversion|sed 's/\.[0-9]*$//'`/libjvm.so ; then
+        JDK_LIBS="-L/usr/lib/gcj-`gcc -dumpversion|sed 's/\.[0-9]*$//'` -ljvm"
     else
         JDK_LIBS=-lgcj
     fi
