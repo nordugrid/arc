@@ -14,6 +14,9 @@ namespace Arc {
   AREXClient::AREXClient(std::string configFile)
     throw(AREXClientError)
   {
+    Arc::LogStream logcerr(std::cerr, "AREXClient");
+    Arc::Logger::rootLogger.addDestination(logcerr);
+
     logger.msg(Arc::INFO, "Creating an A-REX client.");
 
     if (configFile=="" && getenv("ARC_AREX_CONFIG"))
