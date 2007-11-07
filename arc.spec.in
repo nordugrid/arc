@@ -33,7 +33,7 @@ ARC
 %package client
 Summary: ARC prototype clients
 Group: Applications/Internet
-Requires: %{name}
+Requires: %{name} = %{version}
 
 %description client
 ARC prototype clients.
@@ -41,7 +41,7 @@ ARC prototype clients.
 %package server
 Summary: ARC Hosting Environment Daemon
 Group: System Environment/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 
 %description server
 ARC Hosting Environment Daemon (HED).
@@ -49,8 +49,8 @@ ARC Hosting Environment Daemon (HED).
 %package arex
 Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
-Requires: %{name}
-Requires: %{name}-server
+Requires: %{name} = %{version}
+Requires: %{name}-server = %{version}
 Requires: gsoap
 Requires: globus_common
 Requires: globus_rsl
@@ -61,7 +61,7 @@ ARC Remote EXecution service (AREX)
 %package plugins-base
 Summary: ARC base plugins
 Group: System Environment/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 
 %description plugins-base
 ARC base plugins. This includes the Message Chain Components (MCCs) and
@@ -70,7 +70,7 @@ Data Manager Components (DMCs).
 %package plugins-globus
 Summary: ARC Globus plugins
 Group: System Environment/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 Requires: globus_common
 Requires: globus_ftp_client
 Requires: globus_ftp_control
@@ -86,7 +86,7 @@ Components (DMCs):
 %package devel
 Summary: ARC development files
 Group: Development/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 Requires: glibmm24-devel
 Requires: glib2-devel
 Requires: libxml2-devel
@@ -98,7 +98,7 @@ Development files for ARC
 %package python
 Summary: ARC Python wrapper
 Group: Development/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 Requires: python
 
 %description python
@@ -108,7 +108,7 @@ Python wrapper for ARC
 %package java
 Summary: ARC Java wrapper
 Group: Development/Libraries
-Requires: %{name}
+Requires: %{name} = %{version}
 
 %description java
 Java wrapper for ARC
