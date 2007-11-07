@@ -28,62 +28,100 @@ AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
 # Java
 dnl Check if Java is explicitly disabled.
 AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),[],enable_java="yes")
-AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [set the full path JDK include]))
+AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path SUN JDK. If unset the system JDK will be used]))
+
+JAVAC_FLAGS=
+JDK_CFLAGS=
+JDK_LIBS=
+
+if test "X$with_jdk" != "X"; then
+
+    # SUN JDK
+
+    JAVA=$with_jdk/bin/java
+    JAVAC=$with_jdk/bin/javac
+    JAR=$with_jdk/bin/jar
+
+    JDK_CFLAGS=-I$with_jdk/include
+    SUN_EXTRA_INCLUDE=
+    case "${host}" in
+	*-pc-mingw32)
+	    SUN_EXTRA_INCLUDE="win32" 
+	    ;;
+	*-pc-cygwin)
+	    SUN_EXTRA_INCLUDE="win32" 
+	    ;;
+	*linux*)
+	    SUN_EXTRA_INCLUDE="linux"
+	    ;;
+    esac
+    JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
+
+    SAVE_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
+    AC_CHECK_HEADERS(jni.h)
+    CPPFLAGS=$SAVE_CPPFLAGS
+
+    JNIH='<jni.h>'
+
+    for jvm in $with_jdk/jre/lib/i386/server \
+               $with_jdk/jre/lib/x86_64/server ; do
+	if test -e $jvm/libjvm.so ; then
+	    SAVE_LDFLAGS=$LDFLAGS
+	    LDFLAGS="-L$jvm $LDFLAGS"
+	    # delete cached test result...
+	    unset ac_cv_lib_jvm_JNI_CreateJavaVM
+	    AC_MSG_NOTICE([Checking for JVM in $jvm/libjvm.so])
+	    AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
+	                 [JDK_LIBS="-L$jvm -ljvm"], [])
+	    LDFLAGS=$SAVE_LDFLAGS
+	    test -n "$JDK_LIBS" && break
+	fi
+    done
+
+else
+
+    # System JDK
+
+    AC_CHECK_HEADERS(jni.h JavaVM/jni.h)
+
+    if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
+	# MacOS X
+	JNIH='<JavaVM/jni.h>'
+	JDK_LIBS="-Wl,-framework -Wl,JavaVM"
+    elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
+	# Linux
+	JNIH='<jni.h>'
+	# gcc 4.x
+	for jvm in /usr/lib/gcj-`gcc -dumpversion` \
+	           /usr/lib/gcj-`gcc -dumpversion|sed 's/\.[[0-9]]*$//'` \
+	           /usr/lib64/gcj-`gcc -dumpversion` \
+	           /usr/lib64/gcj-`gcc -dumpversion|sed 's/\.[[0-9]]*$//'` ; do
+	    if test -e $jvm/libjvm.so ; then
+		SAVE_LDFLAGS=$LDFLAGS
+		LDFLAGS="-L$jvm $LDFLAGS"
+		# delete cached test result...
+		unset ac_cv_lib_jvm_JNI_CreateJavaVM
+		AC_MSG_NOTICE([Checking for JVM in $jvm/libjvm.so])
+		AC_CHECK_LIB([jvm], [JNI_CreateJavaVM],
+		             [JDK_LIBS="-L$jvm -ljvm"], [])
+		LDFLAGS=$SAVE_LDFLAGS
+	    fi
+	    test -n "$JDK_LIBS" && break
+	done
+	# gcc 3.x
+	if test -z "$JDK_LIBS" ; then
+	    AC_CHECK_LIB([gcj], [JNI_CreateJavaVM], [JDK_LIBS=-lgcj], [])
+	fi
+    fi
+fi
 
 AC_CHECK_PROGS(JAVA, java gij)
 AC_CHECK_PROGS(JAVAC, javac gcj ecj)
 AC_CHECK_PROGS(JAR, fastjar jar)
 
-JAVAC_FLAGS=
 if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
     JAVAC_FLAGS=-C
-fi
-
-JDK_CFLAGS=$with_jdk
-if test "X$JAVAC" != "X"; then
-    if test "X$JDK_CFLAGS" == "X"; then
-        JDK_CFLAGS=`which $JAVAC`
-        JDK_CFLAGS=`dirname $JDK_CFLAGS`
-        JDK_CFLAGS=`dirname $JDK_CFLAGS`
-    fi
-
-    if test "x$JDK_CFLAGS" = "x/" || test "x$JDK_CFLAGS" = "x/usr"; then
-        JDK_CFLAGS=
-    else
-        JDK_CFLAGS=-I$JDK_CFLAGS/include
-        SUN_EXTRA_INCLUDE=
-        case "${host}" in
-            *-pc-mingw32)
-                SUN_EXTRA_INCLUDE="win32" 
-                ;;
-            *-pc-cygwin)
-                SUN_EXTRA_INCLUDE="win32" 
-                ;;
-            *linux*)
-                SUN_EXTRA_INCLUDE="linux"
-                ;;
-        esac
-        JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
-    fi
-fi
-
-SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
-AC_CHECK_HEADERS(jni.h JavaVM/jni.h)
-CPPFLAGS=$SAVE_CPPFLAGS
-
-if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
-    JNIH='<JavaVM/jni.h>'
-    JDK_LIBS="-Wl,-framework -Wl,JavaVM"
-elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
-    JNIH='<jni.h>'
-    if test -e /usr/lib/gcj-`gcc -dumpversion`/libjvm.so ; then
-        JDK_LIBS="-L/usr/lib/gcj-`gcc -dumpversion` -ljvm"
-    elif test -e /usr/lib/gcj-`gcc -dumpversion|sed 's/\.[0-9]*$//'`/libjvm.so ; then
-        JDK_LIBS="-L/usr/lib/gcj-`gcc -dumpversion|sed 's/\.[0-9]*$//'` -ljvm"
-    else
-        JDK_LIBS=-lgcj
-    fi
 fi
 
 jni_h=no
@@ -98,7 +136,8 @@ if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
 fi
 
 if test "X$jni_h" = "Xyes" && test "X$JAVAWRAP" = "Xyes" &&
-   test "X$JAVAC" != "X" && test "X$JAR" != "X"; then
+   test "X$JAVAC" != "X" && test "X$JAR" != "X" &&
+   test "X$JDK_LIBS" != "X" ; then
     AC_MSG_NOTICE([Java available: $JAVAC])
 else
     enable_java=no
