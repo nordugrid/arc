@@ -146,13 +146,13 @@ rm -rf $RPM_BUILD_ROOT
 %post server
 /sbin/chkconfig --add arched
 
-%preun
+%preun server
 if [ $1 = 0 ]; then
   service arched stop > /dev/null 2>&1
   /sbin/chkconfig --del arched
 fi
 
-%postun
+%postun server
 if [ "$1" -ge "1" ]; then
   service arched condrestart > /dev/null 2>&1
 fi
