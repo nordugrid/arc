@@ -133,12 +133,30 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
+mkdir -p $RPM_BUILD_ROOT/etc/init.d
+cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
+chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
 rm -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/KnowARC-API.pdf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post server
+/sbin/chkconfig --add arched
+
+%preun
+if [ $1 = 0 ]; then
+  service arched stop > /dev/null 2>&1
+  /sbin/chkconfig --del arched
+fi
+
+%postun
+if [ "$1" -ge "1" ]; then
+  service arched condrestart > /dev/null 2>&1
+fi
+exit 0
 
 
 %files
@@ -161,6 +179,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files server
 %defattr(-,root,root,-)
+/etc/init.d/arched
 %{_sbindir}/arched
 %doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
