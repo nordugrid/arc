@@ -1,2 +1,2 @@
-SUBDIRS=tcp tls http soap
+SUBDIRS=tcp http soap tls
 DIST_SUBDIRS = $(SUBDIRS) 

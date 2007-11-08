@@ -47,6 +47,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
   std::vector<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
     path = Glib::Module::build_path(*i, name);
+    // Loader::logger.msg(DEBUG, "Try load %s", path.c_str());
     FILE *file = fopen(path.c_str(), "r");
     if (file == NULL) {
       continue;

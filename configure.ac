@@ -16,6 +16,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 # Portable 64bit file offsets
@@ -413,15 +414,21 @@ AC_SUBST(LIBRESOLV)
 
 EXTRA_LIBS=""
 REGEX_LIBS=""
+EXTRA_LDFLAGS=""
+SOCKET_LIBS=""
 
 case "${host}" in
   *-*-mingw32)
     REGEX_LIBS="-lgnurx"
+    SOCKET_LIBS="-lws2_32"
     EXTRA_LIBS="-lole32" 
- ;;
+    EXTRA_LDFLAGS="-no-undefined"
+  ;;
 esac
 AC_SUBST(EXTRA_LIBS)
 AC_SUBST(REGEX_LIBS)
+AC_SUBST(EXTRA_LDFLAGS)
+AC_SUBST(SOCKET_LIBS)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
