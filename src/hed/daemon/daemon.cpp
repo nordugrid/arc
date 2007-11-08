@@ -49,8 +49,10 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
              * tty-related signals - no need to ignore them.
              */ 
             setsid();
-            /* close standard input */
-            fclose(stdin);
+            /* redirect standard input to /dev/null */
+            if (std::freopen("/dev/null", "r", stdin) == NULL) {
+                fclose(stdin);
+            }
             /* forward stdout and stderr to log file */
             if (std::freopen(log_file.c_str(), "a", stdout) == NULL) {
                 fclose(stdout);
