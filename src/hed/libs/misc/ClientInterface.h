@@ -16,10 +16,20 @@ class BaseConfig {
  protected:
   std::list<std::string> plugin_paths_;
  public:
+  std::string key;
+  std::string cert;
+  std::string cafile;
   BaseConfig();
   ~BaseConfig(void) { };
   /** Adds non-standard location of plugins */ 
   void AddPluginsPath(const std::string& path);
+  /** Add private key */
+  void AddPrivateKey(const std::string& path);
+  /** Add certificate */
+  void AddCertificate(const std::string& path);
+  /** Add CA file */
+  void AddCAFile(const std::string& path);
+
   /** Adds configuration part corresponding to stored 
     information into common configuration tree supplied in 
     'cfg' argument. */

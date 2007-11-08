@@ -7,6 +7,9 @@
 namespace Arc {
 
 BaseConfig::BaseConfig() {
+  key = "./key.pem";
+  cert = "./cert.pem";
+  cafile = "./ca.pem";
 #ifndef WIN32
   if(getenv("ARC_PLUGIN_PATH")) {
     std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
@@ -27,6 +30,19 @@ BaseConfig::BaseConfig() {
 
 void BaseConfig::AddPluginsPath(const std::string& path) {
   plugin_paths_.push_back(path);
+}
+
+void BaseConfig::AddPrivateKey(const std::string& path)
+{
+  key = path;
+}
+
+void BaseConfig::AddCertificate(const std::string& path) {
+  cert = path;
+}
+
+void BaseConfig::AddCAFile(const std::string& path) {
+  cafile = path;
 }
 
 XMLNode BaseConfig::MakeConfig(XMLNode cfg) const {
@@ -76,6 +92,9 @@ ClientSOAP::ClientSOAP(const BaseConfig& cfg,const std::string& host,int port,bo
   if(tls) {
     // TLS
     comp=ConfigMakeComponent(chain,"tls.client","tls","tcp");
+    comp.NewChild("KeyPath") = cfg.key;
+    comp.NewChild("CertificatePath") = cfg.cert;
+    comp.NewChild("CACertificatePath") = cfg.cafile;
   };
 
   // HTTP (POST)
