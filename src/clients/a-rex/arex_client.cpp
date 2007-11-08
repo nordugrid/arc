@@ -16,6 +16,7 @@ namespace Arc {
   {
     Arc::LogStream logcerr(std::cerr, "AREXClient");
     Arc::Logger::rootLogger.addDestination(logcerr);
+    logger.setThreshold(Arc::VERBOSE);
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");
 
