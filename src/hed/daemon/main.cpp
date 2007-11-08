@@ -59,7 +59,11 @@ static std::string init_logger(Arc::Config& cfg)
     std::string str = (std::string)log.Attribute("level");
     Arc::LogLevel level = Arc::string_to_level(str);
     Arc::Logger::rootLogger.setThreshold(level); 
-    std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::app);
+    std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
+    if(!(*dest)) {
+      std::cerr<<"Failed to open lof file: "<<log_file<<std::endl;
+      _exit(1);
+    }
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
     Arc::Logger::rootLogger.addDestination(*sd);
     if ((bool)cfg["Server"]["Foreground"]) {
