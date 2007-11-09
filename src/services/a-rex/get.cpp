@@ -29,10 +29,10 @@ Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::strin
     std::string html;
     html="<HTML>\r\n<HEAD>ARex: Jobs list</HEAD>\r\n<BODY><UL>\r\n";
     std::list<std::string> jobs = ARexJob::Jobs(config);
-std::cerr<<"Get: endpoint: "<<config.Endpoint()<<std::endl;
+    //std::cerr<<"Get: endpoint: "<<config.Endpoint()<<std::endl;
     for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
       std::string line = "<LI><I>job</I> <A HREF=\"";
-std::cerr<<"Get: job: "<<(*job)<<std::endl;
+      //std::cerr<<"Get: job: "<<(*job)<<std::endl;
       line+=config.Endpoint()+"/"+(*job);
       line+="\">";
       line+=(*job);
@@ -40,7 +40,7 @@ std::cerr<<"Get: job: "<<(*job)<<std::endl;
       html+=line;
     };
     html+="</UL>\r\n</BODY>\r\n</HTML>";
-std::cerr<<"Get: html: "<<html<<std::endl;
+    //std::cerr<<"Get: html: "<<html<<std::endl;
     Arc::PayloadRaw* buf = NULL;
     buf=new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
@@ -49,7 +49,7 @@ std::cerr<<"Get: html: "<<html<<std::endl;
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
-std::cerr<<"Get: there is no job: "<<id<<std::endl;
+    logger_.msg(Arc::ERROR, "Get: there is no job: %s", id.c_str());
     // TODO: make proper html message
     return NULL;
   };
@@ -57,6 +57,7 @@ std::cerr<<"Get: there is no job: "<<id<<std::endl;
   Arc::PayloadRawInterface* buf = NULL;
   if((buf=http_get(config.Endpoint()+"/"+id,session_dir,subpath)) == NULL) {
     // Can't get file
+    logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir.c_str(), subpath.c_str());
     // TODO: make proper html message
     return NULL;
   };
@@ -65,14 +66,14 @@ std::cerr<<"Get: there is no job: "<<id<<std::endl;
 
 static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath) {
   std::string path=bpath+"/"+hpath;
-std::cerr<<"http:get: burl: "<<burl<<std::endl;
-std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
-std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
-std::cerr<<"http:get: path: "<<path<<std::endl;
+  //std::cerr<<"http:get: burl: "<<burl<<std::endl;
+  //std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
+  //std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
+  //std::cerr<<"http:get: path: "<<path<<std::endl;
   struct stat st;
   if(lstat(path.c_str(),&st) == 0) {
     if(S_ISDIR(st.st_mode)) {
-std::cerr<<"http:get: directory"<<std::endl;
+      //std::cerr<<"http:get: directory"<<std::endl;
       DIR *dir=opendir(path.c_str());
       if(dir != NULL) {
         // Directory - html with file list
@@ -106,45 +107,18 @@ std::cerr<<"http:get: directory"<<std::endl;
         };
         closedir(dir);
         html+="</UL>\r\n</BODY>\r\n</HTML>";
-std::cerr<<"Get: html: "<<html<<std::endl;
+        //std::cerr<<"Get: html: "<<html<<std::endl;
         Arc::PayloadRaw* buf = new Arc::PayloadRaw;
         if(buf) buf->Insert(html.c_str(),0,html.length());
         return buf;
       };
     } else if(S_ISREG(st.st_mode)) {
       // File 
-std::cerr<<"http:get: file: "<<path<<std::endl;
+      //std::cerr<<"http:get: file: "<<path<<std::endl;
       //size=st.st_size;
       // TODO: support for range requests
       PayloadFile* h = new PayloadFile(path.c_str());
       return h;
-/*
-      int h = open(path.c_str(),O_RDONLY);
-      if(h != -1) {
-std::cerr<<"http:get: file is opened"<<std::endl;
-        off_t o = lseek(h,offset,SEEK_SET);
-        if(o != offset) {
-          // Out of file
-std::cerr<<"http:get: file has ended"<<std::endl;
-
-        } else {
-          if(size > MAX_CHUNK_SIZE) size=MAX_CHUNK_SIZE;
-std::cerr<<"http:get: file: size: "<<size<<std::endl;
-          char* sbuf = buf.Insert(offset,size);
-          if(sbuf) {
-            ssize_t l = read(h,sbuf,size);
-            if(l != -1) {
-              close(h);
-              size=l;
-              buf.Truncate(offset+size); // Make sure there is no garbage in buffer
-              buf.Truncate(st.st_size);  // Specify logical size
-              return true;
-            };
-          };
-        };
-        close(h);
-      };
-*/
     };
   };
   // Can't process this path

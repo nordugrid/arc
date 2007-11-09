@@ -39,6 +39,7 @@ int main(void) {
   };
   Arc::Loader service_loader(&service_config);
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
+  for(;;) sleep(10);
   logger.msg(Arc::INFO, "Creating client side chain");
 
 

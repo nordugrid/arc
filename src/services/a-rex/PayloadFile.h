@@ -7,8 +7,8 @@
 
 namespace ARex {
 
-/** Implementation of PayloadRawInterface whic provides access to aordinary file.
-  Current read-only mode is supported. */
+/** Implementation of PayloadRawInterface which provides access to ordinary file.
+  Currently only read-only mode is supported. */
 class PayloadFile: public Arc::PayloadRawInterface {
  protected:
   /* TODO: use system-independent file access */

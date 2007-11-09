@@ -28,7 +28,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s.c_str());
   };
   Arc::WSAEndpointReference id(in["ActivityIdentifier"]);
   if(!id) {
@@ -107,7 +107,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "ChangeActivityStatus: response = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "ChangeActivityStatus: response = \n%s", s.c_str());
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

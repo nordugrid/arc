@@ -140,8 +140,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
-  logger.msg(Arc::DEBUG, "process: method: %s", method.c_str());
-  logger.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
+  logger_.msg(Arc::DEBUG, "process: method: %s", method.c_str());
+  logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
   if(id.length() < endpoint.length()) {
     if(endpoint.substr(endpoint.length()-id.length()) == id) {
       endpoint.resize(endpoint.length()-id.length());
@@ -157,13 +157,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       while(subpath[0] == '/') subpath=subpath.substr(1);
     };
   };
-  logger.msg(Arc::DEBUG, "process: id: %s", id.c_str());
-  logger.msg(Arc::DEBUG, "process: subpath: %s", subpath.c_str());
+  logger_.msg(Arc::DEBUG, "process: id: %s", id.c_str());
+  logger_.msg(Arc::DEBUG, "process: subpath: %s", subpath.c_str());
 
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
-    logger.msg(Arc::ERROR, "Can't obtain configuration");
+    logger_.msg(Arc::ERROR, "Can't obtain configuration");
     // Service is not operational
     return Arc::MCC_Status();
   };
@@ -172,7 +172,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
   if(method == "POST") {
-    logger.msg(Arc::DEBUG, "process: POST");
+    logger_.msg(Arc::DEBUG, "process: POST");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -180,25 +180,25 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
-      logger.msg(Arc::ERROR, "input is not SOAP");
+      logger_.msg(Arc::ERROR, "input is not SOAP");
       return make_soap_fault(outmsg);
     };
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
-      logger.msg(Arc::ERROR, "input does not define operation");
+      logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
+    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
     if(id.empty()) {
       // Factory operations
-      logger.msg(Arc::DEBUG, "process: factory endpoint");
+      logger_.msg(Arc::DEBUG, "process: factory endpoint");
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
       Arc::PayloadSOAP& res = *outpayload;
       if(MatchXMLName(op,"CreateActivity")) {
-        logger.msg(Arc::DEBUG, "process: CreateActivity");
+        logger_.msg(Arc::DEBUG, "process: CreateActivity");
         CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"));
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
         GetActivityStatuses(*config,op,res.NewChild("bes-factory:GetActivityStatusesResponse"));
@@ -229,13 +229,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           return make_soap_fault(outmsg);
         };
       } else {
-        logger.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
+        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
         return make_soap_fault(outmsg);
       };
       {
         std::string str;
         outpayload->GetXML(str);
-        logger.msg(Arc::DEBUG, "process: response=%s",str.c_str());
+        logger_.msg(Arc::DEBUG, "process: response=%s",str.c_str());
       };
       outmsg.Payload(outpayload);
     } else {
@@ -254,29 +254,29 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       instreampayload = dynamic_cast<Arc::PayloadStreamInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(method == "GET") {
-      logger.msg(Arc::DEBUG, "process: GET");
+      logger_.msg(Arc::DEBUG, "process: GET");
       Arc::PayloadRawInterface* buf = Get(*config,id,subpath);
       if(!buf) { return make_soap_fault(outmsg); };
       outmsg.Payload(buf);
       return Arc::MCC_Status(Arc::STATUS_OK);
     } else if(method == "PUT") {
-      logger.msg(Arc::DEBUG, "process: PUT");
+      logger_.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
         Arc::MCC_Status ret = Put(*config,id,subpath,*inbufpayload);
         if(!ret) return make_fault(outmsg);
       } else if(instreampayload) {
         // Not implemented yet
-        logger.msg(Arc::ERROR, "PUT: input stream not implemented yet");
+        logger_.msg(Arc::ERROR, "PUT: input stream not implemented yet");
         return make_fault(outmsg);
       } else {
         // Method PUT requres input
-        logger.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
+        logger_.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
         return make_fault(outmsg);
       };
       return make_response(outmsg);
     } else {
       delete inmsg.Payload();
-      logger.msg(Arc::DEBUG, "process: %s: not supported",method.c_str());
+      logger_.msg(Arc::DEBUG, "process: %s: not supported",method.c_str());
       return Arc::MCC_Status();
     };
   };

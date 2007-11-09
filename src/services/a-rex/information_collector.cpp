@@ -59,7 +59,7 @@ void ARexService::InformationCollector(void) {
     {
       std::string cmd;
       cmd=nordugrid_libexec_loc+"/cluster-"+lrms+".pl -valid-to 120 -config "+nordugrid_config_loc+" -dn o=grid -l 2";
-      std::cerr<<"cmd: "<<cmd<<std::endl;
+      //std::cerr<<"cmd: "<<cmd<<std::endl;
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;
@@ -77,7 +77,7 @@ void ARexService::InformationCollector(void) {
     for(std::list<std::string>::iterator q = queues.begin();q!=queues.end();++q) {
       std::string cmd;
       cmd=nordugrid_libexec_loc+"/queue+jobs+users-"+lrms+".pl -valid-to 120 -config "+nordugrid_config_loc+" -dn nordugrid-queue-name="+(*q)+",o=grid -queue "+(*q)+" -l 2";
-      std::cerr<<"cmd: "<<cmd<<std::endl;
+      //std::cerr<<"cmd: "<<cmd<<std::endl;
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;

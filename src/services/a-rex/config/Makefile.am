@@ -6,5 +6,3 @@ GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la gri
 
 libconfig_la_SOURCES  = configcore.cpp configcore.h ngconfig.cpp ngconfig.h xmlconfig.cpp xmlconfig.h configio.h
 libconfig_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#libconfig_la_LIBADD= 
-#$(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/delegation/libdelegation.la $(top_srcdir)/src/hed/libs/infosys/libinfosys.la $(top_srcdir)/src/hed/libs/common/libarccommon.la ldif/libldif.la
