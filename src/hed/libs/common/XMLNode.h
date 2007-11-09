@@ -81,16 +81,7 @@ class XMLNode {
   bool operator!(void) const { return ((node_ == NULL) || is_temporary_); };
   /** Returns XMLNode instance representing n-th child of XML element.
     If such does not exist invalid XMLNode instance is returned */
-  XMLNode Child(int n = 0) const {
-    if(!node_) return XMLNode();
-    if(node_->type != XML_ELEMENT_NODE) return XMLNode();
-    xmlNodePtr p = n<0?NULL:node_->children;
-    for(;p;p=p->next) {
-      if(p->type == XML_TEXT_NODE) continue;
-      if((--n) < 0) break;
-    };
-    return XMLNode(p);
-  };
+  XMLNode Child(int n = 0) const;
   /** Returns XMLNode instance representing first child element with specified name. 
     Name may be "namespace_prefix:name" or simply "name". In last case namespace is ignored.
     If such node does not exist invalid XMLNode instance is returned */
@@ -102,26 +93,13 @@ class XMLNode {
     like  node["name"][5] */
   XMLNode operator[](int n) const;
   /** Returns number of children nodes */
-  int Size(void) const {
-    if(!node_) return 0;
-    int n = 0;
-    xmlNodePtr p = node_->children;
-    for(;p;p=p->next) {
-      if(p->type == XML_TEXT_NODE) continue;
-      ++n;
-    };
-    return n;
-  };
+  int Size(void) const;
   /** Same as operator[] **/
   XMLNode Get(const std::string& name) const {
     return operator[](name.c_str());
   };
-
   /** Returns name of XML node */
-  std::string Name(void) const { 
-    const char* name = (node_)?((node_->name)?(char*)(node_->name):""):"";
-    return std::string(name);
-  };
+  std::string Name(void) const;
   /** Returns namespace prefix of XML node */
   std::string Prefix(void) const;
   /** Returns prefix:name of XML node */
@@ -137,32 +115,16 @@ class XMLNode {
   /** Fills argument with whole XML document textual representation */
   void GetDoc(std::string& xml) const;
   /** Returns textual content of node excluding content of children nodes */
-  operator std::string(void) const {
-    std::string content;
-    if(!node_) return content;
-    for(xmlNodePtr p = node_->children;p;p=p->next) {
-      if(p->type != XML_TEXT_NODE) return "";
-      xmlChar* buf = xmlNodeGetContent(p);
-      if(!buf) continue;
-      content+=(char*)buf;
-      xmlFree(buf);
-    };
-    return content;
-  };
+  operator std::string(void) const;
   /** Sets textual content of node. All existing children nodes are discarded. */
-  XMLNode& operator=(const char* content) {
-    if(!node_) return *this;
-    xmlNodeSetContent(node_,(xmlChar*)content);
-    return *this;
-  };
+  XMLNode& operator=(const char* content);
   /** Sets textual content of node. All existing children nodes are discarded. */
   XMLNode& operator=(const std::string& content) {
     return operator=(content.c_str());
   };
   /** Same as operator=. Used for bindings. **/
   void Set(const std::string& content) {
-    if (!node_) return;
-    xmlNodeSetContent(node_, (xmlChar*)content.c_str());
+    operator=(content.c_str());
   }
   /** Make instance refer to another XML node. Ownership is not inherited. */
   XMLNode& operator=(const XMLNode& node);
@@ -180,11 +142,12 @@ class XMLNode {
   XMLNode NewAttribute(const std::string& name) { return NewAttribute(name.c_str()); };
   /** Returns number of attributes of node */
   int AttributesSize(void) const;
-  /** Assign namespaces of XML document at point specified by this instance.
+  /** Assigns namespaces of XML document at point specified by this instance.
     If namespace already exists it gets new prefix. New namespaces are added.
     It is usefull to apply this method to XML being processed in order to refer to it's 
     elements by known prefix. */
   void Namespaces(const NS& namespaces);
+  /** Returns namespaces known at this node */
   NS Namespaces(void);
   /** Returns prefix of specified namespace. 
     Empty string if no such namespace. */
@@ -208,7 +171,7 @@ class XMLNode {
     Returns instance refering to new child. XML element is a copy of supplied
     one but not owned by returned instance */
   XMLNode NewChild(const XMLNode& node,int n = -1,bool global_order = false);
-  /** Makes a copy of supplied node and place it to this one */
+  /** Makes a copy of supplied XML node and makes this instance refere to it */
   void Replace(const XMLNode& node);
   /** Destroys underlying XML element. 
     XML element is unlinked from XML tree and destroyed.
@@ -222,19 +185,18 @@ class XMLNode {
     but only the elements belonging to this XML subtree are returned.
   */ 
   std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
-
   /**Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
-  
-  /** Do a recursive copy (properties, namespaces and children when applicable)*/
-  //void Duplicate(XMLNode& new_node);
 };
 
+/** Container for multiple XMLNode elements */
 class XMLNodeContainer {
  private:
   std::vector<XMLNode*> nodes_;
  public:
+  /** Default constructor */
   XMLNodeContainer(void);
+  /** Copy constructor */
   XMLNodeContainer(const XMLNodeContainer&);
   ~XMLNodeContainer(void);
   XMLNodeContainer& operator=(const XMLNodeContainer&);

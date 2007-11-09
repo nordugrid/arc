@@ -173,6 +173,22 @@ XMLNode XMLNode::operator[](const char* name) const {
   return XMLNode(p);
 }
 
+int XMLNode::Size(void) const {
+  if(!node_) return 0;
+  int n = 0;
+  xmlNodePtr p = node_->children;
+  for(;p;p=p->next) {
+    if(p->type == XML_TEXT_NODE) continue;
+    ++n;
+  };
+  return n;
+}
+
+std::string XMLNode::Name(void) const {
+  const char* name = (node_)?((node_->name)?(char*)(node_->name):""):"";
+  return std::string(name);
+}
+
 int XMLNode::AttributesSize(void) const {
     if(!node_) return 0;
     if(node_->type != XML_ELEMENT_NODE) return 0;
@@ -246,6 +262,36 @@ void XMLNode::Name(const char* name) {
   };
   xmlNodeSetName(node_,(const xmlChar*)name_);
   if(ns) node_->ns=ns;
+}
+
+XMLNode XMLNode::Child(int n) const {
+  if(!node_) return XMLNode();
+  if(node_->type != XML_ELEMENT_NODE) return XMLNode();
+  xmlNodePtr p = n<0?NULL:node_->children;
+  for(;p;p=p->next) {
+    if(p->type == XML_TEXT_NODE) continue;
+    if((--n) < 0) break;
+  };
+  return XMLNode(p);
+}
+
+XMLNode::operator std::string(void) const {
+  std::string content;
+  if(!node_) return content;
+  for(xmlNodePtr p = node_->children;p;p=p->next) {
+    if(p->type != XML_TEXT_NODE) return "";
+    xmlChar* buf = xmlNodeGetContent(p);
+    if(!buf) continue;
+    content+=(char*)buf;
+    xmlFree(buf);
+  };
+  return content;
+}
+
+XMLNode& XMLNode::operator=(const char* content) {
+  if(!node_) return *this;
+  xmlNodeSetContent(node_,(xmlChar*)content);
+  return *this;
 }
 
 
