@@ -17,6 +17,14 @@ namespace Arc {
     RFC1123Time    // Day, DD Mon YYYY HH:MM:SS GMT
   };
 
+  enum PeriodBase {
+    PeriodMiliseconds,
+    PeriodSeconds,
+    PeriodMinutes,
+    PeriodHours,
+    PeriodDays,
+    PeriodWeeks
+  };
 
   class Period {
    public:
@@ -27,7 +35,7 @@ namespace Arc {
     Period(const time_t&);
 
     /** Constructor that tries to convert a string. */
-    Period(const std::string&);
+    Period(const std::string&, PeriodBase base = PeriodSeconds);
 
     /** Assignment operator from a time_t. */
     Period& operator=(const time_t&);

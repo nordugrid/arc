@@ -520,7 +520,7 @@ namespace Arc {
   Period::Period(const time_t& length) : seconds(length) {}
 
 
-  Period::Period(const std::string& period) : seconds(0) {
+  Period::Period(const std::string& period, PeriodBase base) : seconds(0) {
 
     if (period.empty()) {
       dateTimeLogger.msg(ERROR, "Empty period string");
@@ -604,26 +604,31 @@ namespace Arc {
           case 'W':
 	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24 * 7;
 	    pos = std::string::npos;
+	    base = PeriodDays;
 	    break;
           case 'd':
           case 'D':
 	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60 * 24;
 	    pos = std::string::npos;
+	    base = PeriodHours;
 	    break;
           case 'h':
           case 'H':
 	    seconds += stringtoi(period.substr(pos, len)) * 60 * 60;
 	    pos = std::string::npos;
+	    base = PeriodMinutes;
 	    break;
           case 'm':
           case 'M':
 	    seconds += stringtoi(period.substr(pos, len)) * 60;
 	    pos = std::string::npos;
+	    base = PeriodSeconds;
 	    break;
           case 's':
           case 'S':
 	    seconds += stringtoi(period.substr (pos, len));
 	    pos = std::string::npos;
+	    base = PeriodMiliseconds;
 	    break;
           case ' ':
 	    break;
@@ -637,8 +642,29 @@ namespace Arc {
 	}
       }
 
-      if(pos != std::string::npos)
-	seconds += stringtoi(period.substr(pos, len));
+      if(pos != std::string::npos) {
+	int n = stringtoi(period.substr(pos, len));
+	switch (base) {
+	  case PeriodMiliseconds:
+	    n /= 1000;
+	    break;
+	  case PeriodSeconds:
+	    break;
+	  case PeriodMinutes:
+	    n *= 60;
+	    break;
+	  case PeriodHours:
+	    n *= 60 * 60;
+	    break;
+	  case PeriodDays:
+	    n *= 60 * 60 * 24;
+	    break;
+	  case PeriodWeeks:
+	    n *= 60 * 60 * 24 * 7;
+	    break;
+	}
+	seconds += n;
+      }
     }
   }
 
