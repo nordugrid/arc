@@ -1,93 +1,113 @@
 #include <string>
 #include <list>
-#include <arc/loader/Loader.h>
+#include <arc/ArcConfig.h>
 #include <arc/message/Message.h>
+#include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
 namespace Arc {
 
-/** Configuration for client interface.
-   It contains information which can't be expressed in 
-  class constructor arguments. Most probably common things
-  like software installation location, identity of user, etc. */
-class BaseConfig {
- protected:
-  std::list<std::string> plugin_paths_;
- public:
-  std::string key;
-  std::string cert;
-  std::string cafile;
-  BaseConfig();
-  ~BaseConfig(void) { };
-  /** Adds non-standard location of plugins */ 
-  void AddPluginsPath(const std::string& path);
-  /** Add private key */
-  void AddPrivateKey(const std::string& path);
-  /** Add certificate */
-  void AddCertificate(const std::string& path);
-  /** Add CA file */
-  void AddCAFile(const std::string& path);
+  class Loader;
+  class MCC;
 
-  /** Adds configuration part corresponding to stored 
-    information into common configuration tree supplied in 
-    'cfg' argument. */
-  XMLNode MakeConfig(XMLNode cfg) const;
-};
+  /** Configuration for client interface.
+     It contains information which can't be expressed in
+     class constructor arguments. Most probably common things
+     like software installation location, identity of user, etc. */
+  class BaseConfig {
+   protected:
+    std::list<std::string> plugin_paths;
+   public:
+    std::string key;
+    std::string cert;
+    std::string cafile;
+    BaseConfig();
+    virtual ~BaseConfig() {};
+    /** Adds non-standard location of plugins */
+    void AddPluginsPath(const std::string& path);
+    /** Add private key */
+    void AddPrivateKey(const std::string& path);
+    /** Add certificate */
+    void AddCertificate(const std::string& path);
+    /** Add CA file */
+    void AddCAFile(const std::string& path);
+    /** Adds configuration part corresponding to stored information into
+       common configuration tree supplied in 'cfg' argument. */
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
 
-class ClientInterface {
- protected:
-  Loader* loader_;
-  MessageContext context_;
- public:
-  ClientInterface(void):loader_(NULL) { };
-  ~ClientInterface(void) { };
-  MCC_Status process(MessagePayload* request,MessagePayload** response) { };  
-};
+  class ClientInterface {
+   public:
+    ClientInterface(const BaseConfig& cfg);
+    virtual ~ClientInterface();
+   protected:
+    Config xmlcfg;
+    Loader *loader;
+    MessageContext context;
+  };
 
-// Also supports TLS
-class ClientTCP: public ClientInterface {
- public:
-  ClientTCP(const BaseConfig& cfg,const std::string& host,int port,bool tls);
-  ~ClientTCP(void);
-  MCC_Status process(PayloadRawInterface* request,PayloadStreamInterface** response);  
-  PayloadStreamInterface* stream(void);  
-};
+  // Also supports TLS
+  class ClientTCP : public ClientInterface {
+   public:
+    ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
+	      bool tls);
+    virtual ~ClientTCP();
+    MCC_Status process(PayloadRawInterface *request,
+		       PayloadStreamInterface **response);
+    PayloadStreamInterface *stream();
+   protected:
+    MCC *tcp_entry;
+    MCC *tls_entry;
+  };
 
-class ClientHTTP: public ClientTCP {
- public:
-  ClientHTTP(const BaseConfig& cfg,const std::string& host,int port,bool tls,const std::string& path);
-  ~ClientHTTP(void);
-  MCC_Status process(const std::string& method,PayloadRawInterface* request,
-                    int* code,std::string& reason,PayloadRawInterface** response);  
-};
+  class ClientHTTP : public ClientTCP {
+   public:
+    ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
+	       bool tls, const std::string& path);
+    virtual ~ClientHTTP();
+    MCC_Status process(const std::string& method, PayloadRawInterface *request,
+		       int *code, std::string& reason,
+		       PayloadRawInterface **response);
+   protected:
+    MCC *http_entry;
+  };
 
-/** Class with easy interface for sending/receiving SOAP messages over HTTP(S).
-  It takes care of configuring MCC chain and making an entry point. */
-class ClientSOAP: public ClientHTTP {
- protected:
-  MCC* soap_entry_;
- public:
-  /** Constructor creates MCC chain and connects to server.
-     cfg - common configuration,
-     host - hostname of remote server,
-     port - TCP port of remote server,
-     tls - true if connection to use HTTPS, false for HTTP,
-     path - internal path of service to be contacted.
-    TODO: use URL.
-  */
-  ClientSOAP(const BaseConfig& cfg,const std::string& host,int port,bool tls,const std::string& path);
-  ~ClientSOAP(void);
-  /** Send SOAP request and receive response. */
-  MCC_Status process(PayloadSOAP* request,PayloadSOAP** response);  
-};
+  /** Class with easy interface for sending/receiving SOAP messages
+     over HTTP(S).
+     It takes care of configuring MCC chain and making an entry point. */
+  class ClientSOAP : public ClientHTTP {
+   public:
+    /** Constructor creates MCC chain and connects to server.
+       cfg - common configuration,
+       host - hostname of remote server,
+       port - TCP port of remote server,
+       tls - true if connection to use HTTPS, false for HTTP,
+       path - internal path of service to be contacted.
+       TODO: use URL.
+     */
+    ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
+	       bool tls, const std::string& path);
+    virtual ~ClientSOAP();
+    /** Send SOAP request and receive response. */
+    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+   protected:
+    MCC *soap_entry;
+  };
 
-class DMCConfig : public BaseConfig {
- public:
-  DMCConfig() : BaseConfig() {};
-  ~DMCConfig() {};
-  XMLNode MakeConfig(XMLNode cfg) const;
-};
+  class MCCConfig : public BaseConfig {
+   public:
+    MCCConfig() : BaseConfig() {};
+    virtual ~MCCConfig() {};
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
 
-}
+  class DMCConfig : public BaseConfig {
+   public:
+    DMCConfig() : BaseConfig() {};
+    virtual ~DMCConfig() {};
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
+} // namespace Arc

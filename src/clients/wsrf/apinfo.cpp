@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     if(url.Protocol() == "http") { tls=false; }
     else if(url.Protocol() == "https") { tls=true; }
     else throw(std::invalid_argument(std::string("URL contains unsupported protocol")));
-    Arc::BaseConfig cfg;
+    Arc::MCCConfig cfg;
     Arc::ClientSOAP client(cfg,url.Host(),url.Port(),tls,url.Path());
     Arc::InformationRequest inforequest;
     Arc::PayloadSOAP request(*(inforequest.SOAP()));
