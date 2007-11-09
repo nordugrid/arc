@@ -65,7 +65,8 @@ Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::strin
 } 
 
 static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath) {
-  std::string path=bpath+"/"+hpath;
+  std::string path=bpath;
+  if(!hpath.empty()) path+="/"+hpath;
   //std::cerr<<"http:get: burl: "<<burl<<std::endl;
   //std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
   //std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
@@ -81,6 +82,8 @@ static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::str
         struct dirent *file;
         std::string html;
         html="<HTML>\r\n<HEAD>ARex: Job</HEAD>\r\n<BODY><UL>\r\n";
+	std::string furl = burl;
+	if(!hpath.empty()) furl+="/"+hpath;
         for(;;) {
           readdir_r(dir,&file_,&file);
           if(file == NULL) break;
@@ -90,14 +93,14 @@ static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::str
           if(lstat(fpath.c_str(),&st) == 0) {
             if(S_ISREG(st.st_mode)) {
               std::string line = "<LI><I>file</I> <A HREF=\"";
-              line+=burl+"/"+hpath+"/"+file->d_name;
+              line+=furl+"/"+file->d_name;
               line+="\">";
               line+=file->d_name;
               line+="</A> - "+Arc::tostring(st.st_size)+" bytes"+"\r\n";
               html+=line;
             } else if(S_ISDIR(st.st_mode)) {
               std::string line = "<LI><I>dir</I> <A HREF=\"";
-              line+=burl+"/"+hpath+"/"+file->d_name+"/";
+              line+=furl+"/"+file->d_name+"/";
               line+="\">";
               line+=file->d_name;
               line+="</A>\r\n";
