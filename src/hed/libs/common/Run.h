@@ -30,6 +30,8 @@ class Run {
   Glib::Pid pid_;
   // Arguments to execute
   Glib::ArrayHandle<std::string> argv_;
+  void (*initializer_func_)(void*);
+  void* initializer_arg_;
   // IO handlers
   bool stdout_handler(Glib::IOCondition cond);
   bool stderr_handler(Glib::IOCondition cond);
@@ -62,6 +64,7 @@ class Run {
   void CloseStdin(void);
   //void DumpStdout(void);
   //void DumpStderr(void);
+  void AssignInitializer(void (*initializer_func)(void*),void* initializer_arg);
   void Kill(int timeout);
 };
 

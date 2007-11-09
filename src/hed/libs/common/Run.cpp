@@ -44,6 +44,24 @@ class RunPump {
 RunPump* RunPump::instance_ = NULL;
 unsigned int RunPump::mark_ = ~RunPumpMagic;
 
+class RunInitializerArgument {
+ private:
+  void* arg_;
+  void (*func_)(void*);
+ public:
+  RunInitializerArgument(void (*func)(void*),void* arg):func_(func),arg_(arg) { };
+  void Run(void);
+};
+
+void RunInitializerArgument::Run(void) {
+   void* arg = arg_;
+   void (*func)(void*) = func_;
+   delete this;
+   if(!func) return;
+   (*func)(arg);
+   return;
+}
+
 RunPump::RunPump(void):thread_(NULL),context_(NULL) {
   try {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this,&RunPump::Pump), false);
@@ -135,10 +153,10 @@ void RunPump::Remove(Run* r) {
   list_lock_.unlock();
 }
 
-Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),started_(false),running_(false),result_(-1) {
+Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
 }
 
-Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),started_(false),running_(false),result_(-1) {
+Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
 }
 
 Run::~Run(void) {
@@ -154,10 +172,19 @@ bool Run::Start(void) {
   if(started_) return false;
   if(argv_.size() < 1) return false;
   RunPump& pump = RunPump::Instance();
+  RunInitializerArgument* arg = NULL;
   // TODO: Windows paths
   try {
     running_=true;
-    spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
+    if(initializer_func_) {
+      arg=new RunInitializerArgument(initializer_func_,initializer_arg_);
+      spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
+                             sigc::mem_fun(*arg,&RunInitializerArgument::Run),
+                             &pid_,&stdin_,&stdout_,&stderr_);
+    } else {
+      spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
+                             sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
+    };
     started_=true;
   } catch (Glib::Exception& e) { 
     running_=false;
@@ -168,6 +195,7 @@ bool Run::Start(void) {
     return false;
   };
   pump.Add(this);
+  if(arg) delete arg;
   return true;
 }
 
@@ -330,5 +358,12 @@ void Run::AssignStdin(std::string& str) {
   if(!running_) stdin_str_=&str;
 }
 
+void Run::AssignInitializer(void (*initializer_func)(void* arg),void* initializer_arg) {
+  if(!running_) {
+    initializer_arg_=initializer_arg;
+    initializer_func_=initializer_func;
+  };
 }
 
+}
+ 
