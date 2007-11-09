@@ -167,7 +167,7 @@
         <soap:fault name="ResourceUnknownFault" use="literal" />
       </wsdl:fault>
       <wsdl:fault name="ResourceUnavailableFault">
-        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+        <soap:fault name="ResourceUnavailableFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
   </wsdl:binding>
