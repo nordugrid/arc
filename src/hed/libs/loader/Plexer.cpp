@@ -46,7 +46,7 @@ namespace Arc {
       if (iter->label.match(path, unmatched)) {
         request.Attributes()->set("PLEXER:PATTERN",iter->label.getPattern());
         if(unmatched.size() > 0) {
-          request.Attributes()->set("PLEXER:EXTENSION",*(unmatched.end()--));
+          request.Attributes()->set("PLEXER:EXTENSION",*(--unmatched.end()));
         };
         return iter->service->process(request, response);
       }
