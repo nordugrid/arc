@@ -342,8 +342,11 @@ AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 
 # Setup defines
-if test -n "$GLOBUS_RLS_VERSION"; then
+if test -n "$GLOBUS_RSL_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS_RSL,,[define if GLOBUS RSL package is available])
+fi
+if test -n "$GLOBUS_RLS_CLIENT_VERSION"; then
+    AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RSL package is available])
 fi
 if test x"$GSOAP" = xyes; then
     AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is available])
