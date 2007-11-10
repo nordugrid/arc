@@ -245,8 +245,16 @@ namespace Arc {
     return host;
   }
 
+  void URL::ChangeHost(const std::string& newhost) {
+    host = newhost;
+  }
+
   int URL::Port() const {
     return port;
+  }
+
+  void URL::ChangePort(int newport) {
+    port = newport;
   }
 
   const std::string& URL::Path() const {

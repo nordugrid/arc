@@ -56,8 +56,14 @@ namespace Arc {
     /** Returns the hostname of the URL. */
     const std::string& Host() const;
 
+    /** Changes the hostname of the URL. */
+    void ChangeHost(const std::string& newhost);
+
     /** Returns the port of the URL. */
     int Port() const;
+
+    /** Changes the port of the URL. */
+    void ChangePort(int newport);
 
     /** Returns the path of the URL. */
     const std::string& Path() const;
