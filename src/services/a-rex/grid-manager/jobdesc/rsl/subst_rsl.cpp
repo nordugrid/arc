@@ -2,18 +2,14 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
 #include <string>
 #include <iostream>
 #include <globus_common.h>
 #include <globus_rsl.h>
-//@ #include "../misc/log_time.h"
+#include <arc/Logger.h>
 #include "subst_rsl.h"
 
-//@
-#define olog std::cerr
-#define olog_ std::cerr
-//@
+Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #define GLOBUS_ERROR ((globus_result_t)(GLOBUS_FAILURE))
 
@@ -30,7 +26,7 @@ globus_result_t rsl_subst_table_init(rsl_subst_table_t* symbol_table) {
   if((symbol_table->symbols=
         (globus_symboltable_t*)globus_malloc(sizeof(rsl_subst_table_t))) 
                           == GLOBUS_NULL) {
-     olog<<"Memory allocation error"<<std::endl;
+     logger.msg(Arc::ERROR,"Memory allocation error");
      return GLOBUS_ERROR;
   };  
   globus_symboltable_init(symbol_table->symbols,
@@ -86,7 +82,7 @@ globus_result_t rsl_subst(globus_rsl_t* rsl,rsl_subst_table_t* symbol_table) {
 
 void subst_structure(globus_rsl_t *cur,rsl_subst_table_t* symbol_table) {
   if(globus_rsl_is_boolean(cur)) {
-    olog<<"BOOLEAN: "<<cur->req.boolean.my_operator<<std::endl;
+    //olog<<"BOOLEAN: "<<cur->req.boolean.my_operator<<std::endl;
     globus_rsl_t* cur_;
     globus_list_t *list = cur->req.boolean.operand_list;
     for(;;) {
@@ -98,14 +94,14 @@ void subst_structure(globus_rsl_t *cur,rsl_subst_table_t* symbol_table) {
   }
   else if(globus_rsl_is_relation(cur)) {
     char* res;
-    olog<<"RELATION: "<<cur->req.relation.attribute_name<<" ";
-    olog_<<rsl_operators[cur->req.relation.my_operator]<<" ";
+    //olog<<"RELATION: "<<cur->req.relation.attribute_name<<" ";
+    //olog_<<rsl_operators[cur->req.relation.my_operator]<<" ";
     res=subst_value(&(cur->req.relation.value_sequence),symbol_table,0);
     if(res) free(res);
-    olog_<<std::endl;
+    //olog_<<std::endl;
   }
   else {
-    olog<<"UNKNOWN STRUCTURE"<<std::endl;
+    logger.msg(Arc::ERROR,"UNKNOWN RSL STRUCTURE");
   };
 }
 
@@ -116,12 +112,12 @@ char* subst_value(globus_rsl_value_t** cur_p,rsl_subst_table_t* symbol_table,int
   char* res__;
   globus_rsl_value_t* cur = (*cur_p);
   if(globus_rsl_value_is_literal(cur)) {
-    olog_<<"LITERAL( ";
-    olog_<<cur->value.literal.string<<" ";
+    //olog_<<"LITERAL( ";
+    //olog_<<cur->value.literal.string<<" ";
     res=strdup(cur->value.literal.string);
   }
   else if(globus_rsl_value_is_concatenation(cur)) {
-    olog_<<"CONCATENATION( ";
+    //olog_<<"CONCATENATION( ";
     res=subst_value(&(cur->value.concatenation.left_value),symbol_table,0);
     res_=subst_value(&(cur->value.concatenation.right_value),symbol_table,0);
     if((res!=NULL) && (res_!=NULL)) {
@@ -134,7 +130,7 @@ char* subst_value(globus_rsl_value_t** cur_p,rsl_subst_table_t* symbol_table,int
     };
   }
   else if(globus_rsl_value_is_sequence(cur)) {
-    olog_<<"SEQUENCE( ";
+    //olog_<<"SEQUENCE( ";
     globus_rsl_value_t* cur_;
     globus_list_t *list = cur->value.sequence.value_list;
     if(subst_flag) {
@@ -158,13 +154,13 @@ char* subst_value(globus_rsl_value_t** cur_p,rsl_subst_table_t* symbol_table,int
     };
   }
   else if(globus_rsl_value_is_variable(cur)) {
-    olog_<<"VARIABLE( ";
+    //olog_<<"VARIABLE( ";
     res=subst_value(&(cur->value.variable.sequence),symbol_table,1);
     /* here we have name of the variable */
     if(res) {
       char* value = (char*)globus_symboltable_lookup(symbol_table->symbols,res);
       if(value) {
-        olog_<<" changing "<<res<<" to "<<value<<" , ";
+        //olog_<<" changing "<<res<<" to "<<value<<" , ";
         globus_rsl_value_t* tmp = globus_rsl_value_make_literal(strdup(value));
         if(tmp) { 
           globus_rsl_value_free_recursive(cur);
@@ -176,9 +172,10 @@ char* subst_value(globus_rsl_value_t** cur_p,rsl_subst_table_t* symbol_table,int
     };
   }
   else {
-    olog_<<"UNKNOWN( ";
+    logger.msg(Arc::ERROR,"UNKNOWN RLS ELEMENT");
+    //olog_<<"UNKNOWN( ";
   };
-  olog_<<") ";
+  //olog_<<") ";
   return res;
 }
 

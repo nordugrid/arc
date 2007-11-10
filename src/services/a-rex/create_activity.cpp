@@ -59,12 +59,13 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   };
   ARexJob job(jsdl,config,delegation);
   if(!job) {
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
+    std::string failure = job.Failure();
+    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());
     // Failed to create new job (generic SOAP error)
     Arc::SOAPEnvelope fault(ns_,true);
     if(fault) {
       fault.Fault()->Code(Arc::SOAPFault::Receiver);
-      fault.Fault()->Reason("Can't create new activity");
+      fault.Fault()->Reason(("Can't create new activity: "+failure).c_str());
       out.Replace(fault.Child());
     };
     return Arc::MCC_Status();

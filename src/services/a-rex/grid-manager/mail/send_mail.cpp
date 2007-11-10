@@ -1,13 +1,11 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-//@ #include "../std.h"
 #include <string>
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../run/run_parallel.h"
 #include "../conf/environment.h"
-//@ #include "../misc/log_time.h"
 #include "send_mail.h"
 
 //@ 

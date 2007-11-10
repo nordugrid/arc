@@ -36,9 +36,7 @@ bool JobRequest::print(std::string&) throw(JobRequestError) {
 
 JobRequest::InputFile::InputFile(const std::string& n,const std::string& s):name(n) {
 	if(s.find(':') != std::string::npos) {
-		//@ try {
-			source=s;
-		//@ } catch(URLError) { };
+		source=s;
 	} else {
 		parameters=s;
 	};
@@ -46,9 +44,7 @@ JobRequest::InputFile::InputFile(const std::string& n,const std::string& s):name
 
 JobRequest::OutputFile::OutputFile(const std::string& n,const std::string& d):name(n) {
 	if(d.length()) {
-		//@ try {
-			destination=d;
-		//@ } catch(URLError) { };
+		destination=d;
 	}
 }
 

@@ -53,7 +53,7 @@ class ARexJob {
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
-  std::string Failure(void) { return failure_; };
+  std::string Failure(void) { std::string r=failure_; failure_=""; return r; };
   /** Return ID assigned to job */
   std::string ID(void) { return id_; };
   /** Fills provided jsdl with job description */

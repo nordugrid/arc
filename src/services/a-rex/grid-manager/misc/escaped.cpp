@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
 #include "escaped.h"
 #include <ctype.h>
 

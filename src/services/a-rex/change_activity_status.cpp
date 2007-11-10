@@ -43,6 +43,9 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   ARexJob job(jobid,config);
   if(!job) {
     // There is no such job
+    std::string failure = job.Failure();
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: %s",failure.c_str());
+
 
   };
   Arc::XMLNode old_state = in["OldStatus"];

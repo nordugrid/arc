@@ -8,8 +8,6 @@
   acts on states
 */
 
-//@ #include "../std.h"
-
 #include <string>
 #include <list>
 #include <iostream>
@@ -18,8 +16,6 @@
 #include "../jobs/job_request.h"
 #include "../run/run_parallel.h"
 #include "../conf/environment.h"
-//@ #include "../misc/inttostring.h"
-//@#include "../misc/stringtoint.h"
 #include "../mail/send_mail.h"
 #include "../url/url_options.h"
 //@ #include "../misc/log_time.h"
@@ -39,7 +35,8 @@
 #include <arc/StringConv.h>
 #define olog std::cerr
 #define odlog(level) std::cerr
-#define inttostring Arc::tostring
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static bool stringtoint(const std::string& s,time_t& i) {
   i=Arc::stringto<time_t>(s);
@@ -389,7 +386,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     else { cmd=nordugrid_libexec_loc+"/downloader"; };
     uid_t user_id = user->get_uid();
     if(user_id == 0) user_id=i->get_uid();
-    std::string user_id_s = inttostring(user_id);
+    std::string user_id_s = Arc::tostring(user_id);
     std::string max_files_s;
     std::string min_speed_s;
     std::string min_speed_time_s;
@@ -423,7 +420,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL
     };
     if(JobsList::max_downloads > 0) {
-      max_files_s=inttostring(JobsList::max_downloads);
+      max_files_s=Arc::tostring(JobsList::max_downloads);
       args[argn]="-n"; argn++;
       args[argn]=(char*)(max_files_s.c_str()); argn++;
     };
@@ -437,20 +434,20 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       args[argn]="-Z"; argn++;
     };
     if(JobsList::min_speed) {
-      min_speed_s=inttostring(JobsList::min_speed);
-      min_speed_time_s=inttostring(JobsList::min_speed_time);
+      min_speed_s=Arc::tostring(JobsList::min_speed);
+      min_speed_time_s=Arc::tostring(JobsList::min_speed_time);
       args[argn]="-s"; argn++; 
       args[argn]=(char*)(min_speed_s.c_str()); argn++;
       args[argn]="-S"; argn++; 
       args[argn]=(char*)(min_speed_time_s.c_str()); argn++;
     };
     if(JobsList::min_average_speed) {
-      min_average_speed_s=inttostring(JobsList::min_average_speed);
+      min_average_speed_s=Arc::tostring(JobsList::min_average_speed);
       args[argn]="-a"; argn++; 
       args[argn]=(char*)(min_average_speed_s.c_str()); argn++;
     };
     if(JobsList::max_inactivity_time) {
-      max_inactivity_time_s=inttostring(JobsList::max_inactivity_time);
+      max_inactivity_time_s=Arc::tostring(JobsList::max_inactivity_time);
       args[argn]="-i"; argn++; 
       args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
     };
@@ -865,7 +862,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
               } else {
               */
                 i->AddFailure("LRMS error: ("+
-                      inttostring(ec.code())+") "+ec.description());
+                      Arc::tostring(ec.code())+") "+ec.description());
                 job_error=true;
                 //i->job_state = JOB_STATE_FINISHING;
                 JobFailStateRemember(i,JOB_STATE_INLRMS);

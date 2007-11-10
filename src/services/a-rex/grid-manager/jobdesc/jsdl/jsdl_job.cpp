@@ -1,4 +1,3 @@
-//@ #include "../std.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -10,27 +9,20 @@
 #endif
 #include <fstream>
 
+#include <arc/StringConv.h>
+
 #include "jsdl_soapStub.h"
 #include "../../files/info_types.h"
 #include "../../files/info_files.h"
-//@ #include "../../misc/stringtoint.h"
 #include "../../misc/canonical_dir.h"
-//@ #include "../../misc/inttostring.h"
 #include "../../url/url_options.h"
-//@ #include "../../misc/log_time.h"
 
-// For some constants
 #include "../jobdesc_util.h"
 #include "../../jobs/users.h"
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"
 
-//@ 
-#include <arc/StringConv.h>
-#define olog std::cerr
-#define odlog(level) std::cerr
-#define inttostring Arc::tostring
-//@ 
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #include "jsdl_job.h"
 
@@ -209,7 +201,7 @@ bool JSDLJob::get_jobname(std::string& jobname) {
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   arguments.clear();
   if(job_posix_->Executable == NULL) {
-    odlog(ERROR)<<"ERROR: job description is missing executable"<<std::endl;
+    logger.msg(Arc::ERROR,"ERROR: job description is missing executable");
     return false;
   };
   strip_spaces(job_posix_->Executable->__item);
@@ -434,7 +426,7 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
   for(i_ds=ds->begin();i_ds!=ds->end();++i_ds) {
     if(!(*i_ds)) continue;
     if((*i_ds)->FilesystemName) {
-      odlog(ERROR)<<"ERROR: FilesystemName defined in job description - all files must be relative to session directory"<<std::endl;
+      logger.msg(Arc::ERROR,"ERROR: FilesystemName defined in job description - all files must be relative to session directory");
       return false;
     };
     // CreationFlag - ignore
@@ -556,15 +548,15 @@ bool JSDLJob::get_reruns(int& n) {
 
 bool JSDLJob::check(void) {
   if(!job_) {
-    odlog(ERROR)<<"ERROR: job description is missing"<<std::endl;
+    logger.msg(Arc::ERROR,"ERROR: job description is missing");
     return false;
   };
   if(!job_->JobDescription) {
-    odlog(ERROR)<<"ERROR: job description is missing"<<std::endl;
+    logger.msg(Arc::ERROR,"ERROR: job description is missing");
     return false;
   };
   if(!job_posix_) {
-    odlog(ERROR)<<"ERROR: job description is missing POSIX application"<<std::endl;
+    logger.msg(Arc::ERROR,"ERROR: job description is missing POSIX application");
     return false;
   };
   return true;
@@ -582,7 +574,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   if(!get_stdin(job_desc.stdin_)) return false;
   if(!get_stdout(job_desc.stdout_)) return false;
   if(!get_stderr(job_desc.stderr_)) return false;
-  n=-1; if(!get_lifetime(n)) return false; if(n != -1) job_desc.lifetime=inttostring(n);
+  n=-1; if(!get_lifetime(n)) return false; if(n != -1) job_desc.lifetime=Arc::tostring(n);
   if(!get_fullaccess(job_desc.fullaccess)) return false;
   if(acl) if(!get_acl(*acl)) return false;
   if(!get_arguments(l)) return false;
@@ -692,7 +684,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   char c = arguments.begin()->c_str()[0];
   if((c != '/') && (c != '$')){
     if(canonical_dir(*(arguments.begin())) != 0) {
-      olog<<"Bad name for executable: "<<*(arguments.begin())<<std::endl;
+      logger.msg(Arc::ERROR,"Bad name for executable: %s",arguments.begin()->c_str());
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*(arguments.begin())),true);
@@ -701,7 +693,8 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   if(!get_execs(execs)) return false;
   for(std::list<std::string>::iterator i = execs.begin();i!=execs.end();++i) {
     if(canonical_dir(*i) != 0) {
-      olog<<"Bad name for executable: "<<*i<<std::endl; return false;
+      logger.msg(Arc::ERROR,"Bad name for executable: %s",i->c_str());
+      return false;
     };
     fix_file_permissions(session_dir+"/"+(*i));
   };
@@ -741,7 +734,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDOUT; }
   else {
     if(canonical_dir(s) != 0) {
-      olog<<"Bad name for stdout: "<<s<<std::endl; return false;
+      logger.msg(Arc::ERROR,"Bad name for stdout: %s",s.c_str()); return false;
     };
     s=session_dir+s;
   };
@@ -750,7 +743,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDERR; }
   else {
     if(canonical_dir(s) != 0) {
-      olog<<"Bad name for stderr: "<<s<<std::endl; return false;
+      logger.msg(Arc::ERROR,"Bad name for stderr: %s",s.c_str()); return false;
     };
     s=session_dir+s;
   };
@@ -800,7 +793,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string tmp_s = *i;
     for(int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
-      olog<<"Bad name for runtime environemnt: "<<*i<<std::endl; return false;
+      logger.msg(Arc::ERROR,"Bad name for runtime environemnt: %s",i->c_str()); return false;
     };
     f<<"joboption_runtime_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;
     n++;

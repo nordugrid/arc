@@ -44,15 +44,17 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
     ARexJob job(jobid,config);
     if(!job) {
       // There is no such job
+      logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s - %s", jobid.c_str(), job.Failure().c_str());
 
       continue;
     };
     /*
-    // Check permissions on that ID
+    // TODO: Check permissions on that ID
     */
     // Read JSDL of job
     Arc::XMLNode jsdl = resp.NewChild("bes-factory:JobDefinition");
     if(!job.GetDescription(jsdl)) {
+      logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s - %s", jobid.c_str(), job.Failure().c_str());
       // Processing failure
       jsdl.Destroy();
 
@@ -63,7 +65,7 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityDocuments: response = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "GetActivityDocuments: response = \n%s", s.c_str());
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

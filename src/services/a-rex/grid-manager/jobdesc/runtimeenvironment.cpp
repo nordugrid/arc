@@ -3,6 +3,7 @@
 #endif
 
 #include <vector>
+#include <stdlib.h>
 
 #include "runtimeenvironment.h"
 #include <arc/StringConv.h>
@@ -77,13 +78,14 @@ bool RuntimeEnvironment::operator>(const RuntimeEnvironment& other) const {
 	// Start comparing
 	for (unsigned int i=0; i<max_size; i++) {
 		if (my_version[i]==other_version[i]) continue;
-		//@ try {
-			// first try to compare as integers
-			return (Arc::stringtoi(my_version[i])>Arc::stringtoi(other_version[i]));
-		//@ } catch (Arc::StringConvError& e) {
-		//@ 	// otherwise compare as strings
-		//@ 	return my_version[i]>other_version[i];
-		//@ }
+		// first try to compare as integers
+                char* my_e;
+                char* other_e;
+                int my_v = strtol(my_version[i].c_str(),&my_e,0);
+                int other_v = strtol(other_version[i].c_str(),&other_e,0);
+                if((*my_e == 0) && (*other_e == 0)) return (my_v > other_v);
+		// otherwise compare as strings
+		return my_version[i]>other_version[i];
 	}
 
 	// If we are here the versions are the same.

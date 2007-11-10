@@ -1,12 +1,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-//@ #include "../std.h"
 
 #include <string>
 #include <list>
 
-//@ 
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/statvfs.h>
@@ -14,18 +12,21 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <iostream>
-#define olog std::cerr
-//@ 
+
+#include <arc/Logger.h>
 #include "../jobs/users.h"
 #include "../conf/conf_file.h"
 #include "../conf/environment.h"
 #include "cache.h"
 #include "../files/info_files.h"
-//@ #include "../misc/log_time.h"
 #include "cache_cleaner.h"
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #ifdef __CREATE_EXEC__
 int main(void) {
+  logger.addDestination(*(new Arc::LogStream(std::cerr)));
+  logger.setThreshold(Arc::WARNING);
   if(!read_env_vars()) exit(1);
   JobUsers users;
   std::string my_username("");
@@ -39,7 +40,7 @@ int main(void) {
     if(pw != NULL) { my_username=pw->pw_name; };
   };
   if(my_username.length() == 0) {
-    olog << "Cache: Can't recognize myself." << std::endl; exit(1);
+    logger.msg(Arc::ERROR,"Cache: Can't recognize myself."); exit(1);
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
@@ -68,13 +69,13 @@ int cache_cleaner(const JobUsers &users) {
     long long int space_unclaimed = 0;
     long long int space_claimed   = 0;
 
-    // olog<<"Cache directory: "<<cache_dir<<std::endl;
-    // olog<<"Cache data directory: "<<cache_data_dir<<std::endl;
+    // logger.msg(Arc::ERROR,"Cache directory: %s",cache_dir.c_str());
+    // logger.msg(Arc::ERROR,"Cache data directory: %s",cache_data_dir.c_str());
 
     /* get available space */
     struct statvfs dst;
     if(statvfs((char*)(cache_data_dir.c_str()),&dst) != 0) {
-      olog<<"Cache: can't obtain info about file system at "<<cache_data_dir<<std::endl;
+      logger.msg(Arc::ERROR,"Cache: can't obtain info about file system at %s",cache_data_dir.c_str());
       if((cache_max < 0) || (cache_min < 0)) continue;
       available=0;
       space_hardsize=0;
@@ -83,7 +84,7 @@ int cache_cleaner(const JobUsers &users) {
       available = (long long int)dst.f_bavail * (dst.f_frsize ? dst.f_frsize : dst.f_bsize);
       space_hardsize = (long long int)dst.f_blocks * (dst.f_frsize ? dst.f_frsize : dst.f_bsize);
     };
-    // olog<<"Cache: space available: "<<available<<" bytes"<<std::endl;
+    // logger.msg(Arc::ERROR,"Cache: space available: %lli bytes",available);
     space_hardfree=available;
     space_softfree=space_hardfree;
     space_softsize=space_hardsize;
@@ -106,18 +107,18 @@ int cache_cleaner(const JobUsers &users) {
 //      continue;
     }
     else {
-      // olog<<"Cache max: "<<cache_max<<std::endl;
-      // olog<<"Cache min: "<<cache_min<<std::endl;
+      // logger.msg(Arc::ERROR,"Cache max: %lli",cache_max);
+      // logger.msg(Arc::ERROR,"Cache min: %lli",cache_min);
     };
     used=0;
 //    if((cache_max > 0) || ((available < (-cache_max))  && (cache_min > 0))) { /* get used space */
 /*
-      olog<<"Cache: obtaining used space"<<std::endl;
+      logger.msg(Arc::ERROR,"Cache: obtaining used space");
       * scan directory *
       DIR* dir;
       dir=opendir(cache_data_dir.c_str());
       if(dir == NULL) {
-        olog<<"Cache: can't open directory "<<cache_dir<<std::endl;
+        logger.msg(Arc::ERROR,"Cache: can't open directory %s",cache_dir.c_str());
         continue;
       };
       struct dirent file_;
@@ -131,7 +132,7 @@ int cache_cleaner(const JobUsers &users) {
         struct stat fst;
         if(stat(fname.c_str(),&fst) == 0) {
           if(S_ISREG(fst.st_mode)) {
-            olog<<"File "<<cache_data_dir<<"/"<<file->d_name<<" is using "<<((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize<<std::endl;
+            logger.msg(Arc::ERROR,"File %s/%s is using %i",cache_data_dir.c_str(),file->d_name,((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize);
             used+=((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize;
           };
         };
@@ -184,7 +185,7 @@ int cache_cleaner(const JobUsers &users) {
         };
       };
     };
-    // olog<<"Cache: used "<<used<<" bytes"<<std::endl;
+    // logger.msg(Arc::ERROR,"Cache: used %lli bytes",used);
     if(cache_max > 0) space_softfree=cache_max-used;
     long long int remove_size = 0;
     bool need_remove = false;
@@ -202,12 +203,12 @@ int cache_cleaner(const JobUsers &users) {
         remove_size=(-cache_min)-available;
       };
       if(remove_size <= 0) remove_size=1;
-      olog<<"Cache: have to remove "<<remove_size<<" bytes"<<std::endl;
+      logger.msg(Arc::ERROR,"Cache: have to remove %lli bytes",remove_size);
       /* clean cache from lost jobs */
       std::list<JobId> claiming_jobs;
       if(cache_files_list(cache_dir.c_str(),cache_uid,cache_gid,cache_files) 
                                             != 0) {
-        olog<<"Cache: Warning: can't obtain list of cache files"<<std::endl;
+        logger.msg(Arc::WARNING,"Cache: Warning: can't obtain list of cache files");
       }
       else {
         std::list<JobId> ids;
@@ -226,8 +227,8 @@ int cache_cleaner(const JobUsers &users) {
               std::string cdir=user_->ControlDir();
               DIR *dir=opendir(cdir.c_str());
               if(dir == NULL) {
-                olog<<"Cache: Warning: Failed reading control directory: "<<cdir<<std::endl;
-                olog<<"Cache: Warning: Stale locks won't be removed"<<std::endl;
+                logger.msg(Arc::WARNING,"Cache: Warning: Failed reading control directory: %s",cdir.c_str());
+                logger.msg(Arc::WARNING,"Cache: Warning: Stale locks won't be removed");
                 ids.clear();
                 break;
               }
@@ -256,15 +257,14 @@ int cache_cleaner(const JobUsers &users) {
             };
           };
           for(std::list<JobId>::iterator i=ids.begin();i!=ids.end();++i) {
-            olog<<"Cache: job "<<*i<<" does not exist or has finished, removing stale locks"<<std::endl;
+            logger.msg(Arc::ERROR,"Cache: job %s does not exist or has finished, removing stale locks",i->c_str());
             cache_release_url(cache_dir.c_str(),cache_data_dir.c_str(),cache_uid,cache_gid,*i,false);
           };
         };
       };
       unsigned long long int removed_size = 
           cache_clean(cache_dir.c_str(),cache_data_dir.c_str(),cache_uid,cache_gid,remove_size);
-      olog<<"Cache: in "<<cache_dir<<" - "<<cache_data_dir<<" requested to remove "<<remove_size<<
-            ", removed "<<removed_size<<std::endl;
+      logger.msg(Arc::ERROR,"Cache: in %s - %s requested to remove %lli, removed %lli",cache_dir.c_str(),cache_data_dir.c_str(),remove_size,removed_size);
       space_hardfree+=removed_size;
       space_softfree+=removed_size;
       if(space_unclaimed<removed_size) {

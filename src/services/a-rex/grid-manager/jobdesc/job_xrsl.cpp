@@ -76,7 +76,6 @@ static void get_attribute(const std::string& name,int& value,Xrsl& xrsl) {
     try {
         value=Arc::stringto<int>((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-    //@ } catch (Arc::StringConvError) {
     };
 }
 
@@ -84,7 +83,6 @@ static void get_attribute(const std::string& name,long& value,Xrsl& xrsl) {
     try {
         value=Arc::stringto<long>((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-    //@ } catch (StringConvError) {
     };
 }
 
@@ -92,37 +90,30 @@ static void get_attribute(const std::string& name,Arc::Time& value,Xrsl& xrsl) {
     try {
         value=Arc::Time((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
-    //@ } catch (Arc::TimeError) {
     };
 }
 
 static void get_attribute_seconds(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		//@ value=Arc::Seconds(v,Arc::PeriodSeconds);
-		value=Arc::Period(v).GetPeriod();
+		value=Arc::Period(v,Arc::PeriodSeconds).GetPeriod();
 	} catch (XrslError) {
-	//@ } catch (Arc::TimeError) {
 	};
 }
 
 static void get_attribute_minutes(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		//@ value=Arc::Seconds(v,Arc::PeriodMinutes);
-		value=Arc::Period(v).GetPeriod();
+		value=Arc::Period(v,Arc::PeriodMinutes).GetPeriod();
 	} catch (XrslError) {
-	//@ } catch (Arc::TimeError) {
         };
 }
 
 static void get_attribute_days(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
-		//@ value=Arc::Seconds(v,Arc::PeriodDays);
-		value=Arc::Period(v).GetPeriod();
+		value=Arc::Period(v,Arc::PeriodDays).GetPeriod();
 	} catch (XrslError) {
-	//@ } catch (TimeError) {
         };
 }
 
@@ -321,9 +312,9 @@ bool JobRequestXRSL::set(Xrsl& xrsl) throw(JobRequestError) {
 	};
 	value=""; get_attribute("replicacollection",value,xrsl);
 	if(value.length()) {
-		//@ try {
-			Arc::URL rc_url(value);
-			if(rc_url && (rc_url.Protocol() == "ldap")) {
+		Arc::URL rc_url(value);
+		if(rc_url) {
+			if(rc_url.Protocol() == "ldap") {
 				for(std::list<InputFile>::iterator i = inputdata.begin();
 		        		                           i!=inputdata.end();++i) {
 					if(i->source.Host().length() == 0) {
@@ -333,7 +324,7 @@ bool JobRequestXRSL::set(Xrsl& xrsl) throw(JobRequestError) {
 					};
 				};
 			};
-		//@ } catch(URLError) { };
+		};
 	};
 	return true;
 }

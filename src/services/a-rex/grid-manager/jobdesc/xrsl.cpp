@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-//@ #include <arc/notify.h>
+#include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include "xrsl.h"
 
@@ -17,17 +17,10 @@
 #define _(A) (A)
 #endif
 
-//@ 
-typedef enum {
-	WARNING
-} notify_level_t;
-static std::ostream& notify(notify_level_t) {
-	return std::cerr;
-}
-//@ 
-
 
 std::list<std::string> GetOneList(globus_list_t* list) throw(XrslError);
+
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM:XRSL");
 
 XrslRelation::XrslRelation(const std::string& attribute,
                            const xrsl_operator& op,
@@ -539,10 +532,10 @@ void Xrsl::Validate(const std::list<XrslValidationData>& valid_attributes,
 			FindRelation(attr, &xrsl_relation);
 
 			if (xrsl_relation) {
-				notify(WARNING)
-					<< _("The xrsl contains the deprecated attribute")
-					<< ": " << valid_ones->attribute_name + " - "
-					<< _("It will be ignored") << std::endl;
+				logger.msg(Arc::WARNING,"%s: %s - %s",
+					   _("The xrsl contains the deprecated attribute"),
+					   valid_ones->attribute_name.c_str(),
+					   _("It will be ignored"));
 			}
 		}
 
@@ -595,9 +588,9 @@ void Xrsl::Validate(const std::list<XrslValidationData>& valid_attributes,
 						throw XrslError(
 						  _("Not a valid attribute") + (": " + attribute_name));
 					}
-					notify(WARNING)
-						<< _("The xrsl contains unknown attribute")
-						<< ": " << attribute_name << std::endl;
+					logger.msg(Arc::WARNING,"%s: %s",
+						   _("The xrsl contains unknown attribute"),
+						   attribute_name.c_str());
 				}
 			}
 			else {

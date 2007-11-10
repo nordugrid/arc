@@ -1,17 +1,17 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* write essential information about job started/finished */
-//@ #include "../std.h"
 #include <fstream>
+#include <arc/StringConv.h>
+#include <arc/DateTime.h>
 #include "../files/info_types.h"
 #include "../files/info_log.h"
 #include "../conf/environment.h"
-//@ #include "../misc/inttostring.h"
-//@ #include "../misc/log_time.h"
 #include "job_log.h"
 #include <unistd.h>
 
-//@ 
-#include <arc/StringConv.h>
-#define inttostring Arc::tostring
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -29,7 +29,6 @@
 }
 
 #endif
-//@ 
 
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
 }
@@ -50,7 +49,7 @@ bool JobLog::open_stream(std::ofstream &o) {
     o.open(filename.c_str(),std::ofstream::app);
     if(!o.is_open()) return false;
     o<<" ";
-//@     LogTime::gmdatetime(o);
+    o<<(Arc::Time().str(Arc::UserTime));
     return true;
 }
 
@@ -197,7 +196,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   if(args == NULL) return false;
   std::string cmd = nordugrid_libexec_loc+"/logger";
   int argc=0; args[argc++]=(char*)cmd.c_str();
-  std::string ex_str = inttostring(ex_period);
+  std::string ex_str = Arc::tostring(ex_period);
   if(ex_period) {
     args[argc++]="-E";
     args[argc++]=(char*)ex_str.c_str();

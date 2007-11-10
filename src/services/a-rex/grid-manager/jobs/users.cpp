@@ -6,17 +6,13 @@
   keeps list of users
 */
 
-//@ #include "../std.h"
-//@ 
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
-#define olog std::cerr
-#define inttostring(N) Arc::tostring(N)
 #include <arc/StringConv.h>
-//@ 
+#include <arc/Logger.h>
 
 #include <string>
 #include <list>
@@ -27,13 +23,12 @@
 
 #include "../conf/conf.h"
 #include "../run/run_parallel.h"
-//@ #include "../misc/inttostring.h"
-//@ #include "../misc/log_time.h"
 #include "../misc/escaped.h"
 #include "../jobs/states.h"
 #include "../conf/environment.h"
 #include "users.h"
 
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobUser::JobUser(void) {
   control_dir="";
@@ -137,8 +132,8 @@ bool JobUser::substitute(std::string& param) const {
       case 'H': to_put=Home(); break;
       case 'Q': to_put=DefaultQueue(); break;
       case 'L': to_put=DefaultLRMS(); break;
-      case 'u': to_put=inttostring(get_uid()); break;
-      case 'g': to_put=inttostring(get_gid()); break;
+      case 'u': to_put=Arc::tostring(get_uid()); break;
+      case 'g': to_put=Arc::tostring(get_gid()); break;
       case 'W': to_put=nordugrid_loc; break;
       case 'G': to_put=globus_loc; break;
       default: to_put=param.substr(pos-1,2);
@@ -316,7 +311,7 @@ std::string JobUsers::ControlDir(const std::string user) {
 
 /* change effective user - real switch is done only if running as root */
 bool JobUser::SwitchUser(bool su) const {
-  std::string uid_s = inttostring(uid);
+  std::string uid_s = Arc::tostring(uid);
   if(setenv("USER_ID",uid_s.c_str(),1) != 0) if(!su) return false;
   if(setenv("USER_NAME",unix_name.c_str(),1) != 0) if(!su) return false;
   /* set proper umask */
@@ -388,8 +383,8 @@ bool JobUserHelper::run(JobUser &user) {
       args[n]=strdup(arg_s.c_str());
     };
     args[n]=NULL;
-    //olog<<"Starting helper process ("<<user.UnixName()<<"): "<<
-    //                                                  args[0]<<std::endl;
+    //logger.msg(Arc::ERROR,"Starting helper process (%s): %s",
+    //           user.UnixName().c_str(),command.c_str());
     std::string helper_id="helper."+user.UnixName();
     bool started=RunParallel::run(user,helper_id.c_str(),args,&proc);
     for(n=0;n<99;n++) {
@@ -397,8 +392,8 @@ bool JobUserHelper::run(JobUser &user) {
       free(args[n]);
     };
     if(started) return true;
-    olog<<"Helper process start failed ("<<user.UnixName()<<"): "<<
-                                                       command<<std::endl;
+    logger.msg(Arc::ERROR,"Helper process start failed (%s): %s",
+               user.UnixName().c_str(),command.c_str());
     /* start failed */
     /* doing nothing - maybe in the future */
     return false;

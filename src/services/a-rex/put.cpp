@@ -28,7 +28,7 @@ Arc::MCC_Status ARexService::Put(ARexGMConfig& config,const std::string& id,cons
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
-    logger_.msg(Arc::ERROR, "Put: there is no job: %s", id.c_str());
+    logger_.msg(Arc::ERROR, "Put: there is no job: %s - %s", id.c_str(), job.Failure().c_str());
     // TODO: make proper html message
     return Arc::MCC_Status();
   };
@@ -40,7 +40,10 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::
   //std::cerr<<"http:put: hpath: "<<hpath<<std::endl;
   // File 
   int h = job.CreateFile(hpath.c_str());
-  if(h == -1) return Arc::MCC_Status();
+  if(h == -1) {
+    
+    return Arc::MCC_Status();
+  };
   //std::cerr<<"http:put: file is opened"<<std::endl;
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);

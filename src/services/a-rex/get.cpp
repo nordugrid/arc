@@ -49,7 +49,7 @@ Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::strin
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
-    logger_.msg(Arc::ERROR, "Get: there is no job: %s", id.c_str());
+    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id.c_str(), job.Failure().c_str());
     // TODO: make proper html message
     return NULL;
   };

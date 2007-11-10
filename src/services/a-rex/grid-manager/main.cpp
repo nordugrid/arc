@@ -2,37 +2,31 @@
 #include <config.h>
 #endif
 
-//@ #include "std.h"
-
+#include <iostream>
+#include <sys/types.h>
+#include <pwd.h>
 #include <string>
 #include <cstdio>
 #include <fstream>
 #include <list>
 
-//@ #include <globus_common.h>
-//@ #include <globus_rsl.h>
+#ifdef HAVE_GLOBUS_RSL
+#include <globus_common.h>
+#include <globus_rsl.h>
+#endif
 
-//@ #include "jobs/users.h"
+#include <arc/Logger.h>
+#include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
 #include "run/run_parallel.h"
-//@ #include "conf/conf.h"
 #include "conf/environment.h"
 #include "conf/conf_file.h"
 #include "conf/daemon.h"
-//@ #include "misc/log_time.h"
 #include "files/info_types.h"
 #include "files/delete.h"
 #include "cache/cache.h"
 #include "cache/cache_cleaner.h"
-
-//@
-#include <iostream>
-#include <sys/types.h>
-#include <pwd.h>
-#define olog std::cerr
-#define odlog(level) std::cerr
-//@
 
 /* do job cleaning every 2 hours */
 #define HARD_JOB_PERIOD 7200
@@ -44,8 +38,9 @@
 #define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
 
 
-pthread_cond_t sleep_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t sleep_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t sleep_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t sleep_mutex = PTHREAD_MUTEX_INITIALIZER;
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 
 void* wakeup_func(void* arg) {
   // unsigned int timeout = *((unsigned int *)arg);
@@ -101,7 +96,7 @@ void* cache_func(void* arg) {
         //args[argc++]=(char*)"2";
         args[argc]=NULL;
         if(!RunParallel::run(user,"cache-register",args,&proc,false,false)) {
-          olog<<"Failed to run cache registration routine: "<<cmd<<std::endl;
+          logger.msg(Arc::ERROR,"Failed to run cache registration routine: %s",cmd.c_str());
         };
       };
     };
@@ -119,13 +114,12 @@ int main(int argc,char* argv[]) {
   nordugrid_config_loc="";
 
   Daemon daemon;
-//@   LogTime::Active(true);
-//@   LogTime::Level(ERROR);
-
+  Arc::Logger::getRootLogger().addDestination(*(new Arc::LogStream(std::cerr)));
+  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
-      case ':': { olog<<"Missing argument\n"; return 1; };
-      case '?': { olog<<"Unrecognized option\n"; return 1; };
+      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return 1; };
+      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return 1; };
       case '.': { return 1; };
       case 'h': {
         std::cout<<"grid-manager [-C clean_level] [-v] [-h] [-c configuration_file] "<<daemon.short_help()<<std::endl;
@@ -137,14 +131,14 @@ int main(int argc,char* argv[]) {
       };
       case 'C': {
         if(sscanf(optarg,"%u",&clean_first_level) != 1) {
-          olog<<"Wrong clean level\n";
+          logger.msg(Arc::ERROR,"Wrong clean level");
           return 1;
         };
       }; break;
       case 'c': {
         nordugrid_config_loc=optarg;
       }; break;
-      default: { olog<<"Option processing error\n"; return 1; };
+      default: { logger.msg(Arc::ERROR,"Option processing error"); return 1; };
     };
   };
 
@@ -163,15 +157,15 @@ int main(int argc,char* argv[]) {
     if(pw != NULL) { my_username=pw->pw_name; };
   };
   if(my_username.length() == 0) {
-    olog<<"Can't recognize own username."<<std::endl; exit(1);
+    logger.msg(Arc::ERROR,"Can't recognize own username."); exit(1);
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
-    olog<<"Used configuration file "<<nordugrid_config_loc<<std::endl;
-    olog<<"Error processing configuration."<<std::endl; exit(1);
+    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
+    logger.msg(Arc::ERROR,"Error processing configuration."); exit(1);
   };
   if(users.size() == 0) {
-    olog<<"Error - no suitable users found in configuration."<<std::endl;
+    logger.msg(Arc::ERROR,"Error - no suitable users found in configuration.");
     exit(1);
   };
 
@@ -181,7 +175,7 @@ int main(int argc,char* argv[]) {
     perror("Error - daemonization failed");
     exit(1);
   }; 
-  olog<<"Used configuration file "<<nordugrid_config_loc<<std::endl;
+  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();
@@ -198,27 +192,29 @@ int main(int argc,char* argv[]) {
   // before any new thread is started. 
   RunParallel run(&sleep_cond);
   if(!run.is_initialized()) {
-    olog<<"Error - initialization of signal environment failed"<<std::endl;
+    logger.msg(Arc::ERROR,"Error - initialization of signal environment failed");
     goto exit;
   };
 
   // I hope nothing till now used Globus
 
-//@   // Initialize globus modules
-//@   if(globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) {
-//@     olog<<"Globus COMMON module activation failed\n"; exit(1);
-//@   };
-//@   if(globus_module_activate(GLOBUS_RSL_MODULE) != GLOBUS_SUCCESS) {
-//@     olog<<"Globus RSL module activation failed\n";
-//@     globus_module_deactivate(GLOBUS_COMMON_MODULE); exit(1);
-//@   };
+#ifdef HAVE_GLOBUS_RSL
+  // Initialize globus modules
+  if(globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) {
+    logger.msg(Arc::ERROR,"Globus COMMON module activation failed"); exit(1);
+  };
+  if(globus_module_activate(GLOBUS_RSL_MODULE) != GLOBUS_SUCCESS) {
+    logger.msg(Arc::ERROR,"Globus RSL module activation failed");
+    globus_module_deactivate(GLOBUS_COMMON_MODULE); exit(1);
+  };
+#endif
 
   // It looks like Globus screws signal setup somehow
   run.reinit(false);
 
   /* start timer thread - wake up every 2 minutes */
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_interface) != 0) {
-    olog<<"Failed to start new thread"<<std::endl; goto exit;
+    logger.msg(Arc::ERROR,"Failed to start new thread"); goto exit;
   };
   if(clean_first_level) {
     bool clean_finished = false;
@@ -241,9 +237,9 @@ int main(int argc,char* argv[]) {
         if(user->get_jobs()->size() == njobs) break;
         cleaned_all=false;
         if(!(user->get_jobs()->DestroyJobs(clean_finished,clean_active)))  {
-          olog<<"Not all jobs are cleaned yet"<<std::endl;
+          logger.msg(Arc::WARNING,"Not all jobs are cleaned yet");
           sleep(10); 
-          olog<<"Trying again"<<std::endl;
+          logger.msg(Arc::WARNING,"Trying again");
         };
         kill(getpid(),SIGCHLD);  /* make sure no child is missed */
       };
@@ -253,7 +249,7 @@ int main(int argc,char* argv[]) {
              session and control directories */
           for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
             std::list<FileData> flist;
-            olog<<"Cleaning all files in directories "<<user->SessionRoot()<<" and "<<user->ControlDir()<<std::endl;
+            logger.msg(Arc::INFO,"Cleaning all files in directories %s and %s",user->SessionRoot().c_str(),user->ControlDir().c_str());
             delete_all_files(user->SessionRoot(),flist,true);
             delete_all_files(user->ControlDir(),flist,true);
           };
@@ -261,17 +257,17 @@ int main(int argc,char* argv[]) {
         break;
       };
     };
-    olog<<"Jobs cleaned."<<std::endl;
+    logger.msg(Arc::INFO,"Jobs cleaned.");
   };
   if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
-    olog<<"Failed to start new thread: cache won't be cleaned"<<std::endl;
+    logger.msg(Arc::ERROR,"Failed to start new thread: cache won't be cleaned");
   };
   /* create control and session directories */
   for(JobUsers::iterator user = users.begin();user != users.end();++user) {
     user->CreateDirectories();
   };
   /* main loop - forewer */
-  olog<<"Starting jobs' monitoring."<<std::endl;
+  logger.msg(Arc::INFO,"Starting jobs' monitoring.");
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   for(;;) { 
     users.run_helpers();
@@ -289,17 +285,19 @@ int main(int argc,char* argv[]) {
     pthread_cond_wait(&sleep_cond,&sleep_mutex);
     pthread_mutex_unlock(&sleep_mutex);
     if(run.was_hup()) {
-      olog<<"SIGHUP detected"<<std::endl;
+      logger.msg(Arc::INFO,"SIGHUP detected");
 //      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
 //        std::cout<<"Error processing configuration."<<std::endl; goto exit;
 //      };
     }
     else {
-      odlog(VERBOSE)<<"Timer kicking"<<std::endl;
+      logger.msg(Arc::VERBOSE,"Timer kicking");
     };
   };
 exit:
-//@   globus_module_deactivate(GLOBUS_RSL_MODULE);
-//@   globus_module_deactivate(GLOBUS_COMMON_MODULE);
+#ifdef HAVE_GLOBUS_RSL
+  globus_module_deactivate(GLOBUS_RSL_MODULE);
+  globus_module_deactivate(GLOBUS_COMMON_MODULE);
+#endif
   return 0;
 }
