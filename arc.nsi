@@ -15,7 +15,7 @@ Section "Main Components"
 	SetOutPath $INSTDIR
 	File /oname=arched.exe "src\hed\daemon\.libs\arched.exe"
 	File /oname=test.exe "src\tests\echo\.libs\test.exe"
-	File /oname=service.xml "src\tests\echo\service.xml"
+	File /oname=service.xml "src\tests\echo\service.xml.win32"
 	File /oname=accesslist "src\tests\echo\accesslist"
 	File /oname=Policy_Example.xml "src\tests\echo\Policy_Example.xml"
 	File /oname=ca.pem "src\tests\echo\ca.pem"

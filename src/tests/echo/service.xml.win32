@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+  xmlns:echo="urn:echo_config"
+>
+
+    <ModuleManager>
+        <Path>plugins/mcc</Path>
+        <Path>plugins/dmc</Path>
+        <Path>plugins/pdc</Path>
+        <Path>services</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcpdc</Name></Plugins>
+
+    <Plugins Name="arcpdc">
+          <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
+          <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
+          <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
+          <Plugin Name="__arc_evaluator_modules__">evaluator</Plugin>
+          <Plugin Name="__arc_request_modules__">request</Plugin>
+    </Plugins>
+
+    <pdp:PDPConfig>
+          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+          <pdp:AttributeFactory name="attr.factory" />
+          <pdp:CombingAlgorithmFactory name="alg.factory" />
+          <pdp:FunctionFactory name="fn.factory" />
+          <pdp:Evaluator name="arc.evaluator" />
+          <pdp:Request name="arc.request" />
+    </pdp:PDPConfig>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <KeyPath>key.pem</KeyPath>
+	    <CertificatePath>cert.pem</CertificatePath>
+	    <CACertificatePath>ca.pem</CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <SecHandler name="simplelist.authz" id="authz" event="incoming">
+              <PDP name="simplelist.pdp" type="plaintxt" location="./accesslist"/>
+              <PDP name="arc.pdp"/>
+            </SecHandler>
+	    <next id="echo"/>
+        </Component>
+        <Service name="echo" id="echo">
+            <SecHandler name="simplelist.authz" id="authz" event="incoming">
+              <PDP name="simplelist.pdp" type="plaintxt" location="./accesslist"/>
+              <PDP name="arc.pdp"/>
+            </SecHandler>
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+	    <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
+</ArcConfig>
