@@ -204,6 +204,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libarcpdc.so
 
 %files plugins-globus
+%defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmcrls.so
 
