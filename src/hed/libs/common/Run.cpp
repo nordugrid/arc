@@ -115,11 +115,11 @@ void RunPump::Add(Run* r) {
   pump_lock_.lock();
   try {
     // Add sources to context
-    if(r->stdout_str_)
+    if(r->stdout_str_ && !(r->stdout_keep_))
       r->stdout_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdout_handler),r->stdout_, Glib::IO_IN | Glib::IO_HUP);
-    if(r->stderr_str_)
+    if(r->stderr_str_ && !(r->stderr_keep_))
       r->stderr_conn_=context_->signal_io().connect(sigc::mem_fun(*r,&Run::stderr_handler),r->stderr_, Glib::IO_IN | Glib::IO_HUP);
-    if(r->stdin_str_)
+    if(r->stdin_str_ && !(r->stdin_keep_))
       r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
 #ifdef HAVE_GLIBMM_CHILDWATCH
     r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
@@ -153,7 +153,7 @@ void RunPump::Remove(Run* r) {
   list_lock_.unlock();
 }
 
-Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
+Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
 }
 
 Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
@@ -180,10 +180,10 @@ bool Run::Start(void) {
       arg=new RunInitializerArgument(initializer_func_,initializer_arg_);
       spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg,&RunInitializerArgument::Run),
-                             &pid_,&stdin_,&stdout_,&stderr_);
+                             &pid_,stdin_keep_?NULL:&stdin_,stdout_keep_?NULL:&stdout_,stderr_keep_?NULL:&stderr_);
     } else {
       spawn_async_with_pipes(".",argv_,Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                             sigc::slot<void>(),&pid_,&stdin_,&stdout_,&stderr_);
+                             sigc::slot<void>(),&pid_,stdin_keep_?NULL:&stdin_,stdout_keep_?NULL:&stdout_,stderr_keep_?NULL:&stderr_);
     };
     started_=true;
   } catch (Glib::Exception& e) { 
@@ -205,7 +205,7 @@ void Run::Kill(int timeout) {
   if(timeout > 0) {
     // Kill softly
     ::kill(pid_,SIGTERM);
-    Wait(5);
+    Wait(timeout);
   };
   if(!running_) return;
   // Kill with no merci
@@ -356,6 +356,18 @@ void Run::AssignStderr(std::string& str) {
 
 void Run::AssignStdin(std::string& str) {
   if(!running_) stdin_str_=&str;
+}
+
+void Run::KeepStdout(bool keep) {
+  if(!running_) stdout_keep_=keep;
+}
+
+void Run::KeepStderr(bool keep) {
+  if(!running_) stderr_keep_=keep;
+}
+
+void Run::KeepStdin(bool keep) {
+  if(!running_) stdin_keep_=keep;
 }
 
 void Run::AssignInitializer(void (*initializer_func)(void* arg),void* initializer_arg) {
