@@ -189,6 +189,10 @@ namespace Arc {
     destinations.push_back(&destination);
   }
 
+  void Logger::removeDestinations(void) {
+    destinations.clear();
+  }
+
   void Logger::setThreshold(LogLevel threshold) {
     this->threshold = threshold;
   }
