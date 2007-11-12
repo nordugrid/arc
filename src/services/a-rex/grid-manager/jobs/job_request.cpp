@@ -2,17 +2,15 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-
 #include <iostream>
 #include <fstream>
 
+#include <arc/URL.h>
 #include "../jobs/users.h"
 #include "../jobs/job.h"
 #include "../files/info_files.h"
 //@ #include "../transfer/replica_utils.h"
 //@ #include "../misc/inttostring.h"
-#include "../url/url_options.h"
 #ifdef HAVE_RSL
 #include "../jobdesc/rsl/parse_rsl.h"
 #endif
@@ -152,26 +150,32 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
     std::string v = inttostring(job_desc.gsiftpthreads);
     for(FileData::iterator i=job_desc.outputdata.begin();
                          i!=job_desc.outputdata.end();++i) {
-      add_url_option(i->lfn,"threads",v.c_str(),-1);
+      Arc::URL u(i->lfn);
+      if(u) { u.AddOption("threads",v); i->lfn=u.fullstr(); };
     };
     for(FileData::iterator i=job_desc.inputdata.begin();
                          i!=job_desc.inputdata.end();++i) {
-      add_url_option(i->lfn,"threads",v.c_str(),-1);
+      Arc::URL u(i->lfn);
+      if(u) { u.AddOption("threads",v); i->lfn=u.fullstr(); };
     };
   };
   if(job_desc.cache.length() != 0) {
     std::string value;
     for(FileData::iterator i=job_desc.outputdata.begin();
                          i!=job_desc.outputdata.end();++i) {
-      get_url_option(i->lfn,"cache",-1,value);
-      if( value.length() == 0 )
-	add_url_option(i->lfn,"cache",job_desc.cache.c_str(),-1);
+      Arc::URL u(i->lfn);
+      value=u.Option("cache");
+      if(u && value.empty()) {
+        u.AddOption("cache",job_desc.cache); i->lfn=u.fullstr();
+      };
     };
     for(FileData::iterator i=job_desc.inputdata.begin();
                          i!=job_desc.inputdata.end();++i) {
-      get_url_option(i->lfn,"cache",-1,value);
-      if( value.length() == 0 )
-	add_url_option(i->lfn,"cache",job_desc.cache.c_str(),-1);
+      Arc::URL u(i->lfn);
+      value=u.Option("cache");
+      if(value.empty()) {
+        u.AddOption("cache",job_desc.cache); i->lfn=u.fullstr();
+      };
     };
   };
   if(!job_local_write_file(desc,user,job_desc)) return false;
@@ -183,8 +187,12 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
 static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
   for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){
     if(i->has_lfn()) if((*i) == fname) {
-      add_url_option(i->lfn,"cache","no",-1);
-      add_url_option(i->lfn,"exec","yes",-1);
+      Arc::URL u(i->lfn);
+      if(u) {
+        u.AddOption("cache","no");
+        u.AddOption("exec","yes");
+        i->lfn=u.fullstr();
+      };
     };
   };
 }

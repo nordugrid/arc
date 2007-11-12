@@ -2,7 +2,10 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
+#include <iostream>
+#include <pwd.h>
+
+#include <arc/StringConv.h>
 #include "../jobs/users.h"
 #include "../jobs/states.h"
 #include "../jobs/plugins.h"
@@ -16,15 +19,12 @@
 #include "../run/run_plugin.h"
 #include "conf_file.h"
 
-//@ 
-#include <iostream>
-#include <pwd.h>
-#include <arc/StringConv.h>
 #ifndef HAVE_SETENV
 #include <glibmm/miscutils.h>
 #define setenv Glib::setenv
 #endif
-#define olog std::cerr
+
+Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static bool stringtoint(const std::string& s,long long int& i) {
   i=Arc::stringto<long long int>(s);
@@ -536,10 +536,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "helper") {
       std::string helper_user = config_next_arg(rest);
       if(helper_user.length() == 0) {
-        olog << "user for helper programm is missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"user for helper programm is missing"); goto exit;
       };
       if(rest.length() == 0) {
-        olog << "helper programm is missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"helper programm is missing"); goto exit;
       };
       if(helper_user == "*") {  /* go through all configured users */
         for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
@@ -569,7 +569,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         /* look for that user */
         JobUsers::iterator user=users.find(helper_user);
         if(user == users.end()) {
-          olog<<helper_user<<" user for helper programm is not configured"<<std::endl;
+          logger.msg(Arc::ERROR,"%s user for helper programm is not configured",helper_user.c_str());
           goto exit;
         };
         user->substitute(rest);
@@ -607,18 +607,18 @@ exit:
 
 bool print_serviced_users(const JobUsers &users) {
   for(JobUsers::const_iterator user = users.begin();user!=users.end();++user) {
-    olog<<"Added user : "<<user->UnixName()<<std::endl;
-    olog<<"\tSession root dir : "<<user->SessionRoot()<<std::endl;
-    olog<<"\tControl dir      : "<<user->ControlDir()<<std::endl;
-    olog<<"\tdefault LRMS     : "<<user->DefaultLRMS()<<std::endl;
-    olog<<"\tdefault queue    : "<<user->DefaultQueue()<<std::endl;
-    olog<<"\tdefault ttl      : "<<user->KeepFinished()<<std::endl;
+    logger.msg(Arc::INFO,"Added user : %s",user->UnixName().c_str());
+    logger.msg(Arc::INFO,"\tSession root dir : %s",user->SessionRoot().c_str());
+    logger.msg(Arc::INFO,"\tControl dir      : %s",user->ControlDir().c_str());
+    logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS().c_str());
+    logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue().c_str());
+    logger.msg(Arc::INFO,"\tdefault ttl      : %s",user->KeepFinished().c_str());
     if(user->CacheDir().length() != 0) {
       if(user->CacheDataDir().length() == 0) {
-        olog<<"\tCache dir        : "<<user->CacheDir()<<" ("<<std::string(user->CachePrivate()?"private":"global")<<")"<<std::endl;
+        logger.msg(Arc::INFO,"\tCache dir        : %s (%s)",user->CacheDir().c_str(),user->CachePrivate()?"private":"global");
       } else {
-        olog<<"\tCache info dir   : "<<user->CacheDir()<<" ("<<std::string(user->CachePrivate()?"private":"global")<<")"<<std::endl;
-        olog<<"\tCache data dir   : "<<user->CacheDataDir()<<std::endl;
+        logger.msg(Arc::INFO,"\tCache info dir   : %s (%s)",user->CacheDir().c_str(),user->CachePrivate()?"private":"global");
+        logger.msg(Arc::INFO,"\tCache data dir   : %s",user->CacheDataDir().c_str());
       };
     };
   };

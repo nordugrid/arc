@@ -2,9 +2,6 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-//@ #include "../misc/log_time.h"
-//@ 
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>

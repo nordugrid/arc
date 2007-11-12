@@ -63,7 +63,7 @@ inline void fix_range(int &n,int max,int min = 0) {
   if(n<min) n=min;
 }
 
-std::ostream &operator<< (std::ostream &o,const mds_time &t) {
+std::string mds_time::str(void) const {
   struct tm  t_buf;
   struct tm* t_;
   time_t tt = t;
@@ -84,7 +84,11 @@ std::ostream &operator<< (std::ostream &o,const mds_time &t) {
 //    strcpy(buf,"00000000000000Z");
     buf[0]=0;
   };
-  o<<buf;
+  return std::string(buf);
+}
+
+std::ostream &operator<< (std::ostream &o,const mds_time &t) {
+  o<<t.str();
   return o;
 }
 

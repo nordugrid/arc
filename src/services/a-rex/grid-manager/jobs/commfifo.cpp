@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-//@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -11,13 +9,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-//@ 
 #include "commfifo.h"
 
 
 CommFIFO::CommFIFO(void) {
   timeout_=-1;
-  //@ lock.block();
   lock.lock();
   int filedes[2];
   kick_in=-1; kick_out=-1;
@@ -30,7 +26,6 @@ CommFIFO::CommFIFO(void) {
     arg=fcntl(kick_out,F_GETFL);
     if(arg != -1) { arg|=O_NONBLOCK; fcntl(kick_out,F_SETFL,&arg); };
   };
-  //@ lock.unblock();
   lock.unlock();
 }
 
@@ -43,14 +38,12 @@ JobUser* CommFIFO::wait(int timeout) {
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
     int maxfd=-1;
     if(kick_out >= 0) { maxfd=kick_out; FD_SET(kick_out,&fin); };
-    //@ lock.block();
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
       if(i->fd>maxfd) maxfd=i->fd;
       FD_SET(i->fd,&fin);
     };
-    //@ lock.unblock();
     lock.unlock();
     int n;
     maxfd++;
@@ -73,19 +66,16 @@ JobUser* CommFIFO::wait(int timeout) {
         continue;
       };
     };
-    //@ lock.block();
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
       if(FD_ISSET(i->fd,&fin)) {
-        //@ lock.unblock();
         lock.unlock();
         char buf[256]; read(i->fd,buf,256);
         // -1 ???
         return i->user;
       };
     };
-    //@ lock.unblock();
     lock.unlock();
   };
 }
@@ -106,10 +96,8 @@ bool CommFIFO::add(JobUser& user) {
   int fd_keep = open(path.c_str(),O_WRONLY | O_NONBLOCK);
   if(fd_keep == -1) { close(fd); return false; };
   elem_t el; el.user=&user; el.fd=fd; el.fd_keep=fd_keep;
-  //@ lock.block();
   lock.lock();
   fds.push_back(el);
-  //@ lock.unblock();
   lock.unlock();
   if(kick_in >= 0) {
     char c = 0;

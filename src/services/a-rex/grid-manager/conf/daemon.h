@@ -2,6 +2,7 @@
 #define __GM_DAEMON_H__
 
 #include <string>
+#include <arc/Logger.h>
 
 #define DAEMON_OPTS "ZzFL:U:P:d:"
 
@@ -15,6 +16,7 @@ class Daemon {
   bool daemon_;
   std::string pidfile_;
   int debug_;
+  Arc::Logger& logger_;
  public:
   Daemon(void);
   ~Daemon(void);

@@ -2,14 +2,12 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
 #include <string>
 #include <fstream>
 #include "environment.h"
 #include "conf.h"
 #include "gridmap.h"
 
-//@ 
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -27,7 +25,6 @@
 }
 
 #endif
-//@ 
 
 bool gridmap_user_list(std::string &ulist) {
   std::ifstream f(globus_gridmap.c_str()); 

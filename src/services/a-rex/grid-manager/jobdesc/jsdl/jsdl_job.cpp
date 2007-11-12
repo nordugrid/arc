@@ -10,12 +10,12 @@
 #include <fstream>
 
 #include <arc/StringConv.h>
+#include <arc/URL.h>
 
 #include "jsdl_soapStub.h"
 #include "../../files/info_types.h"
 #include "../../files/info_files.h"
 #include "../../misc/canonical_dir.h"
-#include "../../url/url_options.h"
 
 #include "../jobdesc_util.h"
 #include "../../jobs/users.h"
@@ -71,8 +71,12 @@ static struct Namespace jsdl_namespaces[] = {
 
 static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
   for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){    if(i->has_lfn()) if((*i) == fname) {
-      add_url_option(i->lfn,"cache","no",-1);
-      add_url_option(i->lfn,"exec","yes",-1);
+      Arc::URL u(i->lfn);
+      if(u) {
+        u.AddOption("cache","no");
+        u.AddOption("exec","yes");
+        i->lfn=u.fullstr();
+      };
     };
   };
 }

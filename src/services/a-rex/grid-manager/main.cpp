@@ -16,10 +16,10 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/Run.h>
 #include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
-#include "run/run_parallel.h"
 #include "conf/environment.h"
 #include "conf/conf_file.h"
 #include "conf/daemon.h"
@@ -57,7 +57,7 @@ void* wakeup_func(void* arg) {
 
 void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
-  RunElement *proc = NULL;
+  Arc::Run *proc = NULL;
   JobUser user(getuid()); // Need a user to run external binary 
   user.SetControlDir(users->begin()->ControlDir()); // Should this requirement be removed ?
   // configure cache history
@@ -77,25 +77,28 @@ void* cache_func(void* arg) {
     cache_cleaner(*users);
     if(JobsList::CacheRegistration()) {
       // it is logical to run registration after cleaning 
-      int exit_code = 0;
+      int exit_code = -1;
       if(proc != NULL) {  
-        if((exit_code=proc->get_exit_code()) != -1) {
-          RunParallel::release(proc);
+        if(!(proc->Running())) {
+          exit_code=proc->Result();
+          delete proc;
           proc=NULL;
         };
       };
       if(proc == NULL) { // previous already exited
-        int argc=0;
-        char* args[7];
+        std::list<std::string> args;
         std::string cmd = nordugrid_libexec_loc + "/cache-register";
-        args[argc++]=(char*)cmd.c_str();
-        if(central_configuration) args[argc++]=(char*)"-Z";
-        args[argc++]=(char*)"-c";
-        args[argc++]=(char*)nordugrid_config_loc.c_str();
-        //args[argc++]=(char*)"-d";
-        //args[argc++]=(char*)"2";
-        args[argc]=NULL;
-        if(!RunParallel::run(user,"cache-register",args,&proc,false,false)) {
+        args.push_back(cmd);
+        if(central_configuration) args.push_back(std::string("-Z"));
+        args.push_back(std::string("-c"));
+        args.push_back(nordugrid_config_loc);
+        //args.push_back(std::string("-d"));
+        //args.push_back(std::string("2"));
+        proc=new Arc::Run(args);
+        proc->KeepStdout();
+        proc->KeepStderr();
+        proc->KeepStdin();
+        if(!proc->Start()) {
           logger.msg(Arc::ERROR,"Failed to run cache registration routine: %s",cmd.c_str());
         };
       };

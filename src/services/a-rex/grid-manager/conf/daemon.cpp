@@ -2,13 +2,8 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
+#include <math.h>
 #include <sys/resource.h>
-//@ #include "../misc/log_time.h"
-#include "../conf/conf.h"
-#include "../conf/environment.h"
-
-//@ 
 #include <pwd.h>
 #include <grp.h>
 #include <sys/types.h>
@@ -19,12 +14,13 @@
 #include <glibmm/miscutils.h>
 #define setenv Glib::setenv
 #endif
-#define olog std::cerr
-//@ 
+
+#include "../conf/conf.h"
+#include "../conf/environment.h"
 
 #include "daemon.h"
 
-Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1) {
+Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1),logger_(Arc::Logger::getRootLogger()) {
 }
 
 Daemon::~Daemon(void) {
@@ -55,7 +51,7 @@ int Daemon::arg(char c) {
         char buf[BUFSIZ];
         getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
         if(pw == NULL) {
-          olog<<"No such user: "<<username<<std::endl;
+          logger_.msg(Arc::ERROR,"No such user: %s",username.c_str());
           uid_=0; gid_=0; return -1;
         };
         uid_=pw->pw_uid;
@@ -67,7 +63,7 @@ int Daemon::arg(char c) {
         char buf[BUFSIZ];
         getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
         if(gr == NULL) {
-          olog<<"No such group: "<<groupname<<std::endl;
+          logger_.msg(Arc::ERROR,"No such group: %s",groupname.c_str());
           gid_=0; return -1;
         };
         gid_=gr->gr_gid;
@@ -80,7 +76,7 @@ int Daemon::arg(char c) {
       char* p;
       debug_ = strtol(optarg,&p,10);
       if(((*p) != 0) || (debug_<0)) {
-        olog<<"Improper debug level '"<<optarg<<"'"<<std::endl;
+        logger_.msg(Arc::ERROR,"Improper debug level '%s'",optarg);
         return 1;
       };
     }; break;
@@ -114,12 +110,12 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
     if(daemon_) {
       std::string arg = config_next_arg(rest);
       if(arg=="") {
-        olog<<"Missing option for command daemon"<<std::endl;
+        logger_.msg(Arc::ERROR,"Missing option for command daemon");
         return -1;
       };
       if(strcasecmp("yes",arg.c_str()) == 0) { daemon_=true; }
       else if(strcasecmp("no",arg.c_str()) == 0) { daemon_=false; }
-      else { olog<<"Wrong option in daemon"<<std::endl; return -1; };
+      else { logger_.msg(Arc::ERROR,"Wrong option in daemon"); return -1; };
     };
   } else if(cmd == "logfile") {
     if(logfile_.length() == 0) logfile_=config_next_arg(rest);
@@ -129,7 +125,7 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
       logsize_ = strtol(rest.c_str(),&p,10);
       if(logsize_ < 0) {
         logsize_=0;
-        olog<<"Improper size of log '"<<rest<<"'"<<std::endl;
+        logger_.msg(Arc::ERROR,"Improper size of log '%s'",rest.c_str());
         return -1;
       };
       if((*p) == ' ') {
@@ -138,13 +134,13 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
           lognum_ = strtol(p,&p,10);
           if(lognum_ < 0) {
             logsize_=0; lognum_=0;
-            olog<<"Improper number of logs '"<<rest<<"'"<<std::endl;
+            logger_.msg(Arc::ERROR,"Improper number of logs '%s;",rest.c_str());
             return -1;
           };
         };
       } else if((*p) != 0) {
         logsize_=0; lognum_=0;
-        olog<<"Improper argument for logsize '"<<rest<<"'"<<std::endl;
+        logger_.msg(Arc::ERROR,"Improper argument for logsize '%s'",rest.c_str());
         return -1;
       };
     };
@@ -161,7 +157,7 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
         getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
 
         if(pw == NULL) {
-          olog<<"No such user: "<<username<<std::endl;
+          logger_.msg(Arc::ERROR,"No such user: %s",username.c_str());
           uid_=0; gid_=0; return -1;
         };
         uid_=pw->pw_uid;
@@ -173,7 +169,7 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
         char buf[BUFSIZ];
         getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
         if(gr == NULL) {
-          olog<<"No such group: "<<groupname<<std::endl;
+          logger_.msg(Arc::ERROR,"No such group: %s",groupname.c_str());
           gid_=0; return -1;
         };
         gid_=gr->gr_gid;
@@ -186,7 +182,7 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
       char* p;
       debug_ = strtol(rest.c_str(),&p,10);
       if(((*p) != 0) || (debug_<0)) {
-        olog<<"Improper debug level '"<<rest<<"'"<<std::endl;
+        logger_.msg(Arc::ERROR,"Improper debug level '%s'",rest.c_str());
         return -1;
       };
     };
@@ -268,8 +264,12 @@ int Daemon::daemon(bool close_fds) {
   if(pidfile_.length() != 0) hp=::open(pidfile_.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
   if((uid_ != (uid_t)(-1)) && (uid_ != 0)) setuid(uid_);
   if((gid_ != (gid_t)(-1)) && (gid_ != 0)) setgid(gid_);
-//@   if(debug_ != -1) LogTime::Level((NotifyLevel)(FATAL+debug_));
-//@   LogTime::Log(logfile_.c_str(),logsize_,lognum_);
+  if(debug_ != -1) logger_.setThreshold((Arc::LogLevel)round(::pow(2,Arc::FATAL-debug_)));
+  if(!logfile_.empty()) {
+    logger_.removeDestinations();
+    logger_.addDestination(*(new Arc::LogStream(*(new std::ofstream(logfile_.c_str())))));
+    // TODO: logsize_, lognum_
+  };
   int r = 0;
   if(daemon_) {
 #ifdef HAVE_DAEMON

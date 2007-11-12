@@ -2,12 +2,15 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
+#include <arc/Run.h>
 #include "../jobs/job.h"
 #include "../jobs/states.h"
 #include "../jobs/users.h"
+
+/*
 #include "../run/run.h"
 #include "../run/run_plugin.h"
+*/
 
 #include "plugins.h"
 
@@ -170,6 +173,20 @@ ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job
     return act_undefined;
   };
   int to = commands[state].to;
+
+
+
+
+
+  Arc::Run re(args);
+  re.AssignStdout(res_out);
+  re.AssignStderr(res_err);
+
+
+
+
+
+
   bool r = Run::plain_run_piped(args,NULL,&res_out,&res_err,to,&result);
   response=res_out;
   if(res_err.length()) {

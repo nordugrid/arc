@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-
 #include <fstream>
 #include <string>
 #include <list>

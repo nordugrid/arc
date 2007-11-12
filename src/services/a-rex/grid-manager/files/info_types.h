@@ -52,6 +52,7 @@ class mds_time {
   bool operator<= (time_t tm) { return (t<=tm); };
   bool operator<  (time_t tm) { return (t<tm);  };
   bool operator== (time_t tm) { return (t==tm); };
+  std::string str(void) const;
 };
 
 std::istream &operator>> (std::istream &i,mds_time &t);

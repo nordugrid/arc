@@ -1,10 +1,7 @@
 #include <list>
 
+#include <arc/Thread.h>
 #include "users.h"
-//@ #include "../misc/condition.h"
-//@
-#include <glibmm/thread.h>
-//@
 
 class CommFIFOListener;
 
@@ -20,10 +17,7 @@ class CommFIFO {
   std::list<elem_t> fds;
   int kick_in;
   int kick_out;
-//@   LockSimple lock;
-//@ 
   Glib::Mutex lock;
-//@ 
   int timeout_;
  public:
   CommFIFO(void);

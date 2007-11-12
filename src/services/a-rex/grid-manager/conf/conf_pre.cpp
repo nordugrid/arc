@@ -2,35 +2,24 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-
 #include <string>
 #include <fstream>
+#include <iostream>
+#include <pwd.h>
 
+#include <arc/StringConv.h>
+#include <arc/Logger.h>
 #include "conf.h"
 #include "conf_sections.h"
 #include "environment.h"
 #include "gridmap.h"
-//@ #include "../misc/stringtoint.h"
 #include "../jobs/job.h"
 #include "../jobs/users.h"
 #include "../jobs/plugins.h"
 #include "../run/run_plugin.h"
-//@ #include "../misc/substitute.h"
-//@ #include "../misc/log_time.h"
 #include "conf_pre.h"
 
-//@
-#include <iostream>
-#include <pwd.h>
-#include <arc/StringConv.h>
-#define olog std::cerr
-
-//static bool stringtoint(const std::string& s,long long int& i) {
-//  i=Arc::stringto<long long int>(s);
-//  return true;
-//}
-//@
+Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 bool configure_user_dirs(const std::string &my_username,
                 std::string &control_dir,std::string &session_root,
@@ -47,7 +36,7 @@ bool configure_user_dirs(const std::string &my_username,
 
   strict_session = false;
   if(!config_open(cfile)) {
-    olog << "Can't open configuration file." << std::endl; return false;
+    logger.msg(Arc::ERROR,"Can't open configuration file."); return false;
   };
   if(central_configuration) {
     cf=new ConfigSections(cfile);

@@ -1,8 +1,6 @@
 #ifndef __GM_CONFIG_SECTIONS_H__
 #define __GM_CONFIG_SECTIONS_H__
 
-//@ #include "../std.h"
-
 #include <fstream>
 #include <string>
 #include <list>
