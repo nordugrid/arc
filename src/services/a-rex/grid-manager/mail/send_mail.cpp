@@ -11,7 +11,7 @@
 #include "send_mail.h"
 
 
-static Arc::Logger& logger = Arc::Logger::getRootLoger();
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check if have to send mail and initiate sending */
 bool send_mail(const JobDescription &desc,JobUser &user) {
@@ -86,7 +86,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
   if(!RunParallel::run(user,desc,args,&child)) {
-    logger.msg("Failed running mailer.");
+    logger.msg(Arc::ERROR,"Failed running mailer.");
     return false;
   };
   RunParallel::release(child);
