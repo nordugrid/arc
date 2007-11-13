@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/Logger.h>
 #include <string>
 #include <cerrno>
@@ -377,10 +381,10 @@ int cache_history(const std::string& cache_path,bool enable,uid_t uid,gid_t gid)
   std::string fname_new(cache_path); fname_new+="/new";
   int h_old = -1;
   int h_new = -1;
-  if(enable) {
+  if(enable) { 
     h_old=open(fname_old.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_old == -1) goto error_exit;
-    h_new=open(fname_new.c_str(),O_RDWR | O_CREAT);
+    h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
     if(uid) (void)chown(fname_old.c_str(),uid,gid);
     if(uid) (void)chown(fname_new.c_str(),uid,gid);
