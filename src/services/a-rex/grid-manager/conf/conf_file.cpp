@@ -13,8 +13,6 @@
 #include "conf_sections.h"
 #include "environment.h"
 #include "gridmap.h"
-//@ #include "../misc/substitute.h"
-//@ #include "../misc/log_time.h"
 #include "../run/run_plugin.h"
 #include "conf_file.h"
 
@@ -24,8 +22,6 @@
 #endif
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
-//@
-#define olog std::cerr
 
 JobLog job_log;
 ContinuationPlugins plugins;
@@ -70,7 +66,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
 
   /* read configuration and add users and other things */
   if(!config_open(cfile)) {
-    olog << "Can't read configuration file." << std::endl; return false;
+    logger.msg(Arc::ERROR,"Can't read configuration file."); return false;
   };
   if(central_configuration) {
     cf=new ConfigSections(cfile);
@@ -135,7 +131,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       cache_dir = config_next_arg(rest);
       cache_link_dir = config_next_arg(rest);
       if(rest.length() != 0) {
-        olog << "junk in cache command" << std::endl; goto exit;
+        logger.msg(Arc::WARNING,"junk in cache command"); goto exit;
       };
       private_cache=false;
     }
@@ -143,14 +139,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       cache_dir = config_next_arg(rest);
       cache_link_dir = config_next_arg(rest);
       if(rest.length() != 0) {
-        olog << "junk in privatecache command" << std::endl; goto exit;
+        logger.msg(Arc::WARNING,"junk in privatecache command"); goto exit;
       };
       private_cache=true;
     }
     else if(command == "cachedata") {
       cache_data_dir = config_next_arg(rest);
       if(rest.length() != 0) {
-        olog << "junk in cachedata command" << std::endl; goto exit;
+        logger.msg(Arc::WARNING,"junk in cachedata command"); goto exit;
       };
     }
     else if(command == "cachesize") {
@@ -161,7 +157,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       }
       else {
         if(!Arc::stringto(cache_size_s,i)) {
-          olog<<"wrong number in cachesize"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in cachesize"); goto exit;
         };
       };
       cache_max=i;
@@ -171,7 +167,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       }
       else {
         if(!Arc::stringto(cache_size_s,i)) {
-          olog<<"wrong number in cachesize"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in cachesize"); goto exit;
         };
       };
       cache_min=i;
@@ -198,14 +194,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_jobs = -1; max_jobs_processing = -1; max_jobs_running = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          olog<<"wrong number in maxjobs"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxjobs"); goto exit;
         };
         if(i<0) i=-1; max_jobs=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          olog<<"wrong number in maxjobs"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxjobs"); goto exit;
         };
         if(i<0) i=-1; max_jobs_running=i;
       };
@@ -220,21 +216,21 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_downloads = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          olog<<"wrong number in maxload"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
         };
         if(i<0) i=-1; max_jobs_processing=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          olog<<"wrong number in maxload"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
         };
         if(i<0) i=-1; max_jobs_processing_emergency=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
-          olog<<"wrong number in maxload"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in maxload"); goto exit;
         };
         if(i<0) i=-1; max_downloads=i;
       };
@@ -247,25 +243,25 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       min_average_speed=0; max_inactivity_time=300;
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed)) {
-          olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_speed_time)) {
-          olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,min_average_speed)) {
-          olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
         if(!Arc::stringto(speed_s,max_inactivity_time)) {
-          olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in speedcontrol"); goto exit;
         };
       };
       JobsList::SetSpeedControl(
@@ -275,7 +271,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       std::string wakeup_s = config_next_arg(rest);
       if(wakeup_s.length() != 0) {
         if(!Arc::stringto(wakeup_s,wakeup_period)) {
-          olog<<"wrong number in wakeupperiod"<<std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in wakeupperiod"); goto exit;
         };
         JobsList::SetWakeupPeriod(wakeup_period);
       };
@@ -289,7 +285,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         use_secure_transfer=false;
       }
       else {
-        olog<<"wrong option in securetransfer"<<std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong option in securetransfer"); goto exit;
       };
       JobsList::SetSecureTransfer(use_secure_transfer);
     }
@@ -302,7 +298,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         strict_session=false;
       }
       else {
-        olog<<"wrong option in norootpower"<<std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong option in norootpower"); goto exit;
       };
     }
     else if(command == "localtransfer") {
@@ -314,7 +310,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         use_local_transfer=false;
       }
       else {
-        olog<<"wrong option in localtransfer"<<std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong option in localtransfer"); goto exit;
       };
       JobsList::SetLocalTransfer(use_local_transfer);
     }
@@ -327,34 +323,34 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         cache_registration=false;
       }
       else {
-        olog<<"wrong option in cacheregistration"<<std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong option in cacheregistration"); goto exit;
       };
       JobsList::SetCacheRegistration(cache_registration);
     }
     else if(command == "mail") { /* internal address from which to send mail */ 
       support_mail_address = config_next_arg(rest);
       if(support_mail_address.length() == 0) {
-        olog << "mail is empty" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"mail is empty"); goto exit;
       };
     }
     else if(command == "defaultttl") { /* time to keep job after finished */ 
       char *ep;
       std::string default_ttl_s = config_next_arg(rest);
       if(default_ttl_s.length() == 0) {
-        olog << "defaultttl is empty" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"defaultttl is empty"); goto exit;
       };
       default_ttl=strtoul(default_ttl_s.c_str(),&ep,10);
       if(*ep != 0) {
-        olog << "wrong number in defaultttl command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong number in defaultttl command"); goto exit;
       };
       default_ttl_s = config_next_arg(rest);
       if(default_ttl_s.length() != 0) {
         if(rest.length() != 0) {
-          olog << "junk in defaultttl command" << std::endl; goto exit;
+          logger.msg(Arc::ERROR,"junk in defaultttl command"); goto exit;
         };
         default_ttr=strtoul(default_ttl_s.c_str(),&ep,10);
         if(*ep != 0) {
-          olog << "wrong number in defaultttl command" << std::endl; goto exit;
+          logger.msg(Arc::ERROR,"wrong number in defaultttl command"); goto exit;
         };
       } else {
         default_ttr=DEFAULT_KEEP_DELETED;
@@ -363,29 +359,29 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "maxrerun") { /* number of retries allowed */ 
       default_reruns_s = config_next_arg(rest);
       if(default_reruns_s.length() == 0) {
-        olog << "maxrerun is empty" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"maxrerun is empty"); goto exit;
       };
       if(rest.length() != 0) {
-        olog << "junk in maxrerun command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"junk in maxrerun command"); goto exit;
       };
       char *ep;
       default_reruns=strtoul(default_reruns_s.c_str(),&ep,10);
       if(*ep != 0) {
-        olog << "wrong number in maxrerun command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong number in maxrerun command"); goto exit;
       };      
     }
     else if(command == "diskspace") { /* maximal amount of disk space */ 
       default_diskspace_s = config_next_arg(rest);
       if(default_diskspace_s.length() == 0) {
-        olog << "diskspace is empty" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"diskspace is empty"); goto exit;
       };
       if(rest.length() != 0) {
-        olog << "junk in diskspace command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"junk in diskspace command"); goto exit;
       };
       char *ep;
       default_diskspace=strtoull(default_diskspace_s.c_str(),&ep,10);
       if(*ep != 0) {
-        olog << "wrong number in diskspace command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"wrong number in diskspace command"); goto exit;
       };      
     }
     else if((!central_configuration && (command == "defaultlrms")) || 
@@ -396,36 +392,36 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       default_lrms = config_next_arg(rest);
       default_queue = config_next_arg(rest);
       if(default_lrms.length() == 0) {
-        olog << "defaultlrms is empty" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"defaultlrms is empty"); goto exit;
       };
       if(rest.length() != 0) {
-        olog << "junk in defaultlrms command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"junk in defaultlrms command"); goto exit;
       };
     }
     else if(command == "authplugin") { /* set plugin to be called on 
                                           state changes */
       std::string state_name = config_next_arg(rest);
       if(state_name.length() == 0) {
-        olog << "state name for plugin is missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"state name for plugin is missing"); goto exit;
       };
       std::string options_s = config_next_arg(rest);
       if(options_s.length() == 0) {
-        olog << "Options for plugin are missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"Options for plugin are missing"); goto exit;
       };
       if(!plugins.add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
-        olog<<"Failed to register plugin for state "<<state_name<<std::endl;      
+        logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name.c_str());      
         goto exit;
       };
     }
     else if(command == "localcred") {
       std::string timeout_s = config_next_arg(rest);
       if(timeout_s.length() == 0) {
-        olog << "timeout for plugin is missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"timeout for plugin is missing"); goto exit;
       };
       char *ep;
       int to = strtoul(timeout_s.c_str(),&ep,10);
       if((*ep != 0) || (to<0)) {
-        olog << "wrong number for timeout in plugin command " << std::endl;
+        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command ");
         goto exit;
       };
       cred_plugin = rest;
@@ -437,10 +433,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
                                    to all following 'control' commands */
       session_root = config_next_arg(rest);
       if(session_root.length() == 0) {
-        olog << "session root dir is missing" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"session root dir is missing"); goto exit;
       };
       if(rest.length() != 0) {
-        olog << "junk in session root command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"junk in session root command"); goto exit;
       };
       if(session_root == "*") session_root="";
     } else if(central_configuration  && (command == "controldir")) {
@@ -448,7 +444,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     } else if(command == "control") {
       std::string control_dir = config_next_arg(rest);
       if(control_dir.length() == 0) {
-        olog << "missing directory in control command" << std::endl; goto exit;
+        logger.msg(Arc::ERROR,"missing directory in control command"); goto exit;
       };
       if(control_dir == "*") control_dir="";
       if(command == "controldir") rest=".";
@@ -457,7 +453,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         if(username.length() == 0) break;
         if(username == "*") {  /* add all gridmap users */
           if(!gridmap_user_list(rest)) {
-            olog << "Can't read users in gridmap file " << globus_gridmap << std::endl; goto exit;
+            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap.c_str()); goto exit;
           };
           continue;
         };
@@ -474,7 +470,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           JobUsers::iterator user=users.AddUser(username,&cred_plugin,
                                        control_dir,session_root);
           if(user == users.end()) { /* bad bad user */
-            olog<<"Warning: creation of user \""<<username<<"\" failed"<<std::endl;
+            logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username.c_str());
           }
           else {
             std::string control_dir_ = control_dir;
