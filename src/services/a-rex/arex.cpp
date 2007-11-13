@@ -139,6 +139,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = inmsg.Attributes()->get("PLEXER:EXTENSION");
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
   logger_.msg(Arc::DEBUG, "process: method: %s", method.c_str());
   logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
@@ -199,7 +200,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::PayloadSOAP& res = *outpayload;
       if(MatchXMLName(op,"CreateActivity")) {
         logger_.msg(Arc::DEBUG, "process: CreateActivity");
-        CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"));
+        CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"),clientid);
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
         GetActivityStatuses(*config,op,res.NewChild("bes-factory:GetActivityStatusesResponse"));
       } else if(MatchXMLName(op,"TerminateActivities")) {

@@ -7,7 +7,7 @@
 namespace ARex {
 
 
-Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid) {
   /*
   CreateActivity
     ActivityDocument
@@ -57,7 +57,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       return Arc::MCC_Status();
     };
   };
-  ARexJob job(jsdl,config,delegation);
+  ARexJob job(jsdl,config,delegation,clientid);
   if(!job) {
     std::string failure = job.Failure();
     logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());

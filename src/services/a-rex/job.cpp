@@ -124,7 +124,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config):id_(id),config_(con
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string credentials):id_(""),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid):id_(""),config_(config) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -189,14 +189,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string creden
   job_.jobid=id_;
   job_.starttime=time(NULL);
   job_.DN=config_.GridName();
-  /*@
-  if(port != 0) {
-    job_desc.clientname=
-       inttostring(host[0])+"."+inttostring(host[1])+"."+
-       inttostring(host[2])+"."+inttostring(host[3])+":"+
-       inttostring(port);
-  };
-  */
+  job_.clientname=clientid;
   // Try to create proxy
   if(!credentials.empty()) {
     std::string fname=config.User()->ControlDir()+"/job."+id_+".proxy";
