@@ -17,21 +17,20 @@ namespace Arc {
 
   bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
 
-    Arc::MCCConfig cfg;
-    Arc::ClientHTTP client(cfg, url.Host(), url.Port(),
-			   url.Protocol() == "https", url.str());
+    MCCConfig cfg;
+    ClientHTTP client(cfg, url.Host(), url.Port(),
+                      url.Protocol() == "https", url.str());
 
-    Arc::PayloadRaw request;
-    Arc::PayloadRawInterface* response;
+    PayloadRaw request;
+    PayloadRawInterface* response;
 
-    int code;
-    std::string reason;
-    client.process("GET", &request, &code, reason, &response);
+    ClientHTTP::Info info;
+    client.process("GET", &request, &info, &response);
 
     std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
     f->SetType(FileInfo::file_type_file);
-    f->SetSize(response->Size());
-    // need to get date somehow ...
+    f->SetSize(info.size);
+    f->SetCreated(info.lastModified);
 
     return true;
   }

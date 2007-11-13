@@ -1,6 +1,7 @@
 #include <string>
 #include <list>
 #include <arc/ArcConfig.h>
+#include <arc/DateTime.h>
 #include <arc/message/Message.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
@@ -64,12 +65,17 @@ namespace Arc {
 
   class ClientHTTP : public ClientTCP {
    public:
+    struct Info {
+      int code;
+      std::string reason;
+      unsigned long long size;
+      Time lastModified;
+    };
     ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
-		       int *code, std::string& reason,
-		       PayloadRawInterface **response);
+		       Info *info, PayloadRawInterface **response);
    protected:
     MCC *http_entry;
   };

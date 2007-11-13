@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <glibmm/fileutils.h>
-#include <arc/DateTime.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
 
@@ -119,8 +118,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
 				 PayloadRawInterface* request,
-				 int* code, std::string& reason,
-				 PayloadRawInterface** response) {
+				 Info* info, PayloadRawInterface** response) {
     *response = NULL;
     if(!loader) {
       loader = new Loader(&xmlcfg);
@@ -143,8 +141,10 @@ namespace Arc {
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     MCC_Status r = http_entry->process(reqmsg,repmsg);
-    *code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
-    reason = repmsg.Attributes()->get("HTTP:REASON");
+    info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
+    info->reason = repmsg.Attributes()->get("HTTP:REASON");
+    info->size = stringtoull(repmsg.Attributes()->get("HTTP:content-length"));
+    info->lastModified = repmsg.Attributes()->get("HTTP:last-modified");
     if(repmsg.Payload() != NULL)
       try {
 	*response = dynamic_cast<Arc::PayloadRawInterface*>(repmsg.Payload());
