@@ -2,13 +2,10 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
 #include "conf.h"
-// #include "../files/info_types.h"
 #include "../misc/escaped.h"
 #include "environment.h"
 
-//@ 
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -26,7 +23,6 @@
 }
 
 #endif
-//@ 
 
 bool config_open(std::ifstream &cfile) {
   return config_open(cfile,nordugrid_config_loc);

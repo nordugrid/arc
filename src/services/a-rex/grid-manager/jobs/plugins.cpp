@@ -7,11 +7,6 @@
 #include "../jobs/states.h"
 #include "../jobs/users.h"
 
-/*
-#include "../run/run.h"
-#include "../run/run_plugin.h"
-*/
-
 #include "plugins.h"
 
 /*
@@ -168,34 +163,29 @@ ContinuationPlugins::action_t ContinuationPlugins::run(const JobDescription &job
   };
   std::string res_out("");
   std::string res_err("");
-  char** args = string_to_args(cmd);
-  if(args == NULL) {
-    return act_undefined;
-  };
   int to = commands[state].to;
-
-
-
-
-
-  Arc::Run re(args);
-  re.AssignStdout(res_out);
-  re.AssignStderr(res_err);
-
-
-
-
-
-
-  bool r = Run::plain_run_piped(args,NULL,&res_out,&res_err,to,&result);
+  bool r = false;
+  bool t = false;
+  {
+    Arc::Run re(cmd);
+    re.AssignStdout(res_out);
+    re.AssignStderr(res_err);
+    re.KeepStdin();
+    if(re.Start()) {
+      if(re.Wait(to)) {
+        r=true;
+      } else {
+        t=true;
+      };
+    };
+  };
   response=res_out;
   if(res_err.length()) {
     if(response.length()) response+=" : ";
     response+=res_err;
   };
-  free_args(args);
-  if(!r) {
-    if(to == -1) { // timeout occured
+  if(!r) { // failure
+    if(t) { // timeout occured
       if(response.length()) { response="TIMEOUT : "+response; }
       else { response="TIMEOUT"; };
       return commands[state].ontimeout;

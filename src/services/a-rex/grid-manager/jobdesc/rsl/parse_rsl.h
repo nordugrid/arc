@@ -2,6 +2,9 @@
 #define __ARC_GM_PARSE_RSL_H__
 #include <string>
 
+#include <globus_common.h>
+#include <globus_rsl.h>
+
 #include "../../jobs/users.h"
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"

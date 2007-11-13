@@ -2,33 +2,28 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-
 #include <string>
 #include <list>
-
 #include <fstream>
-#include "info_files.h"
-//@ #include <arc/stringconv.h>
-//@ #include <arc/job_jsdl.h>
-//@ #include <arc/job_xrsl.h>
-//@ #include <arc/certificate.h>
-#include "../conf/conf.h"
-//@ 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
+
 #include <arc/StringConv.h>
 #include <../jobdesc/job.h>
+#include "info_files.h"
+#include "../conf/conf.h"
+//@ #include <arc/certificate.h>
+
 #ifdef HAVE_GSOAP
 #include <../jobdesc/job_jsdl.h>
 #endif
+
 #ifdef HAVE_GLOBUS_RSL
 #include <../jobdesc/job_xrsl.h>
 #endif
-//@ 
 
 #include "info_log.h"
 
@@ -56,14 +51,14 @@ static void extract_float(std::string& s,std::string::size_type n = 0) {
 static bool string_to_number(std::string& s,float& f) {
   extract_float(s);
   if(s.length() == 0) return false;
-  try { f=Arc::stringtof(s); } catch (std::exception) { return false; };
+  if(!Arc::stringto(s,f)) return false;
   return true;
 }
 
 static bool string_to_number(std::string& s,unsigned int& n) {
   extract_integer(s);
   if(s.length() == 0) return false;
-  try { n=Arc::stringtoui(s); } catch (std::exception) { return false; };
+  if(!Arc::stringto(s,n)) return false;
   return true;
 }
 
@@ -207,10 +202,8 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
         if(string_to_number(value,f))
           o_dst<<"usedmemory="<<(unsigned int)f<<std::endl;
       } else if(strcasecmp(key.c_str(),"exitcode") == 0) {
-        try { 
-          unsigned int n = Arc::stringtoi(value);
-          o_dst<<"exitcode="<<n<<std::endl;
-        } catch (std::exception) { };
+        int n;
+        if(Arc::stringto(value,n)) o_dst<<"exitcode="<<n<<std::endl;
       };
     };
     if(nodecount) {

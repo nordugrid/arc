@@ -37,12 +37,6 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-//@
-static bool stringtoint(const std::string& s,time_t& i) {
-  i=Arc::stringto<time_t>(s);
-  return true;
-}
-
 #include "states.h"
 
 
@@ -913,7 +907,7 @@ static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::
   time_t t = -1;
   /* read lifetime - if empty it wont be overwritten */
   job_local_read_file(job_id,user,job_desc);
-  if(!stringtoint(job_desc.lifetime,t)) t = keep_finished;
+  if(!Arc::stringto(job_desc.lifetime,t)) t = keep_finished;
   if(t > keep_finished) t = keep_finished;
   time_t last_changed=job_state_time(job_id,user);
   t=last_changed+t; job_desc.cleanuptime=t;

@@ -2,18 +2,14 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
+#include <iostream>
 #include <limits.h>
+
+#include <arc/StringConv.h>
 #include "../misc/canonical_dir.h"
-//@ #include "../misc/stringtoint.h"
 #include "../misc/escaped.h"
-//@ #include "../misc/log_time.h"
 #include "info_types.h"
 
-//@ 
-#include <iostream>
-#define olog std::cerr
-#include <arc/StringConv.h>
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -32,18 +28,7 @@
 
 #endif
 
-static bool stringtoint(const std::string& s,int& i) {
-  i=Arc::stringto<int>(s);
-  return true;
-}
-
-static bool stringtoint(const std::string& s,unsigned int& i) {
-  i=Arc::stringto<unsigned int>(s);
-  return true;
-}
-
-//@ 
-
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 void output_escaped_string(std::ostream &o,const std::string &str) {
   std::string::size_type n,nn;
@@ -95,7 +80,7 @@ std::ostream &operator<< (std::ostream &o,const mds_time &t) {
 inline bool get_num(const std::string &s,int pos,int len,unsigned int &num) {
   if(pos < 0) { len+=pos; pos=0; };
   if(len <= 0) return false;
-  if(!stringtoint(s.substr(pos,len),num)) return false;
+  if(!Arc::stringto(s.substr(pos,len),num)) return false;
   return true;
 }
 
@@ -154,7 +139,7 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   input_escaped_string(buf+n,fd.lfn);
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(canonical_dir(fd.pfn) != 0) {
-    olog<<"Wrong directory in "<<buf<<std::endl;
+    logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
     fd.pfn.resize(0); fd.lfn.resize(0);
   };
   return i;

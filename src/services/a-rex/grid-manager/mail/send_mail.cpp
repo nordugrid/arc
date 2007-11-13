@@ -2,15 +2,16 @@
 #include <config.h>
 #endif
 #include <string>
+
+#include <arc/Logger.h>
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../run/run_parallel.h"
 #include "../conf/environment.h"
 #include "send_mail.h"
 
-//@ 
-#define olog std::cerr
-//@ 
+
+static Arc::Logger& logger = Arc::Logger::getRootLoger();
 
 /* check if have to send mail and initiate sending */
 bool send_mail(const JobDescription &desc,JobUser &user) {
@@ -22,7 +23,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
   if(job_desc == NULL) {
     job_desc = new JobLocalDescription;
     if(!job_local_read_file(desc.get_id(),user,*job_desc)) {
-      olog << "Failed reading local information." << std::endl;
+      logger.msg(Arc::ERROR,"Failed reading local information.");
       delete job_desc; job_desc=NULL;
     };
   };
@@ -85,7 +86,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
   if(!RunParallel::run(user,desc,args,&child)) {
-    olog << "Failed running mailer." << std::endl;
+    logger.msg("Failed running mailer.");
     return false;
   };
   RunParallel::release(child);

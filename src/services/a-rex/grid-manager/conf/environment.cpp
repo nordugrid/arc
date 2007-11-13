@@ -12,7 +12,6 @@
 #endif
 #define olog std::cerr
 #define DEFAULT_ARC_LOCATION "/usr"
-//@ 
 #include "environment.h"
 
 // Globus installation path - $GLOBUS_LOCATION

@@ -9,7 +9,7 @@
 #include <arc/Logger.h>
 #include "subst_rsl.h"
 
-Arc::Logger& logger = Arc::Logger::getRootLogger();
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #define GLOBUS_ERROR ((globus_result_t)(GLOBUS_FAILURE))
 

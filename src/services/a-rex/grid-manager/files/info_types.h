@@ -1,7 +1,6 @@
 #ifndef GRID_MANAGER_INFO_TYPES_H
 #define GRID_MANAGER_INFO_TYPES_H
 
-//@ #include "../std.h"
 #include <string>
 #include <list>
 #include <iostream>

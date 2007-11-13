@@ -13,7 +13,6 @@
 #include "conf_sections.h"
 #include "environment.h"
 #include "gridmap.h"
-//@ #include "../misc/stringtoint.h"
 //@ #include "../misc/substitute.h"
 //@ #include "../misc/log_time.h"
 #include "../run/run_plugin.h"
@@ -24,28 +23,9 @@
 #define setenv Glib::setenv
 #endif
 
-Arc::Logger& logger = Arc::Logger::getRootLogger();
-
-static bool stringtoint(const std::string& s,long long int& i) {
-  i=Arc::stringto<long long int>(s);
-  return true;
-}
-
-static bool stringtoint(const std::string& s,long long unsigned int& i) {
-  i=Arc::stringto<long long unsigned int>(s);
-  return true;
-}
-
-static bool stringtoint(const std::string& s,long int& i) {
-  i=Arc::stringto<long int>(s);
-  return true;
-}
-
-static bool stringtoint(const std::string& s,unsigned int& i) {
-  i=Arc::stringto<unsigned int>(s);
-  return true;
-}
-//@ 
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
+//@
+#define olog std::cerr
 
 JobLog job_log;
 ContinuationPlugins plugins;
@@ -180,7 +160,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         i=0;
       }
       else {
-        if(!stringtoint(cache_size_s,i)) {
+        if(!Arc::stringto(cache_size_s,i)) {
           olog<<"wrong number in cachesize"<<std::endl; goto exit;
         };
       };
@@ -190,7 +170,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         i=cache_max;
       }
       else {
-        if(!stringtoint(cache_size_s,i)) {
+        if(!Arc::stringto(cache_size_s,i)) {
           olog<<"wrong number in cachesize"<<std::endl; goto exit;
         };
       };
@@ -205,7 +185,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         std::string url = config_next_arg(rest); 
         if(url.length() == 0) break;
         unsigned int i;
-        if(stringtoint(url,i)) {
+        if(Arc::stringto(url,i)) {
           job_log.SetExpiration(i);
           continue;
         };
@@ -217,14 +197,14 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       long int i;
       max_jobs = -1; max_jobs_processing = -1; max_jobs_running = -1;
       if(max_jobs_s.length() != 0) {
-        if(!stringtoint(max_jobs_s,i)) {
+        if(!Arc::stringto(max_jobs_s,i)) {
           olog<<"wrong number in maxjobs"<<std::endl; goto exit;
         };
         if(i<0) i=-1; max_jobs=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
-        if(!stringtoint(max_jobs_s,i)) {
+        if(!Arc::stringto(max_jobs_s,i)) {
           olog<<"wrong number in maxjobs"<<std::endl; goto exit;
         };
         if(i<0) i=-1; max_jobs_running=i;
@@ -239,21 +219,21 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       max_jobs_processing_emergency=-1;
       max_downloads = -1;
       if(max_jobs_s.length() != 0) {
-        if(!stringtoint(max_jobs_s,i)) {
+        if(!Arc::stringto(max_jobs_s,i)) {
           olog<<"wrong number in maxload"<<std::endl; goto exit;
         };
         if(i<0) i=-1; max_jobs_processing=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
-        if(!stringtoint(max_jobs_s,i)) {
+        if(!Arc::stringto(max_jobs_s,i)) {
           olog<<"wrong number in maxload"<<std::endl; goto exit;
         };
         if(i<0) i=-1; max_jobs_processing_emergency=i;
       };
       max_jobs_s = config_next_arg(rest);
       if(max_jobs_s.length() != 0) {
-        if(!stringtoint(max_jobs_s,i)) {
+        if(!Arc::stringto(max_jobs_s,i)) {
           olog<<"wrong number in maxload"<<std::endl; goto exit;
         };
         if(i<0) i=-1; max_downloads=i;
@@ -266,25 +246,25 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       min_speed=0; min_speed_time=300;
       min_average_speed=0; max_inactivity_time=300;
       if(speed_s.length() != 0) {
-        if(!stringtoint(speed_s,min_speed)) {
+        if(!Arc::stringto(speed_s,min_speed)) {
           olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
-        if(!stringtoint(speed_s,min_speed_time)) {
+        if(!Arc::stringto(speed_s,min_speed_time)) {
           olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
-        if(!stringtoint(speed_s,min_average_speed)) {
+        if(!Arc::stringto(speed_s,min_average_speed)) {
           olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
         };
       };
       speed_s = config_next_arg(rest);
       if(speed_s.length() != 0) {
-        if(!stringtoint(speed_s,max_inactivity_time)) {
+        if(!Arc::stringto(speed_s,max_inactivity_time)) {
           olog<<"wrong number in speedcontrol"<<std::endl; goto exit;
         };
       };
@@ -294,7 +274,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "wakeupperiod") { 
       std::string wakeup_s = config_next_arg(rest);
       if(wakeup_s.length() != 0) {
-        if(!stringtoint(wakeup_s,wakeup_period)) {
+        if(!Arc::stringto(wakeup_s,wakeup_period)) {
           olog<<"wrong number in wakeupperiod"<<std::endl; goto exit;
         };
         JobsList::SetWakeupPeriod(wakeup_period);
@@ -612,7 +592,7 @@ bool print_serviced_users(const JobUsers &users) {
     logger.msg(Arc::INFO,"\tControl dir      : %s",user->ControlDir().c_str());
     logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS().c_str());
     logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue().c_str());
-    logger.msg(Arc::INFO,"\tdefault ttl      : %s",user->KeepFinished().c_str());
+    logger.msg(Arc::INFO,"\tdefault ttl      : %u",user->KeepFinished());
     if(user->CacheDir().length() != 0) {
       if(user->CacheDataDir().length() == 0) {
         logger.msg(Arc::INFO,"\tCache dir        : %s (%s)",user->CacheDir().c_str(),user->CachePrivate()?"private":"global");

@@ -2,13 +2,11 @@
 #include <config.h>
 #endif
 
-//@ #include "../std.h"
-//@ 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-//@ 
+ 
 #include "../files/info_types.h"
 #include "delete.h"
 

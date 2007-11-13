@@ -5,21 +5,33 @@
 /*
  routines to work with informational files
 */
-//@ #include "../std.h"
 
 #include <string>
 #include <list>
-
-//@ 
 #include <iostream>
+#include <fstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+
 #include <arc/StringConv.h>
-#define olog std::cerr
-#define inttostring Arc::tostring
+#include "../files/delete.h"
+#include "../misc/escaped.h"
+
+#ifdef HAVE_POSIX_FORK
+#include "../run/run.h"
+#include "../run/run_commands.h"
+#else
+#warning Without fork() strictsession option and information collection are not functional !!!!
+#endif
+
+#include "../conf/conf.h"
+//@ #include <arc/certificate.h>
+#include "info_types.h"
+#include "info_files.h"
+
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -38,32 +50,6 @@
 
 #endif
 
-static bool stringtoint(const std::string& s,int& i) {
-  i=Arc::stringto<int>(s);
-  return true;
-}
-
-static bool stringtoint(const std::string& s,long long unsigned int& i) {
-  i=Arc::stringto<long long unsigned int>(s);
-  return true;
-}
-//@ 
-
-#include <fstream>
-#include "../files/delete.h"
-//@ #include "../misc/stringtoint.h"
-//@ #include "../misc/inttostring.h"
-#include "../misc/escaped.h"
-//@ #include "../misc/log_time.h"
-#include "../run/run.h"
-#include "../run/run_commands.h"
-#include "info_types.h"
-#include "info_files.h"
-//@ #include <arc/stringconv.h>
-//#include <../jobdesc/job_jsdl.h>
-//#include <../jobdesc/job_xrsl.h>
-//@ #include <arc/certificate.h>
-#include "../conf/conf.h"
 
 const char * const sfx_failed      = ".failed";
 const char * const sfx_cancel      = ".cancel";
@@ -77,6 +63,8 @@ const char * const sfx_diag        = ".diag";
 const char * const sfx_lrmsoutput  = ".comment";
 const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 bool fix_file_permissions(const std::string &fname,bool executable) {
   mode_t mode = S_IRUSR | S_IWUSR;
@@ -97,7 +85,7 @@ static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
 bool fix_file_owner(const std::string &fname,const JobUser &user) {
   if(getuid() == 0) {
     if(lchown(fname.c_str(),user.get_uid(),user.get_gid()) == -1) {
-      olog << "Failed setting file owner: " << fname << std::endl;
+      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname.c_str());
       return false;
     };
   };
@@ -112,7 +100,7 @@ bool fix_file_owner(const std::string &fname,const JobDescription &desc,const Jo
       uid=user.get_uid(); gid=user.get_gid();
     };
     if(lchown(fname.c_str(),uid,gid) == -1) {
-      olog << "Failed setting file owner: " << fname << std::endl;
+      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname.c_str());
       return false;
     };
   };
@@ -152,7 +140,7 @@ bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,int code) {
 
 bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,LRMSResult r) {
   std::string fname = user.ControlDir()+"/job."+desc.get_id()+".lrms_done";
-  std::string content = inttostring(r.code());
+  std::string content = Arc::tostring(r.code());
   content+=" ";
   content+=r.description();
   return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -254,6 +242,7 @@ std::string job_failed_mark_read(const JobId &id,JobUser &user) {
 
 bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_diag;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_diagnostics_mark_put");
@@ -262,6 +251,7 @@ bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
       return RunCommands::wait(re,10,"job_diagnostics_mark_put");
     _exit(job_mark_put(fname) & fix_file_permissions(fname));
   };
+#endif
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
@@ -270,6 +260,7 @@ bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char cons
   if(!job_mark_put(fname)) return false;
   if(!fix_file_owner(fname,desc,user)) return false;
   if(!fix_file_permissions(fname)) return false;
+#ifdef HAVE_POSIX_FORK
   if(args == NULL) return true;
   int h = open(fname.c_str(),O_WRONLY);
   if(h == -1) return false;
@@ -280,11 +271,13 @@ bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char cons
   };
   close(h);
   if(r != 0) return false;
+#endif
   return true;
 }
 
 bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_lrmsoutput_mark_put");
@@ -293,11 +286,13 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
       return RunCommands::wait(re,10,"job_lrmsoutput_mark_put");
     _exit(job_mark_put(fname) & fix_file_permissions(fname));
   };
+#endif
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
 bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std::string &content) {
   std::string fname = desc.SessionDir() + sfx_diag;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_diagnostics_mark_add");
@@ -306,6 +301,7 @@ bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std
       return RunCommands::wait(re,10,"job_diagnostics_mark_add");
     _exit(job_mark_add_s(fname,content) & fix_file_permissions(fname));
   };
+#endif
   return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
@@ -313,6 +309,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
   bool res1 = job_mark_remove(fname);
   fname = desc.SessionDir() + sfx_diag;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_diagnostics_mark_remove");
@@ -321,11 +318,13 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
       return (res1 | RunCommands::wait(re,10,"job_diagnostics_mark_remove"));
     _exit(job_mark_remove(fname));
   };
+#endif
   return (res1 | job_mark_remove(fname));
 }
 
 bool job_lrmsoutput_mark_remove(const JobDescription &desc,JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_lrmsoutput_mark_remove");
@@ -334,6 +333,7 @@ bool job_lrmsoutput_mark_remove(const JobDescription &desc,JobUser &user) {
       return RunCommands::wait(re,10,"job_lrmsoutput_mark_remove");
     _exit(job_mark_remove(fname));
   };
+#endif
   return job_mark_remove(fname);
 }
 
@@ -344,6 +344,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   fix_file_owner(fname2,desc,user);
   fix_file_permissions(fname2,user);
   std::string fname1 = user.SessionRoot() + "/" + desc.get_id() + sfx_diag;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     RunElement* re = RunCommands::fork(tmp_user,"job_diagnostics_mark_move");
@@ -366,6 +367,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
     unlink(fname1.c_str());
     _exit(true);
   };
+#endif
   int h1=open(fname1.c_str(),O_RDONLY);
   if(h1==-1) { close(h2); return false; };
   char buf[256];
@@ -723,9 +725,9 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
   write_pair(f,"notify",job_desc.notify);
   write_pair(f,"processtime",job_desc.processtime);
   write_pair(f,"exectime",job_desc.exectime);
-  write_pair(f,"rerun",inttostring(job_desc.reruns));
-  if(job_desc.downloads>=0) write_pair(f,"downloads",inttostring(job_desc.downloads));
-  if(job_desc.uploads>=0) write_pair(f,"uploads",inttostring(job_desc.uploads));
+  write_pair(f,"rerun",Arc::tostring(job_desc.reruns));
+  if(job_desc.downloads>=0) write_pair(f,"downloads",Arc::tostring(job_desc.downloads));
+  if(job_desc.uploads>=0) write_pair(f,"uploads",Arc::tostring(job_desc.uploads));
   write_pair(f,"jobname",job_desc.jobname);
   write_pair(f,"gmlog",job_desc.stdlog);
   write_pair(f,"cleanuptime",job_desc.cleanuptime);
@@ -733,7 +735,7 @@ bool job_local_write_file(const std::string &fname,JobLocalDescription &job_desc
   write_pair(f,"clientname",job_desc.clientname);
   write_pair(f,"clientsoftware",job_desc.clientsoftware);
   write_pair(f,"sessiondir",job_desc.sessiondir);
-  write_pair(f,"diskspace",inttostring(job_desc.diskspace));
+  write_pair(f,"diskspace",Arc::tostring(job_desc.diskspace));
   write_pair(f,"failedstate",job_desc.failedstate);
   write_pair(f,"fullaccess",job_desc.fullaccess);
   write_pair(f,"credentialserver",job_desc.credentialserver);
@@ -772,17 +774,17 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "gmlog") { job_desc.stdlog = buf+p; }
     else if(name == "rerun") {
       std::string temp_s(buf+p); int n;
-      if(!stringtoint(temp_s,n)) { f.close(); return false; };
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.reruns = n;
     }
     else if(name == "downloads") {
       std::string temp_s(buf+p); int n;
-      if(!stringtoint(temp_s,n)) { f.close(); return false; };
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.downloads = n;
     }
     else if(name == "uploads") {
       std::string temp_s(buf+p); int n;
-      if(!stringtoint(temp_s,n)) { f.close(); return false; };
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.uploads = n;
     }
     else if(name == "args") {
@@ -808,7 +810,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
     else if(name == "diskspace") {
       std::string temp_s(buf+p);
       unsigned long long int n;
-      if(!stringtoint(temp_s,n)) { f.close(); return false; };
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
       job_desc.diskspace = n;
     }
   };
@@ -973,6 +975,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
   /* remove session directory */
   std::list<FileData> flist;
   std::string dname = user.SessionRoot()+"/"+id;
+#ifdef HAVE_POSIX_FORK
   if(user.StrictSession()) {
     JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
     delete_all_files(tmp_user,dname,flist,true);
@@ -981,6 +984,10 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user) {
     delete_all_files(dname,flist,true);
     remove(dname.c_str());
   };
+#else
+  delete_all_files(dname,flist,true);
+  remove(dname.c_str());
+#endif
   return true;
 }
 

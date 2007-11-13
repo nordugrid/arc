@@ -18,7 +18,6 @@
 #include "../../files/info_types.h"
 #include "../../misc/canonical_dir.h"
 #include "../../conf/environment.h"
-#include "../../run/run_commands.h"
 #include "../jobdesc_util.h"
 #include "subst_rsl.h"
 #include "parse_rsl.h"

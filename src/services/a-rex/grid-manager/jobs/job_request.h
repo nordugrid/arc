@@ -3,8 +3,6 @@
 
 #include <string>
 
-//#include "../jobs/users.h"
-//#include "../files/info_files.h"
 #include "../files/info_types.h"
 
 bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL);

@@ -6,35 +6,17 @@
 #include <fstream>
 
 #include <arc/URL.h>
+#include <arc/StringConv.h>
 #include "../jobs/users.h"
 #include "../jobs/job.h"
 #include "../files/info_files.h"
-//@ #include "../transfer/replica_utils.h"
-//@ #include "../misc/inttostring.h"
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
 #include "../jobdesc/rsl/parse_rsl.h"
 #endif
-// #ifndef JSDL_MISSING
+#ifdef HAVE_GSOAP
 #include "../jobdesc/jsdl/jsdl_job.h"
-// #endif
-#include "../run/run_commands.h"
+#endif
 
-/*
-#include <string>
-#include <list>
-#include <globus_common.h>
-#include <globus_rsl.h>
-#include <globus_symboltable.h>
-#include "../files/info_types.h"
-#include "../misc/canonical_dir.h"
-#include "../misc/stringtoint.h"
-#include "../misc/log_time.h"
-#include "../config/environment.h"
-*/
-
-//@ 
-#include <arc/StringConv.h>
-#define inttostring Arc::tostring
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #define istream_readline(__f,__s,__n) {      \
@@ -52,14 +34,27 @@
 }
 
 #endif
-//@ 
 
 #include "job_request.h"
 
-//static 
+static bool insert_RC_to_url(std::string& url,const std::string& rc_url) {
+  Arc::URL url_(url);
+  if(!url_) return false;
+  if(url_.Protocol() != "rc") return false;
+  if(!url_.Host().empty()) return false;
+  Arc::URL rc_url_(rc_url);
+  if(!rc_url_) return false;
+  if(rc_url_.Protocol() != "ldap") return false;
+  url_.ChangePort(rc_url_.Port());
+  url_.ChangeHost(rc_url_.Host());
+  url_.ChangePath(rc_url_.Path()+"/"+url_.Path());
+  url=url_.str();
+  return true;
+}
+
 typedef enum {
   job_req_unknown,
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
   job_req_rsl,
 #endif
 // #ifndef JSDL_MISSING
@@ -69,14 +64,13 @@ typedef enum {
 
 static job_req_type_t detect_job_req_type(const char* fname) {
   // RSL starts from &(
-#ifdef HAVE_RSL
-  static char* rsl_pattern = "&(";
+#ifdef HAVE_GLOBUS_RSL
+  static char rsl_pattern[] = "&(";
 #endif
-// #ifndef JSDL_MISSING
-  // JSDL starts from <?xml
-  //@ static char* jsdl_pattern = "<?xml";
-  static char* jsdl_pattern = "<";
-// #endif
+#ifdef HAVE_GSOAP
+  // JSDL should start from <?xml. But better use just <
+  static char jsdl_pattern[] = "<";
+#endif
   std::ifstream f(fname);
   if(!f.is_open()) return job_req_unknown;
   unsigned int l = 0;
@@ -90,13 +84,12 @@ static job_req_type_t detect_job_req_type(const char* fname) {
     if(l >= (sizeof(buf)-1)) break;
   };
   buf[l]=0;
-#ifdef HAVE_RSL
-  if(strncasecmp(rsl_pattern,buf,2) == 0) return job_req_rsl;
+#ifdef HAVE_GLOBUS_RSL
+  if(strncasecmp(rsl_pattern,buf,sizeof(rsl_pattern)-1) == 0) return job_req_rsl;
 #endif
-// #ifndef JSDL_MISSING
-  //@ if(strncasecmp(jsdl_pattern,buf,5) == 0) return job_req_jsdl;
-  if(strncasecmp(jsdl_pattern,buf,1) == 0) return job_req_jsdl;
-// #endif
+#ifdef HAVE_GOAP
+  if(strncasecmp(jsdl_pattern,buf,sizeof(jsdl_pattern)-1) == 0) return job_req_jsdl;
+#endif
   return job_req_unknown;
 }
 
@@ -136,18 +129,18 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   if((job_desc.diskspace>user.DiskSpace()) || (job_desc.diskspace==0)) {
     job_desc.diskspace=user.DiskSpace();
   };
-//@   if(job_desc.rc.length() != 0) {
-//@     for(FileData::iterator i=job_desc.outputdata.begin();
-//@                          i!=job_desc.outputdata.end();++i) {
-//@       insert_RC_to_url(i->lfn,job_desc.rc);
-//@     };
-//@     for(FileData::iterator i=job_desc.inputdata.begin();
-//@                          i!=job_desc.inputdata.end();++i) {
-//@       insert_RC_to_url(i->lfn,job_desc.rc);
-//@     };
-//@   };
+  if(job_desc.rc.length() != 0) {
+    for(FileData::iterator i=job_desc.outputdata.begin();
+                         i!=job_desc.outputdata.end();++i) {
+      insert_RC_to_url(i->lfn,job_desc.rc);
+    };
+    for(FileData::iterator i=job_desc.inputdata.begin();
+                         i!=job_desc.inputdata.end();++i) {
+      insert_RC_to_url(i->lfn,job_desc.rc);
+    };
+  };
   if(job_desc.gsiftpthreads > 1) {
-    std::string v = inttostring(job_desc.gsiftpthreads);
+    std::string v = Arc::tostring(job_desc.gsiftpthreads);
     for(FileData::iterator i=job_desc.outputdata.begin();
                          i!=job_desc.outputdata.end();++i) {
       Arc::URL u(i->lfn);
@@ -200,12 +193,12 @@ static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
 /* parse job request, fill job description (local) */
 bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl) {
   switch(detect_job_req_type(fname.c_str())) {
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
     case job_req_rsl: {
       return parse_rsl(fname,job_desc,acl);
     }; break;
 #endif
-//#ifndef JSDL_MISSING
+#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
@@ -213,7 +206,7 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
       if(!j) return false;
       return j.parse(job_desc,acl);
     }; break;
-//#endif
+#endif
     default: break;
   };
   return false;
@@ -221,14 +214,14 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
 
 /* do rsl substitution and nordugrid specific stuff */
 /* then write file back */
-bool preprocess_job_req(const std::string &fname,const std::string& /*session_dir*/,const std::string& /*jobid*/) {
+bool preprocess_job_req(const std::string &fname,const std::string& session_dir,const std::string& jobid) {
   switch(detect_job_req_type(fname.c_str())) {
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
     case job_req_rsl: {
       return preprocess_rsl(fname,session_dir,jobid);
     }; break;
 #endif
-//#ifndef JSDL_MISSING
+#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       // JSDL does not support substitutions,
       // so here we just parse it for testing
@@ -238,9 +231,13 @@ bool preprocess_job_req(const std::string &fname,const std::string& /*session_di
       if(!j) return false;
       return true;
     }; break;
-//#endif
+#endif
     default: break;
   };
+  // This is to avoid compiler warnings
+  std::string tmp;
+  tmp=session_dir;
+  tmp=jobid;
   return false;
 }
 
@@ -248,11 +245,12 @@ bool preprocess_job_req(const std::string &fname,const std::string& /*session_di
 bool set_execs(const JobDescription &desc,const JobUser &user,const std::string &session_dir) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
   switch(detect_job_req_type(fname.c_str())) {
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
     case job_req_rsl: {
       globus_rsl_t *rsl_tree = NULL;
       rsl_tree=read_rsl(fname);
       if(rsl_tree == NULL) return false;
+#ifdef HAVE_POSIX_FORK
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
         RunElement* re = RunCommands::fork(tmp_user,"set_execs");
@@ -260,15 +258,17 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
         if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs");
         _exit(set_execs(rsl_tree,session_dir));
       };
+#endif
       return set_execs(rsl_tree,session_dir);
     }; break;
 #endif
-//#ifndef JSDL_MISSING
+#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
       JSDLJob j(f);
       if(!j) return false;
+#ifdef HAVE_POSIX_FORK
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
         RunElement* re = RunCommands::fork(tmp_user,"set_execs");
@@ -276,9 +276,10 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
         if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs"); 
         _exit(j.set_execs(session_dir));
       };
+#endif
       return j.set_execs(session_dir);
     }; break;
-//#endif
+#endif
     default: break;
   };
   return false;
@@ -287,12 +288,12 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
 bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) { 
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description"; 
   switch(detect_job_req_type(fname.c_str())) { 
-#ifdef HAVE_RSL
+#ifdef HAVE_GLOBUS_RSL
         case job_req_rsl: {
           return write_grami_rsl(desc,user,opt_add);
         }; break;
 #endif
-//#ifndef JSDL_MISSING
+#ifdef HAVE_GSOAP
         case job_req_jsdl: {
             std::ifstream f(fname.c_str());
             if(!f.is_open()) return false;
@@ -300,7 +301,7 @@ bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_
             if(!j) return false;
             return j.write_grami(desc,user,opt_add);
         }; break;
-//#endif
+#endif
         default: break;
       };
   return false;
