@@ -25,7 +25,6 @@ BuildRequires: globus_ftp_control-devel
 BuildRequires: globus_rls_client-devel
 BuildRequires: globus_rsl-devel
 #
-BuildRequires: gsoap-devel
 
 %description
 ARC
@@ -51,7 +50,6 @@ Summary: ARC Remote EXecution service
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
-Requires: gsoap
 Requires: globus_common
 Requires: globus_rsl
 
