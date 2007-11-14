@@ -21,10 +21,10 @@ Architecture: any
 Description: ARC Hosting Environment Daemon
  ARC Hosting Environment Daemon (HED).
 
-#Package: nordugrid-arc1-arex
-#Architecture: any
-#Description: ARC Remote EXecution service
-# ARC Remote EXecution service (AREX)
+Package: nordugrid-arc1-arex
+Architecture: any
+Description: ARC Remote EXecution service
+ ARC Remote EXecution service (AREX)
 
 Package: nordugrid-arc1-plugins-base
 Architecture: any
