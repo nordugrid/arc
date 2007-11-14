@@ -1,0 +1,35 @@
+Building ARC on Windows system
+
+- Install Automated MingW Installer 
+(http://sourceforge.net/project/showfiles.php?group_id=2435)
+	- Select g++ and mingw make to install
+- Install MSYS
+- Intsall msysDTK
+- Install from mysysPORT
+	- libiconv
+	- zlib
+- Install extra regex pacakage from contribution
+	- libgnurx dll does not exsist in regexp package you can get it from
+	http://ftp.gnome.org/pub/binaries/win32/dependencies/libgnurx-x.y.z-x.y..zip
+
+- Install gtkmm devel package (it includes glibmm)
+(http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
+- Install OpenSSL 
+(http://www.slproweb.com/products/Win32OpenSSL.html)
+- Possible problems:
+	libarccommon depends on ole32 to make the compile success you should:
+	cp /c/WINDOWS/system32/ole32.dll /mingw/lib/libole32.dll
+	cp /c/WINDOWS/system32/ws2_32.dll /migw/lib/libws2_32.dll
+	SSL rename
+	cp /c/WINDOWS/system32/ssleay.dll /c/OpenSSL/lib/MinGW/libssleay32.dll
+	cp /c/WINDOWS/system32/libeay32.dll /c/OpenSSL/lib/MinGW/libeay32.dll
+
+- checkout code from svn
+export ACLOCAL="aclocal -I /c/GTK/share/aclocal"
+export PATH=$PATH:/c/MingW/bin
+export PKG_CONFIG_PATH=/c/GTK/lib/pkgconfig
+./autogen.sh
+./configure CXXFLAGS="-g -O0 -I/include -L/usr/lib" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL/lib/MinGW/ -lssleay32 -leay32 -lz"
+make
+
+add paths of DLLs to $PATH

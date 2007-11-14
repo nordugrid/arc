@@ -1,0 +1,4 @@
+use macports
+
+export ACLOCAL="aclocal -I /opt/local/share/aclocal"
+export LIBTOOLIZE=glibtoolize
