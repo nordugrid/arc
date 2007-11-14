@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Foreground/>
+        <Logger level="VERBOSE">./log</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+	    <Path>./.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>httpd</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+	    <next id="httpd">GET</next>
+	    <next id="httpd">PUT</next>
+        </Component>
+        <Service name="httpd" id="httpd">
+            <DocumentRoot>./</DocumentRoot>
+        </Service>
+    </Chain>
+</ArcConfig>
