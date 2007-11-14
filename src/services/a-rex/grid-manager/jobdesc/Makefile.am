@@ -1,14 +1,7 @@
-if GSOAP_ENABLED
 JSDLDIR=jsdl
 JSDLLIB=jsdl/libjsdl.la
 JSDLSOURCES=job_jsdl.cpp
 JSDLHEADERS=job_jsdl.h
-else
-JSDLDIR=
-JSDLLIB=
-JSDLSOURCES=
-JSDLHEADERS=
-endif
 
 if RSL_ENABLED
 RSLDIR=rsl
@@ -48,4 +41,4 @@ libjobdesc_la_LIBADD=$(JSDLLIB) $(RSLLIB) $(top_srcdir)/src/hed/libs/common/liba
 #jsdl_soap.h: jsdl_complete.xsd jsdl_POSIXApplication.xsd jsdl_arc.xsd jsdl_typemap.dat
 #	$(WSDL2H) -t jsdl_typemap.dat -o jsdl_soap.h jsdl_POSIXApplication.xsd jsdl_arc.xsd jsdl_complete.xsd
 
-CLEANFILES = jsdl_soap*
+# CLEANFILES = jsdl_soap*

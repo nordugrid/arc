@@ -9,10 +9,6 @@
 #endif
 #include <fstream>
 
-#include <arc/StringConv.h>
-#include <arc/URL.h>
-
-#include "jsdl_soapStub.h"
 #include "../../files/info_types.h"
 #include "../../files/info_files.h"
 #include "../../misc/canonical_dir.h"
@@ -21,53 +17,15 @@
 #include "../../jobs/users.h"
 #include "../../files/info_files.h"
 #include "../../files/info_types.h"
+#include <arc/Logger.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
+#define inttostring Arc::tostring
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+
 #include "jsdl_job.h"
-
-//#define SOAP_FMAC5 static
-//#include "jsdl_soapC.cpp"
-
-#ifdef GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES
-#define JobDescription jsdl__JobDescription
-#define Application jsdl__Application
-#define JobIdentification jsdl__JobIdentification
-#define JobName jsdl__JobName
-#define DataStaging jsdl__DataStaging
-#define Target jsdl__Target
-#define Source jsdl__Source
-#define FileName jsdl__FileName
-#define FilesystemName jsdl__FilesystemName
-#define URI jsdl__URI
-#define Resources jsdl__Resources
-#define IndividualCPUCount jsdl__IndividualCPUCount
-#define TotalCPUCount jsdl__TotalCPUCount
-#define IndividualCPUTime jsdl__IndividualCPUTime
-#define TotalCPUTime jsdl__TotalCPUTime
-#define IndividualPhysicalMemory jsdl__IndividualPhysicalMemory
-#define TotalPhysicalMemory jsdl__TotalPhysicalMemory
-
-#define Executable jsdlPOSIX__Executable
-#define Argument jsdlPOSIX__Argument
-#define CPUTimeLimit jsdlPOSIX__CPUTimeLimit
-#define WallTimeLimit jsdlPOSIX__WallTimeLimit
-#define MemoryLimit jsdlPOSIX__MemoryLimit
-#define Input jsdlPOSIX__Input
-#define Output jsdlPOSIX__Output
-#define Error jsdlPOSIX__Error
-#endif
-
-static struct Namespace jsdl_namespaces[] = {
-    {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
-    {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},
-    {"xsi", "http://www.w3.org/2001/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance", NULL},
-    {"xsd", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema", NULL},
-    {"jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl", NULL, NULL },
-    {"jsdlPOSIX", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix", NULL, NULL },
-    {"jsdlARC", "http://www.nordugrid.org/ws/schemas/jsdl-arc", NULL, NULL },
-    {NULL, NULL, NULL, NULL}
-};
 
 static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
   for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){    if(i->has_lfn()) if((*i) == fname) {
@@ -89,146 +47,181 @@ static void strip_spaces(std::string& s) {
   s.resize(n+1);
 }
 
+//-- Constructors --//
+
+JSDLJob::JSDLJob(void) {
+  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+}
+
+JSDLJob::JSDLJob(std::istream& f) {
+
+  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+
+  std::string xml_document;
+  std::string xml_line;
+
+  //Read the input stream into a string by lines
+  while (getline(f,xml_line)) xml_document += xml_line;
+
+  (Arc::XMLNode ( xml_document )).New(jsdl_document);
+
+}
+
+JSDLJob::JSDLJob(const char* str) {
+
+  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
+  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+
+  (Arc::XMLNode ( str )).New(jsdl_document);
+}
+
+//JSDLJob::JSDLJob(jsdl__JobDefinition_USCOREType* j) {
+//
+//  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+//  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+//  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+//  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+//
+//  jsdl_document = new XMLNode(jsdl_namespaces);
+//}
+
+//-- End of Constructors--//
+
+//-- Descructor --//
+
 JSDLJob::~JSDLJob(void) {
-  if(sp_) {
-    soap_destroy(sp_);
-    soap_end(sp_);
-    soap_done(sp_);
-    delete sp_;
-  };
-  if(job_) delete job_;
+        // Destructor isn't needed as I hope!
+	// Delete global variables if they were initialised before
+	//if (jsdl_document) delete jsdl_document;	
 }
 
-JSDLJob::JSDLJob(void):job_(NULL),job_posix_(NULL) {
-  sp_=new soap;
-  if(sp_) {
-    soap_init(sp_);
-    sp_->namespaces=jsdl_namespaces;
-    soap_begin(sp_);
-  };
-}
-
-JSDLJob::JSDLJob(jsdl__JobDefinition_USCOREType* j):sp_(NULL),job_(j) {
-  sp_=new soap;
-  if(sp_) {
-    soap_init(sp_);
-    sp_->namespaces=jsdl_namespaces;
-    soap_begin(sp_);
-    set_posix();
-  };
-}
+//-- End of Descructor --//
 
 void JSDLJob::set(std::istream& f) {
-  sp_->is=&f;
-  job_=new jsdl__JobDefinition_USCOREType;
-  if(job_) {
-    job_->soap_default(sp_);
-    if(soap_begin_recv(sp_) == SOAP_OK) {
-      if(!job_->soap_get(sp_,"jsdl:JobDefinition",NULL)) {
-        delete job_; job_=NULL;
-      };
-    } else { delete job_; job_=NULL; };
-    soap_end_recv(sp_);
-  };
+
+  std::string xml_document;
+  std::string xml_line;
+
+  //Read the input stream into a string by lines
+  while (getline(f,xml_line)) xml_document += xml_line;
+
+  jsdl_document = Arc::XMLNode (xml_document);
+
 }
 
 void JSDLJob::set_posix(void) {
-  if(job_ && job_->JobDescription &&
-     job_->JobDescription->Application &&
-     job_->JobDescription->Application->jsdlPOSIX__POSIXApplication) {
-    job_posix_=job_->JobDescription->Application->jsdlPOSIX__POSIXApplication;
-  };
-  /*
-  if(job_ && job_->JobDescription &&
-     job_->JobDescription->Application &&
-     job_->JobDescription->Application->__any) {
-#ifdef HAVE_SSTREAM
-    std::stringstream f(job_->JobDescription->Application->__any);
-#else
-    std::strstream f;
-    f<<job_->JobDescription->Application->__any;
-#endif
-std::cout<<"POSIX Application: "<<std::endl<<job_->JobDescription->Application->__any<<std::endl;
-    sp_->is=&f;
-    job_posix_=new jsdlPOSIX__POSIXApplication_USCOREType;
-    if(job_posix_) {
-      job_posix_->soap_default(sp_);
-      if(soap_begin_recv(sp_) == SOAP_OK) {
-        if(!job_posix_->soap_get(sp_,"jsdl-posix:POSIXApplication",NULL)) {
-          delete job_posix_; job_posix_=NULL;
-        };
-      } else { delete job_posix_; job_posix_=NULL; };
-      soap_end_recv(sp_);
-    };
-  };
-  */
+
+  std::list<Arc::XMLNode> results = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Application//jsdl-posix:POSIXApplication", jsdl_namespaces);
+
+  if ( results.size() > 0 ) jsdl_posix = results.front();
+
+  results = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Application//jsdl-hpcpa:HPCProfileApplication", jsdl_namespaces);
+
+  if ( results.size() > 0 ) jsdl_posix = results.front();
+
 }
 
-JSDLJob::JSDLJob(std::istream& f):job_(NULL),job_posix_(NULL) {
-  sp_=new soap;
-  if(sp_) {
-    soap_init(sp_);
-    sp_->namespaces=jsdl_namespaces;
-    soap_begin(sp_);
-    set(f);
-    set_posix();
-  };
-}
 
-JSDLJob::JSDLJob(const char* str):job_(NULL) {
-#ifdef HAVE_SSTREAM
-  std::stringstream f(str);
-#else
-  std::strstream f;
-  f<<str;
-#endif
-  sp_=new soap;
-  if(sp_) {
-    soap_init(sp_);
-    sp_->namespaces=jsdl_namespaces;
-    soap_begin(sp_);
-    set(f);
-    set_posix();
-  };
-}
+//-- Protected get functions --//
 
 bool JSDLJob::get_jobname(std::string& jobname) {
   jobname.resize(0);
-  if(job_->JobDescription->JobIdentification) {
-    if(job_->JobDescription->JobIdentification->JobName) {
-      jobname=*(job_->JobDescription->JobIdentification->JobName);
-    };
-  };
-  return true;
+
+  std::list<Arc::XMLNode> results = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:JobIdentification//jsdl:JobName", jsdl_namespaces);
+
+  if ( results.size() > 0 ) {
+    //The First result of the XPath lookup (if exists) is converted explicitly to string, which operation calls the XMLNode's "getContent" functions
+    jobname = (std::string) results.front();
+    return true;
+  } else return false;
 }
 
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   arguments.clear();
-  if(job_posix_->Executable == NULL) {
-    logger.msg(Arc::ERROR,"ERROR: job description is missing executable");
+
+  if(jsdl_posix.XPathLookup("//jsdl-hpcpa:Executable", jsdl_namespaces).size() != 0) {
+    std::string str_executable = (std::string) jsdl_posix.XPathLookup("//jsdl-hpcpa:Executable", jsdl_namespaces).front();
+    strip_spaces(str_executable);
+    arguments.push_back(str_executable);
+
+
+    logger.msg(Arc::INFO, "job description executable[jsdl-hpcpa:Executable]");
+
+    std::list<Arc::XMLNode> results = jsdl_posix.XPathLookup("//jsdl-hpcpa:Argument", jsdl_namespaces);
+    for(std::list<Arc::XMLNode>::iterator i = results.begin();i!=results.end();++i) {
+      if(!(*i)) continue;
+      std::string value = (*i);
+      strip_spaces(value);
+      arguments.push_back(value);
+    };
+    return true;
+
+  } else {
+
+
+  if(jsdl_posix.XPathLookup("//jsdl-posix:Executable", jsdl_namespaces).size() == 0) {
+    logger.msg(Arc::ERROR, "job description is missing executable[jsdl-posix:Executable]");
     return false;
   };
-  strip_spaces(job_posix_->Executable->__item);
-  arguments.push_back(job_posix_->Executable->__item);
-  for(std::vector<jsdlPOSIX__Argument_USCOREType*>::iterator i = job_posix_->Argument.begin();i!=job_posix_->Argument.end();++i) {
+
+    logger.msg(Arc::INFO, "job description executable[jsdl-posix:Executable]");
+
+  std::string str_executable = jsdl_posix.XPathLookup("//jsdl-posix:Executable", jsdl_namespaces).front();
+  strip_spaces(str_executable);
+  arguments.push_back(str_executable);
+
+  std::list<Arc::XMLNode> results = jsdl_posix.XPathLookup("//jsdl-posix:Argument", jsdl_namespaces);
+
+  for(std::list<Arc::XMLNode>::iterator i = results.begin();i!=results.end();++i) {
     if(!(*i)) continue;
-    strip_spaces((*i)->__item);
-    arguments.push_back((*i)->__item);
+    std::string value = (*i);
+    strip_spaces(value);
+    arguments.push_back(value);
   };
   return true;
+
+  }
 }
 
 bool JSDLJob::get_execs(std::list<std::string>& execs) {
-  std::vector<jsdl__DataStaging_USCOREType*>* ds;
-  std::vector<jsdl__DataStaging_USCOREType*>::iterator i_ds;
+
+  std::list<Arc::XMLNode> results = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:DataStaging", jsdl_namespaces);
+  std::list<Arc::XMLNode>::iterator i;
   execs.clear();
-  ds=&(job_->JobDescription->DataStaging);
-  for(i_ds=ds->begin();i_ds!=ds->end();++i_ds) {
-    if(!(*i_ds)) continue;
-    if((*i_ds)->Source != NULL) { /* input file */
-      if(((*i_ds)->jsdlARC__IsExecutable) && 
-         (*((*i_ds)->jsdlARC__IsExecutable))) {
-        execs.push_back((*i_ds)->FileName);
+  for(i=results.begin();i!=results.end();++i) {
+    if(!(*i)) continue;
+    std::list<Arc::XMLNode> results = (*i).XPathLookup("//jsdl:Source", jsdl_namespaces);
+    if(results.size() != 0) { /* input file */
+      std::list<Arc::XMLNode> isExecutableNodes = (*i).XPathLookup("//jsdl:Source//jsdl-arc:IsExecutable", jsdl_namespaces);
+      if( isExecutableNodes.size() != 0 && ( (std::string) isExecutableNodes.front() ) == "true" ) {
+	std::string str_filename = (std::string) (*i).XPathLookup("//jsdl:FileName", jsdl_namespaces).front();
+        execs.push_back(str_filename);
       };
     };
   };
@@ -237,22 +230,25 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
 
 bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
   rtes.clear();
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  std::vector<jsdlARC__RunTimeEnvironment_USCOREType*>& rte = 
-                               resources->jsdlARC__RunTimeEnvironment;
-  std::vector<jsdlARC__RunTimeEnvironment_USCOREType*>::iterator i_rte =
-                               rte.begin();
-  for(;i_rte!=rte.end();++i_rte) {
-    std::string s = (*i_rte)->Name;
-    if((*i_rte)->Version) {
-      if((*i_rte)->Version->UpperExclusive) continue; // not supported
-      if((*i_rte)->Version->LowerExclusive) continue; // not supported
-      if(((*i_rte)->Version->Exclusive) &&
-         (!*((*i_rte)->Version->Exclusive))) continue; // not supported
-      if((*i_rte)->Version->Exact.size() > 1) continue; // not supported
-      if((*i_rte)->Version->Exact.size()) {
-        s+="="; s+=(*i_rte)->Version->Exact[0];
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resource", jsdl_namespaces);
+  if(resources.size() == 0) return true;
+  std::list<Arc::XMLNode> rte = resources.front().XPathLookup("//jsdl-arc:RunTimeEnvironment", jsdl_namespaces);
+  for(std::list<Arc::XMLNode>::iterator i_rte = rte.begin();i_rte!=rte.end();++i_rte) {
+    std::string s = (std::string) (*i_rte).XPathLookup("//jsdl-arc:Name",jsdl_namespaces).front();
+
+    Arc::XMLNode versionNode = (*i_rte).XPathLookup("//jsdl-arc:Version",jsdl_namespaces).front();
+    std::list<Arc::XMLNode> upperExclusiveNodes = versionNode.XPathLookup("//jsdl-arc:UpperExclusive",jsdl_namespaces);
+    std::list<Arc::XMLNode> lowerExclusiveNodes = versionNode.XPathLookup("//jsdl-arc:LowerExclusive",jsdl_namespaces);
+    std::list<Arc::XMLNode> exactNodes = versionNode.XPathLookup("//jsdl-arc:Exact",jsdl_namespaces);
+    std::list<Arc::XMLNode> exclusiveNodes = versionNode.XPathLookup("//jsdl-arc:Exclusive",jsdl_namespaces);
+
+    if( versionNode ) {
+      if( upperExclusiveNodes.size() != 0 ) continue; // not supported
+      if( lowerExclusiveNodes.size() != 0 ) continue; // not supported
+      if( ( exclusiveNodes.size() != 0 ) && !( ( (std::string) exclusiveNodes.front() ) == "true"  ) ) continue; // not supported
+      if( exactNodes.size() > 1) continue; // not supported
+      if( exactNodes.size() != 0 ) {
+        s+="="; s+= (std::string) versionNode;
       };
     };
     rtes.push_back(s);
@@ -262,21 +258,25 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
 
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
   mws.clear();
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  std::vector<jsdlARC__Middleware_USCOREType*>& mw =
-                               resources->jsdlARC__Middleware;
-  std::vector<jsdlARC__Middleware_USCOREType*>::iterator i_mw = mw.begin();
-  for(;i_mw!=mw.end();++i_mw) {
-    std::string s = (*i_mw)->Name;
-    if((*i_mw)->Version) {
-      if((*i_mw)->Version->UpperExclusive) continue; // not supported
-      if((*i_mw)->Version->LowerExclusive) continue; // not supported
-      if(((*i_mw)->Version->Exclusive) &&
-         (!*((*i_mw)->Version->Exclusive))) continue; // not supported
-      if((*i_mw)->Version->Exact.size() > 1) continue; // not supported
-      if((*i_mw)->Version->Exact.size()) {
-        s+="="; s+=(*i_mw)->Version->Exact[0];
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resource", jsdl_namespaces);
+  if(resources.size() == 0) return true;
+  std::list<Arc::XMLNode> mw = resources.front().XPathLookup("//jsdl-arc:Middleware", jsdl_namespaces);
+  for(std::list<Arc::XMLNode>::iterator i_mw = mw.begin();i_mw!=mw.end();++i_mw) {
+    std::string s = (std::string) (*i_mw).XPathLookup("//jsdl-arc:Name",jsdl_namespaces).front();
+
+    Arc::XMLNode versionNode = (*i_mw).XPathLookup("//jsdl-arc:Version",jsdl_namespaces).front();
+    std::list<Arc::XMLNode> upperExclusiveNodes = versionNode.XPathLookup("//jsdl-arc:UpperExclusive",jsdl_namespaces);
+    std::list<Arc::XMLNode> lowerExclusiveNodes = versionNode.XPathLookup("//jsdl-arc:LowerExclusive",jsdl_namespaces);
+    std::list<Arc::XMLNode> exactNodes = versionNode.XPathLookup("//jsdl-arc:Exact",jsdl_namespaces);
+    std::list<Arc::XMLNode> exclusiveNodes = versionNode.XPathLookup("//jsdl-arc:Exclusive",jsdl_namespaces);
+
+    if( versionNode ) {
+      if( upperExclusiveNodes.size() != 0 ) continue; // not supported
+      if( lowerExclusiveNodes.size() != 0 ) continue; // not supported
+      if( ( exclusiveNodes.size() != 0 ) && !( ( (std::string) exclusiveNodes.front() ) == "true"  ) ) continue; // not supported
+      if( exactNodes.size() > 1) continue; // not supported
+      if( exactNodes.size() != 0 ) {
+        s+="="; s+=(std::string) (*i_mw).XPathLookup("//jsdl-arc:Version",jsdl_namespaces).front();
       };
     };
     mws.push_back(s);
@@ -286,11 +286,14 @@ bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
 
 bool JSDLJob::get_acl(std::string& acl) {
   acl.resize(0);
-  jsdlARC__AccessControl_USCOREType* a = job_->JobDescription->jsdlARC__AccessControl;
-  if(a == NULL) return true;
-  if((!(a->Type)) ||
-     (*(a->Type) == jsdlARC__AccessControlType_USCOREType__GACL)) {
-    if(a->Content) acl=*(a->Content);
+  std::list<Arc::XMLNode> aclNodes = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:AccessControl", jsdl_namespaces);
+  if( aclNodes.size() == 0) return true;
+  Arc::XMLNode a = aclNodes.front();
+  std::list<Arc::XMLNode> typeNodes = a.XPathLookup("//jsdl-arc:Type", jsdl_namespaces);
+  std::string str_content = a.XPathLookup("//jsdl-arc:Content", jsdl_namespaces).front();
+  if( typeNodes.size() == 0 ||
+     ( (std::string) typeNodes.front() ) == "GACL" ) {
+    if( str_content != "" ) acl=str_content;
   } else {
     return false;
   };
@@ -299,111 +302,129 @@ bool JSDLJob::get_acl(std::string& acl) {
 
 bool JSDLJob::get_notification(std::string& s) {
   s.resize(0);
-  std::vector<jsdlARC__Notify_USCOREType*>& nts = 
-                                      job_->JobDescription->jsdlARC__Notify;
-  std::vector<jsdlARC__Notify_USCOREType*>::iterator i_nts = nts.begin();
-  for(;i_nts!=nts.end();++i_nts) {
-    if((!((*i_nts)->Type)) || 
-       (*((*i_nts)->Type) == jsdlARC__NotificationType_USCOREType__Email)) {
-      if((*i_nts)->Endpoint) {
-        if((*i_nts)->State.size()) {
+  std::list<Arc::XMLNode> nts = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:Notify", jsdl_namespaces);
+  for(std::list<Arc::XMLNode>::iterator i_nts = nts.begin();i_nts!=nts.end();++i_nts) {
+    std::list<Arc::XMLNode> typeNodes = (*i_nts).XPathLookup("//jsdl-arc:Type", jsdl_namespaces);
+    std::list<Arc::XMLNode> endpointNodes = (*i_nts).XPathLookup("//jsdl-arc:Endpoint", jsdl_namespaces);
+    std::list<Arc::XMLNode> stateNodes = (*i_nts).XPathLookup("//jsdl-arc:State", jsdl_namespaces);
+    if( (typeNodes.size() == 0 || ( (std::string) typeNodes.front() ) == "Email") && endpointNodes.size() != 0 && stateNodes.size() != 0) {
           std::string s_;
-          for(std::vector<enum jsdlARC__GMState_USCOREType>::iterator i =
-                     (*i_nts)->State.begin();i!=(*i_nts)->State.end();++i) {
-            switch(*i) {
-              case jsdlARC__GMState_USCOREType__PREPARING: s_+="b"; break;
-              case jsdlARC__GMState_USCOREType__INLRMS: s_+="q"; break;
-              case jsdlARC__GMState_USCOREType__FINISHING: s_+="f"; break;
-              case jsdlARC__GMState_USCOREType__FINISHED: s_+="e"; break;
-              case jsdlARC__GMState_USCOREType__DELETED: s_+="d"; break;
-              case jsdlARC__GMState_USCOREType__CANCELING: s_+="c"; break;
-              case jsdlARC__GMState_USCOREType__ACCEPTED: break;
-              case jsdlARC__GMState_USCOREType__SUBMIT: break;
+          for(std::list<Arc::XMLNode>::iterator i = stateNodes.begin(); i!=stateNodes.end(); ++i) {
+            std::string value = (*i);
+            if ( value == "PREPARING" ) {
+              s_+="b";
+            } else if ( value == "INLRMS" ) {
+              s_+="q";
+            } else if ( value == "FINISHING" ) {
+              s_+="f";
+            } else if ( value == "FINISHED" ) {
+              s_+="e";
+            } else if ( value == "DELETED" ) {
+              s_+="d";
+            } else if ( value == "CANCELING" ) {
+              s_+="c";
             };
           };
           if(s_.length()) {
-            s+=s_; s+=*((*i_nts)->Endpoint); s+=" ";
+            s+=s_; s+= (std::string) endpointNodes.front(); s+=" ";
           };
-        };
-      };
     };
   };
   return true;
 }
 
 bool JSDLJob::get_lifetime(int& l) {
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  if(resources->jsdlARC__SessionLifeTime) {
-    l=*(resources->jsdlARC__SessionLifeTime);
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resource", jsdl_namespaces);
+  if(resources.size() == 0) return true;
+  std::list<Arc::XMLNode> lifeTimeNodes = resources.front().XPathLookup("//jsdl-arc:SessionLifeTime", jsdl_namespaces);
+  if( lifeTimeNodes.size() != 0 ) {
+    l= atoi( ((std::string) lifeTimeNodes.front()).c_str() );
   };
   return true;
 }
 
 bool JSDLJob::get_fullaccess(bool& b) {
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  if(resources->jsdlARC__SessionType) {
-    switch(*(resources->jsdlARC__SessionType)) {
-      case jsdlARC__SessionType_USCOREType__FULL: b=true; break;
-      default: b=false; break;
-    };
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resource", jsdl_namespaces);
+  if(resources.size() == 0) return true;
+  std::list<Arc::XMLNode> sessionTypeNodes = resources.front().XPathLookup("//jsdl-arc:SessionLifeTime", jsdl_namespaces);
+  if( sessionTypeNodes.size() != 0 ) {
+    if ( ( (std::string) sessionTypeNodes.front() ) == "FULL" ) {
+      b=true;
+    } else b=false;
   };
   return true;
 }
 
 bool JSDLJob::get_gmlog(std::string& s) {
   s.resize(0);
-  jsdlARC__LocalLogging_USCOREType* log = 
-                job_->JobDescription->jsdlARC__LocalLogging;
-  if(log == NULL) return true;
-  s=log->Directory;
+  std::list<Arc::XMLNode> logNodes = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:LocalLogging", jsdl_namespaces);
+  if( logNodes.size() == 0 ) return true;
+  s = (std::string) logNodes.front().XPathLookup("//jsdl-arc:Directory", jsdl_namespaces).front();
   return true;
 }
 
 bool JSDLJob::get_loggers(std::list<std::string>& urls) {
   urls.clear();
-  std::vector<jsdlARC__RemoteLogging_USCOREType*>& logs =
-                             job_->JobDescription->jsdlARC__RemoteLogging;
-  std::vector<jsdlARC__RemoteLogging_USCOREType*>::iterator i_logs=logs.begin();
-  for(;i_logs!=logs.end();++i_logs) {
-    urls.push_back((*i_logs)->URL);
+  std::list<Arc::XMLNode> logNodes = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:RemoteLogging", jsdl_namespaces);
+  for(std::list<Arc::XMLNode>::iterator i_logs=logNodes.begin(); i_logs!=logNodes.end(); ++i_logs) {
+    urls.push_back( (std::string) (*i_logs).XPathLookup("//URL", jsdl_namespaces).front() );
   };
   return true;
 }
 
 bool JSDLJob::get_credentialserver(std::string& url) {
   url.resize(0);
-  if(job_->JobDescription->jsdlARC__CredentialServer) {
-    url=job_->JobDescription->jsdlARC__CredentialServer->URL;
+  std::list<Arc::XMLNode> credNodes = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:CredentialServer", jsdl_namespaces);
+  if( credNodes.size() != 0 ) {
+    url= (std::string) credNodes.front().XPathLookup("//URL", jsdl_namespaces).front();
   };
   return true;
 }
 
 bool JSDLJob::get_queue(std::string& s) {
   s.resize(0);
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  if(resources->jsdlARC__CandidateTarget == NULL) return true;
-  if(resources->jsdlARC__CandidateTarget->QueueName == NULL) return true;
-  s=*(resources->jsdlARC__CandidateTarget->QueueName);
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resource", jsdl_namespaces);
+  if(resources.size() == 0) return true;
+  std::list<Arc::XMLNode> candidateTargets = resources.front().XPathLookup("//jsdl-arc:CandidateTarget", jsdl_namespaces);
+  if(candidateTargets.size() == 0) return true;
+  std::list<Arc::XMLNode> queuenames = resources.front().XPathLookup("//jsdl-arc:CandidateTarget//jsdl-arc:QueueName", jsdl_namespaces);
+  if(queuenames.size() == 0) return true;
+  s = (std::string) queuenames.front();
   return true;
 }
 
 bool JSDLJob::get_stdin(std::string& s) {
-  if(job_posix_->Input)  {
-    strip_spaces(job_posix_->Input->__item);
-    s =job_posix_->Input->__item;
-  } else {
-    s.resize(0);
-  };
+  std::list<Arc::XMLNode> inputNodes = jsdl_posix.XPathLookup("//jsdl-hpcpa:Input", jsdl_namespaces);
+  if( inputNodes.size() != 0 )  {
+    std::string value = (std::string) inputNodes.front();
+    strip_spaces(value);
+    s = value;
+    return true;
+  }
+
+  inputNodes = jsdl_posix.XPathLookup("//jsdl-posix:Input", jsdl_namespaces);
+  if( inputNodes.size() != 0 )  {
+    std::string value = (std::string) inputNodes.front();
+    strip_spaces(value);
+    s = value;
+  } else { s.resize(0); };
   return true;
 }
 
 bool JSDLJob::get_stdout(std::string& s) {
-  if(job_posix_->Output)  {
-    strip_spaces(job_posix_->Output->__item);
-    s =job_posix_->Output->__item;
+  std::list<Arc::XMLNode> outputNodes = jsdl_posix.XPathLookup("//jsdl-hpcpa:Output", jsdl_namespaces);
+  if( outputNodes.size() != 0 )  {
+    std::string value = (std::string) outputNodes.front();
+    strip_spaces(value);
+    s = value;
+    return true;
+  } 
+
+  outputNodes = jsdl_posix.XPathLookup("//jsdl-posix:Output", jsdl_namespaces);
+  if( outputNodes.size() != 0 )  {
+    std::string value = (std::string) outputNodes.front();
+    strip_spaces(value);
+    s = value;
   } else {
     s.resize(0);
   };
@@ -411,9 +432,18 @@ bool JSDLJob::get_stdout(std::string& s) {
 }
 
 bool JSDLJob::get_stderr(std::string& s) {
-  if(job_posix_->Error)  {
-    strip_spaces(job_posix_->Error->__item);
-    s =job_posix_->Error->__item;
+  std::list<Arc::XMLNode> errorNodes = jsdl_posix.XPathLookup("//jsdl-hpcpa:Error", jsdl_namespaces);
+  if( errorNodes.size() != 0 )  {
+    std::string value = (std::string) errorNodes.front();
+    strip_spaces(value);
+    s = value;
+    return true;
+  }
+  errorNodes = jsdl_posix.XPathLookup("//jsdl-posix:Error", jsdl_namespaces);
+  if( errorNodes.size() != 0 )  {
+    std::string value = (std::string) errorNodes.front();
+    strip_spaces(value);
+    s = value;
   } else {
     s.resize(0);
   };
@@ -422,45 +452,50 @@ bool JSDLJob::get_stderr(std::string& s) {
 
 bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
                        std::list<FileData>& outputdata,int& uploads) {
-  std::vector<jsdl__DataStaging_USCOREType*>* ds;
-  std::vector<jsdl__DataStaging_USCOREType*>::iterator i_ds;
+  std::list<Arc::XMLNode> ds = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:DataStaging", jsdl_namespaces);
+  std::list<Arc::XMLNode>::iterator i_ds;
   inputdata.clear(); downloads=0;
   outputdata.clear(); uploads=0;
-  ds=&(job_->JobDescription->DataStaging);
-  for(i_ds=ds->begin();i_ds!=ds->end();++i_ds) {
+  for(i_ds=ds.begin();i_ds!=ds.end();++i_ds) {
     if(!(*i_ds)) continue;
-    if((*i_ds)->FilesystemName) {
-      logger.msg(Arc::ERROR,"ERROR: FilesystemName defined in job description - all files must be relative to session directory");
+    std::list<Arc::XMLNode> fileSystemNameNodes = (*i_ds).XPathLookup("//jsdl:FilesystemName", jsdl_namespaces);
+    if(fileSystemNameNodes.size() != 0) {
+      logger.msg(Arc::ERROR, "FilesystemName defined in job description - all files must be relative to session directory[jsdl:FilesystemName]");
       return false;
     };
+    std::list<Arc::XMLNode> sourceNodes = (*i_ds).XPathLookup("//jsdl:Source", jsdl_namespaces);
+    std::list<Arc::XMLNode> targetNodes = (*i_ds).XPathLookup("//jsdl:Target", jsdl_namespaces);
+    std::list<Arc::XMLNode> filenameNodes = (*i_ds).XPathLookup("//jsdl:FileName", jsdl_namespaces);
     // CreationFlag - ignore
     // DeleteOnTermination - ignore
-    if(((*i_ds)->Source == NULL) && ((*i_ds)->Target == NULL)) {
+    if(( sourceNodes.size() == 0 ) && ( targetNodes.size() == 0 )) {
       // Neither in nor out - must be file generated by job
-      FileData fdata((*i_ds)->FileName.c_str(),"");
+      FileData fdata( ( (std::string) filenameNodes.front() ).c_str(),"" );
       outputdata.push_back(fdata);
     } else {
-      if((*i_ds)->Source != NULL) {
-        if((*i_ds)->Source->URI == NULL) {
+      if( sourceNodes.size() != 0 ) {
+        std::list<Arc::XMLNode> sourceURINodes = sourceNodes.front().XPathLookup("//jsdl:URI", jsdl_namespaces);
+        if( sourceURINodes.size() == 0 ) {
           // Source without URL - uploaded by client
-          FileData fdata((*i_ds)->FileName.c_str(),"");
+          FileData fdata( ( (std::string) filenameNodes.front() ).c_str(),"");
           inputdata.push_back(fdata);
         } else {
-          FileData fdata((*i_ds)->FileName.c_str(),
-                         (*i_ds)->Source->URI->c_str());
+          FileData fdata( ((std::string) filenameNodes.front() ).c_str(),
+                          ((std::string) sourceURINodes.front() ).c_str());
           inputdata.push_back(fdata);
           if(fdata.has_lfn()) downloads++;
         };
       };
-      if((*i_ds)->Target != NULL) {
-        if((*i_ds)->Target->URI == NULL) {
+      if( targetNodes.size() != 0 ) {
+        std::list<Arc::XMLNode> targetURINodes = targetNodes.front().XPathLookup("//jsdl:URI", jsdl_namespaces);
+        if( targetURINodes.size() == 0 ) {
           // Destination without URL - keep after execution
           // TODO: check for DeleteOnTermination
-          FileData fdata((*i_ds)->FileName.c_str(),"");
+          FileData fdata( ( (std::string) filenameNodes.front() ).c_str(),"");
           outputdata.push_back(fdata);
         } else {
-          FileData fdata((*i_ds)->FileName.c_str(),
-                         (*i_ds)->Target->URI->c_str());
+          FileData fdata( ((std::string) filenameNodes.front() ).c_str(),
+                          ((std::string) targetURINodes.front() ).c_str());
           outputdata.push_back(fdata);
           if(fdata.has_lfn()) uploads++;
         };
@@ -470,29 +505,41 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
   return true;
 }
 
-
+/*
+//Had to change because of the parameter type - the function isn't mentioned in the header file so it was possible
 static double get_limit(jsdl__RangeValue_USCOREType* range) {
   if(range == NULL) return 0.0;
   if(range->UpperBoundedRange) return range->UpperBoundedRange->__item;
   if(range->LowerBoundedRange) return range->LowerBoundedRange->__item;
   return 0.0;
+}*/
+
+double JSDLJob::get_limit(Arc::XMLNode range) {
+  if(!range) return 0.0;
+  std::list<Arc::XMLNode> upper = range.XPathLookup("//jsdl:UpperBound", jsdl_namespaces);
+  std::list<Arc::XMLNode> lower = range.XPathLookup("//jsdl:LowerBound", jsdl_namespaces);
+  if( upper.size() != 0 ) return atof( ( (std::string) upper.front() ).c_str() );
+  if( lower.size() != 0 ) return atof( ( (std::string) lower.front() ).c_str() );
+  return 0.0;
 }
 
 bool JSDLJob::get_memory(int& memory) {
   memory=0;
-  if(job_posix_->MemoryLimit) {
-    //stringtoint(job_posix_->MemoryLimit->__item,memory);
-    memory=job_posix_->MemoryLimit->__item;
+  std::list<Arc::XMLNode> memoryLimitNodes = jsdl_posix.XPathLookup("//jsdl-posix:MemoryLimit", jsdl_namespaces);
+  if( memoryLimitNodes.size() != 0 ) {
+    memory=atoi( ((std::string) memoryLimitNodes.front()).c_str() );
     return true;
   };
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  if(resources->TotalPhysicalMemory) {
-    memory=(int)(get_limit(resources->TotalPhysicalMemory)+0.5);
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resources", jsdl_namespaces);
+  if( resources.size() == 0 ) return true;
+  std::list<Arc::XMLNode> totalPhysicalMemoryNodes = resources.front().XPathLookup("//jsdl:TotalPhysicalMemory", jsdl_namespaces);
+  if( totalPhysicalMemoryNodes.size() != 0 ) {
+    memory=(int)(get_limit( totalPhysicalMemoryNodes.front() )+0.5);
     return true;
   };
-  if(resources->IndividualPhysicalMemory) {
-    memory=(int)(get_limit(resources->IndividualPhysicalMemory)+0.5);
+  std::list<Arc::XMLNode> individualPhysicalMemoryNodes = resources.front().XPathLookup("//jsdl:IndividualPhysicalMemory", jsdl_namespaces);
+  if( individualPhysicalMemoryNodes.size() != 0 ) {
+    memory=(int)(get_limit( individualPhysicalMemoryNodes.front() )+0.5);
     return true;
   };
   return true;
@@ -500,19 +547,21 @@ bool JSDLJob::get_memory(int& memory) {
 
 bool JSDLJob::get_cputime(int& t) {
   t=0;
-  if(job_posix_->CPUTimeLimit) {
-    //stringtoint(job_posix_->CPUTimeLimit->__item,t);
-    t=job_posix_->CPUTimeLimit->__item;
+  std::list<Arc::XMLNode> CPUTimeLimitNodes = jsdl_posix.XPathLookup("//jsdl-posix:CPUTimeLimit", jsdl_namespaces);
+  if( CPUTimeLimitNodes.size() != 0 ) {
+    t=atoi( ((std::string) CPUTimeLimitNodes.front()).c_str() );
     return true;
   };
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
-  if(resources == NULL) return true;
-  if(resources->TotalCPUTime) {
-    t=(int)(get_limit(resources->TotalCPUTime)+0.5);
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resources", jsdl_namespaces);
+  if( resources.size() == 0 ) return true;
+  std::list<Arc::XMLNode> totalCPUTimeNodes = resources.front().XPathLookup("//jsdl:TotalCPUTime", jsdl_namespaces);
+  if( totalCPUTimeNodes.size() != 0 ) {
+    t=(int)(get_limit( totalCPUTimeNodes.front() )+0.5);
     return true;
   };
-  if(resources->IndividualCPUTime) {
-    t=(int)(get_limit(resources->IndividualCPUTime)+0.5);
+  std::list<Arc::XMLNode> individualCPUTimeNodes = resources.front().XPathLookup("//jsdl:IndividualCPUTime", jsdl_namespaces);
+  if( individualCPUTimeNodes.size() != 0 ) {
+    t=(int)(get_limit( individualCPUTimeNodes.front() )+0.5);
     return true;
   };
   return true;
@@ -520,47 +569,52 @@ bool JSDLJob::get_cputime(int& t) {
 
 bool JSDLJob::get_walltime(int& t) {
   t=0;
-  if(job_posix_->WallTimeLimit) {
-    //stringtoint(job_posix_->WallTimeLimit->__item,t);
-    t=job_posix_->WallTimeLimit->__item;
+  std::list<Arc::XMLNode> wallTimeLimitNodes = jsdl_posix.XPathLookup("//jsdl-posix:WallTimeLimit", jsdl_namespaces);
+  if( wallTimeLimitNodes.size() != 0 ) {
+    t=atoi( ((std::string) wallTimeLimitNodes.front()).c_str() );
     return true;
   };
   return get_cputime(t);
 }
 
 bool JSDLJob::get_count(int& n) {
-  jsdl__Resources_USCOREType* resources = job_->JobDescription->Resources;
+  std::list<Arc::XMLNode> resources = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl:Resources", jsdl_namespaces);
   n=1;
-  if(resources == NULL) return true;
-  if(resources->TotalCPUCount) {
-    n=(int)(get_limit(resources->TotalCPUCount)+0.5);
+  if( resources.size() == 0 ) return true;
+  std::list<Arc::XMLNode> totalCPUCountNodes = resources.front().XPathLookup("//jsdl:TotalCPUCount", jsdl_namespaces);
+  std::list<Arc::XMLNode> individualCPUCountNodes = resources.front().XPathLookup("//jsdl:IndividualCPUCount", jsdl_namespaces);
+
+  if( totalCPUCountNodes.size() != 0 ) {
+    n=(int)(get_limit( totalCPUCountNodes.front() )+0.5);
     return true;
   };
-  if(resources->IndividualCPUCount) {
-    n=(int)(get_limit(resources->IndividualCPUCount)+0.5);
+  if( individualCPUCountNodes.size() != 0 ) {
+    n=(int)(get_limit( individualCPUCountNodes.front() )+0.5);
     return true;
   };
   return true;
 }
 
 bool JSDLJob::get_reruns(int& n) {
-  if(job_->JobDescription->jsdlARC__Reruns) {
-    n=*(job_->JobDescription->jsdlARC__Reruns);
+  std::list<Arc::XMLNode> rerunNodes = jsdl_document.XPathLookup("//jsdl:JobDescription//jsdl-arc:Reruns", jsdl_namespaces);
+  if(rerunNodes.size() != 0) {
+    n= atoi( ((std::string) rerunNodes.front()).c_str() );
   };
   return true;
 }
 
 bool JSDLJob::check(void) {
-  if(!job_) {
-    logger.msg(Arc::ERROR,"ERROR: job description is missing");
+  if(!jsdl_document) {
+    logger.msg(Arc::ERROR, "job description is missing[jsdl_document]");
     return false;
   };
-  if(!job_->JobDescription) {
-    logger.msg(Arc::ERROR,"ERROR: job description is missing");
+
+  if( !jsdl_document.XPathLookup("//jsdl:JobDescription", jsdl_namespaces).front() ) {
+    logger.msg(Arc::ERROR, "job description is missing[JobDescription]");
     return false;
   };
-  if(!job_posix_) {
-    logger.msg(Arc::ERROR,"ERROR: job description is missing POSIX application");
+  if(!jsdl_posix) {
+    logger.msg(Arc::ERROR, "job description is missing POSIX application[jsdl_posix]");
     return false;
   };
   return true;
@@ -571,6 +625,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   std::string s;
   int n;
   char c;
+  set_posix();
   if(!check()) return false;
   if(!get_jobname(job_desc.jobname)) return false;
   if(!get_data(job_desc.inputdata,job_desc.downloads,job_desc.outputdata,job_desc.uploads)) return false;
@@ -578,7 +633,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   if(!get_stdin(job_desc.stdin_)) return false;
   if(!get_stdout(job_desc.stdout_)) return false;
   if(!get_stderr(job_desc.stderr_)) return false;
-  n=-1; if(!get_lifetime(n)) return false; if(n != -1) job_desc.lifetime=Arc::tostring(n);
+  n=-1; if(!get_lifetime(n)) return false; if(n != -1) job_desc.lifetime=inttostring(n);
   if(!get_fullaccess(job_desc.fullaccess)) return false;
   if(acl) if(!get_acl(*acl)) return false;
   if(!get_arguments(l)) return false;
@@ -597,85 +652,6 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
   if(!get_queue(job_desc.queue)) return false;
   if(!get_credentialserver(job_desc.credentialserver)) return false;
 
-/* 
-
-  bool get_jobname(std::string& jobname);
-  bool get_arguments(std::list<std::string>& arguments);
-  bool get_middlewares(std::list<std::string>& mws);
-  bool get_stdin(std::string& s);
-  bool get_stdout(std::string& s);
-  bool get_stderr(std::string& s);
-  bool get_data(std::list<FileData>& inputdata,int& downloads,
-                std::list<FileData>& outputdata,int& uploads);
-  bool get_memory(int& memory);
-  bool get_cputime(int& t);
-  bool get_walltime(int& t);
-  bool get_count(int& n);
-
-  bool get_execs(std::list<std::string>& execs);
-  bool get_acl(std::string& acl);
-  bool get_gmlog(std::string& s);
-  bool get_loggers(std::list<std::string>& urls);
-  bool get_lifetime(int& l);
-
- Out of scope of job description
-NG_RSL_SOFTWARE_PARAM job_desc.clientsoftware=tmp_param[0];
-NG_RSL_HOSTNAME_PARAM if(job_desc.clientname.length()!=0) { * keep predefined value * if(job_desc.clientname.find(';') == std::string::npos) { job_desc.clientname+=";"; job_desc.clientname+=tmp_param[0]; job_desc.clientname=tmp_param[0];
-
- Not needed for JSDL interface
-NG_RSL_JOB_ID_PARAM job_desc.jobid=tmp_param[0];
-NG_RSL_ACTION_PARAM job_desc.action=tmp_param[0];
-
- Unnecessary or unused
-NG_RSL_REPLICA_PARAM job_desc.rc=tmp_param[0];
-NG_RSL_STARTTIME_PARAM job_desc.processtime=tmp_param[0]; };
-NG_RSL_DISKSPACE_PARAM sscanf(tmp_param[0],"%lf",&ds); job_desc.diskspace=(unsigned long long int)(ds*1024*1024*1024); * unit - GB *
-NG_RSL_FTPTHREADS_PARAM stringtoint(std::string(tmp_param[0]),job_desc.gsiftpthreads);
-NG_RSL_CACHE_PARAM if( strcmp(tmp_param[0],"yes") && strcmp(tmp_param[0],"no") ) job_desc.cache = std::string(tmp_param[0]);
-NG_RSL_DRY_RUN_PARAM if(!strcasecmp(tmp_param[0],"yes")) job_desc.dryrun=true;
-
-*/
-
-/*
-  std::string jobid;         /+ job's unique identificator +/
-  /+ attributes stored in job.ID.local +/
-  std::string queue;         /+ queue name  - default +/
-  std::string localid;       /+ job's id in lrms +/
-  std::list<std::string> arguments;    /+ executable + arguments +/
-  std::string DN;            /+ user's distinguished name aka subject name +/
-  mds_time starttime;        /+ job submission time +/
-  std::string lifetime;      /+ time to live for submission directory +/
-  std::string notify;        /+ notification flags used and email address +/
-  mds_time processtime;      /+ time to start job processing (downloading) +/
-  mds_time exectime;         /+ time to start execution +/
-  std::string clientname;    /+ IP+port of user interface + info given by ui +/
-  std::string clientsoftware; /+ Client's version +/
-  int    reruns;             /+ number of allowed reruns left +/
-  int    downloads;          /+ number of downloadable files requested +/
-  int    uploads;            /+ number of uploadable files requested +/
-  std::string jobname;       /+ name of job given by user +/
-  std::string jobreport;     /+ URL of user's/VO's logger +/
-  mds_time cleanuptime;      /+ time to remove job completely +/
-  mds_time expiretime;       /+ when delegation expires +/
-  std::string stdlog;        /+ dirname to which log messages will be
-                                put after job finishes +/
-  std::string sessiondir;    /+ job's session directory +/
-  std::string failedstate;   /+ state at which job failed, used for rerun +/
-  /+ attributes stored in other files +/
-  std::list<FileData> inputdata;  /+ input files +/
-  std::list<FileData> outputdata; /+ output files +/
-  /+ attributes taken from RSL +/
-  std::string action;        /+ what to do - must be 'request' +/
-  std::string rc;            /+ url to contact replica collection +/
-  std::string stdin_;         /+ file name for stdin handle +/
-  std::string stdout_;        /+ file name for stdout handle +/
-  std::string stderr_;        /+ file name for stderr handle +/
-  std::string cache;         /+ cache default, yes/no +/
-  int    gsiftpthreads;      /+ number of parallel connections to use
-                                during gsiftp down/uploads +/
-  bool   dryrun;             /+ if true, this is test job +/
-  unsigned long long int diskspace;  /+ anount of requested space on disk +/
-*/
   return true;
 }
 
@@ -688,7 +664,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   char c = arguments.begin()->c_str()[0];
   if((c != '/') && (c != '$')){
     if(canonical_dir(*(arguments.begin())) != 0) {
-      logger.msg(Arc::ERROR,"Bad name for executable: %s",arguments.begin()->c_str());
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*(arguments.begin())).c_str());
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*(arguments.begin())),true);
@@ -697,7 +673,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   if(!get_execs(execs)) return false;
   for(std::list<std::string>::iterator i = execs.begin();i!=execs.end();++i) {
     if(canonical_dir(*i) != 0) {
-      logger.msg(Arc::ERROR,"Bad name for executable: %s",i->c_str());
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*i).c_str()); 
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*i));
@@ -712,6 +688,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
 #else
 bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const char* opt_add) {
 #endif
+  set_posix();
   if(!check()) return false;
   if(desc.get_local() == NULL) return false;
   std::string session_dir = desc.SessionDir();
@@ -738,7 +715,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDOUT; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::ERROR,"Bad name for stdout: %s",s.c_str()); return false;
+      logger.msg(Arc::WARNING, "Bad name for stdout: %s", s.c_str());
+      return false;
     };
     s=session_dir+s;
   };
@@ -747,7 +725,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDERR; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::ERROR,"Bad name for stderr: %s",s.c_str()); return false;
+      logger.msg(Arc::WARNING, "Bad name for stderr: %s", s.c_str());
+      return false;
     };
     s=session_dir+s;
   };
@@ -797,7 +776,8 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string tmp_s = *i;
     for(int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
-      logger.msg(Arc::ERROR,"Bad name for runtime environemnt: %s",i->c_str()); return false;
+      logger.msg(Arc::WARNING, "Bad name for runtime environemnt: %s", (*i).c_str());
+      return false;
     };
     f<<"joboption_runtime_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;
     n++;
@@ -808,6 +788,6 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   return true;
 }
 
-void JSDLJob::print_to_grami(std::ostream&) {
+void JSDLJob::print_to_grami(std::ostream &o) {
 }
 

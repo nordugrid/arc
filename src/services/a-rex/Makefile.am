@@ -5,7 +5,7 @@ noinst_PROGRAMS=test
 
 GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
                    grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
-                   grid-manager/mail/libmail.la grid-manager/jobdesc/jsdl/libnamespace.la
+                   grid-manager/mail/libmail.la 
 
 libarex_la_SOURCES  = arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp terminate_activities.cpp \
                       get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp arex.h job.h PayloadFile.h

@@ -1,21 +1,25 @@
 #ifndef __ARC_GM_JSDL_JOB_H__
 #define __ARC_GM_JSDL_JOB_H__
 #include <iostream>
-#include <stdsoap2.h>
 
+#include <arc/XMLNode.h>
 #include "../../jobs/job.h"
 
-class jsdl__JobDefinition_USCOREType;
-class jsdlPOSIX__POSIXApplication_USCOREType;
+//Just keeping compatibility
+#define jsdl__JobDefinition_USCOREType null
+
 class JobUser;
 class JobLocalDescription;
 class FileData;
 
 class JSDLJob {
  private:
-  struct soap* sp_;
-  jsdl__JobDefinition_USCOREType* job_;
-  jsdlPOSIX__POSIXApplication_USCOREType* job_posix_;
+
+  Arc::NS jsdl_namespaces;
+
+  Arc::XMLNode jsdl_document;
+  Arc::XMLNode jsdl_posix;
+
   bool check(void);
   void set(std::istream& f);
   void set_posix(void);
@@ -44,16 +48,17 @@ class JSDLJob {
   bool get_client_software(std::string& s);
   bool get_credentialserver(std::string& url);
   void print_to_grami(std::ostream &o);
+  double get_limit(Arc::XMLNode range);
  public:
   JSDLJob(void);
   JSDLJob(const char* str);
   JSDLJob(std::istream& f);
-  JSDLJob(jsdl__JobDefinition_USCOREType* j);
+  //JSDLJob(jsdl__JobDefinition_USCOREType *j);
   JSDLJob(const JSDLJob& j);
   ~JSDLJob(void);
-  operator bool(void) { return ((job_!=NULL) && (job_posix_!=NULL)); };
-  bool operator!(void) { return ((job_==NULL) || (job_posix_==NULL)); };
-  bool parse(JobLocalDescription &job_desc,std::string* acl = NULL);
+  operator bool(void) { return jsdl_document; };
+  bool operator!(void) { return !jsdl_document; };
+  bool parse(JobLocalDescription &job_desc, std::string* acl = NULL);
   bool set_execs(const std::string &session_dir);
   bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add = NULL);
 };

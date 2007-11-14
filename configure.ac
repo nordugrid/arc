@@ -327,9 +327,6 @@ AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 # Check for explicitely disabled packages
 # A-Rex
 AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes")
-if test x$GSOAP != xyes ; then
-  enable_a_rex_service="no"
-fi
 AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 
@@ -487,6 +484,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/config/Makefile
                  src/services/pdp/Makefile
+                 src/services/httpd/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/data/Makefile
