@@ -3,7 +3,7 @@
 #include "arex_client.h"
 
 namespace Arc {
-  
+
   AREXClientError::AREXClientError(const std::string& what) :
     std::runtime_error(what)
   {
@@ -14,8 +14,6 @@ namespace Arc {
   AREXClient::AREXClient(std::string configFile)
     throw(AREXClientError)
   {
-    Arc::LogStream logcerr(std::cerr, "AREXClient");
-    Arc::Logger::rootLogger.addDestination(logcerr);
     logger.setThreshold(Arc::VERBOSE);
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");

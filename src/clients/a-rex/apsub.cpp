@@ -27,6 +27,8 @@
   be "arex_client.xml" in the current working directory.
 */
 int main(int argc, char* argv[]){
+  Arc::LogStream logcerr(std::cerr, "AREXClient");
+  Arc::Logger::getRootLogger().addDestination(logcerr);
   try{
     if (argc!=3)
       throw std::invalid_argument("Wrong number of arguments!");
