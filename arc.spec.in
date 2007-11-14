@@ -182,9 +182,9 @@ exit 0
 %doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
+%{_libdir}/%{pkgdir}/libhttpd.so
 
 %files arex
-%{_libdir}/%{pkgdir}/libhttpd.so
 %{_libdir}/%{pkgdir}/libarex.so
 %{_sbindir}/grid-manager
 #%{_libexecdir}/smtp-send
