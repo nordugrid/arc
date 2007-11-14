@@ -407,7 +407,7 @@ int cache_history(const char* cache_path,bool enable,uid_t uid,gid_t gid) {
   if(enable) {
     h_old=open(fname_old.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_old == -1) goto error_exit;
-    h_new=open(fname_new.c_str(),O_RDWR | O_CREAT);
+    h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
     if(uid) (void)chown(fname_old.c_str(),uid,gid);
     if(uid) (void)chown(fname_new.c_str(),uid,gid);
