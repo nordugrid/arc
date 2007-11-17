@@ -33,20 +33,35 @@ Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if (ok != 1) {
-    #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     int err = X509_STORE_CTX_get_error(sctx);
-    if(err == X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED) {
-      // This shouldn't happen here becuase flags are already set
-      // to allow proxy. But one can never know because used flag 
-      // setting method is undocumented.
-      X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
-      // Calling X509_verify_cert will cause a recursive call to verify_callback.
-      // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error 
-      // can't happen anymore.
-      ok=X509_verify_cert(sctx);
-      if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+    switch(err) {
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+      case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
+        // This shouldn't happen here becuase flags are already set
+        // to allow proxy. But one can never know because used flag 
+        // setting method is undocumented.
+        X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
+        // Calling X509_verify_cert will cause a recursive call to verify_callback.
+        // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error 
+        // can't happen anymore.
+        ok=X509_verify_cert(sctx);
+        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+      }; break;
+#endif
+      case X509_V_ERR_UNABLE_TO_GET_CRL: {
+        // Missing CRL is not an error (TODO: make it configurable)
+        // Consider that to be a policy of site like Globus does
+        if(sctx->param) {
+          // Not sure of there is need for recursive X509_verify_cert() here.
+          // It looks like openssl runs tests sequentially for whole chain.
+          // But not sure if behavior is same in all versions.
+          X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
+          ok=X509_verify_cert(sctx);
+          X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
+          if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+        };
+      }; break;
     };
-    #endif
   };
   return ok;
 }
@@ -276,6 +291,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
       if(!r){
          tls_process_error(logger);
+         SSL_CTX_free(sslctx_); sslctx_=NULL;
          return;
       }   
       /*
@@ -283,26 +299,27 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
          logger.msg(ERROR, "Can not set client CA list from the specified file");
    	 tls_process_error(logger);
+         SSL_CTX_free(sslctx_); sslctx_=NULL;
 	 return;
       }
       */
    }
    if(sslctx_->param == NULL) {
-     std::cerr<<"## verify paramaters is empty"<<std::endl;
+     logger.msg(ERROR,"Can't set OpenSSL verify flags");
+     SSL_CTX_free(sslctx_); sslctx_=NULL;
+     return;
    } else {
-     std::cerr<<"## verify paramaters is not empty"<<std::endl;
-     std::cerr<<"## flags are "<<X509_VERIFY_PARAM_get_flags(sslctx_->param)<<std::endl;
-     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK_ALL | X509_V_FLAG_ALLOW_PROXY_CERTS);
-     std::cerr<<"## flags are "<<X509_VERIFY_PARAM_get_flags(sslctx_->param)<<std::endl;
+     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
    if(tls_dhe1024 == NULL) { // TODO: Is it needed?
    	tls_set_dhe1024(logger);
 	if(tls_dhe1024 == NULL){return;}
    }
    if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)) { // TODO: Is it needed?
-           logger.msg(ERROR, "DH set error");
-           tls_process_error(logger);
-	   return;
+     logger.msg(ERROR, "DH set error");
+     tls_process_error(logger);
+     SSL_CTX_free(sslctx_); sslctx_=NULL;
+     return;
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2);
 #ifndef NO_RSA
@@ -311,10 +328,11 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    if (tmpkey == NULL)
 	tls_process_error(logger);
    if (!SSL_CTX_set_tmp_rsa(sslctx_, tmpkey)) {
-	RSA_free(tmpkey);
-	tls_process_error(logger);
-	return;
-	}
+     RSA_free(tmpkey);
+     tls_process_error(logger);
+     SSL_CTX_free(sslctx_); sslctx_=NULL;
+     return;
+   }
    RSA_free(tmpkey);
 #endif
 }
@@ -427,9 +445,14 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
         }
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
-
+   if(sslctx_->param == NULL) {
+     logger.msg(ERROR,"Can't set OpenSSL verify flags");
+     SSL_CTX_free(sslctx_); sslctx_=NULL;
+     return;
+   } else {
+     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
+   };
   /**Get DN from certificate, and put it into message's attribute */
-  
 }
 
 MCC_TLS_Client::~MCC_TLS_Client(void) {
