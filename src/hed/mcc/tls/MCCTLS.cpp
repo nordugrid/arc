@@ -36,14 +36,15 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     int err = X509_STORE_CTX_get_error(sctx);
     if(err == X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED) {
+      // This shouldn't happen here becuase flags are already set
+      // to allow proxy. But one can never know because used flag 
+      // setting method is undocumented.
       X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
-    #endif
       // Calling X509_verify_cert will cause a recursive call to verify_callback.
-      // But there should be no loop because CERTIFICATES_NOT_ALLOWED error 
+      // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error 
       // can't happen anymore.
       ok=X509_verify_cert(sctx);
       if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-    #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     };
     #endif
   };
@@ -88,7 +89,7 @@ static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
 
-/**Input the passphrase for key file*/
+/**Input the passphrase for key file
 static int passphrase_callback(char* buf, int size, int rwflag, void *) {
    int len;
    std::cout<<"Enter passphrase for your key file:"<<std::endl;
@@ -103,6 +104,7 @@ static int passphrase_callback(char* buf, int size, int rwflag, void *) {
    }
    return len;
 }
+*/
 
 static int tls_rand_seeded_p = 0;
 #define my_MIN_SEED_BYTES 256 
@@ -164,9 +166,8 @@ static void tls_set_dhe1024(Logger& logger)
 bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
 {
    // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
-   //Now, the authentication is based on no_passphrase credential, it would be modified later to add passphrase support.
-   //SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
-   SSL_CTX_set_default_passwd_cb(sslctx, passphrase_callback);
+   SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
+   //SSL_CTX_set_default_passwd_cb(sslctx, passphrase_callback);
 
    if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
@@ -286,6 +287,14 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       }
       */
    }
+   if(sslctx_->param == NULL) {
+     std::cerr<<"## verify paramaters is empty"<<std::endl;
+   } else {
+     std::cerr<<"## verify paramaters is not empty"<<std::endl;
+     std::cerr<<"## flags are "<<X509_VERIFY_PARAM_get_flags(sslctx_->param)<<std::endl;
+     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK_ALL | X509_V_FLAG_ALLOW_PROXY_CERTS);
+     std::cerr<<"## flags are "<<X509_VERIFY_PARAM_get_flags(sslctx_->param)<<std::endl;
+   };
    if(tls_dhe1024 == NULL) { // TODO: Is it needed?
    	tls_set_dhe1024(logger);
 	if(tls_dhe1024 == NULL){return;}
