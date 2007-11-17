@@ -23,6 +23,7 @@ namespace Arc {
    public:
     std::string key;
     std::string cert;
+    std::string proxy;
     std::string cafile;
     BaseConfig();
     virtual ~BaseConfig() {};

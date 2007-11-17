@@ -11,6 +11,7 @@ namespace Arc {
     key = "./key.pem";
     cert = "./cert.pem";
     cafile = "./ca.pem";
+    proxy = "";
 #ifndef WIN32
     if(getenv("ARC_PLUGIN_PATH")) {
       std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
@@ -93,9 +94,10 @@ namespace Arc {
 
     if(tls) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
-      comp.NewChild("KeyPath") = cfg.key;
-      comp.NewChild("CertificatePath") = cfg.cert;
-      comp.NewChild("CACertificatePath") = cfg.cafile;
+      if(!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+      if(!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+      if(!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+      if(!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       comp.NewAttribute("entry") = "tls";
     }
   }
