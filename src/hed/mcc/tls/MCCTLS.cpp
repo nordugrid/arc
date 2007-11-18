@@ -63,6 +63,10 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       }; break;
     };
   };
+  if(ok == 1) {
+    // Do additional verification here.
+    // TODO: Globus signing policy
+  };
   return ok;
 }
 
