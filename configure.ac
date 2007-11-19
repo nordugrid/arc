@@ -486,6 +486,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
+                 src/services/iis/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/data/Makefile

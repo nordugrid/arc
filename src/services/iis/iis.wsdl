@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-Interface of Information Indexing Service
--->
 <wsdl:definitions name="InformationIndexing"
   xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
@@ -16,6 +13,9 @@ Interface of Information Indexing Service
   xmlns:wsrf-rw="http://docs.oasis-open.org/wsrf/rw-2"
   targetNamespace="http://www.nordugrid.org/schemas/iis/2007/06"
 >
+<!--
+Interface of Information Indexing Service
+-->
 
     <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
     <!-- wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="./rpw-2.wsdl"/ -->
