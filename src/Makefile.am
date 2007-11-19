@@ -1,1 +1,1 @@
-SUBDIRS=hed tests services clients
+SUBDIRS=hed tests services clients utils

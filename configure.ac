@@ -495,6 +495,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
                  src/tests/xpath/Makefile
+                 src/utils/Makefile
                  swig/Makefile
                  java/Makefile
                  python/Makefile
