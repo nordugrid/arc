@@ -17,12 +17,14 @@
 #include <arc/loader/MCCLoader.h>
 #include <arc/XMLNode.h>
 
-#include "PayloadTLSStream.h"
-#include "PayloadTLSMCC.h"
-
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
+
+#include "GlobusSigningPolicy.h"
+
+#include "PayloadTLSStream.h"
+#include "PayloadTLSMCC.h"
 
 #include "MCCTLS.h"
 
@@ -31,13 +33,41 @@ Glib::Mutex Arc::MCC_TLS::lock_;
 Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
+static int ex_data_index_ = -1;
+
+static void store_MCC_TLS(SSL_CTX* container,Arc::MCC_TLS* it) {
+  if(ex_data_index_ != -1) {
+    SSL_CTX_set_ex_data(container,ex_data_index_,it);
+    return;
+  };
+  Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to store application data into OpenSSL");
+}
+
+static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
+  Arc::MCC_TLS* it = NULL;
+  if(ex_data_index_ != -1) {
+    SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(container,SSL_get_ex_data_X509_STORE_CTX_idx());
+    if(ssl != NULL) {
+      SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
+      if(ssl_ctx != NULL) {
+        it = (Arc::MCC_TLS*)SSL_CTX_get_ex_data(ssl_ctx,ex_data_index_);
+      }
+    };
+  };
+  if(it == NULL) {
+    Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to retireve application data from OpenSSL");
+  };
+  return it;
+}
+
+
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
     switch(err) {
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+#ifdef OPENSSL_PROXY_ENABLED
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
-        // This shouldn't happen here becuase flags are already set
+        // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag 
         // setting method is undocumented.
         X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
@@ -65,7 +95,31 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   };
   if(ok == 1) {
     // Do additional verification here.
-    // TODO: Globus signing policy
+    Arc::MCC_TLS* it = retrieve_MCC_TLS(sctx);
+    if(it != NULL) {
+      // Globus signing policy
+      // Do not apply to proxies and self-signed CAs.
+      if(!(it->CAdir().empty())) {
+        X509* cert = X509_STORE_CTX_get_current_cert(sctx);
+#ifdef OPENSSL_PROXY_ENABLED
+        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
+        if(pos < 0) {
+#else
+        {
+#endif
+          std::istream* in = Arc::open_globus_policy(X509_get_issuer_name(cert),it->CAdir());
+          if(in) {
+            if(!Arc::match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+              char* s = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
+              Arc::Logger::getRootLogger().msg(Arc::ERROR,"Certificate %s failed Globus signign policy",s);
+              OPENSSL_free(s);
+              ok=0;
+            };
+            delete in;
+          };
+        };
+      };
+    };
   };
   return ok;
 }
@@ -255,6 +309,7 @@ bool MCC_TLS::do_ssl_init(void) {
        };
      };
    };
+   if(ssl_initialized_) ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
    lock_.unlock();
    return ssl_initialized_;
 }
@@ -279,6 +334,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    if(!proxy_file.empty()) {
      key_file=proxy_file; cert_file=proxy_file;
    };
+   ca_dir_=ca_dir;
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -313,8 +369,13 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    } else {
+#ifdef OPENSSL_PROXY_ENABLED
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
+#else
+     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
+#endif
    };
+   store_MCC_TLS(sslctx_,this);
    if(tls_dhe1024 == NULL) { // TODO: Is it needed?
    	tls_set_dhe1024(logger);
 	if(tls_dhe1024 == NULL){return;}
@@ -429,6 +490,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    if(!proxy_file.empty()) {
      key_file=proxy_file; cert_file=proxy_file;
    };
+   ca_dir_=ca_dir;
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -456,6 +518,7 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    } else {
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
+   store_MCC_TLS(sslctx_,this);
   /**Get DN from certificate, and put it into message's attribute */
 }
 

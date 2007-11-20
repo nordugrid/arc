@@ -91,12 +91,12 @@ static bool get_id(std::string& s,std::string& ca_subject) {
 static bool get_rights(std::string& s) {
   std::string id;
   get_word(s,id);
-  if(s == negative_rights) {
+  if(id == negative_rights) {
     logger.msg(Arc::WARNING,"Negative rights are not supported in Globus signing policy");
     return false;
   };
-  if(s != positive_rights) {
-    logger.msg(Arc::WARNING,"Unknown rights are in Globus signing policy - %s",id.c_str());
+  if(id != positive_rights) {
+    logger.msg(Arc::WARNING,"Unknown rights in Globus signing policy - %s",id.c_str());
     return false;
   };
   get_word(s,id);
@@ -121,8 +121,8 @@ static bool get_conditions(std::string s,std::list<std::string>& patterns) {
     logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",conditions_id,id.c_str());
     return false;
   };
-  id=id.substr(strlen(access_id));
-  if(id != "sibjects") {
+  id=id.substr(strlen(conditions_id));
+  if(id != "subjects") {
     logger.msg(Arc::WARNING,"We only support subjects conditions in Globus signing policy - %s is not supported",id.c_str());
     return false;
   };
@@ -158,7 +158,8 @@ static bool match_all(const std::string& issuer_subject,const std::string& subje
       };
       (*pattern)="^"+(*pattern)+"$";
       RegularExpression re(*pattern);
-      if(re.match(subject)) return true;
+      bool r = re.match(subject);
+      if(r) return true;
     };
   };
   return false;
@@ -190,7 +191,8 @@ bool match_globus_policy(std::istream& in,const X509_NAME* issuer_subject,const 
     if(s.empty()) break;
     if(s.compare(0,strlen(access_id),access_id) == 0) {
       if((!policy_ca_subject.empty()) && (rights_defined) && (!failure)) {
-        if(match_all(issuer_subject_str,subject_str,policy_ca_subject,policy_patterns)) return true;
+        bool r = match_all(issuer_subject_str,subject_str,policy_ca_subject,policy_patterns);
+        if(r) return true;
       };
       policy_ca_subject.resize(0);
       policy_patterns.resize(0);
@@ -211,7 +213,8 @@ bool match_globus_policy(std::istream& in,const X509_NAME* issuer_subject,const 
     };
   };
   if((!policy_ca_subject.empty()) && (rights_defined) && (!failure)) {
-    if(match_all(issuer_subject_str,subject_str,policy_ca_subject,policy_patterns)) return true;
+    bool r = match_all(issuer_subject_str,subject_str,policy_ca_subject,policy_patterns);
+    if(r) return true;
   };
   return false;
 }
@@ -225,7 +228,7 @@ std::istream* open_globus_policy(const X509_NAME* issuer_subject,const std::stri
   hash_str[sizeof(hash_str)-1]=0;
   std::string fname = ca_path+"/"+hash_str+policy_suffix;
   std::ifstream* f = new std::ifstream(fname.c_str());
-  if(!f) { delete f; return NULL; };
+  if(!(*f)) { delete f; return NULL; };
   return f;
 }
 

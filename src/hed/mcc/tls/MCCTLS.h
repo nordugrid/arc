@@ -13,6 +13,7 @@ namespace Arc {
   class MCC_TLS : public MCC {
   public:
     MCC_TLS(Arc::Config *cfg);
+    const std::string& CAdir(void) const { return ca_dir_; };
   protected:
     //bool tls_random_seed(std::string filename, long n);
     bool tls_load_certificate(SSL_CTX* sslctx,
@@ -28,6 +29,7 @@ namespace Arc {
     static void ssl_locking_cb(int mode, int n, const char *file, int line);
     static unsigned long ssl_id_cb(void);
     //static void* ssl_idptr_cb(void);
+    std::string ca_dir_;
   };
 
 /** This MCC implements TLS server side functionality. Upon creation this 
