@@ -2,3 +2,4 @@ usr/include/arc
 usr/lib/lib*.so
 usr/lib/lib*.a
 usr/lib/lib*.la
+usr/bin/wsdl2hed

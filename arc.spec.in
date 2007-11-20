@@ -183,6 +183,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libhttpd.so
+%{_libdir}/%{pkgdir}/libcentralii.so
 
 %files arex
 %{_libdir}/%{pkgdir}/libarex.so
@@ -195,6 +196,7 @@ exit 0
 #%{_libdir}/lib*.a
 #%{_libdir}/lib*.la
 %{_libdir}/lib*.so
+%{_bindir}/wsdl2hed
 
 %files plugins-base
 %defattr(-,root,root,-)
