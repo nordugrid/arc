@@ -1,4 +1,5 @@
-pkglib_LTLIBRARIES = libarex2.la
+#pkglib_LTLIBRARIES = libarex2.la
+noinst_LTLIBRARIES = libarex2.la
 
 libarex2_la_SOURCES  = arex2.cpp arex2.h rte.cpp rte.h job_state.cpp job_state.h lrms.cpp lrms.h
 
