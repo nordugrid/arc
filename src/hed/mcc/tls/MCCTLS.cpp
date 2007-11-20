@@ -65,7 +65,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
     switch(err) {
-#ifdef OPENSSL_PROXY_ENABLED
+#ifdef HAVE_OPENSSL_PROXY
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
         // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag 
@@ -99,21 +99,22 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     if(it != NULL) {
       // Globus signing policy
       // Do not apply to proxies and self-signed CAs.
-      if(!(it->CAdir().empty())) {
+      if((it->GlobusPolicy()) && (!(it->CADir().empty()))) {
         X509* cert = X509_STORE_CTX_get_current_cert(sctx);
-#ifdef OPENSSL_PROXY_ENABLED
+#ifdef HAVE_OPENSSL_PROXY
         int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
         if(pos < 0) {
 #else
         {
 #endif
-          std::istream* in = Arc::open_globus_policy(X509_get_issuer_name(cert),it->CAdir());
+          std::istream* in = Arc::open_globus_policy(X509_get_issuer_name(cert),it->CADir());
           if(in) {
             if(!Arc::match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
               char* s = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-              Arc::Logger::getRootLogger().msg(Arc::ERROR,"Certificate %s failed Globus signign policy",s);
+              Arc::Logger::getRootLogger().msg(Arc::ERROR,"Certificate %s failed Globus signing policy",s);
               OPENSSL_free(s);
               ok=0;
+              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
             };
             delete in;
           };
@@ -124,7 +125,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   return ok;
 }
 
-Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg) {
+Arc::MCC_TLS::MCC_TLS(Arc::Config *cfg) : MCC(cfg), globus_policy_(false) {
 }
 
 static Arc::MCC* get_mcc_service(Arc::Config *cfg,Arc::ChainContext*) {
@@ -323,18 +324,16 @@ class MCC_TLS_Context:public MessageContextElement {
 
 /*The main functionality of the constructor method is creat SSL context object*/
 MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
-   std::string cert_file = (*cfg)["CertificatePath"];
-   if(cert_file.empty()) cert_file="/etc/grid-security/hostcert.pem";
-   std::string key_file = (*cfg)["KeyPath"];
-   if(key_file.empty()) key_file="/etc/grid-security/hostkey.pem";
-   std::string ca_file = (*cfg)["CACertificatePath"];
-   std::string ca_dir = (*cfg)["CACertificatesDir"];
-   if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
-   std::string proxy_file = (*cfg)["ProxyPath"];
-   if(!proxy_file.empty()) {
-     key_file=proxy_file; cert_file=proxy_file;
-   };
-   ca_dir_=ca_dir;
+   cert_file_ = (std::string)((*cfg)["CertificatePath"]);
+   key_file_ = (std::string)((*cfg)["KeyPath"]);
+   ca_file_ = (std::string)((*cfg)["CACertificatePath"]);
+   ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
+   globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
+   proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
+   if(cert_file_.empty()) cert_file_="/etc/grid-security/hostcert.pem";
+   if(key_file_.empty()) key_file_="/etc/grid-security/hostkey.pem";
+   if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
+   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -345,10 +344,10 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
 	return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
+   tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
-   if((!ca_file.empty()) || (!ca_dir.empty())){
-      r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
+   if((!ca_file_.empty()) || (!ca_dir_.empty())){
+      r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
       if(!r){
          tls_process_error(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -369,7 +368,7 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    } else {
-#ifdef OPENSSL_PROXY_ENABLED
+#ifdef HAVE_OPENSSL_PROXY
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
 #else
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
@@ -479,18 +478,16 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 
 MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    stream_=NULL;
-   std::string cert_file = (*cfg)["CertificatePath"];
-   if(cert_file.empty()) cert_file="cert.pem";
-   std::string key_file = (*cfg)["KeyPath"];
-   if(key_file.empty()) key_file="key.pem";
-   std::string ca_file = (*cfg)["CACertificatePath"];
-   std::string ca_dir = (*cfg)["CACertificatesDir"];
-   if(ca_dir.empty()) ca_dir="/etc/grid-security/certificates";
-   std::string proxy_file = (*cfg)["ProxyPath"];
-   if(!proxy_file.empty()) {
-     key_file=proxy_file; cert_file=proxy_file;
-   };
-   ca_dir_=ca_dir;
+   cert_file_ = (std::string)((*cfg)["CertificatePath"]);
+   key_file_ = (std::string)((*cfg)["KeyPath"]);
+   ca_file_ = (std::string)((*cfg)["CACertificatePath"]);
+   ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
+   globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
+   proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
+   if(cert_file_.empty()) cert_file_="cert.pem";
+   if(key_file_.empty()) key_file_="key.pem";
+   if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
+   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
    int r;
    if(!do_ssl_init()) return;
    /*Initialize the SSL Context object*/
@@ -501,10 +498,10 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
         return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
-   tls_load_certificate(sslctx_, cert_file, key_file, "", key_file);
+   tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   if((!ca_file.empty()) || (!ca_dir.empty())) {
-        r=SSL_CTX_load_verify_locations(sslctx_, ca_file.empty()?NULL:ca_file.c_str(), ca_dir.empty()?NULL:ca_dir.c_str());
+   if((!ca_file_.empty()) || (!ca_dir_.empty())) {
+        r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
         if(!r){
            tls_process_error(logger);
            return;
@@ -516,7 +513,11 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    } else {
+#ifdef HAVE_OPENSSL_PROXY
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
+#else
+     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
+#endif
    };
    store_MCC_TLS(sslctx_,this);
   /**Get DN from certificate, and put it into message's attribute */
