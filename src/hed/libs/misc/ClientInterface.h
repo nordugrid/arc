@@ -42,6 +42,7 @@ namespace Arc {
 
   class ClientInterface {
    public:
+    ClientInterface() {};
     ClientInterface(const BaseConfig& cfg);
     virtual ~ClientInterface();
    protected:
@@ -53,6 +54,7 @@ namespace Arc {
   // Also supports TLS
   class ClientTCP : public ClientInterface {
    public:
+    ClientTCP() {};
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
 	      bool tls);
     virtual ~ClientTCP();
@@ -72,6 +74,7 @@ namespace Arc {
       unsigned long long size;
       Time lastModified;
     };
+    ClientHTTP() {};
     ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientHTTP();
@@ -94,6 +97,7 @@ namespace Arc {
        path - internal path of service to be contacted.
        TODO: use URL.
      */
+    ClientSOAP() {};
     ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientSOAP();
