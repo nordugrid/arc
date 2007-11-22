@@ -87,7 +87,7 @@ static job_req_type_t detect_job_req_type(const char* fname) {
 #ifdef HAVE_GLOBUS_RSL
   if(strncasecmp(rsl_pattern,buf,sizeof(rsl_pattern)-1) == 0) return job_req_rsl;
 #endif
-#ifdef HAVE_GOAP
+#ifdef HAVE_GSOAP
   if(strncasecmp(jsdl_pattern,buf,sizeof(jsdl_pattern)-1) == 0) return job_req_jsdl;
 #endif
   return job_req_unknown;
