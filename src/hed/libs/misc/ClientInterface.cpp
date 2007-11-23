@@ -113,7 +113,11 @@ namespace Arc {
 				       tls ? "tls" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
-    comp.NewChild("Endpoint") = path;
+    if(path[0] == '/') {
+      comp.NewChild("Endpoint") = path;
+    } else {
+      comp.NewChild("Endpoint") = "/"+path;
+    };
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -165,6 +169,9 @@ namespace Arc {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
+std::string s;
+xmlcfg.GetXML(s);
+std::cerr<<s<<std::endl;
   }
 
   ClientSOAP::~ClientSOAP() {}
