@@ -262,6 +262,14 @@ if test "$?" = '0' ; then
 else
         AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
 fi
+OPENSSL_X509_VERIFY_PARAM=no
+"$PKG_CONFIG" --exists 'openssl >= 0.9.8'
+if test "$?" = '0' ; then
+	OPENSSL_X509_VERIFY_PARAM=yes
+        AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
+else
+        AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
+fi
 OPENSSL_OLDRSA=yes
 "$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
 if test "$?" = '0' ; then
@@ -337,6 +345,7 @@ AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
+AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 
 # Setup defines
 if test -n "$GLOBUS_RSL_VERSION"; then
@@ -350,6 +359,9 @@ if test x"$GSOAP" = xyes; then
 fi
 if test x"$OPENSSL_PROXY" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
+fi
+if test x"$OPENSSL_X509_VERIFY_PARAM" = xyes; then
+    AC_DEFINE(HAVE_OPENSSL_X509_VERIFY_PARAM,,[define if OPENSSL has X509_VERIFY_PARAM structure])
 fi
 if test x"$OPENSSL_OLDRSA" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_OLDRSA,,[define if OPENSSL has old RSA generation interface])
