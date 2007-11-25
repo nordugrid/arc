@@ -16,6 +16,7 @@ class CentralISIService: public Arc::Service
         virtual ~CentralISIService(void);
         virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
     private:
+        std::string db_path;
         Arc::NS ns;
         Arc::Logger logger;
         Arc::DelegationContainerSOAP delegation;

@@ -7,6 +7,11 @@
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/ws-addressing/WSA.h>
+#include <arc/URL.h>
+#include <glibmm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fstream>
 
 #include "centralisi.h"
 
@@ -27,6 +32,26 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
     ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
     
     logger.msg(Arc::DEBUG, "Central ISIS initialized");
+    std::string dsn = (std::string)(*cfg)["DSN"];
+    Arc::URL dsn_url(dsn);
+    if (dsn_url.Protocol() != "file") {
+        logger.msg(Arc::ERROR, "remote database not supported");
+    } else {
+        db_path = dsn_url.Path();
+        logger.msg(Arc::INFO, "Intialize database %s", db_path.c_str());
+        if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
+            // create root directory
+#ifndef WIN32
+            if (mkdir(db_path.c_str(), 0700) != 0) 
+#else
+            if (mkdir(db_path.c_str()) != 0) 
+#endif
+            {
+                logger.msg(Arc::ERROR, "cannot create directory: %s", db_path.c_str());
+                db_path = "";
+            }        
+        }
+    }
 }
 
 CentralISIService::~CentralISIService(void)
@@ -36,6 +61,10 @@ CentralISIService::~CentralISIService(void)
 Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
 {
     logger.msg(Arc::DEBUG, "process called");
+    if (db_path == "") {
+        logger.msg(Arc::ERROR, "invalid database path");
+        return Arc::MCC_Status();
+    }
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -57,20 +86,20 @@ Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &ou
     Arc::PayloadSOAP& res = *outpayload;
     Arc::MCC_Status ret = Arc::STATUS_OK;
     if(MatchXMLName(op, "Register")) {
-        res.NewChild("isis:RegisterResponse");
-        ret = Register(op, res);
+        Arc::XMLNode r = res.NewChild("isis:RegisterResponse");
+        ret = Register(op, r);
     } else if(MatchXMLName(op, "RemoveRegistrations")) {
-        res.NewChild("isis:RemoveRegistrationsResponse");
-        ret = RemoveRegistrations(op, res);
+        Arc::XMLNode r = res.NewChild("isis:RemoveRegistrationsResponse");
+        ret = RemoveRegistrations(op, r);
     } else if(MatchXMLName(op, "GetRegistrationStatuses")) {
-        res.NewChild("isis:GetRegistrationStatusesResponse");
-        ret = GetRegistrationStatuses(op, res);
+        Arc::XMLNode r = res.NewChild("isis:GetRegistrationStatusesResponse");
+        ret = GetRegistrationStatuses(op, r);
     } else if(MatchXMLName(op, "GetIISList")) {
-        res.NewChild("isis:GetIISListResponse");
-        ret = GetIISList(op, res);
+        Arc::XMLNode r = res.NewChild("isis:GetIISListResponse");
+        ret = GetIISList(op, r);
     } else if(MatchXMLName(op, "Get")) {
-        res.NewChild("isis:GetResponse");
-        ret = Get(op, res);
+        Arc::XMLNode r = res.NewChild("isis:GetResponse");
+        ret = Get(op, r);
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegation.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete inpayload;
@@ -109,20 +138,57 @@ Arc::MCC_Status CentralISIService::make_soap_fault(Arc::Message& outmsg)
 
 Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
 {
-    std::string str;
-    in.GetXML(str);
-    logger.msg(Arc::DEBUG, str.c_str());
+    int i;
+    Arc::XMLNode entry;
+    for (i = 0; (entry = in["RegEntry"][i]) == true; i++) {
+        std::string id = (std::string)entry["ID"];
+        std::string data;
+        entry.GetXML(data);
+        std::string entry_file = Glib::build_filename(db_path, id);
+        std::ofstream out(entry_file.c_str(), std::ios::out);
+        if (!out) {
+            continue;
+        }
+        out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+        out << data;
+        out.close();
+    }
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status CentralISIService::RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &out)
 {
-    return Arc::MCC_Status();
+    int i;
+    Arc::XMLNode entry;
+    for (i = 0; (entry = in["ID"][i]) == true; i++) {
+        std::string id = (std::string)entry;
+        std::string path = Glib::build_filename(db_path, id);
+        unlink(path.c_str());
+    }
+    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status CentralISIService::GetRegistrationStatuses(Arc::XMLNode &in, Arc::XMLNode &out)
 {
-    return Arc::MCC_Status();
+    int i;
+    Arc::XMLNode entry;
+    for (i = 0; (entry = in["ID"][i]) == true; i++) {
+        std::string id = (std::string)entry;
+        std::string path = Glib::build_filename(db_path, id);
+        if (Glib::file_test(path, Glib::FILE_TEST_EXISTS) == true) {
+            std::string data = Glib::file_get_contents(path);
+            Arc::XMLNode d(data);
+            Arc::XMLNode status = d["MetaSrcAdv"]["Status"];
+            if(status == true) {
+                out.NewChild("RegEntry");
+                out["RegEntry"].NewChild(entry);
+                out["RegEntry"].NewChild(status);
+            }
+        }
+    }
+    std::string str;
+    out.GetXML(str);
+    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status CentralISIService::GetIISList(Arc::XMLNode &in, Arc::XMLNode &out)

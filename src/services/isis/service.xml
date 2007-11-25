@@ -2,6 +2,7 @@
 <ArcConfig 
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:isis="http://www.nordugrid.org/schemas/ISIS/2007"
 >
 
     <Server>
@@ -37,6 +38,7 @@
             <next id="centralisi">/isis</next>
         </Plexer>
         <Service name="centralisi" id="centralisi">
+            <isis:DSN>file://./isis</isis:DSN>
         </Service>
     </Chain>
 </ArcConfig>
