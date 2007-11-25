@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Register
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+>
+<Header>
+    <RequesterID>12345</RequesterID>
+</Header>
+<RegEntry>
+    <ID>foo</ID>
+    <SrcAdv>
+        <Type>ComputingElement</Type>
+        <EPR>
+        </EPR>
+        <Impl></Impl>
+        <Version>0.1</Version>
+        <URI>http://localhost:60000/isis</URI>
+        <AuthzInfo>
+        </AuthzInfo>
+        <SSPair>
+            <Name>a</Name>
+            <Value>b</Value>
+        </SSPair>
+    </SrcAdv>
+    <MetaSrcAdv>
+        <Expiration></Expiration>
+        <GenTime></GenTime>
+        <Source>
+        </Source>
+        <Status>NEW</Status>
+    </MetaSrcAdv>
+</RegEntry>
+</Register>

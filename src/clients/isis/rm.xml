@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RemoveRegistrations
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
+>
+<ID>foo</ID>
+</RemoveRegistrations>
