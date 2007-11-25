@@ -8,31 +8,34 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/ws-addressing/WSA.h>
 
-#include "centralii.h"
+#include "centralisi.h"
 
-namespace CentralII {
+namespace CentralISI {
 
 static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext *) { 
-    return new CentralIIService(cfg);
+    return new CentralISIService(cfg);
 }
 
-CentralIIService::CentralIIService(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "CentralII")
+CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "CentralISI")
 {
     // Define supported namespaces
-    ns["iis"]="http://www.nordugrid.org/schemas/iis/2007/06";
+    ns["isis"]="http://www.nordugrid.org/schemas/isis/2007/06";
     ns["wsa"]="http://www.w3.org/2005/08/addressing";
     ns["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
     ns["wsrf-rp"]="http://docs.oasis-open.org/wsrf/rp-2";
     ns["wsrf-rpw"]="http://docs.oasis-open.org/wsrf/rpw-2";
     ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+    
+    logger.msg(Arc::DEBUG, "Central ISIS initialized");
 }
 
-CentralIIService::~CentralIIService(void)
+CentralISIService::~CentralISIService(void)
 {
 }
 
-Arc::MCC_Status CentralIIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
+Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
 {
+    logger.msg(Arc::DEBUG, "process called");
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -49,29 +52,32 @@ Arc::MCC_Status CentralIIService::process(Arc::Message &inmsg, Arc::Message &out
       logger.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     }; 
-    logger.msg(Arc::DEBUG,"process: operation: %s", op.Name().c_str());
+    logger.msg(Arc::DEBUG, "process: operation: %s", op.Name().c_str());
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns);
     Arc::PayloadSOAP& res = *outpayload;
     Arc::MCC_Status ret = Arc::STATUS_OK;
     if(MatchXMLName(op, "Register")) {
-        res.NewChild("iis:RegisterResponse");
+        res.NewChild("isis:RegisterResponse");
         ret = Register(op, res);
     } else if(MatchXMLName(op, "RemoveRegistrations")) {
-        res.NewChild("iis:RemoveRegistrationsResponse");
+        res.NewChild("isis:RemoveRegistrationsResponse");
         ret = RemoveRegistrations(op, res);
     } else if(MatchXMLName(op, "GetRegistrationStatuses")) {
-        res.NewChild("iis:GetRegistrationStatusesResponse");
+        res.NewChild("isis:GetRegistrationStatusesResponse");
         ret = GetRegistrationStatuses(op, res);
     } else if(MatchXMLName(op, "GetIISList")) {
-        res.NewChild("iis:GetIISListResponse");
+        res.NewChild("isis:GetIISListResponse");
         ret = GetIISList(op, res);
+    } else if(MatchXMLName(op, "Get")) {
+        res.NewChild("isis:GetResponse");
+        ret = Get(op, res);
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegation.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete inpayload;
           return make_soap_fault(outmsg);
         }
     // WS-Property
-    } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+    } else if(MatchXMLNamespace(op, "http://docs.oasis-open.org/wsrf/rp-2")) {
         Arc::SOAPEnvelope* out_ = infodoc.Process(*inpayload);
         if(out_) {
           *outpayload=*out_;
@@ -89,7 +95,7 @@ Arc::MCC_Status CentralIIService::process(Arc::Message &inmsg, Arc::Message &out
     return Arc::MCC_Status(ret);
 }
 
-Arc::MCC_Status CentralIIService::make_soap_fault(Arc::Message& outmsg)
+Arc::MCC_Status CentralISIService::make_soap_fault(Arc::Message& outmsg)
 {
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns,true);
     Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
@@ -101,29 +107,37 @@ Arc::MCC_Status CentralIIService::make_soap_fault(Arc::Message& outmsg)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CentralIIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
+{
+    std::string str;
+    in.GetXML(str);
+    logger.msg(Arc::DEBUG, str.c_str());
+    return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status CentralISIService::RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status CentralIIService::RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::GetRegistrationStatuses(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status CentralIIService::GetRegistrationStatuses(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::GetIISList(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status CentralIIService::GetIISList(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::Get(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }
 
-}; // namespace CentralII
+}; // namespace CentralISI
 
 service_descriptors ARC_SERVICE_LOADER = {
-    { "centralii", 0, &CentralII::get_service },
+    { "centralisi", 0, &CentralISI::get_service },
     { NULL, 0, NULL }
 };

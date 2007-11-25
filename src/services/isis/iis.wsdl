@@ -6,12 +6,12 @@
   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
   xmlns:wsa="http://www.w3.org/2005/08/addressing"
-  xmlns:iis="http://www.nordugrid.org/schemas/iis/2007/06"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
   xmlns:wsrf-bf="http://docs.oasis-open.org/wsrf/bf-2"
   xmlns:wsrf-rp="http://docs.oasis-open.org/wsrf/rp-2"
   xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2"
   xmlns:wsrf-rw="http://docs.oasis-open.org/wsrf/rw-2"
-  targetNamespace="http://www.nordugrid.org/schemas/iis/2007/06"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
 >
 <!--
 Interface of Information Indexing Service
@@ -24,12 +24,12 @@ Interface of Information Indexing Service
     <!-- ======= Type definitions ====== -->
     <wsdl:types>
         <xsd:schema
-            xmlns:iis="http://www.nordugrid.org/schemas/iis/2007/06"
-            targetNamespace="http://www.nordugrid.org/schemas/iis/2007/06"
+            xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
+            targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
             attributeFormDefault="unqualified"
             elementFormDefault="qualified"
             >
-            <xsd:include schemaLocation="./iis.xsd"/>
+            <xsd:include schemaLocation="./isis.xsd"/>
         </xsd:schema>
     </wsdl:types>
 
@@ -37,62 +37,66 @@ Interface of Information Indexing Service
 
 <!-- ====== Register ====== -->
 <wsdl:message name="RegisterRequest">
-    <wsdl:part name="RegistrationMessage"  type="iis:RegistrationMessageType"/>
+    <wsdl:part name="RegistrationMessage"  type="isis:RegistrationMessageType"/>
 </wsdl:message>
 
 <wsdl:message name="RegisterResponse">
-    <wsdl:part name="RegisterResponse" type="iis:RegisterResponseType"/>
+    <wsdl:part name="RegisterResponse" type="isis:RegisterResponseType"/>
 </wsdl:message>
 
 <!-- ====== RemoveRegistrations ====== -->
 
 <wsdl:message name="RemoveRegistrationsRequest">
-    <wsdl:part name="RegistrationEntryID" type="iis:RegistrationEntryIDListType"/>
+    <wsdl:part name="RegistrationEntryID" type="isis:RegistrationEntryIDListType"/>
 </wsdl:message>
 
 <wsdl:message name="RemoveRegistrationsResponse">
-    <wsdl:part name="RemoveRegistrationsResponse" type="iis:RemoveRegistrationsResponseType"/>
+    <wsdl:part name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
 </wsdl:message>
 
 <!-- ====== GetRegistrationStatuses ====== -->
 <wsdl:message name="GetRegistrationStatusesRequest">
-    <wsdl:part name="RegistrationEntryID" type="iis:RegistrationEntryIDListType"/>
+    <wsdl:part name="RegistrationEntryID" type="isis:RegistrationEntryIDListType"/>
 </wsdl:message>
 
 <wsdl:message name="GetRegistrationStatusesResponse">
-    <wsdl:part name="GetRegistrationStatusesResponse" type="iis:GetRegistrationStatusesResponseType"/>
+    <wsdl:part name="GetRegistrationStatusesResponse" type="isis:GetRegistrationStatusesResponseType"/>
 </wsdl:message>
 
 <!-- ====== GetRegistrationStatuses ====== -->
 <wsdl:message name="GetIISListRequest"/>
 
 <wsdl:message name="GetIISListResponse">
-    <wsdl:part name="GetIISListResponse" type="iis:GetIISListResponseType"/>
+    <wsdl:part name="GetIISListResponse" type="isis:GetIISListResponseType"/>
 </wsdl:message>
 
 <!-- ====== PortType definitions ====== -->
 <wsdl:portType name="IISPortType">
     <wsdl:operation name="Register">
-        <wsdl:input name="RegisterRequest" message="iis:RegisterRequest"/>
-        <wsdl:output name="RegisterResponse" message="iis:RegisterResponse"/>
+        <wsdl:input name="RegisterRequest" message="isis:RegisterRequest"/>
+        <wsdl:output name="RegisterResponse" message="isis:RegisterResponse"/>
     </wsdl:operation>
     <wsdl:operation name="RemoveRegistrations">
-        <wsdl:input name="RemoveRegistrationsRequest" message="iis:RemoveRegistrationsRequest"/>
-        <wsdl:output name="RemoveRegistrationsResponse" message="iis:RemoveRegistrationsResponse"/>
+        <wsdl:input name="RemoveRegistrationsRequest" message="isis:RemoveRegistrationsRequest"/>
+        <wsdl:output name="RemoveRegistrationsResponse" message="isis:RemoveRegistrationsResponse"/>
     </wsdl:operation>
     <wsdl:operation name="GetRegistrationStatuses">
-        <wsdl:input name="GetRegistrationStatusesRequest" message="iis:GetRegistrationStatusesRequest"/>
-        <wsdl:output name="GetRegistrationStatusesResponse" message="iis:GetRegistrationStatusesResponse"/>
+        <wsdl:input name="GetRegistrationStatusesRequest" message="isis:GetRegistrationStatusesRequest"/>
+        <wsdl:output name="GetRegistrationStatusesResponse" message="isis:GetRegistrationStatusesResponse"/>
     </wsdl:operation>
         <wsdl:operation name="GetIISList">
-        <wsdl:input name="GetIISListRequest" message="iis:GetIISListRequest"/>
-        <wsdl:output name="GetIISListResponse" message="iis:GetIISListResponse"/>
+        <wsdl:input name="GetIISListRequest" message="isis:GetIISListRequest"/>
+        <wsdl:output name="GetIISListResponse" message="isis:GetIISListResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="Get">
+        <wsdl:input name="GetRequest" message="isis:GetRequest"/>
+        <wsdl:output name="GetResponse" message="isis:GetResponse"/>
     </wsdl:operation>
 </wsdl:portType>
 
 <!-- ====== Bindings ====== -->
 
-<wsdl:binding name="iis" type="iis:IISPortType">
+<wsdl:binding name="isis" type="isis:IISPortType">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="Register">
         <soap:operation soapAction="Register"/>
@@ -205,17 +209,17 @@ Interface of Information Indexing Service
 </wsdl:binding>
 
 <!-- ====== Service definition ====== -->
-<wsdl:service name="iis">
-    <wsdl:port name="GetResourcePropertyDocument" binding="iis:GetResourcePropertyDocument">
+<wsdl:service name="isis">
+    <wsdl:port name="GetResourcePropertyDocument" binding="isis:GetResourcePropertyDocument">
     	<soap:address location="mailto:test@test.com"/>
     </wsdl:port>
-    <wsdl:port name="GetResourceProperty" binding="iis:GetResourceProperty">
+    <wsdl:port name="GetResourceProperty" binding="isis:GetResourceProperty">
     	<soap:address location="mailto:test@test.com"/>
     </wsdl:port>
-    <wsdl:port name="QueryResourceProperties" binding="iis:QueryResourceProperties">
+    <wsdl:port name="QueryResourceProperties" binding="isis:QueryResourceProperties">
     	<soap:address location="mailto:test@test.com"/>
     </wsdl:port>
-    <wsdl:port name="iis" binding="iis:iis">
+    <wsdl:port name="isis" binding="isis:isis">
     	<soap:address location="mailto:test@test.com"/>
     </wsdl:port>
 </wsdl:service>
