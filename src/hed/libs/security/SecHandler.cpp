@@ -9,6 +9,6 @@
 
 namespace ArcSec{
   
-  Arc::Logger SecHandler::logger(Security::logger, "SecHandler");
+  Arc::Logger SecHandler::logger(Arc::Logger::rootLogger, "SecHandler");
 
 }

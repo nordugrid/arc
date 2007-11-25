@@ -9,6 +9,6 @@
 
 namespace ArcSec{
   
-  Arc::Logger PDP::logger(Security::logger, "PDP");
+  Arc::Logger PDP::logger(Arc::Logger::rootLogger, "PDP");
 
 }
