@@ -498,11 +498,12 @@ AC_CONFIG_FILES([Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
-                 src/services/iis/Makefile
+                 src/services/isis/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/data/Makefile
                  src/clients/echo/Makefile
+                 src/clients/isis/Makefile
                  src/clients/wsrf/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
