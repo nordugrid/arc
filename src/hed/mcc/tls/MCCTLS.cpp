@@ -89,21 +89,22 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
-        if(sctx->param) {
-          // Not sure of there is need for recursive X509_verify_cert() here.
-          // It looks like openssl runs tests sequentially for whole chain.
-          // But not sure if behavior is same in all versions.
+        // Not sure of there is need for recursive X509_verify_cert() here.
+        // It looks like openssl runs tests sequentially for whole chain.
+        // But not sure if behavior is same in all versions.
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
+        if(sctx->param) {
           X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
           ok=X509_verify_cert(sctx);
           X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-#else
-          sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
-          ok=X509_verify_cert(sctx);
-          sctx->flags |= X509_V_FLAG_CRL_CHECK;
-#endif
           if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
         };
+#else
+        sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
+        ok=X509_verify_cert(sctx);
+        sctx->flags |= X509_V_FLAG_CRL_CHECK;
+        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+#endif
       }; break;
     };
   };
@@ -377,12 +378,12 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       }
       */
    }
+#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {
      logger.msg(ERROR,"Can't set OpenSSL verify flags");
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    } else {
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
 #ifdef HAVE_OPENSSL_PROXY
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
 #else
@@ -524,12 +525,12 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
         }
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
+#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {
      logger.msg(ERROR,"Can't set OpenSSL verify flags");
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    } else {
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
 #ifdef HAVE_OPENSSL_PROXY
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
 #else
