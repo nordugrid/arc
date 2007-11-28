@@ -59,4 +59,3 @@ void free_args(char** args);
 char** string_to_args(const std::string& command);
 
 #endif // GRID_MANAGER_RUN_PLUGIN_H
-

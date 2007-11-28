@@ -7,14 +7,17 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <pthread.h>
+
+#include <arc/Run.h>
+
 #include "../conf/environment.h"
 #include "../conf/conf.h"
 //@ #include "../misc/substitute.h"
 //@ #include "../misc/log_time.h"
-#include "run.h"
+//# #include "run.h"
 #include "run_plugin.h"
 
-extern char** environ;
+//# extern char** environ;
 
 void free_args(char** args) {
   if(args == NULL) return;
@@ -98,9 +101,20 @@ bool RunPlugin::run(void) {
               i!=args_.end();++i,++n) args[n]=(char*)(i->c_str());
   args[n]=NULL;
   if(lib.length() == 0) {
-    int to = timeout_;
-    if(!Run::plain_run_piped(args,
-                        &stdin_,&stdout_,&stderr_,to,&result_)) {
+    bool r = false;
+    Arc::Run re(args_);
+    re.AssignStdin(stdin_);
+    re.AssignStdout(stdout_);
+    re.AssignStderr(stderr_);
+    if(re.Start()) {
+      if(re.Wait(timeout_)) {
+        result_=re.Result();
+        r=true;
+      } else {
+        re.Kill(0);
+      };
+    };
+    if(!r) {
       free(args);
       return false;
     };
@@ -152,9 +166,20 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
               i!=args__.end();++i,++n) args[n]=(char*)(i->c_str());
   args[n]=NULL;
   if(lib.length() == 0) {
-    int to = timeout_;
-    if(!Run::plain_run_piped(args,
-                          &stdin_,&stdout_,&stderr_,to,&result_)) {
+    bool r = false;
+    Arc::Run re(args_);
+    re.AssignStdin(stdin_);
+    re.AssignStdout(stdout_);
+    re.AssignStderr(stderr_);
+    if(re.Start()) {
+      if(re.Wait(timeout_)) {
+        result_=re.Result();
+        r=true;
+      } else {
+        re.Kill(0);
+      };
+    };
+    if(!r) {
       free(args);
       return false;
     };
