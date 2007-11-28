@@ -91,6 +91,9 @@ namespace Arc {
       @throw An AREXClientError object if an error occurs.
      */
     void kill(const std::string& jobid) throw(AREXClientError);
+    
+    //! Get service status
+    std::string AREXClient::sstat(void) throw(AREXClientError);
 
   private:
 
