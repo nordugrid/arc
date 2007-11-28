@@ -77,7 +77,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     };
     // Make response
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
-    state.NewAttribute("bes-factory:ActivityStateEnumeration")=bes_state;
+    state.NewAttribute("bes-factory:state")=bes_state;
     state.NewChild("a-rex:state")=arex_state;
   };
   {
