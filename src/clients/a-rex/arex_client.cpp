@@ -163,8 +163,7 @@ namespace Arc {
     Arc::XMLNode st, fs;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"].New(st);
-    state = (std::string)st.Attribute
-      ("bes-factory:ActivityStateEnumeration");
+    state = (std::string)st.Attribute("state");
     Arc::XMLNode sst;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"]["state"].New(sst);
