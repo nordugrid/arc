@@ -168,6 +168,7 @@ exit 0
 %{_bindir}/apsub
 %{_bindir}/apstat
 %{_bindir}/apkill
+%{_bindir}/apsstat
 %{_bindir}/apecho
 %{_bindir}/apinfo
 %{_bindir}/arccp
