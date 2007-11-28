@@ -178,6 +178,60 @@ namespace Arc {
     else
       return state+"/"+substate;
   }
+  
+  std::string AREXClient::sstat(void)
+    throw(AREXClientError)
+  {
+    std::string state, faultstring;
+    logger.msg(Arc::INFO, "Creating and sending a service status request.");
+    
+    Arc::PayloadSOAP req(arex_ns);
+    Arc::XMLNode jobref =
+      req.NewChild("bes-factory:GetFactoryAttributesDocument");
+    
+    // Send status request
+    Arc::Message reqmsg;
+    Arc::Message repmsg;
+    Arc::MessageAttributes attributes_req;
+    Arc::MessageAttributes attributes_rep;
+    Arc::MessageContext context;
+    reqmsg.Payload(&req);
+    reqmsg.Attributes(&attributes_req);
+    reqmsg.Context(&context);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
+
+    
+    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+    if(!status) {
+      logger.msg(Arc::ERROR, "A service status request failed.");
+      throw AREXClientError("The service status request failed.");
+    }
+    logger.msg(Arc::INFO, "A service status request succeed.");
+    if(repmsg.Payload() == NULL) {
+      logger.msg(Arc::ERROR, "There were no response to a service status request.");
+      throw AREXClientError("There were no response.");
+    }
+    Arc::PayloadSOAP* resp = NULL;
+    try {
+      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+    } catch(std::exception&) { };
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR,
+		 "The response of a servicee status request was not a SOAP message.");
+      delete repmsg.Payload();
+      throw AREXClientError("The response is not a SOAP message.");
+    }
+    Arc::XMLNode st;
+    (*resp)["GetFactoryAttributesDocumentResponse"]
+           ["FactoryResourceAttributesDocument"].New(st);
+    st.GetDoc(state);
+    delete repmsg.Payload();
+    if (state=="")
+      throw AREXClientError("The service status could not be retrieved.");
+    else
+      return state;
+  }
 
   void AREXClient::kill(const std::string& jobid)
     throw(AREXClientError)
