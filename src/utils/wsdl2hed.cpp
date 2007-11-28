@@ -146,8 +146,8 @@ static void cpp_public_part(std::string &name, std::ofstream &cpp, Arc::XMLNode 
         std::string n = (std::string) op.Attribute("name");
         std::string msg = (std::string) op["output"].Attribute("message");
         cpp << "if(MatchXMLName(op, \"" << n << "\")) {" << std::endl;
-        cpp << "        res.NewChild(\"" << msg << "\");" << std::endl;
-        cpp << "        ret = " << n << "(op, res);" << std::endl;
+        cpp << "        Arc::XMLNode r = res.NewChild(\"" << msg << "\");" << std::endl;
+        cpp << "        ret = " << n << "(op, r);" << std::endl;
         cpp << "    } else ";
     }
     cpp << "if(MatchXMLName(op, \"DelegateCredentialsInit\")) {\n\
