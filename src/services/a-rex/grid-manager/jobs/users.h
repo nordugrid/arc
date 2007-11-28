@@ -5,8 +5,9 @@
 #include <string>
 #include <list>
 
+#include <arc/Run.h>
+
 class JobsList;
-class RunElement;
 class RunPlugin;
 
 class JobUser;
@@ -19,7 +20,7 @@ class JobUserHelper {
   /* command beeing run */
   std::string command;
   /* object representing running process */
-  RunElement *proc;
+  Arc::Run *proc;
  public:
   JobUserHelper(const std::string &cmd);
   ~JobUserHelper(void);

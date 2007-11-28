@@ -355,8 +355,7 @@ JobUserHelper::JobUserHelper(const std::string &cmd) {
 JobUserHelper::~JobUserHelper(void) {
 #ifndef NO_GLOBUS_CODE
     if(proc != NULL) {
-      if(proc->get_exit_code() == -1) proc->kill();
-      RunParallel::release(proc);
+      delete proc;
       proc=NULL;
     };
 #endif
@@ -365,10 +364,10 @@ JobUserHelper::~JobUserHelper(void) {
 #ifndef NO_GLOBUS_CODE
 bool JobUserHelper::run(JobUser &user) {
     if(proc != NULL) {
-      if(proc->get_exit_code() == -1) {
+      if(proc->Running()) {
         return true; /* it is already/still running */
       };
-      RunParallel::release(proc);
+      delete proc;
       proc=NULL;
     };
     /* start/restart */
@@ -383,8 +382,8 @@ bool JobUserHelper::run(JobUser &user) {
       args[n]=strdup(arg_s.c_str());
     };
     args[n]=NULL;
-    //logger.msg(Arc::ERROR,"Starting helper process (%s): %s",
-    //           user.UnixName().c_str(),command.c_str());
+    logger.msg(Arc::ERROR,"Starting helper process (%s): %s",
+               user.UnixName().c_str(),command.c_str());
     std::string helper_id="helper."+user.UnixName();
     bool started=RunParallel::run(user,helper_id.c_str(),args,&proc);
     for(n=0;n<99;n++) {
@@ -392,6 +391,8 @@ bool JobUserHelper::run(JobUser &user) {
       free(args[n]);
     };
     if(started) return true;
+    if(proc && (*proc)) return true;
+    if(proc) { delete proc; proc=NULL; };
     logger.msg(Arc::ERROR,"Helper process start failed (%s): %s",
                user.UnixName().c_str(),command.c_str());
     /* start failed */
@@ -399,3 +400,4 @@ bool JobUserHelper::run(JobUser &user) {
     return false;
 }
 #endif
+

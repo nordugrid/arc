@@ -193,11 +193,11 @@ int main(int argc,char* argv[]) {
 
   // Prepare signal handler(s). Must be done after fork/daemon and preferably
   // before any new thread is started. 
-  RunParallel run(&sleep_cond);
-  if(!run.is_initialized()) {
-    logger.msg(Arc::ERROR,"Error - initialization of signal environment failed");
-    goto exit;
-  };
+  //# RunParallel run(&sleep_cond);
+  //# if(!run.is_initialized()) {
+  //#   logger.msg(Arc::ERROR,"Error - initialization of signal environment failed");
+  //#   goto exit;
+  //# };
 
   // I hope nothing till now used Globus
 
@@ -213,7 +213,7 @@ int main(int argc,char* argv[]) {
 #endif
 
   // It looks like Globus screws signal setup somehow
-  run.reinit(false);
+  //# run.reinit(false);
 
   /* start timer thread - wake up every 2 minutes */
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_interface) != 0) {
@@ -287,15 +287,15 @@ int main(int argc,char* argv[]) {
     pthread_mutex_lock(&sleep_mutex);
     pthread_cond_wait(&sleep_cond,&sleep_mutex);
     pthread_mutex_unlock(&sleep_mutex);
-    if(run.was_hup()) {
-      logger.msg(Arc::INFO,"SIGHUP detected");
-//      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
-//        std::cout<<"Error processing configuration."<<std::endl; goto exit;
-//      };
-    }
-    else {
+//#    if(run.was_hup()) {
+//#      logger.msg(Arc::INFO,"SIGHUP detected");
+//#//      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
+//#//        std::cout<<"Error processing configuration."<<std::endl; goto exit;
+//#//      };
+//#    }
+//#    else {
       logger.msg(Arc::VERBOSE,"Timer kicking");
-    };
+//#    };
   };
 exit:
 #ifdef HAVE_GLOBUS_RSL

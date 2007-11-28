@@ -34,7 +34,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
   };
 //  job_local_read_notify(desc.get_id(),user,notify);
   if(notify.length() == 0) return true; /* save some time */
-  RunElement* child = NULL;
+  Arc::Run* child = NULL;
   std::string failure_reason=desc.GetFailure();
   if(job_failed_mark_check(desc.get_id(),user)) {
     if(failure_reason.length() == 0) failure_reason="<unknown>";
@@ -89,6 +89,6 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     logger.msg(Arc::ERROR,"Failed running mailer.");
     return false;
   };
-  RunParallel::release(child);
+  delete child;
   return true;
 }

@@ -303,7 +303,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
   }
   else {
     /* child was run - check exit code */
-    if(i->child->get_exit_code() == -1) { 
+    if(i->child->Running()) {
       /* child is running - come later */
       return true;
     };
@@ -313,18 +313,18 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       logger.msg(Arc::INFO,"%s: state CANCELING: child exited",i->job_id.c_str());
     };
     if(cancel) job_diagnostics_mark_move(*i,*user);
-    if(i->child->get_exit_code() != 0) { 
+    if(i->child->Result() != 0) { 
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed.",i->job_id.c_str());
         JobFailStateRemember(i,JOB_STATE_SUBMITING);
       } else {
         logger.msg(Arc::ERROR,"%s: Failed to cancel running job.",i->job_id.c_str());
       };
-      RunParallel::release(i->child); i->child=NULL;
+      delete i->child; i->child=NULL;
       if(!cancel) i->AddFailure("Job submission to LRMS failed");
       return false;
     };
-    RunParallel::release(i->child); i->child=NULL;
+    delete i->child; i->child=NULL;
     if(!cancel) {
       /* success code - get LRMS job id */
       std::string local_id=read_grami(i->job_id,*user);
@@ -473,16 +473,16 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       return false;
     };
   } else {
-    if(i->child->get_pid() != -1) {
+    if(i->child->Running()) {
       logger.msg(Arc::INFO,"%s: State: PREPARING/FINISHING: child is running",i->job_id.c_str());
       /* child is running - come later */
       return true;
     };
     /* child was run - check exit code */
-    if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id.c_str(),i->child->get_exit_code()); }
-    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: ",i->job_id.c_str(),i->child->get_exit_code()); };
-    if(i->child->get_exit_code() != 0) { 
-      if(i->child->get_exit_code() == 1) { 
+    if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id.c_str(),i->child->Result()); }
+    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: ",i->job_id.c_str(),i->child->Result()); };
+    if(i->child->Result() != 0) { 
+      if(i->child->Result() == 1) { 
         /* unrecoverable failure detected - all we can do is to kill the job */
         if(up) {
           logger.msg(Arc::ERROR,"%s: State: FINISHING unrecoverable error detected (exit code 1)",i->job_id.c_str());
@@ -491,7 +491,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id.c_str());
           i->AddFailure("Failed in files download (pre-processing)");
         };
-      } else if(i->child->get_exit_code() == 3) {
+      } else if(i->child->Result() == 3) {
         /* in case of expired credentials there is a chance to get them 
            from credentials server - so far myproxy only */
 #ifdef HAVE_MYPROXY_H
@@ -526,14 +526,14 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
         };
       } else {
         if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->get_exit_code());
+          logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->Result());
           i->AddFailure("Failed in files upload (post-processing)");
         } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->get_exit_code());
+          logger.msg(Arc::ERROR,"%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->Result());
           i->AddFailure("Failed in files download (pre-processing)");
         };
       };
-      RunParallel::release(i->child); i->child=NULL;
+      delete i->child; i->child=NULL;
       if(up) {
         JobFailStateRemember(i,JOB_STATE_FINISHING);
       } else {
@@ -543,7 +543,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
     /* success code - move to next state */
     state_changed=true;
-    RunParallel::release(i->child); i->child=NULL;
+    delete i->child; i->child=NULL;
   };
   return true;
 }
@@ -1033,9 +1033,8 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id.c_str(),user->UnixName().c_str());
         /* kill running child */
         if(i->child) { 
-          i->child->kill();
-          RunParallel::release(i->child);
-          i->child=NULL;
+          i->child->Kill(0);
+          delete i->child; i->child=NULL;
         };
         /* put some explanation */
         i->AddFailure("User requested to cancel the job");

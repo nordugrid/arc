@@ -16,7 +16,7 @@ class JobLog {
  private:
   std::string filename;
   std::list<std::string> urls;
-  RunElement *proc;
+  Arc::Run *proc;
   time_t last_run;
   time_t ex_period;
   bool open_stream(std::ofstream &o);

@@ -4,10 +4,11 @@
 #include <sys/types.h>
 #include <string>
 
+#include <arc/Run.h>
+
 class JobsList;
 class JobLocalDescription;
 class JobUser;
-class RunElement;
 
 typedef enum {
   JOB_STATE_ACCEPTED  = 0,
@@ -94,7 +95,7 @@ class JobDescription {
  public:
   /* external utility beeing run to perform tasks like stage-in/our, 
      submit/cancel. (todo - move to private) */
-  RunElement* child;
+  Arc::Run* child;
   /* 
     Constructors and destructor.
     Accepts:

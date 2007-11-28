@@ -20,7 +20,6 @@ class JobUser;
 class JobLocalDescription;
 class ContinuationPlugins;
 class RunPlugin;
-// class RunElement;
 
 /*
 typedef struct {

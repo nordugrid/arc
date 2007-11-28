@@ -185,8 +185,8 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
 bool JobLog::RunReporter(JobUsers &users) {
   //if(!is_reporting()) return true;
   if(proc != NULL) {
-    if(proc->get_exit_code() == -1) return true; /* running */
-    RunParallel::release(proc);
+    if(proc->Running()) return true; /* running */
+    delete proc;
     proc=NULL;
   };
   if(time(NULL) < (last_run+3600)) return true; // once per hour
@@ -245,8 +245,8 @@ bool JobLog::make_file(JobDescription &job,JobUser &user) {
 JobLog::~JobLog(void) {
 #ifndef NO_GLOBUS_CODE
   if(proc != NULL) {
-    if(proc->get_exit_code() == -1) proc->kill();
-    RunParallel::release(proc);
+    if(proc->Running()) proc->Kill(0);
+    delete proc;
     proc=NULL;
   };
 #endif // NO_GLOBUS_CODE
