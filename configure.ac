@@ -426,7 +426,6 @@ AC_SUBST(LIBRESOLV)
 
 EXTRA_LIBS=""
 REGEX_LIBS=""
-EXTRA_LDFLAGS=""
 SOCKET_LIBS=""
 
 case "${host}" in
@@ -434,13 +433,16 @@ case "${host}" in
     REGEX_LIBS="-lgnurx"
     SOCKET_LIBS="-lws2_32"
     EXTRA_LIBS="-lole32" 
-    EXTRA_LDFLAGS="-no-undefined"
   ;;
 esac
 AC_SUBST(EXTRA_LIBS)
 AC_SUBST(REGEX_LIBS)
-AC_SUBST(EXTRA_LDFLAGS)
 AC_SUBST(SOCKET_LIBS)
+
+case " $LDFLAGS " in
+     " -no-undefined ") ;;
+     *) LDFLAGS="$LDFLAGS -no-undefined" ;;
+esac
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
