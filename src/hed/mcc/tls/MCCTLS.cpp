@@ -389,8 +389,8 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
 #else
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
 #endif
-#endif
    };
+#endif
    store_MCC_TLS(sslctx_,this);
    if(tls_dhe1024 == NULL) { // TODO: Is it needed?
    	tls_set_dhe1024(logger);
@@ -536,8 +536,8 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
 #else
      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
 #endif
-#endif
    };
+#endif
    store_MCC_TLS(sslctx_,this);
   /**Get DN from certificate, and put it into message's attribute */
 }
