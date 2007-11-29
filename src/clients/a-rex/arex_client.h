@@ -93,7 +93,7 @@ namespace Arc {
     void kill(const std::string& jobid) throw(AREXClientError);
     
     //! Get service status
-    std::string AREXClient::sstat(void) throw(AREXClientError);
+    std::string sstat(void) throw(AREXClientError);
 
   private:
 
