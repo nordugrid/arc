@@ -65,7 +65,7 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
 }
 
 service_descriptors ARC_SERVICE_LOADER = {
-    { "arcservice_pythonwrapper", 0, &get_service },
+    { "pythonservice", 0, &get_service },
     { NULL, 0, NULL }
 };
 
