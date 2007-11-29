@@ -184,7 +184,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libhttpd.so
-%{_libdir}/%{pkgdir}/libcentralii.so
+%{_libdir}/%{pkgdir}/libcentralisi.so
 
 %files arex
 %{_libdir}/%{pkgdir}/libarex.so
