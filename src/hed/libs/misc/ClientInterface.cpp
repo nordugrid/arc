@@ -104,6 +104,49 @@ namespace Arc {
 
   ClientTCP::~ClientTCP() {}
 
+  MCC_Status ClientTCP::process(PayloadRawInterface *request,
+                       PayloadStreamInterface **response, bool tls) {
+    *response = NULL;
+    if(!loader) {
+      loader = new Loader(&xmlcfg);
+      if(tls)
+        tls_entry = (*loader)["tls"];
+      else
+        tcp_entry = (*loader)["tcp"];
+
+      if((!tls_entry)&&(!tcp_entry)) {
+        delete loader;
+        loader = NULL;
+      }
+    }
+    if((!tls_entry)&&(!tcp_entry))
+      return MCC_Status();
+    Arc::MessageAttributes attributes_req;
+    Arc::MessageAttributes attributes_rep;
+    Arc::Message reqmsg;
+    Arc::Message repmsg;
+    reqmsg.Attributes(&attributes_req);
+    reqmsg.Context(&context);
+    reqmsg.Payload(request);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
+
+    MCC_Status r;
+    if(tls)
+      r = tls_entry->process(reqmsg,repmsg);
+    else
+      r = tcp_entry->process(reqmsg,repmsg);
+
+    if(repmsg.Payload() != NULL)
+      try {
+        *response = dynamic_cast<Arc::PayloadStreamInterface*>(repmsg.Payload());
+      }
+      catch(std::exception&) {
+        delete repmsg.Payload();
+      }
+    return r;
+  }
+
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const std::string& host,
 			 int port, bool tls,
 			 const std::string& path) : ClientTCP(cfg, host,
