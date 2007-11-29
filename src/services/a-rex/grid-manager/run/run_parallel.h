@@ -1,15 +1,11 @@
 #ifndef GRID_MANAGER_RUN_PARALLEL_H
 #define GRID_MANAGER_RUN_PARALLEL_H
 
-#include "../jobs/users.h"
-#include "../jobs/states.h"
-
 #include <arc/Run.h>
 
 #include "../jobs/users.h"
+#include "../jobs/states.h"
 #include "run_plugin.h"
-
-//# extern char** environ;
 
 class RunParallel {
  private:
