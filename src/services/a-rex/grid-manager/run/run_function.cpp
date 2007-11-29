@@ -9,7 +9,7 @@
 #include "run_function.h"
 
 
-Arc::Logger& logger = Arc::Logger::getRootLogger();
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 
 int RunFunction::run(const JobUser& user,const char* cmdname,int (*func)(void*),void* arg,int timeout) {

@@ -19,7 +19,7 @@ typedef struct {
   const char* reason;
 } job_subst_t;
 
-Arc::Logger& logger = Arc::Logger::getRootLogger();
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static void job_subst(std::string& str,void* arg) {
   job_subst_t* subs = (job_subst_t*)arg;
