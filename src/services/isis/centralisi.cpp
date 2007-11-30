@@ -11,6 +11,7 @@
 #include <glibmm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <fstream>
 
 #include "centralisi.h"
