@@ -8,6 +8,7 @@
 #include <fstream>
 #include <glibmm.h>
 #include <algorithm>
+#include <unistd.h>
 
 Arc::NS ns;
 
@@ -243,6 +244,7 @@ int main(int argc, char **argv)
 {
     if (argc < 3) {
         std::cerr << "Invalid arguments" << std::endl;        
+        return -1;
     }
     ns["wsdl"] = "http://schemas.xmlsoap.org/wsdl/";
     std::string xml_str = Glib::file_get_contents(argv[1]);
