@@ -62,12 +62,8 @@ JobRequestJSDL::~JobRequestJSDL(void) {
 bool JobRequestJSDL::set(std::istream& s) throw(JobRequestError) {
 
   jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
   jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
   jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
 
   std::string xml_document;
   std::string xml_line;
