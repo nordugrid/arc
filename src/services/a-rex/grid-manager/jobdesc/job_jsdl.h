@@ -6,9 +6,9 @@
 #include <string>
 #include <iostream>
 
-#include "job.h"
+#include <arc/XMLNode.h>
 
-#include "../../../../hed/libs/common/XMLNode.h"
+#include "job.h"
 
 //struct soap;
 //class jsdl__JobDefinition_USCOREType;
