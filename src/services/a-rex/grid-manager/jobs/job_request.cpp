@@ -13,9 +13,7 @@
 #ifdef HAVE_GLOBUS_RSL
 #include "../jobdesc/rsl/parse_rsl.h"
 #endif
-#ifdef HAVE_GSOAP
 #include "../jobdesc/jsdl/jsdl_job.h"
-#endif
 
 #if defined __GNUC__ && __GNUC__ >= 3
 
@@ -67,10 +65,8 @@ static job_req_type_t detect_job_req_type(const char* fname) {
 #ifdef HAVE_GLOBUS_RSL
   static char rsl_pattern[] = "&(";
 #endif
-#ifdef HAVE_GSOAP
   // JSDL should start from <?xml. But better use just <
   static char jsdl_pattern[] = "<";
-#endif
   std::ifstream f(fname);
   if(!f.is_open()) return job_req_unknown;
   unsigned int l = 0;
@@ -87,9 +83,7 @@ static job_req_type_t detect_job_req_type(const char* fname) {
 #ifdef HAVE_GLOBUS_RSL
   if(strncasecmp(rsl_pattern,buf,sizeof(rsl_pattern)-1) == 0) return job_req_rsl;
 #endif
-#ifdef HAVE_GSOAP
   if(strncasecmp(jsdl_pattern,buf,sizeof(jsdl_pattern)-1) == 0) return job_req_jsdl;
-#endif
   return job_req_unknown;
 }
 
@@ -198,7 +192,6 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
       return parse_rsl(fname,job_desc,acl);
     }; break;
 #endif
-#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
@@ -206,7 +199,6 @@ bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::s
       if(!j) return false;
       return j.parse(job_desc,acl);
     }; break;
-#endif
     default: break;
   };
   return false;
@@ -221,7 +213,6 @@ bool preprocess_job_req(const std::string &fname,const std::string& session_dir,
       return preprocess_rsl(fname,session_dir,jobid);
     }; break;
 #endif
-#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       // JSDL does not support substitutions,
       // so here we just parse it for testing
@@ -231,7 +222,6 @@ bool preprocess_job_req(const std::string &fname,const std::string& session_dir,
       if(!j) return false;
       return true;
     }; break;
-#endif
     default: break;
   };
   // This is to avoid compiler warnings
@@ -262,7 +252,6 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       return set_execs(rsl_tree,session_dir);
     }; break;
 #endif
-#ifdef HAVE_GSOAP
     case job_req_jsdl: {
       std::ifstream f(fname.c_str());
       if(!f.is_open()) return false;
@@ -279,7 +268,6 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
 #endif
       return j.set_execs(session_dir);
     }; break;
-#endif
     default: break;
   };
   return false;
@@ -293,7 +281,6 @@ bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_
           return write_grami_rsl(desc,user,opt_add);
         }; break;
 #endif
-#ifdef HAVE_GSOAP
         case job_req_jsdl: {
             std::ifstream f(fname.c_str());
             if(!f.is_open()) return false;
@@ -301,7 +288,6 @@ bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_
             if(!j) return false;
             return j.write_grami(desc,user,opt_add);
         }; break;
-#endif
         default: break;
       };
   return false;
