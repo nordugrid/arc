@@ -47,33 +47,22 @@ static void strip_spaces(std::string& s) {
   s.resize(n+1);
 }
 
+static void set_namespaces(Arc::NS ns) {
+  ns["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
+  ns["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+  ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
+  ns["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+}
+
 //-- Constructors --//
 
 JSDLJob::JSDLJob(void) {
-  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  set_namespaces(jsdl_namespaces);
 }
 
 JSDLJob::JSDLJob(std::istream& f) {
 
-  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  set_namespaces(jsdl_namespaces);
 
   std::string xml_document;
   std::string xml_line;
@@ -87,29 +76,10 @@ JSDLJob::JSDLJob(std::istream& f) {
 
 JSDLJob::JSDLJob(const char* str) {
 
-  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  jsdl_namespaces["posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-  jsdl_namespaces["arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
-  jsdl_namespaces["hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdl-hpcpa"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
-  jsdl_namespaces["jsdlHPCPA"] = "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  set_namespaces(jsdl_namespaces);
 
   (Arc::XMLNode ( str )).New(jsdl_document);
 }
-
-//JSDLJob::JSDLJob(jsdl__JobDefinition_USCOREType* j) {
-//
-//  jsdl_namespaces["jsdl"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl";
-//  jsdl_namespaces["jsdl-posix"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-//  jsdl_namespaces["jsdlPOSIX"] = "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
-//  jsdl_namespaces["jsdlARC"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";  
-//
-//  jsdl_document = new XMLNode(jsdl_namespaces);
-//}
 
 //-- End of Constructors--//
 
