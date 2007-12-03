@@ -17,9 +17,7 @@
 #include "../conf/conf.h"
 //@ #include <arc/certificate.h>
 
-#ifdef HAVE_GSOAP
 #include <../jobdesc/job_jsdl.h>
-#endif
 
 #ifdef HAVE_GLOBUS_RSL
 #include <../jobdesc/job_xrsl.h>
@@ -139,12 +137,10 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   {
   fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
   JobRequest* job = NULL;
-#ifdef HAVE_GSOAP
   if(job == NULL) try {
     std::ifstream i_src(fname_src.c_str());
     job = new JobRequestJSDL(i_src); 
   } catch (std::exception e) { };
-#endif
 #ifdef HAVE_GLOBUS_RSL
   if(job == NULL) try {
       std::ifstream i_src(fname_src.c_str());
