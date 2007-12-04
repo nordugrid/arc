@@ -150,19 +150,19 @@ static int delete_links_recur(const std::string &dir_base,const std::string &dir
   return res;
 }
 
-int delete_all_links(const std::string &dir_base,std::list<FileData>&) {
+int delete_all_links(const std::string &dir_base,const std::list<FileData>&) {
   std::string dir_cur("");
   return delete_links_recur(dir_base,dir_cur);
 }
 
 /* filenames should start from / and not to have / at end */
-int delete_all_files(const std::string &dir_base,std::list<FileData> &files,
+int delete_all_files(const std::string &dir_base,const std::list<FileData> &files,
              bool excl,bool lfn_exs,bool lfn_mis) {
   int n = files.size();
   FL_p* fl_list = NULL;
   if(n != 0) { 
     if((fl_list=(FL_p*)malloc(sizeof(FL_p)*n)) == NULL) { return 2; };
-    std::list<FileData>::iterator file=files.begin();
+    std::list<FileData>::const_iterator file=files.begin();
 //    fl_list[0].s=file->pfn.c_str();
     int i;
     for(i=0;i<n;) {

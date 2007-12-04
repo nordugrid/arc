@@ -14,6 +14,7 @@
 #include "../jobdesc/rsl/parse_rsl.h"
 #endif
 #include "../jobdesc/jsdl/jsdl_job.h"
+#include "../run/run_function.h"
 
 #if defined __GNUC__ && __GNUC__ >= 3
 
@@ -231,6 +232,30 @@ bool preprocess_job_req(const std::string &fname,const std::string& session_dir,
   return false;
 }
 
+typedef struct {
+  globus_rsl_t* rsl_tree;
+  const std::string* session_dir;
+} set_execs_t;
+
+typedef struct {
+  JSDLJob* j;
+  const std::string* session_dir;
+} job_set_execs_t;
+
+static int set_execs_callback(void* arg) {
+  globus_rsl_t* rsl_tree = ((set_execs_t*)arg)->rsl_tree;
+  const std::string& session_dir = *(((set_execs_t*)arg)->session_dir);
+  if(set_execs(rsl_tree,session_dir)) return 0;
+  return -1;
+}
+
+static int job_set_execs_callback(void* arg) {
+  JSDLJob& j = *(((job_set_execs_t*)arg)->j);
+  const std::string& session_dir = *(((job_set_execs_t*)arg)->session_dir);
+  if(j.set_execs(session_dir)) return 0;
+  return -1;
+}
+
 /* parse job description and set specified file permissions to executable */
 bool set_execs(const JobDescription &desc,const JobUser &user,const std::string &session_dir) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
@@ -240,15 +265,11 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       globus_rsl_t *rsl_tree = NULL;
       rsl_tree=read_rsl(fname);
       if(rsl_tree == NULL) return false;
-#ifdef HAVE_POSIX_FORK
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
-        RunElement* re = RunCommands::fork(tmp_user,"set_execs");
-        if(re == NULL) return false;
-        if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs");
-        _exit(set_execs(rsl_tree,session_dir));
+        set_execs_t arg; arg.rsl_tree=rsl_tree; arg.session_dir=&session_dir;
+        return (RunFunction::run(tmp_user,"set_execs",&set_execs_callback,&arg,20) == 0);
       };
-#endif
       return set_execs(rsl_tree,session_dir);
     }; break;
 #endif
@@ -257,15 +278,11 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
       if(!f.is_open()) return false;
       JSDLJob j(f);
       if(!j) return false;
-#ifdef HAVE_POSIX_FORK
       if(user.StrictSession()) {
         JobUser tmp_user(user.get_uid()==0?desc.get_uid():user.get_uid());
-        RunElement* re = RunCommands::fork(tmp_user,"set_execs");
-        if(re == NULL) return false; 
-        if(re->get_pid() != 0) return RunCommands::wait(re,20,"set_execs"); 
-        _exit(j.set_execs(session_dir));
+        job_set_execs_t arg; arg.j=&j; arg.session_dir=&session_dir;
+        return (RunFunction::run(tmp_user,"set_execs",&job_set_execs_callback,&arg,20) == 0);
       };
-#endif
       return j.set_execs(session_dir);
     }; break;
     default: break;

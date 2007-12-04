@@ -48,6 +48,7 @@ void* wakeup_func(void* arg) {
   for(;;) {
     //sleep(timeout);
     timeout.wait();
+std::cerr<<"CommFIFO timeout"<<std::endl;
     pthread_mutex_lock(&(sleep_mutex));
     pthread_cond_signal(&sleep_cond);
     pthread_mutex_unlock(&(sleep_mutex));
@@ -190,6 +191,7 @@ int main(int argc,char* argv[]) {
     wakeup_interface.add(*i);
   };
   wakeup_interface.timeout(JobsList::WakeupPeriod());
+std::cerr<<"Setting wakeup period to "<<JobsList::WakeupPeriod()<<std::endl;
 
   // Prepare signal handler(s). Must be done after fork/daemon and preferably
   // before any new thread is started. 

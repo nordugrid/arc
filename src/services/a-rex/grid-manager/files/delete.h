@@ -18,11 +18,11 @@
       used. If only one is true, then only entries of 'files' with
       lfn information available/not available will be used.
 */
-int delete_all_files(const std::string &dir_base,std::list<FileData> &files,
+int delete_all_files(const std::string &dir_base,const std::list<FileData> &files,
                      bool excl,bool lfn_exs = true,bool lfn_mis = true);
 /*
   Delete all soft-links available in tree.
 */
-int delete_all_links(const std::string &dir_base,std::list<FileData> &files);
+int delete_all_links(const std::string &dir_base,const std::list<FileData> &files);
 
 #endif 

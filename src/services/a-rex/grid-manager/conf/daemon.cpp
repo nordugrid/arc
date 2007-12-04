@@ -264,7 +264,12 @@ int Daemon::daemon(bool close_fds) {
   if(pidfile_.length() != 0) hp=::open(pidfile_.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
   if((uid_ != (uid_t)(-1)) && (uid_ != 0)) setuid(uid_);
   if((gid_ != (gid_t)(-1)) && (gid_ != 0)) setgid(gid_);
-  if(debug_ != -1) logger_.setThreshold((Arc::LogLevel)round(::pow(2,Arc::FATAL-debug_)));
+  if(debug_ != -1) {
+    int d=debug_; 
+    int l=Arc::FATAL;
+    for(;d>0;--d) l>>=1;
+    logger_.setThreshold((Arc::LogLevel)l);
+  };
   if(!logfile_.empty()) {
     logger_.removeDestinations();
     logger_.addDestination(*(new Arc::LogStream(*(new std::ofstream(logfile_.c_str())))));
