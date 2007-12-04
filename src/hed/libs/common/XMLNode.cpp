@@ -78,17 +78,61 @@ bool MatchXMLNamespace(const XMLNode& node,const std::string& uri) {
   return MatchXMLNamespace(node.node_,uri.c_str());
 }
 
+static void ReplaceNamespace(xmlNsPtr ns,xmlNodePtr node,xmlNsPtr new_ns) {
+  if(node->type == XML_ELEMENT_NODE) {
+    if(node->ns == ns) node->ns == new_ns;
+  } else if(node->type == XML_ATTRIBUTE_NODE) {
+    if(((xmlAttrPtr)node)->ns == ns) ((xmlAttrPtr)node)->ns == new_ns;
+  } else {
+    return;
+  };
+  for(xmlNodePtr node_ = node->children;node_;node_=node_->next) {
+    ReplaceNamespace(ns,node_,new_ns);
+  };
+}
+
+static void ReassignNamespace(xmlNsPtr ns,xmlNodePtr node) {
+  xmlNsPtr ns_cur = node->nsDef;
+  xmlNsPtr ns_prev = NULL;
+  for(;ns_cur;) {
+    if(ns == ns_cur) { ns_prev=ns_cur; ns_cur=ns_cur->next; continue; };
+    if(ns->href && ns_cur->href && (xmlStrcmp(ns->href,ns_cur->href) == 0)) {
+      // Unlinking namespace from tree
+      ReplaceNamespace(ns_cur,node,ns);
+      if(ns_prev) { ns_prev->next=ns_cur->next; } else { node->nsDef=ns_cur; };
+      xmlNsPtr ns_tmp = ns_cur;
+      ns_cur=ns_cur->next;
+      xmlFreeNs(ns_tmp);
+      continue;
+    };
+    ns_prev=ns_cur; ns_cur=ns_cur->next;
+  };
+}
+
 static void SetNamespaces(const NS& namespaces,xmlNodePtr node_) {
-  // TODO: Check for duplicate prefixes
   for(Arc::NS::const_iterator ns = namespaces.begin();
          ns!=namespaces.end();++ns) {
+    // First check maybe this namespace is already defined
     xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc,node_,(const xmlChar*)(ns->second.c_str()));
     if(ns_) {
-      xmlFree((void*)(ns_->prefix));
-      ns_->prefix=(xmlChar*)xmlMemStrdup(ns->first.c_str());
-    } else {
-      xmlNewNs(node_,(const xmlChar*)(ns->second.c_str()),(const xmlChar*)(ns->first.c_str()));
+      if(ns->first == (char*)(ns_->prefix)) { 
+        // Same namespace with same prefix - doing nothing
+      } else {
+        // TODO: optional change of prefix
+        ns_=NULL;
+      };
     };
+    if(!ns_) {
+      // New namespace needed
+      ns_=xmlNewNs(node_,(const xmlChar*)(ns->second.c_str()),(const xmlChar*)(ns->first.c_str()));
+      if(ns_ == NULL) {
+        // There is already namespace with same prefix (or some other error)
+        // TODO: optional change of prefix
+        return;
+      };
+    };
+    // Go through all children removing same namespaces and reassigning elements to this one.
+    ReassignNamespace(ns_,node_);
   };
 }
 
