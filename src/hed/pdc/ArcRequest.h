@@ -9,21 +9,24 @@
 
 #include "ArcEvaluator.h"
 
-/** ArcRequest, Parsing the specified Arc request format*/
+///ArcRequest, Parsing the specified Arc request format
 
 namespace ArcSec {
-
-//typedef std::list<RequestItem*> ReqItemList;
 
 class ArcRequest : public Request {
 friend class ArcEvaluator;
 
 public:
+  //**Get all the RequestItem inside RequestItem container */
   virtual ReqItemList getRequestItems () const;
-  virtual void setRequestItems (ReqItemList sl);
   
+  //**Set the content of the container*/  
+  virtual void setRequestItems (ReqItemList sl);
+
+  //**Add request tuple from non-XMLNode*/  
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx);
 
+  //**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
 
   //**Default constructor*/
@@ -31,8 +34,10 @@ public:
 
   //**Parse request information from a xml stucture in memory*/
   ArcRequest (const Arc::XMLNode* node);
+
   virtual ~ArcRequest();
 
+  //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request();
 
 protected:
@@ -40,7 +45,10 @@ protected:
   ArcRequest (const char* filename);
 
 private:
+  //**AttributeFactory which is in charge of producing Attribute*/
   AttributeFactory * attrfactory;
+
+  //**A XMLNode structure which includes the xml structure of a request*/
   Arc::XMLNode reqnode;
 
 };

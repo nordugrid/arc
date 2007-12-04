@@ -9,7 +9,6 @@
 #include "ArcRequestItem.h"
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
-
 static Arc::LoadableClass* get_request(void** arg) {
     //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
     if(arg==NULL) return new ArcSec::ArcRequest();
@@ -41,6 +40,7 @@ void ArcRequest::setRequestItems (ReqItemList sl){
 }
 
 void ArcRequest::addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx){
+  //Add a new RequestItem into reqnode 
   XMLNode request = reqnode;
   XMLNode requestitem = request.NewChild("ra:RequestItem");
 
@@ -123,16 +123,14 @@ void ArcRequest::make_request(){
   Arc::NS nsList;
 
   nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/ws/schemas/request-arc"));
-//  std::list<XMLNode> reqlist = node.XPathLookup("//request:Request", nsList);
 
   std::list<XMLNode>::iterator itemit;
-//  if(!(reqlist.empty())){
     std::list<XMLNode> itemlist = reqnode.XPathLookup("//request:RequestItem", nsList);
     for ( itemit=itemlist.begin() ; itemit != itemlist.end(); itemit++ ){
       XMLNode itemnd=*itemit;
+      //Generate a new ArcRequestItem, which will generate RequestAttribute object 
       rlist.push_back(new ArcRequestItem(itemnd, attrfactory));
     }
-//  }
 }
 
 ArcRequest::ArcRequest(const char* filename) : Request(filename) {
@@ -140,7 +138,6 @@ ArcRequest::ArcRequest(const char* filename) : Request(filename) {
   std::string xml_str = "";
   std::ifstream f(filename);
 
-  //std::cout<<filename<<std::endl;
   while (f >> str) {
     xml_str.append(str);
     xml_str.append(" ");
