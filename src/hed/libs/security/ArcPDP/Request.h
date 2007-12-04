@@ -9,19 +9,22 @@
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/RequestItem.h>
 
-/** Basic class for Request*/
-
 namespace ArcSec {
 
+///Following is some general structures and classes for storing the request information. 
+///In principle, the request structure shoud be in XML format, and also can include a few items
+
+///ReqItemList is a container for RequestItem objects
 typedef std::list<RequestItem*> ReqItemList;
 
+///Attr contains a tuple of attribute type and value
 typedef struct{
   std::string value;
   std::string type;
 } Attr;
 
-//typedef std::map<int,Attr> Attrs;
-
+///Attrs is a container for one or more Attr
+/**Attrs includes includes methonds for inserting, getting items, and counting size as well*/
 class Attrs {
 public:
   void addItem(Attr attr) { 
@@ -36,22 +39,36 @@ private:
 };
 
 
-/**A request can has a few <subjects, actions, objects> tuples */
-//**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
+///Basic class for Request, includes a container for RequestItems and some operations
+/**A Request object can has a few <subjects, actions, objects> tuples, i.e. RequestItem
+The Request class and any customized class which inherit from it, should be loadable, which means these classes
+can be dynamically loaded according to the configuration informtation, see the example configuration below:
+        <Service name="pdp.service" id="pdp_service">
+            <pdp:PDPConfig>
+               <......> 
+               <pdp:Request name="arc.request" />
+               <......>
+            </pdp:PDPConfig>
+        </Service>
+
+There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
 class Request : public Arc::LoadableClass {
 protected:
   ReqItemList rlist;
 public:
+  //**Get all the RequestItem inside RequestItem container */
   virtual ReqItemList getRequestItems () const = 0;
+
+  //**Set the content of the container*/
   virtual void setRequestItems (ReqItemList sl) = 0;
 
-  //**add request tuple from non-XMLNode*/
+  //**Add request tuple from non-XMLNode*/
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx)=0;
 
-  //**set the attribute factory for the usage of Request*/
+  //**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) = 0;
 
-  //**create the objects included in Request according to the node attached to the Request object*/
+  //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request() = 0;
 
   //**Default constructor*/
@@ -59,10 +76,11 @@ public:
 
   //**Constructor: Parse request information from a xml stucture in memory*/
   Request (const Arc::XMLNode*) {};
+
   virtual ~Request(){};
 
 protected:
-  //**Constructor: Parse request information from a input file*/
+  //**Constructor: Parse request information from a input file, internal used only*/
   Request (const char*) {};
 };
 
