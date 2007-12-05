@@ -92,7 +92,11 @@ namespace Arc {
      */
     void kill(const std::string& jobid) throw(AREXClientError);
     
-    //! Get service status
+    //! Query the status of a service.
+    /*! This method queries the A-REX service about it's status.
+      @return The XML document representing status of the service.
+      @throw An AREXClientError object if an error occurs.
+     */
     std::string sstat(void) throw(AREXClientError);
 
   private:
