@@ -32,8 +32,8 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
   std::string value = arg1->encode();
   Arc::RegularExpression regex(label);
   if(regex.isOk()){
-    std::list<std::string> unmatched;
-    if(regex.match(value, unmatched))
+    std::list<std::string> unmatched, matched;
+    if(regex.match(value, unmatched, matched))
       return true;
   }
   else 

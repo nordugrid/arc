@@ -37,7 +37,8 @@ namespace Arc {
     
     //! Returns true if this regex matches the string provided.
     //! Unmatched parts of the string are stored in 'unmatched'.
-    bool match(const std::string& str,std::list<std::string>& unmatched) const;
+    //! Matched parts of the string are stored in 'macthed'.
+    bool match(const std::string& str,std::list<std::string>& unmatched, std::list<std::string>& matched) const;
     
     //! Returns patter 
     std::string getPattern();
