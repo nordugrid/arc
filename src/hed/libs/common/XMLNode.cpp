@@ -80,9 +80,9 @@ bool MatchXMLNamespace(const XMLNode& node,const std::string& uri) {
 
 static void ReplaceNamespace(xmlNsPtr ns,xmlNodePtr node,xmlNsPtr new_ns) {
   if(node->type == XML_ELEMENT_NODE) {
-    if(node->ns == ns) node->ns == new_ns;
+    if(node->ns == ns) node->ns = new_ns;
   } else if(node->type == XML_ATTRIBUTE_NODE) {
-    if(((xmlAttrPtr)node)->ns == ns) ((xmlAttrPtr)node)->ns == new_ns;
+    if(((xmlAttrPtr)node)->ns == ns) ((xmlAttrPtr)node)->ns = new_ns;
   } else {
     return;
   };
@@ -99,7 +99,7 @@ static void ReassignNamespace(xmlNsPtr ns,xmlNodePtr node) {
     if(ns->href && ns_cur->href && (xmlStrcmp(ns->href,ns_cur->href) == 0)) {
       // Unlinking namespace from tree
       ReplaceNamespace(ns_cur,node,ns);
-      if(ns_prev) { ns_prev->next=ns_cur->next; } else { node->nsDef=ns_cur; };
+      if(ns_prev) { ns_prev->next=ns_cur->next; } else { node->nsDef=ns_cur->next; };
       xmlNsPtr ns_tmp = ns_cur;
       ns_cur=ns_cur->next;
       xmlFreeNs(ns_tmp);
