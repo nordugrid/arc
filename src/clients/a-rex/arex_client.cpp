@@ -74,6 +74,7 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     Arc::MessageAttributes attributes_req;
+    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
     Arc::MessageAttributes attributes_rep;
     Arc::MessageContext context;
     reqmsg.Payload(&req);
@@ -131,6 +132,7 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     Arc::MessageAttributes attributes_req;
+    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetActivityStatuses");
     Arc::MessageAttributes attributes_rep;
     Arc::MessageContext context;
     reqmsg.Payload(&req);
@@ -193,6 +195,7 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     Arc::MessageAttributes attributes_req;
+    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetFactoryAttributesDocument");
     Arc::MessageAttributes attributes_rep;
     Arc::MessageContext context;
     reqmsg.Payload(&req);
@@ -248,6 +251,7 @@ namespace Arc {
     Arc::Message reqmsg;
     Arc::Message repmsg;
     Arc::MessageAttributes attributes_req;
+    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/TerminateActivities");
     Arc::MessageAttributes attributes_rep;
     Arc::MessageContext context;
     reqmsg.Payload(&req);
