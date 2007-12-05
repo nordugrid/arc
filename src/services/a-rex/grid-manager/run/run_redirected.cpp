@@ -14,7 +14,7 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-int RunRedirected::run(JobUser& user,const char* cmdname,int stdin,int stdout,int stderr,char *const args[],int timeout) {
+int RunRedirected::run(JobUser& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout) {
   std::list<std::string> args_;
   for(int n = 0;args[n];++n) args_.push_back(std::string(args[n]));
   Arc::Run re(args_);
@@ -22,7 +22,7 @@ int RunRedirected::run(JobUser& user,const char* cmdname,int stdin,int stdout,in
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process.",cmdname?cmdname:"");
     return -1;
   };
-  RunRedirected* rr = new RunRedirected(user,cmdname,stdin,stdout,stderr);
+  RunRedirected* rr = new RunRedirected(user,cmdname,in,out,err);
   if((!rr) || (!(*rr))) {
     if(rr) delete rr;
     logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process.",cmdname?cmdname:"");
@@ -45,13 +45,13 @@ int RunRedirected::run(JobUser& user,const char* cmdname,int stdin,int stdout,in
   return re.Result();
 }
 
-int RunRedirected::run(JobUser& user,const char* cmdname,int stdin,int stdout,int stderr,const char* cmd,int timeout) {
+int RunRedirected::run(JobUser& user,const char* cmdname,int in,int out,int err,const char* cmd,int timeout) {
   Arc::Run re(cmd);
   if(!re) {
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process.",cmdname?cmdname:"");
     return -1;
   };
-  RunRedirected* rr = new RunRedirected(user,cmdname,stdin,stdout,stderr);
+  RunRedirected* rr = new RunRedirected(user,cmdname,in,out,err);
   if((!rr) || (!(*rr))) {
     if(rr) delete rr;
     logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process.",cmdname?cmdname:"");

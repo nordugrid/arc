@@ -9,7 +9,7 @@
 
 class RunRedirected {
  private:
-  RunRedirected(JobUser& user,const char* cmdname,int stdin,int stdout,int stderr):user_(user),cmdname_(cmdname?cmdname:""),stdin_(stdin),stdout_(stdout),stderr_(stderr) { };
+  RunRedirected(JobUser& user,const char* cmdname,int in,int out,int err):user_(user),cmdname_(cmdname?cmdname:""),stdin_(in),stdout_(out),stderr_(err) { };
   ~RunRedirected(void) { };
   JobUser& user_;
   std::string cmdname_;
@@ -20,8 +20,8 @@ class RunRedirected {
  public:
   operator bool(void) { return true; };
   bool operator!(void) { return false; };
-  static int run(JobUser& user,const char* cmdname,int stdin,int stdout,int stderr,char *const args[],int timeout);
-  static int run(JobUser& user,const char* cmdname,int stdin,int stdout,int stderr,const char* cmd,int timeoutd);
+  static int run(JobUser& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout);
+  static int run(JobUser& user,const char* cmdname,int in,int out,int err,const char* cmd,int timeoutd);
 };
 
 #endif
