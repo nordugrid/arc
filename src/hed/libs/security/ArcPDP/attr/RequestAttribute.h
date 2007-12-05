@@ -11,12 +11,17 @@ namespace ArcSec {
 
 //typedef std::list<AttributeValue*> AttrValList;
 
-/**Parsing the attribute in Request.xml according to DateType*/ 
 
+///Wrapper which includes AttributeValue object which is generated according to date type of one spefic node in Request.xml
 class RequestAttribute {
 public:
+  /**Constructor - create attribute value object according to the "Type" in the node
+  <Attribute AttributeId="urn:arc:subject:voms-attribute" Type="string">urn:mace:shibboleth:examples</Attribute>
+  */
   RequestAttribute(Arc::XMLNode& node, AttributeFactory* attrfactory);
+
   RequestAttribute();
+
   virtual ~RequestAttribute();
   
 public:
@@ -33,7 +38,8 @@ public:
   virtual AttributeValue* getAttributeValue() const;
 
   virtual AttributeFactory* getAttributeFactory() const;
-
+  
+  /**Duplicate the parameter into "this"*/
   RequestAttribute& duplicate(RequestAttribute&);
 
 //protect:
@@ -41,12 +47,25 @@ public:
 
 private:
  static Arc::Logger logger;
+
+ /**the <Attribute> node*/
  Arc::XMLNode node_;
+
+ /**id of this <Attribute>, it could be useful if the policy specify <AttributeDesignator> to get value from request*/
  std::string id;
+
+ /**data type of <Attribute> node, it a important factor for generating the different AttributeValue objects*/
  std::string type;
+
+ /**issuer of the value of <Attribute>; it could be useful if the policy */
  std::string issuer;
+
  //AttrValList avlist;
+
+ /**the AttributeValue object*/
  AttributeValue* attrval;
+
+ /**the AttributeFactory which is used to generate the AttributeValue object*/
  AttributeFactory* attrfactory;
 };
 

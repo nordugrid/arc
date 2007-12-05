@@ -11,13 +11,15 @@ Logger RequestAttribute::logger(Logger::rootLogger, "RequestAttribute");
 
 RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory) : attrval(NULL), attrfactory(attrfactory) {
   Arc::XMLNode nd;
-  
+
+  //Get the attribute of the node  
   id = (std::string)(node.Attribute("AttributeId")); 
 
   type = (std::string)(node.Attribute("Type"));
 
   issuer = (std::string)(node.Attribute("Issuer"));
 
+  //Create the attribute value object according to the data type
   attrval = attrfactory->createValue(node, type);
 
   if(attrval == NULL)
@@ -25,16 +27,9 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id.c_str(), type.c_str(), issuer.c_str(), (attrval->encode()).c_str());
 
+  //Copy the node parameter into this->node_, for the usage in duplicate method 
   node.New(node_);
-/*
-  std::string str1;
-  node.GetXML(str1);
-  std::cout<<"Original node: "<<str1<<std::endl;
 
-  std::string str2;
-  node_.GetXML(str2);
-  std::cout<<"Copied node: "<<str2<<std::endl;
-*/
 /*
   if(!(node.Size())){
     avlist.push_back(attrfactory->createValue(node, type));
@@ -96,7 +91,7 @@ RequestAttribute& RequestAttribute::duplicate(RequestAttribute& req_attr) {
   id = req_attr.getAttributeId();
   type = req_attr.getDataType();
   issuer = req_attr.getIssuer();
-  node_ = req_attr.getNode();//.Child();
+  node_ = req_attr.getNode();
   attrval = (req_attr.getAttributeFactory())->createValue(node_, type);
   return *this;
 }

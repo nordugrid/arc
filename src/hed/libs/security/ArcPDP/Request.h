@@ -39,7 +39,7 @@ private:
 };
 
 
-///Basic class for Request, includes a container for RequestItems and some operations
+///Base class/Interface for request, includes a container for RequestItems and some operations
 /**A Request object can has a few <subjects, actions, objects> tuples, i.e. RequestItem
 The Request class and any customized class which inherit from it, should be loadable, which means these classes
 can be dynamically loaded according to the configuration informtation, see the example configuration below:
@@ -56,31 +56,31 @@ class Request : public Arc::LoadableClass {
 protected:
   ReqItemList rlist;
 public:
-  //**Get all the RequestItem inside RequestItem container */
+  /**Get all the RequestItem inside RequestItem container */
   virtual ReqItemList getRequestItems () const = 0;
 
-  //**Set the content of the container*/
+  /**Set the content of the container*/
   virtual void setRequestItems (ReqItemList sl) = 0;
 
-  //**Add request tuple from non-XMLNode*/
+  /**Add request tuple from non-XMLNode*/
   virtual void addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx)=0;
 
-  //**Set the attribute factory for the usage of Request*/
+  /**Set the attribute factory for the usage of Request*/
   virtual void setAttributeFactory(AttributeFactory* attributefactory) = 0;
 
-  //**Create the objects included in Request according to the node attached to the Request object*/
+  /**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request() = 0;
 
-  //**Default constructor*/
+  /**Default constructor*/
   Request () {};
 
-  //**Constructor: Parse request information from a xml stucture in memory*/
+  /**Constructor: Parse request information from a xml stucture in memory*/
   Request (const Arc::XMLNode*) {};
 
   virtual ~Request(){};
 
 protected:
-  //**Constructor: Parse request information from a input file, internal used only*/
+  /**Constructor: Parse request information from a input file, internal used only*/
   Request (const char*) {};
 };
 

@@ -86,21 +86,25 @@ namespace ArcSec {
     </RequestItem>
     
     Here putting a few <Subject>s <Resource>s <Action>s  or <Context>s together (inside one RequestItem) is only for the convinient of 
-    expression, there is no logical relationship between them. 
-    
+    expression (there is no logical relationship between them). For more than one <<Subject>, <Resource>, <Action>, <Context>> tuples,  
+    if there is one element (e.g. <Subject>) which is different to each other, you can put these tuples together by using one tuple  
+    <<Subject1>,<Subject2>, <Resource>, <Action>, <Context>> tuple, and don't need to write a few tuples.
 */
 typedef std::list<RequestAttribute*> Subject, Resource, Action, Context;
 
 ///Containers, which include a few Subject, Resource, Action or Context objects
-//**These containers */
 typedef std::list<Subject> SubList;
 typedef std::list<Resource> ResList;
 typedef std::list<Action> ActList;
 typedef std::list<Context> CtxList; 
 
-/**<subjects, actions, objects, ctxs> tuple */
+///Interface for request item container, <subjects, actions, objects, ctxs> tuple
 class RequestItem{
  public:
+  /**Constructor
+  @param node  The XMLNode structure of the request item
+  @param attributefactory  The AttributeFactory which will be used to generate RequestAttribute 
+  */  
   RequestItem(Arc::XMLNode&, AttributeFactory*){};
   virtual ~RequestItem(){};
 

@@ -13,7 +13,7 @@
 #include "Request.h"
 #include "Response.h"
 
-/** Execute the policy evaluation, based on the request and policy */
+/// Execute the policy evaluation, based on the request and policy
 
 namespace ArcSec {
 
