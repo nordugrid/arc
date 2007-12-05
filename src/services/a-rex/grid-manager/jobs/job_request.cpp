@@ -233,7 +233,9 @@ bool preprocess_job_req(const std::string &fname,const std::string& session_dir,
 }
 
 typedef struct {
+#ifdef HAVE_GLOBUS_RSL
   globus_rsl_t* rsl_tree;
+#endif
   const std::string* session_dir;
 } set_execs_t;
 
@@ -243,10 +245,13 @@ typedef struct {
 } job_set_execs_t;
 
 static int set_execs_callback(void* arg) {
+#ifdef HAVE_GLOBUS_RSL
   globus_rsl_t* rsl_tree = ((set_execs_t*)arg)->rsl_tree;
   const std::string& session_dir = *(((set_execs_t*)arg)->session_dir);
   if(set_execs(rsl_tree,session_dir)) return 0;
   return -1;
+#endif
+  return 0;
 }
 
 static int job_set_execs_callback(void* arg) {
