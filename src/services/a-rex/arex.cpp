@@ -184,6 +184,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "input is not SOAP");
       return make_soap_fault(outmsg);
     };
+    // Aplying known namespaces
+    inpayload->Namespaces(ns_);
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
@@ -198,6 +200,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::DEBUG, "process: factory endpoint");
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
       Arc::PayloadSOAP& res = *outpayload;
+      // Preparing known namespaces
+      outpayload->Namespaces(ns_);
       if(MatchXMLName(op,"CreateActivity")) {
         logger_.msg(Arc::DEBUG, "process: CreateActivity");
         CreateActivity(*config,op,res.NewChild("bes-factory:CreateActivityResponse"),clientid);
