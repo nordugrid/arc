@@ -19,7 +19,7 @@ Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNo
   TerminateActivitiesResponse
     Response (unbounded)
       ActivityIdentifier
-      Cancelled (boolean)
+      Terminated (boolean)
       Fault (soap:Fault)
 
   */
@@ -53,9 +53,9 @@ Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNo
     // Cancel job (put a mark)
     bool result = job.Cancel();
     if(result) {
-      resp.NewChild("bes-factory:Cancelled")="true";
+      resp.NewChild("bes-factory:Terminated")="true";
     } else {
-      resp.NewChild("bes-factory:Cancelled")="false";
+      resp.NewChild("bes-factory:Terminated")="false";
       // Or should it be a fault?
     };
   };

@@ -105,7 +105,7 @@
   <xsd:complexType name="TerminateActivityResponseType">
     <xsd:sequence>
       <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
-      <xsd:element name="Cancelled" type="xsd:boolean"/>
+      <xsd:element name="Terminated" type="xsd:boolean"/>
       <xsd:element name="Fault" type="soap:Fault" minOccurs="0"/>
       <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
