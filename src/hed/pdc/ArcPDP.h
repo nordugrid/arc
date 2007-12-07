@@ -10,11 +10,14 @@
 
 namespace ArcSec {
 
+///ArcPDP - PDP which can handle the Arc specific request and policy schema
 class ArcPDP : public PDP {
  public:
   static PDP* get_arc_pdp(Arc::Config *cfg, Arc::ChainContext *ctx);
   ArcPDP(Arc::Config* cfg);
   virtual ~ArcPDP();
+
+  /***/
   virtual bool isPermitted(Arc::Message *msg);
  private:
   Evaluator *eval;

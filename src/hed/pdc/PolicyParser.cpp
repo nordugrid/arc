@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-//#include <arc/security/ArcPDP/policy/PolicyParser.h>
 #include "PolicyParser.h"
 #include <fstream>
 #include <iostream>
@@ -20,6 +19,7 @@ using namespace ArcSec;
 PolicyParser::PolicyParser(){
 }
 
+///Get policy from local file
 void getfromFile(const std::string name, std::string& xml_policy){
   std::string str;
   std::ifstream f(name.c_str());
@@ -31,6 +31,7 @@ void getfromFile(const std::string name, std::string& xml_policy){
   f.close();
 }
 
+///Get policy from remote URL
 void getfromURL(const std::string name, std::string& xml_policy){
   Arc::URL url(name.c_str());
 

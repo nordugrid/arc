@@ -10,10 +10,10 @@
 
 namespace ArcSec {
 
-/**ArcPolicy class to parsing Arc specific policy format*/
-
+///ArcPolicy class to parse and operate Arc specific <Policy> node
 class ArcPolicy : public Policy {
 public:
+  /**Constructor - */
   ArcPolicy(Arc::XMLNode& node, EvaluatorContext* ctx);  
 
   virtual ~ArcPolicy();  
@@ -27,15 +27,20 @@ public:
   virtual EvalResult& getEvalResult();
 
 private:
- // std::list<Arc::Policy*> rules;
+  //std::list<Arc::Policy*> rules;
   std::string id;
   std::string version;
+  
+  /**The combining algorithm between lower-lever element, <Rule>*/
   CombiningAlg *comalg;
   std::string description;
 
+  /**Algorithm factory*/
   AlgFactory *algfactory;
 
   EvalResult evalres;
+
+  /**Corresponding <Policy> node*/
   Arc::XMLNode policynode;
 
 protected:

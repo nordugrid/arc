@@ -9,13 +9,15 @@
 
 namespace ArcSec {
 
-/** Attribute factory class for Arc specified attributes*/
+/// Attribute factory class for Arc specified attributes
 class ArcAttributeFactory : public AttributeFactory {
 public:
   ArcAttributeFactory();
   virtual ~ArcAttributeFactory();
 
 public:
+  /**creat a AttributeValue according to the value in the XML node and the type; It should be the caller 
+  to release the AttributeValue Object*/
   virtual AttributeValue* createValue(const Arc::XMLNode& node, const std::string& type);
 
 private:

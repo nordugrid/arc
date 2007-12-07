@@ -7,13 +7,15 @@
 
 namespace ArcSec {
 
-/** Function factory class for Arc specified attributes*/
+/// Function factory class for Arc specified attributes
 class ArcFnFactory : public FnFactory {
 public:
   ArcFnFactory();
   virtual ~ArcFnFactory();
 
 public:
+  /**return a Function object according to the "Function" attribute in the XML node; 
+  The ArcFnFactory itself will release the Function objects*/
   virtual Function* createFn(const std::string& type);
 
 private:

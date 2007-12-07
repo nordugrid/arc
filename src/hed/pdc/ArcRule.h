@@ -13,15 +13,48 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {
-
-/**"Match" is the definition about the basic element in Rule. The AttributeValue in Request should satisfy the Attribute in ArcRule under the match-making Function.
-Usually, there is only explicit definition about AttributeValue in ArcRule (e.g. <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>), no explicit definition about Function. The solution is just using string "equal" plus XML value of attribute "Type" (e.g. "X500-equal"). If there is explicit function difinition in policy (which will make policy definition more complicated, and more like XACML), we can use it.*/
-
+///pair Match include the AttributeValue object in <Rule> and the Function which is used to handle the AttributeValue,
+///default function is "Equal", if some other function is used, it should be explicitly specified, e.g.
+///<Subject Type="string" Function="Match">/vo.knowarc/usergroupA</Subject>
 typedef std::pair<AttributeValue*, Function*> Match;
+ 
+/**<Subjects> example inside <Rule>:
+      <Subjects>
+         <Subject Type="X500Name">/O=NorduGrid/OU=UIO/CN=test</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupA</Subject>
+         <Subject>
+            <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+            <SubFraction Type="string">urn:mace:shibboleth:examples</SubFraction>
+         </Subject>
+         <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
+      </Subjects>*/
+
+/** "And" relationship means the request should satisfy all of the items
+  <Subject>
+   <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+   <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
+  </Subject>
+  */
+
+/** "Or" relationship meand the request should satisfy any of the items
+  <Subjects>
+    <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
+    <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
+    <Subject>
+      <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+      <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
+    </Subject>
+    <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
+  </Subjects>
+*/
+
+///AndList - include items inside one <Subject> (or <Resource> <Action> <Condition>)
 typedef std::list<Match> AndList;
+
+///OrList  - include items inside one <Subjects> (or <Resources> <Actions> <Conditions>)
 typedef std::list<AndList> OrList;
 
-/**ArcRule class to parsing Arc specific rule format*/
+///ArcRule class to parse Arc specific <Rule> node
 class ArcRule : public Policy {
 
 public:
@@ -38,15 +71,19 @@ public:
   virtual EvalResult& getEvalResult();
 
 private:
-  void getItemlist(Arc::XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string&
-function_attr);
+  /**Parse the <Subjects> <Resources> <Actions> <Conditions> inside one <Rule>
+  Can also refer to the other source by using <GroupIdRef>, the <Location> attribute is the location of the refered file
+  the value "subgrpexample" is the index for searching in the refered file
+  */
+  void getItemlist(Arc::XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, 
+    const std::string& function_attr);
 
 private:
   std::string effect;
   std::string id;
   std::string version;
   std::string description;
-  
+ 
   OrList subjects;
   OrList resources;
   OrList actions;

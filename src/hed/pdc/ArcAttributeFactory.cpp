@@ -25,7 +25,7 @@ using namespace Arc;
 using namespace ArcSec;
 
 void ArcAttributeFactory::initDatatypes(){
-  /**Some Arc specified attribute types*/
+  //Some Arc specified attribute types
   apmap.insert(std::pair<std::string, AttributeProxy*>(StringAttribute::getIdentifier(), new ArcAttributeProxy<StringAttribute>));
   apmap.insert(std::pair<std::string, AttributeProxy*>(DateTimeAttribute::getIdentifier(), new ArcAttributeProxy<DateTimeAttribute>));
   apmap.insert(std::pair<std::string, AttributeProxy*>(DateAttribute::getIdentifier(), new ArcAttributeProxy<DateAttribute>));
@@ -35,7 +35,7 @@ void ArcAttributeFactory::initDatatypes(){
   apmap.insert(std::pair<std::string, AttributeProxy*>(X500NameAttribute::getIdentifier(), new ArcAttributeProxy<X500NameAttribute>));
   apmap.insert(std::pair<std::string, AttributeProxy*>(AnyURIAttribute::getIdentifier(), new ArcAttributeProxy<AnyURIAttribute>));
 
- /** TODO:  other datetype............. */
+ /** TODO:  other datatype............. */
 
 }
 
@@ -43,7 +43,6 @@ ArcAttributeFactory::ArcAttributeFactory(){
   initDatatypes();
 }
 
-/**creat a AttributeValue according to the value in the XML node and the type; It should be the caller to release the AttributeValue Object*/
 AttributeValue* ArcAttributeFactory::createValue(const XMLNode& node, const std::string& type){
   AttrProxyMap::iterator it;
   if((it=apmap.find(type)) != apmap.end())

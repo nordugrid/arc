@@ -10,9 +10,10 @@ using namespace Arc;
 using namespace ArcSec;
 
 ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : RequestItem(node, attrfactory) {
-  //TODO
-  //ArcAttributeFactory * attrfactory = new ArcAttributeFactory();
+  //Parse the XMLNode structure, and generate the RequestAttribute object
   XMLNode nd;
+
+  //Parse the <Subject> part
   for ( int i=0;; i++ ){
     std::string type;
     nd = node["Subject"][i];
@@ -62,6 +63,8 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
     }
     else {std::cerr <<"Error definition in RequestItem:Subject"<<std::endl;}
   }
+
+  //Parse the <Resource>
   for ( int i=0;; i++ ){
     std::string type;
     nd = node["Resource"][i];
@@ -97,6 +100,8 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
     }
     else {std::cerr <<"Error definition in RequestItem:Resource"<<std::endl;}
   }
+
+  //Parse the <Action> part
   for ( int i=0;; i++ ){
     std::string type;
     nd = node["Action"][i];
@@ -132,6 +137,8 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
     }
     else {std::cerr <<"Error definition in RequestItem:Action"<<std::endl;}
   }
+
+  //Parse the Context part
   for ( int i=0;; i++ ){
     std::string type;
     nd = node["Context"][i];

@@ -6,7 +6,7 @@
 
 namespace ArcSec {
 
-/**<subjects, actions, objects, ctxs> tuple */
+///Container, <Subjects, Actions, Objects, Contexts> tuple
 /**Specified ArcRequestItem which can parse Arc request formate*/
 class ArcRequestItem : public RequestItem{
 public:

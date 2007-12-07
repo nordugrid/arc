@@ -9,14 +9,20 @@
 
 namespace ArcSec {
 
-/**A interface which will isolate the policy object from actual policy storage (files, urls, database) */
+///A interface which will isolate the policy object from actual policy storage (files, urls, database)
 /**Parse the policy from policy source (e.g. files, urls, database, etc.). */
 
 class PolicyParser {
 
 public:
   PolicyParser();
+
+  /**Parse policy
+  @param filename   location of the policy file
+  @param ctx        EvaluatorContext which include the **Factory
+  */
   virtual Policy* parsePolicy(const std::string filename, EvaluatorContext* ctx);
+
   virtual ~PolicyParser(){};
 
 };

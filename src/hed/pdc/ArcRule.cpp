@@ -10,8 +10,6 @@
 
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
 
-//#include <arc/security/ArcPDP/fn/MatchFunction.h>
-
 //Arc::Logger ArcSec::ArcRule::logger(ArcSec::Policy::logger, "ArcRule");
 Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");
 
@@ -19,13 +17,9 @@ using namespace Arc;
 using namespace ArcSec;
 
 void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
-  //ArcAttributeFactory* attrfactory = new ArcAttributeFactory();
-  //ArcFnFactory* fnfactory = new ArcFnFactory();
-
   XMLNode tnd;
 
   for(int i=0; i<nd.Size(); i++){
-    //std::cout<<itemtype<<std::endl;
 
     for(int j=0;;j++){
       std::string type = type_attr;
@@ -43,7 +37,6 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
         item.push_back(Match(attrfactory->createValue(tnd, type), fnfactory->createFn(funcname)));
         items.push_back(item);
-        //items.push_back(item);
       }
       else if((type.empty())&&(tnd.Size()>0)){
         AndList item;
@@ -131,26 +124,6 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
   fnfactory = (FnFactory*)(*ctx);
   
   XMLNode nd, tnd;
-  //Arc::Logger logger(Arc::Logger::rootLogger, "Policy");
-  //logger.addDestination(logcerr);
-  
-  /* "And" relationship means the request should satisfy all of the items 
-  <Subject>
-   <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
-   <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
-  </Subject>
-  */
-  /* "Or" relationship meand the request should satisfy any of the items
-  <Subjects>
-    <Subject Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Subject>
-    <Subject Type="VOMSAttribute">/vo.knowarc/usergroupA</Subject>
-    <Subject>
-      <SubFraction Type="X500DN">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
-      <SubFraction Type="ShibName">urn:mace:shibboleth:examples</SubFraction>
-    </Subject>
-    <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
-  </Subjects>
-  */
 
   id = (std::string)(node.Attribute("RuleId"));
   description = (std::string)(node["Description"]);

@@ -19,12 +19,14 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
   policynode.GetDoc(xml);
   std::cout<<xml<<std::endl;
   
-  //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, EvalResult.node can include rule(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all the original rules.
+  //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, 
+  //EvalResult.node can include rules(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all 
+  //the original rules.
   evalres.node = policynode;
   evalres.effect = "Not_applicable";
 
   ArcRule *rule;
-  //ArcAlgFactory *algfactory = new ArcAlgFactory(); 
+  //Get AlgFactory from EvaluatorContext
   algfactory = (AlgFactory*)(*ctx); 
 
   XMLNode nd, rnd;
@@ -38,7 +40,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     nd = *(res.begin());
     id = (std::string)(nd.Attribute("PolicyId"));
 
-    //Setup the rules combining algorithm inside one policy
+    //Setup the rules' combining algorithm inside one policy, according to the "CombiningAlg" name
     if(nd.Attribute("CombiningAlg"))
       comalg = algfactory->createAlg((std::string)(nd.Attribute("CombiningAlg")));
     else comalg = algfactory->createAlg("Deny-Overrides");
@@ -59,8 +61,8 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
 MatchResult ArcPolicy::match(EvaluationCtx*){// ctx){
   //RequestTuple* evaltuple = ctx->getEvalTuple();
   
-  //Because ArcPolicy definition has no any <Subject, Resource, Action, Environment> directly;
-  //All the <Subject, Resource, Action, Environment>s are only in ArcRule.
+  //Because ArcPolicy definition has no any <Subject, Resource, Action, Condition> directly;
+  //All the <Subject, Resource, Action, Condition>s are only in ArcRule.
   //So the function always return "Match" 
 
   return MATCH;

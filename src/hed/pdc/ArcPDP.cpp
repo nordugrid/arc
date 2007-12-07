@@ -44,6 +44,8 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   classloader = NULL;
   classloader = ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
+
+  //Dynamically load Evaluator object according to configure information
   eval = (Evaluator*)(classloader->Instance(evaluator, (void**)&topcfg));
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
@@ -52,6 +54,18 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
 }
 
 bool ArcPDP::isPermitted(Message *msg){
+  //Compose Request based on the information inside message, the Request will be like below:
+  /*
+  <Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
+    <RequestItem>
+        <Subject>
+          <Attribute AttributeId="123" Type="string">123.45.67.89</Attribute>
+          <Attribute AttributeId="xyz" Type="string">/O=NorduGrid/OU=UIO/CN=test</Attribute>
+        </Subject>
+        <Action AttributeId="ijk" Type="string">GET</Action>
+    </RequestItem>
+  </Request>
+  */
   std::string remotehost=msg->Attributes()->get("TCP:REMOTEHOST");
   std::string subject=msg->Attributes()->get("TLS:PEERDN");
   std::string action=msg->Attributes()->get("HTTP:METHOD");
@@ -87,6 +101,7 @@ bool ArcPDP::isPermitted(Message *msg){
   request.GetDoc(req_str);
   logger.msg(INFO, "%s", req_str.c_str());
 
+  //Call the evaluation functionality inside Evaluator
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml");
   resp = eval->evaluate(request);

@@ -9,8 +9,7 @@ namespace ArcSec {
 
 class EvaluatorContext;
 
-/**Storage place for policy objects */
-
+///Storage place for policy objects, no dynamically loadable now
 class PolicyStore : public Arc::LoadableClass {
 
 public:

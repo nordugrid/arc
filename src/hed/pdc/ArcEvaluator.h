@@ -14,10 +14,9 @@
 #include <arc/security/ArcPDP/Response.h>
 #include "PolicyStore.h"
 
-/** Execute the policy evaluation, based on the request and policy */
-
 namespace ArcSec {
 
+///Execute the policy evaluation, based on the request and policy
 class ArcEvaluator : public Evaluator {
 friend class EvaluatorContext;
 private:
@@ -37,6 +36,7 @@ public:
   ArcEvaluator (const char * cfgfile);
   virtual ~ArcEvaluator();
 
+  /**Evaluate the request based on the policy information inside PolicyStore*/
   virtual Response* evaluate(Request* request);
   virtual Response* evaluate(Arc::XMLNode& node);
   virtual Response* evaluate(const std::string& reqfile);
@@ -49,6 +49,16 @@ protected:
   virtual Response* evaluate(EvaluationCtx* ctx);
 
 private:
+  /**Parse the configure information about PDP, then the related object can be loaded according to the configure information
+       <pdp:PDPConfig>
+          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+          <pdp:AttributeFactory name="attr.factory" />
+          <pdp:CombingAlgorithmFactory name="alg.factory" />
+          <pdp:FunctionFactory name="fn.factory" />
+          <pdp:Evaluator name="arc.evaluator" />
+          <pdp:Request name="arc.request" />
+       </pdp:PDPConfig>
+  */
   virtual void parsecfg(Arc::XMLNode& cfg);
   virtual Request* make_reqobj(Arc::XMLNode& reqnode);
 };

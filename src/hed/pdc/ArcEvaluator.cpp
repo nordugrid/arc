@@ -27,12 +27,6 @@ using namespace ArcSec;
 
 Arc::Logger ArcSec::ArcEvaluator::logger(Arc::Logger::rootLogger, "ArcEvaluator");
 
-/*
-static ArcSec::Evaluator* get_evaluator(Arc::Config *cfg,Arc::ChainContext *ctx) {
-    return new ArcSec::ArcEvaluator(cfg);
-}
-*/
-
 void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   std::string policystore, policylocation, functionfactory, attributefactory, combingalgfactory;
   XMLNode nd;
@@ -40,7 +34,8 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   Arc::NS nsList;
   std::list<XMLNode> res;
   nsList.insert(std::pair<std::string, std::string>("pdp","http://www.nordugrid.org/schemas/pdp/Config"));
-
+  
+  //Get the name of "PolicyStore" class
   res = cfg.XPathLookup("//pdp:PolicyStore", nsList);
   //presently, there can be only one PolicyStore
   if(!(res.empty())){
@@ -53,6 +48,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
     exit(1);
   }
 
+  //Get the name of "FunctionFactory" class
   res = cfg.XPathLookup("//pdp:FunctionFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
@@ -60,7 +56,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   } 
   else { logger.msg(ERROR, "Can not parse classname for FunctionFactory from configuration"); return;}
           
-
+  //Get the name of "AttributeFactory" class
   res = cfg.XPathLookup("//pdp:AttributeFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
@@ -68,7 +64,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   }  
   else { logger.msg(ERROR, "Can not parse classname for AttributeFactory from configuration"); return;}
 
-
+  //Get the name of "CombiningAlgorithmFactory" class
   res = cfg.XPathLookup("//pdp:CombingAlgorithmFactory", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
@@ -76,7 +72,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   }
   else { logger.msg(ERROR, "Can not parse classname for CombiningAlgorithmFactory from configuration"); return;}
 
-  //Get the name of the "request" class
+  //Get the name of the "Request" class
   res = m_cfg->XPathLookup("//pdp:Request", nsList);
   if(!(res.empty())){
     nd = *(res.begin());
@@ -84,16 +80,9 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   }
   else { logger.msg(ERROR, "Can not parse classname for Request from configuration"); return;}
 
-
-  //TODO: load the class by using the configuration information. 
-
-  //fnfactory = new Arc::ArcFnFactory() ;
-  //attrfactory = new Arc::ArcAttributeFactory();
-
-  //Since the ArcEvaluator will never be directly "new" (which means there should be some object load the configure information about "plugin"
-  //before ArcEvaluator), so it is not necessary to load "plugin" information here
-  //Config modulecfg(cfg);
-  //ClassLoader classloader(&modulecfg);
+  //Get the ClassLoader object; The object which loads this ArcEvaluator should have constructed ClassLoader by using ClassLoader(cfg), 
+  //and putting the configuration information into it; meanwhile ClassLoader is designed as a Singleton, so here we don't need to 
+  //intialte ClassLoader by using ClassLoader(cfg);
   ClassLoader* classloader;
   classloader=ClassLoader::getClassLoader();
 
@@ -117,7 +106,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
   context = new EvaluatorContext(this);
 
-  //temporary solution
+  //Temporary solution, should also make PolicyStore dynamically loadable
   std::list<std::string> filelist;
   //filelist.push_back("Policy_Example.xml");
   filelist.push_back(policylocation);
@@ -141,7 +130,6 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
   std::string str;
   std::string xml_str = "";
   std::ifstream f(cfgfile);
-  //The module configuration information should be inside the top-level configuration file later.
   while (f >> str) {
     xml_str.append(str);
     xml_str.append(" ");
@@ -264,22 +252,22 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
   
   Response* resp = new Response();
   for(it = reqtuples.begin(); it != reqtuples.end(); it++){
-    //set the present RequestTuple for evaluation
+    //set the current RequestTuple for evaluation
+    //RequestTuple will be evaluated one by one
     ctx->setEvalTuple(*it);
 
-    //get the policies which match the present context (RequestTuple), which means 
-    //the <subject, action, object, environment> of a policy
-    //match the present RequestTuple
     policies = plstore->findPolicy(ctx);
     
     std::list<Policy*> permitset;
     bool atleast_onepermit = false;
-    //Each matched policy evaluates the present RequestTuple, using default combiningalg: DENY-OVERRIDES
+    //Each policy evaluates the present RequestTuple, using default combiningalg between <Policy>s: DENY-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Result res = (*policyit)->eval(ctx);
 
       logger.msg(INFO,"Result value (0 means success): %d", res);
 
+      //If there is one policy gives negative evaluation result, then jump out
+      //For RequestTuple which is denied, we will not feedback any information so far
       if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
         while(!permitset.empty()) permitset.pop_back();
         break;
@@ -289,8 +277,8 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
         atleast_onepermit = true;
       }
     }
-    //For "Deny" RequestTuple, do we need to give some information?? 
-    //TODO
+
+    //For RequestTuple that passes the evaluation check, fill the information into ResponseItem
     if(atleast_onepermit){
       ResponseItem* item = new ResponseItem;
       RequestTuple* reqtuple = new RequestTuple;

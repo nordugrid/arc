@@ -23,7 +23,7 @@ using namespace Arc;
 using namespace ArcSec;
 
 void ArcAlgFactory::initCombiningAlgs(){
-  /**Some Arc specified algorithm types*/
+  //Some Arc specified algorithm types
   algmap.insert(std::pair<std::string, CombiningAlg*>("Deny-Overrides", new DenyOverridesCombiningAlg()));
   algmap.insert(std::pair<std::string, CombiningAlg*>("Permit-Overrides", new PermitOverridesCombiningAlg()));
   /** TODO:  other algorithm type............. */
