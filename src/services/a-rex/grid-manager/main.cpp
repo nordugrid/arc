@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <fstream>
 #include <list>
+#include <signal.h>
 
 #ifdef HAVE_GLOBUS_RSL
 #include <globus_common.h>

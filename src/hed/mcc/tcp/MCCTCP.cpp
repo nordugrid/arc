@@ -34,10 +34,11 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 	return strncpy(dest, s, len);
 }
 
-#else
+#else // UNIX
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <errno.h>
 #define ErrNo errno
 #endif

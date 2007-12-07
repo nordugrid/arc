@@ -6,9 +6,10 @@
 #include <winsock2.h>
 typedef int socklen_t;
 #define ErrNo WSAGetLastError()
-#else
+#else // UNIX
 #include <sys/socket.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #endif
 #include <unistd.h>
 
