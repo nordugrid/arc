@@ -10,13 +10,14 @@ namespace ArcSec {
 #define NAME_ANYURI_REGEXP_MATCH "know-arc:function:anyURI-regexp-match"
 #define NAME_X500NAME_REGEXP_MATCH "know-arc:function:x500Name-regexp-match"
 
+///Evaluate whether arg1 (value in regular expression) matched arg0 (lable in regular expression)
 class MatchFunction : public Function {
 public:
   MatchFunction(std::string functionName, std::string argumentType);
 
 public:
   virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1);
-   //help function specific for existing policy expression because of no exiplicit function defined in policy
+   /**help function to get the FunctionName*/
   static std::string getFunctionName(std::string datatype);
 
 private:

@@ -11,7 +11,6 @@ namespace ArcSec {
 
 //typedef std::list<AttributeValue*> AttrValList;
 
-
 ///Wrapper which includes AttributeValue object which is generated according to date type of one spefic node in Request.xml
 class RequestAttribute {
 public:

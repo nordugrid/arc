@@ -5,7 +5,7 @@
 #include <arc/security/ArcPDP/EvaluationCtx.h>
 
 namespace ArcSec {
-
+///Implement the "Deny-Overrides" algorithm
 class DenyOverridesCombiningAlg : public CombiningAlg {
 private:
   static std::string algId;
@@ -14,6 +14,7 @@ public:
   virtual ~DenyOverridesCombiningAlg(){};
 
 public:
+  /**If there is one policy which return negative evaluation result, then omit the other policies and return DECISION_DENY */
   virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies);
   static const std::string& Identifier(void) { return algId; };
   virtual std::string& getalgId(void){return algId;};

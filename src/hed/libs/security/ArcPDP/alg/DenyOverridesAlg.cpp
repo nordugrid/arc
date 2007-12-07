@@ -28,7 +28,7 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
         atleast_onepermit = true;
       else if(res == DECISION_INDETERMINATE){
         //some indeterminate caused by "Condition", will never happen in the existing situation, 
-        //because we don't check condition in the prototype.
+        //because we don't check condition in the Arc policy schema. But it will happen in the XACML policy schema
         atleast_oneerror = true;
   
         if((policy->getEffect()).compare("Deny")==0)

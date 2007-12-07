@@ -10,7 +10,7 @@ namespace ArcSec {
 
 typedef std::map<std::string, Function*> FnMap;
 
-/** Base function factory class*/
+///Interface for function factory, which is in charge of creating Function object according to function type
 class FnFactory : public Arc::LoadableClass {
 public:
   FnFactory() {};

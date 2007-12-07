@@ -24,13 +24,14 @@ namespace ArcSec {
 #define NAME_IPADDRESS_EQUAL "know-arc:function:ipAddress-equal"
 #define NAME_DNSNAME_EQUAL "know-arc:function:dnsName-equal"
 
+///Evaluate whether the two values are equal
 class EqualFunction : public Function {
 public:
   EqualFunction(std::string functionName, std::string argumentType);
 
 public:
   virtual bool evaluate(AttributeValue* arg0, AttributeValue* arg1);
-  //help function specific for existing policy expression because of no exiplicit function defined in policy
+  /**help function to get the FunctionName*/
   static std::string getFunctionName(std::string datatype);
 
 private:

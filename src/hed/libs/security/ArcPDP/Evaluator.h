@@ -32,21 +32,34 @@ public:
   Evaluator (const char *) {};
   virtual ~Evaluator() {};
 
+  /**Evaluates the request by using a Request object */
   virtual Response* evaluate(Request* request) = 0;
+
+  /**Evaluates the request by using a XMLNode*/
   virtual Response* evaluate(Arc::XMLNode& node) = 0;
+
+  /**Evaluates the request by using the input request file*/
   virtual Response* evaluate(const std::string& reqfile) = 0;
 
+  /**Get the AttributeFactory object*/
   virtual AttributeFactory* getAttrFactory () = 0;
+
+  /**Get the FnFactory object*/
   virtual FnFactory* getFnFactory () = 0;
+
+  /**Get the AlgFactory object*/
   virtual AlgFactory* getAlgFactory () = 0;
 
 protected:
+  /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
   virtual Response* evaluate(EvaluationCtx* ctx) = 0;
 
 private:
+  /**Parse the configuration, and dynamically create PolicyStore, AttributeFactory, FnFactory and AlgFactoryy*/
   virtual void parsecfg(Arc::XMLNode& cfg) = 0;
 };
 
+///Context for evaluator. It includes the factories which will be used to create related objects
 class EvaluatorContext {
   private:
     Evaluator* evaluator;

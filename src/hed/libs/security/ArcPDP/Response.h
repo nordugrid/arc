@@ -7,28 +7,18 @@
 #include "EvaluationCtx.h"
 #include "policy/Policy.h"
 
-/** Class for Response*/
-
 namespace ArcSec {
 
 typedef std::list<Policy*> Policies;
-//typedef std::pair<RequestTuple, Policies> ResponseItem;
+
+///Evaluation result concerning one RequestTuple
+/**Include the RequestTuple, related XMLNode, the set of policy objects which give positive evaluation result, and the related XMLNode*/
 typedef struct{
   RequestTuple* reqtp;
   Arc::XMLNode reqxml;
   Policies pls;
   std::list<Arc::XMLNode> plsxml;
 } ResponseItem;
-/*
-class ResponseItem{
-public:
-  ResponseItem(){};
-  Arc::RequestTuple reqtp;
-  Policies pls; 
-};
-*/
-
-//typedef std::list<ResponseItem*> ResponseList;
 
 class ResponseList {
 public:
@@ -53,9 +43,7 @@ private:
   std::map<int, ResponseItem*> resps;
 };
 
-
-/**A request can has a few <subjects, actions, objects> tuples */
-//**There can be different types of subclass which inherit Request, such like XACMLRequest, ArcRequest, GACLRequest */
+///Container for the evaluation results
 class Response {
 protected:
   ResponseList rlist;

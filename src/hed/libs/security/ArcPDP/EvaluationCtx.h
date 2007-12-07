@@ -9,19 +9,9 @@
 
 #include "Request.h"
 
-/** EvaluationCtx, storing some context information for evaluation, including Request, current time, etc. */
-
 namespace ArcSec {
 
-/*
-typedef struct{
-  Arc::Subject sub;
-  Arc::Resource res;
-  Arc::Action act;
-  Arc::Context ctx;
-} RequestTuple;
-*/
-
+///RequestTuple, container which includes the   
 class RequestTuple {
 public:
   Subject sub;
@@ -38,11 +28,10 @@ private:
   Arc::XMLNode tuple;
 };
 
-
+///EvaluationCtx, in charge of storing some context information for evaluation, including Request, current time, etc.
 class EvaluationCtx {
-
 public:
-  //**Construct a new EvaluationCtx based on the given request.*/
+  /**Construct a new EvaluationCtx based on the given request */
   EvaluationCtx (Request* request);
   virtual ~EvaluationCtx();
   
@@ -57,8 +46,11 @@ public:
   virtual AttributeValue * getActionAttribute();
   virtual AttributeValue * getContextAttribute();
 */
-  //Convert each RequestItem ( one tuple <SubList, ResList, ActList, CtxList>)  into some <Subject, Resource, Action, Context> tuples.
-  //The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some       //independent <Subject, Resource, Action, Context>s and the evaluator should deal with them independently. 
+  
+  /**Convert/split one RequestItem ( one tuple <SubList, ResList, ActList, CtxList>)  into a few <Subject, Resource, Action, Context> tuples.
+  The purpose is for evaluation. The evaluator will evaluate each RequestTuple one by one, not the RequestItem because it includes some 
+  independent <Subject, Resource, Action, Context>s and the evaluator should deal with them independently. 
+  */
   virtual void split();
 
   virtual std::list<RequestTuple*> getRequestTuples() const { return reqtuples; };
@@ -70,7 +62,7 @@ private:
   Request* req;
   RequestItem* reqitem;
   std::list<RequestTuple*> reqtuples;
-  //The RequestTuple for evaluation at present
+  /**The RequestTuple for evaluation at present*/
   RequestTuple* evaltuple;
  
 };

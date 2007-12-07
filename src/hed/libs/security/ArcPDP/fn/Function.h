@@ -9,6 +9,7 @@ namespace ArcSec {
 //static std::string FUNCTION_NS = "know-arc:function";
 #define FUNCTION_NS "know-arc:function"
 
+///Interface for function, which is in charge of evaluating two AttributeValue
 class Function {
 public:
   Function(std::string, std::string){};

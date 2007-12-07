@@ -20,7 +20,9 @@ RequestTuple::RequestTuple() {
 RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {  
   XMLNode root = tuple;
   int n;
-  
+  //Reconstruct the XMLNode by using the information inside req_tp
+
+  //Reconstruct subject 
   Subject::iterator sit;
   Subject req_sub = req_tpl.sub;
   XMLNode subject;
@@ -45,6 +47,7 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
 */           
   }
   
+  //Reconstruct resource
   Resource::iterator rit;
   Resource req_res = req_tpl.res;
   XMLNode resource;
@@ -62,6 +65,7 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     resourceattr_attr = ((*rit)->getAttributeValue())->getType();
   }
 
+  //Reconstruct action
   Action::iterator ait;
   Action req_act = req_tpl.act;
   XMLNode action;
@@ -79,6 +83,7 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     actionattr_attr = ((*ait)->getAttributeValue())->getType();
   }
 
+  //Reconstruct context
   Context::iterator cit;
   Context req_ctx = req_tpl.ctx;
   XMLNode context;
@@ -193,7 +198,10 @@ void EvaluationCtx::split(){
     ActList::iterator ait;
     CtxList contexts = (*it)->getContexts();
     CtxList::iterator cit;
-
+   
+    //Scan subjects, resources, actions and contexts inside one RequestItem object
+    //to split subjects, resources, actions or contexts into some tuple with one subject, one resource, one action and context
+    //See more descrioption in inteface RequestItem.h
     for(sit = subjects.begin(); sit != subjects.end(); sit++) { //The subject part will never be empty
       if(!resources.empty()) {
         for(rit = resources.begin(); rit != resources.end(); rit++){

@@ -10,7 +10,8 @@ namespace ArcSec {
 
 typedef std::map<std::string, CombiningAlg*> AlgMap;
 
-/** Base algorithm factory class*/
+///Interface for algorithm factory class
+/**AlgFactory is in charge of creating CombiningAlg according to the algorithm type*/
 class AlgFactory : public Arc::LoadableClass {
 public:
   AlgFactory() {};
