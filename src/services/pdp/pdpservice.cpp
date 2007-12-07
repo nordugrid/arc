@@ -92,7 +92,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
     //Put those request items which satisfy the policies into the response SOAP message (implicitly
     //means the decision result: <ItemA, yes>, <ItemB, yes>, <ItemC, no>(ItemC is not in the 
-    //response SOAP message)
+    //response SOAP message, because ArcEvaluator will not give information for denied RequestTuple)
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);   
     Arc::XMLNode res_body = outpayload->NewChild("Response");
     for(i = 0; i<size; i++){
@@ -118,6 +118,7 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   // Define supported namespaces
   ns_["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
 
+  //Parse configuration file (service.xml) to get the PDP specific information
   Arc::XMLNode node(*cfg);
   Arc::XMLNode topcfg = node.GetRoot();
   Arc::Config modulecfg(topcfg);
@@ -125,6 +126,8 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   Arc::ClassLoader *classloader;
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
+
+  //Load the Evaluator object
   eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)&topcfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");

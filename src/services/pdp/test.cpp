@@ -16,6 +16,7 @@
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 
+///A example about how to compose a Request and call the Service_PDP service
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);

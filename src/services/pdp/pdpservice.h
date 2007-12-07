@@ -8,6 +8,8 @@
 
 namespace ArcSec {
 
+///A Service which includes the ArcPDP functionality; it can be deployed as an independent service to provide 
+///request evaluation functionality for the other remote services
 class Service_PDP: public Arc::Service {
  protected:
   Arc::NS ns_;
