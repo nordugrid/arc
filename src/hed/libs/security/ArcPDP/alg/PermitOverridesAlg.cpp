@@ -18,7 +18,7 @@ Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy
     Policy* policy = *it;
     MatchResult match = policy->match(ctx);
     
-    //evaluate the policy, if one policy evaluation return positive result, then return DECISION_PERMIT
+    //Evaluate the policy, if one policy evaluation return positive result, then return DECISION_PERMIT
     if(match == MATCH) {
       Result res = policy->eval(ctx);
       if(res == DECISION_PERMIT)

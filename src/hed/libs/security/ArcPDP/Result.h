@@ -1,5 +1,6 @@
 namespace ArcSec {
-  
+
+  ///Evaluation result  
   enum Result {
     /**Permit*/
     DECISION_PERMIT = 0,
@@ -11,6 +12,7 @@ namespace ArcSec {
     DECISION_NOT_APPLICABLE = 3
   };
 
+  ///Match result
   enum MatchResult {
     /**Match, the request tuple <Subject, Resource, Action, Context> matches the rule*/
     MATCH = 0,
@@ -22,7 +24,7 @@ rule, but in terms of the other "Condition", the tuple does not match. So far, t
     INDETERMINATE = 2
   };
 
-  /**struct to record the xml node and effect, which will be used by Evaluator to get the information about which rule/policy(in xmlnode) is satisfied */
+  ///Struct to record the xml node and effect, which will be used by Evaluator to get the information about which rule/policy(in xmlnode) is satisfied
   typedef struct {
     Arc::XMLNode node;
     std::string effect;
