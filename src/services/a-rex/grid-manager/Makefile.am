@@ -1,4 +1,4 @@
-SUBDIRS=jobs cache run conf misc log mail jobdesc files 
+SUBDIRS=jobs cache run conf misc log mail jobdesc files loaders
 
 sbin_PROGRAMS=grid-manager
 
