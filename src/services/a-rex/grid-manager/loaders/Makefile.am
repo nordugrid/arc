@@ -1,4 +1,4 @@
-sbin_PROGRAMS=downloader 
+libexec_PROGRAMS=downloader 
 
 downloader_SOURCES=downloader.cpp
 downloader_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
