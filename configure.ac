@@ -492,6 +492,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/jobdesc/jsdl/Makefile
                  src/services/a-rex/grid-manager/jobdesc/rsl/Makefile
                  src/services/a-rex/grid-manager/jobs/Makefile
+                 src/services/a-rex/grid-manager/loaders/Makefile
                  src/services/a-rex/grid-manager/log/Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
