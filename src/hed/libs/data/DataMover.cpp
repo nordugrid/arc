@@ -736,9 +736,9 @@ namespace Arc {
       logger.msg(DEBUG, "Waiting for buffer");
       for(; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
         buffer.wait();
-      logger.msg(INFO, "buffer: read eof : %i", buffer.eof_read());
-      logger.msg(INFO, "buffer: write eof: %i", buffer.eof_write());
-      logger.msg(INFO, "buffer: error    : %s", buffer.error());
+      logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
+      logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
+      logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
       logger.msg(DEBUG, "Closing read channel");
       source_url.stop_reading();
       read_failure = source_url.failure_reason();
