@@ -21,9 +21,9 @@ namespace Arc {
     } Type;
 
     FileInfo(const std::string& name = "") : name(name),
-                                             size(-1),
-                                             created(-1),
-                                             valid(-1),
+                                             size((unsigned long long int)(-1)),
+                                             created((time_t)(-1)),
+                                             valid((time_t)(-1)),
                                              type(file_type_unknown) {}
 
     ~FileInfo() {}
