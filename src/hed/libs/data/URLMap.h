@@ -2,6 +2,7 @@
 #define __ARC_URLMAP_H__
 
 #include <arc/URL.h>
+#include <arc/Logger.h>
 #include <list>
 
 namespace Arc {
