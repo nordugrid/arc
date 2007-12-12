@@ -276,39 +276,6 @@ if test "$?" = '0' ; then
 	OPENSSL_OLDRSA=no
 fi
 
-# check gSOAP
-PKG_CHECK_MODULES(GSOAP, [gsoap++ >= 2.7], [GSOAP=yes], [GSOAP=no])
-AC_SUBST(GSOAP_CFLAGS)
-AC_SUBST(GSOAP_LIBS)
-WSDL2H=wsdl2h
-SOAPCPP2=soapcpp2
-AC_SUBST(WSDL2H)
-AC_SUBST(SOAPCPP2)
-
-if test "x$GSOAP" = "xyes"; then
-	# gSOAP version
-	GSOAP_VERSION=`$SOAPCPP2 -v 2>&1 | grep 'Compiler' | sed 's/^.*\([[0-9]]\.[[0-9]]\.[[0-9]][[a-z]]\).*$/\1/'`
-        AC_MSG_NOTICE([Found gsoap version: $GSOAP_VERSION])
-	GSOAP_VERSION_MAJOR=`echo $GSOAP_VERSION | sed 's/^\([[0-9]]\).*/\1/'`
-	GSOAP_VERSION_MINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.\([[0-9]]\).*/\1/'`
-	GSOAP_VERSION_SUBMINOR=`echo $GSOAP_VERSION | sed 's/^[[0-9]]\.[[0-9]]\.\([[0-9]]\).*/\1/'`
-	gsoap_279=no
-	if test "$GSOAP_VERSION_MAJOR" -gt '2'; then
-	  gsoap_279=yes
-	elif test "$GSOAP_VERSION_MAJOR" = '2'; then
-	  if test "$GSOAP_VERSION_MINOR" -gt '7'; then
-	    gsoap_279=yes
-	  elif test "$GSOAP_VERSION_MINOR" = '7'; then
-	    if test "$GSOAP_VERSION_SUBMINOR" -ge '9'; then
-	      gsoap_279=yes
-	    fi
-	  fi
-	fi
-	if test "x$gsoap_279" = "xyes"; then
-	  AC_DEFINE(GSOAP_ALWAYS_USES_NAMESPACES_FOR_MEMBER_NAMES,,[define if gSOAP prepends names of class members with namespace])
-	fi
-fi
-
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
 AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
@@ -343,7 +310,6 @@ AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
-AM_CONDITIONAL([GSOAP_ENABLED], test x$GSOAP = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 
@@ -353,9 +319,6 @@ if test -n "$GLOBUS_RSL_VERSION"; then
 fi
 if test -n "$GLOBUS_RLS_CLIENT_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RSL package is available])
-fi
-if test x"$GSOAP" = xyes; then
-    AC_DEFINE(HAVE_GSOAP,,[define if GSOAP is available])
 fi
 if test x"$OPENSSL_PROXY" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
@@ -376,8 +339,6 @@ enable_lfc=no
 if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
-enable_gsoap=no
-if test x$GSOAP = xyes ; then enable_gsoap=yes; fi
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -535,7 +496,6 @@ RLS:                ${enable_rls}
 GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
-gSOAP:              ${enable_gsoap}
 
 Included components:
 A-Rex service:      ${enable_a_rex_service}
