@@ -32,7 +32,9 @@ public:
   @param salt <wsse11:Salt>...</wsse11:Salt>
   @param iteration <wsse11:Iteration>...</wsse11:Iteration>
   */
-  UsernameToken(SOAPEnvelope& soap, std::string& username, std::string& salt, int iteration);
+  UsernameToken(SOAPEnvelope& soap, std::string& username, std::string& salt, int iteration, std::string& id);
+
+private:
   /** Tells if specified SOAP header has WSSE element and UsernameToken inside the WSSE element */
   static bool Check(SOAPEnvelope& soap);
 private:
