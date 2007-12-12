@@ -5,9 +5,6 @@
 #include <arc/XMLNode.h>
 #include "../../jobs/job.h"
 
-//Just keeping compatibility
-#define jsdl__JobDefinition_USCOREType null
-
 class JobUser;
 class JobLocalDescription;
 class FileData;
@@ -15,10 +12,9 @@ class FileData;
 class JSDLJob {
  private:
 
-  Arc::NS jsdl_namespaces;
-
   Arc::XMLNode jsdl_document;
   Arc::XMLNode jsdl_posix;
+  Arc::XMLNode jsdl_hpcpa;
 
   bool check(void);
   void set(std::istream& f);
@@ -53,7 +49,6 @@ class JSDLJob {
   JSDLJob(void);
   JSDLJob(const char* str);
   JSDLJob(std::istream& f);
-  //JSDLJob(jsdl__JobDefinition_USCOREType *j);
   JSDLJob(const JSDLJob& j);
   ~JSDLJob(void);
   operator bool(void) { return jsdl_document; };
