@@ -303,8 +303,8 @@ namespace Arc {
 
       /* preallocate space */
       buffer->speed.hold(true);
-      unsigned long long int fsize = GetSize();
-      if(fsize > 0) {
+      if(CheckSize()) {
+        unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu",
                    url.Path().c_str(), fsize);
         /* because filesytem can skip empty blocks do real write */
