@@ -53,14 +53,16 @@
 /* maximum time for user files to upload (per file) */
 #define MAX_USER_TIME 600
 
+class PointPair;
 
 class FileDataEx: public FileData {
  public:
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataMover::result res;
   std::string failure_description;
-  FileDataEx(const FileData& f):FileData(f) {};
-  FileDataEx(const FileData& f,Arc::DataMover::result r,const std::string& fd):FileData(f),res(r),failure_description(fd) {};
+  PointPair* pair;
+  FileDataEx(const FileData& f):FileData(f),pair(NULL) {};
+  FileDataEx(const FileData& f,Arc::DataMover::result r,const std::string& fd):FileData(f),res(r),failure_description(fd),pair(NULL) {};
 };
 
 static JobDescription desc;
@@ -73,8 +75,9 @@ static gid_t cache_gid;
 static char* id;
 static int download_done=0;
 static bool leaving = false;
-static std::list<FileData> job_files;
-static std::list<FileData> processed_files;
+static std::list<FileData> job_files_;
+static std::list<FileDataEx> job_files;
+static std::list<FileDataEx> processed_files;
 static std::list<FileDataEx> failed_files;
 static Arc::SimpleCondition pair_condition;
 static int pairs_initiated = 0;
@@ -91,32 +94,32 @@ int clean_files(std::list<FileData> &job_files,char* session_dir) {
 
 class PointPair {
  public:
-  FileData::iterator file;
   Arc::DataPoint* source;
   Arc::DataPoint* destination;
-  std::string failure_description;
-  PointPair(const std::string& source_url,const std::string& destination_url,FileData::iterator f):
+  PointPair(const std::string& source_url,const std::string& destination_url):
                                                       source(Arc::DMC::GetDataPoint(source_url)),
-                                                      destination(Arc::DMC::GetDataPoint(destination_url)),
-                                                      file(f) {};
+                                                      destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
   static void callback(Arc::DataMover* mover,Arc::DataMover::result res,const std::string&,void* arg) {
-    PointPair& it = *((PointPair*)arg);
+    FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
     if(res != Arc::DataMover::success) {
-      it.failure_description=Arc::DataMover::get_result_string(res);
-      olog<<"Failed downloading file "<<*(it.source)<<" - "<<it.failure_description<<std::endl;
-      if((it.source->GetTries() <= 0) || (it.destination->GetTries() <= 0)) {
-        failed_files.push_back(*it.file);
+      it->failure_description=Arc::DataMover::get_result_string(res);
+      it->res=res;
+      olog<<"Failed downloading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
+      if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
+        delete it->pair; it->pair=NULL;
+        failed_files.push_back(*it);
       } else {
-        job_files.push_back(*it.file);
+        job_files.push_back(*it);
         olog<<"Retrying"<<std::endl;
       };
     } else {
-      olog<<"Downloaded file "<<*(it.source)<<std::endl;
-      processed_files.push_back(*it.file);
+      olog<<"Downloaded file "<<it->lfn<<std::endl;
+      delete it->pair; it->pair=NULL;
+      processed_files.push_back(*it);
     };
-    job_files.erase(it.file);
+    job_files.erase(it);
     --pairs_initiated;
     pair_condition.signal_nonblock();
     pair_condition.unlock();
@@ -374,18 +377,21 @@ int main(int argc,char** argv) {
   bool credentials_expired = false;
 
   // get the list of output files
-  if(!job_output_read_file(desc.get_id(),user,job_files)) {
+  if(!job_output_read_file(desc.get_id(),user,job_files_)) {
     failure_reason+="Internal error in uploader\n";
     olog << "Can't read list of output files" << std::endl; res=1; goto exit;
     //olog << "WARNING: Can't read list of output files - whole output will be removed" << std::endl;
   };
 
   // remove bad files
-  if(clean_files(job_files,session_dir) != 0) {
+  if(clean_files(job_files_,session_dir) != 0) {
     failure_reason+="Internal error in uploader\n";
     olog << "Can't remove junk files" << std::endl; res=1; goto exit;
   };
-  expand_files(job_files,session_dir);
+  expand_files(job_files_,session_dir);
+  for(std::list<FileData>::iterator i = job_files_.begin();i!=job_files_.end();++i) {
+    job_files.push_back(*i);
+  };
   // initialize structures to handle upload
   /* TODO: add threads=# to all urls if n_threads!=1 */
   desc.GetLocalDescription(user);
@@ -394,45 +400,49 @@ int main(int argc,char** argv) {
     // Initiate transfers
     int n = 0;
     pair_condition.lock();
-    for(FileData::iterator i=job_files.begin();i!=job_files.end();++i) {
+    for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
       if(i->lfn.find(":") != std::string::npos) { /* is it lfn ? */
         ++n;
         if(n <= pairs_initiated) continue; // skip files being processed
         if(n > n_files) break; // quit if not allowed to process more
         /* have source and file to upload */
-        /* define place to store */
-        std::string stdlog;
         std::string source;
-        JobLocalDescription* local = desc.get_local();
-        if(local) stdlog=local->stdlog;
-        if(stdlog.length() > 0) stdlog="/"+stdlog+"/";
-        if((stdlog.length() > 0) &&
-           (strncmp(stdlog.c_str(),i->pfn.c_str(),stdlog.length()) == 0)) {
-          stdlog=i->pfn.c_str()+stdlog.length();
-          source=std::string("file://")+control_dir+"/job."+id+"."+stdlog;
-        } else {
-          source=std::string("file://")+session_dir+i->pfn;
-        };
         std::string destination = i->lfn;
-        if(strncasecmp(destination.c_str(),"file://",7) == 0) {
-          failure_reason+=std::string("User requested to store output locally ")+destination.c_str()+"\n";
-          olog<<"FATAL ERROR: local destination for uploader"<<destination<<std::endl; res=1; goto exit;
+        if(i->pair == NULL) {
+          /* define place to store */
+          std::string stdlog;
+          JobLocalDescription* local = desc.get_local();
+          if(local) stdlog=local->stdlog;
+          if(stdlog.length() > 0) stdlog="/"+stdlog+"/";
+          if((stdlog.length() > 0) &&
+             (strncmp(stdlog.c_str(),i->pfn.c_str(),stdlog.length()) == 0)) {
+            stdlog=i->pfn.c_str()+stdlog.length();
+            source=std::string("file://")+control_dir+"/job."+id+"."+stdlog;
+          } else {
+            source=std::string("file://")+session_dir+i->pfn;
+          };
+          if(strncasecmp(destination.c_str(),"file://",7) == 0) {
+            failure_reason+=std::string("User requested to store output locally ")+destination.c_str()+"\n";
+            olog<<"FATAL ERROR: local destination for uploader"<<destination<<std::endl; res=1; goto exit;
+          };
+          PointPair* pair = new PointPair(source,destination);
+          if(!(pair->source)) {
+            failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
+            olog<<"FATAL ERROR: can't accept URL: "<<source<<std::endl; res=1; goto exit;
+          };
+          if(!(pair->destination)) {
+            failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
+            olog<<"FATAL ERROR: can't accept URL: "<<destination<<std::endl; res=1; goto exit;
+          };
+          i->pair=pair;
         };
-        PointPair* pair = new PointPair(source,destination,i);
-        if(!(pair->source)) {
-          failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
-          olog<<"FATAL ERROR: can't accept URL: "<<source<<std::endl; res=1; goto exit;
-        };
-        if(!(pair->destination)) {
-          failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
-          olog<<"FATAL ERROR: can't accept URL: "<<destination<<std::endl; res=1; goto exit;
-        };
-        if(mover.Transfer(*(pair->source),*(pair->destination),cache,url_map,
+        FileDataEx::iterator* it = new FileDataEx::iterator(i);
+        if(mover.Transfer(*(i->pair->source),*(i->pair->destination),cache,url_map,
                           min_speed,min_speed_time,min_average_speed,max_inactivity_time,
-                          pair->failure_description,&PointPair::callback,pair,i->pfn.c_str()) != Arc::DataMover::success) {
-          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+pair->failure_description+"\n";
-          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<pair->failure_description<<std::endl;
-          delete pair; res=1; goto exit;
+                          i->failure_description,&PointPair::callback,it,i->pfn.c_str()) != Arc::DataMover::success) {
+          failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+i->failure_description+"\n";
+          olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<i->failure_description<<std::endl;
+          delete it; res=1; goto exit;
         };
         ++pairs_initiated;
       };
@@ -443,7 +453,7 @@ int main(int argc,char** argv) {
     pair_condition.unlock();
   };
   // Print upload summary
-  for(FileData::iterator i=processed_files.begin();i!=processed_files.end();++i) {
+  for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
     odlog(INFO)<<"Uploaded "<<i->lfn<<std::endl;
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
@@ -459,11 +469,13 @@ int main(int argc,char** argv) {
     goto exit;
   };
   /* all files left should be kept */
-  for(FileData::iterator i=job_files.begin();i!=job_files.end();) {
+  for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
     i->lfn=""; ++i;
   };
   if(!userfiles_only) {
-    if(!job_output_write_file(desc,user,job_files)) {
+    job_files_.clear();
+    for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
+    if(!job_output_write_file(desc,user,job_files_)) {
       olog << "WARNING: Failed writing changed output file." << std::endl;
     };
   };
@@ -471,7 +483,9 @@ exit:
   if(!cache_dir.empty()) cache_release_url(cache_dir.c_str(),cache_data_dir.c_str(),cache_uid,cache_gid,id,true);
   olog << "Leaving uploader ("<<res<<")"<<std::endl;
   // clean uploaded files here 
-  clean_files(job_files,session_dir);
+  job_files_.clear();
+  for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
+  clean_files(job_files_,session_dir);
   remove_proxy();
   if(res != 0) {
     job_failed_mark_add(desc,user,failure_reason);
