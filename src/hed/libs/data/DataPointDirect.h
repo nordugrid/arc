@@ -78,8 +78,8 @@ namespace Arc {
     virtual bool local() const { return false; };
     virtual const URL& current_location() const;
     virtual const std::string& current_meta_location() const;
-    virtual bool next_location() { return false; };
-    virtual bool have_location() const { return true; };
+    virtual bool next_location() { if(tries_left > 0) --tries_left; return (tries_left > 0); };
+    virtual bool have_location() const { return (tries_left > 0); };
     virtual bool have_locations() const { return true; };
     virtual bool add_location(const std::string&, const URL&) { return false; };
     virtual bool remove_location() { return false; };
