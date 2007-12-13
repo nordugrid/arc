@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <pwd.h>
 
-#include <arc/data/DMC.h>
+//#include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataCache.h>
 #include <arc/data/DataPoint.h>
@@ -211,14 +211,14 @@ class PointPair {
     PointPair& it = *((PointPair*)arg);
     pair_condition.lock();
     if(res != Arc::DataMover::success) {
-      job_files.push_back(*it.file);
+      it.failure_description=Arc::DataMover::get_result_string(res);
       olog<<"Failed downloading file "<<*(it.source)<<" - "<<it.failure_description<<std::endl;
-//
-//
-//      processed_files.push_back(*it.file);
-//      DataMove::get_result_string(dres)
-//
-//
+      if((it.source->GetTries() <= 0) || (it.destination->GetTries() <= 0)) {
+        failed_files.push_back(*it.file);
+      } else {
+        job_files.push_back(*it.file);
+        olog<<"Retrying"<<std::endl;
+      };
     } else {
       olog<<"Downloaded file "<<*(it.source)<<std::endl;
       processed_files.push_back(*it.file);
@@ -440,6 +440,7 @@ int main(int argc,char** argv) {
   // odlog(DEBUG)<<"Cache: gid: "<<cache_gid<<std::endl;
   Arc::DataCache cache(cache_dir,cache_data_dir,cache_link_dir,id,cache_uid,cache_gid);
   Arc::DataMover mover;
+  mover.retry(false);
   mover.secure(secure);
   mover.passive(passive);
   if(min_speed != 0)
