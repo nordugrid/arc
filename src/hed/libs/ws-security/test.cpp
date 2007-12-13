@@ -18,17 +18,31 @@ int main(void) {
     </f:Delete>\
   </S:Body>\
 </S:Envelope>\
-");     
-
+");
+     
+  /*Generate the Username Token*/
   Arc::SOAPEnvelope soap(xml);
-  std::string username("user");
-  std::string password("123456");
   std::string uid("test-1");
-  Arc::UsernameToken ut(soap, username, password, uid, true, true);
+  Arc::UsernameToken ut1(soap, uid, true, true);
 
   std::string str;
   soap.GetXML(str);
   std::cout<<"SOAP message with UsernameToken:"<<str<<std::endl;
+
+  /*Parse the Username Token*/
+  Arc::UsernameToken ut2(soap);
+
+  /*Generate the UsenameToken, for derived key*/
+  Arc::SOAPEnvelope soap1(xml);
+  std::string username("user");
+  bool it = true;
+  Arc::UsernameToken ut3(soap1, username, it, 150, uid);
+
+  soap1.GetXML(str);
+  std::cout<<"SOAP message with UsernameToken, for derived key:"<<str<<std::endl;
+
+  /*Generate the derived key*/
+  Arc::UsernameToken ut4(soap1);
 
   return 0;
 }

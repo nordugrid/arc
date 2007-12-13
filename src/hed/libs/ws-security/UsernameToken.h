@@ -24,21 +24,21 @@ public:
   @param pwdtype <wsse:Password Type="...">...</wsse:Password>
   @param milliseconds precision of created time --- <wsu:Created>...</wsu/Created>
   */
-  UsernameToken(SOAPEnvelope& soap, std::string& username, std::string& password,
-    std::string& uid = "", bool pwdtype = false, bool milliseconds = false);
+  UsernameToken(SOAPEnvelope& soap, std::string& uid, bool pwdtype, bool milliseconds);
   /**Set username token information into the SOAP header
   @param soap  the SOAP message
   @param username  <wsse:Username>...</wsse:Username>
   @param salt <wsse11:Salt>...</wsse11:Salt>
   @param iteration <wsse11:Iteration>...</wsse11:Iteration>
   */
-  UsernameToken(SOAPEnvelope& soap, std::string& username, std::string& salt, int iteration, std::string& id);
+  UsernameToken(SOAPEnvelope& soap, std::string& username, bool mac, int iteration, std::string& id);
 
 private:
   /** Tells if specified SOAP header has WSSE element and UsernameToken inside the WSSE element */
   static bool Check(SOAPEnvelope& soap);
 private:
   std::string username_;
+  std::string uid_;
   std::string password_;
   std::string passwdtype_;
   std::string nonce_;
