@@ -46,6 +46,15 @@ bool SimpleListPDP::isPermitted(Message *msg){
      getline (fs, line);
      logger.msg(INFO, "policy line: %s", line.c_str());
      logger.msg(INFO, "subject: %s", subject.c_str());
+     line.erase(0,line.find_first_not_of(" \t"));
+     line.erase(line.find_last_not_of(" \t"));
+     if(!line.empty()) {
+       if(line[0] == '"') {
+         std::string::size_type p = line.find('"',1);
+         if(p != std::string::npos) line=line.substr(1,p-1);
+       };
+     };
+     logger.msg(INFO, "policy subject: %s", line.c_str());
      if(!(line.compare(subject))){
         fs.close();
         logger.msg(INFO, "Authorized from simplelist.pdp!!!");
