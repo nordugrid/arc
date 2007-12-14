@@ -8,9 +8,12 @@
 
 namespace ArcSec {
 
- // class Arc::Config;
- // class Arc::Logger;
-
+  /// Base class for Policy Decisoion Point plugins
+  /** This virtual class defines method isPermitted() which processes
+    security related information/attributes in Message and makes security 
+    decision - permit (true) or deny (false). 
+    Configuration of PDP is consumed during creation of instance
+    through XML subtree fed to constructor. */
   class PDP {
    public:
     PDP(Arc::Config*) {};
