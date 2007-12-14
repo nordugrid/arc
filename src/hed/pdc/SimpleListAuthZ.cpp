@@ -50,24 +50,6 @@ SimpleListAuthZ::~SimpleListAuthZ() {
 /**Producing PDPs */
 bool SimpleListAuthZ::MakePDPs(Config* cfg) {
   /**Creating the PDP plugins*/
-  /* XMLNode cn, an, can;
-    for(int i=0;;++i){
-       cn = cfg->Child(i);
-       if(MatchXMLName(cn, "PDP")){
-         for(int j=0;;++j){
-	    can=cn[j];
-	    if(!can) break;
-	    std::string name = can.Attribute("name");
-	    if(name.empty()) {
-	       logger.msg(ERROR, "PDP has no name attribute defined");
-               continue;
-	    }
-            PDP* pdp = pdp_factory->get_instance(name,&cfg_,ctx);
-    	    pdps_[name]=pdp;
-         }
-	break;
-        }
-  } */
     XMLNode cn;
     cn=(*cfg)["PDP"]; //need some polishing
     for(int n = 0;;++n) {
