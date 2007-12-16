@@ -1,12 +1,18 @@
-#include "../std.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <list>
 #include <utime.h>
+#include <sys/file.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 
-#include "../misc/log_time.h"
+#define odlog(LEVEL) std::cerr
 
 #include "simplemap.h"
 
