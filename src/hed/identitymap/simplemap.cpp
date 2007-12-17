@@ -16,6 +16,8 @@
 
 #include "simplemap.h"
 
+namespace ArcSec {
+
 class FileLock {
  private:
   int h_;
@@ -79,10 +81,10 @@ std::string SimpleMap::map(const char* subject) {
     if(!S_ISREG(st.st_mode)) failure("mapping is not a regular file");
     std::ifstream f(filename.c_str());
     if(!f.is_open()) failure("can't open mapping file");
-    char buf[256];
-    istream_readline(f,buf,sizeof(buf));
+    std::string name;
+    getline(f,name);
     utime(filename.c_str(),NULL);
-    return std::string(buf);
+    return name;
   };
   // Look for unused names
   // Get full list first.
@@ -90,11 +92,12 @@ std::string SimpleMap::map(const char* subject) {
   {
     std::ifstream f((dir_+"pool").c_str());
     if(!f.is_open()) failure("can't open pool file")
-    char buf[256];
+    std::string name;
     while(!f.eof()) {
-      istream_readline(f,buf,sizeof(buf));
-      if(!(*buf)) continue;
-      names.push_back(std::string(buf));
+      std::getline(f,name);
+      if(!f.fail()) break;
+      if(name.empty()) continue;
+      names.push_back(name);
     };
   };
   if(!names.size()) failure("pool is empty");
@@ -121,11 +124,11 @@ std::string SimpleMap::map(const char* subject) {
       if(!f.is_open()) { // trash in directory
         closedir(dir); failure("can't open one of mapping files"); 
       };
-      char buf[256];
-      istream_readline(f,buf,sizeof(buf));
+      std::string name;
+      std::getline(f,name);
       // find this name in list
       std::list<std::string>::iterator i = names.begin();
-      for(;i!=names.end();++i) if(*i == buf) break;
+      for(;i!=names.end();++i) if(*i == name) break;
       if(i == names.end()) {
         // Always try to destroy old mappings without corresponding 
         // entry in the pool file
@@ -136,7 +139,7 @@ std::string SimpleMap::map(const char* subject) {
         names.erase(i);
         if( (oldmap_name.length() == 0) ||
             (((int)(oldmap_time - st.st_mtime)) > 0) ) {
-          oldmap_name=buf;
+          oldmap_name=name;
           oldmap_subject=file->d_name;
           oldmap_time=st.st_mtime;
         };
@@ -176,3 +179,4 @@ bool SimpleMap::unmap(const char* subject) {
   return false;
 }
 
+} 
