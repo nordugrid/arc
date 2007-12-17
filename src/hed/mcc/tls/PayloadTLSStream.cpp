@@ -87,7 +87,7 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
   return true;
 }
 
-X509* PayloadTLSStream::GetPeercert(void){
+X509* PayloadTLSStream::GetPeerCert(void){
   X509* peercert;
   int err;
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
@@ -97,15 +97,34 @@ X509* PayloadTLSStream::GetPeercert(void){
     }
     else{      
       Logger::rootLogger.msg(ERROR,"Peer cert cannot be extracted");
-      return NULL;
     }
   }
   else{
-      Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
-      Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
-      handle_ssl_error(err);
-      return NULL;
+    Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
+    Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+    handle_ssl_error(err);
   }
+  return NULL;
+}
+
+STACK_OF(X509)* PayloadTLSStream::GetPeerChain(void){
+  STACK_OF(X509)* peerchain;
+  int err;
+  if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
+    peerchain=SSL_get_peer_cert_chain (ssl_);
+    if(peerchain!=NULL){
+       return peerchain;
+    }
+    else{
+      Logger::rootLogger.msg(ERROR,"Peer cert cannot be extracted");
+    }
+  }
+  else{
+    Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
+    Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+    handle_ssl_error(err);
+  }
+  return NULL;
 }
 
 } // namespace Arc

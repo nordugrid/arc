@@ -38,7 +38,8 @@ public:
   /**Getting peer certificate from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid
     after destruction. */
-  X509* GetPeercert(void);
+  X509* GetPeerCert(void);
+  STACK_OF(X509)* GetPeerChain(void);
 };
 
 }

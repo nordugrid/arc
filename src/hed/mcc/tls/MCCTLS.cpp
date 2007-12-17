@@ -465,16 +465,39 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
    //Getting the subject name of peer(client) certificate
-   X509* peercert = NULL;
    char buf[100];     
-   peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeercert();
+   X509* peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerCert();
    if (peercert != NULL) {
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       std::string peer_dn = buf;
-      logger.msg(DEBUG, "DN name: %s", peer_dn.c_str());
+      logger.msg(DEBUG, "Peer name: %s", peer_dn.c_str());
       // Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribute temporally, 
       // it should be put into MessageAuth later.
       nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
+#ifdef HAVE_OPENSSL_PROXY
+      if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
+         logger.msg(DEBUG, "Identity name: %s", peer_dn.c_str());
+         nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+      } else {
+         STACK_OF(X509)* peerchain = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerChain();
+         if(peerchain != NULL) {
+            for(int idx = 0;;++idx) {
+               if(idx >= sk_X509_num(peerchain)) break;
+               X509* cert = sk_X509_value(peerchain,idx);
+               if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) >= 0) {
+                  X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
+                  std::string identity_dn = buf;
+                  logger.msg(DEBUG, "Identity name: %s", identity_dn.c_str());
+                  nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+                  break;
+               };
+            };
+         };
+      };
+#else
+      nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+#endif
+      X509_free(peercert);
    }
    
    // Call next MCC 
