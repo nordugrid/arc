@@ -9,10 +9,10 @@ class SimpleMap {
   std::string dir_;
   int pool_handle_;
  public:
-  SimpleMap(const char* dir);
+  SimpleMap(const std::string& dir);
   ~SimpleMap(void);
-  std::string map(const char* subject);
-  bool unmap(const char* subject);
+  std::string map(const std::string& subject);
+  bool unmap(const std::string& subject);
   operator bool(void) { return (pool_handle_ != -1); };
   bool operator!(void) { return (pool_handle_ == -1); };
 };

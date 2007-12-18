@@ -9,6 +9,13 @@
 
 namespace ArcSec {
 
+class LocalMap {
+ public:
+  LocalMap(void) {};
+  virtual ~LocalMap(void) {};
+  virtual std::string ID(Arc::Message* msg) = 0;
+};
+
 /// Apply Tests message against list of PDPs
 /** This class implements SecHandler interface. It's Handle() method runs provided 
   Message instance against all PDPs specified in configuration. If any of PDPs 
@@ -18,7 +25,7 @@ class IdentityMap : public SecHandler {
 
   typedef struct {
     PDP* pdp;
-    std::string* uid;
+    LocalMap* uid;
   } map_pair_t;
 
   std::list<map_pair_t> maps_;
@@ -26,8 +33,6 @@ class IdentityMap : public SecHandler {
  public:
   IdentityMap(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~IdentityMap(void);
-  
-  /** Get authorization decision*/
   virtual bool Handle(Arc::Message* msg);  
 };
 

@@ -14,7 +14,7 @@
 
 #define odlog(LEVEL) std::cerr
 
-#include "simplemap.h"
+#include "SimpleMap.h"
 
 namespace ArcSec {
 
@@ -43,7 +43,7 @@ class FileLock {
   bool operator!(void) { return (h_ == -1); };
 };
 
-SimpleMap::SimpleMap(const char* dir):dir_(dir) {
+SimpleMap::SimpleMap(const std::string& dir):dir_(dir) {
   if((dir_.length() == 0) || (dir_[dir_.length()-1] != '/')) dir_+="/";
   if(dir_[0] != '/') {
     char buf[PATH_MAX];
@@ -66,9 +66,9 @@ SimpleMap::~SimpleMap(void) {
   odlog(INFO)<<"SimpleMap: "<<(S)<<std::endl; \
 }
 
-std::string SimpleMap::map(const char* subject) {
+std::string SimpleMap::map(const std::string& subject) {
   if(pool_handle_ == -1) failure("not initialized");
-  if(!subject) failure("missing subject");
+  if(subject.empty()) failure("missing subject");
   std::string filename(subject);
   for(std::string::size_type i = filename.find('/');i!=std::string::npos;
       i=filename.find('/',i+1)) filename[i]='_';
@@ -170,7 +170,7 @@ std::string SimpleMap::map(const char* subject) {
   return oldmap_name;
 }
 
-bool SimpleMap::unmap(const char* subject) {
+bool SimpleMap::unmap(const std::string& subject) {
   if(pool_handle_ == -1) return false;
   FileLock lock(pool_handle_);
   if(!lock) return false;

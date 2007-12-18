@@ -6,6 +6,8 @@
 #include <arc/loader/Loader.h>
 #include <arc/Logger.h>
 
+#include "SimpleMap.h"
+
 #include "IdentityMap.h"
 
 static ArcSec::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
@@ -19,6 +21,61 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 
 namespace ArcSec {
 
+// --------------------------------------------------------------------------------------
+class LocalMapDirect: public LocalMap {
+ private:
+  std::string id_;
+ public:
+  LocalMapDirect(const std::string& id):id_(id) {};
+  virtual ~LocalMapDirect(void) {};
+  virtual std::string ID(Arc::Message* msg) { return id_; };
+};
+
+// --------------------------------------------------------------------------------------
+class LocalMapPool: public LocalMap {
+ private:
+  std::string dir_;
+ public:
+  LocalMapPool(const std::string& dir);
+  virtual ~LocalMapPool(void);
+  virtual std::string ID(Arc::Message* msg);
+};
+
+LocalMapPool::LocalMapPool(const std::string& dir):dir_(dir) {
+}
+
+LocalMapPool::~LocalMapPool(void) {
+}
+
+std::string LocalMapPool::ID(Arc::Message* msg) {
+  // Get user Grid identity.
+  // So far only DN from TLS is supported.
+  std::string dn = msg->Attributes()->get("TLS:IDENTITYDN");
+  if(dn.empty()) return "";
+  SimpleMap pool(dir_);
+  if(!pool) return "";
+  return pool.map(dn);
+}
+
+// --------------------------------------------------------------------------------------
+static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
+  Arc::XMLNode p;
+  p=pdp["LocalName"];
+  if(p) {
+    std::string name = p;
+    if(name.empty()) return NULL;
+    return new LocalMapDirect(name);
+  };
+  p=pdp["LocalSimplePool"];
+  if(p) {
+    std::string dir = p;
+    if(dir.empty()) return NULL;
+    return new LocalMapPool(dir);
+  };
+  return NULL;
+}
+
+// --------------------------------------------------------------------------------------
 IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg){
   Arc::PDPFactory* pdp_factory = (Arc::PDPFactory*)(*ctx);
   if(pdp_factory) {
@@ -36,8 +93,8 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       if(!p) break;
       std::string name = p.Attribute("name");
       if(name.empty()) continue; // Nameless?
-      std::string local_id = p["LocalId"];
-      if(local_id.empty()) continue; // No mapping?
+      LocalMap* local_id = MakeLocalMap(p);
+      if(!local_id) continue; // No mapping?
       Arc::Config cfg_(p);
       ArcSec::PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
       if(!pdp) {
@@ -46,7 +103,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       };
       map_pair_t m;
       m.pdp=pdp;
-      m.uid=new std::string(local_id);
+      m.uid=local_id;
       maps_.push_back(m);
     };
   };
@@ -62,7 +119,7 @@ IdentityMap::~IdentityMap(void) {
 bool IdentityMap::Handle(Arc::Message* msg){
   for(std::list<map_pair_t>::iterator p = maps_.begin();p!=maps_.end();++p) {
     if(p->pdp->isPermitted(msg)) {
-      msg->Attributes()->set("SEC:LOCALID",*(p->uid));
+      msg->Attributes()->set("SEC:LOCALID",p->uid->ID(msg));
       return true;  
     };
   }
