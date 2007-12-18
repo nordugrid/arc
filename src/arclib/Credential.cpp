@@ -103,6 +103,7 @@ namespace Arc {
       switch(certformat) {
         case PEM:
           //Get the certificte, By default, certificate is without passphrase
+          //Read certificate
           x509 = PEM_read_bio_X509(certbio, &cert_, NULL, NULL);
           certs_.push_back(x509);
           //Get the issuer chain
@@ -126,6 +127,10 @@ namespace Arc {
           }
           //Get the lifetime of the credential
           getLifetime(cert_, lifetime_);
+  
+          //Read key
+          
+  
           break;                      
 
         case DER:
@@ -140,21 +145,72 @@ namespace Arc {
           break;
 
         case PKCS12:
-         pkcs12 = d2i_PKCS12_bio(cert_bio, NULL);
-         if(pkcs12){
-           PKCS12_parse(pkcs12, certpass.get(), NULL, &x509, NULL);
-           PKCS12_free(p12);
-         }
-         if(x509) {
-           certs_.push_back(x509);
-           x509=NULL;
-         } 
-         else {
-           tls_process_error(credentialLogger);
-           BIO_free(cert_bio);
-           throw CredentialError("Unable to read PKCS12 certificate from BIO);
-         }
-         break;
+          STACK_OF(X509)* pkcs12_certs = NULL;
+          pkcs12 = d2i_PKCS12_bio(cert_bio, NULL);
+          if(pkcs12){
+            char password[100];
+            PKCS12_SAFEBAG *           bag = NULL;
+            STACK_OF(PKCS12_SAFEBAG) * pkcs12_safebags = NULL;
+            PKCS7 *                    pkcs7 = NULL;
+            STACK_OF(PKCS7) *          auth_safes = NULL;
+            PKCS8_PRIV_KEY_INFO *      pkcs8 = NULL;
+            int bag_NID;
+            EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0));
+            if(PKCS12_verify_mac(pkcs12, password, -1)){
+              auth_safes = M_PKCS12_unpack_authsafes(pkcs12);
+              if(auth_safes) {
+                pkcs12_certs = sk_X509_new_null();
+                for (int i = 0; i < sk_PKCS7_num(auth_safes); i++){
+                  pkcs7 = sk_PKCS7_value(auth_safes, i);
+                  bag_NID = OBJ_obj2nid(pkcs7->type);
+                  if(bag_NID == NID_pkcs7_data){ pkcs12_safebags = M_PKCS12_unpack_p7data(pkcs7); }
+                  else if(bag_NID == NID_pkcs7_encrypted){ pkcs12_safebags = M_PKCS12_unpack_p7encdata (pkcs7, password, -1); }
+                }
+                if(pkcs12_safebags) {
+                  for (int j = 0; j < sk_PKCS12_SAFEBAG_num(pkcs12_safebags); j++) {
+                    bag = sk_PKCS12_SAFEBAG_value(pkcs12_safebags, j);
+                    if(M_PKCS12_bag_type(bag) == NID_certBag && M_PKCS12_cert_bag_type(bag) == NID_x509Certificate) {
+                      sk_X509_push(pkcs12_certs, M_PKCS12_certbag2x509(bag)); }
+                    else if(M_PKCS12_bag_type(bag) == NID_keyBag && pkey_ == NULL) {
+                      pkcs8 = bag->value.keybag;
+                      pkey_ = EVP_PKCS82PKEY(pkcs8);
+                    }
+                    else if(M_PKCS12_bag_type(bag) == NID_pkcs8ShroudedKeyBag && pkey_ == NULL) {
+                      pkcs8 = M_PKCS12_decrypt_skey(bag, password, strlen(password));
+                      pkey_ = EVP_PKCS82PKEY(pkcs8);
+                    }
+                  PKCS8_PRIV_KEY_INFO_free(pkcs8);
+                  }
+                }
+              }
+            }
+          }
+
+          X509* tmpcert = NULL;
+          for(i = 0 ; i < sk_X509_num(pkcs12_certs); i++) {
+            tmpcert_ = sk_X509_pop(pkcs12_certs);
+            if(X509_check_private_key(tmpcert_, pkey_)){
+              sk_X509_pop_free(pkcs12_certs, X509_free);
+              pkcs12_certs = NULL;
+              break;
+            }
+            else {
+              X509_free(tmpcert);
+              tmpcert = NULL;
+            }
+          }
+          cert_ = tmpcert;  
+          if(cert_ && key_) {
+            certs_.push_back(cert_);
+            getLifetime(certs_, lifetime_);
+          }
+          else { credentialLogger.msg("Unable to read PKCS12 certificate from BIO);}
+
+          if(cert_bio){ BIO_free(pkcs12_bio); }
+          if(pkcs12) { PKCS12_free(pkcs12); }
+          if(pkcs12_certs) { sk_X509_pop_free(pkcs12_certs, X509_free); }
+
+          break;
        } // end switch
 
 /*
