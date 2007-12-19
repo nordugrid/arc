@@ -440,6 +440,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
+		 src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile

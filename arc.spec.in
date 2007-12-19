@@ -207,6 +207,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
+%{_libdir}/%{pkgdir}/libidentitymap.so
 
 %files plugins-globus
 %defattr(-,root,root,-)
