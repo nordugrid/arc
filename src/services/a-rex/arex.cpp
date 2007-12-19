@@ -23,7 +23,7 @@
 namespace ARex {
 
 
-static Arc::LogStream logcerr(std::cerr);
+//static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new ARexService(cfg);
@@ -90,43 +90,52 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
       config = dynamic_cast<ARexConfigContext*>(mcontext);
     } catch(std::exception& e) { };
   };
-  if(!config) {
-    // TODO: do configuration detection
-    // TODO: do mapping to local unix name
-    std::string uname = uname_;
-    if(uname.empty()) {
-      struct passwd pwbuf;
-      char buf[4096];
-      struct passwd* pw;
-      if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
-        if(pw && pw->pw_name) {
-          uname = pw->pw_name;
-        };
+  if(config) return config;
+  // TODO: do configuration detection
+  // TODO: do mapping to local unix name
+  std::string uname;
+  uname=inmsg.Attributes()->get("SEC:LOCALID");
+  if(uname.empty()) uname=uname_;
+  if(uname.empty()) {
+    if(getuid() == 0) {
+      logger_.msg(Arc::ERROR, "Will not map to 'root' account by default");
+      return NULL;
+    };
+    struct passwd pwbuf;
+    char buf[4096];
+    struct passwd* pw;
+    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
+      if(pw && pw->pw_name) {
+        uname = pw->pw_name;
       };
     };
-    if(!uname.empty()) {
-      std::string grid_name = inmsg.Attributes()->get("TLS:PEERDN");
-      std::string endpoint = endpoint_;
-      if(endpoint.empty()) {
-        std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
-        std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
-        bool https_proto = !grid_name.empty();
-        endpoint = tcp_endpoint;
-        if(https_proto) {
-          endpoint="https"+endpoint;
-        } else {
-          endpoint="http"+endpoint;
-        };
-        endpoint+=GetPath(http_endpoint);
-      };
-      config=new ARexConfigContext(gmconfig_,uname,grid_name,endpoint);
-      if(config) {
-        if(*config) {
-          inmsg.Context()->Add("arex.gmconfig",config);
-        } else {
-          delete config; config=NULL;
-        };
-      };
+  };
+  if(uname.empty()) {
+    logger_.msg(Arc::ERROR, "No local account name specified");
+    return NULL;
+  };
+  logger_.msg(Arc::VERBOSE,"Using local account '%s'",uname.c_str());
+  std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
+  std::string endpoint = endpoint_;
+  if(endpoint.empty()) {
+    std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+    std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
+    bool https_proto = !grid_name.empty();
+    endpoint = tcp_endpoint;
+    if(https_proto) {
+      endpoint="https"+endpoint;
+    } else {
+      endpoint="http"+endpoint;
+    };
+    endpoint+=GetPath(http_endpoint);
+  };
+  config=new ARexConfigContext(gmconfig_,uname,grid_name,endpoint);
+  if(config) {
+    if(*config) {
+      inmsg.Context()->Add("arex.gmconfig",config);
+    } else {
+      delete config; config=NULL;
+      logger_.msg(Arc::ERROR, "Failed to acquire grid-manager's configuration");
     };
   };
   return config;
@@ -294,7 +303,7 @@ static void thread_starter(void* arg) {
 }
  
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {
-  logger_.addDestination(logcerr);
+  // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
   ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
@@ -306,13 +315,12 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   // Obtain information from configuration
   endpoint_=(std::string)((*cfg)["endpoint"]);
-  uname_=(std::string)((*cfg)["username"]);
+  uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
   // Create empty LIDI container
   // Arc::XMLNode doc(ns_);
   // infodoc_.Assign(doc,true);
   CreateThreadFunction(&thread_starter,this);
-
 }
 
 ARexService::~ARexService(void) {
