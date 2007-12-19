@@ -192,7 +192,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   outmsg.Payload(outpayload);
   delete retpayload;
   //Checking authentication and authorization; 
-  if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
+  if(!ProcessSecHandlers(outmsg,"outgoing")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
     delete outpayload; return make_soap_fault(outmsg);
   };
