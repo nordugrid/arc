@@ -4,7 +4,6 @@
 
 // SecHandler.cpp
 
-#include "Security.h"
 #include "SecHandler.h"
 
 namespace ArcSec{
