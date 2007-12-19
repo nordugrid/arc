@@ -499,6 +499,12 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 #endif
       X509_free(peercert);
    }
+
+   // Checking authentication and authorization;
+   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
+      logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
+      return MCC_Status();
+   };
    
    // Call next MCC 
    MCCInterface* next = Next();
@@ -581,6 +587,11 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
+   //Checking authentication and authorization;
+   if(!ProcessSecHandlers(inmsg,"incoming")) {
+      logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
+      return MCC_Status();
+   };
    // Sending payload
    for(int n=0;;++n) {
       char* buf = inpayload->Buffer(n);
@@ -594,6 +605,10 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    outmsg.Payload(new PayloadTLSMCC(*stream_,logger));
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
+   if(!ProcessSecHandlers(outmsg,"outgoing")) {
+      logger.msg(ERROR, "Security check failed in TLS MCC for outgoing message");
+      delete outmsg.Payload(NULL); return MCC_Status();
+   };
    return MCC_Status(Arc::STATUS_OK);
 }
 
