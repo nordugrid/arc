@@ -35,4 +35,13 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointHTTP::start_reading(DataBufferPar& buffer) {
+    return false;
+  }
+
+  bool DataPointHTTP::start_writing(DataBufferPar& buffer,
+                               DataCallback *space_cb) {
+    return false;
+  }
+
 } // namespace Arc

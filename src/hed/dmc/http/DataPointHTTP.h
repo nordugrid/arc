@@ -17,6 +17,9 @@ namespace Arc {
     DataPointHTTP(const URL& url);
     virtual ~DataPointHTTP();
     virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
+    virtual bool start_reading(DataBufferPar& buffer);
+    virtual bool start_writing(DataBufferPar& buffer,
+                               DataCallback *space_cb = NULL);
   };
 
 } // namespace Arc
