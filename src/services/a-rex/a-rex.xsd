@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  targetNamespace="http://www.nordugrid.org/schemas/a-rex/Config"
+  elementFormDefault="qualified">
+    <xsd:complexType name="endpoint_Type">
+        <!--
+             This element defines URL of A-REX service as seen from outside.
+        -->
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="endpoint" type="endpoint_Type"/>
+
+    <xsd:complexType name="gmconfig_Type">
+        <!--
+             This element defines path to arc0 Grid Manager configuartion file.
+             By default it is /etc/arc.conf.
+        -->
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:element name="gmconfig" type="gmconfig_Type"/>
+
+    <xsd:complexType name="usermap_Type">
+        <xsd:sequence>
+	    <xsd:element name="defaultLocalName" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="usermap" type="usermap_Type"/>
+
+</xsd:schema>
+
