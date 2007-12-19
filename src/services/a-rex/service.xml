@@ -17,6 +17,8 @@
   <Plugins><Name>mcctls</Name></Plugins>
   <Plugins><Name>mcchttp</Name></Plugins>
   <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arcpdc</Name></Plugins>
+  <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arex</Name></Plugins>
   <Plugins><Name>echo</Name></Plugins>
   <Chain>
@@ -36,7 +38,9 @@
       <KeyPath>./key.pem</KeyPath>
       <CertificatePath>./cert.pem</CertificatePath>
       <CACertificatePath>./ca.pem</CACertificatePath>
-
+      <SecHandler name="identity.map" id="map" event="incoming">
+        <PDP name="allow.pdp"><LocalName>nobody</LocalName></PDP>
+      </SecHandler>
     </Component>
     <Component name="http.service" id="http">
       <next id="soap">POST</next>
@@ -51,7 +55,7 @@
     </Plexer>
     <Service name="a-rex" id="a-rex">
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
-      <arex:username>sanjak</arex:username>
+      <arex:usermap><arex:defaultLocalName>sanjak</arex:defaultLocalName></arex:usermap>
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
     </Service>
     <Service name="echo" id="echo">
