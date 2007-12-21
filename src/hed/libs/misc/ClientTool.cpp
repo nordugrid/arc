@@ -8,7 +8,10 @@ namespace Arc {
 
 static char default_optstr[] = ":hd:l:";
 
-ClientTool::ClientTool(int argc,char* argv[],const std::string& name,const std::string& optstr):success_(false),logcerr_(std::cerr),logdest_(logfile_),name_(name),option_idx_(0) {
+ClientTool::ClientTool(const std::string& name):success_(false),logcerr_(std::cerr),logdest_(logfile_),name_(name),option_idx_(0) {
+}
+
+bool ClientTool::ProcessOptions(int argc,char* argv[],const std::string& optstr) {
   int optchar;
   std::string option_str(default_optstr);
   option_str+=optstr;
@@ -44,6 +47,7 @@ ClientTool::ClientTool(int argc,char* argv[],const std::string& name,const std::
   };
   option_idx_=optind;
   success_=true;
+  return true;
 }
 
 bool ClientTool::ProcessOption(char option,char* option_arg) {

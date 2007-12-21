@@ -5,20 +5,21 @@
 namespace Arc {
 
 class ClientTool {
- private:
+ protected:
   bool success_;
   Arc::LogStream logcerr_;
   std::ofstream logfile_;
   Arc::LogStream logdest_;
   std::string name_;
   int option_idx_;
+  bool ProcessOptions(int argc,char* argv[],const std::string& optstr = "");
  public:
-  ClientTool(int argc,char* argv[],const std::string& name,const std::string& optstr = "");
+  ClientTool(const std::string& name);
   virtual ~ClientTool(void);
   virtual bool ProcessOption(char option,char* option_arg);
   virtual void PrintHelp(void);
-  operator bool(void) { return success_; };
   int FirstOption(void) { return option_idx_; };
+  operator bool(void) { return success_; };
 };
 
 }
