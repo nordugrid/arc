@@ -7,6 +7,8 @@
 
 namespace Arc {
 
+  Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
+
   BaseConfig::BaseConfig() {
     key = "./key.pem";
     cert = "./cert.pem";
@@ -212,9 +214,9 @@ namespace Arc {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
-std::string s;
-xmlcfg.GetXML(s);
-std::cerr<<s<<std::endl;
+    std::string s;
+    xmlcfg.GetXML(s);
+    logger.msg(Arc::VERBOSE,"Client configuration: %s",s.c_str());
   }
 
   ClientSOAP::~ClientSOAP() {}

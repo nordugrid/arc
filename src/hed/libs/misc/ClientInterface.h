@@ -2,6 +2,7 @@
 #include <list>
 #include <arc/ArcConfig.h>
 #include <arc/DateTime.h>
+#include <arc/Logger.h>
 #include <arc/message/Message.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
@@ -49,6 +50,7 @@ namespace Arc {
     Config xmlcfg;
     Loader *loader;
     MessageContext context;
+    static Logger logger;
   };
 
   // Also supports TLS
