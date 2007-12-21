@@ -14,6 +14,7 @@ namespace Arc {
     cert = "./cert.pem";
     cafile = "./ca.pem";
     proxy = "";
+    cadir = "";
 #ifndef WIN32
     if(getenv("ARC_PLUGIN_PATH")) {
       std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
@@ -60,8 +61,16 @@ namespace Arc {
     cert = path;
   }
 
+  void BaseConfig::AddProxy(const std::string& path) {
+    proxy = path;
+  }
+
   void BaseConfig::AddCAFile(const std::string& path) {
     cafile = path;
+  }
+
+  void BaseConfig::AddCADir(const std::string& path) {
+    cadir = path;
   }
 
   static XMLNode ConfigMakeComponent(XMLNode chain, const char* name,
@@ -100,6 +109,7 @@ namespace Arc {
       if(!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
       if(!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
       if(!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
+      if(!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
     }
   }

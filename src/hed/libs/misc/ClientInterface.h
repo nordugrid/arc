@@ -26,6 +26,7 @@ namespace Arc {
     std::string cert;
     std::string proxy;
     std::string cafile;
+    std::string cadir;
     BaseConfig();
     virtual ~BaseConfig() {};
     /** Adds non-standard location of plugins */
@@ -34,8 +35,12 @@ namespace Arc {
     void AddPrivateKey(const std::string& path);
     /** Add certificate */
     void AddCertificate(const std::string& path);
+    /** Add credentials proxy */
+    void AddProxy(const std::string& path);
     /** Add CA file */
     void AddCAFile(const std::string& path);
+    /** Add CA directory */
+    void AddCADir(const std::string& path);
     /** Adds configuration part corresponding to stored information into
        common configuration tree supplied in 'cfg' argument. */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
