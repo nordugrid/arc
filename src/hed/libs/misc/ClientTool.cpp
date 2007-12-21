@@ -8,7 +8,7 @@ namespace Arc {
 
 static char default_optstr[] = ":hd:l:";
 
-ClientTool::ClientTool(int argc,char* argv[],const std::string& name,const std::string& optstr):success_(false),logcerr_(std::cerr),logdest_(logfile_),option_idx_(0) {
+ClientTool::ClientTool(int argc,char* argv[],const std::string& name,const std::string& optstr):success_(false),logcerr_(std::cerr),logdest_(logfile_),name_(name),option_idx_(0) {
   int optchar;
   std::string option_str(default_optstr);
   option_str+=optstr;
@@ -54,6 +54,11 @@ bool ClientTool::ProcessOption(char option,char* option_arg) {
 
 ClientTool::~ClientTool(void) {
   Logger::getRootLogger().removeDestinations();
+}
+
+void ClientTool::PrintHelp(void) {
+  std::cout<<name_<<" [-h] [-d debug_level] [-l logfile]"<<std::endl;
+  std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
 }
 
 }

@@ -10,10 +10,11 @@ class ClientTool {
   Arc::LogStream logcerr_;
   std::ofstream logfile_;
   Arc::LogStream logdest_;
+  std::string name_;
   int option_idx_;
  public:
   ClientTool(int argc,char* argv[],const std::string& name,const std::string& optstr = "");
-  ~ClientTool(void);
+  virtual ~ClientTool(void);
   virtual bool ProcessOption(char option,char* option_arg);
   virtual void PrintHelp(void);
   operator bool(void) { return success_; };
