@@ -6,7 +6,7 @@
 >
     <Server>
         <Foreground/>
-        <Pidfile>./arched.pid</Pidfile>
+        <PidFile>./arched.pid</PidFile>
         <Logger level="VERBOSE">./logfile</Logger>
     </Server>
     <ModuleManager>
