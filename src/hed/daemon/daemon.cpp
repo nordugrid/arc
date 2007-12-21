@@ -26,11 +26,11 @@ namespace Arc {
 
 Logger Daemon::logger(Logger::rootLogger, "Daemon");
 
-Daemon::Daemon(std::string& pid_file, std::string& log_file)
+Daemon::Daemon(std::string& pid_file_, std::string& log_file_)
 {
     pid_t pid;
     
-    pid_file = pid_file;
+    pid_file = pid_file_;
 
     pid = fork();
     switch(pid) {
@@ -54,10 +54,10 @@ Daemon::Daemon(std::string& pid_file, std::string& log_file)
                 fclose(stdin);
             }
             /* forward stdout and stderr to log file */
-            if (std::freopen(log_file.c_str(), "a", stdout) == NULL) {
+            if (std::freopen(log_file_.c_str(), "a", stdout) == NULL) {
                 fclose(stdout);
             }
-            if (std::freopen(log_file.c_str(), "a", stderr) == NULL) {
+            if (std::freopen(log_file_.c_str(), "a", stderr) == NULL) {
                 fclose(stderr);
             }
             break;
