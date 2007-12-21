@@ -39,7 +39,7 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
     }
     if (opt.pid_file != "") {
         if (!(bool)srv["PidFile"]) {
-           srv.NewChild("Pidfile")=opt.pid_file;
+           srv.NewChild("PidFile")=opt.pid_file;
         } else {
             srv["PidFile"] = opt.pid_file;
         }
