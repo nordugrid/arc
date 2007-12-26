@@ -17,7 +17,7 @@ class CredentialError : public std::runtime_error {
 
 
 class Credential {
-  enum credformat {PEM, DER, PKCS12, UNKNOWN};
+  enum Credformat {PEM, DER, PKCS12, UNKNOWN};
 
   public:
     /**Constructor*/
@@ -31,12 +31,15 @@ class Credential {
     /**Constructor, construct from key and request, it is just a half-matured credential*/
     Credential(X509_REQ**, EVP_PKEY** key);
 
+    loadKey();
+    loadCertificate();
+    loadCA();
 
   /************************************/
   /*****Get the information from "this" object**/
   public:
     
-    credformat getFormat(BIO * in) const;        
+    Credformat getFormat(BIO * in) const;        
 
 
 
@@ -131,10 +134,12 @@ class Credential {
     EVP_PKEY *       pkey_;    //private key
     STACK_OF(X509) * cert_chain_;  //cert chain
     std::list<X509*> certs_;
+    Credformat       format;
     Time         lifetime_;
 
     //Certificate request
-    X509_REQ** req;
+    //X509_REQ** req;
+    RSA* rsa_key_;
 
     //Extensions for certificate, such as certificate policy, attributes, etc/
     STACK_OF(X509_EXTENSION) ** extensions;

@@ -44,9 +44,9 @@ namespace Arc {
   }
 
   //Parse the BIO for certificate and get the format of it
-  Credential::getFormat(BIO* bio) {
+  Credformat Credential::getFormat(BIO* bio) {
     PKCS12* pkcs12 = NULL;
-    certformat format;
+    Credformat format;
     char buf[1];
     char firstbyte;
     int position;
@@ -74,159 +74,225 @@ namespace Arc {
     return format;
   }
 
-  Credential::Credential(const std::string& cert, const std::string& key, const std::string& cainfo) {
+
+  void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs) {
     //Parse the certificate
-    BIO* certbio;
+    Credformat format;
     int n=0;
     try{
       X509* x509=NULL;
       PKCS12* p12=NULL;
-      certbio = BIO_new_file(cert.c_str(), "r");
-      if (certbio){
-        certformat = getFormat(certbio);
-        credentialLogger.msg(INFO,"Cerficate format for certicate: %s is %s", cert.c_str(), certformat);
-      }
-      else {
-        credentialLogger.msg(ERROR,"Can not read certificate file: %s ", cert.c_str());
-        throw CredentialError("Can not read certificate file");
-      }
-
-      if(cert_) {
-        X509_free(cert_);
-        cert_ = NULL;
-      }      
-
-      if(cert_chain != NULL){
-        sk_X509_pop_free(cert_chain_, X509_free);
-      }
-
-      switch(certformat) {
+      format = getFormat(certbio);
+      credentialLogger.msg(INFO,"Cerficate format for BIO is: %s", certformat);
+      
+      switch(format) {
         case PEM:
           //Get the certificte, By default, certificate is without passphrase
           //Read certificate
-          x509 = PEM_read_bio_X509(certbio, &cert_, NULL, NULL);
-          certs_.push_back(x509);
+          if(!(x509 = PEM_read_bio_X509(certbio, &cert, NULL, NULL)) {
+            credentialLogger.msg(ERROR,"Can not read cert information from BIO");
+            throw CredentialError("Can not read cert information from BIO");
+          }
+ 
           //Get the issuer chain
-          cert_chain_ = sk_X509_new_null();
-          while(!BIO_eof(cert_bio)){
+          certs = sk_X509_new_null();
+          while(!BIO_eof(certbio)){
             X509 * tmp = NULL;
-            if(!(x509 = PEM_read_bio_X509(cert_bio, &tmp, NULL, NULL))){
+            if(!(x509 = PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
               ERR_clear_error();
               break;
             }
-            certs_.push_back(x509);
-            if(!sk_X509_insert(cert_chain_, tmp, n))
+            certs.push_back(x509);
+            if(!sk_X509_insert(certs, tmp, n))
             {
               X509_free(tmp);
-              std::string str(X509_NAME_oneline(X509_get_subject_name(tmp_cert),0,0));
+              std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
               credentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str.c_str());
-              BIO_free(cert_bio);
               throw CredentialError("Can not insert cert into certificate's issuer chain");
             }
             ++n;
           }
-          //Get the lifetime of the credential
-          getLifetime(cert_, lifetime_);
-  
-          //Read key
-          
-  
-          break;                      
+          break;
 
         case DER:
-          x509=d2i_X509_bio(cert_bio,NULL);
-          if(x509)
-            certs_.push_back(x509);
-          else {
-            tls_process_error(credentialLogger);
-            BIO_free(cert_bio);
+          cert=d2i_X509_bio(certbio,NULL);
+          if(!cert){
+            credentialLogger.msg(ERROR,"Unable to read DER credential from BIO");
             throw CredentialError("Unable to read DER credential from BIO");
           }
           break;
 
         case PKCS12:
           STACK_OF(X509)* pkcs12_certs = NULL;
-          pkcs12 = d2i_PKCS12_bio(cert_bio, NULL);
+          pkcs12 = d2i_PKCS12_bio(certbio, NULL);
           if(pkcs12){
             char password[100];
-            PKCS12_SAFEBAG *           bag = NULL;
-            STACK_OF(PKCS12_SAFEBAG) * pkcs12_safebags = NULL;
-            PKCS7 *                    pkcs7 = NULL;
-            STACK_OF(PKCS7) *          auth_safes = NULL;
-            PKCS8_PRIV_KEY_INFO *      pkcs8 = NULL;
-            int bag_NID;
             EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0));
-            if(PKCS12_verify_mac(pkcs12, password, -1)){
-              auth_safes = M_PKCS12_unpack_authsafes(pkcs12);
-              if(auth_safes) {
-                pkcs12_certs = sk_X509_new_null();
-                for (int i = 0; i < sk_PKCS7_num(auth_safes); i++){
-                  pkcs7 = sk_PKCS7_value(auth_safes, i);
-                  bag_NID = OBJ_obj2nid(pkcs7->type);
-                  if(bag_NID == NID_pkcs7_data){ pkcs12_safebags = M_PKCS12_unpack_p7data(pkcs7); }
-                  else if(bag_NID == NID_pkcs7_encrypted){ pkcs12_safebags = M_PKCS12_unpack_p7encdata (pkcs7, password, -1); }
-                }
-                if(pkcs12_safebags) {
-                  for (int j = 0; j < sk_PKCS12_SAFEBAG_num(pkcs12_safebags); j++) {
-                    bag = sk_PKCS12_SAFEBAG_value(pkcs12_safebags, j);
-                    if(M_PKCS12_bag_type(bag) == NID_certBag && M_PKCS12_cert_bag_type(bag) == NID_x509Certificate) {
-                      sk_X509_push(pkcs12_certs, M_PKCS12_certbag2x509(bag)); }
-                    else if(M_PKCS12_bag_type(bag) == NID_keyBag && pkey_ == NULL) {
-                      pkcs8 = bag->value.keybag;
-                      pkey_ = EVP_PKCS82PKEY(pkcs8);
-                    }
-                    else if(M_PKCS12_bag_type(bag) == NID_pkcs8ShroudedKeyBag && pkey_ == NULL) {
-                      pkcs8 = M_PKCS12_decrypt_skey(bag, password, strlen(password));
-                      pkey_ = EVP_PKCS82PKEY(pkcs8);
-                    }
-                  PKCS8_PRIV_KEY_INFO_free(pkcs8);
-                  }
-                }
-              }
+            if(!PKCS12_parse(pkcs12, password, NULL, &cert, &pkcs12_certs)) {
+              credentialLogger.msg(ERROR,"Can not parse PKCS12 file");
+              throw CredentialError("Can not parse PKCS12 file");
             }
+          }
+          else{
+            credentialLogger.msg(ERROR,"Can not read PKCS12 credential file: %s from BIO", cert.c_str());
+            throw CredentialError("Can not read PKCS12 credential file");
           }
 
-          X509* tmpcert = NULL;
-          for(i = 0 ; i < sk_X509_num(pkcs12_certs); i++) {
-            tmpcert_ = sk_X509_pop(pkcs12_certs);
-            if(X509_check_private_key(tmpcert_, pkey_)){
-              sk_X509_pop_free(pkcs12_certs, X509_free);
-              pkcs12_certs = NULL;
-              break;
-            }
-            else {
-              X509_free(tmpcert);
-              tmpcert = NULL;
-            }
+          if (pkcs12_certs && sk_num(pkcs12_certs){
+            X509* tmp;
+            for (n = 0; n < sk_X509_num(pkcs12_certs); n++) {
+              tmp = X509_dup(sk_X509_value(pkcs12_certs, n));
+              sk_X509_insert(certs, tmp, n);
+	    }
           }
-          cert_ = tmpcert;  
-          if(cert_ && key_) {
-            certs_.push_back(cert_);
-            getLifetime(certs_, lifetime_);
-          }
-          else { credentialLogger.msg("Unable to read PKCS12 certificate from BIO);}
 
-          if(cert_bio){ BIO_free(pkcs12_bio); }
           if(pkcs12) { PKCS12_free(pkcs12); }
           if(pkcs12_certs) { sk_X509_pop_free(pkcs12_certs, X509_free); }
 
           break;
        } // end switch
 
-/*
-     } 
-     else {
-       tls_process_error(credentialLogger);
-       BIO_free(cert_bio);
-       cert_bio=NULL;
-       throw CredentialError("Unable to read certificate from BIO);
-     }
-     if (cert_bio) {
-       BIO_free(cert_bio);
-       cert_bio=NULL;
-     }
+  }
+
+  void Credential::loadCA(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs) {
+
+  }  
+
+  void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey) {
+    //Read key
+    Credformat format;
+    format = getFormat(keybio);
+    switch(format){
+      case PEM:
+        if(!(PEM_read_bio_PrivateKey(keybio, &pkey, passwordcallback, NULL))) {  
+          credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO: %s ");
+          throw CredentialError("Can not read credential key");
+        }
+        break;
+
+      case DER:
+        pkey=d2i_PrivateKey_bio(keybio, NULL);
+        break;
+
+      case PKCS12: 
+        PKCS12* pkcs12 = d2i_PKCS12_bio(keybio, NULL);
+        if(pkcs12) {
+          char password[100];
+          EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0));
+          if(!PKCS12_parse(pkcs12, password, &pkey, NULL, NULL)) {
+            credentialLogger.msg(ERROR,"Can not parse PKCS12 file");
+            throw CredentialError("Can not parse PKCS12 file");
+          }
+          PKCS12_free(pkcs12);
+        }
+        break;
+
+  }
+ 
+  Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cafile) {
+   BIO* certbio, BIO* keybio; 
+   Credformat format;
+   certbio = BIO_new_file(certfile.c_str(), "r"); 
+   if(!certbio){
+     credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile.c_str());
+     throw CredentialError("Can not read certificate file");
+   }
+   keybio = BIO_new_file(keyfile.c_str(), "r");
+   if(!keybio){
+     credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile.c_str());
+     throw CredentialError("Can not read key file");
+   }
+
+   loadCertificate(certbio, cert_, cert_chain_);
+
+   loadKey(keybio, key_);
+
+   //load CA
     
-  }*/
+    //Get the lifetime of the credential
+    getLifetime(certs_, lifetime_);
+
+  }
+
+  #ifdef HAVE_OPENSSL_OLDRSA
+  static void keygen_cb(int p, int, void*) {
+    char c='*';
+    if (p == 0) c='.';
+    if (p == 1) c='+';
+    if (p == 2) c='*';
+    if (p == 3) c='\n';
+    std::cerr<<c;
+  }
+  #else
+  static int keygen_cb(int p, int, BN_GENCB*) {
+    char c='*';
+    if (p == 0) c='.';
+    if (p == 1) c='+';
+    if (p == 2) c='*';
+    if (p == 3) c='\n';
+    std::cerr<<c;
+    return 1;
+  }
+  #endif
+
+
+  bool Credential::GenerateRequest(BIO* &reqbio){
+    bool res = false;
+    X509_NAME *         req_name = NULL;
+    X509_NAME_ENTRY *   req_name_entry = NULL;
+    RSA *               rsa_key = NULL;
+    int keybits = 1024;
+    const EVP_MD *digest = EVP_md5();
+    EVP_PKEY* pkey; 
+  #ifdef HAVE_OPENSSL_OLDRSA
+    unsigned long prime = RSA_F4; 
+    rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
+    if(!rsa_key) { credentialLogger.msg("RSA_generate_key failed"); }
+  #else
+    BN_GENCB cb;
+    BIGNUM *prime = BN_new();
+    rsa_key = RSA_new();
+
+    BN_GENCB_set(&cb,&keygen_cb,NULL);
+    if(prime && rsa_key) {
+      if(BN_set_word(bn,RSA_F4)) {
+        if(!RSA_generate_key_ex(rsa_key, keybits, prime, &cb)) { credentialLogger.msg("RSA_generate_key_ex failed"); }
+      }      
+      else{ credentialLogger.msg("BN_set_word failed");}
+    } 
+    else { credentialLogger.msg("BN_new || RSA_new failed"); }
+
+    if(prime) BN_free(prime);
+  #endif
+    
+    pkey = EVP_PKEY_new();
+    if(pkey){
+      if(rsa_key) {
+        if(EVP_PKEY_set1_RSA(pkey, rsa_key)) {
+          X509_REQ *req = X509_REQ_new();
+          if(req) {
+            if(X509_REQ_set_version(req,2L)) {
+              if(X509_REQ_set_pubkey(req,pkey)) {
+                if(X509_REQ_sign(req,pkey,digest)) {
+                  if(!(PEM_write_bio_X509_REQ(reqbio,req))){ credentialLogger.msg("PEM_write_bio_X509_REQ failed");}
+                  else { res = true; rsa_key_ = rsa_key; }
+                }
+              }
+            }
+          }
+          X509_REQ_free(req);
+        }
+      }
+    }
+    EVP_PKEY_free(pkey);
+
+    return res;
+  }
+
+  bool Credential::SignRequest(BIO* &reqbio){
+    
+
+  }
 
 }
 
