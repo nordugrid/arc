@@ -8,9 +8,9 @@ Building ARC on Windows system
 - Install from mysysPORT
 	- libiconv
 	- zlib
-- Install extra regex pacakage from contribution
+- Install extra regex pacakage from contribution package
 	- libgnurx dll does not exsist in regexp package you can get it from
-	http://ftp.gnome.org/pub/binaries/win32/dependencies/libgnurx-x.y.z-x.y..zip
+	http://ftp.gnome.org/pub/binaries/win32/dependencies/libgnurx-x.y.z-x.y.zip
 
 - Install gtkmm devel package (it includes glibmm)
 (http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/)
@@ -20,11 +20,11 @@ Building ARC on Windows system
 	libarccommon depends on ole32 to make the compile success you should:
 	cp /c/WINDOWS/system32/ole32.dll /mingw/lib/libole32.dll
 	cp /c/WINDOWS/system32/ws2_32.dll /migw/lib/libws2_32.dll
-	SSL rename
+	and SSL rename
 	cp /c/WINDOWS/system32/ssleay.dll /c/OpenSSL/lib/MinGW/libssleay32.dll
 	cp /c/WINDOWS/system32/libeay32.dll /c/OpenSSL/lib/MinGW/libeay32.dll
 
-- checkout code from svn
+- checkout code from SVN
 export ACLOCAL="aclocal -I /c/GTK/share/aclocal"
 export PATH=$PATH:/c/MingW/bin
 export PKG_CONFIG_PATH=/c/GTK/lib/pkgconfig

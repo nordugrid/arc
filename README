@@ -41,8 +41,6 @@ client) is shown:
     o glibmm-2.4 version 2.4.7 or later
     o libxml-2.0 version 2.4.0 or later
     o openssl version 0.9.7a or later
-    o gsoap++ version 2.7 or later
-      (http://www.cs.fsu.edu/~engelen/soap.html)
     o e2fsprogs-devel
     o doxygen
 
