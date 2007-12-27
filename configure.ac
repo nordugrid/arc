@@ -489,7 +489,7 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Java binding:       ${enable_java}
-Python binding:     ${enable_python}
+Python binding:     ${enable_python} ($PYTHON_VERSION)
 
 Available third-party features:
 
