@@ -76,6 +76,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Converting stream payload to HTTP which also implements raw interface
   PayloadHTTP nextpayload(*inpayload);
   if(!nextpayload) {
+    logger.msg(WARNING, "Cannot create http payload"); 
     return make_http_fault(logger,*inpayload,outmsg,400);
   };
   if(nextpayload.Method() == "END") {
@@ -94,21 +95,34 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("HTTP:"+i->first,i->second);
   };
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
-    return make_http_fault(logger,*inpayload,outmsg,400); // Maybe not 400 ?
+    return make_http_fault(logger,*inpayload,outmsg, 400); // Maybe not 400 ?
   };
   // Call next MCC 
   MCCInterface* next = Next(nextpayload.Method());
-  if(!next) return make_http_fault(logger,*inpayload,outmsg,404);
+  if(!next) {
+    logger.msg(WARNING, "No next element in the chain");
+    return make_http_fault(logger,*inpayload,outmsg, 404);
+  }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract raw response
-  if(!ret) return make_http_fault(logger,*inpayload,outmsg,500);
-  if(!nextoutmsg.Payload()) return make_http_fault(logger,*inpayload,outmsg,500);
+  if(!ret) {
+    logger.msg(WARNING, "next element of the chain returned error status");
+    return make_http_fault(logger,*inpayload,outmsg, 500);
+  }
+  if(!nextoutmsg.Payload()) {
+    logger.msg(WARNING, "next element of the chain returned empty payload");
+    return make_http_fault(logger,*inpayload,outmsg, 500);
+  }
   PayloadRawInterface* retpayload = NULL;
   try {
     retpayload = dynamic_cast<PayloadRawInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,500); };
+  if(!retpayload) { 
+    logger.msg(WARNING, "next element of the chain returned invalid payload");
+    delete nextoutmsg.Payload(); 
+    return make_http_fault(logger,*inpayload,outmsg,500); 
+  };
   if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
     delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,400); // Maybe not 400 ?
   };
@@ -143,7 +157,10 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
   outpayload->Body(*retpayload);
-  if(!outpayload->Flush()) return make_http_fault(logger,*inpayload,outmsg,500);
+  if(!outpayload->Flush()) {
+    logger.msg(WARNING, "Error to flush output payload");
+    return make_http_fault(logger,*inpayload,outmsg, 500);
+  }
   delete outpayload;
   outmsg = nextoutmsg;
   // Returning empty payload because response is already sent through Flush
