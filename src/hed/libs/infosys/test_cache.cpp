@@ -12,32 +12,56 @@ std::string doc1 = "\
     <Owner>\
         <Name>Unknown</Name>\
     </Owner>\
-    <Resource>\
-        <Memory>640kb enough for everyone</Memory>\
-        <Performance>Quantum computer</Performance>\
-    </Resource>\
+    <Level1>\
+        <Level2>\
+            <Level3>\
+                <Level4>1</Level4>\
+            </Level3>\
+        </Level2>\
+    </Level1>\
 </InfoDoc>\
 ";
 
 std::string doc2 = "\
 <?xml version=\"1.0\"?>\
-<InfoDoc>\
-    <Resource>\
-        <Memory>2000</Memory>\
-        <Performance>Turltle-like</Performance>\
-    </Resource>\
-    <Owner>\
-        <Name>Unknown</Name>\
-    </Owner>\
-    <Resource>\
-        <Memory>640kb enough for everyone</Memory>\
-        <Performance>Quantum computer</Performance>\
-    </Resource>\
-</InfoDoc>\
+<Resource>\
+    <Memory>2000</Memory>\
+    <Performance>Turltle-like</Performance>\
+</Resource>\
+";
+
+std::string doc3 = "\
+<?xml version=\"1.0\"?>\
+<Memory>3000</Memory>\
+";
+
+std::string doc4 = "\
+<?xml version=\"1.0\"?>\
+<Level4>3</Level4>\
 ";
 
 int main(void)
 {
+    Arc::XMLNode xml1(doc1);
+    Arc::XMLNode xml2(doc1);
+    Arc::Config cfg("./service.xml");
+    Arc::InfoCache cache(cfg, "test_service");
+    bool ret;
+    ret = cache.Set("/", xml1);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    cache.Set("/InfoDoc", xml2);  
+    std::cout << ret << "(" << true << ")" << std::endl;
+    Arc::XMLNode xml3(doc2);
+    ret = cache.Set("/InfoDoc/Resource", xml3);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    Arc::XMLNode xml4(doc3);
+    ret = cache.Set("/InfoDoc/Resource/Memory", xml4);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    Arc::XMLNode xml5(doc4);
+    ret = cache.Set("/InfoDoc/Level1/Level2/Level3/Level4", xml5);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    
+#if 0
 /*    Arc::XMLNodeContainer c;
     Arc::XMLNode doc(doc1);
     Arc::NS ns;
@@ -77,6 +101,6 @@ int main(void)
     for (int it = 0; it < result2.Size(); it++) {
         std::cout << result2[it].Name() << ":" << std::string(result2[it]) << std::endl;
     }
-
+#endif
     return 0;
 }
