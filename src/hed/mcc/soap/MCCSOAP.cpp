@@ -47,7 +47,8 @@ MCC_SOAP_Client::MCC_SOAP_Client(Arc::Config *cfg):MCC_SOAP(cfg) {
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
-static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL) {
+static MCC_Status make_raw_fault(Message& outmsg,const char* = NULL) 
+{
   NS ns;
   SOAPEnvelope soap(ns,true);
   soap.Fault()->Code(SOAPFault::Receiver);
@@ -76,10 +77,16 @@ static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,const char* de
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
   MessagePayload* inpayload = inmsg.Payload();
-  if(!inpayload) return make_raw_fault(outmsg);
+  if(!inpayload) {
+    logger.msg(WARNING, "empty input payload");
+    return make_raw_fault(outmsg);
+  }
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
-  if(!nextpayload) return make_raw_fault(outmsg);
+  if(!nextpayload) {
+    logger.msg(WARNING, "incomeing message is not SOAP");
+    return make_raw_fault(outmsg);
+  }
   // Creating message to pass to next MCC and setting new payload.. 
   // Using separate message. But could also use same inmsg.
   // Just trying to keep it intact as much as possible.
@@ -97,17 +104,30 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   };
   // Call next MCC 
   MCCInterface* next = Next();
-  if(!next) return make_raw_fault(outmsg);
+  if(!next) {
+    logger.msg(WARNING, "empty next chain element");
+    return make_raw_fault(outmsg);
+  }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and extract SOAP response
-  if(!ret) return make_raw_fault(outmsg);
-  if(!nextoutmsg.Payload()) return make_raw_fault(outmsg);
+  if(!ret) {
+    logger.msg(WARNING, "next element of the chain returned error status");
+    return make_raw_fault(outmsg);
+  }
+  if(!nextoutmsg.Payload()) {
+    logger.msg(WARNING, "next element of the chain returned empty payload");
+    return make_raw_fault(outmsg);
+  }
   PayloadSOAP* retpayload = NULL;
   try {
     retpayload = dynamic_cast<PayloadSOAP*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
+  if(!retpayload) {
+    logger.msg(WARNING, "next element of the chain returned invalid payload");
+    delete nextoutmsg.Payload(); 
+    return make_raw_fault(outmsg); 
+  };
   if(!(*retpayload)) { delete retpayload; return make_raw_fault(outmsg); };
   //Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
@@ -157,7 +177,6 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Converting payload to Raw
   PayloadRaw nextpayload;
   std::string xml; inpayload->GetXML(xml);
-  logger.msg(Arc::DEBUG, xml.c_str()); 
   nextpayload.Insert(xml.c_str());
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
