@@ -188,7 +188,97 @@ namespace Arc {
         break;
 
   }
+
+  int Credential::InitProxyCertInfo(void) {
+    #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
+    #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
+    #define OBJC(c,n) OBJ_create(c,n,#c)
+    X509V3_EXT_METHOD *pci_x509v3_ext_meth;
+
+    /* Proxy Certificate Extension's related objects */
+    OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
+    OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
+
+    pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
+    if (pci_x509v3_ext_meth) {
+      pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V3");
+      X509V3_EXT_add(pci_x509v3_ext_meth);
+    }
+
+    pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
+    if (pci_x509v3_ext_meth) {
+      pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V4");
+      X509V3_EXT_add(pci_x509v3_ext_meth);
+    }
+  }
+  
+  Credential::Verify_cert_chain(void) {
+    
+
+int                                 i;
+    int                                 j;
+    int                                 retval = 0;
+    X509_STORE *                        cert_store = NULL;
+    X509_LOOKUP *                       lookup = NULL;
+    X509_STORE_CTX                      csc;
+    X509 *                              xcert = NULL;
+    X509 *                              scert = NULL;
+    scert = ucert;
  
+    cert_store = X509_STORE_new();
+    X509_STORE_set_verify_cb_func(cert_store, proxy_verify_callback);
+    if (cert_chain_ != NULL) {
+      for (i=0;i<sk_X509_num(cert_chain_);i++) {
+            xcert = sk_X509_value(cert_chain_,i);
+            if (!scert)
+            {
+                scert = xcert;
+            }
+            else
+            {
+                j = X509_STORE_add_cert(cert_store, xcert);
+                if (!j)
+                {
+                    if ((ERR_GET_REASON(ERR_peek_error()) ==
+                         X509_R_CERT_ALREADY_IN_HASH_TABLE))
+                    {
+                        ERR_clear_error();
+                        break;
+                    }
+                    else
+                    {
+                        /*DEE need errprhere */
+                        goto err;
+                    }
+                }
+            }
+        }
+    }
+    if ((lookup = X509_STORE_add_lookup(cert_store,
+                                        X509_LOOKUP_hash_dir())))
+    {
+        X509_LOOKUP_add_dir(lookup,pvd->pvxd->certdir,X509_FILETYPE_PEM);
+        X509_STORE_CTX_init(&csc,cert_store,scert,NULL);
+
+#if SSLEAY_VERSION_NUMBER >=  0x0090600fL
+        /* override the check_issued with our version */
+        csc.check_issued = proxy_check_issued;
+#endif
+        X509_STORE_CTX_set_ex_data(&csc,
+                                   PVD_STORE_EX_DATA_IDX, (void *)pvd);
+                 
+        if(!X509_verify_cert(&csc))
+        {
+            goto err;
+        }
+    } 
+    retval = 1;
+
+err:
+    return retval;}
+ 
+
+
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cafile) {
    BIO* certbio, BIO* keybio; 
    Credformat format;
@@ -211,6 +301,12 @@ namespace Arc {
     
     //Get the lifetime of the credential
     getLifetime(certs_, lifetime_);
+
+    //Initiate the proxy certificate method
+    InitProxyCertInfo();
+
+    //Verify whether the certificate is signed by trusted CAs
+    Verify();
 
   }
 
@@ -290,7 +386,8 @@ namespace Arc {
   }
 
   bool Credential::SignRequest(BIO* &reqbio){
-    
+
+    //Fill the extentions      
 
   }
 
