@@ -1,4 +1,6 @@
+#define __STDC_LIMIT_MACROS
 #include <stdlib.h>
+#include <stdint.h>
 #include <glibmm/fileutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
@@ -180,6 +182,19 @@ namespace Arc {
   MCC_Status ClientHTTP::process(const std::string& method,
 				 PayloadRawInterface* request,
 				 Info* info, PayloadRawInterface** response) {
+    return process(method,"",0,UINT64_MAX,request,info,response);
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method, const std::string& path,
+                                 PayloadRawInterface *request,
+                                 Info *info, PayloadRawInterface **response) {
+    return process(method,path,0,UINT64_MAX,request,info,response);
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method, const std::string& path,
+                                 uint64_t range_start, uint64_t range_end,
+                                 PayloadRawInterface *request,
+                                 Info *info, PayloadRawInterface **response) {
     *response = NULL;
     if(!loader) {
       loader = new Loader(&xmlcfg);
@@ -191,16 +206,22 @@ namespace Arc {
     }
     if(!http_entry)
       return MCC_Status();
-    Arc::MessageAttributes attributes_req;
-    Arc::MessageAttributes attributes_rep;
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
+    MessageAttributes attributes_req;
+    MessageAttributes attributes_rep;
+    Message reqmsg;
+    Message repmsg;
     reqmsg.Attributes(&attributes_req);
     reqmsg.Context(&context);
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
+    if(!path.empty()) reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
+    if(range_end != UINT64_MAX) {
+      reqmsg.Attributes()->set("HTTP:Range","bytes="+tostring(range_start)+"-"+tostring(range_end));
+    } else if(range_start != 0) {
+      reqmsg.Attributes()->set("HTTP:Range","bytes="+tostring(range_start)+"-");
+    };
     MCC_Status r = http_entry->process(reqmsg,repmsg);
     info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
