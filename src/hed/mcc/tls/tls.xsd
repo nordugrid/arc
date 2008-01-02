@@ -38,5 +38,5 @@
     <xsd:element name="CACertificate" type="xsd:string">
     <!-- Directory containing certificates of accepted CAs.
       Default is /etc/grid-security/ . -->
-    <xsd:element name="CACertificatesDir" type="CACertificatesDir_Type">
+    <xsd:element name="CACertificatesDir" type="xsd:string">
 </xsd:schema>
