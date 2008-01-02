@@ -9,6 +9,7 @@ namespace Arc {
 ModuleManager::ModuleManager(Arc::Config *cfg)
 { 
   if(cfg==NULL) return;
+  if(!(*cfg)) return;
   Loader::logger.msg(INFO, "Module Manager Init");
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
   XMLNode mm = (*cfg)["ModuleManager"];
@@ -73,6 +74,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
 
 void ModuleManager::setCfg (Arc::Config *cfg) {
   if(cfg==NULL) return;
+  if(!(*cfg)) return;
   Loader::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
 
   if(!MatchXMLName(*cfg,"ArcConfig")) return;
