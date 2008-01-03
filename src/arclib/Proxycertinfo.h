@@ -12,6 +12,7 @@
 #include <openssl/x509v3.h>
 #include <string.h>
 
+namespace ArcLib {
 /* predefined policy language */
 #define IMPERSONATION_PROXY_OID         "1.3.6.1.5.5.7.21.1"
 #define IMPERSONATION_PROXY_SN          "IMPERSONATION_PROXY"
@@ -123,5 +124,7 @@ PROXYCERTINFO *r2i_PROXYCERTINFO(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, cha
 X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth();
 
 X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth();
+
+} //namespace ArcLib
 
 #endif

@@ -1,17 +1,19 @@
+#include <iostream>
+#include <openssl/err.h>
 #include "cert_util.h"
 
 #define X509_CERT_DIR  "X509_CERT_DIR"
 
-ifnde WIN32
+#ifndef WIN32
 #define FILE_SEPERATOR "/"
 #else
 #define FILE_SEPERATOR "\\"
 #endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
-using namespace ArcLib::Cert_Util;
+namespace ArcLib {
 
-int ArcLib::Cert_Util::verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context* vctx) {
+int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context* vctx) {
   int i;
   int j;
   int retval = 0;
@@ -43,7 +45,7 @@ int ArcLib::Cert_Util::verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, 
     }
   }
 
-  if (X509_STORE_load_locations(cert_store, NULL, vctx->cert_dir)) {
+  if (X509_STORE_load_locations(cert_store, NULL, vctx->cert_dir.c_str())) {
     store_ctx = X509_STORE_CTX_new();
     X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL);
 
@@ -61,17 +63,16 @@ int ArcLib::Cert_Util::verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, 
 
 err:
   if(cert_store) { X509_STORE_free(cert_store); }
-  if(store_ctx) { X509_STORE_CTX_free(store_cxt); }
+  if(store_ctx) { X509_STORE_CTX_free(store_ctx); }
    
   return retval;
 }
 
-int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
-  int vfy_result;
-
+int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   cert_verify_context*      vctx;
-  vctx = (cert_verify_context *) X509_STORE_CTX_get_ex_data(cxt, VERIFY_CTX_STORE_EX_DATA_IDX);
-  if(!vctx) {vfy_result = 0; goto err;} 
+  vctx = (cert_verify_context *) X509_STORE_CTX_get_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX);
+  //TODO get SSL object here, special for GSSAPI
+  if(!vctx) { return (0);} 
  
   /* Now check for some error conditions which can be disregarded. */
   if(!ok) {
@@ -96,18 +97,19 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if(!ok) {
       char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
       if (store_ctx->error == X509_V_ERR_CERT_NOT_YET_VALID) {
-        std::error<<"The certificate with subject "<<subject_name.c_str()<<" is not valid"<<std::endl;
+        std::cerr<<"The certificate with subject "<<subject_name<<" is not valid"<<std::endl;
       }
       else if(store_ctx->error == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
-        std::error<<"Can not find issuer certificate for the certificate with subject "<<subject_name.c_str()<<std::endl;
+        std::cerr<<"Can not find issuer certificate for the certificate with subject "<<subject_name<<std::endl;
       }
       else if(store_ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) {
-        std::error<<"Certificate with subject "<<subject_name.c_str()<<" has expired"<<std::endl;
+        std::cerr<<"Certificate with subject "<<subject_name<<" has expired"<<std::endl;
       }
       OPENSSL_free(subject_name);
+      return ok;
     }
     store_ctx->error = 0;
-    rerurn ok;
+    return ok;
   }
   
   /* All of the OpenSSL tests have passed and we now get to 
@@ -119,9 +121,9 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
    * Test if the name ends in CN=proxy and if the issuer
    * name matches the subject without the final proxy. 
    */
-  cert_type type;
-  bool ret = check_proxy_type(store_ctx->current_cert,type)   
-  if(!ret) { std::cerr<<"Can not get the certificate type"<<std::endl; goto err;}
+  certType type;
+  bool ret = check_proxy_type(store_ctx->current_cert,type);  
+  if(!ret) { std::cerr<<"Can not get the certificate type"<<std::endl; return (0);}
   if(CERT_IS_PROXY(type)){
    /* it is a proxy */
         /* a legacy globus proxy may only be followed by another legacy globus
@@ -136,16 +138,16 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         
     if((CERT_IS_GSI_2_PROXY(vctx->cert_type) && !CERT_IS_GSI_2_PROXY(type)) ||
          (CERT_IS_GSI_3_PROXY(vctx->cert_type) && !CERT_IS_GSI_3_PROXY(type)) ||
-         (CERT_IS_RFC_PROXY(vctx->cert_type) && !GLOBUS_GSI_CERT_UTILS_IS_RFC_PROXY(type))) {
+         (CERT_IS_RFC_PROXY(vctx->cert_type) && !CERT_IS_RFC_PROXY(type))) {
       std::cerr<<"The proxy to be signed should be compatible with the signing certificate"<<std::endl;
-      goto err;
+      return (0);
     }
 
     if(CERT_IS_LIMITED_PROXY(vctx->cert_type) && 
          !(CERT_IS_LIMITED_PROXY(type) || CERT_IS_INDEPENDENT_PROXY(type))) {
       std::cerr<<"Can't sign a non-limited, non-independent proxy with a limited proxy"<<std::endl;
       store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
-      goto err;
+      return (0);
     }
  
     std::cout<<"Passed the proxy test"<<std::endl;
@@ -153,7 +155,7 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     vctx->proxy_depth++;  
     if(vctx->max_proxy_depth!=-1 && vctx->max_proxy_depth < vctx->proxy_depth) {
       std::cerr<<"The proxy depth is out of maxium limitation"<<std::endl;
-      goto err;  
+      return (0);  
     }
     vctx->cert_type=type;  
   }
@@ -187,7 +189,7 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     X509_REVOKED *  revoked = NULL;;
     EVP_PKEY *key = NULL;
 
-    /**In globus code, it check the "issuer, not "subject", because it also include the situation of proxy? 
+    /**In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy? 
      * (For proxy, the up-level/issuer need to be checked?) 
      */
     if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(store_ctx->current_cert), &obj)) {
@@ -196,21 +198,38 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       /* verify the signature on this CRL */
       key = X509_get_pubkey(store_ctx->current_cert);
       if (X509_CRL_verify(crl, key) <= 0) {
-        ctx->error = X509_V_ERR_CRL_SIGNATURE_FAILURE;
-        goto err;
+        store_ctx->error = X509_V_ERR_CRL_SIGNATURE_FAILURE;
+        std::cerr<<"Couldn't verify that the available CRL is valid"<<std::endl;
+        EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
       }
 
       /* Check date see if expired */
-      i = X509_cmp_current_time(crl_info->nextUpdate);
+      i = X509_cmp_current_time(crl_info->lastUpdate);
       if (i == 0) {
-        ctx->error = X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD;
-        goto err;
+        store_ctx->error = X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD;
+        std::cerr<<"In the available CRL, the lastUpdate field is not valid"<<std::endl;
+        EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+      }
+      if(i>0) { 
+        store_ctx->error = X509_V_ERR_CRL_NOT_YET_VALID;
+        std::cerr<<"The available CRL is not yet valid"<<std::endl;
+        EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+      }
+
+      i = (crl_info->nextUpdate != NULL) ? X509_cmp_current_time(crl_info->nextUpdate) : 1;
+      if (i == 0) {
+        store_ctx->error = X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD;
+        std::cerr<<"In the available CRL, the nextUpdate field is not valid"<<std::endl;
+        EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
       }
            
       if (i < 0) {
-        ctx->error = X509_V_ERR_CRL_HAS_EXPIRED;
-        goto err;
+        store_ctx->error = X509_V_ERR_CRL_HAS_EXPIRED;
+        std::cerr<<"The available CRL has expired"<<std::endl;
+        EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
       }
+      EVP_PKEY_free(key);
+      X509_OBJECT_free_contents(&obj);
     }
 
     /* now check if the issuer has a CRL, and we are revoked */
@@ -232,9 +251,10 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
           store_ctx->error = X509_V_ERR_CERT_REVOKED;
           OPENSSL_free(subject_string);
-          goto err;
+          X509_OBJECT_free_contents(&obj); return (0);
         }
       }
+      X509_OBJECT_free_contents(&obj);
     }
 #endif /* X509_V_ERR_CERT_REVOKED */
 
@@ -243,8 +263,8 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     char* certdir = NULL;
     char* ca_policy_file_path = NULL;
     if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
-      certdir = vctx->cert_dir ? vctx->cert_dir : getenv(X509_CERT_DIR);
-      if(!certdir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; goto err;}
+      certdir = vctx->cert_dir.empty() ? getenv(X509_CERT_DIR) : vctx->cert_dir.c_str();
+      if(!certdir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; return (0);}
    
       unsigned int buffer_len; 
       unsigned long hash;
@@ -252,25 +272,28 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
        
       buffer_len = strlen(certdir) + strlen(FILE_SEPERATOR) + 8 /* hash */
         + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* NULL */;
-      ca_policy_file_path = malloc(buffer_len);
-      if(ca_policy_file_path) {store_ctx = X509_V_ERR_APPLICATION_VERIFICATION; goto err; }
+      ca_policy_file_path = (char*) malloc(buffer_len);
+      if(ca_policy_file_path == NULL) {store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION; return (0); }
       sprintf(ca_policy_file_path,"%s%s%08lx%s", certdir, FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
 
       //TODO check the certificate against policy
+
+
       free(ca_policy_file_path);
     }
   } 
 
   /**Add the current certificate into cert chain*/
-  if(vctx->certchain == NULL) { vctx->certchain = sk_X509_new_null(); }
-  sk_X509_push(vctx->certchain, X509_dup(store_ctx->current_cert));
+  if(vctx->cert_chain == NULL) { vctx->cert_chain = sk_X509_new_null(); }
+  sk_X509_push(vctx->cert_chain, X509_dup(store_ctx->current_cert));
   vctx->cert_depth++;
   
   STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
   extensions = store_ctx->current_cert->cert_info->extensions;
-  for (int i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
+  int i;
+  for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
     ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
     if(X509_EXTENSION_get_critical(ext)) {
       extension_obj = X509_EXTENSION_get_object(ext);
@@ -280,61 +303,58 @@ int ArcLib::Cert_Util::verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          nid != NID_ext_key_usage &&
          nid != NID_netscape_cert_type &&
          nid != NID_subject_key_identifier &&
-         nid != NID_authority_key_identifier) &&
+         nid != NID_authority_key_identifier &&
          nid != OBJ_sn2nid("PROXYCERTINFO") &&
          nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
          nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
          nid != OBJ_sn2nid("PROXYCERTINFO_V4")) {
-        ctx->error = X509_V_ERR_CERT_REJECTED;
-        std::err<<"Certificate has unknown extension with numeric ID: "<<nid<<std::endl;
-        goto err;
+        store_ctx->error = X509_V_ERR_CERT_REJECTED;
+        std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<std::endl;
+        return (0);
       }
 
-      PROXYCERTINFO *                     proxycertinfo = NULL;
+      PROXYCERTINFO*  proxycertinfo = NULL;
       if(nid == OBJ_sn2nid("PROXYCERTINFO") || nid == OBJ_sn2nid("OLD_PROXYCERTINFO") ||
          nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
-        proxycertinfo = X509V3_EXT_d2i(ext));
+        proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
         int path_length = PROXYCERTINFO_get_path_length(proxycertinfo);
         /* ignore negative values */    
         if(path_length > -1) {
-          if(vctx->max_proxy_depth == -1 || 
-             vctx->max_proxy_depth > vctx->proxy_depth + path_length)
-          {
+          if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
             vctx->max_proxy_depth = vctx->proxy_depth + path_length;
           }
         }
       }
-      if(proxycertinfo != NULL) {PROXYCERTINFO_free(proxycertinfo);}
+      if(proxycertinfo != NULL) { PROXYCERTINFO_free(proxycertinfo); }
     }
   }
 
-   /*
-   * We ignored any path length restrictions above because
-   * OpenSSL was counting proxies against the limit. 
-   * If we are on the last cert in the chain, we 
-   * know how many are proxies, so we can do the 
-   * path length check now. 
-   * See x509_vfy.c check_chain_purpose
-   * all we do is substract off the proxy_dpeth 
-   */
-   if(store_ctx->current_cert == store_ctx->cert) {
-     for (i=0; i < sk_X509_num(ctx->chain); i++) {
-       X509* cert = sk_X509_value(ctx->chain,i);
-       if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
-                && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
-                && (cert->ex_flags & EXFLAG_BCONS)) {
-         store_ctx->current_cert = cert; /* point at failing cert */
-         store_ctx->error = X509_V_ERR_PATH_LENGTH_EXCEEDED;
-         goto err;
-       }
-     }
-   }
-  
-   err: 
+  /*
+  * We ignored any path length restrictions above because
+  * OpenSSL was counting proxies against the limit. 
+  * If we are on the last cert in the chain, we 
+  * know how many are proxies, so we can do the 
+  * path length check now. 
+  * See x509_vfy.c check_chain_purpose
+  * all we do is substract off the proxy_dpeth 
+  */
+  if(store_ctx->current_cert == store_ctx->cert) {
+    for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
+      X509* cert = sk_X509_value(store_ctx->chain,i);
+      if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
+               && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
+               && (cert->ex_flags & EXFLAG_BCONS)) {
+        store_ctx->current_cert = cert; /* point at failing cert */
+        store_ctx->error = X509_V_ERR_PATH_LENGTH_EXCEEDED;
+        return (0);
+      }
+    }
+  }
 
+  return (1);
 }
 
-bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
+bool check_proxy_type(X509* cert, certType& type) {
   bool ret = false;
   type = CERT_TYPE_EEC;
   
@@ -348,7 +368,7 @@ bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
   int index = -1;
   int critical;
   BASIC_CONSTRAINTS* x509v3_bc = NULL;
-  if((x509v3_bc = X509_get_ext_d2i(cert, NID_basic_constraints, &critical, &index)) && x509v3_bc->ca) {
+  if((x509v3_bc = (BASIC_CONSTRAINTS*) X509_get_ext_d2i(cert, NID_basic_constraints, &critical, &index)) && x509v3_bc->ca) {
     type = CERT_TYPE_CA;
     if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
     return true;
@@ -360,17 +380,17 @@ bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
   if (!OBJ_cmp(name_entry->object,OBJ_nid2obj(NID_commonName))) {
     /* the name entry is of the type: common name */
     data = X509_NAME_ENTRY_get_data(name_entry);
-    if (data->length == 5 && !memcmp(data->data,"proxy",5)) { type = CERT_GSI_2_PROXY; }
-    else if(data->length == 13 && !memcmp(data->data,"limited proxy",13)) { type = CERT_GSI_2_LIMITED_PROXY; }
+    if (data->length == 5 && !memcmp(data->data,"proxy",5)) { type = CERT_TYPE_GSI_2_PROXY; }
+    else if(data->length == 13 && !memcmp(data->data,"limited proxy",13)) { type = CERT_TYPE_GSI_2_LIMITED_PROXY; }
     else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
              (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
-        if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(pci_ext)) == NULL) {
+        if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
           std::cerr<<"Can't convert DER encoded PROXYCERTINFO extension to internal form"<<std::endl;
           goto err;
         } 
-        if((policy = PROXYCERTINFO_get_policy(certinfo)) == NULL) { 
+        if((policy = PROXYCERTINFO_get_proxypolicy(certinfo)) == NULL) { 
           std::cerr<<"Can't get policy from PROXYCERTINFO extension" <<std::endl; 
           goto err;
         }
@@ -381,7 +401,7 @@ bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
         policynid = OBJ_obj2nid(policylang);
         if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { type = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
         else if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)){ type = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
-        else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
+        else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else {type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
         if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
@@ -396,11 +416,11 @@ bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
              (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
-        if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(pci_ext)) == NULL) {
+        if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
           std::cerr<<"Can't convert DER encoded PROXYCERTINFO extension to internal form"<<std::endl;
           goto err;
         }
-        if((policy = PROXYCERTINFO_get_policy(certinfo)) == NULL) {
+        if((policy = PROXYCERTINFO_get_proxypolicy(certinfo)) == NULL) {
           std::cerr<<"Can't get policy from PROXYCERTINFO extension" <<std::endl;
           goto err;
         }
@@ -438,7 +458,7 @@ bool ArcLib::Cert_Util::check_proxy_type(X509* cert, cert_type& type) {
       new_name_entry = NULL;
 
       if (X509_NAME_cmp(issuer, subject)) {
-        /* Reject this certificate, only the user may sign the proxy* /
+        /* Reject this certificate, only the user may sign the proxy */
         std::cerr<<"The subject does not match the issuer name + proxy CN entry"<<std::endl;
         goto err;
       }
@@ -455,8 +475,45 @@ err:
   return ret;
 } 
 
-int ArcLib::Cert_Util::check_issued(X509_STORE_CTX* ctx, X509* x, X509* issuer) {
-
+#if SSLEAY_VERSION_NUMBER >=  0x0090600fL
+/**Replace the OpenSSL check_issued in x509_vfy.c with our own,
+ *so we can override the key usage checks if its a proxy. 
+ *We are only looking for X509_V_ERR_KEYUSAGE_NO_CERTSIGN
+*/
+int check_issued( X509_STORE_CTX*  ctx, X509* x, X509* issuer) {
+  int  ret;
+  int  ret_code = 1;
+  ret = X509_check_issued(issuer, x);
+  if (ret != X509_V_OK) {
+    ret_code = 0;
+    switch (ret) {
+      case X509_V_ERR_AKID_SKID_MISMATCH:
+            /* 
+             * If the proxy was created with a previous version of Globus
+             * where the extensions where copied from the user certificate
+             * This error could arise, as the akid will be the wrong key
+             * So if its a proxy, we will ignore this error.
+             * We should remove this in 12/2001 
+             * At which time we may want to add the akid extension to the proxy.
+             */
+      case X509_V_ERR_KEYUSAGE_NO_CERTSIGN:
+            /*
+             * If this is a proxy certificate then the issuer
+             * does not need to have the key_usage set.
+             * So check if its a proxy, and ignore
+             * the error if so. 
+             */
+        certType type;
+        check_proxy_type(x, type);
+        if (CERT_IS_PROXY(type)) { ret_code = 1; }
+        break;
+      default:
+        break;
+      }
+    }
+    return ret_code;
+}
+#endif
 
 }
 
