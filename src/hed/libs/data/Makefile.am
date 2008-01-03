@@ -1,3 +1,4 @@
+noinst_PROGRAMS=test
 lib_LTLIBRARIES=libarcdata2.la
 
 libarcdata2_ladir=$(pkgincludedir)/data
@@ -10,6 +11,9 @@ libarcdata2_la_SOURCES=DMC.cpp DataPoint.cpp DataPointDirect.cpp \
 	Cache.cpp DataMover.cpp DataCache.cpp URLMap.cpp \
 	CheckFile.cpp MkDirRecursive.cpp \
 	CheckFile.h   MkDirRecursive.h
-
 libarcdata2_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcdata2_la_LIBADD=$(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS) -lpthread
+
+test_SOURCES=test.cpp
+test_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test_LDADD=libarcdata2.la ../loader/libarcloader.la
