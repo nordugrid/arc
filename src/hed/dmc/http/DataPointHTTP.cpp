@@ -9,6 +9,10 @@
 
 namespace Arc {
 
+  typedef struct {
+    DataPointHTTP* point;
+    ClientHTTP* client;
+  } HTTPInfo_t;
 
   class ChunkControl {
    private:
@@ -40,7 +44,7 @@ namespace Arc {
     if(l <= length) {
       length=l; chunks_.erase(c);
     } else {
-      c->start+=(l-length);
+      c->start+=length;
     };
     lock_.unlock();
     return true;    
@@ -132,7 +136,7 @@ namespace Arc {
 
   Logger DataPointHTTP::logger(DataPoint::logger, "HTTP");
 
-  DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url), chunks(NULL), threads(0) {}
+  DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url), chunks(NULL), transfer_threads(0) {}
 
   DataPointHTTP::~DataPointHTTP() {}
 
@@ -158,7 +162,44 @@ namespace Arc {
   }
 
   bool DataPointHTTP::start_reading(DataBufferPar& buffer) {
+    if(transfer_threads != 0) return false;
+    int transfer_streams = 1;
+    bool started = false;
+    DataPointHTTP::buffer=&buffer;
+    if(chunks) delete chunks;
+    chunks=new ChunkControl;
+    MCCConfig cfg;
+    for(int n = 0;n<transfer_streams;++n) {
+      HTTPInfo_t* info = new HTTPInfo_t;
+      info->point=this;
+      info->client=new ClientHTTP(cfg, url.Host(), url.Port(),
+                      url.Protocol() == "https", url.str());
+      if(!CreateThreadFunction(&read_thread,info)) {
+        delete info;
+      } else {
+        started=true;
+      };
+    };
+    if(started) return true;
+    stop_reading();
     return false;
+  }
+
+  bool DataPointHTTP::stop_reading(void) {
+    if(!buffer) return false;
+    if(transfer_threads > 0) {
+      buffer->error_read(true);
+      transfer_lock.lock();
+      for(;transfer_threads>0;) {
+        transfer_lock.unlock();
+        sleep(1);
+        transfer_lock.lock();
+      };
+      transfer_lock.unlock();
+      delete chunks; chunks=NULL;
+      buffer=NULL;
+    };
+    return true;
   }
 
   bool DataPointHTTP::start_writing(DataBufferPar& buffer,
@@ -166,17 +207,17 @@ namespace Arc {
     return false;
   }
 
-  typedef struct {
-    DataPointHTTP* point;
-    ClientHTTP* client;
-  } HTTPInfo_t;
+  bool DataPointHTTP::stop_writing(void) {
+    return false;
+  }
 
   void DataPointHTTP::read_thread(void *arg) {
-    DataPointHTTP& point = *(((HTTPInfo_t*)arg)->point);
-    ClientHTTP& client = *(((HTTPInfo_t*)arg)->client);
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
+    DataPointHTTP& point = *(info.point);
+    ClientHTTP* client = info.client;
     int handle;
     point.transfer_lock.lock();
-    ++(point.threads);
+    ++(point.transfer_threads);
     point.transfer_lock.unlock();
     for(;;) {
       unsigned int transfer_size = 0;
@@ -195,8 +236,10 @@ namespace Arc {
       uint64_t transfer_end = transfer_offset+chunk_length;
       // Read chunk
       ClientHTTP::Info transfer_info;
+      PayloadRaw request;
       PayloadRawInterface* inbuf;
-      MCC_Status r = client.process("GET",current_location().Path(),transfer_offset,transfer_end,NULL,&transfer_info,&inbuf);
+      std::string path = point.current_location().Path(); path="/"+path;
+      MCC_Status r = client->process("GET",path,transfer_offset,transfer_end,&request,&transfer_info,&inbuf);
       if(!r) {
         // Failed to transfer chunk - retry.
         // TODO: implement internal retry count?
@@ -204,6 +247,24 @@ namespace Arc {
         // TODO: report failure.
         // Return buffer 
         point.buffer->is_read(transfer_handle,0,0);
+        point.chunks->Unclaim(transfer_offset,chunk_length);
+        // Recreate connection
+        delete client; client=NULL;
+        MCCConfig cfg;
+        client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
+        continue;
+      };
+      if(transfer_info.code == 416) { // EOF
+        point.buffer->is_read(transfer_handle,0,0);
+        point.chunks->Unclaim(transfer_offset,chunk_length);
+        // TODO: report file size to chunk control
+        break;
+      };
+      if((transfer_info.code != 200) &&
+         (transfer_info.code != 206)) { // HTTP error - retry?
+        // TODO: make behavior dependent on error type
+        point.buffer->is_read(transfer_handle,0,0);
+        point.chunks->Unclaim(transfer_offset,chunk_length);
         continue;
       };
       // Temporary solution - copy data between buffers
@@ -234,12 +295,13 @@ namespace Arc {
       point.transfer_lock.unlock();
     };
     point.transfer_lock.lock();
-    --(point.threads);
-    if(point.threads==0) {
+    --(point.transfer_threads);
+    if(point.transfer_threads==0) {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
     };
-    delete &client;
+    if(client) delete client;
+    delete &info;
     point.transfer_lock.unlock();
   }
         

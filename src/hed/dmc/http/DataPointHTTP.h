@@ -17,9 +17,9 @@ namespace Arc {
     static Logger logger;
     unsigned int transfer_chunk_size;
     ChunkControl* chunks;
-    int threads;
+    int transfer_threads;
     Glib::Mutex transfer_lock;
-    void read_thread(void *arg);
+    static void read_thread(void *arg);
    public:
     DataPointHTTP(const URL& url);
     virtual ~DataPointHTTP();
@@ -27,6 +27,8 @@ namespace Arc {
     virtual bool start_reading(DataBufferPar& buffer);
     virtual bool start_writing(DataBufferPar& buffer,
                                DataCallback *space_cb = NULL);
+    virtual bool stop_reading(void);
+    virtual bool stop_writing(void);
   };
 
 } // namespace Arc
