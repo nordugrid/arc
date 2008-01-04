@@ -237,6 +237,8 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload);
   if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
   if(!(*outpayload)) { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
+  // Check for closed connection during response - not suitable in client mode
+  if(outpayload->Method() == "END") { delete retpayload; delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
   delete outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",tostring(outpayload->Code()));
