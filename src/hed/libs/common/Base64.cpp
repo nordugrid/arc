@@ -27,7 +27,7 @@
 
 static const unsigned char pr2six[256] =
     {
-#ifndef __OS400__
+#ifndef CHARSET_EBCDIC
         /* ASCII table */
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -45,7 +45,7 @@ static const unsigned char pr2six[256] =
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
-#else /* __OS400__ */
+#else /* CHARSET_EBCDIC */
         /* EBCDIC table */
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -66,7 +66,7 @@ static const unsigned char pr2six[256] =
 #endif /* CHARSET_EBCDIC */
     };
 
-#ifdef __OS400__
+#ifdef CHARSET_EBCDIC
 
 static unsigned char os_toascii[256] =
     {
@@ -89,7 +89,7 @@ static unsigned char os_toascii[256] =
         48,  49,  50,  51,  52,  53,  54,  55,  56,  57, 179, 219, 220, 217, 218, 159
     };
 
-#endif /* __OS400__ */
+#endif /* CHARSET_EBCDIC */
 
 /* This is the same as base64_decode() except on EBCDIC machines, where
  * the conversion of the output to ebcdic is left out.
@@ -218,9 +218,9 @@ namespace Arc {
 
   int Base64::encode(char *encoded, const char *string, int len)
   {
-  #ifndef __OS400__
+  #ifndef CHARSET_EBCDIC
     return base64_encode_binary(encoded, (const unsigned char *) string, len);
-  #else /* __OS400__ */
+  #else /* CHARSET_EBCDIC */
     int i;
     char *p;
 
@@ -253,7 +253,7 @@ namespace Arc {
 
     *p++ = '\0';
     return p - encoded;
-  #endif                /* __OS400__ */
+  #endif                /* CHARSET_EBCDIC */
   }
 
 }

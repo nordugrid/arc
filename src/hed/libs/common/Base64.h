@@ -28,10 +28,10 @@ namespace Arc {
   public:
     Base64();
     ~Base64();
-    int encode_len(int len);
-    int encode(char *encoded, const char *string, int len);
-    int decode_len(const char *bufcoded);
-    int decode(char *bufplain, const char *bufcoded);
+    static int encode_len(int len);
+    static int encode(char *encoded, const char *string, int len);
+    static int decode_len(const char *bufcoded);
+    static int decode(char *bufplain, const char *bufcoded);
   };
 } // namespace Arc
     

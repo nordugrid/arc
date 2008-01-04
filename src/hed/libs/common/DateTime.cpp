@@ -488,6 +488,12 @@ namespace Arc {
     return(Time(t));
   }
 
+  Period Time::operator-(const Time& other) const {
+    time_t t;
+    t = gtime - other.GetTime();
+    return(Period(t));
+  }
+
   Time& Time::operator=(const time_t& newtime) {
     gtime = newtime;
     return *this;

@@ -124,6 +124,9 @@ namespace Arc {
     /** Subtracting Period object from Time object. */
     Time operator-(const Period&) const;
 
+    /** Subtracting Time object from the other Time object. */
+    Period operator-(const Time&) const;
+
    private:
     /** The time stored -- by default it is equal to the current time. */
     time_t gtime;
