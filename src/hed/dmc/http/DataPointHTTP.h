@@ -20,6 +20,7 @@ namespace Arc {
     int transfer_threads;
     Glib::Mutex transfer_lock;
     static void read_thread(void *arg);
+    static void write_thread(void *arg);
    public:
     DataPointHTTP(const URL& url);
     virtual ~DataPointHTTP();

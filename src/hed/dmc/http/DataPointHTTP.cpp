@@ -1,6 +1,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
+
 #include <arc/Logger.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/data/DataBufferPar.h>
@@ -23,14 +27,55 @@ namespace Arc {
     std::list<chunk_t> chunks_;
     Glib::Mutex lock_;
    public:
-    ChunkControl(uint64_t size = 0xffffffffffffffffLL);
+    ChunkControl(uint64_t size = UINT64_MAX);
     bool Get(uint64_t& start,uint64_t& length);
     void Claim(uint64_t start,uint64_t length);
     void Unclaim(uint64_t start,uint64_t length);
   };
 
+  class PayloadMemConst: public PayloadRawInterface {
+   private:
+    char* buffer_;
+    uint64_t begin_;
+    unsigned int end_;
+    uint64_t size_;
+   public:
+    PayloadMemConst(void* buffer,uint64_t offset,unsigned int length,uint64_t size = 0):buffer_((char*)buffer),begin_(offset),end_(offset+length),size_(size) { };
+    virtual ~PayloadMemConst(void) { };
+    virtual char operator[](int pos) const {
+      if(!buffer_) return 0;
+      if(pos < begin_) return 0;
+      if(pos >= end_) return 0;
+      return buffer_[pos-begin_];
+    };
+    virtual char* Content(int pos = -1) {
+      if(!buffer_) return NULL;
+      if(pos < begin_) return NULL;
+      if(pos >= end_) return NULL;
+      return buffer_+(pos-begin_);
+    };
+    virtual int Size(void) const { return size_; };
+    virtual char* Insert(int pos = 0,int size = 0) { return NULL; };
+    virtual char* Insert(const char* s,int pos = 0,int size = 0) { return NULL; };
+    virtual char* Buffer(unsigned int num) {
+      if(num != 0) return NULL;
+      return buffer_;
+    };
+    virtual int BufferSize(unsigned int num) const {
+      if(!buffer_) return 0;
+      if(num != 0) return 0;
+      return (end_-begin_);
+    };
+    virtual int BufferPos(unsigned int num) const {
+      if(!buffer_) return 0;
+      if(num != 0) return 0;
+      return begin_;
+    };
+    virtual bool Truncate(unsigned int size) { return false; };
+  };
+
   ChunkControl::ChunkControl(uint64_t size) {
-    chunk_t chunk = { 0, 0xffffffffffffffffLL};
+    chunk_t chunk = { 0, UINT64_MAX};
     chunks_.push_back(chunk);
   }
 
@@ -138,7 +183,11 @@ namespace Arc {
 
   DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url), chunks(NULL), transfer_threads(0) {}
 
-  DataPointHTTP::~DataPointHTTP() {}
+  DataPointHTTP::~DataPointHTTP() {
+    stop_reading();
+    stop_writing();
+    if(chunks) delete chunks;
+  }
 
   bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
 
@@ -197,17 +246,50 @@ namespace Arc {
       };
       transfer_lock.unlock();
       delete chunks; chunks=NULL;
-      buffer=NULL;
     };
+    buffer=NULL;
     return true;
   }
 
   bool DataPointHTTP::start_writing(DataBufferPar& buffer,
                                DataCallback *space_cb) {
+    if(transfer_threads != 0) return false;
+    int transfer_streams = 1;
+    bool started = false;
+    DataPointHTTP::buffer=&buffer;
+    if(chunks) delete chunks;
+    chunks=new ChunkControl;
+    MCCConfig cfg;
+    for(int n = 0;n<transfer_streams;++n) {
+      HTTPInfo_t* info = new HTTPInfo_t;
+      info->point=this;
+      info->client=new ClientHTTP(cfg, url.Host(), url.Port(),
+                      url.Protocol() == "https", url.str());
+      if(!CreateThreadFunction(&write_thread,info)) {
+        delete info;
+      } else {
+        started=true;
+      };
+    };
+    if(started) return true;
+    stop_writing();
     return false;
   }
 
   bool DataPointHTTP::stop_writing(void) {
+    if(!buffer) return false;
+    if(transfer_threads > 0) {
+      buffer->error_write(true);
+      transfer_lock.lock();
+      for(;transfer_threads>0;) {
+        transfer_lock.unlock();
+        sleep(1);
+        transfer_lock.lock();
+      };
+      transfer_lock.unlock();
+      delete chunks; chunks=NULL;
+    };
+    buffer=NULL;
     return false;
   }
 
@@ -215,7 +297,7 @@ namespace Arc {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     ClientHTTP* client = info.client;
-    int handle;
+    bool transfer_failure = false;
     point.transfer_lock.lock();
     ++(point.transfer_threads);
     point.transfer_lock.unlock();
@@ -248,6 +330,7 @@ namespace Arc {
         // Return buffer 
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
+        if(inbuf) delete inbuf;
         // Recreate connection
         delete client; client=NULL;
         MCCConfig cfg;
@@ -257,15 +340,22 @@ namespace Arc {
       if(transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
+        if(inbuf) delete inbuf;
         // TODO: report file size to chunk control
         break;
       };
       if((transfer_info.code != 200) &&
          (transfer_info.code != 206)) { // HTTP error - retry?
-        // TODO: make behavior dependent on error type
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
-        continue;
+        if(inbuf) delete inbuf;
+        if((transfer_info.code == 500) ||
+           (transfer_info.code ==  503) ||
+           (transfer_info.code ==  504)) {
+          continue;
+        };
+        transfer_failure=true;
+        break;
       };
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
@@ -280,6 +370,7 @@ namespace Arc {
           // Get transfer buffer if needed
           if(!point.buffer->for_read(transfer_handle,transfer_size,true)) {
             // No transfer buffer - must be failure or close initiated externally
+            if(inbuf) delete inbuf;
             break;
           };
         };
@@ -292,10 +383,12 @@ namespace Arc {
         point.chunks->Claim(pos,length);
         transfer_handle=-1;
       };
+      if(inbuf) delete inbuf;
       point.transfer_lock.unlock();
     };
     point.transfer_lock.lock();
     --(point.transfer_threads);
+    if(transfer_failure) point.buffer->error_read(true);
     if(point.transfer_threads==0) {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
@@ -304,37 +397,70 @@ namespace Arc {
     delete &info;
     point.transfer_lock.unlock();
   }
-        
-        
 
-/*
-
-      if(s.response().haveLastModified()) {
-        istat->point->meta_created(s.response().LastModified());
+  void DataPointHTTP::write_thread(void *arg) {
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
+    DataPointHTTP& point = *(info.point);
+    ClientHTTP* client = info.client;
+    bool transfer_failure = false;
+    point.transfer_lock.lock();
+    ++(point.transfer_threads);
+    point.transfer_lock.unlock();
+    for(;;) {
+      unsigned int transfer_size = 0;
+      int transfer_handle = -1;
+      unsigned long long int transfer_offset = 0;
+      // get first buffer
+      if(!point.buffer->for_write(transfer_handle,transfer_size,transfer_offset,true)) {
+        // No transfer buffer - must be failure or close initiated externally
+        break;
       };
-      // if 0 bytes transfered - behind eof
-      odlog(DEBUG)<<"read_thread: check for eof: "<<offset<<" - "<<tstat->offset<<std::endl;
-      if(offset == tstat->offset) { failed=false; break; }; // eof
+      //uint64_t transfer_offset = 0;
+      //uint64_t transfer_end = transfer_offset+transfer_size;
+      // Write chunk
+      ClientHTTP::Info transfer_info;
+      PayloadMemConst request((*point.buffer)[transfer_handle],transfer_offset,transfer_size,
+                              point.CheckSize()?point.GetSize():0);
+      PayloadRawInterface* response;
+      std::string path = point.current_location().Path(); path="/"+path;
+      MCC_Status r = client->process("PUT",path,&request,&transfer_info,&response);
+      if(response) delete response;
+      if(!r) {
+        // Failed to transfer chunk - retry.
+        // TODO: implement internal retry count?
+        // TODO: mark failure?
+        // TODO: report failure.
+        // Return buffer 
+        point.buffer->is_notwritten(transfer_handle);
+        // Recreate connection
+        delete client; client=NULL;
+        MCCConfig cfg;
+        client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
+        continue;
+      };
+      if(transfer_info.code != 200) { // HTTP error - retry?
+        point.buffer->is_notwritten(transfer_handle);
+        if((transfer_info.code == 500) ||
+           (transfer_info.code ==  503) ||
+           (transfer_info.code ==  504)) {
+          continue;
+        };
+        transfer_failure=true;
+        break;
+      };
+      point.buffer->is_written(transfer_handle);
     };
-  };
-  odlog(DEBUG)<<"read_thread: loop exited"<<std::endl;
-  istat->lock.block();
-  istat->threads--;
-  if(istat->threads==0) {
-  odlog(DEBUG)<<"read_thread: last thread: failure: "<<failed<<std::endl;
-    if(failed) {
-      istat->buffer->error_read(true);
-      CHECK_PROXY("read_thread",istat->failure_code);
+    point.transfer_lock.lock();
+    --(point.transfer_threads);
+    if(transfer_failure) point.buffer->error_write(true);
+    if(point.transfer_threads==0) {
+      // TODO: process/report failure?
+      point.buffer->eof_write(true);
     };
-    istat->buffer->eof_read(true);
-  };
-  tstat->s=NULL;
-  istat->lock.signal_nonblock();
-  istat->lock.unblock();
-  return NULL;  
-}
-*/
-
+    if(client) delete client;
+    delete &info;
+    point.transfer_lock.unlock();
+  }
 
 } // namespace Arc
 
