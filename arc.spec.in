@@ -191,7 +191,9 @@ exit 0
 %{_sbindir}/grid-manager
 %{_libexecdir}/downloader
 %{_libexecdir}/uploader
-#%{_libexecdir}/smtp-send
+%{_libexecdir}/smtp-send
+%{_libexecdir}/smtp-send.sh
+%{_bindir}/ldif2xml
 
 %files devel
 %defattr(-,root,root,-)
