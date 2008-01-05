@@ -10,11 +10,15 @@
 
 int main(int argc,char* argv[]) {
   signal(SIGTTOU,SIG_IGN);
-  if(argc != 2) {
-    std::cerr<<"Missing URL"<<std::endl;
+  if(argc < 2) {
+    std::cerr<<"Missing source URL"<<std::endl;
     return -1;
   };
-  Arc::LogStream logcerr(std::cerr, "ISISClient");
+  if(argc < 3) {
+    std::cerr<<"Missing destination URL"<<std::endl;
+    return -1;
+  };
+  Arc::LogStream logcerr(std::cerr, "DataTest");
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   const char* config_str = "<?xml version=\"1.0\"?>\
@@ -46,7 +50,7 @@ int main(int argc,char* argv[]) {
   mover.retry(false);
   std::string failure_description;
   Arc::DataPoint* source = Arc::DMC::GetDataPoint(Arc::URL(argv[1]));
-  Arc::DataPoint* dest = Arc::DMC::GetDataPoint(Arc::URL("file://./temp.file"));
+  Arc::DataPoint* dest = Arc::DMC::GetDataPoint(Arc::URL(argv[2]));
   Arc::URLMap urlmap;
   Arc::DataCache datacache;
   r=mover.Transfer(*source,*dest,datacache,urlmap,failure_description);
