@@ -2,8 +2,9 @@ import arc
 
 class EchoService:
 
-    def __init__(self):
+    def __init__(self, cfg):
         print "EchoService constructor called"
+        print cfg.GetXML()
 
     def process(self, inmsg, outmsg):
         print "Process called"

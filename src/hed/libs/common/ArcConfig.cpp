@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
 #include "ArcConfig.h"
 
 namespace Arc {
@@ -62,6 +63,31 @@ void Config::parse(const char *filename)
 {
     // create XMLNode
     xmlDocPtr doc = _parse(filename);
+    if(!doc) return;
+    node_=doc->children;
+    if(node_) is_owner_=true;
+}
+
+Config::Config(long cfg_ptr_addr)
+{
+    Config *cfg = (Config *)cfg_ptr_addr;
+    std::string s;
+    cfg->GetXML(s);
+    std::string xml_str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+s;
+    // create XMLNode
+    xmlDocPtr doc = xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
+    if(!doc) return;
+    node_=doc->children;
+    if(node_) is_owner_=true;
+}
+
+Config::Config(Config &cfg)
+{
+    std::string s;
+    cfg.GetXML(s);
+    std::string xml_str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+s;
+    // create XMLNode
+    xmlDocPtr doc = xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
     if(!doc) return;
     node_=doc->children;
     if(node_) is_owner_=true;

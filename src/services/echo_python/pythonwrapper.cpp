@@ -76,8 +76,11 @@ Arc::Logger Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg) 
 {
     PyObject *module_name = NULL;
+    PyObject *arc_module_name = NULL;
     PyObject *dict = NULL;
-    
+    PyObject *arc_dict = NULL;
+    PyObject *arc_cfg_klass = NULL;
+
     std::string class_name = (std::string)(*cfg)["ClassName"];
     logger.msg(Arc::DEBUG, "class name: %s", class_name.c_str());
     
@@ -104,6 +107,53 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     }
     Py_DECREF(module_name);
     
+    // Import ARC python wrapper
+    arc_module_name = PyString_FromString("arc");
+    if (arc_module_name == NULL) {
+        logger.msg(Arc::ERROR, "Cannot convert arc module name to Python string");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        return;
+    }
+    
+    // Load arc module
+    arc_module = PyImport_Import(arc_module_name);
+    if (arc_module == NULL) {
+        logger.msg(Arc::ERROR, "Cannot import arc module");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        Py_DECREF(module_name);
+        return;
+    }
+    Py_DECREF(module_name);
+    
+    arc_dict = PyModule_GetDict(arc_module);
+    if (arc_dict == NULL) {
+        logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        return;
+    }
+    
+    // Get the arc config class 
+    arc_cfg_klass = PyDict_GetItemString(arc_dict, "Config");
+    if (arc_cfg_klass == NULL) {
+        logger.msg(Arc::ERROR, "Cannot find arc Config class");
+        if (PyErr_Occurred() != NULL) {
+            PyErr_Print();
+        }
+        return;
+    }
+    
+    // check is it really a class
+    if (!PyCallable_Check(arc_cfg_klass)) {
+        logger.msg(Arc::ERROR, "Config klass is not an object");
+        return;
+    }
+    
     // Get dictionary of module content
     // dict is a borrowed reference 
     dict = PyModule_GetDict(module);
@@ -127,8 +177,37 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     
     // check is it really a class
     if (PyCallable_Check(klass)) {
+        // Convert arc config to python objects
+        PyObject *arg = Py_BuildValue("(l)", (long int)cfg);
+        if (arg == NULL) {
+            logger.msg(Arc::ERROR, "Cannot create config argument");
+            if (PyErr_Occurred() != NULL) {
+                PyErr_Print();
+            }
+            return;
+        }
+
+        PyObject *py_cfg = PyObject_CallObject(arc_cfg_klass, arg);
+        if (py_cfg == NULL) {
+            logger.msg(Arc::ERROR, "Cannot convert config to python object");
+            if (PyErr_Occurred() != NULL) {
+                PyErr_Print();
+            }
+            Py_DECREF(arg);
+            return;
+        }
+        Py_DECREF(arg); 
+        arg = Py_BuildValue("(O)", py_cfg);
+        if (arg == NULL) {
+            logger.msg(Arc::ERROR, "Cannot create argument of the constructor");
+            if (PyErr_Occurred() != NULL) {
+                PyErr_Print();
+            }
+            return;
+        }
+        
         // create instance of class
-        object = PyObject_CallObject(klass, NULL);
+        object = PyObject_CallObject(klass, arg);
         if (object == NULL) {
             logger.msg(Arc::ERROR, "Cannot create instance of python class");
             if (PyErr_Occurred() != NULL) {
@@ -136,44 +215,16 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
             }
             return;
         }
+        Py_DECREF(arg);
+
     } else {
         logger.msg(Arc::ERROR, "%s is not an object", class_name.c_str());
         return;
     }
 
-    // Import ARC python wrapper
-    module_name = PyString_FromString("arc");
-    if (module_name == NULL) {
-        logger.msg(Arc::ERROR, "Cannot convert arc odule name to Python string");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
-        return;
-    }
-
-    // Load arc module
-    arc_module = PyImport_Import(module_name);
-    if (arc_module == NULL) {
-        logger.msg(Arc::ERROR, "Cannot import arc module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
-        Py_DECREF(module_name);
-        return;
-    }
-    Py_DECREF(module_name);
-    
-    dict = PyModule_GetDict(arc_module);
-    if (dict == NULL) {
-        logger.msg(Arc::ERROR, "Cannot get dictionary of arc module");
-        if (PyErr_Occurred() != NULL) {
-            PyErr_Print();
-        }
-        return;
-    }
     
     // Get the class 
-    arc_msg_klass = PyDict_GetItemString(dict, "SOAPMessage");
+    arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
     if (arc_msg_klass == NULL) {
         logger.msg(Arc::ERROR, "Cannot find arc Message class");
         if (PyErr_Occurred() != NULL) {

@@ -28,11 +28,15 @@ class Config: public Arc::XMLNode {
         Config(const char *filename);
 	/** Parse configuration document from memory */
         Config(const std::string &xml_str): XMLNode(xml_str) { };
-	/** Acquire existing XML (sub)tree.
+    /** Acquire existing XML (sub)tree.
 	  Content is not copied. Make sure XML tree is not destroyed
 	  while in use by this object. */
         Config(Arc::XMLNode xml): XMLNode(xml) { };
         ~Config(void);
+    /** Copy constructor used by language bindings */
+        Config(long cfg_ptr_addr);
+    /** Copy constructor used by language bindings */
+        Config(Config &cfg);
 	/** Print structure of document.
 	  For debuging purposes. Printed content is not an XML document. */
         void print(void);
