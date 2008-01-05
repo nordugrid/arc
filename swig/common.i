@@ -6,6 +6,7 @@
 %include <typemaps.i>
 
 %template(NS) std::map<std::string, std::string>;
+%template(XMLNodeList) std::list<Arc::XMLNode>;
 
 #ifdef SWIGJAVA
 %ignore Arc::MatchXMLName(const XMLNode& node1,const XMLNode& node2);

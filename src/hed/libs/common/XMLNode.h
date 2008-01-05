@@ -16,7 +16,10 @@
 
 namespace Arc {
 
+class XMLNode;
+
 typedef std::map<std::string,std::string> NS;
+typedef std::list<Arc::XMLNode> XMLNodeList; 
 
 /// Wrapper for LibXML library Tree interface. 
 /** This class wraps XML Node, Document and Property/Attribute structures.
@@ -184,7 +187,7 @@ class XMLNode {
     belong to (e.g. xx="uri:test"). Query is run on whole XML document
     but only the elements belonging to this XML subtree are returned.
   */ 
-  std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
+  XMLNodeList XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
   /** Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
   /** Save string representation of node to file */
