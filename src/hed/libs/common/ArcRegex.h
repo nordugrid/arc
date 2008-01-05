@@ -13,6 +13,9 @@ namespace Arc {
   */
   class RegularExpression {
   public:
+    
+    //! default constructor
+    RegularExpression() { };
 
     //! Creates a reges from a pattern string.
     RegularExpression(std::string pattern);

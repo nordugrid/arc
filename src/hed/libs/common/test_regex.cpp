@@ -5,8 +5,8 @@
 
 int main(void)
 {
-    std::string str="[id=ahssgf0afhha0-adja-dkkda]";
-    std::string r = "([a-zA-Z0-9_\\\\-]*)=([a-zA-Z0-9_\\\\-]*)";
+    std::string str="[@id=\"ahssgf0afhha0-adja-dkkda\"]";
+    std::string r = "([a-zA-Z0-9_\\\\-]*)=\"([a-zA-Z0-9_\\\\-]*)\"";
     Arc::RegularExpression rx(r);
     if (rx.isOk()) {
         std::list<std::string> ump, mp;
