@@ -229,35 +229,35 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
   attributes_[name]=value;
 }
 
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),body_(NULL) {
+PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream):valid_(false),stream_(stream),body_(NULL),body_own_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   if(!get_body()) return;
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream):valid_(true),stream_(stream),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),uri_(url),method_(method) {
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),uri_(url),method_(method) {
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
 }
 
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),code_(code),reason_(reason) {
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):valid_(true),stream_(*((PayloadStreamInterface*)NULL)),body_(NULL),body_own_(false),code_(code),reason_(reason) {
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
-  if(body_) delete body_;
+  if(body_ && body_own_) delete body_;
 }
 
 bool PayloadHTTP::Flush(void) {
@@ -296,7 +296,13 @@ bool PayloadHTTP::Flush(void) {
     };
     if(length_ != Size()) {
       // Add range definition if Body represents part of logical buffer size
-      header+="Content-Range: bytes "+tostring(BufferPos(0))+"-"+tostring(BufferPos(0)+length_-1)+"/"+tostring(Size())+"\r\n";
+      int start = BufferPos(0);
+      int end = start+length_;
+      if(end <= Size()) {
+        header+="Content-Range: bytes "+tostring(start)+"-"+tostring(end-1)+"/"+tostring(Size())+"\r\n";
+      } else {
+        header+="Content-Range: bytes "+tostring(start)+"-"+tostring(end-1)+"/*\r\n";
+      };
     };
     header+="Content-Length: "+tostring(length_)+"\r\n";
   };
@@ -325,9 +331,9 @@ bool PayloadHTTP::Flush(void) {
   return true;
 }
 
-void PayloadHTTP::Body(PayloadRawInterface& body) {
-  if(body_) delete body_;
-  body_=&body;
+void PayloadHTTP::Body(PayloadRawInterface& body,bool ownership) {
+  if(body_ && body_own_) delete body_;
+  body_=&body; body_own_=ownership;
 }
 
 char PayloadHTTP::operator[](int pos) const {

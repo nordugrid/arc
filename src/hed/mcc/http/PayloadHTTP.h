@@ -23,6 +23,7 @@ class PayloadHTTP: public PayloadRaw {
   bool valid_;
   PayloadStreamInterface& stream_; /** stream used to comminicate to outside */
   PayloadRawInterface* body_;      /** associated HTTP Body if any */
+  bool body_own_;                  /** if true body_ is owned by this */
   std::string uri_;                /** URI being contacted */
   int version_major_;              /** major number of HTTP version - must be 1 */
   int version_minor_;              /** minor number of HTTP version - must be 0 or 1 */
@@ -85,8 +86,9 @@ class PayloadHTTP: public PayloadRaw {
   virtual int Code() { return code_; };
   /** Assign HTTP body.
     Assigned object is not copied. Instead it is remembered and made available
-    through Raw interface. */
-  virtual void Body(PayloadRawInterface& body);
+    through Raw interface. If 'ownership' is true then passed object
+    is treated as being owned by this instance and destroyed in destructor. */
+  virtual void Body(PayloadRawInterface& body,bool ownership = true);
 
   virtual char operator[](int pos) const;
   virtual char* Content(int pos = -1);
