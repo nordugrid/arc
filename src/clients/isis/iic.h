@@ -15,7 +15,7 @@ class IIClient
         std::string url;
         Arc::NS ns;
         Arc::MCCConfig cfg;
-        Arc::ClientSOAP cli;
+        Arc::ClientSOAP *cli;
         Arc::Logger logger;
 
     public:

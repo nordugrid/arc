@@ -28,11 +28,12 @@ IIClient::IIClient(std::string &url_str):logger(Arc::Logger::rootLogger, "IIClie
     cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
     cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
     cfg.AddPluginsPath("../../hed/mcc/soap/.libs/");
-    cli = Arc::ClientSOAP(cfg, url.Host(), url.Port(), tls, url.Path());
+    cli = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), tls, url.Path());
 }
 
 IIClient::~IIClient(void)
 {
+    delete cli;
 }
 
 Arc::MCC_Status IIClient::Register(Arc::XMLNode &req, Arc::XMLNode *resp)
@@ -41,7 +42,7 @@ Arc::MCC_Status IIClient::Register(Arc::XMLNode &req, Arc::XMLNode *resp)
     request.NewChild(req);
     Arc::PayloadSOAP* response;
 
-    Arc::MCC_Status status = cli.process(&request, &response);
+    Arc::MCC_Status status = cli->process(&request, &response);
     if(!status) {
         std::cerr << "Request failed" << std::endl;
         if(response) {
@@ -74,7 +75,7 @@ Arc::MCC_Status IIClient::RemoveRegistrations(Arc::XMLNode &req,
     request.NewChild(req);
     Arc::PayloadSOAP* response;
 
-    Arc::MCC_Status status = cli.process(&request, &response);
+    Arc::MCC_Status status = cli->process(&request, &response);
     if(!status) {
         std::cerr << "Request failed" << std::endl;
         if(response) {
@@ -106,7 +107,7 @@ Arc::MCC_Status IIClient::GetRegistrationStatuses(Arc::XMLNode &req, Arc::XMLNod
     request.NewChild(req);
     Arc::PayloadSOAP* response;
 
-    Arc::MCC_Status status = cli.process(&request, &response);
+    Arc::MCC_Status status = cli->process(&request, &response);
     if(!status) {
         std::cerr << "Request failed" << std::endl;
         if(response) {
