@@ -135,15 +135,15 @@ void SOAPEnvelope::Namespaces(const NS& namespaces) {
   envelope.Namespaces(namespaces);
 }
 
-void SOAPEnvelope::GetXML(std::string& xml) const {
+void SOAPEnvelope::GetXML(std::string& out_xml_str) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
     it.header.Destroy();
-    envelope.GetXML(xml);
+    envelope.GetXML(out_xml_str);
     it.header=it.envelope.NewChild("soap-env:Header",0,true); 
     return;
   };
-  envelope.GetXML(xml);
+  envelope.GetXML(out_xml_str);
 }
 
 SOAPFault::SOAPFault(XMLNode& body) {

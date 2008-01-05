@@ -111,9 +111,9 @@ class XMLNode {
   /** Assigns new name to XML node */
   void Name(const std::string& name) { Name(name.c_str()); };
   /** Fills argument with this instance XML subtree textual representation */
-  void GetXML(std::string& xml) const;
+  void GetXML(std::string& out_xml_str) const;
   /** Fills argument with whole XML document textual representation */
-  void GetDoc(std::string& xml) const;
+  void GetDoc(std::string& out_xml_str) const;
   /** Returns textual content of node excluding content of children nodes */
   operator std::string(void) const;
   /** Sets textual content of node. All existing children nodes are discarded. */
@@ -185,8 +185,10 @@ class XMLNode {
     but only the elements belonging to this XML subtree are returned.
   */ 
   std::list<XMLNode> XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
-  /**Get the root node from any child node of the tree */
+  /** Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
+  /** Save string representation of node to file */
+  bool SaveToFile(const std::string &file_name);
 };
 
 /** Container for multiple XMLNode elements */

@@ -102,7 +102,7 @@ class SOAPEnvelope: public XMLNode {
   */
   void Namespaces(const NS& namespaces);
   // Setialize SOAP message into XML document
-  void GetXML(std::string& xml) const;
+  void GetXML(std::string& out_xml_str) const;
   /** Get SOAP header as XML node */
   XMLNode Header(void) { return header; };
   /** Returns true if message is Fault */

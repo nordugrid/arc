@@ -3,6 +3,8 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 %}
+%include <typemaps.i>
+
 %template(NS) std::map<std::string, std::string>;
 
 #ifdef SWIGJAVA
@@ -33,6 +35,10 @@
 %rename(__str__) operator std::string;
 #endif
 
+
+%apply std::string& OUTPUT { std::string& out_xml_str }; 
 %include "../src/hed/libs/common/XMLNode.h"
+%clear std::string& out_xml_str;
+
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/Logger.h"

@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 #include "XMLNode.h"
+#include <iostream>
+#include <fstream>
 
 namespace Arc {
 
@@ -516,8 +518,8 @@ XMLNode& XMLNode::operator=(const XMLNode& node) {
   return *this;
 }
 
-void XMLNode::GetDoc(std::string& xml) const {
-  xml.resize(0);
+void XMLNode::GetDoc(std::string& out_xml_str) const {
+  out_xml_str.resize(0);
   if(!node_) return;
   xmlDocPtr doc = node_->doc;
   if(doc == NULL) return;
@@ -525,21 +527,33 @@ void XMLNode::GetDoc(std::string& xml) const {
   int bufsize = 0;
   xmlDocDumpMemory(doc,&buf,&bufsize);
   if(buf) {
-    xml=(char*)buf;
+    out_xml_str=(char*)buf;
     xmlFree(buf);
   };
 }
 
-void XMLNode::GetXML(std::string& xml) const {
-  xml.resize(0);
+void XMLNode::GetXML(std::string& out_xml_str) const {
+  out_xml_str.resize(0);
   if(!node_) return;
   if(node_->type != XML_ELEMENT_NODE) return;
   xmlDocPtr doc = node_->doc;
   if(doc == NULL) return;
   xmlBufferPtr buf = xmlBufferCreate();
   xmlNodeDump(buf,doc,node_,0,0);
-  xml=(char*)(buf->content);
+  out_xml_str=(char*)(buf->content);
   xmlBufferFree(buf);
+}
+
+bool XMLNode::SaveToFile(const std::string &file_name) 
+{
+    std::string s;
+    GetXML(s);
+    std::ofstream out(file_name.c_str(), std::ios::out);
+    if (!out) return false;
+    out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+    out << s;
+    out.close();
+    return true;
 }
 
 XMLNodeContainer::XMLNodeContainer(void) {
