@@ -1,6 +1,6 @@
+// This define is needed to have maximal values for types with fixed size
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
-#include <stdint.h>
 #include <glibmm/fileutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
