@@ -6,7 +6,6 @@
 %include <typemaps.i>
 
 %template(NS) std::map<std::string, std::string>;
-%template(XMLNodeList) std::list<Arc::XMLNode>;
 
 #ifdef SWIGJAVA
 %ignore Arc::MatchXMLName(const XMLNode& node1,const XMLNode& node2);
@@ -26,7 +25,10 @@
 %rename(toString) operator std::string;
 %rename(toBool) operator bool;
 #endif
+
 #ifdef SWIGPYTHON
+%include <std_list.i>
+%template(XMLNodeList) std::list<Arc::XMLNode>;
 %ignore operator !;
 %ignore operator [];
 %ignore operator =;
@@ -35,7 +37,6 @@
 %rename(toBool) operator bool;
 %rename(__str__) operator std::string;
 #endif
-
 
 %apply std::string& OUTPUT { std::string& out_xml_str }; 
 %include "../src/hed/libs/common/XMLNode.h"
