@@ -40,7 +40,7 @@
             <next id="echo">/Echo</next>
         </Plexer>
         <Service name="pythonservice" id="echo">
-            <ClassName>EchoService</ClassName>
+            <ClassName>echo_python.EchoService.EchoService</ClassName>
         </Service>
     </Chain>
 </ArcConfig>

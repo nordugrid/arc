@@ -77,20 +77,28 @@ Arc::Logger Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg) 
 {
-    PyObject *module_name = NULL;
-    PyObject *arc_module_name = NULL;
+    PyObject *py_module_name = NULL;
+    PyObject *py_arc_module_name = NULL;
     PyObject *dict = NULL;
     PyObject *arc_dict = NULL;
     PyObject *arc_cfg_klass = NULL;
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
-
-    std::string class_name = (std::string)(*cfg)["ClassName"];
+    
+    std::string path = (std::string)(*cfg)["ClassName"];    
+    std::size_t p = path.rfind(".");
+    if (p == std::string::npos) {
+        logger.msg(Arc::ERROR, "Invalid class name");
+        return;
+    }
+    std::string module_name = path.substr(0, p);
+    std::string class_name = path.substr(p+1, path.length());
     logger.msg(Arc::DEBUG, "class name: %s", class_name.c_str());
+    logger.msg(Arc::DEBUG, "module name: %s", module_name.c_str());
     
     // Convert module name to Python string
-    module_name = PyString_FromString(class_name.c_str());
-    if (module_name == NULL) {
+    py_module_name = PyString_FromString(module_name.c_str());
+    if (py_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert module name to Python string");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
@@ -98,20 +106,20 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
     // Load module
-    module = PyImport_Import(module_name);
+    module = PyImport_Import(py_module_name);
     if (module == NULL) {
         logger.msg(Arc::ERROR, "Cannot import module");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(module_name);
+        Py_DECREF(py_module_name);
         return;
     }
-    Py_DECREF(module_name);
+    Py_DECREF(py_module_name);
     
     // Import ARC python wrapper
-    arc_module_name = PyString_FromString("arc");
-    if (arc_module_name == NULL) {
+    py_arc_module_name = PyString_FromString("arc");
+    if (py_arc_module_name == NULL) {
         logger.msg(Arc::ERROR, "Cannot convert arc module name to Python string");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
@@ -120,16 +128,16 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     }
     
     // Load arc module
-    arc_module = PyImport_Import(arc_module_name);
+    arc_module = PyImport_Import(py_arc_module_name);
     if (arc_module == NULL) {
         logger.msg(Arc::ERROR, "Cannot import arc module");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(arc_module_name);
+        Py_DECREF(py_arc_module_name);
         return;
     }
-    Py_DECREF(arc_module_name);
+    Py_DECREF(py_arc_module_name);
     
     arc_dict = PyModule_GetDict(arc_module);
     if (arc_dict == NULL) {
