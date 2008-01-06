@@ -3,17 +3,20 @@ import arc
 class EchoService:
 
     def __init__(self, cfg):
-        print "EchoService constructor called"
-        print cfg.GetXML()
+        print "EchoService (python) constructor called"
+        self.prefix = str(cfg.Get('prefix'))
+        self.suffix = str(cfg.Get('suffix'))
+        print "EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix)
 
     def process(self, inmsg, outmsg):
-        print "Process called"
+        print "EchoService (python) 'Process' called"
         inpayload = inmsg.Payload()
+        print "EchoService (python) got:", inpayload.GetXML()
         echo_op = inpayload.Get("echo")
         say = str(echo_op.Get("say"))
-        hear = '[' + say + ']'
+        hear = self.prefix + say + self.suffix
         ns = arc.NS()
-        ns["echo"] = "urn:echo"
+        ns['echo'] = 'urn:echo'
         outpayload = arc.PayloadSOAP(ns)
         outpayload.NewChild("echo:echoResponse").NewChild("echo:hear").Set(hear)
         outmsg.Payload(outpayload)
