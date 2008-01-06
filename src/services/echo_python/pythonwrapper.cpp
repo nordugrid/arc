@@ -61,6 +61,8 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 }
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
+    // Initialize the Python Interpreter
+    Py_Initialize();
     return new Arc::Service_PythonWrapper(cfg);
 }
 
@@ -80,12 +82,12 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *dict = NULL;
     PyObject *arc_dict = NULL;
     PyObject *arc_cfg_klass = NULL;
+    PyObject *arg = NULL;
+    PyObject *py_cfg = NULL;
 
     std::string class_name = (std::string)(*cfg)["ClassName"];
     logger.msg(Arc::DEBUG, "class name: %s", class_name.c_str());
     
-    // Initialize the Python Interpreter
-    Py_Initialize();
     // Convert module name to Python string
     module_name = PyString_FromString(class_name.c_str());
     if (module_name == NULL) {
@@ -124,10 +126,10 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        Py_DECREF(module_name);
+        Py_DECREF(arc_module_name);
         return;
     }
-    Py_DECREF(module_name);
+    Py_DECREF(arc_module_name);
     
     arc_dict = PyModule_GetDict(arc_module);
     if (arc_dict == NULL) {
@@ -177,8 +179,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     
     // check is it really a class
     if (PyCallable_Check(klass)) {
-        // Convert arc config to python objects
-        PyObject *arg = Py_BuildValue("(l)", (long int)cfg);
+        arg = Py_BuildValue("(l)", (long int)cfg);
         if (arg == NULL) {
             logger.msg(Arc::ERROR, "Cannot create config argument");
             if (PyErr_Occurred() != NULL) {
@@ -187,7 +188,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
             return;
         }
 
-        PyObject *py_cfg = PyObject_CallObject(arc_cfg_klass, arg);
+        py_cfg = PyObject_CallObject(arc_cfg_klass, arg);
         if (py_cfg == NULL) {
             logger.msg(Arc::ERROR, "Cannot convert config to python object");
             if (PyErr_Occurred() != NULL) {
