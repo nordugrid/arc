@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libcredential.la
-#noinst_PROGRAMS = test
+noinst_PROGRAMS = test
 
 libcredential_ladir = $(pkgincludedir)/arclib
 libcredential_la_HEADERS  = Proxycertinfo.h  cert_util.h Credential.h 
