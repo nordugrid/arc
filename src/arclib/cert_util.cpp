@@ -263,7 +263,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     char* certdir = NULL;
     char* ca_policy_file_path = NULL;
     if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
-      certdir = vctx->cert_dir.empty() ? getenv(X509_CERT_DIR) : vctx->cert_dir.c_str();
+      //certdir = vctx->cert_dir.empty() ? getenv(X509_CERT_DIR) : vctx->cert_dir.c_str();
+      certdir = (char*)(vctx->cert_dir.c_str());
       if(!certdir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; return (0);}
    
       unsigned int buffer_len; 
