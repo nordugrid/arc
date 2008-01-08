@@ -37,7 +37,7 @@ typedef enum {PEM, DER, PKCS, UNKNOWN} Credformat;
 class Credential {
   public:
     /**Constructor*/
-    Credential();
+    Credential(Arc::Time start = Arc::Time(), Arc::Period lifetime = Arc::Period(12*3600));
 
     /**Constructor, construct from credential files, this constructor will parse the credential information,
     and put them into "this" */
@@ -45,14 +45,12 @@ class Credential {
 
   private:
     /**Constructor, construct from key and request, it is just a half-matured credential*/
-    Credential(X509_REQ**, EVP_PKEY** key);
-
+    //Credential(X509_REQ**, EVP_PKEY** key);
 
     static Arc::Logger credentialLogger;
 
     void loadKey(BIO* &keybio, EVP_PKEY* &pkey);
     void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)** certchain);
-    void loadCA(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs);
     int InitProxyCertInfo(void);
     void InitVerification(void);
 
@@ -79,10 +77,17 @@ class Credential {
     Credformat getFormat(BIO * in);        
 
     bool GenerateRequest(BIO* &bio);
+    bool GenerateRequest(std::string &content);
+    bool GenerateRequest(const char* filename);
   
     bool InquireRequest(BIO* &reqbio);
+    bool InquireRequest(std::string &content);
+    bool InquireRequest(const char* filename);
 
     bool SignRequest(Credential* proxy, BIO* outputbio);
+    bool SignRequest(Credential* proxy, std::string &content);
+    bool SignRequest(Credential* proxy, const char* filename);
+
 
   /*************************************/
   /*****General methods for proxy Request, proxy sign********/
@@ -192,7 +197,7 @@ class Credential {
     RSA* rsa_key_;
     EVP_MD* signing_alg_;
     int keybits_;
-    int init_prime_;
+    //int init_prime_;
 
     //Extensions for certificate, such as certificate policy, attributes, etc/
     STACK_OF(X509_EXTENSION)* extensions_;

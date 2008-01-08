@@ -199,10 +199,6 @@ namespace ArcLib {
 
   }
 
-  void Credential::loadCA(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs) {
-
-  }  
-
   void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey) {
     //Read key
     Credformat format;
@@ -277,13 +273,16 @@ namespace ArcLib {
     else {credentialLogger.msg(ERROR, "Certificate verify failed"); LogError(); return false;}
   } 
 
-  Credential::Credential() : req_(NULL) {
+  Credential::Credential(Time start, Period lifetime) : start_(start), lifetime_(lifetime), 
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), 
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL) {
     OpenSSL_add_all_algorithms();
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
-        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), certfile_(certfile), 
-        keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir) {
+        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), certfile_(certfile), 
+        keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir),
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024) {
 
      OpenSSL_add_all_algorithms();
 
@@ -374,8 +373,8 @@ namespace ArcLib {
     X509_NAME *         req_name = NULL;
     X509_NAME_ENTRY *   req_name_entry = NULL;
     RSA *               rsa_key = NULL;
-    int keybits = 1024;
-    const EVP_MD *digest = EVP_md5();
+    int keybits = keybits_;
+    const EVP_MD *digest = signing_alg_;
     EVP_PKEY* pkey;
   
     if(pkey_) { credentialLogger.msg(ERROR, "The Credential's private key has already be initialized"); return false; }; 
@@ -510,6 +509,39 @@ err:
     return res;
   }
 
+  bool Credential::GenerateRequest(std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for request"); LogError(); return false;}
+ 
+    if(GenerateRequest(out)) {
+      for(;;) {
+        char s[256];
+        int l = BIO_read(out,s,sizeof(s));
+        if(l <= 0) break;
+        content.append(s,l);
+      }
+    }
+    
+    BIO_free_all(out);
+    return true;
+  }
+
+  bool Credential::GenerateRequest(const char* filename) {
+    BIO *out = BIO_new(BIO_s_file());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for request"); LogError(); return false;}
+    if (!(BIO_write_filename(out, (char*)filename))) {
+      credentialLogger.msg(ERROR, "Can not set writable file for request BIO"); LogError(); BIO_free_all(out); return false;
+    }
+
+    if(GenerateRequest(out)) {
+      credentialLogger.msg(INFO, "Write request into a file");
+    }
+    else {credentialLogger.msg(ERROR, "Failed to write request into a file"); BIO_free_all(out); return false;}
+ 
+    BIO_free_all(out);
+    return true;
+  }
+
   //Inquire the input request bio to get PROXYCERTINFO, certType
   bool Credential::InquireRequest(BIO* &reqbio){
     bool res = false;
@@ -583,6 +615,41 @@ err:
     return res;
   }
 
+  bool Credential::InquireRequest(std::string &content) {
+    BIO *in;
+    if(!(in = BIO_new_mem_buf((void*)(content.c_str()), content.length()))) { 
+      credentialLogger.msg(ERROR, "Can not create BIO for parsing request"); 
+      LogError(); return false;
+    }
+
+    if(InquireRequest(in)) {
+      credentialLogger.msg(INFO, "Read request from a string");
+    }
+    else {credentialLogger.msg(ERROR, "Failed to read request from a string"); BIO_free_all(in); return false;}
+
+    BIO_free_all(in);
+    return true;
+  }
+
+  bool Credential::InquireRequest(const char* filename) {
+    BIO *in = BIO_new(BIO_s_file());
+    if(!in) { credentialLogger.msg(ERROR, "Can not create BIO for parsing request"); LogError(); return false;}
+    if (!(BIO_read_filename(in, (char*)filename))) {
+      credentialLogger.msg(ERROR, "Can not set readable file for request BIO"); 
+      LogError(); BIO_free_all(in); return false;
+    }
+
+    if(InquireRequest(in)) {
+      credentialLogger.msg(INFO, "Read request from a file");
+    }
+    else {credentialLogger.msg(ERROR, "Failed to read request from a file"); BIO_free_all(in); return false;}
+
+    BIO_free_all(in);
+    return true;
+  }
+
+
+
   /** Set the start and end time for the proxy credential. After setting, the start time of proxy
    * will not before the later value from issuer's start time and the "start" parameter, and the end time of proxy
    * will not after the ealier value from issuer's end time and the "start" parameter plus "lifetime" paremeter
@@ -596,7 +663,7 @@ err:
     //Set "notBefore"
     if( X509_cmp_time(X509_get_notBefore(issuer), &t1) < 0) {
       notBefore = M_ASN1_UTCTIME_new();
-      if(notBefore) { 
+      if(notBefore == NULL) { 
         credentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate"); 
         LogError(); return false;
       }
@@ -617,7 +684,7 @@ err:
     //Set "not After"
     if( X509_cmp_time(X509_get_notAfter(issuer), &t2) > 0) {
       notAfter = M_ASN1_UTCTIME_new();
-      if(notAfter) { 
+      if(notAfter == NULL) { 
         credentialLogger.msg(ERROR, "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate");
         LogError(); ASN1_UTCTIME_free(notBefore); return false;
       }
@@ -882,7 +949,8 @@ err:
 
     if(X509_REQ_verify(proxy->req_, req_pubkey)){ 
       if(SignRequestAssistant(proxy, req_pubkey, &proxy_cert)) {
-        if(i2d_X509_bio(outputbio, proxy_cert)) {
+        //if(i2d_X509_bio(outputbio, proxy_cert)) {
+        if(PEM_write_bio_X509(outputbio, proxy_cert)) {
           credentialLogger.msg(INFO, "Succeeded to sign and output the proxy certificate"); res = true;
         }
         else { credentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); LogError();}
@@ -894,6 +962,39 @@ err:
     if(req_pubkey) { EVP_PKEY_free(req_pubkey); }
 
     return res;
+  }
+
+  bool Credential::SignRequest(Credential* proxy, std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); LogError(); return false;}
+              
+    if(SignRequest(proxy, out)) {
+      for(;;) { 
+        char s[256];
+        int l = BIO_read(out,s,sizeof(s));
+        if(l <= 0) break;
+        content.append(s,l);
+      }       
+    }           
+                  
+    BIO_free_all(out);
+    return true;    
+  }               
+                  
+  bool Credential::SignRequest(Credential* proxy, const char* filename) {
+    BIO *out = BIO_new(BIO_s_file());
+    if(!out) { credentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate"); LogError(); return false;}
+    if (!(BIO_write_filename(out, (char*)filename))) {
+      credentialLogger.msg(ERROR, "Can not set writable file for signed proxy certificate BIO"); LogError(); BIO_free_all(out); return false;
+    }     
+          
+    if(SignRequest(proxy, out)) {
+      credentialLogger.msg(INFO, "Write signed proxy certificate into a file");
+    }
+    else {credentialLogger.msg(ERROR, "Failed to write signed proxy certificate into a file"); BIO_free_all(out); return false;}
+
+    BIO_free_all(out);
+    return true;
   }
 
 }
