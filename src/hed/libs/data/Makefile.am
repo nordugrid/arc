@@ -9,8 +9,7 @@ libarcdata2_la_HEADERS=DMC.h   DataPoint.h   DataPointDirect.h   \
 libarcdata2_la_SOURCES=DMC.cpp DataPoint.cpp DataPointDirect.cpp \
 	DataPointIndex.cpp DataBufferPar.cpp CheckSum.cpp DataSpeed.cpp \
 	Cache.cpp DataMover.cpp DataCache.cpp URLMap.cpp \
-	CheckFile.cpp MkDirRecursive.cpp \
-	CheckFile.h   MkDirRecursive.h
+	MkDirRecursive.cpp MkDirRecursive.h
 libarcdata2_la_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcdata2_la_LIBADD=$(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS) -lpthread
 

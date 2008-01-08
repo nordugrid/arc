@@ -24,6 +24,7 @@
 #include <string>
 #include <list>
 #include <unistd.h>
+#include <arc/User.h>
 
 namespace Arc {
 
@@ -39,7 +40,7 @@ class cache_download_handler;
       finishes.
   Accepts:
     cache_path - path to diretory containing cache.
-    cache_uid,cache_gid - uid and gid of user owning cache.
+    cache_user - user owning cache.
     id - string used to mark application/job claiming file.
     handler - object to hold short-term lock.
     url - source URL of file.
@@ -51,8 +52,8 @@ class cache_download_handler;
     2 - file already existed or just been downloaded by another
       program. short-term lock is not set.
 */
-int cache_download_url_start(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,cache_download_handler &handler);
-int cache_download_file_start(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,const std::string &id,cache_download_handler &handler);
+int cache_download_url_start(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& url, const std::string &id, cache_download_handler &handler);
+int cache_download_file_start(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& fname, const std::string &id, cache_download_handler &handler);
 
 /*
   Functionality:
@@ -65,16 +66,16 @@ int cache_download_file_start(const std::string& cache_path,const std::string& c
     1 - error, means failed to write information about status of file. 
       It is better to cancel in that case.
 */
-int cache_download_url_end(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,cache_download_handler &handler,bool success);
+int cache_download_url_end(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& url, cache_download_handler &handler, bool success);
 
 /*
   Object used to hold short-term lock of cached file during download.
   Also provides cache file name on file system.
 */
 class cache_download_handler {
- friend int cache_download_url_start(const std::string&,const std::string&,uid_t,gid_t,const std::string& ,const std::string &,cache_download_handler &);
- friend int cache_download_url_end(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,cache_download_handler &handler,bool success);
- friend int cache_download_file_start(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,const std::string &id,cache_download_handler &handler);
+ friend int cache_download_url_start(const std::string&, const std::string&, const Arc::User &, const std::string&, const std::string &, cache_download_handler &);
+ friend int cache_download_url_end(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& url, cache_download_handler &handler, bool success);
+ friend int cache_download_file_start(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& fname, const std::string &id, cache_download_handler &handler);
  private:
   int h;
   std::string sname;
@@ -94,27 +95,27 @@ class cache_download_handler {
     be created. File will be claimed using provided id.
   Accepts:
     cache_path - path to diretory containing cache.
-    cache_uid,cahe_gid - uid and gid of user owning cache.
+    cache_user - user owning cache.
     url - url, which file is going to represent.
     id - string used to mark application/job claiming file.
   Returns:
     0 - success.
     1 - error.
 */
-int cache_find_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,std::string &options,std::string& fname);
+int cache_find_url(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& url, const std::string &id, std::string &options, std::string& fname);
 
 /*
   Functionality:
     Read url+options associated with given file
 */
-int cache_find_file(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,std::string& url,std::string &options);
+int cache_find_file(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& fname, std::string& url, std::string &options);
 
 /*
   Functionality:
     Unclaim file(s) claimed by id and (optionally) representing given url.
   Accepts:
     cache_path - path to diretory containing cache.
-    cache_uid,cahe_gid - uid and gid of user owning cache.
+    cache_user - user owning cache.
     url - url, which file is going to represent.
     id - string used to mark application/job claiming file.
     remove - if file(s) is not properly downloaded and has no more claiming
@@ -123,23 +124,23 @@ int cache_find_file(const std::string& cache_path,const std::string& cache_data_
     0 - success.
     1 - error.
 */
-int cache_release_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,bool remove);
-int cache_release_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string &id,bool remove);
-int cache_release_file(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,const std::string &id,bool remove);
+int cache_release_url(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& url, const std::string &id, bool remove);
+int cache_release_url(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string &id, bool remove);
+int cache_release_file(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& fname, const std::string &id, bool remove);
 
-int cache_invalidate_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname);
+int cache_invalidate_url(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, const std::string& fname);
 
 /*
   Functionality:
     Remove oldest files from cache.
   Accepts:
     cache_path - path to diretory containing cache.
-    cache_uid,cahe_gid - uid and gid of user owning cache.
+    cache_user - user owning cache.
     size - amount of space to be freed. 
   Returns:
     Amount of space freed.
 */
-unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,unsigned long long int size);
+unsigned long long int cache_clean(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, unsigned long long int size);
 
 /*
   These function are intended for internal usage.
@@ -155,7 +156,7 @@ unsigned long long int cache_clean(const std::string& cache_path,const std::stri
     0 - success.
     -1 - error.
 */
-int cache_claiming_list(const std::string& cache_path,const std::string& fname,std::list<std::string> &ids);
+int cache_claiming_list(const std::string& cache_path, const std::string& fname, std::list<std::string> &ids);
 /*
   Functionality:
     checks if file is claimed
@@ -167,31 +168,31 @@ int cache_claiming_list(const std::string& cache_path,const std::string& fname,s
     0 - claimed
     -1 - error
 */
-int cache_is_claimed_file(const std::string& cache_path,const std::string& fname);
+int cache_is_claimed_file(const std::string& cache_path, const std::string& fname);
 /*
   Functionality:
     Provides names of files in cache.
   Accepts:
     cache_path - path to diretory containing cache.
-    cache_uid,cahe_gid - uid and gid of user owning cache.
+    cache_user - user owning cache.
   Returns:
     files - list of all content files in cache.
     0 - success.
     -1 - error.
 */
-int cache_files_list(const std::string& cache_path,uid_t cache_uid,gid_t cache_gid,std::list<std::string> &files);
+int cache_files_list(const std::string& cache_path, const Arc::User &cache_user, std::list<std::string> &files);
 /*
   Obtain records stored in history files
 */
-int cache_history_lists(const std::string& cache_path,std::list<std::string> &olds,std::list<std::string> &news);
+int cache_history_lists(const std::string& cache_path, std::list<std::string> &olds, std::list<std::string> &news);
 /*
   Remove records from cache history
 */
-int cache_history_remove(const std::string& cache_path,std::list<std::string> &olds,std::list<std::string> &news);
+int cache_history_remove(const std::string& cache_path, std::list<std::string> &olds, std::list<std::string> &news);
 /*
   Enable/disable cache history. Disabling history deletes all records.
 */
-int cache_history(const std::string& cache_path,bool enable,uid_t uid,gid_t gid);
+int cache_history(const std::string& cache_path, bool enable, const Arc::User &cache_user);
 
 } // namespace Arc
 

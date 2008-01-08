@@ -316,8 +316,9 @@ void arccp (
           source->SetTries(tries); // try all locations "tries" times
           destination->SetTries(tries);
         }
+        Arc::User cache_user;
         Arc::DataCache cache(cache_path,cache_data_path,"",id,
-                             getuid(),getgid());
+                             cache_user);
         std::string failure;
         if(mover.Transfer(*source,*destination,cache,Arc::URLMap(),
                           0,0,0,timeout,failure) != Arc::DataMover::success) {
@@ -380,7 +381,8 @@ void arccp (
     source->SetTries(tries); // try all locations "tries" times
     destination->SetTries(tries);
   }
-  Arc::DataCache cache(cache_path,cache_data_path,"",id,getuid(),getgid());
+  Arc::User cache_user;
+  Arc::DataCache cache(cache_path,cache_data_path,"",id,cache_user);
   if(verbose) mover.set_progress_indicator(&progress);
   std::string failure;
   if(mover.Transfer(*source,*destination,cache,Arc::URLMap(),

@@ -15,7 +15,7 @@ namespace Arc {
 
 static Logger logger(Logger::getRootLogger(), "Cache");
 
-static unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,unsigned long long int size,int h);
+static unsigned long long int cache_clean(const std::string& cache_path, const std::string& cache_data_path, const Arc::User &cache_user, unsigned long long int size, int h);
 
 // ------------------------------------------------------------------
 // General purpose functions
@@ -376,7 +376,7 @@ error_exit:
   return -1;
 }
 
-int cache_history(const std::string& cache_path,bool enable,uid_t uid,gid_t gid) {
+int cache_history(const std::string& cache_path,bool enable, const Arc::User &cache_user) {
   std::string fname_old(cache_path); fname_old+="/old";
   std::string fname_new(cache_path); fname_new+="/new";
   int h_old = -1;
@@ -386,8 +386,9 @@ int cache_history(const std::string& cache_path,bool enable,uid_t uid,gid_t gid)
     if(h_old == -1) goto error_exit;
     h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
-    if(uid) (void)chown(fname_old.c_str(),uid,gid);
-    if(uid) (void)chown(fname_new.c_str(),uid,gid);
+    int uid = cache_user.get_uid();
+    if(uid) (void)chown(fname_old.c_str(),uid,cache_user.get_gid());
+    if(uid) (void)chown(fname_new.c_str(),uid,cache_user.get_gid());
   } else {
     if(unlink(fname_old.c_str()) != 0) if(errno != ENOENT) goto error_exit;
     if(unlink(fname_new.c_str()) != 0) if(errno != ENOENT) goto error_exit;
@@ -405,13 +406,14 @@ error_exit:
 // Cache handling functions
 // ------------------------------------------------------------------
 
-static int cache_open_list(const std::string& cache_path,uid_t uid,gid_t gid) {
+static int cache_open_list(const std::string& cache_path, const Arc::User &cache_user) {
   std::string fname(cache_path);
   fname+="/list";
   int h=open(fname.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if(h == -1) return -1;
+  int uid = cache_user.get_uid();
   if(uid) {
-    (void)chown(fname.c_str(),uid,gid);
+    (void)chown(fname.c_str(),uid,cache_user.get_gid());
   };
   /* lock file */
   if(lock_file(h) != 0) { close(h); return -1; };
@@ -625,10 +627,10 @@ static int cache_close_info(int h) {
 /*
   returns: 0 - added, -1 - error
 */
-  static int cache_add_list(int h,const std::string& url,const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string &id,std::string &fname) {
+  static int cache_add_list(int h,const std::string& url,const std::string& cache_path,const std::string& cache_data_path, const Arc::User &cache_user, const std::string &id,std::string &fname) {
 #define OUT_OF_SPACE_CHECK                                                    \
       if(errno == ENOSPC) { /* out of space - free some */                    \
-        if(cache_clean(cache_path,cache_data_path,cache_uid,cache_gid,1,h)    \
+        if(cache_clean(cache_path,cache_data_path,cache_user,1,h)    \
                == 0) i=INT_MAX;  /* can't free anything */                    \
         i--;                                                                  \
       }
@@ -673,10 +675,10 @@ static int cache_close_info(int h) {
       close(nh); remove(name.c_str()); remove(name_info.c_str()); remove(name_claim.c_str()); continue;
     };
     close(nh);
-    if(cache_uid != 0) {
-      (void)chown(name.c_str(),cache_uid,cache_gid);
-      (void)chown(name_info.c_str(),cache_uid,cache_gid);
-      (void)chown(name_claim.c_str(),cache_uid,cache_gid);
+    if(cache_user.get_uid() != 0) {
+      (void)chown(name.c_str(),cache_user.get_uid(),cache_user.get_gid());
+      (void)chown(name_info.c_str(),cache_user.get_uid(),cache_user.get_gid());
+      (void)chown(name_claim.c_str(),cache_user.get_uid(),cache_user.get_gid());
     }
     else {
       (void)chmod(name.c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -713,7 +715,7 @@ static int cache_close_info(int h) {
   it does not check if that file is claimed - should be called ONLY for
   non-claimed files 
 */
-static int cache_remove_list(int h,const std::string& fname,const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid) {
+static int cache_remove_list(int h,const std::string& fname,const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user) {
   if(h==-1) return -1;
   std::string name = cache_data_path + '/' + fname;
   std::string name_info = cache_path + '/' + fname + ".info";
@@ -739,7 +741,7 @@ static int cache_remove_list(int h,const std::string& fname,const std::string& c
   return 0;
 }
 
-static int cache_invalidate_list(int h,const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname) {
+static int cache_invalidate_list(int h,const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& fname) {
   if(h==-1) return -1;
   lseek(h,0,SEEK_SET);
   /* look through file for given name */
@@ -982,11 +984,11 @@ static char cache_read_info_nonblock(const std::string& cache_path,const std::st
      0 - success
      1 - unspecified error
 */
-int cache_find_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,std::string &options,std::string& fname) {
+int cache_find_url(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& url,const std::string &id,std::string &options,std::string& fname) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) {
     return 1;
   };
@@ -1012,7 +1014,7 @@ int cache_find_url(const std::string& cache_path,const std::string& cache_data_p
       };
     }; break;
     case 1: { /* no such url yet - create it, mark as 'created' and claim */
-      if(cache_add_list(ch,url,cache_path,cache_data_path,cache_uid,cache_gid,id,fname) == -1) {
+      if(cache_add_list(ch,url,cache_path,cache_data_path,cache_user,id,fname) == -1) {
         cache_close_list(ch); return 1;
       };
     }; break;
@@ -1025,11 +1027,11 @@ int cache_find_url(const std::string& cache_path,const std::string& cache_data_p
   return 0;
 }
 
-int cache_find_file(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,std::string &url,std::string &options) {
+int cache_find_file(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& fname,std::string &url,std::string &options) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) {
     return 1;
   };
@@ -1066,11 +1068,11 @@ int cache_find_file(const std::string& cache_path,const std::string& cache_data_
   return 0;
 }
 
-int cache_release_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string &id,bool remove) {
+int cache_release_url(const std::string& cache_path,const std::string& cache_data_path, const Arc::User &cache_user, const std::string &id,bool remove) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) return 1;
   std::string fname;
   std::string url;
@@ -1085,7 +1087,7 @@ int cache_release_url(const std::string& cache_path,const std::string& cache_dat
             char state=cache_read_info_nonblock(cache_path,fname);
             if(((state=='f') || (state=='c')) &&
                (cache_is_claimed_file(cache_path,fname)==1)) {
-              if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_uid,cache_gid) != 0) {
+              if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_user) != 0) {
                 fail=true; 
               };
             };
@@ -1105,11 +1107,11 @@ int cache_release_url(const std::string& cache_path,const std::string& cache_dat
   };
 }
 
-int cache_release_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,bool remove) {
+int cache_release_url(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& url,const std::string &id,bool remove) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) return 1;
   std::string fname;
   switch(cache_search_list(ch,url,fname)) {
@@ -1123,7 +1125,7 @@ int cache_release_url(const std::string& cache_path,const std::string& cache_dat
         char state=cache_read_info_nonblock(cache_path,fname);
         if(((state=='f') || (state=='c')) &&
            (cache_is_claimed_file(cache_path,fname) == 1)) {
-          if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_uid,cache_gid)
+          if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_user)
                             != 0) {
             cache_close_list(ch); return 1;
           };
@@ -1139,11 +1141,11 @@ int cache_release_url(const std::string& cache_path,const std::string& cache_dat
   return 0;
 }
 
-int cache_release_file(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,const std::string &id,bool remove) {
+int cache_release_file(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& fname,const std::string &id,bool remove) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) return 1;
   // claimed once - release once
   if(cache_release_file(cache_path,id,fname,true) == -1) {
@@ -1153,7 +1155,7 @@ int cache_release_file(const std::string& cache_path,const std::string& cache_da
     char state=cache_read_info_nonblock(cache_path,fname);
     if(((state=='f') || (state=='c')) &&
        (cache_is_claimed_file(cache_path,fname) == 1)) {
-      if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_uid,cache_gid)
+      if(cache_remove_list(ch,fname,cache_path,cache_data_path,cache_user)
                         != 0) {
         cache_close_list(ch); return 1;
       };
@@ -1163,13 +1165,13 @@ int cache_release_file(const std::string& cache_path,const std::string& cache_da
   return 0;
 }
 
-int cache_invalidate_url(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname) {
+int cache_invalidate_url(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& fname) {
   if(cache_path.empty()) return 1;
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) return 1;
-  switch(cache_invalidate_list(ch,cache_path,cache_data_path,cache_uid,cache_gid,fname)) {
+  switch(cache_invalidate_list(ch,cache_path,cache_data_path,cache_user,fname)) {
     case 0: { /* url is invalidated */
     }; break;
     case 1: { /* no such url - it died or was already invalidated */
@@ -1186,12 +1188,12 @@ int cache_invalidate_url(const std::string& cache_path,const std::string& cache_
   returns: 0 - can download, 1 - error, 2 - file already exists
   This function is unsafe because it can fail if url was invalidated
 */
-int cache_download_url_start(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,const std::string &id,cache_download_handler &handler) {
+int cache_download_url_start(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& url,const std::string &id,cache_download_handler &handler) {
   if(cache_path.empty()) return 1;
   if(handler.h != -1) return 0;  /* already locked */
   int res;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) {
     logger.msg(INFO, "cache_download_url_start: cache_open_list failed: %s", cache_path.c_str());
     return 1;
@@ -1213,10 +1215,10 @@ int cache_download_url_start(const std::string& cache_path,const std::string& ca
   /* try to get lock on info file */
   logger.msg(INFO, "cache_download_url_start: locking url: %s (%s)", url.c_str(), fname.c_str());
 
-  return cache_download_file_start(cache_path,cache_data_path,cache_uid,cache_gid,fname,id,handler);
+  return cache_download_file_start(cache_path,cache_data_path,cache_user,fname,id,handler);
 }
 
-int cache_download_file_start(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& fname,const std::string &id,cache_download_handler &handler) {
+int cache_download_file_start(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& fname,const std::string &id,cache_download_handler &handler) {
   if(cache_path.empty()) return 1;
   if(handler.h != -1) return 0;  /* already locked */
   int ih = cache_open_info(cache_path,fname);
@@ -1239,7 +1241,7 @@ int cache_download_file_start(const std::string& cache_path,const std::string& c
     case 'd': {  /* it is probaly lock left by dead job */
       logger.msg(INFO, "cache_download_file_start: state - dead: %s", fname.c_str());
       /* remove all locks */
-      cache_release_url(cache_path,cache_data_path,cache_uid,cache_gid,fs.id,false);
+      cache_release_url(cache_path,cache_data_path,cache_user,fs.id,false);
     };
     case 'c':
     case 'f': {
@@ -1261,10 +1263,10 @@ int cache_download_file_start(const std::string& cache_path,const std::string& c
   };
 }
 
-int cache_download_url_end(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,const std::string& url,cache_download_handler &handler,bool success) {
+int cache_download_url_end(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, const std::string& url,cache_download_handler &handler,bool success) {
   if(!url.empty()) {
     /* open + lock list file */
-    int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+    int ch = cache_open_list(cache_path,cache_user);
     if(ch == -1) {
       logger.msg(INFO, "cache_download_url_end: cache_open_list failed: %s", cache_path.c_str());
     }
@@ -1306,16 +1308,16 @@ class cache_file_p {
 };
 
 /* remove old files from cache to provide 'size' space */
-unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,unsigned long long int size) {
-  return cache_clean(cache_path,cache_data_path,cache_uid,cache_gid,size,-1);
+unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, unsigned long long int size) {
+  return cache_clean(cache_path,cache_data_path,cache_user,size,-1);
 }
 
-static unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,uid_t cache_uid,gid_t cache_gid,unsigned long long int size,int h) {
+static unsigned long long int cache_clean(const std::string& cache_path,const std::string& cache_data_path,const Arc::User &cache_user, unsigned long long int size,int h) {
   if(cache_path.empty()) return 0;
   int ch;
   if(h == -1) {
     /* open + lock list file */
-    ch = cache_open_list(cache_path,cache_uid,cache_gid);
+    ch = cache_open_list(cache_path,cache_user);
     if(ch == -1) return 0;
   }
   else {
@@ -1355,7 +1357,7 @@ static unsigned long long int cache_clean(const std::string& cache_path,const st
   unsigned long long int total_size = 0;
   for(std::list<cache_file_p>::iterator i=files.begin();i!=files.end();++i) {
     logger.msg(INFO, "Removing cache file: name = %s, url = %s", i->name.c_str(), url.c_str());
-    if(cache_remove_list(ch,i->name,cache_path,cache_data_path,cache_uid,cache_gid) == 0) { 
+    if(cache_remove_list(ch,i->name,cache_path,cache_data_path,cache_user) == 0) { 
       total_size+=i->size;
     };
     if(!(i->valid)) continue; // Remove all invalidated files
@@ -1366,10 +1368,10 @@ static unsigned long long int cache_clean(const std::string& cache_path,const st
   return total_size;
 }
 
-int cache_files_list(const std::string& cache_path,uid_t cache_uid,gid_t cache_gid,std::list<std::string> &files) {
+int cache_files_list(const std::string& cache_path,const Arc::User &cache_user,std::list<std::string> &files) {
   if(cache_path.empty()) return 0;
   /* open + lock list file */
-  int ch = cache_open_list(cache_path,cache_uid,cache_gid);
+  int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) return -1;
   std::string fname;
   std::string url;

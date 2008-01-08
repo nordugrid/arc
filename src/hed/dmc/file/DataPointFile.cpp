@@ -161,8 +161,10 @@ namespace Arc {
   bool DataPointFile::check() {
     if(!DataPointDirect::check())
       return false;
-    int res = check_file_access(url.Path(), O_RDONLY,
-                                get_user_id(), (gid_t)(-1));
+    Arc::User user;
+    int res = user.check_file_access(url.Path(), O_RDONLY);
+   /* int res = check_file_access(url.Path(), O_RDONLY,
+                                get_user_id(), (gid_t)(-1)); */
     if(res != 0) {
       logger.msg(INFO, "File is not accessible: %s", url.Path().c_str());
       return false;
@@ -194,8 +196,8 @@ namespace Arc {
     if(url.Path() == "-")
       fd = dup(STDIN_FILENO);
     else {
-      if(check_file_access(url.Path(), O_RDONLY,
-           get_user_id(), (gid_t)(-1)) != 0) {
+      Arc::User user;
+      if(user.check_file_access(url.Path(), O_RDONLY) != 0) {
         DataPointDirect::stop_reading();
         return false;
       }
@@ -257,8 +259,7 @@ namespace Arc {
       }
     }
     else {
-      uid_t uid = get_user_id();
-      gid_t gid = get_user_group(uid);
+      Arc::User user;
       /* do not check permissions to create anything here -
          suppose it path was checked at higher level */
       /* make directories */
@@ -275,7 +276,7 @@ namespace Arc {
         dirpath = "/";
       else
         dirpath.erase(n, dirpath.length() - n + 1);
-      if(mkdir_recursive("", dirpath, S_IRWXU, uid, gid) != 0) {
+      if(mkdir_recursive("", dirpath, S_IRWXU, user) != 0) {
         if(errno != EEXIST) {
           logger.msg(ERROR, "Failed to create/find directory %s",
                      dirpath.c_str());
@@ -291,7 +292,7 @@ namespace Arc {
       if(fd == -1)
         fd = open(url.Path().c_str(), O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       else {/* this file was created by us. Hence we can set it's owner */
-        fchown(fd, uid, gid);
+        fchown(fd, user.get_uid(), user.get_gid());
       }
       if(fd == -1) {
         logger.msg(ERROR, "Failed to create/open file %s", url.Path().c_str());

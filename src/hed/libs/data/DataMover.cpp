@@ -11,7 +11,6 @@
 #include "DataHandle.h"
 #include "DataBufferPar.h"
 #include "URLMap.h"
-#include "CheckFile.h"
 #include "MkDirRecursive.h"
 
 #include "DataMover.h"
@@ -573,8 +572,7 @@ namespace Arc {
               destination.current_location().Path();
             // create directory structure for link_name
             {
-              uid_t uid = get_user_id();
-              gid_t gid = get_user_group(uid);
+              Arc::User user;
               std::string dirpath = link_name;
               std::string::size_type n = dirpath.rfind('/');
               if(n == std::string::npos) n = 0;
@@ -582,7 +580,7 @@ namespace Arc {
                 dirpath = "/";
               else
                 dirpath.resize(n);
-              if(mkdir_recursive(NULL, dirpath.c_str(), S_IRWXU, uid, gid)
+              if(mkdir_recursive(NULL, dirpath.c_str(), S_IRWXU, user)
                  != 0) {
                 if(errno != EEXIST) {
                   char *err;
@@ -627,9 +625,8 @@ namespace Arc {
                            DataCache::file_keep);
               continue;
             }
-            uid_t uid = get_user_id();
-            gid_t gid = get_user_group(uid);
-            lchown(link_name.c_str(), uid, gid);
+            Arc::User user;
+            lchown(link_name.c_str(), user.get_uid(), user.get_gid());
             if(cacheable)
               cache.stop();
             return success; // Leave after making a link. Rest moves data.

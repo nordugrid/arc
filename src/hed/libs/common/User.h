@@ -16,13 +16,16 @@ class User
         int gid;
     
     public:
-        User(std::string name);
+        // get current user
+        User();
+        User(const std::string name);
         User(int uid);
-        const std::string & Name(void) const { return name; };
-        const std::string & Home(void) const { return home; };
+        const std::string &Name(void) const { return name; };
+        const std::string &Home(void) const { return home; };
         int get_uid(void) const { return (int)uid; };
         int get_gid(void) const { return (int)gid; };
-        bool operator==(std::string n) { return (n == name); };
+        bool operator==(const std::string n) { return (n == name); };
+        int check_file_access(const std::string &path, int flags);
         /* Run command as behalf of this user */ 
         bool RunAs(std::string cmd);
 }; // class User

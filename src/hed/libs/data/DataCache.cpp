@@ -14,15 +14,14 @@ namespace Arc {
 
   Logger DataCache::logger(Logger::getRootLogger(), "DataCache");
 
-  DataCache::DataCache() : have_url(false), cache_uid(0), cache_gid(0) {}
+  DataCache::DataCache() : have_url(false), cache_user(0) {}
 
   DataCache::DataCache(const DataCache& cache) :
     cache_path(cache.cache_path),
     cache_data_path(cache.cache_data_path),
     cache_link_path(cache.cache_link_path),
     id(cache.id),
-    cache_uid(cache.cache_uid),
-    cache_gid(cache.cache_gid),
+    cache_user(cache.cache_user),
     have_url(false) {
     logger.msg(VERBOSE, "DataCache: constructor with copy");
     if(cache_path.length() == 0)
@@ -38,14 +37,12 @@ namespace Arc {
                        const std::string& cache_data_path_,
                        const std::string& cache_link_path_,
                        const std::string& id,
-                       uid_t cache_uid,
-                       gid_t cache_gid) :
+                       const Arc::User &cache_user) :
     cache_path(cache_path_),
     cache_data_path(cache_data_path_),
     cache_link_path(cache_link_path_),
     id(id),
-    cache_uid(cache_uid),
-    cache_gid(cache_gid),
+    cache_user(cache_user),
     have_url(false) {
     if(cache_path.empty()) {
       cache_data_path.clear();
@@ -73,7 +70,7 @@ namespace Arc {
     std::string url_options;
     /* Find or create new url in cache. This also claims url */
     std::string fname;
-    if(cache_find_url(cache_path, cache_data_path, cache_uid, cache_gid,
+    if(cache_find_url(cache_path, cache_data_path, cache_user,
                       base_url.str(), id, url_options, fname) != 0)
       return false;
     cache_url = base_url;
@@ -93,12 +90,12 @@ namespace Arc {
       if(!CheckValid())
         SetValid(Time() + 24 * 60 * 60);
     }
-    switch(cache_download_file_start(cache_path, cache_data_path, cache_uid,
-                                     cache_gid, fname, id, cdh)) {
+    switch(cache_download_file_start(cache_path, cache_data_path, cache_user,
+                                     fname, id, cdh)) {
     case 1:
       // error
       logger.msg(ERROR, "Error while locking file in cache");
-      cache_release_file(cache_path, cache_data_path, cache_uid, cache_gid,
+      cache_release_file(cache_path, cache_data_path, cache_user,
                          fname, id, true);
       return false;
     case 2:
@@ -106,7 +103,7 @@ namespace Arc {
       // reread options because they could be changed by process which
       // just downloded that file
       url_options = "";
-      if(cache_find_file(cache_path, cache_data_path, cache_uid, cache_gid,
+      if(cache_find_file(cache_path, cache_data_path, cache_user,
                          fname, u, url_options) == 0) {
         if(url_options.length() != 0) {
           std::string::size_type n = url_options.find(' ');
@@ -132,7 +129,7 @@ namespace Arc {
       break;
     default:
       logger.msg(ERROR, "Unknown error while locking file in cache");
-      cache_release_file(cache_path, cache_data_path, cache_uid, cache_gid,
+      cache_release_file(cache_path, cache_data_path, cache_user,
                          fname, id, true);
       return false;
     }
@@ -151,16 +148,16 @@ namespace Arc {
       url_options = cache_url + "\n" +
                     (CheckCreated() ? GetCreated().str() : ".") + " " +
                     (CheckValid() ? GetValid().str() : ".");
-    cache_download_url_end(cache_path, cache_data_path, cache_uid, cache_gid,
+    cache_download_url_end(cache_path, cache_data_path, cache_user,
                            url_options, cdh,
       !(file_state & file_download_failed));
     if(file_state & file_not_valid)
-      cache_invalidate_url(cache_path, cache_data_path, cache_uid, cache_gid,
+      cache_invalidate_url(cache_path, cache_data_path, cache_user,
                            cdh.cache_name());
     if((file_state & (file_download_failed | file_not_valid)) &&
        !(file_state & file_keep))
       // failed to download or outdated file
-      cache_release_file(cache_path, cache_data_path, cache_uid, cache_gid,
+      cache_release_file(cache_path, cache_data_path, cache_user,
                          cdh.cache_name(), id, true);
     have_url = false;
     cache_file = "";
@@ -171,7 +168,7 @@ namespace Arc {
     logger.msg(INFO, "Cache cleaning requested: %s, %llu bytes",
                cache_path.c_str(), size);
     unsigned long long int freed = cache_clean(cache_path, cache_data_path,
-                                               cache_uid, cache_gid, size);
+                                               cache_user, size);
     logger.msg(DEBUG, "Cache cleaned: %s, %llu bytes",
                cache_path.c_str(), freed);
     if(freed < size)
@@ -180,25 +177,23 @@ namespace Arc {
   }
 
   bool DataCache::link(const std::string& link_path) {
-    uid_t uid = get_user_id();
-    gid_t gid = get_user_group(uid);
-    return link(link_path, uid, gid);
+    Arc::User user;
+    return link(link_path, user);
   }
 
   bool DataCache::copy(const std::string& link_path) {
-    uid_t uid = get_user_id();
-    gid_t gid = get_user_group(uid);
-    return copy(link_path, uid, gid);
+    Arc::User user;
+    return copy(link_path, user);
   }
 
-  bool DataCache::link(const std::string& link_path, uid_t uid, gid_t gid) {
+  bool DataCache::link(const std::string& link_path, const Arc::User &user) {
     std::string dirpath = link_path;
     std::string::size_type n = dirpath.rfind('/');
     if(n == std::string::npos)
       dirpath = "/";
     else
       dirpath.erase(n, dirpath.length() - n + 1);
-    if(mkdir_recursive(NULL, dirpath, S_IRWXU, uid, gid) != 0) {
+    if(mkdir_recursive(NULL, dirpath, S_IRWXU, user) != 0) {
       if(errno != EEXIST) {
         logger.msg(ERROR, "Failed to create/find directory %s",
                    dirpath.c_str());
@@ -207,13 +202,13 @@ namespace Arc {
     }
     if(cache_link_path == ".")
       /* special link - copy request */
-      return copy_file(link_path, uid, gid);
+      return copy_file(link_path, user);
     else
-      return link_file(link_path, uid, gid);
+      return link_file(link_path, user);
   }
 
   bool DataCache::link_file(const std::string& link_path,
-                            uid_t uid, gid_t gid) {
+                            const Arc::User &user) {
     std::string fname(cache_file.substr (cache_data_path.length()));
     fname = cache_link_path + fname;
     if(symlink(fname.c_str(), link_path.c_str()) == -1) {
@@ -221,29 +216,29 @@ namespace Arc {
                  link_path.c_str(), fname.c_str());
       return false;
     }
-    lchown(link_path.c_str(), uid, gid);
+    lchown(link_path.c_str(), user.get_uid(), user.get_gid());
     return true;
   }
 
-  bool DataCache::copy(const std::string& link_path, uid_t uid, gid_t gid) {
+  bool DataCache::copy(const std::string& link_path, const Arc::User &user) {
     std::string dirpath = link_path;
     std::string::size_type n = dirpath.rfind('/');
     if(n == std::string::npos)
       dirpath = "/";
     else
       dirpath.erase(n, dirpath.length() - n + 1);
-    if(mkdir_recursive(NULL, dirpath, S_IRWXU, uid, gid) != 0) {
+    if(mkdir_recursive(NULL, dirpath, S_IRWXU, user) != 0) {
       if(errno != EEXIST) {
         logger.msg(ERROR, "Failed to create/find directory %s",
                    dirpath.c_str());
         return false;
       }
     }
-    return copy_file(link_path, uid, gid);
+    return copy_file(link_path, user);
   }
 
   bool DataCache::copy_file(const std::string& link_path,
-                            uid_t uid, gid_t gid) {
+                            const Arc::User &user) {
     char buf[65536];
     int fd = open(link_path.c_str(),
                   O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -252,7 +247,7 @@ namespace Arc {
                  link_path.c_str());
       return false;
     }
-    fchown(fd, uid, gid);
+    fchown(fd, user.get_uid(), user.get_gid());
     int fd_ = open(cache_file.c_str(), O_RDONLY);
     if(fd_ == -1) {
       close(fd);

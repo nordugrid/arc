@@ -13,7 +13,7 @@
 
 static int mkdir_force(const char* path,mode_t mode);
 
-int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t mode,uid_t uid,gid_t gid) {
+int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t mode,const Arc::User &user) {
   std::string name = base_path;
   if(path[0]!='/')
     name += '/';
@@ -23,7 +23,7 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
   /* go down */
   for(;;) {
     if((mkdir_force(name.substr(0,name_end).c_str(),mode) == 0) || (errno == EEXIST)) {
-      if(errno != EEXIST) lchown(name.substr(0,name_end).c_str(),uid,gid);
+      if(errno != EEXIST) lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid());
       /* go up */
       for(;;) {
         if(name_end >= name.length()) { return 0; };
@@ -33,7 +33,7 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
           return -1;
         };
         (void)chmod(name.substr(0,name_end).c_str(),mode);
-        (void)lchown(name.substr(0,name_end).c_str(),uid,gid);
+        (void)lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid());
       };
     };
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; }; */

@@ -35,13 +35,12 @@ namespace Arc {
     /* file storing content of url */
     std::string cache_file;
     /* owner:group of cache */
-    uid_t cache_uid;
-    gid_t cache_gid;
+    Arc::User cache_user;
     Time creation_time;
     Time expiration_time;
     static Logger logger;
-    bool link_file(const std::string& link_path, uid_t uid, gid_t gid);
-    bool copy_file(const std::string& link_path, uid_t uid, gid_t gid);
+    bool link_file(const std::string& link_path, const Arc::User &user);
+    bool copy_file(const std::string& link_path, const Arc::User &user);
    public:
     typedef enum {
       file_no_error = 0,
@@ -57,12 +56,11 @@ namespace Arc {
     /// \param cache_link_path path used to create link in case
     /// cache_directory is visible under different name during actual usage
     /// \param id identifier used to claim files in cache
-    /// \param cache_uid owner of cahce (0 for public cache)
-    /// \param cache_gid owner group of cache (0 for public cache)
+    /// \param cache_user owner of cahce (0 for public cache)
     DataCache(const std::string& cache_path,
               const std::string& cache_data_path,
               const std::string& cache_link_path,
-              const std::string& id, uid_t cache_uid, gid_t cache_gid);
+              const std::string& id, const Arc::User &cache_user);
     /// Copy constructor
     DataCache(const DataCache& cache);
     /// and destructor
@@ -89,12 +87,11 @@ namespace Arc {
     /// that means soft-link already exists).
     /// \param link_path path for soft-link or new file.
     bool link(const std::string& link_path);
-    /// \param uid set owner of soft-link to uid
-    /// \param gid set group of soft-link to gid
-    bool link(const std::string& link_path, uid_t uid, gid_t gid);
+    /// \param user set owner of soft-link
+    bool link(const std::string& link_path, const Arc::User &user);
     /// Do same as link() but always create copy
     bool copy(const std::string& link_path);
-    bool copy(const std::string& link_path, uid_t uid, gid_t gid);
+    bool copy(const std::string& link_path, const Arc::User &user);
     /// Remove some amount of oldest information from cache.
     /// Returns true on success.
     /// \param size amount to be removed (bytes)
