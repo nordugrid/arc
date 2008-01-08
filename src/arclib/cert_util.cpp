@@ -18,9 +18,11 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
   int j;
   int retval = 0;
   X509_STORE* cert_store = NULL;
-  X509_STORE_CTX* store_ctx;
+  X509_STORE_CTX* store_ctx = NULL;
   X509* cert_in_chain = NULL;
   X509* user_cert = NULL;
+
+  std::cout<<"Cert number in cert chain: "<<sk_X509_num(certchain)<<std::endl;
 
   user_cert = cert;
   cert_store = X509_STORE_new();
@@ -45,9 +47,12 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
     }
   }
 
-  if (X509_STORE_load_locations(cert_store, NULL, vctx->cert_dir.c_str())) {
+  std::cout<<"Verifying chain: CA directory--"<<vctx->ca_dir<<"  ;CA file--"<<vctx->ca_file<<std::endl;
+
+  if (X509_STORE_load_locations(cert_store, vctx->ca_file.empty() ? NULL:vctx->ca_file.c_str(), 
+     vctx->ca_dir.empty() ? NULL:vctx->ca_dir.c_str())) {
     store_ctx = X509_STORE_CTX_new();
-    X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL);
+    X509_STORE_CTX_init(store_ctx, cert_store, user_cert,NULL); //Last parameter is "untrusted", probably related globus code is wrong.
 
 #if SSLEAY_VERSION_NUMBER >=  0x0090600fL
     /* override the check_issued with our version */
@@ -96,6 +101,10 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     //if failed, show the error message.
     if(!ok) {
       char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
+
+      std::cout<<"Error number in store context: "<<store_ctx->error<<std::endl;
+      if(sk_X509_num(store_ctx->chain) ==1) {std::cout<<"Self-signed certificate"<<std::endl; }
+
       if (store_ctx->error == X509_V_ERR_CERT_NOT_YET_VALID) {
         std::cerr<<"The certificate with subject "<<subject_name<<" is not valid"<<std::endl;
       }
@@ -105,7 +114,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       else if(store_ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) {
         std::cerr<<"Certificate with subject "<<subject_name<<" has expired"<<std::endl;
       }
-      OPENSSL_free(subject_name);
+      if(subject_name) OPENSSL_free(subject_name);
       return ok;
     }
     store_ctx->error = 0;
@@ -260,22 +269,22 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
 
     /** Only need to check signing policy file for no-proxy certificate*/
-    char* certdir = NULL;
+    char* cadir = NULL;
     char* ca_policy_file_path = NULL;
     if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
-      //certdir = vctx->cert_dir.empty() ? getenv(X509_CERT_DIR) : vctx->cert_dir.c_str();
-      certdir = (char*)(vctx->cert_dir.c_str());
-      if(!certdir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; return (0);}
+      //cadir = vctx->ca_dir.empty() ? getenv(X509_CERT_DIR) : vctx->ca_dir.c_str();
+      cadir = (char*)(vctx->ca_dir.c_str());
+      if(!cadir) { std::cerr<<"Can not find the directory of trusted CAs"<<std::endl; return (0);}
    
       unsigned int buffer_len; 
       unsigned long hash;
       hash = X509_NAME_hash(X509_get_issuer_name(store_ctx->current_cert));
        
-      buffer_len = strlen(certdir) + strlen(FILE_SEPERATOR) + 8 /* hash */
+      buffer_len = strlen(cadir) + strlen(FILE_SEPERATOR) + 8 /* hash */
         + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* NULL */;
       ca_policy_file_path = (char*) malloc(buffer_len);
       if(ca_policy_file_path == NULL) {store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION; return (0); }
-      sprintf(ca_policy_file_path,"%s%s%08lx%s", certdir, FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
+      sprintf(ca_policy_file_path,"%s%s%08lx%s", cadir, FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
 
       //TODO check the certificate against policy
 
@@ -375,7 +384,7 @@ bool check_proxy_type(X509* cert, certType& type) {
     return true;
   }
 
-  X509_NAME* issuer;
+  X509_NAME* issuer = NULL;
   X509_NAME* subject = X509_get_subject_name(cert);
   X509_NAME_ENTRY * name_entry = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
   if (!OBJ_cmp(name_entry->object,OBJ_nid2obj(NID_commonName))) {
@@ -484,6 +493,7 @@ err:
 int check_issued( X509_STORE_CTX*  ctx, X509* x, X509* issuer) {
   int  ret;
   int  ret_code = 1;
+
   ret = X509_check_issued(issuer, x);
   if (ret != X509_V_OK) {
     ret_code = 0;

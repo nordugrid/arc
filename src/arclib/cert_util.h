@@ -97,7 +97,8 @@ namespace ArcLib {
       int                                 limited_proxy;
       certType                            cert_type;
       STACK_OF(X509) *                    cert_chain; /*  X509 */
-      std::string                         cert_dir;
+      std::string                         ca_dir;
+      std::string                         ca_file;
     } cert_verify_context;
 
     int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context* vctx);

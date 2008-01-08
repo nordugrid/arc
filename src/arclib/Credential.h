@@ -1,7 +1,9 @@
 #ifndef __ARC_CREDENTIAL_H__
 #define __ARC_CREDENTIAL_H__
 
+#include <stdlib.h>
 #include <stdexcept>
+#include <iostream>
 #include <string>
 #include <openssl/asn1.h>
 #include <openssl/pem.h>
@@ -39,7 +41,7 @@ class Credential {
 
     /**Constructor, construct from credential files, this constructor will parse the credential information,
     and put them into "this" */
-    Credential(const std::string& cert, const std::string& key, const std::string& cainfo);
+    Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
 
   private:
     /**Constructor, construct from key and request, it is just a half-matured credential*/
@@ -49,7 +51,7 @@ class Credential {
     static Arc::Logger credentialLogger;
 
     void loadKey(BIO* &keybio, EVP_PKEY* &pkey);
-    void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs);
+    void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)** certchain);
     void loadCA(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs);
     int InitProxyCertInfo(void);
     void InitVerification(void);
@@ -80,7 +82,7 @@ class Credential {
   
     bool InquireRequest(BIO* &reqbio);
 
-    bool SignRequest(Credential* &proxy, BIO* &outputbio);
+    bool SignRequest(Credential* proxy, BIO* outputbio);
 
   /*************************************/
   /*****General methods for proxy Request, proxy sign********/
@@ -165,10 +167,10 @@ class Credential {
 
   private:
     // PKI files
-    std::string cacertfile;
-    std::string cacertdir;
-    std::string certfile;
-    std::string keyfile;
+    std::string cacertfile_;
+    std::string cacertdir_;
+    std::string certfile_;
+    std::string keyfile_;
 
     // Verify context 
     cert_verify_context verify_ctx_;
@@ -180,7 +182,7 @@ class Credential {
     //int              keybits_; 
     STACK_OF(X509) * cert_chain_;  //cert chain
     PROXYCERTINFO*   proxy_cert_info_;
-    std::list<X509*> certs_;
+    //std::list<X509*> certs_;
     Credformat       format;
     Arc::Time             start_;
     Arc::Period           lifetime_;

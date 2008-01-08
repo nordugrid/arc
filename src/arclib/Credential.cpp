@@ -8,7 +8,10 @@
 using namespace Arc;
 
 namespace ArcLib {
-  static Logger credentialLogger(Logger::getRootLogger(), "Credential");
+  CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
+
+  //Logger Credential::credentialLogger(Logger::getRootLogger(), "Credential");
+    Logger Credential::credentialLogger(Logger::rootLogger, "Credential");
 
 #define PASS_MIN_LENGTH 4
   static int passwordcb(char* pwd, int len, int rwflag, void* u) {
@@ -41,27 +44,50 @@ namespace ArcLib {
   }
 
   //Get the life time of the credential
-  static void getLifetime(std::list<X509*> certs, Time& start, Period &lifetime) {
+  static void getLifetime(STACK_OF(X509)* &certchain, X509* &cert, Time& start, Period &lifetime) {
     X509* tmp_cert = NULL;
     Time start_time(-1), end_time(-1);
-    int count;
-    std::list<X509*>::iterator it;
-    for(it = certs.begin(); it != certs.end(); it++) {
-      tmp_cert = *it;
+    int n;
+    ASN1_UTCTIME* atime = NULL;
 
-      ASN1_UTCTIME* atime = X509_get_notAfter(tmp_cert);
-      std::string tmp_notafter((char*)(atime->data));
+    std::cout<<"Cert Chain number: "<<  sk_X509_num(certchain) <<std::endl;
+
+    for (n = 0; n < sk_X509_num(certchain); n++) {
+      tmp_cert = X509_dup(sk_X509_value(certchain, n));
+
+      atime = X509_get_notAfter(tmp_cert);
+      std::string tmp_notafter;
+      tmp_notafter.append("20");
+      tmp_notafter.append((char*)(atime->data));
       Time end(tmp_notafter);  //Need debug! probably need some modification on Time class
       if (end_time == Time(-1) || end < end_time) { end_time = end; }
 
       atime = X509_get_notBefore(tmp_cert);
-      std::string tmp_notbefore((char*)(atime->data));
+      std::string tmp_notbefore;
+      tmp_notbefore.append("20");
+      tmp_notbefore.append((char*)(atime->data));
       Time start(tmp_notbefore);  //Need debug! probably need some modification on Time class
       if (start_time == Time(-1) || start > start_time) { start_time = start; }
     }
 
+    atime = X509_get_notAfter(cert);
+    std::string tmp_notafter;
+    tmp_notafter.append("20");
+    tmp_notafter.append((char*)(atime->data));
+    Time e(tmp_notafter);
+    if (end_time == Time(-1) || e < end_time) { end_time = e; }
+
+    atime = X509_get_notBefore(cert);
+    std::string tmp_notbefore;
+    tmp_notbefore.append("20");
+    tmp_notbefore.append((char*)(atime->data));
+    Time s(tmp_notbefore);
+    if (start_time == Time(-1) || s > start_time) { start_time = s; }
+
     start = start_time;
     lifetime = end_time - start_time; 
+    
+    std::cout<<"StartTime: "<<start_time.str()<<" EndTime: " <<end_time.str()<<std::endl; 
   }
 
   //Parse the BIO for certificate and get the format of it
@@ -93,16 +119,18 @@ namespace ArcLib {
   }
 
 
-  void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)* &certs) {
+  void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
     Credformat format;
     int n=0;
     
-    X509* x509=NULL;
-    PKCS12* pkcs12=NULL;
+    X509* x509 = NULL;
+    PKCS12* pkcs12 = NULL;
     format = getFormat(certbio);
-    credentialLogger.msg(INFO,"Cerficate format for BIO is: %s", format);
-      
+    credentialLogger.msg(INFO,"Cerficate format for BIO is: %d", format);
+
+    if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
+ 
     switch(format) {
       case PEM:
         //Get the certificte, By default, certificate is without passphrase
@@ -113,15 +141,15 @@ namespace ArcLib {
         }
  
         //Get the issuer chain
-        certs = sk_X509_new_null();
+        *certchain = sk_X509_new_null();
         while(!BIO_eof(certbio)){
           X509 * tmp = NULL;
-          if(!(x509 = PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
+          if(!(PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
             ERR_clear_error();
             break;
           }
-          certs_.push_back(x509);
-          if(!sk_X509_insert(certs, tmp, n)) {
+          
+          if(!sk_X509_insert(*certchain, tmp, n)) {
             X509_free(tmp);
             std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             credentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str.c_str()); LogError();
@@ -159,7 +187,7 @@ namespace ArcLib {
           X509* tmp;
           for (n = 0; n < sk_X509_num(pkcs12_certs); n++) {
             tmp = X509_dup(sk_X509_value(pkcs12_certs, n));
-            sk_X509_insert(certs, tmp, n);
+            sk_X509_insert(*certchain, tmp, n);
           }
         }
 
@@ -182,7 +210,7 @@ namespace ArcLib {
     switch(format){
       case PEM:
         if(!(PEM_read_bio_PrivateKey(keybio, &pkey, passwordcb, NULL))) {  
-          credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO: %s "); LogError();
+          credentialLogger.msg(ERROR,"Can not read credential key from PEM key BIO"); LogError();
           throw CredentialError("Can not read credential key");
         }
         break;
@@ -236,8 +264,9 @@ namespace ArcLib {
     verify_ctx_.max_proxy_depth = -1;
     verify_ctx_.limited_proxy = 0;
     verify_ctx_.cert_type = CERT_TYPE_EEC;  
-    verify_ctx_.cert_chain = NULL;
-    verify_ctx_.cert_dir = cacertdir;
+    verify_ctx_.cert_chain = sk_X509_new_null();
+    verify_ctx_.ca_dir = cacertdir_;
+    verify_ctx_.ca_file = cacertfile_;
   }
 
   bool Credential::Verify(void) {
@@ -248,38 +277,44 @@ namespace ArcLib {
     else {credentialLogger.msg(ERROR, "Certificate verify failed"); LogError(); return false;}
   } 
 
-  Credential::Credential() {
-
+  Credential::Credential() : req_(NULL) {
+    OpenSSL_add_all_algorithms();
   }
 
-  Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cafile) {
-   BIO* certbio = NULL, *keybio = NULL; 
-   Credformat format;
-   certbio = BIO_new_file(certfile.c_str(), "r"); 
-   if(!certbio){
-     credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile.c_str()); LogError();
-     throw CredentialError("Can not read certificate file");
-   }
-   keybio = BIO_new_file(keyfile.c_str(), "r");
-   if(!keybio){
-     credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile.c_str());  LogError();
-     throw CredentialError("Can not read key file");
-   }
+  Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
+        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), certfile_(certfile), 
+        keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir) {
 
+     OpenSSL_add_all_algorithms();
 
-   loadCertificate(certbio, cert_, cert_chain_);
+     BIO* certbio = NULL, *keybio = NULL; 
+     Credformat format;
 
-   loadKey(keybio, pkey_);
+    certbio = BIO_new_file(certfile.c_str(), "r"); 
+    if(!certbio){
+      credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile.c_str()); LogError();
+      throw CredentialError("Can not read certificate file");
+    }
+    keybio = BIO_new_file(keyfile.c_str(), "r");
+    if(!keybio){
+      credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile.c_str());  LogError();
+      throw CredentialError("Can not read key file");
+    }
 
-   //load CA
+    loadCertificate(certbio, cert_, &cert_chain_);
+
+    loadKey(keybio, pkey_);
+
+    //load CA
     
     //Get the lifetime of the credential
-    getLifetime(certs_, start_, lifetime_);
+    getLifetime(cert_chain_, cert_, start_, lifetime_);
 
     //Initiate the proxy certificate method
     InitProxyCertInfo();
 
     InitVerification();
+
     Verify();
   }
 
@@ -835,7 +870,7 @@ err:
     return res;
   }
 
-  bool Credential::SignRequest(Credential* &proxy, BIO* &outputbio){
+  bool Credential::SignRequest(Credential* proxy, BIO* outputbio){
     bool res = false;
     if(proxy == NULL) {credentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
     if(outputbio == NULL) { credentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
