@@ -9,6 +9,14 @@ std::string doc1 = "\
         <Memory>A lot</Memory>\
         <Performance>Turltle-like</Performance>\
     </Resource>\
+    <Jobs>\
+        <Job id=\"1\">\
+            <Data>1</Data>\
+        </Job>\
+        <Job id=\"2\">\
+            <Data>2</Data>\
+        </Job>\
+    </Jobs>\
     <Owner>\
         <Name>Unknown</Name>\
     </Owner>\
@@ -26,18 +34,38 @@ std::string doc2 = "\
 <?xml version=\"1.0\"?>\
 <Resource>\
     <Memory>2000</Memory>\
-    <Performance>Turltle-like</Performance>\
+    <Performance>Turltle-like2</Performance>\
 </Resource>\
 ";
 
-std::string doc3 = "\
+std::string doc31 = "\
 <?xml version=\"1.0\"?>\
 <Memory>3000</Memory>\
 ";
 
-std::string doc4 = "\
+std::string doc32 = "\
+<?xml version=\"1.0\"?>\
+<Job id=\"1\"><Data>2</Data><Data2>22</Data2></Job>\
+";
+
+std::string doc33 = "\
+<?xml version=\"1.0\"?>\
+<Foo><Bar>2</Bar></Foo>\
+";
+
+std::string doc41 = "\
+<?xml version=\"1.0\"?>\
+<Level3><Level4>33</Level4></Level3>\
+";
+
+std::string doc42 = "\
 <?xml version=\"1.0\"?>\
 <Level4>3</Level4>\
+";
+
+std::string doc5 = "\
+<?xml version=\"1.0\"?>\
+<Data>22</Data>\
 ";
 
 int main(void)
@@ -47,19 +75,62 @@ int main(void)
     Arc::Config cfg("./service.xml");
     Arc::InfoCache cache(cfg, "test_service");
     bool ret;
+    
     ret = cache.Set("/", xml1);
     std::cout << ret << "(" << true << ")" << std::endl;
+    Arc::XMLNodeContainer c1;
+    std::string s;
+    cache.Get("/", c1);
+    c1[0].GetXML(s);
+    std::cout << s << std::endl; 
+    
     cache.Set("/InfoDoc", xml2);  
     std::cout << ret << "(" << true << ")" << std::endl;
+    Arc::XMLNodeContainer c2;
+    cache.Get("/InfoDoc", c2);
+    c2[0].GetXML(s);
+    std::cout << s << std::endl; 
+    
     Arc::XMLNode xml3(doc2);
     ret = cache.Set("/InfoDoc/Resource", xml3);
     std::cout << ret << "(" << true << ")" << std::endl;
-    Arc::XMLNode xml4(doc3);
-    ret = cache.Set("/InfoDoc/Resource/Memory", xml4);
+    Arc::XMLNodeContainer c3;
+    cache.Get("/InfoDoc/Resource", c3);
+    c3[0].GetXML(s);
+    std::cout << s << std::endl; 
+
+    Arc::XMLNode xml41(doc31);
+    ret = cache.Set("/InfoDoc/Resource/Memory", xml41);
     std::cout << ret << "(" << true << ")" << std::endl;
-    Arc::XMLNode xml5(doc4);
-    ret = cache.Set("/InfoDoc/Level1/Level2/Level3/Level4", xml5);
+    Arc::XMLNodeContainer c4;
+    cache.Get("/InfoDoc/Resource/Memory", c4);
+    c4[0].GetXML(s);
+    std::cout << s << std::endl; 
+    
+    Arc::XMLNode xml42(doc32);
+    ret = cache.Set("/InfoDoc/Jobs/Job", xml42);
     std::cout << ret << "(" << true << ")" << std::endl;
+    
+    Arc::XMLNode xml43(doc33);
+    ret = cache.Set("/InfoDoc/Resource/Foo", xml43);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    
+    Arc::XMLNode xml51(doc41);
+    ret = cache.Set("/InfoDoc/Level1/Level2/Level3", xml51);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    
+    Arc::XMLNode xml52(doc42);
+    ret = cache.Set("/InfoDoc/Level1/Level2/Level3/Level4", xml52);
+    std::cout << ret << "(" << true << ")" << std::endl;
+
+    Arc::XMLNode xml6(doc5);
+    ret = cache.Set("/InfoDoc/Jobs/Job[@id=\"1\"]/Data", xml6);
+    std::cout << ret << "(" << true << ")" << std::endl;
+    
+    Arc::XMLNodeContainer c5;
+    cache.Get("/InfoDoc/Jobs/Job[@id=\"1\"]", c5);
+    c5[0].GetXML(s);
+    std::cout << s << std::endl; 
     
 #if 0
 /*    Arc::XMLNodeContainer c;

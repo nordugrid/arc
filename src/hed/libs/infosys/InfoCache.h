@@ -3,8 +3,10 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcRegex.h>
 #ifdef WIN32
 #include <io.h>
 #endif
@@ -14,11 +16,6 @@ namespace Arc {
 class InfoCache {
     protected:
         std::string path_base;
-        bool query_one(const char *key, const char *q, Arc::XMLNodeContainer &result);
-        bool query_any(const char *q, Arc::XMLNodeContainer &result);
-        /** Generate file and relative xml path from original xml path */
-        bool get_file_and_relative_paths(std::string &xml_path, std::string &file_path, std::string &rel_path);
-
     public:
         bool Query(const char *xml_path, const char *q, Arc::XMLNodeContainer &result);
         bool Query(std::string &xml_path, std::string &q, Arc::XMLNodeContainer &result) { return Query(xml_path.c_str(), q.c_str(), result); };
