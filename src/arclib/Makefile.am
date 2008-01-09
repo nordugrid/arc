@@ -2,8 +2,8 @@ noinst_LTLIBRARIES = libcredential.la
 noinst_PROGRAMS = test
 
 libcredential_ladir = $(pkgincludedir)/arclib
-libcredential_la_HEADERS  = Proxycertinfo.h  cert_util.h Credential.h 
-libcredential_la_SOURCES  = Proxycertinfo.cpp cert_util.cpp Credential.cpp
+libcredential_la_HEADERS  = Proxycertinfo.h  cert_util.h Credential.h VOMSAttribute.h 
+libcredential_la_SOURCES  = Proxycertinfo.cpp cert_util.cpp Credential.cpp VOMSAttribute.c
 libcredential_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 libcredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
 
