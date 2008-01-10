@@ -254,27 +254,55 @@ AC_SUBST(LIBXML2_LIBS)
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
-OPENSSL_PROXY=no
-"$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
-if test "$?" = '0' ; then
-	OPENSSL_PROXY=yes
-        AC_MSG_NOTICE([Found OpenSSL with PROXY support])
+"$PKG_CONFIG" openssl
+if test "$?" = '1'; then
+    if "x$OPENSSL_BIN" != "x"; then
+        OPENSSL_VERSION=`$OPENSSL_BIN version | cut -d' ' -f2`
+        OPENSSL_V1=`echo $OPENSSL_VERSION | cut -d'.' -f2`
+        OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [:alpha:]`
+        OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [:digit:]`
+        OPENSSL_PROXY=no
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" > "f"; then 
+	        OPENSSL_PROXY=yes
+            AC_MSG_NOTICE([Found OpenSSL with PROXY support])
+        else
+            AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
+        fi
+        OPENSSL_X509_VERIFY_PARAM=no
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8"; then 
+	        OPENSSL_X509_VERIFY_PARAM=yes
+            AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
+        else
+            AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
+        fi
+        OPENSSL_OLDRSA=yes    
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "$OPENSSL_V3" > " "; then
+            OPENSSL_OLDRSA=no
+        fi    
+    fi 
 else
-        AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
-fi
-OPENSSL_X509_VERIFY_PARAM=no
-"$PKG_CONFIG" --exists 'openssl >= 0.9.8'
-if test "$?" = '0' ; then
-	OPENSSL_X509_VERIFY_PARAM=yes
-        AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
-else
-        AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
-fi
-OPENSSL_OLDRSA=yes
-"$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
-if test "$?" = '0' ; then
-	OPENSSL_OLDRSA=no
-fi
+    OPENSSL_PROXY=no
+    "$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
+    if test "$?" = '0' ; then
+	        OPENSSL_PROXY=yes
+            AC_MSG_NOTICE([Found OpenSSL with PROXY support])
+    else
+            AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
+    fi
+    OPENSSL_X509_VERIFY_PARAM=no
+    "$PKG_CONFIG" --exists 'openssl >= 0.9.8'
+    if test "$?" = '0' ; then
+	        OPENSSL_X509_VERIFY_PARAM=yes
+            AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
+    else
+            AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
+    fi
+    OPENSSL_OLDRSA=yes
+    "$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
+    if test "$?" = '0' ; then
+	    OPENSSL_OLDRSA=no
+    fi
+fi    
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
