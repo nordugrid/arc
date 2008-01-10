@@ -421,8 +421,7 @@ int main(int argc,char** argv) {
   else { uid= getuid(); };
   if(file_group != 0) { gid=file_group; }
   else { gid= getgid(); };
-  cache_uid=getuid();
-  cache_gid=getgid();
+  Arc::User cache_user;
   desc.set_uid(uid,gid);
   user=JobUser(uid);
   user.SetControlDir(control_dir);
@@ -441,7 +440,7 @@ int main(int argc,char** argv) {
   // odlog(DEBUG)<<"Cache: link dir: "<<cache_link_dir<<std::endl;
   // odlog(DEBUG)<<"Cache: uid: "<<cache_uid<<std::endl;
   // odlog(DEBUG)<<"Cache: gid: "<<cache_gid<<std::endl;
-  Arc::DataCache cache(cache_dir,cache_data_dir,cache_link_dir,id,cache_uid,cache_gid);
+  Arc::DataCache cache(cache_dir,cache_data_dir,cache_link_dir,id,cache_user);
   Arc::DataMover mover;
   mover.retry(false);
   mover.secure(secure);
