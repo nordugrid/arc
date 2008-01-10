@@ -4,3 +4,4 @@ To run arched from source tree you should set DYLD_LIBRARY_PATH like this:
 
 export SRC_PATH=/Users/szferi/Projects/knowarc/arc1/trunk
 export DYLD_LIBRARY_PATH=:$SRC_PATH/src/hed/libs/ws/.libs/:$SRC_PATH/src/hed/libs/security/.libs/:$SRC_PATH/src/hed/libs/common/.libs/:$SRC_PATH/src/hed/libs/message/.libs/:$SRC_PATH/src/hed/libs/loader/.libs/
+test
