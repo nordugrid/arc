@@ -347,7 +347,7 @@ PROXYCERTINFO * d2i_PROXYCERTINFO_v3(PROXYCERTINFO ** cert_info, unsigned char *
   M_ASN1_D2I_vars(cert_info, PROXYCERTINFO *, PROXYCERTINFO_new);
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
-  //M_ASN1_D2I_get(ret->proxypolicy, d2i_PROXYPOLICY);
+  //M_ASN1_D2I_get(ret->proxypolicy, (unsigned char**)d2i_PROXYPOLICY);
   c.q=c.p;
   if (d2i_PROXYPOLICY(&(ret->proxypolicy),(unsigned char**)&c.p,c.slen) == NULL)
    {c.line=__LINE__; goto err; } 
@@ -364,7 +364,7 @@ PROXYCERTINFO * d2i_PROXYCERTINFO_v4(PROXYCERTINFO ** cert_info, unsigned char *
   M_ASN1_D2I_start_sequence();
   M_ASN1_D2I_get_EXP_opt(ret->path_length, d2i_ASN1_INTEGER, 1);
   M_ASN1_D2I_get_opt(ret->path_length, d2i_ASN1_INTEGER, V_ASN1_INTEGER);
-  //M_ASN1_D2I_get(ret->proxypolicy, d2i_PROXYPOLICY);
+  //M_ASN1_D2I_get(ret->proxypolicy, (unsigned char**)d2i_PROXYPOLICY);
   c.q=c.p;
   if (d2i_PROXYPOLICY(&(ret->proxypolicy),(unsigned char**)&c.p,c.slen) == NULL)
    {c.line=__LINE__; goto err; }

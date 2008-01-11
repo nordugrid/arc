@@ -2,8 +2,8 @@
 #include <config.h>
 #endif
 
-#include "Credential.h"
 #include "cert_util.h"
+#include "Credential.h"
 
 using namespace Arc;
 
@@ -230,7 +230,7 @@ namespace ArcLib {
     }
   }
 
-  int Credential::InitProxyCertInfo(void) {
+  static void InitProxyCertInfo(void) {
     #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
     #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
     #define OBJC(c,n) OBJ_create(c,n,#c)

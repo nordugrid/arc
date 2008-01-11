@@ -1064,7 +1064,7 @@ IMPL_STACK(AC_ATT_HOLDER)
 IMPL_STACK(AC_FULL_ATTRIBUTES)
 
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_auth_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_auth_x509v3_ext_meth =
   {
     -1,
@@ -1085,7 +1085,7 @@ X509V3_EXT_METHOD * VOMSATTRIBUTE_auth_x509v3_ext_meth() {
   return (&vomsattribute_auth_x509v3_ext_meth);
 }
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_avail_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_avail_x509v3_ext_meth =
   {
     -1,
@@ -1106,7 +1106,7 @@ X509V3_EXT_METHOD * VOMSATTRIBUTE_avail_x509v3_ext_meth() {
   return (&vomsattribute_avail_x509v3_ext_meth);
 }  
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_targets_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_targets_x509v3_ext_meth =
   {
     -1,
@@ -1127,7 +1127,7 @@ X509V3_EXT_METHOD * VOMSATTRIBUTE_targets_x509v3_ext_meth() {
   return (&vomsattribute_targets_x509v3_ext_meth);
 }  
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_acseq_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_acseq_x509v3_ext_meth =
   {
     -1,
@@ -1148,7 +1148,7 @@ X509V3_EXT_METHOD * VOMSATTRIBUTE_acseq_x509v3_ext_meth() {
   return (&vomsattribute_acseq_x509v3_ext_meth);
 }  
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_certseq_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_certseq_x509v3_ext_meth =
   {
     -1,
@@ -1169,7 +1169,7 @@ X509V3_EXT_METHOD * VOMSATTRIBUTE_certseq_x509v3_ext_meth() {
   return (&vomsattribute_certseq_x509v3_ext_meth);
 }  
 
-X509V3_EXT_METHOD * VOMSATTRIBUTE_attribs_x509v3_ext_meth() {
+X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_attribs_x509v3_ext_meth =
   {
     -1,

@@ -355,6 +355,13 @@ extern void AC_ATTRIBUTE_free(AC_ATTRIBUTE *);
 extern void AC_ATT_HOLDER_free(AC_ATT_HOLDER *);
 extern void AC_FULL_ATTRIBUTES_free(AC_FULL_ATTRIBUTES *);
 
+extern X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth();
+extern X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth();
+extern X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
+extern X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
+extern X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
+extern X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
+
 
 #endif
 

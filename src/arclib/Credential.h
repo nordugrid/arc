@@ -15,7 +15,6 @@
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
 
-#include "Proxycertinfo.h"
 #include "cert_util.h"
   
 namespace ArcLib {
@@ -51,7 +50,6 @@ class Credential {
 
     void loadKey(BIO* &keybio, EVP_PKEY* &pkey);
     void loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509)** certchain);
-    int InitProxyCertInfo(void);
     void InitVerification(void);
 
     /**Verify whether the certificate is signed by trusted CAs
