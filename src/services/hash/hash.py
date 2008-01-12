@@ -6,9 +6,10 @@ Centralized prototype implementation of the Hash service.
 This service is a metadat store capable of storing (section, property, value) tuples
 in objects which have IDs.
 
-Currently supported methods:
+Methods:
     - get
     - change
+    - changeIf
 
 Sample configuration:
 
@@ -159,13 +160,13 @@ class CentralHash:
         # returns the resulting list
         return resp
 
-    def change(self, changes):
-        """ Change the (section, property, value) members of an object.
+    def changeIf(self, changes):
+        """ Change the (section, property, value) members of an object, if the given conditions are met.
 
-        change(changes)
+        changeIf(changes)
 
-        'changes' is a list of changes
-        a change is a dictionary with members such as:
+        'changes' is a list of conditional changes
+        a conditional change is a dictionary with members such as:
             'changeID' is a reference ID used in the response list
             'ID' is the ID of the object which we want to change
             'changeType' could be 'add', 'remove', 'delete' or 'reset'
@@ -175,7 +176,15 @@ class CentralHash:
                     (the value does not matter at this changeType)
                 'reset' removes all values of a corresponding section and property
                     then adds the new value which is given
-            'section', 'property', 'value' are the chosen ones we praise
+            'section', 'property', 'value' are belongs to the change request
+            'conditions' is a list of conditions
+            a condition is a dictionary with members such as:
+                'conditionType' could be 'has', 'not', 'exists', 'empty'
+                    'has': there is such a (section, property, value) line
+                    'not': there is no such (section, property, value) line
+                    'exists': there is a (section, property, *) line with any value
+                    'empty': there is no (section, proprety, *) line with any value
+                'section', 'property', 'value' are belongs to this condition
         
         This method returns a list of (changeID, success) pairs,
         where success could be:
@@ -183,6 +192,8 @@ class CentralHash:
             - 'removed'
             - 'deleted'
             - 'reseted'
+            - 'not changed'
+            - 'invalid changeType'
             - 'failed'
             - 'unknown'
         """
@@ -205,41 +216,73 @@ class CentralHash:
                 # put the requested section, property and value into one tuple
                 line = (ch['section'],ch['property'],ch['value'])
                 print lines
-                if ch['changeType'] == 'add':
-                    # if changeType is add, simply add the new line to the object
-                    lines.append(line)
-                    print lines
-                    # store the changed object
-                    self.store.set(ID,lines)
-                    # set the result of this change
-                    success = 'added'
-                elif ch['changeType'] == 'remove':
-                    # if changeType is remove, simply remove the given line from the object
-                    lines.remove(line) 
-                    print lines
-                    # store the changed object
-                    self.store.set(ID,lines)
-                    # set the result of this change
-                    success = 'removed'
-                elif ch['changeType'] in ['delete','reset']:
-                    print 'delete', lines
-                    # if it is a 'delete' or a 'reset'
-                    # remove all the lines which has the given section and the given property
-                    lines = [l for l in lines if not (l[0:2] == line[0:2])]
-                    print 'deleted', lines
-                    if ch['changeType'] == 'delete':
-                        # if this was a 'delete' we are done
-                        success = 'removed'
-                    else:
-                        # if this was a reset, we need to add the new line
+                # now check all the conditions if there is any
+                ok = True
+                for cond in ch.get('conditions',[]):
+                    if cond['conditionType'] == 'has':
+                        # if there is no such section, property, value line in the object
+                        if not (cond['section'], cond['property'], cond['value']) in lines:
+                            ok = False
+                            # jump out of the for statement
+                            break
+                    elif cond['conditionType'] == 'not':
+                        # if there is such a section, property, value line in the object
+                        if (cond['section'], cond['property'], cond['value']) in lines:
+                            ok = False
+                            break
+                    elif cond['conditionType'] == 'exists':
+                        # get all the lines which has the given section and property
+                        cond_lines = [l for l in lines if l[0:2] == (cond['section'], cond['property'])]
+                        # if this is empty, there is no such line
+                        if len(cond_lines) == 0:
+                            ok = False
+                            break
+                    elif cond['conditionType'] == 'empty':
+                        # get all the lines which has the given section and property
+                        cond_lines = [l for l in lines if l[0:2] == (cond['section'], cond['property'])]
+                        # if this is not empty
+                        if len(cond_lines) > 0:
+                            ok = False
+                            break
+                # if 'ok' is true then all conditions are met
+                if ok:
+                    if ch['changeType'] == 'add':
+                        # if changeType is add, simply add the new line to the object
                         lines.append(line)
-                        print 'reseted', lines
-                        success = 'reseted'
-                    # both cases we need to store the changed object
-                    self.store.set(ID,lines)
+                        print lines
+                        # store the changed object
+                        self.store.set(ID,lines)
+                        # set the result of this change
+                        success = 'added'
+                    elif ch['changeType'] == 'remove':
+                        # if changeType is remove, simply remove the given line from the object
+                        lines.remove(line) 
+                        print lines
+                        # store the changed object
+                        self.store.set(ID,lines)
+                        # set the result of this change
+                        success = 'removed'
+                    elif ch['changeType'] in ['delete','reset']:
+                        print 'delete', lines
+                        # if it is a 'delete' or a 'reset'
+                        # remove all the lines which has the given section and the given property
+                        lines = [l for l in lines if not (l[0:2] == line[0:2])]
+                        print 'deleted', lines
+                        if ch['changeType'] == 'delete':
+                            # if this was a 'delete' we are done
+                            success = 'removed'
+                        else:
+                            # if this was a reset, we need to add the new line
+                            lines.append(line)
+                            print 'reseted', lines
+                            success = 'reseted'
+                        # in both cases we need to store the changed object
+                        self.store.set(ID,lines)
+                    else:
+                        # there is no other changeType
+                        success = 'invalid changeType'
                 else:
-                    # there is no other changeType
-                    success = 'invalid changeType'
+                    success = 'not changed'
             except:
                 # if there was an exception, set this to failed
                 success = 'failed'
@@ -255,7 +298,7 @@ class HashService:
     """ HashService class implementing the XML interface of the Hash service. """
 
     # names of provided methods
-    request_names = ['get','change']
+    request_names = ['get','change','changeIf']
 
     def __init__(self, cfg):
         """ Constructor of the HashService
@@ -315,6 +358,35 @@ class HashService:
             # for each (section, proprety, value) line add it to the 'lines' node
             self.addline(lines_node, line)
 
+    def convert_to_dict(self, nodes, keys, include_node = False):
+        """ Convert a list of XML nodes to a list of dictionaries.
+
+        convert_to_dict(nodes, keys, include_node = False)
+
+        'nodes' is a list of XMLNodes which we want to convert
+        'keys' is a list of strings the name of the tags we want to put into the dictionary
+        'include_node' is False by default, if it is True each resulting dictionary
+            will contain the XMLNode itself by the key '_'
+
+        This method get the XML tags whose names are in the keys list, and put their string content
+        into a dictionary using the tag's name as key.
+        """
+        # start with an empty list which will store the dictionary for each node
+        res_list = []
+        for node in nodes:
+            # for each node start with an empty dictionary
+            res_dict = {}
+            # convert only the given keys
+            for key in keys:
+                # get the data from the XMLNode and put it into our dictionary
+                res_dict[key] = str(node.Get(key))
+            if include_node:
+                res_dict['_'] = node
+            # append the new dictionary to the collector list
+            res_list.append(res_dict)
+        # return the list
+        return res_list
+
     def get(self, inpayload):
         """ Returns the data of the requested objects.
 
@@ -344,20 +416,11 @@ class HashService:
         """
         # extract the change requests with the '//changeRequestElement' XPath expression
         requests = inpayload.XPathLookup('//hash:changeRequestElement', self.hash_ns)
-        # prepare an empty list for the results
-        req_list = []
-        for request in requests:
-            # for each request convert the XML structure to a dictionary structure
-            # start with an empty dictionary
-            req_dict = {}
-            # these are the valid keys
-            for key in ['changeID', 'ID', 'changeType', 'section', 'property', 'value']:
-                # get the data from the XMLNode and put it into our dictionary
-                req_dict[key] = str(request.Get(key))
-            # append it to the list of the request dictionaries
-            req_list.append(req_dict)
-        # get the results from the business logic class
-        resp = self.hash.change(req_list)
+        # convert the XML request to a list of dictionaries
+        req_list = self.convert_to_dict(request,
+            ['changeID', 'ID', 'changeType', 'section', 'property', 'value'])
+        # actually a change is a conditional change without conditions: we can use changeIf
+        resp = self.hash.changeIf(req_list)
         # prepare the response payload
         out = arc.PayloadSOAP(self.hash_ns)
         # add the 'changeResponse' node and its child called 'changeResponseList'
@@ -365,6 +428,43 @@ class HashService:
         for (changeID, success) in resp:
             # for each result create a new child called 'changeResponseElement'
             response_node = responses_node.NewChild('hash:changeResponseElement')
+            # and put the changeID and success into it
+            response_node.NewChild('changeID').Set(changeID)
+            response_node.NewChild('success').Set(success)
+        return out
+
+    def changeIf(self, inpayload):
+        """ Make changes in objects, if given conditions are met, return which change was successful.
+
+        changeIf(inpayload)
+
+        'inpayload' is an XMLNode containing the change requests and the conditions for each request.
+        """
+        # extract the change requests with the '//changeIfRequestElement' XPath expression
+        requests = inpayload.XPathLookup('//hash:changeIfRequestElement', self.hash_ns)
+        # convert the XML request to a list of dictionaries, and include the nodes themselves in the dict
+        req_list = self.convert_to_dict(requests,
+            ['changeID', 'ID', 'changeType', 'section', 'property', 'value'], True)
+        # now for each request extract the list of conditions as well
+        for req in req_list:
+            # get all the conditions for this request
+            conditions = req['_'].XPathLookup('//hash:condition', self.hash_ns)
+            # convert them to a list of dictionaries
+            cond_list = self.convert_to_dict(conditions,
+                ['conditionType', 'section', 'property', 'value'])
+            # put this list into the dictionary of the request
+            req['conditions'] = cond_list
+            # remove the node itself, we do not need it anymore
+            del req['_']
+        # get the results from the business logic class
+        resp = self.hash.changeIf(req_list)
+        # prepare the response payload
+        out = arc.PayloadSOAP(self.hash_ns)
+        # add the 'changeIfResponse' node and its child called 'changeIfResponseList'
+        responses_node = out.NewChild('hash:changeIfResponse').NewChild('hash:changeIfResponseList')
+        for (changeID, success) in resp:
+            # for each result create a new child called 'changeIfResponseElement'
+            response_node = responses_node.NewChild('hash:changeIfResponseElement')
             # and put the changeID and success into it
             response_node.NewChild('changeID').Set(changeID)
             response_node.NewChild('success').Set(success)
@@ -401,8 +501,11 @@ class HashService:
             return arc.MCC_Status(arc.STATUS_OK)
         except:
             # if there is any exception, print it
-            print traceback.format_exc()
+            exc = traceback.format_exc()
+            print exc
             # set an empty outgoing payload
-            outmsg.Payload(arc.PayloadSOAP(self.hash_ns))
+            outpayload = arc.PayloadSOAP(self.hash_ns)
+            outpayload.NewChild('hash:Fault').Set(exc)
+            outmsg.Payload(outpayload)
             # return with the status GENERIC_ERROR
-            return arc.MCC_Status(arc.GENERIC_ERROR)
+            return arc.MCC_Status(arc.STATUS_OK)
