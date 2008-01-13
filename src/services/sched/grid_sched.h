@@ -5,9 +5,9 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 
-namespace Sched {
+namespace GridScheduler {
 
-class SchedService: public Arc::Service {
+class GridSchedulerService: public Arc::Service {
     protected:
         Arc::NS ns_;
         Arc::Logger logger_;
@@ -34,14 +34,14 @@ class SchedService: public Arc::Service {
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
     public:
-        SchedService(Arc::Config *cfg);
-        virtual ~SchedService(void);
+        GridSchedulerService(Arc::Config *cfg);
+        virtual ~GridSchedulerService(void);
         virtual Arc::MCC_Status process(Arc::Message& inmsg,
                                         Arc::Message& outmsg);
         void InformationCollector(void);
-}; // class SchedService
+}; // class GridSchedulerService
 
-} // namespace Sched
+} // namespace GridScheduler
 
 #endif
 

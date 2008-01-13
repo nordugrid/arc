@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-#if 0
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/message/PayloadSOAP.h>
@@ -13,10 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fstream>
-#endif
 
-#if 0
-/*
 #include <iostream>
 
 #include <sys/types.h>
@@ -30,71 +26,69 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
-*/
-// #include "sched.h"
-#endif
 
-namespace Sched {
+#include "grid_sched.h"
 
-#if 0
+namespace GridScheduler {
+
 static Arc::LogStream logcerr(std::cerr);
 
 // Static initializator
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
-    return new SchedService(cfg);
+    return new GridSchedulerService(cfg);
 }
 
-Arc::MCC_Status SchedService::CreateActivity(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode /*in*/,
                                              Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::GetActivityStatuses(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode /*in*/,
                                                   Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::TerminateActivities(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode /*in*/,
                                                  Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::GetActivityDocuments(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode /*in*/,
                                                    Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::GetFactoryAttributesDocument(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode /*in*/,
                                                           Arc::XMLNode /*out*/)
 {
     return Arc::MCC_Status();
 }
 
 
-Arc::MCC_Status SchedService::StopAcceptingNewActivities(Arc::XMLNode /*in*/, 
+Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode /*in*/, 
                                                          Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::StartAcceptingNewActivities(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode /*in*/,
                                                           Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::ChangeActivityStatus(Arc::XMLNode /*in*/,
+Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode /*in*/,
                                                    Arc::XMLNode /*out*/) 
 {
     return Arc::MCC_Status();
 }
 
 // Create Faults
-Arc::MCC_Status SchedService::make_soap_fault(Arc::Message& outmsg) 
+Arc::MCC_Status GridSchedulerService::make_soap_fault(Arc::Message& outmsg) 
 {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
@@ -106,12 +100,12 @@ Arc::MCC_Status SchedService::make_soap_fault(Arc::Message& outmsg)
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status SchedService::make_fault(Arc::Message& /*outmsg*/) 
+Arc::MCC_Status GridSchedulerService::make_fault(Arc::Message& /*outmsg*/) 
 {
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status SchedService::make_response(Arc::Message& outmsg) 
+Arc::MCC_Status GridSchedulerService::make_response(Arc::Message& outmsg) 
 {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   outmsg.Payload(outpayload);
@@ -119,7 +113,7 @@ Arc::MCC_Status SchedService::make_response(Arc::Message& outmsg)
 }
 
 // Main process 
-Arc::MCC_Status SchedService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
+Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
@@ -199,7 +193,7 @@ Arc::MCC_Status SchedService::process(Arc::Message& inmsg,Arc::Message& outmsg) 
 
 // Constructor
 
-SchedService::SchedService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Sched") 
+GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
 {
   logger_.addDestination(logcerr);
   // Define supported namespaces
@@ -214,20 +208,16 @@ SchedService::SchedService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::r
 }
 
 // Destructor
-SchedService::~SchedService(void) 
+GridSchedulerService::~GridSchedulerService(void) 
 {
     // NOP
 }
 
-#endif
+}; // namespace GridScheduler
 
-}; // namespace Sched
-
-#if 0
 service_descriptors ARC_SERVICE_LOADER = {
-    { "sched", 0, &Sched::get_service },
+    { "grid_sched", 0, &GridScheduler::get_service },
     { NULL, 0, NULL }
 };
-#endif
 
 
