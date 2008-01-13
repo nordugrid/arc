@@ -73,28 +73,29 @@ namespace Arc {
     MCC *tcp_entry;
     MCC *tls_entry;
   };
+    
+  struct HTTPClientInfo {
+     int code;
+     std::string reason;
+     uint64_t size;
+     Arc::Time lastModified;
+  };
 
   class ClientHTTP : public ClientTCP {
    public:
-    struct Info {
-      int code;
-      std::string reason;
-      uint64_t size;
-      Time lastModified;
-    };
     ClientHTTP():http_entry(NULL) {};
     ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
-		       Info *info, PayloadRawInterface **response);
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
                        PayloadRawInterface *request,
-		       Info *info, PayloadRawInterface **response);
+		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
-		       Info *info, PayloadRawInterface **response);
+		               HTTPClientInfo *info, PayloadRawInterface **response);
    protected:
     MCC *http_entry;
   };

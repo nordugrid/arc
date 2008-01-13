@@ -198,7 +198,7 @@ namespace Arc {
     PayloadRaw request;
     PayloadRawInterface* response;
 
-    ClientHTTP::Info info;
+    Arc::HTTPClientInfo info;
     client.process("GET", &request, &info, &response);
 
 
@@ -317,7 +317,7 @@ namespace Arc {
       };
       uint64_t transfer_end = transfer_offset+chunk_length;
       // Read chunk
-      ClientHTTP::Info transfer_info;
+      Arc::HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface* inbuf;
       std::string path = point.current_location().Path(); path="/"+path;
@@ -418,7 +418,7 @@ namespace Arc {
       //uint64_t transfer_offset = 0;
       //uint64_t transfer_end = transfer_offset+transfer_size;
       // Write chunk
-      ClientHTTP::Info transfer_info;
+      Arc::HTTPClientInfo transfer_info;
       PayloadMemConst request((*point.buffer)[transfer_handle],transfer_offset,transfer_size,
                               point.CheckSize()?point.GetSize():0);
       PayloadRawInterface* response;

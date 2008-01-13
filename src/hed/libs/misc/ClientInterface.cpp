@@ -181,20 +181,20 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
 				 PayloadRawInterface* request,
-				 Info* info, PayloadRawInterface** response) {
+				 HTTPClientInfo* info, PayloadRawInterface** response) {
     return process(method,"",0,UINT64_MAX,request,info,response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method, const std::string& path,
                                  PayloadRawInterface *request,
-                                 Info *info, PayloadRawInterface **response) {
+                                 HTTPClientInfo *info, PayloadRawInterface **response) {
     return process(method,path,0,UINT64_MAX,request,info,response);
   }
 
   MCC_Status ClientHTTP::process(const std::string& method, const std::string& path,
                                  uint64_t range_start, uint64_t range_end,
                                  PayloadRawInterface *request,
-                                 Info *info, PayloadRawInterface **response) {
+                                 HTTPClientInfo *info, PayloadRawInterface **response) {
     *response = NULL;
     if(!loader) {
       loader = new Loader(&xmlcfg);
