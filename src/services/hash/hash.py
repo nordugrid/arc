@@ -168,22 +168,22 @@ class CentralHash:
         a conditional change is a dictionary with members such as:
             'changeID' is a reference ID used in the response list
             'ID' is the ID of the object which we want to change
-            'changeType' could be 'add', 'remove', 'delete' or 'reset'
+            'type' could be 'add', 'remove', 'delete' or 'reset'
                 'add' adds a new (section, property, value) line to the object
                 'remove' removes a (section, property, value) line from the object
                 'delete' removes all values of a corresponding section and property
-                    (the value does not matter at this changeType)
+                    (the value does not matter at this type)
                 'reset' removes all values of a corresponding section and property
                     then adds the new value which is given
-            'section', 'property', 'value' are belongs to the change request
+            'line' is a (section, property, value) tuple of the change
             'conditions' is a list of conditions
             a condition is a dictionary with members such as:
-                'conditionType' could be 'has', 'not', 'exists', 'empty'
+                'type' could be 'has', 'not', 'exists', 'empty'
                     'has': there is such a (section, property, value) line
                     'not': there is no such (section, property, value) line
                     'exists': there is a (section, property, *) line with any value
                     'empty': there is no (section, proprety, *) line with any value
-                'section', 'property', 'value' are belongs to this condition
+                'line' is a (section, property, value) tuple of the condition
         
         This method returns a list of (changeID, success) pairs,
         where success could be:
@@ -192,7 +192,7 @@ class CentralHash:
             - 'deleted'
             - 'reseted'
             - 'not changed'
-            - 'invalid changeType'
+            - 'invalid change type'
             - 'failed'
             - 'unknown'
         """
@@ -209,79 +209,75 @@ class CentralHash:
             success = 'unknown'
             try:
                 # get the ID of the object we want to change for easy referencing
-                ID = ch['hash:ID']
+                ID = ch['ID']
                 # get the current (section, property, value) lines of the object
                 lines = self.store.get(ID)
-                # put the requested section, property and value into one tuple
-                line = (ch['hash:section'],ch['hash:property'],ch['hash:value'])
                 #print lines
                 # now check all the conditions if there is any
                 ok = True
                 for cond in ch.get('conditions',[]):
-                    if cond['hash:conditionType'] == 'has':
+                    if cond['type'] == 'has':
                         # if there is no such section, property, value line in the object
-                        if not (cond['hash:section'], cond['hash:property'], cond['hash:value']) in lines:
+                        if not (cond['line'] in lines):
                             ok = False
                             # jump out of the for statement
                             break
-                    elif cond['hash:conditionType'] == 'not':
+                    elif cond['type'] == 'not':
                         # if there is such a section, property, value line in the object
-                        if (cond['hash:section'], cond['hash:property'], cond['hash:value']) in lines:
+                        if (cond['line'] in lines):
                             ok = False
                             break
-                    elif cond['hash:conditionType'] == 'exists':
+                    elif cond['type'] == 'exists':
                         # get all the lines which has the given section and property
-                        cond_lines = [l for l in lines
-                            if l[0:2] == (cond['hash:section'], cond['hash:property'])]
+                        cond_lines = [l for l in lines if l[0:2] == cond['line'][0:2]]
                         # if this is empty, there is no such line
                         if len(cond_lines) == 0:
                             ok = False
                             break
-                    elif cond['hash:conditionType'] == 'empty':
+                    elif cond['type'] == 'empty':
                         # get all the lines which has the given section and property
-                        cond_lines = [l for l in lines
-                            if l[0:2] == (cond['hash:section'], cond['hash:property'])]
+                        cond_lines = [l for l in lines if l[0:2] == cond['line'][0:2]]
                         # if this is not empty
                         if len(cond_lines) > 0:
                             ok = False
                             break
                 # if 'ok' is true then all conditions are met
                 if ok:
-                    if ch['hash:changeType'] == 'add':
+                    if ch['type'] == 'add':
                         # if changeType is add, simply add the new line to the object
-                        lines.append(line)
+                        lines.append(ch['line'])
                         #print lines
                         # store the changed object
                         self.store.set(ID,lines)
                         # set the result of this change
                         success = 'added'
-                    elif ch['hash:changeType'] == 'remove':
+                    elif ch['type'] == 'remove':
                         # if changeType is remove, simply remove the given line from the object
-                        lines.remove(line) 
+                        lines.remove(ch['line']) 
                         #print lines
                         # store the changed object
                         self.store.set(ID,lines)
                         # set the result of this change
                         success = 'removed'
-                    elif ch['hash:changeType'] in ['delete','reset']:
+                    elif ch['type'] in ['delete','reset']:
                         #print 'delete', lines
                         # if it is a 'delete' or a 'reset'
                         # remove all the lines which has the given section and the given property
-                        lines = [l for l in lines if not (l[0:2] == line[0:2])]
+                        lines = [l for l in lines if not (l[0:2] == ch['line'][0:2])]
                         #print 'deleted', lines
-                        if ch['hash:changeType'] == 'delete':
+                        if ch['type'] == 'delete':
                             # if this was a 'delete' we are done
                             success = 'removed'
                         else:
                             # if this was a reset, we need to add the new line
-                            lines.append(line)
+                            lines.append(ch['line'])
                             #print 'reseted', lines
                             success = 'reseted'
                         # in both cases we need to store the changed object
                         self.store.set(ID,lines)
                     else:
                         # there is no other changeType
-                        success = 'invalid changeType'
+                        success = 'invalid change type'
                 else:
                     success = 'not changed'
             except:
@@ -291,7 +287,7 @@ class CentralHash:
             # we are done, release the lock
             self.store.unlock()
             # append the result of the change to the response list
-            resp.append((ch['hash:changeID'],success))
+            resp.append((ch['changeID'],success))
             print 'Store unlocked'
         return resp
 
@@ -358,6 +354,12 @@ class HashService:
         tree.add_to_node(response_node)
         return out
 
+    def _cond_dict(self, cond):
+        # helper method which convert a condition to a simple dictionary
+        d = dict(cond)
+        return {'type' : d['hash:conditionType'],
+            'line' : (d['hash:section'], d['hash:property'], d['hash:value'])}
+
     def change(self, inpayload):
         """ Make changes in objects, if given conditions are met, return which change was successful.
 
@@ -369,19 +371,21 @@ class HashService:
         tree = XMLTree(inpayload.XPathLookup('//hash:changeRequestList', self.hash_ns)[0])
         # create a list of dictionaries from the 'changeRequestElement' nodes
         req_list = tree.get_dicts('/hash:changeRequestList/hash:changeRequestElement',
-            ['hash:changeID', 'hash:ID', 'hash:changeType', 'hash:conditionList',
-                'hash:section', 'hash:property', 'hash:value'])
-        # the 'conditionList' items have to be fixed
+            {'hash:changeID' : 'changeID',
+            'hash:ID' : 'ID', 
+            'hash:changeType' : 'type',
+            'hash:conditionList' : 'conditions',
+            'hash:section' : 'section',
+            'hash:property' : 'property',
+            'hash:value' : 'value'})
+        # make some more conversions
         for req in req_list:
+            # create a 3-tuple instead of separate section, property, value elements
+            req['line'] = (req['section'], req['property'], req['value'])
             # convert the XMLTree structure to a list of dictionaries
-            conditions = [dict(cond) for (_, cond) in req.get('hash:conditionList',[])]
+            conditions = [self._cond_dict(cond) for (_, cond) in req.get('conditions',[])]
             # put this list into the dictionary of the request
             req['conditions'] = conditions
-            # remove the 'conditionList', we don't need it anymore
-            try:
-                del req['hash:conditionList']
-            except:
-                pass
         # call the business logic class
         resp = self.hash.change(req_list)
         # prepare the response payload
