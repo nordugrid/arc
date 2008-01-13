@@ -8,8 +8,7 @@ in objects which have IDs.
 
 Methods:
     - get
-    - change
-    - changeIf
+    - change (may be conditional)
 
 Sample configuration:
 
@@ -149,7 +148,7 @@ class CentralHash:
         Returns a list of (ID, lines) tuples where
             'lines' is a list of (section, property, value) strings
         """
-        print 'CentralHash.get(%s)' % ids
+        #print 'CentralHash.get(%s)' % ids
         # initialize a list which will hold the results
         resp = []
         for ID in ids:
@@ -160,10 +159,10 @@ class CentralHash:
         # returns the resulting list
         return resp
 
-    def changeIf(self, changes):
+    def change(self, changes):
         """ Change the (section, property, value) members of an object, if the given conditions are met.
 
-        changeIf(changes)
+        change(changes)
 
         'changes' is a list of conditional changes
         a conditional change is a dictionary with members such as:
@@ -201,7 +200,7 @@ class CentralHash:
         resp = []
         for ch in changes:
             # for each change in the changes list
-            print ch
+            #print ch
             print 'Prepare to lock store'
             # lock the store to avoid inconsistency
             self.store.lock()
@@ -210,71 +209,73 @@ class CentralHash:
             success = 'unknown'
             try:
                 # get the ID of the object we want to change for easy referencing
-                ID = ch['ID']
+                ID = ch['hash:ID']
                 # get the current (section, property, value) lines of the object
                 lines = self.store.get(ID)
                 # put the requested section, property and value into one tuple
-                line = (ch['section'],ch['property'],ch['value'])
-                print lines
+                line = (ch['hash:section'],ch['hash:property'],ch['hash:value'])
+                #print lines
                 # now check all the conditions if there is any
                 ok = True
                 for cond in ch.get('conditions',[]):
-                    if cond['conditionType'] == 'has':
+                    if cond['hash:conditionType'] == 'has':
                         # if there is no such section, property, value line in the object
-                        if not (cond['section'], cond['property'], cond['value']) in lines:
+                        if not (cond['hash:section'], cond['hash:property'], cond['hash:value']) in lines:
                             ok = False
                             # jump out of the for statement
                             break
-                    elif cond['conditionType'] == 'not':
+                    elif cond['hash:conditionType'] == 'not':
                         # if there is such a section, property, value line in the object
-                        if (cond['section'], cond['property'], cond['value']) in lines:
+                        if (cond['hash:section'], cond['hash:property'], cond['hash:value']) in lines:
                             ok = False
                             break
-                    elif cond['conditionType'] == 'exists':
+                    elif cond['hash:conditionType'] == 'exists':
                         # get all the lines which has the given section and property
-                        cond_lines = [l for l in lines if l[0:2] == (cond['section'], cond['property'])]
+                        cond_lines = [l for l in lines
+                            if l[0:2] == (cond['hash:section'], cond['hash:property'])]
                         # if this is empty, there is no such line
                         if len(cond_lines) == 0:
                             ok = False
                             break
-                    elif cond['conditionType'] == 'empty':
+                    elif cond['hash:conditionType'] == 'empty':
                         # get all the lines which has the given section and property
-                        cond_lines = [l for l in lines if l[0:2] == (cond['section'], cond['property'])]
+                        cond_lines = [l for l in lines
+                            if l[0:2] == (cond['hash:section'], cond['hash:property'])]
                         # if this is not empty
                         if len(cond_lines) > 0:
                             ok = False
                             break
                 # if 'ok' is true then all conditions are met
                 if ok:
-                    if ch['changeType'] == 'add':
+                    if ch['hash:changeType'] == 'add':
                         # if changeType is add, simply add the new line to the object
                         lines.append(line)
-                        print lines
+                        #print lines
                         # store the changed object
                         self.store.set(ID,lines)
                         # set the result of this change
                         success = 'added'
-                    elif ch['changeType'] == 'remove':
+                    elif ch['hash:changeType'] == 'remove':
                         # if changeType is remove, simply remove the given line from the object
                         lines.remove(line) 
-                        print lines
+                        #print lines
                         # store the changed object
                         self.store.set(ID,lines)
                         # set the result of this change
                         success = 'removed'
-                    elif ch['changeType'] in ['delete','reset']:
-                        print 'delete', lines
+                    elif ch['hash:changeType'] in ['delete','reset']:
+                        #print 'delete', lines
                         # if it is a 'delete' or a 'reset'
                         # remove all the lines which has the given section and the given property
                         lines = [l for l in lines if not (l[0:2] == line[0:2])]
-                        print 'deleted', lines
-                        if ch['changeType'] == 'delete':
+                        #print 'deleted', lines
+                        if ch['hash:changeType'] == 'delete':
                             # if this was a 'delete' we are done
                             success = 'removed'
                         else:
                             # if this was a reset, we need to add the new line
                             lines.append(line)
-                            print 'reseted', lines
+                            #print 'reseted', lines
                             success = 'reseted'
                         # in both cases we need to store the changed object
                         self.store.set(ID,lines)
@@ -290,15 +291,17 @@ class CentralHash:
             # we are done, release the lock
             self.store.unlock()
             # append the result of the change to the response list
-            resp.append((ch['changeID'],success))
+            resp.append((ch['hash:changeID'],success))
             print 'Store unlocked'
         return resp
+
+from xmltree import XMLTree
 
 class HashService:
     """ HashService class implementing the XML interface of the Hash service. """
 
     # names of provided methods
-    request_names = ['get','change','changeIf']
+    request_names = ['get','change']
 
     def __init__(self, cfg):
         """ Constructor of the HashService
@@ -320,73 +323,6 @@ class HashService:
         # set the default namespace for the Hash service
         self.hash_ns = arc.NS({'hash':hash_uri})
 
-    def addline(self, node, line):
-        """ Adds a new line of (section, property, value) to the given XMLNode.
-
-        addline(node, line)
-
-        'node' is an XMLNode which will be the parent of the new node
-        'line' is a (section, property, value) tuple we want to add to the node
-        """
-        # break the line into its three parts
-        section, property, value = line
-        # add a new child node called 'line'
-        line_node = node.NewChild('hash:line')
-        # add three child nodes to the 'line' node
-        line_node.NewChild('hash:section').Set(section)
-        line_node.NewChild('hash:property').Set(property)
-        line_node.NewChild('hash:value').Set(value)
-    
-    def addobject(self, node, obj):
-        """ Adds an object with all of its (section, property, value) lines to the given XMLNode.
-
-        addobject(node, obj)
-
-        'node' is the XMLNode which will be the parent of the new node.
-        'obj' is a pair of (ID, lines) where ID is the ID of the object,
-            and lines a list of (section, property, value) tuples
-        """
-        # break the object into its two parts
-        ID, lines = obj
-        # create a new child called 'object'
-        object_node = node.NewChild('hash:object')
-        # create a child of the 'object' node, call it 'ID' and put the ID in it
-        object_node.NewChild('hash:ID').Set(ID)
-        # create a child of the 'object' node, call it 'lines'
-        lines_node = object_node.NewChild('hash:lines')
-        for line in lines:
-            # for each (section, proprety, value) line add it to the 'lines' node
-            self.addline(lines_node, line)
-
-    def convert_to_dict(self, nodes, keys, include_node = False):
-        """ Convert a list of XML nodes to a list of dictionaries.
-
-        convert_to_dict(nodes, keys, include_node = False)
-
-        'nodes' is a list of XMLNodes which we want to convert
-        'keys' is a list of strings the name of the tags we want to put into the dictionary
-        'include_node' is False by default, if it is True each resulting dictionary
-            will contain the XMLNode itself by the key '_'
-
-        This method get the XML tags whose names are in the keys list, and put their string content
-        into a dictionary using the tag's name as key.
-        """
-        # start with an empty list which will store the dictionary for each node
-        res_list = []
-        for node in nodes:
-            # for each node start with an empty dictionary
-            res_dict = {}
-            # convert only the given keys
-            for key in keys:
-                # get the data from the XMLNode and put it into our dictionary
-                res_dict[key] = str(node.Get(key))
-            if include_node:
-                res_dict['_'] = node
-            # append the new dictionary to the collector list
-            res_list.append(res_dict)
-        # return the list
-        return res_list
-
     def get(self, inpayload):
         """ Returns the data of the requested objects.
 
@@ -400,74 +336,68 @@ class HashService:
         resp = self.hash.get(ids)
         # create the response payload
         out = arc.PayloadSOAP(self.hash_ns)
-        # create the 'getResponse' node and its child called 'objects'
-        objects_node = out.NewChild('hash:getResponse').NewChild('hash:objects')
-        for obj in resp:
-            # for each object add the results to the 'objects' node
-            self.addobject(objects_node, obj)
+        # create the 'getResponse' node
+        response_node = out.NewChild('hash:getResponse')
+        #print resp
+        # create an XMLTree from the results
+        tree = XMLTree(from_tree = 
+            ('hash:objects',
+                [('hash:object', # for each object
+                    [('hash:ID', ID),
+                    ('hash:lines',
+                        [('hash:line', # for each line in the object
+                            [('hash:section', section),
+                            ('hash:property', property),
+                            ('hash:value', value)]
+                        ) for (section, property, value) in lines]
+                    )]
+                ) for (ID, lines) in resp]
+            ))
+        #print tree
+        # convert to tree to XML via adding it to the 'getResponse' node
+        tree.add_to_node(response_node)
         return out
 
     def change(self, inpayload):
-        """ Make changes in objects, return which change was successful and which wasn't
+        """ Make changes in objects, if given conditions are met, return which change was successful.
 
         change(inpayload)
 
         'inpayload' is an XMLNode containing the change requests.
         """
-        # extract the change requests with the '//changeRequestElement' XPath expression
-        requests = inpayload.XPathLookup('//hash:changeRequestElement', self.hash_ns)
-        # convert the XML request to a list of dictionaries
-        req_list = self.convert_to_dict(request,
-            ['changeID', 'ID', 'changeType', 'section', 'property', 'value'])
-        # actually a change is a conditional change without conditions: we can use changeIf
-        resp = self.hash.changeIf(req_list)
-        # prepare the response payload
-        out = arc.PayloadSOAP(self.hash_ns)
-        # add the 'changeResponse' node and its child called 'changeResponseList'
-        responses_node = out.NewChild('hash:changeResponse').NewChild('hash:changeResponseList')
-        for (changeID, success) in resp:
-            # for each result create a new child called 'changeResponseElement'
-            response_node = responses_node.NewChild('hash:changeResponseElement')
-            # and put the changeID and success into it
-            response_node.NewChild('changeID').Set(changeID)
-            response_node.NewChild('success').Set(success)
-        return out
-
-    def changeIf(self, inpayload):
-        """ Make changes in objects, if given conditions are met, return which change was successful.
-
-        changeIf(inpayload)
-
-        'inpayload' is an XMLNode containing the change requests and the conditions for each request.
-        """
-        # extract the change requests with the '//changeIfRequestElement' XPath expression
-        requests = inpayload.XPathLookup('//hash:changeIfRequestElement', self.hash_ns)
-        # convert the XML request to a list of dictionaries, and include the nodes themselves in the dict
-        req_list = self.convert_to_dict(requests,
-            ['changeID', 'ID', 'changeType', 'section', 'property', 'value'], True)
-        # now for each request extract the list of conditions as well
+        # get the 'changeRequestList' node and convert it to XMLTree
+        tree = XMLTree(inpayload.XPathLookup('//hash:changeRequestList', self.hash_ns)[0])
+        # create a list of dictionaries from the 'changeRequestElement' nodes
+        req_list = tree.get_dicts('/hash:changeRequestList/hash:changeRequestElement',
+            ['hash:changeID', 'hash:ID', 'hash:changeType', 'hash:conditionList',
+                'hash:section', 'hash:property', 'hash:value'])
+        # the 'conditionList' items have to be fixed
         for req in req_list:
-            # get all the conditions for this request
-            conditions = req['_'].XPathLookup('//hash:condition', self.hash_ns)
-            # convert them to a list of dictionaries
-            cond_list = self.convert_to_dict(conditions,
-                ['conditionType', 'section', 'property', 'value'])
+            # convert the XMLTree structure to a list of dictionaries
+            conditions = [dict(cond) for (_, cond) in req.get('hash:conditionList',[])]
             # put this list into the dictionary of the request
-            req['conditions'] = cond_list
-            # remove the node itself, we do not need it anymore
-            del req['_']
-        # get the results from the business logic class
-        resp = self.hash.changeIf(req_list)
+            req['conditions'] = conditions
+            # remove the 'conditionList', we don't need it anymore
+            try:
+                del req['hash:conditionList']
+            except:
+                pass
+        # call the business logic class
+        resp = self.hash.change(req_list)
         # prepare the response payload
         out = arc.PayloadSOAP(self.hash_ns)
-        # add the 'changeIfResponse' node and its child called 'changeIfResponseList'
-        responses_node = out.NewChild('hash:changeIfResponse').NewChild('hash:changeIfResponseList')
-        for (changeID, success) in resp:
-            # for each result create a new child called 'changeIfResponseElement'
-            response_node = responses_node.NewChild('hash:changeIfResponseElement')
-            # and put the changeID and success into it
-            response_node.NewChild('changeID').Set(changeID)
-            response_node.NewChild('success').Set(success)
+        # create the 'changeResponse' node
+        response_node = out.NewChild('hash:changeResponse')
+        # create an XMLTree for the response
+        tree = XMLTree(from_tree = 
+            ('hash:changeResponseList',
+                [('hash:changeResponseElement', # for each change
+                    [('hash:chageID', changeID),
+                    ('hash:success', success)]
+                ) for (changeID, success) in resp]
+            ))
+        # add the XMLTree to the XMLNode
+        tree.add_to_node(response_node)
         return out
 
     def process(self, inmsg, outmsg):
@@ -480,7 +410,7 @@ class HashService:
             hash_prefix = inpayload.NamespacePrefix(hash_uri)
             # get the qualified name of the request
             request_name = inpayload.Child().FullName()
-            print request_name
+            #print request_name
             if not request_name.startswith(hash_prefix + ':'):
                 # if the request is not in the Hash namespace
                 raise Exception, 'wrong namespace (%s)' % request_name
