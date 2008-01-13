@@ -9,7 +9,7 @@
         <Logger level="VERBOSE">./logfile</Logger>
     </Server>
     <ModuleManager>
-        <Path>../../services/echo_python/.libs/</Path>
+        <Path>../../services/wrappers/python/.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
         <Path>../../hed/mcc/soap/.libs/</Path>
         <Path>../../hed/mcc/tcp/.libs/</Path>
