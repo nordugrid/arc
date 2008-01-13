@@ -265,12 +265,11 @@ class XMLTree:
         for element in data:
             # for each child in the tree create a child in the XMLNode
             child_node = node.NewChild(element[0])
-            # if this is just a string, set it to the node
-            if isinstance(element[1],str):
-                child_node.Set(element[1])
-            else: # if it is not a plain string, but may have children
-                # call itself recursively to add all children as well
+            # if the node has children:
+            if isinstance(element[1],list):
                 self._add_to_node(element[1], child_node)
+            else: # if it has no child, create a string from it
+                child_node.Set(str(element[1]))
 
     def __str__(self):
         return str(self._data)
