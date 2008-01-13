@@ -68,7 +68,7 @@ namespace Arc {
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
-    PayloadStreamInterface *stream();
+    // PayloadStreamInterface *stream();
    protected:
     MCC *tcp_entry;
     MCC *tls_entry;
