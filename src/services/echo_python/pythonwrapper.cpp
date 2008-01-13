@@ -61,8 +61,10 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 }
 
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
+    
     // Initialize the Python Interpreter
-    Py_Initialize();
+    Py_InitializeEx(0); // python do not handle signals
+    PyEval_InitThreads();
     return new Arc::Service_PythonWrapper(cfg);
 }
 
@@ -84,7 +86,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *arc_cfg_klass = NULL;
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
-    
+ 
     std::string path = (std::string)(*cfg)["ClassName"];    
     std::size_t p = path.rfind(".");
     if (p == std::string::npos) {
@@ -231,7 +233,6 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
 
-    
     // Get the class 
     arc_msg_klass = PyDict_GetItemString(arc_dict, "SOAPMessage");
     if (arc_msg_klass == NULL) {
@@ -247,13 +248,17 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         logger.msg(Arc::ERROR, "Message klass is not an object");
         return;
     }
-
+    
+    tstate = PyGILState_GetThisThreadState();
+    PyEval_ReleaseThread(tstate);
+    
     logger.msg(Arc::DEBUG, "Python Wrapper constructur called");
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void) 
 {
     // Finish the Python Interpreter
+    PyEval_AcquireThread(tstate);
     Py_Finalize();
     logger.msg(Arc::DEBUG, "Python Wrapper destructor called");
 }
@@ -281,8 +286,12 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     PyObject *py_inmsg = NULL;
     PyObject *py_outmsg = NULL;
     PyObject *arg = NULL;
-
+   
     logger.msg(Arc::DEBUG, "Python wrapper process called");
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+    logger.msg(Arc::DEBUG, "Python interpreter locked");
+    
     // Convert in and out messages to SOAP messages
     Arc::SOAPMessage *inmsg_ptr = NULL;
     Arc::SOAPMessage *outmsg_ptr = NULL;
@@ -292,10 +301,14 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     } catch(std::exception& e) { };
     if(!inmsg_ptr) {
         logger.msg(Arc::ERROR, "input is not SOAP");
+        
+        PyGILState_Release(gstate);
         return make_fault(outmsg);
     };
     if(!outmsg_ptr) {
         logger.msg(Arc::ERROR, "output is not SOAP");
+        
+        PyGILState_Release(gstate);
         return make_fault(outmsg);
     };
 
@@ -306,6 +319,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
+        
+        PyGILState_Release(gstate);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
 
@@ -316,6 +331,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
             PyErr_Print();
         }
         Py_DECREF(arg);
+        
+        PyGILState_Release(gstate);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
     Py_DECREF(arg); delete inmsg_ptr;
@@ -326,6 +343,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
+        
+        PyGILState_Release(gstate);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
 
@@ -336,6 +355,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
             PyErr_Print();
         }
         Py_DECREF(arg);
+        
+        PyGILState_Release(gstate);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
     Py_DECREF(arg); delete outmsg_ptr;
@@ -349,6 +370,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         }
         Py_DECREF(py_inmsg);
         Py_DECREF(py_outmsg);
+        
+        PyGILState_Release(gstate);
         return Arc::MCC_Status(Arc::GENERIC_ERROR);
     }
     
@@ -368,7 +391,8 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     Py_DECREF(py_inmsg);
     
     outmsg.Payload(pl);
-
+    
+    PyGILState_Release(gstate);
     return status;
 }
 
