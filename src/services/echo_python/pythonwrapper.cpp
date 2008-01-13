@@ -1,4 +1,6 @@
-// based on: http://www.codeproject.com/cpp/embedpython_1.asp
+// based on: 
+// http://www.codeproject.com/cpp/embedpython_1.asp
+// http://coding.derkeiler.com/Archive/Python/comp.lang.python/2006-11/msg01211.html
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

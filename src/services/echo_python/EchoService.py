@@ -1,4 +1,5 @@
 import arc
+import time
 
 class EchoService:
 
@@ -12,6 +13,7 @@ class EchoService:
 
     def process(self, inmsg, outmsg):
         print "EchoService (python) 'Process' called"
+        # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
         print "EchoService (python) got:", inpayload.GetXML()
