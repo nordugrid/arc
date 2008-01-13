@@ -468,10 +468,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
-		 src/hed/identitymap/Makefile
+		         src/hed/identitymap/Makefile
                  src/services/Makefile
-                 src/services/echo_java/Makefile
-                 src/services/echo_python/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/grid-manager/Makefile
@@ -492,6 +490,12 @@ AC_CONFIG_FILES([Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
+                 src/services/sched/Makefile
+                 src/services/echo_java/Makefile
+                 src/services/echo_python/Makefile
+                 src/services/wrappers/Makefile
+                 src/services/wrappers/java/Makefile
+                 src/services/wrappers/python/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/data/Makefile
@@ -516,7 +520,7 @@ AC_CONFIG_FILES([Makefile
 AC_OUTPUT
 
 AC_MSG_RESULT([
-Java binding:       ${enable_java}
+Java binding:       ${enable_java} 
 Python binding:     ${enable_python} ($PYTHON_VERSION)
 
 Available third-party features:
