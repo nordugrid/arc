@@ -2,10 +2,24 @@
 #include <config.h>
 #endif
 
+#if 0
+#include <arc/loader/Loader.h>
+#include <arc/loader/ServiceLoader.h>
+#include <arc/message/PayloadSOAP.h>
+#include <arc/ws-addressing/WSA.h>
+#include <arc/URL.h>
+#include <glibmm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fstream>
+#endif
+
+#if 0
+/*
 #include <iostream>
 
 #include <sys/types.h>
-#include <pwd.h>
 #include <unistd.h>
 
 #include <arc/loader/Loader.h>
@@ -16,11 +30,13 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
-
-#include "arex2.h"
+*/
+// #include "sched.h"
+#endif
 
 namespace Sched {
 
+#if 0
 static Arc::LogStream logcerr(std::cerr);
 
 // Static initializator
@@ -127,28 +143,28 @@ Arc::MCC_Status SchedService::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     Arc::PayloadSOAP& res = *outpayload;
     Arc::MCC_Status ret;
     if(MatchXMLName(op, "CreateActivity")) {
-        res.NewChild("bes-factory:CreateActivityResponse");
-        ret = CreateActivity(op, res);
+        Arc::XMLNode r = res.NewChild("bes-factory:CreateActivityResponse");
+        ret = CreateActivity(op, r);
     } else if(MatchXMLName(op, "GetActivityStatuses")) {
-        res.NewChild("bes-factory:GetActivityStatusesResponse");
-        ret = GetActivityStatuses(op, res);
+        Arc::XMLNode r = res.NewChild("bes-factory:GetActivityStatusesResponse");
+        ret = GetActivityStatuses(op, r);
     } else if(MatchXMLName(op, "TerminateActivities")) {
-        res.NewChild("bes-factory:TerminateActivitiesResponse");
-        ret = TerminateActivities(op, res);
+        Arc::XMLNode r = res.NewChild("bes-factory:TerminateActivitiesResponse");
+        ret = TerminateActivities(op, r);
     } else if(MatchXMLName(op, "GetActivityDocuments")) {
-        res.NewChild("bes-factory:GetActivityDocumentsResponse");
-        ret = GetActivityDocuments(op, res);
+        Arc::XMLNode r = res.NewChild("bes-factory:GetActivityDocumentsResponse");
+        ret = GetActivityDocuments(op, r);
     } else if(MatchXMLName(op, "GetFactoryAttributesDocument")) {
-        res.NewChild("bes-factory:GetFactoryAttributesDocumentResponse");
-        ret = GetFactoryAttributesDocument(op, res);
+        Arc::XMLNode r = res.NewChild("bes-factory:GetFactoryAttributesDocumentResponse");
+        ret = GetFactoryAttributesDocument(op, r);
     } else if(MatchXMLName(op, "StopAcceptingNewActivities")) {
-        res.NewChild("bes-factory:StopAcceptingNewActivitiesResponse");
+        Arc::XMLNode r = res.NewChild("bes-factory:StopAcceptingNewActivitiesResponse");
         ret = StopAcceptingNewActivities(op, res);
     } else if(MatchXMLName(op, "StartAcceptingNewActivities")) {
-        res.NewChild("bes-factory:StartAcceptingNewActivitiesResponse");
+        Arc::XMLNode r = res.NewChild("bes-factory:StartAcceptingNewActivitiesResponse");
         ret = StartAcceptingNewActivities(op, res);
     } else if(MatchXMLName(op, "ChangeActivityStatus")) {
-        res.NewChild("bes-factory:ChangeActivityStatusResponse");
+        Arc::XMLNode r = res.NewChild("bes-factory:ChangeActivityStatusResponse");
         ret = ChangeActivityStatus(op, res);
       // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
@@ -181,13 +197,6 @@ Arc::MCC_Status SchedService::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-// Start information collector 
-static void thread_starter(void* arg) 
-{
-  if(!arg) return;
-  ((SchedService*)arg)->InformationCollector();
-}
-
 // Constructor
 
 SchedService::SchedService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Sched") 
@@ -202,7 +211,6 @@ SchedService::SchedService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::r
   ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
-  // CreateThreadFunction(&thread_starter,this);
 }
 
 // Destructor
@@ -211,10 +219,15 @@ SchedService::~SchedService(void)
     // NOP
 }
 
-} // namespace Sched
+#endif
 
+}; // namespace Sched
+
+#if 0
 service_descriptors ARC_SERVICE_LOADER = {
     { "sched", 0, &Sched::get_service },
     { NULL, 0, NULL }
 };
+#endif
+
 

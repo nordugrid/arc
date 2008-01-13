@@ -1,5 +1,5 @@
-#ifndef __ARC_AREX2_H__
-#define __ARC_AREX2_H__
+#ifndef __ARC_SCHED_H__
+#define __ARC_SCHED_H__
 
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
