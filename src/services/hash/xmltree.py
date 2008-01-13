@@ -77,10 +77,11 @@ now you can use the get_dict and get_dicts methods:
 >>> t.get_dicts('/root/object')
 [{'key1': 'value1', 'key2': 'value2'}, {'key1': 'value3', 'key2': 'value4'}]
 
-you can specify the needed keys:
+you can specify the needed keys, and rename them:
 
->>> t.get_dicts('/root/object', ['key2'])
-[{'key2': 'value2'}, {'key2': 'value4'}]
+>>> t.get_dicts('/root/object', {'key1':'new name'})
+[{'new name': 'value1'}, {'new name': 'value3'}]
+
 
 you can specify default value with get_value:
 
@@ -376,27 +377,32 @@ class XMLTree:
             return []
 
     def _dict(self, value, keys):
-        # helper method for filtering keys
+        # helper method for changing keys
         if keys:
             # if keys is given use only the keys which is in it
-            return dict([(k,v) for (k,v) in value if k in keys])
+            # and translete them to new keys (the values of the 'keys' dictionary)
+            return dict([(keys[k],v) for (k,v) in value if k in keys.keys()])
         else: # if keys is empty, use all the data
             return dict(value)
     
-    def get_dict(self, path = None, keys = []):
+    def get_dict(self, path = None, keys = {}):
         """ Returns a dictionary from the first node the path matches.
 
-        get_dict(path, keys = [])
+        get_dict(path, keys = {})
 
-        if 'keys' is given, only those keys will be in the dictionary.
+        'keys' is a dictionary which filters and translate the keys
+            e.g. if keys is {'hash:line':'line'}, it will only return
+            the 'hash:line' nodes, and will call them 'line'
         """
         return self._dict(self.get_value(path,[]),keys)
 
-    def get_dicts(self, path = None, keys = []):
+    def get_dicts(self, path = None, keys = {}):
         """ Returns a list of dictionaries from all the nodes the path matches.
 
-        get_dicts(path, keys = [])
+        get_dicts(path, keys = {})
 
-        if 'keys' is given, only those keys will be in the dictionary.
+        'keys' is a dictionary which filters and translate the keys
+            e.g. if keys is {'hash:line':'line'}, it will only return
+            the 'hash:line' nodes, and will call them 'line'
         """
         return [self._dict(v,keys) for v in self.get_values(path)]
