@@ -15,7 +15,6 @@ class Service_PythonWrapper: public Arc::Service {
         PyObject *module;
         PyObject *klass;
         PyObject *object;
-        PyThreadState *tstate;
 
     public:
         Service_PythonWrapper(Arc::Config *cfg);

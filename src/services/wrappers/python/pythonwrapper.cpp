@@ -62,11 +62,18 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
     return (((PySwigObject *)thisAttr)->ptr);
 }
 
+// Thread state of main python interpreter thread
+static PyThreadState *tstate = NULL;
+static int python_service_counter = 0;
+
 static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     
     // Initialize the Python Interpreter
-    Py_InitializeEx(0); // python do not handle signals
-    PyEval_InitThreads();
+    if (!Py_IsInitialized()) {
+        Py_InitializeEx(0); // python do not handle signals
+        PyEval_InitThreads();
+    }
+    python_service_counter++;
     return new Arc::Service_PythonWrapper(cfg);
 }
 
@@ -89,6 +96,9 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     PyObject *arg = NULL;
     PyObject *py_cfg = NULL;
  
+    if (tstate != NULL) {
+        PyEval_AcquireThread(tstate);
+    }
     std::string path = (std::string)(*cfg)["ClassName"];    
     std::size_t p = path.rfind(".");
     if (p == std::string::npos) {
@@ -250,19 +260,21 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         logger.msg(Arc::ERROR, "Message klass is not an object");
         return;
     }
-    
     tstate = PyGILState_GetThisThreadState();
     PyEval_ReleaseThread(tstate);
-    
+
     logger.msg(Arc::DEBUG, "Python Wrapper constructur called");
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void) 
 {
     // Finish the Python Interpreter
-    PyEval_AcquireThread(tstate);
-    Py_Finalize();
-    logger.msg(Arc::DEBUG, "Python Wrapper destructor called");
+    python_service_counter--;
+    if (python_service_counter == 0) {
+        PyEval_AcquireThread(tstate);
+        Py_Finalize();
+    }
+    logger.msg(Arc::DEBUG, "Python Wrapper destructor called (%d)", python_service_counter);
 }
 
 Arc::MCC_Status Service_PythonWrapper::make_fault(Arc::Message& outmsg) 
@@ -290,6 +302,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     PyObject *arg = NULL;
    
     logger.msg(Arc::DEBUG, "Python wrapper process called");
+    
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
     logger.msg(Arc::DEBUG, "Python interpreter locked");
