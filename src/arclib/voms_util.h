@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 
+extern "C" {
+#include "VOMSAttribute.h"
+}
+
 namespace ArcLib {
   int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes,

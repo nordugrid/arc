@@ -275,16 +275,20 @@ namespace ArcLib {
 
   Credential::Credential(Time start, Period lifetime) : start_(start), lifetime_(lifetime), 
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), 
-        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL) {
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
+
+    extensions_ = sk_new_null();
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
-        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), certfile_(certfile), 
-        keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir),
+        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL),
+        certfile_(certfile), keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024) {
 
      OpenSSL_add_all_algorithms();
+
+     extensions_ = sk_new_null();
 
      BIO* certbio = NULL, *keybio = NULL; 
      Credformat format;
@@ -344,7 +348,7 @@ namespace ArcLib {
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
 
-    if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)name.c_str())))) {
+    if(!(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
       credentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
       LogError(); return NULL;
     }
@@ -560,6 +564,7 @@ err:
     int certinfo_NID, certinfo_old_NID, certinfo_v3_NID, certinfo_v4_NID, nid;
     int i;
 
+    //Get the PROXYCERTINFO from request' extension
     req_extensions = X509_REQ_get_extensions(req_);
     certinfo_NID = OBJ_sn2nid("PROXYCERTINFO");
     certinfo_old_NID = OBJ_sn2nid("OLD_PROXYCERTINFO");
@@ -708,37 +713,53 @@ err:
     return true; 
   } 
 
-  bool Credential::GetCredPrivKey(EVP_PKEY** key){
+  EVP_PKEY* Credential::GetPrivKey(void){
+    EVP_PKEY* key = NULL;
     BIO*  bio = NULL;
     int length;
     bio = BIO_new(BIO_s_mem());
     length = i2d_PrivateKey_bio(bio, pkey_);
-    if(pkey_ == NULL) {credentialLogger.msg(ERROR, "Private key of the Credential object is NULL"); BIO_free(bio); return false;}
+    if(pkey_ == NULL) {credentialLogger.msg(ERROR, "Private key of the Credential object is NULL"); BIO_free(bio); return NULL;}
     if(length <= 0) {
       credentialLogger.msg(ERROR, "Can not convert private key to DER format");
-      LogError(); BIO_free(bio); return false;
+      LogError(); BIO_free(bio); return NULL;
     }
-    *key = d2i_PrivateKey_bio(bio, key);
+    key = d2i_PrivateKey_bio(bio, &key);
     BIO_free(bio);
 
-    return true;
+    return key;
   }
 
-  static int i2d_PUBKEY(void *a, unsigned char **pp) {
-    X509_PUBKEY *xpk=NULL;
-    int ret;
-    if(!a) return 0;
-    if(!X509_PUBKEY_set(&xpk, (EVP_PKEY*)a)) return 0;
-    ret = i2d_X509_PUBKEY(xpk, pp);
-    X509_PUBKEY_free(xpk);
-    return ret;
+  X509* Credential::GetCert(void) {
+    X509* cert = NULL;
+    cert = X509_dup(cert_);
+    return cert;
   }
- 
+
+  STACK_OF(X509)* Credential::GetCertChain(void) {
+    STACK_OF(X509)* chain = NULL;
+    chain = sk_X509_dup(cert_chain_);
+    return chain;
+  }
+
+  bool Credential::AddExtension(std::string name, std::string data, bool crit) {
+    X509_EXTENSION* ext = NULL;
+    ext = CreateExtension(name, data, crit);
+    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
+    else return false;
+  }
+
+  bool Credential::AddExtension(std::string name, char** &data, bool crit) {
+    X509_EXTENSION* ext = NULL;
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)data);
+    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
+    else return false;
+  }
+
   bool Credential::SignRequestAssistant(Credential* &proxy, EVP_PKEY* &req_pubkey, X509** tosign){
    
     bool res = false; 
     X509* issuer = NULL;
-    EVP_PKEY* issuer_priv = NULL;
 
     X509_NAME* subject_name = NULL;
     X509_NAME_ENTRY* name_entry = NULL;
@@ -768,7 +789,7 @@ err:
       std::string certinfo_string;
 
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
-      ASN1_digest(i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
+      ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
       sub_hash = md[0] + (md[1] + (md[2] + (md[3] >> 1) * 256) * 256) * 256; 
         
       CN_name = (char*)malloc(sizeof(long)*4 + 1);
@@ -906,27 +927,10 @@ err:
     if(!X509_set_pubkey(*tosign, req_pubkey)) {
       credentialLogger.msg(ERROR, "Can not set pubkey for proxy certificate"); LogError(); goto err;
     }
-
-    /* Now sign the new certificate */
-    if(!GetCredPrivKey(&issuer_priv)) {
-      credentialLogger.msg(ERROR, "Can not get the issuer's private key"); goto err;
-    }
-    
-    /* Check whether MD5 isn't requested as the signing algorithm in the request*/
-    if(EVP_MD_type(proxy->signing_alg_) != NID_md5) {
-      credentialLogger.msg(ERROR, "The signing algorithm: %s is not allowed, it should be MD5 to sign certificate requests",
-        OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
-      goto err;
-    }
-    
-    if(!X509_sign(*tosign, issuer_priv, proxy->signing_alg_)) {
-      credentialLogger.msg(ERROR, "Failed to sign the request"); LogError(); goto err;
-    }
  
     res = true;
      
 err:
-    if(issuer_priv) { EVP_PKEY_free(issuer_priv);}
     if(issuer) { X509_free(issuer); }
     if(res == false && *tosign) { X509_free(*tosign); *tosign = NULL;}
     if(certinfo_NID != NID_undef) {
@@ -942,22 +946,67 @@ err:
     if(proxy == NULL) {credentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
     if(outputbio == NULL) { credentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
     
+    EVP_PKEY* issuer_priv = NULL;
     X509*  proxy_cert = NULL;
+    X509_CINF*  proxy_cert_info = NULL;
+    X509_EXTENSION* ext = NULL;
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(proxy->req_);
     if(!req_pubkey) { credentialLogger.msg(ERROR, "Error when extract public key from request"); LogError(); return false;}
 
-    if(X509_REQ_verify(proxy->req_, req_pubkey)){ 
-      if(SignRequestAssistant(proxy, req_pubkey, &proxy_cert)) {
-        //if(i2d_X509_bio(outputbio, proxy_cert)) {
-        if(PEM_write_bio_X509(outputbio, proxy_cert)) {
-          credentialLogger.msg(INFO, "Succeeded to sign and output the proxy certificate"); res = true;
-        }
-        else { credentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); LogError();}
+    if(!X509_REQ_verify(proxy->req_, req_pubkey)){
+      credentialLogger.msg(ERROR,"Failed to verify the request"); LogError(); goto err;
+    }
+
+    if(!SignRequestAssistant(proxy, req_pubkey, &proxy_cert)) {
+      credentialLogger.msg(ERROR,"Failed to add issuer's extension into proxy"); LogError(); goto err;
+    }
+
+    /*Add the extensions which has just been added by application, into the proxy_cert which will be signed soon
+     *Note here we suppose it is the signer who will add the extension to to-signed proxy and then sign it;
+     * it also could be the request who add the extension and put it inside X509 request' extension, but here the situation
+     * has not been considered for now
+     */
+    proxy_cert_info = proxy_cert->cert_info;
+    if (proxy_cert_info->extensions != NULL) {
+      sk_pop_free(proxy_cert_info->extensions, (void (*)(void*))X509_EXTENSION_free);
+    }
+    for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
+      ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
+      if (ext == NULL) {
+        credentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); goto err;
+      }
+         
+      if (!sk_X509_EXTENSION_push(proxy_cert_info->extensions, ext)) {
+        credentialLogger.msg(ERROR,"Failed to add extension into proxy"); LogError(); goto err;
       }
     }
-    else { credentialLogger.msg(ERROR,"Error when extract public key from request"); LogError(); }
 
+    /* Now sign the new certificate */
+    if(!(issuer_priv = GetPrivKey())) {
+      credentialLogger.msg(ERROR, "Can not get the issuer's private key"); goto err;
+    }
+
+    /* Check whether MD5 isn't requested as the signing algorithm in the request*/
+    if(EVP_MD_type(proxy->signing_alg_) != NID_md5) {
+      credentialLogger.msg(ERROR, "The signing algorithm: %s is not allowed, it should be MD5 to sign certificate requests",
+      OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
+      goto err;
+    }
+
+    if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
+      credentialLogger.msg(ERROR, "Failed to sign the request"); LogError(); goto err;
+    }
+
+    /*Output the signed certificate into BIO*/
+    //if(i2d_X509_bio(outputbio, proxy_cert)) {
+    if(PEM_write_bio_X509(outputbio, proxy_cert)) {
+      credentialLogger.msg(INFO, "Succeeded to sign and output the proxy certificate"); res = true;
+    }
+    else { credentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); LogError();}
+   
+err:
+    if(issuer_priv) { EVP_PKEY_free(issuer_priv);}
     if(proxy_cert) { X509_free(proxy_cert);}
     if(req_pubkey) { EVP_PKEY_free(req_pubkey); }
 

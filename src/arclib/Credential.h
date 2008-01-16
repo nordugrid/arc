@@ -16,6 +16,17 @@
 #include <arc/DateTime.h>
 
 #include "cert_util.h"
+
+/**Credential class covers the functionality about general processing about certificate/key files, 
+ *including cerficate/key parsing, information extracting (such as subject name, issuer name, lifetime, etc.), chain verifying,
+ *extension processing about proxy certinfo, extension processing about other general certificate extension
+ * (such as voms, it should be the extension-specific code itself (here it is some code about writing and parsing
+ * voms-implementing Attibute Certificate/ RFC3281, which will then look as a binary part be embeded into extension 
+ * of X509 certificate/proxy certificate) to create, parse and verify the extension, not the Credential class, 
+ * so the voms api can still be used
+ * if need to process the voms extension).
+ * The Crendential class support PEM, DER PKCS12 credential 
+ */
   
 namespace ArcLib {
   // An exception class for the Credential class.
@@ -62,8 +73,6 @@ class Credential {
 
     bool SetProxyPeriod(X509* tosign, X509* issuer, Arc::Time& start, Arc::Period& lifetime);
 
-    bool GetCredPrivKey(EVP_PKEY** key);
-
     bool SignRequestAssistant(Credential* &proxy, EVP_PKEY* &req_pubkey, X509** tosign);
 
   /************************************/
@@ -71,6 +80,16 @@ class Credential {
   public:
 
     void LogError(void);   
+
+    EVP_PKEY* GetPrivKey(void);
+
+    X509* GetCert(void);
+
+    STACK_OF(X509)* GetCertChain(void);
+
+    bool Credential::AddExtension(std::string name, std::string data, bool crit = false);
+
+    bool Credential::AddExtension(std::string name, char** &data, bool crit = false);
 
     Credformat getFormat(BIO * in);        
 

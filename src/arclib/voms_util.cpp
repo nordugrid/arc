@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include "VOMSAttribute.h"
+#include "iostream"
 
 #include "voms_util.h"
 
@@ -32,7 +32,7 @@ namespace ArcLib{
     #define vo                    "1.3.6.1.4.1.8005.100.100.3"
     #define idatcap               "1.3.6.1.4.1.8005.100.100.4"
 
-    #define attributes            "1.3.6.1.4.1.8005.100.100.11"
+    #define attribs            "1.3.6.1.4.1.8005.100.100.11"
     #define acseq                 "1.3.6.1.4.1.8005.100.100.5"
     #define order                 "1.3.6.1.4.1.8005.100.100.6"
     #define certseq               "1.3.6.1.4.1.8005.100.100.10"
@@ -51,7 +51,7 @@ namespace ArcLib{
     OBJ_create(email, "Email", "Email");
     OBJC(idatcap,"idatcap");
 
-    OBJC(attributes,"attributes");
+    OBJC(attribs,"attributes");
     OBJC(idcenoRevAvail, "idcenoRevAvail");
     OBJC(idceauthKeyIdentifier, "authKeyId");
     OBJC(idceTargets, "idceTargets");
@@ -165,6 +165,9 @@ namespace ArcLib{
         ASN1_OCTET_STRING_free(tmpc);
         ERROR(AC_ERR_MEMORY);
       }
+
+      std::cout<<"FQAN: "<<(*i)<<std::endl;
+
       ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
       sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
     }
@@ -179,6 +182,9 @@ namespace ArcLib{
       ASN1_IA5STRING_free(tmpr);
       ERROR(AC_ERR_MEMORY);
     }
+
+    std::cout<< "AC_IETFATTR, name "<<buffer<<std::endl; 
+
     ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
     g->type  = GEN_URI;
     g->d.ia5 = tmpr;
@@ -353,13 +359,14 @@ err:
     ASN1_INTEGER_free(serial);
     AC_ATTR_free(capabilities);
     ASN1_OBJECT_free(cobj);
-    AC_IETFATTR_free(capnames);
+    //AC_IETFATTR_free(capnames);
     ASN1_UTCTIME_free(time1);
     ASN1_UTCTIME_free(time2);
     AC_ATT_HOLDER_free(ac_att_holder);
     AC_FULL_ATTRIBUTES_free(ac_full_attrs);
     return err;
 }
+
 
 } // namespace Arc
 
