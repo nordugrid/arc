@@ -19,4 +19,3 @@ class JobSchedMetaData {
 };
 
 #endif // SCHED_SCHED_METADATA
-
