@@ -278,7 +278,7 @@ namespace ArcLib {
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
     OpenSSL_add_all_algorithms();
 
-    extensions_ = sk_new_null();
+    extensions_ = sk_X509_EXTENSION_new_null();
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
@@ -288,7 +288,7 @@ namespace ArcLib {
 
      OpenSSL_add_all_algorithms();
 
-     extensions_ = sk_new_null();
+     extensions_ = sk_X509_EXTENSION_new_null();
 
      BIO* certbio = NULL, *keybio = NULL; 
      Credformat format;
@@ -355,18 +355,18 @@ namespace ArcLib {
   
     ext_oct = ASN1_OCTET_STRING_new();
   
-    ext_oct->data = (unsigned char *)data.c_str();
+    ext_oct->data = (unsigned char *)(data.c_str());
     ext_oct->length = data.size();
   
     if (!(ext = X509_EXTENSION_create_by_OBJ(NULL, ext_obj, crit, ext_oct))) {
       credentialLogger.msg(ERROR, "Can not create extension for proxy certificate");
       LogError();
+      if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
+      if(ext_obj) ASN1_OBJECT_free(ext_obj);
+      return NULL;
     }
-	
-    if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
-    if(ext_obj) ASN1_OBJECT_free(ext_obj);
+    
     ext_oct = NULL;
-	
     return ext;
   }  
 
@@ -749,9 +749,9 @@ err:
     else return false;
   }
 
-  bool Credential::AddExtension(std::string name, char** &data, bool crit) {
+  bool Credential::AddExtension(std::string name, char** aclist, bool crit) {
     X509_EXTENSION* ext = NULL;
-    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)data);
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)aclist);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
     else return false;
   }
@@ -969,8 +969,13 @@ err:
      */
     proxy_cert_info = proxy_cert->cert_info;
     if (proxy_cert_info->extensions != NULL) {
-      sk_pop_free(proxy_cert_info->extensions, (void (*)(void*))X509_EXTENSION_free);
+      sk_X509_EXTENSION_pop_free(proxy_cert_info->extensions, X509_EXTENSION_free);
     }
+
+    if(sk_X509_EXTENSION_num(proxy->extensions_)) {
+      proxy_cert_info->extensions = sk_X509_EXTENSION_new_null();
+    }    
+
     for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
       ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
       if (ext == NULL) {

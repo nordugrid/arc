@@ -2,7 +2,6 @@
 
 #include "VOMSAttribute.h"
 
-
 /////////////////////////////////////
 int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
 {
@@ -1116,8 +1115,8 @@ X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth() {
     (X509V3_EXT_FREE) AC_TARGETS_free,
     (X509V3_EXT_D2I) d2i_AC_TARGETS,
     (X509V3_EXT_I2D) i2d_AC_TARGETS,
-    (X509V3_EXT_I2S) targets_s2i, 
-    (X509V3_EXT_S2I) targets_i2s,
+    (X509V3_EXT_I2S) targets_i2s, 
+    (X509V3_EXT_S2I) targets_s2i,
     NULL,
     NULL,
     NULL,
@@ -1137,8 +1136,8 @@ X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth() {
     (X509V3_EXT_FREE) AC_SEQ_free,
     (X509V3_EXT_D2I) d2i_AC_SEQ,
     (X509V3_EXT_I2D) i2d_AC_SEQ,
-    (X509V3_EXT_I2S) acseq_s2i, 
-    (X509V3_EXT_S2I) acseq_i2s,
+    (X509V3_EXT_I2S) acseq_i2s, 
+    (X509V3_EXT_S2I) acseq_s2i,
     NULL,
     NULL,
     NULL,
@@ -1158,8 +1157,8 @@ X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth() {
     (X509V3_EXT_FREE) AC_CERTS_free,
     (X509V3_EXT_D2I) d2i_AC_CERTS,
     (X509V3_EXT_I2D) i2d_AC_CERTS,
-    (X509V3_EXT_I2S) certs_s2i, 
-    (X509V3_EXT_S2I) certs_i2s,
+    (X509V3_EXT_I2S) certs_i2s, 
+    (X509V3_EXT_S2I) certs_s2i,
     NULL,
     NULL,
     NULL,
@@ -1179,8 +1178,8 @@ X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth() {
     (X509V3_EXT_FREE) AC_FULL_ATTRIBUTES_free,
     (X509V3_EXT_D2I) d2i_AC_FULL_ATTRIBUTES,
     (X509V3_EXT_I2D) i2d_AC_FULL_ATTRIBUTES,
-    (X509V3_EXT_I2S) attributes_s2i,  
-    (X509V3_EXT_S2I) attributes_i2s,
+    (X509V3_EXT_I2S) attributes_i2s,  
+    (X509V3_EXT_S2I) attributes_s2i,
     NULL,
     NULL,
     NULL,

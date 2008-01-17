@@ -10,6 +10,7 @@ extern "C" {
 #include "listfunc.h"
 }
 
+
 int main(void) {
   Arc::LogStream cdest(std::cerr);
   Arc::Logger::getRootLogger().addDestination(cdest);
@@ -99,7 +100,6 @@ int main(void) {
    * and then put the Base64 format into XML item
    * Here we just demostrate the process without using Base64 and XML encoding
    */
-  char *c[3]= {"cap1", "cap2", NULL};
 
   std::vector<std::string> fqan;
   fqan.push_back("knowarc.eu");
@@ -108,12 +108,13 @@ int main(void) {
   targets.push_back("www.nordugrid.no");
  
   std::vector<std::string> attrs;
-  attrs.push_back("test.nordugrid.no");
+  attrs.push_back("::role=admin");
+  attrs.push_back("::role=guest");
 
   ac = AC_new();
 
   ArcLib::createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
-             fqan, targets, attrs, &ac, "knowarc", "http://test.uio.no", 3600*12);
+             fqan, targets, attrs, &ac, "knowarc", "test.uio.no", 3600*12);
 
   unsigned int len = i2d_AC(ac, NULL);
   unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
@@ -134,18 +135,18 @@ int main(void) {
   AC* received_ac;
   AC** aclist = NULL;
   AC** actmplist = NULL;
-  std::string received_codedac(codedac);
   char *p, *pp;
-  int l = received_codedac.size();
-  pp = (char *)malloc(received_codedac.size());
+  int l = codedac.size();
+
+  pp = (char *)malloc(codedac.size());
   if(!pp) {std::cerr<<"Can not allocate memory for parsing ac"<<std::endl; return (0); }
 
-  pp = (char *)memcpy(pp, received_codedac.data(), received_codedac.size());
+  pp = (char *)memcpy(pp, codedac.data(), codedac.size());
   p = pp;
 
   //Parse the AC, and insert it into an AC array
   if((received_ac = d2i_AC(NULL, (unsigned char **)&p, l))) {
-    actmplist = (AC **)listadd((char **)aclist, (char *)ac, sizeof(AC *));
+    actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
     if (actmplist) {
       aclist = actmplist;
     }
@@ -166,8 +167,13 @@ int main(void) {
   //Signing side
   ArcLib::Credential proxy3(Arc::Time(), Arc::Period(12*3600));
   proxy3.InquireRequest(req_file_ac.c_str());
-  proxy3.AddExtension("acseq", (char** &)aclist);
-  signer.SignRequest(&proxy3, out_file_ac);
+  proxy3.AddExtension("acseq", (char**) aclist);
+
+
+  //X509_EXTENSION* ext = NULL;
+  //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
+
+  signer.SignRequest(&proxy3, out_file_ac.c_str());
 
   /*********************/
   //Get the proxy certificate with voms AC extension, and parse the extension by using voms api.

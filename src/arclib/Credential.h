@@ -17,6 +17,11 @@
 
 #include "cert_util.h"
 
+extern "C" {
+#include "VOMSAttribute.h"
+}
+
+
 /**Credential class covers the functionality about general processing about certificate/key files, 
  *including cerficate/key parsing, information extracting (such as subject name, issuer name, lifetime, etc.), chain verifying,
  *extension processing about proxy certinfo, extension processing about other general certificate extension
@@ -89,7 +94,7 @@ class Credential {
 
     bool Credential::AddExtension(std::string name, std::string data, bool crit = false);
 
-    bool Credential::AddExtension(std::string name, char** &data, bool crit = false);
+    bool Credential::AddExtension(std::string name, char** aclist, bool crit = false);
 
     Credformat getFormat(BIO * in);        
 

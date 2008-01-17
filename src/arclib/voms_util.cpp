@@ -8,7 +8,7 @@
 
 namespace ArcLib{
 
-  static void InitVOMSAttribute(void) {
+  void InitVOMSAttribute(void) {
     #define idpkix                "1.3.6.1.5.5.7"
     #define idpkcs9               "1.2.840.113549.1.9"
     #define idpe                  idpkix ".1"
@@ -183,8 +183,6 @@ namespace ArcLib{
       ERROR(AC_ERR_MEMORY);
     }
 
-    std::cout<< "AC_IETFATTR, name "<<buffer<<std::endl; 
-
     ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
     g->type  = GEN_URI;
     g->d.ia5 = tmpr;
@@ -199,25 +197,29 @@ namespace ArcLib{
     // prepare AC_FULL_ATTRIBUTES
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
       std::string qual, name, value;
-  
+
+      std::cout<<"Attribute: "<<(*i)<<std::endl; 
+ 
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr) {
         AC_ATTRIBUTE_free(ac_attr);
         ERROR(AC_ERR_MEMORY);
       }
 
+      //Accoding to the definition of voms, the attributes will be like "qualifier::name=value" or "::name=value"
       size_t pos =(*i).find_first_of("::");
       if (pos != std::string::npos) {
         qual = (*i).substr(0, pos);
         pos += 2;
       }
+      else { pos = 2; } 
 
       size_t pos1 = (*i).find_first_of("=");
       if (pos1 == std::string::npos) {
         ERROR(AC_ERR_PARAMETERS);
       }
       else {
-        name = (*i).substr(pos, pos1);
+        name = (*i).substr(pos, pos1 - pos);
         value = (*i).substr(pos1 + 1);
       }
 
@@ -232,7 +234,7 @@ namespace ArcLib{
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
 
-    if (!attrs.empty()) 
+    if (attrs.empty()) 
       AC_ATT_HOLDER_free(ac_att_holder);
     else {
       GENERAL_NAME *g = GENERAL_NAME_new();
@@ -260,6 +262,7 @@ namespace ArcLib{
 
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
+
       ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("attributes"), (char *)(ac_full_attrs->providers));
       AC_FULL_ATTRIBUTES_free(ac_full_attrs);
       if (!ext)
@@ -287,7 +290,7 @@ namespace ArcLib{
     sk_X509_pop_free(stk, X509_free);
 
     /* Create extensions */
-    norevavail=X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), "loc");
+    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), "loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(norevavail, 0); 
@@ -298,7 +301,7 @@ namespace ArcLib{
     X509_EXTENSION_set_critical(auth, 0); 
 
     if (!complete.empty()) {
-      targetsext=X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idceTargets"), (char*)(complete.c_str()));
+      targetsext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idceTargets"), (char*)(complete.c_str()));
       if (!targetsext)
         ERROR(AC_ERR_NO_EXTENSION);
 
@@ -359,7 +362,7 @@ err:
     ASN1_INTEGER_free(serial);
     AC_ATTR_free(capabilities);
     ASN1_OBJECT_free(cobj);
-    //AC_IETFATTR_free(capnames);
+    AC_IETFATTR_free(capnames);
     ASN1_UTCTIME_free(time1);
     ASN1_UTCTIME_free(time2);
     AC_ATT_HOLDER_free(ac_att_holder);
