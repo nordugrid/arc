@@ -4,6 +4,7 @@
 
 #include "MkDirRecursive.h"
 #include <arc/StringConv.h>
+#include "CheckFile.h"
 #include <arc/Logger.h>
 #include "DataCache.h"
 #include <cerrno>
