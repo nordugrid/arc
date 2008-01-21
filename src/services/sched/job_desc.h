@@ -6,19 +6,21 @@
 
 #include <arc/XMLNode.h>
 
+namespace Arc
+{
 
-class JobDescription {
+class JobDescription:XMLNode {
 
     private:
         XMLNode descr;
     public:
         JobDescription();
-        JobDescription(const Arc::XMLNode& jsdl);
-        virtual JobDescription& operator=(const JobDescription& j);
         virtual ~JobDescription(void);
         std::string getJobName(void);
         std::string getOS(void);
         std::string getArch(void);
+};
+
 };
 
 #endif // SCHED_JOB_DESCRIPTION

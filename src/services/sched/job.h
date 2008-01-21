@@ -5,17 +5,23 @@
 #include "job_desc.h"
 #include "job_sched_meta.h"
 
+namespace Arc {
+
 class Job {
 
     private:
         JobDescription descr;
         JobSchedMetaData sched_meta;
     public:
-        Job(const JobDescription& d, const JobSchedMeta& c);
-        virtual Job& operator=(const Job& j);
+        Job(void) { };
+        Job(const JobDescription& descr, const JobSchedMetaData& sched_meta);
         virtual ~Job(void);
+        void setJobDescription(const JobDescription &descr);
         JobDescription& getJobDescription(void) { return descr; };
+        void setJobSchedMetaData(const JobSchedMetaData &sched_meta);
         JobSchedMetaData& getSchedMetaData(void) { return sched_meta; };
 };
+
+}; // namspace Arc
 
 #endif // SCHED_JOB

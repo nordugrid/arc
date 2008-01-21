@@ -1,25 +1,28 @@
-/**
- */
 #ifndef SCHED_JOB_QUEUE
 #define SCHED_JOB_QUEUE
 
 #include <string>
-#include <list>
+#include <map>
 #include <iostream>
 
-#include "job_desc.h"
+#include "job.h"
 
+namespace Arc
+{
 
 class JobQueue {
     private:
-        std::list<Job> jobs;
+        std::map<std::string,Arc::Job> jobs;
 
     public:
         JobQueue();
-        virtual JobQueue& operator=(const JobQueue& j);
         virtual ~JobQueue();
-
+        void addJob(const Job &job);
+        void removeJob(const Job &job);
+        void removeJob(const std::string &job_id);
 };
+
+}; // namespace Arc
 
 #endif // SCHED_JOB_QUEUE
 

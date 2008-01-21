@@ -6,6 +6,9 @@
 #include <arc/XMLNode.h>
 #include <arc/DateTime.h>
 
+namespace Arc
+{
+
 class JobSchedMetaData {
 
     private:
@@ -13,9 +16,10 @@ class JobSchedMetaData {
         Arc::Time start_time;
         Arc::Time end_time;
     public:
-        JobSchedMetaData();
-        virtual JobSchedMetaData& operator=(const JobSchedMetaData& j);
+        JobSchedMetaData(void);
         virtual ~JobSchedMetaData(void);
 };
+
+}; // namespace Arc
 
 #endif // SCHED_SCHED_METADATA

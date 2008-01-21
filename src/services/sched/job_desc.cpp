@@ -1,17 +1,26 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "job_desc.h"
 
+namespace Arc
+{
+
 std::string JobDescription::getJobName(void) { 
-    return (std::string)descr["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"]; 
+    return (std::string)(*this)["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"]; 
 }
 
 std::string JobDescription::getOS(void) { 
 
-    return (std::string)descr["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
+    return (std::string)(*this)["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
 }
  
  
-std::string JobDescription::XMLNode& getArch(void) { 
+std::string JobDescription::getArch(void) { 
 
-    return (std::string)descr["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
+    return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
 }
+
+};
 
