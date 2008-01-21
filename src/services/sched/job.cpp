@@ -11,6 +11,16 @@ Job::Job(const JobDescription &descr, const JobSchedMetaData &sched_meta)
 {
 }
 
+Job::Job(const std::string& job)
+{
+
+}
+
+Job::Job(std::istream& job)
+{
+
+}
+
 Job::~Job(void)
 {
     // NOP
@@ -25,4 +35,3 @@ void Job::setJobSchedMetaData(const JobSchedMetaData &sched_meta)
 }
 
 };
-

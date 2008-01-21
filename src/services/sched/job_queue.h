@@ -13,7 +13,7 @@ namespace Arc
 class JobQueue {
     private:
         std::map<std::string,Arc::Job> jobs;
-
+        std::string type;
     public:
         JobQueue();
         virtual ~JobQueue();

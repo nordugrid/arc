@@ -15,6 +15,7 @@ class JobSchedMetaData {
         int reruns;
         Arc::Time start_time;
         Arc::Time end_time;
+
     public:
         JobSchedMetaData(void);
         virtual ~JobSchedMetaData(void);

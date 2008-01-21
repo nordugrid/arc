@@ -15,6 +15,8 @@ class Job {
     public:
         Job(void) { };
         Job(const JobDescription& descr, const JobSchedMetaData& sched_meta);
+        Job(const std::string& job);
+        Job(std::istream& job);
         virtual ~Job(void);
         void setJobDescription(const JobDescription &descr);
         JobDescription& getJobDescription(void) { return descr; };
