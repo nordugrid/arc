@@ -1,5 +1,5 @@
 libexec_PROGRAMS = smtp-send
-libexec_SCRIPTS  = smtp-send.sh
+dist_libexec_SCRIPTS  = smtp-send.sh
 noinst_LTLIBRARIES = libmail.la
 
 smtp_send_SOURCES = smtp-send.c
