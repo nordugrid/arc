@@ -4,6 +4,7 @@
 
 #define __STDC_LIMIT_MACROS
 #include <stdint.h>
+#include <unistd.h>
 
 #include <arc/Logger.h>
 #include <arc/message/PayloadRaw.h>
