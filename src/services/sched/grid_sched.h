@@ -14,21 +14,26 @@ class GridSchedulerService: public Arc::Service {
         Arc::DelegationContainerSOAP delegations_;
         Arc::InformationContainer infodoc_;
         // BES Interface
-        Arc::MCC_Status CreateActivity(Arc::XMLNode in, Arc::XMLNode out);
-        Arc::MCC_Status GetActivityStatuses(Arc::XMLNode in, Arc::XMLNode out);
-        Arc::MCC_Status TerminateActivities(Arc::XMLNode in, Arc::XMLNode out);
+        Arc::MCC_Status CreateActivity(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status GetActivityStatuses(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status TerminateActivities(Arc::XMLNode &in, Arc::XMLNode &out);
         
-        Arc::MCC_Status GetFactoryAttributesDocument(Arc::XMLNode in, 
-                                                     Arc::XMLNode out);
-        Arc::MCC_Status StopAcceptingNewActivities(Arc::XMLNode in, 
-                                                   Arc::XMLNode out);
-        Arc::MCC_Status StartAcceptingNewActivities(Arc::XMLNode in, 
-                                                    Arc::XMLNode out);
-        Arc::MCC_Status ChangeActivityStatus(Arc::XMLNode in, 
-                                             Arc::XMLNode out);
+        Arc::MCC_Status GetFactoryAttributesDocument(Arc::XMLNode &in, 
+                                                     Arc::XMLNode &out);
+        Arc::MCC_Status StopAcceptingNewActivities(Arc::XMLNode &in, 
+                                                   Arc::XMLNode &out);
+        Arc::MCC_Status StartAcceptingNewActivities(Arc::XMLNode &in, 
+                                                    Arc::XMLNode &out);
+        Arc::MCC_Status ChangeActivityStatus(Arc::XMLNode &in, 
+                                             Arc::XMLNode &out);
+        // iBES Interface
+        Arc::MCC_Status GetActivity(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status ReportActivityStatus(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status GetActivityStatusChanges(Arc::XMLNode &in, Arc::XMLNode &out);
+
         // WS-Propoerty Interface
-        Arc::MCC_Status GetActivityDocuments(Arc::XMLNode in, 
-                                             Arc::XMLNode out);
+        Arc::MCC_Status GetActivityDocuments(Arc::XMLNode &in, 
+                                             Arc::XMLNode &out);
         // Fault handlers
         Arc::MCC_Status make_response(Arc::Message& outmsg);
         Arc::MCC_Status make_fault(Arc::Message& outmsg);

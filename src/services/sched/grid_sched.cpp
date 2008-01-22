@@ -38,54 +38,73 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new GridSchedulerService(cfg);
 }
 
-Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode /*in*/,
-                                             Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode &/*in*/,
+                                             Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode /*in*/,
-                                                  Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode &/*in*/,
+                                                  Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode /*in*/,
-                                                 Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &/*in*/,
+                                                 Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode /*in*/,
-                                                   Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode &/*in*/,
+                                                   Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode /*in*/,
-                                                          Arc::XMLNode /*out*/)
+Arc::MCC_Status GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode &/*in*/,
+                                                          Arc::XMLNode &/*out*/)
 {
     return Arc::MCC_Status();
 }
 
 
-Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode /*in*/, 
-                                                         Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode &/*in*/, 
+                                                         Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode /*in*/,
-                                                          Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode &/*in*/,
+                                                          Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode /*in*/,
-                                                   Arc::XMLNode /*out*/) 
+Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode &/*in*/,
+                                                   Arc::XMLNode &/*out*/) 
 {
     return Arc::MCC_Status();
 }
+
+Arc::MCC_Status GridSchedulerService::GetActivity(Arc::XMLNode &/*in*/,
+                                                   Arc::XMLNode &/*out*/) 
+{
+    return Arc::MCC_Status();
+}
+
+Arc::MCC_Status GridSchedulerService::ReportActivityStatus(Arc::XMLNode &/*in*/,
+                                                   Arc::XMLNode &/*out*/) 
+{
+    return Arc::MCC_Status();
+}
+
+Arc::MCC_Status GridSchedulerService::GetActivityStatusChanges(Arc::XMLNode &/*in*/,
+                                                   Arc::XMLNode &/*out*/) 
+{
+    return Arc::MCC_Status();
+}
+
 
 // Create Faults
 Arc::MCC_Status GridSchedulerService::make_soap_fault(Arc::Message& outmsg) 
@@ -160,6 +179,16 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
     } else if(MatchXMLName(op, "ChangeActivityStatus")) {
         Arc::XMLNode r = res.NewChild("bes-factory:ChangeActivityStatusResponse");
         ret = ChangeActivityStatus(op, res);
+    // iBES
+    } else if(MatchXMLName(op, "GetActivity")) {
+        Arc::XMLNode r = res.NewChild("ibes:GetActivityResponse");
+        ret = GetActivity(op, res);
+    } else if(MatchXMLName(op, "ReportActivityStatus")) {
+        Arc::XMLNode r = res.NewChild("ibes:ReportActivityStatusResponse");
+        ret = ReportActivityStatus(op, res);
+    } else if(MatchXMLName(op, "GetActivityStatusChanges")) {
+        Arc::XMLNode r = res.NewChild("ibes:GetActivityStatusChangesResponse");
+        ret = GetActivityStatusChanges(op, res);
       // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
@@ -205,6 +234,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
   ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+  ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
 }
 
 // Destructor
