@@ -3,7 +3,7 @@
 namespace GridScheduler {
 
 
-Arc::MCC_Status CreateActivity(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }
