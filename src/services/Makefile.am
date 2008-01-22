@@ -4,5 +4,5 @@ else
 AREX_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) pdp httpd arex2 isis sched
+SUBDIRS=$(AREX_SERVICE) pdp httpd arex2 isis sched wrappers
 DIST_SUBDIRS = echo_java echo_python a-rex pdp httpd arex2 isis sched wrappers
