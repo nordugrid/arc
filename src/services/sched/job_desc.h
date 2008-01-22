@@ -15,6 +15,7 @@ class JobDescription:XMLNode {
         XMLNode descr;
     public:
         JobDescription();
+        JobDescription(Arc::XMLNode& d);
         virtual ~JobDescription(void);
         std::string getJobName(void);
         std::string getOS(void);

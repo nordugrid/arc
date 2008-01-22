@@ -14,7 +14,7 @@ class Job {
         JobSchedMetaData sched_meta;
     public:
         Job(void) { };
-        Job(const JobDescription& descr, const JobSchedMetaData& sched_meta);
+        Job(const JobDescription& d, const JobSchedMetaData& m);
         Job(const std::string& job);
         Job(std::istream& job);
         virtual ~Job(void);
@@ -24,6 +24,6 @@ class Job {
         JobSchedMetaData& getSchedMetaData(void) { return sched_meta; };
 };
 
-}; // namspace Arc
+}; // namespace Arc
 
 #endif // SCHED_JOB

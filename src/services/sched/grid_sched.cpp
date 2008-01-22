@@ -249,5 +249,3 @@ service_descriptors ARC_SERVICE_LOADER = {
     { "grid_sched", 0, &GridScheduler::get_service },
     { NULL, 0, NULL }
 };
-
-

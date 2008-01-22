@@ -15,10 +15,12 @@ class JobSchedMetaData {
         int reruns;
         Arc::Time start_time;
         Arc::Time end_time;
-
+        std::map<std::string,std::string> data; //scheduling data
+        std::map<std::string,std::string> blacklisted_hosts; //host names
     public:
         JobSchedMetaData(void);
         virtual ~JobSchedMetaData(void);
+        
 };
 
 }; // namespace Arc

@@ -22,5 +22,9 @@ std::string JobDescription::getArch(void) {
     return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
 }
 
+JobDescription::JobDescription(Arc::XMLNode& d) {
+    JobDescription::descr=d;
+}
+
 };
 
