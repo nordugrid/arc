@@ -6,9 +6,9 @@
 
 namespace Arc {
 
-class CSG:ResourceHandling {
+class CandidateSetGenerator:ResourcesHandling {
     public:
-        CSG(void);
+        CandidateSetGenerator(void);
 };
 
 }; // namespace Arc

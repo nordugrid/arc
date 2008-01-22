@@ -1,10 +1,8 @@
-#include <arc/message/SOAPEnvelope.h>
-#include <arc/ws-addressing/WSA.h>
-#include "job.h"
+#include "grid_sched.h"
 
-namespace Arc {
+namespace GridScheduler {
 
-Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode &, Arc::XMLNode &out)
+Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode &in, Arc::XMLNode &out)
 {
     return Arc::MCC_Status();
 }

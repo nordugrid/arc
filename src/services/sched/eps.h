@@ -2,13 +2,14 @@
 #define EXECUTION_PLANNING_SERVICE
 
 #include <string>
+#include "resources_handling.h"
 
 namespace Arc {
 
-class EPS:ResourceHandling {
+class ExecutionPlanningService:ResourcesHandling {
 
     public:
-        EPS(void);
+        ExecutionPlanningService(void);
 };
 
 }; // namespace Arc
