@@ -1,5 +1,5 @@
-#ifndef RESOURCE
-#define RESOURCE
+#ifndef SCHED_RESOURCE
+#define SCHED_RESOURCE
 
 #include <string>
 
@@ -14,4 +14,4 @@ class Resource {
 
 }; // namespace Arc
 
-#endif // RESOURCE
+#endif // SCHED_RESOURCE

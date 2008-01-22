@@ -1,5 +1,5 @@
-#ifndef SCHED_SCHED_METADATA
-#define SCHED_SCHED_METADATA
+#ifndef SCHED_METADATA
+#define SCHED_METADATA
 
 #include <string>
 #include <list>
@@ -20,9 +20,8 @@ class JobSchedMetaData {
     public:
         JobSchedMetaData(void);
         virtual ~JobSchedMetaData(void);
-        
 };
 
 }; // namespace Arc
 
-#endif // SCHED_SCHED_METADATA
+#endif // SCHED_METADATA

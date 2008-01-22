@@ -1,5 +1,5 @@
-#ifndef RESOURCES_HANDLING
-#define RESOURCES_HANDLING
+#ifndef SCHED_RESOURCES_HANDLING
+#define SCHED_RESOURCES_HANDLING
 
 #include <string>
 #include "resource.h"
@@ -16,4 +16,4 @@ class ResourceHandling {
 
 }; // namespace Arc
 
-#endif // RESOURCES_HANDLING
+#endif // SCHED_RESOURCES_HANDLING
