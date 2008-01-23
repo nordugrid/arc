@@ -202,6 +202,7 @@ fi
 AC_MSG_NOTICE([Python enabled: $enable_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enable_python" = "xyes"])
+AM_CONDITIONAL([PYTHON_SERVICE],[test ! "x$PYTHON_VERSION" '<' "x2.4"])
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 if test "x$PKG_CONFIG" = "xno"; then

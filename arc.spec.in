@@ -26,6 +26,13 @@ BuildRequires: globus_rls_client-devel
 BuildRequires: globus_rsl-devel
 #
 
+%define pyver %(python -c 'import sys; print sys.version[:3]')
+%if "%{pyver}" < "2.4"
+%define ifpy #
+%else
+%define ifpy %{nil}
+%endif
+
 %description
 ARC
 
@@ -220,7 +227,7 @@ exit 0
 %files python
 %defattr(-,root,root,-)
 %{_libdir}/python?.?/site-packages/
-%{_libdir}/%{pkgdir}/libpythonservice.so
+%{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
 
 %if "%{!?disable_java:java}"
 %files java
