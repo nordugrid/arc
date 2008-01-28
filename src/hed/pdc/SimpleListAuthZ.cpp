@@ -52,6 +52,7 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
   /**Creating the PDP plugins*/
     XMLNode cn;
     cn=(*cfg)["PDP"]; //need some polishing
+
     for(int n = 0;;++n) {
         XMLNode can = cn[n];
         if(!can) break;
