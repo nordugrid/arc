@@ -50,9 +50,7 @@ bool MCC::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
     // be used by authorization to make access control decision).
     std::map<std::string,std::list<ArcSec::SecHandler*> >::iterator q = sechandlers_.find(label);
     if(q == sechandlers_.end()) {
-        logger.msg(Arc::VERBOSE, "No security processing/check required");
-        if(sechandlers_.size())
-          logger.msg(Arc::VERBOSE, "There is security handling events inside the Service, please make sure you set the label parameters when you call the ProcessSecHandler method");
+        logger.msg(Arc::VERBOSE, "No security processing/check requested for '"+label+"'");
         return true;
     }
     std::list<ArcSec::SecHandler*>::iterator h = q->second.begin();
