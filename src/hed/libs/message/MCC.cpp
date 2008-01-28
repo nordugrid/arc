@@ -30,7 +30,7 @@ void MCC::Unlink(void) {
 void MCC::AddSecHandler(Config* cfg, ArcSec::SecHandler* sechandler,const std::string& label) {
     if(sechandler) {
         sechandlers_[label].push_back(sechandler); //need polishing to put the SecHandlerFactory->getinstance here
-        XMLNode cn = (*cfg)["Handler"];
+        XMLNode cn = (*cfg)["SecHandler"];
         Config cfg_(cn);
     }
 }
@@ -51,6 +51,8 @@ bool MCC::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
     std::map<std::string,std::list<ArcSec::SecHandler*> >::iterator q = sechandlers_.find(label);
     if(q == sechandlers_.end()) {
         logger.msg(Arc::VERBOSE, "No security processing/check required");
+        if(sechandlers_.size())
+          logger.msg(Arc::VERBOSE, "There is security handling events inside the Service, please make sure you set the label parameters when you call the ProcessSecHandler method");
         return true;
     }
     std::list<ArcSec::SecHandler*>::iterator h = q->second.begin();
