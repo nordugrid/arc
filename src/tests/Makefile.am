@@ -1,1 +1,1 @@
-SUBDIRS=echo data xpath 
+SUBDIRS=echo count data xpath 

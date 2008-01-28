@@ -1,7 +1,3 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <iostream>
 #include <signal.h>
 
@@ -12,10 +8,8 @@
 #include <arc/message/PayloadSOAP.h>
 
 int main(void) {
-#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
-#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -37,13 +31,13 @@ int main(void) {
      <Plugins><Name>mcchttp</Name></Plugins>\
      <Plugins><Name>mccsoap</Name></Plugins>\
      <Chain>\
-      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>127.0.0.1</tcp:Host><tcp:Port>60001</tcp:Port></tcp:Connect></Component>\
-      <Component name='tls.client' id='tls'><next id='tcp'/>\
-            <KeyPath>/home/scratch/weizhong/new-arc/src/tests/echo/key.pem</KeyPath>\
-            <CertificatePath>/home/scratch/weizhong/new-arc/src/tests/echo/cert.pem</CertificatePath>\
-            <CACertificatePath>/home/scratch/weizhong/new-arc/src/tests/echo/ca.pem</CACertificatePath>\
+      <Component name='tcp.client' id='tcp'><tcp:Connect><tcp:Host>localhost</tcp:Host><tcp:Port>60000</tcp:Port></tcp:Connect></Component>\
+      <Component name='tls.client' id='tls'> <next id='tcp'/>\
+        <KeyPath>./key.pem</KeyPath>\
+        <CertificatePath>./cert.pem</CertificatePath>\
+        <CACertificatePath>./ca.pem</CACertificatePath>\
       </Component>\
-      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/Echo</Endpoint></Component>\
+      <Component name='http.client' id='http'><next id='tls'/><Method>POST</Method><Endpoint>/Count</Endpoint></Component>\
       <Component name='soap.client' id='soap' entry='soap'><next id='http'/></Component>\
      </Chain>\
     </ArcConfig>");
@@ -60,15 +54,17 @@ int main(void) {
     return -1;
   };
 
-  // for (int i = 0; i < 10; i++) {
-  // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
-  Arc::NS echo_ns; echo_ns["echo"]="urn:echo";
-  Arc::PayloadSOAP req(echo_ns);
-  req.NewChild("echo").NewChild("say")="HELLO";
+  Arc::NS count_ns;
+  count_ns["count"]="urn:count";
+  Arc::PayloadSOAP req(count_ns);
+  Arc::XMLNode plus = req.NewChild("plus");  
+  plus.NewChild("input1").NewChild("number1")="10";
+  plus.NewChild("input2").NewChild("number2")="23";
   Arc::Message reqmsg;
   Arc::Message repmsg;
   reqmsg.Payload(&req);
+
   // It is a responsibility of code initiating first Message to
   // provide Context and Attributes as well.
   Arc::MessageAttributes attributes_req;
@@ -77,7 +73,8 @@ int main(void) {
   reqmsg.Attributes(&attributes_req);
   reqmsg.Context(&context);
   repmsg.Attributes(&attributes_rep);
-  repmsg.Context(&context);
+  repmsg.Context(&context);  
+
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
     logger.msg(Arc::ERROR, "Request failed");
@@ -99,7 +96,6 @@ int main(void) {
   std::string xml;
   resp->GetXML(xml);
   std::cout << "XML: "<< xml << std::endl;
-  std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
-  //}    
+  std::cout << "Response: " << (std::string)((*resp)["countResponse"]) << std::endl;
   return 0;
 }

@@ -3,9 +3,8 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
-  xmlns:echo="urn:echo_config"
+  xmlns:count="urn:count_config"
 >
-
     <ModuleManager>
         <Path>.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>
@@ -29,7 +28,7 @@
     </Plugins>
 
     <pdp:PDPConfig>
-          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+          <pdp:PolicyStore name="test" location="Policy.xml"/>
           <pdp:AttributeFactory name="attr.factory" />
           <pdp:CombingAlgorithmFactory name="alg.factory" />
           <pdp:FunctionFactory name="fn.factory" />
@@ -40,27 +39,25 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
-            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <KeyPath>/home/scratch/weizhong/ca/user.key_nopass</KeyPath>
-	    <CertificatePath>/home/scratch/weizhong/ca/user.pem</CertificatePath>
-	    <CACertificatePath>/home/scratch/weizhong/ca/ca.pem</CACertificatePath>
+	    <KeyPath>./key.pem</KeyPath>
+	    <CertificatePath>./cert.pem</CertificatePath>
+	    <CACertificatePath>./ca.pem</CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>
         <Component name="soap.service" id="soap">
-	    <next id="echo"/>
+	    <next id="count"/>
         </Component>
-        <Service name="echo" id="echo">
+        <Service name="count" id="count">
             <SecHandler name="simplelist.authz" id="authz" event="incoming">
-              <PDP name="arc.pdp"/>
+             <PDP name="count.pdp"/>
             </SecHandler>
-            <next id="echo"/>
-            <echo:prefix>[ </echo:prefix>
-	    <echo:suffix> ]</echo:suffix>
+            <next id="count"/>
         </Service>
     </Chain>
 </ArcConfig>

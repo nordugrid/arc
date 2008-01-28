@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+   <Rule RuleId="rule1" Effect="Permit">
+      <Description>
+         Sample Permit rule for Count service
+      </Description>
+      <Subjects>
+         <Subject Type="string">/O=Grid/O=Test/CN=CA</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupA</Subject>
+      </Subjects>
+      <!--Resources-->
+      <Actions Type="string">
+         <Action>plus</Action>
+         <Action>minus</Action>
+      </Actions>
+      <!--Conditions>
+         <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
+         <GroupIdRef Location="./conditiongroup.xml">normalcondition</GroupIdRef>
+      </Conditions-->
+   </Rule>
+</Policy>
