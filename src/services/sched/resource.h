@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Arc {
+namespace GridScheduler {
 
 class Resource {
     private:

@@ -6,11 +6,11 @@
 #include "resource.h"
 
 
-namespace Arc {
+namespace GridScheduler {
 
 class ResourcesHandling {
     private:
-       std::map<std::string, Arc::Resource> resources;
+       std::map<std::string, Resource> resources;
     public:
         ResourcesHandling(void);
 };

@@ -4,7 +4,8 @@
 
 #include "job_desc.h"
 
-namespace Arc
+
+namespace GridScheduler
 {
 
 std::string JobDescription::getJobName(void) { 
@@ -12,13 +13,11 @@ std::string JobDescription::getJobName(void) {
 }
 
 std::string JobDescription::getOS(void) { 
-
     return (std::string)(*this)["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
 }
  
  
 std::string JobDescription::getArch(void) { 
-
     return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
 }
 
@@ -27,4 +26,3 @@ JobDescription::JobDescription(Arc::XMLNode& d) {
 }
 
 };
-

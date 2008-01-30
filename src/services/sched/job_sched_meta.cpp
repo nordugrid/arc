@@ -4,7 +4,7 @@
 
 #include "job_sched_meta.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 JobSchedMetaData::JobSchedMetaData(void)

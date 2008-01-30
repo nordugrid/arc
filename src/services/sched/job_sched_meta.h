@@ -6,7 +6,7 @@
 #include <arc/XMLNode.h>
 #include <arc/DateTime.h>
 
-namespace Arc
+namespace GridScheduler
 {
 
 class JobSchedMetaData {

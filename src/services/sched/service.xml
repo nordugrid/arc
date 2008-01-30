@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:sched="http://www.nordugrid.org/schemas/sched"
+>
+  <Server>
+    <Foreground/>
+    <Pidfile>./arcserver.pid</Pidfile>
+    <Logger level="VERBOSE">./logfile</Logger>
+  </Server>
+  <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>grid_sched</Name></Plugins>
+  <Chain>
+    <Component name="tcp.service" id="tcp">
+      <next id="tls"/>
+      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name="tls.service" id="tls">
+      <next id="http"/>
+      <KeyPath>../a-rex/key.pem</KeyPath>
+      <CertificatePath>../a-rex/cert.pem</CertificatePath>
+      <CACertificatePath>../a-rex/ca.pem</CACertificatePath>
+    </Component>
+    <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer">GET</next>
+    </Component>
+    <Component name="soap.service" id="soap">
+      <next id="plexer"/>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+      <next id="grid_sched">/sched</next>
+    </Plexer>
+    <Service name="grid_sched" id="grid_sched">
+    </Service>
+  </Chain>
+</ArcConfig>
+

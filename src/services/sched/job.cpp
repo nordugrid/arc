@@ -4,7 +4,7 @@
 
 #include "job.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 Job::Job(const JobDescription &d, const JobSchedMetaData &m)

@@ -4,7 +4,7 @@
 
 #include "resource.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 Resource::Resource(void)

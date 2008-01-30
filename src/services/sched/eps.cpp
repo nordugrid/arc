@@ -4,7 +4,7 @@
 
 #include "eps.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 };

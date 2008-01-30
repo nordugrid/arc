@@ -4,7 +4,7 @@
 
 #include "job_queue.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 JobQueue::JobQueue(void)

@@ -4,7 +4,7 @@
 
 #include "resources_handling.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 ResourcesHandling::ResourcesHandling(void)

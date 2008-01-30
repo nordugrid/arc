@@ -7,12 +7,12 @@
 
 #include "job.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 class JobQueue {
     private:
-        std::map<std::string,Arc::Job> jobs;
+        std::map<std::string,Job> jobs;
         std::string type;
     public:
         JobQueue();

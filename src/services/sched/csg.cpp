@@ -4,7 +4,7 @@
 
 #include "csg.h"
 
-namespace Arc
+namespace GridScheduler
 {
 
 };

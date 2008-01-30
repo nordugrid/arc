@@ -9,6 +9,7 @@ namespace GridScheduler {
 
 class GridSchedulerService: public Arc::Service {
     protected:
+        std::string db_path;
         Arc::NS ns_;
         Arc::Logger logger_;
         Arc::DelegationContainerSOAP delegations_;

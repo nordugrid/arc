@@ -6,10 +6,10 @@
 
 #include <arc/XMLNode.h>
 
-namespace Arc
+namespace GridScheduler
 {
 
-class JobDescription:XMLNode {
+class JobDescription: public Arc::XMLNode {
 
     private:
         XMLNode descr;

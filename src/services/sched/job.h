@@ -5,7 +5,7 @@
 #include "job_desc.h"
 #include "job_sched_meta.h"
 
-namespace Arc {
+namespace GridScheduler {
 
 class Job {
 
@@ -27,3 +27,7 @@ class Job {
 }; // namespace Arc
 
 #endif // SCHED_JOB
+
+
+
+

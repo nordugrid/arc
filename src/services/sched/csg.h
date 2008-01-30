@@ -4,7 +4,7 @@
 #include <string>
 #include "resources_handling.h"
 
-namespace Arc {
+namespace GridScheduler {
 
 class CandidateSetGenerator:ResourcesHandling {
     public:
