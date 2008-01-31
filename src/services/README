@@ -1,5 +1,4 @@
 a-rex           - ARC REsource-coupled EXecutation Service/Executation Cap.
-data-catalog    - Data Cataloge service/Data Cap.
 eils            - External Information Link Service/Information Cap.
 iis             - Information Indexing Service/Information Cap.
 irs             - Information Register Service/Information Cap.
@@ -7,7 +6,8 @@ janitor         - Janitor - RTE/Resource Management Cap.
 mars            - Monitoring and Accounting Recording Service/Information cap.
 pdp             - Remote Policy Decision Point/Security Cap.
 rte-catalog     - Runtime Environment Cataloge/Resource Management Cap.
-ste             - Storage Element/Data Cap.
-stm             - Storage Management Service/Data Cap.
 vmms            - Virtual Machine Management Service
 echo_java       - Demonstration services: how to write Java service 
+hash            - simple currently centralized metadata store for the Storage Catalog
+scatalog        - the Storage Catalog service handling files and collection
+smanager        - the Storage Manager service providing high-level storage namespace
