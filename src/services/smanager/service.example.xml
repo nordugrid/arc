@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Foreground/>
+        <Pidfile>./arched.pid</Pidfile>
+        <Logger level="VERBOSE">./logfile</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/Users/zsombor/Development/arc/arc1/src/services/wrappers/python/.libs/</Path>
+        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/http/.libs/</Path>
+        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/soap/.libs/</Path>
+        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/tls/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/> 
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="tls.service" id="tls">
+            <next id="http"/>
+            <KeyPath>/Users/zsombor/Development/arc/arc1/src/tests/echo/key.pem</KeyPath>
+            <CertificatePath>/Users/zsombor/Development/arc/arc1/src/tests/echo/cert.pem</CertificatePath>
+            <CACertificatePath>/Users/zsombor/Development/arc/arc1/src/tests/echo/ca.pem</CACertificatePath>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="hash">/Hash</next>
+            <next id="catalog">/Catalog</next>
+            <next id="manager">/Manager</next>
+        </Plexer>
+        <Service name="pythonservice" id="hash">
+            <ClassName>hash.hash.HashService</ClassName>
+            <DataDir>hash_data</DataDir>
+            <HashClass>hash.hash.CentralHash</HashClass>
+            <StoreClass>hash.hash.PickleStore</StoreClass>
+        </Service>
+        <Service name="pythonservice" id="catalog">
+            <ClassName>scatalog.scatalog.CatalogService</ClassName>
+            <HashURL>http://localhost:60000/Hash</HashURL>
+        </Service>
+        <Service name="pythonservice" id="manager">
+            <ClassName>smanager.smanager.ManagerService</ClassName>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+        </Service>
+    </Chain>
+</ArcConfig>
