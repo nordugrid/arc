@@ -15,7 +15,7 @@
 
 #include "count.h"
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx __attribute__((unused))) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
     return new Count::Service_Count(cfg);
 }
 
