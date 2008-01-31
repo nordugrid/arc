@@ -25,4 +25,14 @@ JobDescription::JobDescription(Arc::XMLNode& d) {
     JobDescription::descr=d;
 }
 
+
+JobDescription::JobDescription() {
+
+}
+
+JobDescription::~JobDescription() {
+
+}
+
+
 };
