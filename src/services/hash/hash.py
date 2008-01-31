@@ -84,6 +84,9 @@ class PickleStore:
             # generates a filename from the ID
             # then use pickle to load the previously serialized data
             return pickle.load(file(self.filename(ID)))
+        except IOError:
+            # don't print 'file not found' if there is no such ID
+            pass
         except:
             # print whatever exception happened
             print traceback.format_exc()
@@ -368,7 +371,10 @@ class HashService:
         'inpayload' is an XMLNode containing the change requests.
         """
         # get the 'changeRequestList' node and convert it to XMLTree
-        tree = XMLTree(inpayload.XPathLookup('//hash:changeRequestList', self.hash_ns)[0])
+        try:
+            tree = XMLTree(inpayload.XPathLookup('//hash:changeRequestList', self.hash_ns)[0])
+        except:
+            raise Exception, 'wrong request: //hash:changeRequestList not found'
         # create a list of dictionaries from the 'changeRequestElement' nodes
         req_list = tree.get_dicts('/hash:changeRequestList/hash:changeRequestElement',
             {'hash:changeID' : 'changeID',
@@ -396,7 +402,7 @@ class HashService:
         tree = XMLTree(from_tree = 
             ('hash:changeResponseList',
                 [('hash:changeResponseElement', # for each change
-                    [('hash:chageID', changeID),
+                    [('hash:changeID', changeID),
                     ('hash:success', success)]
                 ) for (changeID, success) in resp]
             ))

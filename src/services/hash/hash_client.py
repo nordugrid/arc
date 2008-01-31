@@ -69,14 +69,19 @@ if print_xml:
     print 'Request:'
     print parseString(msg).toprettyxml()
     print
-h = httplib.HTTPConnection('localhost', 60000)
-h.request('POST', '/Hash',msg,)
-r = h.getresponse()
-print 'Response:', r.status, r.reason
-resp = r.read()
+#h = httplib.HTTPConnection('localhost', 60000)
+#h.request('POST', '/Hash', msg)
+#r = h.getresponse()
+#print 'Response:', r.status, r.reason
+#resp = r.read()
+cfg = arc.BaseConfig()
+client = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Hash')
+resp = arc.PayloadSOAP(ns)
+client.process(out,resp)
+print resp.GetXML()
 if print_xml:
-    print parseString(resp).toprettyxml()
-t = XMLTree(from_string=resp).get('/////')
+    print parseString(resp.GetXML()).toprettyxml()
+t = XMLTree(resp).get('/////')
 for i in t:
     print ' = '.join(i[1][0])
     for j in i[1][1:]:

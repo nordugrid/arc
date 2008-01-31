@@ -195,7 +195,7 @@ this generates an XML like this:
 from arc import XMLNode
 
 class XMLTree:
-    def __init__(self, from_node = None, from_string = '', from_tree = None):
+    def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}):
         """ Constructor of the XMLTree class
 
         XMLTree(from_node = None, from_string = '', from_tree = None)
@@ -219,24 +219,25 @@ class XMLTree:
             else: 
                 self._data = from_tree
         else:
-            if from_string:
-                # if from_string is given, create an XMLNode from it
-                x = XMLNode(from_string)
-            else:
-                # if no from_tree and from_string is given, use the value of from_node
+            if from_node:
+                # if no from_tree is given, and we have an XMLNode, just save it
                 x = from_node
+            else:
+                # if no from_tree and from_node is given, try to parse the string
+                x = XMLNode(from_string)
             # set the internal tree structure to (<name of the root node>, <rest of the document>)
             # where <rest of the document> is a list of the child nodes of the root node
-            self._data = (self._getname(x), self._dump(x))
+            self._data = (self._getname(x, rewrite), self._dump(x, rewrite))
 
-    def _getname(self, node):
+    def _getname(self, node, rewrite = {}):
         # gets the name of an XMLNode, with namespace prefix if it has one
         if node.Prefix():
-            return node.FullName()
+            name = node.FullName()
         else: # and without namespace prefix if it has no prefix
-            return node.Name()
+            name = node.Name()
+        return rewrite.get(name,name)
 
-    def _dump(self, node):
+    def _dump(self, node, rewrite = {}):
         # recursive method for converting an XMLNode to XMLTree structure
         size = node.Size() # get the number of children of the node
         if size == 0: # if it has no child, get the string
@@ -245,7 +246,7 @@ class XMLTree:
         for i in range(size):
             children.append(node.Child(i))
         # call itself recursively for each children
-        return [(self._getname(n), self._dump(n)) for n in children ]
+        return [(self._getname(n, rewrite), self._dump(n, rewrite)) for n in children ]
 
     def add_to_node(self, node, path = None):
         """ Adding a tree structure to an XMLNode.
@@ -263,13 +264,15 @@ class XMLTree:
     def _add_to_node(self, data, node):
         # recursively add the tree structure to the node
         for element in data:
-            # for each child in the tree create a child in the XMLNode
-            child_node = node.NewChild(element[0])
-            # if the node has children:
-            if isinstance(element[1],list):
-                self._add_to_node(element[1], child_node)
-            else: # if it has no child, create a string from it
-                child_node.Set(str(element[1]))
+            # we want to avoid empty tags in XML
+            if element[0]:
+                # for each child in the tree create a child in the XMLNode
+                child_node = node.NewChild(element[0])
+                # if the node has children:
+                if isinstance(element[1],list):
+                    self._add_to_node(element[1], child_node)
+                else: # if it has no child, create a string from it
+                    child_node.Set(str(element[1]))
 
     def __str__(self):
         return str(self._data)
