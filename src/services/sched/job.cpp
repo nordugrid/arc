@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "job.h"
 #include <arc/StringConv.h>
 
