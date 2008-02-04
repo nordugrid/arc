@@ -8,6 +8,6 @@ libarcmessage_la_SOURCES  = SOAPEnvelope.cpp PayloadRaw.cpp PayloadSOAP.cpp Payl
 libarcmessage_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcmessage_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(LIBXML2_LIBS)
 
-test_SOURCES = test.cpp
-test_CXXFLAGS =$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS = libarcmessage.la
+test_SOURCES  = test.cpp
+test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test_LIBADD   = libarcmessage.la
