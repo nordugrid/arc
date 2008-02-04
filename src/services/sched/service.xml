@@ -29,9 +29,9 @@
     </Component>
     <Component name="tls.service" id="tls">
       <next id="http"/>
-      <KeyPath>../a-rex/key.pem</KeyPath>
-      <CertificatePath>../a-rex/cert.pem</CertificatePath>
-      <CACertificatePath>../a-rex/ca.pem</CACertificatePath>
+      <KeyPath>key.pem</KeyPath>
+      <CertificatePath>cert.pem</CertificatePath>
+      <CACertificatePath>ca.pem</CACertificatePath>
     </Component>
     <Component name="http.service" id="http">
       <next id="soap">POST</next>

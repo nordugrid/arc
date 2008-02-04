@@ -3,14 +3,25 @@
 #endif
 
 #include "job.h"
+#include <arc/StringConv.h>
 
 namespace GridScheduler
 {
 
-Job::Job(const JobDescription &d, const JobSchedMetaData &m)
+
+
+std::string make_job_id(void) {
+    std::string id_=Arc::tostring((unsigned int)getpid())+ Arc::tostring((unsigned int)time(NULL)) + Arc::tostring(rand(),1);
+    return id_;
+}
+
+
+Job::Job(JobDescription &d, JobSchedMetaData &m)
 {
     descr = d;
     sched_meta = m;
+    id_ = make_job_id();
+
 }
 
 Job::Job(const std::string& job)

@@ -17,9 +17,11 @@ class JobQueue {
     public:
         JobQueue();
         virtual ~JobQueue();
-        void addJob(const Job &job);
-        void removeJob(const Job &job);
-        void removeJob(const std::string &job_id);
+        void addJob(Job &job);
+        void removeJob(Job &job);
+        void removeJob(std::string &job_id);
+        Job getJob(std::string &job_id);
+        bool CheckJobID(std::string &job_id);
 };
 
 }; // namespace Arc

@@ -7,7 +7,7 @@
 namespace GridScheduler
 {
 
-JobSchedMetaData::JobSchedMetaData(void)
+JobSchedMetaData::JobSchedMetaData()
 {
     reruns = 0;
 }
@@ -15,6 +15,13 @@ JobSchedMetaData::JobSchedMetaData(void)
 JobSchedMetaData::~JobSchedMetaData(void)
 {
     // nop
+}
+
+
+JobSchedMetaData::JobSchedMetaData(int& r)
+{
+    reruns = r;
+
 }
 
 };

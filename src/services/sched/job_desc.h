@@ -13,6 +13,7 @@ class JobDescription: public Arc::XMLNode {
 
     private:
         XMLNode descr;
+        std::string id_;
     public:
         JobDescription();
         JobDescription(Arc::XMLNode& d);
@@ -20,6 +21,8 @@ class JobDescription: public Arc::XMLNode {
         std::string getJobName(void);
         std::string getOS(void);
         std::string getArch(void);
+        operator bool(void) { return !id_.empty(); };
+        bool operator!(void) { return id_.empty(); };
 };
 
 };

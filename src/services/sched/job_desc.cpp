@@ -23,6 +23,7 @@ std::string JobDescription::getArch(void) {
 
 JobDescription::JobDescription(Arc::XMLNode& d) {
     JobDescription::descr=d;
+    id_ = "set";
 }
 
 

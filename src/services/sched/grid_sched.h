@@ -4,8 +4,15 @@
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
+#include "job_queue.h"
+
 
 namespace GridScheduler {
+
+// Sched job queue initializator
+
+static JobQueue sched_queue;
+
 
 class GridSchedulerService: public Arc::Service {
     protected:

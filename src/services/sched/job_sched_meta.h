@@ -18,7 +18,8 @@ class JobSchedMetaData {
         std::map<std::string,std::string> data; //scheduling data
         std::map<std::string,std::string> blacklisted_hosts; //host names
     public:
-        JobSchedMetaData(void);
+        JobSchedMetaData();
+        JobSchedMetaData(int& r);
         virtual ~JobSchedMetaData(void);
 };
 
