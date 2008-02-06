@@ -11,28 +11,19 @@
 namespace GridScheduler
 {
 
-
-
-std::string make_job_id(void) {
-    std::string id_=Arc::tostring((unsigned int)getpid())+ Arc::tostring((unsigned int)time(NULL)) + Arc::tostring(rand(),1);
-    return id_;
-}
-
-
-Job::Job(JobDescription &d, JobSchedMetaData &m)
+Job::Job(JobRequest &d, JobSchedMetaData &m)
 {
     descr = d;
     sched_meta = m;
-    id_ = make_job_id();
-
+    id_ = make_uuid();
 }
 
 Job::Job(const std::string& job)
 {
     Arc::XMLNode tmp_xml;
     (Arc::XMLNode (job)).New(tmp_xml);
-    JobDescription job_desc(tmp_xml);
-    setJobDescription(job_desc);
+    JobRequest job_desc(tmp_xml);
+    setJobRequest(job_desc);
 
 }
 
@@ -47,8 +38,8 @@ Job::Job(std::istream& job)
     
     (Arc::XMLNode (xml_document)).New(tmp_xml);
 
-    JobDescription job_desc(tmp_xml);
-    setJobDescription(job_desc);
+    JobRequest job_desc(tmp_xml);
+    setJobRequest(job_desc);
     
 }
 
@@ -57,7 +48,7 @@ Job::~Job(void)
     // NOP
 }
 
-void Job::setJobDescription(const JobDescription &d)
+void Job::setJobRequest(const JobRequest &d)
 {
     
     descr = d;

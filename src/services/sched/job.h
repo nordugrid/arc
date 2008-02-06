@@ -7,6 +7,7 @@
 
 namespace GridScheduler {
 
+std::string make_uuid();
 
 enum BESStatus { PENDING, RUNNING, CANCELLED, FAILED, FINISHED };
 
@@ -15,19 +16,19 @@ enum BESStatus { PENDING, RUNNING, CANCELLED, FAILED, FINISHED };
 class Job {
 
     private:
-        JobDescription descr;
+        JobRequest descr;
         JobSchedMetaData sched_meta;
         std::string failure_;
         std::string id_;
         int status;
     public:
         Job(void) { };
-        Job(JobDescription& d, JobSchedMetaData& m);
+        Job(JobRequest& d, JobSchedMetaData& m);
         Job(const std::string& job);
         Job(std::istream& job);
         virtual ~Job(void);
-        void setJobDescription(const JobDescription &descr);
-        JobDescription& getJobDescription(void) { return descr; };
+        void setJobRequest(const JobRequest &descr);
+        JobRequest& getJobRequest(void) { return descr; };
         void setJobSchedMetaData(const JobSchedMetaData &sched_meta);
         JobSchedMetaData& getSchedMetaData(void) { return sched_meta; };
         std::string Failure(void) { std::string r=failure_; failure_=""; return r; };

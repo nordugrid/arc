@@ -2,7 +2,6 @@
 <ArcConfig
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
   xmlns:sched="http://www.nordugrid.org/schemas/sched"
 >
   <Server>
@@ -44,6 +43,7 @@
       <next id="grid_sched">/sched</next>
     </Plexer>
     <Service name="grid_sched" id="grid_sched">
+       <sched:endpoint>https://localhost:60000/sched</sched:endpoint>
     </Service>
   </Chain>
 </ArcConfig>

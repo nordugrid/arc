@@ -11,12 +11,14 @@ namespace GridScheduler {
 
 // Sched job queue initializator
 
-static JobQueue sched_queue;
+std::string make_uuid();
 
+static JobQueue sched_queue;
 
 class GridSchedulerService: public Arc::Service {
     protected:
         std::string db_path;
+        std::string endpoint;
         Arc::NS ns_;
         Arc::Logger logger_;
         Arc::DelegationContainerSOAP delegations_;
@@ -48,6 +50,7 @@ class GridSchedulerService: public Arc::Service {
         Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
     public:
         GridSchedulerService(Arc::Config *cfg);
+        std::string getEndPoint(void) { return endpoint;};
         virtual ~GridSchedulerService(void);
         virtual Arc::MCC_Status process(Arc::Message& inmsg,
                                         Arc::Message& outmsg);

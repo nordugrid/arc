@@ -9,20 +9,17 @@
 namespace GridScheduler
 {
 
-class JobDescription: public Arc::XMLNode {
+class JobRequest: public Arc::XMLNode {
 
     private:
         XMLNode descr;
-        std::string id_;
     public:
-        JobDescription();
-        JobDescription(Arc::XMLNode& d);
-        virtual ~JobDescription(void);
+        JobRequest();
+        JobRequest(Arc::XMLNode& d);
+        virtual ~JobRequest(void);
         std::string getJobName(void);
         std::string getOS(void);
         std::string getArch(void);
-        operator bool(void) { return !id_.empty(); };
-        bool operator!(void) { return id_.empty(); };
 };
 
 };

@@ -8,32 +8,30 @@
 namespace GridScheduler
 {
 
-std::string JobDescription::getJobName(void) { 
+std::string JobRequest::getJobName(void) { 
     return (std::string)(*this)["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"]; 
 }
 
-std::string JobDescription::getOS(void) { 
+std::string JobRequest::getOS(void) { 
     return (std::string)(*this)["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
 }
  
  
-std::string JobDescription::getArch(void) { 
+std::string JobRequest::getArch(void) { 
     return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
 }
 
-JobDescription::JobDescription(Arc::XMLNode& d) {
-    JobDescription::descr=d;
-    id_ = "set";
+JobRequest::JobRequest(Arc::XMLNode& d) {
+    JobRequest::descr=d;
 }
 
 
-JobDescription::JobDescription() {
+JobRequest::JobRequest() {
 
 }
 
-JobDescription::~JobDescription() {
+JobRequest::~JobRequest() {
 
 }
-
 
 };

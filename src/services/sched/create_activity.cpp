@@ -9,8 +9,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
 
 #include <arc/StringConv.h>
 
@@ -69,7 +67,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
  
   int reruns = 10;
 
-  JobDescription job_desc(jsdl);
+  JobRequest job_desc(jsdl);
   JobSchedMetaData sched_meta(reruns);
   Job sched_job(job_desc, sched_meta);
 
@@ -90,11 +88,8 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   Arc::WSAEndpointReference identifier(out.NewChild("bes-factory:ActivityIdentifier"));
   // Make job's ID
 
-  std::string endpoint = "https://localhost:60000/sched";
-
-  identifier.Address(endpoint); // address of service
+  identifier.Address(getEndPoint()); // address of service
   identifier.ReferenceParameters().NewChild("sched:JobID")=sched_job.getID();
-  identifier.ReferenceParameters().NewChild("sched:JobSessionDir")=endpoint+"/" + sched_job.getID();
   out.NewChild(in["ActivityDocument"]);
   logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");
   {

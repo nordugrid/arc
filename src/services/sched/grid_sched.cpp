@@ -168,6 +168,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
   ns_["sched"]="http://www.nordugrid.org/schemas/sched";
+  endpoint=(std::string)((*cfg)["endpoint"]);
 }
 
 // Destructor
