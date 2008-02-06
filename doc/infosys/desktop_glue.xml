@@ -1,0 +1,153 @@
+<xmlns="urn:glue">
+<Grid>
+    <AdminDomain>
+        <ID>[URI]</ID>
+        <Name>HospitalGrid</Name> <!-- string -->
+        <Distributed>No</Distributed>
+        <Owner>Geniva Hospital</Owner> <!-- string -->
+        <Contact>
+            <LocalID>ajhsdgfashg</LocalID> <!-- string -->
+            <URL></URL>
+            <Type>usersupport</Type> <!-- -->
+        </Contact>
+        <Location>
+            <LocalID></LocalID>
+            <Name>Geniva</Name>
+        </Location>
+        <Services>
+            <ComputingService type="Service">
+                <ID></ID>
+                <Type>org.nordugrid.arex</Type>
+                <QualityLevel>production</QualtyLevel>
+                <Complexity>endpoint=1,share=1,resource=1</Complexity>
+                <!-- Computing service specific attributes -->
+                <TotalJobs></TotalJobs> <!-- int -->
+                <RunningJobs></RunningJobs> 
+                <WaitingJobs></WaitingJobs>
+                <StageingJobs></StageingJobs>
+                <PreLRMSWaitingJobs></preLRMSWaitingJobs>
+                <ComputingEndpoint type="Endpoint">
+                    <ID></ID>
+                    <URL>https://129.12.231:60000/arex</URL>
+                    <Type>?</Type> 
+                    <Specification>OGSA-BES?</Specification>
+                    <Implementor>Nordugrid</Implementor>
+                    <ImplementationName>AREX</ImplementatioName>
+                    <ImplementationVersion>0.1</ImplementationVersion>
+                    <QualtyLevel>production</QualityLevel>
+                    <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
+                    <HealthState>OK</HealthState>
+                    <ServingState>open</ServingSate>
+                    <StartTime>now</StartTime>
+                    <Downtime>
+                        <DowntimeStart></DowntimeStart>
+                        <DowntimeEnd></DowntimeEnd>
+                    </Dowtime>
+                    <!-- ComputingEndpoint specific attributes -->
+                    <StageigCapabilites>Yes</StageingCapabilites> <!-- van downloader es uploader! -->
+                    <SuspensionCapabilities>No</SuspensionCapabilities>
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>GenivaCA (DN!)</TrustedCA>
+                    </Policy>
+                    <Activities>    
+                        <ComputingActivity type="Computing">
+                            <ID>1</ID> <! EZ NEM A JOB ID ->
+                            <Type>Computing</Type>
+                            <!-- Computing Activity specific attributes -->
+                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <Name></Name>
+                            <State></State>
+                            <Owner></Owner>
+                            <....>
+                        </ComputingActivity>
+                        <ComputingActivity type="Computing">
+                            <ID>2</ID> <! EZ NEM A JOB ID ->
+                            <Type>Computing</Type>
+                            <!-- Computing Activity specific attributes -->
+                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <Name></Name>
+                            <State></State>
+                            <Owner></Owner>
+                            <!-- ... --> 
+                        </ComputingActivity>
+                    </Activites>
+                </ComputingEndpoint>
+                <ComputingResource type="Resource">
+                    <ID></ID>
+                    <Name>DesktopPC</Name>
+                    <!-- Comuting Resource specific attributes -->
+                    <LRMSType>Fork</LRMSType>
+                    <LRMSVersion>0.1</LRMSVersion>
+                    <Total>1</Total> <!-- # of exec env -->
+                    <Used></Used>
+                    <PhysicalCPUs>1</PhysicalCPUs>
+                    <LogicalCPUs>2</LogicalCPUs>
+                    <Homogenetiy>True</Homogenety>
+                    <SessionDirTotal>1000M</SessionDirTotal>
+                    <SessionDirFree>10M</SessionDirFree>
+                    <SessionDirLifetime>100</SessionDirLifetime>
+                    <CacheTotal>100M</CacheTotal>
+                    <CacheFree>10M</CacheFree>
+                    <Benchmark>SPEC2000:1244</Benchmark>
+                    <ExecutionEnvironment>
+                        <ID></ID>
+                        <Type>RealNode</Type>
+                        <TotalInstances>1</TotalInstances>
+                        <UsedInstances>0</UsedInstances>
+                        <UnavailableInstances>0</UnavailableInstances>
+                        <PhysicalCPUs>1</PhysicalCPUs>
+                        <LogicalCPUs>2</LogicalCPUs>
+                        <MainMemorySize>1G</MainMemorySize>
+                        <VirtualMemorySize>5G</VirtualMemorySize>
+                        <OSName>Linux</OSName>
+                        <OSRelease>Debian</OSRelease>
+                        <OSVersion>3.1</OSVersion>
+                        <PlatformType>Intel</PlatformType>
+                        <Benchmark></Benchmark>
+                        <ConnectivityIn>True</ConnectivityIn>
+                        <ConnectivityOut>True</ConnectivityOut>
+                    </ExecutionEnvironment> 
+                    <ApplicationEnvironment>
+                        <ID></ID>
+                        <Name>Bioc</Name>
+                        <Version>1.1</Version>
+                        <State>Installed|Installable</State>
+                    </ApplicationEnvironment>
+                </ComputingResource>
+                <ComputingShare type="Share">
+                    <ID></ID>
+                    <Name>AllResources</Name>
+                    <LocalID>?</LocalID>
+                    <ComputingSharePolicy type="SharePolicy">
+                        <!-- Computing Share Policy Specific attributes -->
+                        <MaxWallTime>24h</MaxWallTime>
+                        <MaxCPUTime></MaxCPUTime>
+                        <MaxRunningJobs></MaxRunningJobs>
+                        <MaxMemory></MaxMemory>
+                        <!-- ... --> 
+                    </ComputingSharePolicy>
+                    <ComputingShareState type="ShareState">
+                        <TotalJobs></TotalJobs>
+                        <RunningJobs></RunningJobs>
+                        <LocalRunningJobs></LocalRunningJobs>
+                        <WaintingJobs></WaitingJobs>
+                        <State>?</State>
+                        <!-- ... -->
+                    </ComputingShareState>
+                    <!-- Computing Share specific attributes -->
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>GenivaCA (DN!)</TrustedCA>
+                    </Policy>
+                <ComputingShare>
+            </ComputingService>
+        </Services>
+    </AdminDomain>
+</Grid>
