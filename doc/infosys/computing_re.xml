@@ -1,0 +1,46 @@
+<Register>
+    <Header></Header>
+    <RegistrationEntry>
+        <ServiceAdvertisement>
+            <ComputingService type="Service"> 
+                <ID></ID> 
+                <Type>org.nordugrid.arex</Type> 
+                <QualityLevel>production</QualtyLevel> 
+                <ComputingEndpoint type="Endpoint">
+                    <ID></ID> 
+                    <URL>https://129.12.231:60000/arex</URL>
+                    <Type>?</Type> 
+                    <Specification>OGSA-BES</Specification> 
+                    <QualtyLevel>almostready</QualityLevel> 
+                </ComputingEndpoint>
+                <Policy>
+                     <ID></ID>
+                     <Scheme>BASIC</Scheme>
+                     <Rule>VO:A</Rule>
+                     <Rule>VO:B</Rule>
+                     <TrustedCA>GenivaCA (DN!)</TrustedCA>
+                </Policy>
+                <ComputingResource>
+                    <Total>1</Total> <!-- # of exec env -->
+		            <ExecutionEnvitonment>
+		                <Id>1</Id>
+		                <OSName>Linux</OSName>
+		                <PlatformType>Intel</PlatformType>
+		                <ConnectivityIn>True</ConnectivityIn>
+		                <ConnectivityOut>True</ConnectivityOut>
+		            </ExecutionEnvitonment>
+		            <ApplicationEnvironment>
+		                <Name>Bioc</Name>
+		            </ApplicationEnvironment>
+                <ComputingResource>
+            </ComputingService>
+        </ServiceAdvertisement>
+        <ServiceAdverisementMetadata>
+            <DurationTime></DurationTime>
+            <CreationTime></CreationTime>
+            <SourceHostID>[DN hash]</SourceHostID>
+            <Status>NEW</Status>
+        </ServiceAdvertisementMetadata>
+    </RegistrationEntry>
+</Register>
+

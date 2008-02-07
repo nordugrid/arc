@@ -1,0 +1,219 @@
+<xmlns="urn:glue">
+<Grid>
+    <AdminDomain>
+        <ID>[URI]</ID>
+        <Name>NIIF</Name> <!-- string -->
+        <Distributed>No</Distributed>
+        <Owner>NIIF</Owner> <!-- string -->
+        <Contact>
+            <LocalID>0</LocalID> <!-- string -->
+            <URL>http://www.niif.hu</URL>
+            <Type>usersupport</Type> <!-- -->
+        </Contact>
+        <Location>
+            <LocalID>0</LocalID>
+            <Name>Budapest</Name>
+        </Location>
+        <Services>
+            <ComputingService type="Service">
+                <ID></ID>
+                <Type>org.nordugrid.arex</Type>
+                <QualityLevel>production</QualtyLevel>
+                <Complexity>endpoint=1,share=2,resource=n/Complexity>
+                <!-- Computing service specific attributes -->
+                <TotalJobs></TotalJobs> <!-- int -->
+                <RunningJobs></RunningJobs> 
+                <WaitingJobs></WaitingJobs>
+                <StageingJobs></StageingJobs>
+                <PreLRMSWaitingJobs></preLRMSWaitingJobs>
+                <ComputingEndpoint type="Endpoint">
+                    <ID>urn:endpoint:1</ID>
+                    <URL>https://129.12.231:60000/arex</URL>
+                    <Type>?</Type> 
+                    <Specification>OGSA-BES?</Specification>
+                    <Implementor>Nordugrid</Implementor>
+                    <ImplementationName>AREX</ImplementatioName>
+                    <ImplementationVersion>0.1</ImplementationVersion>
+                    <QualtyLevel>production</QualityLevel>
+                    <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
+                    <HealthState>OK</HealthState>
+                    <ServingState>open</ServingSate>
+                    <StartTime>now</StartTime>
+                    <Downtime>
+                        <DowntimeStart></DowntimeStart>
+                        <DowntimeEnd></DowntimeEnd>
+                    </Dowtime>
+                    <!-- ComputingEndpoint specific attributes -->
+                    <StageigCapabilites>Yes</StageingCapabilites> <!-- van downloader es uploader! -->
+                    <SuspensionCapabilities>No</SuspensionCapabilities>
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>NIIF_CA</TrustedCA>
+                    </Policy>
+                    <Activities>    
+                        <ComputingActivity type="Computing">
+                            <ID>1</ID> <! EZ NEM A JOB ID ->
+                            <Type>Computing</Type>
+                            <!-- Computing Activity specific attributes -->
+                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <Name></Name>
+                            <State></State>
+                            <Owner></Owner>
+                            <....>
+                        </ComputingActivity>
+                        <ComputingActivity type="Computing">
+                            <ID>2</ID> <! EZ NEM A JOB ID ->
+                            <Type>Computing</Type>
+                            <!-- Computing Activity specific attributes -->
+                            <EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->
+                            <Name></Name>
+                            <State></State>
+                            <Owner></Owner>
+                            <!-- ... --> 
+                        </ComputingActivity>
+                    </Activites>
+                </ComputingEndpoint>
+                <ComputingResource type="Resource">
+                    <ID></ID>
+                    <Name>Cluster</Name>
+                    <!-- Comuting Resource specific attributes -->
+                    <LRMSType>Condor</LRMSType>
+                    <LRMSVersion>6.6</LRMSVersion>
+                    <Total>1</Total> <!-- # of exec env -->
+                    <Used></Used>
+                    <PhysicalCPUs>20</PhysicalCPUs>
+                    <LogicalCPUs>40</LogicalCPUs>
+                    <Homogenetiy>True</Homogenety>
+                    <SessionDirTotal>1000M</SessionDirTotal>
+                    <SessionDirFree>10M</SessionDirFree>
+                    <SessionDirLifetime>100</SessionDirLifetime>
+                    <CacheTotal>100M</CacheTotal>
+                    <CacheFree>10M</CacheFree>
+                    <Benchmark>SPEC2000:1244</Benchmark>
+                    <ExecutionEnvironment>
+                        <ID>urn:exec:1</ID>
+                        <Type>RealNode</Type>
+                        <TotalInstances>20</TotalInstances>
+                        <UsedInstances>0</UsedInstances>
+                        <UnavailableInstances>0</UnavailableInstances>
+                        <PhysicalCPUs>1</PhysicalCPUs>
+                        <LogicalCPUs>2</LogicalCPUs>
+                        <MainMemorySize>1G</MainMemorySize>
+                        <VirtualMemorySize>5G</VirtualMemorySize>
+                        <OSName>Linux</OSName>
+                        <OSRelease>Debian</OSRelease>
+                        <OSVersion>3.1</OSVersion>
+                        <PlatformType>Intel</PlatformType>
+                        <Benchmark></Benchmark>
+                        <ConnectivityIn>True</ConnectivityIn>
+                        <ConnectivityOut>True</ConnectivityOut>
+                    </ExecutionEnvironment> 
+                    <ExecutionEnvironment>
+                        <ID>urn:exec:2</ID>
+                        <Type>Multicore</Type>
+                        <TotalInstances>10</TotalInstances>
+                        <UsedInstances>0</UsedInstances>
+                        <UnavailableInstances>0</UnavailableInstances>
+                        <PhysicalCPUs>1</PhysicalCPUs>
+                        <LogicalCPUs>2</LogicalCPUs>
+                        <MainMemorySize>1G</MainMemorySize>
+                        <VirtualMemorySize>5G</VirtualMemorySize>
+                        <OSName>Windows</OSName>
+                        <OSRelease>XP</OSRelease>
+                        <OSVersion>5</OSVersion>
+                        <PlatformType>AMD</PlatformType>
+                        <Benchmark></Benchmark>
+                        <ConnectivityIn>True</ConnectivityIn>
+                        <ConnectivityOut>True</ConnectivityOut>
+                    </ExecutionEnvironment> 
+                    <ApplicationEnvironment>
+                        <ID></ID>
+                        <Name>Bioc</Name>
+                        <Version>1.1</Version>
+                        <State>Installed|Installable</State>
+                    </ApplicationEnvironment>
+                </ComputingResource>
+                <ComputingShare type="Share">
+                    <ID>urn:share:1</ID>
+                    <Name>Production</Name>
+                    <LocalID>0</LocalID>
+                    <ComputingSharePolicy type="SharePolicy">
+                        <!-- Computing Share Policy Specific attributes -->
+                        <MaxWallTime>24h</MaxWallTime>
+                        <MaxCPUTime></MaxCPUTime>
+                        <MaxRunningJobs>100</MaxRunningJobs>
+                        <MaxMemory></MaxMemory>
+                        <!-- ... --> 
+                    </ComputingSharePolicy>
+                    <ComputingShareState type="ShareState">
+                        <TotalJobs></TotalJobs>
+                        <RunningJobs></RunningJobs>
+                        <LocalRunningJobs></LocalRunningJobs>
+                        <WaintingJobs></WaitingJobs>
+                        <LocalWaitingJobs></LocalWaitingJobs>
+                        <FreeJobSlots>30</FreeJobSlots>
+                        <State>?</State>
+                        <!-- ... -->
+                    </ComputingShareState>
+                    <!-- Computing Share specific attributes -->
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>NIIF_CA</TrustedCA>
+                    </Policy>
+                <ComputingShare>
+                <ComputingShare type="Share">
+                    <ID>urn:share:2</ID>
+                    <Name>Test</Name>
+                    <LocalID>1</LocalID>
+                    <ComputingSharePolicy type="SharePolicy">
+                        <!-- Computing Share Policy Specific attributes -->
+                        <MaxWallTime>1h</MaxWallTime>
+                        <MaxCPUTime></MaxCPUTime>
+                        <MaxRunningJobs>10</MaxRunningJobs>
+                        <MaxMemory></MaxMemory>
+                        <!-- ... --> 
+                    </ComputingSharePolicy>
+                    <ComputingShareState type="ShareState">
+                        <TotalJobs></TotalJobs>
+                        <RunningJobs></RunningJobs>
+                        <LocalRunningJobs></LocalRunningJobs>
+                        <WaintingJobs></WaitingJobs>
+                        <LocalWaitingJobs></LocalWaitingJobs>
+                        <FreeJobSlots>8</FreeJobSlots>
+                        <State>?</State>
+                        <!-- ... -->
+                    </ComputingShareState>
+                    <!-- Computing Share specific attributes -->
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>NIIF_CA</TrustedCA>
+                    </Policy>
+                <ComputingShare>
+                <Relations>
+                    <ComputingEndpoint_ComputingShare>
+                        <ComputingEndpointID>urn:endpoint:1</ComputingEndpointID>
+                        <ComputingShareID>urn:share:1</ComputingShareID>
+                        <ComputingShareID>urn:share:2</ComputingShareID>
+                    </ComputingEndpoint_ComputingShare>
+                    <ComputingShare_ExecutionEnvironment>
+                        <ComputingShareID>urn:share:1</ComputingShareID>
+                        <ExecutionEnvironmentID>urn:exec:1</ExecutionEnvironmentID>
+                        <ExecutionEnvitonmentID>urn:exec:2</ExecutionEnvironment>
+                    </ComputingShare_ExecutionEnvironment>
+                    <ComputingShare_ExecutionEnvironment>
+                        <ComputingShareID>urn:share:2</ComputingShareID>
+                        <ExecutionEnvironmentID>urn:exec:1</ExecutionEnvironmentID>
+                    </ComputingShare_ExecutionEnvironment>
+                <Relations>
+            </ComputingService>
+        </Services>
+    </AdminDomain>
+</Grid>

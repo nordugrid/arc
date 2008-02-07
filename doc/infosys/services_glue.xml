@@ -1,0 +1,90 @@
+<xmlns="urn:glue">
+<Grid>
+    <AdminDomain>
+        <ID>[URI]</ID>
+        <Name>HospitalGrid</Name> <!-- string -->
+        <Distributed>No</Distributed>
+        <Owner>Geniva Hospital</Owner> <!-- string -->
+        <Contact>
+            <LocalID>ajhsdgfashg</LocalID> <!-- string -->
+            <URL></URL>
+            <Type>usersupport</Type> <!-- -->
+        </Contact>
+        <Location>
+            <LocalID></LocalID>
+            <Name>Geniva</Name>
+        </Location>
+        <Services>
+            <Service type="Service">
+                <ID></ID>
+                <Type>org.nordugrid.isis</Type>
+                <QualityLevel>test</QualtyLevel>
+                <Complexity>endpoint=1,share=0,resource=0</Complexity>
+                <Endpoint type="Endpoint">
+                    <ID></ID>
+                    <URL>https://129.12.231:60000/isis</URL>
+                    <Type>?</Type> 
+                    <Specification>NORDUGRID-ISIS?</Specification>
+                    <Implementor>Nordugrid</Implementor>
+                    <ImplementationName>CentralISIS</ImplementatioName>
+                    <ImplementationVersion>0.1</ImplementationVersion>
+                    <QualtyLevel>test</QualityLevel>
+                    <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
+                    <HealthState>OK</HealthState>
+                    <ServingState>open</ServingSate>
+                    <StartTime>now</StartTime>
+                    <Downtime>
+                        <DowntimeStart></DowntimeStart>
+                        <DowntimeEnd></DowntimeEnd>
+                    </Dowtime>
+                    <Policy>
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>GenivaCA (DN!)</TrustedCA>
+                    </Policy>
+                    <Activities>    
+                        <RegistartionActivity type="Activity">
+                            <ID>1</ID> 
+                            <Type>Registration</Type>
+                            <!-- Registartion Activity spec attributes -->
+                            <RegistartionEntry>
+                            </RegistartionEntry>
+                        </RegistartionActivity>
+                    </Activities>
+                </Endpoint>
+            </Service>
+            <Service type="Service">
+                <ID></ID> <!-- R -->
+                <Type>org.glite.voms</Type> <!-- R -->
+                <QualityLevel>pre-production</QualtyLevel> <!-- R -->
+                <Complexity>endpoint=1,share=0,resource=0</Complexity>
+                <Endpoint type="Endpoint">
+                    <ID></ID> <!-- R -->
+                    <URL>voms://129.12.231:3123/</URL> <!-- R -->
+                    <Type>?</Type> 
+                    <Specification>VOMS</Specification> <!-- R -->
+                    <Implementor>INFN</Implementor>
+                    <ImplementationName>OpenVOMS</ImplementatioName>
+                    <ImplementationVersion>0.1</ImplementationVersion>
+                    <QualtyLevel>almostready</QualityLevel> <!-- R -->
+                    <HealthState>OK</HealthState>
+                    <ServingState>open</ServingSate>
+                    <StartTime>now</StartTime>
+                    <Downtime>
+                        <DowntimeStart></DowntimeStart>
+                        <DowntimeEnd></DowntimeEnd>
+                    </Dowtime>
+                    <Policy> <!-- R -->
+                        <ID></ID>
+                        <Scheme>BASIC</Scheme>
+                        <Rule>VO:A</Rule>
+                        <Rule>VO:B</Rule>
+                        <TrustedCA>GenivaCA (DN!)</TrustedCA>
+                    </Policy>
+                </Endpoint>
+            </Service>
+        </Services>
+    </AdminDomain>
+</Grid>
