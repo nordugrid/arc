@@ -33,10 +33,10 @@ MessageContextElement* MessageContext::operator[](const std::string& id) {
 Message::Message(long msg_ptr_addr) 
 {
     Arc::Message *msg = (Arc::Message *)msg_ptr_addr;
-    auth_ = msg->Auth();
-    attributes_ = msg->Attributes();
-    context_ = msg->Context();
-    payload_ = msg->Payload();
+    auth_ = msg->auth_; auth_created_=false;
+    attr_ = msg->attr_; attr_created_=false;
+    ctx_ = msg->ctx_;   ctx_created_=false;
+    payload_ = msg->payload_;
 }
 
 } // namespace Arc

@@ -79,58 +79,89 @@ class Message {
  private:
   MessagePayload* payload_; /** Main content of message */
   MessageAuth* auth_; /** Authentication and authorization related information */
-  MessageAttributes* attributes_; /** Various useful attributes */
+  bool auth_created_; /** true if auth_ was created internally */
+  MessageAttributes* attr_; /** Various useful attributes */
+  bool attr_created_; /** true if attr_ was created internally */
   /** This element is maintained by MCC/element which handles/knows
     persistency of connection/session. It must be created and destroyed by
     that element. This object must survive during whole connectivity session -
     whatever that means. This is a place for MCCs and services to store information
     related to connection. All the other objects are only guaranteed to stay
     during single request. */
-  MessageContext* context_;
+  MessageContext* ctx_;
+  bool ctx_created_; /** true if context_ was created internally */
  public:
   /** Dummy constructor */
-  Message(void):payload_(NULL),auth_(NULL),attributes_(NULL),context_(NULL) { };
+  Message(void):payload_(NULL),auth_(NULL),auth_created_(false),attr_(NULL),attr_created_(false),ctx_(NULL),ctx_created_(false) { };
   /** Copy constructor. Ensures shallow copy. */
-  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),attributes_(msg.attributes_),context_(msg.context_) { };
+  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),auth_created_(false),attr_(msg.attr_),attr_created_(false),ctx_(msg.ctx_),ctx_created_(false) { };
   /** Copy constructor. Used by language bindigs */
   Message(long msg_ptr_addr);
-  /** Destructor does not affect refered objects */
-  ~Message(void) { };
+  /** Destructor does not affect refered objects except those created internally */
+  ~Message(void) { 
+    if(attr_created_) delete attr_;
+    if(auth_created_) delete auth_;
+    if(ctx_created_) delete ctx_;
+  };
   /** Assignment. Ensures shallow copy. */
   Message& operator=(Message& msg) {
     payload_=msg.payload_;
-    if(msg.auth_) auth_=msg.auth_;
-    if(msg.attributes_) attributes_=msg.attributes_;
-    if(msg.context_) context_=msg.context_;
+    if(msg.auth_) Auth(msg.auth_);
+    if(msg.attr_) Attributes(msg.attr_);
+    if(msg.ctx_) Context(msg.ctx_);
     return *this;
   };
   /** Returns pointer to current payload or NULL if no payload assigned. */
   MessagePayload* Payload(void) { return payload_; };
   /** Replaces payload with new one. Returns the old one. */
-  MessagePayload* Payload(MessagePayload* new_payload) {
+  MessagePayload* Payload(MessagePayload* payload) {
     MessagePayload* p = payload_;
-    payload_=new_payload;
+    payload_=payload;
     return p;
   };
-  /** Returns a pointer to the current attributes object or NULL if no
+  /** Returns a pointer to the current attributes object or creates it if no
     attributes object has been assigned. */
-  MessageAttributes* Attributes(void) { return attributes_; };
-  void Attributes(MessageAttributes* attributes) {
-    attributes_=attributes;
+  MessageAttributes* Attributes(void) {
+    if(attr_ == NULL) {
+      attr_created_=true; attr_=new MessageAttributes;
+    };
+    return attr_;
+  };
+  void Attributes(MessageAttributes* attr) {
+    if(attr_created_) {
+      attr_created_=false; delete attr_;
+    };
+    attr_=attr;
   };
   /** Returns a pointer to the current authentication/authorization object 
-    or NULL if no object has been assigned. */
-  MessageAuth* Auth(void) { return auth_; };
-  void Auth(MessageAuth* auth) {
-    auth_ = auth;
+    or creates it if no object has been assigned. */
+  MessageAuth* Auth(void) {
+    if(auth_ == NULL) {
+      auth_created_=true; auth_=new MessageAuth;
+    };
+    return auth_;
   };
-  /** Returns a pointer to the current context object or NULL if no object has 
-    been assigned. Last case can happen only if first MCC in a chain is connectionless
+  void Auth(MessageAuth* auth) {
+    if(auth_created_) {
+      auth_created_=false; delete auth_;
+    };
+    auth_=auth;
+  };
+  /** Returns a pointer to the current context object or creates it if no object has 
+    been assigned. Last case should happen only if first MCC in a chain is connectionless
     like one implementing UDP protocol. */
-  MessageContext* Context(void) { return context_; };
+  MessageContext* Context(void) {
+    if(ctx_ == NULL) {
+      ctx_created_=true; ctx_=new MessageContext;
+    };
+    return ctx_;
+  };
   /** Assigns message context object */
-  void Context(MessageContext* context) {
-    context_=context;
+  void Context(MessageContext* ctx) {
+    if(ctx_created_) {
+      ctx_created_=false; delete ctx_;
+    };
+    ctx_=ctx;
   };
 };
 
