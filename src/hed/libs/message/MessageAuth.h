@@ -1,24 +1,18 @@
 #ifndef __ARC_MESSAGEAUTH_H__
 #define __ARC_MESSAGEAUTH_H__
 
-#include <stdlib.h>
-#include <string>
-#include <list>
-#include <map>
+#include "MessageAttributes.h"
 
 namespace Arc {
 
-typedef std::string AuthObject;
-
 /// Contains authencity information, authorization tokens and decisions.
-/** Functionality of this class is not defined yet. */
-class MessageAuth {
-  private:
-    std::map<std::string,std::list<AuthObject> > properties_;
+/** Currently this class only supports string keys and string values and is 
+  to MessageAttributes. So far it's separation from MessageAttributes is 
+  purely for convenience reasons. */
+class MessageAuth: public MessageAttributes {
   public:
-    void set(const std::string& key,const AuthObject& value);
-    AuthObject get(const std::string& key,int index = 0);
-    void remove(const std::string& key);
+    MessageAuth(void) { };
+    ~MessageAuth(void) { };
 };
 
 } // namespace Arc

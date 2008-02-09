@@ -6,19 +6,4 @@
 
 namespace Arc {
 
-void MessageAuth::set(const std::string&, const AuthObject&) 
-{
-    // NOP
-}
-
-AuthObject MessageAuth::get(const std::string&, int)
-{
-    return NULL;
-}
-
-void MessageAuth::remove(const std::string&)
-{
-    // NOP
-}
-
 } // namespace Arc
