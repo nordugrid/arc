@@ -20,7 +20,7 @@ JobQueue::~JobQueue(void)
 
 void JobQueue::addJob(Job &job)
 {
-    jobs[job.getID()] = job;
+    jobs.insert( make_pair( job.getID(), job ) );
 }
 
 void JobQueue::removeJob(Job &job)
@@ -36,10 +36,15 @@ void JobQueue::removeJob(std::string &job_id)
 
 bool JobQueue::CheckJobID(std::string &job_id)
 {
-    if (jobs.find(job_id) == jobs.end() )
-       return false;
-    else
+    std::cout << "jobs.size() is " << (int) jobs.size() << std::endl;
+    if (jobs.find(job_id) == jobs.end() ) {
+        std::cout << std::endl << "This job is NOT IN the queue: " <<job_id.c_str() << std::endl;
+        return false;
+    }
+    else {
+        std::cout << std::endl << "This job is IN the queue: " <<job_id.c_str() << std::endl;
         return true;
+    }
 }
 
 Job JobQueue::getJob(std::string &job_id)

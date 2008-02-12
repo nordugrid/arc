@@ -36,6 +36,8 @@ class Job {
         std::string getID(void) { return id_;};
         void setStatus(int s) {  status=s;};
         int getStatus(void) { return status;};
+        operator bool(void) { return (id_.empty() ? false : true ); };
+        bool operator!(void) { return (id_.empty() ? true : false ); };
 };
 
 }; // namespace Arc

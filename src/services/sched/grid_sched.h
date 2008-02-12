@@ -17,6 +17,7 @@ static JobQueue sched_queue;
 
 class GridSchedulerService: public Arc::Service {
     protected:
+        JobQueue sched_queue;
         std::string db_path;
         std::string endpoint;
         Arc::NS ns_;

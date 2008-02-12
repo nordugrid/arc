@@ -71,7 +71,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   JobSchedMetaData sched_meta(reruns);
   Job sched_job(job_desc, sched_meta);
 
-  if(!job_desc) {
+  if(!sched_job) {
     std::string failure = sched_job.Failure();
     logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());
     // Failed to create new job (generic SOAP error)

@@ -39,17 +39,20 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
       continue;
     };
 
-    if(sched_queue.CheckJobID(jobid)) {
+    if(!sched_queue.CheckJobID(jobid)) {
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
       // There is no such job
       continue;
     };
+
+    logger_.msg(Arc::INFO, "aaaaaaaaaaa");
 
     std::string job_state;
 
     Job j =  sched_queue.getJob(jobid);
     int stat = j.getStatus();
 
+    logger_.msg(Arc::INFO, "bbbbbbbbbbbb");
     switch (stat) {
 
     PENDING:
@@ -68,9 +71,13 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
         break;
     }
 
+
+    logger_.msg(Arc::INFO, "ccccccccccc: %s\n",job_state.c_str());
+
     // Make response
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("bes-factory:state")=job_state;
+    logger_.msg(Arc::INFO, "dddddddddddddd");
   };
   {
     std::string s;
