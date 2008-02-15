@@ -24,12 +24,6 @@
             <next id="http"/> 
             <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
         </Component>
-        <Component name="tls.service" id="tls">
-            <next id="http"/>
-            <KeyPath>/Users/zsombor/Development/arc/arc1/src/tests/echo/key.pem</KeyPath>
-            <CertificatePath>/Users/zsombor/Development/arc/arc1/src/tests/echo/cert.pem</CertificatePath>
-            <CACertificatePath>/Users/zsombor/Development/arc/arc1/src/tests/echo/ca.pem</CACertificatePath>
-        </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>
@@ -42,17 +36,17 @@
             <next id="manager">/Manager</next>
         </Plexer>
         <Service name="pythonservice" id="hash">
-            <ClassName>hash.hash.HashService</ClassName>
+            <ClassName>storage.hash.hash.HashService</ClassName>
             <DataDir>hash_data</DataDir>
-            <HashClass>hash.hash.CentralHash</HashClass>
-            <StoreClass>hash.hash.PickleStore</StoreClass>
+            <HashClass>storage.hash.hash.CentralHash</HashClass>
+            <StoreClass>storage.hash.hash.PickleStore</StoreClass>
         </Service>
         <Service name="pythonservice" id="catalog">
-            <ClassName>scatalog.scatalog.CatalogService</ClassName>
+            <ClassName>storage.catalog.catalog.CatalogService</ClassName>
             <HashURL>http://localhost:60000/Hash</HashURL>
         </Service>
         <Service name="pythonservice" id="manager">
-            <ClassName>smanager.smanager.ManagerService</ClassName>
+            <ClassName>storage.manager.manager.ManagerService</ClassName>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
         </Service>
     </Chain>

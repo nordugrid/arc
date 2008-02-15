@@ -1,0 +1,3 @@
+hash            - simple currently centralized metadata store for the Storage Catalog
+catalog         - the Storage Catalog service handling files and collection
+manager         - the Storage Manager service providing high-level storage namespace

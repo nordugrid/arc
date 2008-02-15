@@ -294,7 +294,7 @@ class CentralHash:
             print 'Store unlocked'
         return resp
 
-from xmltree import XMLTree
+from storage.xmltree import XMLTree
 
 class HashService:
     """ HashService class implementing the XML interface of the Hash service. """

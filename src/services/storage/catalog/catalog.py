@@ -2,7 +2,7 @@ import urlparse
 import httplib
 import arc
 import random
-from hash.xmltree import XMLTree
+from storage.xmltree import XMLTree
 import traceback
 
 catalog_uri = 'urn:scatalog'
