@@ -1,5 +1,5 @@
 import arc, httplib, sys
-from xmltree import XMLTree
+from storage.xmltree import XMLTree
 ns = arc.NS({'hash':'urn:hash'})
 out = arc.PayloadSOAP(ns)
 if sys.argv[1] == '-x':
