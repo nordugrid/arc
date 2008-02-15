@@ -8,9 +8,4 @@ pdp             - Remote Policy Decision Point/Security Cap.
 rte-catalog     - Runtime Environment Cataloge/Resource Management Cap.
 vmms            - Virtual Machine Management Service
 echo_java       - Demonstration services: how to write Java service 
-hash            - simple currently centralized metadata store for the Storage Catalog
-                  (for configuration see service.example.xml in smanager)
-scatalog        - the Storage Catalog service handling files and collection
-                  (for configuration see service.example.xml in smanager)
-smanager        - the Storage Manager service providing high-level storage namespace
-                  (for configuration see service.example.xml)
+storage         - services for the ARC storage system (see service.example.xml)
