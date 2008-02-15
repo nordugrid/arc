@@ -18,6 +18,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Run.h>
+#include <arc/Thread.h>
 #include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
@@ -29,6 +30,8 @@
 #include "cache/cache.h"
 #include "cache/cache_cleaner.h"
 
+#include "grid_manager.h"
+
 /* do job cleaning every 2 hours */
 #define HARD_JOB_PERIOD 7200
 
@@ -38,26 +41,11 @@
 #define DEFAULT_LOG_FILE "/var/log/grid-manager.log"
 #define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
 
+namespace ARex {
 
-static pthread_cond_t sleep_cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t sleep_mutex = PTHREAD_MUTEX_INITIALIZER;
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 
-void* wakeup_func(void* arg) {
-  // unsigned int timeout = *((unsigned int *)arg);
-  CommFIFO& timeout = *((CommFIFO*)arg);
-  for(;;) {
-    //sleep(timeout);
-    timeout.wait();
-std::cerr<<"CommFIFO timeout"<<std::endl;
-    pthread_mutex_lock(&(sleep_mutex));
-    pthread_cond_signal(&sleep_cond);
-    pthread_mutex_unlock(&(sleep_mutex));
-  };
-  return NULL;
-}
-
-void* cache_func(void* arg) {
+static void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
   Arc::Run *proc = NULL;
   JobUser user(getuid()); // Need a user to run external binary 
@@ -110,10 +98,34 @@ void* cache_func(void* arg) {
   return NULL;
 }
 
-int main(int argc,char* argv[]) {
+typedef struct {
+  pthread_cond_t* sleep_cond;
+  pthread_mutex_t* sleep_mutex;
+  CommFIFO* timeout;
+} sleep_st;
+
+static void* wakeup_func(void* arg) {
+  sleep_st* s = (sleep_st*)arg;
+  for(;;) {
+    s->timeout->wait();
+    pthread_mutex_lock(s->sleep_mutex);
+    pthread_cond_signal(s->sleep_cond);
+    pthread_mutex_unlock(s->sleep_mutex);
+  };
+  return NULL;
+}
+
+typedef struct {
+  int argc;
+  char** argv;
+} args_st;
+
+static void grid_manager(void* arg) {
+  if(!arg) return;
   unsigned int clean_first_level=0;
   int n;
- 
+  int argc = ((args_st*)arg)->argc;
+  char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
   nordugrid_config_loc="";
@@ -123,27 +135,27 @@ int main(int argc,char* argv[]) {
   Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
-      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return 1; };
-      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return 1; };
-      case '.': { return 1; };
+      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
+      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return; };
+      case '.': { return; };
       case 'h': {
         std::cout<<"grid-manager [-C clean_level] [-v] [-h] [-c configuration_file] "<<daemon.short_help()<<std::endl;
-         return 0;
+         return;
       };
       case 'v': {
         std::cout<<"grid-manager: version "<<VERSION<<std::endl;
-        return 0;
+        return;
       };
       case 'C': {
         if(sscanf(optarg,"%u",&clean_first_level) != 1) {
           logger.msg(Arc::ERROR,"Wrong clean level");
-          return 1;
+          return;
         };
       }; break;
       case 'c': {
         nordugrid_config_loc=optarg;
       }; break;
-      default: { logger.msg(Arc::ERROR,"Option processing error"); return 1; };
+      default: { logger.msg(Arc::ERROR,"Option processing error"); return; };
     };
   };
 
@@ -188,6 +200,12 @@ int main(int argc,char* argv[]) {
   pthread_t wakeup_thread;
   pthread_t cache_thread;
   time_t hard_job_time; 
+  pthread_cond_t sleep_cond = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t sleep_mutex = PTHREAD_MUTEX_INITIALIZER;
+  sleep_st wakeup_h;
+  wakeup_h.sleep_cond=&sleep_cond;
+  wakeup_h.sleep_mutex=&sleep_mutex;
+  wakeup_h.timeout=&wakeup_interface;
   for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
     wakeup_interface.add(*i);
   };
@@ -219,7 +237,7 @@ std::cerr<<"Setting wakeup period to "<<JobsList::WakeupPeriod()<<std::endl;
   //# run.reinit(false);
 
   /* start timer thread - wake up every 2 minutes */
-  if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_interface) != 0) {
+  if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
     logger.msg(Arc::ERROR,"Failed to start new thread"); goto exit;
   };
   if(clean_first_level) {
@@ -305,5 +323,23 @@ exit:
   globus_module_deactivate(GLOBUS_RSL_MODULE);
   globus_module_deactivate(GLOBUS_COMMON_MODULE);
 #endif
-  return 0;
+  return;
 }
+
+GridManager::GridManager(Arc::XMLNode argv):active_(false) {
+  args_st* args = new args_st;
+  if(!args) return;
+  args->argv=(char**)malloc(sizeof(char*)*(argv.Size()+1));
+  args->argc=0;
+  for(;;++(args->argc)) {
+    Arc::XMLNode arg = argv["arg"][args->argc];
+    if(!arg) break;
+    args->argv[(args->argc)+1]=strdup(((std::string)arg).c_str());
+  };
+  args->argv[0]=strdup("grid-manager");
+  active_=Arc::CreateThreadFunction(&grid_manager,args);
+  if(!active_) delete args;
+}
+
+} // namespace ARex
+
