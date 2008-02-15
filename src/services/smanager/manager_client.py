@@ -8,22 +8,22 @@ if sys.argv[1] == '-x':
     from xml.dom.minidom import parseString
 else:
     print_xml = False
-if sys.argv[1] == 'get':
+if sys.argv[1] == 'stat':
     if len(sys.argv) < 3:
-        print 'Usage: get <GUID> [<GUID> ...]'
+        print 'Usage: stat <LN> [<LN> ...]'
         sys.exit(-1)
     tree = XMLTree(from_tree =
-        ('man:get', [
-            ('man:getRequestList', [
-                ('man:getRequestElement', [
-                    ('man:GUID', GUID) 
-                ]) for GUID in sys.argv[2:]
+        ('man:stat', [
+            ('man:statRequestList', [
+                ('man:statRequestElement', [
+                    ('man:LN', LN) 
+                ]) for LN in sys.argv[2:]
             ])
         ])
     )
     tree.add_to_node(out)
 else:
-    print 'Supported methods: get'
+    print 'Supported methods: stat'
     sys.exit(-1)
 msg = out.GetXML()
 if print_xml:

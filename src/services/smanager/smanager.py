@@ -7,6 +7,7 @@ import traceback
 
 catalog_uri = 'urn:scatalog'
 manager_uri = 'urn:smanager'
+global_root_guid= '0'
 
 def mkuid():
     rnd = ''.join([ chr(random.randint(0,255)) for i in range(16) ])
@@ -77,14 +78,28 @@ class Manager:
     def __init__(self, catalog):
         self.catalog = catalog
 
-    def get(self, requests):
+    def _parse_LN(self, LN):
+        try:
+            splitted= LN.split('/')
+        except:
+            raise Exception, 'Invalid Logical Name: `%s`' % LN
+        guid = splitted[0]
+        path = splitted[1:]
+        if not guid:
+            guid = global_root_guid
+        return guid, path
+
+    def stat(self, requests):
+        for LN in requests:
+            guid, path = self._parse_LN(LN)
+            print '\n\n\n*******', guid, path
         return self.catalog.get(requests)
         
 
 class ManagerService:
 
     # names of provided methods
-    request_names = ['get']
+    request_names = ['stat']
 
     def __init__(self, cfg):
         print "Storage Manager service constructor called"
@@ -93,17 +108,17 @@ class ManagerService:
         self.manager = Manager(catalog)
         self.man_ns = arc.NS({'man':manager_uri})
     
-    def get(self, inpayload):
+    def stat(self, inpayload):
         requests_node = inpayload.Child().Child()
         request_number = requests_node.Size()
         requests = []
         for i in range(request_number):
             request_node = requests_node.Child(i)
-            requests.append(str(request_node.Get('GUID')))
+            requests.append(str(request_node.Get('LN')))
         print requests
-        response = self.manager.get(requests)
+        response = self.manager.stat(requests)
         out = arc.PayloadSOAP(self.man_ns)
-        response_node = out.NewChild('man:getResponse')
+        response_node = out.NewChild('man:statResponse')
         response_node.Set(str(response))
         return out
 
