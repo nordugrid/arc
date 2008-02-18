@@ -39,15 +39,14 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
-
+      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - can't understand EPR", jobid.c_str());
       continue;
     };
     // Look for obtained ID
     ARexJob job(jobid,config);
     if(!job) {
-      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid.c_str(), job.Failure().c_str());
       // There is no such job
-
+      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid.c_str(), job.Failure().c_str());
       continue;
     };
     /*

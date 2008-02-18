@@ -6,6 +6,8 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 
+#include "grid-manager/grid_manager.h"
+
 namespace ARex {
 
 class ARexGMConfig;
@@ -20,6 +22,7 @@ class ARexService: public Arc::Service {
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;
+  GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);

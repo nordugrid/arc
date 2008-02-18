@@ -302,7 +302,7 @@ static void thread_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
  
-ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX") {
+ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),gm_(NULL) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
@@ -317,10 +317,19 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
-  // Create empty LIDI container
-  // Arc::XMLNode doc(ns_);
-  // infodoc_.Assign(doc,true);
   CreateThreadFunction(&thread_starter,this);
+  // Run grid-manager in thread
+  Arc::XMLNode gmargv;
+  for(Arc::XMLNode n = (*cfg)["gmarg"];(bool)n;n=n[1]) {
+    gmargv.NewChild("arg")=(std::string)n;
+  };
+  if(!gmconfig_.empty()) {
+    gmargv.NewChild("arg")="-c";
+    gmargv.NewChild("arg")=gmconfig_;
+  };
+  gm_=new GridManager(gmargv);
+  if(!gm_) return;
+  if(!(*gm_)) { delete gm_; gm_=NULL; return; };
 }
 
 ARexService::~ARexService(void) {
