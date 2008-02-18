@@ -196,7 +196,6 @@ exit 0
 
 %files arex
 %{_libdir}/%{pkgdir}/libarex.so
-%{_sbindir}/grid-manager
 %{_libexecdir}/downloader
 %{_libexecdir}/uploader
 %{_libexecdir}/smtp-send
