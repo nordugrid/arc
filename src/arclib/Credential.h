@@ -45,7 +45,7 @@ class CredentialError : public std::runtime_error {
       @param what An explanation of the error.
      */
     CredentialError(const std::string& what="");
-  };
+};
 
 typedef enum {PEM, DER, PKCS, UNKNOWN} Credformat;
 
@@ -86,14 +86,23 @@ class Credential {
 
     void LogError(void);   
 
+    /**Get the private key attached to the object*/
     EVP_PKEY* GetPrivKey(void);
 
+    /**Get the certificate attached to the object*/
     X509* GetCert(void);
 
+     /**Get the certificate chain attached to the object*/
     STACK_OF(X509)* GetCertChain(void);
 
+    /**Add an extension to the extension part of the certificate
+     @param name, the name of the extension, there OID related with the name 
+      should be registered into openssl firstly
+     @param data, the data which will be insert into certificate extension  
+    */
     bool Credential::AddExtension(std::string name, std::string data, bool crit = false);
 
+    /***/
     bool Credential::AddExtension(std::string name, char** aclist, bool crit = false);
 
     Credformat getFormat(BIO * in);        
@@ -167,31 +176,6 @@ class Credential {
     /**Set the certificate information for "this" by using proxy certificate which is return by siging side*/
     //bool SetCertificate(std::string certificate);
 
-    /************************************/
-    /*****VOMS specific methods******/
-    /**AC is a struct introduced from voms code, which represents the voms attribute extracted from voms server, but
-    this structure can also be use for other non-voms attribute, since voms attribute also comply with X.509 certificate
-    formate*/
-    //typedef struct ACC {
-    //  AC_INFO         *acinfo;
-    //  X509_ALGOR      *sig_alg;
-    //  ASN1_BIT_STRING *signature;
-    //} AC;
-
-  public:
-    /**Get the attribute information from voms server(specific method for voms credential)
-    the X.509 credential attached to "this" object will be used to secure the communication with
-    remote voms server.
-    The aclist which is got from voms server will be used as the parameter of CreateProxy() to
-    generate the proxy certificate which includes the aclist as certificate extension.
-    @param voms_servers  each includes the hostname and port of voms server.
-    @param aclist  attributes got from voms servers
-    @param extra  some extra information got from voms servers
-    @return true iff successfully got the attributes, otherwise false
-    */
-    //bool GetVOMSAttribute(std::list<std::string> voms_servers, std::list<AC*> aclist, std::string extra);
-
-
   private:
     // PKI files
     std::string cacertfile_;
@@ -209,7 +193,6 @@ class Credential {
     //int              keybits_; 
     STACK_OF(X509) * cert_chain_;  //cert chain
     PROXYCERTINFO*   proxy_cert_info_;
-    //std::list<X509*> certs_;
     Credformat       format;
     Arc::Time             start_;
     Arc::Period           lifetime_;
@@ -226,14 +209,13 @@ class Credential {
 
     //some properties and AC settings */
     int            bits;
-    //Period         period; //lifetime of certificate
     Arc::Time           ac_start;
     Arc::Period         ac_lifetime; //lifetime of attribute
     std::string    policyfile;
     std::string    policylang;
     int            pathlength;
 
-  };
+};
 
 }// namespace ArcLib
 
