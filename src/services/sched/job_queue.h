@@ -22,6 +22,12 @@ class JobQueue {
         void removeJob(std::string &job_id);
         Job getJob(std::string &job_id);
         bool CheckJobID(std::string &job_id);
+        int size(void) {return jobs.size();};
+        std::map<std::string,Job> getJobsWithThisState(SchedStatus s);
+        bool setJobStatus(std::string job_id, SchedStatus status);
+        bool setArexJobID(std::string job_id, std::string arex_job_id);
+        bool setArexID(std::string job_id, std::string arex_job_id);
+        std::map<std::string,Job>& getJobs(void) {return jobs;};
 };
 
 }; // namespace Arc

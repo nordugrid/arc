@@ -5,6 +5,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include "job_queue.h"
+#include "resources_handling.h"
 
 
 namespace GridScheduler {
@@ -13,13 +14,11 @@ namespace GridScheduler {
 
 std::string make_uuid();
 
-static JobQueue sched_queue;
-
 class GridSchedulerService: public Arc::Service {
     protected:
-        JobQueue sched_queue;
         std::string db_path;
         std::string endpoint;
+        int period;
         Arc::NS ns_;
         Arc::Logger logger_;
         Arc::DelegationContainerSOAP delegations_;
@@ -50,8 +49,12 @@ class GridSchedulerService: public Arc::Service {
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
     public:
+        JobQueue sched_queue;
+        ResourcesHandling sched_resources;
         GridSchedulerService(Arc::Config *cfg);
         std::string getEndPoint(void) { return endpoint;};
+        std::string getDBPath(void) { return db_path;};
+        int getPeriod(void) { return period;};
         virtual ~GridSchedulerService(void);
         virtual Arc::MCC_Status process(Arc::Message& inmsg,
                                         Arc::Message& outmsg);

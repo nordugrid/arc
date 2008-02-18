@@ -12,14 +12,17 @@ namespace GridScheduler
 class JobRequest: public Arc::XMLNode {
 
     private:
-        XMLNode descr;
+        Arc::XMLNode descr;
     public:
         JobRequest();
-        JobRequest(Arc::XMLNode& d);
+        JobRequest(Arc::XMLNode d);
         virtual ~JobRequest(void);
         std::string getJobName(void);
         std::string getOS(void);
         std::string getArch(void);
+        Arc::XMLNode getJSDL(void) { return descr;};
+        JobRequest& operator=(const JobRequest& j);
+        JobRequest( const JobRequest& j );
 };
 
 };

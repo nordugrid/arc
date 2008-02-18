@@ -17,10 +17,15 @@ class JobSchedMetaData {
         Arc::Time end_time;
         std::map<std::string,std::string> data; //scheduling data
         std::map<std::string,std::string> blacklisted_hosts; //host names
+        std::string arex_id;
     public:
         JobSchedMetaData();
         JobSchedMetaData(int& r);
         virtual ~JobSchedMetaData(void);
+        bool setArexID(std::string &id);
+        std::string& getArexID() { return arex_id;};
+       // JobSchedMetaData& operator=(const JobSchedMetaData& j);
+       // JobSchedMetaData( const JobSchedMetaData& j );
 };
 
 }; // namespace Arc

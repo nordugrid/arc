@@ -45,44 +45,40 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
       continue;
     };
 
-    logger_.msg(Arc::INFO, "aaaaaaaaaaa");
-
     std::string job_state;
 
     Job j =  sched_queue.getJob(jobid);
-    int stat = j.getStatus();
+    SchedStatus stat = j.getStatus();
 
-    logger_.msg(Arc::INFO, "bbbbbbbbbbbb");
     switch (stat) {
 
-    PENDING:
+    case NEW:
         job_state="Pending";
         break;
-    RUNNING:
+    case STARTING:
+        job_state="Pending";
+        break;
+    case RUNNING:
         job_state="Running";
         break;
-    CANCELLED:
+    case CANCELLED:
         job_state="Cancelled";
-    FAILED:
+    case FAILED:
         job_state="Failed";
         break;
-    FINISHED:
+    case FINISHED:
         job_state="Finished";
         break;
     }
 
-
-    logger_.msg(Arc::INFO, "ccccccccccc: %s\n",job_state.c_str());
-
     // Make response
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("bes-factory:state")=job_state;
-    logger_.msg(Arc::INFO, "dddddddddddddd");
   };
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = %s", s.c_str());
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

@@ -54,4 +54,49 @@ Job JobQueue::getJob(std::string &job_id)
     //TODO: else part
 }
 
+std::map<std::string,Job> JobQueue::getJobsWithThisState(SchedStatus s)
+{   
+    std::map<std::string,Job> job_list;
+    std::map<std::string,Job>::iterator iter;
+    for( iter = jobs.begin(); iter != jobs.end(); iter++ ) {
+        if ((iter -> second).getStatus() == s){
+            job_list.insert( make_pair( (iter -> second).getID(), iter -> second ) );
+        }
+    }
+    return job_list;
+}
+
+bool JobQueue::setJobStatus(std::string job_id, SchedStatus status)
+{
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        jobs[job_id].setStatus(status);
+        return true;
+    }
+}
+
+bool JobQueue::setArexJobID(std::string job_id, std::string arex_job_id)
+{
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        jobs[job_id].setArexJobID(arex_job_id);
+        return true;
+    }
+}
+
+bool JobQueue::setArexID(std::string job_id, std::string arex_id)
+{
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        jobs[job_id].setArexID(arex_id);
+        return true;
+    }
+}
+
 };

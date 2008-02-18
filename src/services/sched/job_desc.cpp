@@ -21,8 +21,11 @@ std::string JobRequest::getArch(void) {
     return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
 }
 
-JobRequest::JobRequest(Arc::XMLNode& d) {
-    JobRequest::descr=d;
+
+
+
+JobRequest::JobRequest(Arc::XMLNode d) {
+    d.New(descr);
 }
 
 
@@ -34,4 +37,20 @@ JobRequest::~JobRequest() {
 
 }
 
-};
+JobRequest&  JobRequest::operator=( const  JobRequest& j )
+{
+   if ( this != &j )
+   {
+        j.descr.New(descr);
+   }
+
+   return *this;
+}
+
+JobRequest::JobRequest( const JobRequest& j )
+{
+    j.descr.New(descr);
+}
+
+
+}; //namespace

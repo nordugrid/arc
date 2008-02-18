@@ -7,7 +7,7 @@
   <Server>
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
-    <Logger level="VERBOSE">./logfile</Logger>
+    <Logger level="INFO">./logfile</Logger>
   </Server>
   <ModuleManager>
         <Path>.libs/</Path>
@@ -43,7 +43,9 @@
       <next id="grid_sched">/sched</next>
     </Plexer>
     <Service name="grid_sched" id="grid_sched">
-       <sched:endpoint>https://localhost:60000/sched</sched:endpoint>
+       <sched:Endpoint>https://localhost:60000/sched</sched:Endpoint>
+       <sched:DataDirectoryPath>./data</sched:DataDirectoryPath>
+       <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
     </Service>
   </Chain>
 </ArcConfig>

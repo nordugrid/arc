@@ -64,11 +64,9 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
       return Arc::MCC_Status();
     };
   };
- 
-  int reruns = 10;
 
   JobRequest job_desc(jsdl);
-  JobSchedMetaData sched_meta(reruns);
+  JobSchedMetaData sched_meta;
   Job sched_job(job_desc, sched_meta);
 
   if(!sched_job) {
@@ -98,7 +96,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
     logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s.c_str());
   };
 
-  sched_job.setStatus(PENDING);
+  sched_job.setStatus(NEW);
   sched_queue.addJob(sched_job);
 
   return Arc::MCC_Status(Arc::STATUS_OK);

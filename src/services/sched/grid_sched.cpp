@@ -26,6 +26,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
+#include <arc/StringConv.h>
 
 #include "grid_sched.h"
 
@@ -140,16 +141,62 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
     } else {
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
         return make_soap_fault(outmsg);
-    };
-    {
-        // DEBUG 
-        std::string str;
-        outpayload->GetXML(str);
-        logger_.msg(Arc::DEBUG, "process: response=%s",str.c_str());
-    };
+    
+    }
+    // DEBUG 
+    std::string str;
+    outpayload->GetXML(str);
+    logger_.msg(Arc::DEBUG, "process: response=%s",str.c_str());
+    
     // Set output
     outmsg.Payload(outpayload);
     return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+void sched(void* arg) {
+    GridSchedulerService& it = *((GridSchedulerService*)arg);
+    for(;;) {
+        std::cout << "Count of jobs:" << it.sched_queue.size() << " Scheduler period: " << it.getPeriod() << " Endpoint: "<< it.getEndPoint() <<  " DBPath: " << it.getDBPath() << std::endl;
+
+    // searching for new sched jobs:
+    
+    std::map<std::string,Job> new_jobs =  it.sched_queue.getJobsWithThisState(NEW);
+    std::map<std::string,Job>::iterator iter;
+    
+    for( iter = new_jobs.begin(); iter != new_jobs.end(); iter++ ) {
+        std::cout << "NEW job: " << iter -> first << std::endl;
+    
+        Resource arex;
+
+        it.sched_resources.random(arex);
+
+        Job j = iter -> second;
+        Arc::XMLNode jsdl = (iter -> second).getJSDL();
+
+        std::string arex_job_id = arex.CreateActivity(jsdl);
+        std::cout << "A-REX ID: " << arex.getURL() <<  std::endl;
+        if ( arex_job_id != "" ){
+            it.sched_queue.setArexJobID(iter -> first, arex_job_id);
+            it.sched_queue.setArexID(iter -> first, arex.getURL());
+            it.sched_queue.setJobStatus(iter -> first, STARTING);
+        } 
+    }
+
+    // query a-rex job statuses:
+    
+    for( iter = it.sched_queue.getJobs().begin(); iter != it.sched_queue.getJobs().end(); iter++ ) {
+        Job j = iter -> second;
+
+        std::string arex_job_id  = (iter -> second).getArexJobID();
+        Resource arex = it.sched_resources.getResource((iter -> second).getURL());
+
+        std::string state;
+        state = arex.GetActivityStatus(arex_job_id);
+        std::cout << "JobID: " << iter -> first << " state: " << state << std::endl;
+    }
+  
+    sleep(it.getPeriod());
+    }
 }
 
 // Constructor
@@ -168,8 +215,18 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
   ns_["sched"]="http://www.nordugrid.org/schemas/sched";
-  endpoint=(std::string)((*cfg)["endpoint"]);
-  //Arc::CreateThreadFunction(sched, this);
+  endpoint = (std::string)((*cfg)["Endpoint"]);
+  period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
+  db_path = (std::string)((*cfg)["DataDirectoryPath"]);
+  Arc::CreateThreadFunction(&sched, this);
+
+  Resource arex1("https://localhost:40000/arex");
+  Resource arex2("https://localhost:40001/arex");
+  Resource arex3("https://localhost:40002/arex");
+  sched_resources.addResource(arex1);
+  sched_resources.addResource(arex2);
+  sched_resources.addResource(arex3);
+
 }
 
 // Destructor
