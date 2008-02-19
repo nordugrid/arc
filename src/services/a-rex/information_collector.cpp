@@ -58,14 +58,14 @@ void ARexService::InformationCollector(void) {
     std::string ldif_str;
     {
       std::string cmd;
-      cmd=nordugrid_libexec_loc+"/cluster-"+lrms+".pl -valid-to 120 -config "+nordugrid_config_loc+" -dn o=grid -l 2";
-      //std::cerr<<"cmd: "<<cmd<<std::endl;
+      cmd=nordugrid_libexec_loc+"/cluster.pl -valid-to 120 -config "+nordugrid_config_loc+" -dn o=grid -l 0";
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;
       run.AssignStdin(stdin_str);
       run.AssignStdout(ldif_str);
       run.AssignStderr(stderr_str);
+      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd.c_str());
       if(!run.Start()) {
       };
       if(!run.Wait(60)) {
@@ -76,14 +76,14 @@ void ARexService::InformationCollector(void) {
     };
     for(std::list<std::string>::iterator q = queues.begin();q!=queues.end();++q) {
       std::string cmd;
-      cmd=nordugrid_libexec_loc+"/queue+jobs+users-"+lrms+".pl -valid-to 120 -config "+nordugrid_config_loc+" -dn nordugrid-queue-name="+(*q)+",o=grid -queue "+(*q)+" -l 2";
-      //std::cerr<<"cmd: "<<cmd<<std::endl;
+      cmd=nordugrid_libexec_loc+"/qju.pl -valid-to 120 -config "+nordugrid_config_loc+" -dn nordugrid-queue-name="+(*q)+",o=grid -queue "+(*q)+" -l 0";
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;
       run.AssignStdin(stdin_str);
       run.AssignStdout(ldif_str);
       run.AssignStderr(stderr_str);
+      logger_.msg(Arc::DEBUG,"Queue information provider: %s",cmd.c_str());
       if(!run.Start()) {
       };
       if(!run.Wait(60)) {
