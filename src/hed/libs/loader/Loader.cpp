@@ -377,7 +377,7 @@ namespace Arc {
 	continue;
       }
 
-      logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
+      logger.msg(DEBUG, "Unknown element \"%s\" - ignoring",
 		 cn.Name().c_str());
     }
 
