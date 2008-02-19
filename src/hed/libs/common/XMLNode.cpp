@@ -198,7 +198,8 @@ XMLNode XMLNode::operator[](int n) const {
   if(!node_) return XMLNode();
   xmlNodePtr p = n<0?NULL:node_;
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if((p->type != XML_ELEMENT_NODE) &&
+       (p->type != XML_ATTRIBUTE_NODE)) continue;
     if(node_->name) {
       if(!(p->name)) continue;
       if(!MatchXMLName(node_,p)) continue;
@@ -210,10 +211,12 @@ XMLNode XMLNode::operator[](int n) const {
 
 XMLNode XMLNode::operator[](const char* name) const {
   if(!node_) return XMLNode();
-  if(node_->type != XML_ELEMENT_NODE) return XMLNode();
+  if((node_->type != XML_ELEMENT_NODE) &&
+     (node_->type != XML_ATTRIBUTE_NODE)) return XMLNode();
   xmlNodePtr p = node_->children;
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if((p->type != XML_ELEMENT_NODE) &&
+       (p->type != XML_ATTRIBUTE_NODE)) continue;
     if(MatchXMLName(p,name)) break;
   };
   return XMLNode(p);
@@ -224,7 +227,7 @@ int XMLNode::Size(void) const {
   int n = 0;
   xmlNodePtr p = node_->children;
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if(p->type != XML_ELEMENT_NODE) continue;
     ++n;
   };
   return n;
@@ -241,7 +244,7 @@ int XMLNode::AttributesSize(void) const {
     int n = 0;
     xmlAttrPtr p = node_->properties;
     for(;p;p=p->next) {
-      if(p->type == XML_TEXT_NODE) continue;
+      if(p->type != XML_ATTRIBUTE_NODE) continue;
       ++n;
     };
     return n;
@@ -252,7 +255,7 @@ XMLNode XMLNode::Attribute(int n) const {
   if(node_->type != XML_ELEMENT_NODE) return XMLNode();
   xmlAttrPtr p = n<0?NULL:node_->properties;
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if(p->type != XML_ATTRIBUTE_NODE) continue;
     if((--n) < 0) break;
   };
   return XMLNode((xmlNodePtr)p);
@@ -263,7 +266,7 @@ XMLNode XMLNode::Attribute(const char* name) const {
   if(node_->type != XML_ELEMENT_NODE) return XMLNode();
   xmlNodePtr p = (xmlNodePtr)(node_->properties);
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if(p->type != XML_ATTRIBUTE_NODE) continue;
     if(MatchXMLName(p,name)) break;
   };
   if(p) return XMLNode(p);
@@ -315,7 +318,7 @@ XMLNode XMLNode::Child(int n) const {
   if(node_->type != XML_ELEMENT_NODE) return XMLNode();
   xmlNodePtr p = n<0?NULL:node_->children;
   for(;p;p=p->next) {
-    if(p->type == XML_TEXT_NODE) continue;
+    if(p->type != XML_ELEMENT_NODE) continue;
     if((--n) < 0) break;
   };
   return XMLNode(p);
