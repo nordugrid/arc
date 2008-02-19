@@ -79,9 +79,20 @@ int main(int argc, char* argv[]){
     if(!response) {
       throw(std::runtime_error(std::string("There was no response")));
     };
-    std::string s;
-    response->GetXML(s);
-    std::cout << "Response:\n" << s << std::endl;
+    Arc::InformationResponse inforesponse(*response);
+    if(!inforesponse) {
+      std::string s;
+      response->GetXML(s);
+      delete response;
+      std::cerr << "Wrong response: \n" << s << "\n" << std::endl;
+      throw(std::runtime_error(std::string("Response is not valid")));
+    };
+    std::list<Arc::XMLNode> results = inforesponse.Result();
+    for(std::list<Arc::XMLNode>::iterator r = results.begin();r!=results.end();++r) {
+      std::string s;
+      r->GetXML(s,true);
+      std::cout << "\n" << s << std::endl;
+    };
     return EXIT_SUCCESS;
   }
   catch (std::exception& err){
