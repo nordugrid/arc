@@ -341,5 +341,8 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
   if(!active_) delete args;
 }
 
+GridManager::~GridManager(void) {
+}
+
 } // namespace ARex
 

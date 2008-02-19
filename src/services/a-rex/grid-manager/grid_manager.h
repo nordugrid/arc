@@ -8,6 +8,8 @@ namespace ARex {
 class GridManager {
  private:
   bool active_;
+  GridManager(void) { };
+  GridManager(const GridManager&) { };
  public:
   GridManager(Arc::XMLNode argv);
   ~GridManager(void);
