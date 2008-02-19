@@ -12,9 +12,9 @@ namespace Arc {
   Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
 
   BaseConfig::BaseConfig() {
-    key = "./key.pem";
-    cert = "./cert.pem";
-    cafile = "./ca.pem";
+    key = "";
+    cert = "";
+    cafile = "";
     proxy = "";
     cadir = "";
 #ifndef WIN32
