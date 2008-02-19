@@ -1,0 +1,24 @@
+#! /bin/sh -f
+# set -x
+# 
+#  Cancel job running in LSF.
+# 
+
+echo "----- starting cancel_lsf_job -----" 1>&2
+
+joboption_lrms=lsf
+
+. ${NORDUGRID_LOCATION}/libexec/cancel_common.sh $1
+
+echo "   whoami: "`whoami` 1>&2
+LSF_BKILL='bkill'
+if [ ! -z "$LSF_BIN_PATH" ] ; then
+  LSF_BKILL="${LSF_BIN_PATH}/${LSF_BKILL} -s 9 "
+fi
+
+echo "executing ${LSF_BKILL} with job id ${joboption_jobid}" 1>&2
+$LSF_BKILL $joboption_jobid
+
+echo "----- exiting cancel_lsf_job -----" 1>&2
+echo "" 1>&2
+exit 0

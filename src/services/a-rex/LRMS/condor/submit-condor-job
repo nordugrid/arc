@@ -1,0 +1,406 @@
+#!/usr/bin/perl -w
+
+use File::Temp 'tempfile';
+use File::Basename;
+use lib dirname($0);
+use config_parser;
+use condor_env;
+
+use strict;
+use warnings;
+
+# True if the program is run in debugging mode.
+my $debug;
+
+# The name of the Condor job description file.  This file is generated from the
+# GRAMI file.
+my $cmd_filename;
+
+# Pathname of the Condor log.
+my $condor_log;
+
+# Pathname of the real executable.
+my $real_exe;
+
+# Pathname of the wrapper script.
+my $exewrapper;
+
+my %grami;
+
+$0 =~ s#.*/##;
+warn "----- starting $0 -----\n";
+die "Usage: $0 [-d] GRAMI_FILE\n" unless @ARGV;
+
+if (@ARGV == 2 && $ARGV[0] eq '-d') {
+    $debug = 1;
+    shift;
+}
+
+parse_grami(my $gramifile = $ARGV[0]);
+
+my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
+config_parse_file($configfile) or die "Cannot parse configuration file: $configfile\n";
+
+# import some config sections
+my %config = ();
+%config = config_update_from_section("common", %config);
+%config = config_update_from_section("infosys", %config);
+%config = config_update_from_section("grid-manager", %config);
+%config = config_update_from_section("queue/$grami{joboption_queue}", %config)
+    if $grami{joboption_queue};
+
+# this finds location of condor executables, and sets up environment vars.
+configure_condor_env(%config) or die "Condor executables not found\n";
+
+my $condor_bin_path = $ENV{CONDOR_BIN_PATH};
+
+if ($debug) {
+    # Use a bogus name for the logfile if debugging -- it doesn't matter.
+    $condor_log = 'job.log';
+} else {
+    $condor_log = File::Temp::tempnam($grami{joboption_directory}, 'log.');
+}
+
+create_shell_wrapper();
+create_condor_job_description();
+submit_condor_job();
+warn "$0: job submitted successfully\n",
+     "----- exiting $0 -----\n";
+exit;
+
+##############################################################################
+## Function Definitons
+##############################################################################
+
+sub parse_grami {
+    local @ARGV = $_[0];
+    warn "$0: ----- begin grami file ($_[0]) -----\n";
+    while (my $line = <>) {
+        chomp $line;
+
+        # Dump every line of the grami file into the log.
+        warn "$0: $line\n";
+
+        my ($name, $value) = split /=/, $line, 2;
+        next if !$name;
+
+        # Remove outer layer of single quotes.  Backslash escaped single quotes
+        # are stripped of their backslashes, and strings protected by single
+        # quotes are stripped of the single quotes.  This is supposed to work
+        # exactly like Bourne shell quote removal:
+        #
+        #   foo'bar'     --> foobar
+        #   foo\''bar'\' --> foo'bar'
+        #
+        {
+            no warnings 'uninitialized';
+            $value =~ s/(?:\\('))?'([^']*)'(?:\\('))?/$1$2$3/g;
+        }
+
+        # The variable names are case insensitive, so lowercase them and
+        # remember to always refer to them by their lowercase names!
+        $grami{lc $name} = $value;
+    }
+    warn "$0: ----- end grami file ($_[0]) -----\n";
+}
+
+#
+# Creates a shell script that:
+#
+#  (1) Sources the runtime scripts with argument "0" before evaluating the job
+#      executable.  (This is in case the job refers to variables set by the
+#      runtime scripts.)  TODO: should variables be expanded in
+#      joboption_runtime_0?
+#
+#  (2) Sources the runtime scripts with argument "1" before running the job.
+#
+#  (3) Runs the job, redirecting output as requested in the xRSL.
+#
+#  (4) Sources the runtime scripts with argument "2" after running the job.
+#
+#  (5) Exits with the value returned by the job executable in step (3).
+#
+sub create_shell_wrapper {
+    # Create the shell commands to run runtime environment files (stages 0-2).
+    my ($setrte0, $setrte1, $setrte2) = ('true', '', '');
+    if (notnull($grami{joboption_runtime_0})) {
+        $ENV{RUNTIME_CONFIG_DIR} ||= '.';  # avoid undefined warning
+        for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
+            $setrte0 .= "; . \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0";
+            $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1\n};
+            $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2\n};
+        }
+    }
+
+    # Set $real_exe to the path to the job executable (environment variables
+    # expanded).  $exewrapper is the basename of $exe, plus some random
+    # characters for uniqueness.  Also, the file $exportfile is created,
+    # containing shell statements in the form
+    #
+    #   export NAME="value"
+    #
+    # for all environment variables in existence after sourcing the runtime
+    # scripts with argument 0.
+    my $exportfile = File::Temp::tempnam('/tmp', 'export.');
+    $real_exe = `{ $setrte0; } >/dev/null
+                 export >$exportfile
+                 echo -n $grami{joboption_arg_0}`;
+    $real_exe = "./$real_exe" if $real_exe !~ m{/};
+    $real_exe =~ m{([^/]+)$};
+    $exewrapper = File::Temp::tempnam($grami{joboption_directory}, "$1.");
+
+    # Get the name of the stdout file.
+    my $stdout = notnull($grami{joboption_stdout}) ?
+                 $grami{joboption_stdout} : '/dev/null';
+    $stdout =~ s{^\Q$grami{joboption_directory}\E/*}{};
+
+    # Get the name of the stderr file.
+    my $stderr = notnull($grami{joboption_stderr}) ?
+                 $grami{joboption_stderr} : '/dev/null';
+    $stderr =~ s{^\Q$grami{joboption_directory}\E/*}{};
+
+    # Start creating the output script.  Note that the script is created
+    # in-memory, instead of being written to file, part by part.  This is
+    # because we want to test for all I/O errors, and having just a single
+    # write means that there is only one place we have to test for write
+    # errors.
+    my $output = "#!/bin/sh\n";
+
+    # If the custom RSL attribute 'wrapperdebug' is set, enable command
+    # tracing (set -x) and list all files in the session directory.  (This
+    # output is sent to stderr.)
+    if (notnull($grami{joboption_rsl_wrapperdebug})) {
+        $output .= "set -x\nexec &>\Q$stderr\E\nls -la\n";
+    }
+
+    # All environment variables in existence after sourcing the runtime scripts
+    # with argument 0 should be set in the wrapper script.
+    open EXPORTFILE, "<$exportfile" or die "$0: $exportfile: $!\n";
+    $output .= $_ for <EXPORTFILE>;
+    close EXPORTFILE;
+    unlink $exportfile;
+
+    # set HOME to the working directory of the job
+    $output .= "HOME=\`pwd\`\nexport HOME\n";
+
+    # Source runtime scripts with argument 1.
+    $output .= $setrte1;
+
+    # Enable the executable bit for non-preinstalled executables.
+    if ($real_exe !~ m{^/}) {
+        $output .= "chmod +x \Q$real_exe\E\n";
+    }
+
+    # Incomplete job command; arguments may follow.
+    $output .= "\Q$real_exe\E";
+
+    # Add optional arguments to the command line.
+    if (defined $grami{joboption_arg_1}) {
+        for (my $i = 1; defined(my $arg = $grami{"joboption_arg_$i"}); $i++) {
+            $output .= $arg ne '' ? " \Q$arg\E" : " ''";
+        }
+    }
+
+    # Redirect stdout/stderr.  These variables are always set to something
+    # (/dev/null if unspecified), so it's safe to unconditionally add these
+    # redirections.
+    $output .= " >\Q$stdout\E";
+    # If we're debugging the wrapper script, we don't do stderr redirection.
+    if (!notnull($grami{joboption_rsl_wrapperdebug})) {
+        if ($stdout eq $stderr) {
+            # We're here if stdout and stderr is redirected to the same file.
+            # This will happen when (join = yes) in the xRSL.
+            $output .= ' 2>&1';
+        } else {
+            $output .= " 2>\Q$stderr\E";
+        }
+    }
+
+    # Always a newline to terminate the job command.
+    # Preserve the job's exit code.
+    # Run runtime environment files with argument 2.
+    $output .= "\n_exitcode=\$?\n$setrte2";
+
+    # Delete all remaining files that are not listed in outputFiles.
+    if (notnull($grami{joboption_rsl_outputfiles})) {
+        # The format of this variable is:
+        # <filename1><SP>[<checksum1>]<SP>...<SP><filenameN><SP>[<checksumN>]
+        # so split by / / and ignore the odd indexes (the checksums).
+        # Also ignores zero length filenames and the gmlog.
+        my $i = 0;
+        if (!defined $grami{joboption_rsl_gmlog}) {
+            # Avoid 'uninitialized' warning when gmlog is unset.
+            $grami{joboption_rsl_gmlog} = '';
+        }
+        my @fileslst = grep { $i++ % 2 == 0 &&
+                              $_ ne '' && $_ ne $grami{joboption_rsl_gmlog} }
+                       split / /, $grami{joboption_rsl_outputfiles};
+        # Add condor_log (with path stripped) to the list of files to keep.
+        push @fileslst, (my $basename) = $condor_log =~ m#([^/]+)$#;
+        # Quote special chars in filenames and put a ' ' between each name.
+        my $files = join ' ', map { quotemeta } @fileslst;
+        # Now generate code that removes everything but the requested output.
+        # Note that, bashims have been avoided so that there are less strict
+        # requirements on /bin/sh on the execute nodes.  (Note that the file
+        # utilities used (mkdir, dirname, find, etc.) may still be
+        # GNU-centric.  TODO: fix this if we're to support non-x86-Linux.)
+        $output .= <<EOF;
+find ./ -type l -exec rm -f "{}" ";"
+find ./ -type f -exec chmod u+w "{}" ";"
+for i in $files; do
+    chmod u-w "./\$i" 2>/dev/null
+done
+find ./ -type f -perm +200 -exec rm -f "{}" ";"
+find ./ -type f -exec chmod u+w "{}" ";"
+EOF
+    }
+
+    # Exit with the job's exit code.
+    $output .= "exit \$_exitcode\n";
+
+    # Create the actual shell script from $output.
+    open EXE, ">$exewrapper"              or die "$0: creat $exewrapper: $!\n";
+    print EXE $output                     or die "$0: write $exewrapper: $!\n";
+    close EXE                             or die "$0: close $exewrapper: $!\n";
+    chmod 0755, $exewrapper               or die "$0: chmod $exewrapper: $!\n";
+
+    # Log the Condor job submission script in gmlog/errors.
+    unless ($debug) {
+        warn "$0: ----- begin wrapper script ($exewrapper) -----\n";
+        warn "$0: $_\n" for split /\n/, $output;
+        warn "$0: ----- end wrapper script ($exewrapper) -----\n";
+    }
+}
+
+#
+# Create a Condor job description that submits the wrapper script created
+# above.  The Condor job description should mirror the xRSL as much as
+# possible.
+#
+sub create_condor_job_description {
+    # As above, the job description is created in-memory, so that only one I/O
+    # operation has to be done when writing to disk.
+    my $output = "Executable = $exewrapper\n" .
+                 "Input = $grami{joboption_stdin}\n";
+
+    $output .= "Log = $condor_log\n";
+
+    my @requirements = ();
+
+    if (notnull($grami{joboption_queue})) {
+        my $queue = $grami{joboption_queue};
+        $output .= "+NordugridQueue = $queue\n";
+    }
+
+    if (notnull($config{condor_rank})) {
+        $output .= "Rank = $config{condor_rank}\n";
+    }
+
+    if (notnull($config{condor_requirements})) {
+        $config{condor_requirements} =~ s/\[separator\]//g;
+        push @requirements, $config{condor_requirements};
+    }
+
+    if (notnull($grami{joboption_rsl_disk})) {
+        push @requirements, "Disk >= " . ($grami{joboption_rsl_disk} * 1024);
+    }
+
+    # This is a custom RSL attribute used for debugging.  If the xRSL contains
+    # (machine = foo), the job will only run on machine "foo".
+    if (notnull($grami{joboption_rsl_machine})) {
+        push @requirements, "Machine == \"$grami{joboption_rsl_machine}\"";
+    }
+
+    if (@requirements) {
+        $output .= "Requirements = (" . (join ") && (", @requirements) . ")\n";
+    }
+
+#   if (notnull($grami{joboption_rsl_inputfiles})) {
+#       # TODO: should I change the split pattern to / /, so that it doesn't
+#       # squeeze together multiple spaces?  If the size.checksum pair is
+#       # optional, the / / variant must be used.  If not, the ' ' variant
+#       # is better since it allows for variations in placing whitespace.
+#       my @tmp = split ' ', $grami{joboption_rsl_inputfiles};
+#       $output .= "Transfer_input_files = ";
+#       for (my $i = 0; $i < @tmp; $i += 2) {
+#           $output .= ',' if $i > 0;
+#           $output .= $tmp[$i];
+#       }
+#       $output .= "\n";
+#   }
+
+    if (notnull($grami{joboption_env_0})) {
+        $output .= "Environment = ";
+        my $first = 1;
+        for (my $i = 0; notnull($grami{"joboption_env_$i"}); $i++) {
+            $output .= ";" if $i > 0;
+            $output .= $grami{"joboption_env_$i"};
+        }
+        $output .= "\n";
+    }
+
+    my $remove="FALSE";
+    if (notnull($grami{joboption_cputime})) {
+        $output .= "+JobCpuLimit = $grami{joboption_cputime}\n";
+        $remove .= " || RemoteUserCpu + RemoteSysCpu > JobCpuLimit";
+        warn "$0: Setting CPU limit\n";
+    }
+    if (notnull($grami{joboption_walltime})) {
+        $output .= "+JobTimeLimit = $grami{joboption_walltime}\n";
+        $remove .= " || RemoteWallClockTime > JobTimeLimit";
+        warn "$0: Setting time limit\n";
+    }
+    if (notnull($grami{joboption_memory})) {
+        $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
+        $remove .= " || ImageSize > JobMemoryLimit";
+        warn "$0: Setting memory limit\n";
+    }
+
+    $output .= "GetEnv = True\n" .
+               "Universe = vanilla\n" .
+               "Notification = Always\n" .
+#              "When_to_transfer_output = ON_EXIT\n" .
+               "Periodic_remove = $remove\n" .
+               "Queue\n";
+
+    if ($debug) {
+        print $output;
+    } else {
+        my $cmd_fh;
+        ($cmd_fh, $cmd_filename) = tempfile('XXXXXXXX',
+                                            DIR => $grami{joboption_directory},
+                                            SUFFIX => '.cmd');
+        print $cmd_fh $output  or die "$0: write $cmd_filename: $!\n";
+        close $cmd_fh          or die "$0: close $cmd_filename: $!\n";
+
+        # Log the Condor job submission script in gmlog/errors.
+        warn "$0: ----- begin condor job description ($cmd_filename) -----\n";
+        warn "$0: $_\n" for split /\n/, $output;
+        warn "$0: ----- end condor job description ($cmd_filename) -----\n";
+    }
+}
+
+sub submit_condor_job {
+    return if $debug;
+    chdir $grami{joboption_directory}
+      or die "$0: chdir $grami{joboption_directory}: $!\n";
+
+    my $condor_submit_exe = "$condor_bin_path/condor_submit";
+    warn "$0: running $condor_submit_exe $cmd_filename\n";
+    my $submit_out = `\Q$condor_submit_exe\E \Q$cmd_filename\E 2>&1`;
+    #my $submit_out = `\Qcat\E \Q$cmd_filename\E 2>&1; exit 22`;
+    my $err = $?;
+    warn "$0: $_\n" for split /\n/, $submit_out;
+    die "$0: condor_submit failed!\n" if $err;
+
+    warn "$0: appending local job id to grami file $gramifile\n";
+    my ($localid) = $submit_out =~ /submitted to cluster (\d+)\./;
+    open GRAMI, ">>$gramifile"                      or die "$0: $gramifile: $!";
+    print GRAMI "joboption_jobid=$localid.condor\n" or die "$0: $gramifile: $!";
+    print GRAMI "condor_log=$condor_log\n"          or die "$0: $gramifile: $!";
+    close GRAMI                                     or die "$0: $gramifile: $!";
+}
+
+sub notnull {
+    return defined $_[0] && $_[0] ne '';
+}
