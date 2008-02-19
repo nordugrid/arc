@@ -1,0 +1,289 @@
+#!/bin/sh
+#
+#   Periodically scan for finished jobs
+#
+# usage: scan-remote-job CONTROL_DIR ...
+
+#################
+# General setup #
+#################
+
+if [ -z $NORDUGRID_LOCATION ]; then
+	LIBEXECDIR="@libexecdir@"
+else
+	LIBEXECDIR="${NORDUGRID_LOCATION}/libexec"
+fi
+
+# Include remote LRMS functions
+REMOTE_LRMS_FUNCTIONS="${LIBEXECDIR}/remote-lrms-functions"
+if [ ! -r ${REMOTE_LRMS_FUNCTIONS} ]; then
+	logger "ERROR: ${REMOTE_LRMS_FUNCTIONS} not readable!"
+  	logger "Delaying automatic reexecution of this script" && sleep 60 
+	exit 1
+fi
+
+. ${REMOTE_LRMS_FUNCTIONS}
+
+read_gw_conf $@
+LOCAL_LRMS=$?
+
+if [ ${LOCAL_LRMS} -ne '0' ]; then
+	errormsg "remote LRMS configuration disabled! (${LOCAL_LRMS})"
+  	errormsg "Delaying automatic reexecution of this script" && sleep 60 
+	exit 1
+fi
+
+debugmsg "scan-remote-job: $@"
+
+
+#################################
+# Set up reasonable environment #
+#################################
+
+OLD_MASK=`umask`
+umask 002
+
+# Slow down GM repeating script execution in case of errors
+DELAY_REEXEC="$SLEEP 60"
+
+# DL_WAIT is the number of seconds to wait between downloading status updates
+# while scan is running remotely
+DL_WAIT="60"
+
+# Read LRMS type from nordugrid.conf into CONF_VALUE variable
+read_conf_value "resource_lrms"
+SCAN_LRMS_KIND="$CONF_VALUE"
+
+if [ -z "${SCAN_LRMS_KIND}" ]; then 
+	errormsg "Missing both arguments to $0 !!"
+  	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1 
+fi
+
+# first CONTROL_DIR is used for storing own files
+CONTROL_DIR=$1
+if [ -z "${CONTROL_DIR}" ]; then 
+	errormsg "Missing control dir argument to $0 !!"
+  	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1 
+fi
+
+# No need to do anything if no jobs in GM
+$LS $CONTROL_DIR/ | $EGREP $QUIET "^job.*.local$"
+ret=$?
+if [ $ret -ne '0' ]; then
+   	debugmsg "No jobs in $CONTROL_DIR - sleeping"
+	$DELAY_REEXEC
+	exit 0
+fi
+
+
+################################################
+# Set up other variables we need at this point #
+################################################
+
+# Build name of submit script by replacing remote with supplied LRMS name
+SCAN_LRMS_SCRIPT=`echo $0 | $SED "s/-remote-/-${SCAN_LRMS_KIND}-/"`
+
+# Strip the path
+SCAN_SCRIPT_NAME=`$BASENAME ${SCAN_LRMS_SCRIPT}`
+
+# Restore script is in same dir as this script (libexec)
+RESTORE_STATE_SCRIPT=`$DIRNAME ${SCAN_LRMS_SCRIPT}`/restore-remote-state
+
+# Temporary scratch dir used locally and remotely
+REMOTE_SCRATCH=`$MKTEMP -d ${TMP_DIR}/remote-scratch.XXXXXX`
+# We need to allow grid user read access to dir
+#debugmsg "$CHMOD -R 755 ${REMOTE_SCRATCH}"
+$CHMOD -R 755 ${REMOTE_SCRATCH}
+
+# Temporary done dir used locally to avoid file races
+TMP_DONE_DIR=`$MKTEMP -d ${TMP_DIR}/tmp-done.XXXXXX`
+# We need to allow grid user read access to dir
+#debugmsg "$CHMOD -R 755 ${TMP_DONE_DIR}"
+$CHMOD -R 755 ${TMP_DONE_DIR}
+
+# Store copies of relevant files in REMOTE_SCRATCH
+LRMS_SCRIPT=${REMOTE_SCRATCH}/`$BASENAME $SCAN_LRMS_SCRIPT`
+STATE_SCRIPT=${REMOTE_SCRATCH}/`$BASENAME $RESTORE_STATE_SCRIPT`
+# Save current environment in a file to be sourced before remote submit
+ENV_FILE="${LRMS_SCRIPT}.environment"
+
+# Copy options
+CP_OPTS="$UPDATE"
+
+
+########################################################
+# Build environment file to be sourced at the resource #
+########################################################
+store_environment $ENV_FILE
+
+
+##################################################
+# Prepare job directory for transfer to resource #
+##################################################
+
+# We need the scan script, environment file and the control directory at the remote 
+# host. The scan script is copied to the scratch directory for a single
+# transfer of both script and environment file.
+
+# TODO: in priciple we should handle *all* control directories supplied in input
+
+#debugmsg "$CP $CP_OPTS ${SCAN_LRMS_SCRIPT} ${LRMS_SCRIPT}"
+$CP $CP_OPTS ${SCAN_LRMS_SCRIPT} ${LRMS_SCRIPT}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "$CP $CP_OPTS ${SCAN_LRMS_SCRIPT} ${LRMS_SCRIPT} failed!"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1
+fi
+
+#debugmsg "$CP $CP_OPTS ${RESTORE_STATE_SCRIPT} ${STATE_SCRIPT}"
+$CP $CP_OPTS ${RESTORE_STATE_SCRIPT} ${STATE_SCRIPT}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "$CP $CP_OPTS ${RESTORE_STATE_SCRIPT} ${STATE_SCRIPT} failed!"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1
+fi
+
+
+#################################################################################
+# Upload the scratch directory and control files to resource and execute script #
+#################################################################################
+
+# Please note that trailing slash is important
+#debugmsg "upload/sync scratch dir (${REMOTE_SCRATCH}) to remote resource"
+upload ${REMOTE_SCRATCH}/ ${REMOTE_SCRATCH}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "upsync command failed ($ret)! (upload/sync ${REMOTE_SCRATCH}/ ${REMOTE_SCRATCH}"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1
+fi
+
+
+# Backup scan state_file to catch jobs that got caught in transfer job.x.local race:
+# If scan greps for localid in before job.x.local is uploaded it will fail to 
+# finish job and remember that it tried in state_file.
+# Restoring the previous state_file after each scan causes a second attempt to take 
+# place without starting from scratch each time.
+
+debugmsg "remote reset state file: ${STATE_SCRIPT} ${SCAN_LRMS_KIND} $@"
+remote_exec "${STATE_SCRIPT} ${SCAN_LRMS_KIND} $@"
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "executing remote restore state failed!"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit $ret
+fi
+
+# We need to upsync job.x.local because it does not get updated until after submit 
+# returns. Thus it won't contain localid until some later point.
+# TODO: isn't this actually a race in GM?
+
+#debugmsg "upload/sync job.*.{local,status} from control dir ($CONTROL_DIR) to remote resource"
+# Only single '\' escapes here since local rsync needs to interpret names
+#debugmsg "upload/sync $CONTROL_DIR/\*\.\{local,status\} $CONTROL_DIR/"
+upsync $CONTROL_DIR/job\.\*\.\{local,status\} $CONTROL_DIR/
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "upload/sync command failed! (upload/sync $CONTROL_DIR/job\.\*\.\{local,status\} $CONTROL_DIR/)"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit 1
+fi
+
+# Spawn scan script execution to allow concurrent status updates
+debugmsg "spawning remote execution of ${LRMS_SCRIPT} $CONTROL_DIR:"
+remote_exec ". ${ENV_FILE} && ${LRMS_SCRIPT} $CONTROL_DIR" &
+ret=$?
+child_id=$!
+#debugmsg "spawned remote execution with pid $child_id"
+if [ $ret -ne '0' ]; then
+	errormsg "spawning remote command failed!"
+   	errormsg "Delaying reexecution of this script ($DELAY_REEXEC)" && $DELAY_REEXEC
+	exit $ret
+fi
+
+dl_count=0
+
+####################################################################
+# Keep downloading generated lrms_done files while scan is running #
+####################################################################
+
+# We can not download full controldir since GM may have modified job.x.local now!
+while $TRUE; do
+	debugmsg "download/sync done from remote resource (loop $dl_count)"
+
+	# TODO: only try to downsync lrms_done files matching job.ID.local?
+	# Please note '\'s required to avoid local shell expansion
+	#debugmsg "download/sync $TMP_DONE_DIR/ $CONTROL_DIR/job\.\\\*\.lrms_done"
+	downsync $TMP_DONE_DIR/ $CONTROL_DIR/job\.\\\*\.lrms_done
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		debugmsg "download/sync done files failed ($ret) - ok if no done jobs"
+	fi
+
+	dl_count=$((dl_count + 1)) 
+
+	# Download done files in temp dir to allow for treatment on a per job basis
+	# use xargs to remove line breaks
+	DONEFILES=`$LS ${TMP_DONE_DIR}/ | $XARGS`
+	
+	if [ ! -z "$DONEFILES" ]; then
+		debugmsg "Found done files $DONEFILES"
+		cd ${TMP_DONE_DIR} && $MV $FORCE $DONEFILES ${CONTROL_DIR}/
+		debugmsg "TODO: Found done jobs - could wake up GM here"
+	fi
+
+	#debugmsg "/bin/ps -p $child_id >& /dev/null"
+	$PS -p $child_id >& /dev/null 
+	scan_done=$?
+	#debugmsg "ps returned $scan_done"
+
+	if [ $scan_done -ne '0' ]; then
+		break
+	fi
+	#debugmsg "scan loop sleeping $DL_WAIT seconds ($SLEEP $DL_WAIT)"
+	$SLEEP $DL_WAIT
+done
+
+debugmsg "download/sync loop done after $dl_count downloads"
+
+# Make sure server doesn't throttle on error
+if [ "$dl_count" -lt 2 ]; then
+	infomsg "download/sync loop done after only $dl_count downloads - sleeping"
+	$SLEEP $DL_WAIT
+fi
+
+wait $child_id
+$scan_ret=$?
+
+#debugmsg "scan done ($scan_ret)"
+
+# TODO: allow optional remote copy of libexec scripts instead of transfer each time?
+
+# Clean up scratch dirs
+if [ -z "$DEBUG_FILES" ]; then
+	debugmsg "cleaning up local and remote scratch dir (${REMOTE_SCRATCH})"
+	#debugmsg "local execution of $RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	$RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		errormsg "local clean up failed ($ret)! - ignoring"
+	fi
+	#debugmsg "remote execution of $RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	remote_exec "$RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		errormsg "remote clean up failed ($ret)! - ignoring"
+	fi
+	#debugmsg "local execution of $RM $FORCE $RECURSIVE ${TMP_DONE_DIR}"
+	$RM $FORCE $RECURSIVE ${TMP_DONE_DIR}
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		errormsg "local done dir clean up failed ($ret)! - ignoring"
+	fi
+fi
+
+exit $scan_ret

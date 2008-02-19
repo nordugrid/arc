@@ -1,0 +1,224 @@
+#!/bin/sh -f
+# set -x
+#
+#  Input: path to grami file (same as Globus).
+#  This script creates a temporary job script and runs it.
+
+echo "----- starting submit_fork_job -----" 1>&2
+joboption_lrms=fork
+
+if [ -z ${NORDUGRID_LOCATION} ] ; then
+    echo "NORDUGRID_LOCATION not set." 1>&2
+    exit 1
+fi
+. ${NORDUGRID_LOCATION}/libexec/submit_common.sh
+
+init
+
+##############################################################
+# These should be set automatically
+##############################################################
+# Where runtime scripts can be found on computing nodes (empty if does not exist)
+RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
+export RUNTIME_CONFIG_DIR
+# For fork job only directory we need is local scratch
+RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_local_scratch@}
+RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
+
+
+##############################################################
+# Parse argument file
+##############################################################
+parse_arg_file $1
+
+
+##############################################################
+# Zero stage of runtime environments
+##############################################################
+RTE_stage0
+
+
+##############################################################
+# create job script
+##############################################################
+mktempscript
+chmod u+x ${LRMS_JOB_SCRIPT}
+
+
+##############################################################
+# Start job script
+##############################################################
+echo -n "#" > $LRMS_JOB_SCRIPT
+echo "! /bin/sh" >> $LRMS_JOB_SCRIPT
+echo "# Fork job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+# non-parallel jobs
+##############################################################
+if [ -z "$joboption_count" ] ; then 
+  joboption_count=1
+elif [ "$joboption_count" -le 0 ] ; then
+  joboption_count=1
+fi  
+
+##############################################################
+# Execution times (obtained in seconds)
+##############################################################
+if [ ! -z "$joboption_walltime" ] ; then
+  if [ $joboption_walltime -lt 0 ] ; then
+    joboption_walltime=0
+  fi
+  maxwalltime="$joboption_walltime"
+elif [ ! -z "$joboption_cputime" ] ; then
+  if [ $joboption_cputime -lt 0 ] ; then
+    joboption_cputime=0
+  fi
+  maxwalltime="$joboption_cputime"
+fi
+if [ ! -z "$maxwalltime" ] ; then
+  echo "ulimit -t $maxwalltime" >> $LRMS_JOB_SCRIPT
+fi
+
+echo "" >> $LRMS_JOB_SCRIPT
+
+
+##############################################################
+# Add environment variables
+##############################################################
+add_user_env
+
+##############################################################
+#  Runtime configuration
+##############################################################
+RTE_stage1 
+
+##############################################################
+# Check for existance of executable,
+##############################################################
+if [ -z "${joboption_arg_0}" ] ; then
+  echo 'Executable is not specified' 1>&2
+  exit 1
+fi
+
+#######################################################################
+# copy information useful for transfering files to/from node directly
+#######################################################################
+if [ "$joboption_localtransfer" = 'yes' ] ; then
+   setup_local_transfer
+fi
+
+setup_runtime_env
+
+##############################################################
+# Add std... to job arguments
+##############################################################
+include_std_streams
+
+##############################################################
+#  Move files to local working directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_node 
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+
+#####################################################
+#  Download input files
+#####################################################
+download_input_files
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+
+#####################################################
+#  Go to working dir and start job
+#####################################################
+cd_and_run
+
+#####################################################
+#  Upload output files
+#####################################################
+upload_output_files
+echo "" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime (post)configuration at computing node
+##############################################################
+configure_runtime
+
+##############################################################
+#  Move files back to session directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_frontend
+
+
+#######################################
+# watcher process
+#######################################
+
+JOB_ID=
+
+cleanup() {
+    [ -n "$JOB_ID" ] && kill -9 $JOB_ID 2>/dev/null
+    # remove temp files
+    [ $# -gt 0 ] && rm -f $@
+}
+
+watcher() {
+    "$1" > "$2" 2>&1 &
+    rc=$?
+    JOB_ID=$!
+    export JOB_ID
+    trap cleanup 0 1 2 3 4 5 6 7 8 10 12 15
+    if [ $rc -ne 0 ]; then
+        echo "FAIL" > "$3"
+        exit 1
+    else
+        echo "OK" > "$3"
+        wait $JOB_ID
+        cleanup "$1" "$2"
+    fi
+}
+
+#######################################
+#  Submit the job
+#######################################
+echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
+
+# simple queuing system: make hard reference to the queue
+cd "$joboption_directory"
+watcher "${LRMS_JOB_SCRIPT}" "${LRMS_JOB_OUT}" "${LRMS_JOB_ERR}" &
+job_id=$!
+result=
+while [ -z "$result" ]; do
+    sleep 1
+    result=`cat $LRMS_JOB_ERR`
+done
+
+case "$result" in
+    OK)
+        echo "job submitted successfully!" 1>&2
+        echo "local job id: $job_id" 1>&2
+        echo "joboption_jobid=$job_id" >> $arg_file
+        rc=0
+        ;;
+    *)
+        echo "job *NOT* submitted successfully!" 1>&2
+        echo "" 1>&2
+        echo "Output is:" 1>&2
+        cat $LRMS_JOB_OUT 1>&2
+        rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
+        rc=1
+        ;;
+esac
+rm "$LRMS_JOB_ERR"
+
+echo "----- exiting submit_fork_job -----" 1>&2
+echo "" 1>&2
+exit $rc

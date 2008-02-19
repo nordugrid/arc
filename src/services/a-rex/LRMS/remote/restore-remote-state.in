@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# Restore previous scan state file to circumvent race caused by separate LRMS and
+# GM file systems. Rewind state to the state before previous scan to allow
+# catching finished jobs that weren't registered in last scan because job.x.local
+# was not yet available at resource.
+
+# usage: restore-remote-state lrms_type CONTROL_DIR [ ... CONTROL_DIR_N ]
+
+function restore_state() {
+	if [ $# -lt 2 ]; then
+		logger "DEBUGMSG: restore_state got $# arguments - expected at least 2!"
+		return 1
+	fi
+	
+	local LRMS=$1
+	local ID=$2
+	local DIR=$3
+
+	CP='cp -f'
+	MV='mv -f'
+	CREATE='touch'
+
+	STATE="${DIR}/${LRMS}_log_scan.${ID}"
+	LAST="${STATE}.last"
+	NEXT="${STATE}.next"
+	
+	if [ ! -f $STATE ]; then
+		# TODO: permission handling - what if no write access
+		logger "DEBUGMSG: creating $STATE"
+		$CREATE $STATE
+	fi
+	
+	logger "DEBUGMSG: $CP $STATE $LAST"
+	$CP $STATE $LAST
+	if [ -f $NEXT ]; then
+		logger "DEBUGMSG: $MV $NEXT $STATE"
+		$MV $NEXT $STATE
+	fi
+	logger "DEBUGMSG: $MV $LAST $NEXT"
+	$MV $LAST $NEXT
+
+}
+
+logger "DEBUGMSG: restore-remote-state $@"
+
+ID=`id -u -n`
+
+LRMS_KIND="$1"
+shift
+
+# Remaining arguments are control dirs to use
+
+for ctr in $@; do
+	#logger "DEBUGMSG: restoring state in $ctr";
+	if [ -d $ctr ]; then
+		restore_state $LRMS_KIND $ID $ctr;
+	else
+		logger "ERROR: argument $ctr is not a directory";
+	fi
+done
+
+logger "DEBUGMSG: all states restored";
+
+exit 0

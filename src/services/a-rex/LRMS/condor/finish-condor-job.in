@@ -1,0 +1,352 @@
+#!/bin/bash
+
+progname=$(basename "$0")
+
+# This program assumes the role of /bin/mail, so it's called like this:
+# /bin/mail -s '[Condor] Condor Job <job-ID>' <email-address>
+# We extract the job-ID from the second argument.
+#
+# NOTE: The format of the email message is, unlike the job log, not guaranteed
+# to remain unchanged in future versions of Condor, but since we need the job
+# id to locate the log file, there's no way around this. :-(
+lrmsid=${2##*Condor Job }
+condorid=${lrmsid%% *}
+lrmsid=${lrmsid%%.*}.condor
+
+ARC_LOCATION=${ARC_LOCATION:-@nordugrid_location@}
+
+# Initialize environment for Condor commands!
+source $ARC_LOCATION/libexec/configure-condor-env.sh || exit 1
+
+# Set variable "controldir" from GM config.
+controldir=$CONFIG_controldir
+
+# Find the proper GRAMI file.
+grami=$(find $controldir -name "job.??????????*.grami" -maxdepth 1 \
+          | xargs grep -l "^joboption_jobid=$lrmsid$")
+
+if [[ ! -f $grami ]]; then
+    echo "$progname: No GRAMI file for job $lrmsid could be found." >&2
+    exit 1
+fi
+
+# Logfile used by Grid Manager.
+gmlog=$controldir/$(basename "$grami" .grami).errors
+
+# IMPORTANT: Never change the format of this line!
+# It is used in LRMS_Condor.pm to delimit job info.
+echo "----- starting $progname -----" >>"$gmlog"
+
+echo "arg 0 $0" >>"$gmlog"
+echo "arg 1 $1" >>"$gmlog"
+echo "arg 2 $2" >>"$gmlog"
+echo "arg 3 $3" >>"$gmlog"
+
+# Find the Condor log.
+condor_log=$(sed -n 's/^condor_log=\(.*\)/\1/p' "$grami")
+
+# Use /dev/null if we couldn't find the log.  Should never happen.
+if [[ ! -f $condor_log ]]; then
+    echo "$progname: couldn't find Condor log file ($condor_log)"
+    echo "$progname: using /dev/null as log file"
+    condor_log=/dev/null
+fi >>"$gmlog" 2>&1
+
+jobfile="$controldir"/$(basename "$grami" .grami).local
+sessiondir=$(sed -n 's/^sessiondir=\(.*\)/\1/p' $jobfile)
+lrms_done="$controldir"/$(basename "$grami" .grami).lrms_done || lrms_done="/dev/stderr"
+mbody=/tmp/mailbody.$$
+
+{   echo "$progname: ----- Files and directories -----"
+    echo "$progname: condor_log=$condor_log"
+    echo "$progname: controldir=$controldir"
+    echo "$progname: grami=$grami"
+    echo "$progname: jobfile=$jobfile"
+    echo "$progname: sessiondir=$sessiondir"
+    echo "$progname: lrms_done=$lrms_done"
+
+} >>"$gmlog" 2>&1
+
+if [ ! -d $sessiondir ]; then
+    echo "$progname: No sessiondir!?!?" >> "$gmlog" 2>&1
+fi
+
+# Dump mail body and Condor log into gmlog.
+{
+    cat >$mbody || echo "$progname: failed to write $mbody"
+    echo "$progname: ----- begin condor job completion message -----"
+    sed "s/^/$progname: /" $mbody
+    echo "$progname: ----- end condor job completion message -----"
+    echo "$progname: ----- begin condor log ($condor_log) -----"
+    sed "s/^/$progname: /" "$condor_log"
+    echo "$progname: ----- end condor log ($condor_log) -----"
+} >>"$gmlog" 2>&1
+
+function merge_diag {
+    src=$1
+    dest=$2
+    tmpfile=/tmp/tmpdiag.$$
+    exclude="WallTime\|KernelTime\|UserTime\|CPUUsage\|UsedMemory\|NodeName"
+    exclude="$exclude\|exitstatus\|jobstatus\|removereason\|exitsignal\|exitreason\|exitcode"
+    cat "$dest" \
+       | grep -v '^$' \
+       | grep -v "^\($exclude\) *=" \
+       | cat - "$src" \
+       > $tmpfile
+    cat $tmpfile > "$dest"
+    rm $tmpfile "$src"
+}
+
+function seconds {
+    perl -e 'my $str = "'"$1"'";
+        exit unless $str =~ /(\d+) (\d\d):(\d\d):(\d\d)/;
+        printf "%.0f", ( $1 * 24  + $2 ) * 3600 + $3 * 60 + $4;
+    '
+}
+function find_in_file { file=$1; regex=$2;
+    grep "$regex" "$file" | tail -n 1 | sed -n "s/\(.*\)$regex\(.*\)/\2/ip";
+}
+
+# Parse mail body. Look for lines like:
+#    Allocation/Run time:     0 00:01:19
+#    Remote User CPU Time:    0 00:00:00
+#    Remote System CPU Time:  0 00:00:00
+#    Virtual Image Size:  12728 Kilobytes
+#    exited ... with status 0.
+#    PeriodicRemove ... evaluated to TRUE
+
+{ echo "$progname: ----- Information extracted from email body -----"
+
+    WallTime=$(   find_in_file "$mbody"   'Allocation\/Run time: *\([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\)' )
+    UserTime=$(   find_in_file "$mbody"   'Remote User CPU Time: *\([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\)' )
+    KernelTime=$( find_in_file "$mbody" 'Remote System CPU Time: *\([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\)' )
+    UsedMemory=$( find_in_file "$mbody" 'Virtual Image Size: *\([0-9][0-9]*\) *K' )
+    exitcode=$(   find_in_file "$mbody" 'exited.*with status *\([0-9][0-9]*\)' )
+    PeriodicRemove=$( find_in_file "$mbody" 'PeriodicRemove .*evaluated to \(TRUE\)' )
+
+    WallTime=$(seconds "$WallTime")
+    UserTime=$(seconds "$UserTime")
+    KernelTime=$(seconds "$KernelTime")
+
+    echo "$progname: WallTime=$WallTime"
+    echo "$progname: UserTime=$UserTime"
+    echo "$progname: KernelTime=$KernelTime"
+    echo "$progname: UsedMemory=$UsedMemory"
+    echo "$progname: PeriodicRemove=$PeriodicRemove"
+    echo "$progname: exitcode=$exitcode"
+
+} >> "$gmlog" 2>&1
+
+# Parse condor log. Look for lines like:
+#    (return value 0)
+#    Image size of job updated: 692632
+#    Usr 0 00:37:09, Sys 0 00:00:04  -  Total Remote Usage
+#    Job executing on host: <129.240.86.70:32769>
+
+{ echo "$progname: ----- Information extracted from Condor log -----"
+
+    NodeName=$(    find_in_file "$condor_log" 'Job executing on host: *<\([^:>]*\)' )
+    UsedMemory2=$( find_in_file "$condor_log" 'Image size of job updated: \([0-9][0-9]*\)' )
+    UserTime2=$(   find_in_file "$condor_log" 'Usr \([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\).*Total Remote Usage' )
+    KernelTime2=$( find_in_file "$condor_log" 'Sys \([0-9][0-9]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\).*Total Remote Usage' )
+    exitcode2=$(   find_in_file "$condor_log"   '(return value \([0-9][0-9]*\))' )
+
+    UserTime2=$(seconds "$UserTime2")
+    KernelTime2=$(seconds "$KernelTime2")
+
+    echo "$progname: RemoteHost=$NodeName"
+    echo "$progname: UserTime=$UserTime2"
+    echo "$progname: KernelTime=$KernelTime2"
+    echo "$progname: UsedMemory=$UsedMemory2"
+    echo "$progname: exitcode=$exitcode2"
+
+} >> "$gmlog" 2>&1
+
+if [ -z "$UserTime" ];   then UserTime=$UserTime2; fi
+if [ -z "$KernelTime" ]; then KernelTime=$KernelTime2; fi
+if [ -z "$UsedMemory" ]; then UsedMemory=$UsedMemory2; fi
+if [ -z "$exitcode" ];   then exitcode=$exitcode2; fi
+
+{ echo "$progname: ----- Limits from grami file -----"
+
+    req_memory=$(sed -n 's/^joboption_memory=//p' $grami)
+    req_cputime=$(sed -n 's/^joboption_cputime=//p' $grami)
+    req_walltime=$(sed -n 's/^joboption_walltime=//p' $grami)
+
+    echo "$progname: req_memory=$req_memory"
+    echo "$progname: req_cputime=$req_cputime"
+    echo "$progname: req_walltime=$req_walltime"
+
+} >> "$gmlog" 2>&1
+
+
+tmphist=`mktemp /tmp/tmphist.XXXXXX`
+tmpdiag=`mktemp /tmp/tmpdiag.XXXXXX`
+
+function cleanup {
+  rm -f $tmphist
+  rm -f $tmpdiag
+  rm -f $mbody
+  # Don't remove or modify next line.
+  echo "----- exiting $progname -----" >>"$gmlog"
+}
+
+trap cleanup EXIT
+
+echo "$progname: ----- Invoking condor_history for ID $condorid -----" >> "$gmlog" 2>&1
+
+# Run condor_history.  This is maybe not necessary, but in case there is no
+# record of the job at first try, sleep a bit, and try again
+for to in 10 30; do
+    $CONDOR_BIN_PATH/condor_history -l $condorid > $tmphist 2>> "$gmlog"
+    if [ $? == 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
+      break;
+    fi
+    echo "$progname: No condor_history yet, sleeping $to seconds" >> "$gmlog"
+    sleep $to
+done
+
+# Extract information from condor_history output
+if [ $? == 0 ] && [ -s $tmphist ] && [ `wc -l $tmphist|awk '{print $1}'` -gt 1 ]; then
+    { echo "$progname: ----- begin condor history message -----"
+      cat $tmphist
+      echo "$progname: ----- end condor history message -----"
+    } >> "$gmlog" 2>&1
+
+    # values obtained peviously from mbody and condor_log will be overwritten!
+    exitcode=`sed     -n 's/^ExitCode *= *//p' $tmphist`
+    WallTime=`sed     -n 's/^RemoteWallClockTime *= *\([^.]*\).*/\1/p' $tmphist`
+    KernelTime=`sed   -n 's/^RemoteSysCpu *= *\([^.]*\).*/\1/p' $tmphist`
+    UserTime=`sed     -n 's/^RemoteUserCpu *= *\([^.]*\).*/\1/p' $tmphist`
+    UsedMemory=`sed   -n 's/^ImageSize *= *//p' $tmphist`
+    ExitStatus=`sed   -n 's/^ExitStatus *= *//p' $tmphist`
+    JobStatus=`sed    -n 's/^JobStatus *= *//p' $tmphist`
+    ExitSignal=`sed   -n 's/^ExitSignal *= *//p' $tmphist`
+    NodeName=`sed     -n 's/^LastRemoteHost *= *"\(.*\)"[^"]*$/\1/p' $tmphist`
+    RemoveReason=`sed -n 's/^RemoveReason *= *"\(.*\)"[^"]*$/\1/p' $tmphist`
+    ExitReason=`sed   -n 's/^ExitReason *= *"\(.*\)"[^"]*$/\1/p' $tmphist`
+
+    { echo ----- Information extracted from condor_history -----
+      echo "$progname: exitcode=$exitcode"
+      echo "$progname: WallTime=$WallTime"
+      echo "$progname: KernelTime=$KernelTime"
+      echo "$progname: UserTime=$UserTime"
+      echo "$progname: ImageSize=$UsedMemory"
+      echo "$progname: ExitStatus=$ExitStatus"
+      echo "$progname: JobStatus=$JobStatus"
+      echo "$progname: ExitSignal=$ExitSignal"
+      echo "$progname: NodeName=$NodeName"
+      echo "$progname: RemoveReason=$RemoveReason"
+      echo "$progname: ExitReason=$ExitReason"
+    } >> "$gmlog" 2>&1
+else
+    echo "$progname: No condor_history for Condor ID $condorid" >> $gmlog
+fi
+
+
+# All possible information was collected. Time for analysis
+
+if [ ! -z "$WallTime" ] && [ ! -z "$KernelTime" ] \
+&& [ ! -z "$UserTime" ] && [ "$WallTime" -gt 0 ]; then
+    CPUUsage=$((100*(UserTime+KernelTime)/WallTime))
+else
+    CPUUsage=0
+fi
+
+# set an exit code (if not already set), and a preliminary message
+if [ -z "$exitcode" ] || [ "$exitcode" == "None" ]; then
+    exitcode=271
+    if [ ! -z "$RemoveReason" ] && [ "$RemoveReason" != "None" ]; then
+        message="$RemoveReason"
+    elif [ ! -z "$ExitReason" ] && [ "$ExitReason" != "None" ]; then
+        message="$ExitReason"
+    elif [ ! -z "$PeriodicRemove" ]; then
+        message="PeriodicRemove evaluated to TRUE"
+    else
+        message="Unknown Condor error"
+    fi
+elif [ "$exitcode" == 0 ]; then
+    message=""
+else
+    message="Job finished with non-zero exit code"
+fi
+
+# Check whether the job was killed by Condor. If yes, check for exceeded resources limits
+if [[ ( ! -z "$RemoveReason" && "$RemoveReason" != "None" ) || ! -z "$PeriodicRemove" ]]; then
+    exitcode=271
+    overlimit='unknown'
+    used_walltime=$WallTime
+  
+    if [ ! -z "$UserTime" ] && [ ! -z "$KernelTime" ]; then
+        used_cputime=$(( UserTime + KernelTime ))
+    fi
+    if [ ! -z "$UsedMemory" ]; then
+        used_memory="$UsedMemory"
+    fi
+    if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] && [ "$req_memory" -gt 0 ] \
+    && [ $(( 100*used_memory/1024/req_memory )) -gt 95 ]; then
+        overlimit="memory"
+    fi
+    if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] && [ "$req_cputime" -gt 0 ] \
+    && [ $(( 100*used_cputime/req_cputime )) -gt 98 ]; then
+        overlimit="cputime"
+    fi
+    if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] && [ "$req_walltime" -gt 0 ] \
+    && [ $(( 100*used_walltime/req_walltime )) -gt 98 ]; then
+        overlimit="walltime"
+    fi
+    {   echo "$progname: +++++++++++++++++++++++++++++"
+        echo "$progname: Resources requested/consumed:"
+        echo "$progname: +++++++++++++++++++++++++++++"
+        echo "$progname: req_memory=$req_memory Mb"
+        echo "$progname: req_cputime=$req_cputime"
+        echo "$progname: req_walltime=$req_walltime"
+        echo "$progname: used_memory=$used_memory kB"
+        echo "$progname: used_cputime=$used_cputime"
+        echo "$progname: used_walltime=$used_walltime"
+        if [ ! -z "$overlimit" ]; then
+          echo "$progname: overlimit=$overlimit"
+        fi
+        echo "$progname: +++++++++++++++++++++++++++++"
+    } >> $gmlog
+  
+    if [ -z "$overlimit" ]; then
+        :
+    elif [ $overlimit == "memory" ]; then
+        message="job killed: vmem"
+    elif [ $overlimit == "cputime" ]; then
+        message="job killed: cput"
+    elif [ $overlimit == "walltime" ]; then
+        message="job killed: wall"
+    elif [ $overlimit == "unknown" ]; then
+        message="job killed: $message"
+    fi
+fi
+
+# all values finalized, write them to diag
+{   if [ ! -z "$WallTime" ];     then echo "WallTime=${WallTime}.0s";      fi
+    if [ ! -z "$KernelTime" ];   then echo "KernelTime=${KernelTime}.0s";  fi
+    if [ ! -z "$UserTime" ];     then echo "UserTime=${UserTime}.0s";      fi
+    if [ ! -z "$CPUUsage" ];     then echo "CPUUsage=${CPUUsage}%";        fi
+    if [ ! -z "$UsedMemory" ];   then echo "UsedMemory=${UsedMemory}kB";   fi
+    if [ ! -z "$NodeName" ];     then echo "nodename=${NodeName}";         fi
+    echo
+    if [ ! -z "$ExitStatus" ];   then echo "ExitStatus=${ExitStatus}";     fi
+    if [ ! -z "$JobStatus" ];    then echo "JobStatus=${JobStatus}";       fi
+    if [ ! -z "$RemoveReason" ]; then echo "RemoveReason=${RemoveReason}"; fi
+    if [ ! -z "$ExitSignal" ];   then echo "ExitSignal=${ExitSignal}";     fi
+    if [ ! -z "$ExitReason" ];   then echo "ExitReason=${ExitReason}";     fi
+    echo
+    echo "exitcode=$exitcode"
+} > $tmpdiag
+
+merge_diag $tmpdiag $sessiondir.diag 
+
+
+# Finally, declare the job done
+echo $exitcode $message > $lrms_done
+# wake up GM
+status=$controldir/$(basename "$grami" .grami).status
+$ARC_LOCATION/libexec/gm-kick $status >> $gmlog
+
+exit 0
