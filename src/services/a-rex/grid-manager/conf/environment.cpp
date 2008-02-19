@@ -57,8 +57,9 @@ bool read_env_vars(bool guess) {
     tmp=getenv("GLOBUS_LOCATION");
     if((tmp == NULL) || (*tmp == 0)) {
       if(!guess) {
-        olog<<"Error: GLOBUS_LOCATION environment variable not defined"<<std::endl;
-        return false;
+        olog<<"Warning: GLOBUS_LOCATION environment variable not defined"<<std::endl;
+        tmp="";
+        //return false;
       }
       else {
         tmp="/opt/globus";
