@@ -1,0 +1,1178 @@
+# attributes for the nordugrid-cluster objectclass 
+#
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.1
+    NAME 'nordugrid-cluster-name'
+    DESC 'The name of the cluster specified as the domain name of the frontend'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.2
+    NAME 'nordugrid-cluster-aliasname'
+    DESC 'The alias name of the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE)
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.3
+    NAME 'nordugrid-cluster-contactstring'
+    DESC 'The URL of the job submission service running on the cluster frontend'
+    EQUALITY caseExactIA5Match
+    SUBSTR caseExactIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.4
+    NAME 'nordugrid-cluster-support'
+    DESC 'RFC822 email address of support'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256})
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.5
+    NAME 'nordugrid-cluster-lrms-type'
+    DESC 'The type of the Local Resource Management System'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.6
+    NAME 'nordugrid-cluster-lrms-version'
+    DESC 'The version of the Local Resource Management System'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.7
+    NAME 'nordugrid-cluster-lrms-config'
+    DESC 'Additional remark on the LRMS config'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.8
+    NAME 'nordugrid-cluster-architecture'
+    DESC 'The architecture of the cluster nodes'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.9
+    NAME 'nordugrid-cluster-opsys'
+    DESC 'The operating system of the machines of the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44) 
+  
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.10
+    NAME 'nordugrid-cluster-homogeneity'
+    DESC 'A logical flag indicating the homogeneity of the cluster nodes'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )   
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.11
+    NAME 'nordugrid-cluster-nodecpu'
+    DESC 'The cpu type of the nodes expressed in a fixed form (model name + MHz)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.12
+    NAME 'nordugrid-cluster-nodememory'
+    DESC 'The amount of memory which can be guaranteed to be available on the node in MB'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.13
+    NAME 'nordugrid-cluster-totalcpus'
+    DESC 'The total number of cpus in the cluster'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.14
+    NAME 'nordugrid-cluster-cpudistribution'
+    DESC 'The cpu distribution of the nodes given in the form of 1cpu:3 2cpu:4 4cpu:1'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.15
+    NAME 'nordugrid-cluster-sessiondir-free'
+    DESC 'Free diskspace in MB of the sessiondirectory on the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.16
+    NAME 'nordugrid-cluster-sessiondir-total'
+    DESC 'Total diskspace in MB of the sessiondirectory on the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.17
+    NAME 'nordugrid-cluster-cache-free'
+    DESC 'Free diskspace in MB of the cache area on the cluster'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.18
+    NAME 'nordugrid-cluster-cache-total'
+    DESC 'Total diskspace in MB of the cache area on the cluster'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.19
+    NAME 'nordugrid-cluster-runtimeenvironment'
+    DESC 'preinstalled software packages of the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.20
+    NAME 'nordugrid-cluster-localse'
+    DESC 'The URL of a storage element considered to be local to the cluster'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )  
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.21
+    NAME 'nordugrid-cluster-middleware'
+    DESC 'The middleware packages on the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.22
+    NAME 'nordugrid-cluster-totaljobs'
+    DESC 'The total number of jobs (Grid + non-Grid) in the cluster'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE ) 
+       
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.23
+    NAME 'nordugrid-cluster-usedcpus'
+    DESC 'The total number of occupied cpus in the cluster'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )  
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.24
+    NAME 'nordugrid-cluster-queuedjobs'
+    DESC 'The total number of jobs (grid and non-grid) not-yet running: preparing or waiting to run 
+          on the cluster, either in the grid-manager or in the LRMS. 
+	  The attribute is TO BE DEPRECATED'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )   
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.25
+    NAME 'nordugrid-cluster-location'
+    DESC 'The geographical location of the cluster expressed in terms of a Postal ZIP code'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.26
+    NAME 'nordugrid-cluster-owner'
+    DESC 'The owner of the resource'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 ) 
+        
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.27
+    NAME 'nordugrid-cluster-issuerca'
+    DESC 'The DN of the Certificate Authority which issued the certificate of the cluster'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.28
+    NAME 'nordugrid-cluster-nodeaccess'
+    DESC 'The inbound/outbound network accessibility of the nodes'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.29
+    NAME 'nordugrid-cluster-comment'
+    DESC 'Free form comment'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{256}
+    SINGLE-VALUE )    
+ 
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.30
+    NAME 'nordugrid-cluster-interactive-contactstring'
+    DESC 'The URL for interactive login'
+    EQUALITY caseExactIA5Match
+    SUBSTR caseExactIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.31
+    NAME 'nordugrid-cluster-benchmark'
+    DESC '@ separated benchmark_name, benchmark_value pair characterizing the cluster nodes'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.32
+    NAME 'nordugrid-cluster-sessiondir-lifetime'
+    DESC 'The lifetime of the sessiondir after the job has completed (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.33
+    NAME 'nordugrid-cluster-prelrmsqueued'
+    DESC 'The total number of grid jobs not-yet reached the LRMS: preparing or queuing in the grid-layer'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )   
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.34
+    NAME 'nordugrid-cluster-issuerca-hash'
+    DESC 'The HASH of the Certificate Authority which issued the certificate for the cluster'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )  
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.35
+    NAME 'nordugrid-cluster-trustedca'
+    DESC 'The DN of a Certificate Authority trusted by the cluster'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.1.36
+    NAME 'nordugrid-cluster-acl'
+    DESC 'Cluster authorization information'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+objectclass ( 1.3.6.1.4.1.11604.2.1.1
+    NAME 'nordugrid-cluster'
+    DESC 'Description of a Nordugrid cluster'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-cluster-name $ nordugrid-cluster-contactstring )
+    MAY  ( nordugrid-cluster-aliasname $ nordugrid-cluster-support $
+           nordugrid-cluster-lrms-type $ nordugrid-cluster-lrms-version $
+	   nordugrid-cluster-lrms-config $ nordugrid-cluster-architecture $
+	   nordugrid-cluster-opsys $ nordugrid-cluster-homogeneity $
+	   nordugrid-cluster-nodecpu $ nordugrid-cluster-nodememory $
+	   nordugrid-cluster-totalcpus $ nordugrid-cluster-cpudistribution $
+	   nordugrid-cluster-sessiondir-free $ nordugrid-cluster-sessiondir-total $
+	   nordugrid-cluster-cache-free $ nordugrid-cluster-cache-total $
+	   nordugrid-cluster-runtimeenvironment $ nordugrid-cluster-localse $
+	   nordugrid-cluster-middleware $ nordugrid-cluster-totaljobs $
+	   nordugrid-cluster-usedcpus $	nordugrid-cluster-queuedjobs  $
+	   nordugrid-cluster-location $ nordugrid-cluster-owner $ 
+	   nordugrid-cluster-issuerca $ nordugrid-cluster-nodeaccess $
+	   nordugrid-cluster-comment $ nordugrid-cluster-interactive-contactstring $
+	   nordugrid-cluster-benchmark $ nordugrid-cluster-sessiondir-lifetime $
+	   nordugrid-cluster-prelrmsqueued $ nordugrid-cluster-issuerca-hash $
+	   nordugrid-cluster-trustedca $ nordugrid-cluster-acl ))
+
+#-----------------------------------------------------------------
+# attributes for the nordugrid-info-group objectclass
+#
+attributetype ( 1.3.6.1.4.1.11604.2.1.2.1
+    NAME 'nordugrid-info-group-name'
+    DESC 'Locally unique info group name'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE)
+    
+objectclass ( 1.3.6.1.4.1.11604.2.1.2
+    NAME 'nordugrid-info-group'
+    DESC 'A general entry for grouping together MDS entries'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-info-group-name ))
+
+#-----------------------------------------------------------------
+# attributes for the nordugrid-queue objectclass
+#
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.1
+    NAME 'nordugrid-queue-name'
+    DESC 'The queue name'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.2
+    NAME 'nordugrid-queue-status'
+    DESC 'The queue status'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.3
+    NAME 'nordugrid-queue-running'
+    DESC 'Number of running jobs (Grid + non-Grid) in the queue with multi-node jobs multiciplity'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.4
+    NAME 'nordugrid-queue-queued'
+    DESC 'The number of jobs (Grid + non-Grid) waiting in the queue.
+          The attribute is TO BE DEPRECATED'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.5
+    NAME 'nordugrid-queue-maxrunning'
+    DESC 'The maximum number of jobs allowed to run from this queue'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.6
+    NAME 'nordugrid-queue-maxqueuable'
+    DESC 'The maximum number of jobs allowed to reside in the queue'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.7
+    NAME 'nordugrid-queue-maxuserrun'
+    DESC 'Maximum number of jobs a user can run at the same time'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.8
+    NAME 'nordugrid-queue-maxcputime'
+    DESC 'The maximum cputime allowed in this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.9
+    NAME 'nordugrid-queue-mincputime'
+    DESC 'The minimum possible cputime of this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.10
+    NAME 'nordugrid-queue-defaultcputime'
+    DESC 'The default cputime assigned to this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.11
+    NAME 'nordugrid-queue-schedulingpolicy'
+    DESC 'The scheduling policy of the queue (i.e. FIFO)'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.12
+    NAME 'nordugrid-queue-totalcpus'
+    DESC 'Total number of cpus assigned to the queue'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.13
+    NAME 'nordugrid-queue-nodecpu'
+    DESC 'The cpu type of the nodes assigned to the queue (model name + MHz)'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.14
+    NAME 'nordugrid-queue-nodememory'
+    DESC 'The installed memory of a node assigned to the queue in MB'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.15
+    NAME 'nordugrid-queue-architecture'
+    DESC 'The architecture of the machines in the queue'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.16
+    NAME 'nordugrid-queue-opsys'
+    DESC 'The operating system of the nodes in the queue'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44)
+        
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.17
+    NAME 'nordugrid-queue-gridrunning'
+    DESC 'Number of running Grid jobs in the queue with multi-node jobs multiciplity'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.18
+    NAME 'nordugrid-queue-gridqueued'
+    DESC 'The number of Grid jobs waiting in the LRMS queue'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.19
+    NAME 'nordugrid-queue-comment'
+    DESC 'Free form comment'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{256}
+    SINGLE-VALUE )    
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.20
+    NAME 'nordugrid-queue-benchmark'
+    DESC 'Colon separated benchmark_name, benchmark_value pair characterizing the queue'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 ) 
+ 
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.21
+    NAME 'nordugrid-queue-homogeneity'
+    DESC 'A logical flag indicating the homogeneity of the queue nodes'
+    EQUALITY caseIgnoreMatch  
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.22
+    NAME 'nordugrid-queue-prelrmsqueued'
+    DESC 'The number of Grid jobs belonging to this queue being processed
+    	 or waiting in the Grid-layer before the LRMS submission.'      
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.23
+    NAME 'nordugrid-queue-localqueued'
+    DESC 'The number of non-Grid jobs waiting in the LRMS queue.'    
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.24
+    NAME 'nordugrid-queue-maxwalltime'
+    DESC 'The maximum walltime allowed in this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.25
+    NAME 'nordugrid-queue-minwalltime'
+    DESC 'The minimum possible walltime of this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.3.26
+    NAME 'nordugrid-queue-defaultwalltime'
+    DESC 'The default walltime assigned to this queue (in minutes)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )     
+
+objectclass ( 1.3.6.1.4.1.11604.2.1.3
+    NAME 'nordugrid-queue'
+    DESC 'An LRMS queue'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-queue-name $ nordugrid-queue-status)    
+    MAY  ( nordugrid-queue-running $ nordugrid-queue-queued $
+    	   nordugrid-queue-maxrunning  $ nordugrid-queue-maxqueuable$
+    	   nordugrid-queue-maxuserrun $ nordugrid-queue-maxcputime $
+    	   nordugrid-queue-mincputime $ nordugrid-queue-defaultcputime $
+    	   nordugrid-queue-schedulingpolicy $ nordugrid-queue-totalcpus $
+    	   nordugrid-queue-nodecpu $ nordugrid-queue-nodememory $
+	   nordugrid-queue-opsys $ nordugrid-queue-architecture $	   
+	   nordugrid-queue-gridrunning $ nordugrid-queue-gridqueued $
+	   nordugrid-queue-comment $ nordugrid-queue-benchmark $
+	   nordugrid-queue-homogeneity $ nordugrid-queue-prelrmsqueued $
+	   nordugrid-queue-localqueued $ nordugrid-queue-maxwalltime $
+	   nordugrid-queue-minwalltime $ nordugrid-queue-defaultwalltime ))
+
+#-----------------------------------------------------------------
+#attributes for the nordugrid-job objectclass
+#
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.1
+    NAME 'nordugrid-job-globalid'
+    DESC 'The global job identifier string'
+    EQUALITY caseExactIA5Match
+    SUBSTR caseExactIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26    
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.2
+    NAME 'nordugrid-job-globalowner'
+    DESC 'The SubjectName of the job owner'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44  
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.3
+    NAME 'nordugrid-job-execcluster'
+    DESC 'The name of the execution cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE)
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.4
+    NAME 'nordugrid-job-execqueue'
+    DESC 'The name of the execution queue'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.5
+    NAME 'nordugrid-job-stdout'
+    DESC 'The name of the file which contains the stdout'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.6
+    NAME 'nordugrid-job-stderr'
+    DESC 'The name of the file which contains the stderr'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.7
+    NAME 'nordugrid-job-stdin'
+    DESC 'The name of the file which contains the stdin'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.8
+    NAME 'nordugrid-job-reqcputime'
+    DESC 'The cputime request by the job in minutes'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.9
+    NAME 'nordugrid-job-status'
+    DESC 'The status of the grid job'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.10
+    NAME 'nordugrid-job-queuerank'
+    DESC 'The queue position of the job'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.11
+    NAME 'nordugrid-job-comment'
+    DESC 'Free form comment about the job'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.12
+    NAME 'nordugrid-job-submissionui'
+    DESC 'The name of the UI from where the job was submitted'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.13
+    NAME 'nordugrid-job-submissiontime'
+    DESC 'The submission time of the job in GMT'
+    EQUALITY generalizedTimeMatch
+    ORDERING generalizedTimeOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.14
+    NAME 'nordugrid-job-usedcputime'
+    DESC 'The consumed cputime of the job in minutes'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.15
+    NAME 'nordugrid-job-usedwalltime'
+    DESC 'The consumed walltime of the job in minutes'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.16
+    NAME 'nordugrid-job-sessiondirerasetime'
+    DESC 'The date when the session dir will be deleted in GMT'
+    EQUALITY generalizedTimeMatch
+    ORDERING generalizedTimeOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.17
+    NAME 'nordugrid-job-usedmem'
+    DESC 'The memory usage of the job (in KB)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.18
+    NAME 'nordugrid-job-errors'
+    DESC 'Error mesages from the cluster'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )     
+ 
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.19
+    NAME 'nordugrid-job-jobname'
+    DESC 'The jobname specified by the user with the jobname RSL attribute'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )     
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.20
+    NAME 'nordugrid-job-runtimeenvironment'
+    DESC 'The runtimeenvironment requested by the job'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.21
+    NAME 'nordugrid-job-cpucount'
+    DESC 'The number of CPUs requested by the job'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )    
+     
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.22
+    NAME 'nordugrid-job-executionnodes'
+    DESC 'The list of nodenames where the job is running'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )       
+       
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.23
+    NAME 'nordugrid-job-gmlog'
+    DESC 'The name of the directory which contains the grid session related logs'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.24
+    NAME 'nordugrid-job-clientsoftware'
+    DESC 'The client software which submitted the job'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44)
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.25
+    NAME 'nordugrid-job-proxyexpirationtime'
+    DESC 'The expiration time of the proxy of the job in GMT'
+    EQUALITY generalizedTimeMatch
+    ORDERING generalizedTimeOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+    SINGLE-VALUE )    
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.26
+    NAME 'nordugrid-job-completiontime'
+    DESC 'The completion time of the grid job in GMT'
+    EQUALITY generalizedTimeMatch
+    ORDERING generalizedTimeOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+    SINGLE-VALUE )  
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.27
+    NAME 'nordugrid-job-exitcode'
+    DESC 'The exit code of the executable of the job obtained from the LRMS'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.28
+    NAME 'nordugrid-job-rerunable'
+    DESC 'Rerunability of the FAILED grid jobs'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE ) 
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.4.29
+    NAME 'nordugrid-job-reqwalltime'
+    DESC 'The request wallclock time of the job in minutes'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+           
+objectclass ( 1.3.6.1.4.1.11604.2.1.4
+    NAME 'nordugrid-job'
+    DESC 'A Grid job'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-job-globalid $ nordugrid-job-globalowner $
+           nordugrid-job-status ) 
+    MAY  ( nordugrid-job-queuerank $ nordugrid-job-submissionui $
+    	   nordugrid-job-submissiontime  $
+    	   nordugrid-job-usedcputime $ nordugrid-job-usedwalltime $
+    	   nordugrid-job-usedmem $ nordugrid-job-comment $
+    	   nordugrid-job-execcluster $ nordugrid-job-execqueue $
+    	   nordugrid-job-stdout $ nordugrid-job-stderr $    	   
+    	   nordugrid-job-stdin $ 
+    	   nordugrid-job-sessiondirerasetime $ nordugrid-job-reqcputime $
+	   nordugrid-job-errors $ nordugrid-job-jobname $
+	   nordugrid-job-runtimeenvironment $ nordugrid-job-cpucount $
+	   nordugrid-job-executionnodes $ nordugrid-job-gmlog $
+	   nordugrid-job-clientsoftware $ nordugrid-job-proxyexpirationtime $
+	   nordugrid-job-completiontime $ nordugrid-job-exitcode $
+	   nordugrid-job-rerunable $ nordugrid-job-reqwalltime))
+	   
+#----------------------------------------------------------------
+# attributes for the nordugrid-authuser objectclass
+#
+
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.5.1
+    NAME 'nordugrid-authuser-name'
+    DESC 'The Common Name of the authorized user plus a local unique number'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch 
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.5.2
+    NAME 'nordugrid-authuser-sn'
+    DESC 'The SubjectName of the authorized user'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch 
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.5.3
+    NAME 'nordugrid-authuser-freecpus'
+    DESC 'The number of freely available cpus with their timelimits in minutes 
+          for a user in the queue. Given in the form ncpus:min,
+	  min is optional (example: 2 4:25 5:180)'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch 
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.5.4
+    NAME 'nordugrid-authuser-diskspace'
+    DESC 'The free diskspace available for the job (in MB)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.5.5
+    NAME 'nordugrid-authuser-queuelength'
+    DESC 'The number of queuing jobs of a particular user, 
+          both queuing in the LRMS and in the Grid-layer'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+    
+objectclass ( 1.3.6.1.4.1.11604.2.1.5
+    NAME 'nordugrid-authuser'
+    DESC 'An authorised user of a NorduGrid cluster'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-authuser-name $ nordugrid-authuser-sn ) 
+    MAY  ( nordugrid-authuser-queuelength $ nordugrid-authuser-diskspace $
+           nordugrid-authuser-freecpus ))
+
+#----------------------------------------------------------------
+# 
+# nordugrid-se
+
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.1
+    NAME 'nordugrid-se-name'
+    DESC 'The name of the Storage Element'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.2
+    NAME 'nordugrid-se-aliasname'
+    DESC 'The alias name of the SE'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.3
+    NAME 'nordugrid-se-type'
+    DESC 'The type of the SE'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.4
+    NAME 'nordugrid-se-freespace'
+    DESC 'The free space available in the SE (in MB)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.5
+    NAME 'nordugrid-se-url'
+    DESC 'The URL to contact the Storage Element'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )       
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.6
+    NAME 'nordugrid-se-authuser'
+    DESC 'The DN of an authorized user'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.7
+    NAME 'nordugrid-se-location'
+    DESC 'The geographical location of the SE expressed in terms of a Postal ZIP code: SE-22363'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.8
+    NAME 'nordugrid-se-owner'
+    DESC 'The owner of the resource'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+        
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.9
+    NAME 'nordugrid-se-issuerca'
+    DESC 'The DN of the Certificate Authority which issued the certificate of the SE'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )  
+       
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.10
+    NAME 'nordugrid-se-totalspace'
+    DESC 'The total capacity of the SE (in MB)'
+    EQUALITY integerMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.11
+    NAME 'nordugrid-se-middleware'
+    DESC 'The middleware packages on the SE'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.12
+    NAME 'nordugrid-se-comment'
+    DESC 'Free form comment'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{256}
+    SINGLE-VALUE )    
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.13
+    NAME 'nordugrid-se-accesscontrol'
+    DESC 'The access control framework of the SE'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.14
+    NAME 'nordugrid-se-issuerca-hash'
+    DESC 'The HASH of the Certificate Authority which issued the certificate for the SE'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 
+    SINGLE-VALUE )  
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.15
+    NAME 'nordugrid-se-trustedca'
+    DESC 'The DN of a Certificate Authority trusted by the SE'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.6.16
+    NAME 'nordugrid-se-acl'
+    DESC 'Storage Element authorization information'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+
+objectclass ( 1.3.6.1.4.1.11604.2.1.6
+    NAME 'nordugrid-se'
+    DESC 'A storage element in the Nordugrid'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-se-name $ nordugrid-se-url)
+    MAY  ( nordugrid-se-aliasname $ nordugrid-se-type $ 
+    	   nordugrid-se-freespace $ nordugrid-se-authuser $
+	   nordugrid-se-location $ nordugrid-se-owner $
+	   nordugrid-se-issuerca $ nordugrid-se-totalspace $ 
+	   nordugrid-se-middleware $ nordugrid-se-comment $
+	   nordugrid-se-accesscontrol $ nordugrid-se-issuerca-hash $
+	   nordugrid-se-trustedca $ nordugrid-se-acl ))
+
+#--------------------------------------------------------------------
+# nordugrid-rc
+#
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.1
+    NAME 'nordugrid-rc-name'
+    DESC 'The domain name of the machine hosting the Replica Catalog'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.2
+    NAME 'nordugrid-rc-aliasname'
+    DESC 'The alias name of the rc'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )    
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.3
+    NAME 'nordugrid-rc-baseurl'
+    DESC 'The URL of the Replica Catalog'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44
+    SINGLE-VALUE )   
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.4
+    NAME 'nordugrid-rc-authuser'
+    DESC 'An authorized user of the replica catalog'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )   
+
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.5
+    NAME 'nordugrid-rc-location'
+    DESC 'The geographical location of the RC expressed in terms of a Postal ZIP code'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+    
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.6
+    NAME 'nordugrid-rc-owner'
+    DESC 'The owner of the resource'
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )
+        
+attributetype ( 1.3.6.1.4.1.11604.2.1.7.7
+    NAME 'nordugrid-rc-issuerca'
+    DESC 'The DN of the Certificate Authority which issued the certificate of the RC'
+    EQUALITY caseExactMatch
+    ORDERING caseExactOrderingMatch
+    SUBSTR caseExactSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 )          
+    
+objectclass ( 1.3.6.1.4.1.11604.2.1.7
+    NAME 'nordugrid-rc'
+    DESC 'A replica catalogue in the Nordugrid'
+    SUP 'Mds'
+    STRUCTURAL
+    MUST ( nordugrid-rc-name $ nordugrid-rc-baseurl )
+    MAY  ( nordugrid-rc-aliasname $ nordugrid-rc-authuser $
+    	   nordugrid-rc-location $ nordugrid-rc-owner $
+	   nordugrid-rc-issuerca ))
+

@@ -1,7 +1,10 @@
-SUBDIRS = grid-manager ldif config
+SUBDIRS = grid-manager ldif config infoproviders
 DIST_SUBDIRS = grid-manager ldif config
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
+
+docdir = @docdir@
+doc_DATA = arex.xml arc_arex.conf
 
 #GRIDMANAGER_LIBS = grid-manager/conf/libconf.la grid-manager/jobs/libjobs.la grid-manager/files/libfiles.la grid-manager/run/librun.la \
 #                   grid-manager/jobdesc/libjobdesc.la grid-manager/misc/libmisc.la grid-manager/log/liblog.la \
