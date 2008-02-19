@@ -211,7 +211,8 @@ sub qju_get_host_name () {
 sub read_grid_mapfile () {
     
     unless (open MAPFILE, "<$config{gridmap}") {
-	error("can't open gridmapfile at $config{gridmap}");
+	warning("can't open gridmapfile at $config{gridmap}");
+	return;
     }   
     while(my $line = <MAPFILE>) {
 	chomp($line);
