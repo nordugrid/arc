@@ -9,25 +9,30 @@ if sys.argv[1] == '-x':
 else:
     print_xml = False
 if sys.argv[1] == 'newCollection':
-    if len(sys.argv) < 3:
-        number = 1
-    else:
-        number = int(sys.argv[2])
-    requests = out.NewChild('cat:newCollection').NewChild('cat:newCollectionRequestList')
-    for requestID in range(number):
-        tree = XMLTree(from_tree =
-            ('cat:newCollectionRequestElement', [
-                ('cat:requestID',str(requestID)),
-                ('cat:metadata',[
-                    ('cat:line', [
-                        ('cat:section', 'timestamps'),
-                        ('cat:property', 'created'),
-                        ('cat:value', str(time.time()))
-                    ])
-                ])
+    lines = [ 
+        ('cat:line', [
+            ('cat:section', 'timestamps'),
+            ('cat:property', 'created'),
+            ('cat:value', str(time.time()))
+        ])
+    ]
+    if len(sys.argv) > 2:
+        GUID = sys.argv[2]
+        lines.append(
+            ('cat:line', [
+                ('cat:section', 'catalog'),
+                ('cat:property', 'GUID'),
+                ('cat:value', GUID)
             ])
         )
-        tree.add_to_node(requests)
+    requests = out.NewChild('cat:newCollection').NewChild('cat:newCollectionRequestList')
+    tree = XMLTree(from_tree =
+        ('cat:newCollectionRequestElement', [
+            ('cat:requestID', '0'),
+            ('cat:metadata', lines)
+        ])
+    )
+    tree.add_to_node(requests)
 elif sys.argv[1] == 'get':
     if len(sys.argv) < 3:
         print 'Usage: get <GUID> [<GUID> ...]'

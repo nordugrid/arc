@@ -7,7 +7,6 @@ import traceback
 
 catalog_uri = 'urn:scatalog'
 manager_uri = 'urn:smanager'
-global_root_guid= '0'
 
 def mkuid():
     rnd = ''.join([ chr(random.randint(0,255)) for i in range(16) ])
@@ -61,6 +60,20 @@ class CatalogClient:
             elements.append((GUID,dict(metadata)))
         return dict(elements)
 
+    def traverseLN(self, requests):
+        tree = XMLTree(from_tree =
+            ('cat:traverseLN', [
+                ('cat:traverseLNRequestList', [
+                    ('cat:traverseLNRequestElement', [
+                        ('cat:requestID', rID),
+                        ('cat:LN', LN) 
+                    ]) for rID, LN in requests
+                ])
+            ])
+        )
+        responses = self.call(tree, True)
+        return dict([(response['requestID'], response) for response in responses.get_dicts('///')])
+
     def call(self, tree, return_tree_only = False):
         out = arc.PayloadSOAP(self._ns)
         tree.add_to_node(out)
@@ -70,7 +83,7 @@ class CatalogClient:
         r = h.getresponse()
         if return_tree_only:
             resp = r.read()
-            return XMLTree(from_string=resp).get_trees('///')[0]
+            return XMLTree(from_string=resp, forget_namespace = True).get_trees('///')[0]
         else:
             return r.read(), r.status, r.reason
 
@@ -78,22 +91,15 @@ class Manager:
     def __init__(self, catalog):
         self.catalog = catalog
 
-    def _parse_LN(self, LN):
-        try:
-            splitted= LN.split('/')
-        except:
-            raise Exception, 'Invalid Logical Name: `%s`' % LN
-        guid = splitted[0]
-        path = splitted[1:]
-        if not guid:
-            guid = global_root_guid
-        return guid, path
 
     def stat(self, requests):
-        for LN in requests:
-            guid, path = self._parse_LN(LN)
-            print '\n\n\n*******', guid, path
-        return self.catalog.get(requests)
+        responses = []
+        for response in self.catalog.traverseLN(requests).values():
+            if response['wasComplete'] == '0':
+                responses.append((response['requestID'],None))
+            else:
+                responses.append((response['requestID'], [dict(metadata[1]) for metadata in response['metadataList']]))
+        return responses
         
 
 class ManagerService:
@@ -114,12 +120,25 @@ class ManagerService:
         requests = []
         for i in range(request_number):
             request_node = requests_node.Child(i)
-            requests.append(str(request_node.Get('LN')))
-        print requests
-        response = self.manager.stat(requests)
+            requests.append((str(request_node.Get('requestID')),str(request_node.Get('LN'))))
+        responses = self.manager.stat(requests)
         out = arc.PayloadSOAP(self.man_ns)
         response_node = out.NewChild('man:statResponse')
-        response_node.Set(str(response))
+        tree = XMLTree(from_tree =
+            ('man:statResponseList', [
+                ('man:statResponseElement', [
+                    ('man:requestID', rID),
+                    ('man:metadataList', [
+                        ('man:metadata', [
+                            ('man:section', metadata['section']),
+                            ('man:property', metadata['property']),
+                            ('man:value', metadata['value'])
+                        ]) for metadata in metadataList
+                    ])
+                ]) for rID, metadataList in responses
+            ])
+        )
+        tree.add_to_node(response_node)
         return out
 
     def process(self, inmsg, outmsg):

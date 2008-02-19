@@ -195,7 +195,7 @@ this generates an XML like this:
 from arc import XMLNode
 
 class XMLTree:
-    def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}):
+    def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False):
         """ Constructor of the XMLTree class
 
         XMLTree(from_node = None, from_string = '', from_tree = None)
@@ -227,17 +227,17 @@ class XMLTree:
                 x = XMLNode(from_string)
             # set the internal tree structure to (<name of the root node>, <rest of the document>)
             # where <rest of the document> is a list of the child nodes of the root node
-            self._data = (self._getname(x, rewrite), self._dump(x, rewrite))
+            self._data = (self._getname(x, rewrite, forget_namespace), self._dump(x, rewrite, forget_namespace))
 
-    def _getname(self, node, rewrite = {}):
+    def _getname(self, node, rewrite = {}, forget_namespace = False):
         # gets the name of an XMLNode, with namespace prefix if it has one
-        if node.Prefix():
+        if not forget_namespace and node.Prefix():
             name = node.FullName()
         else: # and without namespace prefix if it has no prefix
             name = node.Name()
         return rewrite.get(name,name)
 
-    def _dump(self, node, rewrite = {}):
+    def _dump(self, node, rewrite = {}, forget_namespace = False):
         # recursive method for converting an XMLNode to XMLTree structure
         size = node.Size() # get the number of children of the node
         if size == 0: # if it has no child, get the string
@@ -246,7 +246,7 @@ class XMLTree:
         for i in range(size):
             children.append(node.Child(i))
         # call itself recursively for each children
-        return [(self._getname(n, rewrite), self._dump(n, rewrite)) for n in children ]
+        return [(self._getname(n, rewrite, forget_namespace), self._dump(n, rewrite, forget_namespace)) for n in children ]
 
     def add_to_node(self, node, path = None):
         """ Adding a tree structure to an XMLNode.
