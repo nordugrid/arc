@@ -1,4 +1,4 @@
-SUBDIRS = grid-manager ldif config infoproviders
+SUBDIRS = grid-manager ldif config infoproviders lrms
 DIST_SUBDIRS = grid-manager ldif config
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS=test
