@@ -22,7 +22,7 @@ if sys.argv[1] == 'get':
 elif sys.argv[1] == 'change':
     if len(sys.argv) < 7:
         print 'Usage: change <ID> <changeType> <section> <property> <value>'
-        print '   changeType: add | remove | delete | reset'
+        print '   changeType: add | remove | delete | reset | format'
         sys.exit(-1)
     requests = out.NewChild('hash:change').NewChild('hash:changeRequestList')
     tree = XMLTree(from_tree = 
@@ -39,7 +39,7 @@ elif sys.argv[1] == 'changeIf':
     if len(sys.argv) < 11:
         print """Usage: changeIf <ID> <changeType> <section> <property> <value> \\
             <conditionType> <section> <property> <value>"""
-        print '   changeType: add | remove | delete | reset'
+        print '   changeType: add | remove | delete | reset | format'
         print '   conditionType: has | not | exists | empty'
         sys.exit(-1)
     requests = out.NewChild('hash:change').NewChild('hash:changeRequestList')
@@ -69,19 +69,19 @@ if print_xml:
     print 'Request:'
     print parseString(msg).toprettyxml()
     print
-#h = httplib.HTTPConnection('localhost', 60000)
-#h.request('POST', '/Hash', msg)
-#r = h.getresponse()
-#print 'Response:', r.status, r.reason
-#resp = r.read()
-cfg = arc.BaseConfig()
-client = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Hash')
-resp = arc.PayloadSOAP(ns)
-client.process(out,resp)
-print resp.GetXML()
+h = httplib.HTTPConnection('localhost', 60000)
+h.request('POST', '/Hash', msg)
+r = h.getresponse()
+print 'Response:', r.status, r.reason
+resp = r.read()
+#cfg = arc.BaseConfig()
+#client = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Hash')
+#resp = arc.PayloadSOAP(ns)
+#client.process(out,resp)
+print resp
 if print_xml:
-    print parseString(resp.GetXML()).toprettyxml()
-t = XMLTree(resp).get('/////')
+    print parseString(resp).toprettyxml()
+t = XMLTree(from_string=resp).get('/////')
 for i in t:
     print ' = '.join(i[1][0])
     for j in i[1][1:]:

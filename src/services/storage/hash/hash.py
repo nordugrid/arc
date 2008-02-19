@@ -3,7 +3,7 @@ Hash
 ----
 
 Centralized prototype implementation of the Hash service.
-This service is a metadat store capable of storing (section, property, value) tuples
+This service is a metadata-store capable of storing (section, property, value) tuples
 in objects which have IDs.
 
 Methods:
@@ -58,6 +58,9 @@ class PickleStore:
         """
         print "PickleStore constructor called"
         self.datadir = datadir
+        # if the given data directory does not exist, try to create it
+        if not os.path.exists(self.datadir):
+            os.mkdir(self.datadir)
         print "datadir:", datadir
         # initialize a lock which can be used to avoid race conditions
         self.llock = threading.Lock()
@@ -70,7 +73,8 @@ class PickleStore:
         'ID' is the ID of the given object.
         The filename will be the datadir and the base64 encoded form of the ID.
         """
-        return os.path.join(self.datadir,base64.b64encode(ID))
+        name = base64.b64encode(ID)
+        return os.path.join(self.datadir, name[:2], name)
 
     def get(self, ID):
         """ Returns the (section, property, value) list of the given ID.
@@ -121,8 +125,24 @@ class PickleStore:
         If there is already an object with this ID it will be overwritten completely.
         """
         try:
-            # generates a filename from the ID, then serialize the given list into it
-            pickle.dump(lines, file(self.filename(ID),'w'))
+            # generates a filename from the ID
+            fn = self.filename(ID)
+            # if 'lines' is empty, remove the file
+            if not lines:
+                try:
+                    os.remove(fn)
+                except:
+                    pass
+            else:
+                # try to open the file
+                try:
+                    f = file(fn,'w')
+                except:
+                    # try to create parent dir first, then open the file
+                    os.mkdir(os.path.dirname(fn))
+                    f = file(fn,'w')
+                # serialize the given list into it
+                pickle.dump(lines, file(self.filename(ID),'w'))
         except:
             print traceback.format_exc()
 
@@ -171,13 +191,14 @@ class CentralHash:
         a conditional change is a dictionary with members such as:
             'changeID' is a reference ID used in the response list
             'ID' is the ID of the object which we want to change
-            'type' could be 'add', 'remove', 'delete' or 'reset'
+            'type' could be 'add', 'remove', 'delete', 'reset' or 'format'
                 'add' adds a new (section, property, value) line to the object
                 'remove' removes a (section, property, value) line from the object
                 'delete' removes all values of a corresponding section and property
                     (the value does not matter at this type)
                 'reset' removes all values of a corresponding section and property
                     then adds the new value which is given
+                'format' removes all lines, that is, removes the whole objects
             'line' is a (section, property, value) tuple of the change
             'conditions' is a list of conditions
             a condition is a dictionary with members such as:
@@ -194,6 +215,7 @@ class CentralHash:
             - 'removed'
             - 'deleted'
             - 'reseted'
+            - 'formatted'
             - 'not changed'
             - 'invalid change type'
             - 'failed'
@@ -278,6 +300,10 @@ class CentralHash:
                             success = 'reseted'
                         # in both cases we need to store the changed object
                         self.store.set(ID,lines)
+                    elif ch['type'] == 'format':
+                        # remove all lines
+                        self.store.set(ID, [])
+                        success = 'formatted'
                     else:
                         # there is no other changeType
                         success = 'invalid change type'
