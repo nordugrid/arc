@@ -521,28 +521,32 @@ XMLNode& XMLNode::operator=(const XMLNode& node) {
   return *this;
 }
 
-void XMLNode::GetDoc(std::string& out_xml_str) const {
+void XMLNode::GetDoc(std::string& out_xml_str,bool user_friendly) const {
   out_xml_str.resize(0);
   if(!node_) return;
   xmlDocPtr doc = node_->doc;
   if(doc == NULL) return;
   xmlChar* buf = NULL;
   int bufsize = 0;
-  xmlDocDumpMemory(doc,&buf,&bufsize);
+  if(user_friendly) {
+    xmlDocDumpFormatMemory(doc,&buf,&bufsize,1);
+  } else {
+    xmlDocDumpMemory(doc,&buf,&bufsize);
+  };
   if(buf) {
     out_xml_str=(char*)buf;
     xmlFree(buf);
   };
 }
 
-void XMLNode::GetXML(std::string& out_xml_str) const {
+void XMLNode::GetXML(std::string& out_xml_str,bool user_friendly) const {
   out_xml_str.resize(0);
   if(!node_) return;
   if(node_->type != XML_ELEMENT_NODE) return;
   xmlDocPtr doc = node_->doc;
   if(doc == NULL) return;
   xmlBufferPtr buf = xmlBufferCreate();
-  xmlNodeDump(buf,doc,node_,0,0);
+  xmlNodeDump(buf,doc,node_,0,user_friendly?1:0);
   out_xml_str=(char*)(buf->content);
   xmlBufferFree(buf);
 }

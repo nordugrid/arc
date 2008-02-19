@@ -114,9 +114,9 @@ class XMLNode {
   /** Assigns new name to XML node */
   void Name(const std::string& name) { Name(name.c_str()); };
   /** Fills argument with this instance XML subtree textual representation */
-  void GetXML(std::string& out_xml_str) const;
+  void GetXML(std::string& out_xml_str,bool user_friendly = false) const;
   /** Fills argument with whole XML document textual representation */
-  void GetDoc(std::string& out_xml_str) const;
+  void GetDoc(std::string& out_xml_str,bool user_friendly = false) const;
   /** Returns textual content of node excluding content of children nodes */
   operator std::string(void) const;
   /** Sets textual content of node. All existing children nodes are discarded. */
