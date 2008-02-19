@@ -1,5 +1,5 @@
 libexec_SCRIPTS = SGE.pm Fork.pm PBS.pm\
-		  LL.pm LSF.pm Condor.pm\
+		  LL.pm LSF.pm Condor.pm condor_env.pm\
 		  cluster.pl qju.pl Shared.pm LogUtils.pm LRMS.pm
 
 data_DATA = nordugrid.schema
