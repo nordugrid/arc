@@ -130,9 +130,10 @@ static void grid_manager(void* arg) {
   opterr=0;
   nordugrid_config_loc="";
 
+  logger.msg(Arc::INFO,"Starting grid-manager thread");
   Daemon daemon;
-  Arc::Logger::getRootLogger().addDestination(*(new Arc::LogStream(std::cerr)));
-  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
+  //Arc::Logger::getRootLogger().addDestination(*(new Arc::LogStream(std::cerr)));
+  //Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
       case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
@@ -186,12 +187,12 @@ static void grid_manager(void* arg) {
     exit(1);
   };
 
-  daemon.logfile(DEFAULT_LOG_FILE);
-  daemon.pidfile(DEFAULT_PID_FILE);
-  if(daemon.daemon() != 0) {
-    perror("Error - daemonization failed");
-    exit(1);
-  }; 
+  //daemon.logfile(DEFAULT_LOG_FILE);
+  //daemon.pidfile(DEFAULT_PID_FILE);
+  //if(daemon.daemon() != 0) {
+  //  perror("Error - daemonization failed");
+  //  exit(1);
+  //}; 
   logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
   print_serviced_users(users);
 
