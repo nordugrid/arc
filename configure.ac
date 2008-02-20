@@ -470,10 +470,10 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
-		         src/hed/identitymap/Makefile
+	         src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
-                 src/services/a-rex/ldif/Makefile
+                 src/services/a-rex/config/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/cache/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
@@ -488,7 +488,16 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/infoproviders/Makefile
-                 src/services/a-rex/config/Makefile
+                 src/services/a-rex/jobstatus/Makefile
+                 src/services/a-rex/ldif/Makefile
+                 src/services/a-rex/lrms/Makefile
+		 src/services/a-rex/lrms/condor/Makefile
+		 src/services/a-rex/lrms/fork/Makefile
+		 src/services/a-rex/lrms/ll/Makefile
+		 src/services/a-rex/lrms/lsf/Makefile
+		 src/services/a-rex/lrms/pbs/Makefile
+		 src/services/a-rex/lrms/sge/Makefile
+                 src/services/a-rex/session/Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
