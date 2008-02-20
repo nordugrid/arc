@@ -488,7 +488,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/infoproviders/Makefile
-                 src/services/a-rex/jobstatus/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
 		 src/services/a-rex/lrms/condor/Makefile
@@ -497,7 +496,6 @@ AC_CONFIG_FILES([Makefile
 		 src/services/a-rex/lrms/lsf/Makefile
 		 src/services/a-rex/lrms/pbs/Makefile
 		 src/services/a-rex/lrms/sge/Makefile
-                 src/services/a-rex/session/Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
