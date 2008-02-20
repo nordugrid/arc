@@ -63,7 +63,7 @@
       <arex:usermap><arex:defaultLocalName>nobody</arex:defaultLocalName></arex:usermap>
       <!-- grid-manager part of a-rex requires legacy configuration file.
            Use arc_arex.conf example or write own. -->
-      <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+      <arex:gmconfig>/etc/arc_arex.conf</arex:gmconfig>
     </Service>
   </Chain>
 </ArcConfig>
