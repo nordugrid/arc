@@ -18,7 +18,7 @@ expand_paths = sed \
 	chmod +x $@.tmp
 	mv $@.tmp $@
 
-EXTRA_DIST = $(INPUT_FILES) configure-fork-env.sh submit-condor-job scan-condor-job \
+EXTRA_DIST = $(INPUT_FILES) submit-condor-job scan-condor-job \
 	configure-condor-env.sh condor_env.pm
 
 CLEANFILES = finish-condor-job cancel-condor-job
