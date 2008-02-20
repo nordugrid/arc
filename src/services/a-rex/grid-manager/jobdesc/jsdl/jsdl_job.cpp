@@ -96,10 +96,18 @@ void JSDLJob::set(std::istream& f) {
 void JSDLJob::set_posix(void) {
 
   Arc::XMLNode n = jsdl_document["JobDescription"]["Application"]["POSIXApplication"];
-  if ( bool(n) == true ) jsdl_posix = n;
+  if ( (bool)n ) jsdl_posix = n;
 
   n = jsdl_document["JobDescription"]["Application"]["HPCProfileApplication"];
-  if ( bool(n) == true ) jsdl_hpcpa = n;
+  if ( (bool)n ) jsdl_hpcpa = n;
+
+std::string s;
+jsdl_document.GetXML(s);
+logger.msg(Arc::INFO, "JSDL: %s",s.c_str());
+jsdl_posix.GetXML(s);
+logger.msg(Arc::INFO, "JSDL: POSIX: %s",s.c_str());
+jsdl_hpcpa.GetXML(s);
+logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s.c_str());
 
 }
 
@@ -111,7 +119,7 @@ bool JSDLJob::get_jobname(std::string& jobname) {
   jobname.resize(0);
 
   Arc::XMLNode n = jsdl_document["JobDescription"]["JobIdentification"]["JobName"];
-  if ( bool(n) == true ) {
+  if ( (bool)n ) {
     jobname = (std::string) n;
     return true;
   } else return false;
@@ -122,14 +130,15 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   arguments.clear();
 
   Arc::XMLNode n = jsdl_hpcpa["Executable"];
-  if( bool(n) == true ) {
+  if( (bool)n ) {
     std::string str_executable = (std::string) n;
     strip_spaces(str_executable);
     arguments.push_back(str_executable);
 
-    logger.msg(Arc::INFO, "job description executable[jsdl-hpcpa:Executable]");
+    logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-hpcpa:Executable] - %s",
+                          str_executable.c_str());
 
-    for( int i=0; bool(n["Argument"][i]) == true; i++ ) {
+    for( int i=0; (bool)(n["Argument"][i]) ; i++ ) {
       std::string value = (std::string) n["Argument"][i];
       strip_spaces(value);
       arguments.push_back(value);
@@ -141,19 +150,19 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
   n = jsdl_posix["Executable"];
 
-  if( bool(n) != true ) {
-    logger.msg(Arc::ERROR, "job description is missing executable[jsdl-posix:Executable]");
+  if( !n ) {
+    logger.msg(Arc::ERROR, "job description contains no recognisable executable");
     return false;
   };
-
-  logger.msg(Arc::INFO, "job description executable[jsdl-posix:Executable]");
 
   std::string str_executable = (std::string) n;
   strip_spaces(str_executable);
   arguments.push_back(str_executable);
 
+  logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-posix:Executable] - %s",
+                        str_executable.c_str());
 
-  for( int i=0; bool(n["Argument"][i]) == true; i++ ) {
+  for( int i=0; (bool)(n["Argument"][i]); i++ ) {
     std::string value = (std::string) n["Argument"][i];
     strip_spaces(value);
     arguments.push_back(value);
@@ -169,11 +178,11 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
   execs.clear();
 
   Arc::XMLNode n = jsdl_document["JobDescription"];
-  for( int i=0; bool(n["DataStaging"][i]) == true; i++ ) {
+  for( int i=0; (bool)(n["DataStaging"][i]); i++ ) {
     Arc::XMLNode childNode = n["DataStaging"][i]["Source"];
-    if( bool(childNode) == true ) { /* input file */
+    if( (bool)childNode ) { /* input file */
       Arc::XMLNode isExecutableNode = childNode["IsExecutable"];
-      if( bool(isExecutableNode) == true && ( (std::string) isExecutableNode ) == "true" ) {
+      if( ((bool)isExecutableNode) && (( (std::string) isExecutableNode ) == "true") ) {
 	std::string str_filename = (std::string) n["DataStaging"][i]["FileName"];
         execs.push_back(str_filename);
       };
@@ -185,19 +194,19 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
 bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
   rtes.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
-  if( bool(resources) != true ) return true;
-  for( int i=0; bool(resources["RunTimeEnvironment"][i]) == true; i++ ) {
+  if( !resources ) return true;
+  for( int i=0; (bool)(resources["RunTimeEnvironment"][i]); i++ ) {
 
     std::string s = (std::string) resources["RunTimeEnvironment"][i]["Name"];
 
     Arc::XMLNode versionNode = resources["RunTimeEnvironment"][i]["Version"];
 
-    if( bool(versionNode) == true ) {
-      if( bool(versionNode["UpperExclusive"]) == true ) continue; // not supported
-      if( bool(versionNode["LowerExclusive"]) == true ) continue; // not supported
-      if( ( bool(versionNode["Exclusive"]) == true ) && !( ( (std::string) versionNode["Exclusive"] ) == "true"  ) ) continue; // not supported
-      if( bool(versionNode["Exact"][1]) == true ) continue; // not supported (More then one)
-      if( bool(versionNode["Exact"]) == true ) {
+    if( (bool)versionNode ) {
+      if( (bool)(versionNode["UpperExclusive"]) ) continue; // not supported
+      if( (bool)(versionNode["LowerExclusive"]) ) continue; // not supported
+      if( ( (bool)(versionNode["Exclusive"]) ) && (!( ( (std::string) versionNode["Exclusive"] ) == "true") ) ) continue; // not supported
+      if( (bool)(versionNode["Exact"][1]) ) continue; // not supported (More than one)
+      if( (bool)(versionNode["Exact"]) ) {
         s+="="; s+= (std::string) versionNode;
       };
     };
@@ -209,19 +218,19 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
   mws.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
-  if( bool(resources) != true ) return true;
-  for( int i=0; bool(resources["Middleware"][i]) == true; i++ ) {
+  if( !resources ) return true;
+  for( int i=0; (bool)(resources["Middleware"][i]); i++ ) {
 
     std::string s = (std::string) resources["Middleware"][i]["Name"];
 
     Arc::XMLNode versionNode = resources["Middleware"][i]["Version"];
 
-    if( bool(versionNode) == true ) {
-      if( bool(versionNode["UpperExclusive"]) == true ) continue; // not supported
-      if( bool(versionNode["LowerExclusive"]) == true ) continue; // not supported
-      if( ( bool(versionNode["Exclusive"]) == true ) && !( ( (std::string) versionNode["Exclusive"] ) == "true"  ) ) continue; // not supported
-      if( bool(versionNode["Exact"][1]) == true ) continue; // not supported (More then one)
-      if( bool(versionNode["Exact"]) == true ) {
+    if( (bool)versionNode ) {
+      if( (bool)(versionNode["UpperExclusive"]) ) continue; // not supported
+      if( (bool)(versionNode["LowerExclusive"]) ) continue; // not supported
+      if( ( (bool)(versionNode["Exclusive"]) ) && (!( ( (std::string) versionNode["Exclusive"] ) == "true") ) ) continue; // not supported
+      if( (bool)(versionNode["Exact"][1]) ) continue; // not supported (More than one)
+      if( (bool)(versionNode["Exact"]) ) {
         s+="="; s+= (std::string) versionNode;
       };
     };
@@ -233,10 +242,10 @@ bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
 bool JSDLJob::get_acl(std::string& acl) {
   acl.resize(0);
   Arc::XMLNode aclNode = jsdl_document["JobDescription"]["AccessControl"];
-  if( bool(aclNode) != true ) return true;
+  if( !aclNode ) return true;
   Arc::XMLNode typeNode = aclNode["Type"];
   std::string str_content = aclNode["Content"];
-  if( bool(typeNode) != true || ( (std::string) typeNode ) == "GACL" ) {
+  if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) ) {
     if( str_content != "" ) acl=str_content;
   } else {
     return false;
@@ -246,15 +255,16 @@ bool JSDLJob::get_acl(std::string& acl) {
 
 bool JSDLJob::get_notification(std::string& s) {
   s.resize(0);
-  for( int i=0; bool(jsdl_document["JobDescription"]["Notify"][i]) == true; i++ ) {
+  for( int i=0; (bool)(jsdl_document["JobDescription"]["Notify"][i]); i++ ) {
     Arc::XMLNode notifyNode = jsdl_document["JobDescription"]["Notify"][i];
     Arc::XMLNode typeNode = notifyNode["Type"];
     Arc::XMLNode endpointNode  = notifyNode["Endpoint"];
     Arc::XMLNode stateNode = notifyNode["State"];
-    if( ( bool(typeNode) != true || ( (std::string) typeNode ) == "Email") && bool(endpointNode) == true && bool(stateNode) == true) {
+    if( ( (!typeNode) || ( ( (std::string) typeNode ) == "Email") ) && 
+        ( (bool)endpointNode ) && ( (bool)stateNode ) ) {
           std::string s_;
-          for( int j=0; bool(notifyNode["State"][i]) == true; i++ ) {
-            std::string value = (std::string) notifyNode["State"][i];
+          for( int j=0; (bool)(stateNode[j]); j++ ) {
+            std::string value = (std::string) stateNode[i];
             if ( value == "PREPARING" ) {
               s_+="b";
             } else if ( value == "INLRMS" ) {
@@ -279,9 +289,9 @@ bool JSDLJob::get_notification(std::string& s) {
 
 bool JSDLJob::get_lifetime(int& l) {
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resource"];
-  if( bool(resources) != true) return true;
+  if( !resources ) return true;
   Arc::XMLNode lifeTimeNodes = resources["SessionLifeTime"];
-  if( bool(lifeTimeNodes) == true ) {
+  if( (bool)lifeTimeNodes ) {
     char * pEnd;
     l= strtol( ((std::string) lifeTimeNodes).c_str(), &pEnd, 10 );
   };
@@ -290,9 +300,9 @@ bool JSDLJob::get_lifetime(int& l) {
 
 bool JSDLJob::get_fullaccess(bool& b) {
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resource"];
-  if( bool(resources) != true) return true;
+  if( !resources ) return true;
   Arc::XMLNode sessionTypeNodes = resources["SessionLifeTime"];
-  if( bool(sessionTypeNodes) == true ) {
+  if( (bool)sessionTypeNodes ) {
     if ( ( (std::string) sessionTypeNodes ) == "FULL" ) {
       b=true;
     } else b=false;
@@ -303,7 +313,7 @@ bool JSDLJob::get_fullaccess(bool& b) {
 bool JSDLJob::get_gmlog(std::string& s) {
   s.resize(0);
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["LocalLogging"];
-  if( bool(logNodes) != true ) return true;
+  if( !logNodes ) return true;
   s = (std::string) logNodes["Directory"];
   return true;
 }
@@ -311,7 +321,7 @@ bool JSDLJob::get_gmlog(std::string& s) {
 bool JSDLJob::get_loggers(std::list<std::string>& urls) {
   urls.clear();
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["RemoteLogging"];
-  for( int i=0; bool(jsdl_document["JobDescription"]["RemoteLogging"][i]) == true; i++ ) {
+  for( int i=0; (bool)(jsdl_document["JobDescription"]["RemoteLogging"][i]); i++ ) {
     urls.push_back( (std::string) jsdl_document["JobDescription"]["RemoteLogging"][i]["URL"]);
   };
   return true;
@@ -320,7 +330,7 @@ bool JSDLJob::get_loggers(std::list<std::string>& urls) {
 bool JSDLJob::get_credentialserver(std::string& url) {
   url.resize(0);
   Arc::XMLNode credNodes = jsdl_document["jsdl:JobDescription"]["CredentialServer"];
-  if( bool(credNodes) == true ) {
+  if( (bool)credNodes ) {
     url= (std::string) credNodes["URL"];
   };
   return true;
@@ -329,14 +339,14 @@ bool JSDLJob::get_credentialserver(std::string& url) {
 bool JSDLJob::get_queue(std::string& s) {
   s.resize(0);
   Arc::XMLNode queuename = jsdl_document["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"];
-  if( bool(queuename) != true ) return true;
+  if( !queuename ) return true;
   s = (std::string) queuename;
   return true;
 }
 
 bool JSDLJob::get_stdin(std::string& s) {
   Arc::XMLNode inputNode = jsdl_hpcpa["Input"];
-  if( bool(inputNode) == true )  {
+  if( (bool)inputNode )  {
     std::string value = (std::string) inputNode;
     strip_spaces(value);
     s = value;
@@ -344,7 +354,7 @@ bool JSDLJob::get_stdin(std::string& s) {
   }
 
   inputNode = jsdl_posix["Input"];
-  if( bool(inputNode) == true )  {
+  if( (bool)inputNode )  {
     std::string value = (std::string) inputNode;
     strip_spaces(value);
     s = value;
@@ -354,7 +364,7 @@ bool JSDLJob::get_stdin(std::string& s) {
 
 bool JSDLJob::get_stdout(std::string& s) {
   Arc::XMLNode outputNode = jsdl_hpcpa["Output"];
-  if( bool(outputNode) == true )  {
+  if( (bool)outputNode )  {
     std::string value = (std::string) outputNode;
     strip_spaces(value);
     s = value;
@@ -362,7 +372,7 @@ bool JSDLJob::get_stdout(std::string& s) {
   }
 
   outputNode = jsdl_posix["Output"];
-  if( bool(outputNode) == true )  {
+  if( (bool)outputNode )  {
     std::string value = (std::string) outputNode;
     strip_spaces(value);
     s = value;
@@ -372,7 +382,7 @@ bool JSDLJob::get_stdout(std::string& s) {
 
 bool JSDLJob::get_stderr(std::string& s) {
   Arc::XMLNode errorNode = jsdl_hpcpa["Error"];
-  if( bool(errorNode) == true )  {
+  if( (bool)errorNode )  {
     std::string value = (std::string) errorNode;
     strip_spaces(value);
     s = value;
@@ -380,7 +390,7 @@ bool JSDLJob::get_stderr(std::string& s) {
   }
 
   errorNode = jsdl_posix["Error"];
-  if( bool(errorNode) == true )  {
+  if( (bool)errorNode )  {
     std::string value = (std::string) errorNode;
     strip_spaces(value);
     s = value;
@@ -392,10 +402,10 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
                        std::list<FileData>& outputdata,int& uploads) {
   inputdata.clear(); downloads=0;
   outputdata.clear(); uploads=0;
-  for(int i=0; bool(jsdl_document["JobDescription"]["DataStaging"][i]) == true; i++) {
+  for(int i=0; (bool)(jsdl_document["JobDescription"]["DataStaging"][i]); i++) {
     Arc::XMLNode ds = jsdl_document["JobDescription"]["DataStaging"][i];
     Arc::XMLNode fileSystemNameNode = ds["FilesystemName"];
-    if( bool(fileSystemNameNode) == true) {
+    if( (bool)fileSystemNameNode ) {
       logger.msg(Arc::ERROR, "FilesystemName defined in job description - all files must be relative to session directory[jsdl:FilesystemName]");
       return false;
     };
@@ -404,14 +414,14 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
     Arc::XMLNode filenameNode = ds["FileName"];
     // CreationFlag - ignore
     // DeleteOnTermination - ignore
-    if( ( bool(sourceNode) != true ) && ( bool(targetNode) != true ) ) {
+    if( ( !sourceNode ) && ( !targetNode ) ) {
       // Neither in nor out - must be file generated by job
       FileData fdata( ( (std::string) filenameNode ).c_str(),"" );
       outputdata.push_back(fdata);
     } else {
-      if( bool(sourceNode) == true ) {
+      if( (bool)sourceNode ) {
         Arc::XMLNode sourceURINode = sourceNode["URI"];
-        if( bool(sourceURINode) != true ) {
+        if( !sourceURINode ) {
           // Source without URL - uploaded by client
           FileData fdata( ( (std::string) filenameNode ).c_str(),"");
           inputdata.push_back(fdata);
@@ -422,9 +432,9 @@ bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
           if(fdata.has_lfn()) downloads++;
         };
       };
-      if( bool(targetNode) == true ) {
+      if( (bool)targetNode ) {
         Arc::XMLNode targetURINode = targetNode["URI"];
-        if( bool(targetURINode) != true ) {
+        if( !targetURINode ) {
           // Destination without URL - keep after execution
           // TODO: check for DeleteOnTermination
           FileData fdata( ( (std::string) filenameNode ).c_str(),"");
@@ -445,12 +455,12 @@ double JSDLJob::get_limit(Arc::XMLNode range)
 {
   if (!range) return 0.0;
   Arc::XMLNode n = range["UpperBound"];
-  if (bool(n) == true) {
+  if ((bool)n) {
      char * pEnd;
      return strtod(((std::string)n).c_str(), &pEnd);
   }
   n = range["LowerBound"];
-  if (bool(n) == true) {
+  if ((bool)n) {
       char * pEnd;
       return strtod(((std::string)n).c_str(), &pEnd);
   }
@@ -460,20 +470,20 @@ double JSDLJob::get_limit(Arc::XMLNode range)
 bool JSDLJob::get_memory(int& memory) {
   memory=0;
   Arc::XMLNode memoryLimitNode = jsdl_posix["MemoryLimit"];
-  if( bool(memoryLimitNode) == true ) {
+  if( (bool)memoryLimitNode ) {
     char * pEnd;
     memory=strtol( ((std::string) memoryLimitNode ).c_str(), &pEnd, 10 );
     return true;
   };
   Arc::XMLNode resourceNode = jsdl_document["JobDescription"]["Resources"];
-  if( bool(resourceNode) != true ) return true;
+  if( !resourceNode ) return true;
   Arc::XMLNode totalPhysicalMemoryNode = resourceNode["TotalPhysicalMemory"];
-  if( bool(totalPhysicalMemoryNode) == true ) {
+  if( (bool)totalPhysicalMemoryNode ) {
     memory=(int)(get_limit( totalPhysicalMemoryNode )+0.5);
     return true;
   };
   Arc::XMLNode individualPhysicalMemoryNode = resourceNode["IndividualPhysicalMemory"];
-  if( bool(individualPhysicalMemoryNode) == true ) {
+  if( (bool)individualPhysicalMemoryNode ) {
     memory=(int)(get_limit( individualPhysicalMemoryNode )+0.5);
     return true;
   };
@@ -483,20 +493,20 @@ bool JSDLJob::get_memory(int& memory) {
 bool JSDLJob::get_cputime(int& t) {
   t=0;
   Arc::XMLNode CPUTimeLimitNode = jsdl_posix["CPUTimeLimit"];
-  if( bool(CPUTimeLimitNode) == true ) {
+  if( (bool)CPUTimeLimitNode ) {
     char * pEnd;
     t=strtol( ((std::string) CPUTimeLimitNode).c_str(), &pEnd, 10 );
     return true;
   };
   Arc::XMLNode resourceNode = jsdl_document["JobDescription"]["Resources"];
-  if( bool(resourceNode) != true ) return true;
+  if( !resourceNode ) return true;
   Arc::XMLNode totalCPUTimeNode = resourceNode["TotalCPUTime"];
-  if( bool(totalCPUTimeNode) == true ) {
+  if( (bool)totalCPUTimeNode ) {
     t=(int)(get_limit( totalCPUTimeNode )+0.5);
     return true;
   };
   Arc::XMLNode individualCPUTimeNode = resourceNode ["IndividualCPUTime"];
-  if( bool(individualCPUTimeNode) == true ) {
+  if( (bool)individualCPUTimeNode ) {
     t=(int)(get_limit( individualCPUTimeNode )+0.5);
     return true;
   };
@@ -506,7 +516,7 @@ bool JSDLJob::get_cputime(int& t) {
 bool JSDLJob::get_walltime(int& t) {
   t=0;
   Arc::XMLNode wallTimeLimitNode = jsdl_posix["WallTimeLimit"];
-  if( bool(wallTimeLimitNode) == true ) {
+  if( (bool)wallTimeLimitNode ) {
     char * pEnd;
     t=strtol(((std::string) wallTimeLimitNode ).c_str(), &pEnd, 10 );
     return true;
@@ -517,15 +527,15 @@ bool JSDLJob::get_walltime(int& t) {
 bool JSDLJob::get_count(int& n) {
   Arc::XMLNode resourceNode = jsdl_document["JobDescription"]["Resources"];
   n=1;
-  if( bool(resourceNode) != true ) return true;
+  if( !resourceNode ) return true;
   Arc::XMLNode totalCPUCountNode = resourceNode["TotalCPUCount"];
   Arc::XMLNode individualCPUCountNode = resourceNode["IndividualCPUCount"];
 
-  if( bool(totalCPUCountNode) == true ) {
+  if( (bool)totalCPUCountNode ) {
     n=(int)(get_limit( totalCPUCountNode )+0.5);
     return true;
   };
-  if( bool(individualCPUCountNode) == true ) {
+  if( (bool)individualCPUCountNode ) {
     n=(int)(get_limit( individualCPUCountNode )+0.5);
     return true;
   };
@@ -534,7 +544,7 @@ bool JSDLJob::get_count(int& n) {
 
 bool JSDLJob::get_reruns(int& n) {
   Arc::XMLNode rerunNode = jsdl_document["JobDescription"]["Reruns"];
-  if( bool(rerunNode) == true) { 
+  if( (bool)rerunNode ) { 
     char * pEnd;
     n= strtol( ((std::string) rerunNode ).c_str(), &pEnd, 10 );
   };
@@ -543,16 +553,16 @@ bool JSDLJob::get_reruns(int& n) {
 
 bool JSDLJob::check(void) {
   if(!jsdl_document) {
-    logger.msg(Arc::ERROR, "job description is missing[jsdl_document]");
+    logger.msg(Arc::ERROR, "job description is missing");
     return false;
   };
 
-  if( bool(jsdl_document["JobDescription"]) != true ) {
-    logger.msg(Arc::ERROR, "job description is missing[JobDescription]");
+  if( !(jsdl_document["JobDescription"]) ) {
+    logger.msg(Arc::ERROR, "job description is missing [JobDescription] element");
     return false;
   };
-  if(!jsdl_posix && !jsdl_hpcpa) {
-    logger.msg(Arc::ERROR, "job description is missing POSIX application[jsdl_posix]");
+  if((!jsdl_posix) && (!jsdl_hpcpa)) {
+    logger.msg(Arc::ERROR, "job description is missing POSIX HPCP application elements");
     return false;
   };
   return true;
