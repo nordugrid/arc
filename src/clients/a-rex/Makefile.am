@@ -1,4 +1,5 @@
 bin_PROGRAMS = apsub apstat apkill apsstat
+bin_SCRIPTS = arex_client.xml
 SOURCES = arex_client.cpp arex_client.h
 
 apsub_SOURCES  = $(SOURCES) apsub.cpp
