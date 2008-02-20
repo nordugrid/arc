@@ -487,6 +487,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
+                 src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/config/Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
