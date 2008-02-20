@@ -562,7 +562,7 @@ bool JSDLJob::check(void) {
     return false;
   };
   if((!jsdl_posix) && (!jsdl_hpcpa)) {
-    logger.msg(Arc::ERROR, "job description is missing POSIX HPCP application elements");
+    logger.msg(Arc::ERROR, "job description is missing POSIX and HPCP application elements");
     return false;
   };
   return true;
@@ -604,6 +604,7 @@ bool JSDLJob::parse(JobLocalDescription &job_desc,std::string* acl) {
 }
 
 bool JSDLJob::set_execs(const std::string &session_dir) {
+  set_posix();
   if(!check()) return false;
   std::list<std::string> arguments;
   if(!get_arguments(arguments)) return false;
