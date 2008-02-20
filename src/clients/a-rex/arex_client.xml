@@ -2,7 +2,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
   <ModuleManager>
-    <Path>/usr/local/lib/arc/</Path>
+    <Path>/opt/arc/</Path>
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
   <Plugins><Name>mcctls</Name></Plugins>
