@@ -11,8 +11,8 @@ stability, reliability and performance of the middleware. A growing
 number of grid projects, like Swegrid, DCGC, NDGF has chosen ARC as their
 middleware.
 
-This release (October 2007) is a technology preview version of the
-next generation of ARC. It is based on a service container - the
+This release (February 2008) is a first release of new generation ARC 
+and will be referenced as ARC1. It is based on a service container - the
 Hosting Environment Daemon (HED) - and different grid capabilities are
 implemented as Web Services residing in HED. Currently, an OGSA BES
 compliant execution service - ARC Resource-coupled EXecution service
@@ -20,39 +20,42 @@ compliant execution service - ARC Resource-coupled EXecution service
 the set of services is rapidly growing.
 
 
+
 Dependencies
 ============
 
-The middleware is written in C/C++ and some smaller part in Perl. ARC
-builds upon standard Open Source libraries and solutions. Building the
-software from source or installing a precompiled binary requires
-different external packages, furthermore the client and server
-packages have different dependencies too. The detailed compile and
-runtime external dependencies are given in the INSTALL file, below a
-merged list of the explicit requirements (build, install, server, 
-client) is shown:
+The core part of middleware is written in C/C++.
+Building the software from source or installing a precompiled binary 
+requires different external packages, furthermore the client and server
+packages have different dependencies too. Below a list of the explicit 
+requirements is shown:
 
   Mandatory (on client as well as server side):
-    o gnu make, autotools (autoconf>=2.56)
-    o C++ compiler and library
-    o libtool
-    o pkg-config
-    o gthread-2.0 version 2.4.7 or later
-    o glibmm-2.4 version 2.4.7 or later
-    o libxml-2.0 version 2.4.0 or later
-    o openssl version 0.9.7a or later
-    o e2fsprogs-devel
-    o doxygen
+    o gnu make, autotools (autoconf>=2.56) (build)
+    o C++ compiler and library (build)
+    o libtool (build)
+    o pkg-config (build)
+    o gthread-2.0 version 2.4.7 or later (build, run)
+    o glibmm-2.4 version 2.4.7 or later (build, run)
+    o libxml-2.0 version 2.4.0 or later (build, run)
+    o openssl version 0.9.7a or later (build, run)
+    o e2fsprogs (build, run)
+    o doxygen (build)
 
   Optional (mainly applicable on server side):
-    o swig version 1.3.28 or later
-    o java sdk 1.4 or later for Java bindings
-    o python-devel for Python bindings
-    o Grid Packaging Tools (GPT) (http://www.gridpackagingtools.org/)
-    o Globus Toolkit 4 (http://www.globus.org/) which contains
+    o swig version 1.3.28 or later (build)
+    o java sdk 1.4 or later for Java bindings (build, run)
+    o python for Python bindings (build, run)
+    o Grid Packaging Tools (GPT) (http://www.gridpackagingtools.org/) (build)
+    o Globus Toolkit 4 (http://www.globus.org/) which contains (build, run)
       - Globus RLS client
       - Globus FTP client
       - Globus RSL
+
+Please note that depending on operating system distribution in order to 
+build ARC1 You may need to install development versions of mentioned 
+packages.
+
 
 
 Getting the software
@@ -69,59 +72,131 @@ The NorduGrid repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
 distribution.
 
+You may get the latest source code for ARC1 from subversion 
+repository. See http://svn.nordugrid.org for more details.
+
+There are also nightly code snapshots available at 
+http://download.nordugrid.org/software/nordugrid-arc1/nightly/ .
+Choose latest date available and download snapshot tarball -
+for example nordugrid-arc1-200802201038-snapshot.tar.gz.
+
+
 
 Building & Installation
 =======================
 
-The ARC middleware can be built from the openly available source code
-provided as a tarball. The build uses the GNU autotools. This
-means that a standard installation into /usr/local can be made with:
+Building from source is currently recommended way to install ARC1. 
+If You downloaded tarball unpack it and cd into created directory.
 
-  ./configure
+  tar -zxvf nordugrid-arc1-200802201038-snapshot.tar.gz
+  cd nordugrid-arc1-200802201038
+
+If You obtained code from subversion use 'trunk' directory.
+
+  cd trunk
+
+Now configure obtained code with
+
+  ./autogen.sh
+  ./configure --prefix=PLACE_TO_INSTALL_ARC1
+
+Choose installation prefix wisely and according to requirements of your 
+OS and personal preferences. ARC1 should function properly from any 
+location. By default installation goes into /usr/local if You omit
+'--prefix' option. For some modules of ARC1 to work properly You may 
+need to setup environment variable after installation
+
+  export ARC_LOCATION=PLACE_TO_INSTALL_ARC
+
+On some systems 'autogen.sh' may produce few warnings. Ignore them as 
+long as 'configure' passes without errors. But in case of problems 
+during configure or compilation collect them and present while 
+reporting problems.
+
+If previous commands finished without errors compile and install ARC1
+
   make
   make install
 
-If you wish to install into <directory>, use the following instead:
+Depending on chosen installation location You may need to run last command 
+from root account. That should install following components:
 
-  ./configure --prefix=<directory>
-  make
-  make install
+sbin/arched - server executable
+bin/ - user tools and command line clients
+lib/ - common libraries used by clients, server and plugins
+lib/arc/ - plugins implementing MCC, service and security components
+include/arc/ - C++ headers for application development
+libexec/ - additional modules used by ARC1 services - currently only A-REX
+share/doc/arc - configuration examples/templates and documentation
+share/locale - internatiolization files - curently very limited support
+share/man - manual pages for varius utilities - currently arched only
+
+IMPORTANT: Due to some misfeature in autotools (not localized yet) library
+libarcclient.so may be improperly linked. You can detect this situation by
+seeing messages about unresolved symbols in server's log. Or immediately
+after installing ARC1 by running command
+
+  ldd -r -d PLACE_TO_INSTALL_ARC1/lib/libarcws.so
+
+In case of problem this command shall complain about unresolved symbols.
+Problem can be solved by running 'make install' in src/hed/libs/misc.
+That will make autotools relink and install libarcclient.so properly.
 
 
-Grid Certificates
+
+X509 Certificates
 =================
 
-In order to use ARC, a grid certificate is necessary. More information
-about grid certificates in general and how to get them can be found on
-http://www.nordugrid.org/documents/certificate_howto.html
+Most of ARC1 planned and existing services use HTTPS for transport protocol
+so they require proper setup of X509 security infrastructure. Minimal 
+requirements are:
+* Host certificate aka piblic key in PEM format
+* Corresponding private key
+* Certificate of Certification Authority (CA) which was used to sign host cerificate
+* Certificates of CA of clients which are going to send requests to service. Unless
+of course clients belong to same CA as server.
 
+More information about X509 certificates and their usage in Grid environement 
+can be found on http://www.nordugrid.org/documents/certificate_howto.html
+and http://www.nordugrid.org/documents/ng-server-install.html#security
 
-Please make sure correctly configure the certificates on client and service 
-sides. The configuration about certificate for MCCTLS in the service.xml 
-should like this:  
-      <KeyPath>./key.pem</KeyPath>
-      <CertificatePath>./cert.pem</CertificatePath>
-      <CACertificatePath>./ca.pem</CACertificatePath>
-or this:
+For testing purposes You can use pre-generated certificates and keys available 
+at http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA .
+Please remember that it is not safe to use those keys in publicly accessible
+insallation of ARC1. Make sure even CA certificate is removed before You make
+your services available to outside world.
+
+You can put host certificate and private key anywhere. Common location for
+servers running from root account is /etc/grid-security/hostcert.pem and
+/etc/grid-security/hostkey.pem . It is possible to configure ARC1 server to
+accept either single CA certificate or multiple CA certificates located in
+specified directory. Last option is recommended. Common location is
+/etc/grid-security/certificates/ . In that case names of files of certificates
+has to follow hash value of certificate. Hash is obtainable by running command
+
+  openssl x509 -hash -noout -in path_to_certificate
+
+And corresponding file name for certificate should be hash_value.0 . Hash value
+for pre-generated CA certificate is 4457e417 .
+
+Please make sure chosen location of certificates is correctly configure 
+in service configuration file. The configuration about certificate for MCCTLS 
+should look like this:  
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-Note if you configure <CACertificatePath>, that implicitly means the certificates
-for client and service sides are signed by one specific CA.
-The key file can be with or without passphrase.
+or
+      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+The key file has to be with or without passphrase for server side.
 
-If you would test ARC with TLS support, the certificate generated by yourself ("untrusted"
-certificate) is recommended; or you can also use some certificate genertated by authorized CA, 
-such as NorduGrid CA. 
-For testing, you can use the same certificates for the client and service sides.
+Same requirements are valid for client tools of ARC1. You may use pregenerated
+user certificate and key located at same place. Location of certificates is 
+provided to client tools from command line.
 
+Set of pre-generated keys and certificates also includes user certificate in
+PKCS12 format which You may import into your browser for accessing ARC1 services
+capable of producing HTML output.
 
-For testing purposes, an "untrusted" self-signed certificate can be generated by
-the following commands:
-
-  openssl genrsa 1024 > key.pem
-  openssl req -config ./openssl.cnf -new -x509 -nodes -sha1 -days 365 -key key.pem > cert.pem
-  cp cert.pem ca.pem
 
 
 ARC Server Setup & Configuration
@@ -129,67 +204,14 @@ ARC Server Setup & Configuration
 
 The configuration of the ARC server is specified in an XML file, the
 location of which is specified as a command line argument with the -c
-option. An example of a configuration file that sets up an A-REX
-execution service and an echo service (intended for testing purposes)
-is shown below:
+option of 'arched' daemon. Examples of configuration files with comments
+describing various elements are available in directory share/doc/arc of
+ARC1 installation. 
 
-<?xml version="1.0"?>
-<ArcConfig 
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
-  xmlns:echo="urn:echo_config"
->
-  <Server>
-    <Foreground/>
-    <Pidfile>./arched.pid</Pidfile>
-    <Logger level="WARNING">./logfile</Logger>
-  </Server>
-  <ModuleManager>
-    <Path>/usr/local/lib/arc/</Path>
-  </ModuleManager>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arex</Name></Plugins>
-  <Plugins><Name>echo</Name></Plugins>
-  <Chain>
-    <Component name="tcp.service" id="tcp">
-      <next id="tls"/> 
-      <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
-    </Component>
-    <Component name="tls.service" id="tls">
-      <next id="http"/>
-      <KeyPath>/etc/grid-security/key.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
-      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-    </Component>
-    <Component name="http.service" id="http">
-      <next id="soap">POST</next>
-    </Component>
-    <Component name="soap.service" id="soap">
-      <next id="plexer"/>
-    </Component>
-    <Plexer name="plexer.service" id="plexer">
-      <next id="a-rex">/arex</next>
-      <next id="echo">/echo</next>
-    </Plexer>
-    <Service name="a-rex" id="a-rex">
-      <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
-      <arex:username>nobody</arex:username>
-      <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
-    </Service>
-    <Service name="echo" id="echo">
-      <echo:prefix>[ </echo:prefix>
-      <echo:suffix> ]</echo:suffix>
-    </Service>
-  </Chain>
-</ArcConfig>
 
-If you generated your own certificate according to the instructions in
-the previous section, remember to update the KeyPath, CertificatePath,
-and CACertificatePath elements accordingly.
+
+The Echo service
+================
 
 The echo service is "atomic" and has no additional dependencies other
 than what is provided by the Hosting Environment Daemon (HED). If you
@@ -198,129 +220,6 @@ do not want to run the echo service, simply remove the lines
 '<next id="echo">/echo</next>', and '<Service name="echo" id="echo">
 [...] </Service>' from the configuration file.
 
-In order to use the A-REX service, however, you need to run a
-Grid-Manager as well. There is not yet a Grid-Manager available in the
-new generation of ARC, but the Grid-Manager from ARC 0.6.x can be used
-in the meantime. How to install and set up that Grid-Manager is
-described in detail on
-http://www.nordugrid.org/documents/ng-server-install.html and in
-NORDUGRID-TECH-14 "The ARC Computational Job Management Module -
-A-REX: Description and Administrator's Manual".
-
-Please note, that there is a reference to the configuration file for
-the Grid-Manager in the configuration file for the HED:
-"<arex:gmconfig>/etc/arc.conf</arex:gmconfig>". If your configuration
-file for the Grid-Manager is located somewhere else or has another
-name, you must update the configuration file for HED accordingly.
-
-Worth mentioning is also that the user account from which the HED
-containing the A-REX service is run, will be the owner of the jobs in
-the local batch system, and that this account must have write
-permission in the session and control directories of the Grid-Manager.
-
-If you do not want to run the A-REX service, simply remove the lines
-'xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"'
-'<Plugins><Name>arex</Name></Plugins>', '<next id="a-rex">/arex</next>',
-and '<Service name="a-rex" id="a-rex"> [...] </Service>' from the
-configuration file.
-
-
-Starting the Server
-===================
-
-To start the ARC server, type the following on the command line:
-
-  /usr/local/sbin/arched -c /etc/arcserv.xml &
-
-If the server complains about "libglobus..." and that it cannot open a
-shared object file, try to add "/opt/globus/lib" to your
-LD_LIBRARY_PATH:
-
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
-
-In the current release, the server prints some warnings and messages
-that can safely be ignored. Those are:
-- Unknown element "Server" - ignoring
-- Not a '__arc_***_modules__' type plugin
-- Assigned new informational document
-
-Remember to also start the Grid-Manager, as described above, in order
-to be able to use the A-REX service.
-
-
-The A-REX Client
-================
-
-The configuration of the ARC A-REX client is specified in an XML
-file. The location of the configuration file is specified by the
-environment variable ARC_AREX_CONFIG. If there is no such environment
-variable, the configuration file is assumed to be arex_client.xml in
-the current working directory. An example configuration file is shown
-below:
-
-<?xml version="1.0"?>
-<ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
-  <ModuleManager>
-    <Path>/usr/local/lib/arc/</Path>
-  </ModuleManager>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Chain>
-    <Component name='tcp.client' id='tcp'>
-      <tcp:Connect>
-        <tcp:Host>127.0.0.1</tcp:Host>
-        <tcp:Port>60000</tcp:Port>
-      </tcp:Connect>
-    </Component>
-    <Component name='tls.client' id='tls'>
-      <next id='tcp'/>
-      <KeyPath>/etc/grid-security/key.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
-      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-    </Component>
-    <Component name='http.client' id='http'>
-      <next id='tls'/>
-      <Method>POST</Method>
-      <Endpoint>/arex</Endpoint>
-    </Component>
-    <Component name='soap.client' id='soap' entry='soap'>
-      <next id='http'/>
-    </Component>
-  </Chain>
-</ArcConfig>
-
-
-Using the A-REX Client
-======================
-
-To submit a job, type
-
-  <install-prefix>/bin/apsub <JSDL-file> <JobID-file>
-
-where <JSDL-file> is the location of a file that contains the job
-specification in JSDL format and <JobID-file> the location of a file
-in which the Job ID will be stored.
-
-To query the status of a job, type
-
-  <install-prefix>/bin/apstat <JobID-file>
-
-where <JobID-file> the location of the file in which the Job ID is
-stored (the file created when the job was submitted).
-
-To terminate a job, type
-
-  <install-prefix>/bin/apkill <JobID-file>
-
-where <JobID-file> the location of the file in which the Job ID is
-stored (the file created when the job was submitted).
-
-More detailed information about how to use the client tools is
-available in NORDUGRID-TECH-15 "WS-Based ARC Clients".
 
 
 The Echo Client
@@ -368,14 +267,171 @@ below:
 </ArcConfig>
 
 
+
 Using the Echo Client
-======================
+=====================
 
 To use the echo client, type
 
   <install-prefix>/bin/apecho <message>
 
 where <message> is the message which the echo service will return.
+
+
+
+The A-REX Service
+=================
+
+ARC1 comes with OGSA BES compliant Grid job management service called A-REX.
+To deploy A-REX use example configuration files available in share/doc/arc :
+ * arex.xml - configuration for arched server. Read comments inside this file
+and edit it to fit your installation. This file defines WS interface of A-REX.
+ * arc-arex.conf - legacy configuration for Grid Manager part of A-REX. This
+file defines how jobs are managed by A-REX locally. Read and edit it. For more
+detailed information please read Grid Manager documentation available in SVN
+repository
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/a-rex/arex_tech_doc.pdf?format=raw
+
+Grid Manager runs as part of A-REX service. There is no need to run any additional
+executable. But You still need to setup it's infrastructure as long as You are 
+going to have anything more sopjhisticated than described in example configuration.
+For more information read previously mentioned document.
+
+Currently for proper functioning A-REX requires environment variable ARC_LOCATION
+to be set to installation prefix of ARC1.
+
+A-REX uses HTTPS for transport protocol (although You can reconfigure it to use 
+plain HTTP) so it requires proper setup of X509 security infrastructure. See
+above for instructions.
+
+Copy example configuration file to some location and edit them. Make sure all paths
+to X509 certificates and Grid Manager configuration are set correctly. Start server 
+with command
+
+  $ARC_LOCATION/sbin/arched -c path_to_edited_arex.xml
+
+Look into log file specified in arex.xml for possible errors. You can safely ignore 
+messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
+
+If You compiled ARC1 with Globus support and You see complains about "libglobus..." 
+and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
+LD_LIBRARY_PATH:
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
+
+
+Testing and Using A-REX
+=======================
+
+Now You may use command line utility 'apinfo' to obtaine service description.
+Make sure user key and certificate and CA certificate(s) are readable from account
+You use and run something like
+
+ ./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem -A /etc/grid-security/certificates https://loc
+alhost:60000/arex 2>error.log
+
+That should produce XML output describing resource A-REX represents. Below You can 
+see an example of proper output. In case of error see error.log file and report 
+problems to ARC1 development team. Include content of error.log and server's log.
+
+<n:nordugrid xmlns:n="urn:nordugrid" xmlns:M0="urn:Mds" xmlns:nc0="urn:nordugrid-cluster">
+  <nc0:name>mobile2.home.net</nc0:name>
+  <nc0:aliasname>MINIMAL Computing Element</nc0:aliasname>
+  <nc0:comment>This is a minimal out-of-box CE setup</nc0:comment>
+  <nc0:issuerca>/O=Grid/O=Test/CN=CA</nc0:issuerca>
+  <nc0:issuerca-hash>4457e417</nc0:issuerca-hash>
+  <nc0:trustedca>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</nc0:trustedca>
+  <nc0:trustedca>/O=Grid/O=Test/CN=CA</nc0:trustedca>
+  <nc0:contactstring>gsiftp://mobile2.home.net:2811/jobs</nc0:contactstring>
+  <nc0:lrms-type>fork</nc0:lrms-type>
+  <nc0:architecture>i686</nc0:architecture>
+  <nc0:homogeneity>TRUE</nc0:homogeneity>
+  <nc0:nodeaccess>inbound</nc0:nodeaccess>
+  <nc0:nodeaccess>outbound</nc0:nodeaccess>
+  <nc0:totalcpus>1</nc0:totalcpus>
+  <nc0:usedcpus>0</nc0:usedcpus>
+  <nc0:cpudistribution>1cpu:1</nc0:cpudistribution>
+  <nc0:prelrmsqueued>0</nc0:prelrmsqueued>
+  <nc0:totaljobs>0</nc0:totaljobs>
+  <nc0:sessiondir-free>8469</nc0:sessiondir-free>
+  <nc0:sessiondir-total>43865</nc0:sessiondir-total>
+  <nc0:sessiondir-lifetime>10080</nc0:sessiondir-lifetime>
+  <M0:validfrom>20080220142836Z</M0:validfrom>
+  <M0:validto>20080220143036Z</M0:validto>
+  <nq0:name xmlns:nq0="urn:nordugrid-queue" name="fork">
+    <nq0:name>fork</nq0:name>
+    <nq0:status>inactive, grid-manager is down</nq0:status>
+    <nq0:comment>This queue is nothing more than a fork host</nq0:comment>
+    <nq0:schedulingpolicy>FIFO</nq0:schedulingpolicy>
+    <nq0:homogeneity>TRUE</nq0:homogeneity>
+    <nq0:nodecpu>Intel(R) Celeron(R) M CPU        420  @ 1.60GHz @ 1596.048 MHz</nq0:nodecpu>
+    <nq0:architecture>i686</nq0:architecture>
+    <nq0:maxcputime>unlimited</nq0:maxcputime>
+    <nq0:maxwalltime>unlimited</nq0:maxwalltime>
+    <nq0:running>0</nq0:running>
+    <nq0:gridrunning>0</nq0:gridrunning>
+    <nq0:localqueued>0</nq0:localqueued>
+    <nq0:gridqueued>0</nq0:gridqueued>
+    <nq0:prelrmsqueued>0</nq0:prelrmsqueued>
+    <nq0:totalcpus>1</nq0:totalcpus>
+    <IM0:validfrom>20080220142836Z</M0:validfrom>
+    <M0:validto>20080220143036Z</M0:validto>
+    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="jobs">
+      <nig0:name>jobs</nig0:name>
+      <M0:validfrom>20080220142836Z</M0:validfrom>
+      <M0:validto>20080220143036Z</M0:validto>
+      <nj0:globalid xmlns:nj0="urn:nordugrid-job" name="gsiftp://mobile2.home.net:2811/jobs/636312034687631804
+289383">
+        <nj0:globalid>gsiftp://mobile2.home.net:2811/jobs/636312034687631804289383</nj0:globalid>
+        <nj0:globalowner>/O=Grid/O=Test/CN=user</nj0:globalowner>
+        <nj0:jobname>TEST</nj0:jobname>
+        <nj0:execcluster>mobile2.home.net</nj0:execcluster>
+        <nj0:execqueue>fork</nj0:execqueue>
+        <nj0:submissionui>127.0.0.1:59790</nj0:submissionui>
+        <nj0:submissiontime>20080220005243Z</nj0:submissiontime>
+        <nj0:sessiondirerasetime>20080227005843Z</nj0:sessiondirerasetime>
+        <nj0:completiontime>20080220005843Z</nj0:completiontime>
+        <nj0:cpucount>1</nj0:cpucount>
+        <nj0:comment>GM: The grid-manager is down</nj0:comment>
+        <nj0:usedcputime>0</nj0:usedcputime>
+        <nj0:usedwalltime>0</nj0:usedwalltime>
+        <nj0:errors>Job submission to LRMS failed</nj0:errors>
+        <nj0:status>FAILED</nj0:status>
+        <nj0:rerunable>SUBMIT</nj0:rerunable>
+        <M0:validfrom>20080220142836Z</M0:validfrom>
+        <M0:validto>20080220143036Z</M0:validto>
+      </nj0:globalid>
+    </nig0:name>
+    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="users">
+      <nig0:name>users</nig0:name>
+      <M0:validfrom>20080220142836Z</M0:validfrom>
+      <M0:validto>20080220143036Z</M0:validto>
+    </nig0:name>
+  </nq0:name>
+</n:nordugrid>
+
+Please note that You can run similar apinfo request against any ARC1 service
+except echo service. Output should always be XML description of service.
+
+A-REX accepts jobs described in JSDL language. Example JSDL job is provided
+in $ARC_LOCATION/share/doc/jsdl_arex.xml . To submit job to A-REX service
+one may use 'apsub' command
+
+$ARC_LOCATION/bin/apsub /opt/arc/share/doc/arc/jsdl_arex.xml id.xml
+
+If everything goes properly somewhere in it's output there should be a message
+"Submitted the job!". Obtained job identifier is an XML document and is stored
+in id.xml file. It may then be used to query job state with 'apstat' utility.
+
+ $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ Job status: Running/Submiting
+
+ $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ Job status: Running/Finishing
+
+ $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+ Job status: Finished/Finished
+
 
 
 Contributing
@@ -398,6 +454,7 @@ questions, write to the nordugrid-discuss mailing list (see
 www.nordugrid.org for details). Ongoing and completed Grid Research
 projects and student assignments related to the middleware are listed
 on the NorduGrid Web site as well.
+
 
 
 Support, documentation, mailing lists, contact
