@@ -253,6 +253,10 @@ namespace Arc {
   ClientSOAP::~ClientSOAP() {}
 
   MCC_Status ClientSOAP::process(PayloadSOAP* request,PayloadSOAP** response) {
+    return process("",request,response);
+  }
+
+  MCC_Status ClientSOAP::process(const std::string& action,PayloadSOAP* request,PayloadSOAP** response) {
     *response = NULL;
     if(!loader) {
       loader = new Loader(&xmlcfg);
@@ -273,6 +277,7 @@ namespace Arc {
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
+    if(!action.empty()) attributes_req.set("SOAP:ACTION",action);
     MCC_Status r = soap_entry->process(reqmsg,repmsg);
     if(repmsg.Payload() != NULL)
       try {

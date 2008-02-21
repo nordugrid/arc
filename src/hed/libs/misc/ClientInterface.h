@@ -119,6 +119,8 @@ namespace Arc {
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+    /** Send SOAP request with specified SOAP action and receive response. */
+    MCC_Status process(const std::string& action,PayloadSOAP *request, PayloadSOAP **response);
    protected:
     MCC *soap_entry;
   };
