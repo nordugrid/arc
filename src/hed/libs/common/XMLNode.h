@@ -191,8 +191,17 @@ class XMLNode {
   /** Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
   /** Save string representation of node to file */
-  bool SaveToFile(const std::string &file_name);
+  bool SaveToFile(const std::string &file_name) const;
+  /** Save string representation of node to stream */
+  bool SaveToStream(std::ostream &out) const;
+  /** Read XML document from file and associate it with this node */
+  bool ReadFromFile(const std::string &file_name);
+  /** Read XML document from stream and associate it with this node */
+  bool ReadFromStream(std::istream &in);
 };
+
+std::ostream& operator<<(std::ostream& out,const XMLNode& node);
+std::istream& operator>>(std::istream& in,XMLNode& node);
 
 /** Container for multiple XMLNode elements */
 class XMLNodeContainer {

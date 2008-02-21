@@ -551,16 +551,55 @@ void XMLNode::GetXML(std::string& out_xml_str,bool user_friendly) const {
   xmlBufferFree(buf);
 }
 
-bool XMLNode::SaveToFile(const std::string &file_name) 
-{
-    std::string s;
-    GetXML(s);
-    std::ofstream out(file_name.c_str(), std::ios::out);
-    if (!out) return false;
-    out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
-    out << s;
-    out.close();
-    return true;
+bool XMLNode::SaveToStream(std::ostream& out) const {
+  std::string s;
+  GetXML(s);
+  out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+  out << s;
+  return (bool)out;
+}
+
+bool XMLNode::SaveToFile(const std::string &file_name) const {
+  std::ofstream out(file_name.c_str(), std::ios::out);
+  if (!out) return false;
+  bool r = SaveToStream(out);
+  out.close();
+  return r;
+}
+
+std::ostream& operator<<(std::ostream& out,const XMLNode& node) {
+  node.SaveToStream(out);
+  return out;
+}
+
+bool XMLNode::ReadFromStream(std::istream& in) {
+  std::string s;
+  std::getline<char>(in,s,0);
+  if(!in) return false;
+  xmlDocPtr doc = xmlParseMemory((char*)(s.c_str()),s.length());
+  if(doc == NULL) return false;
+  if(node_ != NULL) {
+    if(is_owner_) {
+      xmlFreeDoc(node_->doc);
+      node_=NULL; is_owner_=false;
+    };
+  };
+  node_=doc->children;
+  if(node_) is_owner_=true;
+  return true;
+}
+
+bool XMLNode::ReadFromFile(const std::string &file_name) {
+  std::ifstream in(file_name.c_str(), std::ios::in);
+  if (!in) return false;
+  bool r = ReadFromStream(in);
+  in.close();
+  return r;
+}
+
+std::istream& operator>>(std::istream& in,XMLNode& node) {
+  node.ReadFromStream(in);
+  return in;
 }
 
 XMLNodeContainer::XMLNodeContainer(void) {
