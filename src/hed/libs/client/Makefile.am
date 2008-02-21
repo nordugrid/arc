@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libarcclient.la
+lib_LTLIBRARIES = libarclibclient.la
 
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS = ACC.h   Broker.h   ExecutionTarget.h    \
