@@ -11,11 +11,9 @@ namespace Arc {
 
   Arc::Logger AREXClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
 
-  AREXClient::AREXClient(std::string configFile)
-    throw(AREXClientError)
+  AREXClient::AREXClient(std::string configFile) throw(AREXClientError)
+    :client_loader(NULL),client(NULL),client_entry(NULL)
   {
-    logger.setThreshold(Arc::VERBOSE);
-
     logger.msg(Arc::INFO, "Creating an A-REX client.");
 
     if (configFile=="" && getenv("ARC_AREX_CONFIG"))
@@ -41,6 +39,16 @@ namespace Arc {
     arex_ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
     arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
     arex_ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";    
+  }
+  
+  AREXClient::AREXClient(const Arc::URL& url,
+                         const Arc::MCCConfig& cfg) throw(AREXClientError)
+    :client_loader(NULL),client(NULL),client_entry(NULL) {
+
+    logger.msg(Arc::INFO, "Creating an A-REX client.");
+    bool tls;
+    if(url.Protocol() == "http") { tls=false; }
+    client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),tls,url.Path());
   }
   
   AREXClient::~AREXClient()
@@ -69,48 +77,60 @@ namespace Arc {
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
     req.GetXML(jsdl_str);
+    Arc::PayloadSOAP* resp = NULL;
 
     // Send job request
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    Arc::MessageAttributes attributes_req;
-    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    if(!status) {
-      logger.msg(Arc::ERROR, "Submission request failed.");
-      throw AREXClientError("Submission request failed.");
-    }
-    logger.msg(Arc::INFO, "Submission request succeed.");
-    if(repmsg.Payload() == NULL) {
-      logger.msg
-	(Arc::ERROR, "There were no response to a submission request.");
-      throw AREXClientError
-	("There were no response to the submission request.");
-    }
-    Arc::PayloadSOAP* resp = NULL;
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR,
-		 "A response to a submission request was not a SOAP message.");
-      delete repmsg.Payload();
-      throw AREXClientError
-	("The response to the submission request was not a SOAP message.");
+    if(client) {
+      Arc::MCC_Status status = client->process(
+         "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity",
+         &req,&resp);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Submission request failed.");
+        throw AREXClientError("Submission request failed.");
+      }
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"There was no SOAP response.");
+        throw AREXClientError("There was no SOAP response.");
+      };
+    } else if (client_entry) {
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
+      Arc::MessageAttributes attributes_rep;
+      Arc::MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "Submission request failed.");
+        throw AREXClientError("Submission request failed.");
+      }
+      logger.msg(Arc::INFO, "Submission request succeed.");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There were no response to a submission request.");
+        throw AREXClientError("There were no response to the submission request.");
+      }
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"A response to a submission request was not a SOAP message.");
+        delete repmsg.Payload();
+        throw AREXClientError("The response to the submission request was not a SOAP message.");
+      };
+    } else {
+      throw AREXClientError("There is no connection chain configured.");
     };
     Arc::XMLNode id, fs;
     (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
     (*resp)["Fault"]["faultstring"].New(fs);
     id.GetDoc(jobid);
     faultstring=(std::string)fs;
-    delete repmsg.Payload();
+    delete resp;
     if (faultstring=="")
       return jobid;
     else
@@ -129,39 +149,50 @@ namespace Arc {
       NewChild(Arc::XMLNode(jobid));
     
     // Send status request
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    Arc::MessageAttributes attributes_req;
-    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetActivityStatuses");
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
-
-    
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    if(!status) {
-      logger.msg(Arc::ERROR, "A status request failed.");
-      throw AREXClientError("The status request failed.");
-    }
-    logger.msg(Arc::INFO, "A status request succeed.");
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There were no response to a status request.");
-      throw AREXClientError("There were no response.");
-    }
     Arc::PayloadSOAP* resp = NULL;
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR,
+
+    if(client) {
+      Arc::MCC_Status status = client->process(
+          "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetActivityStatuses",
+          &req,&resp);
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"There was no SOAP response.");
+        throw AREXClientError("There was no SOAP response.");
+      }
+    } else if(client_entry) {
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetActivityStatuses");
+      Arc::MessageAttributes attributes_rep;
+      Arc::MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "A status request failed.");
+        throw AREXClientError("The status request failed.");
+      }
+      logger.msg(Arc::INFO, "A status request succeed.");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There were no response to a status request.");
+        throw AREXClientError("There were no response.");
+      }
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,
 		 "The response of a status request was not a SOAP message.");
-      delete repmsg.Payload();
-      throw AREXClientError("The response is not a SOAP message.");
-    }
+        delete repmsg.Payload();
+        throw AREXClientError("The response is not a SOAP message.");
+      }
+    } else {
+      throw AREXClientError("There is no connection chain configured.");
+    };
     Arc::XMLNode st, fs;
     (*resp)["GetActivityStatusesResponse"]["Response"]
            ["ActivityStatus"].New(st);
@@ -172,7 +203,7 @@ namespace Arc {
     substate = (std::string)sst;
     (*resp)["Fault"]["faultstring"].New(fs);
     faultstring=(std::string)fs;
-    delete repmsg.Payload();
+    delete resp;
     if (faultstring!="")
       throw AREXClientError(faultstring);
     else if (state=="")
@@ -192,44 +223,54 @@ namespace Arc {
       req.NewChild("bes-factory:GetFactoryAttributesDocument");
     
     // Send status request
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    Arc::MessageAttributes attributes_req;
-    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetFactoryAttributesDocument");
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
-
-    
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    if(!status) {
-      logger.msg(Arc::ERROR, "A service status request failed.");
-      throw AREXClientError("The service status request failed.");
-    }
-    logger.msg(Arc::INFO, "A service status request succeed.");
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR, "There were no response to a service status request.");
-      throw AREXClientError("There were no response.");
-    }
     Arc::PayloadSOAP* resp = NULL;
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR,
+    if(client) {
+      Arc::MCC_Status status = client->process(
+         "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetFactoryAttributesDocument",
+         &req,&resp);
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"There was no SOAP response.");
+        throw AREXClientError("There was no SOAP response.");
+      }
+    } else if(client_entry) {
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/GetFactoryAttributesDocument");
+      Arc::MessageAttributes attributes_rep;
+      Arc::MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "A service status request failed.");
+        throw AREXClientError("The service status request failed.");
+      }
+      logger.msg(Arc::INFO, "A service status request succeed.");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR, "There were no response to a service status request.");
+        throw AREXClientError("There were no response.");
+      }
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,
 		 "The response of a servicee status request was not a SOAP message.");
-      delete repmsg.Payload();
-      throw AREXClientError("The response is not a SOAP message.");
-    }
+        delete repmsg.Payload();
+        throw AREXClientError("The response is not a SOAP message.");
+      }
+    } else {
+      throw AREXClientError("There is no connection chain configured.");
+    };
     Arc::XMLNode st;
     (*resp)["GetFactoryAttributesDocumentResponse"]
            ["FactoryResourceAttributesDocument"].New(st);
     st.GetDoc(state);
-    delete repmsg.Payload();
+    delete resp;
     if (state=="")
       throw AREXClientError("The service status could not be retrieved.");
     else
@@ -248,40 +289,51 @@ namespace Arc {
       NewChild(Arc::XMLNode(jobid));
     
     // Send kill request
-    Arc::Message reqmsg;
-    Arc::Message repmsg;
-    Arc::MessageAttributes attributes_req;
-    attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/TerminateActivities");
-    Arc::MessageAttributes attributes_rep;
-    Arc::MessageContext context;
-    reqmsg.Payload(&req);
-    reqmsg.Attributes(&attributes_req);
-    reqmsg.Context(&context);
-    repmsg.Attributes(&attributes_rep);
-    repmsg.Context(&context);
-    
-    Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-    if(!status) {
-      logger.msg(Arc::ERROR, "A job termination request failed.");
-      throw AREXClientError("The job termination request failed.");
-    }
-    logger.msg(Arc::INFO, "A job termination request succeed.");
-    if(repmsg.Payload() == NULL) {
-      logger.msg(Arc::ERROR,
-		 "There was no response to a job termination request.");
-      throw AREXClientError
-	("There was no response to the job termination request.");
-    }
     Arc::PayloadSOAP* resp = NULL;
-    try {
-      resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-    } catch(std::exception&) { };
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR,
+    if(client) {
+      Arc::MCC_Status status = client->process(
+         "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/TerminateActivities",
+         &req,&resp);
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"There was no SOAP response.");
+        throw AREXClientError("There was no SOAP response.");
+      }
+    } else if(client_entry) {
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_req;
+      attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/TerminateActivities");
+      Arc::MessageAttributes attributes_rep;
+      Arc::MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "A job termination request failed.");
+        throw AREXClientError("The job termination request failed.");
+      }
+      logger.msg(Arc::INFO, "A job termination request succeed.");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR,
+		 "There was no response to a job termination request.");
+        throw AREXClientError
+	("There was no response to the job termination request.");
+      }
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,
 	"The response of a job termination request was not a SOAP message");
-      delete repmsg.Payload();
-      throw AREXClientError("The response is not a SOAP message.");
-    }
+        delete repmsg.Payload();
+        throw AREXClientError("The response is not a SOAP message.");
+      }
+    } else {
+      throw AREXClientError("There is no connection chain configured.");
+    };
 
     Arc::XMLNode cancelled, fs;
     (*resp)["TerminateActivitiesResponse"]
@@ -289,7 +341,7 @@ namespace Arc {
     result = (std::string)cancelled;
     (*resp)["Fault"]["faultstring"].New(fs);
     faultstring=(std::string)fs;
-    delete repmsg.Payload();
+    delete resp;
     if (faultstring!="")
       throw AREXClientError(faultstring);
     if (result!="true")

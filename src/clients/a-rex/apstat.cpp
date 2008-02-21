@@ -4,7 +4,39 @@
 #include <fstream>
 #include <string>
 #include <stdexcept>
+#include <arc/misc/ClientTool.h>
+#include <arc/XMLNode.h>
 #include "arex_client.h"
+
+class APStatTool: public Arc::ClientTool {
+ public:
+  std::string proxy_path;
+  std::string key_path;
+  std::string cert_path;
+  std::string ca_dir;
+  APStatTool(int argc,char* argv[]):Arc::ClientTool("apstat") {
+    ProcessOptions(argc,argv,"P:K:C:A:");
+  };
+  virtual void PrintHelp(void) {
+    std::cout<<"apstat [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [service_url] id_file"<<std::endl;
+    std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
+  };
+  virtual bool ProcessOption(char option,char* option_arg) {
+    switch(option) {
+      case 'P': proxy_path=option_arg;; break;
+      case 'K': key_path=option_arg; break;
+      case 'C': cert_path=option_arg; break;
+      case 'A': ca_dir=option_arg; break;
+      default: {
+        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
+        PrintHelp();
+        return false;
+      };
+    };
+    return true;
+  };
+};
+
 
 //! A prototype client for job status queries.
 /*! A prototype command line tool for job status queries to an A-REX
@@ -25,21 +57,40 @@
   be "arex_client.xml" in the current working directory.
 */
 int main(int argc, char* argv[]){
-  Arc::LogStream logcerr(std::cerr, "AREXClient");
-  Arc::Logger::getRootLogger().addDestination(logcerr);
+  APStatTool tool(argc,argv);
+  if(!tool) return EXIT_FAILURE;
   try{
-    if (argc!=2)
+    if (((argc-tool.FirstOption())!=2) && ((argc-tool.FirstOption())!=1))
       throw std::invalid_argument("Wrong number of arguments!");
-    Arc::AREXClient ac;
+    char* jobidarg = argv[tool.FirstOption()];
+    if((argc-tool.FirstOption()) == 2) jobidarg=argv[tool.FirstOption()+1];;
     std::string jobid;
-    std::ifstream jobidfile(argv[1]);
+    std::ifstream jobidfile(jobidarg);
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not open ")+
-				  std::string(argv[1]));
+      throw std::invalid_argument(std::string("Could not open ")+jobidarg);
     std::getline<char>(jobidfile, jobid, 0);
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not read Job ID from ")+
-				  std::string(argv[2]));
+      throw std::invalid_argument(std::string("Could not read Job ID from ")+jobidarg);
+    std::string urlstr;
+    if((argc-tool.FirstOption()) == 1) {
+      Arc::XMLNode jobxml(jobid);
+      if(!jobxml)
+        throw std::invalid_argument(std::string("Could not process Job ID from ")+jobidarg);
+      urlstr=(std::string)(jobxml["Address"]); // TODO: clever service address extraction
+    } else {
+      urlstr=argv[tool.FirstOption()];
+    };
+    if(urlstr.empty()) 
+      throw std::invalid_argument("Missing service URL.");
+    Arc::URL url(urlstr);
+    if(!url) 
+      throw std::invalid_argument(std::string("Can't parse service URL ")+urlstr);
+    Arc::MCCConfig cfg;
+    if(!tool.proxy_path.empty()) cfg.AddProxy(tool.proxy_path);
+    if(!tool.key_path.empty()) cfg.AddPrivateKey(tool.key_path);
+    if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
+    if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
+    Arc::AREXClient ac(url,cfg);
     std::cout << "Job status: " << ac.stat(jobid) << std::endl;
     return EXIT_SUCCESS;
   }

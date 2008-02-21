@@ -14,6 +14,8 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/misc/ClientInterface.h>
+#include <arc/URL.h>
 
 namespace Arc {
 
@@ -58,6 +60,7 @@ namespace Arc {
       @throw An AREXClientError object if an error occurs.
      */
     AREXClient(std::string configFile="") throw(AREXClientError);
+    AREXClient(const Arc::URL& url,const Arc::MCCConfig& cfg) throw(AREXClientError);
 
     //! The destructor.
     /*! This is the destructor. It does what destructors usually do,
@@ -112,6 +115,8 @@ namespace Arc {
       components according to the configuration object.
      */
     Arc::Loader* client_loader;
+
+    Arc::ClientSOAP* client;
 
     //! The entry into the client message chain.
     /*! This is a pointer to the message chain components (MCC) where
