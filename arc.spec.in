@@ -172,7 +172,6 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
-%{_bindir}/arex_client.xml
 %{_bindir}/apsub
 %{_bindir}/apstat
 %{_bindir}/apkill

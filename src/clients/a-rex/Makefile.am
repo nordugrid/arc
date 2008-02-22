@@ -1,7 +1,6 @@
 bin_PROGRAMS = apsub apstat apkill apsstat
-bin_SCRIPTS = arex_client.xml
 doc_DATA = .arccfg.xml
-EXTRA_DIST = $(bin_SCRIPTS) $(doc_DATA)
+EXTRA_DIST = $(doc_DATA)
 SOURCES = arex_client.cpp arex_client.h
 
 apsub_SOURCES  = $(SOURCES) apsub.cpp
