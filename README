@@ -131,17 +131,6 @@ share/doc/arc - configuration examples/templates and documentation
 share/locale - internatiolization files - curently very limited support
 share/man - manual pages for varius utilities - currently arched only
 
-IMPORTANT: Due to some misfeature in autotools (not localized yet) library
-libarcclient.so may be improperly linked. You can detect this situation by
-seeing messages about unresolved symbols in server's log. Or immediately
-after installing ARC1 by running command
-
-  ldd -r -d PLACE_TO_INSTALL_ARC1/lib/libarcws.so
-
-In case of problem this command shall complain about unresolved symbols.
-Problem can be solved by running 'make install' in src/hed/libs/misc.
-That will make autotools relink and install libarcclient.so properly.
-
 
 
 X509 Certificates
