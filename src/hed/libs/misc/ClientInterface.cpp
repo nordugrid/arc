@@ -5,6 +5,7 @@
 #include <glibmm/fileutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
+#include <arc/User.h>
 
 #include "ClientInterface.h"
 
@@ -26,6 +27,7 @@ namespace Arc {
           xml_add_element(x,e);
         };
       };
+      return;
     };
     xml.NewChild(element);
     return;
@@ -112,7 +114,11 @@ namespace Arc {
     overlay.Destroy();
     if(fname.empty()) {
       const char* fname_str=getenv("ARC_CLIENT_CONFIG");
-      if(fname_str) fname=fname_str;
+      if(fname_str) {
+        fname=fname_str;
+      } else {
+        fname=Arc::User().Home()+"/.arc.cfg";
+      };
     };
     if(fname.empty()) return;
     overlay.ReadFromFile(fname);
@@ -132,6 +138,7 @@ namespace Arc {
 							    xmlcfg(NS()) {
     cfg.MakeConfig(xmlcfg);
     xmlcfg.NewChild("Chain");
+    cfg.overlay.New(overlay);
   }
 
   ClientInterface::~ClientInterface() {
@@ -169,19 +176,17 @@ namespace Arc {
                        PayloadStreamInterface **response, bool tls) {
     *response = NULL;
     if(!loader) {
+      if(overlay) Overlay(overlay);
       loader = new Loader(&xmlcfg);
-      if(tls)
-        tls_entry = (*loader)["tls"];
-      else
-        tcp_entry = (*loader)["tcp"];
-
+      tls_entry = (*loader)["tls"];
+      tcp_entry = (*loader)["tcp"];
       if((!tls_entry)&&(!tcp_entry)) {
         delete loader;
         loader = NULL;
       }
     }
-    if((!tls_entry)&&(!tcp_entry))
-      return MCC_Status();
+    if(tls && (!tls_entry)) return MCC_Status();
+    if((!tls) && (!tcp_entry)) return MCC_Status();
     Arc::MessageAttributes attributes_req;
     Arc::MessageAttributes attributes_rep;
     Arc::Message reqmsg;
@@ -244,6 +249,7 @@ namespace Arc {
                                  HTTPClientInfo *info, PayloadRawInterface **response) {
     *response = NULL;
     if(!loader) {
+      if(overlay) Overlay(overlay);
       loader = new Loader(&xmlcfg);
       http_entry = (*loader)["http"];
       if(!http_entry) {
@@ -292,9 +298,6 @@ namespace Arc {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
-    std::string s;
-    xmlcfg.GetXML(s);
-    logger.msg(Arc::VERBOSE,"Client configuration: %s",s.c_str());
   }
 
   ClientSOAP::~ClientSOAP() {}
@@ -306,6 +309,10 @@ namespace Arc {
   MCC_Status ClientSOAP::process(const std::string& action,PayloadSOAP* request,PayloadSOAP** response) {
     *response = NULL;
     if(!loader) {
+      if(overlay) Overlay(overlay);
+      std::string s;
+      xmlcfg.GetXML(s);
+      logger.msg(Arc::VERBOSE,"Client configuration: %s",s.c_str());
       loader = new Loader(&xmlcfg);
       soap_entry = (*loader)["soap"];
       if(!soap_entry) {

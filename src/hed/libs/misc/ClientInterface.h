@@ -61,6 +61,7 @@ namespace Arc {
     void Overlay(XMLNode cfg);
    protected:
     Config xmlcfg;
+    XMLNode overlay;
     Loader *loader;
     MessageContext context;
     static Logger logger;
