@@ -3,6 +3,8 @@
 /** Platform independent represnetation of system user */
 #include <string>
 
+struct passwd;
+
 namespace Arc
 {
 
@@ -14,6 +16,7 @@ class User
         std::string home;
         int uid;
         int gid;
+        void set(struct passwd*);
     
     public:
         // get current user

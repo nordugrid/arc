@@ -29,42 +29,50 @@ static uid_t get_user_id(void) {
   return user_id;
 }
 
+static uid_t get_group_id(void) {
+  return getgid();
+}
+
+void User::set(struct passwd *pwd_p)
+{
+    if (pwd_p == NULL) return;
+    name = pwd_p->pw_name;
+    home = pwd_p->pw_dir;
+    uid  = pwd_p->pw_uid;
+    gid  = pwd_p->pw_gid;
+}
+
 User::User(void)
 {
-    User(get_user_id());
+    uid = get_user_id();
+    gid = get_group_id();
+    struct passwd pwd;
+    char pwdbuf[2048];
+    struct passwd *pwd_p;
+    getpwuid_r(uid, &pwd,pwdbuf,sizeof(pwdbuf),&pwd_p);
+    set(pwd_p);
 }
 
 // Unix implementation
 User::User(std::string name)
 {
+    this->name = name;
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;
     getpwnam_r(name.c_str(), &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p);
-    if (pwd_p == NULL) {
-        return;
-    }
-    name = name;
-    home = pwd_p->pw_dir;
-    uid = pwd_p->pw_uid;
-    gid = pwd_p->pw_gid;
+    set(pwd_p);
 }
 
 User::User(int uid)
 {
-    uid = uid;
+    this->uid = uid;
+    this->gid = -1;
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;
     getpwuid_r(uid, &pwd,pwdbuf,sizeof(pwdbuf),&pwd_p);
-    if (pwd_p == NULL) {
-        gid = getgid();
-        return;
-    }
-    name = pwd_p->pw_name;
-    home = pwd_p->pw_dir;
-    uid = uid;
-    gid = pwd_p->pw_gid;
+    set(pwd_p);
 }
 
 bool User::RunAs(std::string cmd)
