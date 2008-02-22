@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: nordugrid-arc1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
+Description: ARC shared libraries
  ARC shared libraries
 
 Package: nordugrid-arc1-client
