@@ -172,6 +172,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
+%{_bindir}/arex_client.xml
 %{_bindir}/apsub
 %{_bindir}/apstat
 %{_bindir}/apkill
@@ -200,7 +201,37 @@ exit 0
 %{_libexecdir}/uploader
 %{_libexecdir}/smtp-send
 %{_libexecdir}/smtp-send.sh
+#
+%{_libexecdir}/Condor.pm
+%{_libexecdir}/Fork.pm
+%{_libexecdir}/LL.pm
+%{_libexecdir}/LRMS.pm
+%{_libexecdir}/LSF.pm
+%{_libexecdir}/PBS.pm
+%{_libexecdir}/SGE.pm
+#
+%{_libexecdir}/LogUtils.pm
+%{_libexecdir}/Shared.pm
+#
+%{_libexecdir}/submit-*-job
+%{_libexecdir}/cancel-*-job
+%{_libexecdir}/scan-*-job
+%{_libexecdir}/configure-*-env.sh
+#
+%{_libexecdir}/submit_common.sh
+%{_libexecdir}/cancel_common.sh
+%{_libexecdir}/scan_common.sh
+%{_libexecdir}/config_parser.pm
+%{_libexecdir}/config_parser.sh
+#
+%{_libexecdir}/condor_env.pm
+%{_libexecdir}/change-lsf-mode.sh
+%{_libexecdir}/finish-condor-job
+#
+%{_libexecdir}/cluster.pl
+%{_libexecdir}/qju.pl
 %{_bindir}/ldif2xml
+%{_datadir}/%{pkgdir}/nordugrid.schema
 
 %files devel
 %defattr(-,root,root,-)
