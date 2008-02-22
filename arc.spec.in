@@ -220,7 +220,6 @@ exit 0
 #
 %{_libexecdir}/submit_common.sh
 %{_libexecdir}/cancel_common.sh
-%{_libexecdir}/scan_common.sh
 %{_libexecdir}/config_parser.pm
 %{_libexecdir}/config_parser.sh
 #
