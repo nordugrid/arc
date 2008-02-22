@@ -1,6 +1,7 @@
 // This define is needed to have maximal values for types with fixed size
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
+#include <fstream>
 #include <glibmm/fileutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
@@ -10,6 +11,33 @@
 namespace Arc {
 
   Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
+
+  static void xml_add_element(XMLNode xml,XMLNode element) {
+    if(element.Size() > 0) {
+      std::string element_name = element.Name(); // FullName ?
+      std::string element_id = (std::string)(element.Attribute("name"));
+      for(XMLNode x = xml[element_name];(bool)x;x=x[1]) {
+        if(!element_id.empty()) {
+          if(element_id != (std::string)(x.Attribute("name"))) continue;
+        };
+        for(int n = 0;;++n) {
+          XMLNode e = element.Child(n);
+          if(!e) break;
+          xml_add_element(x,e);
+        };
+      };
+    };
+    xml.NewChild(element);
+    return;
+  }
+
+  static void xml_add_elements(XMLNode xml,XMLNode elements) {
+    for(int n = 0;;++n) {
+      XMLNode e = elements.Child(n);
+      if(!e) break;
+      xml_add_element(xml,e);
+    };
+  }
 
   BaseConfig::BaseConfig() {
     key = "";
@@ -75,6 +103,21 @@ namespace Arc {
     cadir = path;
   }
 
+  void BaseConfig::AddOverlay(XMLNode cfg) {
+    overlay.Destroy();
+    cfg.New(overlay);
+  }
+
+  void BaseConfig::GetOverlay(std::string fname) {
+    overlay.Destroy();
+    if(fname.empty()) {
+      const char* fname_str=getenv("ARC_CLIENT_CONFIG");
+      if(fname_str) fname=fname_str;
+    };
+    if(fname.empty()) return;
+    overlay.ReadFromFile(fname);
+  }
+
   static XMLNode ConfigMakeComponent(XMLNode chain, const char* name,
 				     const char* id, const char* next = NULL) {
     XMLNode comp = chain.NewChild("Component");
@@ -94,6 +137,10 @@ namespace Arc {
   ClientInterface::~ClientInterface() {
     if(loader)
       delete loader;
+  }
+
+  void ClientInterface::Overlay(XMLNode cfg) {
+    xml_add_elements(xmlcfg,cfg);
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,

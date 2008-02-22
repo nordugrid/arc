@@ -14,6 +14,7 @@ namespace Arc {
 
   class Loader;
   class MCC;
+  class ClientInterface;
 
   /** Configuration for client interface.
      It contains information which can't be expressed in
@@ -28,6 +29,7 @@ namespace Arc {
     std::string proxy;
     std::string cafile;
     std::string cadir;
+    XMLNode overlay;
     BaseConfig();
     virtual ~BaseConfig() {};
     /** Adds non-standard location of plugins */
@@ -42,6 +44,10 @@ namespace Arc {
     void AddCAFile(const std::string& path);
     /** Add CA directory */
     void AddCADir(const std::string& path);
+    /** Add configuration overlay */
+    void AddOverlay(XMLNode cfg);
+    /** Read overlay from file */
+    void GetOverlay(std::string fname);
     /** Adds configuration part corresponding to stored information into
        common configuration tree supplied in 'cfg' argument. */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
@@ -52,6 +58,7 @@ namespace Arc {
     ClientInterface():loader(NULL) {};
     ClientInterface(const BaseConfig& cfg);
     virtual ~ClientInterface();
+    void Overlay(XMLNode cfg);
    protected:
     Config xmlcfg;
     Loader *loader;
