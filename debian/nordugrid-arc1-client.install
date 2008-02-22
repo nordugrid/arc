@@ -2,8 +2,10 @@ usr/bin/arcls
 usr/bin/apinfo
 usr/bin/apsub
 usr/bin/apstat
+usr/bin/apsstat
 usr/bin/apkill
 usr/bin/apecho
 usr/bin/perftest
 usr/bin/arccp
 usr/bin/arcrm
+usr/bin/arex_client.xml
