@@ -14,11 +14,12 @@ class APStatTool: public Arc::ClientTool {
   std::string key_path;
   std::string cert_path;
   std::string ca_dir;
+  std::string config_path;
   APStatTool(int argc,char* argv[]):Arc::ClientTool("apstat") {
-    ProcessOptions(argc,argv,"P:K:C:A:");
+    ProcessOptions(argc,argv,"P:K:C:A:c:");
   };
   virtual void PrintHelp(void) {
-    std::cout<<"apstat [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [service_url] id_file"<<std::endl;
+    std::cout<<"apstat [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] [service_url] id_file"<<std::endl;
     std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
   };
   virtual bool ProcessOption(char option,char* option_arg) {
@@ -27,6 +28,7 @@ class APStatTool: public Arc::ClientTool {
       case 'K': key_path=option_arg; break;
       case 'C': cert_path=option_arg; break;
       case 'A': ca_dir=option_arg; break;
+      case 'c': config_path=option_arg; break;
       default: {
         std::cerr<<"Error processing option: "<<(char)option<<std::endl;
         PrintHelp();
@@ -90,6 +92,7 @@ int main(int argc, char* argv[]){
     if(!tool.key_path.empty()) cfg.AddPrivateKey(tool.key_path);
     if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
     if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
+    cfg.GetOverlay(tool.config_path);
     Arc::AREXClient ac(url,cfg);
     std::cout << "Job status: " << ac.stat(jobid) << std::endl;
     return EXIT_SUCCESS;
