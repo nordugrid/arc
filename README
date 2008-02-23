@@ -203,11 +203,8 @@ The Echo service
 ================
 
 The echo service is "atomic" and has no additional dependencies other
-than what is provided by the Hosting Environment Daemon (HED). If you
-do not want to run the echo service, simply remove the lines
-'xmlns:echo="urn:echo_config"', '<Plugins><Name>echo</Name></Plugins>',
-'<next id="echo">/echo</next>', and '<Service name="echo" id="echo">
-[...] </Service>' from the configuration file.
+than what is provided by the Hosting Environment Daemon (HED). An example
+of Echo service configuration may be found in share/doc/arc/echo.xml .
 
 
 
@@ -218,51 +215,12 @@ The configuration of the ARC echo client is specified in an XML
 file. The location of the configuration file is specified by the
 environment variable ARC_ECHO_CONFIG. If there is no such environment
 variable, the configuration file is assumed to be echo_client.xml in
-the current working directory. An example configuration file is shown
-below:
-
-<?xml version="1.0"?>
-<ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
-  <ModuleManager>
-    <Path>/usr/local/lib/arc/</Path>
-  </ModuleManager>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Chain>
-    <Component name='tcp.client' id='tcp'>
-      <tcp:Connect>
-        <tcp:Host>127.0.0.1</tcp:Host>
-        <tcp:Port>60000</tcp:Port>
-      </tcp:Connect>
-    </Component>
-    <Component name='tls.client' id='tls'>
-      <next id='tcp'/>
-      <KeyPath>/etc/grid-security/key.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/cert.pem</CertificatePath>
-      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-    </Component>
-    <Component name='http.client' id='http'>
-      <next id='tls'/><Method>POST</Method>
-      <Endpoint>/echo</Endpoint>
-    </Component>
-    <Component name='soap.client' id='soap' entry='soap'>
-      <next id='http'/>
-    </Component>
-  </Chain>
-</ArcConfig>
-
-
-
-Using the Echo Client
-=====================
+the current working directory. An example configuration file is can be
+found in share/doc/arc/echo_client.xml
 
 To use the echo client, type
 
-  <install-prefix>/bin/apecho <message>
+  $ARC_LOCATION/bin/apecho <message>
 
 where <message> is the message which the echo service will return.
 
@@ -307,6 +265,7 @@ and that it cannot open a shared object file, try to add "/opt/globus/lib" to yo
 LD_LIBRARY_PATH:
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
+
 
 
 Testing and Using A-REX
@@ -420,6 +379,9 @@ in id.xml file. It may then be used to query job state with 'apstat' utility.
 
  $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
  Job status: Finished/Finished
+
+Full set of A-Rex client tools consists of apsub, apstat, apkill, asstat and 
+apget commands. For more information please see man pages ot those utilities.
 
 
 
