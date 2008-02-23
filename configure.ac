@@ -211,6 +211,8 @@ else
         pkgconfigdir=${libdir}/pkgconfig
         AC_SUBST(pkgconfigdir)
 fi
+docdir='${datadir}/doc/${PACKAGE}'
+AC_SUBST(docdir)
 
 # using pkgconfig
 # check gthread
