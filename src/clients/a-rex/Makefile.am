@@ -22,3 +22,5 @@ apsstat_SOURCES  = $(SOURCES) apsstat.cpp
 apsstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 apsstat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 apsstat_LDADD    = $(top_srcdir)/src/hed/libs/misc/libarcclient.la
+
+man_MANS = apsub.1 apstat.1 apkill.1 apsstat.1

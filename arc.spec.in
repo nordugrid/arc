@@ -173,11 +173,16 @@ exit 0
 %files client
 %defattr(-,root,root,-)
 %{_bindir}/apsub
+%doc %{_mandir}/man1/apsub.1*
 %{_bindir}/apstat
+%doc %{_mandir}/man1/apstat.1*
 %{_bindir}/apkill
+%doc %{_mandir}/man1/apkill.1*
 %{_bindir}/apsstat
+%doc %{_mandir}/man1/apsstat.1*
 %{_bindir}/apecho
 %{_bindir}/apinfo
+%doc %{_mandir}/man1/apinfo.1*
 %{_bindir}/arccp
 %{_bindir}/arcls
 %{_bindir}/arcrm

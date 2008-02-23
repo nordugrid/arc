@@ -8,3 +8,8 @@ usr/bin/apecho
 usr/bin/perftest
 usr/bin/arccp
 usr/bin/arcrm
+usr/share/man/man1/apinfo.1
+usr/share/man/man1/apsub.1
+usr/share/man/man1/apstat.1
+usr/share/man/man1/apsstat.1
+usr/share/man/man1/apkill.1

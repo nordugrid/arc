@@ -1,0 +1,49 @@
+.\" -*- nroff -*-
+.TH APINFO "23" "February 2008" "NorduGrid ARC 0.9.0" "NorduGrid System Manager's Manual"
+.SH NAME
+apinfo \- ARC WSRF query client
+.SH SYNOPSIS
+.B apinfo
+[\fIOPTION\fR] service_url
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+apinfo requests full service description XML document from services which support WSRF.
+.SH OPTIONS
+.TP
+\fB\-d\fR
+level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
+.TP
+\fB\-l\fR
+full path to log file. If missing all messages are printed to stderr.
+.TP
+\fB\-P\fR
+location of credentials proxy file
+.TP
+\fB\-C\fR
+location of X509 certificate file
+.TP
+\fB\-K\fR
+location of private key file
+.TP
+\fB\-A\fR
+location of directory containing X509 certificate files of all accepted CAs.
+.TP
+\fB\-c\fR
+location of client configuration file. Default value is ~/.arccfg.xml unless
+overwrittten by content of ARC_CLIENT_CONFIG environment variable.
+.TP
+\fB\-h\fR
+prints short usage description
+.TP
+\fB\ service_url\fR
+endpoint URL of service to contact. Currently HTTP and HTTPS URLs are supported.
+.PP
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+We need to have this
+.SH FILES
+.BR ~/.arccfg.xml
+.SH AUTHOR
+Written by developers
