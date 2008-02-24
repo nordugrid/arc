@@ -1,5 +1,7 @@
 from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata
 from storage.xmltree import XMLTree
+from xml.dom.minidom import parseString
+import arc
 
 class Client:
 
@@ -16,11 +18,8 @@ class Client:
         self.path = path
         self.ns = ns
         self.print_xml = print_xml
-        if self.print_xml:
-            from xml.dom.minidom import parseString
 
     def call(self, tree, return_tree_only = False):
-        import arc
         out = arc.PayloadSOAP(self.ns)
         tree.add_to_node(out)
         msg = out.GetXML()
@@ -87,7 +86,7 @@ class HashClient(Client):
             ID = str(obj_node.Get('ID'))
             lines_node = obj_node.Get('lines')
             lines = parse_metadata(lines_node)
-            objects.append((ID,dict(lines)))
+            objects.append((ID,lines))
         return dict(objects)
 
     def change(self, changes):
@@ -120,7 +119,6 @@ class HashClient(Client):
                 ])
             ])
         )
-        print tree
         msg, status, reason = self.call(tree)
         xml = arc.XMLNode(msg)
         responses_node = xml.Child().Child().Child()
@@ -128,7 +126,6 @@ class HashClient(Client):
         responses = []
         for i in range(responses_number):
             response_node = responses_node.Child(i)
-            print response_node.GetXML()
             responses.append((str(response_node.Get('changeID')), str(response_node.Get('success'))))
         return dict(responses)
 
@@ -158,7 +155,7 @@ class CatalogClient(Client):
             GUID = str(element_node.Get('GUID'))
             metadatalist_node = element_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            elements.append((GUID,dict(metadata)))
+            elements.append((GUID,metadata))
         return dict(elements)
 
     def traverseLN(self, requests):

@@ -5,7 +5,6 @@ import random
 from storage.xmltree import XMLTree
 from storage.client import HashClient
 from storage.common import catalog_uri, global_root_guid, mkuid, parse_metadata, true, false
-from storage.common import Client
 import traceback
 import copy
 
