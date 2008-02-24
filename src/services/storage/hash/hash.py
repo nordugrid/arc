@@ -22,29 +22,11 @@ Sample configuration:
 see also: hash_client.py for a very basic client for testing.
 """
 import arc
-import base64
 import os
-import pickle
-import time
-import threading
 import traceback
+from storage.common import import_class_from_string, hash_uri
 
-hash_uri = 'urn:hash'
-
-def import_class_from_string(str):
-    """ Import the class which name is in the string
-    
-    import_class_from_string(str)
-
-    'str' is the name of the class in [package.]*module.classname format.
-    """
-    module = '.'.join(str.split('.')[:-1]) # cut off class name
-    cl = __import__(module) # import module
-    for name in str.split('.')[1:]: # start from the first package name
-        # step to the next package or the module or the class
-        cl = getattr(cl, name)
-    return cl # return the class
-
+import pickle, threading
 
 class PickleStore:
     """ Class for storing (section, property, value) lists in serialized python format. """
@@ -73,6 +55,7 @@ class PickleStore:
         'ID' is the ID of the given object.
         The filename will be the datadir and the base64 encoded form of the ID.
         """
+        import base64
         name = base64.b64encode(ID)
         return os.path.join(self.datadir, name[:2], name)
 

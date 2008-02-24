@@ -1,95 +1,35 @@
-import arc, httplib, sys
+import arc, sys
 from storage.xmltree import XMLTree
-ns = arc.NS({'hash':'urn:hash'})
-out = arc.PayloadSOAP(ns)
-if sys.argv[1] == '-x':
-    sys.argv.pop(1)
+from storage.hash.hash import HashClient
+args = sys.argv[1:]
+if len(args) > 0 and args[0] == '-x':
+    args.pop(0)
     print_xml = True
-    from xml.dom.minidom import parseString
 else:
     print_xml = False
-if sys.argv[1] == 'get':
-    if len(sys.argv) < 3:
-        print 'Usage: get <ID> [<ID>...]'
-        sys.exit(-1)
-    tree = XMLTree(from_tree =
-        ('hash:get',
-            [('hash:IDs',
-                [('hash:ID', i) for i in sys.argv[2:]]
-            )]
-        ))
-    tree.add_to_node(out)
-elif sys.argv[1] == 'change':
-    if len(sys.argv) < 7:
-        print 'Usage: change <ID> <changeType> <section> <property> <value>'
-        print '   changeType: add | remove | delete | reset | format'
-        sys.exit(-1)
-    requests = out.NewChild('hash:change').NewChild('hash:changeRequestList')
-    tree = XMLTree(from_tree = 
-        ('hash:changeRequestElement',
-            [('hash:changeID', '0'),
-            ('hash:ID', sys.argv[2]),
-            ('hash:changeType', sys.argv[3]),
-            ('hash:section', sys.argv[4]),
-            ('hash:property', sys.argv[5]),
-            ('hash:value', sys.argv[6])]
-        ))
-    tree.add_to_node(requests)
-elif sys.argv[1] == 'changeIf':
-    if len(sys.argv) < 11:
-        print """Usage: changeIf <ID> <changeType> <section> <property> <value> \\
-            <conditionType> <section> <property> <value>"""
-        print '   changeType: add | remove | delete | reset | format'
-        print '   conditionType: has | not | exists | empty'
-        sys.exit(-1)
-    requests = out.NewChild('hash:change').NewChild('hash:changeRequestList')
-    tree = XMLTree(from_tree = 
-        ('hash:changeRequestElement',
-            [('hash:changeID', '0'),
-            ('hash:ID', sys.argv[2]),
-            ('hash:changeType', sys.argv[3]),
-            ('hash:section', sys.argv[4]),
-            ('hash:property', sys.argv[5]),
-            ('hash:value', sys.argv[6]),
-            ('hash:conditionList',
-                [('hash:condition',
-                    [('hash:conditionType',sys.argv[7]),
-                    ('hash:section',sys.argv[8]),
-                    ('hash:property',sys.argv[9]),
-                    ('hash:value',sys.argv[10])]
-                )]
-            )]
-        ))
-    tree.add_to_node(requests)
-else:
+hash = HashClient('http://localhost:60000/Hash', print_xml)
+if len(args) == 0 or args[0] not in ['get', 'change', 'changeIf']:
     print 'Supported methods: get, change, changeIf'
-    sys.exit(-1)
-msg = out.GetXML()
-if print_xml:
-    print 'Request:'
-    print parseString(msg).toprettyxml()
-    print
-h = httplib.HTTPConnection('localhost', 60000)
-h.request('POST', '/Hash', msg)
-r = h.getresponse()
-print 'Response:', r.status, r.reason
-resp = r.read()
-#cfg = arc.BaseConfig()
-#client = arc.ClientSOAP(cfg, 'localhost', 60000, False, '/Hash')
-#resp = arc.PayloadSOAP(ns)
-#client.process(out,resp)
-print resp
-if print_xml:
-    print parseString(resp).toprettyxml()
-t = XMLTree(from_string=resp).get('/////')
-for i in t:
-    print ' = '.join(i[1][0])
-    for j in i[1][1:]:
-        if isinstance(j[1], str):
-            print '  ', ' = '.join(j)
-        else:
-            for k in j[1]:
-                print '  ', k[0], 
-                for l in k[1]:
-                    print l[1],
-                print
+else:
+    command = args.pop(0)
+    if command == 'get':
+        if len(args) < 1:
+            print 'Usage: get <ID> [<ID>...]'
+            sys.exit(-1)
+        print hash.get(args)
+    elif command == 'change':
+        if len(args) < 5:
+            print 'Usage: change <ID> <changeType> <section> <property> <value>'
+            print '   changeType: add | remove | delete | reset | format'
+            sys.exit(-1)
+        changes = {'0' : args + [[]]}
+        print hash.change(changes)
+    elif command == 'changeIf':
+        if len(args) < 9:
+            print """Usage: changeIf <ID> <changeType> <section> <property> <value> \\
+                <conditionType> <section> <property> <value>"""
+            print '   changeType: add | remove | delete | reset | format'
+            print '   conditionType: has | not | exists | empty'
+            sys.exit(-1)
+        changes = {'0' : args[0:5] + [args[5:9]]}
+        print hash.change(changes)

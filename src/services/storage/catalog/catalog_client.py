@@ -10,7 +10,7 @@ else:
     print_xml = False
 if sys.argv[1] == 'newCollection':
     lines = [ 
-        ('cat:line', [
+        ('cat:metadata', [
             ('cat:section', 'timestamps'),
             ('cat:property', 'created'),
             ('cat:value', str(time.time()))
@@ -19,7 +19,7 @@ if sys.argv[1] == 'newCollection':
     if len(sys.argv) > 2:
         GUID = sys.argv[2]
         lines.append(
-            ('cat:line', [
+            ('cat:metadata', [
                 ('cat:section', 'catalog'),
                 ('cat:property', 'GUID'),
                 ('cat:value', GUID)
@@ -29,7 +29,7 @@ if sys.argv[1] == 'newCollection':
     tree = XMLTree(from_tree =
         ('cat:newCollectionRequestElement', [
             ('cat:requestID', '0'),
-            ('cat:metadata', lines)
+            ('cat:metadataList', lines)
         ])
     )
     tree.add_to_node(requests)

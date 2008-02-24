@@ -3,109 +3,57 @@ import httplib
 import arc
 import random
 from storage.xmltree import XMLTree
+from storage.client import CatalogClient
+from storage.common import parse_metadata, catalog_uri, manager_uri, \
+                            basename, dirname, remove_trailing_slash, true, false
 import traceback
 
-catalog_uri = 'urn:scatalog'
-manager_uri = 'urn:smanager'
-
-def mkuid():
-    rnd = ''.join([ chr(random.randint(0,255)) for i in range(16) ])
-    rnd = rnd[:6] + chr((ord(rnd[6]) & 0x4F) | 0x40) + rnd[7:8]  + chr((ord(rnd[8]) & 0xBF) | 0x80) + rnd[9:]
-    uuid = 0L
-    for i in range(16):
-        uuid = (uuid << 8) + ord(rnd[i])
-    rnd_str = '%032x' % uuid
-    return '%s-%s-%s-%s-%s' % (rnd_str[0:8], rnd_str[8:12], rnd_str[12:16],  rnd_str[16:20], rnd_str[20:])
-
-class CatalogClient:
-    
-    def __init__(self, url):
-        (_, host_port, path, _, _, _) = urlparse.urlparse(url)
-        if ':' in host_port:
-            host, port = host_port.split(':')
-        else:
-            host = host_port
-            port = 80
-        self._host = host
-        self._port = port
-        self._path = path
-        self._ns = arc.NS({'cat':catalog_uri})
-
-    def get(self, IDs):
-        tree = XMLTree(from_tree =
-            ('cat:get', [
-                ('cat:getRequestList', [
-                    ('cat:getRequestElement', [
-                        ('cat:GUID', i)
-                    ]) for i in IDs
-                ])
-            ])
-        )
-        msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
-        list_node = xml.Child().Child().Child()
-        list_number = list_node.Size()
-        elements = []
-        for i in range(list_number):
-            element_node = list_node.Child(i)
-            GUID = str(element_node.Get('GUID'))
-            metadatalist_node = element_node.Get('metadataList')
-            metadatalist_number = metadatalist_node.Size()
-            metadata = []
-            for j in range(metadatalist_number):
-                metadata_node = metadatalist_node.Child(j)
-                metadata.append((
-                    (str(metadata_node.Get('section')),str(metadata_node.Get('property'))),
-                        str(metadata_node.Get('value'))))
-            elements.append((GUID,dict(metadata)))
-        return dict(elements)
-
-    def traverseLN(self, requests):
-        tree = XMLTree(from_tree =
-            ('cat:traverseLN', [
-                ('cat:traverseLNRequestList', [
-                    ('cat:traverseLNRequestElement', [
-                        ('cat:requestID', rID),
-                        ('cat:LN', LN) 
-                    ]) for rID, LN in requests
-                ])
-            ])
-        )
-        responses = self.call(tree, True)
-        return dict([(response['requestID'], response) for response in responses.get_dicts('///')])
-
-    def call(self, tree, return_tree_only = False):
-        out = arc.PayloadSOAP(self._ns)
-        tree.add_to_node(out)
-        msg = out.GetXML()
-        h = httplib.HTTPConnection(self._host, self._port)
-        h.request('POST', self._path, msg)
-        r = h.getresponse()
-        if return_tree_only:
-            resp = r.read()
-            return XMLTree(from_string=resp, forget_namespace = True).get_trees('///')[0]
-        else:
-            return r.read(), r.status, r.reason
-
 class Manager:
+
     def __init__(self, catalog):
         self.catalog = catalog
-
 
     def stat(self, requests):
         responses = []
         for response in self.catalog.traverseLN(requests).values():
-            if response['wasComplete'] == '0':
-                responses.append((response['requestID'],None))
+            if response['wasComplete'] == false:
+                responses.append((response['requestID'],[]))
             else:
-                responses.append((response['requestID'], [dict(metadata[1]) for metadata in response['metadataList']]))
+                responses.append((response['requestID'],
+                    [dict(metadata[1]) for metadata in response['metadataList']]))
         return responses
-        
+
+    def makeCollection(self, requests):
+        requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests]
+        print requests
+        traverse_request = [(rID, LN) for rID, (LN, _) in requests]
+        print traverse_request
+        traverse_response = self.catalog.traverseLN(traverse_request)
+        print traverse_response
+        responses = []
+        for rID, (LN, metadata) in requests:
+            trav = traverse_response[rID]
+            if trav['restLN'] != basename(LN):
+                if trav['wasComplete'] == true:
+                    success = 'LN exists'
+                else:
+                    success = 'parent does not exist'
+            else:
+                print 'OK!', trav
+                nc_resp = self.catalog.newCollection([('0', metadata)])
+                nc_dict = nc_resp.get_dict('///')
+                if nc_dict['success'] != 'success':
+                    success = 'failed to create new collection'
+                else:
+                    
+                    success = 'OK'
+            responses.append((rID, success))
+        return responses
 
 class ManagerService:
 
     # names of provided methods
-    request_names = ['stat']
+    request_names = ['stat','makeCollection']
 
     def __init__(self, cfg):
         print "Storage Manager service constructor called"
@@ -136,6 +84,29 @@ class ManagerService:
                         ]) for metadata in metadataList
                     ])
                 ]) for rID, metadataList in responses
+            ])
+        )
+        tree.add_to_node(response_node)
+        return out
+
+    def makeCollection(self, inpayload):
+        requests_node = inpayload.Child().Child()
+        request_number = requests_node.Size()
+        requests = []
+        for i in range(request_number):
+            request_node = requests_node.Child(i)
+            metadatalist_node = request_node.Get('metadataList')
+            metadata = parse_metadata(metadatalist_node)
+            requests.append((str(request_node.Get('requestID')),(str(request_node.Get('LN')),metadata)))
+        responses = self.manager.makeCollection(requests)
+        out = arc.PayloadSOAP(self.man_ns)
+        response_node = out.NewChild('man:makeCollectionResponse')
+        tree = XMLTree(from_tree =
+            ('man:makeCollectionResponseList', [
+                ('man:makeCollectionResponseElement', [
+                    ('man:requestID', rID),
+                    ('man:success', success)
+                ]) for rID, success in responses
             ])
         )
         tree.add_to_node(response_node)

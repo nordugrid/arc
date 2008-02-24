@@ -24,8 +24,31 @@ if sys.argv[1] == 'stat':
         ])
     )
     tree.add_to_node(out)
+elif sys.argv[1] == 'makeCollection':
+    if len(sys.argv) < 3:
+        print 'Usage: makeCollection <LN>'
+        sys.exit(-1)
+    LN = sys.argv[2]
+    tree = XMLTree(from_tree =
+        ('man:makeCollection', [
+            ('man:makeCollectionRequestList', [
+                ('man:makeCollectionRequestElement', [
+                    ('man:requestID', 0),
+                    ('man:LN', LN),
+                    ('man:metadataList', [
+                        ('man:metadata', [
+                            ('man:section', 'states'),
+                            ('man:property', 'closed'),
+                            ('man:value', '0')
+                        ])
+                    ])
+                ])
+            ])
+        ])
+    )
+    tree.add_to_node(out)
 else:
-    print 'Supported methods: stat'
+    print 'Supported methods: stat, makeCollection'
     sys.exit(-1)
 msg = out.GetXML()
 if print_xml:
