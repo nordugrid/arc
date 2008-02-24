@@ -1,0 +1,24 @@
+.\" -*- nroff -*-
+.TH ARCCP "1" "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.SH NAME
+arccp - copy files
+.SH SYNOPSIS
+.B arccp
+[\fIOPTION\fR] source destination
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+arccp copy files
+.SH OPTIONS
+.TP
+\fB\-d\fR
+level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
+.PP
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+We need to have this
+.SH FILES
+.BR ~/.arccfg.xml
+.SH AUTHOR
+Written by developers

@@ -510,10 +510,18 @@ AC_CONFIG_FILES([Makefile
                  src/services/wrappers/python/Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
+                 src/clients/a-rex/apkill.1
+                 src/clients/a-rex/apsub.1
+                 src/clients/a-rex/apstat.1
+                 src/clients/a-rex/apsstat.1
                  src/clients/data/Makefile
+                 src/clients/data/arccp.1
+                 src/clients/data/arcls.1
+                 src/clients/data/arcrm.1
                  src/clients/echo/Makefile
                  src/clients/isis/Makefile
                  src/clients/wsrf/Makefile
+                 src/clients/wsrf/apinfo.1
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile

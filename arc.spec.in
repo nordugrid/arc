@@ -184,8 +184,11 @@ exit 0
 %{_bindir}/apinfo
 %doc %{_mandir}/man1/apinfo.1*
 %{_bindir}/arccp
+%doc %{_mandir}/man1/arccp.1*
 %{_bindir}/arcls
+%doc %{_mandir}/man1/arcls.1*
 %{_bindir}/arcrm
+%doc %{_mandir}/man1/arcrm.1*
 %{_bindir}/perftest
 
 %files server

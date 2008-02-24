@@ -1,14 +1,14 @@
 .\" -*- nroff -*-
-.TH APKILL "23" "February 2008" "NorduGrid ARC 0.9.0" "NorduGrid System Manager's Manual"
+.TH APSUB "1" "23 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
 .SH NAME
-apkill \- ARC Grid Job Cancelation Client
+apsub \- ARC Grid Job Submission Client
 .SH SYNOPSIS
-.B apkill
-[\fIOPTION\fR] [service_url] id_file
+.B apsub
+[\fIOPTION\fR] service_url job_file id_file
 .SH DESCRIPTION
 .\" Add any additional description here
 .PP
-apkill is the ARC Grid Job cancelation client which can send activity cancel request to OGSA BES compatible services.
+apsub is the ARC Grid Job submission client which can submit job described in XML document to OGSA BES compatible services.
 .SH OPTIONS
 .TP
 \fB\-d\fR
@@ -31,7 +31,7 @@ location of directory containing X509 certificate files of all accepted CAs.
 .TP
 \fB\-c\fR
 location of client configuration file. Default value is ~/.arccfg.xml unless
-overwrittten by content of ARC_CLIENT_CONFIG environment variable.
+overwritten by content of ARC_CLIENT_CONFIG environment variable.
 .TP
 \fB\-h\fR
 prints short usage description
@@ -39,9 +39,11 @@ prints short usage description
 \fB\ service_url\fR
 endpoint URL of service to contact. Currently HTTP and HTTPS URLs are supported.
 .TP
+\fB\ job_file\fR
+path to file containing job description XML document.
+.TP
 \fB\ id_file\fR
-path to file which contains job identifier. If URL of service is not supplied apkill tries to extract 
-it from job identifier. It assumes that job identifier was produced by ARC A-REX service. 
+path to file which will contain job identifier in case of successful execution.
 .PP
 .SH "REPORTING BUGS"
 Report bugs to http://bugzilla.nordugrid.org/

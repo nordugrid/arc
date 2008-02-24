@@ -1,14 +1,14 @@
 .\" -*- nroff -*-
-.TH APSTAT "23" "February 2008" "NorduGrid ARC 0.9.0" "NorduGrid System Manager's Manual"
+.TH APKILL "1" "23 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
 .SH NAME
-apstat \- ARC Grid Job Status Query Client
+apkill \- ARC Grid Job Cancelation Client
 .SH SYNOPSIS
-.B apstat
+.B apkill
 [\fIOPTION\fR] [service_url] id_file
 .SH DESCRIPTION
 .\" Add any additional description here
 .PP
-apstat is the ARC Grid Job staus query client which can query status of grid job/activity in OGSA BES compatible services.
+apkill is the ARC Grid Job cancelation client which can send activity cancel request to OGSA BES compatible services.
 .SH OPTIONS
 .TP
 \fB\-d\fR
@@ -40,7 +40,7 @@ prints short usage description
 endpoint URL of service to contact. Currently HTTP and HTTPS URLs are supported.
 .TP
 \fB\ id_file\fR
-path to file which contains job identifier. If URL of service is not supplied apstat tries to extract 
+path to file which contains job identifier. If URL of service is not supplied apkill tries to extract 
 it from job identifier. It assumes that job identifier was produced by ARC A-REX service. 
 .PP
 .SH "REPORTING BUGS"
