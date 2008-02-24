@@ -1,6 +1,6 @@
 hash_uri = 'urn:hash'
-catalog_uri = 'urn:scatalog'
-manager_uri = 'urn:smanager'
+catalog_uri = 'urn:storagecatalog'
+manager_uri = 'urn:storagemanager'
 true = '1'
 false = '0'
 
@@ -38,7 +38,7 @@ def parse_metadata(metadatalist_node):
         metadata.append((
             (str(metadata_node.Get('section')),str(metadata_node.Get('property'))),
                 str(metadata_node.Get('value'))))
-    return metadata
+    return dict(metadata)
 
 def remove_trailing_slash(LN):
     if LN.endswith('/'):

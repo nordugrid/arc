@@ -15,13 +15,12 @@ class Manager:
 
     def stat(self, requests):
         responses = []
-        for response in self.catalog.traverseLN(requests).values():
-            if response['wasComplete'] == false:
-                responses.append((response['requestID'],[]))
+        for requestID, (metadata, _, _, _, wasComplete, _) in self.catalog.traverseLN(requests).items():
+            if wasComplete == false:
+                responses.append((requestID, {}))
             else:
-                responses.append((response['requestID'],
-                    [dict(metadata[1]) for metadata in response['metadataList']]))
-        return responses
+                responses.append((requestID, metadata))
+        return dict(responses)
 
     def makeCollection(self, requests):
         requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests]
@@ -69,21 +68,22 @@ class ManagerService:
         for i in range(request_number):
             request_node = requests_node.Child(i)
             requests.append((str(request_node.Get('requestID')),str(request_node.Get('LN'))))
+        requests = dict(requests)
         responses = self.manager.stat(requests)
         out = arc.PayloadSOAP(self.man_ns)
         response_node = out.NewChild('man:statResponse')
         tree = XMLTree(from_tree =
             ('man:statResponseList', [
                 ('man:statResponseElement', [
-                    ('man:requestID', rID),
+                    ('man:requestID', requestID),
                     ('man:metadataList', [
                         ('man:metadata', [
-                            ('man:section', metadata['section']),
-                            ('man:property', metadata['property']),
-                            ('man:value', metadata['value'])
-                        ]) for metadata in metadataList
+                            ('man:section', section),
+                            ('man:property', property),
+                            ('man:value', value)
+                        ]) for (section, property), value in metadata.items()
                     ])
-                ]) for rID, metadataList in responses
+                ]) for requestID, metadata in responses.items()
             ])
         )
         tree.add_to_node(response_node)

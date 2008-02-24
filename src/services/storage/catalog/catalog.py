@@ -16,26 +16,29 @@ class Catalog:
         response = []
         for rID, metadata in requests:
             print 'Processing newCollection request:', metadata
-            GUID = metadata.get(('catalog','GUID'),mkuid())
+            GUID = metadata.get(('catalog','GUID'), mkuid())
             check = self.hash.change(
-                {'0': (GUID, 'add', 'catalog', 'type', 'collection', [('empty','catalog','type','')])}
+                {'0': (GUID, 'set', 'catalog', 'type', 'collection', {'0' : ('unset','catalog','type','')})}
             )
-            if check['0'] == 'added':
+            status, failedCondition = check['0']
+            if status == 'set':
                 success = 'success'
                 changeID = 0
                 changes = []
                 for ((section, property), value) in metadata.items():
-                    changes.append((changeID, (GUID, 'add', section, property, value, [])))
+                    changes.append((changeID, (GUID, 'set', section, property, value, {})))
                     changeID += 1
                 changes = dict(changes)
                 resp = self.hash.change(changes)
                 for r in resp.keys():
-                    if resp[r] != 'added':
-                        success += ' (failed: %s - %s)' % (resp[r] + str(changes[r]))
-            else:
+                    if resp[r][0] != 'set':
+                        success += ' (failed: %s - %s)' % (resp[r][0] + str(changes[r]))
+            elif failedCondition == '0':
                 success = 'failed: entry exists'
-            response.append((rID, GUID, success))
-        return response
+            else:
+                success = 'failed: ' + status
+            response.append((rID, (GUID, success)))
+        return dict(response)
 
     def get(self, requests):
         return self.hash.get_tree(requests)
@@ -92,12 +95,12 @@ class Catalog:
                     traversedLN = guid0 + '/' + '/'.join(traversed)
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
-                    response = (rID, traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
+                    response = rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
                     print traceback.format_exc()
-                    response = (rID, [], False, '', None, None, LN)
+                    response = rID, ([], False, '', None, None, LN)
             responses.append(response)
-        return responses
+        return dict(responses)
 
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
@@ -130,7 +133,8 @@ class CatalogService:
             rID = str(request_node.Get('requestID'))
             metadatalist_node = request_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            requests.append((rID, dict(metadata)))
+            requests.append((rID, metadata))
+        requests = dict(requests)
         resp = self.catalog.newCollection(requests)
         tree = XMLTree(from_tree =
             ('cat:newCollectionResponseList', [
@@ -138,7 +142,7 @@ class CatalogService:
                     ('cat:requestID', rID),
                     ('cat:GUID', GUID),
                     ('cat:success', success) 
-                ]) for (rID, GUID, success) in resp
+                ]) for rID, (GUID, success) in resp.items()
             ])
         )
         # create the response payload
@@ -168,6 +172,7 @@ class CatalogService:
         for i in range(request_number):
             request_node = requests_node.Child(i)
             requests.append((str(request_node.Get('requestID')),str(request_node.Get('LN'))))
+        request = dict(requests)
         responses = self.catalog.traverseLN(requests)
         tree = XMLTree(from_tree =
             ('cat:traverseLNResponseList', [
@@ -190,7 +195,7 @@ class CatalogService:
                         ]) for ((section, property), value) in metadata.items()
                     ]),
                     ('cat:restLN', restLN)
-                ]) for (rID, traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in responses
+                ]) for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in responses.items()
             ])
         )
         out = arc.PayloadSOAP(self.cat_ns)
