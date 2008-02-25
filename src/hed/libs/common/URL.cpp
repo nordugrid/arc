@@ -14,7 +14,7 @@ namespace Arc {
   static Logger URLLogger(Logger::getRootLogger(), "URL");
 
   static std::map<std::string, std::string>
-  ParseOptions (const std::string& optstring, char separator) {
+  ParseOptions(const std::string& optstring, char separator) {
 
     std::map<std::string, std::string> options;
 
@@ -58,6 +58,48 @@ namespace Arc {
       optstring += it->first + '=' + it->second;
     }
     return optstring;
+  }
+
+
+  static std::list<std::string>
+  ParseAttributes(const std::string& attrstring, char separator) {
+
+    std::list<std::string> attributes;
+
+    if(attrstring.empty()) return attributes;
+
+    std::string::size_type pos = 0;
+    while(pos != std::string::npos) {
+
+      std::string::size_type pos2 = attrstring.find(separator, pos);
+
+      std::string attr = (pos2 == std::string::npos ?
+                          attrstring.substr(pos) :
+                          attrstring.substr(pos, pos2 - pos));
+
+      pos = pos2;
+      if(pos != std::string::npos) pos++;
+
+      attributes.push_back(attr);
+    }
+    return attributes;
+  }
+
+
+  static std::string AttributeString(const std::list<std::string> attributes,
+                                     char separator) {
+
+    std::string attrstring;
+
+    if(attributes.empty()) return attrstring;
+
+    for(std::list<std::string>::const_iterator it = attributes.begin();
+        it != attributes.end(); it++) {
+      if(it != attributes.begin())
+	attrstring += separator;
+      attrstring += *it;
+    }
+    return attrstring;
   }
 
 
@@ -135,7 +177,7 @@ namespace Arc {
 	if(pos3 == std::string::npos) pos3 = url.length();
 	if(pos3 > pos2) {
 	  username = url.substr(pos, pos2 - pos);
-	  pos3 = username.find(":");
+	  pos3 = username.find(':');
 	  if(pos3 != std::string::npos) {
 	    passwd = username.substr(pos3 + 1);
 	    username.resize(pos3);
@@ -160,15 +202,15 @@ namespace Arc {
       path = url.substr(pos2 + 1);
     }
 
-    pos2 = host.find(":");
+    pos2 = host.find(':');
     if(pos2 != std::string::npos) {
-      pos3 = host.find(";", pos2);
+      pos3 = host.find(';', pos2);
       port = stringtoi(pos3 == std::string::npos ?
                        host.substr(pos2 + 1) :
                        host.substr(pos2 + 1, pos3 - pos2 - 1));
     }
     else {
-      pos3 = host.find(";");
+      pos3 = host.find(';');
       pos2 = pos3;
     }
     if(pos3 != std::string::npos) {
@@ -201,10 +243,33 @@ namespace Arc {
       }
     }
 
-    // parse basedn in case of ldap-protocol
-    if(protocol == "ldap")
+    // parse ldap protocol specific attributes
+    if(protocol == "ldap") {
+      pos = path.find('?');
+      if(pos != std::string::npos) {
+	pos2 = path.find('?', pos + 1);
+	if(pos2 != std::string::npos) {
+	  pos3 = path.find('?', pos2 + 1);
+	  if(pos3 != std::string::npos) {
+	    ldapfilter = path.substr(pos3 + 1);
+	    ldapscope = path.substr(pos2 + 1, pos3 - pos2 - 1);
+	  }
+	  else
+	    ldapscope = path.substr(pos2 + 1);
+	  ldapattributes = ParseAttributes(path.substr(pos + 1,
+	                                               pos2 - pos - 1), ',');
+	}
+	else
+	  ldapattributes = ParseAttributes(path.substr(pos + 1), ',');
+	path = path.substr(0, pos);
+      }
+      if(ldapscope.empty())
+	ldapscope = "base";
+      if(ldapfilter.empty())
+	ldapfilter = "(objectClass=*)";
       if(path.find(",") != std::string::npos)             // probably a basedn
 	path = BaseDN2Path(path);
+    }
 
     // add absolute path for relative file URLs
     if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
@@ -360,7 +425,7 @@ namespace Arc {
       urlstr += '|';
 
     if(!commonlocoptions.empty())
-      urlstr += ";" + OptionString(commonlocoptions, ';');
+      urlstr += ';' + OptionString(commonlocoptions, ';');
 
     if(!username.empty() || !passwd.empty() || !locations.empty())
       urlstr += '@';
@@ -369,10 +434,10 @@ namespace Arc {
       urlstr += host;
 
     if(port != -1)
-      urlstr += ":" + tostring(port);
+      urlstr += ':' + tostring(port);
 
     if(!urloptions.empty())
-      urlstr += ";" + OptionString(urloptions, ';');
+      urlstr += ';' + OptionString(urloptions, ';');
 
     if(!host.empty() || port != -1)
       urlstr += '/';
@@ -381,7 +446,16 @@ namespace Arc {
       urlstr += path;
 
     if(!httpoptions.empty())
-      urlstr += "?" + OptionString(httpoptions, '&');
+      urlstr += '?' + OptionString(httpoptions, '&');
+
+    if(!ldapattributes.empty() || !ldapscope.empty() || !ldapfilter.empty())
+      urlstr += '?' + AttributeString(ldapattributes, ',');
+
+    if(!ldapscope.empty() || !ldapfilter.empty())
+      urlstr += '?' + ldapscope;
+
+    if(!ldapfilter.empty())
+      urlstr += '?' + ldapfilter;
 
     return urlstr;
   }
@@ -405,7 +479,7 @@ namespace Arc {
       urlstr += host;
 
     if(port != -1)
-      urlstr += ":" + tostring(port);
+      urlstr += ':' + tostring(port);
 
     if(!host.empty() || port != -1)
       urlstr += '/';
@@ -414,7 +488,16 @@ namespace Arc {
       urlstr += path;
 
     if(!httpoptions.empty())
-      urlstr += "?" + OptionString(httpoptions, '&');
+      urlstr += '?' + OptionString(httpoptions, '&');
+
+    if(!ldapattributes.empty() || !ldapscope.empty() || !ldapfilter.empty())
+      urlstr += '?' + AttributeString(ldapattributes, ',');
+
+    if(!ldapscope.empty() || !ldapfilter.empty())
+      urlstr += '?' + ldapscope;
+
+    if(!ldapfilter.empty())
+      urlstr += '?' + ldapfilter;
 
     return urlstr;
   }
@@ -429,7 +512,7 @@ namespace Arc {
       urlstr += host;
 
     if(port != -1)
-      urlstr += ":" + tostring(port);
+      urlstr += ':' + tostring(port);
 
     return urlstr;
   }

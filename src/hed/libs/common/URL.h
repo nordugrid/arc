@@ -153,6 +153,15 @@ namespace Arc {
     /** HTTP options of the url. */
     std::map<std::string, std::string> httpoptions;
 
+    /** LDAP attributes of the url. */
+    std::list<std::string> ldapattributes;
+
+    /** LDAP scope of the url. */
+    std::string ldapscope;
+
+    /** LDAP filter of the url. */
+    std::string ldapfilter;
+
     /** options of the url. */
     std::map<std::string, std::string> urloptions;
 
