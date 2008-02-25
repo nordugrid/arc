@@ -143,7 +143,19 @@ cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
 chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
-rm -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/KnowARC-API.pdf
+doc_client_files="echo.wsdl echo.xml arccfg.xml echo_client.xml"
+doc_arex_files="arex.xml arc_arex.conf jsdl_arex.xml"
+for pkg in client arex doc
+do
+  mkdir doc_${pkg}
+  lst=`eval echo '$'doc_${pkg}_files`
+  for f in $lst
+  do
+    tar cfC - $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/ $f | tar xvfC - doc_${pkg}
+    rm -fv $f
+  done
+done
+rm -frv  $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -172,6 +184,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
+%doc doc_client/*
 %{_bindir}/apsub
 %doc %{_mandir}/man1/apsub.1*
 %{_bindir}/apstat
@@ -203,6 +216,8 @@ exit 0
 %{_libdir}/%{pkgdir}/libgrid_sched.so
 
 %files arex
+%defattr(-,root,root,-)
+%doc doc_arex/*
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/downloader
 %{_libexecdir}/uploader
