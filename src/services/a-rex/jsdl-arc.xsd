@@ -27,7 +27,7 @@
  </xsd:complexType>
 
  <xsd:simpleType name="SessionType_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="SessionType" minOccurs="0"/ -->
   <xsd:restriction base="xsd:string">
    <xsd:enumeration value="INTERNAL"/>
@@ -38,31 +38,31 @@
  </xsd:simpleType>
 
  <xsd:simpleType name="IsExecutable_Type">
-  <xsd:documentation> For jsdl:DataStaging_Type (default: false) </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:DataStaging_Type (default: false) </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="IsExecutable" minOccurs="0"/ -->
   <xsd:restriction base="xsd:boolean"/>
  </xsd:simpleType>
 
  <xsd:simpleType name="FileParameters_Type">
-  <xsd:documentation> For jsdl:DataStaging_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:DataStaging_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="IsExecutable" minOccurs="0"/ -->
   <xsd:restriction base="xsd:string"/>
  </xsd:simpleType>
 
  <xsd:simpleType name="JoinOutputs_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="JoinOutputs" minOccurs="0"/ -->
   <xsd:restriction base="xsd:boolean"/>
  </xsd:simpleType>
 
  <xsd:simpleType name="Reruns_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type (default: false) </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="Reruns" minOccurs="0"// -->
   <xsd:restriction base="xsd:integer"/>
  </xsd:simpleType>
 
  <xsd:complexType name="RunTimeEnvironment_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="RunTimeEnvironment" minOccurs="0" maxOccurs="unbounded"/ -->
   <xsd:sequence>
    <xsd:element name="Name" type="xsd:string"/>
@@ -71,7 +71,7 @@
  </xsd:complexType>
 
  <xsd:complexType name="Middleware_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="Middleware" minOccurs="0" maxOccurs="unbounded"/ -->
   <xsd:sequence>
    <xsd:element name="Name" type="xsd:string"/>
@@ -80,7 +80,7 @@
  </xsd:complexType>
 
  <xsd:complexType name="RemoteLogging_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="RemoteLogging" minOccurs="0" maxOccurs="3"/ -->
   <xsd:sequence>
    <xsd:element name="URL" minOccurs="1" maxOccurs="1" type="xsd:anyURI"/>
@@ -88,7 +88,7 @@
  </xsd:complexType>
 
  <xsd:complexType name="CredentialServer_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="CredentialServer" minOccurs="0"/ -->
   <xsd:sequence>
    <xsd:element name="URL" minOccurs="1" maxOccurs="1" type="xsd:anyURI"/>
@@ -96,7 +96,7 @@
  </xsd:complexType>
 
  <xsd:complexType name="LocalLogging_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="LocalLogging" minOccurs="0" maxOccurs="1"/ -->
   <xsd:sequence>
    <xsd:element name="Directory" minOccurs="1" maxOccurs="1" type="xsd:string"/>
@@ -109,7 +109,7 @@
   </xsd:restriction>
  </xsd:simpleType>
  <xsd:complexType name="AccessControl_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="AccessControl" minOccurs="0"/ -->
   <xsd:sequence>
    <xsd:element name="OwnerAlwaysAllowed" type="xsd:boolean" minOccurs="0"/>
@@ -124,7 +124,7 @@
   </xsd:restriction>
  </xsd:simpleType>
  <xsd:complexType name="Notify_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="Notify" minOccurs="0" maxOccurs="3"/ -->
   <xsd:sequence>
    <xsd:element name="Type" type="NotificationType_Type" minOccurs="0"/>
@@ -134,19 +134,19 @@
  </xsd:complexType>
 
  <xsd:simpleType name="SessionLifeTime_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="SessionLifeTime" minOccurs="0" maxOccurs="1"/ -->
   <xsd:restriction base="xsd:long"/>
  </xsd:simpleType>
 
  <xsd:simpleType name="GridTimeLimit_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="GridTimeLimit" minOccurs="0" maxOccurs="1"/ -->
   <xsd:restriction base="xsd:positiveInteger"/>
  </xsd:simpleType>
  
  <xsd:complexType name="CandidateTarget_Type">
-  <xsd:documentation> For jsdl:Resources_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:Resources_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="jsdl-arc:CandidateTarget" minOccurs="0" maxOccurs="1"/ -->
   <xsd:sequence>
    <xsd:element name="HostName" minOccurs="0" type="xsd:string"/>
@@ -155,7 +155,7 @@
  </xsd:complexType>
 
  <xsd:simpleType name="Time_Type">
-  <xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation>
+  <xsd:annotation><xsd:documentation> For jsdl:JobDescription_Type </xsd:documentation></xsd:annotation>
   <!-- xsd:element ref="ProcessingStartTime" minOccurs="0" maxOccurs="1"/ -->
   <xsd:restriction base="xsd:dateTime"/>
  </xsd:simpleType>
