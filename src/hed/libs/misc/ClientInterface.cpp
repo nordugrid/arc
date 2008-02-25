@@ -280,6 +280,7 @@ namespace Arc {
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
     info->size = stringtoull(repmsg.Attributes()->get("HTTP:content-length"));
     info->lastModified = repmsg.Attributes()->get("HTTP:last-modified");
+    info->type = repmsg.Attributes()->get("HTTP:content-type");
     if(repmsg.Payload() != NULL)
       try {
 	*response = dynamic_cast<Arc::PayloadRawInterface*>(repmsg.Payload());

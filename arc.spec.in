@@ -193,6 +193,7 @@ exit 0
 %doc %{_mandir}/man1/apkill.1*
 %{_bindir}/apsstat
 %doc %{_mandir}/man1/apsstat.1*
+%{_bindir}/apget
 %{_bindir}/apecho
 %{_bindir}/apinfo
 %doc %{_mandir}/man1/apinfo.1*

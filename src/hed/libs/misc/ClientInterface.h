@@ -87,6 +87,7 @@ namespace Arc {
      std::string reason;
      uint64_t size;
      Arc::Time lastModified;
+     std::string type;
   };
 
   class ClientHTTP : public ClientTCP {

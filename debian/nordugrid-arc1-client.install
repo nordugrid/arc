@@ -4,6 +4,7 @@ usr/bin/apsub
 usr/bin/apstat
 usr/bin/apsstat
 usr/bin/apkill
+usr/bin/apget
 usr/bin/apecho
 usr/bin/perftest
 usr/bin/arccp

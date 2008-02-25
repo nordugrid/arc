@@ -1,4 +1,4 @@
-bin_PROGRAMS = apsub apstat apkill apsstat
+bin_PROGRAMS = apsub apstat apkill apsstat apget
 doc_DATA = arccfg.xml
 EXTRA_DIST = $(doc_DATA)
 SOURCES = arex_client.cpp arex_client.h
@@ -22,5 +22,10 @@ apsstat_SOURCES  = $(SOURCES) apsstat.cpp
 apsstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 apsstat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 apsstat_LDADD    = $(top_srcdir)/src/hed/libs/misc/libarcclient.la
+
+apget_SOURCES  = $(SOURCES) apget.cpp
+apget_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+apget_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+apget_LDADD    = $(top_srcdir)/src/hed/libs/misc/libarcclient.la
 
 man_MANS = apsub.1 apstat.1 apkill.1 apsstat.1
