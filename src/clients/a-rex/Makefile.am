@@ -1,5 +1,5 @@
 bin_PROGRAMS = apsub apstat apkill apsstat
-doc_DATA = .arccfg.xml
+doc_DATA = arccfg.xml
 EXTRA_DIST = $(doc_DATA)
 SOURCES = arex_client.cpp arex_client.h
 
