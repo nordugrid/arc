@@ -4,7 +4,7 @@ import arc
 import random
 from storage.xmltree import XMLTree
 from storage.client import HashClient
-from storage.common import catalog_uri, global_root_guid, mkuid, parse_metadata, true, false
+from storage.common import catalog_uri, global_root_guid, mkuid, parse_metadata, true, false, get_child_nodes
 import traceback
 import copy
 
@@ -13,10 +13,15 @@ class Catalog:
         self.hash = hash
 
     def newCollection(self, requests):
-        response = []
-        for rID, metadata in requests:
+        response = {}
+        print requests
+        for rID, metadata in requests.items():
             print 'Processing newCollection request:', metadata
-            GUID = metadata.get(('catalog','GUID'), mkuid())
+            try:
+                GUID = metadata[('catalog','GUID')]
+                del metadata[('catalog','GUID')]
+            except:
+                GUID = mkuid()
             check = self.hash.change(
                 {'0': (GUID, 'set', 'catalog', 'type', 'collection', {'0' : ('unset','catalog','type','')})}
             )
@@ -24,11 +29,10 @@ class Catalog:
             if status == 'set':
                 success = 'success'
                 changeID = 0
-                changes = []
+                changes = {}
                 for ((section, property), value) in metadata.items():
-                    changes.append((changeID, (GUID, 'set', section, property, value, {})))
+                    changes[changeID] = (GUID, 'set', section, property, value, {})
                     changeID += 1
-                changes = dict(changes)
                 resp = self.hash.change(changes)
                 for r in resp.keys():
                     if resp[r][0] != 'set':
@@ -37,8 +41,8 @@ class Catalog:
                 success = 'failed: entry exists'
             else:
                 success = 'failed: ' + status
-            response.append((rID, (GUID, success)))
-        return dict(response)
+            response[rID] = (GUID, success)
+        return response
 
     def get(self, requests):
         return self.hash.get_tree(requests)
@@ -74,7 +78,7 @@ class Catalog:
 
 
     def traverseLN(self, requests):
-        responses = []
+        response = {}
         for (rID, LN) in requests:
             guid0, path0 = self._parse_LN(LN)
             if not guid0:
@@ -86,7 +90,7 @@ class Catalog:
             path = copy.deepcopy(path0)
             metadata0 = self.hash.get([guid])[guid]
             if not metadata0.has_key(('catalog','type')):
-                response = (rID, [], False, '', None, None, LN)
+                response[rID] = ([], False, '', None, None, LN)
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
@@ -95,12 +99,31 @@ class Catalog:
                     traversedLN = guid0 + '/' + '/'.join(traversed)
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
-                    response = rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
+                    response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
                     print traceback.format_exc()
-                    response = rID, ([], False, '', None, None, LN)
-            responses.append(response)
-        return dict(responses)
+                    response[rID] = ([], False, '', None, None, LN)
+        return response
+
+    def modifyMetadata(self, requests):
+        changes = {}
+        for changeID, (GUID, changeType, section, property, value) in requests.items():
+            if changeType in ['set', 'unset']:
+                conditions = {}
+            elif changeType == 'add':
+                changeType = 'set'
+                conditions = {'0': ('unset', section, property, '')}
+            changes[changeID] = (GUID, changeType, section, property, value, conditions)
+        hash_response = self.hash.change(changes)
+        response = {}
+        for changeID, (success, conditionID) in hash_response.items():
+            if success in ['set', 'unset']:
+                response[changeID] = success
+            elif conditionID == '0':
+                response[changeID] = 'entry exists'
+            else:
+                response[changeID] = 'failed: ' + success
+        return response
 
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
@@ -125,16 +148,11 @@ class CatalogService:
 
     
     def newCollection(self, inpayload):
-        requests_node = inpayload.Child().Child()
-        request_number = requests_node.Size()
-        requests = []
-        for i in range(request_number):
-            request_node = requests_node.Child(i)
-            rID = str(request_node.Get('requestID'))
-            metadatalist_node = request_node.Get('metadataList')
-            metadata = parse_metadata(metadatalist_node)
-            requests.append((rID, metadata))
-        requests = dict(requests)
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([
+            (str(request_node.Get('requestID')), parse_metadata(request_node.Get('metadataList')))
+                for request_node in request_nodes
+        ])
         resp = self.catalog.newCollection(requests)
         tree = XMLTree(from_tree =
             ('cat:newCollectionResponseList', [
@@ -168,12 +186,11 @@ class CatalogService:
     def traverseLN(self, inpayload):
         requests_node = inpayload.Child().Child()
         request_number = requests_node.Size()
-        requests = []
+        requests = {}
         for i in range(request_number):
             request_node = requests_node.Child(i)
-            requests.append((str(request_node.Get('requestID')),str(request_node.Get('LN'))))
-        request = dict(requests)
-        responses = self.catalog.traverseLN(requests)
+            request[str(request_node.Get('requestID'))] = str(request_node.Get('LN'))
+        response = self.catalog.traverseLN(requests)
         tree = XMLTree(from_tree =
             ('cat:traverseLNResponseList', [
                 ('cat:traverseLNResponseElement', [
@@ -195,13 +212,21 @@ class CatalogService:
                         ]) for ((section, property), value) in metadata.items()
                     ]),
                     ('cat:restLN', restLN)
-                ]) for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in responses.items()
+                ]) for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items()
             ])
         )
         out = arc.PayloadSOAP(self.cat_ns)
         response_node = out.NewChild('cat:traverseLNResponse')
         tree.add_to_node(response_node)
         return out
+
+    def modifyMetadata(self, inpayload):
+        # get the grandchild of the root node, which is the 'modifyMetadataRequestList'
+        requests_node = inpayload.Child().Child()
+        # get all the requests:
+        request_nodes = [requests_node.Child(i) for i in range(requests_node.Size())]
+        requests_node = inpayload.Child().Child()
+        changes = {}
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """

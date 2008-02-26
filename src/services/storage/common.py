@@ -40,6 +40,13 @@ def parse_metadata(metadatalist_node):
                 str(metadata_node.Get('value'))))
     return dict(metadata)
 
+def node_to_data(node, names):
+    data = [str(node.Get(name)) for name in names]
+    return data[0], data[1:]
+
+def get_child_nodes(node):
+    return [node.Child(i) for i in range(node.Size())]
+
 def remove_trailing_slash(LN):
     if LN.endswith('/'):
         LN = LN[:-1]

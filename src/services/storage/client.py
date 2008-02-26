@@ -1,4 +1,4 @@
-from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata, true
+from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata, true, get_child_nodes, node_to_data
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
@@ -80,14 +80,14 @@ class HashClient(Client):
         xml = arc.XMLNode(msg)
         objects_node = xml.Child().Child().Child()
         objects_number = objects_node.Size()
-        objects = []
+        objects = {}
         for i in range(objects_number):
             obj_node = objects_node.Child(i)
             ID = str(obj_node.Get('ID'))
             metadatalist_node = obj_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            objects.append((ID,metadata))
-        return dict(objects)
+            objects[ID] = metadata
+        return objects
 
     def change(self, changes):
         """ Call the change method of the Hash service.
@@ -125,12 +125,12 @@ class HashClient(Client):
         xml = arc.XMLNode(msg)
         responses_node = xml.Child().Child().Child()
         responses_number = responses_node.Size()
-        responses = []
+        response = {}
         for i in range(responses_number):
             response_node = responses_node.Child(i)
-            responses.append((str(response_node.Get('changeID')),
-                (str(response_node.Get('success')), str(response_node.Get('conditionID')))))
-        return dict(responses)
+            response[str(response_node.Get('changeID'))] = \
+                (str(response_node.Get('success')), str(response_node.Get('conditionID')))
+        return response
 
 class CatalogClient(Client):
     
@@ -152,14 +152,14 @@ class CatalogClient(Client):
         xml = arc.XMLNode(msg)
         list_node = xml.Child().Child().Child()
         list_number = list_node.Size()
-        elements = []
+        elements = {}
         for i in range(list_number):
             element_node = list_node.Child(i)
             GUID = str(element_node.Get('GUID'))
             metadatalist_node = element_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            elements.append((GUID,metadata))
-        return dict(elements)
+            elements[GUID] = metadata
+        return elements
 
     def traverseLN(self, requests):
         tree = XMLTree(from_tree =
@@ -177,7 +177,7 @@ class CatalogClient(Client):
         list_node = xml.Child().Child().Child()
         list_number = list_node.Size()
         print list_node.GetXML()
-        elements = []
+        elements = {}
         for i in range(list_number):
             element_node = list_node.Child(i)
             requestID = str(element_node.Get('requestID'))
@@ -193,8 +193,8 @@ class CatalogClient(Client):
             GUID = str(element_node.Get('GUID'))
             metadatalist_node = element_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            elements.append((requestID, (metadata, GUID, traversedLN, restLN, wasComplete, traversedlist)))
-        return dict(elements)
+            elements[requestID] = (metadata, GUID, traversedLN, restLN, wasComplete, traversedlist)
+        return elements
 
     def newCollection(self, requests):
         tree = XMLTree(from_tree =
@@ -203,19 +203,22 @@ class CatalogClient(Client):
                     ('cat:newCollectionRequestElement', [
                         ('cat:requestID', requestID),
                         ('cat:metadataList', [
-                            ('cat:metadataList', [
-                                ('cat:metadata', [
-                                    ('cat:section', section),
-                                    ('cat:property', property),
-                                    ('cat:value', value)
-                                ]) for ((section, property), value) in metadata.items()
-                            ])
+                            ('cat:metadata', [
+                                ('cat:section', section),
+                                ('cat:property', property),
+                                ('cat:value', value)
+                            ]) for ((section, property), value) in metadata.items()
                         ])
                     ]) for requestID, metadata in requests.items()
                 ])
             ])
         )
-        return self.call(tree, True)
+        response, _, _ = self.call(tree)
+        node = arc.XMLNode(response)
+        return dict([
+            node_to_data(n, ['requestID', 'GUID', 'success'])
+                for n in get_child_nodes(node.Child().Child().Child())
+        ])
 
 
 class ManagerClient(Client):
@@ -239,14 +242,14 @@ class ManagerClient(Client):
         xml = arc.XMLNode(msg)
         list_node = xml.Child().Child().Child()
         list_number = list_node.Size()
-        elements = []
+        elements = {}
         for i in range(list_number):
             element_node = list_node.Child(i)
             requestID = str(element_node.Get('requestID'))
             metadatalist_node = element_node.Get('metadataList')
             metadata = parse_metadata(metadatalist_node)
-            elements.append((requestID, metadata))
-        return dict(elements)
+            elements[requestID] = metadata
+        return elements
 
     def makeCollection(self, LNs):
         tree = XMLTree(from_tree =

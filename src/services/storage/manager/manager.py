@@ -14,13 +14,13 @@ class Manager:
         self.catalog = catalog
 
     def stat(self, requests):
-        responses = []
+        response = {}
         for requestID, (metadata, _, _, _, wasComplete, _) in self.catalog.traverseLN(requests).items():
             if wasComplete == false:
-                responses.append((requestID, {}))
+                response[requestID] = {}
             else:
-                responses.append((requestID, metadata))
-        return dict(responses)
+                response[requestID] = metadata
+        return response
 
     def makeCollection(self, requests):
         requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests]
@@ -29,7 +29,7 @@ class Manager:
         print traverse_request
         traverse_response = self.catalog.traverseLN(traverse_request)
         print traverse_response
-        responses = []
+        response = {}
         for rID, (LN, metadata) in requests:
             trav = traverse_response[rID]
             if trav['restLN'] != basename(LN):
@@ -46,8 +46,8 @@ class Manager:
                 else:
                     
                     success = 'OK'
-            responses.append((rID, success))
-        return responses
+            response[rID] = success
+        return response
 
 class ManagerService:
 

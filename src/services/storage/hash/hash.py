@@ -22,7 +22,8 @@ Sample configuration:
 import arc
 import os
 import traceback
-from storage.common import import_class_from_string, hash_uri
+from storage.common import import_class_from_string, hash_uri, node_to_data
+import copy
 
 import pickle, threading
 
@@ -78,7 +79,7 @@ class PickleStore:
             # print whatever exception happened
             print traceback.format_exc()
         # if there was an exception, return the given non_existent_object
-        return self.non_existent_object
+        return copy.deepcopy(self.non_existent_object)
 
     def lock(self, blocking = True):
         """ Acquire the lock.
@@ -154,15 +155,9 @@ class CentralHash:
         Returns a dictionary of { ID : metadata }
             where 'metadata' is a dictionary where the keys are ('section', 'property') tuples
         """
-        # initialize a list which will hold the results
-        resp = []
-        for ID in ids:
-            # for each ID gets the object from the store
-            metadata = self.store.get(ID)
-            # appends the (ID, metadata) tuple to the resulting list
-            resp.append((ID, metadata))
-        # returns the resulting list
-        return dict(resp)
+        # gets the metadata for each ID and create an {ID : metadata} dictionary from it
+        print '!!!!!', dict([(ID, self.store.get(ID)) for ID in ids])
+        return dict([(ID, self.store.get(ID)) for ID in ids])
 
     def change(self, changes):
         """ Change the '(section, property) : value' entries of an object, if the given conditions are met.
@@ -196,8 +191,8 @@ class CentralHash:
                 - 'invalid change type'
                 - 'unknown'
         """
-        # prepare the list which will hold the response
-        resp = []
+        # prepare the dictionary which will hold the response
+        response = {}
         for (changeID, (ID, changeType, section, property, value, conditionList)) in changes.items():
             # for each change in the changes list
             print 'Prepare to lock store'
@@ -255,7 +250,7 @@ class CentralHash:
                         # removes the entry of (section, property)
                         del obj[(section, property)]
                         # store the changed object
-                        self.store.set(ID,lines)
+                        self.store.set(ID, obj)
                         # set the result of this change
                         success = 'unset'
                     elif changeType == 'delete':
@@ -275,8 +270,8 @@ class CentralHash:
             self.store.unlock()
             print 'Store unlocked'
             # append the result of the change to the response list
-            resp.append((changeID, (success, unmetConditionID)))
-        return dict(resp)
+            response[changeID] = (success, unmetConditionID)
+        return response
 
 from storage.xmltree import XMLTree
 
@@ -340,12 +335,6 @@ class HashService:
         tree.add_to_node(response_node)
         return out
 
-    def _condition(self, cond):
-        # helper method which convert a condition to a tuple
-        d = dict(cond)
-        return d['hash:conditionID'], (d['hash:conditionType'],
-                    d['hash:section'], d['hash:property'], d['hash:value'])
-
     def change(self, inpayload):
         """ Make changes in objects, if given conditions are met, return which change was successful.
 
@@ -353,22 +342,32 @@ class HashService:
 
         'inpayload' is an XMLNode containing the change requests.
         """
-        # get the 'changeRequestList' node and convert it to XMLTree
-        try:
-            tree = XMLTree(inpayload.XPathLookup('//hash:changeRequestList', self.hash_ns)[0])
-        except:
-            raise Exception, 'wrong request: //hash:changeRequestList not found'
-        # create a list of dictionaries from the 'changeRequestElement' nodes
-        req_list = tree.get_dicts('/hash:changeRequestList/hash:changeRequestElement')
-        requests = []
-        for req in req_list:
-            # convert the XMLTree structure to a list of condition
-            conditions = [self._condition(cond) for (_, cond) in req.get('hash:conditionList',[])]
-            request = (req['hash:changeID'], (req['hash:ID'], req['hash:changeType'], \
-                req['hash:section'], req['hash:property'], req['hash:value'], dict(conditions)))
-            requests.append(request)
+        # get the grandchild of the root node, which is the 'changeRequestList'
+        requests_node = inpayload.Child().Child()
+        # get all the requests:
+        request_nodes = [requests_node.Child(i) for i in range(requests_node.Size())]
+        # prepare the dictionary which will hold the requests
+        changes = {}
+        # for each request:
+        for request_node in request_nodes:
+            # get all the data: changeID, ID, changeType, section, property, value, conditions
+            changeID, change = node_to_data(request_node,
+                ['changeID', 'ID', 'changeType', 'section', 'property', 'value'])
+            # get the conditionList node
+            conditionList_node = request_node.Get('conditionList')
+            # get the nodes of all the conditions
+            condition_nodes = [conditionList_node.Child(i) for i in range(conditionList_node.Size())]
+            # for each condition get all the data: conditionID, conditionType, section, property, value
+            conditions = dict([
+                node_to_data(condition_node, ['conditionID', 'conditionType', 'section', 'property', 'value'])
+                    for condition_node in condition_nodes
+            ])
+            # append the conditions dict to the chnage request
+            change.append(conditions)
+            # put this change request into the changes dictionary
+            changes[changeID] = change
         # call the business logic class
-        resp = self.hash.change(dict(requests))
+        resp = self.hash.change(changes)
         # prepare the response payload
         out = arc.PayloadSOAP(self.hash_ns)
         # create the 'changeResponse' node
