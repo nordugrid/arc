@@ -273,6 +273,15 @@ namespace ArcLib {
     else {credentialLogger.msg(ERROR, "Certificate verify failed"); LogError(); return false;}
   } 
 
+  Credential::Credential() : start_(Arc::Time()), lifetime_(Arc::Period(0)),
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024),
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
+
+    OpenSSL_add_all_algorithms();
+
+    extensions_ = sk_X509_EXTENSION_new_null();
+  }
+
   Credential::Credential(Time start, Period lifetime, int keybits) : start_(start), lifetime_(lifetime), 
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {

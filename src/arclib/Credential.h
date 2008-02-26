@@ -50,16 +50,24 @@ typedef enum {PEM, DER, PKCS, UNKNOWN} Credformat;
 
 class Credential {
   public:
-    /**Constructor, specific constructor for proxy certificate
+    /**Default constructor, only acts as a container for inquiring certificate request,
+    *is meaningless for any other use.
+    */
+    Credential();
+
+    /**Constructor, specific constructor for proxy certificate, only acts as a container for generating certificate request,
+    *is meaningless for any other use.
     *@param start, start time of proxy certificate
     *@param lifetime, lifetime of proxy certificate
     *@param keybits, modulus size for RSA key generation, it should be greater than 1024
     */
-    Credential(Arc::Time start = Arc::Time(), Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024);
+    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024);
 
-    /**Constructor, specific constructor for usual certificate, constructing from credential files, 
+    /**Constructor, specific constructor for usual certificate, constructing from credential files.
+    *only acts as a container for parsing the certificate and key files, is meaningless for any other use.
     *this constructor will parse the credential information,
-    *and put them into "this" object*/
+    *and put them into "this" object
+    */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
 
   private:
