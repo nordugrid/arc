@@ -7,10 +7,11 @@
 namespace GridScheduler
 {
 
-Job::Job(JobRequest d, JobSchedMetaData m)
+Job::Job(JobRequest d, JobSchedMetaData m, int t)
 {
     descr = d;
     sched_meta = m;
+    sched_meta.timeout = t;
     id_ = make_uuid();
 }
 
@@ -77,6 +78,16 @@ void Job::setArexID(std::string id)
 std::string& Job::getArexID(void)
 {
     return sched_meta.getArexID();
+}
+
+bool Job::CheckTimeout(void)
+{
+    unsigned i = (unsigned)time(NULL) - sched_meta.last_check_time;
+    std::cout << "Checktime diff: " << i << std::endl;
+    if ( i  < timeout)
+        return true;
+    else
+        return false;
 }
 
 };

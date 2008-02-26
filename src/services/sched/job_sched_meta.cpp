@@ -9,7 +9,7 @@ namespace GridScheduler
 
 JobSchedMetaData::JobSchedMetaData()
 {
-    reruns = 0;
+    reruns = 5;
 }
 
 JobSchedMetaData::~JobSchedMetaData(void)
@@ -21,7 +21,6 @@ JobSchedMetaData::~JobSchedMetaData(void)
 JobSchedMetaData::JobSchedMetaData(int& r)
 {
     reruns = r;
-
 }
 
 bool JobSchedMetaData::setArexID(std::string &id)

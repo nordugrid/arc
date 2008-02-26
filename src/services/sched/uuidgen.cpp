@@ -51,32 +51,10 @@ std::string make_uuid() {
 }
 
 int main (void) {
-    /*
     for (int a=0;a<100000; a++ ) {
         std::string uuid = make_uuid();
         std::cout << uuid.c_str() << std::endl;
     }
-    */
-    std::string xml_str = Glib::file_get_contents("./jsdl.xml");
-    Arc::XMLNode jsdl(xml_str);
-
-    std::string tmp;
-
-     std::cout << "aaaaaaa" << tmp << std::endl;
-
-    JobRequest job_desc(jsdl);
-    JobSchedMetaData sched_meta;
-    Job sched_job(job_desc, sched_meta);
-    
-    std::cout << "bbbbbb" << tmp << std::endl;
-
-    Arc::XMLNode x;
-     x = sched_job.getJSDL();
-    
-     jsdl.GetXML(tmp);
-     std::cout << "jsdl tartalma: " << tmp << std::endl;
-
-
 
     return 0;
 }

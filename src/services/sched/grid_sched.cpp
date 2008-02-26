@@ -192,6 +192,24 @@ void sched(void* arg) {
 
         std::string state;
         state = arex.GetActivityStatus(arex_job_id);
+
+        SchedStatus job_stat;
+        
+        it.sched_queue.getJobStatus(iter -> first,job_stat);
+
+        
+        if (state == "Unknown" && job_stat == UNKNOWN) {
+            if (!it.sched_queue.CheckJobTimeout(iter->first)) {  // job timeout check
+                it.sched_queue.setJobStatus(iter -> first, NEW);
+                it.sched_resources.removeResource(arex.getURL());
+                std::cout << "JobID: " << iter -> first << " RESCHEDULE " << state << std::endl;
+            }
+        }
+        else  if (state == "Unknown") {
+            it.sched_queue.setJobStatus(iter -> first, UNKNOWN);
+            it.sched_queue.setLastCheckTime(iter -> first);
+        }
+
         std::cout << "JobID: " << iter -> first << " state: " << state << std::endl;
     }
   
@@ -218,6 +236,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   endpoint = (std::string)((*cfg)["Endpoint"]);
   period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
   db_path = (std::string)((*cfg)["DataDirectoryPath"]);
+  timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
   Arc::CreateThreadFunction(&sched, this);
 
   Resource arex1("https://localhost:40000/arex");

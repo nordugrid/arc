@@ -15,9 +15,13 @@ class JobSchedMetaData {
         int reruns;
         Arc::Time start_time;
         Arc::Time end_time;
+        unsigned last_check_time;
+        int timeout;
         std::map<std::string,std::string> data; //scheduling data
         std::map<std::string,std::string> blacklisted_hosts; //host names
         std::string arex_id;
+        friend class Job;
+        friend class JobQueue;
     public:
         JobSchedMetaData();
         JobSchedMetaData(int& r);

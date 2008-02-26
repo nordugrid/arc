@@ -65,20 +65,10 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
     Arc::PayloadSOAP* response;
 
     Arc::MCC_Status status = client->process(&request, &response);
-    if(!status) {
-        std::cerr << "Request failed" << std::endl;
-        if(response) {
-            std::string str;
-            response->GetXML(str);
-            std::cout << str << std::endl;
-            delete response;
-        }
-        return status;
-    };
-    if(!response) {
-        std::cerr << "No response" << std::endl;
-        return Arc::MCC_Status();
-    };
+    if(!status || !response) {
+        jobid="";
+        return jobid;
+    }
 
     Arc::XMLNode id, fs;
     (*response)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
@@ -99,20 +89,10 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
     Arc::PayloadSOAP* response;
 
     Arc::MCC_Status status = client->process(&request, &response);
-    if(!status) {
-        std::cerr << "Request failed" << std::endl;
-        if(response) {
-            std::string str;
-            response->GetXML(str);
-            std::cout << str << std::endl;
-            delete response;
-        }
-        return status;
-    };
-    if(!response) {
-        std::cerr << "No response" << std::endl;
-        return Arc::MCC_Status();
-    };
+    if(!status || !response) {
+        state="Unknown";
+        return state;
+    }
 
     Arc::XMLNode st, fs;
     (*response)["GetActivityStatusesResponse"]["Response"]["ActivityStatus"].New(st);

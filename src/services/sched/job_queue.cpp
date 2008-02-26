@@ -99,4 +99,36 @@ bool JobQueue::setArexID(std::string job_id, std::string arex_id)
     }
 }
 
+bool JobQueue::CheckJobTimeout(std::string job_id)
+{
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        return jobs[job_id].CheckTimeout();
+    }
+}
+
+bool JobQueue::setLastCheckTime(std::string job_id)
+{
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        jobs[job_id].sched_meta.last_check_time = (unsigned)time(NULL);
+    }
+}
+
+ 
+bool JobQueue::getJobStatus(std::string job_id, SchedStatus status) {
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        status = jobs[job_id].getStatus();
+        return true;
+    }
+
+}
+
 };

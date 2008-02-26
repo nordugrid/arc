@@ -25,9 +25,11 @@ class Job {
         std::string id_;
         std::string arex_job_id;
         SchedStatus status;
+        int timeout;
+        friend class JobQueue;
     public:
         Job(void) { };
-        Job(JobRequest d, JobSchedMetaData m);
+        Job(JobRequest d, JobSchedMetaData m, int t);
         Job(const std::string& job);
         Job(std::istream& job);
         virtual ~Job(void);
@@ -49,6 +51,7 @@ class Job {
         std::string& getArexID(void);
         void setArexID(void);
         std::string& getURL(void){ return sched_meta.getArexID();};
+        bool CheckTimeout(void);
 };
 
 }; // namespace Arc

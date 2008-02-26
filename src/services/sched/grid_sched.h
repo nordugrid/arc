@@ -19,6 +19,7 @@ class GridSchedulerService: public Arc::Service {
         std::string db_path;
         std::string endpoint;
         int period;
+        int timeout;
         Arc::NS ns_;
         Arc::Logger logger_;
         Arc::DelegationContainerSOAP delegations_;

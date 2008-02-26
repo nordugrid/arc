@@ -7,7 +7,7 @@
   <Server>
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
-    <Logger level="INFO">./logfile</Logger>
+    <Logger level="VERBOSE">./logfile</Logger>
   </Server>
   <ModuleManager>
         <Path>.libs/</Path>
@@ -46,6 +46,7 @@
        <sched:Endpoint>https://localhost:60000/sched</sched:Endpoint>
        <sched:DataDirectoryPath>./data</sched:DataDirectoryPath>
        <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
+       <sched:Timeout>25</sched:Timeout> <!-- second -->
     </Service>
   </Chain>
 </ArcConfig>
