@@ -273,9 +273,10 @@ namespace ArcLib {
     else {credentialLogger.msg(ERROR, "Certificate verify failed"); LogError(); return false;}
   } 
 
-  Credential::Credential(Time start, Period lifetime) : start_(start), lifetime_(lifetime), 
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), 
+  Credential::Credential(Time start, Period lifetime, int keybits) : start_(start), lifetime_(lifetime), 
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), 
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
+
     OpenSSL_add_all_algorithms();
 
     extensions_ = sk_X509_EXTENSION_new_null();
@@ -653,12 +654,6 @@ err:
     return true;
   }
 
-
-
-  /** Set the start and end time for the proxy credential. After setting, the start time of proxy
-   * will not before the later value from issuer's start time and the "start" parameter, and the end time of proxy
-   * will not after the ealier value from issuer's end time and the "start" parameter plus "lifetime" paremeter
-  */
   bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime) {
     ASN1_UTCTIME  *notBefore = NULL, *notAfter = NULL;
     time_t t1 = start.GetTime();
@@ -749,9 +744,9 @@ err:
     else return false;
   }
 
-  bool Credential::AddExtension(std::string name, char** aclist, bool crit) {
+  bool Credential::AddExtension(std::string name, char** binary, bool crit) {
     X509_EXTENSION* ext = NULL;
-    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)aclist);
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
     else return false;
   }
