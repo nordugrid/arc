@@ -164,7 +164,9 @@ static void grid_manager(void* arg) {
   std::string my_username("");
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
-  if(!read_env_vars()) exit(1);
+  if(!read_env_vars()) {
+    logger.msg(Arc::FATAL,"Can't initialize runtime environmwnt - EXITING."); return;
+  };
   
   /* recognize itself */
   {
@@ -175,16 +177,15 @@ static void grid_manager(void* arg) {
     if(pw != NULL) { my_username=pw->pw_name; };
   };
   if(my_username.length() == 0) {
-    logger.msg(Arc::ERROR,"Can't recognize own username."); exit(1);
+    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING."); return;
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
     logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
-    logger.msg(Arc::ERROR,"Error processing configuration."); exit(1);
+    logger.msg(Arc::FATAL,"Error processing configuration - EXITING."); return;
   };
   if(users.size() == 0) {
-    logger.msg(Arc::ERROR,"Error - no suitable users found in configuration.");
-    exit(1);
+    logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING."); return;
   };
 
   //daemon.logfile(DEFAULT_LOG_FILE);
@@ -226,11 +227,11 @@ std::cerr<<"Setting wakeup period to "<<JobsList::WakeupPeriod()<<std::endl;
 #ifdef HAVE_GLOBUS_RSL
   // Initialize globus modules
   if(globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) {
-    logger.msg(Arc::ERROR,"Globus COMMON module activation failed"); exit(1);
+    logger.msg(Arc::FATAL,"Globus COMMON module activation failed - EXITING"); return;
   };
   if(globus_module_activate(GLOBUS_RSL_MODULE) != GLOBUS_SUCCESS) {
-    logger.msg(Arc::ERROR,"Globus RSL module activation failed");
-    globus_module_deactivate(GLOBUS_COMMON_MODULE); exit(1);
+    logger.msg(Arc::FATAL,"Globus RSL module activation failed - EXITING");
+    globus_module_deactivate(GLOBUS_COMMON_MODULE); return;
   };
 #endif
 
