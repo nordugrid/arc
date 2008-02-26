@@ -46,9 +46,7 @@ namespace Arc {
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");
-    bool tls;
-    if(url.Protocol() == "http") { tls=false; }
-    client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),tls,url.Path());
+    client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
   }
   
   AREXClient::~AREXClient()
