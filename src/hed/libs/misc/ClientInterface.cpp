@@ -269,7 +269,13 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
-    if(!path.empty()) reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
+    if(!path.empty()) {
+      if(path[0] == '/') {
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
+      } else {
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", "/" + path);
+      };
+    };
     if(range_end != UINT64_MAX) {
       reqmsg.Attributes()->set("HTTP:Range","bytes="+tostring(range_start)+"-"+tostring(range_end));
     } else if(range_start != 0) {

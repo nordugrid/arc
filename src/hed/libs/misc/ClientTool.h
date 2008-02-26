@@ -1,3 +1,6 @@
+#ifndef __ARC_CLIENTTOOL_H__
+#define __ARC_CLIENTTOOL_H__
+
 #include <fstream>
 #include <string>
 #include <arc/Logger.h>
@@ -22,5 +25,6 @@ class ClientTool {
   operator bool(void) { return success_; };
 };
 
-}
+} // namespace Arc
 
+#endif // __ARC_CLIENTTOOL_H__

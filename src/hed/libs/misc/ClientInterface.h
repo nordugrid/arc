@@ -1,3 +1,6 @@
+#ifndef __ARC_CLIENTINTERFACE_H__
+#define __ARC_CLIENTINTERFACE_H__
+
 #include <stdint.h>
 #include <string>
 #include <list>
@@ -149,3 +152,6 @@ namespace Arc {
   };
 
 } // namespace Arc
+
+
+#endif // __ARC_CLIENTINTERFACE_H__
