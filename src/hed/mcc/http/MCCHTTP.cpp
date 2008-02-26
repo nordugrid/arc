@@ -64,6 +64,25 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   return MCC_Status();
 }
 
+static void parse_http_range(PayloadHTTP& http,Message& msg) {
+  std::string http_range = http.Attribute("range");
+  if(http_range.empty()) return;
+  if(strncasecmp(http_range.c_str(),"bytes=",6) != 0) return;
+  std::string::size_type p = http_range.find(',',6);
+  if(p != std::string::npos) {
+    http_range=http_range.substr(6,p-6);
+  } else {
+    http_range=http_range.substr(6);
+  };
+  p=http_range.find('-');
+  std::string val;
+  if(p != std::string::npos) {
+    val=http_range.substr(0,p);
+    if(!val.empty()) msg.Attributes()->set("HTTP:RANGESTART",val);
+    val=http_range.substr(p+1);
+    if(!val.empty()) msg.Attributes()->set("HTTP:RANGEEND",val);
+  };
+}
 
 MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Extracting payload
@@ -89,6 +108,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Attributes()->set("ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
+  parse_http_range(nextpayload,nextinmsg);
   // Reason ?
   for(std::map<std::string,std::string>::const_iterator i = 
       nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {

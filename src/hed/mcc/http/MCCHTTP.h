@@ -29,6 +29,8 @@ class MCC_HTTP : public MCC {
    HTTP:METHOD - HTTP method e.g. GET, PUT, POST, etc.
    HTTP:ENDPOINT - URL taken from HTTP request
    ENDPOINT - global attribute equal to HTTP:ENDPOINT
+   HTTP:RANGESTART - start of requested byte range
+   HTTP:RANGEEND - end of requested byte range (inclusive)
    HTTP:name - all 'name' attributes of HTTP header.
   Attributes of response message of HTTP:name type are
  translated into HTTP header with corresponding 'name's.
