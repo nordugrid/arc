@@ -10,7 +10,6 @@
 #include "arex_client.h"
 
 static bool html_to_list(const char* html,const Arc::URL base,std::list<Arc::URL>& urls) {
-std::cerr<<"HTML: "<<html<<std::endl;
   for(const char* pos = html;;) {
     // Looking for tag
     const char* tag_start = strchr(pos,'<');
@@ -39,10 +38,19 @@ std::cerr<<"HTML: "<<html<<std::endl;
         };
         if(!url_end) return false; // Broken HTML
         std::string url_str(url_start,url_end-url_start);
-std::cerr<<"Adding url: "<<url_str<<std::endl;
         Arc::URL url(url_str);
         if(!url) return false; // Bad URL
-        urls.push_back(url);
+        if((url.Protocol() == base.Protocol()) &&
+           (url.Host() == base.Host()) &&
+           (url.Port() == base.Port())) {
+          std::string path = url.Path();
+          std::string base_path = base.Path();
+          if(base_path.length() < path.length()) {
+            if(strncmp(base_path.c_str(),path.c_str(),base_path.length()) == 0) {
+              urls.push_back(url);
+            };
+          };
+        };
       };
     };
     pos=tag_end+1;
