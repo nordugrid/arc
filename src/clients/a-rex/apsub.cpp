@@ -77,13 +77,13 @@ int main(int argc, char* argv[]){
     jobid = ac.submit(jsdlfile);
     if (!jsdlfile)
       throw std::invalid_argument(std::string("Failed when reading from ")+
-				  std::string(argv[1]));
+				  std::string(argv[tool.FirstOption()+1]));
     jobidfile << jobid;
     if (!jobidfile)
       throw std::invalid_argument(std::string("Could not write Job ID to ")+
-				  std::string(argv[2]));
+				  std::string(argv[tool.FirstOption()+2]));
     std::cout << "Submitted the job!" << std::endl;
-    std::cout << "Job ID stored in: " << argv[2] << std::endl;
+    std::cout << "Job ID stored in: " << argv[tool.FirstOption()+2] << std::endl;
     return EXIT_SUCCESS;
   }
   catch (std::exception& e){

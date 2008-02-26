@@ -102,6 +102,8 @@ namespace Arc {
      */
     std::string sstat(void) throw(AREXClientError);
 
+    ClientSOAP* SOAP(void) { return client; };
+
   private:
 
     //! The configuration.

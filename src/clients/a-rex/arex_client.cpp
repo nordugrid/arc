@@ -12,7 +12,7 @@ namespace Arc {
   Arc::Logger AREXClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
 
   AREXClient::AREXClient(std::string configFile) throw(AREXClientError)
-    :client_loader(NULL),client(NULL),client_entry(NULL)
+    :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL)
   {
     logger.msg(Arc::INFO, "Creating an A-REX client.");
 
@@ -43,7 +43,7 @@ namespace Arc {
   
   AREXClient::AREXClient(const Arc::URL& url,
                          const Arc::MCCConfig& cfg) throw(AREXClientError)
-    :client_loader(NULL),client(NULL),client_entry(NULL) {
+    :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");
     bool tls;
@@ -53,8 +53,9 @@ namespace Arc {
   
   AREXClient::~AREXClient()
   {
-    delete client_loader;
-    delete client_config;
+    if(client_loader) delete client_loader;
+    if(client_config) delete client_config;
+    if(client) delete client;
   }
   
   std::string AREXClient::submit(std::istream& jsdl_file)
