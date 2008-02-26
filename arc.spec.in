@@ -143,19 +143,7 @@ cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
 chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
-doc_client_files="echo.wsdl echo.xml arccfg.xml echo_client.xml"
-doc_arex_files="arex.xml arc_arex.conf jsdl_arex.xml"
-for pkg in client arex doc
-do
-  mkdir doc_${pkg}
-  lst=`eval echo '$'doc_${pkg}_files`
-  for f in $lst
-  do
-    tar cfC - $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/ $f | tar xvfC - doc_${pkg}
-    rm -fv $f
-  done
-done
-rm -frv  $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/
+rm -fr $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -184,7 +172,10 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
-%doc doc_client/*
+%doc src/clients/a-rex/arccfg.xml
+%doc src/clients/echo/echo_client.xml
+%doc src/tests/echo/echo.xml
+%doc src/tests/echo/echo.wsdl
 %{_bindir}/apsub
 %doc %{_mandir}/man1/apsub.1*
 %{_bindir}/apstat
@@ -218,7 +209,9 @@ exit 0
 
 %files arex
 %defattr(-,root,root,-)
-%doc doc_arex/*
+%doc src/services/a-rex/arex.xml
+%doc src/services/a-rex/jsdl_arex.xml
+%doc src/services/a-rex/arc_arex.conf
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/downloader
 %{_libexecdir}/uploader
