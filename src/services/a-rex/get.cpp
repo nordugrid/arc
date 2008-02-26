@@ -21,9 +21,9 @@
 
 namespace ARex {
 
-static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath);
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath);
 
-Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+Arc::MCC_Status ARexService::Get(Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
   if(id.empty()) {
     // Make list of jobs
     std::string html;
@@ -44,28 +44,32 @@ Arc::PayloadRawInterface* ARexService::Get(ARexGMConfig& config,const std::strin
     Arc::PayloadRaw* buf = NULL;
     buf=new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
-    return buf;
+    outmsg.Payload(buf);
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
     logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id.c_str(), job.Failure().c_str());
     // TODO: make proper html message
-    return NULL;
+    return Arc::MCC_Status();
   };
   std::string session_dir = job.SessionDir();
   Arc::PayloadRawInterface* buf = NULL;
-  if((buf=http_get(config.Endpoint()+"/"+id,session_dir,subpath)) == NULL) {
+  if(!http_get(outmsg,config.Endpoint()+"/"+id,session_dir,subpath)) {
     // Can't get file
     logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir.c_str(), subpath.c_str());
     // TODO: make proper html message
-    return NULL;
+    return Arc::MCC_Status();
   };
-  return buf;
+  return Arc::MCC_Status(Arc::STATUS_OK);
 } 
 
-static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::string& bpath,const std::string& hpath) {
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath) {
   std::string path=bpath;
+  if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
+  if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
   if(!hpath.empty()) path+="/"+hpath;
   //std::cerr<<"http:get: burl: "<<burl<<std::endl;
   //std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
@@ -113,7 +117,9 @@ static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::str
         //std::cerr<<"Get: html: "<<html<<std::endl;
         Arc::PayloadRaw* buf = new Arc::PayloadRaw;
         if(buf) buf->Insert(html.c_str(),0,html.length());
-        return buf;
+        outmsg.Payload(buf);
+        outmsg.Attributes()->set("HTTP:content-type","text/html");
+        return Arc::MCC_Status(Arc::STATUS_OK);
       };
     } else if(S_ISREG(st.st_mode)) {
       // File 
@@ -121,12 +127,14 @@ static Arc::PayloadRawInterface* http_get(const std::string& burl,const std::str
       //size=st.st_size;
       // TODO: support for range requests
       PayloadFile* h = new PayloadFile(path.c_str());
-      return h;
+      outmsg.Payload(h);
+      outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
+      return Arc::MCC_Status(Arc::STATUS_OK);
     };
   };
   // Can't process this path
   // offset=0; size=0;
-  return NULL;
+  return Arc::MCC_Status();
 }
 
 } // namespace ARex

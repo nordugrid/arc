@@ -269,10 +269,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } catch(std::exception& e) { };
     if(method == "GET") {
       logger_.msg(Arc::DEBUG, "process: GET");
-      Arc::PayloadRawInterface* buf = Get(*config,id,subpath);
-      if(!buf) { return make_soap_fault(outmsg); };
-      outmsg.Payload(buf);
-      return Arc::MCC_Status(Arc::STATUS_OK);
+      // TODO: in case of error generate some content
+      return Get(outmsg,*config,id,subpath);
     } else if(method == "PUT") {
       logger_.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
