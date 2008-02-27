@@ -22,7 +22,7 @@ Sample configuration:
 import arc
 import os
 import traceback
-from storage.common import import_class_from_string, hash_uri, node_to_data
+from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata
 import copy
 
 import pickle, threading
@@ -156,7 +156,6 @@ class CentralHash:
             where 'metadata' is a dictionary where the keys are ('section', 'property') tuples
         """
         # gets the metadata for each ID and create an {ID : metadata} dictionary from it
-        print '!!!!!', dict([(ID, self.store.get(ID)) for ID in ids])
         return dict([(ID, self.store.get(ID)) for ID in ids])
 
     def change(self, changes):
@@ -321,13 +320,8 @@ class HashService:
             ('hash:objects', [
                 ('hash:object', [ # for each object
                     ('hash:ID', ID),
-                    ('hash:metadataList', [
-                        ('hash:metadata', [ # for each dictionary item of this object
-                            ('hash:section', section),
-                            ('hash:property', property),
-                            ('hash:value', value)
-                        ]) for ((section, property), value) in metadata.items()
-                    ])
+                    # create the metadata section of the response:
+                    ('hash:metadataList', create_metadata(metadata, 'hash'))
                 ]) for (ID, metadata) in objects.items()
             ])
         )

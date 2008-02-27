@@ -40,12 +40,70 @@ def parse_metadata(metadatalist_node):
                 str(metadata_node.Get('value'))))
     return dict(metadata)
 
-def node_to_data(node, names):
-    data = [str(node.Get(name)) for name in names]
-    return data[0], data[1:]
+def create_metadata(metadata, prefix = ''):
+    if prefix:
+        return [
+            (prefix + ':metadata', [ 
+                (prefix + ':section', section),
+                (prefix + ':property', property),
+                (prefix + ':value', value)
+            ]) for ((section, property), value) in metadata.items()
+        ]
+    else:
+        return [
+            ('metadata', [ 
+                ('section', section),
+                ('property', property),
+                ('value', value)
+            ]) for ((section, property), value) in metadata.items()
+        ]
+
+def node_to_data(node, names, single = False, string = True):
+    if string:
+        data = [str(node.Get(name)) for name in names]
+    else:
+        data = [node.Get(name) for name in names]
+    if single:
+        return data[0], data[1]
+    else:
+        return data[0], data[1:]
 
 def get_child_nodes(node):
     return [node.Child(i) for i in range(node.Size())]
+
+def parse_node(node, names, single = False, string = True):
+    return dict([
+        node_to_data(n, names, single, string)
+            for n in get_child_nodes(node)
+    ])
+
+def create_response(method_name, tag_names, elements, ns, single = False):
+    from storage.xmltree import XMLTree
+    import arc
+    if single:
+        tree = XMLTree(from_tree =
+            (method_name + 'ResponseList', [
+                (method_name + 'ResponseElement', [
+                    (tag_names[0], element[0]),
+                    (tag_names[1], element[1])
+                ]) for element in elements.items()
+            ])
+        )
+    else:
+        tree = XMLTree(from_tree =
+            (method_name + 'ResponseList', [
+                (method_name + 'ResponseElement', [
+                    (tag_names[0], element[0])
+                ] + [
+                    (tag_names[i + 1], element[1][i]) for i in range(len(element[1]))
+                ]) for element in elements.items()
+            ])
+        )
+    out = arc.PayloadSOAP(ns)
+    response_node = out.NewChild(method_name + 'Response')
+    tree.add_to_node(response_node)
+    return out
+
 
 def remove_trailing_slash(LN):
     if LN.endswith('/'):

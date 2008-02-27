@@ -4,8 +4,8 @@ import arc
 import random
 from storage.xmltree import XMLTree
 from storage.client import CatalogClient
-from storage.common import parse_metadata, catalog_uri, manager_uri, \
-                            basename, dirname, remove_trailing_slash, true, false
+from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, \
+                            basename, dirname, remove_trailing_slash, true, false, get_child_nodes
 import traceback
 
 class Manager:
@@ -60,57 +60,29 @@ class ManagerService:
         catalog = CatalogClient(catalog_url)
         self.manager = Manager(catalog)
         self.man_ns = arc.NS({'man':manager_uri})
-    
+
     def stat(self, inpayload):
-        requests_node = inpayload.Child().Child()
-        request_number = requests_node.Size()
-        requests = []
-        for i in range(request_number):
-            request_node = requests_node.Child(i)
-            requests.append((str(request_node.Get('requestID')),str(request_node.Get('LN'))))
-        requests = dict(requests)
-        responses = self.manager.stat(requests)
-        out = arc.PayloadSOAP(self.man_ns)
-        response_node = out.NewChild('man:statResponse')
-        tree = XMLTree(from_tree =
-            ('man:statResponseList', [
-                ('man:statResponseElement', [
-                    ('man:requestID', requestID),
-                    ('man:metadataList', [
-                        ('man:metadata', [
-                            ('man:section', section),
-                            ('man:property', property),
-                            ('man:value', value)
-                        ]) for (section, property), value in metadata.items()
-                    ])
-                ]) for requestID, metadata in responses.items()
-            ])
-        )
-        tree.add_to_node(response_node)
-        return out
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([
+            (str(request_node.Get('requestID')), str(request_node.Get('LN')))
+                for request_node in request_nodes
+        ])
+        response = self.manager.stat(requests)
+        for requestID, metadata in response.items():
+            response[requestID] = create_metadata(metadata, 'man')
+        return create_response('man:stat',
+            ['man:requestID', 'man:metadataList'], response, self.man_ns, single = True)
 
     def makeCollection(self, inpayload):
-        requests_node = inpayload.Child().Child()
-        request_number = requests_node.Size()
-        requests = []
-        for i in range(request_number):
-            request_node = requests_node.Child(i)
-            metadatalist_node = request_node.Get('metadataList')
-            metadata = parse_metadata(metadatalist_node)
-            requests.append((str(request_node.Get('requestID')),(str(request_node.Get('LN')),metadata)))
-        responses = self.manager.makeCollection(requests)
-        out = arc.PayloadSOAP(self.man_ns)
-        response_node = out.NewChild('man:makeCollectionResponse')
-        tree = XMLTree(from_tree =
-            ('man:makeCollectionResponseList', [
-                ('man:makeCollectionResponseElement', [
-                    ('man:requestID', rID),
-                    ('man:success', success)
-                ]) for rID, success in responses
-            ])
-        )
-        tree.add_to_node(response_node)
-        return out
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([
+            (str(request_node.Get('requestID')), 
+                (str(request_node.Get('LN')), parse_metadata(request_node.Get('metadataList')))
+            ) for request_node in request_nodes
+        ])
+        response = self.manager.makeCollection(requests)
+        return create_response('man:makeCollection',
+            ['man:requestID', 'man:success'], response, self.man_ns, single = True)
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """

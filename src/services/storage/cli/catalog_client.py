@@ -8,8 +8,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 catalog = CatalogClient('http://localhost:60000/Catalog', print_xml)
-if len(args) == 0 or args[0] not in ['newCollection', 'get', 'traverseLN']:
-    print 'Supported methods: newCollection get traverseLN'
+if len(args) == 0 or args[0] not in ['newCollection', 'get', 'traverseLN', 'modifyMetadata']:
+    print 'Supported methods: newCollection get traverseLN modifyMetadata'
 else:
     command = args.pop(0)
     if command == 'newCollection':
@@ -35,3 +35,10 @@ else:
                 request[str(i)] = args[i]
             print 'traverseLN', request
             print catalog.traverseLN(request)
+    elif command == 'modifyMetadata':
+        if len(args) < 5:
+            print 'Usage: modifyMetadata <GUID> <changeType> <section> <property> <value>'
+        else:
+            request = {'0' : args}
+            print 'modifyMetadata', request
+            print catalog.modifyMetadata(request)

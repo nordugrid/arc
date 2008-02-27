@@ -4,7 +4,8 @@ import arc
 import random
 from storage.xmltree import XMLTree
 from storage.client import HashClient
-from storage.common import catalog_uri, global_root_guid, mkuid, parse_metadata, true, false, get_child_nodes
+from storage.common import catalog_uri, global_root_guid, true, false
+from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, create_metadata, parse_node
 import traceback
 import copy
 
@@ -79,7 +80,7 @@ class Catalog:
 
     def traverseLN(self, requests):
         response = {}
-        for (rID, LN) in requests:
+        for rID, LN in requests.items():
             guid0, path0 = self._parse_LN(LN)
             if not guid0:
                 guid = global_root_guid
@@ -128,9 +129,6 @@ class Catalog:
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
 
-    # names of provided methods
-    request_names = ['newCollection','get','traverseLN']
-
     def __init__(self, cfg):
         """ Constructor of the CatalogService
 
@@ -148,35 +146,17 @@ class CatalogService:
 
     
     def newCollection(self, inpayload):
-        request_nodes = get_child_nodes(inpayload.Child().Child())
-        requests = dict([
-            (str(request_node.Get('requestID')), parse_metadata(request_node.Get('metadataList')))
-                for request_node in request_nodes
-        ])
+        requests0 = parse_node(inpayload.Child().Child(),
+            ['requestID', 'metadataList'], single = True, string = False)
+        requests = dict([(str(requestID), parse_metadata(metadataList))
+            for requestID, metadataList in request0.items()])
         resp = self.catalog.newCollection(requests)
-        tree = XMLTree(from_tree =
-            ('cat:newCollectionResponseList', [
-                ('cat:newCollectionResponseElement', [
-                    ('cat:requestID', rID),
-                    ('cat:GUID', GUID),
-                    ('cat:success', success) 
-                ]) for rID, (GUID, success) in resp.items()
-            ])
-        )
-        # create the response payload
-        out = arc.PayloadSOAP(self.cat_ns)
-        # create the 'newCollectionResponse' node
-        response_node = out.NewChild('cat:newCollectionResponse')
-        tree.add_to_node(response_node)
-        return out
+        return create_response('cat:newCollection',
+            ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.cat_ns)
 
     def get(self, inpayload):
-        requests_node = inpayload.Child().Child()
-        request_number = requests_node.Size()
-        requests = []
-        for i in range(request_number):
-            request_node = requests_node.Child(i)
-            requests.append(str(request_node.Get('GUID')))
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = [str(request_node.Get('GUID')) for request_node in request_nodes]
         tree = self.catalog.get(requests)
         out = arc.PayloadSOAP(self.cat_ns)
         response_node = out.NewChild('cat:getResponse')
@@ -184,49 +164,27 @@ class CatalogService:
         return out
 
     def traverseLN(self, inpayload):
-        requests_node = inpayload.Child().Child()
-        request_number = requests_node.Size()
-        requests = {}
-        for i in range(request_number):
-            request_node = requests_node.Child(i)
-            request[str(request_node.Get('requestID'))] = str(request_node.Get('LN'))
+        requests = parse_node(inpayload.Child().Child(), ['requestID', 'LN'], single = True)
         response = self.catalog.traverseLN(requests)
-        tree = XMLTree(from_tree =
-            ('cat:traverseLNResponseList', [
-                ('cat:traverseLNResponseElement', [
-                    ('cat:requestID', rID),
-                    ('cat:traversedList', [
-                        ('cat:traversedListElement', [
-                            ('cat:LNpart', LNpart),
-                            ('cat:GUID', partGUID)
-                        ]) for (LNpart, partGUID) in traversedList
-                    ]),
-                    ('cat:wasComplete', wasComplete and true or false),
-                    ('cat:traversedLN', traversedLN),
-                    ('cat:GUID', GUID),
-                    ('cat:metadataList', [
-                        ('cat:metadata', [
-                            ('cat:section', section),
-                            ('cat:property', property),
-                            ('cat:value', value)
-                        ]) for ((section, property), value) in metadata.items()
-                    ]),
-                    ('cat:restLN', restLN)
-                ]) for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items()
-            ])
-        )
-        out = arc.PayloadSOAP(self.cat_ns)
-        response_node = out.NewChild('cat:traverseLNResponse')
-        tree.add_to_node(response_node)
-        return out
+        for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items():
+            traversedListTree = [
+                ('cat:traversedListElement', [
+                    ('cat:LNpart', LNpart),
+                    ('cat:GUID', partGUID)
+                ]) for (LNpart, partGUID) in traversedList
+            ]
+            metadataTree = create_metadata(metadata, 'cat')
+            response[rID] = (traversedListTree, wasComplete and true or false,
+                traversedLN, GUID, metadataTree, restLN)
+        return create_response('cat:traverseLN',
+            ['cat:requestID', 'cat:traversedList', 'cat:wasComplete',
+                'cat:traversedLN', 'cat:GUID', 'cat:metadataList', 'cat:restLN'], response, self.cat_ns)
 
     def modifyMetadata(self, inpayload):
-        # get the grandchild of the root node, which is the 'modifyMetadataRequestList'
-        requests_node = inpayload.Child().Child()
-        # get all the requests:
-        request_nodes = [requests_node.Child(i) for i in range(requests_node.Size())]
-        requests_node = inpayload.Child().Child()
-        changes = {}
+        requests = parse_node(inpayload.Child().Child(), ['cat:changeID',
+            'cat:GUID', 'cat:changeType', 'cat:section', 'cat:property', 'cat:value'])
+        response = self.catalog.modifyMetadata(requests)
+        return create_response('cat:modifyMetadata', ['cat:changeID', 'cat:success'], response, self.cat_ns, True)
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
@@ -265,3 +223,6 @@ class CatalogService:
             outpayload.NewChild('catalog:Fault').Set(exc)
             outmsg.Payload(outpayload)
             return arc.MCC_Status(arc.STATUS_OK)
+
+    # names of provided methods
+    request_names = ['newCollection','get','traverseLN', 'modifyMetadata']
