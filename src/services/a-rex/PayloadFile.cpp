@@ -6,23 +6,33 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/mman.h>
 #include <iostream>
+#include <arc/Logger.h>
 #include "PayloadFile.h"
 
 namespace ARex {
 
-PayloadFile::PayloadFile(const char* filename):handle_(-1),addr_(NULL),size_(0) {
+PayloadFile::PayloadFile(const char* filename,size_t start,size_t end):handle_(-1),addr_(NULL),size_(0),start_(start),end_(end) {
   handle_=open(filename,O_RDONLY);
   if(handle_ == -1) return;
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
   size_=st.st_size;
-  addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
-  if(addr_ == MAP_FAILED) goto error;
+  if((end_ == (size_t)(-1)) || (end_ > size_)) end_=size_;
+  if(start_>end_) start_=end_;
+  if(end_ > start_) {
+    addr_=(char*)mmap(NULL,end_-start_,PROT_READ,MAP_SHARED,handle_,start_);
+    if(addr_ == MAP_FAILED) goto error;
+  };
   return;
 error:
-perror("PayloadFile");
+  char errbuf[256];
+  errbuf[0]=0;
+  strerror_r(errno,errbuf,sizeof(errbuf)-1);
+  errbuf[sizeof(errbuf)-1]=0;
+  Arc::Logger::rootLogger.msg(Arc::ERROR,"%s",errbuf);
   if(handle_ != -1) close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;
@@ -37,14 +47,16 @@ PayloadFile::~PayloadFile(void) {
 
 char* PayloadFile::Content(int pos) {
   if(handle_ == -1) return NULL;
-  if(pos >= size_) return NULL;
-  return (addr_+pos);
+  if(pos >= end_) return NULL;
+  if(pos < start_) return NULL;
+  return (addr_+(pos-start_));
 }
 
 char PayloadFile::operator[](int pos) const {
   if(handle_ == -1) return 0;
-  if(pos >= size_) return 0;
-  return addr_[pos];
+  if(pos >= end_) return 0;
+  if(pos < start_) return 0;
+  return addr_[pos-start_];
 }
 
 int PayloadFile::Size(void) const {
@@ -70,11 +82,12 @@ char* PayloadFile::Buffer(unsigned int num) {
 int PayloadFile::BufferSize(unsigned int num) const {
   if(handle_ == -1) return 0;
   if(num>0) return 0;
-  return size_;
+  return (end_-start_);
 }
 
-int PayloadFile::BufferPos(unsigned int /*num*/) const {
-  return 0;
+int PayloadFile::BufferPos(unsigned int num) const {
+  if(num == 0) return start_;
+  return end_;
 }
 
 bool PayloadFile::Truncate(unsigned int /*size*/) {

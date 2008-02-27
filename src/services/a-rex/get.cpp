@@ -21,9 +21,27 @@
 
 namespace ARex {
 
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath);
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath,size_t start,size_t end);
 
-Arc::MCC_Status ARexService::Get(Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+  size_t range_start = 0;
+  size_t range_end = (size_t)(-1);
+  {
+    std::string val;
+    val=inmsg.Attributes()->get("HTTP:RANGESTART");
+    if(!val.empty()) { // Negative ranges not supported
+      if(!Arc::stringto<size_t>(val,range_start)) {
+        range_start=0;
+      } else {
+        val=inmsg.Attributes()->get("HTTP:RANGEEND");
+        if(!val.empty()) {
+          if(!Arc::stringto<size_t>(val,range_end)) {
+            range_end=(size_t)(-1);
+          };
+        };
+      };
+    };
+  };
   if(id.empty()) {
     // Make list of jobs
     std::string html;
@@ -57,7 +75,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& outmsg,ARexGMConfig& config,const
   };
   std::string session_dir = job.SessionDir();
   Arc::PayloadRawInterface* buf = NULL;
-  if(!http_get(outmsg,config.Endpoint()+"/"+id,session_dir,subpath)) {
+  if(!http_get(outmsg,config.Endpoint()+"/"+id,session_dir,subpath,range_start,range_end)) {
     // Can't get file
     logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir.c_str(), subpath.c_str());
     // TODO: make proper html message
@@ -66,7 +84,8 @@ Arc::MCC_Status ARexService::Get(Arc::Message& outmsg,ARexGMConfig& config,const
   return Arc::MCC_Status(Arc::STATUS_OK);
 } 
 
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath) {
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath,size_t start,size_t end) {
+Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u", (unsigned int)start, (unsigned int)end);
   std::string path=bpath;
   if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
   if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
@@ -123,10 +142,7 @@ static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,con
       };
     } else if(S_ISREG(st.st_mode)) {
       // File 
-      //std::cerr<<"http:get: file: "<<path<<std::endl;
-      //size=st.st_size;
-      // TODO: support for range requests
-      PayloadFile* h = new PayloadFile(path.c_str());
+      PayloadFile* h = new PayloadFile(path.c_str(),start,end);
       outmsg.Payload(h);
       outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
       return Arc::MCC_Status(Arc::STATUS_OK);

@@ -46,6 +46,7 @@
     <Component name="http.service" id="http">
       <next id="soap">POST</next>
       <next id="plexer">GET</next>
+      <next id="plexer">PUT</next>
     </Component>
     <!-- This one parses content into XML tree -->
     <Component name="soap.service" id="soap">

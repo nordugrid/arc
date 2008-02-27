@@ -23,7 +23,7 @@ namespace ARex {
 
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::string& hpath,Arc::PayloadRawInterface& buf);
 
-Arc::MCC_Status ARexService::Put(ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
+Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
   if(id.empty()) return Arc::MCC_Status();
   ARexJob job(id,config);
   if(!job) {
@@ -36,15 +36,12 @@ Arc::MCC_Status ARexService::Put(ARexGMConfig& config,const std::string& id,cons
 } 
 
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::string& hpath,Arc::PayloadRawInterface& buf) {
-  //std::cerr<<"http:put: burl: "<<burl<<std::endl;
-  //std::cerr<<"http:put: hpath: "<<hpath<<std::endl;
   // File 
   int h = job.CreateFile(hpath.c_str());
   if(h == -1) {
     
     return Arc::MCC_Status();
   };
-  //std::cerr<<"http:put: file is opened"<<std::endl;
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);
     if(sbuf == NULL) break;
@@ -58,7 +55,6 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::
       };
       for(;size>0;) {
         ssize_t l = write(h,sbuf,size);
-        //std::cerr<<"http:put: wrote: "<<l<<std::endl;
         if(l == -1) {
           close(h);
           return Arc::MCC_Status();
@@ -68,7 +64,6 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::
     };
   };
   close(h);
-  //std::cerr<<"http:put: success"<<std::endl;
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

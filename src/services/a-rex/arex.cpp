@@ -270,11 +270,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(method == "GET") {
       logger_.msg(Arc::DEBUG, "process: GET");
       // TODO: in case of error generate some content
-      return Get(outmsg,*config,id,subpath);
+      return Get(inmsg,outmsg,*config,id,subpath);
     } else if(method == "PUT") {
       logger_.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
-        Arc::MCC_Status ret = Put(*config,id,subpath,*inbufpayload);
+        Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath,*inbufpayload);
         if(!ret) return make_fault(outmsg);
       } else if(instreampayload) {
         // Not implemented yet
@@ -317,7 +317,8 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
-  Arc::XMLNode gmargv;
+  Arc::NS ns;
+  Arc::XMLNode gmargv(ns,"argv");
   for(Arc::XMLNode n = (*cfg)["gmarg"];(bool)n;n=n[1]) {
     gmargv.NewChild("arg")=(std::string)n;
   };

@@ -132,8 +132,6 @@ static void grid_manager(void* arg) {
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
   Daemon daemon;
-  //Arc::Logger::getRootLogger().addDestination(*(new Arc::LogStream(std::cerr)));
-  //Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
       case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
@@ -212,7 +210,6 @@ static void grid_manager(void* arg) {
     wakeup_interface.add(*i);
   };
   wakeup_interface.timeout(JobsList::WakeupPeriod());
-std::cerr<<"Setting wakeup period to "<<JobsList::WakeupPeriod()<<std::endl;
 
   // Prepare signal handler(s). Must be done after fork/daemon and preferably
   // before any new thread is started. 
