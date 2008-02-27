@@ -267,8 +267,8 @@ namespace Arc {
 	ldapscope = "base";
       if(ldapfilter.empty())
 	ldapfilter = "(objectClass=*)";
-      if(path.find(",") != std::string::npos)             // probably a basedn
-	path = BaseDN2Path(path);
+      if(path.find("/") != std::string::npos)
+	path = Path2BaseDN(path);
     }
 
     // add absolute path for relative file URLs
@@ -361,6 +361,18 @@ namespace Arc {
       return opt->second;
     else
       return undefined;
+  }
+
+  const std::list<std::string>& URL::LDAPAttributes() const {
+    return ldapattributes;
+  }
+
+  const std::string& URL::LDAPScope() const {
+    return ldapscope;
+  }
+
+  const std::string& URL::LDAPFilter() const {
+    return ldapfilter;
   }
 
   const std::map<std::string, std::string>& URL::Options() const {

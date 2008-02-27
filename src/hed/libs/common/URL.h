@@ -84,6 +84,15 @@ namespace Arc {
     const std::string& HTTPOption(const std::string& option,
                                   const std::string& undefined = "") const;
 
+    /** Returns the LDAP attributes if any. */
+    const std::list<std::string>& LDAPAttributes() const;
+
+    /** Returns the LDAP scope. */
+    const std::string& LDAPScope() const;
+
+    /** Returns the LDAP filter. */
+    const std::string& LDAPFilter() const;
+
     /** Returns URL options if any. */
     const std::map<std::string, std::string>& Options() const;
 

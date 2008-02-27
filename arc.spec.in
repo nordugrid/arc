@@ -261,6 +261,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libmcc*.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
+%{_libdir}/%{pkgdir}/libdmcldap.so
 %{_libdir}/%{pkgdir}/libarcpdc.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
 
