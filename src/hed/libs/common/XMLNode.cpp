@@ -328,7 +328,7 @@ XMLNode::operator std::string(void) const {
   std::string content;
   if(!node_) return content;
   for(xmlNodePtr p = node_->children;p;p=p->next) {
-    if(p->type != XML_TEXT_NODE) return "";
+    if(p->type != XML_TEXT_NODE) continue;
     xmlChar* buf = xmlNodeGetContent(p);
     if(!buf) continue;
     content+=(char*)buf;
