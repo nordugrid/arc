@@ -68,6 +68,7 @@ namespace Arc {
     Loader *loader;
     MessageContext context;
     static Logger logger;
+    void Load(void);
   };
 
   // Also supports TLS
@@ -83,6 +84,7 @@ namespace Arc {
    protected:
     MCC *tcp_entry;
     MCC *tls_entry;
+    void Load(void);
   };
     
   struct HTTPClientInfo {
@@ -110,6 +112,7 @@ namespace Arc {
 		               HTTPClientInfo *info, PayloadRawInterface **response);
    protected:
     MCC *http_entry;
+    void Load(void);
   };
 
   /** Class with easy interface for sending/receiving SOAP messages
@@ -135,6 +138,7 @@ namespace Arc {
     MCC_Status process(const std::string& action,PayloadSOAP *request, PayloadSOAP **response);
    protected:
     MCC *soap_entry;
+    void Load(void);
   };
 
   class MCCConfig : public BaseConfig {

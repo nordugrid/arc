@@ -146,6 +146,13 @@ namespace Arc {
       delete loader;
   }
 
+  void ClientInterface::Load(void) {
+    if(!loader) {
+      if(overlay) Overlay(overlay);
+      loader = new Loader(&xmlcfg);
+    };
+  }
+
   void ClientInterface::Overlay(XMLNode cfg) {
     xml_add_elements(xmlcfg,cfg);
   }
@@ -172,19 +179,16 @@ namespace Arc {
 
   ClientTCP::~ClientTCP() {}
 
+  void ClientTCP::Load(void) {
+    ClientInterface::Load();
+    if(!tls_entry) tls_entry = (*loader)["tls"];
+    if(!tcp_entry) tcp_entry = (*loader)["tcp"];
+  }
+
   MCC_Status ClientTCP::process(PayloadRawInterface *request,
                        PayloadStreamInterface **response, bool tls) {
+    Load();
     *response = NULL;
-    if(!loader) {
-      if(overlay) Overlay(overlay);
-      loader = new Loader(&xmlcfg);
-      tls_entry = (*loader)["tls"];
-      tcp_entry = (*loader)["tcp"];
-      if((!tls_entry)&&(!tcp_entry)) {
-        delete loader;
-        loader = NULL;
-      }
-    }
     if(tls && (!tls_entry)) return MCC_Status();
     if((!tls) && (!tcp_entry)) return MCC_Status();
     Arc::MessageAttributes attributes_req;
@@ -231,6 +235,11 @@ namespace Arc {
 
   ClientHTTP::~ClientHTTP() {}
 
+  void ClientHTTP::Load(void) {
+    ClientTCP::Load();
+    if(!http_entry) http_entry = (*loader)["http"];
+  }
+
   MCC_Status ClientHTTP::process(const std::string& method,
 				 PayloadRawInterface* request,
 				 HTTPClientInfo* info, PayloadRawInterface** response) {
@@ -247,18 +256,9 @@ namespace Arc {
                                  uint64_t range_start, uint64_t range_end,
                                  PayloadRawInterface *request,
                                  HTTPClientInfo *info, PayloadRawInterface **response) {
+    Load();
     *response = NULL;
-    if(!loader) {
-      if(overlay) Overlay(overlay);
-      loader = new Loader(&xmlcfg);
-      http_entry = (*loader)["http"];
-      if(!http_entry) {
-	delete loader;
-	loader = NULL;
-      }
-    }
-    if(!http_entry)
-      return MCC_Status();
+    if(!http_entry) return MCC_Status();
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -313,22 +313,15 @@ namespace Arc {
     return process("",request,response);
   }
 
+  void ClientSOAP::Load(void) {
+    ClientHTTP::Load();
+    if(!soap_entry) soap_entry = (*loader)["soap"];
+  }
+
   MCC_Status ClientSOAP::process(const std::string& action,PayloadSOAP* request,PayloadSOAP** response) {
+    Load();
     *response = NULL;
-    if(!loader) {
-      if(overlay) Overlay(overlay);
-      std::string s;
-      xmlcfg.GetXML(s);
-      logger.msg(Arc::VERBOSE,"Client configuration: %s",s.c_str());
-      loader = new Loader(&xmlcfg);
-      soap_entry = (*loader)["soap"];
-      if(!soap_entry) {
-	delete loader;
-	loader = NULL;
-      }
-    }
-    if(!soap_entry)
-      return MCC_Status();
+    if(!soap_entry) return MCC_Status();
     Arc::MessageAttributes attributes_req;
     Arc::MessageAttributes attributes_rep;
     Arc::Message reqmsg;
