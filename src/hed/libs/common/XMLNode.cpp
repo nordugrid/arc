@@ -117,7 +117,9 @@ static void SetNamespaces(const NS& namespaces,xmlNodePtr node_) {
     // First check maybe this namespace is already defined
     xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc,node_,(const xmlChar*)(ns->second.c_str()));
     if(ns_) {
-      if(ns->first == (char*)(ns_->prefix)) { 
+      const char* prefix = (const char*)(ns_->prefix);
+      if(!prefix) prefix="";
+      if(ns->first == prefix) { 
         // Same namespace with same prefix - doing nothing
       } else {
         // TODO: optional change of prefix
