@@ -11,6 +11,16 @@ namespace Arc {
 
   Arc::Logger AREXClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
 
+  static void set_arex_namespaces(Arc::NS& ns) {
+    ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+    ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns["wsa"]="http://www.w3.org/2005/08/addressing";
+    ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";    
+    ns["jsdl-posix"]="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix";
+    ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
+    ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
+  }
+
   AREXClient::AREXClient(std::string configFile) throw(AREXClientError)
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL)
   {
@@ -35,10 +45,7 @@ namespace Arc {
       throw AREXClientError("Client chain does not have entry point.");
     }
 
-    arex_ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-    arex_ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-    arex_ns["wsa"]="http://www.w3.org/2005/08/addressing";
-    arex_ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";    
+    set_arex_namespaces(arex_ns);
   }
   
   AREXClient::AREXClient(const Arc::URL& url,
@@ -47,6 +54,7 @@ namespace Arc {
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");
     client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+    set_arex_namespaces(arex_ns);
   }
   
   AREXClient::~AREXClient()
@@ -56,10 +64,11 @@ namespace Arc {
     if(client) delete client;
   }
   
-  std::string AREXClient::submit(std::istream& jsdl_file)
+  std::string AREXClient::submit(std::istream& jsdl_file,AREXFileList& file_list)
     throw(AREXClientError)
   {
     std::string jobid, faultstring;
+    file_list.resize(0);
     logger.msg(Arc::INFO, "Creating and sending request.");
 
     // Create job request
@@ -75,8 +84,46 @@ namespace Arc {
     std::string jsdl_str; 
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
-    req.GetXML(jsdl_str);
+    act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
     Arc::PayloadSOAP* resp = NULL;
+
+    XMLNode ds = act_doc["jsdl:JobDefinition"]["jsdl:JobDescription"]["jsdl:DataStaging"];
+    for(;(bool)ds;ds=ds[1]) {
+      // FilesystemName - ignore
+      // CreationFlag - ignore
+      // DeleteOnTermination - ignore
+      XMLNode source = ds["jsdl:Source"];
+      XMLNode target = ds["jsdl:Target"];
+      if((bool)source) {
+        std::string s_name = ds["jsdl:FileName"];
+        if(!s_name.empty()) {
+          XMLNode x_url = source["jsdl:URI"];
+          std::string s_url = x_url;
+          if(s_url.empty()) {
+            s_url="./"+s_name;
+          } else {
+            URL u_url(s_url);
+            if(!u_url) {
+              if(s_url[0] != '/') s_url="./"+s_url;
+            } else {
+              if(u_url.Protocol() == "file") {
+                s_url=u_url.Path();
+                if(s_url[0] != '/') s_url="./"+s_url;
+              } else {
+                s_url.resize(0);
+              };
+            };
+          };
+          if(!s_url.empty()) {
+            x_url.Destroy();
+            AREXFile file(s_name,s_url);
+            file_list.push_back(file);
+          };
+        };
+      };
+    }; 
+    act_doc.GetXML(jsdl_str);
+    logger.msg(Arc::VERBOSE, "Job description to be sent: %s",jsdl_str.c_str());
 
     // Send job request
     if(client) {

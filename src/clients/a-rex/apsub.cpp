@@ -7,6 +7,48 @@
 #include <arc/misc/ClientTool.h>
 #include "arex_client.h"
 
+static std::string merge_paths(const std::string path1,const std::string& path2) {
+  std::string path = path1;
+  if((path.empty()) || (path[path.length()-1] != '/')) path+="/";
+  if(path2[0] != '/') {
+    path+=path2;
+  } else {
+    path+=path2.substr(1);
+  };
+  return path;
+}
+
+static bool put_file(Arc::ClientHTTP& client,const Arc::URL& base,Arc::AREXFile& file) {
+  Arc::URL url = base;
+  url.ChangePath(merge_paths(url.Path(),file.remote));
+  std::string file_name = file.local; // Relative to current directory
+  const uint64_t chunk_len = 1024*1024; // Some reasonable size - TODO - make ir configurable
+  uint64_t chunk_start = 0;
+  uint64_t chunk_end = chunk_len;
+  std::ifstream f(file_name.c_str());
+  f.seekg(0,std::ios::end);
+  uint64_t file_size = f.tellg();
+  f.seekg(0,std::ios::beg);
+  if(!f) return false;
+  for(;;) {
+    Arc::PayloadRawInterface* resp;
+    // TODO: Use PayloadFile instead of reaing file chunks to memory
+    // Arc::PayloadFile req(fname,chunk_start,chunk_end);
+    Arc::PayloadRaw req;
+    char* file_buf = req.Insert(chunk_start,chunk_end-chunk_start);
+    if(!file_buf) return false;
+    f.read(file_buf,chunk_end-chunk_start);
+    req.Truncate(file_size);
+    chunk_end = chunk_start+f.gcount();
+    if(chunk_start == chunk_end) break; // EOF
+    Arc::HTTPClientInfo info;
+    Arc::MCC_Status r = client.process("PUT",url.Path(),&req,&info,&resp);
+    if(!resp) return false;
+    if(info.code != 200) { delete resp; return false; };
+    chunk_start=chunk_end; chunk_end=chunk_start+chunk_len;
+  };
+  return true;
+}
 
 class APSubTool: public Arc::ClientTool {
  public:
@@ -74,10 +116,26 @@ int main(int argc, char* argv[]){
       throw std::invalid_argument(std::string("Could not open ")+
 				  std::string(argv[1]));
     std::ofstream jobidfile(argv[tool.FirstOption()+2]);
-    jobid = ac.submit(jsdlfile);
+    Arc::AREXFileList files;
+    // Submit job description
+    jobid = ac.submit(jsdlfile,files);
     if (!jsdlfile)
       throw std::invalid_argument(std::string("Failed when reading from ")+
 				  std::string(argv[tool.FirstOption()+1]));
+    // Extract session directory URL
+    // TODO: use XML directly
+    Arc::XMLNode jobidx(jobid);
+    Arc::URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
+    if(!session_url)
+      throw std::invalid_argument(std::string("Could not extract session URL from job id: ") +
+                                    jobid);
+    // Upload user files
+    for(Arc::AREXFileList::iterator file = files.begin();file!=files.end();++file) {
+      std::cout<<"Uploading file "<<file->local<<" to "<<file->remote<<std::endl;
+      if(!put_file(*(ac.SOAP()),session_url,*file))
+        throw std::invalid_argument(std::string("Could not upload file ") +
+                                    file->local + " to " + file->remote);
+    };
     jobidfile << jobid;
     if (!jobidfile)
       throw std::invalid_argument(std::string("Could not write Job ID to ")+

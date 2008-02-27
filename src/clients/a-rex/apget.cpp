@@ -95,7 +95,7 @@ static bool get_file(Arc::ClientHTTP& client,const Arc::URL& url,const std::stri
   Arc::PayloadRaw req; // Empty request body
   Arc::PayloadRawInterface* resp;
   Arc::HTTPClientInfo info;
-  const uint64_t chunk_len = 1024*1024*1024; // Some reasonable size;
+  const uint64_t chunk_len = 1024*1024; // Some reasonable size - TODO - make ir configurable
   uint64_t chunk_start = 0;
   uint64_t chunk_end = chunk_len;
   // First chunk

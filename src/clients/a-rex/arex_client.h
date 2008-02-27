@@ -34,6 +34,17 @@ namespace Arc {
   };
 
 
+  class AREXFile {
+  public:
+    std::string remote;
+    std::string local;
+    AREXFile(void) { };
+    AREXFile(const std::string& remote_,const std::string& local_):
+             remote(remote_),local(local_) { };
+  };
+
+  typedef std::list<AREXFile> AREXFileList;
+
   //! A client class for the A-REX service.
   /*! This class is a client for the A-REX service (Arc
     Resource-coupled EXecution service). It provides methods for three
@@ -76,7 +87,7 @@ namespace Arc {
       @return The Job ID of the the submitted job.
       @throw An AREXClientError object if an error occurs.      
      */
-    std::string submit(std::istream& jsdl_file) throw(AREXClientError);
+    std::string submit(std::istream& jsdl_file,AREXFileList& file_list) throw(AREXClientError);
 
     //! Query the status of a job.
     /*! This method queries the A-REX service about the status of a
