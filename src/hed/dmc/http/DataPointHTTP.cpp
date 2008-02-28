@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+  Logger DataPointHTTP::logger(DataPoint::logger, "HTTP");
+
   typedef struct {
     DataPointHTTP* point;
     ClientHTTP* client;
@@ -180,7 +182,13 @@ namespace Arc {
     lock_.unlock();
   }
 
-  Logger DataPointHTTP::logger(DataPoint::logger, "HTTP");
+  // Globus legacy
+  static void get_environment_credentials(Arc::BaseConfig& cfg) {
+    if(getenv("X509_USER_CERT")) cfg.AddCertificate(getenv("X509_USER_CERT"));
+    if(getenv("X509_USER_KEY")) cfg.AddPrivateKey(getenv("X509_USER_KEY"));
+    if(getenv("X509_USER_PROXY")) cfg.AddProxy(getenv("X509_USER_PROXY"));
+    if(getenv("X509_CERT_DIR")) cfg.AddCADir(getenv("X509_CERT_DIR"));
+  }
 
   DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url), chunks(NULL), transfer_threads(0) {}
 
@@ -193,6 +201,7 @@ namespace Arc {
   bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
 
     MCCConfig cfg;
+    get_environment_credentials(cfg);
     ClientHTTP client(cfg, url.Host(), url.Port(),
                       url.Protocol() == "https", url.str());
 
@@ -219,6 +228,7 @@ namespace Arc {
     if(chunks) delete chunks;
     chunks=new ChunkControl;
     MCCConfig cfg;
+    get_environment_credentials(cfg);
     for(int n = 0;n<transfer_streams;++n) {
       HTTPInfo_t* info = new HTTPInfo_t;
       info->point=this;
@@ -261,6 +271,7 @@ namespace Arc {
     if(chunks) delete chunks;
     chunks=new ChunkControl;
     MCCConfig cfg;
+    get_environment_credentials(cfg);
     for(int n = 0;n<transfer_streams;++n) {
       HTTPInfo_t* info = new HTTPInfo_t;
       info->point=this;
@@ -335,6 +346,7 @@ namespace Arc {
         // Recreate connection
         delete client; client=NULL;
         MCCConfig cfg;
+        get_environment_credentials(cfg);
         client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
         continue;
       };
@@ -436,6 +448,7 @@ namespace Arc {
         // Recreate connection
         delete client; client=NULL;
         MCCConfig cfg;
+        get_environment_credentials(cfg);
         client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
         continue;
       };
