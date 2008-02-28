@@ -11,7 +11,7 @@ stability, reliability and performance of the middleware. A growing
 number of grid projects, like Swegrid, NDGF and Swiss Bio Grid has
 chosen ARC as their middleware.
 
-This release (February 2008) is a first release of new generation ARC 
+This release (February 2008) is a first release of a new generation of ARC 
 and will be referenced as ARC1. It is based on a service container - the
 Hosting Environment Daemon (HED) - and different grid capabilities are
 implemented as Web Services residing in HED. Currently, an OGSA BES
@@ -131,21 +131,21 @@ include/arc/ - C++ headers for application development
 libexec/ - additional modules used by ARC1 services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
 share/locale - internationalization files - curently very limited support
-share/man - manual pages for varius utilities - currently arched only
+share/man - manual pages for various utilities - currently arched only
 
 
 
 X509 Certificates
 =================
 
-Most of ARC1 planned and existing services use HTTPS for transport protocol
+Most of ARC1 planned and existing services use HTTPS as transport protocol
 so they require proper setup of X509 security infrastructure. Minimal 
 requirements are:
-* Host certificate aka piblic key in PEM format
+* Host certificate aka public key in PEM format
 * Corresponding private key
-* Certificate of Certification Authority (CA) which was used to sign host cerificate
-* Certificates of CA of clients which are going to send requests to service. Unless
-of course clients belong to same CA as server.
+* Certificate of the Certification Authority (CA) which was used to sign the host certificate
+* Certificates of CAs of clients which are going to send requests to services. Unless
+of course clients use the same CA as the server.
 
 More information about X509 certificates and their usage in Grid environement 
 can be found on http://www.nordugrid.org/documents/certificate_howto.html
@@ -157,22 +157,22 @@ keys available at:
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA
 
 Please remember that it is not safe to use these keys in publicly accessible
-insallation of ARC1. Make sure that even the CA certificate is removed
+insallations of ARC1. Make sure that even the CA certificate is removed
 before making your services available to the outside world.
 
-You can put host certificate and private key anywhere. Common locations for
+You can put host certificates and private keys anywhere. Common locations for
 servers running from root account are /etc/grid-security/hostcert.pem and
 /etc/grid-security/hostkey.pem respectively. It is possible to
 configure ARC1 server to accept either a single CA certificate or
 multiple CA certificates located in the specified directory. The latter
 option is recommended. The common location is /etc/grid-security/certificates/ .
 In that case names of certificate files have to follow hash values of
-the certificates. Hash is obtainable by running the command
+the certificates. These are obtainable by running the command
 
   openssl x509 -hash -noout -in path_to_certificate
 
 The corresponding file name for the certificate should be <hash_value>.0 . 
-Hash value for the pre-generated CA certificate is 4457e417 
+The value for the pre-generated CA certificate is 4457e417. 
 
 Please make sure the chosen location of certificates is correctly
 configured in the service configuration file. The configuration for the
@@ -188,12 +188,12 @@ or
 
 The key file has to be with or without passphrase for the server side.
 
-Same requirements are valid for the client tools of ARC1. You may use
+The same requirements are valid for the client tools of ARC1. You may use
 the pregenerated user certificate and key located at the same
-place. Locations of the creentials is provided to the client tools
+place. Locations of the credentials are provided to the client tools
 from the command line.
 
-The set of pre-generated keys and certificates also includes user
+The set of pre-generated keys and certificates also includes a user
 certificate in PKCS12 format which you can import into your browser
 for accessing ARC1 services capable of producing HTML output.
 
@@ -206,16 +206,16 @@ The configuration of the ARC server is specified in an XML file, the
 location of which is specified as a command line argument with the -c
 option of 'arched' daemon. Examples of configuration files with comments
 describing various elements are available in directory share/doc/arc of
-ARC1 installation. 
+the ARC1 installation. 
 
 
 
-The Echo service
+The Echo Service
 ================
 
 The echo service is "atomic" and has no additional dependencies other
 than what is provided by the Hosting Environment Daemon (HED). An example
-of Echo service configuration can be found in share/doc/arc/echo.xml .
+of an echo service configuration can be found in share/doc/arc/echo.xml.
 
 
 
@@ -251,18 +251,18 @@ repository
 http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/a-rex/arex_tech_doc.pdf?format=raw
 
 Grid Manager runs as part of A-REX service. There is no need to run any additional
-executable. But You still need to setup it's infrastructure as long as You are 
-going to have anything more sopjhisticated than described in example configuration.
-For more information read previously mentioned document.
+executable. But you still need to setup its infrastructure as long as you are 
+going to have anything more sophisticated than described in the example configuration.
+For more information read the previously mentioned document.
 
-Currently for proper functioning A-REX requires environment variable ARC_LOCATION
-to be set to installation prefix of ARC1.
+Currently, a proper functioning A-REX requires environment variable ARC_LOCATION
+to be set to the installation prefix of ARC1.
 
-A-REX uses HTTPS for transport protocol (although You can reconfigure it to use 
+A-REX uses HTTPS as transport protocol (although You can reconfigure it to use 
 plain HTTP) so it requires proper setup of X509 security infrastructure. See
 above for instructions.
 
-Copy example configuration file to some location and edit them. Make sure all paths
+Copy example configuration files to some location and edit them. Make sure all paths
 to X509 certificates and Grid Manager configuration are set correctly. Start server 
 with command
 
@@ -271,7 +271,7 @@ with command
 Look into log file specified in arex.xml for possible errors. You can safely ignore 
 messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
 
-If You compiled ARC1 with Globus support and You see complains about "libglobus..." 
+If You compiled ARC1 with Globus support and You see complaints about "libglobus..." 
 and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
 LD_LIBRARY_PATH:
 
@@ -282,7 +282,7 @@ LD_LIBRARY_PATH:
 Testing and Using A-REX (clients)
 ================================
 
-Now You may use command line utility 'apinfo' to obtaine service description.
+Now You may use the command line utility 'apinfo' to obtain a service description.
 Make sure user key and certificate and CA certificate(s) are readable from account
 You use and run something like
 
