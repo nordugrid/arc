@@ -13,16 +13,14 @@ namespace Arc {
   class DataPointFile : public DataPointDirect {
    private:
     int fd;
-    pthread_t file_thread;
-    pthread_attr_t file_thread_attr;
     bool start_reading_file(DataBufferPar& buffer);
     bool start_writing_file(DataBufferPar& buffer, DataCallback *space_cb);
     bool stop_reading_file(void);
     bool stop_writing_file(void);
     bool check_file(void);
     bool remove_file(void);
-    static void *read_file(void *arg);
-    static void *write_file(void *arg);
+    void read_file();
+    void write_file();
     SimpleCondition file_thread_exited;
     bool is_channel;
     static Logger logger;

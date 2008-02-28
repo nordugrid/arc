@@ -51,19 +51,18 @@ namespace Arc {
     return true;
   }
 
-  void *DataPointFile::read_file(void *arg) {
-    DataPointFile *it = (DataPointFile *)arg;
+  void DataPointFile::read_file() {
     bool limit_length = false;
     unsigned long long int range_length;
     unsigned long long int offset = 0;
-    if(it->range_end > it->range_start) {
-      range_length = it->range_end - it->range_start;
+    if(range_end > range_start) {
+      range_length = range_end - range_start;
       limit_length = true;
-      lseek(it->fd, it->range_start, SEEK_SET);
-      offset = it->range_start;
+      lseek(fd, range_start, SEEK_SET);
+      offset = range_start;
     }
     else
-      lseek(it->fd, 0, SEEK_SET);
+      lseek(fd, 0, SEEK_SET);
     for(;;) {
       if(limit_length)
         if(range_length == 0)
@@ -72,34 +71,34 @@ namespace Arc {
       /* 1. claim buffer */
       int h;
       unsigned int l;
-      if(!it->buffer->for_read(h, l, true)) {
+      if(!buffer->for_read(h, l, true)) {
         /* failed to get buffer - must be error or request to exit */
-        it->buffer->error_read(true);
+        buffer->error_read(true);
         break;
       }
-      if(it->buffer->error()) {
-        it->buffer->is_read(h, 0, 0);
+      if(buffer->error()) {
+        buffer->is_read(h, 0, 0);
         break;
       }
       /* 2. read */
       if(limit_length)
         if(l > range_length)
           l = range_length;
-      unsigned long long int p = lseek(it->fd, 0, SEEK_CUR);
+      unsigned long long int p = lseek(fd, 0, SEEK_CUR);
       if(p == (unsigned long long int)(-1))
         p = offset;
-      int ll = read(it->fd, (*(it->buffer))[h], l);
+      int ll = read(fd, (*(buffer))[h], l);
       if(ll == -1) {/* error */
-        it->buffer->is_read(h, 0, 0);
-        it->buffer->error_read(true);
+        buffer->is_read(h, 0, 0);
+        buffer->error_read(true);
         break;
       }
       if(ll == 0) {/* eof */
-        it->buffer->is_read(h, 0, 0);
+        buffer->is_read(h, 0, 0);
         break;
       }
       /* 3. announce */
-      it->buffer->is_read(h, ll, p);
+      buffer->is_read(h, ll, p);
       if(limit_length)
         if(ll > range_length)
           range_length = 0;
@@ -107,55 +106,52 @@ namespace Arc {
           range_length -= ll;
       offset += ll; // for non-seakable files
     }
-    close(it->fd);
-    it->buffer->eof_read(true);
+    close(fd);
+    buffer->eof_read(true);
     /* inform parent thread about exit */
-    it->file_thread_exited.signal();
-    return NULL;
+    file_thread_exited.signal();
   }
 
-  void *DataPointFile::write_file(void *arg) {
-    DataPointFile *it = (DataPointFile *)arg;
+  void DataPointFile::write_file() {
     for(;;) {
       /* take from buffer and write to fd */
       /* 1. claim buffer */
       int h;
       unsigned int l;
       unsigned long long int p;
-      if(!it->buffer->for_write(h, l, p, true)) {
+      if(!buffer->for_write(h, l, p, true)) {
         /* failed to get buffer - must be error or request to exit */
-        if(!it->buffer->eof_read())
-          it->buffer->error_write(true);
-        it->buffer->eof_write(true);
+        if(!buffer->eof_read())
+          buffer->error_write(true);
+        buffer->eof_write(true);
         break;
       }
-      if(it->buffer->error()) {
-        it->buffer->is_written(h);
-        it->buffer->eof_write(true);
+      if(buffer->error()) {
+        buffer->is_written(h);
+        buffer->eof_write(true);
         break;
       }
       /* 2. write */
-      lseek(it->fd, p, SEEK_SET);
+      lseek(fd, p, SEEK_SET);
       int l_ = 0;
       int ll = 0;
       for(; l_ < l;) {
-        ll = write(it->fd, (*(it->buffer))[h] + l_, l - l_);
+        ll = write(fd, (*(buffer))[h] + l_, l - l_);
         if(ll == -1) {/* error */
-          it->buffer->is_written(h);
-          it->buffer->error_write(true);
-          it->buffer->eof_write(true);
+          buffer->is_written(h);
+          buffer->error_write(true);
+          buffer->eof_write(true);
           break;
         }
         l_ += ll;
       }
       if(ll == -1) break;
       /* 3. announce */
-      it->buffer->is_written(h);
+      buffer->is_written(h);
     }
-    close(it->fd);
+    close(fd);
     /* inform parent thread about exit */
-    it->file_thread_exited.signal();
-    return NULL;
+    file_thread_exited.signal();
   }
 
   bool DataPointFile::check() {
@@ -215,11 +211,7 @@ namespace Arc {
     }
     buffer = &buf;
     /* create thread to maintain reading */
-    pthread_attr_init(&file_thread_attr);
-    pthread_attr_setdetachstate(&file_thread_attr, PTHREAD_CREATE_DETACHED);
-    if(pthread_create(&file_thread, &file_thread_attr,
-                      &read_file, this) != 0) {
-      pthread_attr_destroy(&file_thread_attr);
+    if (!(CreateThreadClass(*this, DataPointFile::read_file))) {
       close(fd);
       fd = -1;
       DataPointDirect::stop_reading();
@@ -237,7 +229,6 @@ namespace Arc {
       fd = -1;
     }
     file_thread_exited.wait();/* wait till reading thread exited */
-    pthread_attr_destroy(&file_thread_attr);
     return true;
   }
 
@@ -343,11 +334,7 @@ namespace Arc {
     buffer->speed.reset();
     buffer->speed.hold(false);
     /* create thread to maintain writing */
-    pthread_attr_init(&file_thread_attr);
-    pthread_attr_setdetachstate(&file_thread_attr, PTHREAD_CREATE_DETACHED);
-    if(pthread_create(&file_thread, &file_thread_attr,
-                      &write_file, this) != 0) {
-      pthread_attr_destroy(&file_thread_attr);
+    if(!(CreateThreadClass(*this, DataPointFile::write_file))) {
       close(fd);
       fd = -1;
       buffer->error_write(true);
@@ -367,7 +354,6 @@ namespace Arc {
       fd = -1;
     }
     file_thread_exited.wait();/* wait till reading thread exited */
-    pthread_attr_destroy(&file_thread_attr);
     return true;
   }
 
