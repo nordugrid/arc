@@ -361,7 +361,9 @@ PROXYCERTINFO * d2i_PROXYCERTINFO_v3(PROXYCERTINFO ** cert_info, unsigned char *
 PROXYCERTINFO * d2i_PROXYCERTINFO_v4(PROXYCERTINFO ** cert_info, unsigned char ** pp, long length) {
   M_ASN1_D2I_vars(cert_info, PROXYCERTINFO *, PROXYCERTINFO_new);
   M_ASN1_D2I_Init();
-  M_ASN1_D2I_start_sequence();
+//  M_ASN1_D2I_start_sequence();
+	if (!asn1_GetSequence(&c,&length)) \
+		{ c.line=__LINE__; goto err; }
   M_ASN1_D2I_get_EXP_opt(ret->path_length, d2i_ASN1_INTEGER, 1);
   M_ASN1_D2I_get_opt(ret->path_length, d2i_ASN1_INTEGER, V_ASN1_INTEGER);
   //M_ASN1_D2I_get(ret->proxypolicy, (unsigned char**)d2i_PROXYPOLICY);
@@ -610,7 +612,7 @@ end:
 
 
 X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth() {
-    static X509V3_EXT_METHOD proxycertinfo_x509v3_ext_meth =
+    static X509V3_EXT_METHOD proxycertinfo_v4_x509v3_ext_meth =
     {
         -1,
         X509V3_EXT_MULTILINE,
@@ -626,11 +628,11 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth() {
         (X509V3_EXT_R2I) r2i_PROXYCERTINFO,
         NULL
     };
-    return (&proxycertinfo_x509v3_ext_meth);
+    return (&proxycertinfo_v4_x509v3_ext_meth);
 }
 
 X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth() {
-  static X509V3_EXT_METHOD proxycertinfo_x509v3_ext_meth =
+  static X509V3_EXT_METHOD proxycertinfo_v3_x509v3_ext_meth =
   {
     -1,
     X509V3_EXT_MULTILINE,
@@ -646,7 +648,7 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth() {
     (X509V3_EXT_R2I) r2i_PROXYCERTINFO,
     NULL
   };
-  return (&proxycertinfo_x509v3_ext_meth);
+  return (&proxycertinfo_v3_x509v3_ext_meth);
 }
 
 } //namespace ArcLib

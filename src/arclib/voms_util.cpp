@@ -2,9 +2,10 @@
 #include <config.h>
 #endif
 
-#include "iostream"
-
 #include "voms_util.h"
+extern "C" {
+#include "listfunc.h"
+} 
 
 namespace ArcLib{
 
@@ -368,7 +369,75 @@ err:
     AC_ATT_HOLDER_free(ac_att_holder);
     AC_FULL_ATTRIBUTES_free(ac_full_attrs);
     return err;
-}
+  }
+
+  bool createVOMSAC(std::string &codedac, Credential &issuer_cred, Credential &holder_cred, 
+             std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attributes, 
+             std::string &voname, std::string &uri, int lifetime) {
+
+    EVP_PKEY* issuerkey = NULL;
+    X509* holder = NULL;
+    X509* issuer = NULL;
+    STACK_OF(X509)* issuerchain = NULL;
+
+    issuer = issuer_cred.GetCert();
+    issuerchain = issuer_cred.GetCertChain();
+    issuerkey = issuer_cred.GetPrivKey();
+    holder = holder_cred.GetCert();
+
+    AC* ac = NULL;
+    ac = AC_new();
+
+    if(createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
+             fqan, targets, attributes, &ac, voname, uri, lifetime)){
+      AC_free(ac); return false;
+    }
+
+    unsigned int len = i2d_AC(ac, NULL);
+    unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
+    unsigned char *ttmp = tmp;
+
+    if (tmp) {
+      i2d_AC(ac, &tmp);
+      //codedac = std::string((char *)ttmp, len);
+      codedac.append((const char*)ttmp, len);
+    }
+    free(ttmp);
+
+    AC_free(ac);
+  
+    return true;
+  }
+
+
+  bool addVOMSAC(AC** &aclist, std::string &codedac) {
+    AC* received_ac;
+    AC** actmplist = NULL;
+    char *p, *pp;
+    int l = codedac.size();
+
+    pp = (char *)malloc(codedac.size());
+    if(!pp) {std::cerr<<"Can not allocate memory for parsing ac"<<std::endl; return false; }
+
+    pp = (char *)memcpy(pp, codedac.data(), codedac.size());
+    p = pp;
+
+    //Parse the AC, and insert it into an AC list
+    if((received_ac = d2i_AC(NULL, (unsigned char **)&p, l))) {
+      actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
+      if (actmplist) {
+        aclist = actmplist; free(pp); return true;
+      }
+      else {
+        listfree((char **)aclist, (freefn)AC_free);  free(pp); return false;
+      }
+    }
+    else {
+      std::cerr<<"Can not parse ac"<<std::endl;
+      free(pp); return false;
+    }
+  }
+
 
 
 } // namespace Arc

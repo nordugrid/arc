@@ -61,7 +61,9 @@ class Credential {
     *@param lifetime, lifetime of proxy certificate
     *@param keybits, modulus size for RSA key generation, it should be greater than 1024
     */
-    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024);
+    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024, 
+             std::string proxyversion = "RFC", std::string policylang = "impersonation",
+             std::string policyfile = "", int pathlength = 0);
 
     /**Constructor, specific constructor for usual certificate, constructing from credential files.
     *only acts as a container for parsing the certificate and key files, is meaningless for any other use.
@@ -204,7 +206,13 @@ class Credential {
     RSA* rsa_key_;
     EVP_MD* signing_alg_;
     int keybits_;
-    //int init_prime_;
+
+    //Proxy policy
+    std::string proxyversion_;
+    std::string policyfile_;
+    std::string policylang_;
+    int proxyver_;
+    int pathlength_;
 
     //Extensions for certificate, such as certificate policy, attributes, etc.
     STACK_OF(X509_EXTENSION)* extensions_;

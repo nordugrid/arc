@@ -6,9 +6,6 @@
 #include <arc/Logger.h>
 #include "Credential.h"
 #include "voms_util.h"
-extern "C" {
-#include "listfunc.h"
-}
 
 
 int main(void) {
@@ -27,7 +24,7 @@ int main(void) {
   //Request side
   BIO* req;
   req = BIO_new(BIO_s_mem());
-  ArcLib::Credential request(Arc::Time(), Arc::Period(24*3600), 2048);
+  ArcLib::Credential request(Arc::Time(), Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
   request.GenerateRequest(req);
 
   //Signing side
@@ -80,16 +77,8 @@ int main(void) {
 
   /**4.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
   //Get information from a credential which acts as AC issuer.
-  EVP_PKEY* issuerkey = NULL;
-  X509* holder = NULL;
-  X509* issuer = NULL;
-  AC* ac = NULL; 
-  STACK_OF(X509)* issuerchain = NULL;
 
   ArcLib::Credential issuer_cred(cert, key, "", cafile);
-  issuer = issuer_cred.GetCert();
-  issuerchain = issuer_cred.GetCertChain();
-  issuerkey = issuer_cred.GetPrivKey();
 
   //Get information from credential which acts as AC holder
   //Here we use the same credential for holder and issuer
@@ -97,7 +86,6 @@ int main(void) {
   std::string key1("./key.pem");
   std::string cafile1("./ca.pem");   
   ArcLib::Credential holder_cred(cert1, key1,"", cafile1);
-  holder = holder_cred.GetCert();
 
 
   /** a.Below is voms-specific processing*/
@@ -119,50 +107,20 @@ int main(void) {
   attrs.push_back("::role=admin");
   attrs.push_back("::role=guest");
 
-  ac = AC_new();
+  std::string voname = "knowarc";
+  std::string uri = "test.uio.no";
 
-  ArcLib::createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
-             fqan, targets, attrs, &ac, "knowarc", "test.uio.no", 3600*12);
-
-  unsigned int len = i2d_AC(ac, NULL);
-  unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
-  unsigned char *ttmp = tmp;
   std::string codedac;
-  if (tmp) {
-    i2d_AC(ac, &tmp);
-    codedac = std::string((char *)ttmp, len);
-  }
-  free(ttmp);  
-
-  AC_free(ac);
+  ArcLib::createVOMSAC(codedac, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
 
 
   /* Parse the Attribute Certificate with string format
-  * In real senario the Attribute Certificate with string format should be received from the other end.
+  * In real senario the Attribute Certificate with string format should be received from the other end, 
+  * e.g. the voms-proxy-init(voms client) receives a few Attribute Certificates from different VOs(voms server, and voms server
+  * signs AC), then composes the ACs into a AC list, and puts the AC list as a proxy certificate's extension.
   */
-  AC* received_ac;
   AC** aclist = NULL;
-  AC** actmplist = NULL;
-  char *p, *pp;
-  int l = codedac.size();
-
-  pp = (char *)malloc(codedac.size());
-  if(!pp) {std::cerr<<"Can not allocate memory for parsing ac"<<std::endl; return (0); }
-
-  pp = (char *)memcpy(pp, codedac.data(), codedac.size());
-  p = pp;
-
-  //Parse the AC, and insert it into an AC array
-  if((received_ac = d2i_AC(NULL, (unsigned char **)&p, l))) {
-    actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
-    if (actmplist) {
-      aclist = actmplist;
-    }
-    else {
-      listfree((char **)aclist, (freefn)AC_free);
-    }
-  }
-  free(pp);
+  ArcLib::addVOMSAC(aclist, codedac);
    
 
   /** b.Below is general proxy processing, which is the same as the 
