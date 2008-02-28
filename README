@@ -268,8 +268,8 @@ LD_LIBRARY_PATH:
 
 
 
-Testing and Using A-REX
-=======================
+Testing and Using A-REX (clients)
+================================
 
 Now You may use command line utility 'apinfo' to obtaine service description.
 Make sure user key and certificate and CA certificate(s) are readable from account
@@ -361,11 +361,17 @@ problems to ARC1 development team. Include content of error.log and server's log
 Please note that You can run similar apinfo request against any ARC1 service
 except echo service. Output should always be XML description of service.
 
-A-REX accepts jobs described in JSDL language. Example JSDL job is provided
-in $ARC_LOCATION/share/doc/jsdl_arex.xml . To submit job to A-REX service
-one may use 'apsub' command
+To avoid providing credentials information on command line it is possible to
+have user configuration file with predefined values. Default location for 
+this file is ~/.arc/client.xml . There is an example installed in 
+$ARC_LOCATION/share/doc/arc/client.xml . Please edit before copying it into
+your home directory.
 
-$ARC_LOCATION/bin/apsub /opt/arc/share/doc/arc/jsdl_arex.xml id.xml
+A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
+in $ARC_LOCATION/share/doc/ in files jsdl_simple.xml and jsdl_stage.xml . To 
+submit job to A-REX service one may use 'apsub' command
+
+$ARC_LOCATION/bin/apsub /opt/arc/share/doc/arc/jsdl_simple.xml id.xml
 
 If everything goes properly somewhere in it's output there should be a message
 "Submitted the job!". Obtained job identifier is an XML document and is stored
@@ -380,8 +386,8 @@ in id.xml file. It may then be used to query job state with 'apstat' utility.
  $ARC_LOCATION/bin/apstat id.xml 2>/dev/null
  Job status: Finished/Finished
 
-Full set of A-Rex client tools consists of apsub, apstat, apkill, asstat and 
-apget commands. For more information please see man pages ot those utilities.
+Full set of A-Rex client tools consists of apsub, apstat, apkill, asstat, apget 
+and apclean commands. For more information please see man pages ot those utilities.
 
 
 
