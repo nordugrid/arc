@@ -153,10 +153,10 @@ void RunPump::Remove(Run* r) {
   list_lock_.unlock();
 }
 
-Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
+Run::Run(const std::string& cmdline):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
 }
 
-Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),initializer_func_(NULL),started_(false),running_(false),result_(-1) {
+Run::Run(const std::list<std::string>& argv):stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
 }
 
 Run::~Run(void) {
@@ -280,6 +280,7 @@ void Run::child_handler(Glib::Pid,int result) {
   result_=(result >> 8); // Why ?
   running_=false;
   lock_.unlock();
+  if(kicker_func_) (*kicker_func_)(kicker_arg_);
 }
 
 void Run::CloseStdout(void) {
@@ -374,6 +375,13 @@ void Run::AssignInitializer(void (*initializer_func)(void* arg),void* initialize
   if(!running_) {
     initializer_arg_=initializer_arg;
     initializer_func_=initializer_func;
+  };
+}
+
+void Run::AssignKicker(void (*kicker_func)(void* arg),void* kicker_arg) {
+  if(!running_) {
+    kicker_arg_=kicker_arg;
+    kicker_func_=kicker_func;
   };
 }
 
