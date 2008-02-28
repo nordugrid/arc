@@ -8,8 +8,8 @@ enabling production quality computational and data grids.
 Since the first release (May 2002) the middleware has been deployed and
 been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
-number of grid projects, like Swegrid, DCGC, NDGF has chosen ARC as their
-middleware.
+number of grid projects, like Swegrid, NDGF and Swiss Bio Grid has
+chosen ARC as their middleware.
 
 This release (February 2008) is a first release of new generation ARC 
 and will be referenced as ARC1. It is based on a service container - the
@@ -53,7 +53,7 @@ requirements is shown:
       - Globus RSL
 
 Please note that depending on operating system distribution in order to 
-build ARC1 You may need to install development versions of mentioned 
+build ARC1 you may need to install development versions of mentioned 
 packages.
 
 
@@ -66,13 +66,13 @@ releases for a dozen of Linux platforms can be downloaded from the
 NorduGrid software repository at download.nordugrid.org.
 
 The software is released under the GNU General Public License (GPL)
-(see the LICENSE file).
+(see the COPYING file).
 
 The NorduGrid repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
 distribution.
 
-You may get the latest source code for ARC1 from subversion 
+You can get the latest source code for ARC1 from the Subversion 
 repository. See http://svn.nordugrid.org for more details.
 
 There are also nightly code snapshots available at 
@@ -85,41 +85,43 @@ for example nordugrid-arc1-200802201038-snapshot.tar.gz.
 Building & Installation
 =======================
 
-Building from source is currently recommended way to install ARC1. 
-If You downloaded tarball unpack it and cd into created directory.
+Building from source is currently the recommended way to install ARC1. 
+If you downloaded the tarball, unpack it and cd into the created
+directory.
 
   tar -zxvf nordugrid-arc1-200802201038-snapshot.tar.gz
   cd nordugrid-arc1-200802201038
 
-If You obtained code from subversion use 'trunk' directory.
+If you obtained the code from the Subversion repository, use the
+'trunk' directory.
 
   cd trunk
 
-Now configure obtained code with
+Now configure the obtained code with
 
   ./autogen.sh
   ./configure --prefix=PLACE_TO_INSTALL_ARC1
 
-Choose installation prefix wisely and according to requirements of your 
-OS and personal preferences. ARC1 should function properly from any 
-location. By default installation goes into /usr/local if You omit
-'--prefix' option. For some modules of ARC1 to work properly You may 
-need to setup environment variable after installation
+Choose installation prefix wisely and according to the requirements of
+your OS and personal preferences. ARC1 should function properly from
+any location. By default installation goes into /usr/local if you omit
+the '--prefix' option. For some modules of ARC1 to work properly you
+may need to set up the environment variable after installation:
 
   export ARC_LOCATION=PLACE_TO_INSTALL_ARC
 
 On some systems 'autogen.sh' may produce few warnings. Ignore them as 
 long as 'configure' passes without errors. But in case of problems 
-during configure or compilation collect them and present while 
+during configure or compilation, collect them and present while 
 reporting problems.
 
-If previous commands finished without errors compile and install ARC1
+If the previous commands finish without errors, compile and install ARC1
 
   make
   make install
 
-Depending on chosen installation location You may need to run last command 
-from root account. That should install following components:
+Depending on chosen installation location you may need to run the last
+command from root account. That should install the following components:
 
 sbin/arched - server executable
 bin/ - user tools and command line clients
@@ -128,7 +130,7 @@ lib/arc/ - plugins implementing MCC, service and security components
 include/arc/ - C++ headers for application development
 libexec/ - additional modules used by ARC1 services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
-share/locale - internatiolization files - curently very limited support
+share/locale - internationalization files - curently very limited support
 share/man - manual pages for varius utilities - currently arched only
 
 
@@ -149,42 +151,51 @@ More information about X509 certificates and their usage in Grid environement
 can be found on http://www.nordugrid.org/documents/certificate_howto.html
 and http://www.nordugrid.org/documents/ng-server-install.html#security
 
-For testing purposes You can use pre-generated certificates and keys available 
-at http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA .
-Please remember that it is not safe to use those keys in publicly accessible
-insallation of ARC1. Make sure even CA certificate is removed before You make
-your services available to outside world.
+For testing purposes you can use the pre-generated certificates and
+keys available at:
 
-You can put host certificate and private key anywhere. Common location for
-servers running from root account is /etc/grid-security/hostcert.pem and
-/etc/grid-security/hostkey.pem . It is possible to configure ARC1 server to
-accept either single CA certificate or multiple CA certificates located in
-specified directory. Last option is recommended. Common location is
-/etc/grid-security/certificates/ . In that case names of files of certificates
-has to follow hash value of certificate. Hash is obtainable by running command
+ http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA
+
+Please remember that it is not safe to use these keys in publicly accessible
+insallation of ARC1. Make sure that even the CA certificate is removed
+before making your services available to the outside world.
+
+You can put host certificate and private key anywhere. Common locations for
+servers running from root account are /etc/grid-security/hostcert.pem and
+/etc/grid-security/hostkey.pem respectively. It is possible to
+configure ARC1 server to accept either a single CA certificate or
+multiple CA certificates located in the specified directory. The latter
+option is recommended. The common location is /etc/grid-security/certificates/ .
+In that case names of certificate files have to follow hash values of
+the certificates. Hash is obtainable by running the command
 
   openssl x509 -hash -noout -in path_to_certificate
 
-And corresponding file name for certificate should be hash_value.0 . Hash value
-for pre-generated CA certificate is 4457e417 .
+The corresponding file name for the certificate should be <hash_value>.0 . 
+Hash value for the pre-generated CA certificate is 4457e417 
 
-Please make sure chosen location of certificates is correctly configure 
-in service configuration file. The configuration about certificate for MCCTLS 
-should look like this:  
+Please make sure the chosen location of certificates is correctly
+configured in the service configuration file. The configuration for the
+certificate for MCCTLS  should look like this:  
+
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+
 or
+
       <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-The key file has to be with or without passphrase for server side.
 
-Same requirements are valid for client tools of ARC1. You may use pregenerated
-user certificate and key located at same place. Location of certificates is 
-provided to client tools from command line.
+The key file has to be with or without passphrase for the server side.
 
-Set of pre-generated keys and certificates also includes user certificate in
-PKCS12 format which You may import into your browser for accessing ARC1 services
-capable of producing HTML output.
+Same requirements are valid for the client tools of ARC1. You may use
+the pregenerated user certificate and key located at the same
+place. Locations of the creentials is provided to the client tools
+from the command line.
+
+The set of pre-generated keys and certificates also includes user
+certificate in PKCS12 format which you can import into your browser
+for accessing ARC1 services capable of producing HTML output.
 
 
 
@@ -204,7 +215,7 @@ The Echo service
 
 The echo service is "atomic" and has no additional dependencies other
 than what is provided by the Hosting Environment Daemon (HED). An example
-of Echo service configuration may be found in share/doc/arc/echo.xml .
+of Echo service configuration can be found in share/doc/arc/echo.xml .
 
 
 
@@ -215,7 +226,7 @@ The configuration of the ARC echo client is specified in an XML
 file. The location of the configuration file is specified by the
 environment variable ARC_ECHO_CONFIG. If there is no such environment
 variable, the configuration file is assumed to be echo_client.xml in
-the current working directory. An example configuration file is can be
+the current working directory. An example configuration file can be
 found in share/doc/arc/echo_client.xml
 
 To use the echo client, type
