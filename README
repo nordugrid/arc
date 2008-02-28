@@ -131,7 +131,7 @@ include/arc/ - C++ headers for application development
 libexec/ - additional modules used by ARC1 services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
 share/locale - internationalization files - curently very limited support
-share/man - manual pages for various utilities - currently arched only
+share/man - manual pages for various utilities
 
 
 
