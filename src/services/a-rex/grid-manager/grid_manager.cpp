@@ -29,6 +29,7 @@
 #include "files/delete.h"
 #include "cache/cache.h"
 #include "cache/cache_cleaner.h"
+#include "run/run_parallel.h"
 
 #include "grid_manager.h"
 
@@ -113,6 +114,13 @@ static void* wakeup_func(void* arg) {
     pthread_mutex_unlock(s->sleep_mutex);
   };
   return NULL;
+}
+
+static void kick_func(void* arg) {
+  sleep_st* s = (sleep_st*)arg;
+  pthread_mutex_lock(s->sleep_mutex);
+  pthread_cond_signal(s->sleep_cond);
+  pthread_mutex_unlock(s->sleep_mutex);
 }
 
 typedef struct {
@@ -239,6 +247,7 @@ static void grid_manager(void* arg) {
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
     logger.msg(Arc::ERROR,"Failed to start new thread"); goto exit;
   };
+  RunParallel::kicker(&kick_func,&wakeup_h);
   if(clean_first_level) {
     bool clean_finished = false;
     bool clean_active = false;

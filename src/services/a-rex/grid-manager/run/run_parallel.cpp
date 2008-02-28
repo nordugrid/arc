@@ -21,6 +21,9 @@ typedef struct {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+void (*RunParallel::kicker_func_)(void*) = NULL;
+void* RunParallel::kicker_arg_ = NULL;
+
 static void job_subst(std::string& str,void* arg) {
   job_subst_t* subs = (job_subst_t*)arg;
   for(std::string::size_type p = 0;;) {
@@ -71,6 +74,7 @@ bool RunParallel::run(JobUser& user,const char* jobid,char *const args[],Arc::Ru
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process.",jobid?jobid:"");
     return false;
   };
+  if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
   RunParallel* rp = new RunParallel(user,jobid,su,job_proxy,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
