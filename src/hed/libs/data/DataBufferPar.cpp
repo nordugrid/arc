@@ -220,7 +220,7 @@ namespace Arc {
     /*
        cond.wait(lock);
      */
-    int err = -1;
+    bool err = false;
     for(;;) {
       if(!speed.transfer()) {
         if((!(error_read_flag || error_write_flag)) &&
@@ -241,7 +241,7 @@ namespace Arc {
         return false; // useless to wait for - better fail
       if(set_counter != tmp)
         return false;
-      if(err == 0)
+      if(err)
         break; // Some event
       int t = 60;
       Glib::TimeVal stime;
