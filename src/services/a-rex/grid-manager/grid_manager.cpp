@@ -135,7 +135,7 @@ static void grid_manager(void* arg) {
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
       case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
-      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return; };
+      case '?': { logger.msg(Arc::ERROR,"Unrecognized option: %s",(char)optopt); return; };
       case '.': { return; };
       case 'h': {
         std::cout<<"grid-manager [-C clean_level] [-v] [-h] [-c configuration_file] "<<daemon.short_help()<<std::endl;
@@ -330,12 +330,15 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
   if(!args) return;
   args->argv=(char**)malloc(sizeof(char*)*(argv.Size()+1));
   args->argc=0;
-  for(;;++(args->argc)) {
+  args->argv[args->argc]=strdup("grid-manager");
+  logger.msg(Arc::DEBUG, "ARG: %s", args->argv[args->argc]);
+  for(;;) {
     Arc::XMLNode arg = argv["arg"][args->argc];
+    ++(args->argc);
     if(!arg) break;
-    args->argv[(args->argc)+1]=strdup(((std::string)arg).c_str());
+    args->argv[args->argc]=strdup(((std::string)arg).c_str());
+    logger.msg(Arc::DEBUG, "ARG: %s", args->argv[args->argc]);
   };
-  args->argv[0]=strdup("grid-manager");
   active_=Arc::CreateThreadFunction(&grid_manager,args);
   if(!active_) delete args;
 }

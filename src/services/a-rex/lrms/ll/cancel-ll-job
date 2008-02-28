@@ -8,7 +8,7 @@ echo "----- starting cancel_ll_job -----" 1>&2
 
 joboption_lrms=ll
 
-. ${NORDUGRID_LOCATION}/libexec/cancel_common.sh $1
+. ${ARC_LOCATION}/libexec/cancel_common.sh $1
 
 LL_DEL='llcancel'
 if [ ! -z "$LL_BIN_PATH" ] ; then

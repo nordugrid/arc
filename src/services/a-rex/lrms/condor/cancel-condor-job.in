@@ -5,7 +5,7 @@ echo "----- starting $progname -----" >&2
 
 joboption_lrms=condor
 
-. ${NORDUGRID_LOCATION}/libexec/cancel_common.sh $1
+. ${ARC_LOCATION}/libexec/cancel_common.sh $1
 
 echo "$progname: canceling job $joboption_jobid with condor_rm..." >&2
 

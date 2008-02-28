@@ -10,12 +10,12 @@
 # Reading configuration from $ARC_CONFIG
 ##############################################################
 
-if [ ! -f "$NORDUGRID_LOCATION/libexec/config_parser.sh" ] ; then
-    echo "$NORDUGRID_LOCATION/libexec/config_parser.sh not found." 1>&2
+if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
+    echo "$ARC_LOCATION/libexec/config_parser.sh not found." 1>&2
     exit 1
 fi
 
-. $NORDUGRID_LOCATION/libexec/config_parser.sh
+. $ARC_LOCATION/libexec/config_parser.sh
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?

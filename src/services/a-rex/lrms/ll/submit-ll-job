@@ -11,20 +11,20 @@ echo "----- starting submit_ll_job -----" 1>&2
 joboption_lrms=LL
 
 
-if [ -z ${NORDUGRID_LOCATION} ] ; then
-    echo "NORDUGRID_LOCATION not set." 1>&2
+if [ -z ${ARC_LOCATION} ] ; then
+    echo "ARC_LOCATION not set." 1>&2
     exit 1
 fi
-if [ ! -f "${NORDUGRID_LOCATION}/libexec/configure-ll-env.sh" ] ; then
-    echo "${NORDUGRID_LOCATION}/libexec/configure-ll-env.sh not found." 1>&2
+if [ ! -f "${ARC_LOCATION}/libexec/configure-ll-env.sh" ] ; then
+    echo "${ARC_LOCATION}/libexec/configure-ll-env.sh not found." 1>&2
     exit 1
 fi
-if [ ! -f "${NORDUGRID_LOCATION}/libexec/submit_common.sh" ] ; then
-    echo "${NORDUGRID_LOCATION}/libexec/submit_common.sh not found." 1>&2
+if [ ! -f "${ARC_LOCATION}/libexec/submit_common.sh" ] ; then
+    echo "${ARC_LOCATION}/libexec/submit_common.sh not found." 1>&2
     exit 1
 fi
-. ${NORDUGRID_LOCATION}/libexec/configure-ll-env.sh
-. ${NORDUGRID_LOCATION}/libexec/submit_common.sh
+. ${ARC_LOCATION}/libexec/configure-ll-env.sh
+. ${ARC_LOCATION}/libexec/submit_common.sh
 
 joboption_localtransfer='no'
 

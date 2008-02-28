@@ -849,13 +849,10 @@ bool preprocess_rsl(const std::string &fname,const std::string &session_dir,cons
                            strdup("ARC_LOCATION"),
                            strdup(nordugrid_loc.c_str()));
   rsl_subst_table_insert(symbol_table,
-                           strdup("NORDUGRID_LOCATION"),
-                           strdup(nordugrid_loc.c_str()));
-  rsl_subst_table_insert(symbol_table,
-                           strdup("NG_SESSION_DIR"),
+                           strdup("ARC_SESSION_DIR"),
                            strdup(session_dir.c_str()));
   rsl_subst_table_insert(symbol_table,
-                           strdup("NG_JOB_ID"),
+                           strdup("ARC_JOB_ID"),
                            strdup(jobid.c_str()));
   rsl_subst_table_insert(symbol_table,
                            strdup("GLOBUS_LOCATION"),

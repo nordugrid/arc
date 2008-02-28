@@ -17,7 +17,7 @@ init () {
    NODENAME=${NODENAME:-/bin/hostname -f}
 
    RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
-   RUNTIME_NORDUGRID_LOCATION="$NORDUGRID_LOCATION"
+   RUNTIME_ARC_LOCATION="$ARC_LOCATION"
    RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 } 
 
@@ -220,11 +220,11 @@ EOSCR
 #######################################################################
 download_input_files () {
   if [ "$joboption_localtransfer" = 'yes' ] ; then
-    echo "NORDUGRID_LOCATION=\${NORDUGRID_LOCATION:-$RUNTIME_NORDUGRID_LOCATION}" >> $LRMS_JOB_SCRIPT
+    echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
     echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
     cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-    if [ -z "$NORDUGRID_LOCATION" ] ; then
-      echo 'Variable NORDUGRID_LOCATION is not set' 1>&2
+    if [ -z "$ARC_LOCATION" ] ; then
+      echo 'Variable ARC_LOCATION is not set' 1>&2
       exit 1
     fi
     if [ -z "$GLOBUS_LOCATION" ] ; then
@@ -232,14 +232,14 @@ download_input_files () {
       exit 1
     fi
     export GLOBUS_LOCATION
-    export NORDUGRID_LOCATION
+    export ARC_LOCATION
     export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
     export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
     export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
     export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
     export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
     unset X509_RUN_AS_SERVER
-    $NORDUGRID_LOCATION/libexec/downloader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR$
+    $ARC_LOCATION/libexec/downloader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR$
     if [ $? -ne '0' ] ; then
       echo 'ERROR: Downloader failed.' 1>&2
       RESULT=1

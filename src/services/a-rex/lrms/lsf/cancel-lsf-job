@@ -8,7 +8,7 @@ echo "----- starting cancel_lsf_job -----" 1>&2
 
 joboption_lrms=lsf
 
-. ${NORDUGRID_LOCATION}/libexec/cancel_common.sh $1
+. ${ARC_LOCATION}/libexec/cancel_common.sh $1
 
 echo "   whoami: "`whoami` 1>&2
 LSF_BKILL='bkill'

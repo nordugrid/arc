@@ -7,11 +7,11 @@
 echo "----- starting submit_fork_job -----" 1>&2
 joboption_lrms=fork
 
-if [ -z ${NORDUGRID_LOCATION} ] ; then
-    echo "NORDUGRID_LOCATION not set." 1>&2
+if [ -z ${ARC_LOCATION} ] ; then
+    echo "ARC_LOCATION not set." 1>&2
     exit 1
 fi
-. ${NORDUGRID_LOCATION}/libexec/submit_common.sh
+. ${ARC_LOCATION}/libexec/submit_common.sh
 
 init
 

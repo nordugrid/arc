@@ -9,17 +9,17 @@
 #   LSF_BIN_PATH
 
 # "Checking NORDUGRID... "
-if [ -z ${NORDUGRID_LOCATION} ] ; then
-    echo "NORDUGRID_LOCATION not set." 1>&2
+if [ -z ${ARC_LOCATION} ] ; then
+    echo "ARC_LOCATION not set." 1>&2
     exit 1
 fi
-# "Sourcing ${NORDUGRID_LOCATION} config... " 1>&2
-if [ ! -f "${NORDUGRID_LOCATION}/libexec/configure-lsf-env.sh" ] ; then
-    echo "${NORDUGRID_LOCATION}/libexec/configure-lsf-env.sh not found." 1>&2
+# "Sourcing ${ARC_LOCATION} config... " 1>&2
+if [ ! -f "${ARC_LOCATION}/libexec/configure-lsf-env.sh" ] ; then
+    echo "${ARC_LOCATION}/libexec/configure-lsf-env.sh not found." 1>&2
     exit 1
 fi
 
-source ${NORDUGRID_LOCATION}/libexec/configure-lsf-env.sh
+source ${ARC_LOCATION}/libexec/configure-lsf-env.sh
 umask 022
 
 STAT_USERNAME='stat -c %U'
@@ -146,7 +146,7 @@ for ctr_dir in $control_dir ; do
 	    if [ ! -z "$exitcode" ] ; then
 		# job finished and exit code is known
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${NORDUGRID_LOCATION}/libexec/gm-kick "$statusfile"
+		${ARC_LOCATION}/libexec/gm-kick "$statusfile"
 		continue
 	    fi
 	fi
@@ -163,7 +163,7 @@ for ctr_dir in $control_dir ; do
 	if [ "$counter" -gt 5 ] ; then
 	    rm -f "$countfile"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${NORDUGRID_LOCATION}/libexec/gm-kick "$statusfile"
+	    ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi

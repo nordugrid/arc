@@ -2,12 +2,8 @@
 # arguments: job_status job_id control_directory local_mail job_name failure_reason list of addresses
 
 if [ -z "$ARC_LOCATION" ] ; then
-  if [ -z "$NORDUGRID_LOCATION" ] ; then
-    echo "ARC_LOCATION is not defined" 1>&2
-    exit 1
-  else
-    export ARC_LOCATION=$NORDUGRID_LOCATION
-  fi
+  echo "ARC_LOCATION is not defined" 1>&2
+  exit 1
 fi
 
 if [ $# -lt 7 ] ; then

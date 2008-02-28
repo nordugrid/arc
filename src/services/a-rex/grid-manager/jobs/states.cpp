@@ -261,11 +261,6 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       };
       i->local=job_desc;
     };
-    if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: starting child",i->job_id.c_str());
-    } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: starting child",i->job_id.c_str());
-    };
     if(!cancel) {  /* in case of cancel all preparations are already done */
       const char *local_transfer_s = NULL;
       if(use_local_transfer) { 
@@ -287,6 +282,11 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     std::string cmd;
     if(cancel) { cmd=nordugrid_libexec_loc+"/cancel-"+job_desc->lrms+"-job"; }
     else { cmd=nordugrid_libexec_loc+"/submit-"+job_desc->lrms+"-job"; };
+    if(!cancel) {
+      logger.msg(Arc::INFO,"%s: state SUBMITING: starting child: ",i->job_id.c_str(),cmd.c_str());
+    } else {
+      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: ",i->job_id.c_str(),cmd.c_str());
+    };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
     char* args[3] ={ (char*)cmd.c_str(), (char*)grami.c_str(), NULL };
     job_errors_mark_put(*i,*user);
@@ -308,9 +308,9 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       return true;
     };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: child exited",i->job_id.c_str());
+      logger.msg(Arc::INFO,"%s: state SUBMITING: child exited with code %i",i->job_id.c_str(),i->child->Result());
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: child exited",i->job_id.c_str());
+      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id.c_str(),i->child->Result());
     };
     if(cancel) job_diagnostics_mark_move(*i,*user);
     if(i->child->Result() != 0) { 

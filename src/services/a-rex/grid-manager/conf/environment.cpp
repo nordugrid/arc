@@ -18,7 +18,7 @@
 std::string globus_loc(""); 
 // Various Globus scripts - $GLOBUS_LOCATION/libexec
 std::string globus_scripts_loc;
-// ARC installation path - $ARC_LOCATION, $NORDUGRID_LOCATION, executable path
+// ARC installation path - $ARC_LOCATION, executable path
 std::string nordugrid_loc("");
 // ARC user tools - $ARC_LOCATION/bin
 std::string nordugrid_bin_loc;
@@ -71,15 +71,12 @@ bool read_env_vars(bool guess) {
   if(nordugrid_loc.length() == 0) {
     tmp=getenv("ARC_LOCATION");
     if((tmp == NULL) || (*tmp == 0)) {
-      tmp=getenv("NORDUGRID_LOCATION");
-      if((tmp == NULL) || (*tmp == 0)) {
-        if(!guess) {
-          olog<<"ARC_LOCATION environment variable is not defined"
-              <<std::endl;
-          return false;
-        } else {
-          tmp=DEFAULT_ARC_LOCATION;
-        };
+      if(!guess) {
+        olog<<"ARC_LOCATION environment variable is not defined"
+            <<std::endl;
+        return false;
+      } else {
+        tmp=DEFAULT_ARC_LOCATION;
       };
     };
     nordugrid_loc=tmp;
@@ -131,9 +128,7 @@ bool read_env_vars(bool guess) {
   };
   // Set all environement variables for other tools
   setenv("ARC_CONFIG",nordugrid_config_loc.c_str(),1);
-  setenv("NORDUGRID_CONFIG",nordugrid_config_loc.c_str(),1);
   setenv("ARC_LOCATION",nordugrid_loc.c_str(),1);
-  setenv("NORDUGRID_LOCATION",nordugrid_loc.c_str(),1);
   if(support_mail_address.length() == 0) {
     char hn[100];
     support_mail_address="grid.manager@";

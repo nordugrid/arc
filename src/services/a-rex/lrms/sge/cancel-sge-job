@@ -8,7 +8,7 @@ echo "----- starting cancel_sge_job -----" 1>&2
 
 joboption_lrms=sge
 
-. ${NORDUGRID_LOCATION}/libexec/cancel_common.sh $1
+. ${ARC_LOCATION}/libexec/cancel_common.sh $1
 
 echo executing $SGE_BIN_PATH/qdel with job id $joboption_jobid 1>&2
 $SGE_BIN_PATH/qdel "${joboption_jobid}"
