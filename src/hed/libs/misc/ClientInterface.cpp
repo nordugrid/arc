@@ -117,7 +117,7 @@ namespace Arc {
       if(fname_str) {
         fname=fname_str;
       } else {
-        fname=Arc::User().Home()+"/.arccfg.xml";
+        fname=Arc::User().Home()+"/.arc/client.xml";
       };
     };
     if(fname.empty()) return;

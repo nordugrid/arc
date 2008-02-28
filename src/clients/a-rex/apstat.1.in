@@ -30,7 +30,7 @@ location of private key file
 location of directory containing X509 certificate files of all accepted CAs.
 .TP
 \fB\-c\fR
-location of client configuration file. Default value is ~/.arccfg.xml unless
+location of client configuration file. Default value is ~/.arc/client.xml unless
 overwrittten by content of ARC_CLIENT_CONFIG environment variable.
 .TP
 \fB\-h\fR
