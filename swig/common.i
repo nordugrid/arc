@@ -8,15 +8,15 @@
 %template(NS) std::map<std::string, std::string>;
 
 #ifdef SWIGJAVA
-%ignore Arc::MatchXMLName(const XMLNode& node1,const XMLNode& node2);
-%ignore Arc::MatchXMLName(const XMLNode& node,const char* name);
-%ignore XMLNode(const char* xml,int len = -1);
-%ignore Name(const char *name);
-%ignore NewAttribute(const char *);
-%ignore NewChild(const char *);
-%ignore NewChild(const char *, int);
-%ignore NewChild(const char *, int, bool);
-%ignore Config(const char *);
+%ignore Arc::MatchXMLName(const XMLNode&, const char*);
+%ignore Arc::MatchXMLNamespace(const XMLNode&, const char*);
+%ignore XMLNode(const char*, int);
+%ignore Name(const char*);
+%ignore Attribute(const char*) const;
+%ignore NewAttribute(const char*);
+%ignore NewChild(const char*, int, bool);
+%ignore NewChild(const char*, const NS&, int, bool);
+%ignore Config(const char*);
 %ignore operator !;
 %ignore operator [];
 %ignore operator =;
