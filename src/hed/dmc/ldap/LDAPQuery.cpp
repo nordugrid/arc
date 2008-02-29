@@ -421,12 +421,12 @@ bool LDAPQuery::HandleResult(ldap_callback callback, void* ref) {
 	}
 
 	if (ldresult == 0) {
-		logger.msg(ERROR, "LDAP query timed out: %s", host);
+		logger.msg(ERROR, "LDAP query timed out: %s", host.c_str());
 		return false;
 	}
 
 	if (ldresult == -1) {
-		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
+		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host.c_str());
 		return false;
 	}
 

@@ -87,7 +87,8 @@ namespace Arc {
     q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
 	    url.LDAPScope() == "base" ? LDAPQuery::base :
 	    url.LDAPScope() == "one" ? LDAPQuery::onelevel : LDAPQuery::subtree);
-    XMLNode(NS(), "LDAPQueryResult").New(node);
+    NS ns;
+    XMLNode(ns, "LDAPQueryResult").New(node);
     q.Result(CallBack, this);
     CreateThreadFunction(&ReadThread, this);
     return true;
@@ -122,7 +123,7 @@ namespace Arc {
     point.node.GetDoc(text);
     const char *buf = text.c_str();
     std::string::size_type length = text.size();
-    uint64_t pos = 0;
+    unsigned long long int pos = 0;
     int transfer_handle = -1;
     do {
       unsigned int transfer_size = 0;
