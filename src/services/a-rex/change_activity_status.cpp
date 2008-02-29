@@ -31,14 +31,16 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     logger_.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s.c_str());
   };
   Arc::WSAEndpointReference id(in["ActivityIdentifier"]);
-  if(!id) {
+  if(!(Arc::XMLNode)id) {
     // Wrong request
 
+    return Arc::MCC_Status();
   };
   std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
   if(jobid.empty()) {
     // EPR is wrongly formated or not an A-REX EPR
 
+    return Arc::MCC_Status();
   };
   ARexJob job(jobid,config);
   if(!job) {
@@ -46,67 +48,89 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     std::string failure = job.Failure();
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: %s",failure.c_str());
 
-
+    return Arc::MCC_Status();
   };
+
+  // Old State
   Arc::XMLNode old_state = in["OldStatus"];
-  std::string old_bes_state = old_state.Attribute("ActivityStateEnumeration")
+  std::string old_bes_state = old_state.Attribute("ActivityStateEnumeration");
   std::string old_arex_state = old_state["a-rex:state"];
-  // Old state must be checked against current one
-  std::string gm_state = job.State();
 
-
-
+  // New state
   Arc::XMLNode new_state = in["NewStatus"];
   if(!new_state) {
     // Wrong request
 
+    return Arc::MCC_Status();
   };
-  std::string new_bes_state = old_state.Attribute("ActivityStateEnumeration")
+  std::string new_bes_state = old_state.Attribute("ActivityStateEnumeration");
   std::string new_arex_state = old_state["a-rex:state"];
 
-
-
-  // Create place for response
-  Arc::XMLNode resp = out.NewChild("a-rex:NewStatus");
-
-    resp.NewChild(id);
-    // Look for obtained ID
-    ARexJob job(jobid,config);
-    if(!job) {
-      // There is no such job
-
-      continue;
-    };
-    /*
-    // Check permissions on that ID
-    */
-    std::string gm_state = job.State();
-    std::string bes_state("");
-    std::string arex_state("");
-    if(gm_state == "ACCEPTED") {
-      bes_state="Pending"; arex_state="Accepted";
-    } else if(gm_state == "PREPARING") {
-      bes_state="Running"; arex_state="Preparing";
-    } else if(gm_state == "SUBMIT") {
-      bes_state="Running"; arex_state="Submiting";
-    } else if(gm_state == "INLRMS") {
-      bes_state="Running"; arex_state="Executing";
-    } else if(gm_state == "FINISHING") {
-      bes_state="Running"; arex_state="Finishing";
-    } else if(gm_state == "FINISHED") {
-      bes_state="Finished"; arex_state="Finished";
-
-    } else if(gm_state == "DELETED") {
-      bes_state="Finished"; arex_state="Deleted";
-
-    } else if(gm_state == "CANCELING") {
-      bes_state="Running"; arex_state="Killing";
-    };
-    // Make response
-    Arc::XMLNode state = resp.NewChild("bes-factor:ActivityStatus");
-    state.NewAttribute("bes-factory:ActivityStateEnumeration")=bes_state;
-    state.NewChild("a-rex:state")=arex_state;
+  std::string gm_state = job.State();
+  std::string bes_state("");
+  std::string arex_state("");
+  if(gm_state == "ACCEPTED") {
+    bes_state="Pending"; arex_state="Accepted";
+  } else if(gm_state == "PREPARING") {
+    bes_state="Running"; arex_state="Preparing";
+  } else if(gm_state == "SUBMIT") {
+    bes_state="Running"; arex_state="Submiting";
+  } else if(gm_state == "INLRMS") {
+    bes_state="Running"; arex_state="Executing";
+  } else if(gm_state == "FINISHING") {
+    bes_state="Running"; arex_state="Finishing";
+  } else if(gm_state == "FINISHED") {
+    bes_state="Finished"; arex_state="Finished";
+  } else if(gm_state == "DELETED") {
+    bes_state="Finished"; arex_state="Deleted";
+  } else if(gm_state == "CANCELING") {
+    bes_state="Running"; arex_state="Killing";
   };
+
+  // Old state in request must be checked against current one
+  if((!old_bes_state.empty()) && (old_bes_state != bes_state)) {
+
+    return Arc::MCC_Status();
+  };
+  if((!old_arex_state.empty()) && (old_arex_state != arex_state)) {
+
+    return Arc::MCC_Status();
+  };
+
+  // Check for allowed combinations
+  if((new_bes_state == "Finished") &&
+     ((new_arex_state.empty()) || (new_arex_state == "Killing"))) {
+    // Request to cancel job
+    if((gm_state != "FINISHED") &&
+       (gm_state != "CANCELING") &&
+       (gm_state != "DELETED")) job.Cancel();
+  } else
+  if((new_bes_state == "Finished") &&
+     (new_arex_state == "Deleted")) {
+     // Request to clean job
+    if((gm_state != "FINISHED") &&
+       (gm_state != "CANCELING") &&
+       (gm_state != "DELETED")) job.Cancel();
+    job.Clean();
+  } else 
+  if((new_bes_state == "Running") &&
+     (new_arex_state.empty())) { // Not supporting resume into user-defined state
+    // Request to resume job
+    if(!job.Resume()) {
+
+      return Arc::MCC_Status();
+    };
+  } else {
+
+    return Arc::MCC_Status();
+  };
+  // Make response
+  // TODO: 
+  Arc::XMLNode resp = out.NewChild("a-rex:NewStatus");
+  //resp.NewChild(id);
+  Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
+  state.NewAttribute("bes-factory:state")=bes_state;
+  state.NewChild("a-rex:state")=arex_state;
   {
     std::string s;
     out.GetXML(s);

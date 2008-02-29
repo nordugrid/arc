@@ -57,10 +57,6 @@ Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& /*config*
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
-  return Arc::MCC_Status();
-}
-
 Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;

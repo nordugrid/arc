@@ -60,6 +60,8 @@ class ARexJob {
   bool GetDescription(Arc::XMLNode& jsdl);
   /** Cancel processing/execution of job */
   bool Cancel(void);
+  /** Remove job from local pool */
+  bool Clean(void);
   /** Resume execution of job after error */
   bool Resume(void);
   /** Returns current state of job */

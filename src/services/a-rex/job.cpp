@@ -331,6 +331,13 @@ bool ARexJob::Cancel(void) {
   return true;
 }
 
+bool ARexJob::Clean(void) {
+  if(id_.empty()) return false;
+  JobDescription job_desc(id_,"");
+  if(!job_clean_mark_put(job_desc,*config_.User())) return false;
+  return true;
+}
+
 bool ARexJob::Resume(void) {
   if(id_.empty()) return false;
   return false;
