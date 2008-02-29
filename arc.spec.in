@@ -13,11 +13,18 @@ BuildRequires: pkgconfig
 BuildRequires: e2fsprogs-devel
 BuildRequires: gcc-java
 BuildRequires: gettext
+BuildRequires: python
 BuildRequires: python-devel
 BuildRequires: glibmm24-devel
 BuildRequires: glib2-devel
 BuildRequires: libxml2-devel
 BuildRequires: openssl-devel
+%if %{_vendor} == "suse"
+BuildRequires: openldap2-devel
+%endif
+%if %{_vendor} != "suse"
+BuildRequires: openldap-devel
+%endif
 #
 BuildRequires: globus_common-devel
 BuildRequires: globus_ftp_client-devel
@@ -130,7 +137,7 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static %{?disable_java:--disable-java}
+%configure --disable-static %{?disable_java:--disable-java} --docdir=%{_docdir}/%{pkgdir}
 make %{?_smp_mflags}
 
 
@@ -172,7 +179,7 @@ exit 0
 
 %files client
 %defattr(-,root,root,-)
-%doc src/clients/a-rex/arccfg.xml
+%doc src/clients/a-rex/client.xml
 %doc src/clients/echo/echo_client.xml
 %doc src/tests/echo/echo.xml
 %doc src/tests/echo/echo.wsdl
