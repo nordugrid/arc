@@ -33,12 +33,14 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   Arc::WSAEndpointReference id(in["ActivityIdentifier"]);
   if(!(Arc::XMLNode)id) {
     // Wrong request
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: no ActivityIdentifier found");
 
     return Arc::MCC_Status();
   };
   std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
   if(jobid.empty()) {
     // EPR is wrongly formated or not an A-REX EPR
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: EPR contains no JobID");
 
     return Arc::MCC_Status();
   };
@@ -53,18 +55,19 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
 
   // Old State
   Arc::XMLNode old_state = in["OldStatus"];
-  std::string old_bes_state = old_state.Attribute("ActivityStateEnumeration");
+  std::string old_bes_state = old_state.Attribute("state");
   std::string old_arex_state = old_state["a-rex:state"];
 
   // New state
   Arc::XMLNode new_state = in["NewStatus"];
   if(!new_state) {
     // Wrong request
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: missing NewStatus element");
 
     return Arc::MCC_Status();
   };
-  std::string new_bes_state = old_state.Attribute("ActivityStateEnumeration");
-  std::string new_arex_state = old_state["a-rex:state"];
+  std::string new_bes_state = new_state.Attribute("state");
+  std::string new_arex_state = new_state["a-rex:state"];
 
   std::string gm_state = job.State();
   std::string bes_state("");
@@ -89,10 +92,12 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
 
   // Old state in request must be checked against current one
   if((!old_bes_state.empty()) && (old_bes_state != bes_state)) {
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: old BES state does not match");
 
     return Arc::MCC_Status();
   };
   if((!old_arex_state.empty()) && (old_arex_state != arex_state)) {
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: old A-Rex state does not match");
 
     return Arc::MCC_Status();
   };
@@ -121,14 +126,14 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
       return Arc::MCC_Status();
     };
   } else {
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: state change not allowed: from %s/%s to %s/%s",
+                bes_state.c_str(),arex_state.c_str(),new_bes_state.c_str(),new_arex_state.c_str());
 
     return Arc::MCC_Status();
   };
   // Make response
   // TODO: 
-  Arc::XMLNode resp = out.NewChild("a-rex:NewStatus");
-  //resp.NewChild(id);
-  Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
+  Arc::XMLNode state = out.NewChild("a-rex:NewStatus");
   state.NewAttribute("bes-factory:state")=bes_state;
   state.NewChild("a-rex:state")=arex_state;
   {
