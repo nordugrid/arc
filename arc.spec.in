@@ -137,7 +137,7 @@ ARC API docmentation
 %setup -q
 
 %build
-%configure --disable-static %{?disable_java:--disable-java} --docdir=%{_docdir}/%{pkgdir}
+%configure --disable-static %{?disable_java:--disable-java}
 make %{?_smp_mflags}
 
 
@@ -150,7 +150,7 @@ cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
 chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
-rm -fr $RPM_BUILD_ROOT%{_docdir}/%{pkgdir}/
+rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
