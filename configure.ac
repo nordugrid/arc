@@ -512,6 +512,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/Makefile
                  src/clients/a-rex/Makefile
                  src/clients/a-rex/apkill.1
+                 src/clients/a-rex/apclean.1
                  src/clients/a-rex/apsub.1
                  src/clients/a-rex/apstat.1
                  src/clients/a-rex/apsstat.1

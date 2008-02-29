@@ -106,6 +106,15 @@ namespace Arc {
      */
     void kill(const std::string& jobid) throw(AREXClientError);
     
+    //! Removes a job.
+    /*! This method sends a request to the A-REX service to remove
+      a job from it's pool. If job is running it will be killed 
+      by service as well.
+      @param jobid The Job ID of the job to remove.
+      @throw An AREXClientError object if an error occurs.
+     */
+    void clean(const std::string& jobid) throw(AREXClientError);
+    
     //! Query the status of a service.
     /*! This method queries the A-REX service about it's status.
       @return The XML document representing status of the service.

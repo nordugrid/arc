@@ -4,6 +4,7 @@ usr/bin/apsub
 usr/bin/apstat
 usr/bin/apsstat
 usr/bin/apkill
+usr/bin/apclean
 usr/bin/apget
 usr/bin/apecho
 usr/bin/perftest
@@ -14,6 +15,7 @@ usr/share/man/man1/apsub.1
 usr/share/man/man1/apstat.1
 usr/share/man/man1/apsstat.1
 usr/share/man/man1/apkill.1
+usr/share/man/man1/apclean.1
 usr/share/man/man1/arccp.1
 usr/share/man/man1/arcls.1
 usr/share/man/man1/arcrm.1

@@ -189,6 +189,8 @@ exit 0
 %doc %{_mandir}/man1/apstat.1*
 %{_bindir}/apkill
 %doc %{_mandir}/man1/apkill.1*
+%{_bindir}/apclean
+%doc %{_mandir}/man1/apclean.1*
 %{_bindir}/apsstat
 %doc %{_mandir}/man1/apsstat.1*
 %{_bindir}/apget
@@ -217,7 +219,8 @@ exit 0
 %files arex
 %defattr(-,root,root,-)
 %doc src/services/a-rex/arex.xml
-%doc src/services/a-rex/jsdl_arex.xml
+%doc src/services/a-rex/jsdl_simple.xml
+%doc src/services/a-rex/jsdl_stage.xml
 %doc src/services/a-rex/arc_arex.conf
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libexecdir}/downloader

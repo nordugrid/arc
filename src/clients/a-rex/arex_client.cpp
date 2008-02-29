@@ -394,4 +394,73 @@ namespace Arc {
       throw AREXClientError("Job termination failed.");
   }
   
+  void AREXClient::clean(const std::string& jobid)
+    throw(AREXClientError)
+  {
+    std::string result, faultstring;
+    logger.msg(Arc::INFO, "Creating and sending request to terminate a job.");
+    
+    Arc::PayloadSOAP req(arex_ns);
+    Arc::XMLNode op = req.NewChild("a-rex:ChangeActivityStatus");
+    Arc::XMLNode jobref = op.NewChild(Arc::XMLNode(jobid));
+    Arc::XMLNode jobstate = op.NewChild("a-rex:NewStatus");
+    jobstate.NewAttribute("bes-factory:state")="Finished";
+    jobstate.NewChild("a-rex:state")="Deleted";
+    // Send clean request
+    Arc::PayloadSOAP* resp = NULL;
+    if(client) {
+      Arc::MCC_Status status = client->process("",&req,&resp);
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,"There was no SOAP response.");
+        throw AREXClientError("There was no SOAP response.");
+      }
+    } else if(client_entry) {
+      Arc::Message reqmsg;
+      Arc::Message repmsg;
+      Arc::MessageAttributes attributes_req;
+      Arc::MessageAttributes attributes_rep;
+      Arc::MessageContext context;
+      reqmsg.Payload(&req);
+      reqmsg.Attributes(&attributes_req);
+      reqmsg.Context(&context);
+      repmsg.Attributes(&attributes_rep);
+      repmsg.Context(&context);
+      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
+      if(!status) {
+        logger.msg(Arc::ERROR, "A job cleaning request failed.");
+        throw AREXClientError("The job cleaning request failed.");
+      }
+      logger.msg(Arc::INFO, "A job cleaning request succeed.");
+      if(repmsg.Payload() == NULL) {
+        logger.msg(Arc::ERROR,
+		 "There was no response to a job cleaning request.");
+        throw AREXClientError
+	("There was no response to the job cleaning request.");
+      }
+      try {
+        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
+      } catch(std::exception&) { };
+      if(resp == NULL) {
+        logger.msg(Arc::ERROR,
+        "The response of a job cleaning request was not a SOAP message");
+        delete repmsg.Payload();
+        throw AREXClientError("The response is not a SOAP message.");
+      }
+    } else {
+      throw AREXClientError("There is no connection chain configured.");
+    };
+
+    if(!((*resp)["ChangeActivityStatusResponse"])) {
+      delete resp;
+      Arc::XMLNode fs;
+      (*resp)["Fault"]["faultstring"].New(fs);
+      faultstring=(std::string)fs;
+      if (faultstring!="")
+        throw AREXClientError(faultstring);
+      if (result!="true")
+        throw AREXClientError("Job termination failed.");
+    };
+    delete resp;
+  }
+
 }
