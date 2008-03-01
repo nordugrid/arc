@@ -13,18 +13,8 @@
 
 #include "SimpleListPDP.h"
 
-//Arc::Logger ArcSec::SimpleListPDP::logger(ArcSec::PDP::logger,"SimpleListPDP");
 Arc::Logger ArcSec::SimpleListPDP::logger(Arc::Logger::rootLogger, "SimpleListPDP");
 
-/*static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
-    return new ArcSec::SimpleListPDP(cfg);
-}
-
-pdp_descriptors ARC_PDP_LOADER = {
-    { "simplelist.pdp", 0, &get_pdp},
-    { NULL, 0, NULL }
-};
-*/
 using namespace Arc;
 using namespace ArcSec;
 
