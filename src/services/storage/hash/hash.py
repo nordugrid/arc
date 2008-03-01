@@ -22,7 +22,7 @@ Sample configuration:
 import arc
 import os
 import traceback
-from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata
+from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata, get_child_nodes
 import copy
 
 import pickle, threading
@@ -146,7 +146,7 @@ class CentralHash:
         # import the storeclass and call its constructor with the datadir
         self.store = import_class_from_string(storeclass)(datadir)
 
-    def get(self, ids):
+    def get(self, ids, neededMetadata = []):
         """ Gets all data of the given IDs.
 
         get(ids)
@@ -155,8 +155,20 @@ class CentralHash:
         Returns a dictionary of { ID : metadata }
             where 'metadata' is a dictionary where the keys are ('section', 'property') tuples
         """
-        # gets the metadata for each ID and create an {ID : metadata} dictionary from it
-        return dict([(ID, self.store.get(ID)) for ID in ids])
+        if neededMetadata: # if the needed metadata is given
+            # if a property is empty in a (section, property) pair
+            # it means we need all properties from that section
+            allpropsections = [section for (section, property) in neededMetadata if property == '']
+            # gets the metadata for each ID, filters it and creates an {ID : metadata} dictionary
+            return dict([(
+                ID,
+                dict([((section, property), value) # for all metadata entry of this object
+                    for (section, property), value in self.store.get(ID).items()
+                        # if this (section, property) is needed or if this section needs all the properties
+                        if (section, property) in neededMetadata or section in allpropsections])
+            ) for ID in ids])
+        else: # gets the metadata for each ID, and creates an {ID : metadata} dictionary
+            return dict([(ID, self.store.get(ID)) for ID in ids])
 
     def change(self, changes):
         """ Change the '(section, property) : value' entries of an object, if the given conditions are met.
@@ -309,8 +321,17 @@ class HashService:
         """
         # extract the IDs from the XMLNode using the '//ID' XPath expression
         ids = [str(id) for id in inpayload.XPathLookup('//hash:ID', self.hash_ns)]
+        # get the neededMetadata from the XMLNode
+        try:
+            neededMetadata = [
+                node_to_data(node, ['section', 'property'], single = True)
+                    for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
+            ]
+        except:
+            print traceback.format_exc()
+            neededMetadata = []
         # gets the result from the business logic class
-        objects = self.hash.get(ids)
+        objects = self.hash.get(ids, neededMetadata)
         # create the response payload
         out = arc.PayloadSOAP(self.hash_ns)
         # create the 'getResponse' node

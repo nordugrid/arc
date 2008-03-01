@@ -4,8 +4,8 @@ import arc
 import random
 from storage.xmltree import XMLTree
 from storage.client import CatalogClient
-from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, \
-                            basename, dirname, remove_trailing_slash, true, false, get_child_nodes
+from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
+                            basename, dirname, remove_trailing_slash, get_child_nodes, parse_node, node_to_data
 import traceback
 
 class Manager:
@@ -16,43 +16,107 @@ class Manager:
     def stat(self, requests):
         response = {}
         for requestID, (metadata, _, _, _, wasComplete, _) in self.catalog.traverseLN(requests).items():
-            if wasComplete == false:
-                response[requestID] = {}
-            else:
+            if wasComplete:
                 response[requestID] = metadata
+            else:
+                response[requestID] = {}
         return response
 
     def makeCollection(self, requests):
-        requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests]
-        print requests
-        traverse_request = [(rID, LN) for rID, (LN, _) in requests]
-        print traverse_request
+        requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests.items()]
+        print '////', requests
+        traverse_request = dict([(rID, LN) for rID, (LN, _) in requests])
         traverse_response = self.catalog.traverseLN(traverse_request)
-        print traverse_response
         response = {}
-        for rID, (LN, metadata) in requests:
-            trav = traverse_response[rID]
-            if trav['restLN'] != basename(LN):
-                if trav['wasComplete'] == true:
-                    success = 'LN exists'
-                else:
-                    success = 'parent does not exist'
+        for rID, (LN, child_metadata) in requests:
+            child_name = basename(LN)
+            print LN, child_name
+            metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
+            print metadata, GUID, traversedLN, restLN, wasComplete, traversedlist
+            if wasComplete:
+                success = 'LN exists'
+            elif restLN != child_name:
+                success = 'parent does not exist'
             else:
-                print 'OK!', trav
-                nc_resp = self.catalog.newCollection([('0', metadata)])
-                nc_dict = nc_resp.get_dict('///')
-                if nc_dict['success'] != 'success':
+                nc_resp = self.catalog.newCollection({'0' : child_metadata})
+                (child_GUID, nc_succ) = nc_resp['0']
+                if nc_succ != 'success':
                     success = 'failed to create new collection'
                 else:
-                    
-                    success = 'OK'
+                    print 'adding', child_GUID, 'to parent', GUID
+                    mm_resp = self.catalog.modifyMetadata({'0' : (GUID, 'add', 'entries', child_name, child_GUID)})
+                    mm_succ = mm_resp['0']
+                    if mm_succ != 'set':
+                        self.catalog.remove({'0' : child_GUID})
+                        success = 'failed adding child to parent'
+                    else:
+                        success = 'done'
             response[rID] = success
         return response
 
-class ManagerService:
+    def list(self, requests, neededMetadata):
+        traverse_response = self.catalog.traverseLN(requests)
+        response = {}
+        for requestID, LN in requests.items():
+            metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
+            if wasComplete:
+                GUIDs = dict([(name, GUID)
+                    for (section, name), GUID in metadata.items() if section == 'entries'])
+                metadata = self.catalog.get(GUIDs.values(), neededMetadata)
+                entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
+            else:
+                entries = {}
+            response[requestID] = entries
+        return response
 
-    # names of provided methods
-    request_names = ['stat','makeCollection']
+    def move(self, requests):
+        traverse_request = {}
+        for requestID, (sourceLN, targetLN, _) in requests.items():
+            traverse_request[requestID + 'source'] = sourceLN
+            traverse_request[requestID + 'target'] = targetLN
+        traverse_response = self.catalog.traverseLN(traverse_request)
+        print '\/\/', traverse_response
+        response = {}
+        for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
+            print requestID, sourceLN, targetLN, preserveOriginal
+            old_child_name = basename(sourceLN)
+            new_child_name = basename(targetLN)
+            _, sourceGUID, _, _, sourceWasComplete, sourceTraversedList \
+                = traverse_response[requestID + 'source']
+            _, targetGUID, _, targetRestLN, targetWasComplete, _ \
+                = traverse_response[requestID + 'target']
+            if not sourceWasComplete:
+                success = 'nosuchLN'
+            elif targetWasComplete and new_child_name != '':
+                success = 'targetexists'
+            elif not targetWasComplete and targetRestLN != new_child_name:
+                success = 'invalidtarget'
+            else: 
+                if new_child_name == '':
+                    new_child_name = old_child_name
+                print 'adding', sourceGUID, 'to parent', targetGUID
+                mm_resp = self.catalog.modifyMetadata(
+                    {'0' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID)})
+                mm_succ = mm_resp['0']
+                if mm_succ != 'set':
+                    success = 'failed adding child to parent'
+                else:
+                    if preserveOriginal == true:
+                        success = 'moved'
+                    else:
+                        source_parent_guid = sourceTraversedList[-2][1]
+                        print 'removing', sourceGUID, 'from parent', source_parent_guid
+                        mm_resp = self.catalog.modifyMetadata(
+                            {'0' : (source_parent_guid, 'unset', 'entries', old_child_name, '')})
+                        mm_succ = mm_resp['0']
+                        if mm_succ != 'unset':
+                            success = 'failed removing child from parent'
+                        else:
+                            success = 'moved'
+            response[requestID] = success
+        return response
+
+class ManagerService:
 
     def __init__(self, cfg):
         print "Storage Manager service constructor called"
@@ -83,6 +147,33 @@ class ManagerService:
         response = self.manager.makeCollection(requests)
         return create_response('man:makeCollection',
             ['man:requestID', 'man:success'], response, self.man_ns, single = True)
+
+    def list(self, inpayload):
+        requests = parse_node(inpayload.Child().Get('listRequestList'),
+            ['requestID', 'LN'], single = True)
+        neededMetadata = [
+            node_to_data(node, ['section', 'property'], single = True)
+                for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
+        ]
+        response0 = self.manager.list(requests, neededMetadata)
+        response = dict([
+            (requestID,
+            [('man:entry', [
+                ('man:name', name),
+                ('man:GUID', GUID),
+                ('man:metadataList', create_metadata(metadata))
+            ]) for name, (GUID, metadata) in entries.items()]
+        ) for requestID, entries in response0.items()])
+        return create_response('man:list',
+            ['man:requestID', 'man:entries'], response, self.man_ns, single = True)
+
+    def move(self, inpayload):
+        requests = parse_node(inpayload.Child().Child(),
+            ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
+        response = self.manager.move(requests)
+        return create_response('man:move',
+            ['man:requestID', 'man:status'], response, self.man_ns, single = True)
+
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
@@ -121,3 +212,6 @@ class ManagerService:
             outpayload.NewChild('manager:Fault').Set(exc)
             outmsg.Payload(outpayload)
             return arc.MCC_Status(arc.STATUS_OK)
+
+    # names of provided methods
+    request_names = ['stat', 'makeCollection', 'list', 'move']

@@ -45,8 +45,8 @@ class Catalog:
             response[rID] = (GUID, success)
         return response
 
-    def get(self, requests):
-        return self.hash.get_tree(requests)
+    def get(self, requests, neededMetadata = []):
+        return self.hash.get_tree(requests, neededMetadata)
 
     def _parse_LN(self, LN):
         try:
@@ -72,7 +72,7 @@ class Catalog:
                 else:
                     return metadata
             except KeyError:
-                return {}
+                return metadata
             except:
                 print traceback.format_exc()
                 return {}
@@ -86,7 +86,7 @@ class Catalog:
                 guid = global_root_guid
             else:
                 guid = guid0
-            traversed = []
+            traversed = [guid0]
             GUIDs = [guid]
             path = copy.deepcopy(path0)
             metadata0 = self.hash.get([guid])[guid]
@@ -95,9 +95,9 @@ class Catalog:
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
-                    traversedList = [(traversed[i], GUIDs[i+1]) for i in range(len(traversed))]
+                    traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
                     wasComplete = len(path) == 0
-                    traversedLN = guid0 + '/' + '/'.join(traversed)
+                    traversedLN = guid0 + '/' + '/'.join(traversed[1:])
                     GUID = GUIDs[-1]
                     restLN = '/'.join(path)
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
@@ -126,6 +126,18 @@ class Catalog:
                 response[changeID] = 'failed: ' + success
         return response
 
+    def remove(self, requests):
+        hash_request = dict([(requestID, (GUID, 'delete', '', '', '', {}))
+            for requestID, GUID in requests.items()])
+        hash_response = self.hash.change(hash_request)
+        response = {}
+        for requestID, (success, _) in hash_response.items():
+            if success == 'deleted':
+                response[requestID] = 'removed'
+            else:
+                response[requestID] = 'failed: ' + success
+        return response
+
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
 
@@ -149,15 +161,18 @@ class CatalogService:
         requests0 = parse_node(inpayload.Child().Child(),
             ['requestID', 'metadataList'], single = True, string = False)
         requests = dict([(str(requestID), parse_metadata(metadataList))
-            for requestID, metadataList in request0.items()])
+            for requestID, metadataList in requests0.items()])
         resp = self.catalog.newCollection(requests)
         return create_response('cat:newCollection',
             ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.cat_ns)
 
     def get(self, inpayload):
-        request_nodes = get_child_nodes(inpayload.Child().Child())
-        requests = [str(request_node.Get('GUID')) for request_node in request_nodes]
-        tree = self.catalog.get(requests)
+        requests = [str(node.Get('GUID')) for node in get_child_nodes(inpayload.Child().Get('getRequestList'))]
+        neededMetadata = [
+            node_to_data(node, ['section', 'property'], single = True)
+                for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
+        ]
+        tree = self.catalog.get(requests, neededMetadata)
         out = arc.PayloadSOAP(self.cat_ns)
         response_node = out.NewChild('cat:getResponse')
         tree.add_to_node(response_node)
@@ -184,7 +199,14 @@ class CatalogService:
         requests = parse_node(inpayload.Child().Child(), ['cat:changeID',
             'cat:GUID', 'cat:changeType', 'cat:section', 'cat:property', 'cat:value'])
         response = self.catalog.modifyMetadata(requests)
-        return create_response('cat:modifyMetadata', ['cat:changeID', 'cat:success'], response, self.cat_ns, True)
+        return create_response('cat:modifyMetadata', ['cat:changeID', 'cat:success'],
+            response, self.cat_ns, single = True)
+
+    def remove(self, inpayload):
+        requests = parse_node(inpayload.Child().Child(), ['cat:requestID', 'cat:GUID'], single = True)
+        response = self.catalog.remove(requests)
+        return create_response('cat:remove', ['cat:requestID', 'cat:success'],
+            response, self.cat_ns, single = True)
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
@@ -225,4 +247,4 @@ class CatalogService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['newCollection','get','traverseLN', 'modifyMetadata']
+    request_names = ['newCollection','get','traverseLN', 'modifyMetadata', 'remove']

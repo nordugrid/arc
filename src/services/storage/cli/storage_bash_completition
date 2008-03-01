@@ -1,0 +1,24 @@
+_storage()
+{
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+    options=
+    if [[ "$COMP_CWORD" == 1 ]];
+    then
+        options='hash catalog manager';
+    else
+        case $prev in
+            hash)
+                options='get change changeIf'
+                ;;
+            catalog)
+                options='get traverseLN newCollection modifyMetadata remove'
+                ;;
+            manager)
+                options='stat makeCollection list move'
+                ;;
+        esac
+    fi
+    COMPREPLY=( $( compgen -W "$options" -- $cur) )
+}
+complete -F _storage storage

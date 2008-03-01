@@ -14,10 +14,23 @@ else:
     command = args.pop(0)
     if command == 'get':
         if len(args) < 1:
-            print 'Usage: get <ID> [<ID>...]'
+            print 'Usage: get <ID> [<ID> ...] neededMetadata [<section> [<property>] ...] '
         else:
-            print 'get', args
-            print hash.get(args)
+            IDs = []
+            while len(args) > 0 and args[0] != 'neededMetadata':
+                IDs.append(args.pop(0))
+            neededMetadata = []
+            if len(args) > 0:
+                args.pop(0)
+            while len(args) > 0:
+                section = args.pop(0)
+                if len(args) > 0:
+                    property = args.pop(0)
+                else:
+                    property = ''
+                neededMetadata.append((section, property))
+            print 'get', IDs, neededMetadata
+            print hash.get(IDs, neededMetadata)
     elif command == 'change':
         if len(args) < 5:
             print 'Usage: change <ID> <changeType> <section> <property> <value>'

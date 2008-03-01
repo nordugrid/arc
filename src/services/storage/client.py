@@ -1,4 +1,4 @@
-from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata, true, get_child_nodes, node_to_data, parse_node
+from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata, true, false, get_child_nodes, node_to_data, parse_node
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
@@ -47,13 +47,20 @@ class HashClient(Client):
         ns = arc.NS({'hash': hash_uri})
         Client.__init__(self, url, ns, print_xml)
 
-    def get_tree(self, IDs):
+    def get_tree(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
-            ('hash:get',
-                [('hash:IDs',
-                    [('hash:ID', i) for i in IDs]
-                )]
-            ))
+            ('hash:get', [
+                ('hash:neededMetadataList', [
+                    ('hash:neededMetadataElement', [
+                        ('hash:section', section),
+                        ('hash:property', property)
+                    ]) for section, property in neededMetadata
+                ]),
+                ('hash:IDs', [
+                    ('hash:ID', i) for i in IDs
+                ])
+            ])
+        )
         msg, status, reason = self.call(tree)
         xml = arc.XMLNode(msg)
         hash_prefix = xml.NamespacePrefix(hash_uri)
@@ -69,9 +76,15 @@ class HashClient(Client):
         }
         return XMLTree(xml.Child().Child().Child(), rewrite = rewrite)
 
-    def get(self, IDs):
+    def get(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
             ('hash:get', [
+                ('hash:neededMetadataList', [
+                    ('hash:neededMetadataElement', [
+                        ('hash:section', section),
+                        ('hash:property', property)
+                    ]) for section, property in neededMetadata
+                ]),
                 ('hash:IDs', [
                     ('hash:ID', i) for i in IDs
                 ])
@@ -88,7 +101,7 @@ class HashClient(Client):
         change(changes)
 
         'changes' is a dictionary of {changeID : (ID, changeType, section, property, value, conditions)}
-            where 'conditions' is a list of (conditionID, conditionType, section, property, value)
+            where 'conditions' is a dictionary of {conditionID : (conditionType, section, property, value)}
         """
         tree = XMLTree(from_tree =
             ('hash:change', [
@@ -124,9 +137,15 @@ class CatalogClient(Client):
         ns = arc.NS({'cat':catalog_uri})
         Client.__init__(self, url, ns, print_xml)
 
-    def get(self, GUIDs):
+    def get(self, GUIDs, neededMetadata = []):
         tree = XMLTree(from_tree =
             ('cat:get', [
+                ('cat:neededMetadataList', [
+                    ('cat:neededMetadataElement', [
+                        ('cat:section', section),
+                        ('cat:property', property)
+                    ]) for section, property in neededMetadata
+                ]),
                 ('cat:getRequestList', [
                     ('cat:getRequestElement', [
                         ('cat:GUID', i)
@@ -215,6 +234,21 @@ class CatalogClient(Client):
         node = arc.XMLNode(response)
         return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
 
+    def remove(self, requests):
+        tree = XMLTree(from_tree =
+            ('cat:remove', [
+                ('cat:removeRequestList', [
+                    ('cat:removeRequestElement', [
+                        ('cat:requestID', requestID),
+                        ('cat:GUID', GUID)
+                    ]) for requestID, GUID in requests.items()
+                ])
+            ])
+        )
+        response, _, _ = self.call(tree)
+        node = arc.XMLNode(response)
+        return parse_node(node.Child().Child().Child(), ['requestID', 'success'], True)
+
 class ManagerClient(Client):
     
     def __init__(self, url, print_xml = False):
@@ -258,4 +292,49 @@ class ManagerClient(Client):
             ])
         )
         return self.call(tree, True)
+
+    def list(self, requests, neededMetadata = []):
+        tree = XMLTree(from_tree =
+            ('man:list', [
+                ('man:listRequestList', [
+                    ('man:listRequestElement', [
+                        ('man:requestID', requestID),
+                        ('man:LN', LN)
+                    ]) for requestID, LN in requests.items()
+                ]),
+                ('man:neededMetadataList', [
+                    ('man:neededMetadataElement', [
+                        ('man:section', section),
+                        ('man:property', property)
+                    ]) for section, property in neededMetadata
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        elements = parse_node(xml.Child().Child().Child(),
+            ['requestID', 'entries'], single = True, string = False)
+        return dict([
+            (   str(requestID),
+                dict([(str(name), (str(GUID), parse_metadata(metadataList))) for name, (GUID, metadataList) in
+                    parse_node(entries, ['name', 'GUID', 'metadataList'], string = False).items()])
+            ) for requestID, entries in elements.items()
+        ])
+
+    def move(self, requests):
+        tree = XMLTree(from_tree =
+            ('man:move', [
+                ('man:moveRequestList', [
+                    ('man:moveRequestElement', [
+                        ('man:requestID', requestID),
+                        ('man:sourceLN', sourceLN),
+                        ('man:targetLN', targetLN),
+                        ('man:preserveOriginal', preserveOriginal and true or false)
+                    ]) for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = True)
 

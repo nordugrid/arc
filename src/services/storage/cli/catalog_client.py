@@ -8,7 +8,7 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 catalog = CatalogClient('http://localhost:60000/Catalog', print_xml)
-if len(args) == 0 or args[0] not in ['newCollection', 'get', 'traverseLN', 'modifyMetadata']:
+if len(args) == 0 or args[0] not in ['newCollection', 'get', 'traverseLN', 'modifyMetadata', 'remove']:
     print 'Supported methods: newCollection get traverseLN modifyMetadata'
 else:
     command = args.pop(0)
@@ -22,10 +22,23 @@ else:
         print catalog.newCollection(request)
     elif command == 'get':
         if len(args) < 1:
-            print 'Usage: get <GUID> [<GUID> ...]'
+            print 'Usage: get <GUID> [<GUID> ...] neededMetadata [<section> [<property>] ...] '
         else:
-            print 'get', args
-            print catalog.get(args)
+            IDs = []
+            while len(args) > 0 and args[0] != 'neededMetadata':
+                IDs.append(args.pop(0))
+            neededMetadata = []
+            if len(args) > 0:
+                args.pop(0)
+            while len(args) > 0:
+                section = args.pop(0)
+                if len(args) > 0:
+                    property = args.pop(0)
+                else:
+                    property = ''
+                neededMetadata.append((section, property))
+            print 'get', IDs, neededMetadata
+            print catalog.get(IDs, neededMetadata)
     elif command == 'traverseLN':
         if len(args) < 1:
             print 'Usage: traverseLN <LN> [<LN> ...]'
@@ -42,3 +55,10 @@ else:
             request = {'0' : args}
             print 'modifyMetadata', request
             print catalog.modifyMetadata(request)
+    elif command == 'remove':
+        if len(args) < 1:
+            print 'Usage: remove <GUID> [<GUID>, ...]'
+        else:
+            request = dict([(str(i), args[i]) for i in range(len(args))])
+            print 'remove', request
+            print catalog.remove(request)
