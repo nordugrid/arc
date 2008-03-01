@@ -54,7 +54,7 @@
     </Component>
     <!-- Directing messages to proper service -->
     <Plexer name="plexer.service" id="plexer">
-      <next id="a-rex">^/arex.*</next>
+      <next id="a-rex">^/arex</next>
     </Plexer>
     <!-- A-Rex service -->
     <Service name="a-rex" id="a-rex">
