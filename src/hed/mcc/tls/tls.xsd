@@ -21,7 +21,7 @@
     <xsd:element name="Key" type="xsd:string">
     <!-- Location of public certificate.
       Default is /etc/grid-security/hostcert.pem for service
-      and ./cert.pem for client. -->
+      and none for client. -->
     <xsd:element name="CertificatePath" type="xsd:string">
     <!-- Content of public certificate - not supported -->
     <xsd:element name="Certificate" type="xsd:string">

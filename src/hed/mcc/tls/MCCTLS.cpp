@@ -530,8 +530,8 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    ca_dir_ = (std::string)((*cfg)["CACertificatesDir"]);
    globus_policy_ = (((std::string)(*cfg)["CACertificatesDir"].Attribute("PolicyGlobus")) == "true");
    proxy_file_ = (std::string)((*cfg)["ProxyPath"]);
-   if(cert_file_.empty()) cert_file_="cert.pem";
-   if(key_file_.empty()) key_file_="key.pem";
+   // if(cert_file_.empty()) cert_file_="cert.pem";
+   // if(key_file_.empty()) key_file_="key.pem";
    if(ca_dir_.empty()) ca_dir_="/etc/grid-security/certificates";
    if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
    int r;
