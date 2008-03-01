@@ -33,14 +33,24 @@
         <!--
              This element specifies security handler plugin to be called
             at various stages of message processing. Depending on produced
-            result message may be either sint farther through chain or 
-            processing would be cancelled.
+            result message may be either sent farther through chain or 
+            processing would be cancelled. Required attribute 'name' specifies
+	    name of plugin. Attibute 'id' creates identifier of SecHandler
+	    which may be used to refer to it. If attribute 'refid' is defined
+	    then configuration of SecHendler is provided by another element
+	    within ArcConfig with corresponding 'id'. Attribute 'event' defines
+	    to which queue inside MCC SecHandler to be attached. If it's 
+	    missing SecHandler is attached to default queue if MCC has such. 
+	    Names of queues are MCC specific. If not otherwise specified they
+	    are 'incoming' and 'outgoing' and are processed for incoming
+	    and outgoing messages. There is no default queue by default.
         -->
         <xsd:sequence>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="refid" type="xsd:string" use="optional"/>
         <xsd:attribute name="event" type="xsd:string" use="optional"/>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
@@ -60,7 +70,8 @@
             utilities. Rest elements define component-specific configuration.
         -->
         <xsd:sequence>
-            <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="next"       minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="SecHandler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -95,6 +106,7 @@
             it will be assigned automatically. Rest elements define service-specific configuration.
         -->
         <xsd:sequence>
+            <xsd:element ref="SecHandler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -105,14 +117,15 @@
 
     <xsd:complexType name="Chain_Type">
         <!--
-             This element is not required and does affect chains directly. It's purpose
+             This element is not required and does not affect chains directly. It's purpose
             is to group multiple components logically mostly for readability purpose.
         -->
         <xsd:sequence>
-            <xsd:element ref="Chain"     minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Component" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Plexer"    minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="Service"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Chain"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Component"  minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Plexer"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="Service"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="SecHandler" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="Chain" type="Chain_Type"/>
@@ -139,6 +152,7 @@
             <xsd:element ref="Plexer"        minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="Service"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="ModuleManager" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="SecHandler"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
