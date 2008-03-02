@@ -43,7 +43,8 @@ bool MCC::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
     // Each one should be configured carefully, because there can be some relationship 
     // between them (e.g. authentication should be put in front of authorization).
     // The SecHandler::Handle() only returns true/false with true meaning that handler
-    // took positiove decision and there is no need continue executing other handlers.
+    // processed message successfuly. If SecHandler implements authorization 
+    // functionality, it returns false if message is disallowed and true otherwise. 
     // If any SecHandler in the handler chain produces some information which will be 
     // used by some following handler, the information should be stored in the
     // attributes of message (e.g. the Identity extracted from authentication will
@@ -56,13 +57,15 @@ bool MCC::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
     std::list<ArcSec::SecHandler*>::iterator h = q->second.begin();
     for(;h!=q->second.end();++h) {
         ArcSec::SecHandler* handler = *h;
-        if(handler) if(handler->Handle(&message)) {
-            logger.msg(Arc::VERBOSE, "Security processing/check passed");
-            return true;
+        if(!handler) continue; // Shouldn't happen. Just a sanity check.
+        if(!(handler->Handle(&message))) {
+            logger.msg(Arc::INFO, "Security processing/check failed");
+            return false;
         }
     }
-    logger.msg(Arc::VERBOSE, "Security processing/check failed");
-    return false;
+    logger.msg(Arc::VERBOSE, "Security processing/check passed");
+    return true;
 }
 
 } // namespace Arc
+
