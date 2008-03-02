@@ -15,11 +15,23 @@ namespace ArcSec {
 /** This class implements SecHandler interface. It's Handle() method runs provided 
   Message instance against all PDPs specified in configuration. If any of PDPs 
   returns positive result Handle() return true, otherwise false. */
-class SimpleListAuthZ : public SecHandler {
- public:
-  typedef std::map<std::string, PDP *>  pdp_container_t;
 
+
+class SimpleListAuthZ : public SecHandler {
  private:
+  class PDPDesc {
+   public:
+    PDP* pdp;
+    enum {
+      breakOnAllow,
+      breakOnDeny,
+      breakAlways,
+      breakNever
+    } action;
+    PDPDesc(const std::string& action,PDP* pdp);
+  };
+  typedef std::map<std::string,PDPDesc>  pdp_container_t;
+
   /** Link to Factory responsible for loading and creation of PDP objects */
   Arc::PDPFactory *pdp_factory;
   /** One Handler can include few PDP */

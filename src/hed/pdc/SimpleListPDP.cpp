@@ -33,25 +33,28 @@ bool SimpleListPDP::isPermitted(Message *msg){
   std::ifstream fs(location.c_str());
   
   while (!fs.eof()) {
-     getline (fs, line);
-     logger.msg(INFO, "policy line: %s", line.c_str());
-     logger.msg(INFO, "subject: %s", subject.c_str());
-     line.erase(0,line.find_first_not_of(" \t"));
-     line.erase(line.find_last_not_of(" \t"));
-     if(!line.empty()) {
-       if(line[0] == '"') {
-         std::string::size_type p = line.find('"',1);
-         if(p != std::string::npos) line=line.substr(1,p-1);
-       };
-     };
-     logger.msg(INFO, "policy subject: %s", line.c_str());
-     if(!(line.compare(subject))){
-        fs.close();
-        logger.msg(INFO, "Authorized from simplelist.pdp!!!");
-        return true;
-     }
+    std::string::size_type p;
+    getline (fs, line);
+    logger.msg(INFO, "policy line: %s", line.c_str());
+    logger.msg(INFO, "subject: %s", subject.c_str());
+    p=line.find_first_not_of(" \t"); line.erase(0,p);
+    p=line.find_last_not_of(" \t"); if(p != std::string::npos) line.erase(p+1);
+    if(!line.empty()) {
+      if(line[0] == '"') {
+        std::string::size_type p = line.find('"',1);
+        if(p != std::string::npos) line=line.substr(1,p-1);
+      };
+    };
+    if(!line.empty()) {
+      logger.msg(INFO, "policy subject: %s", line.c_str());
+      if(!(line.compare(subject))) {
+         fs.close();
+         logger.msg(INFO, "Authorized from simplelist.pdp!!!");
+         return true;
+      }
+    }
   }
   fs.close();
-  logger.msg(ERROR, "UnAuthorized from simplelist.pdp!!!");
+  logger.msg(ERROR, "Not authorized from simplelist.pdp!!!");
   return false;
 }

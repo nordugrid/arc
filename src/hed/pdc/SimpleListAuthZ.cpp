@@ -21,6 +21,13 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 using namespace Arc;
 using namespace ArcSec;
 
+SimpleListAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):action(breakOnAllow),pdp(pdp_) {
+  if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
+  else if(strcasecmp("breakOnDeny",action_.c_str()) == 0) { action=breakOnDeny; }
+  else if(strcasecmp("breakAlways",action_.c_str()) == 0) { action=breakAlways; }
+  else if(strcasecmp("breakNever",action_.c_str()) == 0) { action=breakNever; };
+}
+
 SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
   
   pdp_factory = (PDPFactory*)(*ctx);
@@ -35,7 +42,7 @@ SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
   };
   if(!MakePDPs(cfg)) {
     for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
-      if(p->second) delete p->second;
+      if(p->second.pdp) delete p->second.pdp;
     };
     logger.msg(ERROR, "SimpleListAuthZ: failed to initiate all PDPs - this instance will be non-functional"); 
   };
@@ -43,7 +50,7 @@ SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
 
 SimpleListAuthZ::~SimpleListAuthZ() {
   for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
-    if(p->second) delete p->second;
+    if(p->second.pdp) delete p->second.pdp;
   };
 }
 
@@ -65,7 +72,7 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
             logger.msg(ERROR, "PDP: %s can not be loaded", name.c_str()); 
             return false; 
         };
-        if(pdps_.insert(std::make_pair(name,pdp)).second == false) {
+        if(pdps_.insert(std::make_pair(name,PDPDesc(can.Attribute("action"),pdp))).second == false) {
             logger.msg(ERROR, "PDP: %s name is duplicate", name.c_str()); 
             return false; 
         };
@@ -74,11 +81,14 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
 }
 
 bool SimpleListAuthZ::Handle(Arc::Message* msg){
-  //std::string subject=msg->Attributes()->get("TLS:PEERDN");
   pdp_container_t::iterator it;
+  bool r = false;
   for(it=pdps_.begin();it!=pdps_.end();it++){
-     if(it->second->isPermitted(msg))
-        return true;  
+    r = it->second.pdp->isPermitted(msg);
+    if((r == true) && (it->second.action == PDPDesc::breakOnAllow)) return true;
+    if((r == false) && (it->second.action == PDPDesc::breakOnDeny)) return false;
+    if(it->second.action == PDPDesc::breakAlways) return r;
   }
-  return false;
+  return r;
 }
+

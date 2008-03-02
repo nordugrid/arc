@@ -11,7 +11,7 @@
       elements. SimpleListAuthZ plugin is expected to be used to evaluate
       authorization decision by combaining multiple PDP plugins.
       Then called it delegates all security processing to specified PDPs.
-      Those are called sequentially till negative answer obtained or list
+      Those are called sequentially till positive answer obtained or list
       is exausted. -->
 
  <xsd:complexType name="PluginsType">
@@ -33,6 +33,30 @@
    <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="name" type="xsd:string" use="required"/>
+  <!-- Attribute 'action' defines behavior after obtaining results from
+       each PDP. Possible values and their meanings are:
+       breakOnFailure - stop processing in case of negative result. 
+         Result of SecHandler is negative too. In case of positive 
+	 result continue to next PDP.
+       breakOnAllow - stop processing in case of positive result. 
+         Result of SecHandler is positive too. In case of negative 
+	 result continue to next PDP.
+       breakAlways - stop processing immediately and use obtained
+         result as result of SecHandler.
+       breakNever - continue to next PDP.
+       In any case if ther is no next PDP in chain last result is
+       used as result of SecHandler. Default behavior is breakOnAllow.
+  -->
+  <xsd:attribute name="action" use="optional">
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="breakOnDeny"/>
+        <xsd:enumeration value="breakOnAllow"/>
+        <xsd:enumeration value="breakAlways"/>
+        <xsd:enumeration value="breakNever"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+  </xsd:attribute>
   <xsd:anyAttribute namespace="##other" processContents="lax"/>
  </xsd:complexType> 
  <xsd:element name="PDP" type="authz:PDPType"/>
