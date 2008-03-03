@@ -86,11 +86,17 @@ int i2d_PROXYPOLICY(PROXYPOLICY * policy, unsigned char ** pp);
 /* der to internal conversion */
 PROXYPOLICY * d2i_PROXYPOLICY(PROXYPOLICY ** policy, unsigned char ** pp, long length);
 
+X509V3_EXT_METHOD * PROXYPOLICY_x509v3_ext_meth();
+
+STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY(struct v3_ext_method * method, PROXYPOLICY * ext, STACK_OF(CONF_VALUE) * extlist);
+
 /*PROXYCERTINFO function */
 
 /* allocating and free memory */
 PROXYCERTINFO * PROXYCERTINFO_new();
 void PROXYCERTINFO_free(PROXYCERTINFO * proxycertinfo);
+
+int PROXYCERTINFO_print_fp(FILE* fp, PROXYCERTINFO* cert_info);
 
 /* set path_length */
 int PROXYCERTINFO_set_path_length(PROXYCERTINFO * proxycertinfo, long path_length);

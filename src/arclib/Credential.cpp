@@ -233,7 +233,7 @@ namespace ArcLib {
   }
 
   static int proxy_init_ = 0;
-  static void InitProxyCertInfo(void) {
+  void Credential::InitProxyCertInfo(void) {
     #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
     #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
     #define OBJC(c,n) OBJ_create(c,n,#c)
@@ -507,7 +507,7 @@ namespace ArcLib {
   #endif
 
 
-  X509_EXTENSION* Credential::CreateExtension(std::string name, std::string data, bool crit) {
+  X509_EXTENSION* Credential::CreateExtension(std::string& name, std::string& data, bool crit) {
     X509_EXTENSION*   ext = NULL;
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
@@ -519,7 +519,8 @@ namespace ArcLib {
   
     ext_oct = ASN1_OCTET_STRING_new();
   
-    ext_oct->data = (unsigned char *)(data.c_str());
+    ext_oct->data = (unsigned char*) malloc(data.size());
+    memcpy(ext_oct->data, data.c_str(), data.size());
     ext_oct->length = data.size();
   
     if (!(ext = X509_EXTENSION_create_by_OBJ(NULL, ext_obj, crit, ext_oct))) {
@@ -636,16 +637,21 @@ namespace ArcLib {
                   LogError(); 
                 }
                 else { data = (unsigned char*) malloc(length); }
-                length = ext_method->i2d(proxy_cert_info_, (unsigned char**) &data);
+
+                unsigned char* derdata; 
+                derdata = data;
+                length = ext_method->i2d(proxy_cert_info_,  &derdata);
+
                 if(length < 0) { 
                   credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded form"); 
                   free(data); data = NULL; LogError(); 
                 }
                 if(data) {
-                  std::string ext_data((char*)data, length); //free(data);
+                  std::string ext_data((char*)data, length); free(data);
                   ext = CreateExtension(certinfo_sn, ext_data, 1);
                 }
               }
+
               if(ext) {
                 extensions = sk_X509_EXTENSION_new_null();
                 sk_X509_EXTENSION_push(extensions, ext);
@@ -655,14 +661,14 @@ namespace ArcLib {
 
               if(X509_REQ_set_pubkey(req,pkey)) {
                 if(X509_REQ_sign(req,pkey,digest)) {
-                  //if(!(PEM_write_bio_X509_REQ(reqbio,req))){ 
-                  //  credentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed"); 
-                  //  LogError(); res = false;
-                  //}
-                  if(!(i2d_X509_REQ_bio(reqbio,req))){
-                    credentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded form");
+                  if(!(PEM_write_bio_X509_REQ(reqbio,req))){ 
+                    credentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed"); 
                     LogError(); res = false;
                   }
+                  //if(!(i2d_X509_REQ_bio(reqbio,req))){
+                  //  credentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded form");
+                  //  LogError(); res = false;
+                  //}
                   else { rsa_key_ = rsa_key; rsa_key = NULL; pkey_ = pkey; pkey = NULL; res = true; }
                   //TODO
                 }
@@ -721,15 +727,15 @@ err:
     bool res = false;
     if(reqbio == NULL) { credentialLogger.msg(ERROR, "NULL BIO passed to InquireRequest"); return false; }
     if(req_) {X509_REQ_free(req_); req_ = NULL; }
-    //if(!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL))) {  
-    //  credentialLogger.msg(ERROR, "PEM_read_bio_X509_REQ failed"); 
-    //  LogError(); return false; 
-    //}
-
-    if(!(d2i_X509_REQ_bio(reqbio, &req_))) {
-      credentialLogger.msg(ERROR, "Can't convert X509_REQ struct from DER encoded to internal form");
-      LogError(); return false;
+    if(!(PEM_read_bio_X509_REQ(reqbio, &req_, NULL, NULL))) {  
+      credentialLogger.msg(ERROR, "PEM_read_bio_X509_REQ failed"); 
+      LogError(); return false; 
     }
+
+    //if(!(d2i_X509_REQ_bio(reqbio, &req_))) {
+    //  credentialLogger.msg(ERROR, "Can't convert X509_REQ struct from DER encoded to internal form");
+    //  LogError(); return false;
+    //}
 
     STACK_OF(X509_EXTENSION)* req_extensions = NULL;
     X509_EXTENSION* ext;
@@ -753,11 +759,6 @@ err:
           proxy_cert_info_ = NULL;
         }   
 
-              //X509V3_EXT_METHOD*  ext_method = X509V3_EXT_get_nid(OBJ_obj2nid(extension_oid));
-            //std::cout<<"nid: "<<nid<<std::endl;
-              // unsigned char* data = ext->value->data;
-               // proxy_cert_info_ = (PROXYCERTINFO*)ext_method->d2i(NULL, (const unsigned char **) &data, ext->value->length);
- 
         if((proxy_cert_info_ = (PROXYCERTINFO*)X509V3_EXT_d2i(ext)) == NULL) {
            credentialLogger.msg(ERROR, "Can not convert DER encode PROXYCERTINFO extension to internal format"); 
            LogError(); goto err;
@@ -959,7 +960,6 @@ err:
       long  sub_hash;
       unsigned int   len;
       X509V3_EXT_METHOD* ext_method;
-      std::string certinfo_string;
 
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
@@ -976,18 +976,21 @@ err:
         credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); LogError();
       }
       else {certinfo_data = (unsigned char*)malloc(length); }
-      length = ext_method->i2d(proxy->proxy_cert_info_, (unsigned char **) &certinfo_data);
+
+      unsigned char* derdata; derdata = certinfo_data;
+      length = ext_method->i2d(proxy->proxy_cert_info_, &derdata);
       if(length < 0) {
         credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
         free(certinfo_data); certinfo_data = NULL; LogError();
       }
       if(certinfo_data) {
-        certinfo_string.append((char*)certinfo_data); free(certinfo_data); certinfo_data = NULL;
+        std::string certinfo_string((char*)certinfo_data, length); free(certinfo_data); certinfo_data = NULL;
         std::string NID_sn = OBJ_nid2sn(certinfo_NID);
         certinfo_ext = CreateExtension(NID_sn, certinfo_string, 1);
       }
       if(certinfo_ext != NULL) {
-        if(!X509_add_ext(*tosign, certinfo_ext, 0)) {
+        //if(!X509_add_ext(*tosign, certinfo_ext, 0)) {
+        if(!sk_X509_EXTENSION_push(proxy->extensions_, certinfo_ext)) {
           credentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); LogError(); goto err; 
         }
       }
@@ -1006,7 +1009,6 @@ err:
     /* Add any keyUsage and extendedKeyUsage extensions present in the issuer cert */
     if((position = X509_get_ext_by_NID(issuer, NID_key_usage, -1)) > -1) {
       ASN1_BIT_STRING*   usage;
-      std::string ku_string;
       unsigned char *    ku_data = NULL;
       int ku_length;
   
@@ -1030,18 +1032,22 @@ err:
         LogError(); ASN1_BIT_STRING_free(usage); goto err;
       }
       ku_data = (unsigned char*) malloc(ku_length);  
-      ku_length = i2d_ASN1_BIT_STRING(usage, &ku_data);
+      
+      unsigned char* derdata; derdata = ku_data;
+      ku_length = i2d_ASN1_BIT_STRING(usage, &derdata);
       if(ku_length < 0) {
         credentialLogger.msg(ERROR, "Can not convert keyUsage struct from internal to DER format");
         LogError(); ASN1_BIT_STRING_free(usage); free(ku_data); goto err;
       }
       ASN1_BIT_STRING_free(usage);        
       if(ku_data) {
-        ku_string.append((char*)ku_data); free(ku_data); ku_data = NULL;
-        ext = CreateExtension("keyUsage", ku_string, 1);
+        std::string ku_string((char*)ku_data, ku_length); free(ku_data); ku_data = NULL;
+        std::string name = "keyUsage";
+        ext = CreateExtension(name, ku_string, 1);
       }
       if(ext != NULL) {
-        if(!X509_add_ext(*tosign, ext, 0)) {
+        //if(!X509_add_ext(*tosign, ext, 0)) {
+        if(!sk_X509_EXTENSION_push(proxy->extensions_, ext)) {
           credentialLogger.msg(ERROR, "Can not add X509 extension to proxy cert"); LogError();
           X509_EXTENSION_free(ext); ext = NULL; goto err;
         }
@@ -1058,10 +1064,12 @@ err:
       ext = X509_EXTENSION_dup(ext);
       if(ext == NULL) { credentialLogger.msg(ERROR, "Can not copy extended KeyUsage extension"); LogError(); goto err; }
 
-      if(!X509_add_ext(*tosign, ext, 0)) {
+      //if(!X509_add_ext(*tosign, ext, 0)) {
+      if(!sk_X509_EXTENSION_push(proxy->extensions_, certinfo_ext)) {
         credentialLogger.msg(ERROR, "Can not add X509 extended KeyUsage extension to new proxy certificate"); LogError();
         X509_EXTENSION_free(ext); ext = NULL; goto err;
       }
+      //X509_EXTENSION_free(ext); ext = NULL;
     }
     
     /* Create proxy subject name */
@@ -1104,7 +1112,7 @@ err:
     res = true;
      
 err:
-    if(issuer) { X509_free(issuer); }
+  if(issuer) { X509_free(issuer); }
     if(res == false && *tosign) { X509_free(*tosign); *tosign = NULL;}
     if(certinfo_NID != NID_undef) {
       if(serial_number) { ASN1_INTEGER_free(serial_number);}
@@ -1149,6 +1157,8 @@ err:
       proxy_cert_info->extensions = sk_X509_EXTENSION_new_null();
     }    
 
+    std::cout<<"Number of extension, proxy object: "<<sk_X509_EXTENSION_num(proxy->extensions_)<<std::endl;
+
     for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
       ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
       if (ext == NULL) {
@@ -1175,6 +1185,9 @@ err:
     if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
       credentialLogger.msg(ERROR, "Failed to sign the request"); LogError(); goto err;
     }
+
+    std::cout<<"Number of extension, proxy object: "<<sk_X509_EXTENSION_num(proxy->extensions_)<<std::endl;
+    std::cout<<"Number of extension: "<<sk_X509_EXTENSION_num(proxy_cert->cert_info->extensions)<<std::endl;
 
     /*Output the signed certificate into BIO*/
     //if(i2d_X509_bio(outputbio, proxy_cert)) {

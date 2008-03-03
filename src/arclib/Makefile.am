@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libcredential.la
-noinst_PROGRAMS = test
+noinst_PROGRAMS = test  testcertinfo
 
 libcredential_ladir = $(pkgincludedir)/arclib
 libcredential_la_HEADERS  = Proxycertinfo.h  cert_util.h Credential.h listfunc.h VOMSAttribute.h voms_util.h
@@ -12,4 +12,8 @@ test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
 test_LDADD    = libcredential.la
 
+testcertinfo_SOURCES  = testcertinfo.cpp
+testcertinfo_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testcertinfo_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
+testcertinfo_LDADD    = libcredential.la
 

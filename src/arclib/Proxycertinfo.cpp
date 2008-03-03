@@ -56,6 +56,14 @@ PROXYPOLICY * PROXYPOLICY_dup(PROXYPOLICY * policy) {
 				   (char *)policy));
 }
 
+int PROXYPOLICY_print(BIO* bp, PROXYPOLICY* policy) {
+  STACK_OF(CONF_VALUE)* values = NULL;
+  values = i2v_PROXYPOLICY(PROXYPOLICY_x509v3_ext_meth(), policy, values);
+  X509V3_EXT_val_prn(bp, values, 0, 1);
+  sk_CONF_VALUE_pop_free(values, X509V3_conf_free);
+  return 1;
+}
+
 /* set policy language */
 int PROXYPOLICY_set_policy_language(PROXYPOLICY * policy, ASN1_OBJECT * policy_language) {
   if(policy_language != NULL) {
@@ -241,6 +249,24 @@ void PROXYCERTINFO_free(PROXYCERTINFO * proxycertinfo) {
   PROXYPOLICY_free(proxycertinfo->proxypolicy);
   OPENSSL_free(proxycertinfo);
 }
+
+int PROXYCERTINFO_print(BIO* bp, PROXYCERTINFO* cert_info) {
+  STACK_OF(CONF_VALUE)* values = NULL;
+  values = i2v_PROXYCERTINFO(PROXYCERTINFO_v4_x509v3_ext_meth(), cert_info, NULL);
+  X509V3_EXT_val_prn(bp, values, 0, 1);
+  sk_CONF_VALUE_pop_free(values, X509V3_conf_free);
+  return 1;
+}
+
+int PROXYCERTINFO_print_fp(FILE* fp, PROXYCERTINFO* cert_info) {
+  int ret;
+  BIO* bp;
+  bp = BIO_new(BIO_s_file());  
+  BIO_set_fp(bp, fp, BIO_NOCLOSE);
+  ret =  PROXYCERTINFO_print(bp, cert_info);
+  BIO_free(bp);
+  return (ret);
+}   
 
 /* set path_length */
 int PROXYCERTINFO_set_path_length(PROXYCERTINFO * proxycertinfo, long path_length) {

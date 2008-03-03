@@ -62,7 +62,7 @@ class Credential {
     *@param keybits, modulus size for RSA key generation, it should be greater than 1024
     */
     Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024, 
-             std::string proxyversion = "RFC", std::string policylang = "impersonation",
+             std::string proxyversion = "", std::string policylang = "independent",
              std::string policyfile = "", int pathlength = 0);
 
     /**Constructor, specific constructor for usual certificate, constructing from credential files.
@@ -71,6 +71,9 @@ class Credential {
     *and put them into "this" object
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
+
+
+    void static InitProxyCertInfo(void);
 
   private:
     static Arc::Logger credentialLogger;
@@ -93,7 +96,7 @@ class Credential {
     /**Create a certificate extension based on the arguments name and data.
     *argument crit will be used by X509_EXTENSION_create_by_OBJ which is called inside CreateExtension method.
     */
-    X509_EXTENSION* CreateExtension(std::string name, std::string data, bool crit = false);
+    X509_EXTENSION* CreateExtension(std::string& name, std::string& data, bool crit = false);
 
     /** Set the start and end time for the proxy credential. After setting, the start time of proxy
     * will not before the later value from issuer's start time and the "start" parameter, and the end time of proxy
