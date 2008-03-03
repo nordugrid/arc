@@ -104,10 +104,10 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
         Arc::XMLNode r = res.NewChild("bes-factory:GetFactoryAttributesDocumentResponse");
         ret = GetFactoryAttributesDocument(op, r);
     } else if(MatchXMLName(op, "StopAcceptingNewActivities")) {
-        Arc::XMLNode r = res.NewChild("bes-factory:StopAcceptingNewActivitiesResponse");
+        Arc::XMLNode r = res.NewChild("bes-mgmt:StopAcceptingNewActivitiesResponse");
         ret = StopAcceptingNewActivities(op, res);
     } else if(MatchXMLName(op, "StartAcceptingNewActivities")) {
-        Arc::XMLNode r = res.NewChild("bes-factory:StartAcceptingNewActivitiesResponse");
+        Arc::XMLNode r = res.NewChild("bes-mgmt:StartAcceptingNewActivitiesResponse");
         ret = StartAcceptingNewActivities(op, res);
     } else if(MatchXMLName(op, "ChangeActivityStatus")) {
         Arc::XMLNode r = res.NewChild("bes-factory:ChangeActivityStatusResponse");
@@ -162,17 +162,13 @@ void sched(void* arg) {
     
     std::map<std::string,Job> new_jobs =  it.sched_queue.getJobsWithThisState(NEW);
     std::map<std::string,Job>::iterator iter;
+    Resource arex;
     
     for( iter = new_jobs.begin(); iter != new_jobs.end(); iter++ ) {
         std::cout << "NEW job: " << iter -> first << std::endl;
-    
-        Resource arex;
-
         it.sched_resources.random(arex);
-
         Job j = iter -> second;
         Arc::XMLNode jsdl = (iter -> second).getJSDL();
-
         std::string arex_job_id = arex.CreateActivity(jsdl);
         std::cout << "A-REX ID: " << arex.getURL() <<  std::endl;
         if ( arex_job_id != "" ){
@@ -188,8 +184,7 @@ void sched(void* arg) {
         Job j = iter -> second;
 
         std::string arex_job_id  = (iter -> second).getArexJobID();
-        Resource arex = it.sched_resources.getResource((iter -> second).getURL());
-
+        it.sched_resources.getResource((iter -> second).getURL(), arex);
         std::string state;
         state = arex.GetActivityStatus(arex_job_id);
 
@@ -197,11 +192,11 @@ void sched(void* arg) {
         
         it.sched_queue.getJobStatus(iter -> first,job_stat);
 
-        
         if (state == "Unknown" && job_stat == UNKNOWN) {
             if (!it.sched_queue.CheckJobTimeout(iter->first)) {  // job timeout check
                 it.sched_queue.setJobStatus(iter -> first, NEW);
-                it.sched_resources.removeResource(arex.getURL());
+                std::string url = arex.getURL();
+                it.sched_resources.removeResource(url);
                 std::cout << "JobID: " << iter -> first << " RESCHEDULE " << state << std::endl;
             }
         }
@@ -210,9 +205,23 @@ void sched(void* arg) {
             it.sched_queue.setLastCheckTime(iter -> first);
         }
 
+        ArexStatetoSchedState(state, job_stat); // refresh status from A-REX state
+        it.sched_queue.setJobStatus(iter -> first, job_stat);
         std::cout << "JobID: " << iter -> first << " state: " << state << std::endl;
     }
   
+    // kill jobs
+
+    std::map<std::string,Job> killed_jobs =  it.sched_queue.getJobsWithThisState(KILLING);
+    
+    for( iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++ ) {
+
+        Job j = iter -> second;
+        std::string arex_job_id  = (iter -> second).getArexJobID();
+        it.sched_resources.getResource((iter -> second).getURL(), arex);
+        if (arex.TerminateActivity(arex_job_id)) it.sched_queue.setJobStatus(iter -> first, KILLED);
+    }
+
     sleep(it.getPeriod());
     }
 }
@@ -223,6 +232,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
 {
   logger_.addDestination(logcerr);
   // Define supported namespaces
+
   ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
   ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
   ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
@@ -233,19 +243,22 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
   ns_["sched"]="http://www.nordugrid.org/schemas/sched";
+  ns_["bes-mgmt"]="http://schemas.ggf.org/bes/2006/08/bes-management";
+
   endpoint = (std::string)((*cfg)["Endpoint"]);
   period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
   db_path = (std::string)((*cfg)["DataDirectoryPath"]);
   timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
   Arc::CreateThreadFunction(&sched, this);
+  AcceptingNewActivities = true;
 
-  Resource arex1("https://localhost:40000/arex");
-  Resource arex2("https://localhost:40001/arex");
-  Resource arex3("https://localhost:40002/arex");
+  Resource arex1("https://knowarc1.grid.niif.hu:60000/arex");
+
+  //Resource arex2("https://localhost:40001/arex");
+  //Resource arex3("https://localhost:40002/arex");
   sched_resources.addResource(arex1);
-  sched_resources.addResource(arex2);
-  sched_resources.addResource(arex3);
-
+  //sched_resources.addResource(arex2);
+  //sched_resources.addResource(arex3);
 }
 
 // Destructor

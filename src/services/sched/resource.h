@@ -21,7 +21,8 @@ class Resource {
             Arc::ClientSOAP* getSOAPClient(void) {return client;};
             std::string CreateActivity(Arc::XMLNode jsdl);
             std::string GetActivityStatus(std::string arex_job_id);
-            std::string& getURL(void){  return url;};
+            bool TerminateActivity(std::string arex_job_id);
+            std::string getURL(void){  return url;};
             Resource&  operator=( const  Resource& r );
             Resource( const Resource& r);
 };

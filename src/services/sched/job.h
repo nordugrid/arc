@@ -13,8 +13,11 @@ std::string make_uuid();
 
 //enum ArexStatus { ACCEPTING, ACCEPTED, PREPARING, PREPARED, SUBMITTING, EXECUTING, KILLING, EXECUTED, FINISHING, FAILED, HELD };
 
-enum SchedStatus { NEW, STARTING, RUNNING, CANCELLED, FAILED, FINISHED, UNKNOWN, KILLED};
+enum SchedStatus { NEW, STARTING, RUNNING, CANCELLED, FAILED, FINISHED, UNKNOWN, KILLED, KILLING};
 
+bool ArexStatetoSchedState(std::string &arex_state, SchedStatus sched_state);
+
+bool SchedStatetoString(SchedStatus s, std::string &state);
 
 class Job {
 
@@ -52,6 +55,7 @@ class Job {
         void setArexID(void);
         std::string& getURL(void){ return sched_meta.getArexID();};
         bool CheckTimeout(void);
+        bool Cancel(void);
 };
 
 }; // namespace Arc

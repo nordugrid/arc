@@ -34,19 +34,27 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
     in.GetXML(s);
     logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s.c_str());
   };
+
+  if (AcceptingNewActivities == false) {
+    Arc::SOAPEnvelope fault(ns_,true);
+    fault.Fault()->Code(Arc::SOAPFault::Sender);
+    fault.Fault()->Reason("The BES is not currently accepting new activities.");
+    Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:NotAcceptingNewActivities");
+    out.Replace(fault.Child());
+    return Arc::MCC_Status();
+  }
+
   Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
   if(!jsdl) {
     // Wrongly formated request
     logger_.msg(Arc::ERROR, "CreateActivity: no job description found");
     Arc::SOAPEnvelope fault(ns_,true);
-    if(fault) {
-      fault.Fault()->Code(Arc::SOAPFault::Sender);
-      fault.Fault()->Reason("Can't find JobDefinition element in request");
-      Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:InvalidRequestMessageFault");
-      f.NewChild("bes-factory:InvalidElement")="jsdl:JobDefinition";
-      f.NewChild("bes-factory:Message")="Element is missing";
-      out.Replace(fault.Child());
-    };
+    fault.Fault()->Code(Arc::SOAPFault::Sender);
+    fault.Fault()->Reason("Can't find JobDefinition element in request");
+    Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:InvalidRequestMessageFault");
+    f.NewChild("bes-factory:InvalidElement")="jsdl:JobDefinition";
+    f.NewChild("bes-factory:Message")="Element is missing";
+    out.Replace(fault.Child());
     return Arc::MCC_Status();
   };
   std::string delegation;

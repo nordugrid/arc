@@ -90,4 +90,66 @@ bool Job::CheckTimeout(void)
         return false;
 }
 
+
+bool SchedStatetoString(SchedStatus s, std::string &state) {
+
+    switch (NEW){
+    case NEW:
+        state = "New";
+        break;
+    case STARTING:
+        state = "Starting";
+        break;
+    case RUNNING:
+        state = "Running";
+        break;
+    case CANCELLED:
+        state = "Running";
+        break;
+    case FAILED:
+        state = "Failed";
+        break;
+    case FINISHED:
+        state = "Finished";
+        break;
+    case UNKNOWN:
+        state = "Unknown";
+        break;
+    case KILLED:
+        state = "Killed";
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+
+bool ArexStatetoSchedState(std::string &arex_state, SchedStatus sched_state) {
+
+    if(arex_state == "Accepted") {
+        sched_state = STARTING;
+    } else if(arex_state == "Preparing") {
+        sched_state = STARTING;
+    } else if(arex_state == "Submiting") {
+        sched_state = STARTING;
+    } else if(arex_state == "Executing") {
+        sched_state = RUNNING;
+    } else if(arex_state == "Finishing") {
+        sched_state = RUNNING;
+    } else if(arex_state == "Finished") {
+        sched_state = FINISHED;
+    } else if(arex_state == "Deleted") {
+        sched_state = FINISHED;
+    } else if(arex_state == "Killing") {
+        sched_state = RUNNING;
+    };
+
+}
+
+bool Job::Cancel(void) { 
+    status = KILLED;
+    return true;
+}
+
 };

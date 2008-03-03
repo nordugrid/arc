@@ -25,10 +25,10 @@ void ResourcesHandling::removeResource(std::string &id)
     resources.erase(id);
 }
 
-
-Resource& ResourcesHandling::getResource(std::string &id)
+bool ResourcesHandling::getResource(std::string &id, Resource &r)
 {
-    return resources[id];
+    r = resources[id];
+    return true;
 }
 
 bool ResourcesHandling::random(Resource &r)

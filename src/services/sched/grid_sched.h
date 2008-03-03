@@ -49,6 +49,7 @@ class GridSchedulerService: public Arc::Service {
         Arc::MCC_Status make_response(Arc::Message& outmsg);
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
+        bool AcceptingNewActivities;
     public:
         JobQueue sched_queue;
         ResourcesHandling sched_resources;

@@ -1,11 +1,58 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "grid_sched.h"
 
 namespace GridScheduler {
 
 
-Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in, Arc::XMLNode &out)
-{
-    return Arc::MCC_Status();
+Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::XMLNode &out) {
+  /*
+  TerminateActivities
+    ActivityIdentifier (wsa:EndpointReferenceType, unbounded)
+
+  TerminateActivitiesResponse
+    Response (unbounded)
+      ActivityIdentifier
+      Terminated (boolean)
+      Fault (soap:Fault)
+
+  */
+  {
+    std::string s;
+    in.GetXML(s);
+    logger_.msg(Arc::DEBUG, "TerminateActivities: request = \n%s", s.c_str());
+  };
+  for(int n = 0;;++n) {
+    Arc::XMLNode id = in["ActivityIdentifier"][n];
+    if(!id) break;
+    Arc::XMLNode resp = out.NewChild("bes-factory:Response");
+    resp.NewChild(id);
+    std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["sched:JobID"];
+    if(jobid.empty()) {
+      continue;
+    };
+
+    if(!sched_queue.CheckJobID(jobid)) {
+      continue;
+    };
+
+    bool result = sched_queue.setJobStatus(jobid, KILLING);
+    
+    if(result) {
+      resp.NewChild("bes-factory:Terminated")="true";
+    } else {
+      resp.NewChild("bes-factory:Terminated")="false";
+    };
+  };
+  {
+    std::string s;
+    out.GetXML(s);
+    logger_.msg(Arc::DEBUG, "TerminateActivities: response = \n%s", s.c_str());
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-}
+} // namespace
+

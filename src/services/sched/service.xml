@@ -28,10 +28,10 @@
     </Component>
     <Component name="tls.service" id="tls">
       <next id="http"/>
-      <KeyPath>key.pem</KeyPath>
-      <CertificatePath>cert.pem</CertificatePath>
-      <CACertificatePath>ca.pem</CACertificatePath>
-    </Component>
+      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <CACertificateDir>/etc/grid-security/certificates</CACertificateDir>
+    </Component> 
     <Component name="http.service" id="http">
       <next id="soap">POST</next>
       <next id="plexer">GET</next>
@@ -46,7 +46,7 @@
        <sched:Endpoint>https://localhost:60000/sched</sched:Endpoint>
        <sched:DataDirectoryPath>./data</sched:DataDirectoryPath>
        <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
-       <sched:Timeout>25</sched:Timeout> <!-- second -->
+       <sched:Timeout>10</sched:Timeout> <!-- second -->
     </Service>
   </Chain>
 </ArcConfig>

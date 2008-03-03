@@ -31,29 +31,22 @@ Resource::Resource(std::string url_str)
     ns["sched"]="http://www.nordugrid.org/schemas/sched";
 
     Arc::URL url(url_str);
-    bool tls;
-    if(url.Protocol() == "http") {
-        tls=false;
-    } else if(url.Protocol() == "https") {
-        tls=true;
-    }
-     else {
-       //throw(std::invalid_argument(std::string("URL contains unsupported protocol")));
-    }
-    cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
+/*    cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
     cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
     cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
-    cfg.AddPluginsPath("../../hed/mcc/soap/.libs/");
-    client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), tls, url.Path());
+    cfg.AddPluginsPath("../../hed/mcc/soap/.libs/"); */
+
+    cfg.AddCertificate("/etc/grid-security/hostcert.pem");
+    cfg.AddPrivateKey("/etc/grid-security/hostkey.pem");
+    cfg.AddCADir("/etc/grid-security/certificates");
+
+    client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 }
 
 
 Resource::~Resource(void)
 {
-    //TODO bug elimination
-
-
-    //delete client;
+   // if (client) delete client;
 }
 
 std::string Resource::CreateActivity(Arc::XMLNode jsdl)
@@ -66,8 +59,7 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
 
     Arc::MCC_Status status = client->process(&request, &response);
     if(!status || !response) {
-        jobid="";
-        return jobid;
+        return "";
     }
 
     Arc::XMLNode id, fs;
@@ -82,16 +74,21 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
 std::string Resource::GetActivityStatus(std::string arex_job_id)
 {
     std::string state, substate, faultstring;
-
-    Arc::PayloadSOAP request(ns);
-    request.NewChild("bes-factory:GetActivityStatuses").NewChild(Arc::XMLNode(arex_job_id));
-
     Arc::PayloadSOAP* response;
+      
+    // TODO: better error handling
 
-    Arc::MCC_Status status = client->process(&request, &response);
-    if(!status || !response) {
-        state="Unknown";
-        return state;
+    try {
+        Arc::PayloadSOAP request(ns);
+        request.NewChild("bes-factory:GetActivityStatuses").NewChild(Arc::XMLNode(arex_job_id));
+
+        Arc::MCC_Status status = client->process(&request, &response);
+        if(!status || !response) {
+            return "Unknown";
+        }
+    }
+    catch (...) { 
+        return "Unknown";
     }
 
     Arc::XMLNode st, fs;
@@ -108,11 +105,41 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
       std::cerr << "The job status could not be retrieved." << std::endl;
     else {
 
-      return state+"/"+substate;
+      return substate;
 
     }
 
 }
+
+bool Resource::TerminateActivity(std::string arex_job_id)
+{
+    std::string state, substate, faultstring;
+    Arc::PayloadSOAP* response;
+      
+    // TODO: better error handling
+
+    try {
+        Arc::PayloadSOAP request(ns);
+        request.NewChild("bes-factory:TerminateActivities").NewChild(Arc::XMLNode(arex_job_id));
+
+        Arc::MCC_Status status = client->process(&request, &response);
+        if(!status || !response) {
+            return "Unknown";
+        }
+    }
+    catch (...) { 
+        return "Unknown";
+    }
+
+    Arc::XMLNode cancelled, fs;
+    (*response)["TerminateActivitiesResponse"]["Response"]["Cancelled"].New(cancelled);
+    std::string result = (std::string)cancelled;
+    if (result=="true")
+        return true;
+    else
+        return false;
+}
+
 
 Resource&  Resource::operator=( const  Resource& r )
 {

@@ -15,8 +15,8 @@ class ResourcesHandling {
         ResourcesHandling(void);
         void addResource(Resource &r);
         void removeResource(std::string &id);
-        Resource& getResource(std::string &id);
-        bool random(Resource& r);
+        bool getResource(std::string &id, Resource &r);
+        bool random(Resource &r);
         std::map<std::string,Resource>& getResources(void) {return resources;};
 };
 
