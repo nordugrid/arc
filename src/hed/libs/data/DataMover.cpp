@@ -391,14 +391,10 @@ namespace Arc {
       destination.passive(force_passive);
       destination.additional_checks(do_checks);
       /* take suggestion from DataHandle about buffer, etc. */
-      DataPoint::analyze_t hint_read;
-      DataPoint::analyze_t hint_write;
       bool cacheable = false;
       long int bufsize;
       int bufnum;
-      source.analyze(hint_read);
-      destination.analyze(hint_write);
-      if(hint_read.cache && hint_write.local)
+      if(source.Cache() && destination.Local())
         if(cache)
           cacheable = true;
       /* tune buffers */
@@ -406,15 +402,15 @@ namespace Arc {
       bool seekable = destination.out_of_order();
       source.out_of_order(seekable);
       bufnum = 1;
-      if(hint_read.bufsize > bufsize)
-        bufsize = hint_read.bufsize;
-      if(hint_write.bufsize > bufsize)
-        bufsize = hint_write.bufsize;
+      if(source.BufSize() > bufsize)
+        bufsize = source.BufSize();
+      if(destination.BufSize() > bufsize)
+        bufsize = destination.BufSize();
       if(seekable) {
-        if(hint_read.bufnum > bufnum)
-          bufnum = hint_read.bufnum;
-        if(hint_write.bufnum > bufnum)
-          bufnum = hint_read.bufnum;
+        if(source.BufNum() > bufnum)
+          bufnum = source.BufNum();
+        if(destination.BufNum() > bufnum)
+          bufnum = destination.BufNum();
       }
       bufnum = bufnum * 2;
       logger.msg(DEBUG, "Creating buffer: %i x %i", bufsize, bufnum);
@@ -457,7 +453,7 @@ namespace Arc {
       /* TODO: make mapped url to be handled by source handle directly */
       bool mapped = false;
       URL mapped_url;
-      if(hint_write.local) {
+      if(destination.Local()) {
         mapped_url = source.current_location();
         mapped = map.map(mapped_url);
         /* TODO: copy options to mapped_url */
@@ -473,7 +469,7 @@ namespace Arc {
         }
       }
       // Do not link if user asks. Replace link:// with file://
-      if(hint_read.readonly && mapped)
+      if(source.ReadOnly() && mapped)
         if(mapped_url.Protocol() == "link")
           mapped_url.ChangeProtocol("file");
       DataHandle mapped_h(mapped_url);
@@ -520,7 +516,7 @@ namespace Arc {
               logger.msg(INFO, "Cached file is outdated");
               continue;
             }
-            if(hint_read.readonly) {
+            if(source.ReadOnly()) {
               logger.msg(DEBUG, "Linking/copying cached file");
               if(!cache.link(destination.current_location().Path())) {
                 /* failed cache link is unhandable */

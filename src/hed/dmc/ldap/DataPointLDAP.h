@@ -21,7 +21,6 @@ namespace Arc {
                                DataCallback *space_cb = NULL);
     virtual bool stop_reading();
     virtual bool stop_writing();
-    virtual bool analyze(analyze_t& arg);
     virtual bool check();
     virtual bool remove();
     virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);

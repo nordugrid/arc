@@ -20,120 +20,22 @@ namespace Arc {
     failure_code = common_failure;
     range_start = 0;
     range_end = 0;
+    bufnum = stringtoi(url.Option("threads"));
+    if(bufnum < 1)
+      bufnum = 1;
+    if(bufnum > MAX_PARALLEL_STREAMS)
+      bufnum = MAX_PARALLEL_STREAMS;
+    bufsize = stringtol(url.Option("blocksize"));
+    if(bufsize < 0)
+      bufsize = 0;
+    if(bufsize > MAX_BLOCK_SIZE)
+      bufsize = MAX_BLOCK_SIZE;
+    cache = (url.Option("cache", "yes") == "yes");
+    readonly = (url.Option("readonly", "yes") == "yes");
+    local = false;
   }
 
-  DataPointDirect::~DataPointDirect() {
-    /*  Stop any transfer - use this as an example in derived methods */
-    stop_reading();
-    stop_writing();
-    /* !!!!!!!!!!! destroy activated handles, etc here !!!!!!!! */
-    deinit_handle();
-  }
-
-  bool DataPointDirect::analyze(analyze_t& arg) {
-    if(!url)
-      return false;
-    arg.bufnum = stringtoi(url.Option("threads"));
-    if(arg.bufnum < 1)
-      arg.bufnum = 1;
-    if(arg.bufnum > MAX_PARALLEL_STREAMS)
-      arg.bufnum = MAX_PARALLEL_STREAMS;
-    arg.bufsize = stringtol(url.Option("blocksize"));
-    if(arg.bufsize < 0)
-      arg.bufsize = 0;
-    if(arg.bufsize > MAX_BLOCK_SIZE)
-      arg.bufsize = MAX_BLOCK_SIZE;
-    arg.cache = (url.Option("cache", "yes") == "yes");
-    arg.readonly = (url.Option("readonly", "yes") == "yes");
-    arg.local = false;
-    return true;
-  }
-
-  bool DataPointDirect::init_handle() {
-    if(!url)
-      return false;
-    cacheable = (url.Option("cache", "yes") == "yes");
-    linkable = (url.Option("readonly", "yes") == "yes");
-    out_of_order(out_of_order());
-    transfer_streams = 1;
-    if(allow_out_of_order) {
-      transfer_streams = stringtoi(url.Option("threads"));
-      if(transfer_streams < 1)
-        transfer_streams = 1;
-      if(transfer_streams > MAX_PARALLEL_STREAMS)
-        transfer_streams = MAX_PARALLEL_STREAMS;
-    }
-    return true;
-  }
-
-  bool DataPointDirect::deinit_handle() {
-    return true;
-  }
-
-  bool DataPointDirect::start_reading(DataBufferPar&) {
-    failure_code = common_failure;
-    failure_description = "";
-    if(reading || writing || !url)
-      return false;
-    if(!init_handle())
-      return false;
-    reading = true;
-    return true;
-  }
-
-  bool DataPointDirect::stop_reading() {
-    if(!reading)
-      return false;
-    reading = false;
-    return true;
-  }
-
-  bool DataPointDirect::start_writing(DataBufferPar&, DataCallback*) {
-    failure_code = common_failure;
-    failure_description = "";
-    if(reading || writing || !url)
-      return false;
-    if(!init_handle())
-      return false;
-    writing = true;
-    return true;
-  }
-
-  bool DataPointDirect::stop_writing() {
-    if(!writing)
-      return false;
-    writing = false;
-    return true;
-  }
-
-  bool DataPointDirect::list_files(std::list<FileInfo>&, bool) {
-    failure_code = common_failure;
-    failure_description = "";
-    if(reading || writing || !url)
-      return false;
-    if(!init_handle())
-      return false;
-    return true;
-  }
-
-  bool DataPointDirect::check() {
-    failure_code = common_failure;
-    failure_description = "";
-    if(reading || writing || !url)
-      return false;
-    if(!init_handle())
-      return false;
-    return true;
-  }
-
-  bool DataPointDirect::remove() {
-    failure_code = common_failure;
-    if(reading || writing || !url)
-      return false;
-    if(!init_handle())
-      return false;
-    return true;
-  }
+  DataPointDirect::~DataPointDirect() {}
 
   void DataPointDirect::out_of_order(bool val) {
     allow_out_of_order = val;

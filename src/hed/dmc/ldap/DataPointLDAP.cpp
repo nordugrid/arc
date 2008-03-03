@@ -18,18 +18,13 @@ namespace Arc {
   DataPointLDAP::~DataPointLDAP() {
     stop_reading();
     stop_writing();
-    deinit_handle();
   }
 
   bool DataPointLDAP::check() {
-    if(!DataPointDirect::check())
-      return false;
-    return true;
+    return false;
   }
 
   bool DataPointLDAP::remove() {
-    if(!DataPointDirect::remove())
-      return false;
     return false;
   }
 
@@ -110,10 +105,6 @@ namespace Arc {
   }
 
   bool DataPointLDAP::list_files(std::list<FileInfo>& files, bool resolve) {
-    return false;
-  }
-
-  bool DataPointLDAP::analyze(analyze_t& arg) {
     return false;
   }
 

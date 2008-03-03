@@ -305,6 +305,9 @@ namespace Arc {
     return false;
   }
 
+  bool DataPointHTTP::check() {return false;}
+  bool DataPointHTTP::remove() {return false;}
+
   void DataPointHTTP::read_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);

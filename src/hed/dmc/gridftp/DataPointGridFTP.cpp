@@ -707,16 +707,7 @@ namespace Arc {
   }
 
   DataPointGridFTP::DataPointGridFTP(const URL& url) : DataPointDirect(url),
-                                                       ftp_active(false) {}
-
-  DataPointGridFTP::~DataPointGridFTP() {
-    stop_reading();
-    stop_writing();
-    deinit_handle();
-  }
-
-  bool DataPointGridFTP::init_handle() {
-    if(!DataPointDirect::init_handle()) return false;
+                                                       ftp_active(false) {
     is_secure = false;
     if(url.Protocol() == "gsiftp") is_secure = true;
     if(!ftp_active) {
@@ -728,7 +719,7 @@ namespace Arc {
                    "init_handle: globus_ftp_client_handleattr_init failed");
         logger.msg(ERROR, "Globus error: %s", res.str().c_str());
         ftp_active = false;
-        return false;
+        return;
       }
       if(!(res = globus_ftp_client_handleattr_set_gridftp2(&ftp_attr,
                                                           GLOBUS_TRUE))) {
@@ -736,14 +727,14 @@ namespace Arc {
                    "globus_ftp_client_handleattr_set_gridftp2 failed");
         logger.msg(ERROR, "Globus error: %s", res.str().c_str());
         ftp_active = false;
-        return false;
+        return;
       }
       if(!(res = globus_ftp_client_handle_init(&ftp_handle, &ftp_attr))) {
         globus_ftp_client_handleattr_destroy(&ftp_attr);
         logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
         logger.msg(ERROR, "Globus error: %s", res.str().c_str());
         ftp_active = false;
-        return false;
+        return;
       }
       globus_ftp_client_handleattr_destroy(&ftp_attr);
 #else
@@ -751,7 +742,7 @@ namespace Arc {
         logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
         logger.msg(ERROR, "Globus error: %s", res.str().c_str());
         ftp_active = false;
-        return false;
+        return;
       }
 #endif
       if(!(res = globus_ftp_client_operationattr_init(&ftp_opattr))) {
@@ -760,7 +751,7 @@ namespace Arc {
         logger.msg(ERROR, "Globus error: %s", res.str().c_str());
         globus_ftp_client_handle_destroy(&ftp_handle);
         ftp_active = false;
-        return false;
+        return;
       }
     }
     ftp_active = true;
@@ -833,21 +824,16 @@ namespace Arc {
     /*   globus_ftp_client_operationattr_set_resume_third_party_transfer  */
     /*   globus_ftp_client_operationattr_set_authorization                */
     globus_ftp_client_operationattr_set_append(&ftp_opattr, GLOBUS_FALSE);
-    return true;
   }
 
-  bool DataPointGridFTP::deinit_handle() {
-    if(!DataPointDirect::deinit_handle()) return false;
+  DataPointGridFTP::~DataPointGridFTP() {
+    stop_reading();
+    stop_writing();
     if(ftp_active) {
       logger.msg(DEBUG, "DataPoint::deinit_handle: destroy ftp_handle");
       globus_ftp_client_handle_destroy(&ftp_handle);
       globus_ftp_client_operationattr_destroy(&ftp_opattr);
     }
-    return true;
-  }
-
-  bool DataPointGridFTP::analyze(analyze_t& arg) {
-    return DataPointDirect::analyze(arg);
   }
 
   bool DataPointGridFTP::out_of_order() {

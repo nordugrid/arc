@@ -23,7 +23,6 @@ namespace Arc {
    public:
     DataPointIndex(const URL& url);
     virtual ~DataPointIndex() {};
-    virtual bool get_info(FileInfo& fi);
 
     virtual const URL& current_location() const;
     virtual const std::string& current_meta_location() const;
@@ -60,9 +59,8 @@ namespace Arc {
     virtual bool stop_reading();
     virtual bool stop_writing();
 
-    virtual bool analyze(analyze_t& arg);
     virtual bool check();
-    virtual bool local() const;
+    virtual bool Local() const;
 
     virtual bool remove();
 

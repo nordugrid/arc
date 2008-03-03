@@ -66,33 +66,10 @@ namespace Arc {
     /// Same as stop_reading but for corresponding start_writing.
     virtual bool stop_writing() = 0;
 
-    /// Structure used in analyze() call.
-    /// \param bufsize returns suggested size of buffers to store data.
-    /// \param bufnum returns suggested number of buffers.
-    /// \param cache returns true if url is allowed to be cached.
-    /// \param local return true if URL is accessed locally (file://)
-    class analyze_t {
-     public:
-      long int bufsize;
-      int bufnum;
-      bool cache;
-      bool local;
-      bool readonly;
-      analyze_t() : bufsize(-1), bufnum(1), cache(true),
-                    local(false), readonly(true) {};
-    };
-
-    /// Analyze url and provide hints.
-    /// \param arg returns suggested values.
-    virtual bool analyze(analyze_t& arg) = 0;
-
     /// Query remote server or local file system to check if object is
     /// accessible. If possible this function will also try to fill meta
     /// information about object in associated DataPoint.
     virtual bool check() = 0;
-
-    /// Check if file is local (URL is something like file://).
-    virtual bool local() const = 0;
 
     /// Remove/delete object at URL.
     virtual bool remove() = 0;
@@ -178,11 +155,6 @@ namespace Arc {
     /// Otherwise only particular physical instance is unregistered.
     virtual bool meta_unregister(bool all) = 0;
 
-    /// Retrieve properties of object pointed by meta-URL of DataPoint
-    /// object. It works only for meta-URL.
-    /// \param fi contains retrieved information.
-    virtual bool get_info(FileInfo& fi) = 0;
-
     /*
      * Set and get corresponding meta-information related to URL.
      * Those attributes can be supported by non-meta-URLs too.
@@ -247,6 +219,31 @@ namespace Arc {
     virtual const Time& GetValid() const {
       return valid;
     };
+
+    /// Get suggested buffer size for transfers.
+    virtual unsigned long long int BufSize() const {
+      return bufsize;
+    }
+
+    /// Get suggested number of buffers for transfers.
+    virtual int BufNum() const {
+      return bufnum;
+    }
+
+    /// Returns true if file is cacheable.
+    virtual bool Cache() const {
+      return cache;
+    }
+
+    /// Returns true if file is local, e.g. file:// urls.
+    virtual bool Local() const {
+      return local;
+    }
+
+    // Returns true if file is readonly.
+    virtual bool ReadOnly() const {
+      return readonly;
+    }
 
     /// Check if URL is meta-URL.
     virtual bool meta() const = 0;
@@ -358,12 +355,18 @@ namespace Arc {
    protected:
     URL url;
     static Logger logger;
+
     // attributes
     unsigned long long int size;
     std::string checksum;
     Time created;
     Time valid;
-    int tries_left;
+    int triesleft;
+    unsigned long long int bufsize;
+    int bufnum;
+    bool cache;
+    bool local;
+    bool readonly;
   };
 
 } // namespace Arc

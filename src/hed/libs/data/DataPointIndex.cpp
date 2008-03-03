@@ -16,22 +16,6 @@ namespace Arc {
     location = locations.end();
   }
 
-  bool DataPointIndex::get_info(FileInfo& fi) {
-    if(!meta_resolve(true)) {
-      return false;
-    }
-    fi = url.Path();
-    for(std::list<URLLocation>::iterator i = locations.begin();
-        i != locations.end(); ++i)
-      fi.AddURL(*i);
-    fi.SetSize(GetSize());
-    fi.SetCheckSum(GetCheckSum());
-    fi.SetCreated(GetCreated());
-    fi.SetValid(GetValid());
-    fi.SetType(FileInfo::file_type_file);
-    return true;
-  }
-
   const URL& DataPointIndex::current_location() const {
     static const URL empty;
     if(location == locations.end())
@@ -51,7 +35,7 @@ namespace Arc {
   }
 
   bool DataPointIndex::have_location() const {
-    if(tries_left <= 0) return false;
+    if(triesleft <= 0) return false;
     if(location == locations.end()) return false;
     return true;
   }
@@ -60,7 +44,7 @@ namespace Arc {
     if(!have_location()) return false;
     ++location;
     if(location == locations.end()) {
-      if(--tries_left > 0)
+      if(--triesleft > 0)
         location = locations.begin();
     }
     if(location != locations.end())
@@ -123,8 +107,8 @@ namespace Arc {
   }
 
   void DataPointIndex::SetTries(const int n) {
-    tries_left = std::max(0, n);
-    if(tries_left == 0)
+    triesleft = std::max(0, n);
+    if(triesleft == 0)
       location = locations.end();
     else if(location == locations.end())
       location = locations.begin();
@@ -154,19 +138,14 @@ namespace Arc {
     return h->stop_writing();
   }
 
-  bool DataPointIndex::analyze(analyze_t& arg) {
-    if(!h) return false;
-    return h->analyze(arg);
-  }
-
   bool DataPointIndex::check() {
     if(!h) return false;
     return h->check();
   }
 
-  bool DataPointIndex::local() const {
+  bool DataPointIndex::Local() const {
     if(!h) return false;
-    return h->local();
+    return h->Local();
   }
 
   bool DataPointIndex::remove() {

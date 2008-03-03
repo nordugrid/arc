@@ -16,7 +16,12 @@ namespace Arc {
                                          size(-1),
                                          created(-1),
                                          valid(-1),
-                                         tries_left(5) {}
+                                         triesleft(5),
+                                         bufsize(-1),
+                                         bufnum(1),
+                                         cache(true),
+                                         local(false),
+                                         readonly(true) {}
 
   const URL& DataPoint::base_url() const {
     return url;
@@ -27,11 +32,11 @@ namespace Arc {
   }
 
   int DataPoint::GetTries() const {
-    return tries_left;
+    return triesleft;
   }
 
   void DataPoint::SetTries(const int n) {
-    tries_left = std::max(0, n);
+    triesleft = std::max(0, n);
   }
 
 } // namespace Arc

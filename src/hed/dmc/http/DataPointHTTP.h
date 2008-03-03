@@ -24,12 +24,14 @@ namespace Arc {
    public:
     DataPointHTTP(const URL& url);
     virtual ~DataPointHTTP();
+    virtual bool check();
+    virtual bool remove();
     virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
     virtual bool start_reading(DataBufferPar& buffer);
     virtual bool start_writing(DataBufferPar& buffer,
                                DataCallback *space_cb = NULL);
-    virtual bool stop_reading(void);
-    virtual bool stop_writing(void);
+    virtual bool stop_reading();
+    virtual bool stop_writing();
   };
 
 } // namespace Arc

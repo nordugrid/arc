@@ -59,7 +59,6 @@ namespace Arc {
    public:
     DataPointGridFTP(const URL& url);
     virtual ~DataPointGridFTP();
-    virtual bool analyze(analyze_t& arg);
     virtual bool start_reading(DataBufferPar& buf);
     virtual bool start_writing(DataBufferPar& buf,
                                DataCallback *space_cb = NULL);

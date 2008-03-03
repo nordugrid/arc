@@ -2,13 +2,15 @@
 #include <config.h>
 #endif
 
+#include <arc/Logger.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
-#include <arc/StringConv.h>
+
 #include <arc/data/MkDirRecursive.h>
 #include <arc/data/CheckFile.h>
-#include <arc/Logger.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataCallback.h>
+
 #include "DataPointFile.h"
 
 #include <fcntl.h>
@@ -20,35 +22,21 @@ namespace Arc {
 
   Logger DataPointFile::logger(DataPoint::logger, "File");
 
-  DataPointFile::DataPointFile(const URL& url) : DataPointDirect(url) {}
+  DataPointFile::DataPointFile(const URL& url) : DataPointDirect(url),
+                                                 is_channel(false) {
+    if(url.Protocol() == "file") {
+      cache = false;
+      is_channel = false;
+    }
+    else if(url.Path() == "-") {
+      linkable = false;
+      is_channel = true;
+    }
+  }
 
   DataPointFile::~DataPointFile() {
     stop_reading();
     stop_writing();
-    deinit_handle();
-  }
-
-  bool DataPointFile::init_handle() {
-    if(!DataPointDirect::init_handle())
-      return false;
-    if(url.Protocol() == "file") {
-      cacheable = false;
-      is_channel = false;
-    }
-    else if(url.Path() == "-") {
-      cacheable = false;
-      linkable = false;
-      is_channel = true;
-    }
-    else
-      return false;
-    return true;
-  }
-
-  bool DataPointFile::deinit_handle() {
-    if(!DataPointDirect::deinit_handle())
-      return false;
-    return true;
   }
 
   void DataPointFile::read_file() {
@@ -108,8 +96,6 @@ namespace Arc {
     }
     close(fd);
     buffer->eof_read(true);
-    /* inform parent thread about exit */
-    file_thread_exited.signal();
   }
 
   void DataPointFile::write_file() {
@@ -150,17 +136,13 @@ namespace Arc {
       buffer->is_written(h);
     }
     close(fd);
-    /* inform parent thread about exit */
-    file_thread_exited.signal();
   }
 
   bool DataPointFile::check() {
-    if(!DataPointDirect::check())
+    if(reading || writing || !url)
       return false;
     Arc::User user;
     int res = user.check_file_access(url.Path(), O_RDONLY);
-   /* int res = check_file_access(url.Path(), O_RDONLY,
-                                get_user_id(), (gid_t)(-1)); */
     if(res != 0) {
       logger.msg(INFO, "File is not accessible: %s", url.Path().c_str());
       return false;
@@ -176,7 +158,7 @@ namespace Arc {
   }
 
   bool DataPointFile::remove() {
-    if(!DataPointDirect::remove())
+    if(reading || writing || !url)
       return false;
     if(unlink(url.Path().c_str()) == -1)
       if(errno != ENOENT)
@@ -185,22 +167,21 @@ namespace Arc {
   }
 
   bool DataPointFile::start_reading(DataBufferPar& buf) {
-    if(!DataPointDirect::start_reading(buf))
+    if(reading || writing || !url)
       return false;
     /* try to open */
-    file_thread_exited.reset();
     if(url.Path() == "-")
       fd = dup(STDIN_FILENO);
     else {
       Arc::User user;
       if(user.check_file_access(url.Path(), O_RDONLY) != 0) {
-        DataPointDirect::stop_reading();
+        reading = false;
         return false;
       }
       fd = open(url.Path().c_str(), O_RDONLY);
     }
     if(fd == -1) {
-      DataPointDirect::stop_reading();
+      reading = false;
       return false;
     }
     /* provide some metadata */
@@ -214,30 +195,30 @@ namespace Arc {
     if (!(CreateThreadClass(*this, DataPointFile::read_file))) {
       close(fd);
       fd = -1;
-      DataPointDirect::stop_reading();
+      reading = false;
       return false;
     }
     return true;
   }
 
   bool DataPointFile::stop_reading() {
-    if(!DataPointDirect::stop_reading())
+    if(!reading)
       return false;
+    reading = false;
     if(!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
       close(fd);
       fd = -1;
     }
-    file_thread_exited.wait();/* wait till reading thread exited */
+    buffer->wait_eof_read();         /* wait till reading thread exited */
     return true;
   }
 
   bool DataPointFile::start_writing(DataBufferPar& buf,
                                     DataCallback *space_cb) {
-    if(!DataPointDirect::start_writing(buf, space_cb))
+    if(reading || writing || !url)
       return false;
     /* try to open */
-    file_thread_exited.reset();
     buffer = &buf;
     if(url.Path() == "-") {
       fd = dup(STDOUT_FILENO);
@@ -245,7 +226,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed to use channel stdout");
         buffer->error_write(true);
         buffer->eof_write(true);
-        DataPointDirect::stop_writing();
+        writing = false;
         return false;
       }
     }
@@ -258,7 +239,7 @@ namespace Arc {
         logger.msg(ERROR, "Invalid url: %s", url.str().c_str());
         buffer->error_write(true);
         buffer->eof_write(true);
-        DataPointDirect::stop_writing();
+        writing = false;
         return false;
       }
       std::string dirpath = url.Path();
@@ -273,7 +254,7 @@ namespace Arc {
                      dirpath.c_str());
           buffer->error_write(true);
           buffer->eof_write(true);
-          DataPointDirect::stop_writing();
+          writing = false;
           return false;
         }
       }
@@ -289,7 +270,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed to create/open file %s", url.Path().c_str());
         buffer->error_write(true);
         buffer->eof_write(true);
-        DataPointDirect::stop_writing();
+        writing = false;
         return false;
       }
 
@@ -324,7 +305,7 @@ namespace Arc {
               buffer->speed.hold(false);
               buffer->error_write(true);
               buffer->eof_write(true);
-              DataPointDirect::stop_writing();
+              writing = false;
               return false;
             }
           }
@@ -339,26 +320,27 @@ namespace Arc {
       fd = -1;
       buffer->error_write(true);
       buffer->eof_write(true);
-      DataPointDirect::stop_writing();
+      writing = false;
       return false;
     }
     return true;
   }
 
   bool DataPointFile::stop_writing() {
-    if(!DataPointDirect::stop_writing())
+    if(!writing)
       return false;
+    writing = false;
     if(!buffer->eof_write()) {
       buffer->error_write(true);      /* trigger transfer error */
       close(fd);
       fd = -1;
     }
-    file_thread_exited.wait();/* wait till reading thread exited */
+    buffer->wait_eof_write();         /* wait till writing thread exited */
     return true;
   }
 
   bool DataPointFile::list_files(std::list<FileInfo>& files, bool resolve) {
-    if(!DataPointDirect::list_files(files, resolve))
+    if(reading || writing || !url)
       return false;
     std::string dirname = url.Path();
     if(dirname[dirname.length() - 1] == '/')
@@ -409,20 +391,6 @@ namespace Arc {
             f->SetType(FileInfo::file_type_file);
         }
       }
-    }
-    return true;
-  }
-
-  bool DataPointFile::analyze(analyze_t& arg) {
-    if(!DataPointDirect::analyze(arg))
-      return false;
-    if(url.Path() == "-") {
-      arg.cache = false;
-      arg.readonly = false;
-    }
-    if(url.Protocol() == "file") {
-      arg.local = true;
-      arg.cache = false;
     }
     return true;
   }

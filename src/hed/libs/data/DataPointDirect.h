@@ -22,10 +22,6 @@ namespace Arc {
     It is used by higher-level classes DataMove and DataMovePar
     to provide data transfer service for application. */
   class DataPointDirect : public DataPoint {
-   protected:
-    virtual bool init_handle();
-    virtual bool deinit_handle();
-
    public:
     /// Constructor
     /// \param url URL.
@@ -37,20 +33,9 @@ namespace Arc {
       return false;
     };
 
-    virtual bool start_reading(DataBufferPar& buffer);
-    virtual bool start_writing(DataBufferPar& buffer,
-                               DataCallback *space_cb = NULL);
-    virtual bool stop_reading();
-    virtual bool stop_writing();
-
-    virtual bool analyze(analyze_t& arg);
-    virtual bool check();
-
-    virtual bool remove();
-    virtual bool list_files(std::list <FileInfo>& files, bool resolve = true);
-
-    virtual bool out_of_order();
     virtual void out_of_order(bool v);
+    virtual bool out_of_order();
+
     virtual void additional_checks(bool v);
     virtual bool additional_checks();
 
@@ -71,15 +56,13 @@ namespace Arc {
     virtual bool meta_postregister(bool) { return true; };
     virtual bool meta_preunregister(bool) { return true; };
     virtual bool meta_unregister(bool all) { return true; };
-    virtual bool get_info(FileInfo& fi) { return false; };
     virtual bool accepts_meta() { return false; };
     virtual bool provides_meta() { return false; };
     virtual bool meta_stored() { return false; };
-    virtual bool local() const { return false; };
     virtual const URL& current_location() const;
     virtual const std::string& current_meta_location() const;
-    virtual bool next_location() { if(tries_left > 0) --tries_left; return (tries_left > 0); };
-    virtual bool have_location() const { return (tries_left > 0); };
+    virtual bool next_location() { if(triesleft > 0) --triesleft; return (triesleft > 0); };
+    virtual bool have_location() const { return (triesleft > 0); };
     virtual bool have_locations() const { return true; };
     virtual bool add_location(const std::string&, const URL&) { return false; };
     virtual bool remove_location() { return false; };
@@ -87,7 +70,6 @@ namespace Arc {
 
    protected:
     DataBufferPar *buffer;
-    bool cacheable;
     bool linkable;
     bool is_secure;
     bool force_secure;
@@ -97,7 +79,6 @@ namespace Arc {
     bool no_checks;
     /* true if allowed to produce scattered data (non-sequetial offsets) */
     bool allow_out_of_order;
-    int transfer_streams;
     unsigned long long int range_start;
     unsigned long long int range_end;
 
