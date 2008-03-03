@@ -219,6 +219,7 @@ exit 0
 %files arex
 %defattr(-,root,root,-)
 %doc src/services/a-rex/arex.xml
+%doc src/services/a-rex/arex_secure.xml
 %doc src/clients/a-rex/jsdl_simple.xml
 %doc src/clients/a-rex/jsdl_stage.xml
 %doc src/services/a-rex/arc_arex.conf
