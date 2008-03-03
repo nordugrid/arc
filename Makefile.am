@@ -12,7 +12,7 @@ if SWIG_ENABLED
 SWIG_SD = swig
 endif
 
-SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) intl
+SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) intl doc
 
 DIST_SUBDIRS = src swig java python intl doc include debian
 
