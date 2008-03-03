@@ -126,7 +126,7 @@ command from root account. That should install the following components:
 sbin/arched - server executable
 bin/ - user tools and command line clients
 lib/ - common libraries used by clients, server and plugins
-lib/arc/ - plugins implementing MCC, service and security components
+lib/arc/ - plugins implementing Message Chain, Service and Security components
 include/arc/ - C++ headers for application development
 libexec/ - additional modules used by ARC1 services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
@@ -176,7 +176,7 @@ The value for the pre-generated CA certificate is 4457e417.
 
 Please make sure the chosen location of certificates is correctly
 configured in the service configuration file. The configuration for the
-certificate for MCCTLS  should look like this:  
+certificate for TLS MCC should look like this:  
 
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
@@ -400,6 +400,38 @@ in id.xml file. It may then be used to query job state with 'apstat' utility.
 Full set of A-Rex client tools consists of apsub, apstat, apkill, asstat, apget 
 and apclean commands. For more information please see man pages ot those utilities.
 
+
+Security and Authorization
+==========================
+
+ARC1 implements security related features through set of Security Handler and 
+Policy Decision Point components. Security Handler components are attached to 
+message processing components. Each Security Handler takes care of processing
+own part of security information. Currently ARC1 comes with 2 Security Handlers:
+ * identity.map - associates client's identity with local (UNIX) identity. It 
+   uses PDP components to choose local isentity and/or identity mapping algorithm.
+ * simplelist.authz - calls PDP components and combines obtained authorization
+   decisions.
+
+Among available PDP components there are
+ * allow - always returns positive result
+ * deny - always returns negative result 
+ * simplelist.pdp - compares DN of user to those stored in a file.
+
+Other more sophisticated PDPs are available but not yet fully integrated into
+ARC1 framework.
+ 
+There is an example of A-Rex service with both Security Handlers being used.
+It may be found at $ARC_LOCATION/share/doc/arex_secure.xml .
+
+
+Finding more information
+========================
+
+Many information about functionality and configuration of various components
+may be found inside corresponding configuratrion XML schemas.
+
+There is an API document 
 
 
 Contributing
