@@ -169,6 +169,7 @@ namespace Arc {
   bool DataPointFile::start_reading(DataBufferPar& buf) {
     if(reading || writing || !url)
       return false;
+    reading = true;
     /* try to open */
     if(url.Path() == "-")
       fd = dup(STDIN_FILENO);
@@ -218,6 +219,7 @@ namespace Arc {
                                     DataCallback *space_cb) {
     if(reading || writing || !url)
       return false;
+    writing = true;
     /* try to open */
     buffer = &buf;
     if(url.Path() == "-") {

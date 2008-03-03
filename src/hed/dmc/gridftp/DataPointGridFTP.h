@@ -53,9 +53,6 @@ namespace Arc {
     bool mkdir_ftp();
     char ftp_buf[16];
     bool check_credentials();
-   protected:
-    virtual bool init_handle();
-    virtual bool deinit_handle();
    public:
     DataPointGridFTP(const URL& url);
     virtual ~DataPointGridFTP();
