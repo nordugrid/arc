@@ -4,13 +4,33 @@
 
 #include "job_queue.h"
 #include "grid_sched.h"
+#include <iostream>
+#include <fstream>
+#include <ios>
 
 namespace GridScheduler
 {
 
 JobQueue::JobQueue(void)
 {
-    // nop
+  char buf[1000];
+  char id[100];
+
+  std::string  fname = "/tmp/ids.sched";
+  std::ifstream f(fname.c_str());
+
+  if(f.is_open() ) {
+  for(;!f.eof();) {
+    f.getline(buf, 1000);
+    if (sscanf (buf,"%s",id) != 1) continue;
+    std::cout << "job:  " << id << std::endl;
+    std::string job_id(id);
+    Job j(job_id);
+    j.load();
+    jobs.insert( make_pair( j.getID(), j ) );
+  }
+  f.close();
+  }
 }
 
 JobQueue::~JobQueue(void)
@@ -21,17 +41,31 @@ JobQueue::~JobQueue(void)
 void JobQueue::addJob(Job &job)
 {
     jobs.insert( make_pair( job.getID(), job ) );
+    std::string  fname = "/tmp/ids.sched";
+    std::ofstream f(fname.c_str(),std::ios_base::app);
+    f << job.getID() << std::endl;
+    f.close();
+    job.save();
 }
 
 void JobQueue::removeJob(Job &job)
 {
+    jobs[job.getID()].remove();
     jobs.erase(job.getID());
-
 }
 
 void JobQueue::removeJob(std::string &job_id)
 {
+    jobs[job_id].remove();
     jobs.erase(job_id);
+    std::string  fname = "/tmp/ids.sched";
+    std::ofstream f(fname.c_str(),std::ios_base::app);
+
+    std::map<std::string,Job>::iterator iter;
+    for( iter = jobs.begin(); iter != jobs.end(); iter++ ) {
+        f << (iter->second).getID() << std::endl;
+    }
+    f.close();
 }
 
 bool JobQueue::CheckJobID(std::string &job_id)
@@ -127,6 +161,16 @@ bool JobQueue::getJobStatus(std::string job_id, SchedStatus status) {
     else {
         status = jobs[job_id].getStatus();
         return true;
+    }
+
+}
+
+bool JobQueue::saveJobStatus(std::string job_id) {
+    std::map<std::string,Job>::iterator iter = jobs.find(job_id);
+    if (jobs.find(job_id) == jobs.end() ) 
+        return false;
+    else {
+        return jobs[job_id].save();
     }
 
 }

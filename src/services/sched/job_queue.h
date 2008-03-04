@@ -31,6 +31,7 @@ class JobQueue {
         std::map<std::string,Job>& getJobs(void) {return jobs;};
         bool CheckJobTimeout(std::string job_id);
         bool setLastCheckTime(std::string job_id);
+        bool saveJobStatus(std::string job_id);
 };
 
 }; // namespace Arc

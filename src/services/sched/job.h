@@ -25,13 +25,13 @@ class Job {
         JobRequest descr;
         JobSchedMetaData sched_meta;
         std::string failure_;
-        std::string id_;
+        std::string id;
         std::string arex_job_id;
         SchedStatus status;
         int timeout;
         friend class JobQueue;
     public:
-        Job(void) { };
+        Job(void);
         Job(JobRequest d, JobSchedMetaData m, int t);
         Job(const std::string& job);
         Job(std::istream& job);
@@ -41,27 +41,27 @@ class Job {
         void setJobSchedMetaData(JobSchedMetaData &sched_meta);
         JobSchedMetaData& getSchedMetaData(void) { return sched_meta; };
         std::string Failure(void) { std::string r=failure_; failure_=""; return r; };
-        //void setID(std::string& id) { id_ = id;};
-        std::string getID(void) { return id_;};
+        void setID(std::string& id_) { id = id_;};
+        std::string getID(void) { return id;};
         void setStatus(SchedStatus s) {  status=s;};
         SchedStatus getStatus(void) { return status;};
-        operator bool(void) { return (id_.empty() ? false : true ); };
-        bool operator!(void) { return (id_.empty() ? true : false ); };
+        operator bool(void) { return (id.empty() ? false : true ); };
+        bool operator!(void) { return (id.empty() ? true : false ); };
         Arc::XMLNode getJSDL(void);
         void setArexJobID(std::string id);
         void setArexID(std::string id);
-        std::string& getArexJobID(void);
-        std::string& getArexID(void);
-        void setArexID(void);
+        std::string getArexJobID(void);
+        std::string getArexID(void);
         std::string& getURL(void){ return sched_meta.getArexID();};
         bool CheckTimeout(void);
         bool Cancel(void);
+        bool save(void);
+        bool load(void);
+        bool remove(void);
 };
 
 }; // namespace Arc
 
 #endif // SCHED_JOB
-
-
 
 

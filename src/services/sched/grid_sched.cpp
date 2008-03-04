@@ -176,6 +176,31 @@ void sched(void* arg) {
             it.sched_queue.setArexID(iter -> first, arex.getURL());
             it.sched_queue.setJobStatus(iter -> first, STARTING);
         } 
+        it.sched_queue.saveJobStatus(iter -> first);
+    }
+
+    // kill jobs
+
+    std::map<std::string,Job> killed_jobs =  it.sched_queue.getJobsWithThisState(KILLING);
+    
+    for( iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++ ) {
+        Job j = iter -> second;
+        std::string job_id= iter -> first;
+        std::string arex_job_id  = (iter -> second).getArexJobID();
+
+        if (arex_job_id.empty()) {
+            it.sched_queue.setJobStatus(iter -> first, KILLED);
+            it.sched_queue.removeJob(job_id);
+        }
+        else {
+            it.sched_resources.getResource((iter -> second).getURL(), arex);
+            if (arex.TerminateActivity(arex_job_id)) {
+                std::cout << "JobID: " << iter -> first << " killed " << std::endl;
+                it.sched_queue.setJobStatus(iter -> first, KILLED);
+                it.sched_queue.removeJob(job_id);
+            }
+        }
+        it.sched_queue.saveJobStatus(iter -> first);
     }
 
     // query a-rex job statuses:
@@ -186,6 +211,9 @@ void sched(void* arg) {
         std::string arex_job_id  = (iter -> second).getArexJobID();
         it.sched_resources.getResource((iter -> second).getURL(), arex);
         std::string state;
+
+        //TODO status bugfix
+    
         state = arex.GetActivityStatus(arex_job_id);
 
         SchedStatus job_stat;
@@ -208,18 +236,7 @@ void sched(void* arg) {
         ArexStatetoSchedState(state, job_stat); // refresh status from A-REX state
         it.sched_queue.setJobStatus(iter -> first, job_stat);
         std::cout << "JobID: " << iter -> first << " state: " << state << std::endl;
-    }
-  
-    // kill jobs
-
-    std::map<std::string,Job> killed_jobs =  it.sched_queue.getJobsWithThisState(KILLING);
-    
-    for( iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++ ) {
-
-        Job j = iter -> second;
-        std::string arex_job_id  = (iter -> second).getArexJobID();
-        it.sched_resources.getResource((iter -> second).getURL(), arex);
-        if (arex.TerminateActivity(arex_job_id)) it.sched_queue.setJobStatus(iter -> first, KILLED);
+        it.sched_queue.saveJobStatus(iter -> first);
     }
 
     sleep(it.getPeriod());
@@ -252,11 +269,11 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   Arc::CreateThreadFunction(&sched, this);
   AcceptingNewActivities = true;
 
-  Resource arex1("https://knowarc1.grid.niif.hu:60000/arex");
+  //Resource arex1("https://knowarc1.grid.niif.hu:60000/arex");
 
-  //Resource arex2("https://localhost:40001/arex");
+  Resource arex2("http://localhost:40000/arex");
   //Resource arex3("https://localhost:40002/arex");
-  sched_resources.addResource(arex1);
+  sched_resources.addResource(arex2);
   //sched_resources.addResource(arex2);
   //sched_resources.addResource(arex3);
 }

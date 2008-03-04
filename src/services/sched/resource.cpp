@@ -36,9 +36,9 @@ Resource::Resource(std::string url_str)
     cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
     cfg.AddPluginsPath("../../hed/mcc/soap/.libs/"); */
 
-    cfg.AddCertificate("/etc/grid-security/hostcert.pem");
-    cfg.AddPrivateKey("/etc/grid-security/hostkey.pem");
-    cfg.AddCADir("/etc/grid-security/certificates");
+ //   cfg.AddCertificate("/etc/grid-security/hostcert.pem");
+  //  cfg.AddPrivateKey("/etc/grid-security/hostkey.pem");
+  //  cfg.AddCADir("/etc/grid-security/certificates");
 
     client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 }
@@ -124,20 +124,22 @@ bool Resource::TerminateActivity(std::string arex_job_id)
 
         Arc::MCC_Status status = client->process(&request, &response);
         if(!status || !response) {
-            return "Unknown";
+            return false;
         }
     }
     catch (...) { 
-        return "Unknown";
+        return false;
     }
 
     Arc::XMLNode cancelled, fs;
-    (*response)["TerminateActivitiesResponse"]["Response"]["Cancelled"].New(cancelled);
+    (*response)["TerminateActivitiesResponse"]["Response"]["Terminated"].New(cancelled);
     std::string result = (std::string)cancelled;
-    if (result=="true")
+    if (result=="true") {
         return true;
-    else
+    }
+    else {
         return false;
+    }
 }
 
 
