@@ -65,6 +65,7 @@ static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
   return it;
 }
 
+#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
 static unsigned int get_flag_STORE_CTX(X509_STORE_CTX* container) {
   if(ex_flag_index_ == -1) return 0;
   return (unsigned int)X509_STORE_CTX_get_ex_data(container,ex_flag_index_);
@@ -77,6 +78,7 @@ static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned int flags) {
   if(ex_flag_index_ == -1) return;
   X509_STORE_CTX_set_ex_data(container,ex_flag_index_,(void*)flags);
 }
+#endif
 
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
