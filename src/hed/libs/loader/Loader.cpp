@@ -11,6 +11,7 @@
 #include "SecHandlerFactory.h"
 #include "PDPFactory.h"
 #include "DMCFactory.h"
+#include "ACCFactory.h"
 
 namespace Arc {
 
@@ -22,6 +23,7 @@ namespace Arc {
     sechandler_factory = new SecHandlerFactory(cfg);
     pdp_factory        = new PDPFactory(cfg);
     dmc_factory        = new DMCFactory(cfg);
+    acc_factory        = new ACCFactory(cfg);
 
     context_ = new ChainContext(*this);
 
@@ -85,6 +87,14 @@ namespace Arc {
       dmcs_.erase(dmc_i);
       if(dmc) delete dmc;
     }
+    for(acc_container_t::iterator acc_i = accs_.begin();
+	acc_i != accs_.end(); acc_i = accs_.begin()) {
+      l.msg(DEBUG, "acc erase");
+      ACC* acc = acc_i->second;
+      accs_.erase(acc_i);
+      if(acc) delete acc;
+    }
+
     l.msg(DEBUG, "after loops");
     if(context_) delete context_;
     l.msg(DEBUG, "after delete context");
@@ -93,6 +103,7 @@ namespace Arc {
     if(sechandler_factory) delete sechandler_factory;
     if(pdp_factory) delete pdp_factory;
     if(dmc_factory) delete dmc_factory;
+    if(acc_factory) delete acc_factory;
   }
 
   class mcc_connector_t {
@@ -232,6 +243,7 @@ namespace Arc {
 	sechandler_factory->load_all_instances(name);
 	pdp_factory->load_all_instances(name);
 	dmc_factory->load_all_instances(name);
+	acc_factory->load_all_instances(name);
 	continue;
       }
 
@@ -377,7 +389,30 @@ namespace Arc {
 	continue;
       }
 
-      logger.msg(DEBUG, "Unknown element \"%s\" - ignoring",
+      if(MatchXMLName(cn, "ArcClientComponent")) {
+	std::string name = cn.Attribute("name");
+	if(name.empty()) {
+	  logger.msg(ERROR, "ArcClientComponent has no name attribute defined");
+	  continue;
+	}
+	std::string id = cn.Attribute("id");
+	if(id.empty()) {
+	  logger.msg(ERROR, "ArcClientComponent has no id attribute defined");
+	  continue;
+	}
+	ACC* acc = acc_factory->get_instance(name, &cfg_, context_);
+	if(!acc) {
+	  logger.msg(ERROR, "ArcClientComponent %s(%s) could not be created",
+		     name.c_str(), id.c_str());
+	  continue;
+	}
+	accs_[id] = acc;
+	logger.msg(INFO, "Loaded ArcClientComponent %s(%s)",
+		   name.c_str(), id.c_str());
+	continue;
+      }
+
+      logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
 		 cn.Name().c_str());
     }
 

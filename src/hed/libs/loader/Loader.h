@@ -7,6 +7,7 @@
 #include "ServiceFactory.h"
 #include "SecHandlerFactory.h"
 #include "PDPFactory.h"
+#include "ACCFactory.h"
 #include "DMCFactory.h"
 #include "Plexer.h"
 
@@ -48,6 +49,7 @@ namespace Arc {
     typedef std::map<std::string, Service*>    service_container_t;
     typedef std::map<std::string, ArcSec::SecHandler*> sechandler_container_t;
     typedef std::map<std::string, DMC*>        dmc_container_t;
+    typedef std::map<std::string, ACC*>        acc_container_t;
     typedef std::map<std::string, Plexer*>     plexer_container_t;
 
     static Logger logger;
@@ -74,6 +76,10 @@ namespace Arc {
        DMC objects */
     DMCFactory *dmc_factory;
 
+    /** Link to Factory responsible for loading and creation of
+       ACC objects */
+    ACCFactory *acc_factory;
+
     /** Set of labeled MCC objects */
     mcc_container_t mccs_;
 
@@ -86,8 +92,11 @@ namespace Arc {
     /** Set of labeled handlers */
     sechandler_container_t sechandlers_;
 
-    /** Set of labeled MCC objects */
+    /** Set of labeled DMC objects */
     dmc_container_t dmcs_;
+
+    /** Set of labeled ACC objects */
+    acc_container_t accs_;
 
     /** Set of labeled Plexer objects */
     plexer_container_t plexers_;
