@@ -11,7 +11,7 @@
   </Server>
   <!-- Where to find plugins -->
   <ModuleManager>
-    <Path>/opt/arc/lib/arc/</Path>
+    <Path>/usr/local/lib/arc/</Path>
   </ModuleManager>
   <!-- Simply load all needed plugins -->
   <Plugins><Name>mcctcp</Name></Plugins>

@@ -311,6 +311,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
+  std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
   Arc::NS ns;
@@ -322,12 +323,15 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     gmargv.NewChild("arg")="-c";
     gmargv.NewChild("arg")=gmconfig_;
   };
-  gm_=new GridManager(gmargv);
-  if(!gm_) return;
-  if(!(*gm_)) { delete gm_; gm_=NULL; return; };
+  if((gmrun_.empty()) || (gmrun_ == "internal")) {
+    gm_=new GridManager(gmargv);
+    if(!gm_) return;
+    if(!(*gm_)) { delete gm_; gm_=NULL; return; };
+  };
 }
 
 ARexService::~ARexService(void) {
+  if(gm_) delete gm_;
 }
 
 } // namespace ARex

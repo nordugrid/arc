@@ -28,6 +28,22 @@
     </xsd:complexType>
     <xsd:element name="gmconfig" type="gmconfig_Type"/>
 
+    <xsd:simpleType name="gmrun_Type">
+        <!--
+             This element defines how grid-manager part of A-Rex is run.
+             * internal - as a thread inside service container.
+             * none - no grid-manager is run.
+             * external - as a separate executable (not supported anymore).
+             Default is 'internal'.
+        -->
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="internal"/>
+            <xsd:enumeration value="external"/>
+            <xsd:enumeration value="none"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="gmrun" type="gmrun_Type"/>
+
     <xsd:complexType name="usermap_Type">
         <xsd:sequence>
 	    <xsd:element name="defaultLocalName" type="xsd:string" minOccurs="0"/>
