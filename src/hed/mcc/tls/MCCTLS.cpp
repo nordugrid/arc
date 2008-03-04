@@ -34,12 +34,17 @@ Glib::Mutex* Arc::MCC_TLS::ssl_locks_ = NULL;
 Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
 
 static int ex_data_index_ = -1;
+#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
+static int ex_flag_index_ = -1;
+#define FLAG_CRL_DISABLED (0x1)
+#endif
 
 static void store_MCC_TLS(SSL_CTX* container,Arc::MCC_TLS* it) {
   if(ex_data_index_ != -1) {
     SSL_CTX_set_ex_data(container,ex_data_index_,it);
     return;
   };
+
   Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to store application data into OpenSSL");
 }
 
@@ -60,15 +65,30 @@ static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
   return it;
 }
 
+static unsigned int get_flag_STORE_CTX(X509_STORE_CTX* container) {
+  if(ex_flag_index_ == -1) return 0;
+  return (unsigned int)X509_STORE_CTX_get_ex_data(container,ex_flag_index_);
+}
+
+static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned int flags) {
+  if(ex_flag_index_ == -1) {
+     ex_flag_index_=X509_STORE_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
+  };
+  if(ex_flag_index_ == -1) return;
+  X509_STORE_CTX_set_ex_data(container,ex_flag_index_,(void*)flags);
+}
 
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-   // Not sure if this will work
-   if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
-     sctx->flags |= X509_V_FLAG_CRL_CHECK;
-     ok=X509_verify_cert(sctx);
-     return ok;
-   };
+  unsigned int flag = get_flag_STORE_CTX(sctx);
+  if(!(flag & FLAG_CRL_DISABLED)) {
+     // Not sure if this will work
+     if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
+       sctx->flags |= X509_V_FLAG_CRL_CHECK;
+       ok=X509_verify_cert(sctx);
+       return ok;
+     };
+  };
 #endif
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
@@ -101,8 +121,10 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         };
 #else
         sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
+        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
         ok=X509_verify_cert(sctx);
         sctx->flags |= X509_V_FLAG_CRL_CHECK;
+        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
         if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
 #endif
       }; break;
@@ -325,7 +347,9 @@ bool MCC_TLS::do_ssl_init(void) {
        };
      };
    };
-   if(ssl_initialized_) ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
+   if(ssl_initialized_) {
+     ex_data_index_=SSL_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
+   };
    lock_.unlock();
    return ssl_initialized_;
 }
