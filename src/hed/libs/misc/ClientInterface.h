@@ -149,9 +149,16 @@ namespace Arc {
   };
 
   class DMCConfig : public BaseConfig {
-   public:
-    DMCConfig() : BaseConfig() {};
+  public:
+  DMCConfig() : BaseConfig() {};
     virtual ~DMCConfig() {};
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+  
+  class ACCConfig : public BaseConfig {
+  public:
+  ACCConfig() : BaseConfig() {};
+    virtual ~ACCConfig() {};
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 

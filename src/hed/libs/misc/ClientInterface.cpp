@@ -390,4 +390,26 @@ namespace Arc {
     return mm;
   }
 
+  XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
+    XMLNode mm = BaseConfig::MakeConfig(cfg);
+    std::list<std::string> accs;
+    for(std::list<std::string>::const_iterator path = plugin_paths.begin();
+	path != plugin_paths.end(); path++) {
+      try {
+	Glib::Dir dir(*path);
+	for(Glib::DirIterator file = dir.begin(); file != dir.end(); file++) {
+	  if((*file).substr(0, 6) == "libacc") {
+	    std::string name = (*file).substr(6, (*file).find('.') - 6);
+	    if(std::find(accs.begin(), accs.end(), name) == accs.end()) {
+	      accs.push_back(name);
+	      cfg.NewChild("Plugins").NewChild("Name") = "acc" + name;
+	    }
+	  }
+	}
+      }
+      catch (Glib::FileError) {}
+    }
+    return mm;
+  }
+
 } // namespace Arc
