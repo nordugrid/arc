@@ -72,7 +72,7 @@ class Run {
   /** Returns exit code of execution. */
   int Result(void) { return result_; };
   /** Return true if execution is going on. */
-  bool Running(void) { return running_; };
+  bool Running(void);
   /** Read from stdout handle of running executable.
     This method may be used while stdout is directed to string. 
    But result is unpredictable. */

@@ -200,6 +200,9 @@ bool Run::Start(void) {
 }
 
 void Run::Kill(int timeout) {
+#ifndef HAVE_GLIBMM_CHILDWATCH
+  Wait(0);
+#endif
   if(!running_) return;
 #ifndef WIN32
   if(timeout > 0) {
@@ -313,6 +316,15 @@ int Run::WriteStdin(int /*timeout*/,const char* buf,int size) {
   return write(stdin_,buf,size);
 }
 
+bool Run::Running(void) {
+#ifdef HAVE_GLIBMM_CHILDWATCH
+  return running_;
+#else
+  Wait(0);
+  return running_;
+#endif
+}
+
 bool Run::Wait(int timeout) {
   if(!started_) return false;
   if(!running_) return true;
@@ -321,15 +333,19 @@ bool Run::Wait(int timeout) {
   lock_.lock();
   while(running_) {
     Glib::TimeVal t; t.assign_current_time(); t.subtract(till);
-    if(!t.negative()) break;
 #ifdef HAVE_GLIBMM_CHILDWATCH
+    if(!t.negative()) break;
     cond_.timed_wait(lock_,till);
 #else
 #ifndef WIN32
     int status;
     int r = waitpid(pid_,&status,WNOHANG);
     if(r == 0) {
-      sleep(1); continue;
+      if(!t.negative()) break;
+      lock_.unlock();
+      sleep(1);
+      lock_.lock();
+      continue;
     };
     if(r == -1) { // Child lost?
       status=-1;
@@ -337,7 +353,9 @@ bool Run::Wait(int timeout) {
       status=WEXITSTATUS(status);
     };
     // Child exited
+    lock_.unlock();
     child_handler(pid_,status << 8);
+    lock_.lock();
 #else
 #error Must use newer version of GLibmm for Windows
 #endif
