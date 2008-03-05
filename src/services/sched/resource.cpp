@@ -46,7 +46,7 @@ Resource::Resource(std::string url_str, std::vector <std::string> &security)
 
 Resource::~Resource(void)
 {
-   // if (client) delete client;
+    //if (client) delete client;
 }
 
 std::string Resource::CreateActivity(Arc::XMLNode jsdl)
@@ -56,11 +56,24 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
     request.NewChild("bes-factory:CreateActivity").NewChild("bes-factory:ActivityDocument").NewChild(jsdl);
 
     Arc::PayloadSOAP* response;
-
+        
     Arc::MCC_Status status = client->process(&request, &response);
-    if(!status || !response) {
+
+    if(!status) {
+        std::cerr << "Request failed" << std::endl;
+        if(response) {
+           std::string str;
+           response->GetXML(str);
+           std::cout << str << std::endl;
+           delete response;
+        }
         return "";
-    }
+     };
+
+     if(!response) {
+         std::cerr << "No response" << std::endl;
+         return "";
+     };
 
     Arc::XMLNode id, fs;
     (*response)["CreateActivityResponse"]["ActivityIdentifier"].New(id);

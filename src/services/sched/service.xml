@@ -28,9 +28,6 @@
     </Component>
    <Component name="tls.service" id="tls">
       <next id="http"/>
- <!--      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <CACertificateDir>/etc/grid-security/certificates</CACertificateDir> -->
       <KeyPath>/home/roczei/opt/sbin/key.pem</KeyPath>
       <CertificatePath>/home/roczei/opt/sbin/cert.pem</CertificatePath>
       <CACertificateDir>/etc/grid-security/certificates</CACertificateDir>

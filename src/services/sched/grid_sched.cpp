@@ -171,13 +171,20 @@ void sched(void* arg) {
         it.sched_resources.random(arex);
         Job j = iter -> second;
         Arc::XMLNode jsdl = (iter -> second).getJSDL();
+        std::string jsdl_str ;
+        jsdl.GetXML(jsdl_str);
+            std::cout << "jsdl: " << jsdl_str <<  std::endl;
         std::string arex_job_id = arex.CreateActivity(jsdl);
         std::cout << "A-REX ID: " << arex.getURL() <<  std::endl;
         if ( arex_job_id != "" ){
             it.sched_queue.setArexJobID(iter -> first, arex_job_id);
             it.sched_queue.setArexID(iter -> first, arex.getURL());
             it.sched_queue.setJobStatus(iter -> first, STARTING);
+            std::cout << "sched job id: " << iter -> first << " SUBMITTED" <<  std::endl;
         } 
+        else {
+            std::cout << "sched job id: " << iter -> first << " NOT SUBMITTED" <<  std::endl;
+        }
         it.sched_queue.saveJobStatus(iter -> first);
     }
 
