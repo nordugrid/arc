@@ -35,7 +35,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
     logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s.c_str());
   };
 
-  if (AcceptingNewActivities == false) {
+  if (IsAcceptingNewActivities == false) {
     Arc::SOAPEnvelope fault(ns_,true);
     fault.Fault()->Code(Arc::SOAPFault::Sender);
     fault.Fault()->Reason("The BES is not currently accepting new activities.");

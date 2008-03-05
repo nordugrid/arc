@@ -41,9 +41,13 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
 
     if(!sched_queue.CheckJobID(jobid)) {
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
-      // There is no such job
-      continue;
-    };
+      Arc::SOAPEnvelope fault(ns_,true);
+      fault.Fault()->Code(Arc::SOAPFault::Sender);
+      fault.Fault()->Reason("Unknown activity");
+      Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:UnknownActivityIdentifierFault");
+      out.Replace(fault.Child());
+      return Arc::MCC_Status();
+    }
 
     std::string job_state;
 

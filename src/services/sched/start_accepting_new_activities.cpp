@@ -14,7 +14,7 @@ Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode& 
 
   */
 
-  AcceptingNewActivities = true;
+  IsAcceptingNewActivities = true;
 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
