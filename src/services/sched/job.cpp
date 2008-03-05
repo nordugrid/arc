@@ -21,10 +21,8 @@ Job::Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path)
     sched_meta = m;
     timeout = t;
     id = make_uuid();
-    status = NEW;
     db = db_path;
-    check= 0;
-
+    check=0;
 }
 
 Job::Job(const std::string& jobid, std::string &db_path)
@@ -51,7 +49,6 @@ Job::Job(std::istream& job,  std::string &db_path)
 
     JobRequest job_desc(tmp_xml);
     setJobRequest(job_desc);
-    status = NEW;
 }
 
 Job::~Job(void)
@@ -183,13 +180,12 @@ bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state) {
     } else if(arex_state == "Finished") {
         sched_state = FINISHED;
     } else if(arex_state == "Deleted") {
-        sched_state = FINISHED;
+        sched_state = CANCELLED;
     } else if(arex_state == "Killing") {
-        sched_state = RUNNING;
+        sched_state = CANCELLED;
     }
     else {
-        std::cout << "unknown arex state " << arex_state << std::endl;
-        return false;
+        sched_state = UNKNOWN;
     }
 
     return true;

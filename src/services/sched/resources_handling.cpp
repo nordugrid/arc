@@ -13,8 +13,6 @@ ResourcesHandling::ResourcesHandling(void)
 
 }
 
-
-
 void ResourcesHandling::addResource(Resource &r)
 {
     resources.insert( make_pair( r.getURL(), r ) );
@@ -28,6 +26,12 @@ void ResourcesHandling::removeResource(std::string &id)
 bool ResourcesHandling::getResource(std::string &id, Resource &r)
 {
     r = resources[id];
+    return true;
+}
+
+bool ResourcesHandling::refresh(std::string id)
+{
+    resources[id].refresh();
     return true;
 }
 

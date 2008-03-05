@@ -26,7 +26,7 @@ class JobQueue {
         int size(void) {return jobs.size();};
         std::map<std::string,Job> getJobsWithThisState(SchedStatus s);
         bool setJobStatus(std::string job_id, SchedStatus status);
-        bool getJobStatus(std::string job_id, SchedStatus status);
+        bool getJobStatus(std::string &job_id, SchedStatus &status);
         bool setArexJobID(std::string job_id, std::string arex_job_id);
         bool setArexID(std::string job_id, std::string arex_job_id);
         std::map<std::string,Job>& getJobs(void) {return jobs;};

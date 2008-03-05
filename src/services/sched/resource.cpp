@@ -39,7 +39,7 @@ Resource::Resource(std::string url_str, std::vector <std::string> &security)
         cfg.AddCertificate(security.at(1));
         cfg.AddCADir(security.at(2));
     }
-
+    
     client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 }
 
@@ -48,6 +48,20 @@ Resource::~Resource(void)
 {
     //if (client) delete client;
 }
+
+bool Resource::refresh(void)
+{
+    // TODO ClientSOAP refresh if the connection is wrong
+    //
+
+    if (client) delete client;
+    Arc::URL u(url);
+    client = new Arc::ClientSOAP(cfg, u.Host(), u.Port(), u.Protocol() == "https", u.Path());
+    std::cout << "Resource refreshed: " << url << std::endl;
+
+    return true;
+}
+
 
 std::string Resource::CreateActivity(Arc::XMLNode jsdl)
 {
@@ -89,10 +103,6 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
 
-    std::cout << "get status for this job: " << arex_job_id << std::endl; 
-
-
-      
     // TODO: better error handling
 
     try {

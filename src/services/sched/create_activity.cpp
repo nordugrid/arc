@@ -104,6 +104,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
     logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s.c_str());
   };
 
+  sched_job.setStatus(NEW);
   sched_queue.addJob(sched_job);
 
   return Arc::MCC_Status(Arc::STATUS_OK);

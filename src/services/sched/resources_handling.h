@@ -19,6 +19,7 @@ class ResourcesHandling {
         bool random(Resource &r);
         std::map<std::string,Resource>& getResources(void) {return resources;};
         int size(void) { return resources.size();};
+        bool refresh(std::string id);
 };
 
 }; // namespace Arc

@@ -25,6 +25,7 @@ class Resource {
             std::string getURL(void){  return url;};
             Resource&  operator=( const  Resource& r );
             Resource( const Resource& r);
+            bool refresh(void);
 };
 
 }; // namespace Arc

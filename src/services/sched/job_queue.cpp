@@ -162,7 +162,7 @@ bool JobQueue::setLastCheckTime(std::string job_id)
 }
 
  
-bool JobQueue::getJobStatus(std::string job_id, SchedStatus status) {
+bool JobQueue::getJobStatus(std::string &job_id, SchedStatus &status) {
     std::map<std::string,Job>::iterator iter = jobs.find(job_id);
     if (jobs.find(job_id) == jobs.end() ) 
         return false;
