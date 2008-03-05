@@ -159,11 +159,13 @@ void sched(void* arg) {
         std::cout << "Count of jobs:" << it.sched_queue.size() << " Scheduler period: " << it.getPeriod() << " Endpoint: "<< it.getEndPoint() <<  " DBPath: " << it.getDBPath() << std::endl;
 
     // searching for new sched jobs:
+
     
     std::map<std::string,Job> new_jobs =  it.sched_queue.getJobsWithThisState(NEW);
     std::map<std::string,Job>::iterator iter;
     Resource arex;
     
+
     for( iter = new_jobs.begin(); iter != new_jobs.end(); iter++ ) {
         std::cout << "NEW job: " << iter -> first << std::endl;
         it.sched_resources.random(arex);
@@ -209,33 +211,37 @@ void sched(void* arg) {
         Job j = iter -> second;
 
         std::string arex_job_id  = (iter -> second).getArexJobID();
+
+        if (arex_job_id.empty()) {
+            std::cout << "sched job id: " << iter -> first << " arex_job_id is empty:" << arex_job_id <<  std::endl;
+            continue; 
+        }
+
         it.sched_resources.getResource((iter -> second).getURL(), arex);
         std::string state;
 
-        //TODO status bugfix
-    
         state = arex.GetActivityStatus(arex_job_id);
 
         SchedStatus job_stat;
         
         it.sched_queue.getJobStatus(iter -> first,job_stat);
 
-        if (state == "Unknown" && job_stat == UNKNOWN) {
+        if (state == "Unknown") {
             if (!it.sched_queue.CheckJobTimeout(iter->first)) {  // job timeout check
                 it.sched_queue.setJobStatus(iter -> first, NEW);
-                std::string url = arex.getURL();
-                it.sched_resources.removeResource(url);
-                std::cout << "JobID: " << iter -> first << " RESCHEDULE " << state << std::endl;
+                it.sched_queue.setArexJobID(iter -> first, "");
+                it.sched_queue.setArexID(iter -> first, "");
+               // std::string url = arex.getURL();
+              //  it.sched_resources.removeResource(url);
+                std::cout << "Job RESCHEDULE: " << iter -> first << std::endl;
+                it.sched_queue.saveJobStatus(iter -> first);
+                continue;
             }
-        }
-        else  if (state == "Unknown") {
-            it.sched_queue.setJobStatus(iter -> first, UNKNOWN);
-            it.sched_queue.setLastCheckTime(iter -> first);
         }
 
         ArexStatetoSchedState(state, job_stat); // refresh status from A-REX state
         it.sched_queue.setJobStatus(iter -> first, job_stat);
-        std::cout << "JobID: " << iter -> first << " state: " << state << std::endl;
+        std::cout << "JobID: " << iter -> first << " state: " << state<< std::endl;
         it.sched_queue.saveJobStatus(iter -> first);
     }
 
@@ -265,17 +271,29 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   endpoint = (std::string)((*cfg)["Endpoint"]);
   period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
   db_path = (std::string)((*cfg)["DataDirectoryPath"]);
+
+  //TODO db_path test
+
   timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
   Arc::CreateThreadFunction(&sched, this);
   AcceptingNewActivities = true;
+  sched_queue.reload(db_path);
 
-  //Resource arex1("https://knowarc1.grid.niif.hu:60000/arex");
+  std::vector <std::string> security;
+  std::string data = "/home/roczei/opt/sbin/key.pem"; // at(0)
+  security.push_back(data); 
+  data = "/home/roczei/opt/sbin/cert.pem";  // at(1)
+  security.push_back(data);
+  data = "/etc/grid-security/certificates";  // at(2)
+  security.push_back(data);
 
-  Resource arex2("http://localhost:40000/arex");
-  //Resource arex3("https://localhost:40002/arex");
+  Resource arex("https://localhost:40000/arex", security);
+  sched_resources.addResource(arex);
+
+  Resource arex1("https://localhost:40001/arex", security);
+  Resource arex2("https://localhost:40002/arex", security);
+  sched_resources.addResource(arex1);
   sched_resources.addResource(arex2);
-  //sched_resources.addResource(arex2);
-  //sched_resources.addResource(arex3);
 }
 
 // Destructor

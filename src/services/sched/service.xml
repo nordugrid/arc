@@ -23,15 +23,18 @@
   <Plugins><Name>grid_sched</Name></Plugins>
   <Chain>
     <Component name="tcp.service" id="tcp">
-      <next id="http"/>
+      <next id="tls"/>
       <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
     </Component>
-<!--    <Component name="tls.service" id="tls">
+   <Component name="tls.service" id="tls">
       <next id="http"/>
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+ <!--      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+      <CACertificateDir>/etc/grid-security/certificates</CACertificateDir> -->
+      <KeyPath>/home/roczei/opt/sbin/key.pem</KeyPath>
+      <CertificatePath>/home/roczei/opt/sbin/cert.pem</CertificatePath>
       <CACertificateDir>/etc/grid-security/certificates</CACertificateDir>
-    </Component> -->
+    </Component> 
     <Component name="http.service" id="http">
       <next id="soap">POST</next>
       <next id="plexer">GET</next>
@@ -43,10 +46,10 @@
       <next id="grid_sched">/sched</next>
     </Plexer>
     <Service name="grid_sched" id="grid_sched">
-       <sched:Endpoint>http://localhost:60000/sched</sched:Endpoint>
-       <sched:DataDirectoryPath>./data</sched:DataDirectoryPath>
+       <sched:Endpoint>https://localhost:60000/sched</sched:Endpoint>
+       <sched:DataDirectoryPath>/tmp</sched:DataDirectoryPath>
        <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
-       <sched:Timeout>10</sched:Timeout> <!-- second -->
+       <sched:Timeout>5</sched:Timeout> 
     </Service>
   </Chain>
 </ArcConfig>

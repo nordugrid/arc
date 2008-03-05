@@ -75,7 +75,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
 
   JobRequest job_desc(jsdl);
   JobSchedMetaData sched_meta;
-  Job sched_job(job_desc, sched_meta, timeout);
+  Job sched_job(job_desc, sched_meta, timeout, db_path);
 
   if(!sched_job) {
     std::string failure = sched_job.Failure();

@@ -15,7 +15,7 @@ std::string make_uuid();
 
 enum SchedStatus { NEW, STARTING, RUNNING, CANCELLED, FAILED, FINISHED, UNKNOWN, KILLED, KILLING};
 
-bool ArexStatetoSchedState(std::string &arex_state, SchedStatus sched_state);
+bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state);
 
 bool SchedStatetoString(SchedStatus s, std::string &state);
 
@@ -27,14 +27,16 @@ class Job {
         std::string failure_;
         std::string id;
         std::string arex_job_id;
+        std::string db;
         SchedStatus status;
         int timeout;
+        int check;
         friend class JobQueue;
     public:
         Job(void);
-        Job(JobRequest d, JobSchedMetaData m, int t);
-        Job(const std::string& job);
-        Job(std::istream& job);
+        Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path);
+        Job(const std::string& job,  std::string &db_path);
+        Job(std::istream& job, std::string &db_path);
         virtual ~Job(void);
         void setJobRequest(JobRequest &descr);
         JobRequest& getJobRequest(void) { return descr; };

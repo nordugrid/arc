@@ -11,26 +11,34 @@
 namespace GridScheduler
 {
 
-JobQueue::JobQueue(void)
+JobQueue::JobQueue(){
+
+}
+
+bool JobQueue::reload(std::string &db_path)
 {
+  db = db_path;
   char buf[1000];
   char id[100];
 
-  std::string  fname = "/tmp/ids.sched";
+  std::string  fname = db + "/" + "/ids.sched";
   std::ifstream f(fname.c_str());
 
   if(f.is_open() ) {
   for(;!f.eof();) {
     f.getline(buf, 1000);
     if (sscanf (buf,"%s",id) != 1) continue;
-    std::cout << "job:  " << id << std::endl;
+    std::cout << "Job recovered:  " << id << std::endl;
     std::string job_id(id);
-    Job j(job_id);
+    Job j(job_id, db);
     j.load();
     jobs.insert( make_pair( j.getID(), j ) );
   }
   f.close();
+  return true;
   }
+  else
+    return false;
 }
 
 JobQueue::~JobQueue(void)
@@ -41,7 +49,7 @@ JobQueue::~JobQueue(void)
 void JobQueue::addJob(Job &job)
 {
     jobs.insert( make_pair( job.getID(), job ) );
-    std::string  fname = "/tmp/ids.sched";
+    std::string  fname = db + "/" + "/ids.sched";
     std::ofstream f(fname.c_str(),std::ios_base::app);
     f << job.getID() << std::endl;
     f.close();
@@ -50,16 +58,16 @@ void JobQueue::addJob(Job &job)
 
 void JobQueue::removeJob(Job &job)
 {
-    jobs[job.getID()].remove();
-    jobs.erase(job.getID());
+    std::string s = job.getID();
+    removeJob(s);
 }
 
 void JobQueue::removeJob(std::string &job_id)
 {
     jobs[job_id].remove();
     jobs.erase(job_id);
-    std::string  fname = "/tmp/ids.sched";
-    std::ofstream f(fname.c_str(),std::ios_base::app);
+    std::string  fname = db + "/" + "/ids.sched";
+    std::ofstream f(fname.c_str());
 
     std::map<std::string,Job>::iterator iter;
     for( iter = jobs.begin(); iter != jobs.end(); iter++ ) {

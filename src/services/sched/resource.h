@@ -15,7 +15,7 @@ class Resource {
             Arc::NS ns;
             Arc::MCCConfig cfg;
         public:
-            Resource(std::string url);
+            Resource(std::string url_str, std::vector <std::string> &security);
             Resource();
             ~Resource(void);
             Arc::ClientSOAP* getSOAPClient(void) {return client;};

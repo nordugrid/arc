@@ -5,6 +5,7 @@
 #include "resource.h"
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
+#include <list>
 
 
 namespace GridScheduler
@@ -16,7 +17,7 @@ Resource::Resource()
 
 }
 
-Resource::Resource(std::string url_str)
+Resource::Resource(std::string url_str, std::vector <std::string> &security)
 {
     url = url_str;
     ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
@@ -31,14 +32,13 @@ Resource::Resource(std::string url_str)
     ns["sched"]="http://www.nordugrid.org/schemas/sched";
 
     Arc::URL url(url_str);
-/*    cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
-    cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
-    cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
-    cfg.AddPluginsPath("../../hed/mcc/soap/.libs/"); */
-
- //   cfg.AddCertificate("/etc/grid-security/hostcert.pem");
-  //  cfg.AddPrivateKey("/etc/grid-security/hostkey.pem");
-  //  cfg.AddCADir("/etc/grid-security/certificates");
+    
+    if (url.Protocol() == "https") 
+    {
+        cfg.AddPrivateKey(security.at(0));
+        cfg.AddCertificate(security.at(1));
+        cfg.AddCADir(security.at(2));
+    }
 
     client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 }
@@ -75,6 +75,10 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
 {
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
+
+    std::cout << "get status for this job: " << arex_job_id << std::endl; 
+
+
       
     // TODO: better error handling
 
@@ -113,6 +117,7 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
 
 bool Resource::TerminateActivity(std::string arex_job_id)
 {
+    std::cout << "kill this job: " << arex_job_id << std::endl; 
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
       

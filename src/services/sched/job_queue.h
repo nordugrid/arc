@@ -13,10 +13,11 @@ namespace GridScheduler
 class JobQueue {
     private:
         std::map<std::string,Job> jobs;
-        std::string type;
+        std::string db;
     public:
         JobQueue();
         virtual ~JobQueue();
+        bool reload(std::string &db_path);
         void addJob(Job &job);
         void removeJob(Job &job);
         void removeJob(std::string &job_id);

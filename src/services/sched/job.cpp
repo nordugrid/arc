@@ -11,29 +11,39 @@ namespace GridScheduler
 {
 
 Job::Job(void){
-    timeout = 30;
+    timeout = 5;
+    check = 0;
 }
 
-Job::Job(JobRequest d, JobSchedMetaData m, int t)
+Job::Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path)
 {
     descr = d;
     sched_meta = m;
-    sched_meta.timeout = t;
+    timeout = t;
     id = make_uuid();
     status = NEW;
+    db = db_path;
+    check= 0;
+
 }
 
-Job::Job(const std::string& jobid)
+Job::Job(const std::string& jobid, std::string &db_path)
 {
     id = jobid;
+    db = db_path;
+    check = 0;
+    timeout = 5;
 }
 
-Job::Job(std::istream& job)
+Job::Job(std::istream& job,  std::string &db_path)
 {
 
+    db = db_path;
     std::string xml_document;
     std::string xml_line;
     Arc::XMLNode tmp_xml;
+    check = 0;
+    timeout = 5;
 
     while (getline(job, xml_line)) xml_document += xml_line;
     
@@ -87,12 +97,14 @@ std::string Job::getArexID(void)
 
 bool Job::CheckTimeout(void)
 {
-    unsigned i = (unsigned)time(NULL) - sched_meta.last_check_time;
-    std::cout << "Checktime diff: " << i << std::endl;
-    if ( i  < timeout)
+    check++;
+    if ( check  < timeout) {
         return true;
-    else
+    }
+    else {
+        check= 0;
         return false;
+    }
 }
 
 
@@ -133,8 +145,7 @@ bool SchedStatetoString(SchedStatus s, std::string &state) {
 }
 
 
-bool StringtoSchedState(std::string &state, SchedStatus s) {
-
+bool StringtoSchedState(std::string &state, SchedStatus &s) {
     if (state == "New")
         s = NEW;
     else if (state == "Starting")
@@ -153,11 +164,11 @@ bool StringtoSchedState(std::string &state, SchedStatus s) {
         s = KILLED;
     else if (state == "Killing")
         s = KILLING;
-    else
-        return false;
+    else 
+        s = UNKNOWN;
     return true;
 }
-bool ArexStatetoSchedState(std::string &arex_state, SchedStatus sched_state) {
+bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state) {
 
     if(arex_state == "Accepted") {
         sched_state = STARTING;
@@ -175,8 +186,13 @@ bool ArexStatetoSchedState(std::string &arex_state, SchedStatus sched_state) {
         sched_state = FINISHED;
     } else if(arex_state == "Killing") {
         sched_state = RUNNING;
-    };
+    }
+    else {
+        std::cout << "unknown arex state " << arex_state << std::endl;
+        return false;
+    }
 
+    return true;
 }
 
 bool Job::Cancel(void) { 
@@ -194,7 +210,7 @@ bool Job::save(void) {
     // write out the jobrequest
      Arc::XMLNode jsdl = getJSDL();
      std::string jsdl_str;
-     std::string fname = "/tmp/" + id + ".jsdl";
+     std::string fname = db + "/" + id + ".jsdl";
      jsdl.GetXML(jsdl_str);
      std::ofstream f1(fname.c_str(),std::ios::out | std::ios::trunc);
      if(! f1.is_open() ) return false; /* can't open file */
@@ -203,7 +219,7 @@ bool Job::save(void) {
      
     // write out job metadata
 
-     fname = "/tmp/" + id + ".metadata";
+     fname = db + "/" + id + ".metadata";
      std::ofstream f2(fname.c_str(),std::ios::out | std::ios::trunc);
      if(! f2.is_open() ) return false; /* can't open file */
      write_pair(f2,"id",id);
@@ -216,7 +232,7 @@ bool Job::save(void) {
 
 
     // write out arex_job_id
-     fname = "/tmp/" + id + ".arex_job_id";
+     fname = db + "/" + id + ".arex_job_id";
      jsdl.GetXML(jsdl_str);
      std::ofstream f3(fname.c_str(),std::ios::out | std::ios::trunc);
      if(! f3.is_open() ) return false; /* can't open file */
@@ -224,41 +240,45 @@ bool Job::save(void) {
      f3.close();
 }
 
+bool cut(std::string &input, std::string &name, std::string &value) {
+    int size = input.size();
+    int i = input.find_first_of("=");
+    if (i == std::string::npos) return false;
+    name = input.substr(0, i);
+    value = input.substr(i+1, size);
+    return true;
+}
+
+
 bool Job::load(void) {
-  char buf[1000];
-  char name[100];
-  char value[900];
-  std::string fname = "/tmp/" + id + ".metadata";
+  char buf[250];
+  std::string fname = db + "/" + id + ".metadata";
   std::ifstream f(fname.c_str());
   if(! f.is_open() ) return false;
   for(;!f.eof();) {
-    f.getline(buf, 1000);
-    if (sscanf (buf,"%s=%s",name,value) != 2) continue;
-    std::string name_str(name);
-    std::string value_str(value);
+    f.getline(buf, 250);
+    std::string line(buf);
+    std::string name;
+    std::string value;
 
-
-    if(name_str == "id") {
-        id = value_str;
+    if(!cut(line,name,value)) continue;
+    
+    if(name == "id") {
+        id = value;
     }
-    else if(name_str == "arex_id") { 
-        std::string job_id = value_str;
-        setArexID(job_id); 
+    else if(name == "arex_id") {
+        setArexID(value);
     }
-    else if(name_str == "arex_job_id") {
-        arex_job_id = value_str; 
-    }
-    else if(name_str == "status") {
-        std::string s = value_str;
-        StringtoSchedState(s, status);
+    else if(name == "status") {
+        StringtoSchedState(value, status);
     }
   }
   f.close(); 
 
   // read jsdl
-  //
+  
 
-  std::string fname_jsdl = "/tmp/" + id + ".jsdl";
+  std::string fname_jsdl = db + "/" + id + ".jsdl";
   std::ifstream f_jsdl(fname_jsdl.c_str());
   std::string xml_document;
   std::string xml_line;
@@ -271,20 +291,20 @@ bool Job::load(void) {
 
   //read arex_job_id
 
-  std::string a_id = "/tmp/" + id + ".arex_job_id";
+  std::string a_id = db + "/" + id + ".arex_job_id";
   std::ifstream f_arex(a_id.c_str());
-  std::string line;
-  Arc::XMLNode tmp_xml2;
-  while (getline(f_arex, line)) line += line;
-  arex_job_id = line;
+  std::string line, tmp;
+  while (getline(f_arex, line)) tmp += line;
+  arex_job_id = tmp;
+
   f_arex.close();
   return true;
 }
 
 bool Job::remove(void) {
-    std::string file1 = "/tmp/" + id + ".metadata";
-    std::string file2 = "/tmp/" + id + ".jsdl";
-    std::string file3 = "/tmp/" + id + ".arex_job_id";
+    std::string file1 = db + id + ".metadata";
+    std::string file2 = db + id + ".jsdl";
+    std::string file3 = db + id + ".arex_job_id";
     std::remove(file1.c_str());
     std::remove(file2.c_str());
     std::remove(file3.c_str());
