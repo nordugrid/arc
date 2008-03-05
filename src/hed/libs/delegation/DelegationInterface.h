@@ -64,7 +64,7 @@ class DelegationProvider {
      Credentials are used to sign delegated credentials.
      Arguments should contain filesystem path to PEM-encoded certificate and
      private key. Optionally cert_file may contain certificates chain. */
-  DelegationProvider(const std::string& cert_file,const std::string& key_file);
+  DelegationProvider(const std::string& cert_file,const std::string& key_file,std::istream* inpwd = NULL);
   ~DelegationProvider(void);
   operator bool(void) { return key_ != NULL; };
   bool operator!(void) { return key_ == NULL; };

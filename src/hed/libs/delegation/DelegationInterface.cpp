@@ -79,6 +79,19 @@ static bool x509_to_string(RSA* key,std::string& str) {
   return true;
 }
 
+static int passphrase_callback(char* buf, int size, int rwflag, void *arg) {
+   int len;
+   std::istream* in = (std::istream*)arg;
+   if(in == &std::cin) std::cout<<"Enter passphrase for your private key: "<<std::endl;
+   buf[0]=0;
+   in->getline(buf,size);
+   //if(!(*in)) {
+   //  if(in == &std::cin) std::cerr<< "Failed to read passphrase from stdin"<<std::endl;
+   //  return -1;
+   //};
+   return strlen(buf);
+}
+
 static bool string_to_x509(const std::string& str,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
   BIO *in = NULL;
   cert=NULL; pkey=NULL; cert_sk=NULL;
@@ -96,24 +109,25 @@ static bool string_to_x509(const std::string& str,X509* &cert,EVP_PKEY* &pkey,ST
   return true;
 }
 
-static bool string_to_x509(const std::string& cert_file,const std::string& key_file,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
+static bool string_to_x509(const std::string& cert_file,const std::string& key_file,std::istream* inpwd,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
   BIO *in = NULL;
   cert=NULL; pkey=NULL; cert_sk=NULL;
   if(cert_file.empty()) return false;
   if(!(in=BIO_new_file(cert_file.c_str(),"r"))) return false;
   if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) { BIO_free_all(in); return false; };
   if(key_file.empty()) {
-    if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) { BIO_free_all(in); return false; };
+    if((!PEM_read_bio_PrivateKey(in,&pkey,inpwd?&passphrase_callback:NULL,inpwd)) || (!pkey)) { BIO_free_all(in); return false; };
   };
   for(;;) {
     X509* c = NULL;
     if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
     sk_X509_push(cert_sk,c);
   };
+  ERR_get_error();
   if(!pkey) {
     BIO_free_all(in); in=NULL;
     if(!(in=BIO_new_file(key_file.c_str(),"r"))) return false;
-    if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) { BIO_free_all(in); return false; };
+    if((!PEM_read_bio_PrivateKey(in,&pkey,inpwd?&passphrase_callback:NULL,inpwd)) || (!pkey)) { BIO_free_all(in); return false; };
   };
   BIO_free_all(in);
   return true;
@@ -130,6 +144,7 @@ static bool string_to_x509(const std::string& str,X509* &cert,STACK_OF(X509)* &c
     if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
     sk_X509_push(cert_sk,c);
   };
+  ERR_get_error();
   BIO_free_all(in);
   return true;
 }
@@ -369,7 +384,7 @@ err:
   };
 }
 
-DelegationProvider::DelegationProvider(const std::string& cert_file,const std::string& key_file):key_(NULL),cert_(NULL),chain_(NULL) {
+DelegationProvider::DelegationProvider(const std::string& cert_file,const std::string& key_file,std::istream* inpwd):key_(NULL),cert_(NULL),chain_(NULL) {
   EVP_PKEY *pkey = NULL;
   X509 *cert = NULL;
   STACK_OF(X509) *cert_sk = NULL;
@@ -378,7 +393,7 @@ DelegationProvider::DelegationProvider(const std::string& cert_file,const std::s
   //OpenSSL_add_all_algorithms();
   EVP_add_digest(EVP_md5());
 
-  if(!string_to_x509(cert_file,key_file,cert,pkey,cert_sk)) goto err;
+  if(!string_to_x509(cert_file,key_file,inpwd,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
   key_=pkey; pkey=NULL;
   chain_=cert_sk; cert_sk=NULL;
