@@ -40,7 +40,8 @@ class DelegationConsumer {
   bool Restore(const std::string& content);
   /** Make X509 certificate request from internal private key */
   bool Request(std::string& content);
-  /** Ads private key into certificates chain in 'content' */
+  /** Ads private key into certificates chain in 'content'
+     On exit content contains complete delegated credentials.  */
   bool Acquire(std::string& content);
 };
 
