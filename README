@@ -156,15 +156,23 @@ keys available at:
 
  http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA
 
+Alternatively You may choose to use KnowARC Instant CA service available at 
+https://vls.grid.upjs.sk/CA/instantCA . It is especially usefull if You 
+want to test installation consisting on multiple hosts.
+
 Please remember that it is not safe to use these keys in publicly accessible
 insallations of ARC1. Make sure that even the CA certificate is removed
 before making your services available to the outside world.
 
 You can put host certificates and private keys anywhere. Common locations for
 servers running from root account are /etc/grid-security/hostcert.pem and
-/etc/grid-security/hostkey.pem respectively. It is possible to
-configure ARC1 server to accept either a single CA certificate or
-multiple CA certificates located in the specified directory. The latter
+/etc/grid-security/hostkey.pem respectively. The content of private key 
+must not be encrypted and protected by password. Service has no way to
+ask person about password. So make sure it is properly protected by means
+of file system.
+
+It is possible to configure ARC1 server to accept either a single CA certificate
+or multiple CA certificates located in the specified directory. The latter
 option is recommended. The common location is /etc/grid-security/certificates/ .
 In that case names of certificate files have to follow hash values of
 the certificates. These are obtainable by running the command
@@ -382,7 +390,7 @@ A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided
 in $ARC_LOCATION/share/doc/ in files jsdl_simple.xml and jsdl_stage.xml . To 
 submit job to A-REX service one may use 'apsub' command
 
-$ARC_LOCATION/bin/apsub https://localhost:60000/arex /opt/arc/share/doc/arc/jsdl_simple.xml id.xml
+$ARC_LOCATION/bin/apsub https://localhost:60000/arex /usr/local/share/doc/arc/jsdl_simple.xml id.xml
 
 If everything goes properly somewhere in it's output there should be a message
 "Submitted the job!". Obtained job identifier is an XML document and is stored
