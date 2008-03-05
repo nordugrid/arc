@@ -83,7 +83,7 @@ $config{providerlog}        = "/var/log/grid/infoprovider.log";
 $config{defaultttl}         = "604800";
 $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
 $config{"x509_cert_dir"}    = "/etc/grid-security/certificates/";
-$config{ng_location}        = $ENV{NORDUGRID_LOCATION} ||= "/opt/nordugrid";
+$config{ng_location}        = $ENV{ARC_LOCATION} ||= "/usr/local";
 $config{gridmap} 	    = "/etc/grid-security/grid-mapfile";
 
 ########################################################
