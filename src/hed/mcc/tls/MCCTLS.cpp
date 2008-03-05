@@ -278,10 +278,9 @@ static void tls_set_dhe1024(Logger& logger)
 
 bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
 {
-   // SSL_CTX_set_default_passwd_cb_userdata(sslctx_,password.c_str());
    SSL_CTX_set_default_passwd_cb(sslctx, no_passphrase_callback);
-   //SSL_CTX_set_default_passwd_cb(sslctx, passphrase_callback);
 
+   // Certificates are loaded here mostly for checking.
    if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
@@ -300,6 +299,7 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
         tls_process_error(logger);
         return false;
    }
+
    if(tls_random_seed(logger, random_file, 0)) {
      return false;
    }
@@ -480,7 +480,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    } else {
       // Creating new SSL object bound to stream of previous MCC
       // TODO: renew stream because it may be recreated by TCP MCC
-      stream = new PayloadTLSMCC(inpayload,sslctx_,logger);
+      stream = new PayloadTLSMCC(inpayload,sslctx_,cert_file_,key_file_,logger);
       context=new MCC_TLS_Context(stream);
       inmsg.Context()->Add("tls.service",context);
    };
@@ -643,7 +643,7 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
    if(label.empty()) {
       if(stream_) delete stream_;
       stream_=NULL;
-      stream_=new PayloadTLSMCC(next,sslctx_, logger);
+      stream_=new PayloadTLSMCC(next,sslctx_,cert_file_,key_file_,logger);
    };
    MCC::Next(next,label);
 }

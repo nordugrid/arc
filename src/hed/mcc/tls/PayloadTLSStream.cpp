@@ -90,6 +90,7 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
 X509* PayloadTLSStream::GetPeerCert(void){
   X509* peercert;
   int err;
+  if(ssl_ == NULL) return NULL;
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peercert=SSL_get_peer_certificate (ssl_);
     if(peercert!=NULL){
@@ -110,6 +111,7 @@ X509* PayloadTLSStream::GetPeerCert(void){
 STACK_OF(X509)* PayloadTLSStream::GetPeerChain(void){
   STACK_OF(X509)* peerchain;
   int err;
+  if(ssl_ == NULL) return NULL;
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peerchain=SSL_get_peer_cert_chain (ssl_);
     if(peerchain!=NULL){
