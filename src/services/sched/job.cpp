@@ -302,9 +302,9 @@ bool Job::load(void) {
 }
 
 bool Job::remove(void) {
-    std::string file1 = db + id + ".metadata";
-    std::string file2 = db + id + ".jsdl";
-    std::string file3 = db + id + ".arex_job_id";
+    std::string file1 = db + "/" + id + ".metadata";
+    std::string file2 = db + "/" + id + ".jsdl";
+    std::string file3 = db + "/" + id + ".arex_job_id";
     std::remove(file1.c_str());
     std::remove(file2.c_str());
     std::remove(file3.c_str());
