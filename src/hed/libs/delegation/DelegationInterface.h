@@ -44,7 +44,7 @@ class DelegationConsumer {
   bool Acquire(std::string& content);
 };
 
-/** A provider of delagated credentials.
+/** A provider of delegated credentials.
   During delegation procedure this class generates new credential
  to be used in proxy/delegated credential. */
 class DelegationProvider {
@@ -55,9 +55,18 @@ class DelegationProvider {
   void CleanError(void);
  public:
   /** Creates instance from provided credentials.
-     Credentials are used sign delegated credentials. */
+     Credentials are used to sign delegated credentials.
+     Arguments should contain PEM-encoded certificate, private key and 
+     optionally certificates chain. */
   DelegationProvider(const std::string& credentials);
+  /** Creates instance from provided credentials.
+     Credentials are used to sign delegated credentials.
+     Arguments should contain filesystem path to PEM-encoded certificate and
+     private key. Optionally cert_file may contain certificates chain. */
+  DelegationProvider(const std::string& cert_file,const std::string& key_file);
   ~DelegationProvider(void);
+  operator bool(void) { return key_ != NULL; };
+  bool operator!(void) { return key_ == NULL; };
   /** Perform delegation.
     Takes X509 certificate request and creates proxy credentials
    excluding private key. Result is then fed into DelegationConsumer::Acquire */

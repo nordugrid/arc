@@ -81,6 +81,7 @@ static bool x509_to_string(RSA* key,std::string& str) {
 
 static bool string_to_x509(const std::string& str,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
   BIO *in = NULL;
+  cert=NULL; pkey=NULL; cert_sk=NULL;
   if(str.empty()) return false;
   if(!(in=BIO_new_mem_buf((void*)(str.c_str()),str.length()))) return false;
   if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) { BIO_free_all(in); return false; };
@@ -90,6 +91,29 @@ static bool string_to_x509(const std::string& str,X509* &cert,EVP_PKEY* &pkey,ST
     X509* c = NULL;
     if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
     sk_X509_push(cert_sk,c);
+  };
+  BIO_free_all(in);
+  return true;
+}
+
+static bool string_to_x509(const std::string& cert_file,const std::string& key_file,X509* &cert,EVP_PKEY* &pkey,STACK_OF(X509)* &cert_sk) {
+  BIO *in = NULL;
+  cert=NULL; pkey=NULL; cert_sk=NULL;
+  if(cert_file.empty()) return false;
+  if(!(in=BIO_new_file(cert_file.c_str(),"r"))) return false;
+  if((!PEM_read_bio_X509(in,&cert,NULL,NULL)) || (!cert)) { BIO_free_all(in); return false; };
+  if(key_file.empty()) {
+    if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) { BIO_free_all(in); return false; };
+  };
+  for(;;) {
+    X509* c = NULL;
+    if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
+    sk_X509_push(cert_sk,c);
+  };
+  if(!pkey) {
+    BIO_free_all(in); in=NULL;
+    if(!(in=BIO_new_file(key_file.c_str(),"r"))) return false;
+    if((!PEM_read_bio_PrivateKey(in,&pkey,NULL,NULL)) || (!pkey)) { BIO_free_all(in); return false; };
   };
   BIO_free_all(in);
   return true;
@@ -327,21 +351,34 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   //OpenSSL_add_all_algorithms();
   EVP_add_digest(EVP_md5());
 
-  /*
-  if(key_) { EVP_PKEY_free((EVP_PKEY*)key_); key_=NULL; };
-  if(cert_) { X509_free((X509*)cert_); cert_=NULL; };
-  if(chain_) {
-    STACK_OF(X509) *sv = (STACK_OF(X509) *)chain_;
-    for(;;) {
-      X509* v = sk_X509_pop(sv);
-      if(!v) break;
-      X509_free(v);
-    };
-    sk_X509_free(sv);
-    chain_=NULL;
-  };
-  */
   if(!string_to_x509(credentials,cert,pkey,cert_sk)) goto err;
+  cert_=cert; cert=NULL;
+  key_=pkey; pkey=NULL;
+  chain_=cert_sk; cert_sk=NULL;
+  res=true;
+err:
+  if(!res) LogError();
+  if(pkey) EVP_PKEY_free(pkey);
+  if(cert) X509_free(cert);
+  if(cert_sk) {
+    for(int i = 0;i<sk_X509_num(cert_sk);++i) {
+      X509* v = sk_X509_value(cert_sk,i);
+      if(v) X509_free(v);
+    };
+    sk_X509_free(cert_sk);
+  };
+}
+
+DelegationProvider::DelegationProvider(const std::string& cert_file,const std::string& key_file):key_(NULL),cert_(NULL),chain_(NULL) {
+  EVP_PKEY *pkey = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *cert_sk = NULL;
+  bool res = false;
+
+  //OpenSSL_add_all_algorithms();
+  EVP_add_digest(EVP_md5());
+
+  if(!string_to_x509(cert_file,key_file,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
   key_=pkey; pkey=NULL;
   chain_=cert_sk; cert_sk=NULL;
