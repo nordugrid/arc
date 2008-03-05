@@ -144,7 +144,7 @@ sub qju_parse_command_line_options() {
     $config{providerlog}        = "/var/log/grid/infoprovider.log";
     $config{defaultttl}         = "604800";
     $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
-    $config{ng_location}        = $ENV{ARC_LOCATION} ||= "/opt/arc";
+    $config{ng_location}        = $ENV{NORDUGRID_LOCATION} ||= "/opt/nordugrid";
     $config{gridmap} 	 = "/etc/grid-security/grid-mapfile";
 
     my ($print_help);
@@ -211,8 +211,7 @@ sub qju_get_host_name () {
 sub read_grid_mapfile () {
     
     unless (open MAPFILE, "<$config{gridmap}") {
-	warning("can't open gridmapfile at $config{gridmap}");
-	return;
+	error("can't open gridmapfile at $config{gridmap}");
     }   
     while(my $line = <MAPFILE>) {
 	chomp($line);
