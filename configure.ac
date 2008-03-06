@@ -436,6 +436,33 @@ case " $LDFLAGS " in
      *) LDFLAGS="$LDFLAGS -no-undefined" ;;
 esac
 
+
+# hack for backend scripts
+
+pbs_bin_path=/usr/bin
+pbs_log_path=/var/spool/pbs/server_logs
+tmp_dir=/tmp
+gnu_time=/usr/bin/time
+nodename="/bin/hostname -f"
+runtime_config_dir=
+runtime_local_scratch_dir=
+runtime_frontend_sees_node=
+runtime_node_sees_frontend=
+arc_location=$prefix
+
+AC_SUBST(arc_location)
+AC_SUBST(pbs_bin_path)
+AC_SUBST(pbs_log_path)
+AC_SUBST(tmp_dir)
+AC_SUBST(gnu_time)
+AC_SUBST(nodename)
+AC_SUBST(runtime_config_dir)
+AC_SUBST(runtime_local_scratch_dir)
+AC_SUBST(runtime_frontend_sees_node)
+AC_SUBST(runtime_node_sees_frontend)
+
+
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
