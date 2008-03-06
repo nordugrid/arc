@@ -6,3 +6,4 @@ libarclibclient_la_HEADERS = ACC.h   Broker.h   ExecutionTarget.h    \
 libarclibclient_la_SOURCES = ACC.cpp Broker.cpp ExecutionTarget.cpp  \
 	Submitter.cpp TargetRetriever.cpp
 libarclibclient_la_CXXFLAGS = -I$(top_srcdir)/include
+libarclibclient_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la
