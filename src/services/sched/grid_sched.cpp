@@ -156,7 +156,7 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
 void sched(void* arg) {
     GridSchedulerService& it = *((GridSchedulerService*)arg);
     for(;;) {
-        std::cout << "Count of jobs:" << it.sched_queue.size() << " Scheduler period: " << it.getPeriod() << " Endpoint: "<< it.getEndPoint() <<  " DBPath: " << it.getDBPath() << std::endl;
+        std::cout << "Count of jobs:" << it.sched_queue.size() << " Count of resources:" << it.sched_resources.size() << " Scheduler period:" << it.getPeriod() << " Endpoint: "<< it.getEndPoint() <<  " DBPath: " << it.getDBPath() << std::endl;
 
     // searching for new sched jobs:
 
@@ -301,8 +301,10 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
   Resource arex("https://knowarc1.grid.niif.hu:60000/arex", security);
   sched_resources.addResource(arex);
 
+  //Resource arex0("https://localhost:40000/arex", security);
   //Resource arex1("https://localhost:40001/arex", security);
   //Resource arex2("https://localhost:40002/arex", security);
+  //sched_resources.addResource(arex0);
   //sched_resources.addResource(arex1);
   //sched_resources.addResource(arex2);
 }
