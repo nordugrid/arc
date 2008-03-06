@@ -598,8 +598,8 @@ if test ! "X$OPENSSL_PROXY" = "Xyes"; then
 AC_MSG_RESULT([
 
 OpenSSL contains no support for proxy credntials.
-You will have to use certificate/private kay pairs directly.
-Make sure private kays are not protected by password before
+You will have to use certificate/private key pairs directly.
+Make sure private keys are not protected by password before
 using them.
 It is advisable to update OpenSSL version to at least 0.9.7g
 to avoid this situation.
