@@ -494,10 +494,18 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
 		 src/services/a-rex/lrms/condor/Makefile
+                 src/services/a-rex/lrms/condor/finish-condor-job
+                 src/services/a-rex/lrms/condor/cancel-condor-job
 		 src/services/a-rex/lrms/fork/Makefile
+                 src/services/a-rex/lrms/fork/scan-fork-job
+                 src/services/a-rex/lrms/fork/submit-fork-job
+                 src/services/a-rex/lrms/fork/cancel-fork-job
 		 src/services/a-rex/lrms/ll/Makefile
 		 src/services/a-rex/lrms/lsf/Makefile
 		 src/services/a-rex/lrms/pbs/Makefile
+                 src/services/a-rex/lrms/pbs/submit-pbs-job
+                 src/services/a-rex/lrms/pbs/cancel-pbs-job
+                 src/services/a-rex/lrms/pbs/scan-pbs-job
 		 src/services/a-rex/lrms/sge/Makefile
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
@@ -558,3 +566,16 @@ RSL:                ${enable_rsl}
 Included components:
 A-Rex service:      ${enable_a_rex_service}
 ])
+
+if test ! "X$OPENSSL_PROXY" = "Xyes"; then
+AC_MSG_RESULT([
+
+OpenSSL contains no support for proxy credntials.
+You will have to use certificate/private kay pairs directly.
+Make sure private kays are not protected by password before
+using them.
+It is advisable to update OpenSSL version to at least 0.9.7g
+to avoid this situation.
+
+])
+fi
