@@ -361,6 +361,15 @@ if test x"$OPENSSL_OLDRSA" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_OLDRSA,,[define if OPENSSL has old RSA generation interface])
 fi
 
+test "x$prefix" = xNONE && xxxprefix=$ac_default_prefix || xxxprefix=$prefix
+test "x$exec_prefix" = xNONE && xxxexec_prefix=$xxxprefix
+pkglibsubdir=`echo ${libdir}/${PACKAGE} | \
+		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
+instprefix=${xxxexec_prefix}
+
+AC_DEFINE_UNQUOTED(PKGLIBSUBDIR, ["${pkglibsubdir}"], [plugin installation subpath])
+AC_DEFINE_UNQUOTED(INSTPREFIX, ["${instprefix}"], [installation prefix])
+
 # Setup messages for reporting
 enable_rls=no
 if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enable_rls=yes; fi

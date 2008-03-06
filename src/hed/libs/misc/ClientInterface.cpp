@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // This define is needed to have maximal values for types with fixed size
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
@@ -6,6 +10,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>
 #include <arc/User.h>
+#include <arc/ArcLocation.h>
 
 #include "ClientInterface.h"
 
@@ -60,15 +65,8 @@ namespace Arc {
 	if(pos != std::string::npos) pos++;
       }
     }
-    else if(getenv("ARC_LOCATION")) {
-      std::string pkglibdir(PKGLIBDIR);
-      std::string prefix(PREFIX);
-      if(pkglibdir.substr(0, prefix.length()) == prefix)
-	pkglibdir.replace(0, prefix.length(), getenv("ARC_LOCATION"));
-      AddPluginsPath(pkglibdir);
-    }
     else
-      AddPluginsPath(PKGLIBDIR);
+      AddPluginsPath(ArcLocation::Get() + '/' + PKGLIBSUBDIR);
 #endif
   }
 

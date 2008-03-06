@@ -1,6 +1,7 @@
 #include <getopt.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/ArcLocation.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/loader/Loader.h>
 
@@ -144,6 +145,8 @@ int main(int argc, char ** argv) {
 		Arc::LogStream logcerr(std::cerr);
 		Arc::Logger::getRootLogger().addDestination(logcerr);
 		Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+		Arc::ArcLocation::Init(argv[0]);
 
 		if (!argv[0]) {
 			logger.msg(Arc::ERROR, "No program name");
