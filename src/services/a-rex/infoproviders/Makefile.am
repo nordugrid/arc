@@ -4,6 +4,6 @@ libexec_SCRIPTS = SGE.pm Fork.pm PBS.pm \
 
 pkgdata_DATA = nordugrid.schema
 
-EXTRA_DIST = $(libexec_SCRIPTS) $(data_DATA)
+EXTRA_DIST = $(libexec_SCRIPTS) $(pkgdata_DATA)
 
 #SUBDIRS = remote-lrms
