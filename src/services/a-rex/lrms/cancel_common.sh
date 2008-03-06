@@ -3,15 +3,15 @@
 # must be called with the grami file as argument
 # remember to set $joboption_lrms
 
-if [ -z ${ARC_LOCATION} ] ; then
-    echo "ARC_LOCATION not set."  1>&2
+if [ -z ${NORDUGRID_LOCATION} ] ; then
+    echo "NORDUGRID_LOCATION not set."  1>&2
     exit 1
 fi
-if [ ! -f "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh" ] ; then
-    echo "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh not found." 1>&2
+if [ ! -f "${NORDUGRID_LOCATION}/libexec/configure-${joboption_lrms}-env.sh" ] ; then
+    echo "${NORDUGRID_LOCATION}/libexec/configure-${joboption_lrms}-env.sh not found." 1>&2
     exit 1
 fi
-. ${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh
+source ${NORDUGRID_LOCATION}/libexec/configure-${joboption_lrms}-env.sh
 
 arg_file=$1
 ##############################################################
