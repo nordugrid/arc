@@ -5,8 +5,7 @@
 #include "job_desc.h"
 
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
 std::string JobRequest::getJobName(void) { 
     return (std::string)(*this)["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"]; 
@@ -37,18 +36,15 @@ JobRequest::~JobRequest() {
 
 }
 
-JobRequest&  JobRequest::operator=( const  JobRequest& j )
-{
-   if ( this != &j )
-   {
-        j.descr.New(descr);
+JobRequest&  JobRequest::operator=( const  JobRequest& j ) {
+   if (this != &j) {
+     j.descr.New(descr);
    }
 
    return *this;
 }
 
-JobRequest::JobRequest( const JobRequest& j )
-{
+JobRequest::JobRequest( const JobRequest& j ) {
     j.descr.New(descr);
 }
 

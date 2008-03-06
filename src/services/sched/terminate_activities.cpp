@@ -24,17 +24,17 @@ Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::
     in.GetXML(s);
     logger_.msg(Arc::DEBUG, "TerminateActivities: request = \n%s", s.c_str());
   };
-  for(int n = 0;;++n) {
+  for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
     if(!id) break;
     Arc::XMLNode resp = out.NewChild("bes-factory:Response");
     resp.NewChild(id);
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["sched:JobID"];
-    if(jobid.empty()) {
+    if (jobid.empty()) {
       continue;
     };
 
-    if(!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.CheckJobID(jobid)) {
        logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
        Arc::SOAPEnvelope fault(ns_,true);
        fault.Fault()->Code(Arc::SOAPFault::Sender);
@@ -46,7 +46,7 @@ Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::
 
     bool result = sched_queue.setJobStatus(jobid, KILLING);
     
-    if(result) {
+    if (result) {
       resp.NewChild("bes-factory:Terminated")="true";
     } else {
       resp.NewChild("bes-factory:Terminated")="false";

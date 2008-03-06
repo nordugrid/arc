@@ -4,8 +4,7 @@
 
 #include "eps.h"
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
 };
 

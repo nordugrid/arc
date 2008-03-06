@@ -4,41 +4,34 @@
 
 #include "job_sched_meta.h"
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
-JobSchedMetaData::JobSchedMetaData()
-{
+JobSchedMetaData::JobSchedMetaData() {
     reruns = 5;
 }
 
-JobSchedMetaData::~JobSchedMetaData(void)
-{
+JobSchedMetaData::~JobSchedMetaData(void) {
     // nop
 }
 
 
-JobSchedMetaData::JobSchedMetaData(int& r)
-{
+JobSchedMetaData::JobSchedMetaData(int& r) {
     reruns = r;
 }
 
-bool JobSchedMetaData::setArexID(std::string &id)
-{
+bool JobSchedMetaData::setArexID(std::string &id) {
     arex_id = id;
 }
 
 /*
 
-JobSchedMetaData::JobSchedMetaData& operator=(const JobSchedMetaData& j)
-{
+JobSchedMetaData::JobSchedMetaData& operator=(const JobSchedMetaData& j) {
     //TODO
 
 }
 
 
-JobSchedMetaData::JobSchedMetaData( const JobSchedMetaData& j )
-{
+JobSchedMetaData::JobSchedMetaData(const JobSchedMetaData& j) {
 
     //TODO
 

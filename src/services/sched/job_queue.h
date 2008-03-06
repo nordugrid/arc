@@ -7,8 +7,7 @@
 
 #include "job.h"
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
 class JobQueue {
     private:

@@ -7,36 +7,30 @@
 namespace GridScheduler
 {
 
-ResourcesHandling::ResourcesHandling(void)
-{
+ResourcesHandling::ResourcesHandling(void) {
 
 
 }
 
-void ResourcesHandling::addResource(Resource &r)
-{
+void ResourcesHandling::addResource(Resource &r) {
     resources.insert( make_pair( r.getURL(), r ) );
 }
 
-void ResourcesHandling::removeResource(std::string &id)
-{
+void ResourcesHandling::removeResource(std::string &id) {
     resources.erase(id);
 }
 
-bool ResourcesHandling::getResource(std::string &id, Resource &r)
-{
+bool ResourcesHandling::getResource(std::string &id, Resource &r) {
     r = resources[id];
     return true;
 }
 
-bool ResourcesHandling::refresh(std::string id)
-{
+bool ResourcesHandling::refresh(std::string id) {
     resources[id].refresh();
     return true;
 }
 
-bool ResourcesHandling::random(Resource &r)
-{
+bool ResourcesHandling::random(Resource &r) {
     if (resources.empty()) return false;
     int i;
     srand((unsigned)time(NULL));
@@ -44,7 +38,7 @@ bool ResourcesHandling::random(Resource &r)
 
     std::map<std::string,Resource>::iterator it;
     it = resources.begin();
-    for (int j=0; j < i; j++){
+    for (int j=0; j < i; j++) {
         if (it != resources.end()) it++;
     }
     r = (*it).second;

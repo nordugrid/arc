@@ -36,11 +36,11 @@ Arc::MCC_Status GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode 
   doc.NewChild("bes-factory:IsAcceptingNewActivities")=(IsAcceptingNewActivities ? "true": "false");
   doc.NewChild("bes-factory:TotalNumberOfActivities")=Arc::tostring(sched_queue.size());
 
-  for( std::map<std::string,Job>::iterator iter = sched_queue.getJobs().begin(); iter != sched_queue.getJobs().end(); iter++ ) {
+  for (std::map<std::string,Job>::iterator iter = sched_queue.getJobs().begin(); iter != sched_queue.getJobs().end(); iter++) {
     Arc::WSAEndpointReference identifier(doc.NewChild("bes-factory:ActivityReference"));
     // Make job's ID
     identifier.Address(getEndPoint()); // address of service
-    identifier.ReferenceParameters().NewChild("sched:JobID")=iter -> first ;
+    identifier.ReferenceParameters().NewChild("sched:JobID")=iter->first ;
   };
 
   doc.NewChild("bes-factory:TotalNumberOfContainedResources")=Arc::tostring(sched_resources.size());

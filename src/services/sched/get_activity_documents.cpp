@@ -24,18 +24,18 @@ Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode &in,Arc:
     in.GetXML(s);
     logger.msg(Arc::DEBUG, "GetActivityDocuments: request = \n%s", s.c_str());
   };
-  for(int n = 0;;++n) {
+  for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
-    if(!id) break;
+    if (!id) break;
     // Create place for response
     Arc::XMLNode resp = out.NewChild("bes-factory:Response");
     resp.NewChild(id);
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["sched:JobID"];
-    if(jobid.empty()) {
+    if (jobid.empty()) {
       continue;
     };
 
-    if(!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.CheckJobID(jobid)) {
        logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
        Arc::SOAPEnvelope fault(ns_,true);
        fault.Fault()->Code(Arc::SOAPFault::Sender);

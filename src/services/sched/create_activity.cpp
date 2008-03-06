@@ -45,7 +45,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   }
 
   Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
-  if(!jsdl) {
+  if (!jsdl) {
     // Wrongly formated request
     logger_.msg(Arc::ERROR, "CreateActivity: no job description found");
     Arc::SOAPEnvelope fault(ns_,true);
@@ -59,12 +59,12 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   };
   std::string delegation;
   Arc::XMLNode delegated_token = in["deleg:DelegatedToken"];
-  if(delegated_token) {
+  if (delegated_token) {
     // Client wants to delegate credentials
-    if(!delegations_.DelegatedToken(delegation,delegated_token)) {
+    if (!delegations_.DelegatedToken(delegation,delegated_token)) {
       // Failed to accept delegation (generic SOAP error)
       Arc::SOAPEnvelope fault(ns_,true);
-      if(fault) {
+      if (fault) {
         fault.Fault()->Code(Arc::SOAPFault::Receiver);
         fault.Fault()->Reason("Failed to accept delegation");
         out.Replace(fault.Child());
@@ -77,7 +77,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   JobSchedMetaData sched_meta;
   Job sched_job(job_desc, sched_meta, timeout, db_path);
 
-  if(!sched_job) {
+  if (!sched_job) {
     std::string failure = sched_job.Failure();
     logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());
     // Failed to create new job (generic SOAP error)

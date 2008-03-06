@@ -7,16 +7,14 @@
 #include <iostream>
 #include <fstream>
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
-Job::Job(void){
+Job::Job(void) {
     timeout = 5;
     check = 0;
 }
 
-Job::Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path)
-{
+Job::Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path) {
     descr = d;
     sched_meta = m;
     timeout = t;
@@ -25,17 +23,14 @@ Job::Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path)
     check=0;
 }
 
-Job::Job(const std::string& jobid, std::string &db_path)
-{
+Job::Job(const std::string& jobid, std::string &db_path) {
     id = jobid;
     db = db_path;
     check = 0;
     timeout = 5;
 }
 
-Job::Job(std::istream& job,  std::string &db_path)
-{
-
+Job::Job(std::istream& job,  std::string &db_path) {
     db = db_path;
     std::string xml_document;
     std::string xml_line;
@@ -51,91 +46,80 @@ Job::Job(std::istream& job,  std::string &db_path)
     setJobRequest(job_desc);
 }
 
-Job::~Job(void)
-{
+Job::~Job(void) {
     // NOP
 }
 
-void Job::setJobRequest(JobRequest &d)
-{
+void Job::setJobRequest(JobRequest &d) {
     descr = d;
 }
 
-void Job::setJobSchedMetaData(JobSchedMetaData &m)
-{
+void Job::setJobSchedMetaData(JobSchedMetaData &m) {
     sched_meta = m;
 }
 
-Arc::XMLNode Job::getJSDL(void)
-{
+Arc::XMLNode Job::getJSDL(void) {
     return descr.getJSDL();
 }
 
-void Job::setArexJobID(std::string id)
-{
+void Job::setArexJobID(std::string id) {
     arex_job_id = id;
 }
 
 
-std::string Job::getArexJobID(void)
-{
+std::string Job::getArexJobID(void) {
     return  arex_job_id;
 }
 
-void Job::setArexID(std::string id)
-{
+void Job::setArexID(std::string id) {
     sched_meta.setArexID(id);
 }
 
-std::string Job::getArexID(void)
-{
+std::string Job::getArexID(void) {
     return sched_meta.getArexID();
 }
 
-bool Job::CheckTimeout(void)
-{
+bool Job::CheckTimeout(void) {
     check++;
-    if ( check  < timeout) {
+    if (check  < timeout) {
         return true;
-    }
-    else {
-        check= 0;
-        return false;
+    } else {
+      check= 0;
+      return false;
     }
 }
 
 
 bool SchedStatetoString(SchedStatus s, std::string &state) {
-
-    switch (s){
-    case NEW:
+    switch (s) {
+      case NEW:
         state = "New";
         break;
-    case STARTING:
+      case STARTING:
         state = "Starting";
         break;
-    case RUNNING:
+      case RUNNING:
         state = "Running";
         break;
-    case CANCELLED:
+      case CANCELLED:
         state = "Cancelled";
         break;
-    case FAILED:
+      case FAILED:
         state = "Failed";
         break;
-    case FINISHED:
+      case FINISHED:
         state = "Finished";
         break;
-    case UNKNOWN:
+      case UNKNOWN:
         state = "Unknown";
         break;
-    case KILLED:
+      case KILLED:
         state = "Killed";
         break;
-    case KILLING:
+      case KILLING:
         state = "Killing";
         break;
-    default:
+      default:
         return false;
     }
     return true;
@@ -167,7 +151,7 @@ bool StringtoSchedState(std::string &state, SchedStatus &s) {
 }
 bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state) {
 
-    if(arex_state == "Accepted") {
+    if (arex_state == "Accepted") {
         sched_state = STARTING;
     } else if(arex_state == "Preparing") {
         sched_state = STARTING;
@@ -183,8 +167,7 @@ bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state) {
         sched_state = CANCELLED;
     } else if(arex_state == "Killing") {
         sched_state = CANCELLED;
-    }
-    else {
+    } else {
         sched_state = UNKNOWN;
     }
 
@@ -250,23 +233,21 @@ bool Job::load(void) {
   char buf[250];
   std::string fname = db + "/" + id + ".metadata";
   std::ifstream f(fname.c_str());
-  if(! f.is_open() ) return false;
-  for(;!f.eof();) {
+  if (! f.is_open()) return false;
+  for (;!f.eof();) {
     f.getline(buf, 250);
     std::string line(buf);
     std::string name;
     std::string value;
 
-    if(!cut(line,name,value)) continue;
+    if (!cut(line,name,value)) continue;
     
-    if(name == "id") {
-        id = value;
-    }
-    else if(name == "arex_id") {
-        setArexID(value);
-    }
-    else if(name == "status") {
-        StringtoSchedState(value, status);
+    if (name == "id") {
+       id = value;
+    } else if (name == "arex_id") {
+       setArexID(value);
+    } else if (name == "status") {
+       StringtoSchedState(value, status);
     }
   }
   f.close(); 

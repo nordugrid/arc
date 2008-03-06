@@ -27,9 +27,9 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
     in.GetXML(s);
     logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s.c_str());
   };
-  for(int n = 0;;++n) {
+  for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
-    if(!id) break;
+    if (!id) break;
     // Create place for response
     Arc::XMLNode resp = out.NewChild("bes-factory:Response");
     resp.NewChild(id);
@@ -39,7 +39,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
       continue;
     };
 
-    if(!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.CheckJobID(jobid)) {
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
       Arc::SOAPEnvelope fault(ns_,true);
       fault.Fault()->Code(Arc::SOAPFault::Sender);
@@ -56,23 +56,23 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
 
     switch (stat) {
 
-    case NEW:
-        job_state="Pending";
-        break;
-    case STARTING:
-        job_state="Pending";
-        break;
-    case RUNNING:
-        job_state="Running";
-        break;
-    case CANCELLED:
-        job_state="Cancelled";
-    case FAILED:
-        job_state="Failed";
-        break;
-    case FINISHED:
-        job_state="Finished";
-        break;
+      case NEW:
+          job_state="Pending";
+          break;
+      case STARTING:
+          job_state="Pending";
+          break;
+      case RUNNING:
+          job_state="Running";
+          break;
+      case CANCELLED:
+          job_state="Cancelled";
+      case FAILED:
+          job_state="Failed";
+          break;
+      case FINISHED:
+          job_state="Finished";
+          break;
     }
 
     // Make response

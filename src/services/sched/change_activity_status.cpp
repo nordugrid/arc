@@ -28,7 +28,7 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
     in.GetXML(s);
     logger.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s.c_str());
   };
-  for(int n = 0;;++n) {
+  for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["sched:JobID"];
     Arc::XMLNode old_state = in["NewStatus"][n];
@@ -40,7 +40,7 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
     std::string old_s;
     old_state.GetXML(old_s);
 
-    if(!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.CheckJobID(jobid)) {
         continue;
     }
 
@@ -51,19 +51,19 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
     sched_queue.setJobStatus(jobid, state);
 
 
-    if(!id) break;
+    if (!id) break;
     // Create place for response
     Arc::XMLNode resp = out.NewChild("bes-factory:Response");
     resp.NewChild(id);
     Arc::XMLNode n_status  = resp.NewChild("bes-factory:NewStatus");
     n_status = new_state;
 
-    if(jobid.empty()) {
+    if (jobid.empty()) {
       // EPR is wrongly formated
       continue;
     };
 
-  return Arc::MCC_Status(Arc::STATUS_OK);
+    return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
 }

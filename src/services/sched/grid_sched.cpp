@@ -166,94 +166,92 @@ void sched(void* arg) {
     Resource arex;
     
 
-    for( iter = new_jobs.begin(); iter != new_jobs.end(); iter++ ) {
-        std::cout << "NEW job: " << iter -> first << std::endl;
+    for (iter = new_jobs.begin(); iter != new_jobs.end(); iter++) {
+        std::cout << "NEW job: " << iter->first << std::endl;
         it.sched_resources.random(arex);
-        Job j = iter -> second;
-        Arc::XMLNode jsdl = (iter -> second).getJSDL();
+        Job j = iter->second;
+        Arc::XMLNode jsdl = (iter->second).getJSDL();
         std::string arex_job_id = arex.CreateActivity(jsdl);
         std::cout << "A-REX ID: " << arex.getURL() <<  std::endl;
-        if ( arex_job_id != "" ){
-            it.sched_queue.setArexJobID(iter -> first, arex_job_id);
-            it.sched_queue.setArexID(iter -> first, arex.getURL());
-            it.sched_queue.setJobStatus(iter -> first, STARTING);
-            std::cout << "Sched job ID: " << iter -> first << " SUBMITTED" <<  std::endl;
-        } 
-        else {
-            std::cout << "Sched job ID: " << iter -> first << " NOT SUBMITTED" <<  std::endl;
+        if (arex_job_id != "") {
+            it.sched_queue.setArexJobID(iter->first, arex_job_id);
+            it.sched_queue.setArexID(iter->first, arex.getURL());
+            it.sched_queue.setJobStatus(iter->first, STARTING);
+            std::cout << "Sched job ID: " << iter->first << " SUBMITTED" <<  std::endl;
+        } else {
+            std::cout << "Sched job ID: " << iter->first << " NOT SUBMITTED" <<  std::endl;
             it.sched_resources.refresh(arex.getURL());
         }
-        it.sched_queue.saveJobStatus(iter -> first);
+        it.sched_queue.saveJobStatus(iter->first);
     }
 
     // kill jobs
 
     std::map<std::string,Job> killed_jobs =  it.sched_queue.getJobsWithThisState(KILLING);
     
-    for( iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++ ) {
-        Job j = iter -> second;
-        std::string job_id= iter -> first;
-        std::string arex_job_id  = (iter -> second).getArexJobID();
+    for (iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++) {
+        Job j = iter->second;
+        std::string job_id= iter->first;
+        std::string arex_job_id  = (iter->second).getArexJobID();
 
         if (arex_job_id.empty()) {
-            it.sched_queue.setJobStatus(iter -> first, KILLED);
+            it.sched_queue.setJobStatus(iter->first, KILLED);
             it.sched_queue.removeJob(job_id);
-        }
-        else {
-            it.sched_resources.getResource((iter -> second).getURL(), arex);
+        } else {
+            it.sched_resources.getResource((iter->second).getURL(), arex);
             if (arex.TerminateActivity(arex_job_id)) {
-                std::cout << "JobID: " << iter -> first << " KILLED " << std::endl;
-                it.sched_queue.setJobStatus(iter -> first, KILLED);
+                std::cout << "JobID: " << iter->first << " KILLED " << std::endl;
+                it.sched_queue.setJobStatus(iter->first, KILLED);
                 it.sched_queue.removeJob(job_id);
             }
         }
-        it.sched_queue.saveJobStatus(iter -> first);
+        it.sched_queue.saveJobStatus(iter->first);
     }
 
     // query a-rex job statuses:
     
-    for( iter = it.sched_queue.getJobs().begin(); iter != it.sched_queue.getJobs().end(); iter++ ) {
-        it.sched_queue.saveJobStatus(iter -> first); 
+    for (iter = it.sched_queue.getJobs().begin(); iter != it.sched_queue.getJobs().end(); iter++) {
+        it.sched_queue.saveJobStatus(iter->first); 
 
-        Job j = iter -> second;
+        Job j = iter->second;
 
-        std::string job_id = iter -> first;
+        std::string job_id = iter->first;
 
         SchedStatus job_stat;
         it.sched_queue.getJobStatus(job_id, job_stat);
 
         if (job_stat == FINISHED) continue;
 
-        std::string arex_job_id  = (iter -> second).getArexJobID();
+        std::string arex_job_id  = (iter->second).getArexJobID();
 
         if (arex_job_id.empty()) {
-            std::cout << "Sched job ID: " << iter -> first << " ---- A-REX job ID is empty" <<   std::endl;
+            std::cout << "Sched job ID: " << iter->first << " ---- A-REX job ID is empty" <<   std::endl;
             continue; 
         }
 
-        it.sched_resources.getResource((iter -> second).getURL(), arex);
+        it.sched_resources.getResource((iter->second).getURL(), arex);
         std::string state;
 
         state = arex.GetActivityStatus(arex_job_id);
 
         if (state == "Unknown") {
             if (!it.sched_queue.CheckJobTimeout(iter->first)) {  // job timeout check
-                it.sched_queue.setJobStatus(iter -> first, NEW);
-                it.sched_queue.setArexJobID(iter -> first, "");
-                it.sched_queue.setArexID(iter -> first, "");
+                it.sched_queue.setJobStatus(iter->first, NEW);
+                it.sched_queue.setArexJobID(iter->first, "");
+                it.sched_queue.setArexID(iter->first, "");
                // std::string url = arex.getURL();
               //  it.sched_resources.removeResource(url);
-                std::cout << "Job RESCHEDULE: " << iter -> first << std::endl;
-                it.sched_queue.saveJobStatus(iter -> first);
+                std::cout << "Job RESCHEDULE: " << iter->first << std::endl;
+                it.sched_queue.saveJobStatus(iter->first);
                 it.sched_resources.refresh(arex.getURL());
                 continue;
             }
         }
 
         ArexStatetoSchedState(state, job_stat); // refresh status from A-REX state
-        it.sched_queue.setJobStatus(iter -> first, job_stat);
-        std::cout << "JobID: " << iter -> first << " state: " << state<< std::endl;
-        it.sched_queue.saveJobStatus(iter -> first);
+        it.sched_queue.setJobStatus(iter->first, job_stat);
+        std::cout << "JobID: " << iter->first << " state: " << state<< std::endl;
+        it.sched_queue.saveJobStatus(iter->first);
     }
 
     sleep(it.getPeriod());

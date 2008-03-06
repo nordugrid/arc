@@ -8,17 +8,14 @@
 #include <list>
 
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
 
-Resource::Resource()
-{
+Resource::Resource() {
 
 }
 
-Resource::Resource(std::string url_str, std::vector <std::string> &security)
-{
+Resource::Resource(std::string url_str, std::vector <std::string> &security) {
     url = url_str;
     ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
     ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
@@ -33,8 +30,7 @@ Resource::Resource(std::string url_str, std::vector <std::string> &security)
 
     Arc::URL url(url_str);
     
-    if (url.Protocol() == "https") 
-    {
+    if (url.Protocol() == "https") {
         cfg.AddPrivateKey(security.at(0));
         cfg.AddCertificate(security.at(1));
         cfg.AddCADir(security.at(2));
@@ -44,13 +40,11 @@ Resource::Resource(std::string url_str, std::vector <std::string> &security)
 }
 
 
-Resource::~Resource(void)
-{
+Resource::~Resource(void) {
     //if (client) delete client;
 }
 
-bool Resource::refresh(void)
-{
+bool Resource::refresh(void) {
     // TODO ClientSOAP refresh if the connection is wrong
     //
 
@@ -63,8 +57,7 @@ bool Resource::refresh(void)
 }
 
 
-std::string Resource::CreateActivity(Arc::XMLNode jsdl)
-{
+std::string Resource::CreateActivity(Arc::XMLNode jsdl) {
     std::string jobid, faultstring;
     Arc::PayloadSOAP request(ns);
     request.NewChild("bes-factory:CreateActivity").NewChild("bes-factory:ActivityDocument").NewChild(jsdl);
@@ -73,7 +66,7 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
         
     Arc::MCC_Status status = client->process(&request, &response);
 
-    if(!status) {
+    if (!status) {
         std::cerr << "Request failed" << std::endl;
         if(response) {
            std::string str;
@@ -84,7 +77,7 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
         return "";
      };
 
-     if(!response) {
+     if (!response) {
          std::cerr << "No response" << std::endl;
          return "";
      };
@@ -98,8 +91,7 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl)
       return jobid;
 }
 
-std::string Resource::GetActivityStatus(std::string arex_job_id)
-{
+std::string Resource::GetActivityStatus(std::string arex_job_id) {
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
 
@@ -110,11 +102,10 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
         request.NewChild("bes-factory:GetActivityStatuses").NewChild(Arc::XMLNode(arex_job_id));
 
         Arc::MCC_Status status = client->process(&request, &response);
-        if(!status || !response) {
+        if (!status || !response) {
             return "Unknown";
         }
-    }
-    catch (...) { 
+    } catch (...) { 
         return "Unknown";
     }
 
@@ -131,15 +122,12 @@ std::string Resource::GetActivityStatus(std::string arex_job_id)
     else if (state=="")
       std::cerr << "The job status could not be retrieved." << std::endl;
     else {
-
       return substate;
-
     }
 
 }
 
-bool Resource::TerminateActivity(std::string arex_job_id)
-{
+bool Resource::TerminateActivity(std::string arex_job_id) {
     std::cout << "kill this job: " << arex_job_id << std::endl; 
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
@@ -154,8 +142,7 @@ bool Resource::TerminateActivity(std::string arex_job_id)
         if(!status || !response) {
             return false;
         }
-    }
-    catch (...) { 
+    } catch (...) { 
         return false;
     }
 
@@ -173,8 +160,7 @@ bool Resource::TerminateActivity(std::string arex_job_id)
 
 Resource&  Resource::operator=( const  Resource& r )
 {
-   if ( this != &r )
-   {
+   if ( this != &r ) {
       id = r.id;
       url = r.url;
       client = r.client;

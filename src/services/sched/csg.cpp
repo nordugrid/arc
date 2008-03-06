@@ -4,8 +4,7 @@
 
 #include "csg.h"
 
-namespace GridScheduler
-{
+namespace GridScheduler {
 
 };
 

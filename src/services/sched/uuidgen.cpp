@@ -55,7 +55,6 @@ int main (void) {
         std::string uuid = make_uuid();
         std::cout << uuid.c_str() << std::endl;
     }
-
     return 0;
 }
 
