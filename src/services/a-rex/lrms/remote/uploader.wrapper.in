@@ -1,0 +1,93 @@
+#!/bin/sh
+
+# Wrapper for upload to allow copying the output files from a remote LRMS before
+# uploading them to final destination
+# Will still work if LRMS is local.
+
+#################
+# General setup #
+#################
+
+if [ -z $ARC_LOCATION ]; then
+	LIBEXECDIR="@libexecdir@"
+else
+	LIBEXECDIR="${ARC_LOCATION}/libexec"
+fi
+
+# Include remote LRMS functions
+REMOTE_LRMS_FUNCTIONS="${LIBEXECDIR}/remote-lrms-functions"
+if [ -r ${REMOTE_LRMS_FUNCTIONS} ]; then
+	. ${REMOTE_LRMS_FUNCTIONS}
+
+	read_gw_conf $@
+	LOCAL_LRMS=$?
+else 
+	errormsg "${REMOTE_LRMS_FUNCTIONS} not readable - disabling remote LRMS!"
+	LOCAL_LRMS='1'
+fi
+
+#debugmsg "wrapper script!!"
+
+#debugmsg "LOCAL_LRMS ${LOCAL_LRMS}"
+
+if [ ${LOCAL_LRMS} -eq '0' ]; then
+	session_dir=""
+	find_session_dir $@
+	if [ -z $session_dir ]; then
+		errormsg "session_dir not found - no download from resource"
+		exit 1
+	fi
+	control_dir=""
+	find_control_dir
+	if [ -z $control_dir ]; then
+		errormsg "control_dir not found - cleanup will fail"
+	fi
+	gridid=`$BASENAME $session_dir`
+	download ${session_dir}.diag ${session_dir}.diag
+	# GM cp's diag to control dir before upload but diag is not yet there
+	# So this is a hack to get diag file in gmlog anyway
+	#debugmsg "$CP $FORCE ${session_dir}.diag ${control_dir}/job.${gridid}.diag"
+	$CP $FORCE ${session_dir}.diag ${control_dir}/job.${gridid}.diag
+	#debugmsg "fetch diag file returned $?"
+	debugmsg "downloading session_dir $session_dir"
+	download_session_dir $session_dir
+	ret=$?
+	if [ $ret -eq '0' ]; then
+		if [ -z "$DEBUG_FILES" ]; then
+			debugmsg "cleanup session, diag and control dir"
+			#debugmsg "remote execution of $RM $FORCE $RECURSIVE ${session_dir} ${session_dir}.diag"
+			remote_exec "$RM $FORCE $RECURSIVE ${session_dir} ${session_dir}.diag"
+			ret=$?
+			if [ $ret -ne '0' ]; then
+				errormsg "remote session clean up failed ($ret)! - ignoring"
+			fi
+
+			# Delete any remaining job control files at resource
+			JOBFILES="job.${gridid}.*"
+			#debugmsg "cleanup $JOBFILES in $control_dir"
+			remote_exec "cd $control_dir && $RM $FORCE $JOBFILES"
+			ret=$?
+			if [ $ret -ne '0' ]; then
+				debugmsg "control dir clean up failed! ($ret) - ignoring"
+			fi
+		else
+			debugmsg "keeping remote control and session dirs"
+		fi
+	else
+		# Warn but continue - upload will probably fail
+		errormsg "session dir download failed! ($ret) - not cleaning up"
+	fi
+#else
+	#debugmsg "local LRMS ${LOCAL_LRMS} - no download from resource required"
+fi
+
+
+
+UL_SCRIPT="${0}.bin"
+#debugmsg "calling ${UL_SCRIPT} with args"
+${UL_SCRIPT} $@
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "${UL_SCRIPT} failed with err $ret"
+fi
+exit $ret

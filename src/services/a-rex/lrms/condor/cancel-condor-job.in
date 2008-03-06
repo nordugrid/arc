@@ -1,0 +1,15 @@
+#!/bin/bash
+
+progname=$(basename "$0")
+echo "----- starting $progname -----" >&2
+
+joboption_lrms=condor
+
+. ${ARC_LOCATION}/libexec/cancel_common.sh $1
+
+echo "$progname: canceling job $joboption_jobid with condor_rm..." >&2
+
+$CONDOR_BIN_PATH/condor_rm ${joboption_jobid%.condor} >&2
+
+echo "----- exiting $progname -----" >&2
+exit 0

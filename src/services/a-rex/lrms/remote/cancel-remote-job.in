@@ -1,0 +1,224 @@
+#!/bin/sh
+#
+#  Cancels job at remote resource running the specified LRMS.
+#  Input: LRMS-type and path to grami file.
+#
+# usage: cancel-remote-job grami_file
+
+#################
+# General setup #
+#################
+
+if [ -z $ARC_LOCATION ]; then
+	LIBEXECDIR="@libexecdir@"
+else
+	LIBEXECDIR="${ARC_LOCATION}/libexec"
+fi
+
+# Include remote LRMS functions
+REMOTE_LRMS_FUNCTIONS="${LIBEXECDIR}/remote-lrms-functions"
+if [ ! -r ${REMOTE_LRMS_FUNCTIONS} ]; then
+	logger "ERROR: ${REMOTE_LRMS_FUNCTIONS} not readable!"
+	exit 1
+fi
+
+. ${REMOTE_LRMS_FUNCTIONS}
+
+read_gw_conf $@
+LOCAL_LRMS=$?
+
+if [ ${LOCAL_LRMS} -ne '0' ]; then
+	errormsg "remote LRMS configuration disabled! (${LOCAL_LRMS})"
+	exit 1
+fi
+
+debugmsg "cancel-remote-job: $@"
+
+
+#################################
+# Set up reasonable environment #
+#################################
+
+# Make sure we are not in /root or somewhere else with no access! 
+# IMPORTANT! since sync won't work otherwise!!!
+cd $TMP_DIR
+
+# Please note that this script gets executed as 'su grid' (no minus!)
+# Thus we will be located in /root/ and have some partial leftover root environment
+OLD_MASK=`umask`
+umask 007
+
+# TODO: we should probably reset umask to OLD_UMASK before exit
+
+# Grab LRMS arg before continuing as usual
+if [ -z "$1" ] ; then 
+	errormsg "No arg file supplied!"
+	exit 1
+fi
+
+# Read LRMS type from arc.conf into CONF_VALUE variable
+read_conf_value "resource_lrms"
+CANCEL_LRMS_KIND="$CONF_VALUE"
+
+CANCEL_ARG_FILE=$1
+##################################################################
+# Source the argument file. (this will set job and control dirs) #
+##################################################################
+if [ -z "$CANCEL_ARG_FILE" ] ; then
+   echo "Arguments file should be specified" 1>&2
+   exit 1
+fi
+if [ ! -f $CANCEL_ARG_FILE ] ; then
+   echo "Missing arguments file" 1>&2
+   exit 1
+fi
+. $CANCEL_ARG_FILE
+
+############################################################
+# Set up other environment variables we need at this point #
+############################################################
+
+# Build name of cancel script by replacing remote with supplied LRMS name
+CANCEL_LRMS_SCRIPT=`echo $0 | $SED "s/-remote-/-${CANCEL_LRMS_KIND}-/"`
+
+# Strip the path
+CANCEL_SCRIPT_NAME=`$BASENAME ${CANCEL_LRMS_SCRIPT}`
+
+# Temporary scratch dir used locally and remotely
+REMOTE_SCRATCH=`$MKTEMP -d ${TMP_DIR}/remote-scratch.XXXXXX`
+
+# Store copies of relevant files in REMOTE_SCRATCH
+# IMPORTANT: SUBMIT_ARG_FILE must stay in cotrol dir
+LRMS_SCRIPT=${REMOTE_SCRATCH}/`$BASENAME $CANCEL_LRMS_SCRIPT`
+# Save current environment in a file to be sourced before remote cancel
+ENV_FILE="${LRMS_SCRIPT}.environment"
+
+# Copy options:
+CP_OPTS="$UPDATE"
+
+
+########################################################
+# Build environment file to be sourced at the resource #
+########################################################
+store_environment $ENV_FILE
+
+
+######################################################
+# Prepare scratch directory for transfer to resource #
+######################################################
+
+# We need the cancel script, the argument file, and the environment file all in a 
+# directory at the remote host. The three files are placed in REMOTE_SCRATCH
+# before being copied there in a single transfer.
+
+debugmsg "$CP $CP_OPTS ${CANCEL_LRMS_SCRIPT} ${LRMS_SCRIPT}"
+$CP $CP_OPTS ${CANCEL_LRMS_SCRIPT} ${LRMS_SCRIPT}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "$CP $CP_OPTS ${CANCEL_LRMS_SCRIPT} ${LRMS_SCRIPT} failed!"
+	exit 1
+fi
+
+# Now all files are inside REMOTE_SCRATCH
+
+######################################################
+# Transfer scratch directory to resource and execute #
+######################################################
+
+# Please note that trailing slash is important
+debugmsg "upload/sync arg file to remote resource"
+upsync ${CANCEL_ARG_FILE} ${CANCEL_ARG_FILE}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "upsync command failed! (upload/sync ${CANCEL_ARG_FILE} ${CANCEL_ARG_FILE}"
+	exit 1
+fi
+
+# Please note that trailing slash is important
+debugmsg "upload/sync scratch dir to remote resource"
+upload ${REMOTE_SCRATCH}/ ${REMOTE_SCRATCH}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "upload/sync command failed! (upload/sync ${REMOTE_SCRATCH}/ ${REMOTE_SCRATCH}"
+	exit 1
+fi
+
+debugmsg "remote execution of $LRMS_SCRIPT with arg $CANCEL_ARG_FILE"
+remote_exec ". ${ENV_FILE} && ${LRMS_SCRIPT} ${CANCEL_ARG_FILE}"
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "remote job submission failed! (${LRMS_SCRIPT} ${CANCEL_ARG_FILE})"
+	exit $ret
+fi
+
+debugmsg "remote job cancel succeeded (${LRMS_SCRIPT} ${CANCEL_ARG_FILE})"
+
+# Please note that pbs script adds jobid to job.x.grami file in controldir. 
+# Thus we must fetch the updated version since the GM relies on that addition.
+#debugmsg "download/sync arg file ($CANCEL_ARG_FILE) from remote resource"
+
+debugmsg "download/sync ${CANCEL_ARG_FILE} ${CANCEL_ARG_FILE}"
+downsync ${CANCEL_ARG_FILE} ${CANCEL_ARG_FILE}
+ret=$?
+if [ $ret -ne '0' ]; then
+	errormsg "download/sync command failed! (download/sync ${CANCEL_ARG_FILE} ${CANCEL_ARG_FILE})"
+	exit 1
+fi
+
+#debugmsg "download/sync arg file ($CANCEL_ARG_FILE) succeeded"
+
+# 'uploader' will not be run so download session dir and diag here.
+# sourced input file contains session_dir as $joboption_directory
+session_dir="$joboption_directory"
+find_control_dir
+if [ -z $control_dir ]; then
+	errormsg "control_dir not found - cleanup will fail"
+fi
+# sourced input file contains gridid as $joboption_gridid
+gridid="$joboption_gridid"
+download ${session_dir}.diag ${session_dir}.diag
+debugmsg "downloading session_dir $session_dir"
+download_session_dir $session_dir
+ret=$?
+if [ $ret -eq '0' ]; then
+	if [ -z "$DEBUG_FILES" ]; then
+		debugmsg "remote execution of $RM $FORCE $RECURSIVE ${session_dir} ${session_dir}.diag"
+		remote_exec "$RM $FORCE $RECURSIVE ${session_dir} ${session_dir}.diag"
+		ret=$?
+		if [ $ret -ne '0' ]; then
+			errormsg "remote session clean up failed ($ret)! - ignoring"
+		fi
+		# Delete any remaining job control files at resource
+		JOBFILES="job.${gridid}.*"
+		debugmsg "cleanup $JOBFILES in $control_dir"
+		remote_exec "cd $control_dir && $RM $FORCE $JOBFILES"
+		ret=$?
+		if [ $ret -ne '0' ]; then
+			debugmsg "control dir clean up failed! ($ret) - ignoring"
+		fi
+	else
+		debugmsg "keeping remote control and session dirs"
+	fi
+else
+	# Warn but continue - upload will probably fail
+	errormsg "session dir download failed - not cleaning up"
+fi
+
+# Clean up temporary stuff
+if [ -z "$DEBUG_FILES" ]; then
+	debugmsg "cleaning up local and remote scratch dir (${REMOTE_SCRATCH})"
+	#debugmsg "local execution of $RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	$RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		errormsg "local clean up failed ($ret)! - ignoring"
+	fi
+	#debugmsg "remote execution of $RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	remote_exec "$RM $FORCE $RECURSIVE ${REMOTE_SCRATCH}"
+	ret=$?
+	if [ $ret -ne '0' ]; then
+		errormsg "remote clean up failed ($ret)! - ignoring"
+	fi
+fi
+
+exit 0

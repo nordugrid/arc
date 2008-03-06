@@ -1,0 +1,313 @@
+#!/bin/bash -f
+# set -xv
+#
+# Periodically read log files of PBS and put mark files
+# for job, which finished.
+# If log files are not available scan for finished (absent) jobs 
+# in PBS and put mark files for job, which finished.
+#
+#
+# usage: scan_sge_job control_dir ...
+
+
+##############################################################
+# Set SGE specific environment.
+##############################################################
+ARC_LOCATION=${ARC_LOCATION:-/usr/local}
+
+if [ ! -f "${ARC_LOCATION}/libexec/configure-sge-env.sh" ] ; then
+    echo "${ARC_LOCATION}/libexec/configure-sge-env.sh not found." >&2
+    exit 1
+fi
+source ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
+
+##############################################################
+
+
+umask 022
+
+if [ -z "$1" ] ; then exit 1 ; fi
+
+
+# first control_dir is used for storing own files
+
+echo `date`" : control_dir=$1" 1>&2
+
+control_dir=$1
+control_dirs=
+while [ $# -gt 0 ] ; do
+  control_dirs="${control_dirs} $1"
+  shift
+done
+
+my_id=`id -u`
+
+
+# GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
+
+
+# Get all running jobs
+#
+# first running jobs, grep for MASTER to avoild slave procs
+pids=`${SGE_BIN_PATH}/qstat -u '*' -s rs 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`
+
+# now add queued jobs
+pids="$pids `${SGE_BIN_PATH}/qstat -u '*' -s p 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`"
+
+
+# Go through directories
+for ctr_dir in $control_dirs ; do
+  # Obtain ids of pending/running jobs stored in job.*.local
+  rjobs=`find ${ctr_dir} -name 'job.*.status' -print0 2>/dev/null | xargs -0 egrep -lv 'DELETED|FINISHED' 2>/dev/null | sed s/status$/local/`
+  if [ -z "$rjobs" ] ; then continue ; fi
+  ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
+  if [ -z "$ids" ] ; then continue ; fi
+  # compare them to running jobs and find missing
+  bids=
+  for id in $ids ; do
+    found=`echo "$pids" | grep "^$id"`
+    if [ -z "$found" ] ; then
+      bids="$bids $id"
+    fi
+  done
+  # go through missing ids
+  for id in $bids ; do
+    # find grid job corresponding to current local id
+    jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 2>/dev/null | xargs -0 grep -l "localid=$id\$" 2>/dev/null`
+    if [ -z "$jobfile" ] ; then continue ; fi
+    # extract grid id
+    gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
+    gramifile="${ctr_dir}/job.${gridid}.grami"
+    donefile="${ctr_dir}/job.${gridid}.lrms_done"
+    countfile="${ctr_dir}/job.${gridid}.lrms_job"
+    failedfile="${ctr_dir}/job.${gridid}.failed"
+    errorsfile="${ctr_dir}/job.${gridid}.errors"
+    if [ -f "$donefile" ] ; then continue ; fi
+    statusfile="${ctr_dir}/job.${gridid}.status"
+    if [ ! -f "$statusfile" ] ; then continue ; fi
+    status=`cat "$statusfile"`
+    if [ ! "$status" = "INLRMS" ] ; then continue ; fi
+    # get session directory of this job
+    session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+    session=${session:-/usr/local/sys/nordugrid/nordugrid/sessiondir/$gridid}
+    if [  -d "$session" ] ; then
+      # have chance to obtain exit code
+      diagfile="${session}.diag"
+      exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`
+
+      # qacct can take quite long. Here is a workaround.
+      # Find the accounting file, and copy the last 10000
+      # records to a temp file.
+      acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
+      if [ -f  $acctfile ]; then
+        briefacct=$(mktemp /tmp/accounting.XXXXXX)
+        tail -n 1000 $acctfile > $briefacct
+        if [ $? == 0 ]; then extraargs="-f $briefacct"; fi
+      fi
+
+      # get accounting info. write diag file
+      ${SGE_BIN_PATH}/qacct -j $id $extraargs 2> /dev/null \
+          | perl -e 'while(<>){
+                         $nodename=$1         if /^hostname\s+(\S+)/;
+                         $id=$1               if /^jobnumber\s+(\S+)/;
+                         $exitcode=$1         if /^exit_status\s+(\S+)/;
+                         $failed=$1           if /^failed\s+(.*\S)/;
+                         $UserTime=$1         if /^cpu\s+(\d+)/;
+                         $KernelTime=$1       if /^ru_stime\s+(\d+)/;
+                         $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
+                         $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
+                         $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
+                       }
+                       END {
+                         exit unless $id;
+                         print "nodename=${nodename}\n";
+                         print "WallTime=${WallTime}.0s\n";
+                         print "KernelTime=${KernelTime}.0s\n";
+                         print "UserTime=${UserTime}.0s\n";
+                         print "UsedMemory=".int($UsedMemory*1024)."kB\n";
+                         print "failed=$failed\n";
+                         print "\nexitcode=$exitcode\n";
+                       }' \
+          > $diagfile.acct
+      if [ "x$briefacct" != "x" ]; then rm -f $briefacct; fi
+
+      # If the last qacct record is about migration,
+      # we should wait for the next qacct record to appear
+      # Delete file, like there was no accounting present at all!
+      if grep -q "^failed=24 *: migrating" $diagfile.acct; then
+          rm -f $diagfile.acct
+          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct"
+      fi
+
+      # Add accounting info to $diagfile
+      if [ -s $diagfile.acct ]; then
+
+          # Accouting info is present
+          accountinginfo=1
+          cat $diagfile \
+                        | grep -v "^nodename=" \
+                        | grep -v "^WallTime=" \
+                        | grep -v "^KernelTime=" \
+                        | grep -v "^UserTime=" \
+                        | grep -v "^MaxResidentMemory=" \
+                        | grep -v "^AverageTotalMemory=" \
+                        | grep -v "^exitcode=" \
+          > $diagfile.tmp
+          cat $diagfile.tmp  >  $diagfile
+          cat $diagfile.acct >> $diagfile
+
+          exitcode=`grep '^exitcode=' "$diagfile" | tail -n 1 | sed 's/^exitcode=//'`
+          failedreason=`grep '^failed=' $diagfile | tail -n 1 | sed 's/^failed=//'`
+          failedcode=`echo $failedreason | awk '{print $1}'`
+
+          # Check for exceeded resources limits
+          if [ -s $gramifile ]; then
+            eval req_memory=`grep ^joboption_memory= $gramifile | tail -n 1 | sed s/^joboption_memory=//`
+            eval req_cputime=`grep ^joboption_cputime= $gramifile | tail -n 1 | sed s/^joboption_cputime=//`
+            eval req_walltime=`grep ^joboption_walltime= $gramifile | tail -n 1 | sed s/^joboption_walltime=//`
+
+            used_cputime=
+            used_memory=
+            used_walltime=`grep '^WallTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^WallTime=\(.*\).0s/\1/'`
+            UserTime=`grep '^UserTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^UserTime=\(.*\).0s/\1/'`
+            KernelTime=`grep '^KernelTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^KernelTime=\(.*\).0s/\1/'`
+            UsedMemory=`grep '^UsedMemory=\(.*\)kB' $diagfile | tail -n 1 | sed 's/^UsedMemory=\(.*\)kB/\1/'`
+
+            if [ ! -z "$UserTime" ] && [ ! -z "$KernelTime" ]; then
+              used_cputime=$(( UserTime + KernelTime ))
+            fi
+            if [ ! -z "$UsedMemory" ]; then
+              used_memory="$UsedMemory"
+            fi
+
+            if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] && [ "$req_memory" -gt 0 ] \
+            && [ $(( 100*used_memory/1024/req_memory )) -gt 95 ]; then
+              overlimit="memory"
+            fi
+            if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] && [ "$req_cputime" -gt 0 ] \
+            && [ $(( 100*used_cputime/req_cputime )) -gt 95 ]; then
+              overlimit="cputime"
+            fi
+            if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] && [ "$req_walltime" -gt 0 ] \
+            && [ $(( 100*used_walltime/req_walltime )) -gt 95 ]; then
+              overlimit="walltime"
+            fi
+
+            echo ++++++++++++++++++++++++++   >> $errorsfile
+            echo Resources:                   >> $errorsfile
+            echo ++++++++++++++++++++++++++   >> $errorsfile
+            echo req_memory=$req_memory Mb    >> $errorsfile
+            echo req_cputime=$req_cputime     >> $errorsfile
+            echo req_walltime=$req_walltime   >> $errorsfile
+            echo used_memory=$used_memory kB  >> $errorsfile
+            echo used_cputime=$used_cputime   >> $errorsfile
+            echo used_walltime=$used_walltime >> $errorsfile
+            if [ ! -z "$overlimit" ]; then
+              echo overlimit=$overlimit       >> $errorsfile
+            fi
+            echo ++++++++++++++++++++++++++   >> $errorsfile
+
+          fi # grami file
+
+          if [ "$failedcode" == "0" ]; then
+            if [ "$exitcode" == "0" ]; then
+              echo "SGE job $id finished succesfully"
+              echo "$exitcode" > $donefile
+            else
+              echo "SGE job $id failed with exit code $exitcode"
+              echo "$exitcode Job finished with non-zero exit code" > $donefile
+            fi
+          else
+            # SGE reports a problem
+            if [[ -z "$failedcode" ]]; then
+              : # Should never happen
+            elif [ "$failedcode" == "0" ]; then
+              : # Should never happen
+            elif [ "$failedcode" == "25" ]; then
+              failedreason="SGE error $failedcode: Job will be rescheduled"
+            elif [ "$failedcode" == "24" ]; then
+              failedreason="SGE error $failedcode: Job will be migrated"
+            elif [ "$failedcode" == "100" ]; then
+	      # This happens when SGE signals the job, as in the case when a
+	      # resource limit is exceeded.  We don't know for sure whether
+	      # they were enforced or not but if a job is killed by SGE, this
+	      # might the likely cause.
+	      if [ -z "$overlimit" ]; then
+                failedreason="SGE error $failedreason"
+              elif [ $overlimit == "memory" ]; then
+                failedreason="job killed: vmem"
+              elif [ $overlimit == "cputime" ]; then
+                failedreason="job killed: cput"
+              elif [ $overlimit == "walltime" ]; then
+                failedreason="job killed: wall"
+              fi
+            else
+              failedreason="SGE error $failedreason"
+            fi
+            exitcode=$((failedcode+256))
+            exitcode=271
+            echo "SGE job $id failed: $failedreason"
+            echo $exitcode $failedreason > $donefile
+
+            # Change exit code in the diag file
+            cp $diagfile $diagfile.tmp
+            if [ $? == 0 ]; then
+              cat $diagfile.tmp | grep -v "^exitcode=" > $diagfile
+              echo "exitcode=$exitcode"  >>  $diagfile
+              rm -f $diagfile.tmp
+            fi
+
+          fi # failedcode
+
+          # wake up GM
+          $ARC_LOCATION/libexec/gm-kick $statusfile >> $errorsfile
+
+          rm -f $countfile
+          rm -f $diagfile.tmp $diagfile.acct
+
+          # we're done, go to next job id
+          continue
+
+      fi # accounting info ok
+
+      rm -f $diagfile.acct
+
+    fi # session directory exists
+
+    # This section is only reached when accounting info is not present
+    # There is a certain lag between the end of the job
+    # and the time when accouting information becomes available.
+    # We do 5 retries, keeping the count in $countfile
+
+    counter=0
+    if [ -f "$countfile" ] ; then
+      counter=`cat "$countfile"`
+      counter=$(( $counter + 1 ))
+    fi
+
+    if [ "$counter" -gt 5 ]; then
+      # Cannot wait more for accounting info.
+      if [ -z "$exitcode" ]; then
+        echo "SGE job $id finished with unknown exit code."
+        echo "256 Job disappeared from SGE." > $donefile
+      else
+        echo "SGE job $id failed with exit code $exitcode."
+        echo "$exitcode Job finished with non-zero exit code" > $donefile
+      fi
+      rm -f "$countfile"
+
+      # wake up GM
+      $ARC_LOCATION/libexec/gm-kick $statusfile >> $errorsfile
+
+    else
+      # test again for job existence, only count if not known
+      ${SGE_BIN_PATH}/qstat -j $id > /dev/null 2>&1
+      if [ $? -ne 0 ]; then
+        echo "$counter" > "$countfile"
+      fi
+    fi
+  done # loop over bids
+done # loop over control_dirs
+sleep 60
+exit 0
+

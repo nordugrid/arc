@@ -1,0 +1,25 @@
+#! /bin/bash -f
+# set -x
+# 
+#  Cancel job running in SGE.
+# 
+
+echo "----- starting cancel_sge_job -----" 1>&2
+
+joboption_lrms=sge
+
+. ${ARC_LOCATIONO}/libexec/cancel_common.sh $1
+
+echo executing $SGE_BIN_PATH/qdel with job id $joboption_jobid 1>&2
+$SGE_BIN_PATH/qdel "${joboption_jobid}"
+
+echo "----- exiting cancel_sge_job -----" 1>&2
+echo "" 1>&2
+exit 0
+
+
+
+
+
+
+
