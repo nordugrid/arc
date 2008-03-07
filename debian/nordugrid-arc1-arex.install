@@ -21,7 +21,6 @@ usr/lib/arc/cancel-*-job
 usr/lib/arc/scan-*-job
 usr/lib/arc/configure-*-env.sh
 
-usr/lib/arc/submit_common.sh
 usr/lib/arc/cancel_common.sh
 usr/lib/arc/config_parser.pm
 usr/lib/arc/config_parser.sh

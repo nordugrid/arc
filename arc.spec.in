@@ -247,7 +247,7 @@ exit 0
 %{_libexecdir}/scan-*-job
 %{_libexecdir}/configure-*-env.sh
 #
-%{_libexecdir}/submit_common.sh
+#%{_libexecdir}/submit_common.sh
 %{_libexecdir}/cancel_common.sh
 %{_libexecdir}/config_parser.pm
 %{_libexecdir}/config_parser.sh
