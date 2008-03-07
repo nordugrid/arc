@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unistd.h>
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 
 #include "ClientTool.h"
@@ -15,6 +16,9 @@ bool ClientTool::ProcessOptions(int argc,char* argv[],const std::string& optstr)
   int optchar;
   std::string option_str(default_optstr);
   option_str+=optstr;
+  if((argc > 0) && (argv[0] != NULL) && (argv[0][0] != 0)) {
+    ArcLocation::Init(argv[0]);
+  };
   while((optchar=getopt(argc,argv,option_str.c_str())) != -1) {
     switch(optchar) {
       case '?': {
