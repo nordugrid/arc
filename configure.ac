@@ -362,7 +362,7 @@ if test x"$OPENSSL_OLDRSA" = xyes; then
 fi
 
 test "x$prefix" = xNONE && xxxprefix=$ac_default_prefix || xxxprefix=$prefix
-test "x$exec_prefix" = xNONE && xxxexec_prefix=$xxxprefix || xxxexec_prefix=x$exec_prefix
+test "x$exec_prefix" = xNONE && xxxexec_prefix=$xxxprefix || xxxexec_prefix=$exec_prefix
 pkglibsubdir=`echo ${libdir}/${PACKAGE} | \
 		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
 instprefix=${xxxexec_prefix}
