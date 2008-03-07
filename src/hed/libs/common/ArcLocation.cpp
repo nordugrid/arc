@@ -41,6 +41,7 @@ namespace Arc {
   }
 
   const std::string& ArcLocation::Get() {
+    if(location.empty()) Init("");
     return location;
   }
 

@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <arc/Thread.h>
+#include <arc/Logger.h>
 #ifndef WIN32
 #include <sys/types.h>
 #include <signal.h>
@@ -96,7 +97,9 @@ void RunPump::Pump(void) {
       list_lock_.lock();
       list_lock_.unlock();
       pump_lock_.lock();
+Arc::Logger::rootLogger.msg(Arc::INFO,"RunPump::Pump: before iteraton");
       context_->iteration(true);
+Arc::Logger::rootLogger.msg(Arc::INFO,"RunPump::Pump: after iteraton");
       pump_lock_.unlock();
       thread_->yield();
     };
