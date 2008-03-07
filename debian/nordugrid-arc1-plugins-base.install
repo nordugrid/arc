@@ -3,3 +3,4 @@ usr/lib/arc/libdmcfile.so
 usr/lib/arc/libdmchttp.so
 usr/lib/arc/libarcpdc.so
 usr/lib/arc/libidentitymap.so
+usr/lib/arc/libdmcldap.so
