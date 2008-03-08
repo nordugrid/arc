@@ -22,7 +22,3 @@ usr/share/man/man1/arccp.1
 usr/share/man/man1/arcls.1
 usr/share/man/man1/arcrm.1
 
-usr/share/doc/arc/client.xml
-usr/share/doc/arc/echo_client.xml
-usr/share/doc/arc/echo.wsdl
-usr/share/doc/arc/echo.xml

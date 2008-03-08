@@ -1,0 +1,4 @@
+src/clients/a-rex/client.xml
+src/clients/echo/echo_client.xml
+src/tests/echo/echo.xml
+src/tests/echo/echo.wsdl

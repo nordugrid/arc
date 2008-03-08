@@ -34,8 +34,3 @@ usr/lib/arc/qju.pl
 usr/bin/ldif2xml
 usr/share/arc/nordugrid.schema
 
-usr/share/doc/arc/arex.xml
-usr/share/doc/arc/arex_secure.xml
-usr/share/doc/arc/jsdl_simple.xml
-usr/share/doc/arc/jsdl_stage.xml
-usr/share/doc/arc/arc_arex.conf

@@ -82,8 +82,7 @@ install-indep:
 	# Add here commands to install the indep part of the package into
 	# debian/<package>-doc.
 	#INSTALLDOC#
-
-	dh_install -i
+	dh_installdocs -i --sourcedir=debian/tmp --fail-missing
 
 install-arch:
 	dh_testdir
@@ -96,7 +95,9 @@ install-arch:
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.la
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
+	rm -f $(CURDIR)/debian/tmp/usr/share/doc/arc/*
 
+	dh_installdocs -s --sourcedir=debian/tmp --fail-missing
 	dh_install -s --sourcedir=debian/tmp --fail-missing
 
 # Must not depend on anything. This is to be called by
