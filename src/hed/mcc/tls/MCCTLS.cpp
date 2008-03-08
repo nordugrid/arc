@@ -66,12 +66,12 @@ static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
 }
 
 #ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-static unsigned int get_flag_STORE_CTX(X509_STORE_CTX* container) {
+static unsigned long get_flag_STORE_CTX(X509_STORE_CTX* container) {
   if(ex_flag_index_ == -1) return 0;
-  return (unsigned int)X509_STORE_CTX_get_ex_data(container,ex_flag_index_);
+  return (unsigned long)X509_STORE_CTX_get_ex_data(container,ex_flag_index_);
 }
 
-static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned int flags) {
+static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
   if(ex_flag_index_ == -1) {
      ex_flag_index_=X509_STORE_CTX_get_ex_new_index(0,(void*)("MCC_TLS"),NULL,NULL,NULL);
   };
@@ -82,7 +82,7 @@ static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned int flags) {
 
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-  unsigned int flag = get_flag_STORE_CTX(sctx);
+  unsigned long flag = get_flag_STORE_CTX(sctx);
   if(!(flag & FLAG_CRL_DISABLED)) {
      // Not sure if this will work
      if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
