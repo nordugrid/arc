@@ -20,18 +20,28 @@ class APProxyTool: public Arc::ClientTool {
   std::string key_path;
   std::string cert_path;
   std::string proxy_path;
+  std::map<std::string,std::string> constraints;
   APProxyTool(int argc,char* argv[]):Arc::ClientTool("apinfo") {
-    ProcessOptions(argc,argv,"P:K:C:");
+    ProcessOptions(argc,argv,"P:K:C:c:");
   };
   virtual void PrintHelp(void) {
-    std::cout<<"approxy [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path]"<<std::endl;
+    std::cout<<"approxy [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-c constraints]"<<std::endl;
     std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
+    std::cout<<"\tSupported constraints are:"<<std::endl;
+    std::cout<<"\t\tvalidityStart=time"<<std::endl;
+    std::cout<<"\t\tvalidityEnd=time"<<std::endl;
+    std::cout<<"\t\tvalidityPeriod=time"<<std::endl;
   };
   virtual bool ProcessOption(char option,char* option_arg) {
     switch(option) {
       case 'P': proxy_path=option_arg;; break;
       case 'K': key_path=option_arg; break;
       case 'C': cert_path=option_arg; break;
+      case 'c': 
+        const char* p = strchr(option_arg,'=');
+        if(!p) p=option_arg+strlen(option_arg);
+        constraints[std::string(option_arg,p-option_arg)]=p;
+      break;
       default: {
         std::cerr<<"Error processing option: "<<(char)option<<std::endl;
         PrintHelp();
@@ -102,7 +112,7 @@ int main(int argc, char* argv[]){
     if(!consumer.Request(request)) {
       throw(std::runtime_error(std::string("Failed to generate certificate request")));
     };
-    std::string proxy = provider.Delegate(request);
+    std::string proxy = provider.Delegate(request,tool.constraints);
     if(!consumer.Acquire(proxy)) {
       throw(std::runtime_error(std::string("Failed to generate proxy")));
     };
