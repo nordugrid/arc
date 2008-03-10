@@ -13,6 +13,7 @@
 
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
+#include <arc/DateTime.h>
 #include <arc/message/PayloadSOAP.h>
 
 #include "DelegationInterface.h"
@@ -424,7 +425,7 @@ DelegationProvider::~DelegationProvider(void) {
   };
 }
 
-std::string DelegationProvider::Delegate(const std::string& request) {
+std::string DelegationProvider::Delegate(const std::string& request,const DelegationRestrictions& restrictions) {
 #ifdef HAVE_OPENSSL_PROXY
   X509 *cert = NULL;
   X509_REQ *req = NULL;
@@ -439,6 +440,9 @@ std::string DelegationProvider::Delegate(const std::string& request) {
   X509_NAME *subject = NULL;
   std::string proxy_cn;
   std::string res;
+  time_t validity_start = time(NULL);
+  time_t validity_end = (time_t)(-1);
+  DelegationRestrictions& restrictions_ = (DelegationRestrictions&)restrictions;
 
   if(!cert_) {
     std::cerr<<"Missing certificate chain"<<std::endl;
@@ -542,16 +546,20 @@ std::string DelegationProvider::Delegate(const std::string& request) {
   if(!X509_NAME_add_entry_by_NID(subject,NID_commonName,MBSTRING_ASC,(unsigned char*)(proxy_cn.c_str()),proxy_cn.length(),-1,0)) goto err;
   if(!X509_set_subject_name(cert,subject)) goto err;
   X509_NAME_free(subject); subject=NULL;
-  //ASN1_TIME* t = ASN1_TIME_new();
-  //ASN1_TIME_set(t,time(NUL));
-  X509_gmtime_adj(X509_get_notBefore(cert),0);
-  //X509_gmtime_adj(X509_get_notAfter(cert),(long)60*60*24);
-  X509_set_notAfter(cert,X509_get_notAfter((X509*)cert_));
-  /*
-  int             X509_set_notBefore(X509 *x, ASN1_TIME *tm);
-  int             X509_set_notAfter(X509 *x, ASN1_TIME *tm);
-  */
-
+  if(!(restrictions_["validityStart"].empty())) {
+    validity_start=Time(restrictions_["validityStart"]).GetTime();
+  };
+  if(!(restrictions_["validityEnd"].empty())) {
+    validity_end=Arc::Time(restrictions_["validityEnd"]).GetTime();
+  } else if(!(restrictions_["validityPeriod"].empty())) {
+    validity_end=validity_start+Arc::Period(restrictions_["validityPeriod"]).GetPeriod();
+  };
+  ASN1_TIME_set(X509_get_notBefore(cert),validity_start);
+  if(validity_end == (time_t)(-1)) {
+    X509_set_notAfter(cert,X509_get_notAfter((X509*)cert_));
+  } else {
+    ASN1_TIME_set(X509_get_notAfter(cert),validity_end);
+  };
   X509_set_pubkey(cert,pkey);
   EVP_PKEY_free(pkey); pkey=NULL;
 

@@ -12,6 +12,8 @@
 
 namespace Arc {
 
+typedef std::map<std::string,std::string> DelegationRestrictions;
+
 /** A consumer of delegated X509 credentials.
   During delegation procedure this class acquires
  delegated credentials aka proxy - certificate, private key and
@@ -71,7 +73,7 @@ class DelegationProvider {
   /** Perform delegation.
     Takes X509 certificate request and creates proxy credentials
    excluding private key. Result is then fed into DelegationConsumer::Acquire */
-  std::string Delegate(const std::string& request);
+  std::string Delegate(const std::string& request,const DelegationRestrictions& restrictions = DelegationRestrictions());
 };
 
 /** This class extends DelegationConsumer to support SOAP message exchange.
