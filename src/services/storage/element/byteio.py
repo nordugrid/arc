@@ -1,4 +1,5 @@
 from storage.common import rbyteio_uri, byteio_simple_uri, mkuid
+from storage.client import NotifyClient
 import traceback
 import arc
 import base64
@@ -9,7 +10,8 @@ class ByteIOBackend:
     public_request_names = ['notify']
     supported_protocols = ['byteio']
 
-    def __init__(self, backendcfg):
+    def __init__(self, backendcfg, ns_uri):
+        self.ns = arc.NS({'se' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
@@ -23,19 +25,22 @@ class ByteIOBackend:
                 os.remove(os.path.join(self.transferdir, filename))
         print "ByteIOBackend transferdir:", self.transferdir
 
-    def prepareToGet(self, path, protocol):
-        if protocol != 'byteio':
+    def prepareToGet(self, localID, protocol):
+        if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
-        os.link(os.path.join(self.datadir, path), os.path.join(self.transferdir, turl_id))
-        turl = self.turlprefix + turl_id
-        return turl
+        try:
+            os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
+            turl = self.turlprefix + turl_id
+            return turl
+        except:
+            return None
 
-    def prepareToPut(self, path, protocol):
-        if protocol != 'byteio':
+    def prepareToPut(self, localID, protocol):
+        if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
-        datapath = os.path.join(self.datadir, path)
+        datapath = os.path.join(self.datadir, localID)
         f = file(datapath, 'w')
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
@@ -48,6 +53,23 @@ class ByteIOBackend:
     def getAvailableSpace(self):
         return None
 
+    def generateLocalID(self):
+        return mkuid()
+
+    def matchProtocols(self, protocols):
+        return [protocol for protocol in protocols if protocol in self.supported_protocols]
+
+    def notify(self, inpayload):
+        request_node = inpayload.Child()
+        subject = str(request_node.Get('subject'))
+        path = os.path.join(self.transferdir, subject)
+        print 'Removing', path
+        os.remove(path)
+        out = arc.PayloadSOAP(self.ns)
+        response_node = out.NewChild('se:notifyResponse').Set('OK')
+        return out
+
+
 class ByteIOService:
 
     def __init__(self, cfg):
@@ -55,7 +77,7 @@ class ByteIOService:
         self.rb_ns = arc.NS({'rb' : rbyteio_uri})
         self.transferdir = str(cfg.Get('TransferDir'))
         print "ByteIOService transfer dir:", self.transferdir
-        self.notify = str(cfg.Get('NotifyURL'))
+        self.notify = NotifyClient(str(cfg.Get('NotifyURL')))
 
     def _filename(self, subject):
         return os.path.join(self.transferdir, subject)
@@ -80,6 +102,7 @@ class ByteIOService:
         except:
             print traceback.format_exc()
             raise Exception, 'write failed'
+        self.notify.notify(subject)
         out = arc.PayloadSOAP(self.rb_ns)
         response_node = out.NewChild('rb:writeResponse').Set('OK')
         return out
@@ -90,6 +113,7 @@ class ByteIOService:
         except:
             print traceback.format_exc()
             data = ''
+        self.notify.notify(subject)
         out = arc.PayloadSOAP(self.rb_ns)
         response_node = out.NewChild('rb:readResponse')
         transfer_node = response_node.NewChild('rb:transfer-information')

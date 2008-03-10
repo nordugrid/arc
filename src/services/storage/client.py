@@ -351,19 +351,19 @@ class ElementClient(Client):
         ns = arc.NS({'se':element_uri})
         Client.__init__(self, url, ns, print_xml)
 
-    def get(self, requests):
+    def _putget(self, putget, requests):
         tree = XMLTree(from_tree =
-            ('se:get', [
-                ('se:getRequestList', [
-                    ('se:getRequestElement', [
+            ('se:' + putget, [
+                ('se:' + putget + 'RequestList', [
+                    ('se:' + putget + 'RequestElement', [
                         ('se:requestID', requestID),
-                        ('se:getRequestDataList', [
-                            ('se:getRequestDataElement', [
+                        ('se:' + putget + 'RequestDataList', [
+                            ('se:' + putget + 'RequestDataElement', [
                                 ('se:property', property),
                                 ('se:value', value)
-                            ]) for property, value in getRequestData
+                            ]) for property, value in requestData
                         ])
-                    ]) for requestID, getRequestData in requests.items()
+                    ]) for requestID, requestData in requests.items()
                 ])
             ])
         )
@@ -373,12 +373,32 @@ class ElementClient(Client):
             response = dict([
                 (str(node.Get('requestID')), [
                     (str(n.Get('property')), str(n.Get('value')))
-                        for n in get_child_nodes(node.Get('getResponseDataList'))
+                        for n in get_child_nodes(node.Get(putget + 'ResponseDataList'))
                 ]) for node in get_child_nodes(xml.Child().Child().Child())])
             return response
         except:
             raise Exception, msg
 
+    def put(self, requests):
+        return self._putget('put', requests)
+
+    def get(self, requests):
+        return self._putget('get', requests)
+
+class NotifyClient(Client):
+
+    def __init__(self, url, print_xml = False):
+        ns = arc.NS({'se':element_uri})
+        Client.__init__(self, url, ns, print_xml)
+
+    def notify(self, subject):
+        tree = XMLTree(from_tree =
+            ('se:notify', [
+                ('se:subject', subject)
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        return msg
 
 class ByteIOClient(Client):
 

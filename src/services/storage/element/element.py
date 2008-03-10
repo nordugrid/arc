@@ -2,7 +2,7 @@ import urlparse
 import httplib
 import arc
 from storage.xmltree import XMLTree
-from storage.common import element_uri, import_class_from_string, get_child_nodes
+from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid
 import traceback
 
 class Element:
@@ -18,14 +18,66 @@ class Element:
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
             print 'Element.get:', referenceID, protocols
-            protocol_match = [protocol for protocol in protocols if protocol in self.backend.supported_protocols]
+            localData = self.store.get(referenceID)
+            print 'localData:', localData
+            if localData.has_key('localID'):
+                localID = localData['localID']
+                protocol_match = self.backend.matchProtocols(protocols)
+                if protocol_match:
+                    protocol = protocol_match[0]
+                    try:
+                        turl = self.backend.prepareToGet(localID, protocol)
+                        if turl:
+                            response[requestID] = [('TURL', turl), ('protocol', protocol)]
+                        else:
+                            response[requestID] = [('error', 'internal error (empty TURL)')]
+                    except:
+                        print traceback.format_exc()
+                        response[requestID] = [('error', 'internal error (prepareToGet exception)')]
+                else:
+                    response[requestID] = [('error', 'no supported protocol found')]
+            else:
+                response[requestID] = [('error', 'no such referenceID')]
+        return response
+
+    def put(self, request):
+        print request
+        response = {}
+        for requestID, putRequestData in request.items():
+            protocols = [value for property, value in putRequestData if property == 'protocol']
+            protocol_match = self.backend.matchProtocols(protocols)
             if protocol_match:
                 protocol = protocol_match[0]
-                turl = self.backend.prepareToGet(referenceID, protocol)
-                response[requestID] = [('TURL', turl), ('protocol', protocol)]
+                acl = [value for property, value in putRequestData if property == 'acl']
+                requestData = dict(putRequestData)
+                size = requestData.get('size')
+                availableSpace = self.backend.getAvailableSpace()
+                if availableSpace and availableSpace < size:
+                    response[requestID] = [('error', 'not enough space')]
+                else:
+                    referenceID = mkuid()
+                    localID = self.backend.generateLocalID()
+                    file_data = {'localID' : localID,
+                        'GUID' : requestData.get('GUID', None),
+                        'checksum' : requestData.get('checksum', None),
+                        'checksumType' : requestData.get('checksumType', None),
+                        'size' : size,
+                        'acl': acl}
+                    try:
+                        turl = self.backend.prepareToPut(localID, protocol)
+                        if turl:
+                            response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
+                            self.store.set(referenceID, file_data)
+                        else:
+                            response[requestID] = [('error', 'internal error (empty TURL)')]
+                    except:
+                        print traceback.format_exc()
+                        response[requestID] = [('error', 'internal error (prepareToPut exception)')]
             else:
-                raise Exception, 'No supported protocol found'
+                response[requestID] = [('error', 'no supported protocol found')]
         return response
+
+
 
 class ElementService:
 
@@ -34,37 +86,49 @@ class ElementService:
         self.se_ns = arc.NS({'se':element_uri})
         backendclass = str(cfg.Get('BackendClass'))
         backendcfg = cfg.Get('BackendCfg')
-        self.backend = import_class_from_string(backendclass)(backendcfg)
+        self.backend = import_class_from_string(backendclass)(backendcfg, element_uri)
         storeclass = str(cfg.Get('StoreClass'))
         storecfg = cfg.Get('StoreCfg')
         store = import_class_from_string(storeclass)(storecfg)
         self.element = Element(self.backend, store)
 
-    def get(self, inpayload):
+    def _putget_in(self, putget, inpayload):
         request = dict([
             (str(node.Get('requestID')), [
                 (str(n.Get('property')), str(n.Get('value')))
-                    for n in get_child_nodes(node.Get('getRequestDataList'))
+                    for n in get_child_nodes(node.Get(putget + 'RequestDataList'))
             ]) for node in get_child_nodes(inpayload.Child().Child())])
-        response = self.element.get(request)
+        return request
+
+    def _putget_out(self, putget, response):
         print response
         tree = XMLTree(from_tree =
-            ('se:getResponseList', [
-                ('se:getResponseElement', [
+            ('se:' + putget + 'ResponseList', [
+                ('se:' + putget + 'ResponseElement', [
                     ('se:requestID', requestID),
-                    ('se:getResponseDataList', [
-                        ('se:getResponseDataElement', [
+                    ('se:' + putget + 'ResponseDataList', [
+                        ('se:' + putget + 'ResponseDataElement', [
                             ('se:property', property),
                             ('se:value', value)
-                        ]) for property, value in getResponseData
+                        ]) for property, value in responseData
                     ])
-                ]) for requestID, getResponseData in response.items()
+                ]) for requestID, responseData in response.items()
             ])
         )
         out = arc.PayloadSOAP(self.se_ns)
-        response_node = out.NewChild('getResponse')
+        response_node = out.NewChild(putget + 'response')
         tree.add_to_node(response_node)
         return out
+
+    def get(self, inpayload):
+        request = self._putget_in('get', inpayload)
+        response = self.element.get(request)
+        return self._putget_out('get', response)
+
+    def put(self, inpayload):
+        request = self._putget_in('put', inpayload)
+        response = self.element.put(request)
+        return self._putget_out('put', response)
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
@@ -76,7 +140,7 @@ class ElementService:
             element_prefix = inpayload.NamespacePrefix(element_uri)
             request_node = inpayload.Child()
             if request_node.Prefix() != element_prefix:
-                raise Exception, 'wrong namespace (%s)' % request_name
+                raise Exception, 'wrong namespace (%s)' % request_node.Prefix()
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
             if request_name not in self.request_names + self.backend.public_request_names:
@@ -107,4 +171,4 @@ class ElementService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['get']
+    request_names = ['get', 'put']

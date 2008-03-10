@@ -18,7 +18,7 @@ _storage()
                 options='stat makeCollection list move'
                 ;;
             element)
-                options='get'
+                options='get put'
                 ;;
         esac
     fi
