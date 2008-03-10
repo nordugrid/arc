@@ -1,6 +1,9 @@
 hash_uri = 'urn:hash'
 catalog_uri = 'urn:storagecatalog'
 manager_uri = 'urn:storagemanager'
+element_uri = 'urn:storageelement'
+rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
+byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
 true = '1'
 false = '0'
 
@@ -121,3 +124,111 @@ def basename(LN):
         return LN[(LN.rindex('/')+1):]
     except:
         return LN
+
+
+import pickle, threading, copy, os
+
+class PickleStore:
+    """ Class for storing object in a serialized python format. """
+
+    def __init__(self, storecfg, non_existent_object = {}):
+        """ Constructor of PickleStore.
+
+        PickleStore(storecfg)
+
+        'storecfg' is an XMLNode with a 'DataDir'
+        'non_existent_object' will be returned if an object not found
+        """
+        print "PickleStore constructor called"
+        # get the datadir from the storecfg XMLNode
+        self.datadir = str(storecfg.Get('DataDir'))
+        # set the value which we should return if there an object does not exist
+        self.non_existent_object = non_existent_object
+        # if the given data directory does not exist, try to create it
+        if not os.path.exists(self.datadir):
+            os.mkdir(self.datadir)
+        print "datadir:", self.datadir
+        # initialize a lock which can be used to avoid race conditions
+        self.llock = threading.Lock()
+
+    def filename(self, ID):
+        """ Creates a filename from an ID.
+
+        filename(ID)
+
+        'ID' is the ID of the given object.
+        The filename will be the datadir and the base64 encoded form of the ID.
+        """
+        import base64
+        name = base64.b64encode(ID)
+        return os.path.join(self.datadir, name[:2], name)
+
+    def get(self, ID):
+        """ Returns the object with the given ID.
+
+        get(ID)
+
+        'ID' is the ID of the requested object.
+        If there is no object with this ID, returns the given non_existent_object value.
+        """
+        try:
+            # generates a filename from the ID
+            # then use pickle to load the previously serialized data
+            return pickle.load(file(self.filename(ID)))
+        except IOError:
+            # don't print 'file not found' if there is no such ID
+            pass
+        except:
+            # print whatever exception happened
+            print traceback.format_exc()
+        # if there was an exception, return the given non_existent_object
+        return copy.deepcopy(self.non_existent_object)
+
+    def lock(self, blocking = True):
+        """ Acquire the lock.
+
+        lock(blocking = True)
+
+        'blocking': if blocking is True, then this only returns when the lock is acquired.
+        If it is False, then it returns immediately with False if the lock is not available,
+        or with True if it could be acquired.
+        """
+        return self.llock.acquire(blocking)
+
+    def unlock(self):
+        """ Release the lock.
+
+        unlock()
+        """
+        self.llock.release()
+
+    def set(self, ID, object):
+        """ Stores an object with the given ID..
+
+        set(ID, object)
+
+        'ID' is the ID of the object
+        'object' is the object itself
+        If there is already an object with this ID it will be overwritten completely.
+        """
+        try:
+            # generates a filename from the ID
+            fn = self.filename(ID)
+            # if 'object' is empty, remove the file
+            if not object:
+                try:
+                    os.remove(fn)
+                except:
+                    pass
+            else:
+                # try to open the file
+                try:
+                    f = file(fn,'w')
+                except:
+                    # try to create parent dir first, then open the file
+                    os.mkdir(os.path.dirname(fn))
+                    f = file(fn,'w')
+                # serialize the given list into it
+                pickle.dump(object, file(self.filename(ID),'w'))
+        except:
+            print traceback.format_exc()

@@ -5,7 +5,7 @@ _storage()
     options=
     if [[ "$COMP_CWORD" == 1 ]];
     then
-        options='hash catalog manager';
+        options='hash catalog manager element';
     else
         case $prev in
             hash)
@@ -16,6 +16,9 @@ _storage()
                 ;;
             manager)
                 options='stat makeCollection list move'
+                ;;
+            element)
+                options='get'
                 ;;
         esac
     fi

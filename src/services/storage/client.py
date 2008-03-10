@@ -1,7 +1,9 @@
-from storage.common import hash_uri, catalog_uri, manager_uri, parse_metadata, true, false, get_child_nodes, node_to_data, parse_node
+from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri
+from storage.common import parse_metadata, true, false, get_child_nodes, node_to_data, parse_node
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
+import base64
 
 class Client:
 
@@ -22,16 +24,12 @@ class Client:
     def call(self, tree, return_tree_only = False):
         out = arc.PayloadSOAP(self.ns)
         tree.add_to_node(out)
-        msg = out.GetXML()
         if self.print_xml:
+            msg = out.GetXML()
             print 'Request:'
             print parseString(msg).toprettyxml()
             print
-        import httplib
-        h = httplib.HTTPConnection(self.host, self.port)
-        h.request('POST', self.path, msg)
-        r = h.getresponse()
-        resp = r.read()
+        resp, status, reason = self.call_raw(out)
         if self.print_xml:
             print 'Response:'
             print parseString(resp).toprettyxml()
@@ -39,7 +37,16 @@ class Client:
         if return_tree_only:
             return XMLTree(from_string = resp, forget_namespace = True).get_trees('///')[0]
         else:
-            return resp, r.status, r.reason
+            return resp, status, reason
+
+    def call_raw(self, outpayload):
+        import httplib
+        h = httplib.HTTPConnection(self.host, self.port)
+        h.request('POST', self.path, outpayload.GetXML())
+        r = h.getresponse()
+        resp = r.read()
+        return resp, r.status, r.reason
+
 
 class HashClient(Client):
 
@@ -336,5 +343,79 @@ class ManagerClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = arc.XMLNode(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = True)
+        return msg
+
+class ElementClient(Client):
+
+    def __init__(self, url, print_xml = False):
+        ns = arc.NS({'se':element_uri})
+        Client.__init__(self, url, ns, print_xml)
+
+    def get(self, requests):
+        tree = XMLTree(from_tree =
+            ('se:get', [
+                ('se:getRequestList', [
+                    ('se:getRequestElement', [
+                        ('se:requestID', requestID),
+                        ('se:getRequestDataList', [
+                            ('se:getRequestDataElement', [
+                                ('se:property', property),
+                                ('se:value', value)
+                            ]) for property, value in getRequestData
+                        ])
+                    ]) for requestID, getRequestData in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        try:
+            response = dict([
+                (str(node.Get('requestID')), [
+                    (str(n.Get('property')), str(n.Get('value')))
+                        for n in get_child_nodes(node.Get('getResponseDataList'))
+                ]) for node in get_child_nodes(xml.Child().Child().Child())])
+            return response
+        except:
+            raise Exception, msg
+
+
+class ByteIOClient(Client):
+
+    def __init__(self, url):
+        ns = arc.NS({'rb':rbyteio_uri})
+        Client.__init__(self, url, ns)
+
+    def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None):
+        request = []
+        if start_offset is not None:
+            request.append(('rb:start-offset', start_offset))
+        if bytes_per_block is not None:
+            request.append(('rb:bytes-per-block', bytes_per_block))
+        if num_blocks is not None:
+            request.append(('rb:num-blocks', num_blocks))
+        if stride is not None:
+            request.append(('rb:stride', stride))
+        tree = XMLTree(from_tree = ('rb:read', request))
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        data_encoded = str(xml.Child().Child().Get('transfer-information'))
+        return base64.b64decode(data_encoded)
+
+    def write(self, data, start_offset = None, bytes_per_block = None, stride = None):
+        out = arc.PayloadSOAP(self.ns)
+        request_node = out.NewChild('rb:write')
+        if start_offset is not None:
+            request_node.NewChild('rb:start-offset').Set(str(start_offset))
+        if bytes_per_block is not None:
+            request_node.NewChild('rb:bytes-per-block').Set(str(bytes_per_block))
+        if stride is not None:
+            request_node.NewChild('rb:stride').Set(str(stride))
+        transfer_node = request_node.NewChild('rb:transfer-information')
+        transfer_node.NewAttribute('transfer-mechanism').Set(byteio_simple_uri)
+        encoded_data = base64.b64encode(data)
+        transfer_node.Set(encoded_data)
+        resp, _, _ = self.call_raw(out)
+        return resp
+
 

@@ -17,4 +17,8 @@ elif [ "$1" == "manager" ]
 then
     shift
     python manager_client.py $*
+elif [ "$1" == "element" ]
+then
+    shift
+    python element_client.py $*
 fi
