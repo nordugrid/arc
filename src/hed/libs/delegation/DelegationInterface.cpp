@@ -119,6 +119,7 @@ static bool string_to_x509(const std::string& cert_file,const std::string& key_f
   if(key_file.empty()) {
     if((!PEM_read_bio_PrivateKey(in,&pkey,inpwd?&passphrase_callback:NULL,inpwd)) || (!pkey)) { BIO_free_all(in); return false; };
   };
+  if(!(cert_sk=sk_X509_new_null())) { BIO_free_all(in); return false; };
   for(;;) {
     X509* c = NULL;
     if((!PEM_read_bio_X509(in,&c,NULL,NULL)) || (!c)) break;
