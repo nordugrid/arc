@@ -700,6 +700,9 @@ bool DelegationConsumerSOAP::DelegatedToken(std::string& credentials,const XMLNo
 DelegationProviderSOAP::DelegationProviderSOAP(const std::string& credentials):DelegationProvider(credentials) {
 }
 
+DelegationProviderSOAP::DelegationProviderSOAP(const std::string& cert_file,const std::string& key_file):DelegationProvider(cert_file,key_file) {
+}
+
 DelegationProviderSOAP::~DelegationProviderSOAP(void) {
 }
 

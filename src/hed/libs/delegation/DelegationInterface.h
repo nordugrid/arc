@@ -109,8 +109,13 @@ class DelegationProviderSOAP: public DelegationProvider {
   std::string id_;
  public:
   /** Creates instance from provided credentials.
-     Credentials are used sign delegated credentials. */
+     Credentials are used to sign delegated credentials. */
   DelegationProviderSOAP(const std::string& credentials);
+  /** Creates instance from provided credentials.
+     Credentials are used to sign delegated credentials.
+     Arguments should contain filesystem path to PEM-encoded certificate and
+     private key. Optionally cert_file may contain certificates chain. */
+  DelegationProviderSOAP(const std::string& cert_file,const std::string& key_file);
   ~DelegationProviderSOAP(void);
   /** Performs DelegateCredentialsInit SOAP operation.
      As result request for delegated credentials is received by this instance and stored 
