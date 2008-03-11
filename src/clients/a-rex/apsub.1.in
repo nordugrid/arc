@@ -33,6 +33,9 @@ location of directory containing X509 certificate files of all accepted CAs.
 location of client configuration file. Default value is ~/.arc/client.xml unless
 overwritten by content of ARC_CLIENT_CONFIG environment variable.
 .TP
+\fB\-E\fR
+delegate credentials to A-Rex service
+.TP
 \fB\-h\fR
 prints short usage description
 .TP

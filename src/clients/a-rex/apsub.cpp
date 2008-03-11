@@ -57,11 +57,13 @@ class APSubTool: public Arc::ClientTool {
   std::string cert_path;
   std::string ca_dir;
   std::string config_path;
+  bool delegate;
   APSubTool(int argc,char* argv[]):Arc::ClientTool("apsub") {
-    ProcessOptions(argc,argv,"P:K:C:A:c:");
+    delegate=false;
+    ProcessOptions(argc,argv,"EP:K:C:A:c:");
   };
   virtual void PrintHelp(void) {
-    std::cout<<"apsub [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] service_url jsdl_file id_file"<<std::endl;
+    std::cout<<"apsub [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] [-E] service_url jsdl_file id_file"<<std::endl;
     std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
   };
   virtual bool ProcessOption(char option,char* option_arg) {
@@ -71,6 +73,7 @@ class APSubTool: public Arc::ClientTool {
       case 'C': cert_path=option_arg; break;
       case 'A': ca_dir=option_arg; break;
       case 'c': config_path=option_arg; break;
+      case 'E': delegate=true; break;
       default: {
         std::cerr<<"Error processing option: "<<(char)option<<std::endl;
         PrintHelp();
@@ -118,7 +121,7 @@ int main(int argc, char* argv[]){
     std::ofstream jobidfile(argv[tool.FirstOption()+2]);
     Arc::AREXFileList files;
     // Submit job description
-    jobid = ac.submit(jsdlfile,files);
+    jobid = ac.submit(jsdlfile,files,tool.delegate);
     if (!jsdlfile)
       throw std::invalid_argument(std::string("Failed when reading from ")+
 				  std::string(argv[tool.FirstOption()+1]));

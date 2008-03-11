@@ -87,7 +87,7 @@ namespace Arc {
       @return The Job ID of the the submitted job.
       @throw An AREXClientError object if an error occurs.      
      */
-    std::string submit(std::istream& jsdl_file,AREXFileList& file_list) throw(AREXClientError);
+    std::string submit(std::istream& jsdl_file,AREXFileList& file_list,bool delegate = false) throw(AREXClientError);
 
     //! Query the status of a job.
     /*! This method queries the A-REX service about the status of a

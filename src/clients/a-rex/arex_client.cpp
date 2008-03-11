@@ -1,8 +1,25 @@
 // arex_client.cpp
 
+#include <arc/delegation/DelegationInterface.h>
+
 #include "arex_client.h"
 
 namespace Arc {
+
+  // TODO: probably worth moving it to common library
+  // Of course xpath can be used too. But such solution is probably an overkill.
+  static Arc::XMLNode find_xml_node(const Arc::XMLNode& node,const std::string& el_name,
+                                    const std::string& attr_name,const std::string& attr_value) {
+    if(MatchXMLName(node,el_name) && 
+       (((std::string)node.Attribute(attr_name)) == attr_value)) return node;
+    XMLNode cn = node[el_name];
+    while(cn) {
+      XMLNode fn = find_xml_node(cn,el_name,attr_name,attr_value);
+      if(fn) return fn;
+      cn=cn[1];
+    };
+    return XMLNode();
+  }
 
   AREXClientError::AREXClientError(const std::string& what) :
     std::runtime_error(what)
@@ -64,11 +81,12 @@ namespace Arc {
     if(client) delete client;
   }
   
-  std::string AREXClient::submit(std::istream& jsdl_file,AREXFileList& file_list)
+  std::string AREXClient::submit(std::istream& jsdl_file,AREXFileList& file_list,bool delegate)
     throw(AREXClientError)
   {
     std::string jobid, faultstring;
     file_list.resize(0);
+
     logger.msg(Arc::INFO, "Creating and sending request.");
 
     // Create job request
@@ -78,9 +96,8 @@ namespace Arc {
           jsdl:JobDefinition
     */
     Arc::PayloadSOAP req(arex_ns);
-    Arc::XMLNode act_doc =
-      req.NewChild("bes-factory:CreateActivity").
-      NewChild("bes-factory:ActivityDocument");
+    Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
+    Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     std::string jsdl_str; 
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
@@ -125,8 +142,45 @@ namespace Arc {
     act_doc.GetXML(jsdl_str);
     logger.msg(Arc::VERBOSE, "Job description to be sent: %s",jsdl_str.c_str());
 
-    // Send job request
+    // Try to figure out which credentials are used
+    // TODO: Method used is unstable beacuse it assumes some predefined 
+    // structure of configuration file. Maybe there should be some 
+    // special methods of ClientTCP class introduced.
+    std::string deleg_cert;
+    std::string deleg_key;
+    if(delegate) {
+      client->Load(); // Make sure chain is ready
+      Arc::XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],"Component","name","tls.client");
+      if(tls_cfg) {
+        deleg_cert=(std::string)(tls_cfg["ProxyPath"]);
+        if(deleg_cert.empty()) {
+          deleg_cert=(std::string)(tls_cfg["CertificatePath"]);
+          deleg_key=(std::string)(tls_cfg["KeyPath"]);
+        } else {
+          deleg_key=deleg_cert;
+        };
+      };
+      if(deleg_cert.empty() || deleg_key.empty()) {
+std::string s;
+client->GetConfig().GetXML(s);
+std::cerr<<s<<std::endl;
+        logger.msg(Arc::ERROR,"Failed to find delegation credentials in client configuration.");
+        throw AREXClientError("Failed to find delegation credentials in client configuration.");
+      };
+    };
+    // Send job request + delegation
     if(client) {
+      {
+        if(delegate) {
+          Arc::DelegationProviderSOAP deleg(deleg_cert,deleg_key);
+          logger.msg(Arc::INFO, "Initiating delegation procedure");
+          if(!deleg.DelegateCredentialsInit(*(client->GetEntry()),&(client->GetContext()))) {
+            logger.msg(Arc::ERROR,"Failed to initiate delegation.");
+            throw AREXClientError("Failed to initiate delegation.");
+          };
+          deleg.DelegatedToken(op);
+        };
+      };
       Arc::MCC_Status status = client->process(
          "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity",
          &req,&resp);
@@ -145,6 +199,17 @@ namespace Arc {
       attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
       Arc::MessageAttributes attributes_rep;
       Arc::MessageContext context;
+      {
+        if(delegate) {
+          Arc::DelegationProviderSOAP deleg(deleg_cert,deleg_key);
+          logger.msg(Arc::INFO, "Initiating delegation procedure");
+          if(!deleg.DelegateCredentialsInit(*client_entry,&context)) {
+            logger.msg(Arc::ERROR,"Failed to initiate delegation.");
+            throw AREXClientError("Failed to initiate delegation.");
+          };
+          deleg.DelegatedToken(op);
+        };
+      };
       reqmsg.Payload(&req);
       reqmsg.Attributes(&attributes_req);
       reqmsg.Context(&context);
