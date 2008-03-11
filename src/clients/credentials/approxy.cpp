@@ -37,11 +37,11 @@ class APProxyTool: public Arc::ClientTool {
       case 'P': proxy_path=option_arg;; break;
       case 'K': key_path=option_arg; break;
       case 'C': cert_path=option_arg; break;
-      case 'c': 
+      case 'c': {
         const char* p = strchr(option_arg,'=');
         if(!p) p=option_arg+strlen(option_arg);
         constraints[std::string(option_arg,p-option_arg)]=p;
-      break;
+      }; break;
       default: {
         std::cerr<<"Error processing option: "<<(char)option<<std::endl;
         PrintHelp();
