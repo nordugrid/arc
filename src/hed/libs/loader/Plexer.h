@@ -57,11 +57,12 @@ namespace Arc {
      */
     virtual void Next(MCCInterface* next, const std::string& label);
 
-    //! Rout request messages to appropriate services.
-    /*! Routs the request message to the appropriate service.
-      Currently routing is based on the value of the "Request-URI"
-      attribute, but that may be replaced by some other attribute once
-      the attributes discussion is finished.
+    //! Route request messages to appropriate services.
+    /*! Routes the request message to the appropriate service.
+      Routing is based on the path part of value of the ENDPOINT 
+      attribute. Routed message is assigned following attributes:
+        PLEXER:PATTERN - matched pattern,
+        PLEXER:EXTENSION - last unmatched part of ENDPOINT path.
     */
     virtual MCC_Status process(Message& request, Message& response);
 

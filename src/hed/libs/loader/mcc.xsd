@@ -87,8 +87,18 @@
              This element is a Plexer. Optional attribute 'id' assigns identifier
             which is used to refer to this element from others. If not specified it will be
             assigned automatically. Sub-elements 'next' refer to next components in a chain and
-            their content represent requested endpoints. If attributes 'id' are missing from 
-            'next' then those refer to next components in document sequentially.
+            their content represent requested endpoints. 
+	    In Plexer content of element 'next' represents Regular Expression pattern.
+	    For every incoming message path part of message's endpoint is matched pattern.
+	    In case of ordinary service element 'next' may look like
+	       <next>^/service$</next>
+	    If service is also responsible for whole subtree then simple solution is
+	       <next>^/service</next>
+	    But more safer solution would be to use 2 elements
+	       <next>^/service$</next>
+	       <next>^/service/</next>
+	    Unmatched part of message endpoint is propagated with incoming message in
+	    attribute PLEXER:EXTENSION and may be used by service to determine response. 
         -->
             <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>

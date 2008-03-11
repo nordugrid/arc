@@ -54,6 +54,9 @@
     </Component>
     <!-- Directing messages to proper service -->
     <Plexer name="plexer.service" id="plexer">
+      <!-- RegExp pattern is matched to path part of endpoint.
+           Unmatched part of path is propagated to service in
+           PLEXER:EXTENSION attribute. -->
       <next id="a-rex">^/arex</next>
     </Plexer>
     <!-- A-Rex service -->
