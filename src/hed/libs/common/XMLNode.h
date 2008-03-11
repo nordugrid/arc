@@ -138,7 +138,7 @@ class XMLNode {
   /** Returns XMLNode instance representing first attribute of node with specified by name */
   XMLNode Attribute(const char* name) const; 
   /** Returns XMLNode instance representing first attribute of node with specified by name */
-  XMLNode Attribute(const std::string& name) const { return Attribute(name); }; 
+  XMLNode Attribute(const std::string& name) const { return Attribute(name.c_str()); }; 
   /** Creates new attribute with specified name. */
   XMLNode NewAttribute(const char* name);
   /** Creates new attribute with specified name. */
