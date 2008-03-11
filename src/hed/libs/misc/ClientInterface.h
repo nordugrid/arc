@@ -62,6 +62,8 @@ namespace Arc {
     ClientInterface(const BaseConfig& cfg);
     virtual ~ClientInterface();
     void Overlay(XMLNode cfg);
+    const Config& GetConfig(void) const { return xmlcfg; };
+    MessageContext& GetContext(void) { return context; };
    protected:
     Config xmlcfg;
     XMLNode overlay;
@@ -81,6 +83,7 @@ namespace Arc {
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
     // PayloadStreamInterface *stream();
+    MCC* GetEntry(void) { if(tls_entry) return tls_entry; return tcp_entry; };
    protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -110,6 +113,7 @@ namespace Arc {
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
 		               HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC* GetEntry(void) { return http_entry; };
    protected:
     MCC *http_entry;
     void Load(void);
@@ -136,6 +140,7 @@ namespace Arc {
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action,PayloadSOAP *request, PayloadSOAP **response);
+    MCC* GetEntry(void) { return soap_entry; };
    protected:
     MCC *soap_entry;
     void Load(void);
