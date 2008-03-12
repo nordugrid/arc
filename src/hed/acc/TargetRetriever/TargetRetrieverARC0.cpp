@@ -28,7 +28,7 @@ namespace Arc{
     Loader m_loader(&cfg);
     DataHandle handler(m_url);
     DataBufferPar buffer;
-    handler->start_reading(buffer);
+    handler->StartReading(buffer);
 
     int handle;
     unsigned int length;
@@ -47,7 +47,7 @@ namespace Arc{
 
     //Next read XML result and decode into targets to be returned
 
-    handler->stop_reading();
+    handler->StopReading();
 
     return results;
 
