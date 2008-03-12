@@ -119,10 +119,15 @@ namespace Arc {
     /** Destructor destroys all components created by constructor */
     ~Loader();
     /** Access entry MCCs in chains.
-       Those are compnents exposed for external access using 'entry'
+       Those are components exposed for external access using 'entry'
        attribute */
     MCC* operator[](const std::string& id);
-  };
+    /** Access entry ACCs.
+       Those are components exposed for external access using 'entry'
+       attribute */
+    ACC* getACC(const std::string& id); 
+
+ };
 
   /// Interface to chain specific functionality
   /** Object of this class is associated with every Loader object. It is

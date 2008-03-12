@@ -519,5 +519,10 @@ namespace Arc {
     return NULL;
   }
 
+  ACC* Loader::getACC(const std::string& id) {
+    acc_container_t::iterator acc = accs_.find(id);
+    if(acc != accs_.end()) return acc->second;
+    return NULL;
+  }
 
 } // namespace Arc
