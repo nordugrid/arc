@@ -7,6 +7,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/data/URLMap.h>
 #include <arc/data/DataMover.h>
+#include "DataStatus.h"
 
 int main(int argc,char* argv[]) {
   signal(SIGTTOU,SIG_IGN);
@@ -45,7 +46,6 @@ int main(int argc,char* argv[]) {
   Arc::Config config(config_xml);
   Arc::Loader loader(&config);
 
-  Arc::DataMover::result r;
   Arc::DataMover mover;
   mover.retry(false);
   std::string failure_description;
@@ -53,9 +53,9 @@ int main(int argc,char* argv[]) {
   Arc::DataPoint* dest = Arc::DMC::GetDataPoint(Arc::URL(argv[2]));
   Arc::URLMap urlmap;
   Arc::DataCache datacache;
-  r=mover.Transfer(*source,*dest,datacache,urlmap,failure_description);
-  if(r != Arc::DataMover::success) {
-    std::cerr<<"Transfer failed: "<<Arc::DataMover::get_result_string(r)<<" - "<<failure_description<<std::endl;
+  Arc::DataStatus res = mover.Transfer(*source,*dest,datacache,urlmap,failure_description);
+  if(!res) {
+    std::cerr<<"Transfer failed: " << res << " - " << failure_description << std::endl;
   };
   return 0;
 }

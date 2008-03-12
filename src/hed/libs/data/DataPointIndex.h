@@ -9,76 +9,68 @@
 
 namespace Arc {
 
-  /// Complements DataPoint with attributes common for meta-URLs
+  /// Complements DataPoint with attributes common for Indexing Service URLs
   /** It should never be used directly. Instead inherit from it to provide
-    class for specific Indexing Service. */
+      a class for specific a Indexing Service. */
   class DataPointIndex : public DataPoint {
+   public:
+    DataPointIndex(const URL& url);
+    virtual ~DataPointIndex();
+
+    virtual const URL& CurrentLocation() const;
+    virtual const std::string& CurrentLocationMetadata() const;
+
+    virtual bool NextLocation();
+    virtual bool LocationValid() const;
+    virtual bool HaveLocations() const;
+    virtual DataStatus RemoveLocation();
+    virtual DataStatus RemoveLocations(const DataPoint& p);
+    virtual DataStatus AddLocation(const URL& url, const std::string& meta);
+
+    virtual bool IsIndex() const;
+    virtual bool AcceptsMeta();
+    virtual bool ProvidesMeta();
+    virtual bool Registered() const;
+
+    virtual void SetTries(const int n);
+
+    // the following are relayed to the current location
+    virtual unsigned long long int BufSize() const;
+    virtual int BufNum() const;
+    virtual bool Cache() const;
+    virtual bool Local() const;
+    virtual bool ReadOnly() const;
+
+    virtual DataStatus StartReading(DataBufferPar& buffer);
+    virtual DataStatus StartWriting(DataBufferPar& buffer,
+                                    DataCallback *space_cb = NULL);
+    virtual DataStatus StopReading();
+    virtual DataStatus StopWriting();
+
+    virtual DataStatus Check();
+
+    virtual DataStatus Remove();
+
+    virtual void ReadOutOfOrder(bool v);
+    virtual bool WriteOutOfOrder();
+
+    virtual void SetAdditionalChecks(bool v);
+    virtual bool GetAdditionalChecks() const;
+
+    virtual void SetSecure(bool v);
+    virtual bool GetSecure() const;
+
+    virtual void Passive(bool v);
+
+    virtual void Range(unsigned long long int start = 0,
+                       unsigned long long int end = 0);
    protected:
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;
     DataHandle h;
-    bool is_metaexisting;
-    bool is_resolved;
-   public:
-    DataPointIndex(const URL& url);
-    virtual ~DataPointIndex() {};
-
-    virtual const URL& current_location() const;
-    virtual const std::string& current_meta_location() const;
-
-    virtual bool next_location();
-    virtual bool have_location() const;
-    virtual bool have_locations() const;
-    virtual bool remove_location();
-    virtual bool remove_locations(const DataPoint& p);
-    virtual bool add_location(const std::string& meta, const URL& loc);
-
-    virtual bool meta() const {
-      return true;
-    };
-
-    virtual bool accepts_meta() {
-      return true;
-    };
-
-    virtual bool provides_meta() {
-      return true;
-    };
-
-    virtual bool meta_stored() {
-      return is_metaexisting;
-    };
-
-    virtual void SetTries(const int n);
-
-    // the following are relayed to the current location
-    virtual bool start_reading(DataBufferPar& buffer);
-    virtual bool start_writing(DataBufferPar& buffer,
-                               DataCallback *space_cb = NULL);
-    virtual bool stop_reading();
-    virtual bool stop_writing();
-
-    virtual bool check();
-    virtual bool Local() const;
-
-    virtual bool remove();
-
-    virtual void out_of_order(bool v);
-    virtual bool out_of_order();
-    virtual void additional_checks(bool v);
-    virtual bool additional_checks();
-
-    virtual void secure(bool v);
-    virtual bool secure();
-
-    virtual void passive(bool v);
-
-    virtual failure_reason_t failure_reason();
-    virtual std::string failure_text();
-
-    virtual void range(unsigned long long int start = 0,
-                       unsigned long long int end = 0);
+    bool resolved;
+    bool registered;
   };
 
 } // namespace Arc

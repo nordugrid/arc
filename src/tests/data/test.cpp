@@ -54,7 +54,7 @@ int main () {
   for (int k = 0; k < 5; k++) {
     std::list<Arc::FileInfo> files;
     if(!dp[k]) continue;
-    dp[k]->list_files(files);
+    dp[k]->ListFiles(files);
     for (std::list<Arc::FileInfo>::iterator i = files.begin();
 	 i != files.end(); i++) {
       std::cout << "Name: " << i->GetName() << std::endl;

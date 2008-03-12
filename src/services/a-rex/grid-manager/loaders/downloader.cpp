@@ -56,14 +56,21 @@
 
 class PointPair;
 
-class FileDataEx: public FileData {
+class FileDataEx : public FileData {
  public:
   typedef std::list<FileDataEx>::iterator iterator;
-  Arc::DataMover::result res;
+  Arc::DataStatus res;
   std::string failure_description;
   PointPair* pair;
-  FileDataEx(const FileData& f):FileData(f),pair(NULL) {};
-  FileDataEx(const FileData& f,Arc::DataMover::result r,const std::string& fd):FileData(f),res(r),failure_description(fd),pair(NULL) {};
+  FileDataEx(const FileData& f) : FileData(f),
+				  res(Arc::DataStatus::Success),
+				  pair(NULL) {}
+  FileDataEx(const FileData& f,
+	     Arc::DataStatus r,
+	     const std::string& fd) : FileData(f),
+				      res(r),
+				      failure_description(fd),
+				      pair(NULL) {}
 };
 
 static JobDescription desc;
@@ -207,11 +214,11 @@ class PointPair {
                                                       source(Arc::DMC::GetDataPoint(source_url)),
                                                       destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
-  static void callback(Arc::DataMover* mover,Arc::DataMover::result res,const std::string&,void* arg) {
+  static void callback(Arc::DataMover* mover,Arc::DataStatus res,const std::string&,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
-    if(res != Arc::DataMover::success) {
-      it->failure_description=Arc::DataMover::get_result_string(res);
+    if(!res) {
+      it->failure_description=Arc::tostring(res);
       it->res=res;
       olog<<"Failed downloading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
@@ -508,10 +515,11 @@ int main(int argc,char** argv) {
           i->pair=pair;
         };
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
-        if(mover.Transfer(*(i->pair->source),*(i->pair->destination),cache,url_map,
-                          min_speed,min_speed_time,min_average_speed,max_inactivity_time,
-                          i->failure_description,&PointPair::callback,it,
-                          i->pfn.c_str()) != Arc::DataMover::success) {
+        if(!mover.Transfer(*(i->pair->source), *(i->pair->destination), cache,
+			   url_map, min_speed, min_speed_time,
+			   min_average_speed, max_inactivity_time,
+			   i->failure_description, &PointPair::callback, it,
+			   i->pfn.c_str())) {
           failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+i->failure_description+"\n";
           olog<<"FATAL ERROR: Failed to initiate file transfer: "<<source<<" - "<<i->failure_description<<std::endl;
           delete it; res=1; goto exit;
@@ -533,8 +541,9 @@ int main(int argc,char** argv) {
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     odlog(ERROR)<<"Failed to download "<<i->lfn<<std::endl;
-    failure_reason+="Input file: "+i->lfn+" - "+Arc::DataMover::get_result_string(i->res)+"\n";
-    if(i->res == Arc::DataMover::credentials_expired_error) credentials_expired=true;
+    failure_reason+="Input file: "+i->lfn+" - "+Arc::tostring(i->res)+"\n";
+    if(i->res == Arc::DataStatus::CredentialsExpiredError)
+      credentials_expired=true;
     transfered=false;
   };
   // Check if all files have been properly downloaded

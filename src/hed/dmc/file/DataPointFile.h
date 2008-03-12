@@ -11,18 +11,21 @@ namespace Arc {
    public:
     DataPointFile(const URL& url);
     virtual ~DataPointFile();
-    virtual bool start_reading(DataBufferPar& buffer);
-    virtual bool start_writing(DataBufferPar& buffer,
-                               DataCallback *space_cb = NULL);
-    virtual bool stop_reading();
-    virtual bool stop_writing();
-    virtual bool check();
-    virtual bool remove();
-    virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
-    virtual bool out_of_order();
+    virtual DataStatus StartReading(DataBufferPar& buffer);
+    virtual DataStatus StartWriting(DataBufferPar& buffer,
+                                    DataCallback *space_cb = NULL);
+    virtual DataStatus StopReading();
+    virtual DataStatus StopWriting();
+    virtual DataStatus Check();
+    virtual DataStatus Remove();
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+                                 bool resolve = true);
+    virtual bool WriteOutOfOrder();
    private:
     void read_file();
     void write_file();
+    bool reading;
+    bool writing;
     int fd;
     bool is_channel;
     static Logger logger;

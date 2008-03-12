@@ -93,17 +93,17 @@ namespace Arc {
     const char *prefix;
   } transfer_struct;
 
-  DataMover::result DataMover::Delete(DataPoint& url, bool errcont) {
-    bool remove_lfn = !url.have_locations(); // pfn or plain url
-    if(!url.meta_resolve(true))
+  DataStatus DataMover::Delete(DataPoint& url, bool errcont) {
+    bool remove_lfn = !url.HaveLocations(); // pfn or plain url
+    if(!url.Resolve(true))
       // TODO: Check if error is real or "not exist".
       if(remove_lfn)
         logger.msg(INFO,
                    "No locations found - probably no more physical instances");
     std::list<URL> removed_urls;
-    if(url.have_locations())
-      for(; url.have_location();) {
-        logger.msg(INFO, "Removing %s", url.current_location().str().c_str());
+    if(url.HaveLocations())
+      for(; url.LocationValid();) {
+        logger.msg(INFO, "Removing %s", url.CurrentLocation().str().c_str());
         // It can happen that after resolving list contains duplicated
         // physical locations obtained from different meta-data-services.
         // Because not all locations can reliably say if files does not exist
@@ -111,7 +111,7 @@ namespace Arc {
         bool url_was_deleted = false;
         for(std::list<URL>::iterator u = removed_urls.begin();
             u != removed_urls.end(); ++u) {
-          if(url.current_location() == (*u)) {
+          if(url.CurrentLocation() == (*u)) {
             url_was_deleted = true;
             break;
           }
@@ -119,51 +119,51 @@ namespace Arc {
         if(url_was_deleted)
           logger.msg(VERBOSE, "This instance was already deleted");
         else {
-          url.secure(false);
-          if(!url.remove()) {
+          url.SetSecure(false);
+          if(!url.Remove()) {
             logger.msg(INFO, "Failed to delete physical file");
             if(!errcont) {
-              url.next_location();
+              url.NextLocation();
               continue;
             }
           }
           else
-            removed_urls.push_back(url.current_location());
+            removed_urls.push_back(url.CurrentLocation());
         }
-        if(!url.meta())
-          url.remove_location();
-        else {
+        if (url.IsIndex()) {
           logger.msg(INFO, "Removing metadata in %s",
-                     url.current_meta_location().c_str());
-          if(!url.meta_unregister(false)) {
+                     url.CurrentLocationMetadata().c_str());
+          DataStatus err = url.Unregister(false);
+          if (err) {
             logger.msg(ERROR, "Failed to delete meta-information");
-            url.next_location();
+            url.NextLocation();
           }
           else
-            url.remove_location();
+            url.RemoveLocation();
         }
       }
-    if(url.have_locations()) {
+    if(url.HaveLocations()) {
       logger.msg(ERROR, "Failed to remove all physical instances");
-      return DataMover::delete_error;
+      return DataStatus::DeleteError;
     }
-    if(url.meta()) {
-      if(remove_lfn) {
+    if (url.IsIndex()) {
+      if (remove_lfn) {
         logger.msg(INFO, "Removing logical file from metadata %s",
                    url.str().c_str());
-        if(!url.meta_unregister(true)) {
+        DataStatus err = url.Unregister(true);
+        if (err) {
           logger.msg(ERROR, "Failed to delete logical file");
-          return DataMover::unregister_error;
+          return err;
         }
       }
     }
-    return DataMover::success;
+    return DataStatus::Success;
   }
 
   void *transfer_func(void *arg) {
     transfer_struct *param = (transfer_struct *)arg;
     std::string failure_description;
-    DataMover::result res = param->it->Transfer(
+    DataStatus res = param->it->Transfer(
       *(param->source), *(param->destination), *(param->cache), *(param->map),
       param->min_speed, param->min_speed_time,
       param->min_average_speed, param->max_inactivity_time,
@@ -180,12 +180,12 @@ namespace Arc {
   }
 
   /* transfer data from source to destination */
-  DataMover::result DataMover::Transfer(DataPoint& source,
-                                        DataPoint& destination,
-                                        DataCache& cache, const URLMap& map,
-                                        std::string& failure_description,
-                                        DataMover::callback cb, void *arg,
-                                        const char *prefix) {
+  DataStatus DataMover::Transfer(DataPoint& source,
+                                DataPoint& destination,
+                                DataCache& cache, const URLMap& map,
+                                std::string& failure_description,
+                                DataMover::callback cb, void *arg,
+                                const char *prefix) {
     return Transfer(source, destination, cache, map,
              default_min_speed, default_min_speed_time,
              default_min_average_speed,
@@ -193,17 +193,17 @@ namespace Arc {
              failure_description, cb, arg, prefix);
   }
 
-  DataMover::result DataMover::Transfer(DataPoint& source,
-                                        DataPoint& destination,
-                                        DataCache& cache, const URLMap& map,
-                                        unsigned long long int min_speed,
-                                        time_t min_speed_time,
-                                        unsigned long long int
-                                        min_average_speed,
-                                        time_t max_inactivity_time,
-                                        std::string& failure_description,
-                                        DataMover::callback cb, void *arg,
-                                        const char *prefix) {
+  DataStatus DataMover::Transfer(DataPoint& source,
+                                DataPoint& destination,
+                                DataCache& cache, const URLMap& map,
+                                unsigned long long int min_speed,
+                                time_t min_speed_time,
+                                unsigned long long int
+                                min_average_speed,
+                                time_t max_inactivity_time,
+                                std::string& failure_description,
+                                DataMover::callback cb, void *arg,
+                                const char *prefix) {
     if(cb != NULL) {
       logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
       pthread_t thread;
@@ -214,7 +214,7 @@ namespace Arc {
         (transfer_struct *)malloc(sizeof(transfer_struct));
       if(param == NULL) {
         pthread_attr_destroy(&thread_attr);
-        return system_error;
+        return DataStatus::TransferError;
       }
       param->source = &source;
       param->destination = &destination;
@@ -236,26 +236,26 @@ namespace Arc {
       if(pthread_create(&thread, &thread_attr, &transfer_func, param) != 0) {
         free(param);
         pthread_attr_destroy(&thread_attr);
-        return system_error;
+        return DataStatus::TransferError;
       }
       pthread_attr_destroy(&thread_attr);
-      return success;
+      return DataStatus::Success;
     }
     failure_description = "";
     logger.msg(INFO, "Transfer from %s to %s",
                source.str().c_str(), destination.str().c_str());
     if(!source) {
       logger.msg(ERROR, "Not valid source");
-      return read_acquire_error;
+      return DataStatus::ReadAcquireError;
     }
     if(!destination) {
       logger.msg(ERROR, "Not valid destination");
-      return write_acquire_error;
+      return DataStatus::WriteAcquireError;
     }
     for(;;) {
-      // if(source.meta_resolve(true,map)) {
-      if(source.meta_resolve(true)) {
-        if(source.have_locations())
+      // if(source.Resolve(true, map)) {
+      if(source.Resolve(true)) {
+        if(source.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for source found: %s",
                    source.str().c_str());
@@ -263,16 +263,16 @@ namespace Arc {
       else
         logger.msg(ERROR, "Failed to resolve source: %s",
                    source.str().c_str());
-      source.next_location(); /* try again */
+      source.NextLocation(); /* try again */
       if(!do_retries)
-        return read_resolve_error;
-      if(!source.have_location())
-        return read_resolve_error;
+        return DataStatus::ReadResolveError;
+      if(!source.LocationValid())
+        return DataStatus::ReadResolveError;
     }
     for(;;) {
-      // if(destination.meta_resolve(false,URLMap())) {
-      if(destination.meta_resolve(false)) {
-        if(destination.have_locations())
+      // if(destination.Resolve(false, URLMap())) {
+      if(destination.Resolve(false)) {
+        if(destination.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
                    destination.str().c_str());
@@ -280,41 +280,41 @@ namespace Arc {
       else
         logger.msg(ERROR, "Failed to resolve destination: %s",
                    destination.str().c_str());
-      destination.next_location(); /* try again */
+      destination.NextLocation(); /* try again */
       if(!do_retries)
-        return write_resolve_error;
-      if(!destination.have_location())
-        return write_resolve_error;
+        return DataStatus::WriteResolveError;
+      if(!destination.LocationValid())
+        return DataStatus::WriteResolveError;
     }
     bool replication = false;
-    if(source.meta() && destination.meta()) {
+    if(source.IsIndex() && destination.IsIndex()) {
       // check for possible replication
-      if(source.base_url() == destination.base_url()) {
+      if(source.GetURL() == destination.GetURL()) {
         replication = true;
         // we do not want to replicate to same site
-        destination.remove_locations(source);
-        if(!destination.have_locations()) {
+        destination.RemoveLocations(source);
+        if(!destination.HaveLocations()) {
           logger.msg(ERROR,
                      "No locations for destination different from source "
                      "found: %s", destination.str().c_str());
-          return write_resolve_error;
+          return DataStatus::WriteResolveError;
         }
       }
     }
-    //  Try to avoid any additional checks meant to provide
+    // Try to avoid any additional checks meant to provide
     // meta-information whenever possible
-    bool checks_required = destination.accepts_meta() && (!replication);
-    bool destination_meta_initially_stored = destination.meta_stored();
+    bool checks_required = destination.AcceptsMeta() && (!replication);
+    bool destination_meta_initially_stored = destination.Registered();
     bool destination_overwrite = false;
     if(!replication) { // overwriting has no sense in case of replication
-      std::string value = destination.base_url().Option("overwrite", "no");
+      std::string value = destination.GetURL().Option("overwrite", "no");
       if(strcasecmp(value.c_str(), "no") != 0)
         destination_overwrite = true;
     }
     if(destination_overwrite) {
-      if((destination.meta() && destination_meta_initially_stored) ||
-         (!destination.meta())) {
-        URL del_url = destination.base_url();
+      if((destination.IsIndex() && destination_meta_initially_stored) ||
+         (!destination.IsIndex())) {
+        URL del_url = destination.GetURL();
         logger.msg(DEBUG,
                    "DataMover::Transfer: trying to destroy/overwrite "
                    "destination: %s", del_url.str().c_str());
@@ -322,22 +322,22 @@ namespace Arc {
         for(;;) {
           DataHandle del(del_url);
           del->SetTries(1);
-          result res = Delete(*del);
-          if(res == success)
+          DataStatus res = Delete(*del);
+          if(res == DataStatus::Success)
             break;
-          if(!destination.meta())
+          if(!destination.IsIndex())
             break; // pfn has chance to be overwritten directly
           logger.msg(INFO, "Failed to delete %s", del_url.str().c_str());
-          destination.next_location(); /* try again */
+          destination.NextLocation(); /* try again */
           if(!do_retries)
             return res;
           if((--try_num) <= 0)
             return res;
         }
-        if(destination.meta()) {
+        if(destination.IsIndex()) {
           for(;;) {
-            if(destination.meta_resolve(false)) {
-              if(destination.have_locations())
+            if(destination.Resolve(false)) {
+              if(destination.HaveLocations())
                 break;
               logger.msg(ERROR, "No locations for destination found: %s",
                          destination.str().c_str());
@@ -345,22 +345,22 @@ namespace Arc {
             else
               logger.msg(ERROR, "Failed to resolve destination: %s",
                          destination.str().c_str());
-            destination.next_location(); /* try again */
+            destination.NextLocation(); /* try again */
             if(!do_retries)
-              return write_resolve_error;
-            if(!destination.have_location())
-              return write_resolve_error;
+              return DataStatus::WriteResolveError;
+            if(!destination.LocationValid())
+              return DataStatus::WriteResolveError;
           }
-          destination_meta_initially_stored = destination.meta_stored();
+          destination_meta_initially_stored = destination.Registered();
           if(destination_meta_initially_stored) {
             logger.msg(INFO, "Deleted but still have locations at %s",
                        destination.str().c_str());
-            return write_resolve_error;
+            return DataStatus::WriteResolveError;
           }
         }
       }
     }
-    result res = transfer_error;
+    DataStatus res = DataStatus::TransferError;
     int try_num;
     for(try_num = 0;; try_num++) {/* cycle for retries */
       logger.msg(DEBUG, "DataMover: cycle");
@@ -368,10 +368,10 @@ namespace Arc {
         logger.msg(DEBUG, "DataMover: no retries requested - exit");
         return res;
       }
-      if((!source.have_location()) || (!destination.have_location())) {
-        if(!source.have_location())
+      if((!source.LocationValid()) || (!destination.LocationValid())) {
+        if(!source.LocationValid())
           logger.msg(DEBUG, "DataMover: source out of tries - exit");
-        if(!destination.have_location())
+        if(!destination.LocationValid())
           logger.msg(DEBUG, "DataMover: destination out of tries - exit");
         /* out of tries */
         return res;
@@ -382,14 +382,14 @@ namespace Arc {
       // destructor of DataHandle.
       DataBufferPar buffer;
       logger.msg(INFO, "Real transfer from %s to %s",
-                 source.current_location().str().c_str(),
-                 destination.current_location().str().c_str());
+                 source.CurrentLocation().str().c_str(),
+                 destination.CurrentLocation().str().c_str());
       /* creating handler for transfer */
-      source.secure(force_secure);
-      source.passive(force_passive);
-      destination.secure(force_secure);
-      destination.passive(force_passive);
-      destination.additional_checks(do_checks);
+      source.SetSecure(force_secure);
+      source.Passive(force_passive);
+      destination.SetSecure(force_secure);
+      destination.Passive(force_passive);
+      destination.SetAdditionalChecks(do_checks);
       /* take suggestion from DataHandle about buffer, etc. */
       bool cacheable = false;
       long int bufsize;
@@ -399,8 +399,8 @@ namespace Arc {
           cacheable = true;
       /* tune buffers */
       bufsize = 65536;/* have reasonable buffer size */
-      bool seekable = destination.out_of_order();
-      source.out_of_order(seekable);
+      bool seekable = destination.WriteOutOfOrder();
+      source.ReadOutOfOrder(seekable);
       bufnum = 1;
       if(source.BufSize() > bufsize)
         bufsize = source.BufSize();
@@ -418,10 +418,10 @@ namespace Arc {
       CheckSumAny crc;
       // Shold we trust indexing service or always compute checksum ?
       // Let's trust.
-      if(destination.accepts_meta()) { // may need to compute crc
+      if(destination.AcceptsMeta()) { // may need to compute crc
         // Let it be CRC32 by default.
         std::string crc_type =
-          destination.base_url().Option("checksum", "cksum");
+          destination.GetURL().Option("checksum", "cksum");
         logger.msg(DEBUG, "DataMover::Transfer: checksum type is %s",
                    crc_type.c_str());
         if(!source.CheckCheckSum()) {
@@ -454,7 +454,7 @@ namespace Arc {
       bool mapped = false;
       URL mapped_url;
       if(destination.Local()) {
-        mapped_url = source.current_location();
+        mapped_url = source.CurrentLocation();
         mapped = map.map(mapped_url);
         /* TODO: copy options to mapped_url */
         if(!mapped)
@@ -475,29 +475,29 @@ namespace Arc {
       DataHandle mapped_h(mapped_url);
       DataPoint& mapped_p(*mapped_h);
       if(mapped_h) {
-        mapped_p.secure(force_secure);
-        mapped_p.passive(force_passive);
+        mapped_p.SetSecure(force_secure);
+        mapped_p.Passive(force_passive);
       }
       /* Try to initiate cache (if needed) */
       if(cacheable) {
-        res = success;
+        res = DataStatus::Success;
         for(;;) {/* cycle for outdated cache files */
           bool is_in_cache = false;
-          if(!cache.start(source.base_url(), is_in_cache)) {
+          if(!cache.start(source.GetURL(), is_in_cache)) {
             cacheable = false;
             logger.msg(INFO, "Failed to initiate cache");
             break;
           }
           if(is_in_cache) {/* just need to check permissions */
             logger.msg(INFO, "File is cached - checking permissions");
-            if(!source.check()) {
+            if(!source.Check()) {
               logger.msg(ERROR, "Permission checking failed: %s",
                          source.str().c_str());
               cache.stop(DataCache::file_download_failed |
                          DataCache::file_keep);
-              source.next_location(); /* try another source */
+              source.NextLocation(); /* try another source */
               logger.msg(DEBUG, "source.next_location");
-              res = read_start_error;
+              res = DataStatus::ReadStartError;
               break;
             }
             logger.msg(DEBUG, "Permission checking passed");
@@ -518,29 +518,29 @@ namespace Arc {
             }
             if(source.ReadOnly()) {
               logger.msg(DEBUG, "Linking/copying cached file");
-              if(!cache.link(destination.current_location().Path())) {
+              if(!cache.link(destination.CurrentLocation().Path())) {
                 /* failed cache link is unhandable */
                 cache.stop(DataCache::file_download_failed |
                            DataCache::file_keep);
-                return cache_error;
+                return DataStatus::CacheError;
               }
             }
             else {
               logger.msg(DEBUG, "Copying cached file");
-              if(!cache.copy(destination.current_location().Path())) {
+              if(!cache.copy(destination.CurrentLocation().Path())) {
                 /* failed cache copy is unhandable */
                 cache.stop(DataCache::file_download_failed |
                            DataCache::file_keep);
-                return cache_error;
+                return DataStatus::CacheError;
               }
             }
             cache.stop();
-            return success; // Leave here. Rest of code below is for transfer.
+            return DataStatus::Success; // Leave here. Rest of code below is for transfer.
           }
           break;
         }
         if(cacheable)
-          if(res != success) continue;
+          if(res != DataStatus::Success) continue;
       }
       if(mapped) {
         if((mapped_url.Protocol() == "link") ||
@@ -548,13 +548,13 @@ namespace Arc {
           /* check permissions first */
           logger.msg(INFO, "URL is mapped to local access - "
                      "checking permissions on original URL");
-          if(!source.check()) {
+          if(!source.Check()) {
             logger.msg(ERROR,
                        "Permission checking on original URL failed: %s",
                        source.str().c_str());
-            source.next_location(); /* try another source */
+            source.NextLocation(); /* try another source */
             logger.msg(DEBUG, "source.next_location");
-            res = read_start_error;
+            res = DataStatus::ReadStartError;
             if(cacheable)
               cache.stop(DataCache::file_download_failed |
                          DataCache::file_keep);
@@ -565,7 +565,7 @@ namespace Arc {
             logger.msg(DEBUG, "Linking local file");
             const std::string& file_name = mapped_url.Path();
             const std::string& link_name =
-              destination.current_location().Path();
+              destination.CurrentLocation().Path();
             // create directory structure for link_name
             {
               Arc::User user;
@@ -590,9 +590,9 @@ namespace Arc {
 #endif
                   logger.msg(ERROR, "Failed to create/find directory %s : %s",
                              dirpath.c_str(), err);
-                  source.next_location(); /* try another source */
+                  source.NextLocation(); /* try another source */
                   logger.msg(DEBUG, "source.next_location");
-                  res = read_start_error;
+                  res = DataStatus::ReadStartError;
                   if(cacheable)
                     cache.stop(DataCache::file_download_failed |
                                DataCache::file_keep);
@@ -613,9 +613,9 @@ namespace Arc {
 #endif
               logger.msg(ERROR, "Failed to make symbolic link %s to %s : %s",
                          link_name.c_str(), file_name.c_str(), err);
-              source.next_location(); /* try another source */
+              source.NextLocation(); /* try another source */
               logger.msg(DEBUG, "source.next_location");
-              res = read_start_error;
+              res = DataStatus::ReadStartError;
               if(cacheable)
                 cache.stop(DataCache::file_download_failed |
                            DataCache::file_keep);
@@ -625,7 +625,7 @@ namespace Arc {
             lchown(link_name.c_str(), user.get_uid(), user.get_gid());
             if(cacheable)
               cache.stop();
-            return success; // Leave after making a link. Rest moves data.
+            return DataStatus::Success; // Leave after making a link. Rest moves data.
           }
         }
       }
@@ -638,92 +638,84 @@ namespace Arc {
       DataHandle chdest_h(churl);
       DataPoint& chdest(*chdest_h);
       if(chdest_h) {
-        chdest.secure(force_secure);
-        chdest.passive(force_passive);
-        chdest.additional_checks(do_checks);
-        chdest.meta(destination); // share metadata
+        chdest.SetSecure(force_secure);
+        chdest.Passive(force_passive);
+        chdest.SetAdditionalChecks(do_checks);
+        chdest.SetMeta(destination); // share metadata
       }
       DataPoint& source_url = mapped ? mapped_p : source;
       DataPoint& destination_url = cacheable ? chdest : destination;
       // Disable checks meant to provide meta-information if not needed
-      source_url.additional_checks(do_checks & (checks_required | cacheable));
-      if(!source_url.start_reading(buffer)) {
+      source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
+      if(!(res = source_url.StartReading(buffer))) {
         logger.msg(ERROR, "Failed to start reading from source: %s",
                    source_url.str().c_str());
-        res = read_start_error;
-        if(source_url.failure_reason() ==
-           DataPoint::credentials_expired_failure)
-          res = credentials_expired_error;
         /* try another source */
-        if(source.next_location())
+        if(source.NextLocation())
           logger.msg(DEBUG, "(Re)Trying next source");
         if(cacheable)
           cache.stop(DataCache::file_download_failed | DataCache::file_keep);
         continue;
       }
       if(mapped)
-        destination.meta(mapped_p);
-      if(force_registration && destination.meta()) {
+        destination.SetMeta(mapped_p);
+      if(force_registration && destination.IsIndex()) {
         // at least compare metadata
-        if(!destination.meta_compare(source)) {
+        if(!destination.CompareMeta(source)) {
           logger.msg(ERROR,
                      "Metadata of source and destination are different");
-          source.next_location(); /* not exactly sure if this would help */
-          res = preregister_error;
+          source.NextLocation(); /* not exactly sure if this would help */
+          res = DataStatus::PreRegisterError;
           if(cacheable)
             cache.stop(DataCache::file_download_failed);
           continue;
         }
       }
-      destination.meta(source);
+      destination.SetMeta(source);
       // pass metadata gathered during start_reading()
       // from source to destination
       if(destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
-      if(!destination.meta_preregister(replication, force_registration)) {
+      if(!destination.PreRegister(replication, force_registration)) {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str().c_str());
-        destination.next_location(); /* not exactly sure if this would help */
+        destination.NextLocation(); /* not exactly sure if this would help */
         logger.msg(DEBUG, "destination.next_location");
-        res = preregister_error;
+        res = DataStatus::PreRegisterError;
         // Normally remote destination is not cached. But who knows.
         if(cacheable)
           cache.stop(DataCache::file_download_failed | DataCache::file_keep);
         continue;
       }
       buffer.speed.reset();
-      DataPoint::failure_reason_t read_failure = DataPoint::common_failure;
-      DataPoint::failure_reason_t write_failure = DataPoint::common_failure;
+      DataStatus read_failure = DataStatus::Success;
+      DataStatus write_failure = DataStatus::Success;
       if(!cacheable) {
-        if(!destination.start_writing(buffer)) {
+        if(!(res = destination.StartWriting(buffer))) {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
                      destination.str().c_str());
-          source_url.stop_reading();
-          if(!destination.meta_preunregister(replication ||
-               destination_meta_initially_stored))
+          source_url.StopReading();
+          if(!destination.PreUnregister(replication ||
+                                        destination_meta_initially_stored))
             logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                        "You may need to unregister it manually: %s",
                        destination.str().c_str());
-          if(destination.next_location())
+          if(destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
-          res = write_start_error;
-          if(destination.failure_reason() ==
-             DataPoint::credentials_expired_failure)
-            res = credentials_expired_error;
           continue;
         }
       }
       else {
-        if(!chdest.start_writing(buffer, &cache)) {
+        if(!chdest.StartWriting(buffer, &cache)) {
           logger.msg(ERROR, "Failed to start writing to cache");
-          source_url.stop_reading();
+          source_url.StopReading();
           // hope there will be more space next time
           cache.stop(DataCache::file_download_failed | DataCache::file_keep);
-          if(!destination.meta_preunregister(replication ||
+          if(!destination.PreUnregister(replication ||
                destination_meta_initially_stored))
             logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                        "You may need to unregister it manually");
-          return cache_error; // repeating won't help here
+          return DataStatus::CacheError; // repeating won't help here
         }
       }
       logger.msg(DEBUG, "Waiting for buffer");
@@ -733,14 +725,11 @@ namespace Arc {
       logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
       logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
       logger.msg(DEBUG, "Closing read channel");
-      source_url.stop_reading();
-      read_failure = source_url.failure_reason();
+      read_failure = source_url.StopReading();
       if(cacheable && mapped)
-        source.meta(mapped_p); // pass more metadata (checksum)
+        source.SetMeta(mapped_p); // pass more metadata (checksum)
       logger.msg(DEBUG, "Closing write channel");
-      destination_url.stop_writing();
-      write_failure = destination_url.failure_reason();
-      // write_failure=destination.failure_reason();
+      write_failure = destination_url.StopWriting();
       if(cacheable) {
         bool download_error = buffer.error();
         if(!download_error) {
@@ -749,14 +738,14 @@ namespace Arc {
           if(source.CheckValid())
             cache.SetValid(source.GetValid());
           logger.msg(DEBUG, "Linking/copying cached file");
-          if(!cache.link(destination.current_location().Path())) {
+          if(!cache.link(destination.CurrentLocation().Path())) {
             buffer.error_write(true);
             cache.stop(DataCache::file_download_failed | DataCache::file_keep);
-            if(!destination.meta_preunregister(replication ||
-                 destination_meta_initially_stored))
+            if(!destination.PreUnregister(replication ||
+                                          destination_meta_initially_stored))
               logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                          "You may need to unregister it manually");
-            return cache_error;/* retry won't help */
+            return DataStatus::CacheError;/* retry won't help */
           }
           cache.stop();
         }
@@ -766,58 +755,46 @@ namespace Arc {
         }
       }
       if(buffer.error()) {
-        if(!destination.meta_preunregister(replication ||
-             destination_meta_initially_stored))
+        if(!destination.PreUnregister(replication ||
+                                      destination_meta_initially_stored))
           logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                      "You may need to unregister it manually");
         // Analyze errors
         // Easy part first - if either read or write part report error
         // go to next endpoint.
         if(buffer.error_read()) {
-          failure_description = source_url.failure_text();
-          if(source.next_location())
+          if(source.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next source");
-          if(read_failure == DataPoint::credentials_expired_failure)
-            res = credentials_expired_error;
-          else
-            res = read_error;
+          res = read_failure;
         }
         else if(buffer.error_write()) {
-          failure_description = destination_url.failure_text();
-          if(destination.next_location())
+          if(destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
-          if(write_failure == DataPoint::credentials_expired_failure)
-            res = credentials_expired_error;
-          else
-            res = write_error;
+          res = write_failure;
         }
         else if(buffer.error_transfer()) {
           // Here is more complicated case - operation timeout
           // Let's first check if buffer was full
-          res = transfer_error;
+          res = DataStatus::TransferError;
           if(!buffer.for_read()) {
             // No free buffers for 'read' side. Buffer must be full.
-            failure_description = destination_url.failure_text();
-            if(destination.next_location())
+            if(destination.NextLocation())
               logger.msg(DEBUG, "(Re)Trying next destination");
           }
           else if(!buffer.for_write()) {
             // Buffer is empty
-            failure_description = source_url.failure_text();
-            if(source.next_location())
+            if(source.NextLocation())
               logger.msg(DEBUG, "(Re)Trying next source");
           }
           else {
             // Both endpoints were very slow? Choose randomly.
             logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
             if(random() < (RAND_MAX / 2)) {
-              failure_description = source_url.failure_text();
-              if(source.next_location())
+              if(source.NextLocation())
                 logger.msg(DEBUG, "(Re)Trying next source");
             }
             else {
-              failure_description = destination_url.failure_text();
-              if(destination.next_location())
+              if(destination.NextLocation())
                 logger.msg(DEBUG, "(Re)Trying next destination");
             }
           }
@@ -833,26 +810,26 @@ namespace Arc {
           logger.msg(DEBUG, "DataMover::Transfer: have valid checksum");
         }
       }
-      destination.meta(source); // pass more metadata (checksum)
-      if(!destination.meta_postregister(replication)) {
+      destination.SetMeta(source); // pass more metadata (checksum)
+      if(!destination.PostRegister(replication)) {
         logger.msg(ERROR, "Failed to postregister destination %s",
                    destination.str().c_str());
-        if(!destination.meta_preunregister(replication ||
+        if(!destination.PreUnregister(replication ||
              destination_meta_initially_stored)) {
           logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                      "You may need to unregister it manually %s",
                      destination.str().c_str());
         }
-        destination.next_location(); /* not sure if this can help */
+        destination.NextLocation(); /* not sure if this can help */
         logger.msg(DEBUG, "destination.next_location");
-        res = postregister_error;
+        res = DataStatus::PostRegisterError;
         continue;
       }
       if(buffer.error())
         continue; // should never happen - keep just in case
       break;
     }
-    return success;
+    return DataStatus::Success;
   }
 
   void DataMover::secure(bool val) {
@@ -865,35 +842,6 @@ namespace Arc {
 
   void DataMover::force_to_meta(bool val) {
     force_registration = val;
-  }
-
-
-  static const char *result_string[] = {
-    "success",  // 0
-    "bad source URL", // 1
-    "bad destination URL", // 2
-    "failed to resolve source locations", // 3
-    "failed to resolve destination locations", // 4
-    "failed to register new destination file", // 5
-    "can't start reading from source", // 6
-    "can't start writing to destination", // 7
-    "can't read from source", // 8
-    "can't write to destination", // 9
-    "data transfer was too slow", // 10
-    "failed while closing connection to source", // 11
-    "failed while closing connection to destination", // 12
-    "failed to register new location", // 13
-    "can't use local cache", // 14
-    "system error", // 15
-    "delegated credentials expired" // 16
-  };
-
-  const char *DataMover::get_result_string(result r) {
-    if(r == undefined_error)
-      return "unexpected error";
-    if((r < 0) || (r > 16))
-      return "unknown error";
-    return result_string[r];
   }
 
 } // namespace Arc

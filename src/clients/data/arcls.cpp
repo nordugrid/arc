@@ -37,8 +37,8 @@ void arcls(const Arc::URL& dir_url,
     return;
   }
   std::list<Arc::FileInfo> files;
-  url->secure(false);
-  if(!url->list_files(files,show_details)) {
+  url->SetSecure(false);
+  if(!url->ListFiles(files,show_details)) {
     if(files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing metafiles");
       return;

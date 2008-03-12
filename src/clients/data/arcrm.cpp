@@ -36,7 +36,7 @@ void arcrm(const Arc::URL& file_url,
   bool remove_lfn = true;
   if(file_url.Locations().size() != 0)
     remove_lfn=false;
-  if(!url->meta_resolve(true)) {
+  if(!url->Resolve(true)) {
     if(remove_lfn) {  
       logger.msg(Arc::INFO,
                  "No locations found - probably no more physical instances");
@@ -45,9 +45,9 @@ void arcrm(const Arc::URL& file_url,
   /* go through all locations and try to remove files
      physically and their metadata */
   std::list<Arc::URL> removed_urls; // list of physical removed urls
-  if(url->have_locations()) for(;url->have_location();) {
+  if(url->HaveLocations()) for(;url->LocationValid();) {
     logger.msg(Arc::INFO, "Removing %s",
-               url->current_location().str().c_str());
+               url->CurrentLocation().str().c_str());
     // It can happen that after resolving list contains duplicated
     // physical locations obtained from different meta-data-services.
     // Because not all locations can reliably say if files does not exist
@@ -55,41 +55,41 @@ void arcrm(const Arc::URL& file_url,
     bool url_was_deleted = false;
     for(std::list<Arc::URL>::iterator u = removed_urls.begin();
         u != removed_urls.end(); u++) {
-      if(url->current_location() == (*u)) { url_was_deleted=true; break; }
+      if(url->CurrentLocation() == (*u)) { url_was_deleted=true; break; }
     }
     if(url_was_deleted)
       logger.msg(Arc::ERROR, "This instance was already deleted");
     else {
-      url->secure(false);
-      if(!url->remove()) {
+      url->SetSecure(false);
+      if(!url->Remove()) {
         logger.msg(Arc::ERROR, "Failed to delete physical file");
         if(!errcont) { 
-          url->next_location(); continue;
+          url->NextLocation(); continue;
         }
       }
       else
-        removed_urls.push_back(url->current_location());
+        removed_urls.push_back(url->CurrentLocation());
     }
-    if(!url->meta())
-      url->remove_location();
+    if(!url->IsIndex())
+      url->RemoveLocation();
     else {
       logger.msg(Arc::INFO, "Removing metadata in %s",
-                 url->current_meta_location().c_str());
-      if(!url->meta_unregister(false)) {
+                 url->CurrentLocationMetadata().c_str());
+      if(!url->Unregister(false)) {
         logger.msg(Arc::ERROR, "Failed to delete meta-information");
-        url->next_location();
+        url->NextLocation();
       }
     }
   }
-  if(url->have_locations()) {
+  if(url->HaveLocations()) {
     logger.msg(Arc::ERROR, "Failed to remove all physical instances");
     return;
   }
-  if(url->meta()) {
+  if(url->IsIndex()) {
     if(remove_lfn) {
       logger.msg(Arc::ERROR, "Removing logical file from metadata %s",
                  url->str().c_str());
-      if(!url->meta_unregister(true)) {
+      if(!url->Unregister(true)) {
         logger.msg(Arc::ERROR, "Failed to delete logical file");
         return;
       }

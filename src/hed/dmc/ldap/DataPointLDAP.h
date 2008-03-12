@@ -16,19 +16,20 @@ namespace Arc {
    public:
     DataPointLDAP(const URL& url);
     virtual ~DataPointLDAP();
-    virtual bool start_reading(DataBufferPar& buffer);
-    virtual bool start_writing(DataBufferPar& buffer,
-                               DataCallback *space_cb = NULL);
-    virtual bool stop_reading();
-    virtual bool stop_writing();
-    virtual bool check();
-    virtual bool remove();
-    virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
+    virtual DataStatus StartReading(DataBufferPar& buffer);
+    virtual DataStatus StartWriting(DataBufferPar& buffer,
+                                    DataCallback *space_cb = NULL);
+    virtual DataStatus StopReading();
+    virtual DataStatus StopWriting();
+    virtual DataStatus Check();
+    virtual DataStatus Remove();
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+                                 bool resolve = true);
    private:
     XMLNode node;
     XMLNode entry;
     static void CallBack(const std::string& attr,
-			 const std::string& value, void *arg);
+                         const std::string& value, void *arg);
     static void ReadThread(void *arg);
     static Logger logger;
   };

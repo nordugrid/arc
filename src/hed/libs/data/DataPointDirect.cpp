@@ -8,84 +8,162 @@
 
 namespace Arc {
 
-  DataPointDirect::DataPointDirect(const URL& url) : DataPoint(url) {
-    /* connection is not initialised here - only if request is made */
-    no_checks = false;
-    reading = false;
-    writing = false;
-    is_secure = false;
-    force_secure = true;
-    force_passive = false;
-    allow_out_of_order = false; // safe setting
-    failure_code = common_failure;
-    range_start = 0;
-    range_end = 0;
+  DataPointDirect::DataPointDirect(const URL& url) : DataPoint(url),
+                                                     buffer(NULL),
+                                                     bufsize(-1),
+                                                     bufnum(1),
+                                                     local(false),
+                                                     cache(true),
+                                                     readonly(true),
+                                                     linkable(false),
+                                                     is_secure(false),
+                                                     force_secure(true),
+                                                     force_passive(false),
+                                                     additional_checks(true),
+                                                     allow_out_of_order(false),
+                                                     range_start(0),
+                                                     range_end(0) {
     bufnum = stringtoi(url.Option("threads"));
-    if(bufnum < 1)
+    if (bufnum < 1)
       bufnum = 1;
-    if(bufnum > MAX_PARALLEL_STREAMS)
+    if (bufnum > MAX_PARALLEL_STREAMS)
       bufnum = MAX_PARALLEL_STREAMS;
-    bufsize = stringtol(url.Option("blocksize"));
-    if(bufsize < 0)
+
+    bufsize = stringtoull(url.Option("blocksize"));
+    if (bufsize < 0)
       bufsize = 0;
-    if(bufsize > MAX_BLOCK_SIZE)
+    if (bufsize > MAX_BLOCK_SIZE)
       bufsize = MAX_BLOCK_SIZE;
+
     cache = (url.Option("cache", "yes") == "yes");
     readonly = (url.Option("readonly", "yes") == "yes");
-    local = false;
   }
 
   DataPointDirect::~DataPointDirect() {}
 
-  void DataPointDirect::out_of_order(bool val) {
-    allow_out_of_order = val;
-  }
-
-  bool DataPointDirect::out_of_order() {
+  bool DataPointDirect::IsIndex() const {
     return false;
   }
 
-  void DataPointDirect::additional_checks(bool val) {
-    no_checks = !val;
+  unsigned long long int DataPointDirect::BufSize() const {
+    return bufsize;
   }
 
-  bool DataPointDirect::additional_checks() {
-    return !no_checks;
+  int DataPointDirect::BufNum() const {
+    return bufnum;
   }
 
-  void DataPointDirect::secure(bool val) {
+  bool DataPointDirect::Cache() const {
+    return cache;
+  }
+
+  bool DataPointDirect::Local() const {
+    return local;
+  }
+
+  bool DataPointDirect::ReadOnly() const {
+    return readonly;
+  }
+
+  void DataPointDirect::ReadOutOfOrder(bool val) {
+    allow_out_of_order = val;
+  }
+
+  bool DataPointDirect::WriteOutOfOrder() {
+    return false;
+  }
+
+  void DataPointDirect::SetAdditionalChecks(bool val) {
+    additional_checks = val;
+  }
+
+  bool DataPointDirect::GetAdditionalChecks() const {
+    return additional_checks;
+  }
+
+  void DataPointDirect::SetSecure(bool val) {
     force_secure = val;
   }
 
-  bool DataPointDirect::secure() {
+  bool DataPointDirect::GetSecure() const {
     return is_secure;
   }
 
-  void DataPointDirect::passive(bool val) {
+  void DataPointDirect::Passive(bool val) {
     force_passive = val;
   }
 
-  DataPointDirect::failure_reason_t DataPointDirect::failure_reason() {
-    return failure_code;
-  }
-
-  std::string DataPointDirect::failure_text() {
-    return failure_description;
-  }
-
-  void DataPointDirect::range(unsigned long long int start,
+  void DataPointDirect::Range(unsigned long long int start,
                               unsigned long long int end) {
     range_start = start;
     range_end = end;
   }
 
-  const URL& DataPointDirect::current_location() const {
+  DataStatus DataPointDirect::Resolve(bool) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::PreRegister(bool, bool) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::PostRegister(bool) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::PreUnregister(bool) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::Unregister(bool) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  bool DataPointDirect::AcceptsMeta() {
+    return false;
+  }
+
+  bool DataPointDirect::ProvidesMeta() {
+    return false;
+  }
+
+  bool DataPointDirect::Registered() const {
+    return false;
+  }
+
+  const URL& DataPointDirect::CurrentLocation() const {
     return url;
   }
 
-  const std::string& DataPointDirect::current_meta_location() const {
+  const std::string& DataPointDirect::CurrentLocationMetadata() const {
     static const std::string empty;
     return empty;
+  }
+
+  bool DataPointDirect::NextLocation() {
+    if (triesleft > 0)
+      --triesleft;
+    return (triesleft > 0);
+  }
+
+  bool DataPointDirect::LocationValid() const {
+    return (triesleft > 0);
+  }
+
+  bool DataPointDirect::HaveLocations() const {
+    return true;
+  }
+
+  DataStatus DataPointDirect::AddLocation(const URL&, const std::string&) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::RemoveLocation() {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
+  DataStatus DataPointDirect::RemoveLocations(const DataPoint&) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
 } // namespace Arc

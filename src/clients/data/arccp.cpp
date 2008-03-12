@@ -108,52 +108,52 @@ void arcregister (
                destination_url.str().c_str());
     return;
   }
-  if(source->meta() || !destination->meta()) {
+  if(source->IsIndex() || !destination->IsIndex()) {
     logger.msg(Arc::ERROR, "For registration source must be ordinary URL"
-                      " and destination must be indexing service");
+	                   " and destination must be indexing service");
     return;
   }
   // Obtain meta-information about source
-  if(!source->check()) {
+  if(!source->Check()) {
     logger.msg(Arc::ERROR, "Source probably does not exist");
     return;
   }
   // add new location
-  if(!destination->meta_resolve(false)) {
+  if(!destination->Resolve(false)) {
     logger.msg(Arc::ERROR, "Problems resolving destination");
     return;
   }
-  bool replication = destination->meta_stored();
-  destination->meta(*source); // pass metadata
+  bool replication = destination->Registered();
+  destination->SetMeta(*source); // pass metadata
   std::string metaname;
   // look for similar destination
-  for(destination->SetTries(1);destination->have_location();
-                                     destination->next_location()) {
-    const Arc::URL& loc_url = destination->current_location();
+  for(destination->SetTries(1); destination->LocationValid();
+      destination->NextLocation()) {
+    const Arc::URL& loc_url = destination->CurrentLocation();
     if(loc_url == source_url) {
-      metaname=destination->current_meta_location();
+      metaname = destination->CurrentLocationMetadata();
       break;
     }
   }
   // remove locations if exist
-  for(destination->SetTries(1);destination->remove_location();) { }
+  for(destination->SetTries(1); destination->RemoveLocation();) { }
   // add new location
-  if(metaname.length() == 0) {
+  if(metaname.empty()) {
     metaname = source_url.ConnectionURL();
   }
-  if(!destination->add_location(metaname,source_url)) {
-    destination->meta_preunregister(replication);
+  if(!destination->AddLocation(source_url, metaname)) {
+    destination->PreUnregister(replication);
     logger.msg(Arc::ERROR, "Failed to accept new file/destination");
     return;
   }
   destination->SetTries(1);
-  if(!destination->meta_preregister(replication,force_meta)) {
+  if(!destination->PreRegister(replication, force_meta)) {
     logger.msg(Arc::ERROR, "Failed to register new file/destination");
     return;
   }
-  if(!destination->meta_postregister(replication)) {
-    destination->meta_preunregister(replication);
-    logger.msg(Arc::ERROR,"Failed to register new file/destination");
+  if(!destination->PostRegister(replication)) {
+    destination->PreUnregister(replication);
+    logger.msg(Arc::ERROR, "Failed to register new file/destination");
     return;
   }
   return;
@@ -199,7 +199,7 @@ void arccp (
     }
     for(std::list<Arc::URL>::iterator source = sources.begin(),
           destination = destinations.begin();
-        (source!=sources.end()) && (destination!=destinations.end());
+        (source != sources.end()) && (destination != destinations.end());
         source++, destination++)
       arccp(*source,*destination,
             secure,passive,force_meta,recursion,tries,verbose,timeout);
@@ -271,13 +271,13 @@ void arccp (
         return;
       }
       std::list<Arc::FileInfo> files;
-      if(source->meta()) {
-        if(!source->list_files(files,recursion>0)) {
+      if(source->IsIndex()) {
+        if(!source->ListFiles(files,recursion>0)) {
           logger.msg(Arc::ERROR,"Failed listing metafiles");
           return;
         }
       } else {
-        if(!source->list_files(files,true)) {
+        if(!source->ListFiles(files,true)) {
           logger.msg(Arc::ERROR,"Failed listing files");
           return;
         }
@@ -320,8 +320,8 @@ void arccp (
         Arc::DataCache cache(cache_path,cache_data_path,"",id,
                              cache_user);
         std::string failure;
-        if(mover.Transfer(*source,*destination,cache,Arc::URLMap(),
-                          0,0,0,timeout,failure) != Arc::DataMover::success) {
+        if(!mover.Transfer(*source,*destination,cache,Arc::URLMap(),
+			   0,0,0,timeout,failure)) {
           if(!failure.empty())
             logger.msg(Arc::INFO,"Current transfer FAILED: %s",
                        failure.c_str());
@@ -330,7 +330,8 @@ void arccp (
           destination->SetTries(1);
           // It is not clear how to clear half-registered file. So remove it 
           // only in case of explicit destination.
-          if(!(destination->meta())) mover.Delete(*destination);
+          if(!(destination->IsIndex()))
+	    mover.Delete(*destination);
           failures=true;
         }
         else
@@ -385,8 +386,8 @@ void arccp (
   Arc::DataCache cache(cache_path,cache_data_path,"",id,cache_user);
   if(verbose) mover.set_progress_indicator(&progress);
   std::string failure;
-  if(mover.Transfer(*source,*destination,cache,Arc::URLMap(),
-                    0,0,0,timeout,failure) != Arc::DataMover::success) {
+  if(!mover.Transfer(*source,*destination,cache,Arc::URLMap(),
+		     0,0,0,timeout,failure)) {
     if(failure.length()) {
       logger.msg(Arc::ERROR, "Transfer FAILED: %s", failure.c_str());
       return;
@@ -397,7 +398,8 @@ void arccp (
     destination->SetTries(1);
     // It is not clear how to clear half-registered file. So remove it only
     // in case of explicit destination.
-    if(!(destination->meta())) mover.Delete(*destination);
+    if(!(destination->IsIndex()))
+      mover.Delete(*destination);
   }
   logger.msg(Arc::INFO, "Transfer complete.");
   return;

@@ -11,192 +11,245 @@
 namespace Arc {
 
   DataPointIndex::DataPointIndex(const URL& url) : DataPoint(url),
-                                                   is_metaexisting(false),
-                                                   is_resolved(false) {
+                                                   registered(false) {
     location = locations.end();
   }
 
-  const URL& DataPointIndex::current_location() const {
+  DataPointIndex::~DataPointIndex() {}
+
+  const URL& DataPointIndex::CurrentLocation() const {
     static const URL empty;
-    if(location == locations.end())
+    if (location == locations.end())
       return empty;
     return *location;
-  };
+  }
 
-  const std::string& DataPointIndex::current_meta_location() const {
+  const std::string& DataPointIndex::CurrentLocationMetadata() const {
     static const std::string empty;
-    if(location == locations.end())
+    if (location == locations.end())
       return empty;
     return location->Name();
-  };
+  }
 
-  bool DataPointIndex::have_locations() const {
+  bool DataPointIndex::HaveLocations() const {
     return (locations.size() != 0);
   }
 
-  bool DataPointIndex::have_location() const {
-    if(triesleft <= 0) return false;
-    if(location == locations.end()) return false;
+  bool DataPointIndex::LocationValid() const {
+    if (triesleft <= 0)
+      return false;
+    if (location == locations.end())
+      return false;
     return true;
   }
 
-  bool DataPointIndex::next_location() {
-    if(!have_location()) return false;
+  bool DataPointIndex::NextLocation() {
+    if (!LocationValid())
+      return false;
     ++location;
-    if(location == locations.end()) {
-      if(--triesleft > 0)
+    if (location == locations.end()) {
+      if (--triesleft > 0)
         location = locations.begin();
     }
-    if(location != locations.end())
+    if (location != locations.end())
       h = *location;
     else
       h.Clear();
-    return have_location();
+    return LocationValid();
   }
 
-  bool DataPointIndex::remove_location() {
-    if(location == locations.end()) return false;
+  DataStatus DataPointIndex::RemoveLocation() {
+    if (location == locations.end())
+      return DataStatus::NoLocationError;
     location = locations.erase(location);
-    if(location != locations.end())
+    if (location == locations.end())
+      location = locations.begin();
+    if (location != locations.end())
       h = *location;
     else
       h.Clear();
-    return true;
+    return DataStatus::Success;
   }
 
-  bool DataPointIndex::remove_locations(const DataPoint& p_) {
-    if(!(p_.have_locations())) return true;
+  DataStatus DataPointIndex::RemoveLocations(const DataPoint& p_) {
+    if (!p_.IsIndex())
+      return DataStatus::Success;
     const DataPointIndex& p = dynamic_cast<const DataPointIndex &>(p_);
     std::list<URLLocation>::iterator p_int;
     std::list<URLLocation>::const_iterator p_ext;
-    for(p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext) {
-      for(p_int = locations.begin(); p_int != locations.end();) {
+    for (p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext) {
+      for (p_int = locations.begin(); p_int != locations.end();) {
         // Compare protocol+host+port part
-        if((p_int->ConnectionURL() == p_ext->ConnectionURL())) {
-          if(location == p_int) {
+        if ((p_int->ConnectionURL() == p_ext->ConnectionURL())) {
+          if (location == p_int) {
             p_int = locations.erase(p_int);
             location = p_int;
           }
-          else {
+          else
             p_int = locations.erase(p_int);
-          }
-          continue;
         }
-        ++p_int;
+        else
+          ++p_int;
       }
     }
-    if(location == locations.end())
+    if (location == locations.end())
       location = locations.begin();
-    if(location != locations.end())
+    if (location != locations.end())
       h = *location;
     else
       h.Clear();
-    return true;
+    return DataStatus::Success;
   }
 
-  bool DataPointIndex::add_location(const std::string& meta_loc,
-                                    const URL& loc) {
-    logger.msg(DEBUG, "Add location: metaname: %s", meta_loc.c_str());
-    logger.msg(DEBUG, "Add location: location: %s", loc.str().c_str());
-    for(std::list<URLLocation>::iterator i = locations.begin();
-        i != locations.end(); ++i) {
-      if(i->Name() == meta_loc) return true; // Already exists
-    }
-    locations.insert(locations.end(), URLLocation(loc, meta_loc));
-    return true;
+  DataStatus DataPointIndex::AddLocation(const URL& url,
+                                   const std::string& meta) {
+    logger.msg(DEBUG, "Add location: url: %s", url.str().c_str());
+    logger.msg(DEBUG, "Add location: metadata: %s", meta.c_str());
+    for (std::list<URLLocation>::iterator i = locations.begin();
+        i != locations.end(); ++i)
+      if (i->Name() == meta)
+        return DataStatus::LocationAlreadyExistsError;
+    locations.push_back(URLLocation(url, meta));
+    return DataStatus::Success;
   }
 
   void DataPointIndex::SetTries(const int n) {
     triesleft = std::max(0, n);
-    if(triesleft == 0)
+    if (triesleft == 0)
       location = locations.end();
-    else if(location == locations.end())
+    else if (location == locations.end())
       location = locations.begin();
-    if(location != locations.end())
+    if (location != locations.end())
       h = *location;
     else
       h.Clear();
   }
 
-  bool DataPointIndex::start_reading(DataBufferPar& buffer) {
-    if(!h) return false;
-    return h->start_reading(buffer);
+  bool DataPointIndex::IsIndex() const {
+    return true;
   }
 
-  bool DataPointIndex::start_writing(DataBufferPar& buffer, DataCallback *cb) {
-    if(!h) return false;
-    return h->start_writing(buffer, cb);
+  bool DataPointIndex::AcceptsMeta() {
+    return true;
   }
 
-  bool DataPointIndex::stop_reading() {
-    if(!h) return false;
-    return h->stop_reading();
+  bool DataPointIndex::ProvidesMeta() {
+    return true;
   }
 
-  bool DataPointIndex::stop_writing() {
-    if(!h) return false;
-    return h->stop_writing();
+  bool DataPointIndex::Registered() const {
+    return registered;
   }
 
-  bool DataPointIndex::check() {
-    if(!h) return false;
-    return h->check();
+  DataStatus DataPointIndex::StartReading(DataBufferPar& buffer) {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->StartReading(buffer);
+  }
+
+  DataStatus DataPointIndex::StartWriting(DataBufferPar& buffer,
+                                          DataCallback *cb) {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->StartWriting(buffer, cb);
+  }
+
+  DataStatus DataPointIndex::StopReading() {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->StopReading();
+  }
+
+  DataStatus DataPointIndex::StopWriting() {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->StopWriting();
+  }
+
+  DataStatus DataPointIndex::Check() {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->Check();
+  }
+
+  unsigned long long int DataPointIndex::BufSize() const {
+    if (!h)
+      return -1;
+    return h->BufSize();
+  }
+
+  int DataPointIndex::BufNum() const {
+    if (!h)
+      return 1;
+    return h->BufNum();
+  }
+
+  bool DataPointIndex::Cache() const {
+    if (!h)
+      return false;
+    return h->Cache();
   }
 
   bool DataPointIndex::Local() const {
-    if(!h) return false;
+    if (!h)
+      return false;
     return h->Local();
   }
 
-  bool DataPointIndex::remove() {
-    if(!h) return false;
-    return h->remove();
+  bool DataPointIndex::ReadOnly() const {
+    if (!h)
+      return true;
+    return h->ReadOnly();
   }
 
-  void DataPointIndex::out_of_order(bool v) {
-    if(h) h->out_of_order(v);
+  DataStatus DataPointIndex::Remove() {
+    if (!h)
+      return DataStatus::NoLocationError;
+    return h->Remove();
   }
 
-  bool DataPointIndex::out_of_order() {
-    if(!h) return false;
-    return h->out_of_order();
+  void DataPointIndex::ReadOutOfOrder(bool v) {
+    if (h)
+      h->ReadOutOfOrder(v);
   }
 
-  void DataPointIndex::additional_checks(bool v) {
-    if(h) h->additional_checks(v);
+  bool DataPointIndex::WriteOutOfOrder() {
+    if (!h)
+      return false;
+    return h->WriteOutOfOrder();
   }
 
-  bool DataPointIndex::additional_checks() {
-    if(!h) return false;
-    return h->additional_checks();
+  void DataPointIndex::SetAdditionalChecks(bool v) {
+    if (h)
+      h->SetAdditionalChecks(v);
   }
 
-  void DataPointIndex::secure(bool v) {
-    if(h) h->secure(v);
+  bool DataPointIndex::GetAdditionalChecks() const {
+    if (!h)
+      return false;
+    return h->GetAdditionalChecks();
   }
 
-  bool DataPointIndex::secure() {
-    if(!h) return false;
-    return h->secure();
+  void DataPointIndex::SetSecure(bool v) {
+    if (h)
+      h->SetSecure(v);
   }
 
-  void DataPointIndex::passive(bool v) {
-    if(h) h->passive(v);
+  bool DataPointIndex::GetSecure() const {
+    if (!h)
+      return false;
+    return h->GetSecure();
   }
 
-  DataPointIndex::failure_reason_t DataPointIndex::failure_reason() {
-    if(!h) return common_failure;
-    return h->failure_reason();
+  void DataPointIndex::Passive(bool v) {
+    if (h)
+      h->Passive(v);
   }
 
-  std::string DataPointIndex::failure_text() {
-    if(!h) return "";
-    return h->failure_text();
-  }
-
-  void DataPointIndex::range(unsigned long long int start,
+  void DataPointIndex::Range(unsigned long long int start,
                              unsigned long long int end) {
-    if(h) h->range(start, end);
+    if (h)
+      h->Range(start, end);
   }
 
 } // namespace Arc

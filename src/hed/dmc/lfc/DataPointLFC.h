@@ -12,13 +12,14 @@ namespace Arc {
   class DataPointLFC : public DataPointIndex {
    public:
     DataPointLFC(const URL& url);
-    ~DataPointLFC() {};
-    virtual bool meta_resolve(bool source);
-    virtual bool meta_preregister(bool replication, bool force = false);
-    virtual bool meta_postregister(bool replication);
-    virtual bool meta_preunregister(bool replication);
-    virtual bool meta_unregister(bool all);
-    virtual bool list_files(std::list<FileInfo> &files, bool resolve = true);
+    ~DataPointLFC();
+    virtual DataStatus Resolve(bool source);
+    virtual DataStatus PreRegister(bool replication, bool force = false);
+    virtual DataStatus PostRegister(bool replication);
+    virtual DataStatus PreUnregister(bool replication);
+    virtual DataStatus Unregister(bool all);
+    virtual DataStatus ListFiles(std::list<FileInfo> &files,
+                                 bool resolve = true);
    protected:
     static Logger logger;
     std::string guid;

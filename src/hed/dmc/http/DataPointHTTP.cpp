@@ -31,9 +31,9 @@ namespace Arc {
     Glib::Mutex lock_;
    public:
     ChunkControl(uint64_t size = UINT64_MAX);
-    bool Get(uint64_t& start,uint64_t& length);
-    void Claim(uint64_t start,uint64_t length);
-    void Unclaim(uint64_t start,uint64_t length);
+    bool Get(uint64_t &start, uint64_t &length);
+    void Claim(uint64_t start, uint64_t length);
+    void Unclaim(uint64_t start, uint64_t length);
   };
 
   class PayloadMemConst: public PayloadRawInterface {
@@ -43,162 +43,224 @@ namespace Arc {
     unsigned int end_;
     uint64_t size_;
    public:
-    PayloadMemConst(void* buffer,uint64_t offset,unsigned int length,uint64_t size = 0):buffer_((char*)buffer),begin_(offset),end_(offset+length),size_(size) { };
-    virtual ~PayloadMemConst(void) { };
+    PayloadMemConst(void *buffer,
+                    uint64_t offset,
+                    unsigned int length,
+                    uint64_t size = 0) : buffer_((char*)buffer),
+                                         begin_(offset),
+                                         end_(offset + length),
+                                         size_(size) {}
+    virtual ~PayloadMemConst() {}
     virtual char operator[](int pos) const {
-      if(!buffer_) return 0;
-      if(pos < begin_) return 0;
-      if(pos >= end_) return 0;
-      return buffer_[pos-begin_];
-    };
+      if (!buffer_)
+        return 0;
+      if (pos < begin_)
+        return 0;
+      if (pos >= end_)
+        return 0;
+      return buffer_[pos - begin_];
+    }
     virtual char* Content(int pos = -1) {
-      if(!buffer_) return NULL;
-      if(pos < begin_) return NULL;
-      if(pos >= end_) return NULL;
-      return buffer_+(pos-begin_);
-    };
-    virtual int Size(void) const { return size_; };
-    virtual char* Insert(int pos = 0,int size = 0) { return NULL; };
-    virtual char* Insert(const char* s,int pos = 0,int size = 0) { return NULL; };
+      if (!buffer_)
+        return NULL;
+      if (pos < begin_)
+        return NULL;
+      if (pos >= end_)
+        return NULL;
+      return
+        buffer_ + (pos - begin_);
+    }
+    virtual int Size() const {
+      return size_;
+    }
+    virtual char* Insert(int pos = 0,int size = 0) {
+      return NULL;
+    }
+    virtual char* Insert(const char* s,int pos = 0,int size = 0) {
+      return NULL;
+    }
     virtual char* Buffer(unsigned int num) {
-      if(num != 0) return NULL;
+      if (num != 0)
+        return NULL;
       return buffer_;
-    };
+    }
     virtual int BufferSize(unsigned int num) const {
-      if(!buffer_) return 0;
-      if(num != 0) return 0;
-      return (end_-begin_);
-    };
+      if (!buffer_)
+        return 0;
+      if (num != 0)
+        return 0;
+      return
+        end_ - begin_;
+    }
     virtual int BufferPos(unsigned int num) const {
-      if(!buffer_) return 0;
-      if(num != 0) return 0;
+      if (!buffer_)
+        return 0;
+      if (num != 0)
+        return 0;
       return begin_;
-    };
-    virtual bool Truncate(unsigned int size) { return false; };
+    }
+    virtual bool Truncate(unsigned int size) {
+      return false;
+    }
   };
 
   ChunkControl::ChunkControl(uint64_t size) {
-    chunk_t chunk = { 0, UINT64_MAX};
+    chunk_t chunk = { 0, UINT64_MAX };
     chunks_.push_back(chunk);
   }
 
   bool ChunkControl::Get(uint64_t& start,uint64_t& length) {
-    if(length == 0) return false;
+    if (length == 0)
+      return false;
     lock_.lock();
     std::list<chunk_t>::iterator c = chunks_.begin();
-    if(c == chunks_.end()) { lock_.unlock(); return false; };
-    start=c->start; 
-    uint64_t l = (c->end)-(c->start);
-    if(l <= length) {
-      length=l; chunks_.erase(c);
-    } else {
-      c->start+=length;
-    };
+    if (c == chunks_.end()) {
+      lock_.unlock();
+      return false;
+    }
+    start = c->start;
+    uint64_t l = (c->end) - (c->start);
+    if (l <= length) {
+      length = l;
+      chunks_.erase(c);
+    }
+    else {
+      c->start += length;
+    }
     lock_.unlock();
-    return true;    
+    return true;
   }
 
   void ChunkControl::Claim(uint64_t start,uint64_t length) {
-    if(length == 0) return;
+    if (length == 0)
+      return;
     uint64_t end = start+length;
     lock_.lock();
-    for(std::list<chunk_t>::iterator c = chunks_.begin();c!=chunks_.end();) {
-      if(end <= c->start) break;
-      if((start <= c->start) && (end >= c->end)) {
-        start=c->end;
-        length=end-start; 
-        c=chunks_.erase(c);
-        if(length > 0) continue;
+    for (std::list<chunk_t>::iterator c = chunks_.begin();
+         c != chunks_.end();) {
+      if (end <= c->start)
         break;
-      };
-      if((start > c->start) && (end < c->end)) {
+      if ((start <= c->start) && (end >= c->end)) {
+        start = c->end;
+        length = end - start;
+        c = chunks_.erase(c);
+        if (length > 0)
+          continue;
+        break;
+      }
+      if ((start > c->start) && (end < c->end)) {
         chunk_t chunk;
-        chunk.start=c->start;
-        chunk.end=start;
-        c->start=end;
-        chunks_.insert(c,chunk);
+        chunk.start = c->start;
+        chunk.end = start;
+        c->start = end;
+        chunks_.insert(c, chunk);
         break;
-      };
-      if((start <= c->start) && (end < c->end) && (end > c->start)) {
+      }
+      if ((start <= c->start) && (end < c->end) && (end > c->start)) {
         c->start=end;
         break;
-      };
-      if((start > c->start) && (start < c->end) && (end >= c->end)) {
+      }
+      if ((start > c->start) && (start < c->end) && (end >= c->end)) {
         uint64_t start_ = c->end;
-        c->end=start;
-        start=start_;
-        length=end-start; 
+        c->end = start;
+        start = start_;
+        length = end - start;
         ++c;
-        if(length > 0) continue;
+        if (length > 0)
+          continue;
         break;
-      };
+      }
       ++c;
-    };
+    }
     lock_.unlock();
   }
 
   void ChunkControl::Unclaim(uint64_t start,uint64_t length) {
-    if(length == 0) return;
+    if (length == 0)
+      return;
     uint64_t end = start+length;
     lock_.lock();
-    for(std::list<chunk_t>::iterator c = chunks_.begin();c!=chunks_.end();++c) {
-      if((end >= c->start) && (end <= c->end)) {
-        if(start < c->start) c->start=start;
-        lock_.unlock(); return;
-      };
-      if((start <= c->end) && (start >= c->start)) {
-        if(end > c->end) {
+    for (std::list<chunk_t>::iterator c = chunks_.begin();
+         c != chunks_.end(); ++c) {
+      if ((end >= c->start) && (end <= c->end)) {
+        if (start < c->start)
+          c->start = start;
+        lock_.unlock();
+        return;
+      }
+      if ((start <= c->end) && (start >= c->start)) {
+        if (end > c->end) {
+          c->end = end;
+          std::list<chunk_t>::iterator c_ = c; ++c_;
+          while (c_ != chunks_.end()) {
+            if (c->end >= c_->start) {
+              if (c_->end >= c->end) {
+                c->end = c_->end;
+                break;
+              }
+              c_ = chunks_.erase(c_);
+            }
+            else
+              break;
+          }
+        }
+        lock_.unlock();
+        return;
+      }
+      if ((start <= c->start) && (end >= c->end)) {
+        c->start = start;
+        if (end > c->end) {
           c->end=end;
           std::list<chunk_t>::iterator c_ = c; ++c_;
-          for(;c_!=chunks_.end();) {
-            if(c->end >= c_->start) {
-              if(c_->end >= c->end) { c->end=c_->end; break; };
-              c_=chunks_.erase(c_);
-            } else { break; };
-          };
-        };
-        lock_.unlock(); return;
-      };
-      if((start <= c->start) && (end >= c->end)) {
-        c->start=start;
-        if(end > c->end) {
-          c->end=end;
-          std::list<chunk_t>::iterator c_ = c; ++c_;
-          for(;c_!=chunks_.end();) {
-            if(c->end >= c_->start) {
-              if(c_->end >= c->end) { c->end=c_->end; break; };
-              c_=chunks_.erase(c_);
-            } else { break; };
-          };
-        };
-        lock_.unlock(); return;
-      };
-      if(end < c->start) {
+          while (c_ != chunks_.end()) {
+            if (c->end >= c_->start) {
+              if (c_->end >= c->end) {
+                c->end = c_->end;
+                break;
+              }
+              c_ = chunks_.erase(c_);
+            }
+            else
+              break;
+          }
+        }
+        lock_.unlock();
+        return;
+      }
+      if (end < c->start) {
         chunk_t chunk = {start, end};
-        chunks_.insert(c,chunk);
-        lock_.unlock(); return;
-      };
-    };
+        chunks_.insert(c, chunk);
+        lock_.unlock();
+        return;
+      }
+    }
     lock_.unlock();
   }
 
   // Globus legacy
   static void get_environment_credentials(Arc::BaseConfig& cfg) {
-    if(getenv("X509_USER_CERT")) cfg.AddCertificate(getenv("X509_USER_CERT"));
-    if(getenv("X509_USER_KEY")) cfg.AddPrivateKey(getenv("X509_USER_KEY"));
-    if(getenv("X509_USER_PROXY")) cfg.AddProxy(getenv("X509_USER_PROXY"));
-    if(getenv("X509_CERT_DIR")) cfg.AddCADir(getenv("X509_CERT_DIR"));
+    if (getenv("X509_USER_CERT"))
+      cfg.AddCertificate(getenv("X509_USER_CERT"));
+    if (getenv("X509_USER_KEY"))
+      cfg.AddPrivateKey(getenv("X509_USER_KEY"));
+    if (getenv("X509_USER_PROXY"))
+      cfg.AddProxy(getenv("X509_USER_PROXY"));
+    if (getenv("X509_CERT_DIR"))
+      cfg.AddCADir(getenv("X509_CERT_DIR"));
   }
 
-  DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url), chunks(NULL), transfer_threads(0) {}
+  DataPointHTTP::DataPointHTTP(const URL& url) : DataPointDirect(url),
+                                                 chunks(NULL),
+                                                 transfer_threads(0) {}
 
   DataPointHTTP::~DataPointHTTP() {
-    stop_reading();
-    stop_writing();
-    if(chunks) delete chunks;
+    StopReading();
+    StopWriting();
+    if (chunks)
+      delete chunks;
   }
 
-  bool DataPointHTTP::list_files(std::list<FileInfo>& files, bool) {
+  DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool) {
 
     MCCConfig cfg;
     get_environment_credentials(cfg);
@@ -211,102 +273,114 @@ namespace Arc {
     Arc::HTTPClientInfo info;
     client.process("GET", &request, &info, &response);
 
-
     std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
     f->SetType(FileInfo::file_type_file);
     f->SetSize(info.size);
     f->SetCreated(info.lastModified);
 
-    return true;
+    return DataStatus::Success;
   }
 
-  bool DataPointHTTP::start_reading(DataBufferPar& buffer) {
-    if(transfer_threads != 0) return false;
+  DataStatus DataPointHTTP::StartReading(DataBufferPar& buffer) {
+    if (transfer_threads != 0)
+      return DataStatus::ReadStartError;
     int transfer_streams = 1;
     bool started = false;
-    DataPointHTTP::buffer=&buffer;
-    if(chunks) delete chunks;
-    chunks=new ChunkControl;
+    DataPointHTTP::buffer = &buffer;
+    if (chunks)
+      delete chunks;
+    chunks = new ChunkControl;
     MCCConfig cfg;
     get_environment_credentials(cfg);
-    for(int n = 0;n<transfer_streams;++n) {
+    for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t* info = new HTTPInfo_t;
-      info->point=this;
-      info->client=new ClientHTTP(cfg, url.Host(), url.Port(),
-                      url.Protocol() == "https", url.str());
-      if(!CreateThreadFunction(&read_thread,info)) {
+      info->point = this;
+      info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
+                                    url.Protocol() == "https", url.str());
+      if (!CreateThreadFunction(&read_thread, info))
         delete info;
-      } else {
-        started=true;
-      };
-    };
-    if(started) return true;
-    stop_reading();
-    return false;
+      else
+        started = true;
+    }
+    if (started)
+      return DataStatus::Success;
+    StopReading();
+    return DataStatus::ReadStartError;
   }
 
-  bool DataPointHTTP::stop_reading(void) {
-    if(!buffer) return false;
-    if(transfer_threads > 0) {
+  DataStatus DataPointHTTP::StopReading() {
+    if (!buffer)
+      return DataStatus::ReadStopError;
+    if (transfer_threads > 0) {
       buffer->error_read(true);
       transfer_lock.lock();
-      for(;transfer_threads>0;) {
+      while (transfer_threads > 0) {
         transfer_lock.unlock();
         sleep(1);
         transfer_lock.lock();
-      };
+      }
       transfer_lock.unlock();
-      delete chunks; chunks=NULL;
-    };
-    buffer=NULL;
-    return true;
+      delete chunks;
+      chunks = NULL;
+    }
+    buffer = NULL;
+    return DataStatus::Success;
   }
 
-  bool DataPointHTTP::start_writing(DataBufferPar& buffer,
-                               DataCallback *space_cb) {
-    if(transfer_threads != 0) return false;
+  DataStatus DataPointHTTP::StartWriting(DataBufferPar& buffer,
+                                         DataCallback *space_cb) {
+    if (transfer_threads != 0)
+      return DataStatus::WriteStartError;
     int transfer_streams = 1;
     bool started = false;
-    DataPointHTTP::buffer=&buffer;
-    if(chunks) delete chunks;
-    chunks=new ChunkControl;
+    DataPointHTTP::buffer = &buffer;
+    if (chunks)
+      delete chunks;
+    chunks = new ChunkControl;
     MCCConfig cfg;
     get_environment_credentials(cfg);
-    for(int n = 0;n<transfer_streams;++n) {
+    for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t* info = new HTTPInfo_t;
-      info->point=this;
-      info->client=new ClientHTTP(cfg, url.Host(), url.Port(),
-                      url.Protocol() == "https", url.str());
-      if(!CreateThreadFunction(&write_thread,info)) {
+      info->point = this;
+      info->client = new ClientHTTP(cfg, url.Host(), url.Port(),
+                                    url.Protocol() == "https", url.str());
+      if (!CreateThreadFunction(&write_thread, info))
         delete info;
-      } else {
-        started=true;
-      };
-    };
-    if(started) return true;
-    stop_writing();
-    return false;
+      else
+        started = true;
+    }
+    if (started)
+      return DataStatus::Success;
+    StopWriting();
+    return DataStatus::WriteStartError;
   }
 
-  bool DataPointHTTP::stop_writing(void) {
-    if(!buffer) return false;
-    if(transfer_threads > 0) {
+  DataStatus DataPointHTTP::StopWriting() {
+    if (!buffer)
+      return DataStatus::WriteStopError;
+    if (transfer_threads > 0) {
       buffer->error_write(true);
       transfer_lock.lock();
-      for(;transfer_threads>0;) {
+      while (transfer_threads > 0) {
         transfer_lock.unlock();
         sleep(1);
         transfer_lock.lock();
-      };
+      }
       transfer_lock.unlock();
-      delete chunks; chunks=NULL;
-    };
-    buffer=NULL;
-    return false;
+      delete chunks;
+      chunks = NULL;
+    }
+    buffer = NULL;
+    return DataStatus::Success;
   }
 
-  bool DataPointHTTP::check() {return false;}
-  bool DataPointHTTP::remove() {return false;}
+  DataStatus DataPointHTTP::Check() {
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::Remove() {
+    return DataStatus::DeleteError;
+  }
 
   void DataPointHTTP::read_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
@@ -320,24 +394,25 @@ namespace Arc {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
       // get first buffer
-      if(!point.buffer->for_read(transfer_handle,transfer_size,true)) {
+      if (!point.buffer->for_read(transfer_handle,transfer_size,true)) {
         // No transfer buffer - must be failure or close initiated externally
         break;
-      };
+      }
       uint64_t transfer_offset = 0;
       uint64_t chunk_length = transfer_size;
-      if(!(point.chunks->Get(transfer_offset,chunk_length))) {
+      if (!(point.chunks->Get(transfer_offset,chunk_length))) {
         // No more chunks to transfer - quit this thread.
         break;
-      };
+      }
       uint64_t transfer_end = transfer_offset+chunk_length;
       // Read chunk
       Arc::HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface* inbuf;
-      std::string path = point.current_location().Path(); path="/"+path;
+      std::string path = point.CurrentLocation().Path();
+      path = "/" + path;
       MCC_Status r = client->process("GET",path,transfer_offset,transfer_end,&request,&transfer_info,&inbuf);
-      if(!r) {
+      if (!r) {
         // Failed to transfer chunk - retry.
         // TODO: implement internal retry count?
         // TODO: mark failure?
@@ -345,71 +420,81 @@ namespace Arc {
         // Return buffer 
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
-        if(inbuf) delete inbuf;
+        if (inbuf)
+          delete inbuf;
         // Recreate connection
-        delete client; client=NULL;
+        delete client;
+        client = NULL;
         MCCConfig cfg;
         get_environment_credentials(cfg);
         client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
         continue;
-      };
-      if(transfer_info.code == 416) { // EOF
+      }
+      if (transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
-        if(inbuf) delete inbuf;
+        if (inbuf)
+          delete inbuf;
         // TODO: report file size to chunk control
         break;
-      };
-      if((transfer_info.code != 200) &&
+      }
+      if ((transfer_info.code != 200) &&
          (transfer_info.code != 206)) { // HTTP error - retry?
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
-        if(inbuf) delete inbuf;
-        if((transfer_info.code == 500) ||
-           (transfer_info.code ==  503) ||
-           (transfer_info.code ==  504)) {
+        if (inbuf)
+          delete inbuf;
+        if ((transfer_info.code == 500) ||
+            (transfer_info.code == 503) ||
+            (transfer_info.code == 504)) {
           continue;
-        };
-        transfer_failure=true;
+        }
+        transfer_failure = true;
         break;
-      };
+      }
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset,chunk_length);
-      for(unsigned int n = 0;;++n) {
+      for (unsigned int n = 0;;++n) {
         char* buf = inbuf->Buffer(n);
-        if(!buf) break;
+        if (!buf)
+          break;
         uint64_t pos = inbuf->BufferPos(n);
         unsigned int length = inbuf->BufferSize(n);
         // In general case returned chunk may be of different size than requested
-        if(transfer_handle == -1) {
+        if (transfer_handle == -1) {
           // Get transfer buffer if needed
-          if(!point.buffer->for_read(transfer_handle,transfer_size,true)) {
+          if (!point.buffer->for_read(transfer_handle,transfer_size,true)) {
             // No transfer buffer - must be failure or close initiated externally
-            if(inbuf) delete inbuf;
+            if (inbuf)
+              delete inbuf;
             break;
-          };
-        };
-        if(length > transfer_size) length=transfer_size; 
+          }
+        }
+        if (length > transfer_size)
+          length = transfer_size;
         // TODO: prevent information loss, so far assuming 
         // returned chunks are not bigger than requested.
         char* buf_ = (*point.buffer)[transfer_handle];
         memcpy(buf_,buf,length);
         point.buffer->is_read(transfer_handle,length,pos);
         point.chunks->Claim(pos,length);
-        transfer_handle=-1;
-      };
-      if(inbuf) delete inbuf;
+        transfer_handle = -1;
+      }
+      if (inbuf)
+        delete inbuf;
       point.transfer_lock.unlock();
-    };
+    }
     point.transfer_lock.lock();
     --(point.transfer_threads);
-    if(transfer_failure) point.buffer->error_read(true);
-    if(point.transfer_threads==0) {
+    if (transfer_failure)
+      point.buffer->error_read(true);
+    if (point.transfer_threads == 0) {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
-    };
-    if(client) delete client;
+    }
+    if(client)
+      delete client;
     delete &info;
     point.transfer_lock.unlock();
   }
@@ -427,10 +512,10 @@ namespace Arc {
       int transfer_handle = -1;
       unsigned long long int transfer_offset = 0;
       // get first buffer
-      if(!point.buffer->for_write(transfer_handle,transfer_size,transfer_offset,true)) {
+      if (!point.buffer->for_write(transfer_handle,transfer_size,transfer_offset,true)) {
         // No transfer buffer - must be failure or close initiated externally
         break;
-      };
+      }
       //uint64_t transfer_offset = 0;
       //uint64_t transfer_end = transfer_offset+transfer_size;
       // Write chunk
@@ -438,10 +523,12 @@ namespace Arc {
       PayloadMemConst request((*point.buffer)[transfer_handle],transfer_offset,transfer_size,
                               point.CheckSize()?point.GetSize():0);
       PayloadRawInterface* response;
-      std::string path = point.current_location().Path(); path="/"+path;
+      std::string path = point.CurrentLocation().Path();
+      path = "/" + path;
       MCC_Status r = client->process("PUT",path,&request,&transfer_info,&response);
-      if(response) delete response;
-      if(!r) {
+      if (response)
+        delete response;
+      if (!r) {
         // Failed to transfer chunk - retry.
         // TODO: implement internal retry count?
         // TODO: mark failure?
@@ -449,35 +536,37 @@ namespace Arc {
         // Return buffer 
         point.buffer->is_notwritten(transfer_handle);
         // Recreate connection
-        delete client; client=NULL;
+        delete client;
+        client = NULL;
         MCCConfig cfg;
         get_environment_credentials(cfg);
         client=new ClientHTTP(cfg,point.url.Host(),point.url.Port(),point.url.Protocol() == "https",point.url.str());
         continue;
-      };
-      if(transfer_info.code != 200) { // HTTP error - retry?
+      }
+      if (transfer_info.code != 200) { // HTTP error - retry?
         point.buffer->is_notwritten(transfer_handle);
-        if((transfer_info.code == 500) ||
-           (transfer_info.code ==  503) ||
-           (transfer_info.code ==  504)) {
+        if ((transfer_info.code == 500) ||
+            (transfer_info.code == 503) ||
+            (transfer_info.code == 504)) {
           continue;
-        };
-        transfer_failure=true;
+        }
+        transfer_failure = true;
         break;
-      };
+      }
       point.buffer->is_written(transfer_handle);
-    };
+    }
     point.transfer_lock.lock();
     --(point.transfer_threads);
-    if(transfer_failure) point.buffer->error_write(true);
-    if(point.transfer_threads==0) {
+    if (transfer_failure)
+      point.buffer->error_write(true);
+    if (point.transfer_threads == 0) {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-    };
-    if(client) delete client;
+    }
+    if (client)
+      delete client;
     delete &info;
     point.transfer_lock.unlock();
   }
 
 } // namespace Arc
-

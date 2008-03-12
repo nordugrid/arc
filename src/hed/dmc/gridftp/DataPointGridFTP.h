@@ -24,7 +24,10 @@ namespace Arc {
     int ftp_threads;
 
     SimpleCondition cond;
-    int condstatus;
+    DataStatus condstatus;
+
+    bool reading;
+    bool writing;
 
     bool ftp_eof_flag;
 
@@ -56,15 +59,16 @@ namespace Arc {
    public:
     DataPointGridFTP(const URL& url);
     virtual ~DataPointGridFTP();
-    virtual bool start_reading(DataBufferPar& buf);
-    virtual bool start_writing(DataBufferPar& buf,
-                               DataCallback *space_cb = NULL);
-    virtual bool stop_reading();
-    virtual bool stop_writing();
-    virtual bool check();
-    virtual bool remove();
-    virtual bool list_files(std::list<FileInfo>& files, bool resolve = true);
-    virtual bool out_of_order();
+    virtual DataStatus StartReading(DataBufferPar& buf);
+    virtual DataStatus StartWriting(DataBufferPar& buf,
+                                    DataCallback *space_cb = NULL);
+    virtual DataStatus StopReading();
+    virtual DataStatus StopWriting();
+    virtual DataStatus Check();
+    virtual DataStatus Remove();
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+                                 bool resolve = true);
+    virtual bool WriteOutOfOrder();
   };
 
 } // namespace Arc
