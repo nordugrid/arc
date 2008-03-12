@@ -1,15 +1,81 @@
 import urlparse
 import httplib
+import time
+import traceback
+import threading
+import random
+
 import arc
 from storage.xmltree import XMLTree
-from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid
-import traceback
+from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response
 
 class Element:
 
-    def __init__(self, backend, store):
-        self.backend = backend
-        self.store = store
+    def __init__(self, cfg):
+        try:
+            backendclass = str(cfg.Get('BackendClass'))
+            backendcfg = cfg.Get('BackendCfg')
+            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self.changeState)
+        except:
+            print 'Cannot import backend class', backendclass
+            raise
+        try:
+            storeclass = str(cfg.Get('StoreClass'))
+            storecfg = cfg.Get('StoreCfg')
+            self.store = import_class_from_string(storeclass)(storecfg)
+        except:
+            print 'Cannot import store class', storeclass
+            raise
+        try:
+            self.period = float(str(cfg.Get('CheckPeriod')))
+            self.min_interval = float(str(cfg.Get('MinCheckInterval')))
+        except:
+            print 'Cannot set check_period, min_check_interval'
+            raise
+        threading.Thread(target = self.checkingThread, args = [self.period]).start()
+
+    def changeState(self, referenceID, newState, onlyIf = None):
+        self.store.lock()
+        try:
+            localData = self.store.get(referenceID)
+            if onlyIf and localData['state'] != onlyIf:
+                self.store.unlock()
+                return False
+            localData['state'] = newState
+            self.store.set(referenceID, localData)
+            self.store.unlock()
+            return True
+        except:
+            self.store.unlock()
+            print traceback.format_exc()
+            return False
+
+    def checkingThread(self, period):
+        while True:
+            try:
+                referenceIDs =  self.store.list()
+                print referenceIDs
+                number = len(referenceIDs)
+                if number > 0:
+                    interval = period / number
+                    if interval < self.min_interval:
+                        interval = self.min_interval
+                    print 'Checking', number, 'files with interval', interval
+                    random.shuffle(referenceIDs)
+                    for referenceID in referenceIDs:
+                        try:
+                            print 'Check', referenceID
+                            localData = self.store.get(referenceID)
+                            checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+                            print referenceID, 'actual:', checksum, 'original:', localData['checksum']
+                        except:
+                            print traceback.format_exc()
+                        time.sleep(interval)
+                else:
+                    time.sleep(period)
+            except:
+                print traceback.format_exc()
+
 
     def get(self, request):
         print request
@@ -22,13 +88,16 @@ class Element:
             print 'localData:', localData
             if localData.has_key('localID'):
                 localID = localData['localID']
+                checksum = localData['checksum']
+                checksumType = localData['checksumType']
                 protocol_match = self.backend.matchProtocols(protocols)
                 if protocol_match:
                     protocol = protocol_match[0]
                     try:
-                        turl = self.backend.prepareToGet(localID, protocol)
+                        turl = self.backend.prepareToGet(referenceID, localID, protocol)
                         if turl:
-                            response[requestID] = [('TURL', turl), ('protocol', protocol)]
+                            response[requestID] = [('TURL', turl), ('protocol', protocol),
+                                ('checksum', localData['checksum']), ('checksumType', localData['checksumType'])]
                         else:
                             response[requestID] = [('error', 'internal error (empty TURL)')]
                     except:
@@ -62,9 +131,10 @@ class Element:
                         'checksum' : requestData.get('checksum', None),
                         'checksumType' : requestData.get('checksumType', None),
                         'size' : size,
-                        'acl': acl}
+                        'acl': acl,
+                        'state' : 'creating'}
                     try:
-                        turl = self.backend.prepareToPut(localID, protocol)
+                        turl = self.backend.prepareToPut(referenceID, localID, protocol)
                         if turl:
                             response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
                             self.store.set(referenceID, file_data)
@@ -77,20 +147,37 @@ class Element:
                 response[requestID] = [('error', 'no supported protocol found')]
         return response
 
-
+    def stat(self, request):
+        properties = ['state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID']
+        response = {}
+        for requestID, referenceID in request.items():
+            localData = self.store.get(referenceID)
+            response[requestID] = [referenceID]
+            for p in properties:
+                response[requestID].append(localData.get(p, None))
+        return response
 
 class ElementService:
 
     def __init__(self, cfg):
         print "Storage Element service constructor called"
         self.se_ns = arc.NS({'se':element_uri})
-        backendclass = str(cfg.Get('BackendClass'))
-        backendcfg = cfg.Get('BackendCfg')
-        self.backend = import_class_from_string(backendclass)(backendcfg, element_uri)
-        storeclass = str(cfg.Get('StoreClass'))
-        storecfg = cfg.Get('StoreCfg')
-        store = import_class_from_string(storeclass)(storecfg)
-        self.element = Element(self.backend, store)
+        self.element = Element(cfg)
+        backend_request_names = self.element.backend.public_request_names
+        for name in backend_request_names:
+            if not hasattr(self, name):
+                setattr(self, name, getattr(self.element.backend, name))
+                self.request_names.append(name)
+        print self.request_names
+        print self.notify
+
+
+    def stat(self, inpayload):
+        request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
+        response = self.element.stat(request)
+        print response
+        return create_response('se:stat',
+            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.se_ns)
 
     def _putget_in(self, putget, inpayload):
         request = dict([
@@ -143,7 +230,7 @@ class ElementService:
                 raise Exception, 'wrong namespace (%s)' % request_node.Prefix()
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
-            if request_name not in self.request_names + self.backend.public_request_names:
+            if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
             # if the request name is in the supported names,
@@ -153,9 +240,6 @@ class ElementService:
             # and which will return the response payload
             if request_name in self.request_names:
                 outpayload = getattr(self, request_name)(inpayload)
-            # or if the backend has a method of this name:
-            elif request_name in self.backend.public_request_names:
-                outpayload = getattr(self.backend, request_name)(inpayload)
             # sets the payload of the outgoing message
             outmsg.Payload(outpayload)
             # return with the STATUS_OK status
@@ -171,4 +255,4 @@ class ElementService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['get', 'put']
+    request_names = ['get', 'put', 'stat']

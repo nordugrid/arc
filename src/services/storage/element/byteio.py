@@ -1,4 +1,4 @@
-from storage.common import rbyteio_uri, byteio_simple_uri, mkuid
+from storage.common import rbyteio_uri, byteio_simple_uri, mkuid, create_checksum
 from storage.client import NotifyClient
 import traceback
 import arc
@@ -10,7 +10,8 @@ class ByteIOBackend:
     public_request_names = ['notify']
     supported_protocols = ['byteio']
 
-    def __init__(self, backendcfg, ns_uri):
+    def __init__(self, backendcfg, ns_uri, changeState):
+        self.changeState = changeState
         self.ns = arc.NS({'se' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
@@ -24,19 +25,22 @@ class ByteIOBackend:
             for filename in os.listdir(self.transferdir):
                 os.remove(os.path.join(self.transferdir, filename))
         print "ByteIOBackend transferdir:", self.transferdir
+        self.idstore = {}
 
-    def prepareToGet(self, localID, protocol):
+    def prepareToGet(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
         try:
             os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
+            self.idstore[turl_id] = referenceID
+            print '++', self.idstore
             turl = self.turlprefix + turl_id
             return turl
         except:
             return None
 
-    def prepareToPut(self, localID, protocol):
+    def prepareToPut(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
@@ -44,6 +48,8 @@ class ByteIOBackend:
         f = file(datapath, 'w')
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
+        self.idstore[turl_id] = referenceID
+        print '++', self.idstore
         turl = self.turlprefix + turl_id
         return turl
 
@@ -62,6 +68,8 @@ class ByteIOBackend:
     def notify(self, inpayload):
         request_node = inpayload.Child()
         subject = str(request_node.Get('subject'))
+        print 'idstore[%s] = %s' % (subject, self.idstore.get(subject, None))
+        state = str(request_node.Get('state'))
         path = os.path.join(self.transferdir, subject)
         print 'Removing', path
         os.remove(path)
@@ -69,6 +77,8 @@ class ByteIOBackend:
         response_node = out.NewChild('se:notifyResponse').Set('OK')
         return out
 
+    def checksum(self, localID, checksumType):
+        return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
 class ByteIOService:
 
@@ -102,7 +112,7 @@ class ByteIOService:
         except:
             print traceback.format_exc()
             raise Exception, 'write failed'
-        self.notify.notify(subject)
+        self.notify.notify(subject, 'received')
         out = arc.PayloadSOAP(self.rb_ns)
         response_node = out.NewChild('rb:writeResponse').Set('OK')
         return out
@@ -113,7 +123,7 @@ class ByteIOService:
         except:
             print traceback.format_exc()
             data = ''
-        self.notify.notify(subject)
+        self.notify.notify(subject, 'sent')
         out = arc.PayloadSOAP(self.rb_ns)
         response_node = out.NewChild('rb:readResponse')
         transfer_node = response_node.NewChild('rb:transfer-information')

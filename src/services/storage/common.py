@@ -9,6 +9,22 @@ false = '0'
 
 global_root_guid = '0'
 
+def create_checksum(file, type):
+    if type == 'md5':
+        return _md5sum(file)
+    else:
+        raise Exception, 'Unsupported checksum type'
+
+import md5
+
+def _md5sum(file):
+    m = md5.new()
+    while True:
+        t = file.read(1024)
+        if len(t) == 0: break # end of file
+        m.update(t)
+    return m.hexdigest()
+
 def import_class_from_string(str):
     """ Import the class which name is in the string
     
@@ -80,6 +96,10 @@ def parse_node(node, names, single = False, string = True):
             for n in get_child_nodes(node)
     ])
 
+def parse_to_dict(node, names):
+    return dict([(str(n.Get(names[0])), dict([(name, str(n.Get(name))) for name in names[1:]]))
+        for n in get_child_nodes(node)])
+
 def create_response(method_name, tag_names, elements, ns, single = False):
     from storage.xmltree import XMLTree
     import arc
@@ -126,7 +146,7 @@ def basename(LN):
         return LN
 
 
-import pickle, threading, copy, os
+import pickle, threading, copy, os, base64, traceback
 
 class PickleStore:
     """ Class for storing object in a serialized python format. """
@@ -151,17 +171,32 @@ class PickleStore:
         # initialize a lock which can be used to avoid race conditions
         self.llock = threading.Lock()
 
-    def filename(self, ID):
+    def _filename(self, ID):
         """ Creates a filename from an ID.
 
-        filename(ID)
+        _filename(ID)
 
         'ID' is the ID of the given object.
         The filename will be the datadir and the base64 encoded form of the ID.
         """
-        import base64
         name = base64.b64encode(ID)
         return os.path.join(self.datadir, name[:2], name)
+
+    def _list(self):
+        names = []
+        for subdir in os.listdir(self.datadir):
+            names.extend(os.listdir(os.path.join(self.datadir, subdir)))
+        return names
+
+    def list(self):
+        IDs = []
+        for name in self._list():
+            try:
+                ID = base64.b64decode(name)
+                IDs.append(ID)
+            except:
+                print traceback.format_exc()
+        return IDs
 
     def get(self, ID):
         """ Returns the object with the given ID.
@@ -174,7 +209,7 @@ class PickleStore:
         try:
             # generates a filename from the ID
             # then use pickle to load the previously serialized data
-            return pickle.load(file(self.filename(ID)))
+            return pickle.load(file(self._filename(ID)))
         except IOError:
             # don't print 'file not found' if there is no such ID
             pass
@@ -213,7 +248,7 @@ class PickleStore:
         """
         try:
             # generates a filename from the ID
-            fn = self.filename(ID)
+            fn = self._filename(ID)
             # if 'object' is empty, remove the file
             if not object:
                 try:
@@ -229,6 +264,6 @@ class PickleStore:
                     os.mkdir(os.path.dirname(fn))
                     f = file(fn,'w')
                 # serialize the given list into it
-                pickle.dump(object, file(self.filename(ID),'w'))
+                pickle.dump(object, file(self._filename(ID),'w'))
         except:
             print traceback.format_exc()

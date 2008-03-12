@@ -1,5 +1,5 @@
 from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri
-from storage.common import parse_metadata, true, false, get_child_nodes, node_to_data, parse_node
+from storage.common import parse_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
@@ -32,7 +32,10 @@ class Client:
         resp, status, reason = self.call_raw(out)
         if self.print_xml:
             print 'Response:'
-            print parseString(resp).toprettyxml()
+            try:
+                print parseString(resp).toprettyxml()
+            except:
+                print resp
             print
         if return_tree_only:
             return XMLTree(from_string = resp, forget_namespace = True).get_trees('///')[0]
@@ -385,16 +388,34 @@ class ElementClient(Client):
     def get(self, requests):
         return self._putget('get', requests)
 
+    def stat(self, requests):
+        tree = XMLTree(from_tree =
+            ('se:stat', [
+                ('se:statRequestList', [
+                    ('se:statRequestElement', [
+                        ('se:requestID', requestID),
+                        ('se:referenceID', referenceID)
+                    ]) for requestID, referenceID in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_to_dict(xml.Child().Child().Child(),
+            ['requestID', 'referenceID', 'state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID'])
+
+
 class NotifyClient(Client):
 
     def __init__(self, url, print_xml = False):
         ns = arc.NS({'se':element_uri})
         Client.__init__(self, url, ns, print_xml)
 
-    def notify(self, subject):
+    def notify(self, subject, state):
         tree = XMLTree(from_tree =
             ('se:notify', [
-                ('se:subject', subject)
+                ('se:subject', subject),
+                ('se:state', state)
             ])
         )
         msg, _, _ = self.call(tree)
