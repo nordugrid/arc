@@ -6,13 +6,11 @@ namespace Arc {
 
   class TargetRetriever : public ACC {
   protected:
-    TargetRetriever(Arc::Config *cfg, const URL &url);
+    TargetRetriever(Arc::Config *cfg);
+    URL m_url;
   public:
     virtual ~TargetRetriever();
     virtual std::list<ACC*> getTargets() = 0; 
-
-  private:
-    URL m_url;
 
   };
 
