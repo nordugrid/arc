@@ -31,43 +31,35 @@ namespace Arc {
   }
 
   Loader::~Loader(void) {
-    Logger& l = Logger::rootLogger;
-
     // TODO: stop any processing on those MCCs or mark them for
     // self-destruction or break links first or use semaphors in
     // MCC destructors
     // Unlink all objects
-    l.msg(DEBUG, "before loop");
     for(mcc_container_t::iterator mcc_i = mccs_.begin();
 	mcc_i != mccs_.end(); ++mcc_i) {
-      l.msg(DEBUG, "mcc unlink");
       MCC* mcc = mcc_i->second;
       if(mcc) mcc->Unlink();
     }
     for(plexer_container_t::iterator plexer_i = plexers_.begin();
 	plexer_i != plexers_.end(); ++plexer_i) {
-      l.msg(DEBUG, "plexer unlink");
       Plexer* plexer = plexer_i->second;
       if(plexer) plexer->Unlink();
     }
     // Destroy all objects
     for(mcc_container_t::iterator mcc_i = mccs_.begin();
 	mcc_i != mccs_.end(); mcc_i = mccs_.begin()) {
-      l.msg(DEBUG, "mcc erase");
       MCC* mcc = mcc_i->second;
       mccs_.erase(mcc_i);
       if(mcc) delete mcc;
     }
     for(service_container_t::iterator service_i = services_.begin();
 	service_i != services_.end(); service_i = services_.begin()) {
-      l.msg(DEBUG, "service erase");
       Service* service = service_i->second;
       services_.erase(service_i);
       if(service) delete service;
     }
     for(plexer_container_t::iterator plexer_i = plexers_.begin();
 	plexer_i != plexers_.end(); plexer_i = plexers_.begin()) {
-      l.msg(DEBUG, "plexer erase");
       Plexer* plexer = plexer_i->second;
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
@@ -75,29 +67,24 @@ namespace Arc {
     for(sechandler_container_t::iterator sechandler_i = sechandlers_.begin();
 	sechandler_i != sechandlers_.end();
 	sechandler_i = sechandlers_.begin()) {
-      l.msg(DEBUG, "sechandler erase");
       ArcSec::SecHandler* sechandler = sechandler_i->second;
       sechandlers_.erase(sechandler_i);
       if(sechandler) delete sechandler;
     }
     for(dmc_container_t::iterator dmc_i = dmcs_.begin();
 	dmc_i != dmcs_.end(); dmc_i = dmcs_.begin()) {
-      l.msg(DEBUG, "dmc erase");
       DMC* dmc = dmc_i->second;
       dmcs_.erase(dmc_i);
       if(dmc) delete dmc;
     }
     for(acc_container_t::iterator acc_i = accs_.begin();
 	acc_i != accs_.end(); acc_i = accs_.begin()) {
-      l.msg(DEBUG, "acc erase");
       ACC* acc = acc_i->second;
       accs_.erase(acc_i);
       if(acc) delete acc;
     }
 
-    l.msg(DEBUG, "after loops");
     if(context_) delete context_;
-    l.msg(DEBUG, "after delete context");
     if(service_factory) delete service_factory;
     if(mcc_factory) delete mcc_factory;
     if(sechandler_factory) delete sechandler_factory;
