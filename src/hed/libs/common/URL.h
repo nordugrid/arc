@@ -41,6 +41,9 @@ namespace Arc {
     /** URL Destructor */
     virtual ~URL();
 
+    /** Scope for LDAP URLs */
+    enum Scope { base, onelevel, subtree };
+
     /** Returns the protocol of the URL. */
     const std::string& Protocol() const;
 
@@ -71,9 +74,6 @@ namespace Arc {
     /** Changes the path of the URL. */
     void ChangePath(const std::string& newpath);
 
-    /** In case of ldap-protocol, return the basedn of the URL. */
-    std::string BaseDN() const;
-
     /** Returns HTTP options if any. */
     const std::map<std::string, std::string>& HTTPOptions() const;
 
@@ -88,7 +88,7 @@ namespace Arc {
     const std::list<std::string>& LDAPAttributes() const;
 
     /** Returns the LDAP scope. */
-    const std::string& LDAPScope() const;
+    Scope LDAPScope() const;
 
     /** Returns the LDAP filter. */
     const std::string& LDAPFilter() const;
@@ -166,7 +166,7 @@ namespace Arc {
     std::list<std::string> ldapattributes;
 
     /** LDAP scope of the url. */
-    std::string ldapscope;
+    Scope ldapscope;
 
     /** LDAP filter of the url. */
     std::string ldapfilter;

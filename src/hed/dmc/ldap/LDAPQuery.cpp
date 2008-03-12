@@ -311,7 +311,7 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 bool LDAPQuery::Query(const std::string& base,
                       const std::string& filter,
                       const std::list <std::string>& attributes,
-                      Scope scope) {
+                      URL::Scope scope) {
 
 	Connect();
 

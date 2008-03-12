@@ -80,8 +80,7 @@ namespace Arc {
     buffer = &buf;
     LDAPQuery q(url.Host(), url.Port());
     q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
-            url.LDAPScope() == "base" ? LDAPQuery::base :
-            url.LDAPScope() == "one" ? LDAPQuery::onelevel : LDAPQuery::subtree);
+            url.LDAPScope());
     NS ns;
     XMLNode(ns, "LDAPQueryResult").New(node);
     q.Result(CallBack, this);

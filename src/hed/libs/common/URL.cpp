@@ -103,9 +103,9 @@ namespace Arc {
   }
 
 
-  URL::URL() : port(-1) {}
+  URL::URL() : port(-1), ldapscope(base) {}
 
-  URL::URL(const std::string& url) : port(-1) {
+  URL::URL(const std::string& url) : port(-1), ldapscope(base) {
 
     std::string::size_type pos, pos2, pos3;
 
@@ -126,8 +126,8 @@ namespace Arc {
       }
       if(path[0] != '/') {
 	char cwd[PATH_MAX];
-	getcwd(cwd, PATH_MAX);
-	path = cwd + ('/' + path);
+	if(getcwd(cwd, PATH_MAX))
+	  path = cwd + ('/' + path);
       }
       return;
     }
@@ -245,6 +245,7 @@ namespace Arc {
 
     // parse ldap protocol specific attributes
     if(protocol == "ldap") {
+      std::string ldapscopestr;
       pos = path.find('?');
       if(pos != std::string::npos) {
 	pos2 = path.find('?', pos + 1);
@@ -252,10 +253,10 @@ namespace Arc {
 	  pos3 = path.find('?', pos2 + 1);
 	  if(pos3 != std::string::npos) {
 	    ldapfilter = path.substr(pos3 + 1);
-	    ldapscope = path.substr(pos2 + 1, pos3 - pos2 - 1);
+	    ldapscopestr = path.substr(pos2 + 1, pos3 - pos2 - 1);
 	  }
 	  else
-	    ldapscope = path.substr(pos2 + 1);
+	    ldapscopestr = path.substr(pos2 + 1);
 	  ldapattributes = ParseAttributes(path.substr(pos + 1,
 	                                               pos2 - pos - 1), ',');
 	}
@@ -263,8 +264,15 @@ namespace Arc {
 	  ldapattributes = ParseAttributes(path.substr(pos + 1), ',');
 	path = path.substr(0, pos);
       }
-      if(ldapscope.empty())
-	ldapscope = "base";
+      if(ldapscopestr == "base")
+	ldapscope = base;
+      else if(ldapscopestr == "one")
+	ldapscope = onelevel;
+      else if(ldapscopestr == "tree")
+	ldapscope = subtree;
+      else if(!ldapscopestr.empty())
+	URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
+	              ldapscopestr.c_str());
       if(ldapfilter.empty())
 	ldapfilter = "(objectClass=*)";
       if(path.find("/") != std::string::npos)
@@ -274,8 +282,8 @@ namespace Arc {
     // add absolute path for relative file URLs
     if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
       char cwd[PATH_MAX];
-      getcwd(cwd, PATH_MAX);
-      path = cwd + ('/' + path);
+      if(getcwd(cwd, PATH_MAX))
+	path = cwd + ('/' + path);
     }
 
     // expand SRM short URLs
@@ -331,22 +339,15 @@ namespace Arc {
 
     // parse basedn in case of ldap-protocol
     if(protocol == "ldap")
-      if(path.find(",") != std::string::npos)             // probably a basedn
-	path = BaseDN2Path(path);
+      if(path.find("/") != std::string::npos)
+	path = Path2BaseDN(path);
 
     // add absolute path for relative file URLs
     if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
       char cwd[PATH_MAX];
-      getcwd(cwd, PATH_MAX);
-      path = cwd + ('/' + path);
+      if(getcwd(cwd, PATH_MAX))
+	path = cwd + ('/' + path);
     }
-  }
-
-  std::string URL::BaseDN() const {
-    if(protocol == "ldap")
-      return Path2BaseDN(path);
-    URLLogger.msg(ERROR, "Basedn only defined for ldap protocol");
-    return "";
   }
 
   const std::map<std::string, std::string>& URL::HTTPOptions() const {
@@ -367,7 +368,7 @@ namespace Arc {
     return ldapattributes;
   }
 
-  const std::string& URL::LDAPScope() const {
+  URL::Scope URL::LDAPScope() const {
     return ldapscope;
   }
 
@@ -460,11 +461,22 @@ namespace Arc {
     if(!httpoptions.empty())
       urlstr += '?' + OptionString(httpoptions, '&');
 
-    if(!ldapattributes.empty() || !ldapscope.empty() || !ldapfilter.empty())
+    if(!ldapattributes.empty() || (ldapscope != base) || !ldapfilter.empty())
       urlstr += '?' + AttributeString(ldapattributes, ',');
 
-    if(!ldapscope.empty() || !ldapfilter.empty())
-      urlstr += '?' + ldapscope;
+    if((ldapscope != base) || !ldapfilter.empty()) {
+      switch(ldapscope) {
+      case base:
+	urlstr += "?base";
+	break;
+      case onelevel:
+	urlstr += "?one";
+	break;
+      case subtree:
+	urlstr += "?tree";
+	break;
+      }
+    }
 
     if(!ldapfilter.empty())
       urlstr += '?' + ldapfilter;
@@ -502,11 +514,22 @@ namespace Arc {
     if(!httpoptions.empty())
       urlstr += '?' + OptionString(httpoptions, '&');
 
-    if(!ldapattributes.empty() || !ldapscope.empty() || !ldapfilter.empty())
+    if(!ldapattributes.empty() || (ldapscope != base) || !ldapfilter.empty())
       urlstr += '?' + AttributeString(ldapattributes, ',');
 
-    if(!ldapscope.empty() || !ldapfilter.empty())
-      urlstr += '?' + ldapscope;
+    if((ldapscope != base) || !ldapfilter.empty()) {
+      switch(ldapscope) {
+      case base:
+	urlstr += "?base";
+	break;
+      case onelevel:
+	urlstr += "?one";
+	break;
+      case subtree:
+	urlstr += "?tree";
+	break;
+      }
+    }
 
     if(!ldapfilter.empty())
       urlstr += '?' + ldapfilter;

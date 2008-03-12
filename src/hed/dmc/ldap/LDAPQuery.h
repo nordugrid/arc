@@ -39,14 +39,9 @@ class LDAPQuery {
 		          int timeout = TIMEOUT);
 
 		/**
-		 * Destructor. Will disconnect from the ldapserver if stll connected.
+		 * Destructor. Will disconnect from the ldapserver if still connected.
 		 */
 		~LDAPQuery();
-
-		/**
-		 * Scope for a LDAP queries. Use when querying.
-		 */
-		enum Scope { base, onelevel, subtree };
 
 		/**
 		 * Queries the ldap server.
@@ -55,7 +50,7 @@ class LDAPQuery {
 		           const std::string& filter = "(objectclass=*)",
 		           const std::list <std::string>& attributes =
 				       std::list<std::string>(),
-		           Scope scope = subtree);
+		           URL::Scope scope = URL::subtree);
 
 		/**
 		 * Retrieves the result of the query from the ldap-server.
