@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
-# Checks for programs.
+
 AC_PROG_CXX
 AC_PROG_CC_STDC
 AC_PROG_CPP
@@ -379,6 +379,10 @@ enable_lfc=no
 if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
+
+# Check for LDAP
+AC_CHECK_HEADER(ldap.h, [LDAP=yes],[LDAP=no])
+AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Checks for header files.
 AC_HEADER_DIRENT

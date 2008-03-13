@@ -7,6 +7,9 @@ endif
 if GRIDFTP_ENABLED
 GRIDFTP_SD = gridftp
 endif
+if LDAP_ENABLED
+LDAP_SD = ldap
+endif
 
-SUBDIRS = http file ldap $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
+SUBDIRS = http file $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD)
 DIST_SUBDIRS = http file ldap gridftp rls lfc
