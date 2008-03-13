@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarcclient.la
-libarcclient_ladir=$(pkgincludedir)
+libarcclient_ladir=$(pkgincludedir)/misc
 libarcclient_la_HEADERS=ClientInterface.h   ClientTool.h
 libarcclient_la_SOURCES=ClientInterface.cpp ClientTool.cpp
 libarcclient_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
