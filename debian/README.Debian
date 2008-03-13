@@ -1,0 +1,27 @@
+nordugrid-arc1
+==============
+
+Grid Computing is all about having a community that is full of trust
+in the integrity of its contributors. Everything is logged - but you
+would not expect anyone intentionally evil amongst yourselves. The
+Debian Society is a forerunner in the formal representation of such
+collaborative floks of individuals and much respected throughout the
+scientific community for its achievement that maintains most of today's
+computational grids.
+
+The development of this second generation of the Advanced Resource
+Connector was mostly funded by the EU project "KnowARC". The aim to appeal
+to smaller and/or more heterogeneous communities than the traditional
+High Energy Physics is key ot the project. It was foreseen from the
+beginnings, to disseminate the development to the Linux community.
+
+The developers of ARC are found on the mailing list of the NorduGrid
+(http://www.nordugrid.org) where the project has its roots. If you are
+interested to prepare your own Campus Grid or when working in a larger
+company with CPU time to harvest for your computations, or if you just
+feel to join with your own cluster, then please join in.
+
+--
+  Balazs Konya, Farid Ould-Saada, Anders Wäänänen, Aleksander Konstantinov,
+  Peter Stefan, Mattias Ellert and all other developers of the ARC
+  grid middleware.
