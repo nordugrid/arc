@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ArcConfig
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:paul="http://www.nordugrid.org/schemas/paul"
+>
+  <Server>
+    <Foreground/>
+    <Pidfile>./arcserver.pid</Pidfile>
+    <Logger level="VERBOSE">./logfile</Logger>
+  </Server>
+  <ModuleManager>
+        <Path>.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
+        <Path>../../hed/mcc/soap/.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+  </ModuleManager>
+<!--  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins> -->
+  <Plugins><Name>paul</Name></Plugins>
+  <Chain>
+    <Service name="paul" id="paul">
+       <paul:SchedulerEndpoint>https://localhost:60000/sched</paul:SchedulerEndpoint>
+       <paul:DataDirectoryPath>/tmp</paul:DataDirectoryPath>
+       <paul:RequestPeriod>30</paul:RequestPeriod>
+       <paul:Timeout>5</paul:Timeout> 
+       <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
+       <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>
+       <paul:CACertificatePath>../../tests/echo/ca.pem</paul:CACertificatePath>
+    </Service>
+  </Chain>
+</ArcConfig>
+
