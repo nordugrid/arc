@@ -9,17 +9,29 @@
 namespace Arc
 {
 
-Register::Register(std::string &service_id, Arc::Config&):logger(Arc::Logger::rootLogger, "Register")
+Register::Register(const std::string &sid, long int period, Arc::Config &cfg):logger(Arc::Logger::rootLogger, "Register")
 {
     ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
-    service_id = service_id;
+    service_id = sid;
+    reg_period = period;
     // XXX how to get plugin paths from cfg?
     mcc_cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
+    mcc_cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
+    mcc_cfg.AddPluginsPath("../../hed/mcc/soap/.libs/");
+    mcc_cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
 }
 
 void Register::AddUrl(std::string &url)
 {
     urls.push_back(url);
+}
+
+void Register::registration_forever(void)
+{
+    for (;;) {
+        registration();
+        sleep(reg_period);
+    }
 }
 
 void Register::registration(void)
@@ -41,6 +53,11 @@ void Register::registration(void)
         cli = new Arc::ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
         logger.msg(Arc::DEBUG, "Start registartion to %s ISIS", isis_name);
         Arc::PayloadSOAP request(ns);
+        request.NewChild("Header").NewChild("RequesterID") = service_id;
+        Arc::XMLNode re = request.NewChild("RegEntry");
+        re.NewChild("ID") = service_id;
+        Arc::XMLNode sa = re.NewChild("SrvAdv");
+        // sa.NewChild("Type") = 
         // XXX read data from InfoCache
         // request.NewChild()
         Arc::PayloadSOAP *response;

@@ -19,12 +19,13 @@ class Register
         Arc::ClientSOAP *cli;
         Arc::Logger logger;
         std::string service_id;
-
+        long int reg_period;
     public:
-        Register(std::string &service_id, Arc::Config &cfg);
+        Register(const std::string &sid, long int reg_period, Arc::Config &cfg);
         ~Register(void);
         void AddUrl(std::string &url);
         void registration(void);
+        void registration_forever(void);
 
 }; // class Register
 

@@ -5,6 +5,8 @@
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
+#include <arc/infosys/InfoCache.h>
+#include <arc/infosys/Register.h>
 
 namespace CentralISI {
 
@@ -15,12 +17,18 @@ class CentralISIService: public Arc::Service
         CentralISIService(Arc::Config *cfg);
         virtual ~CentralISIService(void);
         virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
+        void InformationCollector(void);
+        Arc::Register *reg;
     private:
+        long int reg_period;
+        std::string service_id;
         std::string db_path;
         Arc::NS ns;
         Arc::Logger logger;
         Arc::DelegationContainerSOAP delegation;
         Arc::InformationContainer infodoc;
+        Arc::InfoCache *icache;
+
         Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
         // Operations from WSDL
         Arc::MCC_Status Register(Arc::XMLNode &in, Arc::XMLNode &out);
@@ -28,6 +36,7 @@ class CentralISIService: public Arc::Service
         Arc::MCC_Status GetRegistrationStatuses(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status GetIISList(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status Get(Arc::XMLNode &in, Arc::XMLNode &out);
+        // Info
 
 }; // class CentralISI
 

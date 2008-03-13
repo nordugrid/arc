@@ -28,6 +28,6 @@ class InfoCache {
         ~InfoCache();
 };
 
-}
+} // namespace InfoCache
 
 #endif // __ARC_INFO_CACHE_H__

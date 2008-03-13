@@ -22,7 +22,6 @@
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
     <Plugins><Name>centralisi</Name></Plugins>
-
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="http"/>
@@ -39,6 +38,12 @@
         </Plexer>
         <Service name="centralisi" id="centralisi">
             <isis:DSN>file://./isis</isis:DSN>
+            <InformationSystem>
+                <CacheRoot>./cache</CacheRoot>
+            </InformationSystem>
+            <Register>
+                <Period>60</Period>
+            </Register>
         </Service>
     </Chain>
 </ArcConfig>

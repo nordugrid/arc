@@ -12,6 +12,9 @@
     <InformationSystem>
         <CacheRoot>./cache</CacheRoot>
     </InformationSystem>
+    <Register>
+        <Period>60</Period>
+    </Register>
     <ModuleManager>
         <Path>../../tests/echo/.libs/</Path>
         <Path>../../hed/mcc/http/.libs/</Path>

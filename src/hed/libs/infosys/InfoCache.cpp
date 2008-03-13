@@ -30,6 +30,7 @@ InfoCache::InfoCache(Arc::Config &cfg, std::string &service_id)
 InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
 {
     std::string root = std::string(cfg["InformationSystem"]["CacheRoot"]);
+    std::cout << "Cache root: " << root << std::endl;
     if (!Glib::file_test(root, Glib::FILE_TEST_IS_DIR)) {
         // create root directory
         if (MKDIR(root.c_str()) != 0)
