@@ -33,7 +33,6 @@ namespace Arc {
   
   TargetGenerator::~TargetGenerator(){
     //Should clean the mess we made
-    std::cout << "TargetGenerator destructor" << std::endl;
     if (ACCloader) delete ACCloader;
   }
   
