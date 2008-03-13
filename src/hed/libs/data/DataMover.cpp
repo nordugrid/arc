@@ -4,6 +4,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
 
 #include "CheckSum.h"
@@ -160,7 +161,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  void *transfer_func(void *arg) {
+  void transfer_func(void *arg) {
     transfer_struct *param = (transfer_struct *)arg;
     std::string failure_description;
     DataStatus res = param->it->Transfer(
@@ -176,7 +177,6 @@ namespace Arc {
       free((void*)(param->prefix));
     delete param->cache;
     free(param);
-    return NULL;
   }
 
   /* transfer data from source to destination */
@@ -206,16 +206,10 @@ namespace Arc {
                                 const char *prefix) {
     if(cb != NULL) {
       logger.msg(DEBUG, "DataMover::Transfer : starting new thread");
-      pthread_t thread;
-      pthread_attr_t thread_attr;
-      pthread_attr_init(&thread_attr);
-      pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
       transfer_struct *param =
         (transfer_struct *)malloc(sizeof(transfer_struct));
-      if(param == NULL) {
-        pthread_attr_destroy(&thread_attr);
+      if(param == NULL)
         return DataStatus::TransferError;
-      }
       param->source = &source;
       param->destination = &destination;
       param->cache = new DataCache(cache);
@@ -233,12 +227,10 @@ namespace Arc {
         param->prefix = strdup(prefix);
       if(param->prefix == NULL)
         param->prefix = strdup(verbose_prefix.c_str());
-      if(pthread_create(&thread, &thread_attr, &transfer_func, param) != 0) {
+      if(!CreateThreadFunction(&transfer_func, param)) {
         free(param);
-        pthread_attr_destroy(&thread_attr);
         return DataStatus::TransferError;
       }
-      pthread_attr_destroy(&thread_attr);
       return DataStatus::Success;
     }
     failure_description = "";

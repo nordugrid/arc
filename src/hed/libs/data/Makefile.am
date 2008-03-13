@@ -10,7 +10,7 @@ libarcdata2_la_SOURCES  = DMC.cpp DataPoint.cpp DataPointDirect.cpp \
                           Cache.cpp DataMover.cpp DataCache.cpp URLMap.cpp \
                           MkDirRecursive.cpp MkDirRecursive.h CheckFile.h
 libarcdata2_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS) -lpthread
+libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS)
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
