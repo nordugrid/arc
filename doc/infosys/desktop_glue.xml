@@ -15,10 +15,10 @@
             <Name>Geniva</Name>
         </Location>
         <Services>
-            <ComputingService type="Service">
-                <ID></ID>
-                <Type>org.nordugrid.arex</Type>
-                <QualityLevel>production</QualtyLevel>
+            <ComputingService type="Service"> 
+                <ID></ID> <!-- R -->
+                <Type>org.nordugrid.arex</Type> <!-- R -->
+                <QualityLevel>production</QualtyLevel> <!-- R -->
                 <Complexity>endpoint=1,share=1,resource=1</Complexity>
                 <!-- Computing service specific attributes -->
                 <TotalJobs></TotalJobs> <!-- int -->
@@ -63,6 +63,8 @@
                             <State></State>
                             <Owner></Owner>
                             <....>
+                            <CreationTime></CreationTime>
+                            <Validity></Validity>
                         </ComputingActivity>
                         <ComputingActivity type="Computing">
                             <ID>2</ID> <! EZ NEM A JOB ID ->
@@ -75,6 +77,8 @@
                             <!-- ... --> 
                         </ComputingActivity>
                     </Activites>
+                    <CreationTime></CreationTime>
+                    <Validity></Validity>
                 </ComputingEndpoint>
                 <ComputingResource type="Resource">
                     <ID></ID>
@@ -110,6 +114,8 @@
                         <Benchmark></Benchmark>
                         <ConnectivityIn>True</ConnectivityIn>
                         <ConnectivityOut>True</ConnectivityOut>
+                        <CreationTime></CreationTime>
+                        <Validity></Validity>
                     </ExecutionEnvironment> 
                     <ApplicationEnvironment>
                         <ID></ID>
@@ -117,6 +123,8 @@
                         <Version>1.1</Version>
                         <State>Installed|Installable</State>
                     </ApplicationEnvironment>
+                    <CreationTime></CreationTime>
+                    <Validity></Validity>
                 </ComputingResource>
                 <ComputingShare type="Share">
                     <ID></ID>
@@ -135,6 +143,8 @@
                         <RunningJobs></RunningJobs>
                         <LocalRunningJobs></LocalRunningJobs>
                         <WaintingJobs></WaitingJobs>
+                        <LocalWaitingJobs></LocalWaitingJobs>
+                        <FreeJobSlots>!</FreeJobSlots>
                         <State>?</State>
                         <!-- ... -->
                     </ComputingShareState>
@@ -146,8 +156,24 @@
                         <Rule>VO:B</Rule>
                         <TrustedCA>GenivaCA (DN!)</TrustedCA>
                     </Policy>
+                    <CreationTime></CreationTime>
+                    <Validity></Validity>
                 <ComputingShare>
+                <Relations>
+                    <ComputingEndpoint_ComputingShare>
+                        <ComputingEndpointID></ComputingEndpointID>
+                        <ComputingShareID></ComputingShareID>
+                    </ComputingEndpoint_ComputingShare>
+                    <ComputingShare_ExecutionEnvironment>
+                        <ComputingShareID></ComputingShareID>
+                        <ExecutionEnvironmentID></ExecutionEnvironmentID>
+                    </ComputingShare_ExecutionEnvironment>
+                <Relations>
+                <CreationTime></CreationTime>
+                <Validity></Validity>
             </ComputingService>
         </Services>
+        <CreationTime></CreationTime>
+        <Validity></Validity>
     </AdminDomain>
 </Grid>
