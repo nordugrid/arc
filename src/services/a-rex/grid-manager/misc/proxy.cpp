@@ -15,7 +15,6 @@
 int prepare_proxy(void) {
   char* proxy_file = NULL;
   char* proxy_file_tmp = NULL;
-  struct stat stx;
   int h = -1;
   off_t len;
   char* buf = NULL;

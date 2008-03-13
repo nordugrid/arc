@@ -36,7 +36,7 @@ class Config: public Arc::XMLNode {
     /** Copy constructor used by language bindings */
         Config(long cfg_ptr_addr);
     /** Copy constructor used by language bindings */
-        Config(Config &cfg);
+        Config(const Config &cfg);
 	/** Print structure of document.
 	  For debuging purposes. Printed content is not an XML document. */
         void print(void);

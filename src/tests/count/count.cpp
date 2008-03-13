@@ -111,7 +111,7 @@ Arc::MCC_Status Service_Count::process(Arc::Message& inmsg,Arc::Message& outmsg)
    std::string str1 = input1["number1"];
    std::string str2 = input2["number2"];
 
-    int number1, number2, number3;
+   int number1, number2, number3 = 0;
 
    std::istringstream ss1( str1 );
    ss1 >> number1;

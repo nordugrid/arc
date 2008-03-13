@@ -79,12 +79,14 @@ static void get_attribute(const std::string& name,int& value,Xrsl& xrsl) {
     };
 }
 
+/*
 static void get_attribute(const std::string& name,long& value,Xrsl& xrsl) {
     try {
         value=Arc::stringto<long>((xrsl.GetRelation(name)).GetSingleValue());
     } catch (XrslError) {
     };
 }
+*/
 
 static void get_attribute(const std::string& name,Arc::Time& value,Xrsl& xrsl) {
     try {
@@ -93,6 +95,7 @@ static void get_attribute(const std::string& name,Arc::Time& value,Xrsl& xrsl) {
     };
 }
 
+/*
 static void get_attribute_seconds(const std::string& name,long value,Xrsl& xrsl) {
 	try {
 		std::string v=(xrsl.GetRelation(name)).GetSingleValue();
@@ -100,6 +103,7 @@ static void get_attribute_seconds(const std::string& name,long value,Xrsl& xrsl)
 	} catch (XrslError) {
 	};
 }
+*/
 
 static void get_attribute_minutes(const std::string& name,long value,Xrsl& xrsl) {
 	try {

@@ -17,7 +17,7 @@
 
 namespace HTTPD {
 
-static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext *ctx) 
+static Arc::Service *get_service(Arc::Config *cfg, Arc::ChainContext*)
 {
     return new HTTPD(cfg);
 }
@@ -144,7 +144,7 @@ Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
     return Arc::MCC_Status();
 }
 
-}; // namesapce HTTPD
+} // namesapce HTTPD
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "httpd", 0, &HTTPD::get_service },

@@ -81,8 +81,6 @@ static std::string cache_link_dir;
 static uid_t cache_uid;
 static gid_t cache_gid;
 static char* id;
-static int download_done=0;
-static bool leaving = false;
 static std::list<FileData> job_files_;
 static std::list<FileDataEx> job_files;
 static std::list<FileDataEx> processed_files;
@@ -130,14 +128,14 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   /* parse files information */
   char *str_;
   unsigned long long int fsize;
-  unsigned long long int fsum;
+  unsigned long long int fsum = -1;
   bool have_size = false;
   bool have_checksum = false;
   fsize = strtouq(str,&str_,10);
   if((*str_) == '.') {
     if(str_ != str) have_size=true;
     str=str_+1;
-    fsum = strtouq(str,&str_,10);
+    fsum = strtoull(str,&str_,10);
     if((*str_) != 0) {
       olog << "Invalid checksum in " << dt.lfn << " for " << dt.pfn << std::endl;
       if(error) (*error)="Bad information about file: checksum can't be parsed.";
@@ -214,7 +212,7 @@ class PointPair {
                                                       source(Arc::DMC::GetDataPoint(source_url)),
                                                       destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
-  static void callback(Arc::DataMover* mover,Arc::DataStatus res,const std::string&,void* arg) {
+  static void callback(Arc::DataMover*,Arc::DataStatus res,const std::string&,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
     if(!res) {
@@ -245,9 +243,7 @@ int main(int argc,char** argv) {
   Arc::LogStream logcerr(std::cerr, "AREXClient");
   Arc::Logger::getRootLogger().addDestination(logcerr);
   int res=0;
-  bool new_download;
   bool not_uploaded;
-  int retries=0;
   time_t start_time=time(NULL);
   time_t upload_timeout = 0;
   int n_threads = 1;
@@ -458,7 +454,6 @@ int main(int argc,char** argv) {
     mover.set_default_min_average_speed(min_average_speed);
   if(max_inactivity_time != 0)
     mover.set_default_max_inactivity_time(max_inactivity_time);
-  bool all_data = false;
   bool transfered = true;
   bool credentials_expired = false;
 

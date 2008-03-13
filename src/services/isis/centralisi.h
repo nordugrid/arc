@@ -30,5 +30,7 @@ class CentralISIService: public Arc::Service
         Arc::MCC_Status Get(Arc::XMLNode &in, Arc::XMLNode &out);
 
 }; // class CentralISI
-}; // namespace CentralISI
+
+} // namespace CentralISI
+
 #endif // __ARC_CENTRALISI_H__

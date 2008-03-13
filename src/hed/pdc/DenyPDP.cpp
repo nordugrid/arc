@@ -23,7 +23,7 @@ PDP* DenyPDP::get_deny_pdp(Config *cfg,ChainContext*) {
 DenyPDP::DenyPDP(Config* cfg):PDP(cfg){
 }
 
-bool DenyPDP::isPermitted(Message *msg){
+bool DenyPDP::isPermitted(Message*){
   return false;
 }
 

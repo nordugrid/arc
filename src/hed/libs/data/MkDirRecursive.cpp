@@ -23,7 +23,8 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
   /* go down */
   for(;;) {
     if((mkdir_force(name.substr(0,name_end).c_str(),mode) == 0) || (errno == EEXIST)) {
-      if(errno != EEXIST) lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid());
+      if(errno != EEXIST)
+	(lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid()) != 0);
       /* go up */
       for(;;) {
         if(name_end >= name.length()) { return 0; };
@@ -32,8 +33,8 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
           if(errno == EEXIST) continue;
           return -1;
         };
-        (void)chmod(name.substr(0,name_end).c_str(),mode);
-        (void)lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid());
+        chmod(name.substr(0,name_end).c_str(),mode);
+        (lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid()) != 0);
       };
     };
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; }; */

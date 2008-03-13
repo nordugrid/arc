@@ -206,7 +206,7 @@ static bool set_secund_level(std::string &dir, std::vector<std::string> &tokens,
     return true;
 }
 
-static bool set_first_level(std::string &dir, std::vector<std::string> &tokens, Arc::XMLNode &node)
+static bool set_first_level(std::string &dir, std::vector<std::string>&, Arc::XMLNode &node)
 {
     std::string data_str = "";
     Arc::XMLNode nn;
@@ -335,7 +335,6 @@ bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
     clean_path(p);
     std::vector<std::string> tokens;
     tokenize(p, tokens, "/");
-    bool ret;
     std::cout << "get path: " << p << "(" << tokens.size() << ")" << std::endl;
     if (tokens.size() < 2) {
         Arc::NS ns;

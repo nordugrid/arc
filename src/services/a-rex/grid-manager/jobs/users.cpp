@@ -83,7 +83,7 @@ bool JobUser::CreateDirectories(void) {
     if(mkdir(control_dir.c_str(),S_IRWXU) != 0) {
       if(errno != EEXIST) res=false;
     } else {
-      (void)chown(control_dir.c_str(),uid,gid);
+      (chown(control_dir.c_str(),uid,gid) != 0);
       if(uid == 0) {
         chmod(control_dir.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
       } else {
@@ -93,14 +93,14 @@ bool JobUser::CreateDirectories(void) {
     if(mkdir((control_dir+"/logs").c_str(),S_IRWXU) != 0) {
       if(errno != EEXIST) res=false;
     } else {
-      (void)chown((control_dir+"/logs").c_str(),uid,gid);
+      (chown((control_dir+"/logs").c_str(),uid,gid) != 0);
     };
   };
   if(session_root.length() != 0) {
     if(mkdir(session_root.c_str(),S_IRWXU) != 0) {
       if(errno != EEXIST) res=false;
     } else {
-      (void)chown(session_root.c_str(),uid,gid);
+      (chown(session_root.c_str(),uid,gid) != 0);
       if(uid == 0) {
         chmod(session_root.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
       } else {

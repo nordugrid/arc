@@ -172,19 +172,6 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   return true;  
 }
 
-static void add_non_cache(const char *fname,std::list<FileData> &inputdata) {
-  for(std::list<FileData>::iterator i=inputdata.begin();i!=inputdata.end();++i){
-    if(i->has_lfn()) if((*i) == fname) {
-      Arc::URL u(i->lfn);
-      if(u) {
-        u.AddOption("cache","no");
-        u.AddOption("exec","yes");
-        i->lfn=u.fullstr();
-      };
-    };
-  };
-}
-
 /* parse job request, fill job description (local) */
 bool parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl) {
   switch(detect_job_req_type(fname.c_str())) {

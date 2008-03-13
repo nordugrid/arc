@@ -3,7 +3,6 @@
 #endif
 
 #include <arc/Logger.h>
-#include <arc/Thread.h>
 #include <arc/URL.h>
 
 #include <arc/data/MkDirRecursive.h>
@@ -41,7 +40,7 @@ namespace Arc {
 
   void DataPointFile::read_file() {
     bool limit_length = false;
-    unsigned long long int range_length;
+    unsigned long long int range_length = 0;
     unsigned long long int offset = 0;
     if (range_end > range_start) {
       range_length = range_end - range_start;
@@ -200,7 +199,12 @@ namespace Arc {
     }
     buffer = &buf;
     /* create thread to maintain reading */
-    if (!(CreateThreadClass(*this, DataPointFile::read_file))) {
+    Glib::Thread* thr = NULL;
+    try {
+      thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::read_file), false);
+    }
+    catch (std::exception& e) {}
+    if (!thr) {
       close(fd);
       fd = -1;
       reading = false;
@@ -275,7 +279,7 @@ namespace Arc {
       if (fd == -1)
         fd = open(url.Path().c_str(), O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       else {/* this file was created by us. Hence we can set it's owner */
-        fchown(fd, user.get_uid(), user.get_gid());
+        (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       }
       if (fd == -1) {
         logger.msg(ERROR, "Failed to create/open file %s", url.Path().c_str());
@@ -308,7 +312,7 @@ namespace Arc {
                 if (space_cb->cb((unsigned long long int)l))
                   continue;
               lseek(fd, 0, SEEK_SET);
-              ftruncate(fd, 0);
+              (ftruncate(fd, 0) != 0);
               close(fd);
               fd = -1;
               logger.msg(INFO, "Failed to preallocate space");
@@ -326,7 +330,12 @@ namespace Arc {
     buffer->speed.reset();
     buffer->speed.hold(false);
     /* create thread to maintain writing */
-    if (!(CreateThreadClass(*this, DataPointFile::write_file))) {
+    Glib::Thread* thr = NULL;
+    try {
+      thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::write_file), false);
+    }
+    catch (std::exception& e) {}
+    if (!thr) {
       close(fd);
       fd = -1;
       buffer->error_write(true);

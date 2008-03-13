@@ -95,8 +95,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointLDAP::StartWriting(DataBufferPar& buf,
-                                         DataCallback *space_cb) {
+  DataStatus DataPointLDAP::StartWriting(DataBufferPar&, DataCallback*) {
     return DataStatus::UnimplementedError;
   }
 
@@ -112,7 +111,6 @@ namespace Arc {
     DataPointLDAP& point = *(DataPointLDAP*)arg;
     std::string text;
     point.node.GetDoc(text);
-    const char *buf = text.c_str();
     std::string::size_type length = text.size();
     unsigned long long int pos = 0;
     int transfer_handle = -1;

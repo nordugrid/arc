@@ -47,5 +47,4 @@ bool ResourcesHandling::random(Resource &r) {
 }
 
 
-};
-
+}

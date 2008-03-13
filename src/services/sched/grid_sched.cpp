@@ -313,7 +313,7 @@ GridSchedulerService::~GridSchedulerService(void)
     // NOP
 }
 
-}; // namespace GridScheduler
+} // namespace GridScheduler
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "grid_sched", 0, &GridScheduler::get_service },

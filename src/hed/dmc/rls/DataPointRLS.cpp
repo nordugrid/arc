@@ -75,7 +75,7 @@ namespace Arc {
 
   static bool meta_resolve_callback(globus_rls_handle_t *h,
                                     const URL& rlsurl, void *arg) {
-    ((meta_resolve_rls_t*)arg)->dprls.ResolveCallback(h, rlsurl, arg);
+    return ((meta_resolve_rls_t*)arg)->dprls.ResolveCallback(h, rlsurl, arg);
   }
 
   bool DataPointRLS::ResolveCallback(globus_rls_handle_t *h,
@@ -606,7 +606,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointRLS::PreUnregister(bool replication) {
+  DataStatus DataPointRLS::PreUnregister(bool) {
     return DataStatus::Success;
   }
 
@@ -623,7 +623,7 @@ namespace Arc {
 
   static bool meta_unregister_callback(globus_rls_handle_t *h,
                                        const URL& rlsurl, void *arg) {
-    ((meta_unregister_rls_t*)arg)->dprls.UnregisterCallback(h, rlsurl, arg);
+    return ((meta_unregister_rls_t*)arg)->dprls.UnregisterCallback(h, rlsurl, arg);
   }
 
   bool DataPointRLS::UnregisterCallback(globus_rls_handle_t *h,
@@ -967,7 +967,7 @@ namespace Arc {
 
   static bool list_files_callback(globus_rls_handle_t *h,
                                   const URL& rlsurl, void *arg) {
-    ((list_files_rls_t*)arg)->dprls.ListFilesCallback(h, rlsurl, arg);
+    return ((list_files_rls_t*)arg)->dprls.ListFilesCallback(h, rlsurl, arg);
   }
 
   bool DataPointRLS::ListFilesCallback(globus_rls_handle_t *h,

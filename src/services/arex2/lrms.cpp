@@ -17,4 +17,4 @@ JobLRMSInfo::~JobLRMSInfo(void)
     // XXX NOP
 }
 
-}; // namespace ARex2
+} // namespace ARex2

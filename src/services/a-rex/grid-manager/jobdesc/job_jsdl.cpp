@@ -266,8 +266,8 @@ bool JobRequestJSDL::set(Arc::XMLNode jsdl_description_) throw(JobRequestError) 
     if(!(((JobRequestJSDL*)jr)->set(jsdl_description_["jsdl:JobDescription"][i]))) return false;
     alternatives.push_back(jr);
   };
+  }
   return true;
-}
 }
 
 bool JobRequestJSDL::print(std::string& s) throw(JobRequestError) {
@@ -281,7 +281,7 @@ JobRequestJSDL::JobRequestJSDL(const JobRequest& j) throw(JobRequestError) {
 }
 
 
-JobRequest& JobRequestJSDL::operator=(const JobRequest& j) throw (JobRequestError) {
+JobRequest& JobRequestJSDL::operator=(const JobRequest& /*j*/) throw (JobRequestError) {
 throw JobRequestError("CRITICAL ERROR!!!!: JobRequest& JobRequestJSDL::operator=(const JobRequest& j) operator isn't implemented!");
 /*
   JobRequest::operator=(j);

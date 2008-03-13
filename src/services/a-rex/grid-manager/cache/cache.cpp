@@ -409,8 +409,8 @@ int cache_history(const char* cache_path,bool enable,uid_t uid,gid_t gid) {
     if(h_old == -1) goto error_exit;
     h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
-    if(uid) (void)chown(fname_old.c_str(),uid,gid);
-    if(uid) (void)chown(fname_new.c_str(),uid,gid);
+    if(uid) (chown(fname_old.c_str(),uid,gid) != 0);
+    if(uid) (chown(fname_new.c_str(),uid,gid) != 0);
   } else {
     if(unlink(fname_old.c_str()) != 0) if(errno != ENOENT) goto error_exit;
     if(unlink(fname_new.c_str()) != 0) if(errno != ENOENT) goto error_exit;
@@ -434,7 +434,7 @@ static int cache_open_list(const char* cache_path,uid_t uid,gid_t gid) {
   int h=open(fname.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if(h == -1) return -1;
   if(uid) {
-    (void)chown(fname.c_str(),uid,gid);
+    (chown(fname.c_str(),uid,gid) != 0);
   };
   /* lock file */
   if(lock_file(h) != 0) { close(h); return -1; };
@@ -603,7 +603,7 @@ static int cache_write_info(int h,cache_file_state &fs) {
   if(l==-1) return -1;
   l=write(h,"\n",1);
   if(l==-1) return -1;
-  ftruncate(h,lseek(h,0,SEEK_CUR));
+  (ftruncate(h,lseek(h,0,SEEK_CUR)) != 0);
   return 0;
 }
 
@@ -712,12 +712,12 @@ static int cache_add_list(int h,const char *url,const char* cache_path,const cha
     };
     close(nh);
     if(cache_uid != 0) {
-      (void)chown(name,cache_uid,cache_gid);
-      (void)chown(name_info,cache_uid,cache_gid);
-      (void)chown(name_claim,cache_uid,cache_gid);
+      (chown(name,cache_uid,cache_gid) != 0);
+      (chown(name_info,cache_uid,cache_gid) != 0);
+      (chown(name_claim,cache_uid,cache_gid) != 0);
     }
     else {
-      (void)chmod(name,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      chmod(name,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     };
     break;
   };
@@ -737,7 +737,7 @@ static int cache_add_list(int h,const char *url,const char* cache_path,const cha
   for(;record_p<record_l;) {
     int l=write(h,record+record_p,record_l);
     if(l==-1) { 
-      ftruncate(h,cur); free(record); 
+      (ftruncate(h,cur) != 0); free(record);
       remove(name); free(name);
       return -1;
     };
@@ -867,7 +867,7 @@ static int cache_replace_list(int h,const char *fname,const char* url) {
   for(;record_p<record_l;) {
     int l=write(h,record+record_p,record_l);
     if(l==-1) {
-      ftruncate(h,cur); free(record);
+      (ftruncate(h,cur) != 0); free(record);
       return -1;
     };
     record_p+=l;
@@ -931,7 +931,7 @@ static int cache_release_file(const char* cache_path,const std::string &id,const
   };
   lseek(h,0,SEEK_SET);
   ssize_t l = write(h,fbuf,flen);
-  ftruncate(h,flen);
+  (ftruncate(h,flen) != 0);
   if(l != flen) {
     unlock_file(h);
     close(h); return 1;

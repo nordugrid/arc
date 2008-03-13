@@ -130,9 +130,9 @@ Arc::MCC_Status IIClient::GetRegistrationStatuses(Arc::XMLNode &req, Arc::XMLNod
     return status;
 }
 
-Arc::MCC_Status IIClient::GetIISList(Arc::XMLNode &req, Arc::XMLNode *resp) 
+Arc::MCC_Status IIClient::GetIISList(Arc::XMLNode &/*req*/, Arc::XMLNode */*resp*/) 
 {
     return MCC_Status();
 }     
 
-}; // namespace Arc 
+} // namespace Arc 

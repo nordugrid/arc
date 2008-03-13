@@ -50,6 +50,7 @@ static bool x509_to_string(X509* cert,std::string& str) {
   return true;
 }
 
+/*
 static bool x509_to_string(EVP_PKEY* key,std::string& str) {
   BIO *out = BIO_new(BIO_s_mem());
   if(!out) return false;
@@ -64,6 +65,7 @@ static bool x509_to_string(EVP_PKEY* key,std::string& str) {
   BIO_free_all(out);
   return true;
 }
+*/
 
 static bool x509_to_string(RSA* key,std::string& str) {
   BIO *out = BIO_new(BIO_s_mem());
@@ -80,8 +82,7 @@ static bool x509_to_string(RSA* key,std::string& str) {
   return true;
 }
 
-static int passphrase_callback(char* buf, int size, int rwflag, void *arg) {
-   int len;
+static int passphrase_callback(char* buf, int size, int, void *arg) {
    std::istream* in = (std::istream*)arg;
    if(in == &std::cin) std::cout<<"Enter passphrase for your private key: "<<std::endl;
    buf[0]=0;

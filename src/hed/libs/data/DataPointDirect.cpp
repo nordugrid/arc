@@ -12,8 +12,8 @@ namespace Arc {
                                                      buffer(NULL),
                                                      bufsize(-1),
                                                      bufnum(1),
-                                                     local(false),
                                                      cache(true),
+                                                     local(false),
                                                      readonly(true),
                                                      linkable(false),
                                                      is_secure(false),
@@ -30,8 +30,6 @@ namespace Arc {
       bufnum = MAX_PARALLEL_STREAMS;
 
     bufsize = stringtoull(url.Option("blocksize"));
-    if (bufsize < 0)
-      bufsize = 0;
     if (bufsize > MAX_BLOCK_SIZE)
       bufsize = MAX_BLOCK_SIZE;
 

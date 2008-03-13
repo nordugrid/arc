@@ -7,7 +7,7 @@
 namespace GridScheduler {
 
 
-Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status GridSchedulerService::StopAcceptingNewActivities(Arc::XMLNode& /*in*/,Arc::XMLNode& /*out*/) {
   /*
   StopAcceptingNewActivities
 

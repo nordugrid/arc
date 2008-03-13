@@ -4,9 +4,10 @@
 #include <string>
 
 namespace Arc {
-/// This function generates random identifier which is quite unique as well
-void GUID(std::string& guid);
 
-};
+  /// This function generates a random identifier which is quite unique as well
+  void GUID(std::string& guid);
 
-#endif
+} // namespace Arc
+
+#endif // __ARC_GUID_H__

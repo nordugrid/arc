@@ -15,9 +15,9 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
 
-static void progress(FILE* o,const char* s,unsigned int t,
+static void progress(FILE* o,const char*,unsigned int,
        unsigned long long int all,unsigned long long int max,
-       double instant,double average) {
+       double,double) {
   static int rs = 0;
   const char rs_[4] = { '|','/','-','\\' };
   if(max) {
@@ -30,7 +30,7 @@ static void progress(FILE* o,const char* s,unsigned int t,
     fprintf(o,"|\r"); fflush(o);
     return;
   }
-  fprintf(o,"\r%Lu kB                    \r",all/1024);
+  fprintf(o,"\r%llu kB                    \r",all/1024);
 }
 
 void arcregister (

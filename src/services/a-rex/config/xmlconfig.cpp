@@ -14,7 +14,7 @@
 
 namespace ARex {
 
-static void XmlErrorHandler(void* ctx, const char* msg) {
+static void XmlErrorHandler(void*, const char*) {
 	return;
 }
 

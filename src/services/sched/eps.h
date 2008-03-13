@@ -12,6 +12,6 @@ class ExecutionPlanningService:ResourcesHandling {
         ExecutionPlanningService(void);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // EXECUTION_PLANNING_SERVICE

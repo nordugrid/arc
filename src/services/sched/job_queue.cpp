@@ -85,6 +85,7 @@ Job JobQueue::getJob(std::string &job_id) {
     if (CheckJobID(job_id))
         return jobs[job_id];
     //TODO: else part
+    return Job();
 }
 
 std::map<std::string,Job> JobQueue::getJobsWithThisState(SchedStatus s) {   
@@ -143,6 +144,7 @@ bool JobQueue::setLastCheckTime(std::string job_id) {
         return false;
     else {
         jobs[job_id].sched_meta.last_check_time = (unsigned)time(NULL);
+	return true;
     }
 }
 
@@ -168,4 +170,4 @@ bool JobQueue::saveJobStatus(std::string job_id) {
 
 }
 
-};
+}

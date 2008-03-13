@@ -50,7 +50,7 @@ class RunInitializerArgument {
   void* arg_;
   void (*func_)(void*);
  public:
-  RunInitializerArgument(void (*func)(void*),void* arg):func_(func),arg_(arg) { };
+  RunInitializerArgument(void (*func)(void*),void* arg):arg_(arg), func_(func) { };
   void Run(void);
 };
 
@@ -63,7 +63,7 @@ void RunInitializerArgument::Run(void) {
    return;
 }
 
-RunPump::RunPump(void):thread_(NULL),context_(NULL) {
+RunPump::RunPump(void):context_(NULL),thread_(NULL) {
   try {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this,&RunPump::Pump), false);
   } catch (Glib::Exception& e) { 

@@ -14,15 +14,15 @@ namespace Arc {
 
   Logger DataCache::logger(Logger::getRootLogger(), "DataCache");
 
-  DataCache::DataCache() : have_url(false), cache_user(0) {}
+  DataCache::DataCache() : DataCallback(), have_url(false), cache_user(0) {}
 
-  DataCache::DataCache(const DataCache& cache) :
+  DataCache::DataCache(const DataCache& cache) : DataCallback(),
     cache_path(cache.cache_path),
     cache_data_path(cache.cache_data_path),
     cache_link_path(cache.cache_link_path),
     id(cache.id),
-    cache_user(cache.cache_user),
-    have_url(false) {
+    have_url(false),
+    cache_user(cache.cache_user) {
     logger.msg(VERBOSE, "DataCache: constructor with copy");
     if(cache_path.length() == 0)
       return;
@@ -42,8 +42,8 @@ namespace Arc {
     cache_data_path(cache_data_path_),
     cache_link_path(cache_link_path_),
     id(id),
-    cache_user(cache_user),
-    have_url(false) {
+    have_url(false),
+    cache_user(cache_user) {
     if(cache_path.empty()) {
       cache_data_path.clear();
       cache_link_path.clear();
@@ -216,7 +216,7 @@ namespace Arc {
                  link_path.c_str(), fname.c_str());
       return false;
     }
-    lchown(link_path.c_str(), user.get_uid(), user.get_gid());
+    (lchown(link_path.c_str(), user.get_uid(), user.get_gid()) != 0);
     return true;
   }
 
@@ -247,7 +247,7 @@ namespace Arc {
                  link_path.c_str());
       return false;
     }
-    fchown(fd, user.get_uid(), user.get_gid());
+    (fchown(fd, user.get_uid(), user.get_gid()) != 0);
     int fd_ = open(cache_file.c_str(), O_RDONLY);
     if(fd_ == -1) {
       close(fd);

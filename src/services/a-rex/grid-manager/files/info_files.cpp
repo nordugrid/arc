@@ -353,7 +353,7 @@ static int job_file_read_callback(void* arg) {
   for(;;) {
     l=read(h1,buf,256);
     if((l==0) || (l==-1)) break;
-    write(h,buf,l);
+    (write(h,buf,l) != -1);
   };
   close(h1); close(h);
   unlink(fname.c_str());
@@ -381,7 +381,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   for(;;) {
     l=read(h1,buf,256);
     if((l==0) || (l==-1)) break;
-    write(h2,buf,l);
+    (write(h2,buf,l) != -1);
   };
   close(h1); close(h2);
   unlink(fname1.c_str());
@@ -432,14 +432,14 @@ long int job_mark_read_i(const std::string &fname) {
 bool job_mark_write_s(const std::string &fname,const std::string &content) {
   int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
-  write(h,(const void *)content.c_str(),content.length());
+  (write(h,(const void *)content.c_str(),content.length()) != -1);
   close(h); return true;
 }
 
 bool job_mark_add_s(const std::string &fname,const std::string &content) {
   int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
-  write(h,(const void *)content.c_str(),content.length());
+  (write(h,(const void *)content.c_str(),content.length()) != -1);
   close(h); return true;
 }
 
@@ -462,7 +462,7 @@ bool job_diskusage_create_file(const JobDescription &desc,JobUser& /*user*/,unsi
   if(h==-1) return false;
   char content[200];
   sprintf(content,"%llu 0\n",requested);
-  write(h,content,strlen(content));
+  (write(h,content,strlen(content)) != -1);
   close(h); return true;
 }
 
@@ -518,7 +518,7 @@ bool job_diskusage_change_file(const JobDescription &desc,JobUser& /*user*/,sign
   };
   lseek(h,0,SEEK_SET);  
   sprintf(content,"%llu %llu\n",req_,use_);
-  write(h,content,strlen(content));
+  (write(h,content,strlen(content)) != -1);
   lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
   lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);
   close(h); return true;

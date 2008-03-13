@@ -9,8 +9,6 @@
 
 static void arcusage(const std::string& progname, const char *optstring) {
 
-	bool havegiisurlopt = false;
-
 	std::cout << _("Usage") << ": arc" << progname
 	          << " [" << _("options") << "]";
 

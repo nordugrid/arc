@@ -8,7 +8,6 @@
 #include "LDIFtoXML.h"
 
 int main(int argc,char* argv[]) {
-  bool r = false;
   std::string base;
   std::istream* in = &std::cin;
   Arc::NS ns;

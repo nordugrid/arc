@@ -21,8 +21,8 @@ namespace Arc {
 	path = Glib::find_program_in_path(path);
       if (path.substr(0, 2) == "./") {
 	char cwd[PATH_MAX];
-	getcwd(cwd, PATH_MAX);
-	path.replace(0, 1, cwd);
+	if (getcwd(cwd, PATH_MAX))
+	  path.replace(0, 1, cwd);
       }
       std::string::size_type pos = path.rfind('/');
       if (pos != std::string::npos && pos > 0) {

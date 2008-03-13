@@ -53,7 +53,7 @@ static void h_public_part(std::string &name, std::ofstream &h)
     h << "        virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);" << std::endl;
 }
 
-static void h_private_part(std::string &name, std::ofstream &h, Arc::XMLNode &xml)
+static void h_private_part(std::string &/*name*/, std::ofstream &h, Arc::XMLNode &xml)
 {
     h << "    private:" << std::endl;
     h << "        Arc::NS ns;" << std::endl;

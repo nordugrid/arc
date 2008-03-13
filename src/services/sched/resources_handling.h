@@ -22,6 +22,6 @@ class ResourcesHandling {
         bool refresh(std::string id);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // SCHED_RESOURCES_HANDLING

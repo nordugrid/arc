@@ -89,6 +89,7 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl) {
     faultstring=(std::string)fs;
     if (faultstring=="")
       return jobid;
+    return "";
 }
 
 std::string Resource::GetActivityStatus(std::string arex_job_id) {
@@ -124,7 +125,7 @@ std::string Resource::GetActivityStatus(std::string arex_job_id) {
     else {
       return substate;
     }
-
+    return "";
 }
 
 bool Resource::TerminateActivity(std::string arex_job_id) {
@@ -182,7 +183,7 @@ Resource::Resource( const Resource& r)
 
 
 
-}; // Namespace
+} // Namespace
 
 
 

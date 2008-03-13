@@ -25,6 +25,6 @@ class JobRequest: public Arc::XMLNode {
         JobRequest( const JobRequest& j );
 };
 
-};
+}
 
 #endif // SCHED_JOB_DESCRIPTION

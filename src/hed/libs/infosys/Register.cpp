@@ -9,7 +9,7 @@
 namespace Arc
 {
 
-Register::Register(std::string &service_id, Arc::Config &cfg):logger(Arc::Logger::rootLogger, "Register")
+Register::Register(std::string &service_id, Arc::Config&):logger(Arc::Logger::rootLogger, "Register")
 {
     ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
     service_id = service_id;
@@ -60,4 +60,4 @@ void Register::registration(void)
     }
 }
 
-}; // namespace
+} // namespace

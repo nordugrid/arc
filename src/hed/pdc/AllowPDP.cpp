@@ -23,7 +23,7 @@ PDP* AllowPDP::get_allow_pdp(Config *cfg,ChainContext*) {
 AllowPDP::AllowPDP(Config* cfg):PDP(cfg){
 }
 
-bool AllowPDP::isPermitted(Message *msg){
+bool AllowPDP::isPermitted(Message*){
   return true;
 }
 

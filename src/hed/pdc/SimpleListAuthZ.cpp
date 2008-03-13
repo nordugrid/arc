@@ -21,7 +21,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 using namespace Arc;
 using namespace ArcSec;
 
-SimpleListAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):action(breakOnAllow),pdp(pdp_) {
+SimpleListAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),action(breakOnAllow) {
   if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
   else if(strcasecmp("breakOnDeny",action_.c_str()) == 0) { action=breakOnDeny; }
   else if(strcasecmp("breakAlways",action_.c_str()) == 0) { action=breakAlways; }

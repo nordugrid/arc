@@ -33,7 +33,7 @@ class JobState
 
 };
 
-}; // namespace ARex2
+} // namespace ARex2
 
 #endif
 

@@ -11,6 +11,6 @@ class CandidateSetGenerator:ResourcesHandling {
         CandidateSetGenerator(void);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // CANDIDATE_SET_GENERATOR

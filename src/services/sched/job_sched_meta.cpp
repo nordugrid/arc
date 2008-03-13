@@ -21,6 +21,7 @@ JobSchedMetaData::JobSchedMetaData(int& r) {
 
 bool JobSchedMetaData::setArexID(std::string &id) {
     arex_id = id;
+    return true;
 }
 
 /*
@@ -39,4 +40,4 @@ JobSchedMetaData::JobSchedMetaData(const JobSchedMetaData& j) {
 
 */
 
-}; //namespace
+} //namespace

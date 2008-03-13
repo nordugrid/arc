@@ -54,7 +54,7 @@ bool ClientTool::ProcessOptions(int argc,char* argv[],const std::string& optstr)
   return true;
 }
 
-bool ClientTool::ProcessOption(char option,char* option_arg) {
+bool ClientTool::ProcessOption(char option,char*) {
   std::cerr<<"Error processing option: "<<(char)option<<std::endl;
   PrintHelp();
   return false;

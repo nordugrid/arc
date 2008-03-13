@@ -137,7 +137,7 @@ Arc::MCC_Status CentralISIService::make_soap_fault(Arc::Message& outmsg)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &/*out*/)
 {
     int i;
     Arc::XMLNode entry;
@@ -157,7 +157,7 @@ Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &out)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CentralISIService::RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &/*out*/)
 {
     int i;
     Arc::XMLNode entry;
@@ -192,17 +192,17 @@ Arc::MCC_Status CentralISIService::GetRegistrationStatuses(Arc::XMLNode &in, Arc
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CentralISIService::GetIISList(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::GetIISList(Arc::XMLNode &/*in*/, Arc::XMLNode &/*out*/)
 {
     return Arc::MCC_Status();
 }
 
-Arc::MCC_Status CentralISIService::Get(Arc::XMLNode &in, Arc::XMLNode &out)
+Arc::MCC_Status CentralISIService::Get(Arc::XMLNode &/*in*/, Arc::XMLNode &/*out*/)
 {
     return Arc::MCC_Status();
 }
 
-}; // namespace CentralISI
+} // namespace CentralISI
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "centralisi", 0, &CentralISI::get_service },

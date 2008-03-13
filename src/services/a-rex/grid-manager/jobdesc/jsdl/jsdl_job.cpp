@@ -737,6 +737,5 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   return true;
 }
 
-void JSDLJob::print_to_grami(std::ostream &o) {
+void JSDLJob::print_to_grami(std::ostream&) {
 }
-

@@ -53,12 +53,14 @@ static bool string_to_number(std::string& s,float& f) {
   return true;
 }
 
+/*
 static bool string_to_number(std::string& s,unsigned int& n) {
   extract_integer(s);
   if(s.length() == 0) return false;
   if(!Arc::stringto(s,n)) return false;
   return true;
 }
+*/
 
 // Create multiple files for sending to logger
 // TODO - make it SOAP XML so that they could be sent directly

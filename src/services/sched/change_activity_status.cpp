@@ -66,6 +66,7 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 

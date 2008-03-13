@@ -27,6 +27,6 @@ class IIClient
         Arc::MCC_Status GetIISList(Arc::XMLNode &req, Arc::XMLNode *resp);       
 }; // class IIClient
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // __ARC_IIC_H__ 

@@ -73,10 +73,10 @@ namespace Arc {
     virtual int Size() const {
       return size_;
     }
-    virtual char* Insert(int pos = 0,int size = 0) {
+    virtual char* Insert(int /* pos */ = 0,int /* size */ = 0) {
       return NULL;
     }
-    virtual char* Insert(const char* s,int pos = 0,int size = 0) {
+    virtual char* Insert(const char* /* s */ ,int /* pos */ = 0,int /* size */ = 0) {
       return NULL;
     }
     virtual char* Buffer(unsigned int num) {
@@ -99,12 +99,12 @@ namespace Arc {
         return 0;
       return begin_;
     }
-    virtual bool Truncate(unsigned int size) {
+    virtual bool Truncate(unsigned int /* size */) {
       return false;
     }
   };
 
-  ChunkControl::ChunkControl(uint64_t size) {
+  ChunkControl::ChunkControl(uint64_t /* size */) {
     chunk_t chunk = { 0, UINT64_MAX };
     chunks_.push_back(chunk);
   }
@@ -328,7 +328,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartWriting(DataBufferPar& buffer,
-                                         DataCallback *space_cb) {
+                                         DataCallback*) {
     if (transfer_threads != 0)
       return DataStatus::WriteStartError;
     int transfer_streams = 1;

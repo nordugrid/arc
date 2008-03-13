@@ -182,11 +182,13 @@ Arc::MCC_Status ARex2Service::process(Arc::Message& inmsg,Arc::Message& outmsg) 
 }
 
 // Start information collector 
+/*
 static void thread_starter(void* arg) 
 {
   if(!arg) return;
   ((ARex2Service*)arg)->InformationCollector();
 }
+*/
 
 // Constructor
 

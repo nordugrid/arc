@@ -31,6 +31,6 @@ class JobSchedMetaData {
        // JobSchedMetaData( const JobSchedMetaData& j );
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // SCHED_METADATA

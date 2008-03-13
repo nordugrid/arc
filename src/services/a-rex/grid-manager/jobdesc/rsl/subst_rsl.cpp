@@ -16,9 +16,9 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 void subst_structure(globus_rsl_t *cur,rsl_subst_table_t* symbol_table);
 char* subst_value(globus_rsl_value_t** cur_p,rsl_subst_table_t* symbol_table,int subst_flag);
 
-static char* rsl_operators [11] = {
-  "?0?","=","!=",">",">=","<","<=","?7?","&","|","multi"
-};
+//static char* rsl_operators [11] = {
+//  "?0?","=","!=",">",">=","<","<=","?7?","&","|","multi"
+//};
 
 globus_result_t rsl_subst_table_init(rsl_subst_table_t* symbol_table) {
   symbol_table->keys=NULL;

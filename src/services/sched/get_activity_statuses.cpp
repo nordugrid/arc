@@ -67,11 +67,21 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
           break;
       case CANCELLED:
           job_state="Cancelled";
+	  break;
       case FAILED:
           job_state="Failed";
           break;
       case FINISHED:
           job_state="Finished";
+          break;
+      case KILLING:
+          job_state="Killing";
+	  break;
+      case KILLED:
+          job_state="Killed";
+          break;
+      case UNKNOWN:
+          job_state="Unknown";
           break;
     }
 

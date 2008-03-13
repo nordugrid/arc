@@ -81,7 +81,7 @@ Config::Config(long cfg_ptr_addr)
     if(node_) is_owner_=true;
 }
 
-Config::Config(Config &cfg)
+Config::Config(const Config &cfg) : XMLNode()
 {
     std::string s;
     cfg.GetXML(s);

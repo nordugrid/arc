@@ -294,7 +294,7 @@ int Daemon::daemon(bool close_fds) {
   if(r != 0) return r;
   if(hp != -1) {
     char buf[30]; int l = snprintf(buf,29,"%u",getpid()); buf[l]=0;
-    ::write(hp,buf,l);
+    (::write(hp,buf,l) != -1);
     ::close(hp);
   };
   return 0;

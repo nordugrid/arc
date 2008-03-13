@@ -33,6 +33,6 @@ class User
         bool RunAs(std::string cmd);
 }; // class User
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif

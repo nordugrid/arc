@@ -20,6 +20,6 @@ class HTTPD: public Arc::Service {
         virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
 };
 
-}; // namespace HTTPD
+} // namespace HTTPD
 
 #endif // __ARC_HTTPD_H__

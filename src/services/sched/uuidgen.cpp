@@ -27,7 +27,7 @@ std::string generate(void) {
         for (int i =0; i < 16;i++) {
             uuid_part = (uuid_part << 8) + rnd[i];
         }
-        sprintf(buffer, "%08x", uuid_part);
+        sprintf(buffer, "%08lx", uuid_part);
         uuid_str.append(buffer, 8);
     }
     

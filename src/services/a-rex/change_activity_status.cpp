@@ -144,5 +144,5 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-}; // namespace ARex
+} // namespace ARex
 

@@ -28,7 +28,7 @@ class LocalMapDirect: public LocalMap {
  public:
   LocalMapDirect(const std::string& id):id_(id) {};
   virtual ~LocalMapDirect(void) {};
-  virtual std::string ID(Arc::Message* msg) { return id_; };
+  virtual std::string ID(Arc::Message*) { return id_; };
 };
 
 // --------------------------------------------------------------------------------------

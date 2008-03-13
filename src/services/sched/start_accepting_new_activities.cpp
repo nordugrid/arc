@@ -8,7 +8,7 @@
 namespace GridScheduler {
 
 
-Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status GridSchedulerService::StartAcceptingNewActivities(Arc::XMLNode& /*in*/,Arc::XMLNode& /*out*/) {
   /*
   StartAcceptingNewActivities
 

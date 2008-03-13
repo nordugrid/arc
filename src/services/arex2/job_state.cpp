@@ -12,5 +12,5 @@ JobState::JobState(job_state_t s)
     state = s;
 }
 
-}; // namespace ARex2
+} // namespace ARex2
 

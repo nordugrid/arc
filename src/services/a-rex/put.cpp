@@ -23,7 +23,7 @@ namespace ARex {
 
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::string& hpath,Arc::PayloadRawInterface& buf);
 
-Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
+Arc::MCC_Status ARexService::Put(Arc::Message& /*inmsg*/,Arc::Message& /*outmsg*/,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf) {
   if(id.empty()) return Arc::MCC_Status();
   ARexJob job(id,config);
   if(!job) {
@@ -35,7 +35,7 @@ Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   return http_put(job,config.Endpoint()+"/"+id,subpath,buf);
 } 
 
-static Arc::MCC_Status http_put(ARexJob& job,const std::string& burl,const std::string& hpath,Arc::PayloadRawInterface& buf) {
+static Arc::MCC_Status http_put(ARexJob& job,const std::string& /*burl*/,const std::string& hpath,Arc::PayloadRawInterface& buf) {
   // File 
   int h = job.CreateFile(hpath.c_str());
   if(h == -1) {

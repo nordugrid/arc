@@ -34,7 +34,7 @@ class JobQueue {
         bool saveJobStatus(std::string job_id);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // SCHED_JOB_QUEUE
 

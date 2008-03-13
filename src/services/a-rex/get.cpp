@@ -74,7 +74,6 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     return Arc::MCC_Status();
   };
   std::string session_dir = job.SessionDir();
-  Arc::PayloadRawInterface* buf = NULL;
   if(!http_get(outmsg,config.Endpoint()+"/"+id,session_dir,subpath,range_start,range_end)) {
     // Can't get file
     logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir.c_str(), subpath.c_str());

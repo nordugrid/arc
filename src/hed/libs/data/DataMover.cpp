@@ -622,7 +622,7 @@ namespace Arc {
               continue;
             }
             Arc::User user;
-            lchown(link_name.c_str(), user.get_uid(), user.get_gid());
+            (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
             if(cacheable)
               cache.stop();
             return DataStatus::Success; // Leave after making a link. Rest moves data.

@@ -132,8 +132,8 @@ namespace Arc {
     return comp;
   }
 
-  ClientInterface::ClientInterface(const BaseConfig& cfg) : loader(),
-							    xmlcfg(NS()) {
+  ClientInterface::ClientInterface(const BaseConfig& cfg) : xmlcfg(NS()),
+							    loader() {
     cfg.MakeConfig(xmlcfg);
     xmlcfg.NewChild("Chain");
     cfg.overlay.New(overlay);

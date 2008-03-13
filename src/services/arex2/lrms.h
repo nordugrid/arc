@@ -21,6 +21,6 @@ class JobLRMSInfo
         ~JobLRMSInfo(void); 
 };
 
-}; // namespace ARex2
+} // namespace ARex2
 
 #endif

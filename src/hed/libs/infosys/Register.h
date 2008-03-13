@@ -27,6 +27,7 @@ class Register
         void registration(void);
 
 }; // class Register
-}; // namespace
+
+} // namespace
 
 #endif

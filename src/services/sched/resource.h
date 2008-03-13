@@ -28,6 +28,6 @@ class Resource {
             bool refresh(void);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // SCHED_RESOURCE

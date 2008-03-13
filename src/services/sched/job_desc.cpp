@@ -44,9 +44,9 @@ JobRequest&  JobRequest::operator=( const  JobRequest& j ) {
    return *this;
 }
 
-JobRequest::JobRequest( const JobRequest& j ) {
+JobRequest::JobRequest( const JobRequest& j ) : XMLNode() {
     j.descr.New(descr);
 }
 
 
-}; //namespace
+} //namespace

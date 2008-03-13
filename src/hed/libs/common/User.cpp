@@ -75,7 +75,7 @@ User::User(int uid)
     set(pwd_p);
 }
 
-bool User::RunAs(std::string cmd)
+bool User::RunAs(std::string)
 {
     // XXX NOP
     return false;
@@ -168,4 +168,4 @@ int User::check_file_access(const std::string& path, int flags)
 }
 
 #endif
-}; // namespace Arc
+} // namespace Arc

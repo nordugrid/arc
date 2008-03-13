@@ -80,8 +80,6 @@ static std::string cache_link_dir;
 static uid_t cache_uid;
 static gid_t cache_gid;
 static char* id;
-static int download_done=0;
-static bool leaving = false;
 static std::list<FileData> job_files_;
 static std::list<FileDataEx> job_files;
 static std::list<FileDataEx> processed_files;
@@ -107,7 +105,7 @@ class PointPair {
                                                       source(Arc::DMC::GetDataPoint(source_url)),
                                                       destination(Arc::DMC::GetDataPoint(destination_url)) {};
   ~PointPair(void) { if(source) delete source; if(destination) delete destination; };
-  static void callback(Arc::DataMover* mover,Arc::DataStatus res,const std::string&,void* arg) {
+  static void callback(Arc::DataMover*,Arc::DataStatus res,const std::string&,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
     if(!res) {
@@ -134,7 +132,7 @@ class PointPair {
   };
 };
 
-int expand_files(std::list<FileData> &job_files,char* session_dir) {
+void expand_files(std::list<FileData> &job_files,char* session_dir) {
   for(FileData::iterator i = job_files.begin();i!=job_files.end();) {
     std::string url = i->lfn;
     // Only ftp and gsiftp can be expanded to directories so far
@@ -175,9 +173,6 @@ int main(int argc,char** argv) {
   Arc::LogStream logcerr(std::cerr, "AREXClient");
   Arc::Logger::getRootLogger().addDestination(logcerr);
   int res=0;
-  bool new_download;
-  bool not_uploaded;
-  int retries=0;
   int n_threads = 1;
   int n_files = MAX_DOWNLOADS;
 //@  LogTime::Active(true);
@@ -378,7 +373,6 @@ int main(int argc,char** argv) {
     mover.set_default_min_average_speed(min_average_speed);
   if(max_inactivity_time != 0)
     mover.set_default_max_inactivity_time(max_inactivity_time);
-  bool all_data = false;
   bool transfered = true;
   bool credentials_expired = false;
 

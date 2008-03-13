@@ -217,6 +217,8 @@ bool Job::save(void) {
      if(! f3.is_open() ) return false; /* can't open file */
      f3 << arex_job_id;
      f3.close();
+
+     return true;
 }
 
 bool cut(std::string &input, std::string &name, std::string &value) {
@@ -285,6 +287,8 @@ bool Job::remove(void) {
     std::remove(file1.c_str());
     std::remove(file2.c_str());
     std::remove(file3.c_str());
+
+    return true;
 }
 
-};
+}

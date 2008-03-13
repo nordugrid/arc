@@ -62,7 +62,7 @@ class Job {
         bool remove(void);
 };
 
-}; // namespace Arc
+} // namespace Arc
 
 #endif // SCHED_JOB
 
