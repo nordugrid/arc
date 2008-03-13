@@ -217,6 +217,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libhttpd.so
 %{_libdir}/%{pkgdir}/libcentralisi.so
 %{_libdir}/%{pkgdir}/libgrid_sched.so
+%{_libdir}/%{pkgdir}/libacctargetretriever.so
 
 %files arex
 %defattr(-,root,root,-)
