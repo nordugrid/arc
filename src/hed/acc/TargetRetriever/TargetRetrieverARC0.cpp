@@ -49,7 +49,38 @@ namespace Arc{
 
     //Next read XML result and decode into targets to be returned
 
+
+    //First do GIISes
+    XMLNodeList GIISes = XMLresult.XPathLookup("//Mds-Vo-name", NS());
+    std::cout << "#GIIS = " << GIISes.size() <<std::endl;
+
+    XMLNodeList::iterator iter;
+    for(iter = GIISes.begin(); iter!= GIISes.end(); iter++){
+      if(!(*iter)["Mds-Service-type"]) continue; //remove first entry
+      if((std::string)(*iter)["Mds-Reg-status"] == "PURGED" ) continue;      
+      std::string url;
+      url = (std::string) (*iter)["Mds-Service-type"] + "://" + 
+	    (std::string) (*iter)["Mds-Service-hn"] + ":" +
+            (std::string) (*iter)["Mds-Service-port"] + "/" +
+	    (std::string) (*iter)["Mds-Service-Ldap-suffix"] + "?giisregistrationstatus?base";
+      
+      //      iter->SaveToStream(std::cout);
+      std::cout << url << std::endl;
+      
+      NS ns;
+      Arc::Config cfg(ns);
+      cfg.NewChild("URL") = url;
+      
+      TargetRetrieverARC0 GIIS1(&cfg);
+      
+      std::list<ACC*> results2 = GIIS1.getTargets();
+
+      results.insert(results.end(), results2.begin(), results2.end());
+
+    }
+
     return results;
+
   }
 
 } //namespace
