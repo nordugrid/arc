@@ -38,7 +38,7 @@ class GridSchedulerService: public Arc::Service {
         Arc::MCC_Status ChangeActivityStatus(Arc::XMLNode &in, 
                                              Arc::XMLNode &out);
         // iBES Interface
-        Arc::MCC_Status GetActivity(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status GetActivities(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status ReportActivityStatus(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status GetActivityStatusChanges(Arc::XMLNode &in, Arc::XMLNode &out);
 

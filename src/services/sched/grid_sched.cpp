@@ -105,23 +105,23 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
         ret = GetFactoryAttributesDocument(op, r);
     } else if(MatchXMLName(op, "StopAcceptingNewActivities")) {
         Arc::XMLNode r = res.NewChild("bes-mgmt:StopAcceptingNewActivitiesResponse");
-        ret = StopAcceptingNewActivities(op, res);
+        ret = StopAcceptingNewActivities(op, r);
     } else if(MatchXMLName(op, "StartAcceptingNewActivities")) {
         Arc::XMLNode r = res.NewChild("bes-mgmt:StartAcceptingNewActivitiesResponse");
-        ret = StartAcceptingNewActivities(op, res);
+        ret = StartAcceptingNewActivities(op, r);
     } else if(MatchXMLName(op, "ChangeActivityStatus")) {
         Arc::XMLNode r = res.NewChild("bes-factory:ChangeActivityStatusResponse");
-        ret = ChangeActivityStatus(op, res);
+        ret = ChangeActivityStatus(op, r);
     // iBES
-    } else if(MatchXMLName(op, "GetActivity")) {
+    } else if(MatchXMLName(op, "GetActivities")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivityResponse");
-        ret = GetActivity(op, res);
+        ret = GetActivities(op, r);
     } else if(MatchXMLName(op, "ReportActivityStatus")) {
         Arc::XMLNode r = res.NewChild("ibes:ReportActivityStatusResponse");
-        ret = ReportActivityStatus(op, res);
+        ret = ReportActivityStatus(op, r);
     } else if(MatchXMLName(op, "GetActivityStatusChanges")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivityStatusChangesResponse");
-        ret = GetActivityStatusChanges(op, res);
+        ret = GetActivityStatusChanges(op, r);
       // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
