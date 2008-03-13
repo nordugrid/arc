@@ -1,33 +1,55 @@
 Source: nordugrid-arc1
-Section: unknown
-Priority: extra
+Section: net
+Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 5), autotools-dev, build-essential, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgcj-dev, libldap2-dev
-Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5), autotools-dev, build-essential, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgc6-dev|libgc9-dev|libgcj7-dev, libldap2-dev, libtool
+Standards-Version: 3.7.3
+Homepage: http://www.nordugrid.org
 
 Package: nordugrid-arc1
 Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc1-server, nordugrid-arc1-client
+Description: ARC grid middleware
+ The Advanced Resource Connector (ARC) brings computing resources together
+ across institutional boundaries. This concept is commonly referred to as 
+ a "computational grid". Historically grids address the organisation of
+ distributed storage of data and parallel computation, but arbitrary services
+ are thinkable.
+ .
+ Just like the web, ARC has its roots in the IT infrastructure that was
+ erected for analysis the experiments for high energy physics at CERN. The
+ first release, ARC-0.x, was dependent on Globus, the current release keeps
+ that compatibility but can also be used independently.
+
+Package: nordugrid-arc1-libs
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC shared libraries
- ARC shared libraries
+ ARC shared libraries.
 
 Package: nordugrid-arc1-client
 Architecture: any
+Depends: nordugrid-arc1-libs
+Suggests: globus
 Description: ARC prototype clients
  ARC prototype clients.
 
 Package: nordugrid-arc1-server
 Architecture: any
+Depends: nordugrid-arc1-arex, nordugrid-arc1-libs
 Description: ARC Hosting Environment Daemon
- ARC Hosting Environment Daemon (HED).
+ ARC Hosting Environment Daemon (HED). This daemon
+ presents a site to other participants on the grid.
 
 Package: nordugrid-arc1-arex
 Architecture: any
+Depends: norugrid-arc1-libs
 Description: ARC Remote EXecution service
  ARC Remote EXecution service (AREX)
 
 Package: nordugrid-arc1-plugins-base
 Architecture: any
+Depends: norugrid-arc1-libs
 Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
@@ -50,15 +72,18 @@ Description: ARC development files
 
 Package: nordugrid-arc1-python
 Architecture: any
+Depends: norugrid-arc1-libs
 Description: ARC Python wrapper
  Python wrapper for ARC
 
 Package: nordugrid-arc1-java
 Architecture: any
+Depends: 
 Description: ARC Java wrapper
  Java wrapper for ARC
 
 Package: nordugrid-arc1-doc
 Architecture: all
+Suggests: kpdf|pdf-viewer
 Description: ARC API documentation
  ARC API docmentation

@@ -30,6 +30,9 @@ else
 	CFLAGS += -O2
 endif
 
+configure: autogen.sh
+	./autogen.sh
+
 config.status: configure
 	dh_testdir
 	# Add here commands to configure the package.
