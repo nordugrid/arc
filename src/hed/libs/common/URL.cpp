@@ -268,7 +268,7 @@ namespace Arc {
 	ldapscope = base;
       else if(ldapscopestr == "one")
 	ldapscope = onelevel;
-      else if(ldapscopestr == "tree")
+      else if(ldapscopestr == "sub")
 	ldapscope = subtree;
       else if(!ldapscopestr.empty())
 	URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
@@ -473,7 +473,7 @@ namespace Arc {
 	urlstr += "?one";
 	break;
       case subtree:
-	urlstr += "?tree";
+	urlstr += "?sub";
 	break;
       }
     }
@@ -526,7 +526,7 @@ namespace Arc {
 	urlstr += "?one";
 	break;
       case subtree:
-	urlstr += "?tree";
+	urlstr += "?sub";
 	break;
       }
     }
