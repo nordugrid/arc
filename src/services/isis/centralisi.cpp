@@ -29,12 +29,14 @@ static void infocollector_thread(void *arg)
     srv->InformationCollector();
 }
 
+/*
 static void register_thread(void *arg)
 {
     if (!arg) return;
     CentralISIService *srv = (CentralISIService *)arg;
     srv->reg->registration_forever();
 }
+*/
 
 void CentralISIService::InformationCollector(void)
 {

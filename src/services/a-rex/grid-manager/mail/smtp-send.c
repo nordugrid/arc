@@ -76,7 +76,7 @@ int send_mail(char* mail_server,char* mail_from,char* mail_to) {
   for(;;) {
     buf[0]=0;
     if((i=fscanf(stdin,"%255[^\n]",buf)) == EOF) break; 
-    fscanf(stdin,"%*[^\n]"); fgetc(stdin);
+    (fscanf(stdin,"%*[^\n]") != EOF); fgetc(stdin);
     if(!strcmp(".",buf)) { fputc(' ',S); };
     fprintf(S,"%s\r\n",buf); fflush(S);
   };
