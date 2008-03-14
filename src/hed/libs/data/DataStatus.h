@@ -69,7 +69,7 @@ namespace Arc {
       /// No valid location available
       LocationAlreadyExistsError = 19,
 
-      /// No valid location available
+      /// Operation has no sense for this kind of URL
       NotSupportedForDirectDataPointsError = 20,
 
       /// Feature is unimplemented
@@ -96,6 +96,8 @@ namespace Arc {
 
     bool operator!() { return status != Success; }
     operator bool() { return status == Success; }
+
+    bool Passed(void) { return (status == Success) || (status == NotSupportedForDirectDataPointsError); }
 
    private:
 

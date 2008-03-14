@@ -96,13 +96,13 @@ namespace Arc {
 
   DataStatus DataMover::Delete(DataPoint& url, bool errcont) {
     bool remove_lfn = !url.HaveLocations(); // pfn or plain url
-    if(!url.Resolve(true))
+    if(!url.Resolve(true).Passed())
       // TODO: Check if error is real or "not exist".
       if(remove_lfn)
         logger.msg(INFO,
                    "No locations found - probably no more physical instances");
     std::list<URL> removed_urls;
-    if(url.HaveLocations())
+    if(url.HaveLocations()) {
       for(; url.LocationValid();) {
         logger.msg(INFO, "Removing %s", url.CurrentLocation().str().c_str());
         // It can happen that after resolving list contains duplicated
@@ -135,7 +135,7 @@ namespace Arc {
           logger.msg(INFO, "Removing metadata in %s",
                      url.CurrentLocationMetadata().c_str());
           DataStatus err = url.Unregister(false);
-          if (err) {
+          if (!err) {
             logger.msg(ERROR, "Failed to delete meta-information");
             url.NextLocation();
           }
@@ -143,6 +143,7 @@ namespace Arc {
             url.RemoveLocation();
         }
       }
+    }
     if(url.HaveLocations()) {
       logger.msg(ERROR, "Failed to remove all physical instances");
       return DataStatus::DeleteError;
@@ -152,7 +153,7 @@ namespace Arc {
         logger.msg(INFO, "Removing logical file from metadata %s",
                    url.str().c_str());
         DataStatus err = url.Unregister(true);
-        if (err) {
+        if (!err) {
           logger.msg(ERROR, "Failed to delete logical file");
           return err;
         }
@@ -246,7 +247,7 @@ namespace Arc {
     }
     for(;;) {
       // if(source.Resolve(true, map)) {
-      if(source.Resolve(true)) {
+      if(source.Resolve(true).Passed()) {
         if(source.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for source found: %s",
@@ -263,7 +264,7 @@ namespace Arc {
     }
     for(;;) {
       // if(destination.Resolve(false, URLMap())) {
-      if(destination.Resolve(false)) {
+      if(destination.Resolve(false).Passed()) {
         if(destination.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
@@ -328,7 +329,7 @@ namespace Arc {
         }
         if(destination.IsIndex()) {
           for(;;) {
-            if(destination.Resolve(false)) {
+            if(destination.Resolve(false).Passed()) {
               if(destination.HaveLocations())
                 break;
               logger.msg(ERROR, "No locations for destination found: %s",
@@ -668,7 +669,7 @@ namespace Arc {
       // from source to destination
       if(destination.CheckSize())
         buffer.speed.set_max_data(destination.GetSize());
-      if(!destination.PreRegister(replication, force_registration)) {
+      if(!destination.PreRegister(replication, force_registration).Passed()) {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str().c_str());
         destination.NextLocation(); /* not exactly sure if this would help */
@@ -688,7 +689,7 @@ namespace Arc {
                      destination.str().c_str());
           source_url.StopReading();
           if(!destination.PreUnregister(replication ||
-                                        destination_meta_initially_stored))
+                                        destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                        "You may need to unregister it manually: %s",
                        destination.str().c_str());
@@ -704,7 +705,7 @@ namespace Arc {
           // hope there will be more space next time
           cache.stop(DataCache::file_download_failed | DataCache::file_keep);
           if(!destination.PreUnregister(replication ||
-               destination_meta_initially_stored))
+                                        destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                        "You may need to unregister it manually");
           return DataStatus::CacheError; // repeating won't help here
@@ -734,7 +735,7 @@ namespace Arc {
             buffer.error_write(true);
             cache.stop(DataCache::file_download_failed | DataCache::file_keep);
             if(!destination.PreUnregister(replication ||
-                                          destination_meta_initially_stored))
+                                          destination_meta_initially_stored).Passed())
               logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                          "You may need to unregister it manually");
             return DataStatus::CacheError;/* retry won't help */
@@ -748,7 +749,7 @@ namespace Arc {
       }
       if(buffer.error()) {
         if(!destination.PreUnregister(replication ||
-                                      destination_meta_initially_stored))
+                                      destination_meta_initially_stored).Passed())
           logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                      "You may need to unregister it manually");
         // Analyze errors
@@ -803,11 +804,11 @@ namespace Arc {
         }
       }
       destination.SetMeta(source); // pass more metadata (checksum)
-      if(!destination.PostRegister(replication)) {
+      if(!destination.PostRegister(replication).Passed()) {
         logger.msg(ERROR, "Failed to postregister destination %s",
                    destination.str().c_str());
         if(!destination.PreUnregister(replication ||
-             destination_meta_initially_stored)) {
+                                      destination_meta_initially_stored).Passed()) {
           logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                      "You may need to unregister it manually %s",
                      destination.str().c_str());
