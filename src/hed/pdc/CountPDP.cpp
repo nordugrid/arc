@@ -36,7 +36,7 @@ CountPDP::CountPDP(Config* cfg):PDP(cfg), eval(NULL){
   std::string evaluator = "arc.evaluator";
 
   //Dynamically load Evaluator object according to configure information
-  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)&topcfg));
+  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&topcfg));
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
 

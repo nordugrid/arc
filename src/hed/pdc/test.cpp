@@ -37,7 +37,7 @@ int main(void){
   Arc::ClassLoader* classloader = NULL;
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
-  eval = dynamic_cast<ArcSec::Evaluator*>(classloader->Instance(evaluator, (void**)&modulecfg));
+  eval = dynamic_cast<ArcSec::Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&modulecfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
   //ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
