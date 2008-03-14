@@ -22,6 +22,8 @@ namespace Arc {
   Logger DataPointFile::logger(DataPoint::logger, "File");
 
   DataPointFile::DataPointFile(const URL& url) : DataPointDirect(url),
+                                                 reading(false),
+                                                 writing(false),
                                                  is_channel(false) {
     if (url.Protocol() == "file") {
       cache = false;
