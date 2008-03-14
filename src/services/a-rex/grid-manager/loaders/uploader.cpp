@@ -109,7 +109,7 @@ class PointPair {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
     if(!res) {
-      it->failure_description=Arc::tostring(res);
+      it->failure_description=(std::string)res;
       it->res=res;
       olog<<"Failed downloading file "<<it->lfn<<" - "<<it->failure_description<<std::endl;
       if((it->pair->source->GetTries() <= 0) || (it->pair->destination->GetTries() <= 0)) {
@@ -460,7 +460,7 @@ int main(int argc,char** argv) {
   };
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     odlog(ERROR)<<"Failed to upload "<<i->lfn<<std::endl;
-    failure_reason+="Input file: "+i->lfn+" - "+Arc::tostring(i->res)+"\n";
+    failure_reason+="Input file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError)
       credentials_expired=true;
     transfered=false;
