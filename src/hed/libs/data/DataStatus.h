@@ -1,6 +1,8 @@
 #ifndef __ARC_DATASTATUS__
 #define __ARC_DATASTATUS__
 
+#include <string>
+
 namespace Arc {
 
   class DataStatus {
@@ -85,7 +87,10 @@ namespace Arc {
       CheckError = 24,
 
       /// File listing failed
-      ListError = 25
+      ListError = 25,
+
+      /// Undefined
+      UnknownError = 26
     };
 
     DataStatus(const DataStatusType &status) : status(status) {}
@@ -98,6 +103,8 @@ namespace Arc {
     operator bool() { return status == Success; }
 
     bool Passed(void) { return (status == Success) || (status == NotSupportedForDirectDataPointsError); }
+
+    operator std::string(void);
 
    private:
 
