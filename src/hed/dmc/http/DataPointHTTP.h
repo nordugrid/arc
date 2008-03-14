@@ -17,7 +17,8 @@ namespace Arc {
     static Logger logger;
     unsigned int transfer_chunk_size;
     ChunkControl* chunks;
-    int transfer_threads;
+    int transfers_started;
+    int transfers_finished;
     Glib::Mutex transfer_lock;
     static void read_thread(void *arg);
     static void write_thread(void *arg);
