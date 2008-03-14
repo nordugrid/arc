@@ -6,6 +6,8 @@
 #include <arc/message/PayloadSOAP.h>
 #include "Register.h"
 
+#include <unistd.h>
+
 namespace Arc
 {
 
