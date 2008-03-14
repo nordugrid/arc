@@ -283,7 +283,6 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartReading(DataBufferPar& buffer) {
-std::cerr<<"DataPointHTTP::StartReading: "<<(unsigned int)this<<std::endl;
     if (transfers_started != 0)
       return DataStatus::ReadStartError;
     int transfer_streams = 1;
@@ -319,7 +318,6 @@ std::cerr<<"DataPointHTTP::StartReading: "<<(unsigned int)this<<std::endl;
   }
 
   DataStatus DataPointHTTP::StopReading() {
-std::cerr<<"DataPointHTTP::StopReading: "<<(unsigned int)this<<std::endl;
     if (!buffer)
       return DataStatus::ReadStopError;
     if (transfers_finished < transfers_started) {
@@ -408,7 +406,6 @@ std::cerr<<"DataPointHTTP::StopReading: "<<(unsigned int)this<<std::endl;
   void DataPointHTTP::read_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
-std::cerr<<"DataPointHTTP::read_thread: "<<(unsigned int)(info.point)<<std::endl;
     ClientHTTP* client = info.client;
     bool transfer_failure = false;
     point.transfer_lock.lock();
