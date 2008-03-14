@@ -128,7 +128,7 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   std::string evaluator = "arc.evaluator";
 
   //Load the Evaluator object
-  eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)&topcfg));
+  eval = dynamic_cast<ArcSec::Evaluator*>(classloader->Instance(evaluator, (void**)&topcfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
 
