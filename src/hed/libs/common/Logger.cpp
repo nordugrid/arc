@@ -2,15 +2,12 @@
 #include <config.h>
 #endif
 
-// Logger.cpp
-
 #include <sstream>
 #include <glib.h>
-#ifdef HAVE_LIBINTL_H
-#include <libintl.h>
-#endif
+
 #include "Logger.h"
 #include "DateTime.h"
+
 #include <unistd.h>
 #ifdef WIN32
 #include <process.h>
@@ -56,25 +53,21 @@ namespace Arc {
   }
 
   LogMessage::LogMessage(LogLevel level,
-                         const std::string& message,
-                         va_list& v) :
+                         const IString& message) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(getDefaultIdentifier()),
-    message(message),
-    v(v) {}
+    message(message) {}
 
   LogMessage::LogMessage(LogLevel level,
-                         const std::string& message,
-                         const std::string& identifier,
-                         va_list& v) :
+                         const IString& message,
+                         const std::string& identifier) :
     time(TimeStamp()),
     level(level),
     domain("---"),
     identifier(identifier),
-    message(message),
-    v(v) {}
+    message(message) {}
 
   LogLevel LogMessage::getLevel() const {
     return level;
@@ -100,20 +93,11 @@ namespace Arc {
   }
 
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
-    char buf[2048];
-    va_list v;
-    va_copy(v, message.v);
-#ifdef HAVE_LIBINTL_H
-    vsnprintf(buf, 2048, dgettext("Arc", message.message.c_str()), v);
-#else
-    vsnprintf(buf, 2048, message.message.c_str(), v);
-#endif
-    va_end(v);
     os << "[" << message.time << "] "
        << "[" << message.domain << "] "
        << "[" << message.level << "] "
        << "[" << message.identifier << "] "
-       << buf;
+       << message.message;
     return os;
   }
 
@@ -204,13 +188,6 @@ namespace Arc {
   void Logger::msg(LogMessage message) {
     message.setDomain(domain);
     log(message);
-  }
-
-  void Logger::msg(LogLevel level, const std::string& str, ...) {
-    va_list v;
-    va_start(v, str);
-    msg(LogMessage(level, str, v));
-    va_end(v);
   }
 
   Logger::Logger() :

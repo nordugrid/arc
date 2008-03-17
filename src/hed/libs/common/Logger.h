@@ -1,12 +1,11 @@
-// Logger.h
-#ifndef __Logger__
-#define __Logger__
+#ifndef __ARC_LOGGER__
+#define __ARC_LOGGER__
 
-#include <set>
 #include <string>
 #include <iostream>
-#include <cstdarg>
 #include <glibmm/thread.h>
+
+#include <arc/IString.h>
 
 namespace Arc {
 
@@ -49,8 +48,7 @@ namespace Arc {
       @param message The message text.
      */
     LogMessage(LogLevel level,
-               const std::string& message,
-               va_list& v);
+               const IString& message);
 
     //! Creates a LogMessage with the specified attributes.
     /*! This constructor creates a LogMessage with the specified
@@ -62,9 +60,8 @@ namespace Arc {
       @param ident The identifier of the LogMessage.
      */
     LogMessage(LogLevel level,
-               const std::string& message,
-               const std::string& identifier,
-               va_list& v);
+               const IString& message,
+               const std::string& identifier);
 
     //! Returns the level of the LogMessage.
     /*! Returns the level of the LogMessage.
@@ -92,7 +89,7 @@ namespace Arc {
     static std::string getDefaultIdentifier();
 
     //! Sets the domain of the LogMessage
-    /*! This method sets the domain (origin) of the LogMEssage. It is
+    /*! This method sets the domain (origin) of the LogMessage. It is
       called by the Logger to which the LogMessage is sent.
       @param domain The domain.
      */
@@ -111,10 +108,7 @@ namespace Arc {
     std::string identifier;
 
     //! The message text.
-    std::string message;
-
-    //! Reference to the message's va_list
-    va_list& v;
+    IString message;
 
     //! Printing of LogMessages to ostreams.
     /*! Output operator so that LogMessages can be printed
@@ -324,14 +318,71 @@ namespace Arc {
      */
     void msg(LogMessage message);
 
-    //! Loggs a message text.
-    /*! Loggs a message text string at the specified LogLevel. This is
+    //! Logs a message text.
+    /*! Logs a message text string at the specified LogLevel. This is
       a convenience method to save some typing. It simply creates a
       LogMessage and sends it to the other msg() method.
       @param level The level of the message.
       @param str The message text.
      */
-    void msg(LogLevel level, const std::string& str, ...);
+    void msg(LogLevel level, const std::string& str) {
+      msg(LogMessage(level, IString(str)));
+    }
+
+    template <class T0>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0) {
+      msg(LogMessage(level, IString(str, t0)));
+    }
+
+    template <class T0, class T1>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1) {
+      msg(LogMessage(level, IString(str, t0, t1)));
+    }
+
+    template <class T0, class T1, class T2>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2) {
+      msg(LogMessage(level, IString(str, t0, t1, t2)));
+    }
+
+    template <class T0, class T1, class T2, class T3>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2, const T3& t3) {
+      msg(LogMessage(level, IString(str, t0, t1, t2, t3)));
+    }
+
+    template <class T0, class T1, class T2, class T3, class T4>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2, const T3& t3,
+             const T4& t4) {
+      msg(LogMessage(level, IString(str, t0, t1, t2, t3, t4)));
+    }
+
+    template <class T0, class T1, class T2, class T3, class T4,
+              class T5>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2, const T3& t3,
+             const T4& t4, const T5& t5) {
+      msg(LogMessage(level, IString(str, t0, t1, t2, t3, t4, t5)));
+    }
+
+    template <class T0, class T1, class T2, class T3, class T4,
+              class T5, class T6>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2, const T3& t3,
+             const T4& t4, const T5& t5, const T6& t6) {
+      msg(LogMessage(level, IString(str, t0, t1, t2, t3, t4, t5, t6)));
+    }
+
+    template <class T0, class T1, class T2, class T3, class T4,
+              class T5, class T6, class T7>
+    void msg(LogLevel level, const std::string& str,
+             const T0& t0, const T1& t1, const T2& t2, const T3& t3,
+             const T4& t4, const T5& t5, const T6& t6, const T7& t7) {
+      msg(LogMessage(level, IString(str, t0, t1, t2, t3, t4, t5, t6, t7)));
+    }
 
    private:
 
@@ -387,8 +438,9 @@ namespace Arc {
     static Logger* rootLogger;
     static unsigned int rootLoggerMark;
   };
-}
+
+} // namespace Arc
 
 #define rootLogger getRootLogger()
 
-#endif
+#endif // __ARC_LOGGER__

@@ -1,6 +1,7 @@
 %{
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
+#include <arc/IString.h>
 #include <arc/Logger.h>
 %}
 %include <typemaps.i>
@@ -43,4 +44,5 @@
 %clear std::string& out_xml_str;
 
 %include "../src/hed/libs/common/ArcConfig.h"
+%include "../src/hed/libs/common/IString.h"
 %include "../src/hed/libs/common/Logger.h"

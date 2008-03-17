@@ -8,6 +8,10 @@
 #include <glibmm/miscutils.h>
 #include <arc/Logger.h>
 
+#ifdef HAVE_LIBINTL_H
+#include <libintl.h>
+#endif
+
 namespace Arc {
 
   std::string ArcLocation::location;
@@ -38,6 +42,9 @@ namespace Arc {
 				  "if this is not correct.", INSTPREFIX);
       location = INSTPREFIX;
     }
+#ifdef HAVE_LIBINTL_H
+    bindtextdomain("Arc", (location + "/share/locale").c_str());
+#endif
   }
 
   const std::string& ArcLocation::Get() {
