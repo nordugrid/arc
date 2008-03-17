@@ -59,6 +59,19 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
     store_ctx->check_issued = check_issued;
 #endif
 
+    /*
+     * If this is not set, OpenSSL-0.9.8 assumes the proxy cert 
+     * as an EEC and the next level cert in the chain as a CA cert
+     * and throws an invalid CA error. If we set this, the callback
+     * (verify_callback) gets called with 
+     * ok = 0 with an error "unhandled critical extension" 
+     * and "path length exceeded".
+     * verify_callback will check the critical extension later.
+     */
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+    X509_STORE_CTX_set_flags(store_ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
+#endif
+
     X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx);
                  
     if(!X509_verify_cert(store_ctx)) { goto err; }
@@ -82,7 +95,6 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   /* Now check for some error conditions which can be disregarded. */
   if(!ok) {
     switch (store_ctx->error) {
-#if SSLEAY_VERSION_NUMBER >=  0x0090581fL
     case X509_V_ERR_PATH_LENGTH_EXCEEDED:
       /*
       * Since OpenSSL does not know about proxies,
@@ -91,9 +103,78 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * own checks later on, when we check the last
       * certificate in the chain we will check the chain.
       */
+      std::cout<<"X509_V_ERR_PATH_LENGTH_EXCEEDED"<<std::endl;  
+
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+      /*
+      * OpenSSL-0.9.8 (because of proxy support) has this error 
+      *(0.9.7d did not have this, not proxy support still)
+      * So we will ignore the errors now and do our checks later
+      * on.
+      */
+    case X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED:
+      std::cout<<"X509_V_ERR_PATH_LENGTH_EXCEEDED --- with proxy"<<std::endl;
       ok = 1;
       break;
 #endif
+
+#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL)
+      /*
+      * In the later version (097g+) OpenSSL does know about 
+      * proxies, but not non-rfc compliant proxies, it will 
+      * count them as unhandled critical extensions.
+      * So we will ignore the errors and do our
+      * own checks later on, when we check the last
+      * certificate in the chain we will check the chain.
+      * As OpenSSL does not recognize legacy proxies (pre-RFC, and older fasion proxies)
+      */
+    case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
+      std::cout<<"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"<<std::endl;;
+      /*
+      * Setting this for 098 or later versions avoid the invalid
+      * CA error but would result in proxy path len exceeded which
+      * is handled above. For versions less than 098 and greater
+      * than or equal to 097g causes a seg fault in 
+      * check_chain_extensions (line 498 in crypto/x509/x509_vfy.c)
+      * If this flag is set, openssl assumes proxy extensions would
+      * definitely be there and tries to access the extensions but
+      * the extension is not there really, as it not recognized by
+      * openssl. So openssl versions >= 097g and < 098 would
+      * consider our proxy as an EEC and higher level proxy in the
+      * cert chain (if any) or EEC as a CA cert and thus would throw 
+      * as invalid CA error. We handle that error below.
+      */
+  #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+      store_ctx->current_cert->ex_flags |= EXFLAG_PROXY;
+  #endif
+      ok = 1;
+      break;
+    case X509_V_ERR_INVALID_PURPOSE:
+      /*
+      * Invalid purpose if we init sec context with a server that does
+      * not have the SSL Server Netscape extension (occurs with 0.9.7
+      * servers)
+      */
+      ok = 1;
+      break;
+#endif
+
+#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL)
+    case X509_V_ERR_INVALID_CA:
+      /*
+      * If the previous cert in the chain is a proxy cert then
+      * we get this error just because openssl does not recognize 
+      * our proxy and treats it as an EEC. And thus, it would
+      * treat higher level proxies (if any) or EEC as CA cert 
+      * (which are not actually CA certs) and would throw this
+      * error. As long as the previous cert in the chain is a
+      * proxy cert, we ignore this error.
+      */
+      X509* prev_cert = sk_X509_value(store_ctx->chain, store_ctx->error_depth-1);
+      certType type;
+      if(check_cert_type(prev_cert, type)) { if(CERT_IS_PROXY(type)) ok = 1; } 
+      break;
+#endif	
     default:
       break;
     } 
@@ -101,6 +182,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     //if failed, show the error message.
     if(!ok) {
       char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
+      unsigned long issuer_hash = X509_issuer_name_hash(store_ctx->current_cert);
 
       std::cout<<"Error number in store context: "<<store_ctx->error<<std::endl;
       if(sk_X509_num(store_ctx->chain) ==1) {std::cout<<"Self-signed certificate"<<std::endl; }
@@ -109,11 +191,16 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         std::cerr<<"The certificate with subject "<<subject_name<<" is not valid"<<std::endl;
       }
       else if(store_ctx->error == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
-        std::cerr<<"Can not find issuer certificate for the certificate with subject "<<subject_name<<std::endl;
+        std::cerr<<"Can not find issuer certificate for the certificate with subject"<<subject_name<<"and hash: "<<issuer_hash<<std::endl;
       }
       else if(store_ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) {
         std::cerr<<"Certificate with subject "<<subject_name<<" has expired"<<std::endl;
       }
+      else if(store_ctx->error == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN) {
+        std::cerr<<"Untrusted self-signed certificate in chain with subject:  "<<subject_name<<"and hash: "<<issuer_hash<<std::endl;
+      }
+      else { std::cerr<<"Certificate verification error: "<< X509_verify_cert_error_string(store_ctx->error) <<std::endl; }
+
       if(subject_name) OPENSSL_free(subject_name);
       return ok;
     }
@@ -131,7 +218,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
    * name matches the subject without the final proxy. 
    */
   certType type;
-  bool ret = check_proxy_type(store_ctx->current_cert,type);  
+  bool ret = check_cert_type(store_ctx->current_cert,type);  
   if(!ret) { std::cerr<<"Can not get the certificate type"<<std::endl; return (0);}
   if(CERT_IS_PROXY(type)){
    /* it is a proxy */
@@ -198,7 +285,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     X509_REVOKED *  revoked = NULL;;
     EVP_PKEY *key = NULL;
 
-    /**In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy? 
+    /**TODO: In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy? 
      * (For proxy, the up-level/issuer need to be checked?) 
      */
     if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(store_ctx->current_cert), &obj)) {
@@ -364,7 +451,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   return (1);
 }
 
-bool check_proxy_type(X509* cert, certType& type) {
+bool check_cert_type(X509* cert, certType& type) {
   bool ret = false;
   type = CERT_TYPE_EEC;
   
@@ -515,7 +602,7 @@ int check_issued( X509_STORE_CTX*  ctx, X509* x, X509* issuer) {
              * the error if so. 
              */
         certType type;
-        check_proxy_type(x, type);
+        check_cert_type(x, type);
         if (CERT_IS_PROXY(type)) { ret_code = 1; }
         break;
       default:
