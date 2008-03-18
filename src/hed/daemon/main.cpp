@@ -131,7 +131,7 @@ int main(int argc, char **argv)
             }
         }
     } catch (const Glib::Error& error) {
-      logger.msg(Arc::ERROR, error.what().c_str());
+      logger.msg(Arc::ERROR, error.what());
     }
 
     return 0;

@@ -28,7 +28,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s);
   };
   for(int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
@@ -39,14 +39,14 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
-      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - can't understand EPR", jobid.c_str());
+      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - can't understand EPR", jobid);
       continue;
     };
     // Look for obtained ID
     ARexJob job(jobid,config);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid.c_str(), job.Failure().c_str());
+      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid, job.Failure());
       continue;
     };
     /*
@@ -82,7 +82,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

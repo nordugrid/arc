@@ -187,7 +187,7 @@ namespace Arc {
     Config cfg_(desc_node);
     ArcSec::SecHandler* sechandler =
       sechandler_factory->get_instance(name, &cfg_, ctx);
-    Loader::logger.msg(INFO, "SecHandler name: %s", name.c_str());
+    Loader::logger.msg(INFO, "SecHandler name: %s", name);
     if(sechandler) sechandlers[refid] = sechandler;
     return sechandler;
   }
@@ -248,8 +248,7 @@ namespace Arc {
 	}
 	MCC* mcc = mcc_factory->get_instance(name, &cfg_, context_);
 	if(!mcc) {
-	  logger.msg(ERROR, "Component %s(%s) could not be created",
-		     name.c_str(), id.c_str());
+	  logger.msg(ERROR, "Component %s(%s) could not be created", name, id);
 	  continue;
 	}
 	mccs_[id] = mcc;
@@ -278,7 +277,7 @@ namespace Arc {
 	  std::string nid = cnn.Attribute("id");
 	  if(nid.empty()) {
 	    logger.msg(ERROR, "Component's %s(%s) next has no id "
-		       "attribute defined", name.c_str(), id.c_str());
+		       "attribute defined", name, id);
 	    continue;
 	  }
 	  std::string label = cnn;
@@ -286,7 +285,7 @@ namespace Arc {
 	}
 	mcc_connector.name = name;
 	mcc_connectors->push_back(mcc_connector);
-	logger.msg(INFO, "Loaded MCC %s(%s)", name.c_str(), id.c_str());
+	logger.msg(INFO, "Loaded MCC %s(%s)", name, id);
 	continue;
       }
 
@@ -303,7 +302,7 @@ namespace Arc {
 	  std::string nid = cnn.Attribute("id");
 	  if(nid.empty()) {
 	    logger.msg(ERROR, "Plexer's (%s) next has no id "
-		       "attribute defined", id.c_str());
+		       "attribute defined", id);
 	    continue;
 	  }
 	  std::string label = cnn;
@@ -311,7 +310,7 @@ namespace Arc {
 	}
 	plexer_connector.name = name;
 	plexer_connectors->push_back(plexer_connector);
-	logger.msg(INFO, "Loaded Plexer %s(%s)", name.c_str(), id.c_str());
+	logger.msg(INFO, "Loaded Plexer %s(%s)", name, id);
 	continue;
       }
 
@@ -329,12 +328,11 @@ namespace Arc {
 	Service* service =
 	  service_factory->get_instance(name, &cfg_, context_);
 	if(!service) {
-	  logger.msg(ERROR, "Service %s(%s) could not be created",
-		     name.c_str(), id.c_str());
+	  logger.msg(ERROR, "Service %s(%s) could not be created", name, id);
 	  continue;
 	}
 	services_[id] = service;
-	logger.msg(INFO, "Loaded Service %s(%s)", name.c_str(), id.c_str());
+	logger.msg(INFO, "Loaded Service %s(%s)", name, id);
 
 	// Configure security plugins
 	XMLNode an;
@@ -367,12 +365,11 @@ namespace Arc {
 	DMC* dmc = dmc_factory->get_instance(name, &cfg_, context_);
 	if(!dmc) {
 	  logger.msg(ERROR, "DataManager %s(%s) could not be created",
-		     name.c_str(), id.c_str());
+		     name, id);
 	  continue;
 	}
 	dmcs_[id] = dmc;
-	logger.msg(INFO, "Loaded DataManager %s(%s)",
-		   name.c_str(), id.c_str());
+	logger.msg(INFO, "Loaded DataManager %s(%s)", name, id);
 	continue;
       }
 
@@ -390,17 +387,15 @@ namespace Arc {
 	ACC* acc = acc_factory->get_instance(name, &cfg_, context_);
 	if(!acc) {
 	  logger.msg(ERROR, "ArcClientComponent %s(%s) could not be created",
-		     name.c_str(), id.c_str());
+		     name, id);
 	  continue;
 	}
 	accs_[id] = acc;
-	logger.msg(INFO, "Loaded ArcClientComponent %s(%s)",
-		   name.c_str(), id.c_str());
+	logger.msg(INFO, "Loaded ArcClientComponent %s(%s)", name, id);
 	continue;
       }
 
-      logger.msg(WARNING, "Unknown element \"%s\" - ignoring",
-		 cn.Name().c_str());
+      logger.msg(WARNING, "Unknown element \"%s\" - ignoring", cn.Name());
     }
 
     if(level != 0) return;
@@ -420,8 +415,7 @@ namespace Arc {
 	  // Make link MCC->MCC
 	  mcc->mcc->second->Next(mcc_l->second, label);
 	  logger.msg(INFO, "Linking MCC %s(%s) to MCC (%s) under %s",
-		     mcc->name.c_str(), mcc->mcc->first.c_str(),
-		     id.c_str(), label.c_str());
+		     mcc->name, mcc->mcc->first, id, label);
 	  mcc->nexts.erase(next);
 	  continue;
 	}
@@ -430,8 +424,7 @@ namespace Arc {
 	  // Make link MCC->Service
 	  mcc->mcc->second->Next(service_l->second, label);
 	  logger.msg(INFO, "Linking MCC %s(%s) to Service (%s) under %s",
-		     mcc->name.c_str(), mcc->mcc->first.c_str(),
-		     id.c_str(), label.c_str());
+		     mcc->name, mcc->mcc->first, id, label);
 	  mcc->nexts.erase(next);
 	  continue;
 	}
@@ -440,14 +433,12 @@ namespace Arc {
 	  // Make link MCC->Plexer
 	  mcc->mcc->second->Next(plexer_l->second, label);
 	  logger.msg(INFO, "Linking MCC %s(%s) to Plexer (%s) under %s",
-		     mcc->name.c_str(), mcc->mcc->first.c_str(),
-		     id.c_str(), label.c_str());
+		     mcc->name, mcc->mcc->first, id, label);
 	  mcc->nexts.erase(next);
 	  continue;
 	}
 	logger.msg(ERROR, "MCC %s(%s) - next %s(%s) has no target",
-		   mcc->name.c_str(), mcc->mcc->first.c_str(),
-		   label.c_str(), id.c_str());
+		   mcc->name, mcc->mcc->first, label, id);
 	mcc->nexts.erase(next);
       }
     }
@@ -464,8 +455,7 @@ namespace Arc {
 	  // Make link Plexer->MCC
 	  plexer->plexer->second->Next(mcc_l->second, label);
 	  logger.msg(INFO, "Linking Plexer %s to MCC (%s) under %s",
-		     plexer->plexer->first.c_str(),
-		     id.c_str(), label.c_str());
+		     plexer->plexer->first, id, label);
 	  plexer->nexts.erase(next);
 	  continue;
 	}
@@ -474,8 +464,7 @@ namespace Arc {
 	  // Make link Plexer->Service
 	  plexer->plexer->second->Next(service_l->second, label);
 	  logger.msg(INFO, "Linking Plexer %s to Service (%s) under %s",
-		     plexer->plexer->first.c_str(),
-		     id.c_str(), label.c_str());
+		     plexer->plexer->first, id, label);
 	  plexer->nexts.erase(next);
 	  continue;
 	}
@@ -484,15 +473,13 @@ namespace Arc {
 	  // Make link Plexer->Plexer
 	  plexer->plexer->second->Next(plexer_l->second, label);
 	  logger.msg(INFO, "Linking Plexer %s to Plexer (%s) under %s",
-		     plexer->plexer->first.c_str(),
-		     id.c_str(), label.c_str());
+		     plexer->plexer->first, id, label);
 	  plexer->nexts.erase(next);
 	  continue;
 	}
 
 	logger.msg(ERROR, "Plexer (%s) - next %s(%s) has no target",
-		   plexer->plexer->first.c_str(),
-		   label.c_str(), id.c_str());
+		   plexer->plexer->first, label, id);
 	plexer->nexts.erase(next);
       }
     }

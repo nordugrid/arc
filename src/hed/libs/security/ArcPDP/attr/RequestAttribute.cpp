@@ -23,9 +23,9 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
   attrval = attrfactory->createValue(node, type);
 
   if(attrval == NULL)
-    logger.msg(ERROR,"No Attribute exists, which can deal with type: %s", type.c_str());
+    logger.msg(ERROR,"No Attribute exists, which can deal with type: %s", type);
 
-  logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id.c_str(), type.c_str(), issuer.c_str(), (attrval->encode()).c_str());
+  logger.msg(DEBUG, "Id= %s,Type= %s,Issuer= %s,Value= %s",id, type, issuer, attrval->encode());
 
   //Copy the node parameter into this->node_, for the usage in duplicate method 
   node.New(node_);

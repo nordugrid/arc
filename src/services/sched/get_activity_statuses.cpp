@@ -25,7 +25,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetActivityStatuses: request = \n%s", s);
   };
   for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
@@ -40,7 +40,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
     };
 
     if (!sched_queue.CheckJobID(jobid)) {
-      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid.c_str());
+      logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid);
       Arc::SOAPEnvelope fault(ns_,true);
       fault.Fault()->Code(Arc::SOAPFault::Sender);
       fault.Fault()->Reason("Unknown activity");
@@ -92,7 +92,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = %s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetActivityStatuses: response = %s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

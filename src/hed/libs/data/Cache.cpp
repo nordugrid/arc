@@ -1187,7 +1187,7 @@ int cache_download_url_start(const std::string& cache_path,const std::string& ca
   /* open + lock list file */
   int ch = cache_open_list(cache_path,cache_user);
   if(ch == -1) {
-    logger.msg(INFO, "cache_download_url_start: cache_open_list failed: %s", cache_path.c_str());
+    logger.msg(INFO, "cache_download_url_start: cache_open_list failed: %s", cache_path);
     return 1;
   };
   std::string fname;
@@ -1196,16 +1196,16 @@ int cache_download_url_start(const std::string& cache_path,const std::string& ca
       cache_close_list(ch); /* do not need list anymore */
     }; break;
     case 1: { /* no such url ?!?!?!?!?!?! */
-      logger.msg(INFO, "cache_download_url_start: url not found: %s", url.c_str());
+      logger.msg(INFO, "cache_download_url_start: url not found: %s", url);
       cache_close_list(ch); return 1;
     }; 
     default: {
-      logger.msg(INFO, "cache_download_url_start: unknown result from cache_search_list: %s", url.c_str());
+      logger.msg(INFO, "cache_download_url_start: unknown result from cache_search_list: %s", url);
       cache_close_list(ch); return 1;
     };
   };
   /* try to get lock on info file */
-  logger.msg(INFO, "cache_download_url_start: locking url: %s (%s)", url.c_str(), fname.c_str());
+  logger.msg(INFO, "cache_download_url_start: locking url: %s (%s)", url, fname);
 
   return cache_download_file_start(cache_path,cache_data_path,cache_user,fname,id,handler);
 }
@@ -1215,10 +1215,10 @@ int cache_download_file_start(const std::string& cache_path,const std::string& c
   if(handler.h != -1) return 0;  /* already locked */
   int ih = cache_open_info(cache_path,fname);
   if(ih == -1) {
-    logger.msg(INFO, "cache_download_file_start: failed to lock file: %s", fname.c_str());
+    logger.msg(INFO, "cache_download_file_start: failed to lock file: %s", fname);
     return 1;
   };
-  logger.msg(INFO, "cache_download_file_start: locked file: %s", fname.c_str());
+  logger.msg(INFO, "cache_download_file_start: locked file: %s", fname);
   handler.h=ih;
   handler.sname=fname;
   handler.fname=cache_data_path; handler.fname+="/"; handler.fname+=fname;
@@ -1226,27 +1226,27 @@ int cache_download_file_start(const std::string& cache_path,const std::string& c
   /* read the state of the file */
   cache_file_state fs;
   if(cache_read_info(ih,fs) == -1) {
-    logger.msg(INFO, "cache_download_file_start: cache_read_info failed: %s", fname.c_str());
+    logger.msg(INFO, "cache_download_file_start: cache_read_info failed: %s", fname);
     cache_close_info(ih); handler.h=-1; return 1;
   };
   switch(fs.st) {
     case 'd': {  /* it is probaly lock left by dead job */
-      logger.msg(INFO, "cache_download_file_start: state - dead: %s", fname.c_str());
+      logger.msg(INFO, "cache_download_file_start: state - dead: %s", fname);
       /* remove all locks */
       cache_release_url(cache_path,cache_data_path,cache_user,fs.id,false);
     };
     case 'c':
     case 'f': {
-      logger.msg(INFO, "cache_download_file_start: state - new/failed: %s", fname.c_str());
+      logger.msg(INFO, "cache_download_file_start: state - new/failed: %s", fname);
       fs.st='d'; fs.id=id;
       if(cache_write_info(ih,fs) == -1) { cache_close_info(ih); handler.h=-1; return 1; };
     }; return 0;
     case 'r': {
-      logger.msg(INFO, "cache_download_file_start: state - ready: %s", fname.c_str());
+      logger.msg(INFO, "cache_download_file_start: state - ready: %s", fname);
       cache_close_info(ih); handler.h=-1;
     }; return 2;
     default: {
-      logger.msg(INFO, "cache_download_file_start: state - UNKNOWN: %s", fname.c_str());
+      logger.msg(INFO, "cache_download_file_start: state - UNKNOWN: %s", fname);
       /* behave like it would be new file */
       fs.st='d'; fs.id=id;
       if(cache_write_info(ih,fs) == -1) { cache_close_info(ih); handler.h=-1; return 1; };
@@ -1260,11 +1260,11 @@ int cache_download_url_end(const std::string& cache_path,const std::string&,cons
     /* open + lock list file */
     int ch = cache_open_list(cache_path,cache_user);
     if(ch == -1) {
-      logger.msg(INFO, "cache_download_url_end: cache_open_list failed: %s", cache_path.c_str());
+      logger.msg(INFO, "cache_download_url_end: cache_open_list failed: %s", cache_path);
     }
     else { 
       if(cache_replace_list(ch,handler.sname,url) != 0) {
-        logger.msg(INFO, "cache_download_url_end: file not found in list: %s", handler.sname.c_str());
+        logger.msg(INFO, "cache_download_url_end: file not found in list: %s", handler.sname);
       };
       cache_close_list(ch);
     };
@@ -1346,7 +1346,7 @@ static unsigned long long int cache_clean(const std::string& cache_path,const st
   files.sort();
   unsigned long long int total_size = 0;
   for(std::list<cache_file_p>::iterator i=files.begin();i!=files.end();++i) {
-    logger.msg(INFO, "Removing cache file: name = %s, url = %s", i->name.c_str(), url.c_str());
+    logger.msg(INFO, "Removing cache file: name = %s, url = %s", i->name, url);
     if(cache_remove_list(ch,i->name,cache_path,cache_data_path,cache_user) == 0) { 
       total_size+=i->size;
     };

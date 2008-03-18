@@ -24,7 +24,7 @@ void ARexService::InformationCollector(void) {
     };
     std::ifstream f(nordugrid_config_loc.c_str());
     if(!f) {
-      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc.c_str());
+      logger_.msg(Arc::ERROR,"Failed to read GM configuation file at %s",nordugrid_config_loc);
       sleep(60); continue;
     };
     try {
@@ -38,17 +38,17 @@ void ARexService::InformationCollector(void) {
           subsection=section.substr(p+1);
           section.resize(p);
         };
-        logger_.msg(Arc::DEBUG,"Configuration: Section: %s, Subsection: %s",section.c_str(),subsection.c_str());
+        logger_.msg(Arc::DEBUG,"Configuration: Section: %s, Subsection: %s",section,subsection);
         if((section == "common") || (section == "grid-manager")) {
           std::list<std::string> values = g->FindOptionValue("lrms");
           if(values.size() > 0) lrms=*(values.begin());
           std::string::size_type p = lrms.find(' ');
           if(p != std::string::npos) lrms.resize(p);
-          logger_.msg(Arc::DEBUG,"Configuration: LRMS: %s",lrms.c_str());
+          logger_.msg(Arc::DEBUG,"Configuration: LRMS: %s",lrms);
         } else if(section == "queue") {
           std::string queue = g->GetID();
           if(queue.empty()) queue=subsection;
-          logger_.msg(Arc::DEBUG,"Configuration: Queue: %s",queue.c_str());
+          logger_.msg(Arc::DEBUG,"Configuration: Queue: %s",queue);
           if(!queue.empty()) queues.push_back(queue);
         };
       };
@@ -65,14 +65,14 @@ void ARexService::InformationCollector(void) {
       run.AssignStdin(stdin_str);
       run.AssignStdout(ldif_str);
       run.AssignStderr(stderr_str);
-      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd.c_str());
+      logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
       };
       if(!run.Wait(60)) {
       };
       int r = run.Result();
       logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
-      logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str.c_str());
+      logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
     };
     for(std::list<std::string>::iterator q = queues.begin();q!=queues.end();++q) {
       std::string cmd;
@@ -83,16 +83,16 @@ void ARexService::InformationCollector(void) {
       run.AssignStdin(stdin_str);
       run.AssignStdout(ldif_str);
       run.AssignStderr(stderr_str);
-      logger_.msg(Arc::DEBUG,"Queue information provider: %s",cmd.c_str());
+      logger_.msg(Arc::DEBUG,"Queue information provider: %s",cmd);
       if(!run.Start()) {
       };
       if(!run.Wait(60)) {
       };
       int r = run.Result();
       logger_.msg(Arc::DEBUG,"Queue information provider result: %i",r);
-      logger_.msg(Arc::DEBUG,"Queue information provider error: %s",stderr_str.c_str());
+      logger_.msg(Arc::DEBUG,"Queue information provider error: %s",stderr_str);
     };
-    logger_.msg(Arc::DEBUG,"Obtained LDIF: %s",ldif_str.c_str());
+    logger_.msg(Arc::DEBUG,"Obtained LDIF: %s",ldif_str);
     // Convert result to XML
     std::istringstream ldif(ldif_str);
     Arc::NS ns;
@@ -103,7 +103,7 @@ void ARexService::InformationCollector(void) {
       infodoc_.Assign(root);
       logger_.msg(Arc::INFO,"Assigned new informational document");
       root.GetXML(ldif_str);
-      logger_.msg(Arc::DEBUG,"Obtained XML: %s",ldif_str.c_str());
+      logger_.msg(Arc::DEBUG,"Obtained XML: %s",ldif_str);
     } else {
       logger_.msg(Arc::ERROR,"Failed to create informational document");
     };

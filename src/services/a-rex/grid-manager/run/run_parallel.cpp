@@ -106,15 +106,15 @@ void RunParallel::initializer(void* arg) {
   else { max_files=4096; };
   // change user
   if(!(it->user_.SwitchUser(it->su_))) {
-    logger.msg(Arc::ERROR,"%s: Failed switching user",it->jobid_.c_str()); sleep(10); exit(1);
+    logger.msg(Arc::ERROR,"%s: Failed switching user",it->jobid_); sleep(10); exit(1);
   };
   if(it->cred_) {
     // run external plugin to acquire non-unix local credentials
     if(!it->cred_->run(it->subst_,it->subst_arg_)) {
-      logger.msg(Arc::ERROR,"%s: Failed to run plugin",it->jobid_.c_str()); sleep(10); _exit(1);
+      logger.msg(Arc::ERROR,"%s: Failed to run plugin",it->jobid_); sleep(10); _exit(1);
     };
     if(it->cred_->result() != 0) {
-      logger.msg(Arc::ERROR,"%s: Plugin failed",it->jobid_.c_str()); sleep(10); _exit(1);
+      logger.msg(Arc::ERROR,"%s: Plugin failed",it->jobid_); sleep(10); _exit(1);
     };
   };
   // close all handles inherited from parent

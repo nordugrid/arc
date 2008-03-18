@@ -103,8 +103,8 @@ namespace Arc {
 
   DataStatus DataPointIndex::AddLocation(const URL& url,
                                    const std::string& meta) {
-    logger.msg(DEBUG, "Add location: url: %s", url.str().c_str());
-    logger.msg(DEBUG, "Add location: metadata: %s", meta.c_str());
+    logger.msg(DEBUG, "Add location: url: %s", url.str());
+    logger.msg(DEBUG, "Add location: metadata: %s", meta);
     for (std::list<URLLocation>::iterator i = locations.begin();
         i != locations.end(); ++i)
       if (i->Name() == meta)

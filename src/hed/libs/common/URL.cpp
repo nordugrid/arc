@@ -110,7 +110,7 @@ namespace Arc {
     std::string::size_type pos, pos2, pos3;
 
     if(url[0] == '#') {
-      URLLogger.msg(ERROR, "URL is not valid: %s", url.c_str());
+      URLLogger.msg(ERROR, "URL is not valid: %s", url);
       return;
     }
 
@@ -272,7 +272,7 @@ namespace Arc {
 	ldapscope = subtree;
       else if(!ldapscopestr.empty())
 	URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
-	              ldapscopestr.c_str());
+	              ldapscopestr);
       if(ldapfilter.empty())
 	ldapfilter = "(objectClass=*)";
       if(path.find("/") != std::string::npos)
@@ -662,12 +662,11 @@ namespace Arc {
 	  urllist.push_back(url);
 	else
 	  URLLogger.msg(ERROR, "urllist %s contains invalid URL: %s",
-	                url.Path().c_str(), line.c_str());
+	                url.Path(), line);
       }
     }
     else
-      URLLogger.msg(ERROR, "URL protocol is not urllist: %s",
-                    url.str().c_str());
+      URLLogger.msg(ERROR, "URL protocol is not urllist: %s", url.str());
     return urllist;
   }
 

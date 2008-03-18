@@ -64,7 +64,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     std::string req_xml;
     request.GetXML(req_xml);
-    logger.msg(Arc::DEBUG, "Request: %s",req_xml.c_str());
+    logger.msg(Arc::DEBUG, "Request: %s",req_xml);
     
     //Call the functionality of policy engine
     Response *resp = NULL;
@@ -85,7 +85,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         attr = dynamic_cast<RequestAttribute*>(*it);
         if(attr){
           attrval = (*it)->getAttributeValue();
-          if(attrval) logger.msg(Arc::INFO, "%s", (attrval->encode()).c_str());
+          if(attrval) logger.msg(Arc::INFO, "%s", (attrval->encode()));
         }
       }
     }
@@ -107,7 +107,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } 
   else {
     delete inmsg.Payload();
-    logger.msg(Arc::DEBUG, "process: %s: not supported",method.c_str());
+    logger.msg(Arc::DEBUG, "process: %s: not supported",method);
     return Arc::MCC_Status(); 
   }
   return Arc::MCC_Status();

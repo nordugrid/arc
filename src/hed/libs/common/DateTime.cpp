@@ -96,8 +96,7 @@ namespace Arc {
 		     &timestr.tm_mday) == 3)
 	pos += 8;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse date: %s",
-			   timestring.c_str());
+	dateTimeLogger.msg(ERROR, "Can not parse date: %s", timestring);
 	return;
       }
 
@@ -119,8 +118,7 @@ namespace Arc {
 		     &timestr.tm_sec) == 3)
 	pos += 6;
       else {
-	dateTimeLogger.msg(ERROR, "Can not parse time: %s",
-			   timestring.c_str());
+	dateTimeLogger.msg(ERROR, "Can not parse time: %s", timestring);
 	return;
       }
 
@@ -151,7 +149,7 @@ namespace Arc {
 	  pos += 4;
 	else {
 	  dateTimeLogger.msg(ERROR, "Can not parse time zone offset: %s",
-			     timestring.c_str());
+			     timestring);
 	  return;
 	}
 
@@ -169,8 +167,7 @@ namespace Arc {
 	gtime = mktime(&timestr);
 
       if(timestring.size() != pos) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
-			   timestring.c_str());
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
 	return;
       }
     }
@@ -190,8 +187,7 @@ namespace Arc {
 		&timestr.tm_min,
 		&timestr.tm_sec,
 		&timestr.tm_year) != 7) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
-			   timestring.c_str());
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
 	return;
       }
 
@@ -244,8 +240,7 @@ namespace Arc {
 		&timestr.tm_hour,
 		&timestr.tm_min,
 		&timestr.tm_sec) != 7) {
-	dateTimeLogger.msg(ERROR, "Illegal time format: %s",
-			   timestring.c_str());
+	dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
 	return;
       }
 
@@ -284,8 +279,7 @@ namespace Arc {
     }
 
     if(gtime == -1)
-      dateTimeLogger.msg(ERROR, "Illegal time format: %s",
-			 timestring.c_str());
+      dateTimeLogger.msg(ERROR, "Illegal time format: %s", timestring);
   }
 
 
@@ -546,7 +540,7 @@ namespace Arc {
 	  while (pos2 < period.size() && isdigit(period[pos2])) pos2++;
 	  if (pos2 == pos || pos2 == period.size()) {
 	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
-			       period.c_str());
+			       period);
 	    seconds = 0;
 	    return;
 	  }
@@ -581,7 +575,7 @@ namespace Arc {
 	    break;
           default:
 	    dateTimeLogger.msg(ERROR, "Invalid ISO duration format: %s",
-			       period.c_str());
+			       period);
 	    seconds = 0;
 	    return;
 	    break;
@@ -639,8 +633,7 @@ namespace Arc {
           case ' ':
 	    break;
           default:
-	    dateTimeLogger.msg(ERROR, "Invalid period string: %s",
-			       period.c_str());
+	    dateTimeLogger.msg(ERROR, "Invalid period string: %s", period);
 	    seconds = 0;
 	    return;
 	    break;

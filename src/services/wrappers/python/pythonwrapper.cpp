@@ -107,8 +107,8 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     }
     std::string module_name = path.substr(0, p);
     std::string class_name = path.substr(p+1, path.length());
-    logger.msg(Arc::DEBUG, "class name: %s", class_name.c_str());
-    logger.msg(Arc::DEBUG, "module name: %s", module_name.c_str());
+    logger.msg(Arc::DEBUG, "class name: %s", class_name);
+    logger.msg(Arc::DEBUG, "module name: %s", module_name);
     
     // Convert module name to Python string
     py_module_name = PyString_FromString(module_name.c_str());
@@ -241,7 +241,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
         Py_DECREF(arg);
 
     } else {
-        logger.msg(Arc::ERROR, "%s is not an object", class_name.c_str());
+        logger.msg(Arc::ERROR, "%s is not an object", class_name);
         return;
     }
 

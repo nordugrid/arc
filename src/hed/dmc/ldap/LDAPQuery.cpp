@@ -224,17 +224,17 @@ bool LDAPQuery::Connect() {
 	const int version = LDAP_VERSION3;
 
 	logger.msg(DEBUG, "LDAPQuery: Initializing connection to %s:%d",
-	           host.c_str(), port);
+	           host, port);
 
 	if (connection) {
-		logger.msg(ERROR, "LDAP connection already open to %s", host.c_str());
+		logger.msg(ERROR, "LDAP connection already open to %s", host);
 		return false;
 	}
 
 	connection = ldap_init(host.c_str(), port);
 
 	if (!connection) {
-		logger.msg(ERROR, "Could not open LDAP connection to %s", host.c_str());
+		logger.msg(ERROR, "Could not open LDAP connection to %s", host);
 		return false;
 	}
 
@@ -257,21 +257,21 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 	if (ldap_set_option (connection, LDAP_OPT_NETWORK_TIMEOUT, &tout) !=
 	                     LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
-		           "Could not set LDAP network timeout (%s)", host.c_str());
+		           "Could not set LDAP network timeout (%s)", host);
 		return false;
 	}
 
 	if (ldap_set_option (connection, LDAP_OPT_TIMELIMIT, &timeout) !=
 	                     LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
-			   "Could not set LDAP timelimit (%s)", host.c_str());
+			   "Could not set LDAP timelimit (%s)", host);
 		return false;
 	}
 
 	if (ldap_set_option (connection, LDAP_OPT_PROTOCOL_VERSION, &version) !=
 	                     LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
-			   "Could not set LDAP protocol version (%s)", host.c_str());
+			   "Could not set LDAP protocol version (%s)", host);
 		return false;
 	}
 
@@ -301,7 +301,7 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 #endif
 	}
 	if (ldresult != LDAP_SUCCESS) {
-		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host.c_str());
+		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
 		return false;
 	}
 	return true;
@@ -315,17 +315,17 @@ bool LDAPQuery::Query(const std::string& base,
 
 	Connect();
 
-	logger.msg(DEBUG, "LDAPQuery: Querying %s", host.c_str());
+	logger.msg(DEBUG, "LDAPQuery: Querying %s", host);
 
-	logger.msg(VERBOSE, "  base dn: %s", base.c_str());
+	logger.msg(VERBOSE, "  base dn: %s", base);
 	if (!filter.empty())
-	  logger.msg(VERBOSE, "  filter: %s", filter.c_str());
+	  logger.msg(VERBOSE, "  filter: %s", filter);
 	if (!attributes.empty()) {
 		logger.msg(VERBOSE, "  attributes:");
 		for (std::list<std::string>::const_iterator vs = attributes.begin();
 		                                              vs != attributes.end();
 		                                              vs++)
-			logger.msg(VERBOSE, "    %s", vs->c_str());
+			logger.msg(VERBOSE, "    %s", *vs);
 	}
 
 	timeval tout;
@@ -361,7 +361,7 @@ bool LDAPQuery::Query(const std::string& base,
 	if (attrs) delete[] attrs; // Okay to delete null pointers..
 
 	if (ldresult != LDAP_SUCCESS) {
-		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host.c_str());
+		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
 		ldap_unbind (connection);
 		connection = NULL;
 		return false;
@@ -385,10 +385,10 @@ bool LDAPQuery::Result(ldap_callback callback, void* ref) {
 
 bool LDAPQuery::HandleResult(ldap_callback callback, void* ref) {
 
-	logger.msg(DEBUG, "LDAPQuery: Getting results from %s", host.c_str());
+	logger.msg(DEBUG, "LDAPQuery: Getting results from %s", host);
 
 	if (!messageid) {
-		logger.msg(ERROR, "Error: no LDAP query started to %s", host.c_str());
+		logger.msg(ERROR, "Error: no LDAP query started to %s", host);
 		return false;
 	}
 
@@ -421,12 +421,12 @@ bool LDAPQuery::HandleResult(ldap_callback callback, void* ref) {
 	}
 
 	if (ldresult == 0) {
-		logger.msg(ERROR, "LDAP query timed out: %s", host.c_str());
+		logger.msg(ERROR, "LDAP query timed out: %s", host);
 		return false;
 	}
 
 	if (ldresult == -1) {
-		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host.c_str());
+		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
 		return false;
 	}
 

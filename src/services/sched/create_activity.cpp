@@ -32,7 +32,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s);
   };
 
   if (IsAcceptingNewActivities == false) {
@@ -79,7 +79,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
 
   if (!sched_job) {
     std::string failure = sched_job.Failure();
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());
+    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);
     // Failed to create new job (generic SOAP error)
     Arc::SOAPEnvelope fault(ns_,true);
     if(fault) {
@@ -101,7 +101,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s);
   };
 
   sched_job.setStatus(NEW);

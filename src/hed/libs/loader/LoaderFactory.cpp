@@ -41,7 +41,7 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         // Identify table of descriptors
         void *ptr = NULL;
         if (!module->get_symbol(id_.c_str(), ptr)) {
-	        Loader::logger.msg(INFO, "Not a '%s' type plugin", id_.c_str());
+	        Loader::logger.msg(INFO, "Not a '%s' type plugin", id_);
 	        return NULL;
         }
         // Copy new description to a table. TODO: check for duplicate names
@@ -73,14 +73,13 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     // Load module
     Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
-      Loader::logger.msg(ERROR, "Module %s could not be loaded",
-			 libname.c_str());
+      Loader::logger.msg(ERROR, "Module %s could not be loaded", libname);
       return;
     };
     // Identify table of descriptors
     void *ptr = NULL;
     if (!module->get_symbol(id_.c_str(), ptr)) {
-	  Loader::logger.msg(INFO, "Not a '%s' type plugin", id_.c_str());
+	  Loader::logger.msg(INFO, "Not a '%s' type plugin", id_);
       return;
     }
     // Copy new description to a table. TODO: check for duplicate names

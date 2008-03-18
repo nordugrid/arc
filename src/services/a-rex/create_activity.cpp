@@ -25,7 +25,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "CreateActivity: request = \n%s", s);
   };
   Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
   if(!jsdl) {
@@ -60,7 +60,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   ARexJob job(jsdl,config,delegation,clientid);
   if(!job) {
     std::string failure = job.Failure();
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure.c_str());
+    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);
     // Failed to create new job (generic SOAP error)
     Arc::SOAPEnvelope fault(ns_,true);
     if(fault) {
@@ -81,7 +81,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s.c_str());
+    logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

@@ -409,7 +409,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"Options for plugin are missing"); goto exit;
       };
       if(!plugins.add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
-        logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name.c_str());      
+        logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);      
         goto exit;
       };
     }
@@ -453,7 +453,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         if(username.length() == 0) break;
         if(username == "*") {  /* add all gridmap users */
           if(!gridmap_user_list(rest)) {
-            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap.c_str()); goto exit;
+            logger.msg(Arc::ERROR,"Can't read users in gridmap file %s",globus_gridmap); goto exit;
           };
           continue;
         };
@@ -470,7 +470,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           JobUsers::iterator user=users.AddUser(username,&cred_plugin,
                                        control_dir,session_root);
           if(user == users.end()) { /* bad bad user */
-            logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username.c_str());
+            logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
           }
           else {
             std::string control_dir_ = control_dir;
@@ -545,7 +545,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         /* look for that user */
         JobUsers::iterator user=users.find(helper_user);
         if(user == users.end()) {
-          logger.msg(Arc::ERROR,"%s user for helper programm is not configured",helper_user.c_str());
+          logger.msg(Arc::ERROR,"%s user for helper programm is not configured",helper_user);
           goto exit;
         };
         user->substitute(rest);
@@ -583,18 +583,18 @@ exit:
 
 bool print_serviced_users(const JobUsers &users) {
   for(JobUsers::const_iterator user = users.begin();user!=users.end();++user) {
-    logger.msg(Arc::INFO,"Added user : %s",user->UnixName().c_str());
-    logger.msg(Arc::INFO,"\tSession root dir : %s",user->SessionRoot().c_str());
-    logger.msg(Arc::INFO,"\tControl dir      : %s",user->ControlDir().c_str());
-    logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS().c_str());
-    logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue().c_str());
+    logger.msg(Arc::INFO,"Added user : %s",user->UnixName());
+    logger.msg(Arc::INFO,"\tSession root dir : %s",user->SessionRoot());
+    logger.msg(Arc::INFO,"\tControl dir      : %s",user->ControlDir());
+    logger.msg(Arc::INFO,"\tdefault LRMS     : %s",user->DefaultLRMS());
+    logger.msg(Arc::INFO,"\tdefault queue    : %s",user->DefaultQueue());
     logger.msg(Arc::INFO,"\tdefault ttl      : %u",user->KeepFinished());
     if(user->CacheDir().length() != 0) {
       if(user->CacheDataDir().length() == 0) {
-        logger.msg(Arc::INFO,"\tCache dir        : %s (%s)",user->CacheDir().c_str(),user->CachePrivate()?"private":"global");
+        logger.msg(Arc::INFO,"\tCache dir        : %s (%s)",user->CacheDir(),user->CachePrivate()?"private":"global");
       } else {
-        logger.msg(Arc::INFO,"\tCache info dir   : %s (%s)",user->CacheDir().c_str(),user->CachePrivate()?"private":"global");
-        logger.msg(Arc::INFO,"\tCache data dir   : %s",user->CacheDataDir().c_str());
+        logger.msg(Arc::INFO,"\tCache info dir   : %s (%s)",user->CacheDir(),user->CachePrivate()?"private":"global");
+        logger.msg(Arc::INFO,"\tCache data dir   : %s",user->CacheDataDir());
       };
     };
   };

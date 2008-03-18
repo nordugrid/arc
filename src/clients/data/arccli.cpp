@@ -164,7 +164,7 @@ int main(int argc, char ** argv) {
 			optstring = "fd:vh";
 		else {
 			logger.msg(Arc::ERROR, "Unknown program name: %s",
-			           progname.c_str());
+			           progname);
 			return 1;
 		}
 

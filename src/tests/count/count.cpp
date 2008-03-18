@@ -69,7 +69,7 @@ Arc::MCC_Status Service_Count::process(Arc::Message& inmsg,Arc::Message& outmsg)
     logger.msg(Arc::ERROR, "input does not define operation");
     return Arc::MCC_Status(Arc::GENERIC_ERROR);
   };
-  logger.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
+  logger.msg(Arc::DEBUG, "process: operation: %s",op.Name());
   if(MatchXMLName(op, "minus")) {
     inmsg.Attributes()->set("COUNT:METHOD", "minus");
   }
@@ -95,15 +95,13 @@ Arc::MCC_Status Service_Count::process(Arc::Message& inmsg,Arc::Message& outmsg)
   // Analyzing request 
   Arc::XMLNode input1 = op["input1"];
   if(!input1) {
-    logger.msg(Arc::ERROR, "Request is not supported - %s",
-    input1.Name().c_str());
+    logger.msg(Arc::ERROR, "Request is not supported - %s", input1.Name());
     return make_fault(outmsg);
   }
 
   Arc::XMLNode input2 = op["input2"];
   if(!input2) {
-    logger.msg(Arc::ERROR, "Request is not supported - %s",
-    input2.Name().c_str());
+    logger.msg(Arc::ERROR, "Request is not supported - %s", input2.Name());
     return make_fault(outmsg);
   }
 

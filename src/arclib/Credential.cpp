@@ -154,7 +154,7 @@ namespace ArcLib {
           if(!sk_X509_insert(*certchain, tmp, n)) {
             X509_free(tmp);
             std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
-            credentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str.c_str()); LogError();
+            credentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str); LogError();
             throw CredentialError("Can not insert cert into certificate's issuer chain");
           }
           ++n;
@@ -459,12 +459,12 @@ namespace ArcLib {
 
     certbio = BIO_new_file(certfile.c_str(), "r"); 
     if(!certbio){
-      credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile.c_str()); LogError();
+      credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile); LogError();
       throw CredentialError("Can not read certificate file");
     }
     keybio = BIO_new_file(keyfile.c_str(), "r");
     if(!keybio){
-      credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile.c_str());  LogError();
+      credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile);  LogError();
       throw CredentialError("Can not read key file");
     }
 

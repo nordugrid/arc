@@ -65,15 +65,15 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
         if(!can) break;
         Arc::Config cfg_(can);
         std::string name = can.Attribute("name");
-        logger.msg(DEBUG, "PDP: %s (%d)", name.c_str(), n);
+        logger.msg(DEBUG, "PDP: %s (%d)", name, n);
         PDP* pdp = NULL;
         pdp = pdp_factory->get_instance(name,&cfg_,NULL);
         if(!pdp) { 
-            logger.msg(ERROR, "PDP: %s can not be loaded", name.c_str()); 
+            logger.msg(ERROR, "PDP: %s can not be loaded", name); 
             return false; 
         };
         if(pdps_.insert(std::make_pair(name,PDPDesc(can.Attribute("action"),pdp))).second == false) {
-            logger.msg(ERROR, "PDP: %s name is duplicate", name.c_str()); 
+            logger.msg(ERROR, "PDP: %s name is duplicate", name); 
             return false; 
         };
     } 

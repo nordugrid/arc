@@ -1300,7 +1300,7 @@ int cache_download_url_start(const char* cache_path,const char* cache_data_path,
     };
   };
   /* try to get lock on info file */
-  logger.msg(Arc::INFO,"cache_download_url_start: locking url: %s(%s)",url,fname.c_str());
+  logger.msg(Arc::INFO,"cache_download_url_start: locking url: %s(%s)",url,fname);
 
   return cache_download_file_start(cache_path,cache_data_path,cache_uid,cache_gid,fname.c_str(),id,handler);
 }
@@ -1359,7 +1359,7 @@ int cache_download_url_end(const char* cache_path,const char* /*cache_data_path*
     }
     else { 
       if(cache_replace_list(ch,handler.sname.c_str(),url) != 0) {
-        logger.msg(Arc::ERROR,"cache_download_url_end: file not found in list: %s",handler.sname.c_str());
+        logger.msg(Arc::ERROR,"cache_download_url_end: file not found in list: %s",handler.sname);
       };
       cache_close_list(ch);
     };
@@ -1441,7 +1441,7 @@ static unsigned long long int cache_clean(const char* cache_path,const char* cac
   files.sort();
   unsigned long long int total_size = 0;
   for(std::list<cache_file_p>::iterator i=files.begin();i!=files.end();++i) {
-    logger.msg(Arc::INFO,"Removing cache file: name = %s, url = %s",i->name.c_str(),url.c_str());
+    logger.msg(Arc::INFO,"Removing cache file: name = %s, url = %s",i->name,url);
     if(cache_remove_list(ch,i->name.c_str(),cache_path,cache_data_path,cache_uid,cache_gid) == 0) { 
       total_size+=i->size;
     };

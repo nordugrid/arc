@@ -78,7 +78,7 @@ bool CountPDP::isPermitted(Message *msg){
 
   std::string req_str;  
   request.GetDoc(req_str);
-  logger.msg(INFO, "Request xml structure is: %s", req_str.c_str());
+  logger.msg(INFO, "Request xml structure is: %s", req_str);
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = NULL;
@@ -98,7 +98,7 @@ bool CountPDP::isPermitted(Message *msg){
       attr = dynamic_cast<RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(INFO, "%s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(INFO, "%s", attrval->encode());
       }
     }
   } 

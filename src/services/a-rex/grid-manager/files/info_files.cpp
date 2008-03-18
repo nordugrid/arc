@@ -81,7 +81,7 @@ static bool fix_file_permissions(const std::string &fname,const JobUser &user) {
 bool fix_file_owner(const std::string &fname,const JobUser &user) {
   if(getuid() == 0) {
     if(lchown(fname.c_str(),user.get_uid(),user.get_gid()) == -1) {
-      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname.c_str());
+      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname);
       return false;
     };
   };
@@ -96,7 +96,7 @@ bool fix_file_owner(const std::string &fname,const JobDescription &desc,const Jo
       uid=user.get_uid(); gid=user.get_gid();
     };
     if(lchown(fname.c_str(),uid,gid) == -1) {
-      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname.c_str());
+      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname);
       return false;
     };
   };

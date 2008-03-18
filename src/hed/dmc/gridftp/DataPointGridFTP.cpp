@@ -24,7 +24,7 @@ namespace Arc {
     }
     else {
       logger.msg(DEBUG, "ftp_complete_callback: error: %s",
-                 globus_object_to_string(error).c_str());
+                 globus_object_to_string(error));
       it->condstatus = DataStatus::TransferError;
       it->cond.signal();
     }
@@ -40,8 +40,7 @@ namespace Arc {
     logger.msg(DEBUG, "ftp_check_callback");
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
-      logger.msg(DEBUG, "Globus error: %s",
-                 globus_object_to_string(error).c_str());
+      logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
       return;
     }
     if (eof)
@@ -54,7 +53,7 @@ namespace Arc {
     if (!res) {
       logger.msg(INFO,
                  "Registration of Globus FTP buffer failed - cancel check");
-      logger.msg(DEBUG, "Globus error: %s", res.str().c_str());
+      logger.msg(DEBUG, "Globus error: %s", res.str());
       globus_ftp_client_abort(&(it->ftp_handle));
       return;
     }
@@ -75,7 +74,7 @@ namespace Arc {
                                  &size, &ftp_complete_callback, this);
     if (!res) {
       logger.msg(DEBUG, "check_ftp: globus_ftp_client_size failed");
-      logger.msg(INFO, "Globus error: %s", res.str().c_str());
+      logger.msg(INFO, "Globus error: %s", res.str());
     }
     else if (!cond.wait(300000)) { /* 5 minutes timeout */
       logger.msg(INFO, "check_ftp: timeout waiting for size");
@@ -92,7 +91,7 @@ namespace Arc {
     if (!res) {
       logger.msg(DEBUG,
                  "check_ftp: globus_ftp_client_modification_time failed");
-      logger.msg(INFO, "Globus error: %s", res.str().c_str());
+      logger.msg(INFO, "Globus error: %s", res.str());
     }
     else if (!cond.wait(300000)) { /* 5 minutes timeout */
       logger.msg(INFO, "check_ftp: timeout waiting for modification_time");
@@ -113,7 +112,7 @@ namespace Arc {
                                           &ftp_complete_callback, this);
       if (!res) {
         logger.msg(DEBUG, "check_ftp: globus_ftp_client_get failed");
-        logger.msg(INFO, "Globus error: %s", res.str().c_str());
+        logger.msg(INFO, "Globus error: %s", res.str());
         return DataStatus::CheckError;
       }
       // use eof_flag to pass result from callback
@@ -155,7 +154,7 @@ namespace Arc {
                                    &ftp_opattr, &ftp_complete_callback, this);
     if(!res) {
       logger.msg(DEBUG, "delete_ftp: globus_ftp_client_delete failed");
-      logger.msg(INFO, "Globus error: %s", res.str().c_str());
+      logger.msg(INFO, "Globus error: %s", res.str());
       return DataStatus::DeleteError;
     }
     if(!cond.wait(300000)) { /* 5 minutes timeout */
@@ -205,12 +204,12 @@ namespace Arc {
     for(;;) {
       if (!add_last_dir(ftp_dir_path, url.str()))
         break;
-      logger.msg(DEBUG, "mkdir_ftp: making %s", ftp_dir_path.c_str());
+      logger.msg(DEBUG, "mkdir_ftp: making %s", ftp_dir_path);
       GlobusResult res =
         globus_ftp_client_mkdir(&ftp_handle, ftp_dir_path.c_str(), &ftp_opattr,
                                 &ftp_complete_callback, this);
       if(!res) {
-        logger.msg(INFO, "Globus error: %s", res.str().c_str());
+        logger.msg(INFO, "Globus error: %s", res.str());
         return false;
       }
       if (!cond.wait(300000)) {
@@ -246,13 +245,12 @@ namespace Arc {
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
     GlobusResult res;
     if ((additional_checks) && (!(CheckSize()))) {
-      logger.msg(DEBUG, "start_reading_ftp: size: url: %s",
-                 url.str().c_str());
+      logger.msg(DEBUG, "start_reading_ftp: size: url: %s", url.str());
       res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
                                    &size, &ftp_complete_callback, this);
       if (!res) {
         logger.msg(ERROR, "start_reading_ftp: failure");
-        logger.msg(INFO, "Globus error: %s", res.str().c_str());
+        logger.msg(INFO, "Globus error: %s", res.str());
         // globus_ftp_client_handle_flush_url_state(&ftp_handle,
         //                                          url.str().c_str());
         // buffer->error_read(true);
@@ -293,7 +291,7 @@ namespace Arc {
       if (!res) {
         logger.msg(DEBUG, "start_reading_ftp: "
                    "globus_ftp_client_modification_time failed");
-        logger.msg(INFO, "Globus error: %s", res.str().c_str());
+        logger.msg(INFO, "Globus error: %s", res.str());
         // buffer->error_read(true);
         // reading = false;
         // return DataStatus::ReadStartError;
@@ -322,7 +320,7 @@ namespace Arc {
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
         SetCreated(modify_time);
         logger.msg(DEBUG, "start_reading_ftp: creation time: %s",
-                   GetCreated().str().c_str());
+                   GetCreated().str());
       }
       if (limit_length) {
         if ((unsigned long long int)size < range_end) {
@@ -351,7 +349,7 @@ namespace Arc {
                                   &ftp_get_complete_callback, this);
     if(!res) {
       logger.msg(DEBUG, "start_reading_ftp: globus_ftp_client_get failed");
-      logger.msg(INFO, "Globus error: %s", res.str().c_str());
+      logger.msg(INFO, "Globus error: %s", res.str());
       globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
       buffer->error_read(true);
       reading = false;
@@ -382,7 +380,7 @@ namespace Arc {
     }
     logger.msg(DEBUG, "stop_reading_ftp: waiting for transfer to finish");
     cond.wait();
-    logger.msg(DEBUG, "stop_reading_ftp: exiting: %s", url.str().c_str());
+    logger.msg(DEBUG, "stop_reading_ftp: exiting: %s", url.str());
     globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
     return DataStatus::Success;
   }
@@ -401,7 +399,7 @@ namespace Arc {
       if (!it->buffer->for_read(h, l, true)) { /* eof or error */
         if (it->buffer->error()) { /* error -> abort reading */
           logger.msg(DEBUG, "ftp_read_thread: for_read failed - aborting: %s",
-                     it->url.str().c_str());
+                     it->url.str());
           globus_ftp_client_abort(&(it->ftp_handle));
         }
         break;
@@ -411,8 +409,7 @@ namespace Arc {
                                         (globus_byte_t*)((*(it->buffer))[h]),
                                         l, &(it->ftp_read_callback), it);
       if (!res) {
-        logger.msg(VERBOSE, "ftp_read_thread: Globus error: %s",
-                   res.str().c_str());
+        logger.msg(VERBOSE, "ftp_read_thread: Globus error: %s", res.str());
         registration_failed++;
         if (registration_failed >= 10) {
           it->buffer->is_read(h, 0, 0);
@@ -421,12 +418,12 @@ namespace Arc {
           it->buffer->eof_read(true);
           logger.msg(VERBOSE, "ftp_read_thread: "
                      "too many registration failures - abort: %s",
-                     it->url.str().c_str());
+                     it->url.str());
         }
         else {
           logger.msg(VERBOSE, "ftp_read_thread: "
                      "failed to register globus buffer - will try later: %s",
-                     it->url.str().c_str());
+                     it->url.str());
           it->buffer->is_read(h, 0, 0);
           sleep(1);
         }
@@ -471,8 +468,7 @@ namespace Arc {
     /* data transfer finished */
     if(error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to get ftp file");
-      logger.msg(DEBUG, "Globus error: %s",
-                 globus_object_to_string(error).c_str());
+      logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
       it->buffer->error_read(true);
       return;
     }
@@ -518,7 +514,7 @@ namespace Arc {
                                   &ftp_put_complete_callback, this);
     if (!res) {
       logger.msg(DEBUG, "start_writing_ftp: put failed");
-      logger.msg(INFO, "Globus error: %s", res.str().c_str());
+      logger.msg(INFO, "Globus error: %s", res.str());
       globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
       buffer->error_write(true);
       writing = false;
@@ -618,8 +614,7 @@ namespace Arc {
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to store ftp file");
-      logger.msg(DEBUG, "Globus error: %s",
-                 globus_object_to_string(error).c_str());
+      logger.msg(DEBUG, "Globus error: %s", globus_object_to_string(error));
       it->buffer->error_write(true);
       return;
     }
@@ -635,8 +630,7 @@ namespace Arc {
       return DataStatus::IsWritingError;
     Lister lister;
     if (lister.retrieve_dir(url) != 0) {
-      logger.msg(ERROR, "Failed to obtain listing from ftp: %s",
-                 url.str().c_str());
+      logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
       return DataStatus::ListError;
     }
     lister.close_connection();
@@ -657,13 +651,12 @@ namespace Arc {
         if(i->CheckSize())
           f->SetSize(i->GetSize());
         else if(i->GetType() != FileInfo::file_type_dir) {
-          logger.msg(VERBOSE, "list_files_ftp: looking for size of %s",
-                     f_url.c_str());
+          logger.msg(VERBOSE, "list_files_ftp: looking for size of %s", f_url);
           res = globus_ftp_client_size(&ftp_handle, f_url.c_str(), &ftp_opattr,
                                        &size, &ftp_complete_callback, this);
           if(!res) {
             logger.msg(DEBUG, "list_files_ftp: globus_ftp_client_size failed");
-            logger.msg(INFO, "Globus error %s", res.str().c_str());
+            logger.msg(INFO, "Globus error %s", res.str());
             result = DataStatus::ListError;
           }
           else if(!cond.wait(300000)) { /* 5 minutes timeout */
@@ -688,7 +681,7 @@ namespace Arc {
           f->SetCreated(i->GetCreated());
         else {
           logger.msg(VERBOSE, "list_files_ftp: "
-                     "looking for modification time of %s", f_url.c_str());
+                     "looking for modification time of %s", f_url);
           res =
             globus_ftp_client_modification_time(&ftp_handle, f_url.c_str(),
                                                 &ftp_opattr, &gl_modify_time,
@@ -696,7 +689,7 @@ namespace Arc {
           if (!res) {
             logger.msg(DEBUG, "list_files_ftp: "
                        "globus_ftp_client_modification_time failed");
-            logger.msg(INFO, "Globus error: %s", res.str().c_str());
+            logger.msg(INFO, "Globus error: %s", res.str());
             result = DataStatus::ListError;
           }
           else if (!cond.wait(300000)) { /* 5 minutes timeout */
@@ -735,7 +728,7 @@ namespace Arc {
       if (!(res = globus_ftp_client_handleattr_init(&ftp_attr))) {
         logger.msg(ERROR,
                    "init_handle: globus_ftp_client_handleattr_init failed");
-        logger.msg(ERROR, "Globus error: %s", res.str().c_str());
+        logger.msg(ERROR, "Globus error: %s", res.str());
         ftp_active = false;
         return;
       }
@@ -743,14 +736,14 @@ namespace Arc {
                                                           GLOBUS_TRUE))) {
         logger.msg(ERROR,"init_handle: "
                    "globus_ftp_client_handleattr_set_gridftp2 failed");
-        logger.msg(ERROR, "Globus error: %s", res.str().c_str());
+        logger.msg(ERROR, "Globus error: %s", res.str());
         ftp_active = false;
         return;
       }
       if (!(res = globus_ftp_client_handle_init(&ftp_handle, &ftp_attr))) {
         globus_ftp_client_handleattr_destroy(&ftp_attr);
         logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
-        logger.msg(ERROR, "Globus error: %s", res.str().c_str());
+        logger.msg(ERROR, "Globus error: %s", res.str());
         ftp_active = false;
         return;
       }
@@ -758,7 +751,7 @@ namespace Arc {
 #else
       if (!(res = globus_ftp_client_handle_init(&ftp_handle, GLOBUS_NULL))) {
         logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
-        logger.msg(ERROR, "Globus error: %s", res.str().c_str());
+        logger.msg(ERROR, "Globus error: %s", res.str());
         ftp_active = false;
         return;
       }
@@ -766,7 +759,7 @@ namespace Arc {
       if (!(res = globus_ftp_client_operationattr_init(&ftp_opattr))) {
         logger.msg(ERROR, "init_handle: "
                    "globus_ftp_client_operationattr_init failed");
-        logger.msg(ERROR, "Globus error: %s", res.str().c_str());
+        logger.msg(ERROR, "Globus error: %s", res.str());
         globus_ftp_client_handle_destroy(&ftp_handle);
         ftp_active = false;
         return;

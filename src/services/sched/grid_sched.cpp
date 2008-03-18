@@ -83,7 +83,7 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
+    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name());
     // BES Factory operations
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     Arc::PayloadSOAP& res = *outpayload;
@@ -139,14 +139,14 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
           return make_soap_fault(outmsg);
         };
     } else {
-        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
+        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         return make_soap_fault(outmsg);
     
     }
     // DEBUG 
     std::string str;
     outpayload->GetXML(str);
-    logger_.msg(Arc::DEBUG, "process: response=%s",str.c_str());
+    logger_.msg(Arc::DEBUG, "process: response=%s",str);
     
     // Set output
     outmsg.Payload(outpayload);

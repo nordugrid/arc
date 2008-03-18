@@ -103,11 +103,11 @@ void JSDLJob::set_posix(void) {
 
 std::string s;
 jsdl_document.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: %s",s.c_str());
+logger.msg(Arc::INFO, "JSDL: %s",s);
 jsdl_posix.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: POSIX: %s",s.c_str());
+logger.msg(Arc::INFO, "JSDL: POSIX: %s",s);
 jsdl_hpcpa.GetXML(s);
-logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s.c_str());
+logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s);
 
 }
 
@@ -613,7 +613,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   char c = arguments.begin()->c_str()[0];
   if((c != '/') && (c != '$')){
     if(canonical_dir(*(arguments.begin())) != 0) {
-      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*(arguments.begin())).c_str());
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*(arguments.begin())));
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*(arguments.begin())),true);
@@ -622,7 +622,7 @@ bool JSDLJob::set_execs(const std::string &session_dir) {
   if(!get_execs(execs)) return false;
   for(std::list<std::string>::iterator i = execs.begin();i!=execs.end();++i) {
     if(canonical_dir(*i) != 0) {
-      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*i).c_str()); 
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", (*i)); 
       return false;
     };
     fix_file_permissions(session_dir+"/"+(*i));
@@ -664,7 +664,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDOUT; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for stdout: %s", s.c_str());
+      logger.msg(Arc::WARNING, "Bad name for stdout: %s", s);
       return false;
     };
     s=session_dir+s;
@@ -674,7 +674,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDERR; }
   else {
     if(canonical_dir(s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for stderr: %s", s.c_str());
+      logger.msg(Arc::WARNING, "Bad name for stderr: %s", s);
       return false;
     };
     s=session_dir+s;
@@ -725,7 +725,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string tmp_s = *i;
     for(int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for runtime environemnt: %s", (*i).c_str());
+      logger.msg(Arc::WARNING, "Bad name for runtime environemnt: %s", (*i));
       return false;
     };
     f<<"joboption_runtime_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;

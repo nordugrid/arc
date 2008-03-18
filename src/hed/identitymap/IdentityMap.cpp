@@ -98,7 +98,7 @@ IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHan
       Arc::Config cfg_(p);
       ArcSec::PDP* pdp = pdp_factory->get_instance(name,&cfg_,NULL);
       if(!pdp) {
-        logger.msg(Arc::ERROR, "PDP: %s can not be loaded", name.c_str());
+        logger.msg(Arc::ERROR, "PDP: %s can not be loaded", name);
         continue;
       };
       map_pair_t m;
@@ -120,7 +120,7 @@ bool IdentityMap::Handle(Arc::Message* msg){
   for(std::list<map_pair_t>::iterator p = maps_.begin();p!=maps_.end();++p) {
     if(p->pdp->isPermitted(msg)) {
       std::string id = p->uid->ID(msg);
-      logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",id.c_str());
+      logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",id);
       msg->Attributes()->set("SEC:LOCALID",id);
       return true;  
     };

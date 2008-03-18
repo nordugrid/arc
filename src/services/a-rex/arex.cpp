@@ -110,7 +110,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     logger_.msg(Arc::ERROR, "No local account name specified");
     return NULL;
   };
-  logger_.msg(Arc::VERBOSE,"Using local account '%s'",uname.c_str());
+  logger_.msg(Arc::VERBOSE,"Using local account '%s'",uname);
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   std::string endpoint = endpoint_;
   if(endpoint.empty()) {
@@ -146,8 +146,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
-  logger_.msg(Arc::DEBUG, "process: method: %s", method.c_str());
-  logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint.c_str());
+  logger_.msg(Arc::DEBUG, "process: method: %s", method);
+  logger_.msg(Arc::DEBUG, "process: endpoint: %s", endpoint);
   if(id.length() < endpoint.length()) {
     if(endpoint.substr(endpoint.length()-id.length()) == id) {
       endpoint.resize(endpoint.length()-id.length());
@@ -163,8 +163,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       while(subpath[0] == '/') subpath=subpath.substr(1);
     };
   };
-  logger_.msg(Arc::DEBUG, "process: id: %s", id.c_str());
-  logger_.msg(Arc::DEBUG, "process: subpath: %s", subpath.c_str());
+  logger_.msg(Arc::DEBUG, "process: id: %s", id);
+  logger_.msg(Arc::DEBUG, "process: subpath: %s", subpath);
 
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
@@ -197,7 +197,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name().c_str());
+    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name());
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
     if(id.empty()) {
@@ -239,13 +239,13 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           return make_soap_fault(outmsg);
         };
       } else {
-        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name().c_str());
+        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         return make_soap_fault(outmsg);
       };
       {
         std::string str;
         outpayload->GetXML(str);
-        logger_.msg(Arc::DEBUG, "process: response=%s",str.c_str());
+        logger_.msg(Arc::DEBUG, "process: response=%s",str);
       };
       outmsg.Payload(outpayload);
     } else {
@@ -284,7 +284,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_response(outmsg);
     } else {
       delete inmsg.Payload();
-      logger_.msg(Arc::DEBUG, "process: %s: not supported",method.c_str());
+      logger_.msg(Arc::DEBUG, "process: %s: not supported",method);
       return Arc::MCC_Status();
     };
   };

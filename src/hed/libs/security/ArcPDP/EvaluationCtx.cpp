@@ -303,7 +303,7 @@ void EvaluationCtx::split(){
               AttributeValue *attr;
               attr = (*it)->getAttributeValue();
               if(attr!=NULL) 
-                logger.msg(INFO, "%s", (attr->encode()).c_str());
+                logger.msg(INFO, "%s", attr->encode());
             }
           }
         }

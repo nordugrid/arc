@@ -90,7 +90,7 @@ static void* cache_func(void* arg) {
         proc->KeepStderr();
         proc->KeepStdin();
         if(!proc->Start()) {
-          logger.msg(Arc::ERROR,"Failed to run cache registration routine: %s",cmd.c_str());
+          logger.msg(Arc::ERROR,"Failed to run cache registration routine: %s",cmd);
         };
       };
     };
@@ -187,7 +187,7 @@ static void grid_manager(void* arg) {
   };
   my_user = new JobUser(my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user,&daemon)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
+    logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc);
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING."); return;
   };
   if(users.size() == 0) {
@@ -200,7 +200,7 @@ static void grid_manager(void* arg) {
   //  perror("Error - daemonization failed");
   //  exit(1);
   //}; 
-  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc.c_str());
+  logger.msg(Arc::INFO,"Used configuration file %s",nordugrid_config_loc);
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();
@@ -281,7 +281,7 @@ static void grid_manager(void* arg) {
              session and control directories */
           for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
             std::list<FileData> flist;
-            logger.msg(Arc::INFO,"Cleaning all files in directories %s and %s",user->SessionRoot().c_str(),user->ControlDir().c_str());
+            logger.msg(Arc::INFO,"Cleaning all files in directories %s and %s",user->SessionRoot(),user->ControlDir());
             delete_all_files(user->SessionRoot(),flist,true);
             delete_all_files(user->ControlDir(),flist,true);
           };

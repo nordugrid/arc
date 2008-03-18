@@ -101,7 +101,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
 bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid){
   /* jobs should be unique */
   if(FindJob(id) != jobs.end()) return false;
-  logger.msg(Arc::INFO,"%s: Added",id.c_str());
+  logger.msg(Arc::INFO,"%s: Added",id);
   iterator i=jobs.insert(jobs.end(),
          JobDescription(id,user->SessionRoot() + "/" + id));
   i->keep_finished=user->KeepFinished();
@@ -171,11 +171,11 @@ bool JobsList::DestroyJobs(bool finished,bool active) {
 
 /* returns false if had to run external process */
 bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
-  logger.msg(Arc::INFO,"%s: Destroying",i->job_id.c_str());
+  logger.msg(Arc::INFO,"%s: Destroying",i->job_id);
   job_state_t new_state=i->job_state;
   if(new_state == JOB_STATE_UNDEFINED) {
     if((new_state=job_state_read_file(i->job_id,*user))==JOB_STATE_UNDEFINED) {
-      logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id.c_str());
+      logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
       job_clean_final(*i,*user);
       if(i->local) { delete i->local; }; i=jobs.erase(i);
       return true;
@@ -186,21 +186,21 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if(!active) { ++i; return true; };
   if((new_state != JOB_STATE_INLRMS) || 
      (job_lrms_mark_check(i->job_id,*user))) {
-    logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id.c_str());
+    logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
     job_clean_final(*i,*user);
     if(i->local) { delete i->local; }; i=jobs.erase(i);
     return true;
   };
-  logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id.c_str());
+  logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id);
   bool state_changed = false;
   if(!state_submiting(i,state_changed,true)) {
-    logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id.c_str());
+    logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id);
     job_clean_final(*i,*user);
     if(i->local) { delete i->local; }; i=jobs.erase(i);
     return true;
   };
   if(!state_changed) { ++i; return false; }; /* child still running */
-  logger.msg(Arc::INFO,"%s: Cancelation probably succeeded - cleaning",i->job_id.c_str());
+  logger.msg(Arc::INFO,"%s: Cancelation probably succeeded - cleaning",i->job_id);
   job_clean_final(*i,*user);
   if(i->local) { delete i->local; };
   i=jobs.erase(i);
@@ -223,7 +223,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
   if(!(i->local)) {
     JobLocalDescription *job_desc = new JobLocalDescription;
     if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-      logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id.c_str());
+      logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id);
       delete job_desc;
     }
     else {
@@ -239,7 +239,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
 
 bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
   if(!i->GetLocalDescription(*user)) {
-    logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id);
     return false;
   };
   return true;
@@ -254,7 +254,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     else {
       job_desc=new JobLocalDescription;
       if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-        logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id);
         if(!cancel) i->AddFailure("Internal error: can't read local file");
         delete job_desc;
         return false;
@@ -267,11 +267,11 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
         local_transfer_s="joboption_localtransfer=yes";
       };
       if(!write_grami(*i,*user,local_transfer_s)) {
-        logger.msg(Arc::ERROR,"%s: Failed creating grami file.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed creating grami file.",i->job_id);
         return false;
       };
       if(!set_execs(*i,*user,i->SessionDir())) {
-        logger.msg(Arc::ERROR,"%s: Failed setting executable permissions.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed setting executable permissions.",i->job_id);
         return false;
       };
       /* precreate file to store diagnostics from lrms */
@@ -283,9 +283,9 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     if(cancel) { cmd=nordugrid_libexec_loc+"/cancel-"+job_desc->lrms+"-job"; }
     else { cmd=nordugrid_libexec_loc+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: starting child: ",i->job_id.c_str(),cmd.c_str());
+      logger.msg(Arc::INFO,"%s: state SUBMITING: starting child: ",i->job_id,cmd);
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: ",i->job_id.c_str(),cmd.c_str());
+      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: ",i->job_id,cmd);
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
     char* args[3] ={ (char*)cmd.c_str(), (char*)grami.c_str(), NULL };
@@ -293,9 +293,9 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     if(!RunParallel::run(*user,*i,args,&(i->child))) {
       if(!cancel) {
         i->AddFailure("Failed initiating job submission to LRMS");
-        logger.msg(Arc::ERROR,"%s: Failed running submission process.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed running submission process.",i->job_id);
       } else {
-        logger.msg(Arc::ERROR,"%s: Failed running cancel process.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed running cancel process.",i->job_id);
       };
       return false;
     };
@@ -308,17 +308,17 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       return true;
     };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: child exited with code %i",i->job_id.c_str(),i->child->Result());
+      logger.msg(Arc::INFO,"%s: state SUBMITING: child exited with code %i",i->job_id,i->child->Result());
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id.c_str(),i->child->Result());
+      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
     };
     if(cancel) job_diagnostics_mark_move(*i,*user);
     if(i->child->Result() != 0) { 
       if(!cancel) {
-        logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed.",i->job_id);
         JobFailStateRemember(i,JOB_STATE_SUBMITING);
       } else {
-        logger.msg(Arc::ERROR,"%s: Failed to cancel running job.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed to cancel running job.",i->job_id);
       };
       delete i->child; i->child=NULL;
       if(!cancel) i->AddFailure("Job submission to LRMS failed");
@@ -329,7 +329,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       /* success code - get LRMS job id */
       std::string local_id=read_grami(i->job_id,*user);
       if(local_id.length() == 0) {
-        logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id.",i->job_id);
         i->AddFailure("Failed extracting LRMS ID due to some internal error");
         JobFailStateRemember(i,JOB_STATE_SUBMITING);
         return false;
@@ -345,7 +345,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       else { job_desc=new JobLocalDescription; };
       if(i->local == NULL) {
         if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-          logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id.c_str());
+          logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id);
           i->AddFailure("Internal error");
           delete job_desc; return false;
         };
@@ -355,7 +355,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       i->local->localid=local_id;
       if(!job_local_write_file(*i,*user,*(i->local))) {
         i->AddFailure("Internal error");
-        logger.msg(Arc::ERROR,"%s: Failed writing local information.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Failed writing local information.",i->job_id);
         return false;
       };
     };
@@ -369,7 +369,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   /* RSL was analyzed/parsed - now run child process downloader
      to download job input files and to wait for user uploaded ones */
   if(i->child == NULL) { /* no child started */
-    logger.msg(Arc::INFO,"%s: state: PREPARING/FINISHING: starting new child",i->job_id.c_str());
+    logger.msg(Arc::INFO,"%s: state: PREPARING/FINISHING: starting new child",i->job_id);
     /* no child was running yet, or recovering from fault */
     /* run it anyway and exit code will give more inforamtion */
     bool switch_user = (user->CachePrivate() || user->StrictSession());
@@ -459,12 +459,12 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
         };
       };
     };
-    if(!up) { logger.msg(Arc::INFO,"%s: State PREPARING: starting child: %s",i->job_id.c_str(),args[0]); }
-    else { logger.msg(Arc::INFO,"%s: State FINISHING: starting child: %s",i->job_id.c_str(),args[0]); };
+    if(!up) { logger.msg(Arc::INFO,"%s: State PREPARING: starting child: %s",i->job_id,args[0]); }
+    else { logger.msg(Arc::INFO,"%s: State FINISHING: starting child: %s",i->job_id,args[0]); };
     job_errors_mark_put(*i,*user);
     job_restart_mark_remove(i->job_id,*user);
     if(!RunParallel::run(*user,*i,args,&(i->child),switch_user)) {
-      logger.msg(Arc::ERROR,"%s: Failed to run down/uploader process.",i->job_id.c_str());
+      logger.msg(Arc::ERROR,"%s: Failed to run down/uploader process.",i->job_id);
       if(up) {
         i->AddFailure("Failed to run uploader (post-processing)");
       } else {
@@ -474,21 +474,21 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
   } else {
     if(i->child->Running()) {
-      logger.msg(Arc::INFO,"%s: State: PREPARING/FINISHING: child is running",i->job_id.c_str());
+      logger.msg(Arc::INFO,"%s: State: PREPARING/FINISHING: child is running",i->job_id);
       /* child is running - come later */
       return true;
     };
     /* child was run - check exit code */
-    if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id.c_str(),i->child->Result()); }
-    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: ",i->job_id.c_str(),i->child->Result()); };
+    if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id,i->child->Result()); }
+    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: ",i->job_id,i->child->Result()); };
     if(i->child->Result() != 0) { 
       if(i->child->Result() == 1) { 
         /* unrecoverable failure detected - all we can do is to kill the job */
         if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING unrecoverable error detected (exit code 1)",i->job_id.c_str());
+          logger.msg(Arc::ERROR,"%s: State: FINISHING unrecoverable error detected (exit code 1)",i->job_id);
           i->AddFailure("Failed in files upload (post-processing)");
         } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id.c_str());
+          logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id);
           i->AddFailure("Failed in files download (pre-processing)");
         };
       } else if(i->child->Result() == 3) {
@@ -518,18 +518,18 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
         };
 #endif
         if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING: credentials probably expired (exit code 3)",i->job_id.c_str());
+          logger.msg(Arc::ERROR,"%s: State: FINISHING: credentials probably expired (exit code 3)",i->job_id);
           i->AddFailure("Failed in files upload due to expired credentials - try to renew");
         } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: credentials probably expired (exit code 3)",i->job_id.c_str());
+          logger.msg(Arc::ERROR,"%s: State: PREPARING: credentials probably expired (exit code 3)",i->job_id);
           i->AddFailure("Failed in files download due to expired credentials - try to renew");
         };
       } else {
         if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->Result());
+          logger.msg(Arc::ERROR,"%s: State: FINISHING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,i->child->Result());
           i->AddFailure("Failed in files upload (post-processing)");
         } else {
-          logger.msg(Arc::ERROR,"%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id.c_str(),i->child->Result());
+          logger.msg(Arc::ERROR,"%s: State: PREPARING: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,i->child->Result());
           i->AddFailure("Failed in files download (pre-processing)");
         };
       };
@@ -563,7 +563,7 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
     if(!strcmp(states_all[n].name,i->local->failedstate.c_str())) {
       i->local->failedstate="";
       if(i->local->reruns <= 0) {
-        logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore.",i->job_id);
         job_local_write_file(*i,*user,*(i->local));
         return JOB_STATE_UNDEFINED;
       };
@@ -572,7 +572,7 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
       return states_all[n].id;
     };
   };
-  logger.msg(Arc::ERROR,"%s: Job failed in unknow state. Won't rerun.",i->job_id.c_str());
+  logger.msg(Arc::ERROR,"%s: Job failed in unknow state. Won't rerun.",i->job_id);
   i->local->failedstate="";
   job_local_write_file(*i,*user,*(i->local));
   return JOB_STATE_UNDEFINED;
@@ -588,28 +588,28 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   if(!GetLocalDescription(i)) return false;
   // keep current lists
   if(!job_output_read_file(i->job_id,*user,fl_old)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read list of output files.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Failed to read list of output files.",i->job_id);
     return false;
   };
   if(!job_input_read_file(i->job_id,*user,fi_old)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read list of input files.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Failed to read list of input files.",i->job_id);
     return false;
   };
   // recreate lists by reprocessing RSL 
   JobLocalDescription job_desc; // placeholder
   if(!process_job_req(*user,*i,job_desc)) {
-    logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed.",i->job_id);
     return false;
   };
   // Restore 'local'
   if(!job_local_write_file(*i,*user,*(i->local))) return false;
   // Read new lists
   if(!job_output_read_file(i->job_id,*user,fl_new)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of output files.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of output files.",i->job_id);
     return false;
   };
   if(!job_input_read_file(i->job_id,*user,fi_new)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of input files.",i->job_id.c_str());
+    logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of input files.",i->job_id);
     return false;
   };
   // remove uploaded files
@@ -645,7 +645,7 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   if(!(i->local)) {
     JobLocalDescription *job_desc = new JobLocalDescription;
     if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-      logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id.c_str());
+      logger.msg(Arc::ERROR,"%s: Failed reading local information.",i->job_id);
       delete job_desc; return false;
     }
     else {
@@ -672,7 +672,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
         if((JOB_NUM_ACCEPTED < max_jobs) || (max_jobs == -1)) {
           job_state_t new_state=job_state_read_file(i->job_id,*user);
           if(new_state == JOB_STATE_UNDEFINED) { /* something failed */
-            logger.msg(Arc::ERROR,"%s: Reading status of new job failed.",i->job_id.c_str());
+            logger.msg(Arc::ERROR,"%s: Reading status of new job failed.",i->job_id);
             job_error=true; i->AddFailure("Failed reading status of the job");
             return;
           };
@@ -690,9 +690,9 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
             job_desc = new JobLocalDescription;
             job_desc->sessiondir=i->session_dir;
             /* first phase of job - just  accepted - parse request */
-            logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing RSL",i->job_id.c_str());
+            logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing RSL",i->job_id);
             if(!process_job_req(*user,*i,*job_desc)) {
-              logger.msg(Arc::ERROR,"%s: Processing RSL failed.",i->job_id.c_str());
+              logger.msg(Arc::ERROR,"%s: Processing RSL failed.",i->job_id);
               job_error=true; i->AddFailure("Could not process RSL");
               delete job_desc;
               return; /* go to next job */
@@ -720,13 +720,13 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
       /* accepted state - job was just accepted by jobmager-ng and we already
          know that it is accepted - now we are analyzing/parsing request,
          or it can also happen we are waiting for user specified time */
-        logger.msg(Arc::INFO,"%s: State: ACCEPTED",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: ACCEPTED",i->job_id);
         if(!GetLocalDescription(i)) {
           job_error=true; i->AddFailure("Internal error");
           return; /* go to next job */
         };
         if(i->local->dryrun) {
-          logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id.c_str());
+          logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
           i->AddFailure("User requested dryrun. Job skiped.");
           job_error=true; 
           return; /* go to next job */
@@ -742,13 +742,13 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: have processtime %i",i->job_id.c_str(),
                   i->local->processtime.str().c_str());
             if((i->local->processtime) <= time(NULL)) {
-              logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id.c_str());
+              logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_PREPARING;
             };
           }
           else {
-            logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id.c_str());
+            logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
             state_changed=true; once_more=true;
             i->job_state = JOB_STATE_PREPARING;
           };
@@ -769,7 +769,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         /* preparing state - means job is parsed and we are going to download or
            already downloading input files. process downloader is run for
            that. it also checks for files user interface have to upload itself*/
-        logger.msg(Arc::INFO,"%s: State: PREPARING",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: PREPARING",i->job_id);
         if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
             if((JOB_NUM_RUNNING<max_jobs_running) || (max_jobs_running==-1)) {
@@ -794,7 +794,7 @@ void JobsList::ActJobSubmiting(JobsList::iterator &i,bool /*hard_job*/,
                                bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
            so run submission */
-        logger.msg(Arc::INFO,"%s: State: SUBMITTING",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: SUBMITTING",i->job_id);
         if(state_submiting(i,state_changed)) {
           if(state_changed) {
             i->job_state = JOB_STATE_INLRMS;
@@ -811,7 +811,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         /* This state is like submitting, only -rm instead of -submit */
-        logger.msg(Arc::INFO,"%s: State: CANCELING",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: CANCELING",i->job_id);
         if(state_submiting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
@@ -825,7 +825,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                             bool& once_more,bool& /*delete_job*/,
                             bool& job_error,bool& state_changed) {
-        logger.msg(Arc::INFO,"%s: State: INLRMS",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: INLRMS",i->job_id);
         if(!GetLocalDescription(i)) {
           i->AddFailure("Failed reading local job information");
           job_error=true;
@@ -833,11 +833,11 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
         };
         if(i->job_pending || job_lrms_mark_check(i->job_id,*user)) {
           if(!i->job_pending) {
-            logger.msg(Arc::INFO,"%s: Job finished.",i->job_id.c_str());
+            logger.msg(Arc::INFO,"%s: Job finished.",i->job_id);
             job_diagnostics_mark_move(*i,*user);
             LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
             if(ec.code() != 0) {
-              logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id.c_str(),ec.code(),ec.description().c_str());
+              logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
               /*
               * check if not asked to rerun job *
               JobLocalDescription *job_desc = i->local;
@@ -846,7 +846,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
                 job_desc->localid="";
                 job_local_write_file(*i,*user,*job_desc);
                 job_lrms_mark_remove(i->job_id,*user);
-                logger.msg(Arc::INFO,"%s: State: INLRMS: job restarted",i->job_id.c_str());
+                logger.msg(Arc::INFO,"%s: State: INLRMS: job restarted",i->job_id);
                 i->job_state = JOB_STATE_SUBMITING; 
                 // INLRMS slot is already taken by this job, so resubmission
                 // can be done without any checks
@@ -884,7 +884,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
 void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        logger.msg(Arc::INFO,"%s: State: FINISHING",i->job_id.c_str());
+        logger.msg(Arc::INFO,"%s: State: FINISHING",i->job_id);
         if(state_loading(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHED;
@@ -919,7 +919,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                               bool& /*once_more*/,bool& /*delete_job*/,
                               bool& /*job_error*/,bool& state_changed) {
         if(job_clean_mark_check(i->job_id,*user)) {
-          logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting.",i->job_id.c_str());
+          logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting.",i->job_id);
           /* delete everything */
           job_clean_final(*i,*user);
         } else {
@@ -959,7 +959,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
                 return;
               };
             } else {
-              logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state.",i->job_id.c_str());
+              logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state.",i->job_id);
             };
           };
           if(hard_job) { /* try to minimize load */
@@ -970,7 +970,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
             };
             /* check if it is not time to remove that job completely */
             if((time(NULL)-t) >= 0) {
-              logger.msg(Arc::INFO,"%s: Job is too old - deleting.",i->job_id.c_str());
+              logger.msg(Arc::INFO,"%s: Job is too old - deleting.",i->job_id);
               if(i->keep_deleted) {
                 job_clean_deleted(*i,*user);
                 i->job_state = JOB_STATE_DELETED;
@@ -998,7 +998,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,bool hard_job,
           } else {
             /* check if it is not time to remove remnants of that */
             if((time(NULL)-(t+i->keep_deleted)) >= 0) {
-              logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information.",i->job_id.c_str());
+              logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information.",i->job_id);
               /* delete everything */
               job_clean_final(*i,*user);
             };
@@ -1030,7 +1030,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
        (i->job_state != JOB_STATE_FINISHED) &&
        (i->job_state != JOB_STATE_DELETED)) {
       if(job_cancel_mark_check(i->job_id,*user)) {
-        logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id.c_str(),user->UnixName().c_str());
+        logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
         /* kill running child */
         if(i->child) { 
           i->child->Kill(0);
@@ -1096,7 +1096,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         job_error=false;
         // always cause rerun - in order not to loose state change
         // Failed job - move it to proper state
-        logger.msg(Arc::ERROR,"%s: Job failure detected.",i->job_id.c_str());
+        logger.msg(Arc::ERROR,"%s: Job failure detected.",i->job_id);
         if(!FailedJob(i)) { /* something is really wrong */
           i->AddFailure("Failed during processing failure");
           delete_job=true;
@@ -1151,7 +1151,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
             } else if(act == ContinuationPlugins::act_pass) {
               // Just continue quietly
             } else {
-              logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id.c_str());
+              logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
               i->AddFailure(std::string("Failed running plugin at state ")+
                   states_all[i->get_state()].name);
               job_error=true;
@@ -1177,7 +1177,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
       // Keep repeating till error goes out
     } while(job_error);
     if(delete_job) { 
-      logger.msg(Arc::ERROR,"%s: Delete request due to internal problems ",i->job_id.c_str());
+      logger.msg(Arc::ERROR,"%s: Delete request due to internal problems ",i->job_id);
       i->job_state = JOB_STATE_FINISHED; /* move to finished in order to 
                                             remove from list */
       i->job_pending=false;
@@ -1231,7 +1231,7 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   std::string cdir=user->ControlDir();
   DIR *dir=opendir(cdir.c_str());
   if(dir == NULL) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir().c_str());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
     return false;
   };
   std::list<JobFDesc> ids;

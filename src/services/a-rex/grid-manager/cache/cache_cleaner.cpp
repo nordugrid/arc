@@ -69,13 +69,13 @@ int cache_cleaner(const JobUsers &users) {
     long long int space_unclaimed = 0;
     long long int space_claimed   = 0;
 
-    // logger.msg(Arc::ERROR,"Cache directory: %s",cache_dir.c_str());
-    // logger.msg(Arc::ERROR,"Cache data directory: %s",cache_data_dir.c_str());
+    // logger.msg(Arc::ERROR,"Cache directory: %s",cache_dir);
+    // logger.msg(Arc::ERROR,"Cache data directory: %s",cache_data_dir);
 
     /* get available space */
     struct statvfs dst;
     if(statvfs((char*)(cache_data_dir.c_str()),&dst) != 0) {
-      logger.msg(Arc::ERROR,"Cache: can't obtain info about file system at %s",cache_data_dir.c_str());
+      logger.msg(Arc::ERROR,"Cache: can't obtain info about file system at %s",cache_data_dir);
       if((cache_max < 0) || (cache_min < 0)) continue;
       available=0;
       space_hardsize=0;
@@ -118,7 +118,7 @@ int cache_cleaner(const JobUsers &users) {
       DIR* dir;
       dir=opendir(cache_data_dir.c_str());
       if(dir == NULL) {
-        logger.msg(Arc::ERROR,"Cache: can't open directory %s",cache_dir.c_str());
+        logger.msg(Arc::ERROR,"Cache: can't open directory %s",cache_dir);
         continue;
       };
       struct dirent file_;
@@ -132,7 +132,7 @@ int cache_cleaner(const JobUsers &users) {
         struct stat fst;
         if(stat(fname.c_str(),&fst) == 0) {
           if(S_ISREG(fst.st_mode)) {
-            logger.msg(Arc::ERROR,"File %s/%s is using %i",cache_data_dir.c_str(),file->d_name,((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize);
+            logger.msg(Arc::ERROR,"File %s/%s is using %i",cache_data_dir,file->d_name,((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize);
             used+=((fst.st_size+fst.st_blksize-1)/fst.st_blksize)*fst.st_blksize;
           };
         };
@@ -227,7 +227,7 @@ int cache_cleaner(const JobUsers &users) {
               std::string cdir=user_->ControlDir();
               DIR *dir=opendir(cdir.c_str());
               if(dir == NULL) {
-                logger.msg(Arc::WARNING,"Cache: Warning: Failed reading control directory: %s",cdir.c_str());
+                logger.msg(Arc::WARNING,"Cache: Warning: Failed reading control directory: %s",cdir);
                 logger.msg(Arc::WARNING,"Cache: Warning: Stale locks won't be removed");
                 ids.clear();
                 break;
@@ -264,7 +264,7 @@ int cache_cleaner(const JobUsers &users) {
       };
       unsigned long long int removed_size = 
           cache_clean(cache_dir.c_str(),cache_data_dir.c_str(),cache_uid,cache_gid,remove_size);
-      logger.msg(Arc::ERROR,"Cache: in %s - %s requested to remove %lli, removed %lli",cache_dir.c_str(),cache_data_dir.c_str(),remove_size,removed_size);
+      logger.msg(Arc::ERROR,"Cache: in %s - %s requested to remove %lli, removed %lli",cache_dir,cache_data_dir,remove_size,removed_size);
       space_hardfree+=removed_size;
       space_softfree+=removed_size;
       if(space_unclaimed<removed_size) {

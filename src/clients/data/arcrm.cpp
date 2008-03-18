@@ -19,7 +19,7 @@ void arcrm(const Arc::URL& file_url,
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
     if(files.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
-                 file_url.Path().c_str());
+                 file_url.Path());
       return;
     }
     for(std::list<Arc::URL>::iterator file = files.begin();
@@ -46,8 +46,7 @@ void arcrm(const Arc::URL& file_url,
      physically and their metadata */
   std::list<Arc::URL> removed_urls; // list of physical removed urls
   if(url->HaveLocations()) for(;url->LocationValid();) {
-    logger.msg(Arc::INFO, "Removing %s",
-               url->CurrentLocation().str().c_str());
+    logger.msg(Arc::INFO, "Removing %s", url->CurrentLocation().str());
     // It can happen that after resolving list contains duplicated
     // physical locations obtained from different meta-data-services.
     // Because not all locations can reliably say if files does not exist
@@ -74,7 +73,7 @@ void arcrm(const Arc::URL& file_url,
       url->RemoveLocation();
     else {
       logger.msg(Arc::INFO, "Removing metadata in %s",
-                 url->CurrentLocationMetadata().c_str());
+                 url->CurrentLocationMetadata());
       if(!url->Unregister(false)) {
         logger.msg(Arc::ERROR, "Failed to delete meta-information");
         url->NextLocation();
@@ -88,7 +87,7 @@ void arcrm(const Arc::URL& file_url,
   if(url->IsIndex()) {
     if(remove_lfn) {
       logger.msg(Arc::ERROR, "Removing logical file from metadata %s",
-                 url->str().c_str());
+                 url->str());
       if(!url->Unregister(true)) {
         logger.msg(Arc::ERROR, "Failed to delete logical file");
         return;

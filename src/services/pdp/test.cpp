@@ -92,7 +92,7 @@ int main(void) {
 
   std::string req_str;
   reqdoc.GetXML(req_str);
-  logger.msg(Arc::INFO, "Request: %s", req_str.c_str()); 
+  logger.msg(Arc::INFO, "Request: %s", req_str); 
 
   // Send request
   Arc::MessageContext context;
@@ -128,7 +128,7 @@ int main(void) {
   
   std::string str;
   resp->GetXML(str);
-  logger.msg(Arc::INFO, "Response: %s", str.c_str());
+  logger.msg(Arc::INFO, "Response: %s", str);
   
   delete repmsg.Payload();
 

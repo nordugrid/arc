@@ -105,12 +105,12 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         return true;
       }
       if (!guids) {
         logger.msg(INFO, "There is no GUID for specified LFN in %s",
-                   rlsurl.str().c_str());
+                   rlsurl.str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
@@ -144,7 +144,7 @@ namespace Arc {
       }
       else { // do not know
         logger.msg(INFO, "Warning: can't get PFNs from server %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         return true;
       }
     }
@@ -159,8 +159,7 @@ namespace Arc {
           (globus_rls_string2_t*)globus_list_first(lp);
         URL pfn(str2->s2);
         locations.push_back(URLLocation(pfn, rlsurl.str()));
-        logger.msg(DEBUG, "Adding location: %s - %s",
-                   rlsurl.str().c_str(), pfn.str().c_str());
+        logger.msg(DEBUG, "Adding location: %s - %s", rlsurl.str(), pfn.str());
       }
     }
     else {
@@ -173,7 +172,7 @@ namespace Arc {
           // for RLS URLs are used instead of metanames
           if (pfn == *loc) {
             logger.msg(DEBUG, "Adding location: %s - %s",
-                       rlsurl.str().c_str(), pfn.str().c_str());
+                       rlsurl.str(), pfn.str());
             if (source) {
               locations.push_back(URLLocation(pfn, rlsurl.str()));
             }
@@ -206,7 +205,7 @@ namespace Arc {
           return true;
         }
         logger.msg(INFO, "Warning: Failed to obtain attributes from %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         return true;
       }
       registered = true; // even for destination
@@ -316,13 +315,13 @@ namespace Arc {
         *loc = URLLocation(u, loc->Name());
         if (!loc->Name().empty()) {
           logger.msg(DEBUG, "Using location: %s - %s",
-                     loc->Name().c_str(), loc->str().c_str());
+                     loc->Name(), loc->str());
           ++loc;
         }
         else { // Use arbitrary lrc
           if (lrc_p == lrcs.end()) { // no LRC
             logger.msg(DEBUG, "Removing location: %s - %s",
-                       loc->Name().c_str(), loc->str().c_str());
+                       loc->Name(), loc->str());
             loc = locations.erase(loc);
           }
           else {
@@ -331,16 +330,15 @@ namespace Arc {
             if (lrc_p == lrcs.end())
               lrc_p = lrcs.begin();
             logger.msg(DEBUG, "Using location: %s - %s",
-                       loc->Name().c_str(), loc->str().c_str());
+                       loc->Name(), loc->str());
             ++loc;
           }
         }
       }
     }
-    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
+    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
     logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
-    logger.msg(DEBUG, "meta_get_data: created: %s",
-               GetCreated().str().c_str());
+    logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
     if (!url.CommonLocOptions().empty()) {
       for (std::list<URLLocation>::iterator loc = locations.begin();
           loc != locations.end(); loc++) {
@@ -437,14 +435,14 @@ namespace Arc {
              (errcode != GLOBUS_RLS_ATTR_NEXIST) &&
              (errcode != GLOBUS_RLS_ATTR_VALUE_NEXIST)) {
             logger.msg(INFO, "Failed to check for existing LFN in %s: %s",
-                       url.str().c_str(), errmsg);
+                       url.str(), errmsg);
             globus_rls_client_close(h);
             return DataStatus::PostRegisterError;
           }
         }
         if (guids) {
           globus_rls_client_free_list(guids);
-          logger.msg(INFO, "There is same LFN in %s", url.str().c_str());
+          logger.msg(INFO, "There is same LFN in %s", url.str());
           globus_rls_client_close(h);
           return DataStatus::PostRegisterError;
         }
@@ -495,13 +493,13 @@ namespace Arc {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-                     url.str().c_str(), errmsg);
+                     url.str(), errmsg);
           globus_rls_client_close(h);
           return DataStatus::PostRegisterError;
         }
         if (!guids) {
           logger.msg(INFO, "There is no GUID for specified LFN in %s",
-                     url.str().c_str());
+                     url.str());
           globus_rls_client_close(h);
           return DataStatus::PostRegisterError;
         }
@@ -653,12 +651,12 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(VERBOSE, "Failed to find GUID for specified LFN in %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         return true;
       }
       if (!guids) {
         logger.msg(VERBOSE, "There is no GUID for specified LFN in %s",
-                   rlsurl.str().c_str());
+                   rlsurl.str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
@@ -681,7 +679,7 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Warning: Failed to retrieve LFN/PFNs from %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         success = DataStatus::UnregisterError;
         return true;
       }
@@ -701,7 +699,7 @@ namespace Arc {
                (errcode != GLOBUS_RLS_LFN_NEXIST) &&
                (errcode != GLOBUS_RLS_PFN_NEXIST)) {
               logger.msg(INFO, "Warning: Failed to delete LFN/PFN from %s: %s",
-                         rlsurl.str().c_str(), errmsg);
+                         rlsurl.str(), errmsg);
               success = DataStatus::UnregisterError;
               continue;
             }
@@ -721,7 +719,7 @@ namespace Arc {
            (errcode != GLOBUS_RLS_LFN_NEXIST) &&
            (errcode != GLOBUS_RLS_PFN_NEXIST)) {
           logger.msg(INFO, "Warning: Failed to delete LFN/PFN from %s: %s",
-                     rlsurl.str().c_str(), errmsg);
+                     rlsurl.str(), errmsg);
           success = DataStatus::UnregisterError;
         }
       }
@@ -818,7 +816,7 @@ namespace Arc {
                (errcode != GLOBUS_RLS_PFN_NEXIST)) {
               logger.msg(INFO,
                          "Warning: Failed to retrieve LFN/PFNs from %s: %s",
-                         lrc ? lrc : url.ConnectionURL().c_str(), errmsg);
+                         lrc ? lrc : url.ConnectionURL(), errmsg);
               if (lrc) globus_rls_client_close(h_);
               success = DataStatus::UnregisterError;
               continue;
@@ -845,7 +843,7 @@ namespace Arc {
                    (errcode != GLOBUS_RLS_PFN_NEXIST)) {
                   logger.msg(INFO,
                              "Warning: Failed to delete LFN/PFN from %s: %s",
-                             lrc ? lrc : url.ConnectionURL().c_str(), errmsg);
+                             lrc ? lrc : url.ConnectionURL(), errmsg);
                   if (lrc) globus_rls_client_close(h_);
                   success = DataStatus::UnregisterError;
                   continue;
@@ -997,12 +995,12 @@ namespace Arc {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-                   rlsurl.str().c_str(), errmsg);
+                   rlsurl.str(), errmsg);
         return true;
       }
       if (!guids) {
         logger.msg(INFO, "There is no GUID for specified LFN in %s",
-                   rlsurl.str().c_str());
+                   rlsurl.str());
         return true;
       }
       globus_rls_attribute_object_t *obattr =
@@ -1026,12 +1024,12 @@ namespace Arc {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
       if (errcode == GLOBUS_RLS_LFN_NEXIST) {
-        logger.msg(DEBUG, "No LFNs found in %s", rlsurl.str().c_str());
+        logger.msg(DEBUG, "No LFNs found in %s", rlsurl.str());
         success = DataStatus::Success;
         return true;
       }
       logger.msg(INFO, "Failed to retrieve list of LFNs/PFNs from %s",
-                 rlsurl.str().c_str());
+                 rlsurl.str());
       return true;
     }
     success = DataStatus::Success;
@@ -1069,7 +1067,7 @@ namespace Arc {
         }
         if (!last_lfn.empty()) {
           logger.msg(DEBUG, "lfn: %s(%s) - %s",
-                     last_lfn.c_str(), last_guid.c_str(), pfn.str().c_str());
+                     last_lfn, last_guid, pfn.str());
           std::list<FileInfo>::iterator f;
           for (f = files.begin(); f != files.end(); ++f)
             if (f->GetName() == last_lfn)
@@ -1083,7 +1081,7 @@ namespace Arc {
         }
       }
       else { // !guid_enabled
-        logger.msg(DEBUG, "lfn: %s - pfn: %s", lfn.c_str(), pfn.str().c_str());
+        logger.msg(DEBUG, "lfn: %s - pfn: %s", lfn, pfn.str());
         std::list<FileInfo>::iterator f;
         for (f = files.begin(); f != files.end(); ++f)
           if (f->GetName() == lfn)

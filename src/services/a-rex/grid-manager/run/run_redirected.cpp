@@ -86,7 +86,7 @@ void RunRedirected::initializer(void* arg) {
   else { max_files=4096; };
   // change user
   if(!(it->user_.SwitchUser(true))) {
-    logger.msg(Arc::ERROR,"%s: Failed switching user",it->cmdname_.c_str()); sleep(10); exit(1);
+    logger.msg(Arc::ERROR,"%s: Failed switching user",it->cmdname_); sleep(10); exit(1);
   };
   // set up stdin,stdout and stderr
   if(it->stdin_ != -1)  dup2(it->stdin_,0);

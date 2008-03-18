@@ -26,7 +26,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
 {
     std::string path = "-Djava.class.path=" + (std::string)((*cfg)["ClassPath"]);
     std::string class_name = (std::string)(*cfg)["ClassName"];
-    logger.msg(Arc::DEBUG, "config: %s, class name: %s", path.c_str(), class_name.c_str());
+    logger.msg(Arc::DEBUG, "config: %s, class name: %s", path, class_name);
     JNIEnv *jenv = NULL;
     JavaVMInitArgs jvm_args;
     JavaVMOption options[1];
@@ -45,7 +45,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
     /* Find and construct class */
     serviceClass = jenv->FindClass(class_name.c_str());
     if (serviceClass == NULL) {
-        logger.msg(Arc::ERROR, "There is no service: %s in your java class search path", class_name.c_str());
+        logger.msg(Arc::ERROR, "There is no service: %s in your java class search path", class_name);
         if (jenv->ExceptionOccurred()) {
             jenv->ExceptionDescribe();
         }
@@ -60,7 +60,7 @@ Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg):Service(cfg)
         return;
     }
     serviceObj = jenv->NewObject(serviceClass, constructorID);
-    logger.msg(Arc::DEBUG, "%s constructed", class_name.c_str());
+    logger.msg(Arc::DEBUG, "%s constructed", class_name);
 }
 
 Service_JavaWrapper::~Service_JavaWrapper(void) {

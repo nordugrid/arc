@@ -35,7 +35,7 @@ InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
         // create root directory
         if (MKDIR(root.c_str()) != 0)
         {
-            // rootLogger.msg(Arc::ERROR, "cannot create directory:" + root);
+            // rootLogger.msg(Arc::ERROR, "cannot create directory: %s", root);
             std::cerr << "cannot create directory: " << root << std::endl;
             return;
         }        
@@ -47,7 +47,7 @@ InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
         if (MKDIR(path_base.c_str()) != 0) 
         {
             std::cerr << "cannot create directory: " << path_base << std::endl;
-            // rootLogger.msg(Arc::ERROR, "cannot create directory:" + path_base);
+            // rootLogger.msg(Arc::ERROR, "cannot create directory: %s", path_base);
             path_base = "";
             return;
         }        

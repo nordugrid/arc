@@ -64,7 +64,7 @@ int main(void){
       attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"Attribute Value (1): %s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value (1): %s", attrval->encode());
       }
     }
   }
@@ -155,7 +155,7 @@ int main(void){
       attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"Attribute Value (2): %s", (attrval->encode()).c_str());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value (2): %s", attrval->encode());
       }
     }
   }

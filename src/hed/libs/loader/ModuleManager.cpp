@@ -41,14 +41,14 @@ Glib::Module *ModuleManager::load(const std::string& name)
   }
   // find name in plugin_cache 
   if (plugin_cache.find(name) != plugin_cache.end()) {
-    Loader::logger.msg(DEBUG, "Found %s in cache", name.c_str());
+    Loader::logger.msg(DEBUG, "Found %s in cache", name);
     return plugin_cache[name];
   }
   std::string path;
   std::vector<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
     path = Glib::Module::build_path(*i, name);
-    // Loader::logger.msg(DEBUG, "Try load %s", path.c_str());
+    // Loader::logger.msg(DEBUG, "Try load %s", path);
     FILE *file = fopen(path.c_str(), "r");
     if (file == NULL) {
       continue;
@@ -58,7 +58,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
     }
   }
   if(i == plugin_dir.end()) {
-    Loader::logger.msg(DEBUG, "Could not locate module %s", name.c_str());
+    Loader::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
   Glib::Module *module = new Glib::Module(path);
@@ -67,7 +67,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
     if(module) delete module;
     return NULL;
   }
-  Loader::logger.msg(DEBUG, "Loaded %s", path.c_str());
+  Loader::logger.msg(DEBUG, "Loaded %s", path);
   plugin_cache[name] = module;
   return module;
 }

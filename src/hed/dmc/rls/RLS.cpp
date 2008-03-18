@@ -48,14 +48,14 @@ namespace Arc {
     for(lrc_p = lrcs.begin(); lrc_p != lrcs.end();) {
       const URL& url = *lrc_p;
       globus_rls_handle_t *h = NULL;
-      logger.msg(INFO, "Contacting %s", url.str().c_str());
+      logger.msg(INFO, "Contacting %s", url.str());
       err = globus_rls_client_connect
         (const_cast<char*>(url.ConnectionURL().c_str()), &h);
       if(err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Warning: can't connect to RLS server %s: %s",
-                   url.str().c_str(), errmsg);
+                   url.str(), errmsg);
         lrc_p = lrcs.erase(lrc_p);
         continue;
       }
@@ -82,7 +82,7 @@ namespace Arc {
         else {
           logger.msg(INFO,
                      "Warning: can't get list of RLIs from server %s: %s",
-                     url.str().c_str(), errmsg);
+                     url.str(), errmsg);
           globus_rls_client_close(h);
           lrc_p = lrcs.erase(lrc_p);
           continue;
@@ -112,14 +112,14 @@ namespace Arc {
       for(rli_p = rlis.begin(); rli_p != rlis.end();) {
         globus_rls_handle_t *h = NULL;
         const URL& url = *rli_p;
-        logger.msg(INFO, "Contacting %s", url.str().c_str());
+        logger.msg(INFO, "Contacting %s", url.str());
         err = globus_rls_client_connect
           (const_cast<char*>(url.ConnectionURL().c_str()), &h);
         if(err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Warning: can't connect to RLS server %s: %s",
-                     url.str().c_str(), errmsg);
+                     url.str(), errmsg);
           rli_p = rlis.erase(rli_p);
           continue;
         }
@@ -137,7 +137,7 @@ namespace Arc {
           else {
             logger.msg(INFO,
                        "Warning: can't get list of RLIs from server %s: %s",
-                       url.str().c_str(), errmsg);
+                       url.str(), errmsg);
           }
         }
         else { // Add obtained RLIs to list
@@ -164,7 +164,7 @@ namespace Arc {
             good_lrc = false;
             logger.msg(INFO,
                        "Warning: can't get list of RLIs from server %s: %s",
-                       url.str().c_str(), errmsg);
+                       url.str(), errmsg);
           }
         }
         else { // Add obtained RLIs to list
@@ -200,14 +200,14 @@ namespace Arc {
       for(rli_p = rlis.begin(); rli_p != rlis.end();) {
         globus_rls_handle_t *h = NULL;
         const URL& url = *rli_p;
-        logger.msg(INFO, "Contacting %s", url.str().c_str());
+        logger.msg(INFO, "Contacting %s", url.str());
         err = globus_rls_client_connect
           (const_cast<char*>(url.ConnectionURL().c_str()), &h);
         if(err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
           logger.msg(INFO, "Warning: can't connect to RLS server %s: %s",
-                     url.str().c_str(), errmsg);
+                     url.str(), errmsg);
           rli_p = rlis.erase(rli_p);
           continue;
         }
@@ -229,7 +229,7 @@ namespace Arc {
           else {
             logger.msg(INFO,
                        "Warning: can't get list of senders from server %s: %s",
-                       url.str().c_str(), errmsg);
+                       url.str(), errmsg);
             globus_rls_client_close(h);
             ++rli_p;
             continue;
@@ -256,14 +256,14 @@ namespace Arc {
       }
       const URL& url = *lrc_p;
       globus_rls_handle_t *h = NULL;
-      logger.msg(INFO, "Contacting %s", url.str().c_str());
+      logger.msg(INFO, "Contacting %s", url.str());
       err = globus_rls_client_connect
         (const_cast<char*>(url.ConnectionURL().c_str()), &h);
       if(err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
         logger.msg(INFO, "Warning: can't connect to RLS server %s: %s",
-                   url.str().c_str(), errmsg);
+                   url.str(), errmsg);
         lrc_p = lrcs.erase(lrc_p);
         continue;
       }
@@ -289,7 +289,7 @@ namespace Arc {
         else {
           logger.msg(INFO,
                      "Warning: can't get list of RLIs from server %s: %s",
-                     url.str().c_str(), errmsg);
+                     url.str(), errmsg);
           globus_rls_client_close(h);
           lrc_p = lrcs.erase(lrc_p);
           continue;

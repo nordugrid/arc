@@ -63,8 +63,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   // Analyzing request 
   Arc::XMLNode echo_op = (*inpayload)["echo"];
   if(!echo_op) {
-    logger.msg(Arc::ERROR, "Request is not supported - %s",
-	       echo_op.Name().c_str());
+    logger.msg(Arc::ERROR, "Request is not supported - %s", echo_op.Name());
     return make_fault(outmsg);
   };
   std::string say = echo_op["say"];

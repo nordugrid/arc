@@ -75,7 +75,7 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
         logger.msg(Arc::ERROR, "remote database not supported");
     } else {
         db_path = dsn_url.Path();
-        logger.msg(Arc::INFO, "Intialize database %s", db_path.c_str());
+        logger.msg(Arc::INFO, "Intialize database %s", db_path);
         if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
             // create root directory
 #ifndef WIN32
@@ -84,7 +84,7 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
             if (mkdir(db_path.c_str()) != 0) 
 #endif
             {
-                logger.msg(Arc::ERROR, "cannot create directory: %s", db_path.c_str());
+                logger.msg(Arc::ERROR, "cannot create directory: %s", db_path);
                 db_path = "";
             }        
         }
@@ -127,7 +127,7 @@ Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &ou
       logger.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     }; 
-    logger.msg(Arc::DEBUG, "process: operation: %s", op.Name().c_str());
+    logger.msg(Arc::DEBUG, "process: operation: %s", op.Name());
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns);
     Arc::PayloadSOAP& res = *outpayload;
     Arc::MCC_Status ret = Arc::STATUS_OK;
@@ -162,7 +162,7 @@ Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &ou
           return make_soap_fault(outmsg);
         };
     } else {
-        logger.msg(Arc::ERROR,"SOAP operation is not supported: %s", op.Name().c_str());
+        logger.msg(Arc::ERROR,"SOAP operation is not supported: %s", op.Name());
         return make_soap_fault(outmsg);
     };
     // Set output

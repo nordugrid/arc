@@ -166,11 +166,10 @@ namespace Arc {
 
   bool DataCache::clean(unsigned long long int size) {
     logger.msg(INFO, "Cache cleaning requested: %s, %llu bytes",
-               cache_path.c_str(), size);
+               cache_path, size);
     unsigned long long int freed = cache_clean(cache_path, cache_data_path,
                                                cache_user, size);
-    logger.msg(DEBUG, "Cache cleaned: %s, %llu bytes",
-               cache_path.c_str(), freed);
+    logger.msg(DEBUG, "Cache cleaned: %s, %llu bytes", cache_path, freed);
     if(freed < size)
       return false;
     return true;
@@ -195,8 +194,7 @@ namespace Arc {
       dirpath.erase(n, dirpath.length() - n + 1);
     if(mkdir_recursive(NULL, dirpath, S_IRWXU, user) != 0) {
       if(errno != EEXIST) {
-        logger.msg(ERROR, "Failed to create/find directory %s",
-                   dirpath.c_str());
+        logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
         return false;
       }
     }
@@ -213,7 +211,7 @@ namespace Arc {
     fname = cache_link_path + fname;
     if(symlink(fname.c_str(), link_path.c_str()) == -1) {
       logger.msg(ERROR, "Failed to make symbolic link %s to %s",
-                 link_path.c_str(), fname.c_str());
+                 link_path, fname);
       return false;
     }
     (lchown(link_path.c_str(), user.get_uid(), user.get_gid()) != 0);
@@ -229,8 +227,7 @@ namespace Arc {
       dirpath.erase(n, dirpath.length() - n + 1);
     if(mkdir_recursive(NULL, dirpath, S_IRWXU, user) != 0) {
       if(errno != EEXIST) {
-        logger.msg(ERROR, "Failed to create/find directory %s",
-                   dirpath.c_str());
+        logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
         return false;
       }
     }
@@ -243,16 +240,14 @@ namespace Arc {
     int fd = open(link_path.c_str(),
                   O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
     if(fd == -1) {
-      logger.msg(ERROR, "Failed to create file for writing: %s",
-                 link_path.c_str());
+      logger.msg(ERROR, "Failed to create file for writing: %s", link_path);
       return false;
     }
     (fchown(fd, user.get_uid(), user.get_gid()) != 0);
     int fd_ = open(cache_file.c_str(), O_RDONLY);
     if(fd_ == -1) {
       close(fd);
-      logger.msg(ERROR, "Failed to open file for reading: %s",
-                 cache_file.c_str());
+      logger.msg(ERROR, "Failed to open file for reading: %s", cache_file);
       return false;
     }
     for(;;) {
@@ -260,7 +255,7 @@ namespace Arc {
       if(l == -1) {
         close(fd);
         close(fd_);
-        logger.msg(ERROR, "Failed to read file: %s", cache_file.c_str());
+        logger.msg(ERROR, "Failed to read file: %s", cache_file);
         return false;
       }
       if(l == 0)
@@ -270,7 +265,7 @@ namespace Arc {
         if(l_ == -1) {
           close(fd);
           close(fd_);
-          logger.msg(ERROR, "Failed to write file: %s", link_path.c_str());
+          logger.msg(ERROR, "Failed to write file: %s", link_path);
           return false;
         }
         ll += l_;

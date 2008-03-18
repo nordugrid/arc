@@ -126,7 +126,7 @@ namespace Arc {
     if(error != GLOBUS_SUCCESS) {
       it->callback_status = CALLBACK_ERROR;
       std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp.c_str());
+      logger.msg(INFO, "Failure: %s", tmp);
       if(response)
         logger.msg(INFO, "Response: %s", response->response_buffer);
     }
@@ -166,7 +166,7 @@ namespace Arc {
       /* no such file or connection error - assume no such file */
       logger.msg(INFO, "Error getting list of files (in list)");
       std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp.c_str());
+      logger.msg(INFO, "Failure: %s", tmp);
       logger.msg(INFO, "Assuming - file not found");
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
@@ -263,7 +263,7 @@ namespace Arc {
     Lister *it = (Lister*)arg;
     if(error != GLOBUS_SUCCESS) {
       std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp.c_str());
+      logger.msg(INFO, "Failure: %s", tmp);
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
@@ -511,7 +511,7 @@ namespace Arc {
                pasv_addr.port);
     if(!(res = globus_ftp_control_local_port(handle, &pasv_addr))) {
       logger.msg(INFO, "Obtained host and address are not acceptable");
-      logger.msg(INFO, "Failure: %s", res.str().c_str());
+      logger.msg(INFO, "Failure: %s", res.str());
       return -1;
     }
     return 0;
@@ -525,7 +525,7 @@ namespace Arc {
 
     if((url.Protocol() != "ftp") &&
        (url.Protocol() != "gsiftp")) {
-      logger.msg(ERROR, "Unsupported protocol in url %s", url.str().c_str());
+      logger.msg(ERROR, "Unsupported protocol in url %s", url.str());
       return -1;
     }
 
@@ -565,7 +565,7 @@ namespace Arc {
                                             port, &resp_callback, this))) {
         logger.msg(ERROR, "Failed connecting to server %s:%d",
                    host.c_str(), port);
-        logger.msg(ERROR, "Failure: %s", res.str().c_str());
+        logger.msg(ERROR, "Failure: %s", res.str());
         return -1;
       }
       if(wait_for_callback() != CALLBACK_DONE) {

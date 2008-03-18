@@ -104,7 +104,7 @@ namespace Arc {
     std::list<URL> removed_urls;
     if(url.HaveLocations()) {
       for(; url.LocationValid();) {
-        logger.msg(INFO, "Removing %s", url.CurrentLocation().str().c_str());
+        logger.msg(INFO, "Removing %s", url.CurrentLocation().str());
         // It can happen that after resolving list contains duplicated
         // physical locations obtained from different meta-data-services.
         // Because not all locations can reliably say if files does not exist
@@ -133,7 +133,7 @@ namespace Arc {
         }
         if (url.IsIndex()) {
           logger.msg(INFO, "Removing metadata in %s",
-                     url.CurrentLocationMetadata().c_str());
+                     url.CurrentLocationMetadata());
           DataStatus err = url.Unregister(false);
           if (!err) {
             logger.msg(ERROR, "Failed to delete meta-information");
@@ -150,8 +150,7 @@ namespace Arc {
     }
     if (url.IsIndex()) {
       if (remove_lfn) {
-        logger.msg(INFO, "Removing logical file from metadata %s",
-                   url.str().c_str());
+        logger.msg(INFO, "Removing logical file from metadata %s", url.str());
         DataStatus err = url.Unregister(true);
         if (!err) {
           logger.msg(ERROR, "Failed to delete logical file");
@@ -236,7 +235,7 @@ namespace Arc {
     }
     failure_description = "";
     logger.msg(INFO, "Transfer from %s to %s",
-               source.str().c_str(), destination.str().c_str());
+               source.str(), destination.str());
     if(!source) {
       logger.msg(ERROR, "Not valid source");
       return DataStatus::ReadAcquireError;
@@ -250,12 +249,10 @@ namespace Arc {
       if(source.Resolve(true).Passed()) {
         if(source.HaveLocations())
           break;
-        logger.msg(ERROR, "No locations for source found: %s",
-                   source.str().c_str());
+        logger.msg(ERROR, "No locations for source found: %s", source.str());
       }
       else
-        logger.msg(ERROR, "Failed to resolve source: %s",
-                   source.str().c_str());
+        logger.msg(ERROR, "Failed to resolve source: %s", source.str());
       source.NextLocation(); /* try again */
       if(!do_retries)
         return DataStatus::ReadResolveError;
@@ -268,11 +265,11 @@ namespace Arc {
         if(destination.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
-                   destination.str().c_str());
+                   destination.str());
       }
       else
         logger.msg(ERROR, "Failed to resolve destination: %s",
-                   destination.str().c_str());
+                   destination.str());
       destination.NextLocation(); /* try again */
       if(!do_retries)
         return DataStatus::WriteResolveError;
@@ -289,7 +286,7 @@ namespace Arc {
         if(!destination.HaveLocations()) {
           logger.msg(ERROR,
                      "No locations for destination different from source "
-                     "found: %s", destination.str().c_str());
+                     "found: %s", destination.str());
           return DataStatus::WriteResolveError;
         }
       }
@@ -310,7 +307,7 @@ namespace Arc {
         URL del_url = destination.GetURL();
         logger.msg(DEBUG,
                    "DataMover::Transfer: trying to destroy/overwrite "
-                   "destination: %s", del_url.str().c_str());
+                   "destination: %s", del_url.str());
         int try_num = destination.GetTries();
         for(;;) {
           DataHandle del(del_url);
@@ -320,7 +317,7 @@ namespace Arc {
             break;
           if(!destination.IsIndex())
             break; // pfn has chance to be overwritten directly
-          logger.msg(INFO, "Failed to delete %s", del_url.str().c_str());
+          logger.msg(INFO, "Failed to delete %s", del_url.str());
           destination.NextLocation(); /* try again */
           if(!do_retries)
             return res;
@@ -333,11 +330,11 @@ namespace Arc {
               if(destination.HaveLocations())
                 break;
               logger.msg(ERROR, "No locations for destination found: %s",
-                         destination.str().c_str());
+                         destination.str());
             }
             else
               logger.msg(ERROR, "Failed to resolve destination: %s",
-                         destination.str().c_str());
+                         destination.str());
             destination.NextLocation(); /* try again */
             if(!do_retries)
               return DataStatus::WriteResolveError;
@@ -347,7 +344,7 @@ namespace Arc {
           destination_meta_initially_stored = destination.Registered();
           if(destination_meta_initially_stored) {
             logger.msg(INFO, "Deleted but still have locations at %s",
-                       destination.str().c_str());
+                       destination.str());
             return DataStatus::WriteResolveError;
           }
         }
@@ -375,8 +372,8 @@ namespace Arc {
       // destructor of DataHandle.
       DataBufferPar buffer;
       logger.msg(INFO, "Real transfer from %s to %s",
-                 source.CurrentLocation().str().c_str(),
-                 destination.CurrentLocation().str().c_str());
+                 source.CurrentLocation().str(),
+                 destination.CurrentLocation().str());
       /* creating handler for transfer */
       source.SetSecure(force_secure);
       source.Passive(force_passive);
@@ -416,7 +413,7 @@ namespace Arc {
         std::string crc_type =
           destination.GetURL().Option("checksum", "cksum");
         logger.msg(DEBUG, "DataMover::Transfer: checksum type is %s",
-                   crc_type.c_str());
+                   crc_type);
         if(!source.CheckCheckSum()) {
           crc = crc_type.c_str();
           logger.msg(DEBUG, "DataMover::Transfer: will try to compute crc");
@@ -453,7 +450,7 @@ namespace Arc {
         if(!mapped)
           mapped_url = URL();
         else {
-          logger.msg(DEBUG, "Url is mapped to: %s", mapped_url.str().c_str());
+          logger.msg(DEBUG, "Url is mapped to: %s", mapped_url.str());
           if((mapped_url.Protocol() == "link") ||
              (mapped_url.Protocol() == "file")) {
             /* can't cache links */
@@ -485,7 +482,7 @@ namespace Arc {
             logger.msg(INFO, "File is cached - checking permissions");
             if(!source.Check()) {
               logger.msg(ERROR, "Permission checking failed: %s",
-                         source.str().c_str());
+                         source.str());
               cache.stop(DataCache::file_download_failed |
                          DataCache::file_keep);
               source.NextLocation(); /* try another source */
@@ -544,7 +541,7 @@ namespace Arc {
           if(!source.Check()) {
             logger.msg(ERROR,
                        "Permission checking on original URL failed: %s",
-                       source.str().c_str());
+                       source.str());
             source.NextLocation(); /* try another source */
             logger.msg(DEBUG, "source.next_location");
             res = DataStatus::ReadStartError;
@@ -582,7 +579,7 @@ namespace Arc {
                   strerror_r(errno, errbuf, sizeof(errbuf));
 #endif
                   logger.msg(ERROR, "Failed to create/find directory %s : %s",
-                             dirpath.c_str(), err);
+                             dirpath, err);
                   source.NextLocation(); /* try another source */
                   logger.msg(DEBUG, "source.next_location");
                   res = DataStatus::ReadStartError;
@@ -605,7 +602,7 @@ namespace Arc {
               strerror_r(errno, errbuf, sizeof(errbuf));
 #endif
               logger.msg(ERROR, "Failed to make symbolic link %s to %s : %s",
-                         link_name.c_str(), file_name.c_str(), err);
+                         link_name, file_name, err);
               source.NextLocation(); /* try another source */
               logger.msg(DEBUG, "source.next_location");
               res = DataStatus::ReadStartError;
@@ -626,7 +623,7 @@ namespace Arc {
       if(cacheable) {
         /* create new destination for cache file */
         churl = cache.file();
-        logger.msg(INFO, "cache file: %s", churl.Path().c_str());
+        logger.msg(INFO, "cache file: %s", churl.Path());
       }
       DataHandle chdest_h(churl);
       DataPoint& chdest(*chdest_h);
@@ -642,7 +639,7 @@ namespace Arc {
       source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
       if(!(res = source_url.StartReading(buffer))) {
         logger.msg(ERROR, "Failed to start reading from source: %s",
-                   source_url.str().c_str());
+                   source_url.str());
         /* try another source */
         if(source.NextLocation())
           logger.msg(DEBUG, "(Re)Trying next source");
@@ -671,7 +668,7 @@ namespace Arc {
         buffer.speed.set_max_data(destination.GetSize());
       if(!destination.PreRegister(replication, force_registration).Passed()) {
         logger.msg(ERROR, "Failed to preregister destination: %s",
-                   destination.str().c_str());
+                   destination.str());
         destination.NextLocation(); /* not exactly sure if this would help */
         logger.msg(DEBUG, "destination.next_location");
         res = DataStatus::PreRegisterError;
@@ -686,13 +683,13 @@ namespace Arc {
       if(!cacheable) {
         if(!(res = destination.StartWriting(buffer))) {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
-                     destination.str().c_str());
+                     destination.str());
           source_url.StopReading();
           if(!destination.PreUnregister(replication ||
                                         destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                        "You may need to unregister it manually: %s",
-                       destination.str().c_str());
+                       destination.str());
           if(destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
           continue;
@@ -806,12 +803,12 @@ namespace Arc {
       destination.SetMeta(source); // pass more metadata (checksum)
       if(!destination.PostRegister(replication).Passed()) {
         logger.msg(ERROR, "Failed to postregister destination %s",
-                   destination.str().c_str());
+                   destination.str());
         if(!destination.PreUnregister(replication ||
                                       destination_meta_initially_stored).Passed()) {
           logger.msg(ERROR, "Failed to unregister preregistered lfn, "
                      "You may need to unregister it manually %s",
-                     destination.str().c_str());
+                     destination.str());
         }
         destination.NextLocation(); /* not sure if this can help */
         logger.msg(DEBUG, "destination.next_location");

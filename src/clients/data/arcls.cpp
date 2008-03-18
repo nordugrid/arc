@@ -22,7 +22,7 @@ void arcls(const Arc::URL& dir_url,
     std::list<Arc::URL> dirs = Arc::ReadURLList(dir_url);
     if(dirs.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
-                 dir_url.Path().c_str());
+                 dir_url.Path());
       return;
     }
     for(std::list<Arc::URL>::iterator dir = dirs.begin();

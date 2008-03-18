@@ -28,7 +28,7 @@ Arc::MCC_Status ARexService::Put(Arc::Message& /*inmsg*/,Arc::Message& /*outmsg*
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
-    logger_.msg(Arc::ERROR, "Put: there is no job: %s - %s", id.c_str(), job.Failure().c_str());
+    logger_.msg(Arc::ERROR, "Put: there is no job: %s - %s", id, job.Failure());
     // TODO: make proper html message
     return Arc::MCC_Status();
   };

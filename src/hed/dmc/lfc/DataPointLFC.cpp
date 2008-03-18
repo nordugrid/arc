@@ -74,7 +74,7 @@ namespace Arc {
       for (int n = 0; n < nbentries; n++) {
         locations.push_back(URLLocation(entries[n].sfn, url.ConnectionURL()));
         logger.msg(DEBUG, "Adding location: %s - %s",
-                   url.ConnectionURL().c_str(), entries[n].sfn);
+                   url.ConnectionURL(), entries[n].sfn);
       }
     }
     else {
@@ -84,7 +84,7 @@ namespace Arc {
           if (strncmp(entries[n].sfn, loc->Name().c_str(),
                      loc->Name().length()) == 0) {
             logger.msg(DEBUG, "Adding location: %s - %s",
-                       url.ConnectionURL().c_str(), entries[n].sfn);
+                       url.ConnectionURL(), entries[n].sfn);
             if (source) {
               locations.push_back(URLLocation(entries[n].sfn,
                                               url.ConnectionURL()));
@@ -129,14 +129,12 @@ namespace Arc {
         }
         u += url.Path();
         *loc = URLLocation(u, loc->Name());
-        logger.msg(DEBUG, "Using location: %s - %s",
-                   loc->Name().c_str(), loc->str().c_str());
+        logger.msg(DEBUG, "Using location: %s - %s", loc->Name(), loc->str());
       }
     }
-    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum().c_str());
+    logger.msg(DEBUG, "meta_get_data: checksum: %s", GetCheckSum());
     logger.msg(DEBUG, "meta_get_data: size: %llu", GetSize());
-    logger.msg(DEBUG, "meta_get_data: created: %s",
-               GetCreated().str().c_str());
+    logger.msg(DEBUG, "meta_get_data: created: %s", GetCreated().str());
     if (!url.CommonLocOptions().empty()) {
       for (std::list<URLLocation>::iterator loc = locations.begin();
            loc != locations.end(); ++loc) {

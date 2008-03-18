@@ -28,7 +28,7 @@ static bool reload_certificates(SSL_CTX* sslctx, const std::string& cert_file, c
     if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) &&
        (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
        (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      logger.msg(ERROR, "Can not load certificate file - %s",cert_file.c_str());
+      logger.msg(ERROR, "Can not load certificate file - %s",cert_file);
       tls_process_error(logger);
       return false;
     };
@@ -36,7 +36,7 @@ static bool reload_certificates(SSL_CTX* sslctx, const std::string& cert_file, c
   if(!key_file.empty()) {
     if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
        (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      logger.msg(ERROR, "Can not load key file - %s",key_file.c_str());
+      logger.msg(ERROR, "Can not load key file - %s",key_file);
       tls_process_error(logger);
       return false;
     };

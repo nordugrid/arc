@@ -26,7 +26,7 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "ChangeActivityStatus: request = \n%s", s);
   };
   for (int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];

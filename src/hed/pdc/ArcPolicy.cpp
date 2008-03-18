@@ -48,7 +48,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
     description = (std::string)(nd["Description"]);  
   }
   
-  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id.c_str(), comalg?(comalg->getalgId()).c_str():"");
+  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];

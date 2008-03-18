@@ -28,7 +28,7 @@ namespace Arc {
       if (regex.isOk()) {
         services.push_front(PlexerEntry(regex,next));
       } else {
-	    logger.msg(WARNING, "Bad label: \"%s\"", label.c_str());
+	    logger.msg(WARNING, "Bad label: \"%s\"", label);
       }
     } else {
       for (iter=services.begin(); iter!=services.end(); ++iter) {
@@ -42,7 +42,7 @@ namespace Arc {
   MCC_Status Plexer::process(Message& request, Message& response){
     std::string ep = request.Attributes()->get("ENDPOINT");
     std::string path = getPath(ep);
-    logger.msg(DEBUG, "Operation on path \"%s\"",path.c_str());
+    logger.msg(DEBUG, "Operation on path \"%s\"",path);
     std::list<PlexerEntry>::iterator iter;
     for (iter=services.begin(); iter!=services.end(); ++iter) {
       std::list<std::string> unmatched, matched;
@@ -54,7 +54,7 @@ namespace Arc {
         return iter->service->process(request, response);
       }
     }
-    logger.msg(WARNING, "No service at path \"%s\"",path.c_str());
+    logger.msg(WARNING, "No service at path \"%s\"",path);
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR,
 			   (std::string)("MCC Plexer"),
 			   path);  

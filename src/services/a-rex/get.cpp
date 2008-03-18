@@ -69,14 +69,14 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   ARexJob job(id,config);
   if(!job) {
     // There is no such job
-    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id.c_str(), job.Failure().c_str());
+    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
     // TODO: make proper html message
     return Arc::MCC_Status();
   };
   std::string session_dir = job.SessionDir();
   if(!http_get(outmsg,config.Endpoint()+"/"+id,session_dir,subpath,range_start,range_end)) {
     // Can't get file
-    logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir.c_str(), subpath.c_str());
+    logger.msg(Arc::ERROR, "Get: can't process file %s/%s", session_dir, subpath);
     // TODO: make proper html message
     return Arc::MCC_Status();
   };

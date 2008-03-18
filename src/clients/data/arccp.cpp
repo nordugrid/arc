@@ -47,12 +47,12 @@ void arcregister (
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if(sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
-                 source_url.Path().c_str());
+                 source_url.Path());
       return;
     }
     if(destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
-                 destination_url.Path().c_str());
+                 destination_url.Path());
       return;
     }
     if(sources.size() != destinations.size()) {
@@ -71,7 +71,7 @@ void arcregister (
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     if(sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
-                 source_url.Path().c_str());
+                 source_url.Path());
       return;
     }
     for(std::list<Arc::URL>::iterator source = sources.begin();
@@ -83,7 +83,7 @@ void arcregister (
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if(destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
-                 destination_url.Path().c_str());
+                 destination_url.Path());
       return;
     }
     for(std::list<Arc::URL>::iterator destination = destinations.begin();
@@ -99,13 +99,12 @@ void arcregister (
   Arc::DataHandle source(source_url);
   Arc::DataHandle destination(destination_url);
   if(!source) {
-    logger.msg(Arc::ERROR, "Unsupported source url: %s",
-               source_url.str().c_str());
+    logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return;
   }
   if(!destination) {
     logger.msg(Arc::ERROR, "Unsupported destination url: %s",
-               destination_url.str().c_str());
+               destination_url.str());
     return;
   }
   if(source->IsIndex() || !destination->IsIndex()) {
@@ -184,12 +183,12 @@ void arccp (
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if(sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
-                 source_url.Path().c_str());
+                 source_url.Path());
       return;
     }
     if(destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
-                 destination_url.Path().c_str());
+                 destination_url.Path());
       return;
     }
     if(sources.size() != destinations.size()) {
@@ -209,7 +208,7 @@ void arccp (
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     if(sources.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
-                 source_url.Path().c_str());
+                 source_url.Path());
       return;
     }
 
@@ -223,7 +222,7 @@ void arccp (
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
     if(destinations.size() == 0) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
-                 destination_url.Path().c_str());
+                 destination_url.Path());
       return;
     }
     for(std::list<Arc::URL>::iterator destination = destinations.begin();
@@ -266,8 +265,7 @@ void arccp (
       }
       Arc::DataHandle source(source_url);
       if(!source) {
-        logger.msg(Arc::ERROR, "Unsupported source url: %s",
-                   source_url.str().c_str());
+        logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return;
       }
       std::list<Arc::FileInfo> files;
@@ -288,22 +286,21 @@ void arccp (
           i != files.end(); i++) {
         if((i->GetType() != Arc::FileInfo::file_type_unknown) && 
            (i->GetType() != Arc::FileInfo::file_type_file)) continue;
-        logger.msg(Arc::INFO,"Name: %s", i->GetName().c_str());
+        logger.msg(Arc::INFO,"Name: %s", i->GetName());
         std::string s_url(source_url.str());
         std::string d_url(destination_url.str());
         s_url+=i->GetName();
         d_url+=i->GetName();
-        logger.msg(Arc::INFO,"Source: %s", s_url.c_str());
-        logger.msg(Arc::INFO,"Destination: %s", d_url.c_str());
+        logger.msg(Arc::INFO,"Source: %s", s_url);
+        logger.msg(Arc::INFO,"Destination: %s", d_url);
         Arc::DataHandle source(s_url);
         Arc::DataHandle destination(d_url);
         if(!source) {
-          logger.msg(Arc::INFO, "Unsupported source url: %s", s_url.c_str());
+          logger.msg(Arc::INFO, "Unsupported source url: %s", s_url);
           continue;
         }
         if(!destination) {
-          logger.msg(Arc::INFO, "Unsupported destination url: %s",
-                     d_url.c_str());
+          logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url);
           continue;
         }
         Arc::DataMover mover;
@@ -323,8 +320,7 @@ void arccp (
         if(!mover.Transfer(*source,*destination,cache,Arc::URLMap(),
 			   0,0,0,timeout,failure)) {
           if(!failure.empty())
-            logger.msg(Arc::INFO,"Current transfer FAILED: %s",
-                       failure.c_str());
+            logger.msg(Arc::INFO,"Current transfer FAILED: %s", failure);
           else
             logger.msg(Arc::INFO,"Current transfer FAILED.");
           destination->SetTries(1);
@@ -348,7 +344,7 @@ void arccp (
             i != files.end(); i++) {
           if(i->GetType() != Arc::FileInfo::file_type_dir) continue;
           if(verbose)
-            logger.msg(Arc::INFO,"Directory: %s",i->GetName().c_str());
+            logger.msg(Arc::INFO,"Directory: %s",i->GetName());
           std::string s_url(source_url.str());
           std::string d_url(destination_url.str());
           s_url+=i->GetName(); d_url+=i->GetName();
@@ -363,13 +359,12 @@ void arccp (
   Arc::DataHandle source(source_url);
   Arc::DataHandle destination(destination_url);
   if(!source) {
-    logger.msg(Arc::ERROR, "Unsupported source url: %s",
-               source_url.str().c_str());
+    logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
     return;
   }
   if(!destination) {
     logger.msg(Arc::ERROR, "Unsupported destination url: %s",
-               destination_url.str().c_str());
+               destination_url.str());
     return;
   }
   Arc::DataMover mover;
@@ -389,7 +384,7 @@ void arccp (
   if(!mover.Transfer(*source,*destination,cache,Arc::URLMap(),
 		     0,0,0,timeout,failure)) {
     if(failure.length()) {
-      logger.msg(Arc::ERROR, "Transfer FAILED: %s", failure.c_str());
+      logger.msg(Arc::ERROR, "Transfer FAILED: %s", failure);
       return;
     } else {
       logger.msg(Arc::ERROR, "Transfer FAILED.");

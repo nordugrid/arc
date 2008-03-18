@@ -67,17 +67,17 @@ static bool get_id(std::string& s,std::string& ca_subject) {
   get_word(s,id);
   if(id.empty()) return true;
   if(id.compare(0,strlen(access_id),access_id) != 0) {
-    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",access_id,id.c_str());
+    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",access_id,id);
     return false;
   };
   id=id.substr(strlen(access_id));
   if(id != "CA") { 
-    logger.msg(Arc::WARNING,"We only support CAs in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"We only support CAs in Globus signing policy - %s is not supported",id);
     return false;
   };
   get_word(s,id);
   if(id != "X509") {
-    logger.msg(Arc::WARNING,"We only support X509 CAs in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"We only support X509 CAs in Globus signing policy - %s is not supported",id);
     return false;
   };
   get_word(s,ca_subject);
@@ -96,17 +96,17 @@ static bool get_rights(std::string& s) {
     return false;
   };
   if(id != positive_rights) {
-    logger.msg(Arc::WARNING,"Unknown rights in Globus signing policy - %s",id.c_str());
+    logger.msg(Arc::WARNING,"Unknown rights in Globus signing policy - %s",id);
     return false;
   };
   get_word(s,id);
   if(id != globus_id) {
-    logger.msg(Arc::WARNING,"Only globus rights are supported in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"Only globus rights are supported in Globus signing policy - %s is not supported",id);
     return false;
   };
   get_word(s,id);
   if(id != sign_id) {
-    logger.msg(Arc::WARNING,"Only signing rights are supported in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"Only signing rights are supported in Globus signing policy - %s is not supported",id);
     return false;
   };
   return true;
@@ -118,17 +118,17 @@ static bool get_conditions(std::string s,std::list<std::string>& patterns) {
   get_word(s,id);
   if(id.empty()) return true;
   if(id.compare(0,strlen(conditions_id),conditions_id) != 0) {
-    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",conditions_id,id.c_str());
+    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",conditions_id,id);
     return false;
   };
   id=id.substr(strlen(conditions_id));
   if(id != "subjects") {
-    logger.msg(Arc::WARNING,"We only support subjects conditions in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"We only support subjects conditions in Globus signing policy - %s is not supported",id);
     return false;
   };
   get_word(s,id);
   if(id != globus_id) {
-    logger.msg(Arc::WARNING,"We only support globus conditions in Globus signing policy - %s is not supported",id.c_str());
+    logger.msg(Arc::WARNING,"We only support globus conditions in Globus signing policy - %s is not supported",id);
     return false;
   };
   std::string subjects;

@@ -284,13 +284,13 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
    if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-        logger.msg(ERROR, "Can not load certificate file - %s",cert_file.c_str());
+        logger.msg(ERROR, "Can not load certificate file - %s",cert_file);
         tls_process_error(logger);
         return false;
    }
    if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
       (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-        logger.msg(ERROR, "Can not load key file - %s",key_file.c_str());
+        logger.msg(ERROR, "Can not load key file - %s",key_file);
         tls_process_error(logger);
         return false;
    }
@@ -496,13 +496,13 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    if (peercert != NULL) {
       X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
       std::string peer_dn = buf;
-      logger.msg(DEBUG, "Peer name: %s", peer_dn.c_str());
+      logger.msg(DEBUG, "Peer name: %s", peer_dn);
       // Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribute temporally, 
       // it should be put into MessageAuth later.
       nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
 #ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
-         logger.msg(DEBUG, "Identity name: %s", peer_dn.c_str());
+         logger.msg(DEBUG, "Identity name: %s", peer_dn);
          nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
       } else {
          STACK_OF(X509)* peerchain = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerChain();
@@ -513,7 +513,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
                if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) >= 0) {
                   X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
                   std::string identity_dn = buf;
-                  logger.msg(DEBUG, "Identity name: %s", identity_dn.c_str());
+                  logger.msg(DEBUG, "Identity name: %s", identity_dn);
                   nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
                   break;
                };

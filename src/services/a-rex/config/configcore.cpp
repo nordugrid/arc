@@ -171,11 +171,11 @@ Config ReadConfig(const std::string& filename) {
 	static std::map<std::string, Config> configcache;
 
 	if (configcache.find(filename) != configcache.end()) {
-		ConfigLogger.msg(Arc::VERBOSE, "Using cached configuration: %s", filename.c_str());
+		ConfigLogger.msg(Arc::VERBOSE, "Using cached configuration: %s", filename);
 		return configcache[filename];
 	}
 
-	ConfigLogger.msg(Arc::VERBOSE, "Reading configuration file: %s", filename.c_str());
+	ConfigLogger.msg(Arc::VERBOSE, "Reading configuration file: %s", filename);
 
 	std::ifstream is(filename.c_str());
 	Config conf = ReadConfig(is);

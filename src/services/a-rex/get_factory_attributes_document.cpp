@@ -33,7 +33,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   {
     std::string s;
     in.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetFactoryAttributesDocument: request = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetFactoryAttributesDocument: request = \n%s", s);
   };
   Arc::XMLNode doc = out.NewChild("bes-factory:FactoryResourceAttributesDocument");
   //doc.NewChild("bes-factory:BasicResourceAttributesDocument");
@@ -56,7 +56,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   {
     std::string s;
     out.GetXML(s);
-    logger.msg(Arc::DEBUG, "GetFactoryAttributesDocument: response = \n%s", s.c_str());
+    logger.msg(Arc::DEBUG, "GetFactoryAttributesDocument: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

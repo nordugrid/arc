@@ -112,7 +112,7 @@ Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
        while(path[0] == '/') path=path.substr(1);
     }
 
-    logger.msg(Arc::INFO, "method=%s, path=%s", method.c_str(), path.c_str());
+    logger.msg(Arc::INFO, "method=%s, path=%s", method, path);
     if (method == "GET") {
         Arc::PayloadRawInterface *buf = Get(path, url);
         if (!buf) {

@@ -392,7 +392,7 @@ bool write_grami_rsl(const JobDescription &desc,const JobUser &user,const char* 
     std::string stdout_=tmp_param[0];
     if(canonical_dir(stdout_) != 0) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Bad name for stdout: %s",stdout_.c_str()); goto exit;
+      logger.msg(Arc::ERROR,"Bad name for stdout: %s",stdout_); goto exit;
     };
     stdout_=session_dir+stdout_;
     f<<"joboption_stdout="<<value_for_shell(stdout_,true)<<std::endl;
@@ -408,7 +408,7 @@ bool write_grami_rsl(const JobDescription &desc,const JobUser &user,const char* 
     std::string stderr_=tmp_param[0];
     if(canonical_dir(stderr_) != 0) {
       globus_free(tmp_param);
-      logger.msg(Arc::ERROR,"Bad name for stderr: %s",stderr_.c_str()); goto exit;
+      logger.msg(Arc::ERROR,"Bad name for stderr: %s",stderr_); goto exit;
     };
     stderr_=session_dir+stderr_;
     f<<"joboption_stderr="<<value_for_shell(stderr_,true)<<std::endl;

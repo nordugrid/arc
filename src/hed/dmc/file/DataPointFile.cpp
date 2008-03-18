@@ -148,12 +148,12 @@ namespace Arc {
     Arc::User user;
     int res = user.check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
-      logger.msg(INFO, "File is not accessible: %s", url.Path().c_str());
+      logger.msg(INFO, "File is not accessible: %s", url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
     if (stat(url.Path().c_str(), &st) != 0) {
-      logger.msg(INFO, "Can't stat file: %s", url.Path().c_str());
+      logger.msg(INFO, "Can't stat file: %s", url.Path());
       return DataStatus::CheckError;
     }
     SetSize(st.st_size);
@@ -253,7 +253,7 @@ namespace Arc {
          suppose it path was checked at higher level */
       /* make directories */
       if (url.Path().empty()) {
-        logger.msg(ERROR, "Invalid url: %s", url.str().c_str());
+        logger.msg(ERROR, "Invalid url: %s", url.str());
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
@@ -267,8 +267,7 @@ namespace Arc {
         dirpath.erase(n, dirpath.length() - n + 1);
       if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0) {
         if (errno != EEXIST) {
-          logger.msg(ERROR, "Failed to create/find directory %s",
-                     dirpath.c_str());
+          logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
@@ -284,7 +283,7 @@ namespace Arc {
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       }
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to create/open file %s", url.Path().c_str());
+        logger.msg(ERROR, "Failed to create/open file %s", url.Path());
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
@@ -296,7 +295,7 @@ namespace Arc {
       if (CheckSize()) {
         unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu",
-                   url.Path().c_str(), fsize);
+                   url.Path(), fsize);
         /* because filesytem can skip empty blocks do real write */
         unsigned long long int old_size = lseek(fd, 0, SEEK_END);
         if (old_size < fsize) {
@@ -386,7 +385,7 @@ namespace Arc {
         return DataStatus::Success;
       }
       files.erase(f);
-      logger.msg(INFO, "Failed to read object: %s", dirname.c_str());
+      logger.msg(INFO, "Failed to read object: %s", dirname);
       return DataStatus::ListError;
     }
     for(;;) {

@@ -179,7 +179,7 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
     (*response)["Fault"]["faultstring"].New(fs);
     std::string faultstring = (std::string)fs;
     if (faultstring != "") {
-        logger_.msg(Arc::ERROR, faultstring.c_str());
+        logger_.msg(Arc::ERROR, faultstring);
         return ret;
     }
     // Create jobs from response
@@ -202,7 +202,7 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
 void PaulService::do_request(void)
 {
     std::string url = (*schedulers.begin());
-    logger_.msg(Arc::DEBUG, "Do Request: " + url);
+    logger_.msg(Arc::DEBUG, "Do Request: %s", url);
     // pickup scheduler randomly from schdeuler list
     std::list<Job> jobs = GetActivities(url);
     std::list<Job>::iterator it;
