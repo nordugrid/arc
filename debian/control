@@ -2,7 +2,7 @@ Source: nordugrid-arc1
 Section: net
 Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 5), autotools-dev, build-essential, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgc6-dev|libgc9-dev|libgcj7-dev, libldap2-dev, libtool
+Build-Depends: debhelper (>= 5), autotools-dev, build-essential, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgcj6-dev|libgcj9-dev|libgcj7-dev, libldap2-dev, libtool
 Standards-Version: 3.7.3
 Homepage: http://www.nordugrid.org
 
