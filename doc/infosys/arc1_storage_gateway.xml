@@ -1,0 +1,55 @@
+This example gives an initial draft rendering of the ARC1 storage gateway, a 
+component used to hook up 3rd party storage solutions [1]. The rendering is based on the draft 28 of glue2 [2]. 
+
+
+<StorageService>
+  <StorageCapability>This is a Storage Gateway service which makes it possible to integrate third-party storage solutions into the ARC Storage System by mounting the third-party namespace into the global namespace of the ARC Storage</StorageCapability>
+  <ID>E281ABB4-34E7-4CCA-AB71-EEE342040A2A</ID>
+  <Name>Storage Gateway 'Smith'</Name>
+  <Capability>Data Management !!! I am not sure of this</Capability>
+  <Type>org.nordugrid.storagegateway</Type>
+  <QualityLevel>pre-production</QualityLevel>
+  <StatusPage>https://smith.nordugrid.org:60000/StorageGateway/status</StatusPage>
+  <Complexity>endpoint=1, share=1, resource=1</Complexity>
+  <StorageEndpoint>
+    <ID>DF8D5230-98E4-4D20-A382-0C48FDBD3CD3</ID>
+    <Name>Endpoint of the Storage Gateway 'Smith'</Name>
+    <URL>https://smith.nordugrid.org:60000/StorageGateway</URL>
+    <Type>webservice</Type>
+    <QualityLevel>pre-production</QualityLevel>
+    <SpecificationName>ARC Storage Gateway interface</SpecificationName>
+    <HealthState>ok</HealthState>
+    <ServingState>production</ServingState>
+    <WSDL>https://smith.nordugrid.org:60000/StorageGateway?wsdl</WSDL>
+    <WSDL>http://wsdls.nordugrid.org/StorageGateway</WSDL>
+  </StorageEndpoint>
+  <StorageAccessProtocol>
+    <ID>3D31E4C6-E25A-4C6D-B3C9-0B17B5B2F273</ID>
+    <Type>gsiftp</Type>
+  </StorageAccessProtocol>
+  <StorageShare>
+    <ID>F45A388B-AE44-48C3-AAA1-25703480E7C6</ID>
+    <Name>Share for VO1. That's right, you ain't got nothing you bloody VO2 members!</Name>
+    <State>Up</State>
+    <StorageEnvironment>
+      <ID>BE2C94A6-C986-4B51-949B-7D1B16006588</ID>
+      <Number>1</Number>
+    </StorageEnvironment>
+    <StorageCapacity>
+      <Type>Nearline</Type>
+      <FreeSize>432</FreeSize>
+      <UsedSize>987</UsedSize>
+      <StorageResource>EEBAC0B3-AF18-4956-AEF9-5C318FD86997</StorageResource>
+    </StorageCapacity>
+  </StorageShare>
+  <StorageResource>
+    <ID>EEBAC0B3-AF18-4956-AEF9-5C318FD86997</ID>
+    <Name>Legacy tape storage filled with lots of old data with its own namespace</Name>
+  </StorageResource>
+  <StorageEnvironment>
+    <ID>BE2C94A6-C986-4B51-949B-7D1B16006588</ID>
+    <Architecture>tape</Architecture>
+    <AccessLatency>Nearline</AccessLatency>
+    <StorageResource>EEBAC0B3-AF18-4956-AEF9-5C318FD86997</StorageResource>
+  </StorageEnvironment>
+</StorageService>

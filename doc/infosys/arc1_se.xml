@@ -1,0 +1,81 @@
+This example gives an initial draft rendering of the ARC1 storage element, a
+basic building block of the complete storage system[1] The rendering is based on the draft 28 of glue2 [2]. 
+
+
+[1] http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/storage_system/arc-storage-design.pdf
+[2] http://forge.gridforum.org/sf/docman/do/downloadDocument/projects.glue-wg/docman.root.drafts/doc15023
+
+
+<StorageService>
+  <StorageCapability>This is one single Storage Element which provides some free space for storing files accessible through a set of transfer protocols.</StorageCapability>
+  <ID>34D61BCD-9EF6-453F-A720-88DF2BFB527E</ID>
+  <Name>Storage Element 'Jonathan'</Name>
+  <Capability>Data Management !!! I am not sure of this.</Capability>
+  <Type>org.nordugrid.storageelement</Type>
+  <QualityLevel>production</QualityLevel>
+  <StatusPage>https://jonathan.nordugrid.org:60000/StorageElement/status</StatusPage>
+  <Complexity>endpointType=1, share=2, resource=1</Complexity>
+  <StorageEndpoint>
+    <ID>6D092274-A286-4228-B1D4-9E4E01F6DA30</ID>
+    <Name>Endpoint of the Storage Element 'Jonathan'</Name>
+    <URL>https://jonathan.nordugrid.org:60000/StorageElement</URL>
+    <Type>webservice</Type>
+    <QualityLevel>production</QualityLevel>
+    <SpecificationName>ARC Storage Element interface</SpecificationName>
+    <HealthState>ok</HealthState>
+    <ServingState>production</ServingState>
+    <WSDL>https://jonathan.nordugrid.org:60000/StorageElement?wsdl</WSDL>
+    <WSDL>http://wsdls.nordugrid.org/StorageElement</WSDL>
+  </StorageEndpoint>
+  <StorageAccessProtocol>
+    <LocalID>5441BBED-C519-4A3E-8F4D-126648FC71BD !!! Why "LocalID" instead of just "ID"?</LocalID>
+    <Type>byteio</Type>
+  </StorageAccessProtocol>
+  <StorageAccessProtocol>
+    <LocalID>BD2583AF-E4D1-4AF8-A5F2-29A3115432D2</LocalID>
+    <Type>https</Type>
+  </StorageAccessProtocol>
+  <StorageAccessProtocol>
+    <LocalID>077515DC-EB21-48B3-B58D-A63BA3E1AB9F</LocalID>
+    <Type>gsiftp</Type>
+  </StorageAccessProtocol>
+  <StorageShare>
+    <ID>C15B92EE-1B12-4901-91D5-A3DDD836B0D7</ID>
+    <Name>Share for VO1</Name>
+    <State>Up</State>
+    <StorageEnvironment>
+      <ID>DA03B958-A6D6-4398-8543-1C0213277E77</ID>
+      <Number>1</Number>
+    </StorageEnvironment>
+    <StorageCapacity>
+      <Type>Online</Type>
+      <FreeSize>3643</FreeSize>
+      <UsedSize>5376</UsedSize>
+      <StorageResource>BC48A230-AD62-45D0-89E8-BEB59C42AEE5</StorageResource>
+    </StorageCapacity>
+  </StorageShare>
+  <StorageShare>
+    <ID>9C39D6D7-70B1-4967-92A2-AC475F38577E</ID>
+    <Name>Share for VO2</Name>
+    <State>Up</State>
+    <StorageEnvironment>
+      <ID>DA03B958-A6D6-4398-8543-1C0213277E77</ID>
+      <Number>1</Number>
+    </StorageEnvironment>
+    <StorageCapacity>
+      <Type>Online</Type>
+      <FreeSize>2643</FreeSize>
+      <UsedSize>4376</UsedSize>
+      <StorageResource>BC48A230-AD62-45D0-89E8-BEB59C42AEE5</StorageResource>
+    </StorageCapacity>
+  </StorageShare>
+  <StorageResource>
+    <ID>BC48A230-AD62-45D0-89E8-BEB59C42AEE5</ID>
+    <Name>RAID Logical Unit on an EMC Storage</Name>
+  </StorageResource>
+  <StorageEnvironment>
+    <ID>DA03B958-A6D6-4398-8543-1C0213277E77</ID>
+    <Architecture>multi-disk</Architecture>
+    <AccessLatency>Online</AccessLatency>
+    <StorageResource>BC48A230-AD62-45D0-89E8-BEB59C42AEE5</StorageResource>
+  </StorageEnvironment>

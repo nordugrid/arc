@@ -1,0 +1,126 @@
+This example gives an initial draft rendering of the ARC1 storage system[1]
+considered as a complete storage solution implementing storage capability. The
+rendering is based on the draft 28 of glue2 [2]. 
+
+
+[1] http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/storage_system/arc-storage-design.pdf
+[2] http://forge.gridforum.org/sf/docman/do/downloadDocument/projects.glue-wg/docman.root.drafts/doc15023
+
+<StorageService>
+  <StorageCapability>This is a high-level view of the whole ARC Storage System, this is the main entrance for the end-users.</StorageCapability>
+  <ID>48FDEF18-9988-46B6-8E46-58BA0CD199E9</ID>
+  <Name>ARC Storage System</Name>
+  <Capability>Data Management</Capability>
+  <Type>org.nordugrid.storagemanager</Type>
+  <QualityLevel>Production</QualityLevel>
+  <StatusPage>https://vir.nordugrid.org:60000/StorageManager/status</StatusPage>
+  <StatusPage>https://sam.nordugrid.org:60000/StorageManager/status</StatusPage>
+  <StatusPage>https://sancho.nordugrid.org:60000/StorageManager/status</StatusPage>
+  <Complexity>endpointType=3, share=2, resource=1</Complexity>
+  <StorageAccessProtocol>!!! I don't know, what kind of StorageAccessProtocol can I connect to these Service, because this service provides a high-level access to several different Storage Elements, and each Storage Element could provide different set of transfer protocols. So this meta-service has an interface called ARC Storage Manager Interface, and when the client request a file through this interface proveding a set of transfer protocols the client supports, then the client will get a URL with a protocol both the client and the given Storage Element where a replica of the file is support.</StorageAccessProtocol>
+  <StorageEndpoint>
+    <ID>F30B36DB-3EF8-44D6-9ECC-A9664544B019</ID>
+    <Name>Storage Manager on Vir</Name>
+    <URL>https://vir.nordugrid.org:60000/StorageManager</URL>
+    <Capability>!!! same as of the service</Capability>
+    <Type>webservice</Type>
+    <QualityLevel>Production</QualityLevel>
+    <SpecificationName>ARC Storage Manager Interface</SpecificationName>
+    <SpecificationVersion>0.1</SpecificationVersion>
+    <Implementation>!!! it's not clear for me, what these Implementor/ImplementationName/Version mean</Implementation>
+    <HealthState>ok</HealthState>
+    <HealthStateInfo>As I've just said, everything is fine, thank you.</HealthStateInfo>
+    <ServingState>production</ServingState>
+    <WSDL>https://vir.nordugrid.org:60000/StorageManager?wsdl</WSDL>
+    <WSDL>http://wsdls.nordugrid.org/StorageManager</WSDL>
+    <SupportedProfile>!!! it is not clear, what this means</SupportedProfile>
+    <Semantics>http://docs.nordugrid.org/StorageManager</Semantics>
+    <StartTime>1205662427</StartTime>
+  </StorageEndpoint>
+  <StorageEndpoint>
+    <ID>7CFBCBD0-F9B1-4944-A7AD-9257BC80CF06</ID>
+    <Name>Storage Manager on Sam</Name>
+    <URL>https://sam.nordugrid.org:60000/StorageManager</URL>
+    <Type>webservice</Type>
+    <QualityLevel>Production</QualityLevel>
+    <SpecificationName>ARC Storage Manager Interface</SpecificationName>
+    <SpecificationVersion>0.1</SpecificationVersion>
+    <HealthState>ok</HealthState>
+    <ServingState>production</ServingState>
+    <WSDL>https://sam.nordugrid.org:60000/StorageManager?wsdl</WSDL>
+    <WSDL>http://wsdls.nordugrid.org/StorageManager</WSDL>
+    <Semantics>http://docs.nordugrid.org/StorageManager</Semantics>
+    <StartTime>1205662527</StartTime>
+  </StorageEndpoint>
+  <StorageEndpoint>
+    <ID>8D16E841-6B8C-44DD-A55F-04FFDF5B038E</ID>
+    <Name>Storage Manager on Sancho</Name>
+    <URL>https://sancho.nordugrid.org:60000/StorageManager</URL>
+    <Type>webservice</Type>
+    <QualityLevel>Production</QualityLevel>
+    <SpecificationName>ARC Storage Manager Interface</SpecificationName>
+    <SpecificationVersion>0.1</SpecificationVersion>
+    <HealthState>ok</HealthState>
+    <ServingState>production</ServingState>
+    <WSDL>https://sancho.nordugrid.org:60000/StorageManager?wsdl</WSDL>
+    <WSDL>http://wsdls.nordugrid.org/StorageManager</WSDL>
+    <Semantics>http://docs.nordugrid.org/StorageManager</Semantics>
+    <StartTime>1205663427</StartTime>
+  </StorageEndpoint>
+  <StorageShare>
+    <LocalID>6D2BD6AF-F012-4C6A-B75D-72CCCA7F3A8D !!! why "LocalID" instead of "ID"?</LocalID>
+    <Name>Storage share for VO1</Name>
+    <ExpirationMode>never</ExpirationMode>
+    <State>Up</State>
+    <StorageEnvironment>
+      <ID>7F3FB57D-FF7A-4B8B-82CE-E265DF9FFC3E</ID>
+      <Number>10</Number>
+    </StorageEnvironment>
+    <StorageEnvironment>
+      <ID>685A4501-42E5-4700-9A2D-4877A8A47AA0</ID>
+      <Number>4</Number>
+    </StorageEnvironment>
+    <StorageCapacity>
+      <Type>Online</Type>
+      <FreeSize>17643</FreeSize>
+      <UsedSize>82376</UsedSize>
+      <StorageResource>AAEE56D4-F947-4087-9948-EA857EB6A902</StorageResource>
+    </StorageCapacity>
+  </StorageShare>
+  <StorageShare>
+    <LocalID>95F69954-E860-4140-BD9B-684B5366DCF5</LocalID>
+    <Name>Storage share for VO2</Name>
+    <ExpirationMode>never</ExpirationMode>
+    <State>Up</State>
+    <StorageEnvironment>
+      <ID>7F3FB57D-FF7A-4B8B-82CE-E265DF9FFC3E</ID>
+      <Number>8</Number>
+    </StorageEnvironment>
+    <StorageEnvironment>
+      <ID>685A4501-42E5-4700-9A2D-4877A8A47AA0</ID>
+      <Number>2</Number>
+    </StorageEnvironment>
+    <StorageCapacity>
+      <Type>Online</Type>
+      <FreeSize>11643</FreeSize>
+      <UsedSize>63376</UsedSize>
+      <StorageResource>AAEE56D4-F947-4087-9948-EA857EB6A902</StorageResource>
+    </StorageCapacity>
+  </StorageShare>
+  <StorageResource>
+    <ID>AAEE56D4-F947-4087-9948-EA857EB6A902</ID>
+    <Name>The whole NorduGrid ARC Storage System</Name>
+  </StorageResource>
+  <StorageEnvironment>
+    <ID>7F3FB57D-FF7A-4B8B-82CE-E265DF9FFC3E</ID>
+    <Architecture>multi-disk</Architecture>
+    <AccessLatency>Online</AccessLatency>
+    <StorageResource>AAEE56D4-F947-4087-9948-EA857EB6A902</StorageResource>
+  </StorageEnvironment>
+  <StorageEnvironment>
+    <ID>685A4501-42E5-4700-9A2D-4877A8A47AA0</ID>
+    <Architecture>tape</Architecture>
+    <AccessLatency>Nearline</AccessLatency>
+    <StorageResource>AAEE56D4-F947-4087-9948-EA857EB6A902</StorageResource>
+  </StorageEnvironment>
+</StorageService>
