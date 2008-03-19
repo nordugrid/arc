@@ -120,7 +120,7 @@ void Arc::GUID(std::string& guid) {
 
 #if HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
-static std::string Arc::UUID(void) 
+std::string Arc::UUID(void) 
 {                                                     
   uuid_t uu;                                                                    
   uuid_generate(uu);                                                            
