@@ -34,7 +34,7 @@ Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::
       continue;
     };
 
-    if (!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.checkJob(jobid)) {
        logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid);
        Arc::SOAPEnvelope fault(ns_,true);
        fault.Fault()->Code(Arc::SOAPFault::Sender);
@@ -43,14 +43,10 @@ Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::
        out.Replace(fault.Child());
        return Arc::MCC_Status();
     }
-
-    bool result = sched_queue.setJobStatus(jobid, KILLING);
     
-    if (result) {
-      resp.NewChild("bes-factory:Terminated")="true";
-    } else {
-      resp.NewChild("bes-factory:Terminated")="false";
-    };
+    // XXX excpetion handling
+    sched_queue[jobid].setStatus(status_factory.get(KILLING));
+    resp.NewChild("bes-factory:Terminated") = "true";
   };
   {
     std::string s;

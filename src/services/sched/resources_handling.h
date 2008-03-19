@@ -13,13 +13,12 @@ class ResourcesHandling {
        std::map<std::string, Resource> resources;
     public:
         ResourcesHandling(void);
-        void addResource(Resource &r);
-        void removeResource(std::string &id);
-        bool getResource(std::string &id, Resource &r);
-        bool random(Resource &r);
-        std::map<std::string,Resource>& getResources(void) {return resources;};
-        int size(void) { return resources.size();};
-        bool refresh(std::string id);
+        void add(Resource &r);
+        void remove(const std::string &id);
+        Resource &get(const std::string &id);
+        Resource &random(void);
+        int size(void) { return resources.size(); };
+        bool refresh(const std::string &id);
 };
 
 } // namespace Arc

@@ -2,88 +2,84 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/message/PayloadSOAP.h>
-#include <arc/ws-addressing/WSA.h>
-#include <arc/URL.h>
 #include <glibmm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fstream>
-
 #include <iostream>
 
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <arc/loader/Loader.h>
-#include <arc/loader/ServiceLoader.h>
-#include <arc/loader/Plexer.h>
-#include <arc/message/PayloadSOAP.h>
-#include <arc/message/PayloadRaw.h>
-#include <arc/message/PayloadStream.h>
-#include <arc/ws-addressing/WSA.h>
+#include <arc/URL.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/loader/Loader.h>
+#include <arc/loader/ServiceLoader.h>
+#include <arc/message/PayloadSOAP.h>
+#include <arc/message/PayloadStream.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "grid_sched.h"
 
 namespace GridScheduler {
 
-static Arc::LogStream logcerr(std::cerr);
-
 // Static initializator
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
+static Arc::Service *
+get_service(Arc::Config *cfg,Arc::ChainContext*) 
+{
     return new GridSchedulerService(cfg);
 }
 
 // Create Faults
-Arc::MCC_Status GridSchedulerService::make_soap_fault(Arc::Message& outmsg) 
+Arc::MCC_Status 
+GridSchedulerService::make_soap_fault(Arc::Message& outmsg) 
 {
-  Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
-  Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
-  if(fault) {
-    fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
-  };
-  outmsg.Payload(outpayload);
-  return Arc::MCC_Status(Arc::STATUS_OK);
+    Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
+    Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
+    if(fault) {
+        fault->Code(Arc::SOAPFault::Sender);
+        fault->Reason("Failed processing request");
+    }
+
+    outmsg.Payload(outpayload);
+    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status GridSchedulerService::make_fault(Arc::Message& /*outmsg*/) 
+Arc::MCC_Status 
+GridSchedulerService::make_fault(Arc::Message& /*outmsg*/) 
 {
-  return Arc::MCC_Status();
+    return Arc::MCC_Status();
 }
 
-Arc::MCC_Status GridSchedulerService::make_response(Arc::Message& outmsg) 
+Arc::MCC_Status 
+GridSchedulerService::make_response(Arc::Message& outmsg) 
 {
-  Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
-  outmsg.Payload(outpayload);
-  return Arc::MCC_Status(Arc::STATUS_OK);
+    Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+    outmsg.Payload(outpayload);
+    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 // Main process 
-Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
+Arc::MCC_Status 
+GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
+{
     // Both input and output are supposed to be SOAP
     // Extracting payload
     Arc::PayloadSOAP* inpayload = NULL;
     try {
-      inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
+        inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) {
-      logger_.msg(Arc::ERROR, "input is not SOAP");
-      return make_soap_fault(outmsg);
-    };
+        logger_.msg(Arc::ERROR, "input is not SOAP");
+        return make_soap_fault(outmsg);
+    }
 
     // Get operation
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
-      logger_.msg(Arc::ERROR, "input does not define operation");
-      return make_soap_fault(outmsg);
-    };
-    logger_.msg(Arc::DEBUG, "process: operation: %s",op.Name());
+        logger_.msg(Arc::ERROR, "input does not define operation");
+        return make_soap_fault(outmsg);
+    }
+    logger_.msg(Arc::DEBUG, "process: operation: %s", op.Name());
     // BES Factory operations
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
     Arc::PayloadSOAP& res = *outpayload;
@@ -143,118 +139,119 @@ Arc::MCC_Status GridSchedulerService::process(Arc::Message& inmsg,Arc::Message& 
         return make_soap_fault(outmsg);
     
     }
-    // DEBUG 
-    std::string str;
-    outpayload->GetXML(str);
-    logger_.msg(Arc::DEBUG, "process: response=%s",str);
-    
+    {
+        // DEBUG
+        std::string str;
+        outpayload->GetXML(str);
+        logger_.msg(Arc::DEBUG, "process: response=%s", str);
+    }
     // Set output
     outmsg.Payload(outpayload);
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-void sched(void* arg) {
-    GridSchedulerService& it = *((GridSchedulerService*)arg);
-    for(;;) {
-        std::cout << "Count of jobs:" << it.sched_queue.size() << " Count of resources:" << it.sched_resources.size() << " Scheduler period:" << it.getPeriod() << " Endpoint: "<< it.getEndPoint() <<  " DBPath: " << it.getDBPath() << std::endl;
+void GridSchedulerService::doSched(void)
+{   
+    // log status
+    std::string msg = "Count of jobs:" + Arc::tostring(sched_queue.size())
+                    + " Count of resources:" + Arc::tostring(sched_resources.size())
+                    + " Scheduler period:" + Arc::tostring(getPeriod()) 
+                    + " Endpoint: " + endpoint
+                    + " DBPath: " + db_path;
+    logger_.msg(Arc::DEBUG, msg);
 
     // searching for new sched jobs:
-
-    
-    std::map<std::string,Job> new_jobs =  it.sched_queue.getJobsWithThisState(NEW);
-    std::map<std::string,Job>::iterator iter;
-    Resource arex;
-    
-
+    std::map<const std::string, Job *> new_jobs = sched_queue.getJobsWithState(status_factory.get(NEW));
+    // submit new jobs
+    // XXX make it two step: collect job and mark them to going to submit, lock the queue until this, and do the submit after it
+    std::map<const std::string, Job *>::iterator iter;
     for (iter = new_jobs.begin(); iter != new_jobs.end(); iter++) {
-        std::cout << "NEW job: " << iter->first << std::endl;
-        it.sched_resources.random(arex);
-        Job j = iter->second;
-        Arc::XMLNode jsdl = (iter->second).getJSDL();
+        const std::string &job_id = iter->first;
+        logger_.msg(Arc::DEBUG, "NEW job: " + job_id);
+        Resource &arex = sched_resources.random();
+        Job *j = iter->second;
+        Arc::XMLNode &jsdl = j->getJSDL();
+        // XXX better error handling
         std::string arex_job_id = arex.CreateActivity(jsdl);
-        std::cout << "A-REX ID: " << arex.getURL() <<  std::endl;
+        logger_.msg(Arc::DEBUG, "A-REX ID: " + arex.getURL());
         if (arex_job_id != "") {
-            it.sched_queue.setArexJobID(iter->first, arex_job_id);
-            it.sched_queue.setArexID(iter->first, arex.getURL());
-            it.sched_queue.setJobStatus(iter->first, STARTING);
-            std::cout << "Sched job ID: " << iter->first << " SUBMITTED" <<  std::endl;
+            j->setResourceJobID(arex_job_id);
+            j->setResourceID(arex.getURL());
+            j->setStatus(status_factory.get(STARTING));
         } else {
-            std::cout << "Sched job ID: " << iter->first << " NOT SUBMITTED" <<  std::endl;
-            it.sched_resources.refresh(arex.getURL());
+            logger_.msg(Arc::DEBUG, "Sched job ID: " + job_id + " NOT SUBMITTED");
+            sched_resources.refresh(arex.getURL());
         }
-        it.sched_queue.saveJobStatus(iter->first);
+        j->save();
     }
 
-    // kill jobs
-
-    std::map<std::string,Job> killed_jobs =  it.sched_queue.getJobsWithThisState(KILLING);
-    
+    // search for job which are killed by user
+    std::map<const std::string, Job *> killed_jobs = sched_queue.getJobsWithState(status_factory.get(KILLING));
     for (iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++) {
-        Job j = iter->second;
-        std::string job_id= iter->first;
-        std::string arex_job_id  = (iter->second).getArexJobID();
-
+        Job *j = iter->second;
+        const std::string &job_id = iter->first;
+        const std::string &arex_job_id = j->getResourceJobID();
         if (arex_job_id.empty()) {
-            it.sched_queue.setJobStatus(iter->first, KILLED);
-            it.sched_queue.removeJob(job_id);
+            j->setStatus(status_factory.get(KILLED));
+            sched_queue.removeJob(job_id);
         } else {
-            it.sched_resources.getResource((iter->second).getURL(), arex);
+            Resource &arex = sched_resources.get(j->getResourceID());
             if (arex.TerminateActivity(arex_job_id)) {
-                std::cout << "JobID: " << iter->first << " KILLED " << std::endl;
-                it.sched_queue.setJobStatus(iter->first, KILLED);
-                it.sched_queue.removeJob(job_id);
+                logger_.msg(Arc::DEBUG, "JobID: " + job_id + " KILLED ");
+                j->setStatus(status_factory.get(KILLED));
+                sched_queue.removeJob(job_id);
             }
         }
-        it.sched_queue.saveJobStatus(iter->first);
+        j->save();
     }
 
-    // query a-rex job statuses:
-    
-    for (iter = it.sched_queue.getJobs().begin(); iter != it.sched_queue.getJobs().end(); iter++) {
-        it.sched_queue.saveJobStatus(iter->first); 
-
-        Job j = iter->second;
-
-        std::string job_id = iter->first;
-
-        SchedStatus job_stat;
-        it.sched_queue.getJobStatus(job_id, job_stat);
-
-        if (job_stat == FINISHED) continue;
-
-        std::string arex_job_id  = (iter->second).getArexJobID();
-
+    // query a-rexes for the job statuses:
+    std::map<const std::string, Job *> all_job = sched_queue.getAllJobs();
+    for (iter = all_job.begin(); iter != all_job.end(); iter++) {
+        const std::string &job_id = iter->first;
+        Job *j = iter->second;
+        SchedStatus job_stat = j->getStatus();
+        // skip jobs with FINISHED state
+        if (job_stat == FINISHED) {
+            continue;
+        }
+        const std::string &arex_job_id = j->getResourceJobID();
+        // skip unscheduled jobs
         if (arex_job_id.empty()) {
-            std::cout << "Sched job ID: " << iter->first << " ---- A-REX job ID is empty" <<   std::endl;
+            logger_.msg(Arc::DEBUG, "Sched job ID: " + job_id + " (A-REX job ID is empty)");
             continue; 
         }
-
-        it.sched_resources.getResource((iter->second).getURL(), arex);
-        std::string state;
-
-        state = arex.GetActivityStatus(arex_job_id);
-
-        if (state == "Unknown") {
-            if (!it.sched_queue.CheckJobTimeout(iter->first)) {  // job timeout check
-                it.sched_queue.setJobStatus(iter->first, NEW);
-                it.sched_queue.setArexJobID(iter->first, "");
-                it.sched_queue.setArexID(iter->first, "");
-               // std::string url = arex.getURL();
-              //  it.sched_resources.removeResource(url);
-                std::cout << "Job RESCHEDULE: " << iter->first << std::endl;
-                it.sched_queue.saveJobStatus(iter->first);
-                it.sched_resources.refresh(arex.getURL());
-                continue;
+        // get state of the job at the resource
+        Resource &arex = sched_resources.get(j->getResourceID());
+        std::string state = arex.GetActivityStatus(arex_job_id);
+        if (state == "UNKOWN") {
+            if (!j->CheckTimeout()) {  // job timeout check
+                j->setStatus(status_factory.get(NEW));
+                j->setResourceJobID("");
+                j->setResourceID("");
+                j->save();
+                sched_resources.refresh(arex.getURL());
+                // std::string url = arex.getURL();
+                // sched_resources.removeResource(url);
+                logger_.msg(Arc::DEBUG, "Job RESCHEDULE: " + job_id);
             }
+        } else {
+            // refresh status from A-REX state
+            job_stat = status_factory.getFromARexStatus(state); 
+            j->setStatus(job_stat);
+            j->save();
+            logger_.msg(Arc::DEBUG, "JobID: " + job_id + " state: " + state);
         }
-
-        ArexStatetoSchedState(state, job_stat); // refresh status from A-REX state
-        it.sched_queue.setJobStatus(iter->first, job_stat);
-        std::cout << "JobID: " << iter->first << " state: " << state<< std::endl;
-        it.sched_queue.saveJobStatus(iter->first);
     }
+}
 
-    sleep(it.getPeriod());
+void sched(void* arg) 
+{
+    GridSchedulerService *self = (GridSchedulerService*) arg;
+    
+    for(;;) {
+        self->doSched();
+        sleep(self->getPeriod());
     }
 }
 
@@ -262,49 +259,43 @@ void sched(void* arg) {
 
 GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
 {
-  logger_.addDestination(logcerr);
-  // Define supported namespaces
+    // Define supported namespaces
+    ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+    ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+    ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
+    ns_["wsa"]="http://www.w3.org/2005/08/addressing";
+    ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
+    ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
+    ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+    ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
+    ns_["sched"]="http://www.nordugrid.org/schemas/sched";
+    ns_["bes-mgmt"]="http://schemas.ggf.org/bes/2006/08/bes-management";
 
-  ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-  ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-  ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
-  ns_["wsa"]="http://www.w3.org/2005/08/addressing";
-  ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
-  ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
-  ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
-  ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
-  ns_["sched"]="http://www.nordugrid.org/schemas/sched";
-  ns_["bes-mgmt"]="http://schemas.ggf.org/bes/2006/08/bes-management";
+    endpoint = (std::string)((*cfg)["Endpoint"]);
+    period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
+    db_path = (std::string)((*cfg)["DataDirectoryPath"]);
 
-  endpoint = (std::string)((*cfg)["Endpoint"]);
-  period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
-  db_path = (std::string)((*cfg)["DataDirectoryPath"]);
+    //TODO db_path test
 
-  //TODO db_path test
-
-  timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
-  Arc::CreateThreadFunction(&sched, this);
-  IsAcceptingNewActivities = true;
-  sched_queue.reload(db_path);
-
-  std::vector <std::string> security;
-  std::string data = "/etc/grid-security/key.pem"; // at(0)
-  security.push_back(data); 
-  data = "/etc/grid-security/cert.pem";  // at(1)
-  security.push_back(data);
-  data = "/etc/grid-security/certificates";  // at(2)
-  security.push_back(data);
-
-  Resource arex("https://knowarc1.grid.niif.hu:60000/arex", security);
-  sched_resources.addResource(arex);
-
-  //Resource arex0("https://localhost:40000/arex", security);
-  //Resource arex1("https://localhost:40001/arex", security);
-  //Resource arex2("https://localhost:40002/arex", security);
-  //sched_resources.addResource(arex0);
-  //sched_resources.addResource(arex1);
-  //sched_resources.addResource(arex2);
+    timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
+    sched_queue.reload(db_path);
+    cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
+    cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
+    cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
+    IsAcceptingNewActivities = true;
+  
+    Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
+    sched_resources.add(arex);
+    //Resource arex0("https://localhost:40000/arex", security);
+    //Resource arex1("https://localhost:40001/arex", security);
+    //Resource arex2("https://localhost:40002/arex", security);
+    //sched_resources.addResource(arex0);
+    //sched_resources.addResource(arex1);
+    //sched_resources.addResource(arex2);
+ 
+    // start scheduler thread
+    Arc::CreateThreadFunction(&sched, this);
 }
 
 // Destructor

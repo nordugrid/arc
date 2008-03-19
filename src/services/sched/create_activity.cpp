@@ -94,8 +94,8 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   Arc::WSAEndpointReference identifier(out.NewChild("bes-factory:ActivityIdentifier"));
   // Make job's ID
 
-  identifier.Address(getEndPoint()); // address of service
-  identifier.ReferenceParameters().NewChild("sched:JobID")=sched_job.getID();
+  identifier.Address(endpoint); // address of service
+  identifier.ReferenceParameters().NewChild("sched:JobID") = sched_job.getID();
   out.NewChild(in["ActivityDocument"]);
   logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");
   {
@@ -104,7 +104,7 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
     logger_.msg(Arc::DEBUG, "CreateActivity: response = \n%s", s);
   };
 
-  sched_job.setStatus(NEW);
+  sched_job.setStatus(status_factory.get(NEW));
   sched_queue.addJob(sched_job);
 
   return Arc::MCC_Status(Arc::STATUS_OK);

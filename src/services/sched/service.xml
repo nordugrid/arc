@@ -3,10 +3,11 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:sched="http://www.nordugrid.org/schemas/sched"
+  xmlns:arccli="http://www.nordugrid.org/schemas/arccli"
 >
   <Server>
     <Foreground/>
-    <Pidfile>./arcserver.pid</Pidfile>
+    <Pidfile>./arched.pid</Pidfile>
     <Logger level="VERBOSE">./logfile</Logger>
   </Server>
   <ModuleManager>
@@ -28,9 +29,9 @@
     </Component>
    <Component name="tls.service" id="tls">
       <next id="http"/>
-      <KeyPath>/home/roczei/opt/sbin/key.pem</KeyPath>
-      <CertificatePath>/home/roczei/opt/sbin/cert.pem</CertificatePath>
-      <CACertificateDir>/etc/grid-security/certificates</CACertificateDir>
+      <KeyPath>../../tests/echo/key.pem</KeyPath>
+      <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
+      <CACertificatePath>../../tests/echo/ca.pem</CACertificatePath>
     </Component> 
     <Component name="http.service" id="http">
       <next id="soap">POST</next>
@@ -47,6 +48,9 @@
        <sched:DataDirectoryPath>/tmp</sched:DataDirectoryPath>
        <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
        <sched:Timeout>5</sched:Timeout> 
+       <arccli:CertificatePath>../../tests/echo/cert.pem</arccli:CertificatePath>
+       <arccli:PrivateKey>../../tests/echo/key.pem</arccli:PrivateKey>
+       <arccli:CACertificatePath>../../tests/echo/ca.pem</arccli:CACertificatePath>
     </Service>
   </Chain>
 </ArcConfig>

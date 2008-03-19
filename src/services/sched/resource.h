@@ -15,16 +15,16 @@ class Resource {
             Arc::NS ns;
             Arc::MCCConfig cfg;
         public:
-            Resource(std::string url_str, std::vector <std::string> &security);
-            Resource();
+            Resource(void);
+            Resource(const Resource& r);
+            Resource(const std::string &url_str, std::map<std::string, std::string> &cli_config);
             ~Resource(void);
-            Arc::ClientSOAP* getSOAPClient(void) {return client;};
-            std::string CreateActivity(Arc::XMLNode jsdl);
-            std::string GetActivityStatus(std::string arex_job_id);
-            bool TerminateActivity(std::string arex_job_id);
-            std::string getURL(void){  return url;};
-            Resource&  operator=( const  Resource& r );
-            Resource( const Resource& r);
+            Arc::ClientSOAP* getSOAPClient(void) { return client; };
+            const std::string CreateActivity(const Arc::XMLNode &jsdl);
+            const std::string GetActivityStatus(const std::string &arex_job_id);
+            bool TerminateActivity(const std::string &arex_job_id);
+            const std::string &getURL(void) { return url; };
+            Resource &operator=(const Resource &r);
             bool refresh(void);
 };
 

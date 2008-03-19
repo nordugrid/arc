@@ -5,17 +5,19 @@
 #include "resource.h"
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
-#include <list>
+#include <map>
 
 
 namespace GridScheduler {
 
 
-Resource::Resource() {
+Resource::Resource() 
+{
 
 }
 
-Resource::Resource(std::string url_str, std::vector <std::string> &security) {
+Resource::Resource(const std::string &url_str, std::map<std::string, std::string> &cli_config) 
+{
     url = url_str;
     ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
     ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
@@ -31,20 +33,22 @@ Resource::Resource(std::string url_str, std::vector <std::string> &security) {
     Arc::URL url(url_str);
     
     if (url.Protocol() == "https") {
-        cfg.AddPrivateKey(security.at(0));
-        cfg.AddCertificate(security.at(1));
-        cfg.AddCADir(security.at(2));
+        cfg.AddPrivateKey(cli_config["PrivateKey"]);
+        cfg.AddCertificate(cli_config["CertificatePath"]);
+        cfg.AddCAFile(cli_config["CACertificatePath"]);
     }
     
     client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 }
 
 
-Resource::~Resource(void) {
+Resource::~Resource(void) 
+{
     //if (client) delete client;
 }
 
-bool Resource::refresh(void) {
+bool Resource::refresh(void) 
+{
     // TODO ClientSOAP refresh if the connection is wrong
     //
 
@@ -57,7 +61,8 @@ bool Resource::refresh(void) {
 }
 
 
-std::string Resource::CreateActivity(Arc::XMLNode jsdl) {
+const std::string Resource::CreateActivity(const Arc::XMLNode &jsdl) 
+{
     std::string jobid, faultstring;
     Arc::PayloadSOAP request(ns);
     request.NewChild("bes-factory:CreateActivity").NewChild("bes-factory:ActivityDocument").NewChild(jsdl);
@@ -92,7 +97,8 @@ std::string Resource::CreateActivity(Arc::XMLNode jsdl) {
     return "";
 }
 
-std::string Resource::GetActivityStatus(std::string arex_job_id) {
+const std::string Resource::GetActivityStatus(const std::string &arex_job_id) 
+{
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;
 
@@ -128,7 +134,8 @@ std::string Resource::GetActivityStatus(std::string arex_job_id) {
     return "";
 }
 
-bool Resource::TerminateActivity(std::string arex_job_id) {
+bool Resource::TerminateActivity(const std::string &arex_job_id) 
+{
     std::cout << "kill this job: " << arex_job_id << std::endl; 
     std::string state, substate, faultstring;
     Arc::PayloadSOAP* response;

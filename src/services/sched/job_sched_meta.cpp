@@ -6,38 +6,21 @@
 
 namespace GridScheduler {
 
-JobSchedMetaData::JobSchedMetaData() {
+JobSchedMetaData::JobSchedMetaData() 
+{
     reruns = 5;
 }
 
-JobSchedMetaData::~JobSchedMetaData(void) {
+JobSchedMetaData::~JobSchedMetaData(void) 
+{
     // nop
 }
 
 
-JobSchedMetaData::JobSchedMetaData(int& r) {
+JobSchedMetaData::JobSchedMetaData(int r) 
+{
     reruns = r;
 }
 
-bool JobSchedMetaData::setArexID(std::string &id) {
-    arex_id = id;
-    return true;
-}
-
-/*
-
-JobSchedMetaData::JobSchedMetaData& operator=(const JobSchedMetaData& j) {
-    //TODO
-
-}
-
-
-JobSchedMetaData::JobSchedMetaData(const JobSchedMetaData& j) {
-
-    //TODO
-
-}
-
-*/
 
 } //namespace

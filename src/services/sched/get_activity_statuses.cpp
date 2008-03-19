@@ -39,7 +39,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
       continue;
     };
 
-    if (!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.checkJob(jobid)) {
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid);
       Arc::SOAPEnvelope fault(ns_,true);
       fault.Fault()->Code(Arc::SOAPFault::Sender);
@@ -51,43 +51,11 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
 
     std::string job_state;
 
-    Job j =  sched_queue.getJob(jobid);
-    SchedStatus stat = j.getStatus();
-
-    switch (stat) {
-
-      case NEW:
-          job_state="Pending";
-          break;
-      case STARTING:
-          job_state="Pending";
-          break;
-      case RUNNING:
-          job_state="Running";
-          break;
-      case CANCELLED:
-          job_state="Cancelled";
-	  break;
-      case FAILED:
-          job_state="Failed";
-          break;
-      case FINISHED:
-          job_state="Finished";
-          break;
-      case KILLING:
-          job_state="Killing";
-	  break;
-      case KILLED:
-          job_state="Killed";
-          break;
-      case UNKNOWN:
-          job_state="Unknown";
-          break;
-    }
-
+    SchedStatus stat = sched_queue[jobid].getStatus();
+    
     // Make response
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
-    state.NewAttribute("bes-factory:state")=job_state;
+    state.NewAttribute("bes-factory:state") = (std::string)stat;
   };
   {
     std::string s;

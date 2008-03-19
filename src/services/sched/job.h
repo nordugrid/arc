@@ -2,61 +2,48 @@
 #define SCHED_JOB
 
 #include <string>
-#include "job_desc.h"
+#include "job_request.h"
 #include "job_sched_meta.h"
+#include "job_status.h"
 
 namespace GridScheduler {
 
-std::string make_uuid();
-
-//enum BESStatus {PENDING, RUNNING, CANCELLED, FAILED, FINISHED};
-
-//enum ArexStatus {ACCEPTING, ACCEPTED, PREPARING, PREPARED, SUBMITTING, EXECUTING, KILLING, EXECUTED, FINISHING, FAILED, HELD};
-
-enum SchedStatus {NEW, STARTING, RUNNING, CANCELLED, FAILED, FINISHED, UNKNOWN, KILLED, KILLING};
-
-bool ArexStatetoSchedState(std::string &arex_state, SchedStatus &sched_state);
-
-bool SchedStatetoString(SchedStatus s, std::string &state);
 
 class Job {
 
     private:
-        JobRequest descr;
+        JobRequest request;
         JobSchedMetaData sched_meta;
-        std::string failure_;
+        std::string failure;
         std::string id;
-        std::string arex_job_id;
         std::string db;
         SchedStatus status;
         int timeout;
         int check;
-        friend class JobQueue;
     public:
         Job(void);
-        Job(JobRequest d, JobSchedMetaData m, int t, std::string &db_path);
-        Job(const std::string& job,  std::string &db_path);
-        Job(std::istream& job, std::string &db_path);
+        Job(JobRequest &d, JobSchedMetaData &m, int t, const std::string &db_path);
+        Job(const std::string& job, const std::string &db_path);
+        Job(std::istream &job, const std::string &db_path);
         virtual ~Job(void);
         void setJobRequest(JobRequest &descr);
-        JobRequest& getJobRequest(void) { return descr; };
+        JobRequest &getJobRequest(void) { return request; };
         void setJobSchedMetaData(JobSchedMetaData &sched_meta);
-        JobSchedMetaData& getSchedMetaData(void) { return sched_meta; };
-        std::string Failure(void) { std::string r=failure_; failure_=""; return r; };
-        void setID(std::string& id_) { id = id_;};
-        std::string getID(void) { return id;};
-        void setStatus(SchedStatus s) {  status=s;};
-        SchedStatus getStatus(void) { return status;};
+        JobSchedMetaData &getSchedMetaData(void) { return sched_meta; };
+        const std::string Failure(void);
+        void setID(const std::string& id_) { id = id_; };
+        const std::string &getID(void) { return id; };
+        void setStatus(const SchedStatus &s) { status = s; };
+        const SchedStatus &getStatus(void) { return status; };
         operator bool(void) { return (id.empty() ? false : true ); };
         bool operator!(void) { return (id.empty() ? true : false ); };
-        Arc::XMLNode getJSDL(void);
-        void setArexJobID(std::string id);
-        void setArexID(std::string id);
-        std::string getArexJobID(void);
-        std::string getArexID(void);
-        std::string& getURL(void){ return sched_meta.getArexID();};
+        Arc::XMLNode &getJSDL(void) { return request.getJSDL(); };
+        void setResourceJobID(const std::string &id) { sched_meta.setResourceJobID(id); };
+        const std::string &getResourceJobID(void) { return sched_meta.getResourceJobID(); };
+        void setResourceID(const std::string &id) { sched_meta.setResourceID(id); };
+        const std::string &getResourceID(void) { return sched_meta.getResourceID(); };
         bool CheckTimeout(void);
-        bool Cancel(void);
+        bool Cancel(const SchedStatus &killed_state);
         bool save(void);
         bool load(void);
         bool remove(void);
@@ -65,5 +52,3 @@ class Job {
 } // namespace Arc
 
 #endif // SCHED_JOB
-
-

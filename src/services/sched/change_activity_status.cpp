@@ -40,22 +40,18 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
     std::string old_s;
     old_state.GetXML(old_s);
 
-    if (!sched_queue.CheckJobID(jobid)) {
+    if (!sched_queue.checkJob(jobid)) {
         continue;
     }
 
-    SchedStatus state;
-
-    ArexStatetoSchedState(new_s, state);
-
-    sched_queue.setJobStatus(jobid, state);
-
+    SchedStatus state = status_factory.getFromARexStatus(new_s);
+    sched_queue[jobid].setStatus(state);
 
     if (!id) break;
     // Create place for response
     Arc::XMLNode resp = out.NewChild("bes-factory:Response");
     resp.NewChild(id);
-    Arc::XMLNode n_status  = resp.NewChild("bes-factory:NewStatus");
+    Arc::XMLNode n_status = resp.NewChild("bes-factory:NewStatus");
     n_status = new_state;
 
     if (jobid.empty()) {

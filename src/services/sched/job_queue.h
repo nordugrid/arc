@@ -11,27 +11,30 @@ namespace GridScheduler {
 
 class JobQueue {
     private:
-        std::map<std::string,Job> jobs;
+        std::map<std::string, Job> jobs;
         std::string db;
     public:
         JobQueue();
         virtual ~JobQueue();
-        bool reload(std::string &db_path);
+        bool reload(const std::string &db_path);
         void addJob(Job &job);
         void removeJob(Job &job);
-        void removeJob(std::string &job_id);
-        Job getJob(std::string &job_id);
-        bool CheckJobID(std::string &job_id);
-        int size(void) {return jobs.size();};
-        std::map<std::string,Job> getJobsWithThisState(SchedStatus s);
-        bool setJobStatus(std::string job_id, SchedStatus status);
-        bool getJobStatus(std::string &job_id, SchedStatus &status);
-        bool setArexJobID(std::string job_id, std::string arex_job_id);
-        bool setArexID(std::string job_id, std::string arex_job_id);
-        std::map<std::string,Job>& getJobs(void) {return jobs;};
-        bool CheckJobTimeout(std::string job_id);
-        bool setLastCheckTime(std::string job_id);
-        bool saveJobStatus(std::string job_id);
+        void removeJob(const std::string &job_id);
+        bool checkJob(const std::string &job_id);
+        int size(void) { return jobs.size(); };
+        std::map<const std::string, Job *> getJobsWithState(const SchedStatus &s);
+        std::map<const std::string, Job *> getAllJobs(void);
+        Job &operator[](const std::string &job_id);
+        // Job &getJob(const std::string &job_id);
+        // bool setJobStatus(std::string job_id, SchedStatus status);
+        // bool getJobStatus(std::string &job_id, SchedStatus &status);
+        // bool setArexJobID(std::string job_id, std::string arex_job_id);
+        // bool setArexID(std::string job_id, std::string arex_job_id);
+        // std::map<std::string,Job> getJobs(void) {return jobs;};
+        // bool CheckJobTimeout(std::string job_id);
+        // bool setLastCheckTime(std::string job_id);
+        // bool saveJobStatus(std::string job_id);
+        
 };
 
 } // namespace Arc
