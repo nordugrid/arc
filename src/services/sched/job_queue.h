@@ -16,7 +16,7 @@ class JobQueue {
     public:
         JobQueue();
         virtual ~JobQueue();
-        bool reload(const std::string &db_path);
+        bool reload(const std::string &db_path, SchedStatusFactory &status_factory);
         void addJob(Job &job);
         void removeJob(Job &job);
         void removeJob(const std::string &job_id);

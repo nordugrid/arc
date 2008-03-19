@@ -133,7 +133,7 @@ bool cut(std::string &input, std::string &name, std::string &value)
 }
 
 
-bool Job::load(void) 
+bool Job::load(SchedStatusFactory &status_factory) 
 {
     char buf[250];
     std::string fname = db + "/" + id + ".metadata";
@@ -154,7 +154,7 @@ bool Job::load(void)
         } else if (name == "arex_id") {
             sched_meta.setResourceID(value);
         } else if (name == "status") {
-            // XXX status = status_factory.get(value);
+            status = status_factory.get(value);
         }
     }
     f.close(); 

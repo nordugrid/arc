@@ -2,11 +2,11 @@
 #include <config.h>
 #endif
 
-#include "job_queue.h"
-#include "grid_sched.h"
 #include <iostream>
 #include <fstream>
 #include <ios>
+#include "job_queue.h"
+#include "grid_sched.h"
 
 namespace GridScheduler
 {
@@ -16,7 +16,7 @@ JobQueue::JobQueue()
     // NOP
 }
 
-bool JobQueue::reload(const std::string &db_path) 
+bool JobQueue::reload(const std::string &db_path, SchedStatusFactory &status_factory) 
 {
     // XXX make it more c++ 
     db = db_path;
@@ -37,7 +37,7 @@ bool JobQueue::reload(const std::string &db_path)
         std::cout << "Job recovered:  " << id << std::endl;
         std::string job_id(id);
         Job j(job_id, db);
-        j.load();
+        j.load(status_factory);
         jobs.insert (make_pair(j.getID(), j));
     }
     f.close();

@@ -45,7 +45,7 @@ class Job {
         bool CheckTimeout(void);
         bool Cancel(const SchedStatus &killed_state);
         bool save(void);
-        bool load(void);
+        bool load(SchedStatusFactory &status_factory);
         bool remove(void);
 };
 

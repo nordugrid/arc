@@ -279,7 +279,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     //TODO db_path test
 
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
-    sched_queue.reload(db_path);
+    sched_queue.reload(db_path, status_factory);
     cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
