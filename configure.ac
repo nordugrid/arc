@@ -330,6 +330,12 @@ LIBS=$SAVE_LIBS
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 
+# Check for explicitely disabled packages 
+# A-Rex 
+AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes") 
+AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service]) 
+AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"]) 
+ 	 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
@@ -603,6 +609,9 @@ RLS:                ${enable_rls}
 GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
+
+Included components: 
+A-Rex service:      ${enable_a_rex_service}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
