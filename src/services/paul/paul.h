@@ -8,6 +8,7 @@
 #include <map>
 #include "job.h"
 #include "job_list.h"
+#include "sysinfo.h"
 
 namespace Paul {
 
@@ -22,6 +23,7 @@ class PaulService: public Arc::Service {
         JobList job_list;
         bool information_collector(Arc::XMLNode &doc);
         std::map<std::string, std::string> pki;
+        SysInfo sysinfo;
     public:
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);

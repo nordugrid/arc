@@ -34,6 +34,7 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*)
 
 bool PaulService::information_collector(Arc::XMLNode &doc)
 {
+    sysinfo.refresh();
     // XXX make it system dependet and plugable
     Arc::XMLNode ad = doc.NewChild("AdminDomain");
     ad.NewChild("ID") = "foobar"; // XXX: URI required
@@ -101,14 +102,14 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     ee.NewChild("Type") = "RealNode"; // XXX should come form config wheter it is running on VM or not
     ee.NewChild("TotalInstances") = "1";
     ee.NewChild("UsedInstances") = "0"; // if I have multicore machine running 1 job than this is 0 or 1 or what
-    ee.NewChild("PhysicalCPUs") = "1"; // XXX should calculated
-    ee.NewChild("LogicalCPUs") = "1"; // XXX should calculated
-    ee.NewChild("MainMemorySize") = "512"; // XXX should calculated in MB
-    ee.NewChild("VirtualMemorySize") = "512"; // XXX should calculated in MB
-    ee.NewChild("OSName") = "Linux"; // XXX should calculated
-    ee.NewChild("OSRelease") = "Debian"; // XXX should calculated
-    ee.NewChild("OSVersion") = "3.1"; // XXX should calculated
-    ee.NewChild("PlatformType") = "Intel"; // XXX should calculated
+    ee.NewChild("PhysicalCPUs") = Arc::tostring(sysinfo.getPhysicalCPUs());
+    ee.NewChild("LogicalCPUs") = Arc::tostring(sysinfo.getLogicalCPUs());
+    ee.NewChild("MainMemorySize") = Arc::tostring(sysinfo.getMainMemorySize());
+    ee.NewChild("VirtualMemorySize") = Arc::tostring(sysinfo.getVirtualMemorySize());
+    ee.NewChild("OSName") = sysinfo.getOSName();
+    ee.NewChild("OSRelease") = sysinfo.getOSRelease();
+    ee.NewChild("OSVersion") = sysinfo.getOSVersion();
+    ee.NewChild("PlatformType") = sysinfo.getPlatform();
     ee.NewChild("ConnectivityIn") = "False";
     ee.NewChild("ConnectivityOut") = "True";
     r.NewChild("PhysicalCPUs") = "1"; // XXX should calculated: sum of physical cpus in execution environments
@@ -143,8 +144,8 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
         return ret;
     }
     std::string str;
-    // glue2.GetXML(str);
-    // std::cout << str << std::endl;
+    glue2.GetXML(str);
+    std::cout << str << std::endl;
     // Create client to url
     Arc::ClientSOAP *client;
     Arc::MCCConfig cfg;
