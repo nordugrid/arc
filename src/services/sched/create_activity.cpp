@@ -14,7 +14,8 @@
 
 namespace GridScheduler {
 
-Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNode& out) {
+Arc::MCC_Status 
+GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out) {
   /*
   CreateActivity
     ActivityDocument
@@ -78,8 +79,8 @@ Arc::MCC_Status GridSchedulerService::CreateActivity(Arc::XMLNode& in,Arc::XMLNo
   Job sched_job(job_desc, sched_meta, timeout, db_path);
 
   if (!sched_job) {
-    std::string failure = sched_job.Failure();
-    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s",failure);
+    std::string failure = sched_job.getFailure();
+    logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s", failure);
     // Failed to create new job (generic SOAP error)
     Arc::SOAPEnvelope fault(ns_,true);
     if(fault) {

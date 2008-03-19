@@ -26,7 +26,7 @@ JobRequest::JobRequest(const JobRequest &j)
     j.request.New(request);
 }
 
-const std::string JobRequest::getJobName(void) { 
+const std::string JobRequest::getName(void) { 
     return (std::string)request["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"];  
 }
 

@@ -110,7 +110,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         ret = ChangeActivityStatus(op, r);
     // iBES
     } else if(MatchXMLName(op, "GetActivities")) {
-        Arc::XMLNode r = res.NewChild("ibes:GetActivityResponse");
+        Arc::XMLNode r = res.NewChild("ibes:GetActivitiesResponse");
         ret = GetActivities(op, r);
     } else if(MatchXMLName(op, "ReportActivityStatus")) {
         Arc::XMLNode r = res.NewChild("ibes:ReportActivityStatusResponse");

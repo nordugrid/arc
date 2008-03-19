@@ -43,7 +43,7 @@ class SchedStatus
         std::string level_str;
     public:
         SchedStatus(void) { level = UNKNOWN; level_str = "UNKONWN"; };
-        SchedStatus(SchedStatusLevel l, const std::string &str);
+        SchedStatus(SchedStatusLevel l, const std::string &str) { level = l; level_str = str; };
         operator std::string(void) const { return level_str; };
         bool operator==(SchedStatusLevel l) const { return (l == level); };
         bool operator==(const SchedStatus &s) const { return (s.level == level); };

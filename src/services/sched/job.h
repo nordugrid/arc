@@ -26,11 +26,11 @@ class Job {
         Job(const std::string& job, const std::string &db_path);
         Job(std::istream &job, const std::string &db_path);
         virtual ~Job(void);
-        void setJobRequest(JobRequest &descr);
+        void setJobRequest(JobRequest &r) { request = r; };
         JobRequest &getJobRequest(void) { return request; };
         void setJobSchedMetaData(JobSchedMetaData &sched_meta);
         JobSchedMetaData &getSchedMetaData(void) { return sched_meta; };
-        const std::string Failure(void);
+        const std::string getFailure(void);
         void setID(const std::string& id_) { id = id_; };
         const std::string &getID(void) { return id; };
         void setStatus(const SchedStatus &s) { status = s; };

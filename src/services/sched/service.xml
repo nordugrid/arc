@@ -46,7 +46,7 @@
     <Service name="grid_sched" id="grid_sched">
        <sched:Endpoint>https://localhost:60000/sched</sched:Endpoint>
        <sched:DataDirectoryPath>/tmp</sched:DataDirectoryPath>
-       <sched:SchedulingPeriod>10</sched:SchedulingPeriod>
+       <sched:SchedulingPeriod>100000</sched:SchedulingPeriod>
        <sched:Timeout>5</sched:Timeout> 
        <arccli:CertificatePath>../../tests/echo/cert.pem</arccli:CertificatePath>
        <arccli:PrivateKey>../../tests/echo/key.pem</arccli:PrivateKey>

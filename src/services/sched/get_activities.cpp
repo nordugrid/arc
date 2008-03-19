@@ -19,7 +19,7 @@ Arc::MCC_Status GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNo
     Arc::XMLNode a = activities.NewChild("ibes:Activity");
     a.NewAttribute("ID") = j->getID();
     a.NewChild(j->getJSDL());
-    j->setStatus(status_factory.get(STARTING));
+    // j->setStatus(status_factory.get(STARTING));
     // j->setResourceID(<ID>);
     j->save();
     return Arc::MCC_Status(Arc::STATUS_OK);

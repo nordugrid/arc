@@ -17,7 +17,7 @@ class JobRequest {
         JobRequest(Arc::XMLNode &d);
         JobRequest(const JobRequest &j);
         virtual ~JobRequest(void);
-        const std::string getJobName(void);
+        const std::string getName(void);
         const std::string getOS(void);
         const std::string getArch(void);
         Arc::XMLNode &getJSDL(void) { return request; };

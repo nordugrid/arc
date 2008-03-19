@@ -67,8 +67,6 @@ bool Job::CheckTimeout(void)
     return false;
 }
 
-
-
 bool Job::Cancel(const SchedStatus &killed_state) 
 {
     status = killed_state;
@@ -79,7 +77,6 @@ inline void write_pair(std::ofstream &f, std::string name,std::string &value)
 {
     f << name << '=' << value << std::endl;
 }
-
 
 bool Job::save(void) 
 { 
@@ -131,7 +128,6 @@ bool cut(std::string &input, std::string &name, std::string &value)
     value = input.substr(i+1, size);
     return true;
 }
-
 
 bool Job::load(SchedStatusFactory &status_factory) 
 {
@@ -197,4 +193,8 @@ bool Job::remove(void)
     return true;
 }
 
+const std::string Job::getFailure(void)
+{
+    return failure + "/" + sched_meta.getFailure();
+}
 }
