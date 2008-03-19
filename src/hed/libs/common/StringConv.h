@@ -7,7 +7,6 @@
 
 #include "Logger.h"
 
-
 namespace Arc {
 
 
@@ -65,6 +64,8 @@ namespace Arc {
     ss << std::setw(width) << t;
     return ss.str();
   }
+  
+  std::string upper(const std::string &s);
 
 } // namespace Arc
 

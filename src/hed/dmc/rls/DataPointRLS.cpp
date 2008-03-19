@@ -7,20 +7,13 @@
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/GUID.h>
 
 #include "DataPointRLS.h"
 #include "RLS.h"
 
 #define globus_rls_free_result(err) \
   globus_rls_client_error_info(err, NULL, NULL, 0, GLOBUS_FALSE)
-
-static std::string GUID() {
-  uuid_t uu;
-  uuid_generate(uu);
-  char uustr[37];
-  uuid_unparse(uu, uustr);
-  return uustr;
-}
 
 namespace Arc {
 
@@ -300,7 +293,7 @@ namespace Arc {
           u += "/";
         }
         if (guid_enabled) {
-          std::string guid = GUID();
+          std::string guid = Arc::UUID();
           if ((!se_uses_lfn) && (!pfn_path.empty()))
             u += pfn_path;
           else
@@ -396,7 +389,7 @@ namespace Arc {
       if (guid_enabled) {
         for (;;) {
           // generate guid
-          guid = GUID();
+          guid = Arc::UUID();
           // store in LRC
           if ((err = globus_rls_client_lrc_create
               (h, const_cast<char*>(guid.c_str()),
