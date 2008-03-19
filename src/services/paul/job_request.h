@@ -1,30 +1,31 @@
-#ifndef SCHED_JOB_DESCRIPTION
-#define SCHED_JOB_DESCRIPTION
+#ifndef SCHED_JOB_REQUEST
+#define SCHED_JOB_REQUEST
 
 #include <string>
-#include <list>
 
 #include <arc/XMLNode.h>
 
 namespace Paul
 {
 
-class JobRequest: public Arc::XMLNode {
+class JobRequest {
 
     private:
-        Arc::XMLNode descr;
+        Arc::XMLNode request;
     public:
         JobRequest();
-        JobRequest(Arc::XMLNode d);
+        JobRequest(Arc::XMLNode &d);
+        JobRequest(const JobRequest &j);
         virtual ~JobRequest(void);
-        std::string getJobName(void);
-        std::string getOS(void);
-        std::string getArch(void);
-        Arc::XMLNode getJSDL(void) { return descr; };
-        JobRequest& operator=(const JobRequest& j);
-        JobRequest(const JobRequest& j);
-};
+        const std::string getName(void);
+        const std::string getOS(void);
+        const std::string getArch(void);
+        Arc::XMLNode &getJSDL(void) { return request; };
+        JobRequest& operator=(const JobRequest &j);
+        Arc::XMLNode operator[](const std::string &key) { return request[key]; };
 
 };
 
-#endif // SCHED_JOB_DESCRIPTION
+}
+
+#endif // SCHED_JOB_REQUEST

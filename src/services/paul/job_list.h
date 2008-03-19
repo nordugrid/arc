@@ -1,19 +1,24 @@
 #ifndef __ARC_LOB_LIST_H__
 #define __ARC_JOB_LIST_H__
 
-#include <list>
+#include <vector>
 #include "job.h"
 
 namespace Paul
 {
 
-class JobList: public std::list<Job>
+class JobList
 {
+    private:
+        std::vector<Job> jl;
     public:
-        unsigned int getTotalJobs(void) { return 0; };
-        unsigned int getRunningJobs(void) { return 0; };
+        JobList(void) {};
+        void add(const Job &j) { jl.push_back(j); };
+        Job &operator[](int i) { return jl[i]; };
+        unsigned int getTotalJobs(void) { return jl.size(); };
+        unsigned int getRunningJobs(void);
         unsigned int getLocalRunningJobs(void) { return 0; };
-        unsigned int getWaitingJobs(void) { return 0; };
+        unsigned int getWaitingJobs(void);
 };
 
 }; // namespace paul

@@ -4,7 +4,7 @@
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
-#include <list>
+#include <vector>
 #include <map>
 #include "job.h"
 #include "job_list.h"
@@ -28,9 +28,8 @@ class PaulService: public Arc::Service {
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);
         Arc::MCC_Status process(Arc::Message &in, Arc::Message &out) { return Arc::MCC_Status(); };
-        std::list<Job> GetActivities(std::string &url);
+        void GetActivities(const std::string &url, std::vector<Job> &ret);
         int get_period(void) const { return period; };
-        const Arc::Logger &get_logger(void) const { return logger_; };
         void do_request(void);
 
 }; // class PaulService

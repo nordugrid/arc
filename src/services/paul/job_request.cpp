@@ -6,50 +6,46 @@
 
 namespace Paul {
 
-std::string JobRequest::getJobName(void) 
-{ 
-    return (std::string)(*this)["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"]; 
-}
-
-std::string JobRequest::getOS(void) 
-{ 
-    return (std::string)(*this)["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
-}
- 
- 
-std::string JobRequest::getArch(void) 
-{ 
-    return (std::string)(*this)["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
-}
-
-JobRequest::JobRequest(Arc::XMLNode d) 
-{
-    d.New(descr);
-}
-
-
 JobRequest::JobRequest() 
 {
-
+    // NOP
 }
 
 JobRequest::~JobRequest() 
 {
-
+    // NOP
 }
 
-JobRequest&  JobRequest::operator= (const JobRequest  &j) 
+JobRequest::JobRequest(Arc::XMLNode &r) 
+{
+    r.New(request);
+}
+
+JobRequest::JobRequest(const JobRequest &j) 
+{
+    j.request.New(request);
+}
+
+const std::string JobRequest::getName(void) { 
+    return (std::string)request["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"];  
+}
+
+const std::string JobRequest::getOS(void) { 
+    return (std::string)request["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
+}
+ 
+ 
+const std::string JobRequest::getArch(void) { 
+    return (std::string)request["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
+}
+
+JobRequest &JobRequest::operator=(const JobRequest &j) 
 {
    if (this != &j) {
-     j.descr.New(descr);
+     j.request.New(request);
    }
 
    return *this;
 }
 
-JobRequest::JobRequest (const JobRequest& j) 
-{
-    j.descr.New(descr);
-}
-
-}; //namespace
+} //namespace

@@ -34,8 +34,8 @@ static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*)
 
 bool PaulService::information_collector(Arc::XMLNode &doc)
 {
+    // refresh dinamic system information
     sysinfo.refresh();
-    // XXX make it system dependet and plugable
     Arc::XMLNode ad = doc.NewChild("AdminDomain");
     ad.NewChild("ID") = "foobar"; // XXX: URI required
     ad.NewChild("Name") = "DesktopPC";
@@ -48,11 +48,11 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     cs.NewChild("Type") = "org.nordugrid.paul";
     cs.NewChild("QualityLevel") = "production";
     cs.NewChild("Complexity") = "endpoint=1,share=1,resource=1";
-    cs.NewChild("TotalJobs") = "0"; // XXX get length of jobqueue
-    cs.NewChild("RunningJobs") = "0"; // get info from jobqueue
-    cs.NewChild("WaitingJobs") = "0"; // get info from jobqueue
-    cs.NewChild("StageingJobs") = "0"; // get info from jobqueue
-    cs.NewChild("PreLRMSWaitingJobs") = "0"; // get info from jobqueue
+    cs.NewChild("TotalJobs") = Arc::tostring(job_list.getTotalJobs());
+    cs.NewChild("RunningJobs") = Arc::tostring(job_list.getRunningJobs());
+    cs.NewChild("WaitingJobs") = Arc::tostring(job_list.getWaitingJobs());
+    cs.NewChild("StageingJobs") = "0"; // XXX get info from jobqueue
+    cs.NewChild("PreLRMSWaitingJobs") = "0"; // XXX get info from jobqueue
     Arc::XMLNode endpoint = cs.NewChild("ComputingEndpoint");
     endpoint.NewAttribute("type") = "Endpoint";
     endpoint.NewChild("ID") = "0"; 
@@ -112,8 +112,8 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     ee.NewChild("PlatformType") = sysinfo.getPlatform();
     ee.NewChild("ConnectivityIn") = "False";
     ee.NewChild("ConnectivityOut") = "True";
-    r.NewChild("PhysicalCPUs") = "1"; // XXX should calculated: sum of physical cpus in execution environments
-    r.NewChild("LogicalCPUs") = "1"; // XXX should calculated: sum of logical cpus in execution environments
+    r.NewChild("PhysicalCPUs") = Arc::tostring(sysinfo.getPhysicalCPUs());
+    r.NewChild("LogicalCPUs") = Arc::tostring(sysinfo.getLogicalCPUs());
     Arc::XMLNode s = cs.NewChild("ComputingShare");
     s.NewAttribute("type") = "Share";
     s.NewChild("ID") = "0";
@@ -122,18 +122,17 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     spolicy.NewAttribute("type") = "SharePolicy";
     Arc::XMLNode sstate = s.NewChild("ComputingShareState");
     sstate.NewAttribute("type") = "ShareState";
-    sstate.NewChild("TotalJobs") = "0";
-    sstate.NewChild("RunningJobs") = "0";
-    sstate.NewChild("LocalRunningJobs") = "0";
-    sstate.NewChild("WaitingJobs") = "0";
+    sstate.NewChild("TotalJobs") = Arc::tostring(job_list.getTotalJobs());
+    sstate.NewChild("RunningJobs") = Arc::tostring(job_list.getRunningJobs());
+    sstate.NewChild("LocalRunningJobs") = Arc::tostring(job_list.getLocalRunningJobs());
+    sstate.NewChild("WaitingJobs") = Arc::tostring(job_list.getWaitingJobs());
     sstate.NewChild("State") = "?";
     s.NewChild(policy); // use the same policy
     return true;
 }
 
-std::list<Job> PaulService::GetActivities(std::string &url_str)
+void PaulService::GetActivities(const std::string &url_str, std::vector<Job> &ret)
 {
-    std::list<Job> ret;
     // Collect information about resources
     // and create Glue compatibile Resource description
     Arc::NS glue2_ns;
@@ -141,11 +140,11 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
     Arc::XMLNode glue2(glue2_ns, "Grid");
     if (information_collector(glue2) == false) {
         logger_.msg(Arc::ERROR, "Cannot collect resource information");
-        return ret;
+        return;
     }
-    std::string str;
-    glue2.GetXML(str);
-    std::cout << str << std::endl;
+    // std::string str;
+    // glue2.GetXML(str);
+    // std::cout << str << std::endl;
     // Create client to url
     Arc::ClientSOAP *client;
     Arc::MCCConfig cfg;
@@ -162,17 +161,18 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
     Arc::PayloadSOAP *response;
     Arc::MCC_Status status = client->process(&request, &response);
     if (!status) {
-        logger_.msg(Arc::ERROR, "Request faild");
+        logger_.msg(Arc::ERROR, "Request failed");
         if (response) {
+           std::string str;
            response->GetXML(str);
-           std::cout << str << std::endl;
+           logger_.msg(Arc::ERROR, str);
            delete response;
         }
-        return ret;
+        return;
     }
     if (!response) {
         logger_.msg(Arc::ERROR, "No response");
-        return ret;
+        return;
     }
     
     // Handle soap level error
@@ -181,23 +181,26 @@ std::list<Job> PaulService::GetActivities(std::string &url_str)
     std::string faultstring = (std::string)fs;
     if (faultstring != "") {
         logger_.msg(Arc::ERROR, faultstring);
-        return ret;
+        return;
     }
     // Create jobs from response
     Arc::XMLNode activities;
-    activities = (*response)["GetActivitiesResponse"];
-    activities.GetXML(str);
-    logger_.msg(Arc::DEBUG, str);
-    /* Arc::XMLNode activity;
+    activities = (*response)["ibes:GetActivitiesResponse"]["ibes:Activities"];
+    {
+        std::string str;
+        activities.GetXML(str);
+        std::cout << str << std::endl;
+    }
+    Arc::XMLNode activity;
     for (int i = 0; (activity = activities.Child(i)) != false; i++) {
-        JobRequest jr;
-        activity.New(jr);
+        JobRequest jr(activity);
+        std::string job_id = (std::string)activity.Attribute("ID");
         Job j(jr);
         JobStatus status(ACCEPTING);
         j.setStatus(status);
+        j.setID(job_id);
         ret.push_back(j);
-    } */
-    return ret;
+    }
 }
 
 void PaulService::do_request(void)
@@ -205,10 +208,10 @@ void PaulService::do_request(void)
     std::string url = (*schedulers.begin());
     logger_.msg(Arc::DEBUG, "Do Request: %s", url);
     // pickup scheduler randomly from schdeuler list
-    std::list<Job> jobs = GetActivities(url);
-    std::list<Job>::iterator it;
-    for (it = jobs.begin(); it != jobs.end(); it++) {
-        Job j = *it;
+    std::vector<Job> jobs;
+    GetActivities(url, jobs);
+    for (int i = 0; i < jobs.size(); i++) {
+        Job j = jobs[i];
         std::cout << j.getID() << std::endl;
     }
     // invoke GetActivity function call aganst scheduler
@@ -244,6 +247,7 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     pki["CertificatePath"] = (std::string)((*cfg)["CertificatePath"]);
     pki["PrivateKey"] = (std::string)((*cfg)["PrivateKey"]);  
     pki["CACertificatePath"] = (std::string)((*cfg)["CACertificatePath"]);  
+    // Start sched thread
     Arc::CreateThreadFunction(&request_loop, this);
 }
 
