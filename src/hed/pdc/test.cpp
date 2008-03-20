@@ -37,7 +37,7 @@ int main(void){
   Arc::ClassLoader* classloader = NULL;
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
-  eval = dynamic_cast<ArcSec::Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&modulecfg));
+  eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)(void*)&modulecfg));
   if(eval == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
   //ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
@@ -139,7 +139,12 @@ int main(void){
   request->addRequestItem(sub, res, act, ctx);
 
   //Evaluate the request
-  resp = eval->evaluate(request);
+  //resp = eval->evaluate(request);
+
+  //Evalute the request with policy argument
+  std::string policyfile("Policy_Example.xml");
+  resp = eval->evaluate(request, policyfile);
+
   //Get the response
   logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   rlist = resp->getResponseItems();
