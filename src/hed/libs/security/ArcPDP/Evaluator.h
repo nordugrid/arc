@@ -41,6 +41,11 @@ public:
   /**Evaluates the request by using the input request file*/
   virtual Response* evaluate(const std::string& reqfile) = 0;
 
+  /**The same as the above three ones, using policy file as argument*/
+  virtual Response* evaluate(Request* request, std::string& policyfile) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile) = 0;
+  virtual Response* evaluate(const std::string& reqfile, std::string& policyfile) =0;
+
   /**Get the AttributeFactory object*/
   virtual AttributeFactory* getAttrFactory () = 0;
 
