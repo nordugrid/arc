@@ -22,6 +22,8 @@ public:
   
   virtual std::list<Policy*> findPolicy(EvaluationCtx* context);
 
+  virtual void addPolicy(std::string& policyfile, EvaluatorContext* ctx);
+
 private:
   std::list<std::string> policysrclist;
   std::list<Policy*> policies;

@@ -324,6 +324,21 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
   
 }
 
+Response* ArcEvaluator::evaluate(Request* request, std::string& policyfile) {
+  plstore->addPolicy(policyfile, context);
+  return (evaluate(request));
+}
+
+Response* ArcEvaluator::evaluate(Arc::XMLNode& node, std::string& policyfile) {
+  plstore->addPolicy(policyfile, context);
+  return (evaluate(node));
+}
+
+Response* ArcEvaluator::evaluate(const std::string& reqfile, std::string& policyfile) {
+  plstore->addPolicy(policyfile, context);
+  return (evaluate(reqfile));
+}
+
 ArcEvaluator::~ArcEvaluator(){
   //TODO delete all the object
   if(plstore)

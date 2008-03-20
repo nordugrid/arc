@@ -55,6 +55,11 @@ std::list<Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
  //TODO 
 }
 
+void PolicyStore::addPolicy(std::string& policyfile, EvaluatorContext* ctx) {
+  PolicyParser plparser;
+  policies.push_back(plparser.parsePolicy(policyfile, ctx));
+}
+
 PolicyStore::~PolicyStore(){
   while(!(policies.empty())){
     delete policies.back();

@@ -41,6 +41,10 @@ public:
   virtual Response* evaluate(Arc::XMLNode& node);
   virtual Response* evaluate(const std::string& reqfile);
 
+  virtual Response* evaluate(Request* request, std::string& policyfile);
+  virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile);
+  virtual Response* evaluate(const std::string& reqfile, std::string& policyfile);
+
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};
   virtual FnFactory* getFnFactory () { return fnfactory; };
   virtual AlgFactory* getAlgFactory () { return algfactory; };
