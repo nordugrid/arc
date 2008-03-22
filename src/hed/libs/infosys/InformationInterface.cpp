@@ -41,7 +41,9 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
          new WSRPGetResourcePropertyDocumentResponse(xresp);
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
     if(to_lock_) lock_.unlock();
-    SOAPEnvelope* out = NULL; if(resp) out=resp->SOAP().New();
+    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
+    if(resp) delete resp;
+    delete &wsrp;
     return out;
   } catch(std::exception& e) { };
   try {
@@ -61,8 +63,9 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       };
     };
     if(to_lock_) lock_.unlock();
-    SOAPEnvelope* out = NULL;
-    if(resp) out=resp->SOAP().New();
+    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
+    if(resp) delete resp;
+    delete &wsrp;
     return out;
   } catch(std::exception& e) { };
   try {
@@ -86,8 +89,9 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       };
     };
     if(to_lock_) lock_.unlock();
-    SOAPEnvelope* out = NULL;
-    if(resp) out=resp->SOAP().New();
+    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
+    if(resp) delete resp;
+    delete &wsrp;
     return out;
   } catch(std::exception& e) { };
   try {
@@ -106,6 +110,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
           fault->Reason("Operation not supported");
         };
       };
+      delete &wsrp;
       return out;
     }
     std::list<XMLNode> presp = Get(req->Query());
@@ -119,8 +124,9 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       };
     };
     if(to_lock_) lock_.unlock();
-    SOAPEnvelope* out = NULL;
-    if(resp) out=resp->SOAP().New();
+    SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
+    if(resp) delete resp;
+    delete &wsrp;
     return out;
   } catch(std::exception& e) { };
   if(to_lock_) lock_.unlock();
@@ -133,6 +139,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       fault->Reason("Operation not supported");
     };
   };
+  delete &wsrp;
   return out;
 }
 
