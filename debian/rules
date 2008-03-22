@@ -30,7 +30,7 @@ else
 	CFLAGS += -O2
 endif
 
-configure: autogen.sh
+configure: autogen.sh configure.ac
 	./autogen.sh
 
 config.status: configure
@@ -64,7 +64,7 @@ clean:
 	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
+	if [ -r Makefile ]; then $(MAKE) distclean; fi
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
 	cp -f /usr/share/misc/config.sub config.sub
 endif
