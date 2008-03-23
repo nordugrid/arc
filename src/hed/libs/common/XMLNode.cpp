@@ -185,7 +185,7 @@ XMLNode::XMLNode(const Arc::NS& ns,const char* name):node_(NULL),is_owner_(false
   xmlNodePtr new_node = xmlNewNode(NULL,(const xmlChar*)name_);
   if(new_node == NULL) { xmlFreeDoc(doc); return; };
   xmlDocSetRootElement(doc,new_node);
-  node_=new_node;
+  node_=new_node; is_owner_=true;
   SetNamespaces(ns,node_);
   node_->ns=xmlSearchNs(node_->doc,node_,(const xmlChar*)(node_ns_.c_str()));
 }
