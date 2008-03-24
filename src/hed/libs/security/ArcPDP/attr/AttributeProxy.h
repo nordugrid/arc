@@ -34,6 +34,7 @@ public:
 template <class TheAttribute>
 AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const Arc::XMLNode& node){
   std::string value = (std::string)node;
+  if(value.empty()) value = (std::string)(node.Child(0));
   return new TheAttribute(value);
 }
 
