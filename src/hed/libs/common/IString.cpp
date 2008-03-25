@@ -23,9 +23,11 @@ namespace Arc {
     return (refcount == 0);
   }
 
-  void FindTrans(const char*& p) {
+  const char* FindTrans(const char* p) {
 #ifdef HAVE_LIBINTL_H
-    p = dgettext("Arc", p);
+    return dgettext("Arc", p);
+#else
+    return p;
 #endif
   }
 
