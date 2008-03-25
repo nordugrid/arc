@@ -8,6 +8,8 @@
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 
+#include "./XACMLTarget.h"
+
 namespace ArcSec {
 
 ///XACMLPolicy class to parse and operate XACML specific <Policy> node
@@ -42,6 +44,9 @@ private:
 
   /**Corresponding <Policy> node*/
   Arc::XMLNode policynode;
+
+  /**The object for containing <Target/> information*/
+  XACMLTarget* target;
 
 protected:
   static Arc::Logger logger;

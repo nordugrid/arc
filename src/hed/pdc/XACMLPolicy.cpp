@@ -11,7 +11,7 @@ Arc::Logger ArcSec::XACMLPolicy::logger(Arc::Logger::rootLogger, "XACMLPolicy");
 using namespace Arc;
 using namespace ArcSec;
 
-XACMLPolicy::XACMLPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+XACMLPolicy::XACMLPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL), target(NULL) {
   node.New(policynode);
 
   std::string xml;
@@ -39,15 +39,24 @@ XACMLPolicy::XACMLPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), c
     nd = *(res.begin());
     id = (std::string)(nd.Attribute("PolicyId"));
 
-    //Setup the rules' combining algorithm inside one policy, according to the "CombiningAlg" name
-    if(nd.Attribute("CombiningAlg"))
-      comalg = algfactory->createAlg((std::string)(nd.Attribute("CombiningAlg")));
+    //Setup the rules' combining algorithm inside one policy, according to the "RuleCombiningAlgId" name
+    if(nd.Attribute("RuleCombiningAlgId")) {
+      std::string tmpstr = (std::string)(nd.Attribute("RuleCombiningAlgId"));
+      size_t found = tmpstr.find_last_of(":");
+      std::string algstr = tmpstr.substr(found+1);
+      if(algstr == "deny-overrides") algstr = "Deny-Overrides";
+      else if(algstr == "permit-overrides") algstr = "Permit-Overrides";
+      comalg = algfactory->createAlg(algstr);
+    }
     else comalg = algfactory->createAlg("Deny-Overrides");
     
     description = (std::string)(nd["Description"]);  
   }
   
   logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
+
+  XMLNode targetnode = node["Target"];
+  if((bool)targetnode) target = new XACMLTarget(targetnode, ctx);
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
@@ -57,15 +66,11 @@ XACMLPolicy::XACMLPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), c
   }
 }
 
-MatchResult XACMLPolicy::match(EvaluationCtx*){// ctx){
-  //RequestTuple* evaltuple = ctx->getEvalTuple();
-  
-  //Because ArcPolicy definition has no any <Subject, Resource, Action, Condition> directly;
-  //All the <Subject, Resource, Action, Condition>s are only in ArcRule.
-  //So the function always return "Match" 
-
-  return MATCH;
-  
+MatchResult XACMLPolicy::match(EvaluationCtx* ctx){
+  MatchResult res;
+  if(target != NULL) res = target->match(ctx);
+  else { logger.msg(Arc::INFO, "No target available inside the policy"); res = INDETERMINATE; }
+  return res;
 }
 
 Result XACMLPolicy::eval(EvaluationCtx* ctx){
@@ -83,7 +88,8 @@ EvalResult& XACMLPolicy::getEvalResult(){
 
 XACMLPolicy::~XACMLPolicy(){
   while(!(subelements.empty())){
-      delete subelements.back();
-      subelements.pop_back();
+    delete subelements.back();
+    subelements.pop_back();
   }
+  if(target != NULL) delete target;
 }
