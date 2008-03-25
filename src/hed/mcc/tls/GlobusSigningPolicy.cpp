@@ -67,7 +67,7 @@ static bool get_id(std::string& s,std::string& ca_subject) {
   get_word(s,id);
   if(id.empty()) return true;
   if(id.compare(0,strlen(access_id),access_id) != 0) {
-    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",access_id,id);
+    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"%s\"",access_id,id);
     return false;
   };
   id=id.substr(strlen(access_id));
@@ -118,7 +118,7 @@ static bool get_conditions(std::string s,std::list<std::string>& patterns) {
   get_word(s,id);
   if(id.empty()) return true;
   if(id.compare(0,strlen(conditions_id),conditions_id) != 0) {
-    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"\"",conditions_id,id);
+    logger.msg(Arc::WARNING,"Was expecting %s at the beginning of \"%s\"",conditions_id,id);
     return false;
   };
   id=id.substr(strlen(conditions_id));
