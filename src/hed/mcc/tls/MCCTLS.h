@@ -78,7 +78,7 @@ class PayloadTLSMCC;
 class MCC_TLS_Client: public MCC_TLS
 {
     private:
-        SSL_CTX* sslctx_; 
+        SSL_CTX* sslctx_;
         PayloadTLSMCC* stream_;
     public:
         MCC_TLS_Client(Arc::Config *cfg);

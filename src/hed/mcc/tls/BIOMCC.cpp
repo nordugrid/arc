@@ -106,13 +106,13 @@ static int mcc_read(BIO *b, char *out,int outl) {
   BIOMCC* biomcc = (BIOMCC*)(b->ptr);
   if(biomcc == NULL) return(ret);
   PayloadStreamInterface* stream = biomcc->Stream();
-  if(stream == NULL) return(ret);
+  if(stream == NULL) return ret;
 
   //clear_sys_error();
   bool r = stream->Get(out,outl);
   BIO_clear_retry_flags(b);
   if(r) { ret=outl; } else { ret=-1; };
-  return(ret);
+  return ret;
 }
 
 static int mcc_write(BIO *b, const char *in, int inl) {
@@ -130,7 +130,7 @@ static int mcc_write(BIO *b, const char *in, int inl) {
     bool r = stream->Put(in,inl);
     BIO_clear_retry_flags(b);
     if(r) { ret=inl; } else { ret=-1; };
-    return(ret);
+    return ret;
   };
 
   MCCInterface* next = biomcc->Next();
@@ -150,14 +150,16 @@ static int mcc_write(BIO *b, const char *in, int inl) {
         retpayload=dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
       } catch(std::exception& e) { };
       if(retpayload) {
-        if(!stream) {
-          biomcc->Stream(retpayload);
-        };
+        biomcc->Stream(retpayload);
+      } else {
+        delete nextoutmsg.Payload();
       };
-      if(stream) delete nextoutmsg.Payload();
     };
     ret=inl;
-  } else { ret=-1; };
+  } else {
+    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
+    ret=-1;
+  };
   return(ret);
 }
 

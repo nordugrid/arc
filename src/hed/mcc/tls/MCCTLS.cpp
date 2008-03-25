@@ -44,7 +44,6 @@ static void store_MCC_TLS(SSL_CTX* container,Arc::MCC_TLS* it) {
     SSL_CTX_set_ex_data(container,ex_data_index_,it);
     return;
   };
-
   Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to store application data into OpenSSL");
 }
 
@@ -60,7 +59,7 @@ static Arc::MCC_TLS* retrieve_MCC_TLS(X509_STORE_CTX* container) {
     };
   };
   if(it == NULL) {
-    Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to retireve application data from OpenSSL");
+    Arc::Logger::getRootLogger().msg(Arc::ERROR,"Failed to retrieve application data from OpenSSL");
   };
   return it;
 }
@@ -184,20 +183,6 @@ mcc_descriptors ARC_MCC_LOADER = {
 
 using namespace Arc;
 
-
-static void tls_process_error(Logger& logger){
-   unsigned long err;
-   err = ERR_get_error();
-   if (err != 0)
-   {
-     logger.msg(ERROR, "OpenSSL Error -- %s", ERR_error_string(err, NULL));
-     logger.msg(ERROR, "Library  : %s", ERR_lib_error_string(err));
-     logger.msg(ERROR, "Function : %s", ERR_func_error_string(err));
-     logger.msg(ERROR, "Reason   : %s", ERR_reason_error_string(err));
-   }
-   return;
-}
-
 static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
 }
@@ -226,14 +211,14 @@ static bool tls_random_seed(Logger& logger, std::string filename, long n)
    int r;
    r = RAND_load_file(filename.c_str(), (n > 0 && n < LONG_MAX) ? n : LONG_MAX);
    if (n == 0)
-	n = my_MIN_SEED_BYTES;
+  n = my_MIN_SEED_BYTES;
     if (r < n) {
         logger.msg(ERROR, "tls_random_seed from file: could not read files");
-   	tls_process_error(logger);
-	return false;
+     PayloadTLSStream::HandleError(logger);
+  return false;
     } else {
-	tls_rand_seeded_p = 1;
-	return true;
+  tls_rand_seeded_p = 1;
+  return true;
     }
 }
 
@@ -242,8 +227,7 @@ static void tls_set_dhe1024(Logger& logger)
 {
    int i;
    RAND_bytes((unsigned char *) &i, sizeof i);
-   if (i < 0)
-       i = -i;
+   if (i < 0) i = -i;
    DSA *dsaparams;
    DH *dhparams;
    const char *seed[] = { "2007-10-12: KnowARC ",
@@ -254,26 +238,25 @@ static void tls_set_dhe1024(Logger& logger)
    };
    unsigned char seedbuf[20];
    if (i >= 0) {
-	i %= sizeof seed / sizeof seed[0];
-	memcpy(seedbuf, seed[i], 20);
-	dsaparams = DSA_generate_parameters(1024, seedbuf, 20, NULL, NULL, 0, NULL);
+  i %= sizeof seed / sizeof seed[0];
+  memcpy(seedbuf, seed[i], 20);
+  dsaparams = DSA_generate_parameters(1024, seedbuf, 20, NULL, NULL, 0, NULL);
     } else {
-	/* random parameters (may take a while) */
-	dsaparams = DSA_generate_parameters(1024, NULL, 0, NULL, NULL, 0, NULL);
+  /* random parameters (may take a while) */
+  dsaparams = DSA_generate_parameters(1024, NULL, 0, NULL, NULL, 0, NULL);
     }
     if (dsaparams == NULL) {
-	tls_process_error(logger);
-	return;
+     PayloadTLSStream::HandleError(logger);
+  return;
     }
     dhparams = DSA_dup_DH(dsaparams);
     DSA_free(dsaparams);
     if (dhparams == NULL) {
-	tls_process_error(logger);
-	return;
+     PayloadTLSStream::HandleError(logger);
+  return;
     }
-    if (tls_dhe1024 != NULL)
-	DH_free(tls_dhe1024);
-    	tls_dhe1024 = dhparams;
+    if (tls_dhe1024 != NULL) DH_free(tls_dhe1024);
+    tls_dhe1024 = dhparams;
 }
 
 bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, const std::string&, const std::string& random_file)
@@ -285,18 +268,18 @@ bool MCC_TLS::tls_load_certificate(SSL_CTX* sslctx, const std::string& cert_file
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) && 
       (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load certificate file - %s",cert_file);
-        tls_process_error(logger);
+     PayloadTLSStream::HandleError(logger);
         return false;
    }
    if((SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
       (SSL_CTX_use_PrivateKey_file(sslctx,key_file.c_str(),SSL_FILETYPE_ASN1) != 1)) {
         logger.msg(ERROR, "Can not load key file - %s",key_file);
-        tls_process_error(logger);
+     PayloadTLSStream::HandleError(logger);
         return false;
    }
    if(!(SSL_CTX_check_private_key(sslctx))) {
         logger.msg(ERROR, "Private key does not match certificate");
-        tls_process_error(logger);
+     PayloadTLSStream::HandleError(logger);
         return false;
    }
 
@@ -331,7 +314,7 @@ bool MCC_TLS::do_ssl_init(void) {
      SSL_load_error_strings();
      if(!SSL_library_init()){
        logger.msg(ERROR, "SSL_library_init failed");
-       tls_process_error(logger);
+       PayloadTLSStream::HandleError(logger);
      } else {
        int num_locks = CRYPTO_num_locks();
        if(num_locks) {
@@ -380,17 +363,18 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_server_method());
    if(sslctx_==NULL){
-        logger.msg(ERROR, "Can not create the SSL Context object");
-	tls_process_error(logger);
-	return;
+      logger.msg(ERROR, "Can not create the SSL Context object");
+      PayloadTLSStream::HandleError(logger);
+      return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
+   SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    if((!ca_file_.empty()) || (!ca_dir_.empty())){
       r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
       if(!r){
-         tls_process_error(logger);
+   PayloadTLSStream::HandleError(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
          return;
       }   
@@ -398,9 +382,9 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
       SSL_CTX_set_client_CA_list(sslctx_,SSL_load_client_CA_file(ca_file.c_str())); //Scan all certificates in CAfile and list them as acceptable CAs
       if(SSL_CTX_get_client_CA_list(sslctx_) == NULL){ 
          logger.msg(ERROR, "Can not set client CA list from the specified file");
-   	 tls_process_error(logger);
+   PayloadTLSStream::HandleError(logger);
          SSL_CTX_free(sslctx_); sslctx_=NULL;
-	 return;
+   return;
       }
       */
    }
@@ -419,12 +403,12 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
 #endif
    store_MCC_TLS(sslctx_,this);
    if(tls_dhe1024 == NULL) { // TODO: Is it needed?
-   	tls_set_dhe1024(logger);
-	if(tls_dhe1024 == NULL){return;}
+     tls_set_dhe1024(logger);
+  if(tls_dhe1024 == NULL) return;
    }
    if (!SSL_CTX_set_tmp_dh(sslctx_, tls_dhe1024)) { // TODO: Is it needed?
      logger.msg(ERROR, "DH set error");
-     tls_process_error(logger);
+     PayloadTLSStream::HandleError(logger);
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    }
@@ -432,11 +416,10 @@ MCC_TLS_Service::MCC_TLS_Service(Arc::Config *cfg):MCC_TLS(cfg),sslctx_(NULL) {
 #ifndef NO_RSA
    RSA *tmpkey;
    tmpkey = RSA_generate_key(512, RSA_F4, 0, NULL); // TODO: Is it needed?
-   if (tmpkey == NULL)
-	tls_process_error(logger);
+   if (tmpkey == NULL) PayloadTLSStream::HandleError(logger);
    if (!SSL_CTX_set_tmp_rsa(sslctx_, tmpkey)) {
      RSA_free(tmpkey);
-     tls_process_error(logger);
+     PayloadTLSStream::HandleError(logger);
      SSL_CTX_free(sslctx_); sslctx_=NULL;
      return;
    }
@@ -459,7 +442,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    if(!inmsg.Payload()) return MCC_Status();
    PayloadStreamInterface* inpayload = NULL;
    try {
-      	inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+      inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
 
@@ -490,6 +473,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    nextinmsg.Payload(stream);
    Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
+/* @@@@@@
    //Getting the subject name of peer(client) certificate
    char buf[100];     
    X509* peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerCert();
@@ -531,6 +515,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       return MCC_Status();
    };
+*/
    
    // Call next MCC 
    MCCInterface* next = Next();
@@ -565,31 +550,32 @@ MCC_TLS_Client::MCC_TLS_Client(Arc::Config *cfg):MCC_TLS(cfg){
    /*Initialize the SSL Context object*/
    sslctx_=SSL_CTX_new(SSLv23_client_method());
    if(sslctx_==NULL){
-        logger.msg(ERROR, "Can not create the SSL Context object");
-        tls_process_error(logger);
-        return;
+      logger.msg(ERROR, "Can not create the SSL Context object");
+      PayloadTLSStream::HandleError(logger);
+      return;
    }
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
+   SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    tls_load_certificate(sslctx_, cert_file_, key_file_, "", key_file_);
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
    if((!ca_file_.empty()) || (!ca_dir_.empty())) {
-        r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
-        if(!r){
-           tls_process_error(logger);
-           return;
-        }
+      r=SSL_CTX_load_verify_locations(sslctx_, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str());
+      if(!r){
+         PayloadTLSStream::HandleError(logger);
+         return;
+      }
    }
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE);
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
    if(sslctx_->param == NULL) {
-     logger.msg(ERROR,"Can't set OpenSSL verify flags");
-     SSL_CTX_free(sslctx_); sslctx_=NULL;
-     return;
+      logger.msg(ERROR,"Can't set OpenSSL verify flags");
+      SSL_CTX_free(sslctx_); sslctx_=NULL;
+      return;
    } else {
 #ifdef HAVE_OPENSSL_PROXY
-     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
+      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
 #else
-     if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
+      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
 #endif
    };
 #endif
@@ -628,7 +614,7 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
          return MCC_Status();
       };
    };
-   outmsg.Payload(new PayloadTLSMCC(*stream_,logger));
+   outmsg.Payload(new PayloadTLSMCC(*stream_));
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
    if(!ProcessSecHandlers(outmsg,"outgoing")) {

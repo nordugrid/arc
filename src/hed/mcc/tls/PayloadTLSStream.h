@@ -6,6 +6,7 @@
 
 #include <arc/message/Message.h>
 #include <arc/message/PayloadStream.h>
+#include <arc/Logger.h>
 
 #include <openssl/ssl.h>
 
@@ -16,14 +17,19 @@ class PayloadTLSStream: public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
   SSL* ssl_; 
-  void handle_ssl_error(int code);
+  Logger& logger_;
 public:
   /** Constructor. Attaches to already open handle.
     Handle is not managed by this class and must be closed by external code. */
-  PayloadTLSStream(SSL* ssl=NULL);
+  PayloadTLSStream(Logger& logger,SSL* ssl=NULL);
+  PayloadTLSStream(PayloadTLSStream& stream);
   /** Destructor. */
-  virtual ~PayloadTLSStream(void) { };
+  virtual ~PayloadTLSStream(void);
   
+  void HandleError(int code = SSL_ERROR_NONE);
+  static void HandleError(Logger& logger,int code = SSL_ERROR_NONE);
+  static void ClearError(void);
+
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);
   virtual std::string Get(void) { std::string buf; Get(buf); return buf; };

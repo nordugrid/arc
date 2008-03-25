@@ -18,35 +18,45 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-#include <arc/Logger.h>
 #include "PayloadTLSStream.h"
 
 namespace Arc {
 
-void PayloadTLSStream::handle_ssl_error(int code)
-{
-//    switch (code) {
-//        case SSL_ERROR_SSL: {
-            int e = ERR_get_error();
-            while(e != 0) {
-                Logger::rootLogger.msg(ERROR, "DEBUG: SSL_write error: %d %s:%s:%s", 
-                                      e, 
-                                      ERR_lib_error_string(e),
-                                      ERR_func_error_string(e),
-                                      ERR_reason_error_string(e));
-                e = ERR_get_error();
-            }
-//            break;
-//        }
-//        default:
-            Logger::rootLogger.msg(DEBUG, "SSL error Code: %d", code);
-//            break;
-//    }
+void PayloadTLSStream::HandleError(int code) {
+   HandleError(logger_,code);
 }
 
-PayloadTLSStream::PayloadTLSStream(SSL* ssl):ssl_(ssl) {
+void PayloadTLSStream::HandleError(Logger& logger,int code) {
+  if(code != SSL_ERROR_NONE) 
+     logger.msg(DEBUG, "SSL error Code: %d", code);
+  unsigned long e = ERR_get_error();
+  while(e != 0) {
+    logger.msg(ERROR, "DEBUG: SSL_write error: %d %s:%s:%s", 
+                      e, 
+                      ERR_lib_error_string(e),
+                      ERR_func_error_string(e),
+                      ERR_reason_error_string(e));
+    e = ERR_get_error();
+  }
+}
+
+void PayloadTLSStream::ClearError(void) {
+  int e = ERR_get_error();
+  while(e != 0) {
+    e = ERR_get_error();
+  }
+}
+
+PayloadTLSStream::PayloadTLSStream(Logger& logger,SSL* ssl):ssl_(ssl),logger_(logger) {
   //initialize something
   return;
+}
+
+PayloadTLSStream::PayloadTLSStream(PayloadTLSStream& stream):timeout_(stream.timeout_),ssl_(stream.ssl_),logger_(stream.logger_) {
+}
+
+PayloadTLSStream::~PayloadTLSStream(void) {
+  ClearError();
 }
 
 bool PayloadTLSStream::Get(char* buf,int& size) {
@@ -56,7 +66,7 @@ bool PayloadTLSStream::Get(char* buf,int& size) {
   size=0;
   l=SSL_read(ssl_,buf,l);
   if(l <= 0){
-     //handle tls error
+     HandleError(SSL_get_error(ssl_,l));
      return false;
   }
   size=l;
@@ -78,8 +88,7 @@ bool PayloadTLSStream::Put(const char* buf,int size) {
   for(;size;){
      l=SSL_write(ssl_,buf,size);
      if(l <= 0){
-        handle_ssl_error(SSL_get_error(ssl_, l));
-        //handle tls error
+        HandleError(SSL_get_error(ssl_,l));
         return false;
      }
      buf+=l; size-=l;
@@ -93,17 +102,14 @@ X509* PayloadTLSStream::GetPeerCert(void){
   if(ssl_ == NULL) return NULL;
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peercert=SSL_get_peer_certificate (ssl_);
-    if(peercert!=NULL){
-       return peercert;
-    }
-    else{      
-      Logger::rootLogger.msg(ERROR,"Peer cert cannot be extracted");
-    }
+    if(peercert!=NULL) return peercert;
+    logger_.msg(ERROR,"Peer cert cannot be extracted");
+    HandleError();
   }
   else{
-    Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
-    Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
-    handle_ssl_error(err);
+    logger_.msg(ERROR,"Peer cert verification fail");
+    logger_.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+    HandleError(err);
   }
   return NULL;
 }
@@ -114,17 +120,14 @@ STACK_OF(X509)* PayloadTLSStream::GetPeerChain(void){
   if(ssl_ == NULL) return NULL;
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peerchain=SSL_get_peer_cert_chain (ssl_);
-    if(peerchain!=NULL){
-       return peerchain;
-    }
-    else{
-      Logger::rootLogger.msg(ERROR,"Peer cert cannot be extracted");
-    }
+    if(peerchain!=NULL) return peerchain;
+    logger_.msg(ERROR,"Peer cert cannot be extracted");
+    HandleError();
   }
   else{
-    Logger::rootLogger.msg(ERROR,"Peer cert verification fail");
-    Logger::rootLogger.msg(ERROR,"%s",X509_verify_cert_error_string(err));
-    handle_ssl_error(err);
+    logger_.msg(ERROR,"Peer cert verification fail");
+    logger_.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+    HandleError(err);
   }
   return NULL;
 }
