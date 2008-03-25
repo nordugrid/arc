@@ -392,7 +392,7 @@ AC_SUBST(UUID_LIB)
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h sasl.h sasl/sasl.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h])
 AC_CXX_HAVE_SSTREAM
 
 # Checks for typedefs, structures, and compiler characteristics.

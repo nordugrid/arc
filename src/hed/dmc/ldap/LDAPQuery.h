@@ -76,6 +76,8 @@ class LDAPQuery {
 		int messageid;
 
 		static Logger logger;
+
+		friend int my_sasl_interact(ldap*, unsigned int, void*, void*);
 };
 
 } // end namespace

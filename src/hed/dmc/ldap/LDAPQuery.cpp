@@ -103,7 +103,7 @@ int my_sasl_interact(ldap *ld,
 	sasl_defaults *   defaults = (sasl_defaults *)   defaults_;
 
 	if (flags == LDAP_SASL_INTERACTIVE) {
-		logger.msg(VERBOSE, "SASL Interaction");
+		LDAPQuery::logger.msg(VERBOSE, "SASL Interaction");
 	}
 
 	while (interact->id != SASL_CB_LIST_END) {
@@ -147,12 +147,12 @@ int my_sasl_interact(ldap *ld,
 			if (flags == LDAP_SASL_QUIET) return 1;
 
 			if (challenge && interact->challenge)
-				logger.msg(VERBOSE, "Challenge: %s",
-				           interact->challenge);
+				LDAPQuery::logger.msg(VERBOSE, "Challenge: %s",
+				                      interact->challenge);
 
 			if (interact->defresult)
-				logger.msg(VERBOSE, "Default: %s",
-				           interact->defresult);
+				LDAPQuery::logger.msg(VERBOSE, "Default: %s",
+				                      interact->defresult);
 
 			std::string prompt;
 			std::string input;
@@ -164,8 +164,8 @@ int my_sasl_interact(ldap *ld,
 				input = getpass (prompt.c_str());
 			}
 			else {
-			    std::cout << prompt;
-			    std::cin >> input;
+				std::cout << prompt;
+				std::cin >> input;
 			}
 			if (input.empty())
 				use_default = true;
