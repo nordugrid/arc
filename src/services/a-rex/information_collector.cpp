@@ -100,7 +100,7 @@ void ARexService::InformationCollector(void) {
     Arc::XMLNode root(ns,"n:nordugrid");
     if(LDIFtoXML(ldif,"o=grid",root)) {
       // Put result into container
-      infodoc_.Assign(root);
+      infodoc_.Assign(root,true);
       logger_.msg(Arc::INFO,"Assigned new informational document");
       root.GetXML(ldif_str);
       logger_.msg(Arc::DEBUG,"Obtained XML: %s",ldif_str);
