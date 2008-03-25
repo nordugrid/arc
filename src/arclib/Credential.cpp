@@ -129,7 +129,7 @@ namespace ArcLib {
     X509* x509 = NULL;
     PKCS12* pkcs12 = NULL;
     format = getFormat(certbio);
-    credentialLogger.msg(INFO,"Cerficate format for BIO is: %d", format);
+    credentialLogger.msg(INFO,"Certificate format for BIO is: %d", format);
 
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
  
@@ -459,12 +459,12 @@ namespace ArcLib {
 
     certbio = BIO_new_file(certfile.c_str(), "r"); 
     if(!certbio){
-      credentialLogger.msg(ERROR,"Can not read certificate file: %s ", certfile); LogError();
+      credentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError();
       throw CredentialError("Can not read certificate file");
     }
     keybio = BIO_new_file(keyfile.c_str(), "r");
     if(!keybio){
-      credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile);  LogError();
+      credentialLogger.msg(ERROR,"Can not read key file: %s", keyfile);  LogError();
       throw CredentialError("Can not read key file");
     }
 
@@ -546,7 +546,7 @@ namespace ArcLib {
     const EVP_MD *digest = signing_alg_;
     EVP_PKEY* pkey;
   
-    if(pkey_) { credentialLogger.msg(ERROR, "The Credential's private key has already be initialized"); return false; }; 
+    if(pkey_) { credentialLogger.msg(ERROR, "The credential's private key has already been initialized"); return false; }; 
      
 #ifdef HAVE_OPENSSL_OLDRSA
     unsigned long prime = RSA_F4; 
@@ -608,7 +608,7 @@ namespace ArcLib {
               else { name = X509_NAME_new();}
               if((entry = X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE,
                           (unsigned char *) "NULL SUBJECT NAME ENTRY", -1)) == NULL) {
-                credentialLogger.msg(ERROR, "Can not create a new X509_NAME_ENTRY forthe proxy certificate request");
+                credentialLogger.msg(ERROR, "Can not create a new X509_NAME_ENTRY for the proxy certificate request");
                 LogError(); res = false; X509_NAME_free(name); goto err;
               }
               X509_NAME_add_entry(name, entry, X509_NAME_entry_count(name), 0);
@@ -633,7 +633,7 @@ namespace ArcLib {
                 length = ext_method->i2d(proxy_cert_info_, NULL);
  std::cout<<"length "<<length<<std::endl;
                 if(length < 0) { 
-                  credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded form"); 
+                  credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
                   LogError(); 
                 }
                 else { data = (unsigned char*) malloc(length); }
@@ -643,7 +643,7 @@ namespace ArcLib {
                 length = ext_method->i2d(proxy_cert_info_,  &derdata);
 
                 if(length < 0) { 
-                  credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded form"); 
+                  credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
                   free(data); data = NULL; LogError(); 
                 }
                 if(data) {
@@ -666,7 +666,7 @@ namespace ArcLib {
                     LogError(); res = false;
                   }
                   //if(!(i2d_X509_REQ_bio(reqbio,req))){
-                  //  credentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded form");
+                  //  credentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded format");
                   //  LogError(); res = false;
                   //}
                   else { rsa_key_ = rsa_key; rsa_key = NULL; pkey_ = pkey; pkey = NULL; res = true; }
@@ -714,7 +714,7 @@ err:
     }
 
     if(GenerateRequest(out)) {
-      credentialLogger.msg(INFO, "Write request into a file");
+      credentialLogger.msg(INFO, "Wrote request into a file");
     }
     else {credentialLogger.msg(ERROR, "Failed to write request into a file"); BIO_free_all(out); return false;}
  
@@ -733,7 +733,7 @@ err:
     }
 
     //if(!(d2i_X509_REQ_bio(reqbio, &req_))) {
-    //  credentialLogger.msg(ERROR, "Can't convert X509_REQ struct from DER encoded to internal form");
+    //  credentialLogger.msg(ERROR, "Can't convert X509_REQ struct from DER encoded to internal format");
     //  LogError(); return false;
     //}
 
@@ -760,7 +760,7 @@ err:
         }   
 
         if((proxy_cert_info_ = (PROXYCERTINFO*)X509V3_EXT_d2i(ext)) == NULL) {
-           credentialLogger.msg(ERROR, "Can not convert DER encode PROXYCERTINFO extension to internal format"); 
+           credentialLogger.msg(ERROR, "Can not convert DER encoded PROXYCERTINFO extension to internal format"); 
            LogError(); goto err;
         }
         break;
@@ -893,7 +893,7 @@ err:
     int length;
     bio = BIO_new(BIO_s_mem());
     length = i2d_PrivateKey_bio(bio, pkey_);
-    if(pkey_ == NULL) {credentialLogger.msg(ERROR, "Private key of the Credential object is NULL"); BIO_free(bio); return NULL;}
+    if(pkey_ == NULL) {credentialLogger.msg(ERROR, "Private key of the credential object is NULL"); BIO_free(bio); return NULL;}
     if(length <= 0) {
       credentialLogger.msg(ERROR, "Can not convert private key to DER format");
       LogError(); BIO_free(bio); return NULL;
@@ -1074,7 +1074,7 @@ err:
     
     /* Create proxy subject name */
     if((subject_name = X509_NAME_dup(X509_get_subject_name(issuer))) == NULL) {
-      credentialLogger.msg(ERROR, "Can not copy the subject name fron issuer for proxy certificate"); goto err;
+      credentialLogger.msg(ERROR, "Can not copy the subject name from issuer for proxy certificate"); goto err;
     }
     if((name_entry = X509_NAME_ENTRY_create_by_NID(&name_entry, NID_commonName, V_ASN1_APP_CHOOSE,
                                      (unsigned char *) CN_name, -1)) == NULL) {
@@ -1133,7 +1133,7 @@ err:
     X509_EXTENSION* ext = NULL;
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(proxy->req_);
-    if(!req_pubkey) { credentialLogger.msg(ERROR, "Error when extract public key from request"); LogError(); return false;}
+    if(!req_pubkey) { credentialLogger.msg(ERROR, "Error when extracting public key from request"); LogError(); return false;}
 
     if(!X509_REQ_verify(proxy->req_, req_pubkey)){
       credentialLogger.msg(ERROR,"Failed to verify the request"); LogError(); goto err;
@@ -1177,7 +1177,7 @@ err:
 
     /* Check whether MD5 isn't requested as the signing algorithm in the request*/
     if(EVP_MD_type(proxy->signing_alg_) != NID_md5) {
-      credentialLogger.msg(ERROR, "The signing algorithm: %s is not allowed, it should be MD5 to sign certificate requests",
+      credentialLogger.msg(ERROR, "The signing algorithm %s is not allowed, it should be MD5 to sign certificate requests",
       OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
       goto err;
     }
@@ -1229,7 +1229,7 @@ err:
     }     
           
     if(SignRequest(proxy, out)) {
-      credentialLogger.msg(INFO, "Write signed proxy certificate into a file");
+      credentialLogger.msg(INFO, "Wrote signed proxy certificate into a file");
     }
     else {credentialLogger.msg(ERROR, "Failed to write signed proxy certificate into a file"); BIO_free_all(out); return false;}
 

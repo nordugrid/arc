@@ -370,7 +370,7 @@ std::cerr<<s<<std::endl;
       } catch(std::exception&) { };
       if(resp == NULL) {
         logger.msg(Arc::ERROR,
-		 "The response of a servicee status request was not a SOAP message.");
+		 "The response of a service status request was not a SOAP message.");
         delete repmsg.Payload();
         throw AREXClientError("The response is not a SOAP message.");
       }
