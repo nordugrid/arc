@@ -3,26 +3,18 @@
 #endif
 
 #include <sys/stat.h>
-#include <uuid/uuid.h>
 #include <cerrno>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/GUID.h>
 
 #include "DataPointLFC.h"
 
 extern "C" {
 #include <lfc_api.h>
 #include <serrno.h>
-}
-
-static std::string GUID() {
-  uuid_t uu;
-  uuid_generate(uu);
-  char uustr[37];
-  uuid_unparse(uu, uustr);
-  return uustr;
 }
 
 namespace Arc {
@@ -168,7 +160,7 @@ namespace Arc {
                                          tostring(url.Port())).c_str()),
                       "ARC") != 0)
       return DataStatus::PreRegisterError;
-    guid = GUID();
+    guid = UUID();
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
       lfc_endsess();

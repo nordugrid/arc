@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-#include <uuid/uuid.h>
-
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -293,7 +291,7 @@ namespace Arc {
           u += "/";
         }
         if (guid_enabled) {
-          std::string guid = Arc::UUID();
+          std::string guid = UUID();
           if ((!se_uses_lfn) && (!pfn_path.empty()))
             u += pfn_path;
           else
@@ -389,7 +387,7 @@ namespace Arc {
       if (guid_enabled) {
         for (;;) {
           // generate guid
-          guid = Arc::UUID();
+          guid = UUID();
           // store in LRC
           if ((err = globus_rls_client_lrc_create
               (h, const_cast<char*>(guid.c_str()),
