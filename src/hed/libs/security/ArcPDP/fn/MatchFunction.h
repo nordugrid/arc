@@ -6,9 +6,9 @@
 
 namespace ArcSec {
 
-#define NAME_REGEXP_STRING_MATCH "know-arc:function:regexp-string-match"
-#define NAME_ANYURI_REGEXP_MATCH "know-arc:function:anyURI-regexp-match"
-#define NAME_X500NAME_REGEXP_MATCH "know-arc:function:x500Name-regexp-match"
+#define NAME_REGEXP_STRING_MATCH "regexp-string-match"
+#define NAME_ANYURI_REGEXP_MATCH "anyURI-regexp-match"
+#define NAME_X500NAME_REGEXP_MATCH "x500Name-regexp-match"
 
 ///Evaluate whether arg1 (value in regular expression) matched arg0 (lable in regular expression)
 class MatchFunction : public Function {

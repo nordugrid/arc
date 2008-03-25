@@ -5,7 +5,7 @@
 
 namespace ArcSec {
 
-#define NAME_TIME_IN_RANGE "know-arc:function:time-in-range"
+#define NAME_TIME_IN_RANGE "time-in-range"
 
 class InRangeFunction : public Function {
 public:
