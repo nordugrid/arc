@@ -13,7 +13,7 @@ namespace ArcSec {
 
 class AttributeSelector {
 public:
-  AttributeSelector(Arc::XMLNode& node);
+  AttributeSelector(Arc::XMLNode& node, AttributeFactory* attrfactory);
   virtual ~AttributeSelector();
 
   virtual std::list<AttributeValue*> evaluate(EvaluationCtx* ctx);

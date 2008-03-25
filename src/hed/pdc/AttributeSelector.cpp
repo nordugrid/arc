@@ -7,7 +7,7 @@
 using namespace Arc;
 using namespace ArcSec;
 
-AttributeSelector::AttributeSelector(Arc::XMLNode& node) : present(false) {
+AttributeSelector::AttributeSelector(Arc::XMLNode& node, AttributeFactory* attrfactory) : present(false) {
   std::string tp = (std::string)(node.Attribute("DataType"));
   if(tp.empty()) {std::cerr<<"Required DataType does not exist in AttributeSelector"<<std::endl; exit(0);}
   size_t found = tp.find_last_of("#");
