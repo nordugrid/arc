@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-26 07:46+0100\n"
-"PO-Revision-Date: 2008-03-26 07:49+0100\n"
+"POT-Creation-Date: 2008-03-26 11:51+0100\n"
+"PO-Revision-Date: 2008-03-26 11:51+0100\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -66,7 +66,7 @@ msgstr "Kan inte läsa nyckelfil: %s"
 
 #: ../src/arclib/Credential.cpp:516
 msgid "Can not convert string into ASN1_OBJECT"
-msgstr "Kan inte konvertera sträng till ASN1_OBJECT"
+msgstr "Kan inte omvandla sträng till ASN1_OBJECT"
 
 #: ../src/arclib/Credential.cpp:527
 msgid "Can not create extension for proxy certificate"
@@ -109,7 +109,7 @@ msgstr "Kan inte skapa en ny X509_NAME_ENTRY för proxycertifikatbegäran"
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
-"Kan inte konvertera PROXYCERTINFO struct från internt till DER-kodat format"
+"Kan inte omvandla PROXYCERTINFO struct från internt till DER-kodat format"
 
 #: ../src/arclib/Credential.cpp:665
 msgid "PEM_write_bio_X509_REQ failed"
@@ -149,8 +149,7 @@ msgstr "PEM_read_bio_X509_REQ misslyckades"
 
 #: ../src/arclib/Credential.cpp:763
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
-msgstr ""
-"Kan inte konvertera DER-kodat PROXYCERTINFO-tillägg till internt format"
+msgstr "Kan inte omvandla DER-kodat PROXYCERTINFO-tillägg till internt format"
 
 #: ../src/arclib/Credential.cpp:772
 msgid "Can not get policy from PROXYCERTINFO extension"
@@ -206,7 +205,7 @@ msgstr "Kreditivobjektets privata nyckel är NULL"
 
 #: ../src/arclib/Credential.cpp:898
 msgid "Can not convert private key to DER format"
-msgstr "Kan inte konvertera privat nyckel till DER-format"
+msgstr "Kan inte omvandla privat nyckel till DER-format"
 
 #: ../src/arclib/Credential.cpp:951
 msgid "Failed to initialize X509 structure"
@@ -222,11 +221,11 @@ msgstr "Kan inte erhålla tillägg från utfärdarcertifikat"
 
 #: ../src/arclib/Credential.cpp:1021
 msgid "Can not convert keyUsage struct from DER encoded format"
-msgstr "Kan inte konvertera keyUsage struct från DER-kodat format"
+msgstr "Kan inte omvandla keyUsage struct från DER-kodat format"
 
 #: ../src/arclib/Credential.cpp:1031 ../src/arclib/Credential.cpp:1039
 msgid "Can not convert keyUsage struct from internal to DER format"
-msgstr "Kan inte konvertera keyUsage struct från internt till DER-format"
+msgstr "Kan inte omvandla keyUsage struct från internt till DER-format"
 
 #: ../src/arclib/Credential.cpp:1060
 msgid "Can not get extended KeyUsage extension from issuer certificate"
@@ -325,7 +324,7 @@ msgstr "Lyckades signera och skriva ut proxycertifikatet"
 
 #: ../src/arclib/Credential.cpp:1197
 msgid "Can not convert signed proxy cert into DER format"
-msgstr "Kan inte konvertera det signerade proxycertifikatet till DER-format"
+msgstr "Kan inte omvandla det signerade proxycertifikatet till DER-format"
 
 #: ../src/arclib/Credential.cpp:1209 ../src/arclib/Credential.cpp:1226
 msgid "Can not create BIO for signed proxy certificate"
@@ -3517,155 +3516,151 @@ msgstr "Ingen sådan grupp: %s"
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:185
 #, c-format
 msgid "Improper debug level '%s'"
-msgstr ""
+msgstr "Ogiltig debugnivå '%s'"
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:113
 msgid "Missing option for command daemon"
-msgstr ""
+msgstr "Saknad inställning för kommandot daemon"
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:118
 msgid "Wrong option in daemon"
-msgstr ""
+msgstr "Felaktig inställning i daemon"
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:128
 #, c-format
 msgid "Improper size of log '%s'"
-msgstr ""
+msgstr "Ogiltig loggstorlek '%s'"
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:137
 #, c-format
-msgid "Improper number of logs '%s;"
-msgstr ""
+msgid "Improper number of logs '%s'"
+msgstr "Ogiltigt antal loggar '%s'"
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:143
 #, c-format
 msgid "Improper argument for logsize '%s'"
-msgstr ""
+msgstr "Ogiltigt argument för logstorlek '%s'"
 
 #: ../src/services/a-rex/grid-manager/files/info_files.cpp:84
 #: ../src/services/a-rex/grid-manager/files/info_files.cpp:99
-#, fuzzy, c-format
+#, c-format
 msgid "Failed setting file owner: %s"
-msgstr "Misslyckades med att lista filer"
+msgstr "Misslyckades med ange filägare: %s"
 
 #: ../src/services/a-rex/grid-manager/files/info_types.cpp:142
 #, c-format
 msgid "Wrong directory in %s"
-msgstr ""
+msgstr "Fel katalog i %s"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:93
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to run cache registration routine: %s"
-msgstr "Misslyckades med att förregistrera destination: %s"
+msgstr "Misslyckades med att exekvera registreringrutin: %s"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:141
 msgid "Starting grid-manager thread"
-msgstr ""
+msgstr "Startar grid-manager-tråd"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:145
 msgid "Missing argument"
-msgstr ""
+msgstr "Saknat argument"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:146
-#, fuzzy, c-format
+#, c-format
 msgid "Unrecognized option: %s"
-msgstr "process: operation: %s"
+msgstr "Okänd flagga: %s"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:158
 msgid "Wrong clean level"
-msgstr ""
+msgstr "Felaktig rensnivå"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:165
 msgid "Option processing error"
-msgstr ""
+msgstr "Inställningsprocesseringsfel"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:174
-#, fuzzy
-msgid "Can't initialize runtime environmwnt - EXITING."
-msgstr "Misslyckades med att initiera GM-miljö"
+msgid "Can't initialize runtime environment - EXITING."
+msgstr "Kan inte initiera runtime-miljö - AVSLUTAR."
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:186
 msgid "Can't recognize own username - EXITING."
-msgstr ""
+msgstr "Kan inte känna igen eget användarnamn - AVSLUTAR."
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:190
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:203
-#, fuzzy, c-format
+#, c-format
 msgid "Used configuration file %s"
-msgstr "Läser inställningsfil: %s"
+msgstr "Använd inställningsfil %s"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:191
-#, fuzzy
 msgid "Error processing configuration - EXITING."
-msgstr "Misslyckades med att ladda inställningar"
+msgstr "Fel vid processering av inställningar -AVSLUTAR."
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:194
 msgid "No suitable users found in configuration - EXITING."
-msgstr ""
+msgstr "Inga lämpliga användare funna i inställningar - AVSLUTAR."
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:235
 msgid "Globus COMMON module activation failed - EXITING"
-msgstr ""
+msgstr "Globus COMMON modulaktivering misslyckades - AVSLUTAR"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:238
 msgid "Globus RSL module activation failed - EXITING"
-msgstr ""
+msgstr "Globus RSL modulaktivering misslyckades - AVSLUTAR"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:248
-#, fuzzy
 msgid "Failed to start new thread"
-msgstr "Misslyckades med att påbörja skrivning till cache"
+msgstr "Misslyckades med att starta ny tråd"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:272
 msgid "Not all jobs are cleaned yet"
-msgstr ""
+msgstr "Alla jobb har inte rensats ännu"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:274
 msgid "Trying again"
-msgstr ""
+msgstr "Försöker igen"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:284
 #, c-format
 msgid "Cleaning all files in directories %s and %s"
-msgstr ""
+msgstr "Rensar alla filer i katalogerna %s och %s"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:292
 msgid "Jobs cleaned."
-msgstr ""
+msgstr "Jobb rensade."
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:295
-#, fuzzy
 msgid "Failed to start new thread: cache won't be cleaned"
-msgstr "Misslyckades med att starta tråd för att lyssna"
+msgstr "Misslyckades med att starta tråd: cache kommer ej att rensas"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:302
 msgid "Starting jobs' monitoring."
-msgstr ""
+msgstr "Startar jobbmonitorering"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:326
 msgid "Timer kicking"
-msgstr ""
+msgstr "Timer avfyrad"
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:343
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:349
 #, c-format
 msgid "ARG: %s"
-msgstr ""
+msgstr "ARG: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:106
 #, c-format
 msgid "JSDL: %s"
-msgstr ""
+msgstr "JSDL: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:108
 #, c-format
 msgid "JSDL: POSIX: %s"
-msgstr ""
+msgstr "JSDL: POSIX: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:110
 #, c-format
 msgid "JSDL: HPCPA: %s"
-msgstr ""
+msgstr "JSDL: HPCPA: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:138
 #, c-format
@@ -3673,10 +3668,12 @@ msgid ""
 "job description executable is provided by element [jsdl-hpcpa:Executable] - %"
 "s"
 msgstr ""
+"jobbeskrivningens exekverbara fil tillhandahålls av element [jsdl-hpcpa:"
+"Executable] - %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:154
 msgid "job description contains no recognisable executable"
-msgstr ""
+msgstr "jobbeskrivning innehåller ingen igenkänningsbar exekverbar fil"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:162
 #, c-format
@@ -3684,69 +3681,73 @@ msgid ""
 "job description executable is provided by element [jsdl-posix:Executable] - %"
 "s"
 msgstr ""
+"jobbeskrivningens exekverbara fil tillhandahålls av element [jsdl-posix:"
+"Executable] - %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:409
 msgid ""
 "FilesystemName defined in job description - all files must be relative to "
 "session directory[jsdl:FilesystemName]"
 msgstr ""
+"FilesystemName definierad i jobbeskrivning - alla filer måste vara relativa "
+"till sessionskatalogen [jsdl:FilesystemName]"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:556
-#, fuzzy
 msgid "job description is missing"
-msgstr "Anledning: %s"
+msgstr "jobbeskrivning saknas"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:561
 msgid "job description is missing [JobDescription] element"
-msgstr ""
+msgstr "jobbeskrivning saknar [JobDescription]-element"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:565
 msgid "job description is missing POSIX and HPCP application elements"
-msgstr ""
+msgstr "jobbeskrivning saknar POSIX- och HPCP-tillämningselement"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:616
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:625
 #, c-format
 msgid "Bad name for executable: %s"
-msgstr ""
+msgstr "Felaktigt namn för exekverbar fil: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:667
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:395
 #, c-format
 msgid "Bad name for stdout: %s"
-msgstr ""
+msgstr "Felaktigt namn för stdout: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:677
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:411
 #, c-format
 msgid "Bad name for stderr: %s"
-msgstr ""
+msgstr "Felaktigt namn för stderr: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:728
+#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:361
 #, c-format
-msgid "Bad name for runtime environemnt: %s"
-msgstr ""
+msgid "Bad name for runtime environment: %s"
+msgstr "Felaktigt namn för runtime-miljö: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:38
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:43
 msgid "Broken RSL in NAME"
-msgstr ""
+msgstr "Trasig RSL i NAME"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:211
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:535
 msgid "Broken RSL in clientsoftware"
-msgstr ""
+msgstr "Trasig RSL i clientsoftware"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:220
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:646
 msgid "Broken RSL in executable"
-msgstr ""
+msgstr "Trasig RSL i executable"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:224
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:304
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:650
 msgid "Missing executable in RSL"
-msgstr ""
+msgstr "Saknad exekverbar fil i RSL"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:229
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:243
@@ -3754,349 +3755,337 @@ msgstr ""
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:725
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:810
 msgid "Broken RSL"
-msgstr ""
+msgstr "Trasig RSL"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:233
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:328
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:661
 msgid "Missing arguments in RSL"
-msgstr ""
-
-#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:361
-#, c-format
-msgid "Bad name for runtime environment: %s"
-msgstr ""
+msgstr "Saknat argument i RSL"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:499
-#, fuzzy
 msgid "Failed reading RSL"
-msgstr "Misslyckades med att läsa fil: %s"
+msgstr "Misslyckades med att läsa RLS"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:514
-#, fuzzy
 msgid "Failed writing RSL"
-msgstr "Misslyckades med att lista filer"
+msgstr "Misslyckades med att skriva RLS"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:531
-#, fuzzy
-msgid "Failed  parsing RSL"
-msgstr "Misslyckades med att stänga av SSL"
+#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:842
+msgid "Failed parsing RSL"
+msgstr "Misslyckades med att tolka RSL"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:544
 msgid "Broken RSL in jobid"
-msgstr ""
+msgstr "Trasig RSL i jobid"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:549
 msgid "slashes are not allowed in jobid"
-msgstr ""
+msgstr "snedstreck är ej tillåtna i jobid"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:554
 msgid "Broken RSL in action"
-msgstr ""
+msgstr "Trasig RSL i action"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:557
 msgid "Missing action in RSL - using default"
-msgstr ""
+msgstr "Saknad action i RSL - använder förval"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:578
 msgid "Broken RSL in queue"
-msgstr ""
+msgstr "Trasig RSL i queue"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:584
 msgid "Broken RSL in replicacollection"
-msgstr ""
+msgstr "Trasig RLS i replicacollection"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:590
 msgid "Broken RSL in lifetime"
-msgstr ""
+msgstr "Trasig RLS i lifetime"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:596
 msgid "Broken RSL in starttime"
-msgstr ""
+msgstr "Trasig RLS i starttime"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:602
 msgid "Broken RSL in jobname"
-msgstr ""
+msgstr "Trasig RLS i jobname"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:608
 msgid "Broken RSL in jobreport"
-msgstr ""
+msgstr "Trasig RLS i jobreport"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:614
 msgid "Broken RSL in rerun"
-msgstr ""
+msgstr "Trasig RLS i rerun"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:619
 msgid "Bad integer in rerun"
-msgstr ""
+msgstr "Felaktigt heltal i rerun"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:625
 msgid "Broken RSL in disk"
-msgstr ""
+msgstr "Trasig RLS i disk"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:631
 msgid "disk value is bad"
-msgstr ""
+msgstr "disk-värde är felaktigt"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:638
 msgid "Broken RSL in notify"
-msgstr ""
+msgstr "Trasig RLS i notify"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:657
 msgid "Broken RSL in arguments"
-msgstr ""
+msgstr "Trasig RLS i arguments"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:669
 msgid "Broken RSL in inputdata"
-msgstr ""
+msgstr "Trasig RLS i inputdata"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:682
 msgid "Broken RSL in outputdata"
-msgstr ""
+msgstr "Trasig RLS i outputdata"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:695
 msgid "Broken RSL in gmlog"
-msgstr ""
+msgstr "Trasig RLS i gmlog"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:701
 msgid "Broken RSL in stdout"
-msgstr ""
+msgstr "Trasig RLS i stdout"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:707
 msgid "Broken RSL in stderr"
-msgstr ""
+msgstr "Trasig RLS i stderr"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:713
 msgid "Broken RSL in stdin"
-msgstr ""
+msgstr "Trasig RLS i stdin"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:733
 msgid "Broken RSL in ftpthreads"
-msgstr ""
+msgstr "Trasig RLS i ftpthreads"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:738
 msgid "Bad integer in ftpthreads"
-msgstr ""
+msgstr "Felaktigt heltal i ftpthreads"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:744
-#, fuzzy
 msgid "Broken RSL in cache"
-msgstr "Hittade %s i cache"
+msgstr "Trasig RLS i cache"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:749
-#, fuzzy
 msgid "Bad value in cache"
-msgstr "Rensade %llu byte i cache"
+msgstr "Felaktigt värde i cache"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:756
 msgid "Broken RSL in hostname"
-msgstr ""
+msgstr "Trasig RLS i hostname"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:771
 msgid "Broken RSL in dryrun"
-msgstr ""
+msgstr "Trasig RLS i dryrun"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:779
 msgid "Broken RSL in sessiondirectorytype"
-msgstr ""
+msgstr "Trasig RLS i sessiondirectorytype"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:789
 msgid "session_directory_type value is bad"
-msgstr ""
+msgstr "sessiondirectorytype-värde är felaktigt"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:795
 msgid "Broken RSL in credentialserver"
-msgstr ""
+msgstr "Trasig RLS i credentialserver"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:819
 msgid "Broken RSL in acl"
-msgstr ""
-
-#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:842
-#, fuzzy
-msgid "Failed parsing RSL"
-msgstr "Misslyckades med att lista filer"
+msgstr "Trasig RLS i acl"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:864
-#, fuzzy
 msgid "Failed evaluating RSL"
-msgstr "Misslyckades med att lista filer"
+msgstr "Misslyckades med att värdera RSL"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/subst_rsl.cpp:104
 msgid "UNKNOWN RSL STRUCTURE"
-msgstr ""
+msgstr "OKÄND RSL-STRUKTUR"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/subst_rsl.cpp:175
 msgid "UNKNOWN RLS ELEMENT"
-msgstr ""
+msgstr "OKÄNT RSL-ELEMENT"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/xrsl.cpp:535
 #, c-format
 msgid "%s: %s - %s"
-msgstr ""
+msgstr "%s: %s - %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/xrsl.cpp:591
 #, c-format
 msgid "%s: %s"
-msgstr ""
+msgstr "%s: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:104
 #, c-format
 msgid "%s: Added"
-msgstr ""
+msgstr "%s: Tillagt"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:174
 #, c-format
 msgid "%s: Destroying"
-msgstr ""
+msgstr "%s: Förstör"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:178
 #, c-format
 msgid "%s: Can't read state - no comments, just cleaning"
-msgstr ""
+msgstr "%s: Kan inte läsa tillstånd - inga kommentarer, endast rensning"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:189
 #, c-format
 msgid "%s: Cleaning control and session directories"
-msgstr ""
+msgstr "%s: Rensar kontroll- och sessionskataloger"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:194
 #, c-format
 msgid "%s: This job may be still running - canceling"
-msgstr ""
+msgstr "%s: Detta job kan fortfarande vara exekverande - avbryter"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:197
 #, c-format
 msgid "%s: Cancelation failed (probably job finished) - cleaning anyway"
 msgstr ""
+"%s: Avbrytande misslyckades (troligen är jobbet avslutat) - rensar ändå"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:203
 #, c-format
 msgid "%s: Cancelation probably succeeded - cleaning"
-msgstr ""
+msgstr "%s: Avbrytande troligen lyckosamt - rensar"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:226
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:242
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:257
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:648
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed reading local information."
-msgstr "Misslyckades med att ladda klientinställningar."
+msgstr "%s: Misslyckades med att läsa lokal information."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:270
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed creating grami file."
-msgstr "Misslyckades med att lista filer"
+msgstr "%s: Misslyckades med att skapa grami-fil."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:274
 #, c-format
 msgid "%s: Failed setting executable permissions."
-msgstr ""
+msgstr "%s: Misslyckades med att ange körbart tillträde."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:286
-#, fuzzy, c-format
-msgid "%s: state SUBMITING: starting child: "
-msgstr "Misslyckades med att erhålla lista från ftp: %s"
+#, c-format
+msgid "%s: state SUBMITTING: starting child: %s"
+msgstr "%s: tillstånd SUBMITTING: startar barnprocess: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:288
-#, fuzzy, c-format
-msgid "%s: state CANCELING: starting child: "
-msgstr "Misslyckades med att erhålla lista från ftp: %s"
+#, c-format
+msgid "%s: state CANCELING: starting child: %s"
+msgstr "%s: tillstånd CANCELING: startar barnprocess: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:296
 #, c-format
 msgid "%s: Failed running submission process."
-msgstr ""
+msgstr "%s: Misslyckades med att exekvera insändningsprocess."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:298
 #, c-format
 msgid "%s: Failed running cancel process."
-msgstr ""
+msgstr "%s: Misslyckades med att exekvera avbrytandeprocess."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:311
 #, c-format
-msgid "%s: state SUBMITING: child exited with code %i"
-msgstr ""
+msgid "%s: state SUBMITTING: child exited with code %i"
+msgstr "%s: tillstånd SUBMITTING: barnprocess avslutades med kod %i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:313
 #, c-format
 msgid "%s: state CANCELING: child exited with code %i"
-msgstr ""
+msgstr "%s: tillstånd CANCELING: barnprocess avslutades med kod %i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:318
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Job submission to LRMS failed."
-msgstr "Insändningsförfrågan misslyckades."
+msgstr "%s: Jobbinsändning till LRMS misslyckades."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:321
 #, c-format
 msgid "%s: Failed to cancel running job."
-msgstr ""
+msgstr "%s: Misslyckades med att avbryta exekverande jobb."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:332
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed obtaining lrms id."
-msgstr "Misslyckades med att erhålla lista från ftp: %s"
+msgstr "%s: Misslyckades med att erhålla LRMS-id."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:358
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed writing local information."
-msgstr "Misslyckades med att ladda klientinställningar."
+msgstr "%s: Misslyckades med att skriva lokal information."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:372
 #, c-format
 msgid "%s: state: PREPARING/FINISHING: starting new child"
-msgstr ""
+msgstr "%s: tillstånd: PREPARING/FINISHING: startar ny barnprocess"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:462
 #, c-format
 msgid "%s: State PREPARING: starting child: %s"
-msgstr ""
+msgstr "%s: tillstånd: PREPARING: startar barnprocess: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:463
 #, c-format
 msgid "%s: State FINISHING: starting child: %s"
-msgstr ""
+msgstr "%s: tillstånd: FINISHING: startar barnprocess: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:467
 #, c-format
 msgid "%s: Failed to run down/uploader process."
-msgstr ""
+msgstr "%s: Misslyckades med att exekvera down/uploader-process."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:477
 #, c-format
 msgid "%s: State: PREPARING/FINISHING: child is running"
-msgstr ""
+msgstr "%s: Tillstånd: PREPARING/FINISHING: barnprocess exekveras"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:482
 #, c-format
 msgid "%s: State: PREPARING: child exited with code: %i"
-msgstr ""
+msgstr "%s: tillstånd PREPARING: barnprocess avslutades med kod %i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:483
 #, c-format
-msgid "%s: State: FINISHING: child exited with code: "
-msgstr ""
+msgid "%s: State: FINISHING: child exited with code: %i"
+msgstr "%s: tillstånd FINISHING: barnprocess avslutades med kod %i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:488
 #, c-format
-msgid "%s: State: FINISHING unrecoverable error detected (exit code 1)"
-msgstr ""
+msgid "%s: State: FINISHING: unrecoverable error detected (exit code 1)"
+msgstr "%s: Tillstånd: FINISHING: ohjälpligt fel detekterat (avslutningskod 1)"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:491
 #, c-format
 msgid "%s: State: PREPARING: unrecoverable error detected (exit code 1)"
-msgstr ""
+msgstr "%s: Tillstånd: PREPARING: ohjälpligt fel detekterat (avslutningskod 1)"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:521
 #, c-format
 msgid "%s: State: FINISHING: credentials probably expired (exit code 3)"
 msgstr ""
+"%s: Tillstånd: FINISHING: kreditiv troligen utgångna (avslutningskod 3)"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:524
 #, c-format
 msgid "%s: State: PREPARING: credentials probably expired (exit code 3)"
 msgstr ""
+"%s: Tillstånd: PREPARING: kreditiv troligen utgångna (avslutningskod 3)"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:529
 #, c-format
@@ -4104,6 +4093,8 @@ msgid ""
 "%s: State: FINISHING: some error detected (exit code %i). Recover from such "
 "type of errors is not supported yet."
 msgstr ""
+"%s: Tillstånd: FINISHING: fel detekterade (avslutningskod %i). Återhämtning "
+"från denna feltyp stöds ännu inte."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:532
 #, c-format
@@ -4111,244 +4102,244 @@ msgid ""
 "%s: State: PREPARING: some error detected (exit code %i). Recover from such "
 "type of errors is not supported yet."
 msgstr ""
+"%s: Tillstånd: PREPARING: fel detekterade (avslutningskod %i). Återhämtning "
+"från denna feltyp stöds ännu inte."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:566
 #, c-format
 msgid "%s: Job is not allowed to be rerun anymore."
-msgstr ""
+msgstr "%s: Jobb har ej tillåtelse att omstartas längre."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:575
 #, c-format
-msgid "%s: Job failed in unknow state. Won't rerun."
-msgstr ""
+msgid "%s: Job failed in unknown state. Won't rerun."
+msgstr "%s: Jobbet misslyckades i okänt tillstånd. Kommer ej att omstartas."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:591
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed to read list of output files."
-msgstr "Misslyckades med att hämta ftp-fil"
+msgstr "%s: Misslyckades med att läsa lista med utdatafiler."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:595
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed to read list of input files."
-msgstr "Misslyckades med att läsa GM-inställningsfil %s"
+msgstr "%s: Misslyckades med att läsa lista med indatafiler."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:601
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Reprocessing RSL failed."
-msgstr "Säkerhetsprocessering/kontroll misslyckades"
+msgstr "%s: Omprocessering av RSL misslyckades."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:608
 #, c-format
 msgid "%s: Failed to read reprocessed list of output files."
-msgstr ""
+msgstr "%s: Misslyckades med att läsa omprocesserad lista med utdatafiler."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:612
 #, c-format
 msgid "%s: Failed to read reprocessed list of input files."
-msgstr ""
+msgstr "%s: Misslyckades med att läsa omprocesserad lista med indatafiler."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:675
 #, c-format
 msgid "%s: Reading status of new job failed."
-msgstr ""
+msgstr "%s: Läsandet av det nya jobbets status misslyckades."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:693
 #, c-format
 msgid "%s: State: ACCEPTED: parsing RSL"
-msgstr ""
+msgstr "%s: State: ACCEPTED: tolkar RSL"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:695
 #, c-format
 msgid "%s: Processing RSL failed."
-msgstr ""
+msgstr "%s: Processering av RSL misslyckades."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:708
 #, c-format
 msgid "%s: %s: New job belongs to %i/%i"
-msgstr ""
+msgstr "%s: %s: Nytt jobb tillhör %i/%i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:723
 #, c-format
 msgid "%s: State: ACCEPTED"
-msgstr ""
+msgstr "%s: Tillstånd: ACCEPTED"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:729
 #, c-format
 msgid "%s: State: ACCEPTED: dryrun"
-msgstr ""
+msgstr "%s: Tillstånd: ACCEPTED: dryrun"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:742
 #, c-format
 msgid "%s: State: ACCEPTED: have processtime %i"
-msgstr ""
+msgstr "%s: Tillstånd: ACCEPTED: har process-tid %i"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:745
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:751
 #, c-format
 msgid "%s: State: ACCEPTED: moving to PREPARING"
-msgstr ""
+msgstr "%s: Tillstånd: ACCEPTED: flyttar till PREPARING"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:772
 #, c-format
 msgid "%s: State: PREPARING"
-msgstr ""
+msgstr "%s: Tillstånd: PREPARING"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:797
 #, c-format
 msgid "%s: State: SUBMITTING"
-msgstr ""
+msgstr "%s: Tillstånd: SUBMITTING"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:814
 #, c-format
 msgid "%s: State: CANCELING"
-msgstr ""
+msgstr "%s: Tillstånd: CANCELING"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:828
 #, c-format
 msgid "%s: State: INLRMS"
-msgstr ""
+msgstr "%s: Tillstånd: INLRMS"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:836
 #, c-format
 msgid "%s: Job finished."
-msgstr ""
+msgstr "%s: Jobbet avslutat."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:840
 #, c-format
 msgid "%s: State: INLRMS: exit message is %i %s"
-msgstr ""
+msgstr "%s: Tillstånd: INLRMS: avslutningsmeddelande är %i %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:887
 #, c-format
 msgid "%s: State: FINISHING"
-msgstr ""
+msgstr "%s: Tillstånd: FINISHING"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:922
 #, c-format
 msgid "%s: Job is requested to clean - deleting."
-msgstr ""
+msgstr "%s: Jobbet har begärts rensat - raderar."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:962
 #, c-format
 msgid "%s: Can't rerun on request - not a suitable state."
-msgstr ""
+msgstr "%s: Kan inte omstarta på begäran - inget lämpligt tillstånd."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:973
 #, c-format
 msgid "%s: Job is too old - deleting."
-msgstr ""
+msgstr "%s: Jobbet är för gammalt - raderar."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1001
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Job is ancient - delete rest of information."
-msgstr "Misslyckades med att ta bort metainformation"
+msgstr "%s: Jobbet är antikt - raderar resterande information."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1033
 #, c-format
 msgid "%s: Canceling job (%s) because of user request"
-msgstr ""
+msgstr "%s: Avbryter jobb (%s) p.g.a. användarbegäran"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1099
 #, c-format
 msgid "%s: Job failure detected."
-msgstr ""
+msgstr "%s: Jobbfel detekterat."
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1127
 #, c-format
 msgid "%s: State: %s from %s"
-msgstr ""
+msgstr "%s: Tillstånd: %s från %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1142
 #, c-format
 msgid "%s: Plugin in state %s : %s"
-msgstr ""
+msgstr "%s: Plugin i tillstånd %s : %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1149
 #, c-format
 msgid "%s: Plugin at state %s : %s"
-msgstr ""
+msgstr "%s: Plugin vid tillstånd %s : %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1154
 #, c-format
 msgid "%s: Plugin execution failed"
-msgstr ""
+msgstr "%s: Pluginexekvering misslyckades"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1180
 #, c-format
-msgid "%s: Delete request due to internal problems "
-msgstr ""
+msgid "%s: Delete request due to internal problems"
+msgstr "%s: Radera begäran p.g.a. interna problem"
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1234
-#, fuzzy, c-format
+#, c-format
 msgid "Failed reading control directory: %s"
-msgstr "Misslyckades med att skapa/hitta katalog %s"
+msgstr "Misslyckades med att läsa kontrollkatalog: %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/users.cpp:395
 #, c-format
 msgid "Starting helper process (%s): %s"
-msgstr ""
+msgstr "Startar hjälpprocess (%s): %s"
 
 #: ../src/services/a-rex/grid-manager/jobs/users.cpp:406
 #, c-format
 msgid "Helper process start failed (%s): %s"
-msgstr ""
+msgstr "Hjälpprocessstart misslyckades (%s): %s"
 
 #: ../src/services/a-rex/grid-manager/mail/send_mail.cpp:26
-#, fuzzy
 msgid "Failed reading local information."
-msgstr "Misslyckades med att ladda klientinställningar."
+msgstr "Misslyckades med att läsa lokal information."
 
 #: ../src/services/a-rex/grid-manager/mail/send_mail.cpp:89
-#, fuzzy
 msgid "Failed running mailer."
-msgstr "Misslyckades med att lista metafiler"
+msgstr "Misslyckades med att exekvera e-postsändare."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:20
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:74
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:22
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failure creating slot for child process."
-msgstr "Misslyckades med att lista filer"
+msgstr "%s: Misslyckades med skapa slot för barnprocess."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:25
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:82
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:28
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:57
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failure creating data storage for child process."
-msgstr "Misslyckades med att lista filer"
+msgstr "%s: Misslyckades med att skapa datalagring för barnprocess."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:34
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:89
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:37
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:66
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failure starting child process."
-msgstr "Misslyckades med att erhålla lista från ftp: %s"
+msgstr "%s: Misslyckande vid start av barnprocess."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:39
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:42
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:71
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failure waiting for child process to finish."
-msgstr "Misslyckades med att ladda klientinställningar."
+msgstr "%s: Misslyckande vid väntan på att barnprocess skall avslutas."
 
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:109
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:89
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed switching user"
-msgstr "Misslyckades med att lista filer"
+msgstr "%s: Misslyckades med att byta användare"
 
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:114
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Failed to run plugin"
-msgstr "Misslyckades med att erhålla lista från ftp: %s"
+msgstr "%s: Misslyckades med att exekvera plugin"
 
 #: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:117
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Plugin failed"
-msgstr "%s misslyckades"
+msgstr "%s: Plugin misslyckades"
 
 #: ../src/services/a-rex/information_collector.cpp:22
 msgid "Failed to initialize GM environment"
@@ -4362,7 +4353,7 @@ msgstr "Misslyckades med att läsa GM-inställningsfil %s"
 #: ../src/services/a-rex/information_collector.cpp:41
 #, c-format
 msgid "Configuration: Section: %s, Subsection: %s"
-msgstr ""
+msgstr "Inställningar: Avdelning: %s, Underavdelning: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:47
 #, c-format
@@ -4377,46 +4368,46 @@ msgstr "Inställningar: Kö: %s"
 #: ../src/services/a-rex/information_collector.cpp:68
 #, c-format
 msgid "Cluster information provider: %s"
-msgstr ""
+msgstr "Klusterinformationstillhandahållare: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:74
 #, c-format
 msgid "Cluster information provider result: %i"
-msgstr ""
+msgstr "Klusterinformationstillhandahållarresultat: %i"
 
 #: ../src/services/a-rex/information_collector.cpp:75
 #, c-format
 msgid "Cluster information provider error: %s"
-msgstr ""
+msgstr "Klusterinformationstillhandahållarfel: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:86
 #, c-format
 msgid "Queue information provider: %s"
-msgstr ""
+msgstr "Köinformationstillhandahållare: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:92
 #, c-format
 msgid "Queue information provider result: %i"
-msgstr ""
+msgstr "Köinformationstillhandahållarresultat: %i"
 
 #: ../src/services/a-rex/information_collector.cpp:93
 #, c-format
 msgid "Queue information provider error: %s"
-msgstr ""
+msgstr "Köinformationstillhandahållarfel: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:95
 #, c-format
 msgid "Obtained LDIF: %s"
-msgstr ""
+msgstr "Erhållen LDIF: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:104
 msgid "Assigned new informational document"
-msgstr ""
+msgstr "Tilldelat nytt informationsdokument"
 
 #: ../src/services/a-rex/information_collector.cpp:106
 #, c-format
 msgid "Obtained XML: %s"
-msgstr ""
+msgstr "Erhållen XML: %s"
 
 #: ../src/services/a-rex/information_collector.cpp:108
 msgid "Failed to create informational document"
@@ -4425,7 +4416,7 @@ msgstr "Misslyckades med att skapa informationsdokument"
 #: ../src/services/a-rex/put.cpp:31
 #, c-format
 msgid "Put: there is no job: %s - %s"
-msgstr ""
+msgstr "Put: det finns inget jobb: %s - %s"
 
 #: ../src/services/a-rex/terminate_activities.cpp:29
 #: ../src/services/sched/terminate_activities.cpp:25
@@ -4434,6 +4425,8 @@ msgid ""
 "TerminateActivities: request = \n"
 "%s"
 msgstr ""
+"TerminateActivities: begäran = \n"
+"%s"
 
 #: ../src/services/a-rex/terminate_activities.cpp:65
 #: ../src/services/sched/terminate_activities.cpp:54
@@ -4442,6 +4435,8 @@ msgid ""
 "TerminateActivities: response = \n"
 "%s"
 msgstr ""
+"TerminateActivities: svar = \n"
+"%s"
 
 #: ../src/services/a-rex/test.cpp:34 ../src/services/pdp/test.cpp:29
 #: ../src/services/sched/test_service.cpp:29
@@ -4531,89 +4526,84 @@ msgstr "Skapar och skickar förfrågan"
 
 #: ../src/services/httpd/httpd.cpp:27
 msgid "HTTPD Initialized"
-msgstr ""
+msgstr "HTTPD initierad"
 
 #: ../src/services/httpd/httpd.cpp:36
-#, fuzzy
 msgid "HTTPD shutdown"
-msgstr "avstängning"
+msgstr "HTTPD avstängning"
 
 #: ../src/services/httpd/httpd.cpp:65
 msgid "PUT called"
-msgstr ""
+msgstr "PUT anropad"
 
 #: ../src/services/httpd/httpd.cpp:82
 msgid "error on seek"
-msgstr ""
+msgstr "fel vid sökning"
 
 #: ../src/services/httpd/httpd.cpp:90
 msgid "error on write"
-msgstr ""
+msgstr "fel vid skrivning"
 
 #: ../src/services/httpd/httpd.cpp:115
 #, c-format
 msgid "method=%s, path=%s"
-msgstr ""
+msgstr "metod=%s, sökväg=%s"
 
 #: ../src/services/httpd/httpd.cpp:129
-#, fuzzy, c-format
+#, c-format
 msgid "Error while processing input: %s"
-msgstr "Misslyckades med att ladda inställningar"
+msgstr "Fel under processering av indata: %s"
 
 #: ../src/services/httpd/httpd.cpp:143
 msgid "Not supported operation"
-msgstr ""
+msgstr "Icke understödd operation"
 
 #: ../src/services/isis/centralisi.cpp:44
 msgid "Information collector"
-msgstr ""
+msgstr "Informationssamlare"
 
 #: ../src/services/isis/centralisi.cpp:71
 msgid "Central ISIS initialized"
-msgstr ""
+msgstr "Central ISIS initierad"
 
 #: ../src/services/isis/centralisi.cpp:75
-#, fuzzy
 msgid "remote database not supported"
-msgstr "process: %s: understöds inte"
+msgstr "fjärrdatabas ej understödd"
 
 #: ../src/services/isis/centralisi.cpp:78
-#, fuzzy, c-format
+#, c-format
 msgid "Intialize database %s"
-msgstr "Initialisera trådsystemet"
+msgstr "Initialisera databas %s"
 
 #: ../src/services/isis/centralisi.cpp:87
-#, fuzzy, c-format
+#, c-format
 msgid "cannot create directory: %s"
-msgstr "Misslyckades med att skapa/hitta katalog %s"
+msgstr "kan inte skapa katalog: %s"
 
 #: ../src/services/isis/centralisi.cpp:109
-#, fuzzy
 msgid "process called"
-msgstr "klientprocess anropad"
+msgstr "process anropad"
 
 #: ../src/services/isis/centralisi.cpp:111
 msgid "invalid database path"
-msgstr ""
+msgstr "ogiltig databassökväg"
 
 #: ../src/services/paul/paul.cpp:142
-#, fuzzy
 msgid "Cannot collect resource information"
-msgstr "Kunde inte ladda certifikatfil"
+msgstr "Kan inte samla in resursinformation"
 
 #: ../src/services/paul/paul.cpp:174
-#, fuzzy
 msgid "No response"
-msgstr "Väntar på svar"
+msgstr "Inget svar"
 
 #: ../src/services/paul/paul.cpp:209
-#, fuzzy, c-format
+#, c-format
 msgid "Do Request: %s"
-msgstr "Förfrågan: %s"
+msgstr "Utför förfrågan: %s"
 
 #: ../src/services/pdp/pdpservice.cpp:62
 msgid "input does not include any request"
-msgstr ""
+msgstr "indata innehåller ingen förfrågan"
 
 #: ../src/services/pdp/pdpservice.cpp:67 ../src/services/pdp/test.cpp:95
 #, c-format
@@ -4626,41 +4616,63 @@ msgstr "Autoriserad från Service PDP"
 
 #: ../src/services/sched/get_activities.cpp:13
 msgid "NO job"
-msgstr ""
+msgstr "INGET jobb"
 
 #: ../src/services/sched/get_activity_documents.cpp:39
 #: ../src/services/sched/get_activity_statuses.cpp:43
 #: ../src/services/sched/terminate_activities.cpp:38
 #, c-format
 msgid "GetActivityStatuses: job %s"
-msgstr ""
+msgstr "GetActivityStatuses: jobb %s"
 
 #: ../src/services/sched/get_activity_statuses.cpp:63
 #, c-format
 msgid "GetActivityStatuses: response = %s"
-msgstr ""
+msgstr "GetActivityStatuses: svar = %s"
 
-#: ../src/services/sched/grid_sched.cpp:170
-msgid "NEW job: "
+#: ../src/services/sched/grid_sched.cpp:156
+#, c-format
+msgid ""
+"Count of jobs: %i Count of resources: %i Scheduler period: %i Endpoint: %s "
+"DBPath: %s"
 msgstr ""
+"Antal jobb: %i Antal resurser: %i Schemaläggningsperiod: %i Ändpunkt: %s "
+"Databassökväg: %s"
 
-#: ../src/services/sched/grid_sched.cpp:176
-msgid "A-REX ID: "
-msgstr ""
+#: ../src/services/sched/grid_sched.cpp:171
+#, c-format
+msgid "NEW job: %s"
+msgstr "NYTT jobb: %s"
 
-#: ../src/services/sched/grid_sched.cpp:182
-#: ../src/services/sched/grid_sched.cpp:221
-msgid "Sched job ID: "
-msgstr ""
+#: ../src/services/sched/grid_sched.cpp:177
+#, c-format
+msgid "A-REX ID: %s"
+msgstr "A-REX ID: %s"
 
-#: ../src/services/sched/grid_sched.cpp:200
-#: ../src/services/sched/grid_sched.cpp:243
-msgid "JobID: "
-msgstr ""
+#: ../src/services/sched/grid_sched.cpp:183
+#, c-format
+msgid "Sched job ID: %s NOT SUBMITTED"
+msgstr "Sched jobb-ID: %s EJ INSÄNT"
 
-#: ../src/services/sched/grid_sched.cpp:236
-msgid "Job RESCHEDULE: "
-msgstr ""
+#: ../src/services/sched/grid_sched.cpp:201
+#, c-format
+msgid "JobID: %s KILLED"
+msgstr "JobID: %s AVBRUTET"
+
+#: ../src/services/sched/grid_sched.cpp:222
+#, c-format
+msgid "Sched job ID: %s (A-REX job ID is empty)"
+msgstr "Sched jobb-ID: %s (A-REX jobb-ID är tomt)"
+
+#: ../src/services/sched/grid_sched.cpp:237
+#, c-format
+msgid "Job RESCHEDULE: %s"
+msgstr "Jobb OMSCHEMALAGT: %s"
+
+#: ../src/services/sched/grid_sched.cpp:244
+#, c-format
+msgid "JobID: %s state: %s"
+msgstr "JobID: %s tillstånd: %s"
 
 #: ../src/services/sched/test_service.cpp:37
 #: ../src/tests/count/test_service.cpp:26
@@ -4675,25 +4687,25 @@ msgstr "inställningar: %s, klassnamn: %s"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:43
 msgid "JVM started"
-msgstr ""
+msgstr "JVM startad"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:48
 #, c-format
 msgid "There is no service: %s in your java class search path"
-msgstr ""
+msgstr "Det finns ingen service: %s i din javaklassökväg"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:56
 msgid "There is no constructor function"
-msgstr ""
+msgstr "Det finns ingen konstruktorfunktion"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:63
 #, c-format
 msgid "%s constructed"
-msgstr ""
+msgstr "%s skapad"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:67
 msgid "Destroy jvm"
-msgstr ""
+msgstr "Förstör jvm"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:116
 #: ../src/services/wrappers/python/pythonwrapper.cpp:324
@@ -4702,16 +4714,15 @@ msgstr "utdata är inte SOAP"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:155
 msgid "Cannot find MCC_Status object"
-msgstr ""
+msgstr "Kan inte hitta MCC-status-objekt"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:169
 msgid "Java object returned NULL status"
-msgstr ""
+msgstr "Javaobjekt returnerade NULL-status"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:105
-#, fuzzy
 msgid "Invalid class name"
-msgstr "klassnamn: %s"
+msgstr "Ogiltigt klassnamn"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:110
 #, c-format
@@ -4719,87 +4730,83 @@ msgid "class name: %s"
 msgstr "klassnamn: %s"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:111
-#, fuzzy, c-format
+#, c-format
 msgid "module name: %s"
-msgstr "sechandler namn: %s"
+msgstr "modulnamn: %s"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:116
 msgid "Cannot convert module name to Python string"
-msgstr ""
+msgstr "Kan inte omvandla modulnamn till pythonsträng"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:125
 msgid "Cannot import module"
-msgstr "Kunde inte importera modulen %s"
+msgstr "Kan inte importera modul"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:137
-#, fuzzy
 msgid "Cannot convert arc module name to Python string"
-msgstr "Kan inte omvandle outmsg till pythonobjekt"
+msgstr "Kan inte omvandla arcmodulnamn till pythonsträng"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:147
 msgid "Cannot import arc module"
-msgstr ""
+msgstr "Kan inte importera arcmodul"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:158
 msgid "Cannot get dictionary of arc module"
-msgstr ""
+msgstr "Kan inte erhålla ordlista för arcmodulen"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:168
-#, fuzzy
 msgid "Cannot find arc Config class"
-msgstr "Hittar inte serviceklass"
+msgstr "Kan inte hitta arcinställningsklass"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:177
 msgid "Config klass is not an object"
-msgstr ""
+msgstr "Inställningsklass är inget objekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:185
 msgid "Cannot get dictionary of module"
-msgstr ""
+msgstr "Kan inte erhålla ordlista för modulen"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:195
 msgid "Cannot find service class"
 msgstr "Hittar inte serviceklass"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:206
-#, fuzzy
 msgid "Cannot create config argument"
-msgstr "Misslyckades med att skapa/hitta katalog %s"
+msgstr "Kan inte skapa inställningsargument"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:215
-#, fuzzy
 msgid "Cannot convert config to python object"
-msgstr "Kan inte omvandle outmsg till pythonobjekt"
+msgstr "Kan inte omvandla inställningar till pythonobjekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:225
 msgid "Cannot create argument of the constructor"
-msgstr ""
+msgstr "Kan inte skapa argument till konstruktorn"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:235
 msgid "Cannot create instance of python class"
-msgstr ""
+msgstr "Kan inte skapa instans av pythonklass"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:244
 #, c-format
 msgid "%s is not an object"
-msgstr ""
+msgstr "%s är inget objekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:251
 msgid "Cannot find arc Message class"
-msgstr ""
+msgstr "Kan inte hitta arcmeddelandeklass"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:260
 msgid "Message klass is not an object"
-msgstr ""
+msgstr "Meddelandeklass är inget objekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:266
-msgid "Python Wrapper constructur called"
-msgstr ""
+msgid "Python Wrapper constructor called"
+msgstr "Python-wrapper-konstruktor anropad"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:277
-#, fuzzy, c-format
+#, c-format
 msgid "Python Wrapper destructor called (%d)"
-msgstr "Python-wrapper-process anropad"
+msgstr "Python-wrapper-destruktor anropad (%d)"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:304
 msgid "Python wrapper process called"
@@ -4807,23 +4814,23 @@ msgstr "Python-wrapper-process anropad"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:308
 msgid "Python interpreter locked"
-msgstr ""
+msgstr "Pythontolkare låst"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:333
 msgid "Cannot create inmsg argument"
-msgstr ""
+msgstr "Kan inte skapa inmsg-argument"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:344
 msgid "Cannot convert inmsg to python object"
-msgstr ""
+msgstr "Kan inte omvandla inmsg till pythonobjekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:357
 msgid "Cannot create outmsg argument"
-msgstr ""
+msgstr "Kan inte skapa outmsg-argumant"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:368
 msgid "Cannot convert outmsg to python object"
-msgstr "Kan inte omvandle outmsg till pythonobjekt"
+msgstr "Kan inte omvandla outmsg till pythonobjekt"
 
 #: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:60
 msgid "Input is not SOAP"

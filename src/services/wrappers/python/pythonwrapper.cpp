@@ -263,7 +263,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):Service(cfg)
     tstate = PyGILState_GetThisThreadState();
     PyEval_ReleaseThread(tstate);
 
-    logger.msg(Arc::DEBUG, "Python Wrapper constructur called");
+    logger.msg(Arc::DEBUG, "Python Wrapper constructor called");
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void) 

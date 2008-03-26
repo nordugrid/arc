@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-26 07:46+0100\n"
+"POT-Creation-Date: 2008-03-26 11:51+0100\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -3475,7 +3475,7 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:137
 #, c-format
-msgid "Improper number of logs '%s;"
+msgid "Improper number of logs '%s'"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:143
@@ -3521,7 +3521,7 @@ msgid "Option processing error"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:174
-msgid "Can't initialize runtime environmwnt - EXITING."
+msgid "Can't initialize runtime environment - EXITING."
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/grid_manager.cpp:186
@@ -3659,8 +3659,9 @@ msgid "Bad name for stderr: %s"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:728
+#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:361
 #, c-format
-msgid "Bad name for runtime environemnt: %s"
+msgid "Bad name for runtime environment: %s"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:38
@@ -3698,11 +3699,6 @@ msgstr ""
 msgid "Missing arguments in RSL"
 msgstr ""
 
-#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:361
-#, c-format
-msgid "Bad name for runtime environment: %s"
-msgstr ""
-
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:499
 msgid "Failed reading RSL"
 msgstr ""
@@ -3712,7 +3708,8 @@ msgid "Failed writing RSL"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:531
-msgid "Failed  parsing RSL"
+#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:842
+msgid "Failed parsing RSL"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:544
@@ -3843,10 +3840,6 @@ msgstr ""
 msgid "Broken RSL in acl"
 msgstr ""
 
-#: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:842
-msgid "Failed parsing RSL"
-msgstr ""
-
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/parse_rsl.cpp:864
 msgid "Failed evaluating RSL"
 msgstr ""
@@ -3924,12 +3917,12 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:286
 #, c-format
-msgid "%s: state SUBMITING: starting child: "
+msgid "%s: state SUBMITTING: starting child: %s"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:288
 #, c-format
-msgid "%s: state CANCELING: starting child: "
+msgid "%s: state CANCELING: starting child: %s"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:296
@@ -3944,7 +3937,7 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:311
 #, c-format
-msgid "%s: state SUBMITING: child exited with code %i"
+msgid "%s: state SUBMITTING: child exited with code %i"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:313
@@ -4004,12 +3997,12 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:483
 #, c-format
-msgid "%s: State: FINISHING: child exited with code: "
+msgid "%s: State: FINISHING: child exited with code: %i"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:488
 #, c-format
-msgid "%s: State: FINISHING unrecoverable error detected (exit code 1)"
+msgid "%s: State: FINISHING: unrecoverable error detected (exit code 1)"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:491
@@ -4048,7 +4041,7 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:575
 #, c-format
-msgid "%s: Job failed in unknow state. Won't rerun."
+msgid "%s: Job failed in unknown state. Won't rerun."
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:591
@@ -4204,7 +4197,7 @@ msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1180
 #, c-format
-msgid "%s: Delete request due to internal problems "
+msgid "%s: Delete request due to internal problems"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/jobs/states.cpp:1234
@@ -4562,26 +4555,46 @@ msgstr ""
 msgid "GetActivityStatuses: response = %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:170
-msgid "NEW job: "
+#: ../src/services/sched/grid_sched.cpp:156
+#, c-format
+msgid ""
+"Count of jobs: %i Count of resources: %i Scheduler period: %i Endpoint: %s "
+"DBPath: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:176
-msgid "A-REX ID: "
+#: ../src/services/sched/grid_sched.cpp:171
+#, c-format
+msgid "NEW job: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:182
-#: ../src/services/sched/grid_sched.cpp:221
-msgid "Sched job ID: "
+#: ../src/services/sched/grid_sched.cpp:177
+#, c-format
+msgid "A-REX ID: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:200
-#: ../src/services/sched/grid_sched.cpp:243
-msgid "JobID: "
+#: ../src/services/sched/grid_sched.cpp:183
+#, c-format
+msgid "Sched job ID: %s NOT SUBMITTED"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:236
-msgid "Job RESCHEDULE: "
+#: ../src/services/sched/grid_sched.cpp:201
+#, c-format
+msgid "JobID: %s KILLED"
+msgstr ""
+
+#: ../src/services/sched/grid_sched.cpp:222
+#, c-format
+msgid "Sched job ID: %s (A-REX job ID is empty)"
+msgstr ""
+
+#: ../src/services/sched/grid_sched.cpp:237
+#, c-format
+msgid "Job RESCHEDULE: %s"
+msgstr ""
+
+#: ../src/services/sched/grid_sched.cpp:244
+#, c-format
+msgid "JobID: %s state: %s"
 msgstr ""
 
 #: ../src/services/sched/test_service.cpp:37
@@ -4710,7 +4723,7 @@ msgid "Message klass is not an object"
 msgstr ""
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:266
-msgid "Python Wrapper constructur called"
+msgid "Python Wrapper constructor called"
 msgstr ""
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:277

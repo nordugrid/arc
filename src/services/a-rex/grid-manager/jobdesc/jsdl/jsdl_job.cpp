@@ -725,7 +725,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     std::string tmp_s = *i;
     for(int ii=0;ii<tmp_s.length();++ii) tmp_s[ii]=toupper(tmp_s[ii]);
     if(canonical_dir(tmp_s) != 0) {
-      logger.msg(Arc::WARNING, "Bad name for runtime environemnt: %s", (*i));
+      logger.msg(Arc::WARNING, "Bad name for runtime environment: %s", (*i));
       return false;
     };
     f<<"joboption_runtime_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;

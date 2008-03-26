@@ -283,9 +283,9 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
     if(cancel) { cmd=nordugrid_libexec_loc+"/cancel-"+job_desc->lrms+"-job"; }
     else { cmd=nordugrid_libexec_loc+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: starting child: ",i->job_id,cmd);
+      logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: ",i->job_id,cmd);
+      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
     };
     std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
     char* args[3] ={ (char*)cmd.c_str(), (char*)grami.c_str(), NULL };
@@ -308,7 +308,7 @@ bool JobsList::state_submiting(const JobsList::iterator &i,bool &state_changed,b
       return true;
     };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITING: child exited with code %i",i->job_id,i->child->Result());
+      logger.msg(Arc::INFO,"%s: state SUBMITTING: child exited with code %i",i->job_id,i->child->Result());
     } else {
       logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
     };
@@ -480,12 +480,12 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
     /* child was run - check exit code */
     if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id,i->child->Result()); }
-    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: ",i->job_id,i->child->Result()); };
+    else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: %i",i->job_id,i->child->Result()); };
     if(i->child->Result() != 0) { 
       if(i->child->Result() == 1) { 
         /* unrecoverable failure detected - all we can do is to kill the job */
         if(up) {
-          logger.msg(Arc::ERROR,"%s: State: FINISHING unrecoverable error detected (exit code 1)",i->job_id);
+          logger.msg(Arc::ERROR,"%s: State: FINISHING: unrecoverable error detected (exit code 1)",i->job_id);
           i->AddFailure("Failed in files upload (post-processing)");
         } else {
           logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id);
@@ -572,7 +572,7 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
       return states_all[n].id;
     };
   };
-  logger.msg(Arc::ERROR,"%s: Job failed in unknow state. Won't rerun.",i->job_id);
+  logger.msg(Arc::ERROR,"%s: Job failed in unknown state. Won't rerun.",i->job_id);
   i->local->failedstate="";
   job_local_write_file(*i,*user,*(i->local));
   return JOB_STATE_UNDEFINED;
@@ -1177,7 +1177,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
       // Keep repeating till error goes out
     } while(job_error);
     if(delete_job) { 
-      logger.msg(Arc::ERROR,"%s: Delete request due to internal problems ",i->job_id);
+      logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
       i->job_state = JOB_STATE_FINISHED; /* move to finished in order to 
                                             remove from list */
       i->job_pending=false;

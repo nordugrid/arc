@@ -171,7 +171,7 @@ static void grid_manager(void* arg) {
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
   if(!read_env_vars()) {
-    logger.msg(Arc::FATAL,"Can't initialize runtime environmwnt - EXITING."); return;
+    logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING."); return;
   };
   
   /* recognize itself */

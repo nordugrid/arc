@@ -134,7 +134,7 @@ int Daemon::config(const std::string& cmd,std::string& rest) {
           lognum_ = strtol(p,&p,10);
           if(lognum_ < 0) {
             logsize_=0; lognum_=0;
-            logger_.msg(Arc::ERROR,"Improper number of logs '%s;",rest);
+            logger_.msg(Arc::ERROR,"Improper number of logs '%s'",rest);
             return -1;
           };
         };

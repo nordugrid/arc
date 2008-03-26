@@ -528,7 +528,7 @@ bool parse_rsl(const std::string &fname,JobLocalDescription &job_desc,std::strin
   /* read RSL */
   rsl_tree=read_rsl(fname);
   if (!rsl_tree) {
-    logger.msg(Arc::ERROR,"Failed  parsing RSL"); goto exit;
+    logger.msg(Arc::ERROR,"Failed parsing RSL"); goto exit;
   };
   if (globus_rsl_param_get(rsl_tree,GLOBUS_RSL_PARAM_SINGLE_LITERAL,
              NG_RSL_SOFTWARE_PARAM,&tmp_param) != 0) {

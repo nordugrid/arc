@@ -153,12 +153,13 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
 void GridSchedulerService::doSched(void)
 {   
     // log status
-    std::string msg = "Count of jobs:" + Arc::tostring(sched_queue.size())
-                    + " Count of resources:" + Arc::tostring(sched_resources.size())
-                    + " Scheduler period:" + Arc::tostring(getPeriod()) 
-                    + " Endpoint: " + endpoint
-                    + " DBPath: " + db_path;
-    logger_.msg(Arc::DEBUG, msg);
+    logger_.msg(Arc::DEBUG, "Count of jobs: %i"
+                " Count of resources: %i"
+                " Scheduler period: %i"
+                " Endpoint: %s"
+                " DBPath: %s",
+                sched_queue.size(), sched_resources.size(),
+                getPeriod(), endpoint, db_path);
 
     // searching for new sched jobs:
     std::map<const std::string, Job *> new_jobs = sched_queue.getJobsWithState(status_factory.get(NEW));
@@ -167,19 +168,19 @@ void GridSchedulerService::doSched(void)
     std::map<const std::string, Job *>::iterator iter;
     for (iter = new_jobs.begin(); iter != new_jobs.end(); iter++) {
         const std::string &job_id = iter->first;
-        logger_.msg(Arc::DEBUG, "NEW job: " + job_id);
+        logger_.msg(Arc::DEBUG, "NEW job: %s", job_id);
         Resource &arex = sched_resources.random();
         Job *j = iter->second;
         Arc::XMLNode &jsdl = j->getJSDL();
         // XXX better error handling
         std::string arex_job_id = arex.CreateActivity(jsdl);
-        logger_.msg(Arc::DEBUG, "A-REX ID: " + arex.getURL());
+        logger_.msg(Arc::DEBUG, "A-REX ID: %s", arex.getURL());
         if (arex_job_id != "") {
             j->setResourceJobID(arex_job_id);
             j->setResourceID(arex.getURL());
             j->setStatus(status_factory.get(STARTING));
         } else {
-            logger_.msg(Arc::DEBUG, "Sched job ID: " + job_id + " NOT SUBMITTED");
+            logger_.msg(Arc::DEBUG, "Sched job ID: %s NOT SUBMITTED", job_id);
             sched_resources.refresh(arex.getURL());
         }
         j->save();
@@ -197,7 +198,7 @@ void GridSchedulerService::doSched(void)
         } else {
             Resource &arex = sched_resources.get(j->getResourceID());
             if (arex.TerminateActivity(arex_job_id)) {
-                logger_.msg(Arc::DEBUG, "JobID: " + job_id + " KILLED ");
+                logger_.msg(Arc::DEBUG, "JobID: %s KILLED", job_id);
                 j->setStatus(status_factory.get(KILLED));
                 sched_queue.removeJob(job_id);
             }
@@ -218,7 +219,7 @@ void GridSchedulerService::doSched(void)
         const std::string &arex_job_id = j->getResourceJobID();
         // skip unscheduled jobs
         if (arex_job_id.empty()) {
-            logger_.msg(Arc::DEBUG, "Sched job ID: " + job_id + " (A-REX job ID is empty)");
+            logger_.msg(Arc::DEBUG, "Sched job ID: %s (A-REX job ID is empty)", job_id);
             continue; 
         }
         // get state of the job at the resource
@@ -233,14 +234,14 @@ void GridSchedulerService::doSched(void)
                 sched_resources.refresh(arex.getURL());
                 // std::string url = arex.getURL();
                 // sched_resources.removeResource(url);
-                logger_.msg(Arc::DEBUG, "Job RESCHEDULE: " + job_id);
+                logger_.msg(Arc::DEBUG, "Job RESCHEDULE: %s", job_id);
             }
         } else {
             // refresh status from A-REX state
             job_stat = status_factory.getFromARexStatus(state); 
             j->setStatus(job_stat);
             j->save();
-            logger_.msg(Arc::DEBUG, "JobID: " + job_id + " state: " + state);
+            logger_.msg(Arc::DEBUG, "JobID: %s state: %s", job_id, state);
         }
     }
 }
