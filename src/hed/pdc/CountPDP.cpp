@@ -84,7 +84,7 @@ bool CountPDP::isPermitted(Message *msg){
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml");
   resp = eval->evaluate(request);
-  logger.msg(INFO, "There is : %d subjects, which satisty at least one policy", (resp->getResponseItems()).size());
+  logger.msg(INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
   for(int i = 0; i < size; i++){

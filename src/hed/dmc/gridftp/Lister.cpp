@@ -456,7 +456,7 @@ namespace Arc {
       }
     }
     connected = false;
-    logger.msg(DEBUG, "Closed successfuly");
+    logger.msg(DEBUG, "Closed successfully");
     return 0;
   }
 

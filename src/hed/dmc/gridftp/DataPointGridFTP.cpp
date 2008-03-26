@@ -656,7 +656,7 @@ namespace Arc {
                                        &size, &ftp_complete_callback, this);
           if(!res) {
             logger.msg(DEBUG, "list_files_ftp: globus_ftp_client_size failed");
-            logger.msg(INFO, "Globus error %s", res.str());
+            logger.msg(INFO, "Globus error: %s", res.str());
             result = DataStatus::ListError;
           }
           else if(!cond.wait(300000)) { /* 5 minutes timeout */

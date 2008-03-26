@@ -44,7 +44,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
     policylocation =  (std::string)(nd.Attribute("location"));
   }
   else if (res.empty()){ 
-    logger.msg(ERROR, "No any policy exists, the policy engine can not be loaded");
+    logger.msg(ERROR, "No policy exists, the policy engine can not be loaded");
     exit(1);
   }
 

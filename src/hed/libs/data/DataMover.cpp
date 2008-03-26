@@ -687,7 +687,7 @@ namespace Arc {
           source_url.StopReading();
           if(!destination.PreUnregister(replication ||
                                         destination_meta_initially_stored).Passed())
-            logger.msg(ERROR, "Failed to unregister preregistered lfn, "
+            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually: %s",
                        destination.str());
           if(destination.NextLocation())
@@ -703,7 +703,7 @@ namespace Arc {
           cache.stop(DataCache::file_download_failed | DataCache::file_keep);
           if(!destination.PreUnregister(replication ||
                                         destination_meta_initially_stored).Passed())
-            logger.msg(ERROR, "Failed to unregister preregistered lfn, "
+            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
           return DataStatus::CacheError; // repeating won't help here
         }
@@ -733,7 +733,7 @@ namespace Arc {
             cache.stop(DataCache::file_download_failed | DataCache::file_keep);
             if(!destination.PreUnregister(replication ||
                                           destination_meta_initially_stored).Passed())
-              logger.msg(ERROR, "Failed to unregister preregistered lfn, "
+              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                          "You may need to unregister it manually");
             return DataStatus::CacheError;/* retry won't help */
           }
@@ -747,7 +747,7 @@ namespace Arc {
       if(buffer.error()) {
         if(!destination.PreUnregister(replication ||
                                       destination_meta_initially_stored).Passed())
-          logger.msg(ERROR, "Failed to unregister preregistered lfn, "
+          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                      "You may need to unregister it manually");
         // Analyze errors
         // Easy part first - if either read or write part report error
@@ -806,8 +806,8 @@ namespace Arc {
                    destination.str());
         if(!destination.PreUnregister(replication ||
                                       destination_meta_initially_stored).Passed()) {
-          logger.msg(ERROR, "Failed to unregister preregistered lfn, "
-                     "You may need to unregister it manually %s",
+          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                     "You may need to unregister it manually: %s",
                      destination.str());
         }
         destination.NextLocation(); /* not sure if this can help */

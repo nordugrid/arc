@@ -1300,7 +1300,7 @@ int cache_download_url_start(const char* cache_path,const char* cache_data_path,
     };
   };
   /* try to get lock on info file */
-  logger.msg(Arc::INFO,"cache_download_url_start: locking url: %s(%s)",url,fname);
+  logger.msg(Arc::INFO,"cache_download_url_start: locking url: %s (%s)",url,fname);
 
   return cache_download_file_start(cache_path,cache_data_path,cache_uid,cache_gid,fname.c_str(),id,handler);
 }

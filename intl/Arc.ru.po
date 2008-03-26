@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-25 18:00+0100\n"
+"POT-Creation-Date: 2008-03-26 07:46+0100\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -439,7 +439,7 @@ msgid "There were no response to a service status request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:373
-msgid "The response of a servicee status request was not a SOAP message."
+msgid "The response of a service status request was not a SOAP message."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:395
@@ -831,6 +831,7 @@ msgstr ""
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:471
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:517
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:617
+#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:659
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:692
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:731
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:739
@@ -1076,11 +1077,6 @@ msgstr ""
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:659
-#, c-format
-msgid "Globus error %s"
-msgstr ""
-
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:663
 msgid "list_files_ftp: timeout waiting for size"
 msgstr ""
@@ -1230,7 +1226,7 @@ msgid "Failed to close connection 3"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:459
-msgid "Closed successfuly"
+msgid "Closed successfully"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:471
@@ -1792,6 +1788,7 @@ msgid "cache_download_url_start: unknown result from cache_search_list: %s"
 msgstr ""
 
 #: ../src/hed/libs/data/Cache.cpp:1208
+#: ../src/services/a-rex/grid-manager/cache/cache.cpp:1303
 #, c-format
 msgid "cache_download_url_start: locking url: %s (%s)"
 msgstr ""
@@ -2114,9 +2111,10 @@ msgid "Failed to start writing to destination: %s"
 msgstr ""
 
 #: ../src/hed/libs/data/DataMover.cpp:690
+#: ../src/hed/libs/data/DataMover.cpp:809
 #, c-format
 msgid ""
-"Failed to unregister preregistered lfn, You may need to unregister it "
+"Failed to unregister preregistered lfn. You may need to unregister it "
 "manually: %s"
 msgstr ""
 
@@ -2135,7 +2133,7 @@ msgstr ""
 #: ../src/hed/libs/data/DataMover.cpp:736
 #: ../src/hed/libs/data/DataMover.cpp:750
 msgid ""
-"Failed to unregister preregistered lfn, You may need to unregister it "
+"Failed to unregister preregistered lfn. You may need to unregister it "
 "manually"
 msgstr ""
 
@@ -2179,13 +2177,6 @@ msgstr ""
 msgid "Failed to postregister destination %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:809
-#, c-format
-msgid ""
-"Failed to unregister preregistered lfn, You may need to unregister it "
-"manually %s"
-msgstr ""
-
 #: ../src/hed/libs/data/DataPointIndex.cpp:106
 #, c-format
 msgid "Add location: url: %s"
@@ -2213,18 +2204,18 @@ msgstr ""
 
 #: ../src/hed/libs/infosys/Register.cpp:56
 #, c-format
-msgid "Start registartion to %s ISIS"
+msgid "Start registration to %s ISIS"
 msgstr ""
 
 #: ../src/hed/libs/infosys/Register.cpp:70
 #, c-format
-msgid "Succesful registartion to %s ISIS"
+msgid "Succesful registration to %s ISIS"
 msgstr ""
 
 #: ../src/hed/libs/infosys/Register.cpp:72
 #: ../src/hed/libs/infosys/Register.cpp:75
 #, c-format
-msgid "Error during registarton to %s ISIS"
+msgid "Error during registration to %s ISIS"
 msgstr ""
 
 #: ../src/hed/libs/loader/Loader.cpp:178
@@ -2434,8 +2425,9 @@ msgstr ""
 msgid "No service at path \"%s\""
 msgstr ""
 
-#: ../src/hed/libs/message/MCC.cpp:54
-msgid "No security processing/check requested for '"
+#: ../src/hed/libs/message/MCC.cpp:54 ../src/hed/libs/message/Service.cpp:22
+#, c-format
+msgid "No security processing/check requested for '%s'"
 msgstr ""
 
 #: ../src/hed/libs/message/MCC.cpp:62 ../src/hed/libs/message/Service.cpp:34
@@ -2444,10 +2436,6 @@ msgstr ""
 
 #: ../src/hed/libs/message/MCC.cpp:66 ../src/hed/libs/message/Service.cpp:30
 msgid "Security processing/check passed"
-msgstr ""
-
-#: ../src/hed/libs/message/Service.cpp:22
-msgid "No security processing/check is requested for '"
 msgstr ""
 
 #: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:30
@@ -2499,7 +2487,7 @@ msgid "empty input payload"
 msgstr ""
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:87
-msgid "incomeing message is not SOAP"
+msgid "incoming message is not SOAP"
 msgstr ""
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:102 ../src/hed/mcc/soap/MCCSOAP.cpp:174
@@ -2759,7 +2747,7 @@ msgid "%s"
 msgstr ""
 
 #: ../src/hed/pdc/ArcEvaluator.cpp:47
-msgid "No any policy exists, the policy engine can not be loaded"
+msgid "No policy exists, the policy engine can not be loaded"
 msgstr ""
 
 #: ../src/hed/pdc/ArcEvaluator.cpp:57
@@ -2806,9 +2794,10 @@ msgid "Can not dynamically produce Evaluator"
 msgstr ""
 
 #: ../src/hed/pdc/ArcPDP.cpp:108 ../src/hed/pdc/CountPDP.cpp:87
+#: ../src/hed/pdc/test.cpp:53 ../src/hed/pdc/test.cpp:149
 #: ../src/services/pdp/pdpservice.cpp:72
 #, c-format
-msgid "There is : %d subjects, which satisty at least one policy"
+msgid "There is %d subjects, which satisfy at least one policy"
 msgstr ""
 
 #: ../src/hed/pdc/ArcPDP.cpp:128
@@ -2819,7 +2808,7 @@ msgstr ""
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr ""
 
-#: ../src/hed/pdc/ArcPolicy.cpp:51 ../src/hed/pdc/XACMLPolicy.cpp:50
+#: ../src/hed/pdc/ArcPolicy.cpp:51 ../src/hed/pdc/XACMLPolicy.cpp:56
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr ""
@@ -2889,11 +2878,6 @@ msgstr ""
 msgid "Input request from a file: Request.xml"
 msgstr ""
 
-#: ../src/hed/pdc/test.cpp:53 ../src/hed/pdc/test.cpp:149
-#, c-format
-msgid "There is: %d Subjects, which satisfy at least one policy"
-msgstr ""
-
 #: ../src/hed/pdc/test.cpp:67
 #, c-format
 msgid "Attribute Value (1): %s"
@@ -2908,12 +2892,16 @@ msgstr ""
 msgid "Attribute Value (2): %s"
 msgstr ""
 
-#: ../src/hed/pdc/XACMLRule.cpp:72
-msgid "Error definition in rule"
+#: ../src/hed/pdc/XACMLPolicy.cpp:72
+msgid "No target available inside the policy"
 msgstr ""
 
-#: ../src/hed/pdc/XACMLRule.cpp:135
+#: ../src/hed/pdc/XACMLRule.cpp:33
 msgid "Invalid Effect"
+msgstr ""
+
+#: ../src/hed/pdc/XACMLRule.cpp:42
+msgid "No target available inside the rule"
 msgstr ""
 
 #: ../src/services/arex2/arex2.cpp:114 ../src/services/a-rex/arex.cpp:189
@@ -3227,11 +3215,6 @@ msgstr ""
 msgid "Cache: in %s - %s requested to remove %lli, removed %lli"
 msgstr ""
 
-#: ../src/services/a-rex/grid-manager/cache/cache.cpp:1303
-#, c-format
-msgid "cache_download_url_start: locking url: %s(%s)"
-msgstr ""
-
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1451
 #, c-format
 msgid "Cleaned %lli bytes in cache"
@@ -3363,7 +3346,7 @@ msgid "timeout for plugin is missing"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:424
-msgid "wrong number for timeout in plugin command "
+msgid "wrong number for timeout in plugin command"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:436
@@ -3389,16 +3372,16 @@ msgid "Warning: creation of user \"%s\" failed"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:515
-msgid "user for helper programm is missing"
+msgid "user for helper program is missing"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:518
-msgid "helper programm is missing"
+msgid "helper program is missing"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:548
 #, c-format
-msgid "%s user for helper programm is not configured"
+msgid "%s user for helper program is not configured"
 msgstr ""
 
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:586

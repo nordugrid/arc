@@ -421,7 +421,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       char *ep;
       int to = strtoul(timeout_s.c_str(),&ep,10);
       if((*ep != 0) || (to<0)) {
-        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command ");
+        logger.msg(Arc::ERROR,"wrong number for timeout in plugin command");
         goto exit;
       };
       cred_plugin = rest;
@@ -512,10 +512,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "helper") {
       std::string helper_user = config_next_arg(rest);
       if(helper_user.length() == 0) {
-        logger.msg(Arc::ERROR,"user for helper programm is missing"); goto exit;
+        logger.msg(Arc::ERROR,"user for helper program is missing"); goto exit;
       };
       if(rest.length() == 0) {
-        logger.msg(Arc::ERROR,"helper programm is missing"); goto exit;
+        logger.msg(Arc::ERROR,"helper program is missing"); goto exit;
       };
       if(helper_user == "*") {  /* go through all configured users */
         for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
@@ -545,7 +545,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         /* look for that user */
         JobUsers::iterator user=users.find(helper_user);
         if(user == users.end()) {
-          logger.msg(Arc::ERROR,"%s user for helper programm is not configured",helper_user);
+          logger.msg(Arc::ERROR,"%s user for helper program is not configured",helper_user);
           goto exit;
         };
         user->substitute(rest);

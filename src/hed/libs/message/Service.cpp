@@ -19,7 +19,7 @@ void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std
 bool Service::ProcessSecHandlers(Arc::Message& message,const std::string& label) {
     std::map<std::string,std::list<ArcSec::SecHandler*> >::iterator q = sechandlers_.find(label);
     if(q == sechandlers_.end()) {
-        logger.msg(Arc::VERBOSE, "No security processing/check is requested for '"+label+"'");
+        logger.msg(Arc::VERBOSE, "No security processing/check requested for '%s'", label);
         return true;
     }
 

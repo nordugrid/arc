@@ -53,7 +53,7 @@ void Register::registration(void)
             continue;
         }
         cli = new Arc::ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
-        logger.msg(Arc::DEBUG, "Start registartion to %s ISIS", isis_name);
+        logger.msg(Arc::DEBUG, "Start registration to %s ISIS", isis_name);
         Arc::PayloadSOAP request(ns);
         request.NewChild("Header").NewChild("RequesterID") = service_id;
         Arc::XMLNode re = request.NewChild("RegEntry");
@@ -67,12 +67,12 @@ void Register::registration(void)
         if (!status) {
             if (response) {
                 // XXX process response
-                logger.msg(Arc::DEBUG, "Succesful registartion to %s ISIS", isis_name); 
+                logger.msg(Arc::DEBUG, "Succesful registration to %s ISIS", isis_name); 
             } else {
-                logger.msg(Arc::ERROR, "Error during registarton to %s ISIS", isis_name);
+                logger.msg(Arc::ERROR, "Error during registration to %s ISIS", isis_name);
             }
         } else {
-            logger.msg(Arc::ERROR, "Error during registarton to %s ISIS", isis_name);
+            logger.msg(Arc::ERROR, "Error during registration to %s ISIS", isis_name);
         }
         
         delete cli;

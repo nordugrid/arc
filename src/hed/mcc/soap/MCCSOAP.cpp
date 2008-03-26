@@ -84,7 +84,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
   if(!nextpayload) {
-    logger.msg(WARNING, "incomeing message is not SOAP");
+    logger.msg(WARNING, "incoming message is not SOAP");
     return make_raw_fault(outmsg);
   }
   // Creating message to pass to next MCC and setting new payload.. 

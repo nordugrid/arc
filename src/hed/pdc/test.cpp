@@ -50,7 +50,7 @@ int main(void){
   //Evaluate the request
   resp = eval->evaluate("Request.xml");
   //Get the response
-  logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
+  logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ArcSec::ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
   for(int i = 0; i< size; i++){
@@ -146,7 +146,7 @@ int main(void){
   resp = eval->evaluate(request, policyfile);
 
   //Get the response
-  logger.msg(Arc::INFO, "There is: %d Subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
+  logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   rlist = resp->getResponseItems();
   size = rlist.size();
   for(int i = 0; i < size; i++){
