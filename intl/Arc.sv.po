@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-26 11:51+0100\n"
-"PO-Revision-Date: 2008-03-26 11:51+0100\n"
+"POT-Creation-Date: 2008-03-27 03:08+0100\n"
+"PO-Revision-Date: 2008-03-26 13:36+0100\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -3539,7 +3539,7 @@ msgstr "Ogiltigt antal loggar '%s'"
 #: ../src/services/a-rex/grid-manager/conf/daemon.cpp:143
 #, c-format
 msgid "Improper argument for logsize '%s'"
-msgstr "Ogiltigt argument för logstorlek '%s'"
+msgstr "Ogiltigt argument för loggstorlek '%s'"
 
 #: ../src/services/a-rex/grid-manager/files/info_files.cpp:84
 #: ../src/services/a-rex/grid-manager/files/info_files.cpp:99
@@ -4826,7 +4826,7 @@ msgstr "Kan inte omvandla inmsg till pythonobjekt"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:357
 msgid "Cannot create outmsg argument"
-msgstr "Kan inte skapa outmsg-argumant"
+msgstr "Kan inte skapa outmsg-argument"
 
 #: ../src/services/wrappers/python/pythonwrapper.cpp:368
 msgid "Cannot convert outmsg to python object"
