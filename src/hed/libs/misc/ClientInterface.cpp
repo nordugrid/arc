@@ -224,11 +224,7 @@ namespace Arc {
 				       tls ? "tls" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
-    if(path[0] == '/') {
-      comp.NewChild("Endpoint") = path;
-    } else {
-      comp.NewChild("Endpoint") = "/"+path;
-    };
+    comp.NewChild("Endpoint") = path;
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -268,11 +264,7 @@ namespace Arc {
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if(!path.empty()) {
-      if(path[0] == '/') {
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
-      } else {
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", "/" + path);
-      };
+      reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
     };
     if(range_end != UINT64_MAX) {
       reqmsg.Attributes()->set("HTTP:Range","bytes="+tostring(range_start)+"-"+tostring(range_end));

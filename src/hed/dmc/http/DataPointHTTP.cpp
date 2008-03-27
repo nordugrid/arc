@@ -430,8 +430,7 @@ namespace Arc {
       Arc::HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface* inbuf;
-      std::string path = point.CurrentLocation().Path();
-      path = "/" + path;
+      std::string path = point.CurrentLocation().str();
       MCC_Status r = client->process("GET",path,transfer_offset,transfer_end,&request,&transfer_info,&inbuf);
       if (!r) {
         // Failed to transfer chunk - retry.
@@ -544,8 +543,7 @@ namespace Arc {
       PayloadMemConst request((*point.buffer)[transfer_handle],transfer_offset,transfer_size,
                               point.CheckSize()?point.GetSize():0);
       PayloadRawInterface* response;
-      std::string path = point.CurrentLocation().Path();
-      path = "/" + path;
+      std::string path = point.CurrentLocation().str();
       MCC_Status r = client->process("PUT",path,&request,&transfer_info,&response);
       if (response)
         delete response;
