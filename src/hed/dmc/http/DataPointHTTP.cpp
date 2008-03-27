@@ -31,6 +31,7 @@ namespace Arc {
     Glib::Mutex lock_;
    public:
     ChunkControl(uint64_t size = UINT64_MAX);
+    ~ChunkControl(void);
     bool Get(uint64_t &start, uint64_t &length);
     void Claim(uint64_t start, uint64_t length);
     void Unclaim(uint64_t start, uint64_t length);
@@ -107,6 +108,9 @@ namespace Arc {
   ChunkControl::ChunkControl(uint64_t /* size */) {
     chunk_t chunk = { 0, UINT64_MAX };
     chunks_.push_back(chunk);
+  }
+
+  ChunkControl::~ChunkControl(void) {
   }
 
   bool ChunkControl::Get(uint64_t& start,uint64_t& length) {
@@ -257,8 +261,9 @@ namespace Arc {
   DataPointHTTP::~DataPointHTTP() {
     StopReading();
     StopWriting();
-    if (chunks)
+    if (chunks) {
       delete chunks;
+    }
   }
 
   DataStatus DataPointHTTP::ListFiles(std::list<FileInfo>& files, bool) {
@@ -329,9 +334,9 @@ namespace Arc {
         transfer_lock.lock();
       }
       transfer_lock.unlock();
-      delete chunks;
-      chunks = NULL;
     }
+    if(chunks) delete chunks;
+    chunks = NULL;
     buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
@@ -386,9 +391,9 @@ namespace Arc {
         transfer_lock.lock();
       }
       transfer_lock.unlock();
-      delete chunks;
-      chunks = NULL;
     }
+    if(chunks) delete chunks;
+    chunks = NULL;
     buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
@@ -430,7 +435,8 @@ namespace Arc {
       Arc::HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface* inbuf;
-      std::string path = point.CurrentLocation().str();
+      std::string path = point.CurrentLocation().Path();
+      path = "/" + path;
       MCC_Status r = client->process("GET",path,transfer_offset,transfer_end,&request,&transfer_info,&inbuf);
       if (!r) {
         // Failed to transfer chunk - retry.
@@ -543,7 +549,8 @@ namespace Arc {
       PayloadMemConst request((*point.buffer)[transfer_handle],transfer_offset,transfer_size,
                               point.CheckSize()?point.GetSize():0);
       PayloadRawInterface* response;
-      std::string path = point.CurrentLocation().str();
+      std::string path = point.CurrentLocation().Path();
+      path = "/" + path;
       MCC_Status r = client->process("PUT",path,&request,&transfer_info,&response);
       if (response)
         delete response;

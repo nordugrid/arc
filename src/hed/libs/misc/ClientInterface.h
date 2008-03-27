@@ -117,6 +117,9 @@ namespace Arc {
     virtual void Load(void);
    protected:
     MCC *http_entry;
+    std::string host;
+    int port;
+    bool tls;
   };
 
   /** Class with easy interface for sending/receiving SOAP messages

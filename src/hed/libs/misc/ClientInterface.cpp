@@ -219,12 +219,18 @@ namespace Arc {
 			 int port, bool tls,
 			 const std::string& path) : ClientTCP(cfg, host,
 							      port, tls),
-						    http_entry(NULL) {
+						    http_entry(NULL),
+                                                    host(host), port(port), tls(tls) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
 				       tls ? "tls" : "tcp");
+    std::string url(tls?"https":"http");
+    url+="://"+host;
+    if(port > 0) url+=":"+tostring(port);
+    if(path[0] != '/') url+="/";
+    url+=path;
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
-    comp.NewChild("Endpoint") = path;
+    comp.NewChild("Endpoint") = url;
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -264,7 +270,12 @@ namespace Arc {
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if(!path.empty()) {
-      reqmsg.Attributes()->set("HTTP:ENDPOINT", path);
+      std::string url(tls?"https":"http");
+      url+="://"+host;
+      if(port > 0) url+=":"+tostring(port);
+      if(path[0] != '/') url+="/";
+      url+=path;
+      reqmsg.Attributes()->set("HTTP:ENDPOINT", url);
     };
     if(range_end != UINT64_MAX) {
       reqmsg.Attributes()->set("HTTP:Range","bytes="+tostring(range_start)+"-"+tostring(range_end));
