@@ -204,6 +204,27 @@ class CatalogClient(Client):
             elements[requestID] = (metadata, GUID, traversedLN, restLN, wasComplete, traversedlist)
         return elements
 
+    def new(self, requests):
+        tree = XMLTree(from_tree =
+            ('cat:new', [
+                ('cat:newRequestList', [
+                    ('cat:newRequestElement', [
+                        ('cat:requestID', requestID),
+                        ('cat:metadataList', [
+                            ('cat:metadata', [
+                                ('cat:section', section),
+                                ('cat:property', property),
+                                ('cat:value', value)
+                            ]) for ((section, property), value) in metadata.items()
+                        ])
+                    ]) for requestID, metadata in requests.items()
+                ])
+            ])
+        )
+        response, _, _ = self.call(tree)
+        node = arc.XMLNode(response)
+        return parse_node(node.Child().Child().Child(), ['requestID', 'GUID', 'success'])
+
     def newCollection(self, requests):
         tree = XMLTree(from_tree =
             ('cat:newCollection', [
@@ -283,13 +304,13 @@ class ManagerClient(Client):
         return dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in elements.items()])
 
-    def makeCollection(self, LNs):
+    def makeCollection(self, requests):
         tree = XMLTree(from_tree =
             ('man:makeCollection', [
                 ('man:makeCollectionRequestList', [
                     ('man:makeCollectionRequestElement', [
-                        ('man:requestID', 0),
-                        ('man:LN', LNs[0]),
+                        ('man:requestID', rID),
+                        ('man:LN', LN),
                         ('man:metadataList', [
                             ('man:metadata', [
                                 ('man:section', 'states'),
@@ -297,7 +318,7 @@ class ManagerClient(Client):
                                 ('man:value', '0')
                             ])
                         ])
-                    ])
+                    ]) for rID, LN in requests.items()
                 ])
             ])
         )

@@ -9,6 +9,10 @@ import arc
 from storage.xmltree import XMLTree
 from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response
 
+ALIVE = 'alive'
+CREATING = 'creating'
+INVALID = 'invalid'
+
 class Element:
 
     def __init__(self, cfg):
@@ -54,20 +58,30 @@ class Element:
         while True:
             try:
                 referenceIDs =  self.store.list()
-                print referenceIDs
+                #print referenceIDs
                 number = len(referenceIDs)
                 if number > 0:
                     interval = period / number
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    print 'Checking', number, 'files with interval', interval
+                    #print 'Checking', number, 'files with interval', interval
                     random.shuffle(referenceIDs)
                     for referenceID in referenceIDs:
                         try:
-                            print 'Check', referenceID
+                            #print 'Checking checksum', referenceID
                             localData = self.store.get(referenceID)
-                            checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
-                            print referenceID, 'actual:', checksum, 'original:', localData['checksum']
+                            current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+                            checksum = localData['checksum']
+                            state = localData.get('state','')
+                            #print '-=-', referenceID, state, checksum, current_checksum
+                            if checksum == current_checksum:
+                                if state != ALIVE:
+                                    print 'Checksum OK', referenceID
+                                    self.changeState(referenceID, ALIVE)
+                            else:
+                                if state != INVALID:
+                                    print 'Checksum mismatch:', referenceID, 'original:', checksum, 'current:', current_checksum
+                                    self.changeState(referenceID, INVALID)
                         except:
                             print traceback.format_exc()
                         time.sleep(interval)
@@ -132,7 +146,7 @@ class Element:
                         'checksumType' : requestData.get('checksumType', None),
                         'size' : size,
                         'acl': acl,
-                        'state' : 'creating'}
+                        'state' : CREATING}
                     try:
                         turl = self.backend.prepareToPut(referenceID, localID, protocol)
                         if turl:
@@ -168,8 +182,8 @@ class ElementService:
             if not hasattr(self, name):
                 setattr(self, name, getattr(self.element.backend, name))
                 self.request_names.append(name)
-        print self.request_names
-        print self.notify
+        #print self.request_names
+        #print self.notify
 
 
     def stat(self, inpayload):

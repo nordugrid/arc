@@ -274,13 +274,32 @@ class XMLTree:
                 else: # if it has no child, create a string from it
                     child_node.Set(str(element[1]))
 
+    def pretty_xml(self, indent = ' ', path = None):
+        data = self.get(path)
+        return self._pretty_xml(data, indent, level = 0)
+
+    def _pretty_xml(self, data, indent, level):
+        out = []
+        for element in data:
+            if element[0]:
+                if isinstance(element[1], list):
+                    out.append(
+                        indent * level + '<%s>\n' % element[0] +
+                            self._pretty_xml(element[1], indent, level+1) + '\n' +
+                        indent * level +'</%s>' % element[0]
+                    )
+                else:
+                    out.append(indent * level + '<%s>%s</%s>' % (element[0], element[1], element[0]))
+        return '\n'.join(out)
+            
+
     def __str__(self):
         return str(self._data)
 
     def _traverse(self, path, data):
         # helping function for recursively traverse the tree
-        # path is a list of the node names, e.g. ['root','key1']
-        # data is the date of a tree-node,
+        # 'path' is a list of the node names, e.g. ['root','key1']
+        # 'data' is the data of a tree-node,
         # e.g. ('root', [('key1', 'value'), ('key2', 'value')])
         # if the first element of the path and the name of the node is equal
         #   or if the element of the path is empty, it matches all node names

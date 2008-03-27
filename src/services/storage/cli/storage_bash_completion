@@ -12,7 +12,7 @@ _storage()
                 options='get change changeIf'
                 ;;
             catalog)
-                options='get traverseLN newCollection modifyMetadata remove'
+                options='get traverseLN new modifyMetadata remove'
                 ;;
             manager)
                 options='stat makeCollection list move'

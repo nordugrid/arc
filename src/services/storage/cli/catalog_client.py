@@ -8,18 +8,23 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 catalog = CatalogClient('http://localhost:60000/Catalog', print_xml)
-if len(args) == 0 or args[0] not in ['newCollection', 'get', 'traverseLN', 'modifyMetadata', 'remove']:
-    print 'Supported methods: newCollection get traverseLN modifyMetadata'
+if len(args) == 0 or args[0] not in ['new', 'get', 'traverseLN', 'modifyMetadata', 'remove']:
+    print 'Supported methods: new get traverseLN modifyMetadata'
 else:
     command = args.pop(0)
-    if command == 'newCollection':
-        metadata = {}
-        metadata[('timestamps','created')] = str(time.time())
-        if len(args) > 0:
-            metadata[('catalog', 'GUID')] = args[0]
-        request = {'0' : metadata}
-        print 'newCollection', request
-        print catalog.newCollection(request)
+    if command == 'new':
+        if len(args) < 1:
+            print 'Usage: new {collection,file} [<GUID>]'
+        else:
+            type = args.pop(0)
+            metadata = {}
+            metadata[('catalog','type')] = type
+            metadata[('timestamps','created')] = str(time.time())
+            if len(args) > 0:
+                metadata[('catalog', 'GUID')] = args[0]
+            request = {'0' : metadata}
+            print 'new', request
+            print catalog.new(request)
     elif command == 'get':
         if len(args) < 1:
             print 'Usage: get <GUID> [<GUID> ...] neededMetadata [<section> [<property>] ...] '

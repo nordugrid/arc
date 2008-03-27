@@ -68,8 +68,10 @@ class ByteIOBackend:
     def notify(self, inpayload):
         request_node = inpayload.Child()
         subject = str(request_node.Get('subject'))
-        print 'idstore[%s] = %s' % (subject, self.idstore.get(subject, None))
+        referenceID = self.idstore.get(subject,None)
         state = str(request_node.Get('state'))
+        if state == 'received' and referenceID:
+            self.changeState(referenceID, 'alive', onlyIf = 'creating')
         path = os.path.join(self.transferdir, subject)
         print 'Removing', path
         os.remove(path)

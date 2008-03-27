@@ -60,6 +60,8 @@ def parse_metadata(metadatalist_node):
     return dict(metadata)
 
 def create_metadata(metadata, prefix = ''):
+    if not metadata:
+        return []
     if prefix:
         return [
             (prefix + ':metadata', [ 
@@ -133,18 +135,15 @@ def remove_trailing_slash(LN):
         LN = LN[:-1]
     return LN
 
-def dirname(LN):
+def splitLN(LN):
+    parts = LN.split('/')
+    rootguid = parts.pop(0)
     try:
-        return LN[:LN.rindex('/')]
+        basename = parts.pop()
     except:
-        return ''
-
-def basename(LN):
-    try:
-        return LN[(LN.rindex('/')+1):]
-    except:
-        return LN
-
+        basename = ''
+    dirname = '/'.join(parts)
+    return rootguid, dirname, basename
 
 import pickle, threading, copy, os, base64, traceback
 
@@ -246,6 +245,8 @@ class PickleStore:
         'object' is the object itself
         If there is already an object with this ID it will be overwritten completely.
         """
+        if not ID:
+            raise Exception, 'ID is empty'
         try:
             # generates a filename from the ID
             fn = self._filename(ID)

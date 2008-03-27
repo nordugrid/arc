@@ -23,7 +23,7 @@ else:
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
         else:
-            LNs = [args[0]]
+            LNs = {'0': args[0]}
             print 'makeCollection', LNs
             print manager.makeCollection(LNs)
     elif command == 'list':

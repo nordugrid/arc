@@ -5,7 +5,7 @@ import random
 from storage.xmltree import XMLTree
 from storage.client import CatalogClient
 from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
-                            basename, dirname, remove_trailing_slash, get_child_nodes, parse_node, node_to_data
+                            splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid
 import traceback
 
 class Manager:
@@ -29,22 +29,34 @@ class Manager:
         traverse_response = self.catalog.traverseLN(traverse_request)
         response = {}
         for rID, (LN, child_metadata) in requests:
-            child_name = basename(LN)
-            print LN, child_name
+            rootguid, _, child_name = splitLN(LN)
+            print 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            print metadata, GUID, traversedLN, restLN, wasComplete, traversedlist
+            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
             if wasComplete:
                 success = 'LN exists'
             elif restLN != child_name:
                 success = 'parent does not exist'
+            elif child_name == '': # this only can happen if the LN was a single GUID
+                child_metadata[('catalog','type')] = 'collection'
+                child_metadata[('catalog','GUID')] = rootguid or global_root_guid
+                print "nc_resp = self.catalog.new({'0' : child_metadata})", child_metadata
+                nc_resp = self.catalog.new({'0' : child_metadata})
+                (child_GUID, nc_succ) = nc_resp['0']
+                if nc_succ != 'success':
+                    success = 'failed to create new collection'
+                else:
+                    success = 'done'
             else:
-                nc_resp = self.catalog.newCollection({'0' : child_metadata})
+                child_metadata[('catalog','type')] = 'collection'
+                nc_resp = self.catalog.new({'0' : child_metadata})
                 (child_GUID, nc_succ) = nc_resp['0']
                 if nc_succ != 'success':
                     success = 'failed to create new collection'
                 else:
                     print 'adding', child_GUID, 'to parent', GUID
                     mm_resp = self.catalog.modifyMetadata({'0' : (GUID, 'add', 'entries', child_name, child_GUID)})
+                    print 'modifyMetadata response', mm_resp
                     mm_succ = mm_resp['0']
                     if mm_succ != 'set':
                         self.catalog.remove({'0' : child_GUID})
@@ -79,8 +91,8 @@ class Manager:
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
             print requestID, sourceLN, targetLN, preserveOriginal
-            old_child_name = basename(sourceLN)
-            new_child_name = basename(targetLN)
+            _, _, old_child_name = splitLN(sourceLN)
+            _, _, new_child_name = splitLN(targetLN)
             _, sourceGUID, _, _, sourceWasComplete, sourceTraversedList \
                 = traverse_response[requestID + 'source']
             _, targetGUID, _, targetRestLN, targetWasComplete, _ \

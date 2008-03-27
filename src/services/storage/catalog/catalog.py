@@ -13,35 +13,43 @@ class Catalog:
     def __init__(self, hash):
         self.hash = hash
 
-    def newCollection(self, requests):
+    def new(self, requests):
         response = {}
         print requests
         for rID, metadata in requests.items():
-            print 'Processing newCollection request:', metadata
+            print 'Processing new request:', metadata
             try:
-                GUID = metadata[('catalog','GUID')]
-                del metadata[('catalog','GUID')]
+                type = metadata[('catalog','type')]
+                del metadata[('catalog', 'type')]
             except:
-                GUID = mkuid()
-            check = self.hash.change(
-                {'0': (GUID, 'set', 'catalog', 'type', 'collection', {'0' : ('unset','catalog','type','')})}
-            )
-            status, failedCondition = check['0']
-            if status == 'set':
-                success = 'success'
-                changeID = 0
-                changes = {}
-                for ((section, property), value) in metadata.items():
-                    changes[changeID] = (GUID, 'set', section, property, value, {})
-                    changeID += 1
-                resp = self.hash.change(changes)
-                for r in resp.keys():
-                    if resp[r][0] != 'set':
-                        success += ' (failed: %s - %s)' % (resp[r][0] + str(changes[r]))
-            elif failedCondition == '0':
-                success = 'failed: entry exists'
+                type = None
+            if type is None:
+                success = 'failed: no type given'
             else:
-                success = 'failed: ' + status
+                try:
+                    GUID = metadata[('catalog','GUID')]
+                    del metadata[('catalog','GUID')]
+                except:
+                    GUID = mkuid()
+                check = self.hash.change(
+                    {'0': (GUID, 'set', 'catalog', 'type', type, {'0' : ('unset','catalog','type','')})}
+                )
+                status, failedCondition = check['0']
+                if status == 'set':
+                    success = 'success'
+                    changeID = 0
+                    changes = {}
+                    for ((section, property), value) in metadata.items():
+                        changes[changeID] = (GUID, 'set', section, property, value, {})
+                        changeID += 1
+                    resp = self.hash.change(changes)
+                    for r in resp.keys():
+                        if resp[r][0] != 'set':
+                            success += ' (failed: %s - %s)' % (resp[r][0] + str(changes[r]))
+                elif failedCondition == '0':
+                    success = 'failed: entry exists'
+                else:
+                    success = 'failed: ' + status
             response[rID] = (GUID, success)
         return response
 
@@ -91,7 +99,7 @@ class Catalog:
             path = copy.deepcopy(path0)
             metadata0 = self.hash.get([guid])[guid]
             if not metadata0.has_key(('catalog','type')):
-                response[rID] = ([], False, '', None, None, LN)
+                response[rID] = ([], False, '', guid0, None, '/'.join(path))
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
@@ -103,7 +111,8 @@ class Catalog:
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
                     print traceback.format_exc()
-                    response[rID] = ([], False, '', None, None, LN)
+                    response[rID] = ([], False, '', guid0, None, '/'.join(path))
+            #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
         return response
 
     def modifyMetadata(self, requests):
@@ -157,13 +166,13 @@ class CatalogService:
         self.cat_ns = arc.NS({'cat':catalog_uri})
 
     
-    def newCollection(self, inpayload):
+    def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
             ['requestID', 'metadataList'], single = True, string = False)
         requests = dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in requests0.items()])
-        resp = self.catalog.newCollection(requests)
-        return create_response('cat:newCollection',
+        resp = self.catalog.new(requests)
+        return create_response('cat:new',
             ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.cat_ns)
 
     def get(self, inpayload):
@@ -184,7 +193,7 @@ class CatalogService:
         for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items():
             traversedListTree = [
                 ('cat:traversedListElement', [
-                    ('cat:LNpart', LNpart),
+                    ('cat:LNPart', LNpart),
                     ('cat:GUID', partGUID)
                 ]) for (LNpart, partGUID) in traversedList
             ]
@@ -247,4 +256,4 @@ class CatalogService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['newCollection','get','traverseLN', 'modifyMetadata', 'remove']
+    request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove']
