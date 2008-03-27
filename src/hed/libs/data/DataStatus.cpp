@@ -1,4 +1,5 @@
 #include "DataStatus.h"
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -28,11 +29,14 @@ namespace Arc {
       "DataPoint is already reading",
       "DataPoint is already writing",
       "Access check failed",
-      "File listing failed"
+      "File listing failed",
+      "Unknown error"
   };
 
   DataStatus::operator std::string(void) {
-    if(status >= UnknownError) return status_string[UnknownError];
+    if(status >= UnknownError) {
+      return status_string[UnknownError] + (" " + Arc::tostring(status));
+    };
     return status_string[status];
   }
 
