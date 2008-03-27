@@ -36,21 +36,43 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
 }
 
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
-  XMLNode node(*cfg);
-  XMLNode topcfg = node.GetRoot();
+  XMLNode pdp_node(*cfg);
+  std::string policy_loc = (std::string)(pdp_node.Attribute("policylocation"));  
 
-  Config modulecfg(topcfg);
-  
+  XMLNode pdp_cfg_nd("\
+    <ArcConfig\
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\ 
+     xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
+     <ModuleManager>\
+        <Path>../../hed/pdc/.libs/</Path>\
+     </ModuleManager>\
+     <Plugins Name='arcpdc'>\
+          <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
+          <Plugin Name='__arc_fnfactory_modules__'>fnfactory</Plugin>\
+          <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
+          <Plugin Name='__arc_evaluator_modules__'>evaluator</Plugin>\
+          <Plugin Name='__arc_request_modules__'>request</Plugin>\
+     </Plugins>\
+     <pdp:PDPConfig>\
+          <pdp:AttributeFactory name='attr.factory' />\
+          <pdp:CombingAlgorithmFactory name='alg.factory' />\
+          <pdp:FunctionFactory name='fn.factory' />\
+          <pdp:Evaluator name='arc.evaluator' />\
+          <pdp:Request name='arc.request' />\
+     </pdp:PDPConfig>\
+    </ArcConfig>");
+
+  Config modulecfg(pdp_cfg_nd);
+ 
   classloader = NULL;
   classloader = ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
 
   //Dynamically load Evaluator object according to configure information
-  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&topcfg));
+  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
 
-  //eval = new ArcEvaluator(topcfg);
 }
 
 bool ArcPDP::isPermitted(Message *msg){
@@ -103,8 +125,8 @@ bool ArcPDP::isPermitted(Message *msg){
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = NULL;
-  //resp = eval->evaluate("Request.xml");
-  resp = eval->evaluate(request);
+  //resp = eval->evaluate("Request.xml", policy_loc);
+  resp = eval->evaluate(request, policy_loc);
   logger.msg(INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();

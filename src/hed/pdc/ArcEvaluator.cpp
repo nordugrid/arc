@@ -36,17 +36,17 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   nsList.insert(std::pair<std::string, std::string>("pdp","http://www.nordugrid.org/schemas/pdp/Config"));
   
   //Get the name of "PolicyStore" class
-  res = cfg.XPathLookup("//pdp:PolicyStore", nsList);
+  //res = cfg.XPathLookup("//pdp:PolicyStore", nsList);
   //presently, there can be only one PolicyStore
-  if(!(res.empty())){
-    nd = *(res.begin());
-    policystore = (std::string)(nd.Attribute("name"));
-    policylocation =  (std::string)(nd.Attribute("location"));
-  }
-  else if (res.empty()){ 
-    logger.msg(ERROR, "No policy exists, the policy engine can not be loaded");
-    exit(1);
-  }
+  //if(!(res.empty())){
+  //  nd = *(res.begin());
+  //  policystore = (std::string)(nd.Attribute("name"));
+  //  policylocation =  (std::string)(nd.Attribute("location"));
+  //}
+  //else if (res.empty()){ 
+  //  logger.msg(ERROR, "No any policy exists, the policy engine can not be loaded");
+  //  exit(1);
+  //}
 
   //Get the name of "FunctionFactory" class
   res = cfg.XPathLookup("//pdp:FunctionFactory", nsList);
@@ -108,8 +108,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
 
   //Temporary solution, should also make PolicyStore dynamically loadable
   std::list<std::string> filelist;
-  //filelist.push_back("Policy_Example.xml");
-  filelist.push_back(policylocation);
+  //filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
   plstore = new PolicyStore(filelist, alg, context);
 
