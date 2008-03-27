@@ -50,8 +50,8 @@ class InformationContainer: public InformationInterface {
   virtual std::list<XMLNode> Get(XMLNode xpath);
  public:
   InformationContainer(void);
-  /** Cretes an instance with XML document @doc. 
-    If @copy is true this method makes a copy of @doc for intenal use. */
+  /** Creates an instance with XML document @doc. 
+    If @copy is true this method makes a copy of @doc for internal use. */
   InformationContainer(XMLNode doc,bool copy = false);
   virtual ~InformationContainer(void);
   /** Get a lock on contained XML document.
@@ -60,7 +60,7 @@ class InformationContainer: public InformationInterface {
   XMLNode Acquire(void);
   void Release(void);
   /** Replaces internal XML document with @doc. 
-    If @copy is true this method makes a copy of @doc for intenal use. */
+    If @copy is true this method makes a copy of @doc for internal use. */
   void Assign(XMLNode doc,bool copy = false);
 };
 
