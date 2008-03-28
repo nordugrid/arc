@@ -3,6 +3,7 @@
 
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
+#include <arc/security/PDP.h>
 
 namespace Echo {
 
@@ -15,12 +16,15 @@ class Service_Echo: public Arc::Service
         std::string prefix_;
         std::string suffix_;
         Arc::NS ns_;
+        std::string policylocation_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
 	static Arc::Logger logger;
     public:
         /** Constructor accepts configuration describing content of prefix and suffix */
         Service_Echo(Arc::Config *cfg);
         virtual ~Service_Echo(void);
+        /**Helper method to store the request and policy information for pdp*/
+        ArcSec::PDPConfigContext* get_pdpconfig(Arc::Message& inmsg);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);
 };
