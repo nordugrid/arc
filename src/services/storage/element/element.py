@@ -83,6 +83,7 @@ class Element:
                                     print 'Checksum mismatch:', referenceID, 'original:', checksum, 'current:', current_checksum
                                     self.changeState(referenceID, INVALID)
                         except:
+                            print 'ERROR checking checksum of', referenceID
                             print traceback.format_exc()
                         time.sleep(interval)
                 else:

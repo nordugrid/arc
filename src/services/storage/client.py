@@ -1,5 +1,5 @@
 from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri
-from storage.common import parse_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
+from storage.common import parse_metadata, create_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
@@ -210,34 +210,7 @@ class CatalogClient(Client):
                 ('cat:newRequestList', [
                     ('cat:newRequestElement', [
                         ('cat:requestID', requestID),
-                        ('cat:metadataList', [
-                            ('cat:metadata', [
-                                ('cat:section', section),
-                                ('cat:property', property),
-                                ('cat:value', value)
-                            ]) for ((section, property), value) in metadata.items()
-                        ])
-                    ]) for requestID, metadata in requests.items()
-                ])
-            ])
-        )
-        response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
-        return parse_node(node.Child().Child().Child(), ['requestID', 'GUID', 'success'])
-
-    def newCollection(self, requests):
-        tree = XMLTree(from_tree =
-            ('cat:newCollection', [
-                ('cat:newCollectionRequestList', [
-                    ('cat:newCollectionRequestElement', [
-                        ('cat:requestID', requestID),
-                        ('cat:metadataList', [
-                            ('cat:metadata', [
-                                ('cat:section', section),
-                                ('cat:property', property),
-                                ('cat:value', value)
-                            ]) for ((section, property), value) in metadata.items()
-                        ])
+                        ('cat:metadataList', create_metadata(metadata, 'cat'))
                     ]) for requestID, metadata in requests.items()
                 ])
             ])
@@ -304,6 +277,22 @@ class ManagerClient(Client):
         return dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in elements.items()])
 
+    def putFile(self, requests):
+        tree = XMLTree(from_tree =
+            ('man:putFile', [
+                ('man:putFileRequestList', [
+                    ('man:putFileRequestElement', [
+                        ('man:requestID', rID),
+                        ('man:LN', LN),
+                        ('man:metadataList', create_metadata(metadata, 'man')),
+                    ] + [
+                        ('man:protocol', protocol) for protocol in protocols
+                    ]) for rID, (LN, metadata, protocols) in requests.items()
+                ])
+            ])
+        )
+        return self.call(tree, True)
+
     def makeCollection(self, requests):
         tree = XMLTree(from_tree =
             ('man:makeCollection', [
@@ -311,14 +300,8 @@ class ManagerClient(Client):
                     ('man:makeCollectionRequestElement', [
                         ('man:requestID', rID),
                         ('man:LN', LN),
-                        ('man:metadataList', [
-                            ('man:metadata', [
-                                ('man:section', 'states'),
-                                ('man:property', 'closed'),
-                                ('man:value', '0')
-                            ])
-                        ])
-                    ]) for rID, LN in requests.items()
+                        ('man:metadataList', create_metadata(metadata, 'man'))
+                    ]) for rID, (LN, metadata) in requests.items()
                 ])
             ])
         )

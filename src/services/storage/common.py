@@ -129,7 +129,6 @@ def create_response(method_name, tag_names, elements, ns, single = False):
     tree.add_to_node(response_node)
     return out
 
-
 def remove_trailing_slash(LN):
     if LN.endswith('/'):
         LN = LN[:-1]

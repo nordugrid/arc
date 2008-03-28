@@ -3,15 +3,16 @@ import httplib
 import arc
 import random
 from storage.xmltree import XMLTree
-from storage.client import CatalogClient
+from storage.client import CatalogClient, ElementClient
 from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid
 import traceback
 
 class Manager:
 
-    def __init__(self, catalog):
+    def __init__(self, catalog, element):
         self.catalog = catalog
+        self.element = element
 
     def stat(self, requests):
         response = {}
@@ -21,18 +22,89 @@ class Manager:
             else:
                 response[requestID] = {}
         return response
+    
+    def _traverse(self, requests):
+        requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
+        print '//// trqverse_request:', requests
+        traverse_request = dict([(rID, data[0]) for rID, data in requests])
+        traverse_response = self.catalog.traverseLN(traverse_request)
+        return requests, traverse_response
+
+    def _new(self, child_metadata, child_name = None, parent_GUID = None):
+        try:
+            new_response = self.catalog.new({'0' : child_metadata})
+            (child_GUID, new_success) = new_response['0']
+            if new_success != 'success':
+                return 'failed to create new catalog entry'
+            else:
+                if child_name and parent_GUID:
+                    print 'adding', child_GUID, 'to parent', parent_GUID
+                    modify_response = self.catalog.modifyMetadata({'0' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
+                    print 'modifyMetadata response', modify_response
+                    modify_success = modify_response['0']
+                    if modify_success != 'set':
+                        print 'modifyMetadata failed, removing the new catalog entry', child_GUID
+                        self.catalog.remove({'0' : child_GUID})
+                        return 'failed to add child to parent'
+                    else:
+                        return 'done'
+                else: # no parent given, skip the 'adding child to parent' part
+                    return 'done'
+        except:
+            print traceback.format_exc()
+            return 'internal error'
+
+    def putFile(self, requests):
+        requests, traverse_response = self._traverse(requests)
+        response = {}
+        for rID, (LN, child_metadata, protocols) in requests:
+            turl = ''
+            protocol = ''
+            metadata_ok = False
+            try:
+                print protocols
+                size = child_metadata[('states', 'size')]
+                checksum = child_metadata[('states', 'checksum')]
+                checksumType = child_metadata[('states', 'checksumType')]
+                metadata_ok = True
+            except Exception, e:
+                success = 'missing metadata ' + str(e)
+            if metadata_ok:
+                rootguid, _, child_name = splitLN(LN)
+                print 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid
+                metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
+                print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
+                if wasComplete:
+                    success = 'LN exists'
+                elif restLN != child_name:
+                    success = 'parent does not exist'
+                elif child_name == '': # this only can happen if the LN was a single GUID
+                    child_metadata[('catalog','type')] = 'file'
+                    child_metadata[('catalog','GUID')] = rootguid or global_root_guid
+                    success = self._new(child_metadata)
+                else:
+                    child_metadata[('catalog','type')] = 'file'
+                    success = self._new(child_metadata, child_name, GUID)
+                if success == 'done':
+                    put_request = [('size', size), ('checksumType', checksumType), ('checksum', checksum)] + \
+                        [('protocol', protocol) for protocol in protocols]
+                    put_response = dict(self.element.put({'0': put_request})['0'])
+                    if put_response.has_key('error'):
+                        print 'ERROR', put_response['error']
+                        # we should handle this, remove the new file or something
+                    else:
+                        turl = put_response['TURL']
+                        protocol = put_response['protocol']
+                        print 'referenceID:', put_response['referenceID'], 'turl', turl, 'protocol', protocol
+            response[rID] = (success, turl, protocol)
+        return response
 
     def makeCollection(self, requests):
-        requests = [(rID, (remove_trailing_slash(LN), metadata)) for rID, (LN, metadata) in requests.items()]
-        print '////', requests
-        traverse_request = dict([(rID, LN) for rID, (LN, _) in requests])
-        traverse_response = self.catalog.traverseLN(traverse_request)
+        requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, (LN, child_metadata) in requests:
             rootguid, _, child_name = splitLN(LN)
-            print 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
             if wasComplete:
                 success = 'LN exists'
             elif restLN != child_name:
@@ -40,29 +112,10 @@ class Manager:
             elif child_name == '': # this only can happen if the LN was a single GUID
                 child_metadata[('catalog','type')] = 'collection'
                 child_metadata[('catalog','GUID')] = rootguid or global_root_guid
-                print "nc_resp = self.catalog.new({'0' : child_metadata})", child_metadata
-                nc_resp = self.catalog.new({'0' : child_metadata})
-                (child_GUID, nc_succ) = nc_resp['0']
-                if nc_succ != 'success':
-                    success = 'failed to create new collection'
-                else:
-                    success = 'done'
+                success = self._new(child_metadata)
             else:
                 child_metadata[('catalog','type')] = 'collection'
-                nc_resp = self.catalog.new({'0' : child_metadata})
-                (child_GUID, nc_succ) = nc_resp['0']
-                if nc_succ != 'success':
-                    success = 'failed to create new collection'
-                else:
-                    print 'adding', child_GUID, 'to parent', GUID
-                    mm_resp = self.catalog.modifyMetadata({'0' : (GUID, 'add', 'entries', child_name, child_GUID)})
-                    print 'modifyMetadata response', mm_resp
-                    mm_succ = mm_resp['0']
-                    if mm_succ != 'set':
-                        self.catalog.remove({'0' : child_GUID})
-                        success = 'failed adding child to parent'
-                    else:
-                        success = 'done'
+                success = self._new(child_metadata, child_name, GUID)
             response[rID] = success
         return response
 
@@ -134,7 +187,9 @@ class ManagerService:
         print "Storage Manager service constructor called"
         catalog_url = str(cfg.Get('CatalogURL'))
         catalog = CatalogClient(catalog_url)
-        self.manager = Manager(catalog)
+        element_url = str(cfg.Get('ElementURL'))
+        element = ElementClient(element_url)
+        self.manager = Manager(catalog, element)
         self.man_ns = arc.NS({'man':manager_uri})
 
     def stat(self, inpayload):
@@ -148,6 +203,22 @@ class ManagerService:
             response[requestID] = create_metadata(metadata, 'man')
         return create_response('man:stat',
             ['man:requestID', 'man:metadataList'], response, self.man_ns, single = True)
+
+    def putFile(self, inpayload):
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([
+            (
+                str(request_node.Get('requestID')), 
+                (
+                    str(request_node.Get('LN')),
+                    parse_metadata(request_node.Get('metadataList')),
+                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.man_ns)]
+                )
+            ) for request_node in request_nodes
+        ])
+        response = self.manager.putFile(requests)
+        return create_response('man:putFile',
+            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
 
     def makeCollection(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -226,4 +297,4 @@ class ManagerService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['stat', 'makeCollection', 'list', 'move']
+    request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile']

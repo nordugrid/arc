@@ -1,4 +1,5 @@
 import arc, sys, time
+from storage.common import false
 from storage.xmltree import XMLTree
 from storage.client import ManagerClient
 args = sys.argv[1:]
@@ -8,8 +9,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 manager = ManagerClient('http://localhost:60000/Manager', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move']:
-    print 'Supported methods: stat, makeCollection, list, move' 
+if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile']:
+    print 'Supported methods: stat, makeCollection, list, move, putFile' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -19,13 +20,21 @@ else:
             request = dict([(i, args[i]) for i in range(len(args))])
             print 'stat', request
             print manager.stat(request)
+    elif command == 'putFile':
+        if len(args) < 1:
+            print 'Usage: putFile <LN>'
+        else:
+            metadata = {('states', 'size') : 0, ('states', 'checksum') : 0, ('states', 'checksumType') : 0}
+            request = {'0': (args[0], metadata, ['byteio'])}
+            print 'putFile', request
+            print manager.putFile(request)
     elif command == 'makeCollection':
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
         else:
-            LNs = {'0': args[0]}
-            print 'makeCollection', LNs
-            print manager.makeCollection(LNs)
+            request = {'0': (args[0], {('states', 'closed') : false})}
+            print 'makeCollection', request
+            print manager.makeCollection(request)
     elif command == 'list':
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'
