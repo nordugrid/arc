@@ -32,8 +32,14 @@ namespace Arc {
    public:
     ChunkControl(uint64_t size = UINT64_MAX);
     ~ChunkControl(void);
+    // Get chunk to be transfered. On input 'length'
+    // contains maximal acceptable chunk size.
     bool Get(uint64_t &start, uint64_t &length);
+    // Report chunk transfered. It may be _different_ 
+    // from one obtained through Get().
     void Claim(uint64_t start, uint64_t length);
+    // Report chunk not transfered. It must be 
+    // _same_ as one obtained by Get().
     void Unclaim(uint64_t start, uint64_t length);
   };
 
@@ -148,8 +154,7 @@ namespace Arc {
         start = c->end;
         length = end - start;
         c = chunks_.erase(c);
-        if (length > 0)
-          continue;
+        if (length > 0) continue;
         break;
       }
       if ((start > c->start) && (end < c->end)) {
@@ -325,16 +330,16 @@ namespace Arc {
   DataStatus DataPointHTTP::StopReading() {
     if (!buffer)
       return DataStatus::ReadStopError;
+    transfer_lock.lock();
     if (transfers_finished < transfers_started) {
       buffer->error_read(true);
-      transfer_lock.lock();
       while (transfers_finished < transfers_started) {
         transfer_lock.unlock();
         sleep(1);
         transfer_lock.lock();
       }
-      transfer_lock.unlock();
     }
+    transfer_lock.unlock();
     if(chunks) delete chunks;
     chunks = NULL;
     buffer = NULL;
@@ -382,16 +387,16 @@ namespace Arc {
   DataStatus DataPointHTTP::StopWriting() {
     if (!buffer)
       return DataStatus::WriteStopError;
+    transfer_lock.lock();
     if (transfers_finished < transfers_started) {
       buffer->error_write(true);
-      transfer_lock.lock();
       while (transfers_finished < transfers_started) {
         transfer_lock.unlock();
         sleep(1);
         transfer_lock.lock();
       }
-      transfer_lock.unlock();
     }
+    transfer_lock.unlock();
     if(chunks) delete chunks;
     chunks = NULL;
     buffer = NULL;
