@@ -8,10 +8,15 @@
 
 namespace ArcSec {
   typedef struct {
-    std::list<std::string> subject;
-    std::list<std::string> resource;
-    std::list<std::string> action;
-    std::list<std::string> context;
+    std::list<std::string> value;
+    std::list<std::string> type;
+    std::list<std::string> issuer;
+  } AuthzRequestSection;
+  typedef struct {
+    std::list<ArcSec::AuthzRequestSection> subject;
+    std::list<ArcSec::AuthzRequestSection> resource;
+    std::list<ArcSec::AuthzRequestSection> action;
+    std::list<ArcSec::AuthzRequestSection> context;
   } AuthzRequest;
 
   class PDPConfigContext:public Arc::MessageContextElement {
