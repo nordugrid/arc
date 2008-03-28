@@ -8,9 +8,9 @@
 
 namespace ArcSec {
   typedef struct {
-    std::list<std::string> value;
-    std::list<std::string> type;
-    std::list<std::string> issuer;
+    std::string value;
+    std::string type;
+    std::string issuer;
   } AuthzRequestSection;
   typedef struct {
     std::list<ArcSec::AuthzRequestSection> subject;
@@ -25,9 +25,22 @@ namespace ArcSec {
     std::list<std::string> policylocation;
     
    public:
+    PDPConfigContext() {};
     PDPConfigContext(std::list<ArcSec::AuthzRequest> req, std::string& policy) {request = req; policylocation.push_back(policy); };
     PDPConfigContext(std::list<ArcSec::AuthzRequest> req, std::list<std::string> policy) {request = req; policylocation = policy; };
     void AddRequestItem(ArcSec::AuthzRequest requestitem) { request.push_back(requestitem); };
+    void SetRequestItem(ArcSec::AuthzRequest requestitem) { 
+      std::list<ArcSec::AuthzRequest>::iterator it1 = request.begin();
+      std::list<ArcSec::AuthzRequest>::iterator it2 = request.end();
+      request.erase(it1, it2); 
+      request.push_back(requestitem); 
+    };
+    void SetRequestItem(std::list<ArcSec::AuthzRequest> req) { 
+      std::list<ArcSec::AuthzRequest>::iterator it1 = request.begin();
+      std::list<ArcSec::AuthzRequest>::iterator it2 = request.end();
+      request.erase(it1, it2);
+      request = req;
+    };
     int RequestItemSize() { (int) request.size(); };
     ArcSec::AuthzRequest GetRequestItem(int n) { 
       std::list<ArcSec::AuthzRequest>::iterator it;
