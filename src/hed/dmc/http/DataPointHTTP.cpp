@@ -435,7 +435,7 @@ namespace Arc {
         // No more chunks to transfer - quit this thread.
         break;
       }
-      uint64_t transfer_end = transfer_offset+chunk_length;
+      uint64_t transfer_end = transfer_offset+chunk_length-1;
       // Read chunk
       Arc::HTTPClientInfo transfer_info;
       PayloadRaw request;
@@ -451,8 +451,7 @@ namespace Arc {
         // Return buffer 
         point.buffer->is_read(transfer_handle,0,0);
         point.chunks->Unclaim(transfer_offset,chunk_length);
-        if (inbuf)
-          delete inbuf;
+        if (inbuf) delete inbuf;
         // Recreate connection
         delete client;
         client = NULL;
@@ -483,38 +482,39 @@ namespace Arc {
         transfer_failure = true;
         break;
       }
+      bool whole = (inbuf && (transfer_info.size == inbuf->Size()) && (inbuf->BufferPos(0) == 0));
       // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset,chunk_length);
       for (unsigned int n = 0;;++n) {
+        if(!inbuf) break;
         char* buf = inbuf->Buffer(n);
-        if (!buf)
-          break;
+        if (!buf) break;
         uint64_t pos = inbuf->BufferPos(n);
         unsigned int length = inbuf->BufferSize(n);
         // In general case returned chunk may be of different size than requested
-        if (transfer_handle == -1) {
-          // Get transfer buffer if needed
-          if (!point.buffer->for_read(transfer_handle,transfer_size,true)) {
-            // No transfer buffer - must be failure or close initiated externally
-            if (inbuf)
-              delete inbuf;
-            break;
+        for(;length;) {
+          if (transfer_handle == -1) {
+            // Get transfer buffer if needed
+            transfer_size = 0;
+            if (!point.buffer->for_read(transfer_handle,transfer_size,true)) {
+              // No transfer buffer - must be failure or close initiated externally
+              break;
+            }
           }
+          unsigned int l = length;
+          if (l > transfer_size) l = transfer_size;
+          char* buf_ = (*point.buffer)[transfer_handle];
+          memcpy(buf_,buf,l);
+          point.buffer->is_read(transfer_handle,l,pos);
+          point.chunks->Claim(pos,l);
+          length-=l; pos+=l; buf+=l;
+          transfer_handle = -1;
         }
-        if (length > transfer_size)
-          length = transfer_size;
-        // TODO: prevent information loss, so far assuming 
-        // returned chunks are not bigger than requested.
-        char* buf_ = (*point.buffer)[transfer_handle];
-        memcpy(buf_,buf,length);
-        point.buffer->is_read(transfer_handle,length,pos);
-        point.chunks->Claim(pos,length);
-        transfer_handle = -1;
       }
-      if (inbuf)
-        delete inbuf;
+      if (inbuf) delete inbuf;
       point.transfer_lock.unlock();
+      if(whole) break;
     }
     point.transfer_lock.lock();
     ++(point.transfers_finished);
