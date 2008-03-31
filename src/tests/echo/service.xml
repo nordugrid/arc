@@ -38,7 +38,7 @@
         </Component>
         <Service name="echo" id="echo">
             <SecHandler name="simplelist.authz" id="authz" event="incoming">
-              <PDP name="arc.pdp"  policylocation="Policy_Example.xml"/>
+              <PDP name="arc.pdp" id="echo.pdp" policylocation="Policy_Example.xml"/>
             </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>

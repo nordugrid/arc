@@ -7,7 +7,7 @@
       <Subjects>
 	 <Subject>
 	    <SubFraction Type="string">127.0.0.1</SubFraction>
-	    <SubFraction Type="string">/O=Grid/O=Test/CN=CA</SubFraction>
+	    <SubFraction Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</SubFraction>
    	 </Subject>
       </Subjects>
       <!--Resources Type="string"><Resource>aaa</Resource></Resources-->

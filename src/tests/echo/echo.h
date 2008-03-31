@@ -1,6 +1,7 @@
 #ifndef __ARC_ECHO_H__
 #define __ARC_ECHO_H__
 
+#include <map>
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
 #include <arc/security/PDP.h>
@@ -15,8 +16,8 @@ class Service_Echo: public Arc::Service
     protected:
         std::string prefix_;
         std::string suffix_;
+        std::map<std::string, std::string> pdpinfo_;
         Arc::NS ns_;
-        std::string policylocation_;
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
 	static Arc::Logger logger;
     public:
@@ -24,7 +25,7 @@ class Service_Echo: public Arc::Service
         Service_Echo(Arc::Config *cfg);
         virtual ~Service_Echo(void);
         /**Helper method to store the request and policy information for pdp*/
-        ArcSec::PDPConfigContext* get_pdpconfig(Arc::Message& inmsg);
+        ArcSec::PDPConfigContext* get_pdpconfig(Arc::Message& inmsg, std::string& label);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);
 };
