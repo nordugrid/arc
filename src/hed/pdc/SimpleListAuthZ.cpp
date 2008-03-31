@@ -29,7 +29,6 @@ SimpleListAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_
 }
 
 SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
-  
   pdp_factory = (PDPFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {
@@ -72,6 +71,9 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
             logger.msg(ERROR, "PDP: %s can not be loaded", name); 
             return false; 
         };
+        std::string pdp_id = can.Attribute("id");
+        if(pdp_id.empty()) { logger.msg(ERROR, "PDP should have ID"); return false; }
+        pdp->SetId(pdp_id);
         if(pdps_.insert(std::make_pair(name,PDPDesc(can.Attribute("action"),pdp))).second == false) {
             logger.msg(ERROR, "PDP: %s name is duplicate", name); 
             return false; 

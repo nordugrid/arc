@@ -16,8 +16,8 @@
 
 #include "ArcPDP.h"
 
-//Arc::Logger ArcSec::ArcPDP::logger(ArcSec::PDP::logger,"ArcPDP");
-Arc::Logger ArcSec::ArcPDP::logger(Arc::Logger::rootLogger, "ArcPDP");
+Arc::Logger ArcSec::ArcPDP::logger(ArcSec::PDP::logger,"ArcPDP");
+
 /*
 static ArcSec::PDP* get_pdp(Arc::Config *cfg,Arc::ChainContext *ctx) {
     return new ArcSec::ArcPDP(cfg);
@@ -37,7 +37,6 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
 
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   XMLNode pdp_node(*cfg);
-  std::string policy_loc = (std::string)(pdp_node.Attribute("policylocation"));  
 
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
@@ -88,45 +87,87 @@ bool ArcPDP::isPermitted(Message *msg){
     </RequestItem>
   </Request>
   */
-  std::string remotehost=msg->Attributes()->get("TCP:REMOTEHOST");
-  std::string subject=msg->Attributes()->get("TLS:PEERDN");
-  std::string action=msg->Attributes()->get("HTTP:METHOD");
-  
+
+  PDPConfigContext *config = NULL;
+  Arc::MessageContextElement* context = (*(msg->Context()))[id_];;
+  if(context) { 
+    try {
+      config = dynamic_cast<PDPConfigContext*>(context);
+    } catch(std::exception& e) { };
+  }
+  if(config == NULL)
+    logger.msg(INFO, "Although there is pdp configuration for this component, no pdp context has been generated for this"); 
+
   NS ns;
   ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
-  XMLNode request(ns,"ra:Request");
-  XMLNode requestitem = request.NewChild("ra:RequestItem");
+  XMLNode requestxml(ns,"ra:Request");
 
-  XMLNode sub = requestitem.NewChild("ra:Subject");
-  XMLNode subattr1 = sub.NewChild("ra:Attribute");
-  subattr1 = remotehost;
-  XMLNode subattr1Id = subattr1.NewAttribute("ra:AttributeId");
-  subattr1Id = "123";
-  XMLNode subattr1Type = subattr1.NewAttribute("ra:Type");
-  subattr1Type = "string";
+  for(int i = 0; i<config->RequestItemSize(); i++) {
+    XMLNode requestitem = requestxml.NewChild("ra:RequestItem");
+    XMLNode sub = requestitem.NewChild("ra:Subject");
 
-  XMLNode subattr2 = sub.NewChild("ra:Attribute");
-  subattr2 = subject;
-  XMLNode subattr2Id = subattr2.NewAttribute("ra:AttributeId");
-  subattr2Id = "xyz";
-  XMLNode subattr2Type = subattr2.NewAttribute("ra:Type");
-  subattr2Type = "string";
+    ArcSec::AuthzRequest& request = config->GetRequestItem(i);      
 
-  XMLNode act = requestitem.NewChild("ra:Action");
-  act=action;
-  XMLNode actionId = act.NewAttribute("ra:AttributeId");
-  actionId = "ijk";
-  XMLNode actionType = act.NewAttribute("ra:Type");
-  actionType = "string";
+    std::list<ArcSec::AuthzRequestSection>& section = request.subject;
+    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
+      XMLNode subattr = sub.NewChild("ra:Attribute");
+      subattr = it->value;
+      XMLNode subattrId = subattr.NewAttribute("ra:AttributeId");
+      subattrId = it->id;
+      XMLNode subattrType = subattr.NewAttribute("ra:Type");
+      subattrType = it->type;
+      XMLNode subattrIssuer = subattr.NewAttribute("ra:Issuer");
+      subattrIssuer = it->issuer;
+    }
 
-  std::string req_str;  
-  request.GetDoc(req_str);
-  logger.msg(INFO, "%s", req_str);
+    XMLNode res = requestitem.NewChild("ra:Resource");
+    section = request.resource;
+    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
+      XMLNode resattr = res.NewChild("ra:Attribute");
+      resattr = (*it).value;
+      XMLNode resattrId = resattr.NewAttribute("ra:AttributeId");
+      resattrId = (*it).id;
+      XMLNode resattrType = resattr.NewAttribute("ra:Type");
+      resattrType = (*it).type;
+      XMLNode resattrIssuer = resattr.NewAttribute("ra:Issuer");
+      resattrIssuer = (*it).issuer;
+    }
+
+    XMLNode act = requestitem.NewChild("ra:Action");
+    section = request.action;
+    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
+      XMLNode actattr = act.NewChild("ra:Attribute");
+      actattr = (*it).value;
+      XMLNode actattrId = actattr.NewAttribute("ra:AttributeId");
+      actattrId = (*it).id;
+      XMLNode actattrType = actattr.NewAttribute("ra:Type");
+      actattrType = (*it).type;
+      XMLNode actattrIssuer = actattr.NewAttribute("ra:Issuer");
+      actattrIssuer = (*it).issuer;
+    }
+
+    XMLNode ctx = requestitem.NewChild("ra:Context");
+    section = request.context;
+    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
+      XMLNode ctxattr = ctx.NewChild("ra:Attribute");
+      ctxattr = (*it).value;
+      XMLNode ctxattrId = ctxattr.NewAttribute("ra:AttributeId");
+      ctxattr = (*it).id;
+      XMLNode ctxattrType = ctxattr.NewAttribute("ra:Type");
+      ctxattr = (*it).type;
+      XMLNode ctxattrIssuer = ctxattr.NewAttribute("ra:Issuer");
+      ctxattr = (*it).issuer;
+    }
+  }
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml", policy_loc);
-  resp = eval->evaluate(request, policy_loc);
+  std::list<std::string> policylocation = config->GetPolicyLocation();
+  for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
+    eval->addPolicy(*it);
+  }
+  resp = eval->evaluate(requestxml);
   logger.msg(INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();

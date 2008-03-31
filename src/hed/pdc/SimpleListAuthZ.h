@@ -36,8 +36,11 @@ class SimpleListAuthZ : public SecHandler {
   Arc::PDPFactory *pdp_factory;
   /** One Handler can include few PDP */
   pdp_container_t pdps_;
-  /** PDP */
+
+ protected:
+  /** Create PDP according to conf info */
   bool MakePDPs(Arc::Config* cfg);
+
  public:
   SimpleListAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SimpleListAuthZ(void);

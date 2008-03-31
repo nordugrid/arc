@@ -61,6 +61,8 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       }
       subjects.push_back(sub);
     }
+    //else if like this: <Subject/>
+    else if((type.empty()) && (nd.Size()==0) && (((std::string)nd).empty())) {}
     else {std::cerr <<"Error definition in RequestItem:Subject"<<std::endl;}
   }
 
@@ -98,6 +100,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       }
       resources.push_back(res);
     }
+    else if((type.empty()) && (nd.Size()==0) && (((std::string)nd).empty())) {}
     else {std::cerr <<"Error definition in RequestItem:Resource"<<std::endl;}
   }
 
@@ -135,6 +138,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       }
       actions.push_back(act);
     }
+    else if((type.empty()) && (nd.Size()==0) && (((std::string)nd).empty())) {}
     else {std::cerr <<"Error definition in RequestItem:Action"<<std::endl;}
   }
 
@@ -172,6 +176,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
       }
       contexts.push_back(ctx);
     }
+    else if((type.empty()) && (nd.Size()==0) && (((std::string)nd).empty())) {}
     else {std::cerr <<"Error definition in RequestItem:Context"<<std::endl;}
   }
 }

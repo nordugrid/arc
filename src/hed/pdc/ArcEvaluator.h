@@ -49,6 +49,8 @@ public:
   virtual FnFactory* getFnFactory () { return fnfactory; };
   virtual AlgFactory* getAlgFactory () { return algfactory; };
 
+  virtual void addPolicy(std::string policyfile) { plstore->addPolicy(policyfile, context); };
+
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx);
 
