@@ -21,6 +21,7 @@ namespace ArcSec {
     SecHandler(Arc::Config*) {};
     virtual ~SecHandler() {};
     virtual bool Handle(Arc::Message *msg) = 0;
+
    protected:
     static Arc::Logger logger;
   };

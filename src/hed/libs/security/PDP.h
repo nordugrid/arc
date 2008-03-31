@@ -9,6 +9,7 @@
 namespace ArcSec {
   typedef struct {
     std::string value;
+    std::string id;
     std::string type;
     std::string issuer;
   } AuthzRequestSection;
@@ -30,23 +31,19 @@ namespace ArcSec {
     PDPConfigContext(std::list<ArcSec::AuthzRequest> req, std::list<std::string> policy) {request = req; policylocation = policy; };
     void AddRequestItem(ArcSec::AuthzRequest requestitem) { request.push_back(requestitem); };
     void SetRequestItem(ArcSec::AuthzRequest requestitem) { 
-      std::list<ArcSec::AuthzRequest>::iterator it1 = request.begin();
-      std::list<ArcSec::AuthzRequest>::iterator it2 = request.end();
-      request.erase(it1, it2); 
+      while(!(request.empty())) { request.pop_back(); }
       request.push_back(requestitem); 
     };
     void SetRequestItem(std::list<ArcSec::AuthzRequest> req) { 
-      std::list<ArcSec::AuthzRequest>::iterator it1 = request.begin();
-      std::list<ArcSec::AuthzRequest>::iterator it2 = request.end();
-      request.erase(it1, it2);
+      while(!(request.empty())) { request.pop_back(); }
       request = req;
     };
-    int RequestItemSize() { (int) request.size(); };
-    ArcSec::AuthzRequest GetRequestItem(int n) { 
-      std::list<ArcSec::AuthzRequest>::iterator it;
+    int RequestItemSize() { return (int)(request.size()); };
+    ArcSec::AuthzRequest& GetRequestItem(int n) { 
+      std::list<ArcSec::AuthzRequest>::iterator it, ret;
       it = request.begin();
-      for(int i = 0; i<=n; i++) it++;
-      return (*it); 
+      for(int i = 0; i<=n; i++) {ret = it; it++;}
+      return (*ret); 
     };
     void AddPolicyLocation(std::string& policy) { policylocation.push_back(policy); };
     void SetPolicyLocation(std::list<std::string> policy) { 
@@ -61,7 +58,10 @@ namespace ArcSec {
       policylocation.erase(it1, it2);
       policylocation.push_back(policy); 
     };
-    virtual ~PDPConfigContext(void) {};
+    std::list<std::string>& GetPolicyLocation() { return policylocation; }; 
+    virtual ~PDPConfigContext(void) {
+      while(!(request.empty())) { request.pop_back(); }
+    };
   };
 
   /// Base class for Policy Decisoion Point plugins
@@ -75,7 +75,11 @@ namespace ArcSec {
     PDP(Arc::Config*) {};
     virtual ~PDP() {};
     virtual bool isPermitted(Arc::Message *msg) = 0;
+    void SetId(std::string& id) { id_ = id; };
+    std::string GetId() { return id_; };
+
    protected:
+    std::string id_;
     static Arc::Logger logger;
   };
 

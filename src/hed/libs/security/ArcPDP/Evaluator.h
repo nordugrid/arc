@@ -55,6 +55,9 @@ public:
   /**Get the AlgFactory object*/
   virtual AlgFactory* getAlgFactory () = 0;
 
+  /**Add policy to the evaluator*/
+  virtual void addPolicy(std::string policyfile) = 0;
+
 protected:
   /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
   virtual Response* evaluate(EvaluationCtx* ctx) = 0;
