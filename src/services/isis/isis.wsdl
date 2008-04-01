@@ -37,37 +37,39 @@ Interface of Information Indexing Service
 
 <!-- ====== Register ====== -->
 <wsdl:message name="RegisterRequest">
-    <wsdl:part name="RegistrationMessage"  type="isis:RegistrationMessageType"/>
+    <wsdl:part name="Register"  element="isis:Register"/>
 </wsdl:message>
 
 <wsdl:message name="RegisterResponse">
-    <wsdl:part name="RegisterResponse" type="isis:RegisterResponseType"/>
+    <wsdl:part name="RegisterResponse" element="isis:RegisterResponse"/>
 </wsdl:message>
 
 <!-- ====== RemoveRegistrations ====== -->
 
 <wsdl:message name="RemoveRegistrationsRequest">
-    <wsdl:part name="RegistrationEntryID" type="isis:RegistrationEntryIDListType"/>
+    <wsdl:part name="RemoveRegistrations" element="isis:RemoveRegistrations"/>
 </wsdl:message>
 
 <wsdl:message name="RemoveRegistrationsResponse">
-    <wsdl:part name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
+    <wsdl:part name="RemoveRegistrationsResponse" element="isis:RemoveRegistrationsResponse"/>
 </wsdl:message>
 
 <!-- ====== GetRegistrationStatuses ====== -->
 <wsdl:message name="GetRegistrationStatusesRequest">
-    <wsdl:part name="RegistrationEntryID" type="isis:RegistrationEntryIDListType"/>
+    <wsdl:part name="GetRegistrationStatuses" element="isis:GetRegistrationStatuses"/>
 </wsdl:message>
 
 <wsdl:message name="GetRegistrationStatusesResponse">
-    <wsdl:part name="GetRegistrationStatusesResponse" type="isis:GetRegistrationStatusesResponseType"/>
+    <wsdl:part name="GetRegistrationStatusesResponse" element="isis:GetRegistrationStatusesResponse"/>
 </wsdl:message>
 
 <!-- ====== GetRegistrationStatuses ====== -->
-<wsdl:message name="GetIISListRequest"/>
+<wsdl:message name="GetIISListRequest">
+    <wsdl:part name="GetIISList" element="isis:GetIISList"/>
+</wsdl:message>
 
 <wsdl:message name="GetIISListResponse">
-    <wsdl:part name="GetIISListResponse" type="isis:GetIISListResponseType"/>
+    <wsdl:part name="GetIISListResponse" element="isis:GetIISListResponse"/>
 </wsdl:message>
 
 <!-- ====== PortType definitions ====== -->
@@ -88,10 +90,12 @@ Interface of Information Indexing Service
         <wsdl:input name="GetIISListRequest" message="isis:GetIISListRequest"/>
         <wsdl:output name="GetIISListResponse" message="isis:GetIISListResponse"/>
     </wsdl:operation>
+<!--
     <wsdl:operation name="Get">
         <wsdl:input name="GetRequest" message="isis:GetRequest"/>
         <wsdl:output name="GetResponse" message="isis:GetResponse"/>
     </wsdl:operation>
+-->
 </wsdl:portType>
 
 <!-- ====== Bindings ====== -->
@@ -100,7 +104,7 @@ Interface of Information Indexing Service
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="Register">
         <soap:operation soapAction="Register"/>
-        <wsdl:input name="RegisterRequest">
+        <wsdl:input name="Register">
             <soap:body use="literal"/>
         </wsdl:input>
         <wsdl:output name="RegisterResponse">

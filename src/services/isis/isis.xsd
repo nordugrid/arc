@@ -5,9 +5,9 @@
 
 <xsd:schema 
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:iis="http://www.nordugrid.org/schemas/iis/2007/06"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2007/06"
   xmlns:wsa="http://www.w3.org/2005/08/addressing"
-  targetNamespace="http://www.nordugrid.org/schemas/iis/2007/06"
+  targetNamespace="http://www.nordugrid.org/schemas/isis/2007/06"
   elementFormDefault="qualified" attributeFormDefault="unqualified" 
 >
 
@@ -19,19 +19,21 @@
 
     <!-- ==== Input and output types for IIS operations ==== -->
     <!-- Input type for Register operation -->
-    <xsd:complexType name="RegistrationMessageType">
+    <xsd:complexType name="RegisterType">
         <xsd:sequence>
-            <xsd:element name="Header" type="iis:HeaderType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="RegEntry" type="iis:RegistrationEntryType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Header" type="isis:HeaderType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="RegEntry" type="isis:RegistrationEntryType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="Register" type="isis:RegisterType"/>
 
     <!-- Output type for Register operation -->
     <xsd:complexType name="RegisterResponseType">
         <xsd:sequence>
-            <xsd:element name="Fault" type="iis:FaultType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="RegisterResponse" type="isis:RegisterResponseType"/>
 
     <!-- Input type for RemoveRegistrations and GetRegistrationStatuses operations -->
     <xsd:complexType name="RegistrationEntryIDListType">
@@ -39,19 +41,39 @@
             <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <!-- xsd:element name="RegistrationEntryIDList" type="isis:RegistrationEntryIDListType"/ -->
+
+    <xsd:simpleType name="RemoveRegistrationsType">
+        <xsd:restriction base="isis:RegistrationEntryIDListType"/>
+    </xsd:simpleType>
+    <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
+
+    <xsd:simpleType name="GetRegistrationStatusesType">
+        <xsd:restriction base="isis:RegistrationEntryIDListType"/>
+    </xsd:simpleType>
+    <xsd:element name="GetRegistrationStatuses" type="isis:GetRegistrationStatusesType"/>
 
     <!-- Output type for RemoveRegistrations operation -->
     <xsd:complexType name="RemoveRegistrationsResponseType">
         <xsd:sequence>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="RemoveRegistrationsResponse" type="isis:RemoveRegistrationsResponseType"/>
 
     <!-- Output type for GetRegistrationStatuses operation -->
     <xsd:complexType name="GetRegistrationStatusesResponseType">
         <xsd:sequence>
-            <xsd:element name="RegEntryStatus" type="iis:RegistrationEntryStatus" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="RegEntryStatus" type="isis:RegistrationEntryStatusType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="GetRegistrationStatusesResponse" type="isis:GetRegistrationStatusesResponseType"/>
+
+    <!-- Input type for GetIISList operation -->
+    <xsd:complexType name="GetIISListType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="GetIISList" type="isis:GetIISListType"/>
 
     <!-- Output type for GetIISList operation -->
     <xsd:complexType name="GetIISListResponseType">
@@ -59,13 +81,14 @@
             <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="GetIISListResponse" type="isis:GetIISListResponseType"/>
 
     <!-- === Helper type definitions === -->
-    <xsd:complexType name="RegistrationEntryStatus">
+    <xsd:complexType name="RegistrationEntryStatusType">
         <xsd:sequence>
             <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Status" type="iis:StatusType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="Fault" type="iis:FaultType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Status" type="isis:StatusType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Fault" type="isis:FaultType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -85,21 +108,20 @@
     <xsd:complexType name="RegistrationEntryType">
         <xsd:sequence>
             <xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="SrcAdv" type="iis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="MetaSrcAdv" type="iis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SrcAdv" type="isis:ServiceAdvertisementType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="MetaSrcAdv" type="isis:ServiceAdvertisementMetadataType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
-    
 
     <xsd:complexType name="ServiceAdvertisementType">
         <xsd:sequence>
-            <xsd:element name="Type" type="iis:ServiceTypeType"/>
+            <xsd:element name="Type" type="isis:ServiceTypeType"/>
             <xsd:element name="EPR" type="wsa:EndpointReferenceType"/>
             <xsd:element name="Impl" type="xsd:string"/>
             <xsd:element name="Version" type="xsd:string"/>
             <xsd:element name="URI" type="xsd:anyURI"/>
-            <xsd:element name="AuthzInfo" type="iis:AuthorizationInfoType"/> <!-- Authorization information -->
-            <xsd:element name="SSPair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AuthzInfo" type="isis:AuthorizationInfoType"/> <!-- Authorization information -->
+            <xsd:element name="SSPair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -123,33 +145,32 @@
     <xsd:complexType name="FaultType">
         <xsd:sequence>
             <xsd:element name="Name"        type="xsd:string"/>
-            <xsd:element name="Type"        type="iis:FaultTypeType"/>
+            <xsd:element name="Type"        type="isis:FaultTypeType"/>
             <xsd:element name="Description" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
-
     <xsd:complexType name="FullServiceDescriptionType">
         <xsd:sequence>
-            <xsd:element name="CoreSD" type="iis:CoreServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="ExtSD" type="iis:ExtendedServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Resource" type="iis:ResourceDescriptionType" minOccurs="0" maxOccurs="1"/>
-             <xsd:element name="Activity" type="iis:ActivityDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="CoreSD" type="isis:CoreServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ExtSD" type="isis:ExtendedServiceDescriptionType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Resource" type="isis:ResourceDescriptionType" minOccurs="0" maxOccurs="1"/>
+             <xsd:element name="Activity" type="isis:ActivityDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CoreServiceDescriptionType">
         <xsd:sequence>
             <xsd:element name="Status" type="xsd:string"/>
-            <xsd:element name="Type" type="iis:ServiceTypeType"/>
+            <xsd:element name="Type" type="isis:ServiceTypeType"/>
             <xsd:element name="EPR" type="wsa:EndpointReferenceType"/> <!-- Endpoint reference -->
             <xsd:element name="URI" type="xsd:anyURI"/>
             <xsd:element name="Name" type="xsd:string"/>
             <xsd:element name="Impl" type="xsd:string"/> <!-- Name of the implementation (ComputingService: A-REX, ...) -->
             <xsd:element name="Version" type="xsd:string"/> <!-- Version of the service implementation -->
-            <xsd:element name="Profile" type="iis:ProfileType"/> <!-- Supported profiles -->
-            <xsd:element name="AuthzInfo" type="iis:AuthorizationInfoType"/> <!-- Authorization information -->
-            <xsd:element name="AuthInfo" type="iis:AuthenticationInfoType"/> <!-- Authentication information -->
+            <xsd:element name="Profile" type="isis:ProfileType"/> <!-- Supported profiles -->
+            <xsd:element name="AuthzInfo" type="isis:AuthorizationInfoType"/> <!-- Authorization information -->
+            <xsd:element name="AuthInfo" type="isis:AuthenticationInfoType"/> <!-- Authentication information -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -184,21 +205,21 @@
     <!-- Service Specific attributes will be defined later following GLUE-2.0 -->
     <xsd:complexType name="ExtendedServiceDescriptionType">
         <xsd:sequence>
-            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Pair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <!-- Service Specific attributes describing resources will be defined later following GLUE-2.0 -->
     <xsd:complexType name="ResourceDescriptionType">
         <xsd:sequence>
-            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Pair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <!-- Service Specific attributes describing activity will be defined later following GLUE-2.0 -->
     <xsd:complexType name="ActivityDescriptionType">
         <xsd:sequence>
-            <xsd:element name="Pair" type="iis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Pair" type="isis:NameValuePairType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
