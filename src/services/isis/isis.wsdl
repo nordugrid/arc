@@ -64,16 +64,16 @@ Interface of Information Indexing Service
 </wsdl:message>
 
 <!-- ====== GetRegistrationStatuses ====== -->
-<wsdl:message name="GetIISListRequest">
-    <wsdl:part name="GetIISList" element="isis:GetIISList"/>
+<wsdl:message name="GetISISListRequest">
+    <wsdl:part name="GetISISList" element="isis:GetISISList"/>
 </wsdl:message>
 
-<wsdl:message name="GetIISListResponse">
-    <wsdl:part name="GetIISListResponse" element="isis:GetIISListResponse"/>
+<wsdl:message name="GetISISListResponse">
+    <wsdl:part name="GetISISListResponse" element="isis:GetISISListResponse"/>
 </wsdl:message>
 
 <!-- ====== PortType definitions ====== -->
-<wsdl:portType name="IISPortType">
+<wsdl:portType name="ISISPortType">
     <wsdl:operation name="Register">
         <wsdl:input name="RegisterRequest" message="isis:RegisterRequest"/>
         <wsdl:output name="RegisterResponse" message="isis:RegisterResponse"/>
@@ -86,9 +86,9 @@ Interface of Information Indexing Service
         <wsdl:input name="GetRegistrationStatusesRequest" message="isis:GetRegistrationStatusesRequest"/>
         <wsdl:output name="GetRegistrationStatusesResponse" message="isis:GetRegistrationStatusesResponse"/>
     </wsdl:operation>
-        <wsdl:operation name="GetIISList">
-        <wsdl:input name="GetIISListRequest" message="isis:GetIISListRequest"/>
-        <wsdl:output name="GetIISListResponse" message="isis:GetIISListResponse"/>
+        <wsdl:operation name="GetISISList">
+        <wsdl:input name="GetISISListRequest" message="isis:GetISISListRequest"/>
+        <wsdl:output name="GetISISListResponse" message="isis:GetISISListResponse"/>
     </wsdl:operation>
 <!--
     <wsdl:operation name="Get">
@@ -100,7 +100,7 @@ Interface of Information Indexing Service
 
 <!-- ====== Bindings ====== -->
 
-<wsdl:binding name="isis" type="isis:IISPortType">
+<wsdl:binding name="isis" type="isis:ISISPortType">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="Register">
         <soap:operation soapAction="Register"/>
@@ -129,12 +129,12 @@ Interface of Information Indexing Service
             <soap:body use="literal"/>
         </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="GetIISList">
-        <soap:operation soapAction="GetIISList"/>
-        <wsdl:input name="GetIISListRequest">
+    <wsdl:operation name="GetISISList">
+        <soap:operation soapAction="GetISISList"/>
+        <wsdl:input name="GetISISListRequest">
             <soap:body use="literal"/>
         </wsdl:input>
-        <wsdl:output name="GetIISListResponse">
+        <wsdl:output name="GetISISListResponse">
             <soap:body use="literal"/>
         </wsdl:output>
     </wsdl:operation>

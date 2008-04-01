@@ -68,20 +68,20 @@
     </xsd:complexType>
     <xsd:element name="GetRegistrationStatusesResponse" type="isis:GetRegistrationStatusesResponseType"/>
 
-    <!-- Input type for GetIISList operation -->
-    <xsd:complexType name="GetIISListType">
+    <!-- Input type for GetISISList operation -->
+    <xsd:complexType name="GetISISListType">
         <xsd:sequence>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="GetIISList" type="isis:GetIISListType"/>
+    <xsd:element name="GetISISList" type="isis:GetISISListType"/>
 
-    <!-- Output type for GetIISList operation -->
-    <xsd:complexType name="GetIISListResponseType">
+    <!-- Output type for GetISISList operation -->
+    <xsd:complexType name="GetISISListResponseType">
         <xsd:sequence>
             <xsd:element name="EPR" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="GetIISListResponse" type="isis:GetIISListResponseType"/>
+    <xsd:element name="GetISISListResponse" type="isis:GetISISListResponseType"/>
 
     <!-- === Helper type definitions === -->
     <xsd:complexType name="RegistrationEntryStatusType">
