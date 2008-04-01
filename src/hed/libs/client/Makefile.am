@@ -1,4 +1,4 @@
-noinst_PROGRAMS = test test2
+noinst_PROGRAMS = test
 
 lib_LTLIBRARIES = libarclibclient.la
 
@@ -17,6 +17,3 @@ test_SOURCES  = test.C
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDADD    = libarclibclient.la ../common/libarccommon.la ../misc/libarcclient.la ../loader/libarcloader.la
 
-test2_SOURCES  = test2.C
-test2_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test2_LDADD    = libarclibclient.la ../common/libarccommon.la ../misc/libarcclient.la ../data/libarcdata2.la ../loader/libarcloader.la
