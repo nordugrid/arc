@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libarclibclient.la
 libarclibclient_ladir = $(pkgincludedir)/client
 libarclibclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
 	                      Submitter.h TargetRetriever.h TargetGenerator.h \
-			      Endpoint.h Service.h ComputingEndpoint.h Share.h \
+			      Endpoint.h enums.h Service.h ComputingEndpoint.h Share.h \
 		              ComputingShare.h Resource.h ComputingResource.h \
 			      Activity.h ComputingActivity.h ComputingService.h	
 libarclibclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
