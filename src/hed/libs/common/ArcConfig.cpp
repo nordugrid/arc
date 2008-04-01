@@ -9,28 +9,9 @@
 
 namespace Arc {
 
-static xmlDocPtr _parse(const char *filename) 
-{
-    std::string xml_str = "";
-    std::string str;
-    std::ifstream f(filename);
-    
-    // load content of file
-    while (f >> str) {
-        xml_str.append(str);
-        xml_str.append(" ");
-    }
-    f.close();
-    return xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
-}
-
 Config::Config(const char *filename)
 {
-    // create XMLNode
-    xmlDocPtr doc = _parse(filename);
-    if(!doc) return;
-    node_=doc->children;
-    if(node_) is_owner_=true;
+    ReadFromFile(filename);
 }
 
 Config::~Config(void) 
@@ -61,36 +42,18 @@ void Config::print(void)
 
 void Config::parse(const char *filename)
 {
-    // create XMLNode
-    xmlDocPtr doc = _parse(filename);
-    if(!doc) return;
-    node_=doc->children;
-    if(node_) is_owner_=true;
+    ReadFromFile(filename);
 }
 
 Config::Config(long cfg_ptr_addr)
 {
     Config *cfg = (Config *)cfg_ptr_addr;
-    std::string s;
-    cfg->GetXML(s);
-    std::string xml_str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+s;
-    // create XMLNode
-    xmlDocPtr doc = xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
-    if(!doc) return;
-    node_=doc->children;
-    if(node_) is_owner_=true;
+    cfg->New(*this);
 }
 
 Config::Config(const Config &cfg) : XMLNode()
 {
-    std::string s;
-    cfg.GetXML(s);
-    std::string xml_str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+s;
-    // create XMLNode
-    xmlDocPtr doc = xmlParseMemory((char*)(xml_str.c_str()),xml_str.length());
-    if(!doc) return;
-    node_=doc->children;
-    if(node_) is_owner_=true;
+    cfg.New(*this);
 }
 
 } // namespace Arc
