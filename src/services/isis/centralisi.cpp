@@ -140,17 +140,21 @@ Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &ou
     } else if(MatchXMLName(op, "GetRegistrationStatuses")) {
         Arc::XMLNode r = res.NewChild("isis:GetRegistrationStatusesResponse");
         ret = GetRegistrationStatuses(op, r);
-    } else if(MatchXMLName(op, "GetIISList")) {
-        Arc::XMLNode r = res.NewChild("isis:GetIISListResponse");
-        ret = GetIISList(op, r);
+    } else if(MatchXMLName(op, "GetISISList")) {
+        Arc::XMLNode r = res.NewChild("isis:GetISISListResponse");
+        ret = GetISISList(op, r);
+    /* This operation is not defined 
     } else if(MatchXMLName(op, "Get")) {
         Arc::XMLNode r = res.NewChild("isis:GetResponse");
         ret = Get(op, r);
+    */
+    /* This operation is not defined 
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegation.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete inpayload;
           return make_soap_fault(outmsg);
         }
+    */
     // WS-Property
     } else if(MatchXMLNamespace(op, "http://docs.oasis-open.org/wsrf/rp-2")) {
         Arc::SOAPEnvelope* out_ = infodoc.Process(*inpayload);
@@ -186,6 +190,7 @@ Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &/*ou
 {
     int i;
     Arc::XMLNode entry;
+    // TODO: protection against malicious id like '../../../../../etc/passwd'
     for (i = 0; (entry = in["RegEntry"][i]) == true; i++) {
         std::string id = (std::string)entry["ID"];
         std::string data;
@@ -237,7 +242,7 @@ Arc::MCC_Status CentralISIService::GetRegistrationStatuses(Arc::XMLNode &in, Arc
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CentralISIService::GetIISList(Arc::XMLNode &/*in*/, Arc::XMLNode &/*out*/)
+Arc::MCC_Status CentralISIService::GetISISList(Arc::XMLNode &/*in*/, Arc::XMLNode &/*out*/)
 {
     return Arc::MCC_Status();
 }

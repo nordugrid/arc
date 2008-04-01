@@ -34,7 +34,7 @@ class CentralISIService: public Arc::Service
         Arc::MCC_Status Register(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status RemoveRegistrations(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status GetRegistrationStatuses(Arc::XMLNode &in, Arc::XMLNode &out);
-        Arc::MCC_Status GetIISList(Arc::XMLNode &in, Arc::XMLNode &out);
+        Arc::MCC_Status GetISISList(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status Get(Arc::XMLNode &in, Arc::XMLNode &out);
         // Info
 
