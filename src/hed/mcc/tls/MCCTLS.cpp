@@ -473,7 +473,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    nextinmsg.Payload(stream);
    Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
-/* @@@@@@
+//* @@@@@@
    //Getting the subject name of peer(client) certificate
    char buf[100];     
    X509* peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerCert();
@@ -483,7 +483,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       logger.msg(DEBUG, "Peer name: %s", peer_dn);
       // Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribute temporally, 
       // it should be put into MessageAuth later.
-      nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
+      nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
 #ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
          logger.msg(DEBUG, "Identity name: %s", peer_dn);
@@ -515,7 +515,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       return MCC_Status();
    };
-*/
+//*@@@@@
    
    // Call next MCC 
    MCCInterface* next = Next();
