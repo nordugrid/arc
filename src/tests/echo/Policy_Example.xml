@@ -6,8 +6,8 @@
      </Description>
       <Subjects>
 	 <Subject>
-	    <SubFraction Type="string">127.0.0.1</SubFraction>
-	    <SubFraction Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</SubFraction>
+	    <Attribute Type="string">127.0.0.1</Attribute>
+	    <Attribute Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
    	 </Subject>
       </Subjects>
       <!--Resources Type="string"><Resource>aaa</Resource></Resources-->

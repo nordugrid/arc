@@ -43,7 +43,7 @@ ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::
   }
 
   std::string remotehost = inmsg.Attributes()->get("TCP:REMOTEHOST");
-  std::string subject = inmsg.Attributes()->get("TLS:PEERDN");
+  std::string subject = inmsg.Attributes()->get("TLS:IDENTITYDN");
   std::string action = inmsg.Attributes()->get("HTTP:METHOD");
 
   // See the PDP.h for detailed explaination about this internal structure
@@ -55,6 +55,8 @@ ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::
   section2.type = "string";
   section3.value = action;
   section3.type = "string";
+
+  std::cout<<remotehost<<"---"<<subject<<"---"<<action<<std::endl;
 
   ArcSec::AuthzRequest request;
   request.subject.push_back(section1);
