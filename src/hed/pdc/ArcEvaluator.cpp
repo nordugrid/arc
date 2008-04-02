@@ -80,9 +80,10 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   }
   else { logger.msg(ERROR, "Can not parse classname for Request from configuration"); return;}
 
-  //Get the ClassLoader object; The object which loads this ArcEvaluator should have constructed ClassLoader by using ClassLoader(cfg), 
-  //and putting the configuration information into it; meanwhile ClassLoader is designed as a Singleton, so here we don't need to 
-  //intialte ClassLoader by using ClassLoader(cfg);
+  //Get the ClassLoader object; The object which loads this ArcEvaluator should have 
+  //constructed ClassLoader by using ClassLoader(cfg), and putting the configuration 
+  //information into it; meanwhile ClassLoader is designed as a Singleton, so here 
+  //we don't need to intialte ClassLoader by using ClassLoader(cfg);
   ClassLoader* classloader;
   classloader=ClassLoader::getClassLoader();
 

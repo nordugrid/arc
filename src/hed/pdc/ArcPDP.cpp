@@ -38,6 +38,7 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   XMLNode pdp_node(*cfg);
 
+  //TODO: get the <Path> of the library
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\ 

@@ -19,8 +19,9 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
   policynode.GetDoc(xml);
   std::cout<<xml<<std::endl;
   
-  //EvalResult.node record the policy(in XMLNode) information about evaluation result. According to the developer's requirement, 
-  //EvalResult.node can include rules(in XMLNode) that "Permit" or "Deny" the request tuple. In the existing code, it include all 
+  //EvalResult.node record the policy(in XMLNode) information about evaluation result. 
+  //According to the developer's requirement, EvalResult.node can include rules(in XMLNode) 
+  //that "Permit" or "Deny" the request tuple. In the existing code, it include all 
   //the original rules.
   evalres.node = policynode;
   evalres.effect = "Not_applicable";

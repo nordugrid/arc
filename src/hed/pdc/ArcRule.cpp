@@ -105,7 +105,8 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         snd = subref[itemgrouptype][k];
         if(!snd) break;
 
-        //If the reference ID in the policy file matches the ID in the external file, try to get the subject information from the external file
+        //If the reference ID in the policy file matches the ID in the external file, 
+        //try to get the subject information from the external file
         if((std::string)(snd.Attribute("GroupId")) == (std::string)tnd){
           getItemlist(snd, items, itemtype, type_attr, function_attr);
         }
@@ -142,7 +143,8 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, subjects, "Subject", type, funcname);  
 
-  //Parse the "Resources" part of a Rule. The "Resources" does not include "Sub" item, so it is not such complicated, but we can handle it the same as "Subjects" 
+  //Parse the "Resources" part of a Rule. The "Resources" does not include "Sub" item, 
+  //so it is not such complicated, but we can handle it the same as "Subjects" 
   nd = node["Resources"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
@@ -174,11 +176,13 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
   for( orit = items.begin(); orit != items.end(); orit++ ){
 
     int all_fraction_matched = 0;
-    //For example, go through each <SubFraction> element in one <Subject>, all of the <SubFraction> elements should be satisfied.
+    //For example, go through each <Attribute> element in one <Subject>, 
+    //all of the <Attribute> elements should be satisfied.
     for(andit = (*orit).begin(); andit != (*orit).end(); andit++){
       bool one_req_matched = false;
 
-      //go through each <Attribute> element in one <Subject> in Request.xml, all of the <Attribute> should be satisfied.
+      //go through each <Attribute> element in one <Subject> in Request.xml, 
+      //all of the <Attribute> should be satisfied.
       for(reqit = req.begin(); reqit != req.end(); reqit++){
         //evaluate two "AttributeValue*" based on "Function" definition in "Rule"
         bool res = false;
@@ -188,12 +192,13 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
         if(res)
           one_req_matched = true;
       }
-      // if one of the Attribute in one Request's Subject does not match any of the Rule.Subjects.SubjectA.SubFractions,
-      // then skip to the next: Rule.Subjects.SubjectB
+      // if one of the Attribute in one Request's Subject does not match any of the 
+      // Rule.Subjects.SubjectA.Attributes, then skip to the next: Rule.Subjects.SubjectB
       if(!one_req_matched) break;
       else all_fraction_matched +=1;
     }
-    //One Rule.Subjects.Subject is satisfied (all of the SubFraction are satisfied) by the RequestTuple.Subject
+    //One Rule.Subjects.Subject is satisfied (all of the Attribute are satisfied) 
+    //by the RequestTuple.Subject
     if(all_fraction_matched == int((*orit).size())){
       return MATCH;
     }
