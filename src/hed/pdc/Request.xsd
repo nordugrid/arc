@@ -2,7 +2,22 @@
 <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/request-arc"
  xmlns:request-arc="http://www.nordugrid.org/schemas/request-arc"
  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+ <!-- This schema defines a request to be fed into ArcPDP for
+   evaluation against policy. Below is a tree of specified elements.
+     Request (1)
+       RequestItem (1-)
+         Subject (1-)
+           SubjectAttribute (1-)
+         Resource (0-)
+         Action (0-)
+         Context (0-)
+           ContextAttribute (1-)  
+   
+ -->
  
+ <!-- Top-level element of request is Request. Request is made
+   of multiple RequestItem elements which are evaluated separately. -->
  <xsd:element name="Request" type="request-arc:RequestType"/>
  <xsd:complexType name="RequestType">
   <xsd:sequence>
@@ -10,6 +25,9 @@
   </xsd:sequence>
  </xsd:complexType>
 
+ <!-- RequestItem resembles Rule in ARC Policy and provides information 
+   to be matched against Rule. The difference is that it provides Context 
+   instead of Condition. -->
  <xsd:element name="RequestItem" type="request-arc:RequestItemType"/>
  <xsd:complexType name="RequestItemType">
   <xsd:sequence>
@@ -20,45 +38,64 @@
   </xsd:sequence>
  </xsd:complexType>
 
+ <!-- SubjectAttribute corresponds to Attribute element of Subject in 
+    ARC Policy. While matching there must be proper SubjectAttribute
+    for every Attribute in Policy's Subject. Data type may be defined
+    at this level through 'Type' attribute. --> 
  <xsd:element name="SubjectAttribute" type="request-arc:SubjectAttributeType"/>
  <xsd:complexType name="SubjectAttributeType">
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
-    <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-    <xsd:attribute name="Type" type="xsd:string"/>
+    <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
+    <xsd:attribute name="Type" type="xsd:string" use="optional"/>
     <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
 
+ <!-- Each Subject is built of element called SibjectAttrbute.
+   The data type is specified either at this or lower level by 
+   attribute Type. -->
  <xsd:element name="Subject" type="request-arc:SubjectType"/>
  <xsd:complexType name="SubjectType">
   <xsd:sequence>
    <xsd:element ref="request-arc:SubjectAttribute" maxOccurs="unbounded"/>
   </xsd:sequence>
-  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:string"/>
+  <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
+  <xsd:attribute name="Type" type="xsd:string" use="optional"/>
   <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
+ <!-- Resource element corresponds to Resource element in Policy. -->
  <xsd:element name="Resource" type="request-arc:ResourceType"/>
  <xsd:complexType name="ResourceType">
-  <xsd:attribute name="AttributeId" type="xsd:string"/>
-  <xsd:attribute name="Type" type="xsd:anyURI"/>
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="AttributeId" type="xsd:string" use="optional"/>
+    <xsd:attribute name="Type" type="xsd:anyURI"/>
+   </xsd:extension>
+  </xsd:simpleContent>
  </xsd:complexType>
 
+ <!-- Action element corresponds to Action element in Policy. -->
  <xsd:element name="Action" type="request-arc:ActionType"/>
  <xsd:complexType name="ActionType">
-  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:string"/>
+  <xsd:simpleContent>
+   <xsd:extension base="xsd:string">
+    <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
+    <xsd:attribute name="Type" type="xsd:string"/>
+   </xsd:extension>
+  </xsd:simpleContent>
  </xsd:complexType>
 
+ <!-- Exact meaning of ContextAttribute and it's parent element Context
+   are not defined. -->
  <xsd:element name="ContextAttribute" type="request-arc:ContextAttributeType"/>
  <xsd:complexType name="ContextAttributeType">
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
-    <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-    <xsd:attribute name="Type" type="xsd:string"/>
+    <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
+    <xsd:attribute name="Type" type="xsd:string" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
@@ -68,8 +105,8 @@
   <xsd:sequence>
    <xsd:element ref="request-arc:ContextAttribute" maxOccurs="unbounded"/>
   </xsd:sequence>
-  <xsd:attribute name="AttributeId" type="xsd:anyURI"/>
-  <xsd:attribute name="Type" type="xsd:string"/>
+  <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
+  <xsd:attribute name="Type" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
 </xsd:schema>
