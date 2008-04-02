@@ -11,6 +11,24 @@ namespace Echo {
 /** This is a test service which accepts SOAP requests and produces response
  as described in echo.wsdl. Response contains string passed in request with 
  prefix_ and suffix_ added. */
+
+/** About the policy decision, here the echo service is used as an example to demostrate how to 
+* implement and deploy it. 
+* For service developer, he is supposed to marshall the pdp request into a internal structure
+* For service deployer, he is supposed to do the following two things:
+* a, write the policy according to its requirement, and based on the Policy.xsd schema.
+* b, configure the service.xml, put the pdp configuration into a <SecHandler/>
+     <PDP name="arc.pdp" id="echo.pdp" policylocation="Policy_Example.xml"/>
+     The "name" attribute is the identifier for dynamic loading the ArcPDP object.
+     The "id" attribute is the identifier for the generated 
+     ArcPDP object to get the ArcSec::PDPConfigContext from message object.
+     The "policylocation" attribute is for the configuration of ArcPDP's policy; some service 
+     developer can also set the policy location each time a new message need to be processed, by using
+     // config->SetPolicyLocation(location);
+     // config->AddPolicyLocation(location);
+     in the specific service's process(Arc::Message& inmsg,Arc::Message& outmsg) method.    
+*/
+
 class Service_Echo: public Arc::Service
 {
     protected:
@@ -25,7 +43,7 @@ class Service_Echo: public Arc::Service
         Service_Echo(Arc::Config *cfg);
         virtual ~Service_Echo(void);
         /**Helper method to store the request and policy information for pdp
-        *Basically, in ARC1, the authorization decesion is based on each incoming or outgoing message
+        * Basically, in ARC1, the authorization decision is based on each incoming or outgoing message
         * (Here, message is the container for socket stream, soap message, or http message) 
         * Reasonablly, it should be each service which would care the security-related attributes 
         * inside the message (or from other attribute sources) which will be used for authorization decision, 

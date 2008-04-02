@@ -56,8 +56,6 @@ ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::
   section3.value = action;
   section3.type = "string";
 
-  std::cout<<remotehost<<"---"<<subject<<"---"<<action<<std::endl;
-
   ArcSec::AuthzRequest request;
   request.subject.push_back(section1);
   request.subject.push_back(section2);
