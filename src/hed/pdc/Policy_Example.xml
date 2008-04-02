@@ -8,8 +8,8 @@
          <Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
          <Subject Type="string">/vo.knowarc/usergroupA</Subject>
 	 <Subject>
-	    <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
-	    <SubFraction Type="string">urn:mace:shibboleth:examples</SubFraction>
+	    <Attribute Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+	    <Attribute Type="string">urn:mace:shibboleth:examples</Attribute>
    	 </Subject>
 	 <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
       </Subjects>

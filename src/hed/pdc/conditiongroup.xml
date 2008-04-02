@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionGroup xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" GroupId="normalcondition">   
    <Condition>
-       <CondFraction Function="policy-arc:function:string-equal" Type="string">20:00</CondFraction>
-       <CondFraction Function="policy-arc:function:string-equal" Type="string">12h</CondFraction>
+       <Attribute Function="policy-arc:function:string-equal" Type="string">20:00</Attribute>
+       <Attribute Function="policy-arc:function:string-equal" Type="string">12h</Attribute>
     </Condition>
 </ConditionGroup>      
