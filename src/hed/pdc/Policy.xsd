@@ -6,11 +6,11 @@
    elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
-<!--One Policy is composed of a few Rules; 
+ <!--One Policy is composed of a few Rules; 
     one Rule is composed of a tuple <Subjects, Resources, Actions, Conditions>, 
     and each Rule has one Decision: Permit or Deny.
-  -->
-<!--The policy definition is inspired by XACML and GACL;
+ -->
+ <!--The policy definition is inspired by XACML and GACL;
     The proposed schema is not as complicated as XACML, but not so adapatable and general as XACML.
   
     The elements and attributes in the policy can only be understood by ArcPDP;
@@ -21,8 +21,22 @@
     Each service or resource can have one authorization policy file. 
     It the policy enforcement point only includes one entity which needs to be enforced policy decision, 
     then "Resources" can be omitted;
-  -->
-
+ -->
+ <!-- For quick reference here is a tree desribing interconnection of 
+    main elements. Multiplicity is specified in brackets.
+      Policy (1)
+        Rule (1-)
+          Subjects (1)
+            Subject (1-)
+              Attribute (1-)
+          Resources (0-1)
+            Resource (1-)
+          Actions (0-1)
+            Action (1-)
+          Conditions (0-1)
+            Condition (1-)
+              Attribute (1-)
+ -->
  <!-- Human-readable description of element -->
  <xsd:element name="Description" type="xsd:string"/>
 
@@ -45,7 +59,7 @@
   among <Subjects, Resources, Actions, Conditions>. 
   There are some principles about the Rule definition:
    1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually 
-      <Subjects, Resources, Actios, Conditions, Effect>). The policy administrator should 
+      <Subjects, Resources, Actions, Conditions, Effect>). The policy administrator should 
       define the rules according to granularity of Actions and Resources, and constraints 
       to Subjects. For example, there is a Rule: <UserA/UserB, FileX, Read/List, 14:00, Permit>.
       If the administrator wants to add "Delete" permssion for "UserA/UserB" to "FileX" at Condition 
@@ -85,7 +99,7 @@
   </xsd:restriction>
  </xsd:simpleType>
 
- <!--Ref element is used to by Subjects, Resources, Actions and Conditions to 
+ <!--Ref element is used by Subjects, Resources, Actions and Conditions to 
    refer to other set of corresponding elements defined out of scope of 
    refering element.
    -->
@@ -94,7 +108,8 @@
   <xsd:simpleContent>
    <!--Identifier of refered element-->
    <xsd:extension base="xsd:anyURI">
-    <!--Location specifies location (usually local path) of file containing refered element-->
+    <!--Location specifies location (usually local path) of another file 
+      containing refered element-->
     <xsd:attribute name="Location" type="xsd:anyURI" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
@@ -105,41 +120,46 @@
  <xsd:element name="SubjectsRef" type="policy-arc:RefType"/>
  <xsd:complexType name="SubjectsType">
   <xsd:choice maxOccurs="unbounded">
-   <!--Reference to external Subjects element which is optionally stored in a separate file--> 
+   <!--Reference to external Subjects element which is optionally 
+     stored in a separate file--> 
    <xsd:element ref="policy-arc:SubjectsRef"/>
-   <!--Subject to which rule should be applied-->
+   <!--Subject to which rule should be applied -->
    <xsd:element ref="policy-arc:Subject"/>
   </xsd:choice>
   <!-- Data Type of the Subjects, the Type could be specified here,
-  which means all of the low-level <Subject/> have the same DataType, otherwise
-  it should be specified in the low-level node <Subject/>
-  However, for these three levels: <Subjects/>, <Subject/>, <Attribute>, there should be at least one 
-  and only one level which will have "type" attribute -->
+   which means all of the low-level <Subject/> have the same DataType, 
+   otherwise it should be specified in the lower-level node <Subject/>
+    However, for these three levels: <Subjects/>, <Subject/>, <Attribute> 
+   there should be at least one and only one level which will have "Type" 
+   attribute -->
   <xsd:attribute name="Type" type="xsd:string" use="optional"/>
-  <!-- Identifier for external reference. Not like the definition in XACML, here the Id 
-  attribute is optional, and currently has not been used inside code-->
+  <!-- Identifier for external reference. Not like the definition in XACML, 
+   here the Id attribute is optional, and currently has not been implemented 
+   in code -->
   <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
  </xsd:complexType>
 
  <xsd:element name="Subject" type="policy-arc:SubjectType"/>
  <xsd:complexType name="SubjectType">
-  <!--If there are more than one Attribute in one Subject, the request should match all of these: 
+  <!--If there are more than one Attribute elements in one Subject, the 
+    request should match all of these: 
       <Subject>
        <Attribute Type="X500DN">/O=Grid/OU=KnowARC/CN=ABC</Attribute>
        <Attribute Type="ShibName">urn:mace:shibboleth:examples</Attribute>
-      </Subject>-->
- 
+      </Subject>
+  -->
   <!-- Data Type of the Subject, the Type could be specified here,
-  which means all of the low-level <Attribute/> have the same DataType, otherwise
-  it shouldbe specified in the low-level node <Attribute/> -->
+   which means all of the low-level <Attribute/> have the same DataType, 
+   otherwise it should be specified in the lower-level node <Attribute/> -->
   <xsd:attribute name="Type" type="xsd:string" use="optional"/>
   <xsd:sequence>
    <xsd:element name="Attribute" maxOccurs="unbounded">
      <xsd:complexType>
       <xsd:simpleContent>
        <xsd:extension base="xsd:string">
-       <!-- Data Type of the Attribute, if the DataType of <Attribute/>s under the <Subject/> node
-       is different, then Type should be specified here -->
+       <!-- Data Type of the Attribute, if the DataType of <Attribute/>s 
+         under the <Subject/> node are various, then Type should be specified 
+	 here -->
         <xsd:attribute name="Type" type="xsd:string" use="optional"/>
        </xsd:extension>
       </xsd:simpleContent>
@@ -148,8 +168,8 @@
   </xsd:sequence>
  </xsd:complexType>
 
- <!--Definition of Resources, it different with the definition of Subjects.
- Here only two levels are available: <Resources>, <Resource>-->
+ <!--Definition of Resources differs from the definition of Subjects.
+   Here only two levels are available: <Resources> and <Resource> -->
  <xsd:element name="ResourcesRef" type="policy-arc:RefType"/>
  <xsd:element name="Resources" type="policy-arc:ResourcesType"/>
  <xsd:complexType name="ResourcesType">
@@ -157,13 +177,13 @@
    <xsd:element ref="policy-arc:ResourcesRef"/>
    <xsd:element ref="policy-arc:Resource"/>
   </xsd:choice>
-  <!-- Date Type of Resources. the Type could be specified here,
-  which means all of the low-level <Resource/> have the same DataType, otherwise
-  it should be specified in the low-level node <Resource/>
-  However, for these two levels: <Resources/>, <Resource/>, there should be at least one
-  and only one level which will have "type" attribute -->
+  <!-- Data Type of Resources. the Type could be specified here, which 
+    means all of the lower-level <Resource/> have the same DataType, 
+    otherwise it should be specified in the lower-level node <Resource/>.
+     However, for these two levels: <Resources/>, <Resource/>, there should
+     be at least one and only one level which will have "Type" attribute -->
   <xsd:attribute name="Type" type="xsd:string" use="optional"/>
-  <!-- Identifier for external reference-->
+  <!-- Identifier for external reference -->
   <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
  </xsd:complexType>
 
@@ -172,21 +192,21 @@
  <xsd:complexType name="ResourceType">
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
-    <!-- Data Type of Resosurce  -->
+    <!-- Data Type of Resource  -->
     <xsd:attribute name="Type" type="xsd:string" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
 
 
- <!--Definition of Actions which may be requested, definition is similiar to <Resources>,
- except no <ActionRef> needed here-->
+ <!--Definition of Actions which may be requested. Definition is similiar to 
+   <Resources> except no <ActionsRef> is supported here -->
  <xsd:element name="Actions" type="policy-arc:ActionsType"/>
  <xsd:complexType name="ActionsType">
   <xsd:sequence maxOccurs="unbounded">
    <xsd:element ref="policy-arc:Action"/>
   </xsd:sequence>
-  <!-- Date Type of Actions.-->
+  <!-- Data Type of Actions.-->
   <xsd:attribute name="Type" type="xsd:string" use="optional"/>
   <!-- Identifier for external reference-->
   <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
@@ -203,22 +223,25 @@
 
 
  <!--Definition of Conditions. 
-   The definition of Conditions is complicated, because there can be many types of conditions: 
-   Time, Duration, URI, etc.;
-   The match-making of Conditions with Request.Contex (See schema definition of Request) is complicated, 
-   because each type of Condition could require its own match-making algorithm. Simple "string1 == string2" 
+   The definition of Conditions is complicated, because there can be many 
+   types of conditions: Time, Duration, URI, etc.;
+    The match-making of Conditions with Request.Contex (See schema definition 
+   of Request) is complicated as well, because each type of Condition could 
+   require its own match-making algorithm. Simple "string1 == string2" 
    match-making is not adequate in this case. -->
- <!--The relationship between <Attribute>s is "and"; The relationship between Condition is "or" -->
+ <!--The relationship between <Attribute>s is "and"; The relationship between 
+   <Condition>s is "or" -->
  <xsd:element name="Conditions" type="policy-arc:ConditionsType"/>
  <xsd:element name="ConditionsRef" type="policy-arc:RefType"/>
  <xsd:complexType name="ConditionsType">
   <xsd:choice maxOccurs="unbounded">
-   <!--Reference to Conditions could optionally be stored in a separate file. It is reasonable when the 
-     administrator wants to define some general condition constraints.-->
+   <!--Reference to Conditions could optionally be stored in a separate file.
+     It is reasonable when the administrator wants to define some general 
+     condition constraints -->
    <xsd:element ref="policy-arc:ConditionsRef"/>
    <xsd:element ref="policy-arc:Condition"/>
   </xsd:choice>
- <!-- Date Type of Conditions.-->
+  <!-- Data Type of Conditions.-->
   <xsd:attribute name="Type" type="xsd:string" use="optional"/>
   <!-- Identifier for external reference-->  
   <xsd:attribute name="Id" type="xsd:anyURI" use="optional"/>
@@ -226,14 +249,16 @@
 
  <xsd:element name="Condition" type="policy-arc:ConditionType"/>
  <xsd:complexType name="ConditionType">
-  <!--If there are more than one <Attribute> elements in one <Condition>, the request should match all of these.-->
+  <!--If there are more than one <Attribute> elements in one <Condition>, 
+    the request should match all of these.-->
   <xsd:sequence>
    <xsd:element name="Attribute" maxOccurs="unbounded">
     <xsd:complexType>
      <xsd:complexContent>
       <xsd:extension base="policy-arc:VariableType">
-       <!-- Data Type of the Attribute, if the DataType of <Attribute/>s under the <Condition/> node
-       is different, then Type should be specified here -->
+       <!-- Data Type of the Attribute, if the data Type of <Attribute/>s 
+         under the <Condition/> node are different, then Type should be 
+	 specified here -->
        <xsd:attribute name="Type" type="xsd:string" use="optional"/>
       </xsd:extension>
      </xsd:complexContent>
