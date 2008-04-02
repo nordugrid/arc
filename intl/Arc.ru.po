@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-26 11:51+0100\n"
+"POT-Creation-Date: 2008-04-02 08:59+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -1666,7 +1666,7 @@ msgid "Warning: can't get list of senders from server %s: %s"
 msgstr ""
 
 #: ../src/hed/identitymap/IdentityMap.cpp:101
-#: ../src/hed/pdc/SimpleListAuthZ.cpp:72
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:71
 #, c-format
 msgid "PDP: %s can not be loaded"
 msgstr ""
@@ -1683,52 +1683,50 @@ msgid ""
 "this is not correct."
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:99
+#: ../src/hed/libs/common/DateTime.cpp:83
+#: ../src/hed/libs/common/DateTime.cpp:531
+#: ../src/hed/libs/common/StringConv.h:20
+msgid "Empty string"
+msgstr ""
+
+#: ../src/hed/libs/common/DateTime.cpp:104
 #, c-format
 msgid "Can not parse date: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:121
+#: ../src/hed/libs/common/DateTime.cpp:126
 #, c-format
 msgid "Can not parse time: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:151
+#: ../src/hed/libs/common/DateTime.cpp:156
 #, c-format
 msgid "Can not parse time zone offset: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:170
-#: ../src/hed/libs/common/DateTime.cpp:190
-#: ../src/hed/libs/common/DateTime.cpp:243
-#: ../src/hed/libs/common/DateTime.cpp:282
+#: ../src/hed/libs/common/DateTime.cpp:175
+#: ../src/hed/libs/common/DateTime.cpp:195
+#: ../src/hed/libs/common/DateTime.cpp:248
+#: ../src/hed/libs/common/DateTime.cpp:287
 #, c-format
 msgid "Illegal time format: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:221
-#: ../src/hed/libs/common/DateTime.cpp:274
+#: ../src/hed/libs/common/DateTime.cpp:226
+#: ../src/hed/libs/common/DateTime.cpp:279
 #, c-format
 msgid "Can not parse month: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:526
-msgid "Empty period string"
-msgstr ""
-
-#: ../src/hed/libs/common/DateTime.cpp:542
-#: ../src/hed/libs/common/DateTime.cpp:577
+#: ../src/hed/libs/common/DateTime.cpp:547
+#: ../src/hed/libs/common/DateTime.cpp:582
 #, c-format
 msgid "Invalid ISO duration format: %s"
 msgstr ""
 
-#: ../src/hed/libs/common/DateTime.cpp:636
+#: ../src/hed/libs/common/DateTime.cpp:641
 #, c-format
 msgid "Invalid period string: %s"
-msgstr ""
-
-#: ../src/hed/libs/common/StringConv.h:20
-msgid "Empty String"
 msgstr ""
 
 #: ../src/hed/libs/common/StringConv.h:26
@@ -2738,16 +2736,11 @@ msgid "Peer cert verification fail"
 msgstr ""
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
-#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129 ../src/hed/pdc/ArcPDP.cpp:102
-#: ../src/hed/pdc/ArcPDP.cpp:122 ../src/hed/pdc/CountPDP.cpp:101
-#: ../src/services/a-rex/PayloadFile.cpp:35
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129 ../src/hed/pdc/ArcPDP.cpp:185
+#: ../src/hed/pdc/CountPDP.cpp:101 ../src/services/a-rex/PayloadFile.cpp:35
 #: ../src/services/pdp/pdpservice.cpp:88
 #, c-format
 msgid "%s"
-msgstr ""
-
-#: ../src/hed/pdc/ArcEvaluator.cpp:47
-msgid "No policy exists, the policy engine can not be loaded"
 msgstr ""
 
 #: ../src/hed/pdc/ArcEvaluator.cpp:57
@@ -2779,32 +2772,38 @@ msgstr ""
 msgid "Can not dynamically produce AlgFacroty"
 msgstr ""
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:155 ../src/hed/pdc/test.cpp:136
+#: ../src/hed/pdc/ArcEvaluator.cpp:154 ../src/hed/pdc/test.cpp:136
 msgid "Can not dynamically produce Request"
 msgstr ""
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:267
+#: ../src/hed/pdc/ArcEvaluator.cpp:266
 #, c-format
 msgid "Result value (0 means success): %d"
 msgstr ""
 
-#: ../src/hed/pdc/ArcPDP.cpp:51 ../src/hed/pdc/CountPDP.cpp:41
+#: ../src/hed/pdc/ArcPDP.cpp:73 ../src/hed/pdc/CountPDP.cpp:41
 #: ../src/hed/pdc/test.cpp:42 ../src/services/pdp/pdpservice.cpp:133
 msgid "Can not dynamically produce Evaluator"
 msgstr ""
 
-#: ../src/hed/pdc/ArcPDP.cpp:108 ../src/hed/pdc/CountPDP.cpp:87
+#: ../src/hed/pdc/ArcPDP.cpp:99
+msgid ""
+"Although there is pdp configuration for this component, no pdp context has "
+"been generated for this"
+msgstr ""
+
+#: ../src/hed/pdc/ArcPDP.cpp:171 ../src/hed/pdc/CountPDP.cpp:87
 #: ../src/hed/pdc/test.cpp:53 ../src/hed/pdc/test.cpp:149
 #: ../src/services/pdp/pdpservice.cpp:72
 #, c-format
 msgid "There is %d subjects, which satisfy at least one policy"
 msgstr ""
 
-#: ../src/hed/pdc/ArcPDP.cpp:128
+#: ../src/hed/pdc/ArcPDP.cpp:191
 msgid "Authorized from arc.pdp!!!"
 msgstr ""
 
-#: ../src/hed/pdc/ArcPDP.cpp:134
+#: ../src/hed/pdc/ArcPDP.cpp:197
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr ""
 
@@ -2826,18 +2825,22 @@ msgstr ""
 msgid "UnAuthorized from count.pdp!!!"
 msgstr ""
 
-#: ../src/hed/pdc/SimpleListAuthZ.cpp:47
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:46
 msgid ""
 "SimpleListAuthZ: failed to initiate all PDPs - this instance will be non-"
 "functional"
 msgstr ""
 
-#: ../src/hed/pdc/SimpleListAuthZ.cpp:68
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:67
 #, c-format
 msgid "PDP: %s (%d)"
 msgstr ""
 
-#: ../src/hed/pdc/SimpleListAuthZ.cpp:76
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:75
+msgid "PDP should have ID"
+msgstr ""
+
+#: ../src/hed/pdc/SimpleListAuthZ.cpp:78
 #, c-format
 msgid "PDP: %s name is duplicate"
 msgstr ""
@@ -2927,7 +2930,7 @@ msgid "process: operation: %s"
 msgstr ""
 
 #: ../src/services/arex2/arex2.cpp:170 ../src/services/a-rex/arex.cpp:242
-#: ../src/services/isis/centralisi.cpp:165
+#: ../src/services/isis/centralisi.cpp:169
 #: ../src/services/sched/grid_sched.cpp:138
 #, c-format
 msgid "SOAP operation is not supported: %s"
@@ -4755,18 +4758,26 @@ msgstr ""
 msgid "Cannot convert outmsg to python object"
 msgstr ""
 
-#: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:60
+#: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:135
 msgid "Input is not SOAP"
 msgstr ""
 
-#: ../src/tests/count/count.cpp:89 ../src/tests/echo/echo.cpp:50
+#: ../src/tests/count/count.cpp:89 ../src/tests/echo/echo.cpp:125
 msgid "echo: Unauthorized"
 msgstr ""
 
 #: ../src/tests/count/count.cpp:98 ../src/tests/count/count.cpp:104
-#: ../src/tests/echo/echo.cpp:66
+#: ../src/tests/echo/echo.cpp:141
 #, c-format
 msgid "Request is not supported - %s"
+msgstr ""
+
+#: ../src/tests/echo/echo.cpp:41
+msgid "Failed to create context for pdp request and policy"
+msgstr ""
+
+#: ../src/tests/echo/echo.cpp:111
+msgid "Can't get pdp request and policy information"
 msgstr ""
 
 #: ../src/tests/echo/test.cpp:35

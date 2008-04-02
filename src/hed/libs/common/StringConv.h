@@ -17,7 +17,7 @@ namespace Arc {
     {
         T t;
         if(s.empty()) {
-            stringLogger.msg(ERROR, "Empty String");
+            stringLogger.msg(ERROR, "Empty string");
             return 0;
         }
         std::stringstream ss(s);

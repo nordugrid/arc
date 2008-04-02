@@ -79,6 +79,11 @@ namespace Arc {
 
   Time::Time(const std::string& timestring) : gtime(-1) {
 
+    if (timestring.empty()) {
+      dateTimeLogger.msg(ERROR, "Empty string");
+      return;
+    }
+
     if(isdigit(timestring[0])) {
       tm timestr;
       std::string::size_type pos = 0;
@@ -523,7 +528,7 @@ namespace Arc {
   Period::Period(const std::string& period, PeriodBase base) : seconds(0) {
 
     if (period.empty()) {
-      dateTimeLogger.msg(ERROR, "Empty period string");
+      dateTimeLogger.msg(ERROR, "Empty string");
       return;
     }
 
