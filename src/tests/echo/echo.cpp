@@ -46,6 +46,8 @@ ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::
   std::string subject = inmsg.Attributes()->get("TLS:PEERDN");
   std::string action = inmsg.Attributes()->get("HTTP:METHOD");
 
+  // See the PDP.h for detailed explaination about this internal structure
+
   ArcSec::AuthzRequestSection section1, section2, section3;
   section1.value = remotehost;
   section1.type = "string";
@@ -78,6 +80,8 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg) {
         Arc::XMLNode gn = cn.Child(j);
         if(!gn) break;
         if(MatchXMLName(gn, "PDP")) {
+          //"id" attribute of "PDP" node must be parsed here, because it will be used by ArcPDP as identifier
+          // for getting PDPConfigContext
           std::string id = (std::string)(gn.Attribute("id"));
           std::string policylocation = (std::string)(gn.Attribute("policylocation"));
           pdpinfo_[id] = policylocation;
@@ -112,12 +116,12 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       return Arc::MCC_Status();
     }
     config->SetPolicyLocation((*it).second);
-    // According to the requirement of some services, like Data Service, which need to re-set
+    // According to the requirement of some services, like Storage Service, which need to re-set
     // the policy location each time a new incoming message comes. 
-    // Then in some place, the policylocation can be set as "PDP::LOCATION", and
+    // Then in some place, the policylocation can be set as "PDP::POLICYLOCATION", and
     // here the pdp location can be re-set, or add.
-    // config->SetPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::LOCATION")));
-    // config->AddPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::LOCATION")));
+    // config->SetPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::POLICYLOCATION")));
+    // config->AddPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::POLICYLOCATION")));
   }
 
   // Check authorization
