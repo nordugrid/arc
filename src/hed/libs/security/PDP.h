@@ -7,6 +7,14 @@
 #include <arc/Logger.h>
 
 namespace ArcSec {
+  //AuthzRequest, AuthzRequestSection, internal structure for request context 
+  /** These structure are based on the request schema for PDP, so far it can apply to
+  * the ArcPDP's request schema, see src/hed/pdc/Request.xsd and src/hed/pdc/Request.xml. It could also apply to 
+  * the XACMLPDP's request schema, since the difference is minor.
+  * 
+  * Another approach is, the service composes/marshalls the xml structure directly, then the service should use 
+  * difference code to compose for ArcPDP's request schema and XACMLPDP's schema, which is not so good. 
+  */
   typedef struct {
     std::string value;
     std::string id;
