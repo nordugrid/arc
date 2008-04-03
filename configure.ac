@@ -449,8 +449,11 @@ AC_SUBST(REGEX_LIBS)
 AC_SUBST(SOCKET_LIBS)
 
 case " $LDFLAGS " in
-     " -no-undefined ") ;;
-     *) LDFLAGS="$LDFLAGS -no-undefined" ;;
+     " -Wl,--no-undefined ") ;;
+     " -Wl,-no-undefined ") ;;
+     " -Wl,-z -Wl,defs ") ;;
+     " -Wl,-z,defs ") ;;
+     *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
 esac
 
 
