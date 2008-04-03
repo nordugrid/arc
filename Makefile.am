@@ -1,4 +1,6 @@
-ACLOCAL_FLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
+# /opt/local is the location for macports on MacOS X
+
+ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
 distdir = nordugrid-arc1-@VERSION@
 
