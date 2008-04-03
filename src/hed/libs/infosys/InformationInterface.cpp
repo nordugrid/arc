@@ -9,6 +9,19 @@ namespace Arc {
 
 #define XPATH_1_0_URI "http://www.w3.org/TR/1999/REC-xpath-19991116"
 
+class MutexSLock {
+ private:
+  Glib::Mutex& mutex_;
+  bool locked_;
+ public:
+  MutexSLock(Glib::Mutex& mutex,bool lock = true):mutex_(mutex),locked_(false) {
+    if(lock) { mutex_.lock(); locked_=true; };
+  };
+  ~MutexSLock(void) {
+    if(locked_) mutex_.unlock();
+  };
+};
+
 void InformationInterface::Get(const std::list<std::string>&,XMLNodeContainer&) {
   return;
 }
@@ -28,7 +41,7 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
   WSRF& wsrp = CreateWSRP(in);
   if(!wsrp) { delete &wsrp; return NULL; };
   // Check if operation is supported
-  if(to_lock_) lock_.lock();
+  MutexSLock(lock_,to_lock_);
   try {
     WSRPGetResourcePropertyDocumentRequest* req = 
          dynamic_cast<WSRPGetResourcePropertyDocumentRequest*>(&wsrp);
@@ -40,7 +53,6 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     WSRPGetResourcePropertyDocumentResponse* resp = 
          new WSRPGetResourcePropertyDocumentResponse(xresp);
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
-    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
     if(resp) delete resp;
     delete &wsrp;
@@ -62,7 +74,6 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
         resp->Property(xresp);
       };
     };
-    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
     if(resp) delete resp;
     delete &wsrp;
@@ -88,7 +99,6 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
         };
       };
     };
-    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
     if(resp) delete resp;
     delete &wsrp;
@@ -100,7 +110,6 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     if(req->Dialect() != XPATH_1_0_URI) {
-      if(to_lock_) lock_.unlock();
       // TODO: generate proper fault
       SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
       if(out) {
@@ -123,14 +132,12 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
         resp->Properties().NewChild(xresp);
       };
     };
-    if(to_lock_) lock_.unlock();
     SOAPEnvelope* out = (resp)?(resp->SOAP().New()):NULL;
     if(resp) delete resp;
     delete &wsrp;
     return out;
   } catch(std::exception& e) { };
   if(to_lock_) lock_.unlock();
-  // This operaion is not supported - generate fault
   SOAPEnvelope* out = new SOAPEnvelope(NS(),true);
   if(out) {
     SOAPFault* fault = out->Fault();
