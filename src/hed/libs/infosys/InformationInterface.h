@@ -22,9 +22,10 @@ class InformationInterface {
   /** This method is called by this object's Process method.
     Real implementation of this class should return (sub)tree 
     of XML document. This method may be called multiple times
-    per single Process call. */  
-  virtual std::list<XMLNode> Get(const std::list<std::string>& path);
-  virtual std::list<XMLNode> Get(XMLNode xpath);
+    per single Process call. Here @path is a set on XML element 
+    names specidying how to reach requested node(s).  */  
+  virtual void Get(const std::list<std::string>& path,XMLNodeContainer& result);
+  virtual void Get(XMLNode xpath,XMLNodeContainer& result);
  public:
   /** Constructor. If 'safe' is true all calls to Get will be locked. */
   InformationInterface(bool safe = true);
@@ -46,8 +47,8 @@ class InformationContainer: public InformationInterface {
  protected:
   /** Either link or container of XML document */
   XMLNode doc_;
-  virtual std::list<XMLNode> Get(const std::list<std::string>& path);
-  virtual std::list<XMLNode> Get(XMLNode xpath);
+  virtual void Get(const std::list<std::string>& path,XMLNodeContainer& result);
+  virtual void Get(XMLNode xpath,XMLNodeContainer& result);
  public:
   InformationContainer(void);
   /** Creates an instance with XML document @doc. 

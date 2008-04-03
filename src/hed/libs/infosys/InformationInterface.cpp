@@ -9,12 +9,12 @@ namespace Arc {
 
 #define XPATH_1_0_URI "http://www.w3.org/TR/1999/REC-xpath-19991116"
 
-std::list<XMLNode> InformationInterface::Get(const std::list<std::string>&) {
-  return std::list<XMLNode>();
+void InformationInterface::Get(const std::list<std::string>&,XMLNodeContainer&) {
+  return;
 }
 
-std::list<XMLNode> InformationInterface::Get(XMLNode) {
-  return std::list<XMLNode>();
+void InformationInterface::Get(XMLNode,XMLNodeContainer&) {
+  return;
 }
 
 InformationInterface::InformationInterface(bool safe):to_lock_(safe) {
@@ -35,8 +35,8 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     // Requesting whole document
-    std::list<XMLNode> presp = Get(std::list<std::string>());
-    XMLNode xresp; if(presp.size() > 0) xresp=*(presp.begin());
+    XMLNodeContainer presp; Get(std::list<std::string>(),presp);
+    XMLNode xresp; if(presp.Size() > 0) xresp=presp[0];
     WSRPGetResourcePropertyDocumentResponse* resp = 
          new WSRPGetResourcePropertyDocumentResponse(xresp);
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
@@ -52,14 +52,14 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
     if(!req) throw std::exception();
     if(!(*req)) throw std::exception();
     std::list<std::string> name; name.push_back(req->Name());
-    std::list<XMLNode> presp = Get(name); // Requesting sub-element
+    XMLNodeContainer presp; Get(name,presp); // Requesting sub-element
     WSRPGetResourcePropertyResponse* resp = 
          new WSRPGetResourcePropertyResponse();
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
     if(resp) {
-      for(std::list<XMLNode>::iterator xresp = presp.begin(); 
-                                xresp != presp.end(); ++xresp) {
-        resp->Property(*xresp);
+      for(int n = 0;n<presp.Size();++n) {
+        XMLNode xresp = presp[n];
+        resp->Property(xresp);
       };
     };
     if(to_lock_) lock_.unlock();
@@ -81,10 +81,10 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       for(std::vector<std::string>::iterator iname = names.begin();
                                 iname != names.end(); ++iname) {
         std::list<std::string> name; name.push_back(*iname);
-        std::list<XMLNode> presp = Get(name); // Requesting sub-element
-        for(std::list<XMLNode>::iterator xresp = presp.begin(); 
-                                  xresp != presp.end(); ++xresp) {
-          resp->Property(*xresp);
+        XMLNodeContainer presp; Get(name,presp); // Requesting sub-element
+        for(int n = 0;n<presp.Size();++n) {
+          XMLNode xresp = presp[n];
+          resp->Property(xresp);
         };
       };
     };
@@ -113,14 +113,14 @@ SOAPEnvelope* InformationInterface::Process(SOAPEnvelope& in) {
       delete &wsrp;
       return out;
     }
-    std::list<XMLNode> presp = Get(req->Query());
+    XMLNodeContainer presp; Get(req->Query(),presp);
     WSRPQueryResourcePropertiesResponse* resp =
          new WSRPQueryResourcePropertiesResponse();
     if((resp) && (!(*resp))) { delete resp; resp=NULL; };
     if(resp) {
-      for(std::list<XMLNode>::iterator xresp = presp.begin();
-                                xresp != presp.end(); ++xresp) {
-        resp->Properties().NewChild(*xresp);
+      for(int n = 0;n<presp.Size();++n) {
+        XMLNode xresp = presp[n];
+        resp->Properties().NewChild(xresp);
       };
     };
     if(to_lock_) lock_.unlock();
@@ -177,7 +177,7 @@ void InformationContainer::Assign(XMLNode doc,bool copy) {
 }
 
 
-std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path) {
+void InformationContainer::Get(const std::list<std::string>& path,XMLNodeContainer& result) {
   std::list<XMLNode> cur_list;
   std::list<std::string>::const_iterator cur_name = path.begin();
   cur_list.push_back(doc_);
@@ -185,23 +185,23 @@ std::list<XMLNode> InformationContainer::Get(const std::list<std::string>& path)
     std::list<XMLNode> new_list;
     for(std::list<XMLNode>::iterator cur_node = cur_list.begin();
                        cur_node != cur_list.end(); ++cur_node) {
-      for(int n = 0;;++n) {
-        XMLNode new_node = (*cur_node)[*cur_name][n];
+      XMLNode new_node = (*cur_node)[*cur_name];
+      for(;;new_node=new_node[1]) {
         if(!new_node) break;
         new_list.push_back(new_node);
       };
     };
     cur_list=new_list;
   };
-  return cur_list;
+  result.Add(cur_list);
+  return;
 }
 
-std::list<XMLNode> InformationContainer::Get(XMLNode query) {
-  std::list<XMLNode> result;
+void InformationContainer::Get(XMLNode query,XMLNodeContainer& result) {
   std::string q = query;
   NS ns = query.Namespaces();
-  result=doc_.XPathLookup(q,ns);
-  return result;
+  result.Add(doc_.XPathLookup(q,ns));
+  return;
 }
 
 InformationRequest::InformationRequest(void):wsrp_(NULL) {
