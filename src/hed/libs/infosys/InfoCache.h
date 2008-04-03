@@ -7,6 +7,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/ArcRegex.h>
+#include <arc/infosys/InformationInterface.h>
 #ifdef WIN32
 #include <io.h>
 #endif
@@ -28,6 +29,17 @@ class InfoCache {
         ~InfoCache();
 };
 
-} // namespace InfoCache
+class InfoCacheInterface: public InformationInterface {
+ protected:
+  InfoCache cache;
+  virtual void Get(const std::list<std::string>& path,XMLNodeContainer& result);
+  virtual void Get(XMLNode xpath,XMLNodeContainer& result);
+ public:
+  InfoCacheInterface(Arc::Config &cfg, std::string &service_id);
+  virtual ~InfoCacheInterface(void);
+  InfoCache& Cache(void) { return cache; };
+};
+
+} // namespace Arc
 
 #endif // __ARC_INFO_CACHE_H__

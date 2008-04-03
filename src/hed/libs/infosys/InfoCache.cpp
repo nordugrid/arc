@@ -398,4 +398,33 @@ bool InfoCache::Query(const char *path, const char *query, Arc::XMLNodeContainer
     return true;
 }
 
+
+InfoCacheInterface::InfoCacheInterface(Arc::Config &cfg, std::string &service_id):
+                                       cache(cfg,service_id)
+{
 }
+
+InfoCacheInterface::~InfoCacheInterface(void)
+{
+}
+
+void InfoCacheInterface::Get(const std::list<std::string>& path,XMLNodeContainer& result)
+{
+    std::string xml_path;
+    for(std::list<std::string>::const_iterator cur_name = path.begin();
+        cur_name != path.end(); ++cur_name) {
+        xml_path+="/"+(*cur_name);
+    };
+    if(xml_path.empty()) xml_path="/";
+    cache.Get(xml_path,result);
+}
+
+void InfoCacheInterface::Get(XMLNode xpath,XMLNodeContainer& result)
+{
+    std::string query = xpath;
+    if(!cache.Query("/",query.c_str(),result)) return;
+    return;
+}
+
+} // namespace Arc
+

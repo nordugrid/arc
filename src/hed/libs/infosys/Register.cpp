@@ -45,11 +45,11 @@ void Register::registration(void)
         const char *isis_name = (*it).c_str();
         bool tls;
         if (u.Protocol() == "http") {
-            tls = true;
-        } else if (u.Protocol() == "https") {
             tls = false;
+        } else if (u.Protocol() == "https") {
+            tls = true;
         } else {
-            logger.msg(Arc::WARNING, "invalid protocol: %s", isis_name);
+            logger.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
             continue;
         }
         cli = new Arc::ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
