@@ -371,7 +371,7 @@ class ManagerClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = arc.XMLNode(msg)
-        return msg
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = False)
 
 class ElementClient(Client):
 
@@ -452,7 +452,7 @@ class ByteIOClient(Client):
         ns = arc.NS({'rb':rbyteio_uri})
         Client.__init__(self, url, ns)
 
-    def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None):
+    def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None, file = None):
         request = []
         if start_offset is not None:
             request.append(('rb:start-offset', start_offset))
@@ -466,7 +466,11 @@ class ByteIOClient(Client):
         msg, _, _ = self.call(tree)
         xml = arc.XMLNode(msg)
         data_encoded = str(xml.Child().Child().Get('transfer-information'))
-        return base64.b64decode(data_encoded)
+        if file:
+            file.write(base64.b64decode(data_encoded))
+            file.close()
+        else:
+            return base64.b64decode(data_encoded)
 
     def write(self, data, start_offset = None, bytes_per_block = None, stride = None):
         if isinstance(data,file):

@@ -22,13 +22,20 @@ else:
             print 'stat', request
             print manager.stat(request)
     elif command == 'getFile':
-        if len(args) < 1:
-            print 'Usage: getFile <LN>'
+        if len(args) < 2:
+            print 'Usage: getFile <LN> <filename>'
         else:
+            LN = args[0]
+            filename = args[1]
+            f = file(filename, 'wb')
             request = {'0' : (args[0], ['byteio'])}
             print 'getFile', request
             response = manager.getFile(request)
             print response
+            success, turl, protocol = response['0']
+            if success == 'done':
+                print 'Downloading from', turl, 'to', filename
+                ByteIOClient(turl).read(file = f)
     elif command == 'putFile':
         if len(args) < 2:
             print 'Usage: putFile <filename> <LN>'
@@ -45,7 +52,8 @@ else:
             print response
             success, turl, protocol = response['0']
             if success == 'done':
-                print 'Uploading to', turl
+                f = file(filename,'rb')
+                print 'Uploading from', filename, 'to', turl
                 ByteIOClient(turl).write(f)
     elif command == 'makeCollection':
         if len(args) < 1:

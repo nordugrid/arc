@@ -121,7 +121,7 @@ class ByteIOService:
 
     def read(self, inpayload, subject):
         try:
-            data = file(self._filename(subject),'b').read()
+            data = file(self._filename(subject),'rb').read()
         except:
             print traceback.format_exc()
             data = ''

@@ -60,7 +60,29 @@ class Manager:
         for rID, (LN, protocols) in requests:
             turl = ''
             protocol = ''
-            success = 'failed'
+            try:
+                print traverse_response[rID]
+                metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
+                if not wasComplete:
+                    success = 'not found'
+                else:
+                    valid_locations = [location.split() + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                    if not valid_locations:
+                        success = 'file has no valid replica'
+                    else:
+                        location = random.choice(valid_locations)
+                        print 'location chosen:', location
+                        url, referenceID, _ = location
+                        get_response = dict(ElementClient(url).get({'getFile' : [('referenceID', referenceID), ('protocol', 'byteio')]})['getFile'])
+                        if get_response.has_key('error'):
+                            print 'ERROR', get_response['error']
+                            success = 'error while getting TURL (%s)' % get_response['error']
+                        else:
+                            turl = get_response['TURL']
+                            protocol = get_response['protocol']
+                            success = 'done'
+            except:
+                success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
         return response 
 
@@ -87,7 +109,7 @@ class Manager:
                     print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
                     if wasComplete:
                         success = 'LN exists'
-                    elif restLN != child_name:
+                    elif restLN != child_name or GUID == '':
                         success = 'parent does not exist'
                     elif child_name == '': # this only can happen if the LN was a single GUID
                         child_metadata[('catalog','type')] = 'file'
@@ -132,7 +154,7 @@ class Manager:
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             if wasComplete:
                 success = 'LN exists'
-            elif restLN != child_name:
+            elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 child_metadata[('catalog','type')] = 'collection'
