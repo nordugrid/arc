@@ -19,6 +19,7 @@ class Client:
         self.port = port
         self.path = path
         self.ns = ns
+        self.url = url
         self.print_xml = print_xml
 
     def call(self, tree, return_tree_only = False):
@@ -277,6 +278,23 @@ class ManagerClient(Client):
         return dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in elements.items()])
 
+    def getFile(self, requests):
+        tree = XMLTree(from_tree =
+            ('man:getFile', [
+                ('man:getFileRequestList', [
+                    ('man:getFileRequestElement', [
+                        ('man:requestID', rID),
+                        ('man:LN', LN)
+                    ] + [
+                        ('man:protocol', protocol) for protocol in protocols
+                    ]) for rID, (LN, protocols) in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
+    
     def putFile(self, requests):
         tree = XMLTree(from_tree =
             ('man:putFile', [
@@ -291,7 +309,9 @@ class ManagerClient(Client):
                 ])
             ])
         )
-        return self.call(tree, True)
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
     def makeCollection(self, requests):
         tree = XMLTree(from_tree =
@@ -327,12 +347,13 @@ class ManagerClient(Client):
         msg, _, _ = self.call(tree)
         xml = arc.XMLNode(msg)
         elements = parse_node(xml.Child().Child().Child(),
-            ['requestID', 'entries'], single = True, string = False)
+            ['requestID', 'entries', 'status'], string = False)
         return dict([
-            (   str(requestID),
-                dict([(str(name), (str(GUID), parse_metadata(metadataList))) for name, (GUID, metadataList) in
-                    parse_node(entries, ['name', 'GUID', 'metadataList'], string = False).items()])
-            ) for requestID, entries in elements.items()
+            (   str(requestID), 
+                (dict([(str(name), (str(GUID), parse_metadata(metadataList))) for name, (GUID, metadataList) in
+                    parse_node(entries, ['name', 'GUID', 'metadataList'], string = False).items()]),
+                str(status))
+            ) for requestID, (entries, status) in elements.items()
         ])
 
     def move(self, requests):
@@ -448,6 +469,8 @@ class ByteIOClient(Client):
         return base64.b64decode(data_encoded)
 
     def write(self, data, start_offset = None, bytes_per_block = None, stride = None):
+        if isinstance(data,file):
+            data = data.read()
         out = arc.PayloadSOAP(self.ns)
         request_node = out.NewChild('rb:write')
         if start_offset is not None:

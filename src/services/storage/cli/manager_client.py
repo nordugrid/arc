@@ -1,7 +1,8 @@
-import arc, sys, time
+import arc, sys, time, os
 from storage.common import false
 from storage.xmltree import XMLTree
-from storage.client import ManagerClient
+from storage.client import ManagerClient, ByteIOClient
+from storage.common import create_checksum
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
     args.pop(0)
@@ -9,8 +10,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 manager = ManagerClient('http://localhost:60000/Manager', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile']:
-    print 'Supported methods: stat, makeCollection, list, move, putFile' 
+if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile']:
+    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -20,14 +21,32 @@ else:
             request = dict([(i, args[i]) for i in range(len(args))])
             print 'stat', request
             print manager.stat(request)
-    elif command == 'putFile':
+    elif command == 'getFile':
         if len(args) < 1:
-            print 'Usage: putFile <LN>'
+            print 'Usage: getFile <LN>'
         else:
-            metadata = {('states', 'size') : 0, ('states', 'checksum') : 0, ('states', 'checksumType') : 0}
-            request = {'0': (args[0], metadata, ['byteio'])}
+            request = {'0' : (args[0], ['byteio'])}
+            print 'getFile', request
+            response = manager.getFile(request)
+            print response
+    elif command == 'putFile':
+        if len(args) < 2:
+            print 'Usage: putFile <filename> <LN>'
+        else:
+            filename = args[0]
+            size = os.path.getsize(filename)
+            f = file(filename,'rb')
+            checksum = create_checksum(f, 'md5')
+            LN = args[1]
+            metadata = {('states', 'size') : size, ('states', 'checksum') : checksum, ('states', 'checksumType') : 'md5'}
+            request = {'0': (LN, metadata, ['byteio'])}
             print 'putFile', request
-            print manager.putFile(request)
+            response = manager.putFile(request)
+            print response
+            success, turl, protocol = response['0']
+            if success == 'done':
+                print 'Uploading to', turl
+                ByteIOClient(turl).write(f)
     elif command == 'makeCollection':
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
@@ -43,11 +62,14 @@ else:
             print 'list', request
             response = manager.list(request,[('catalog','')])
             print response
-            for rID, entries in response.items():
+            for rID, (entries, status) in response.items():
                 print
-                print '%s:' % request[rID]
-                for name, (GUID, metadata) in entries.items():
-                    print '\t%s\t<%s>' % (name, metadata.get(('catalog', 'type'),'unknown'))
+                if status == 'found':
+                    print '%s:' % request[rID]
+                    for name, (GUID, metadata) in entries.items():
+                        print '\t%s\t<%s>' % (name, metadata.get(('catalog', 'type'),'unknown'))
+                else:
+                    print '%s: %s' % (request[rID], status)
     elif command == 'move':
         if len(args) < 2:
             print 'Usage: move <sourceLN> <targetLN> [preserve]'

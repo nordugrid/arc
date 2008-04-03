@@ -8,6 +8,7 @@ import random
 import arc
 from storage.xmltree import XMLTree
 from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response
+from storage.client import CatalogClient
 
 ALIVE = 'alive'
 CREATING = 'creating'
@@ -31,6 +32,13 @@ class Element:
             print 'Cannot import store class', storeclass
             raise
         try:
+            catalogURL = str(cfg.Get('CatalogURL'))
+            self.catalog = CatalogClient(catalogURL)
+            self.serviceID = str(cfg.Get('ServiceID'))
+        except:
+            print 'Cannot get CatalogURL or serviceID'
+            raise
+        try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
@@ -39,18 +47,34 @@ class Element:
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
 
     def changeState(self, referenceID, newState, onlyIf = None):
+        print 'element.changeState locking store'
         self.store.lock()
         try:
             localData = self.store.get(referenceID)
-            if onlyIf and localData['state'] != onlyIf:
+            oldState = localData['state']
+            if onlyIf and oldState != onlyIf:
+                print 'element.changeState unlocking store'
                 self.store.unlock()
                 return False
             localData['state'] = newState
             self.store.set(referenceID, localData)
+            print 'element.changeState unlocking store'
             self.store.unlock()
+        except:
+            print traceback.format_exc()
+            print 'element.changeState unlocking store'
+            self.store.unlock()
+            return False
+        try:
+            GUID = localData['GUID']
+            if GUID:
+                location = '%s %s' % (self.serviceID, referenceID)
+                print 'Connecting', self.catalog.url
+                modify_response = self.catalog.modifyMetadata({'changeState' : (GUID, 'set', 'locations', location, newState)})
+                if modify_response['changeState'] != 'set':
+                    print 'failed to set file\'s state in catalog', referenceID, GUID, location, newState
             return True
         except:
-            self.store.unlock()
             print traceback.format_exc()
             return False
 

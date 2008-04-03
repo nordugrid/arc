@@ -32,9 +32,9 @@ class Catalog:
                 except:
                     GUID = mkuid()
                 check = self.hash.change(
-                    {'0': (GUID, 'set', 'catalog', 'type', type, {'0' : ('unset','catalog','type','')})}
+                    {'new': (GUID, 'set', 'catalog', 'type', type, {'0' : ('unset','catalog','type','')})}
                 )
-                status, failedCondition = check['0']
+                status, failedCondition = check['new']
                 if status == 'set':
                     success = 'success'
                     changeID = 0

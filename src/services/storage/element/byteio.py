@@ -45,7 +45,7 @@ class ByteIOBackend:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
         datapath = os.path.join(self.datadir, localID)
-        f = file(datapath, 'w')
+        f = file(datapath, 'wb')
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[turl_id] = referenceID
@@ -102,7 +102,7 @@ class ByteIOService:
         try:
             fn = self._filename(subject)
             file(fn) # check existance
-            f = file(fn,'w') # open for overwriting
+            f = file(fn,'wb') # open for overwriting
         except:
             print traceback.format_exc()
             raise Exception, 'denied'
@@ -121,7 +121,7 @@ class ByteIOService:
 
     def read(self, inpayload, subject):
         try:
-            data = file(self._filename(subject)).read()
+            data = file(self._filename(subject),'b').read()
         except:
             print traceback.format_exc()
             data = ''
