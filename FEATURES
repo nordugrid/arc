@@ -1,14 +1,18 @@
+*  Partially or fully developed (at least usable)
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
 HED/XML & SOAP         Partial       In header                 Aleksandr                -         Only needed parts are implemented.
 HED/WSRF               Partial       In header, incomplete     Aleksandr                -         Only parts needed for information interface are implemented
 HED/Delegation interf. Done          In header                 Aleksandr                -
 HED/Plugins Loader     Done          In header                 -                        -         Needs revision.
 HED/MCC Framework      Done          In header and design doc. -                        -
-HED/WS-Security        Being dev.    In header                 Undefined                -         Username token supported only. Needs integration.
 HED/Counter            Done          In header                 Markus                   -
 HED/Logger             Done          In header                 Markus                   -
 HED/Data library       Done          In header                 Mattias                  -
-HED/Cert. handling     Being devel.  None                      Weizhong                 -
+HED/DMC/File           Done          Not needed                Mattias                  -
+HED/DMC/(Grid)FTP      Done          Not needed                Mattias                  -
+HED/DMC/HTTP(S)        Usable        Not needed                Mattias & Aleksandr      -         Not well tested. Would be nice to have HTTPg as well.
+HED/DMC/LFC            Usable        Not needed                Mattias                  -         Porting of David's enhanced LFC code from ARC0 would be useful.
+HED/DMC/RLS            Done          Not needed                Mattias                  -
 HED/Security framework Done          Available, incomplete     Weizhong                 -         Continuously being modified/adapted.
 HED/PDC/SimpleList     Done          None                      Weizhong                 -
 HED/PDC/ARC Policy     Done          None                      Weizhong                 -
@@ -17,22 +21,25 @@ HED/MCC/SSL&TLS        Done          In header                 Weizhong & Aleksa
 HED/MCC/HTTP           Partial       In header                 Aleksandr                -         No support for transfer of big data chunks/streaming
 HED/MCC/SOAP           Done          In header, incomplete     Aleksandr                -
 HED/PLEXER             Done          In header                 Markus                   -         Simplistic approach. Enough for current needs.
-HED/DMC/File           Done          Not needed                Mattias                  -
-HED/DMC/(Grid)FTP      Done          Not needed                Mattias                  -
-HED/DMC/HTTP(S)        Usable        Not needed                Mattias & Aleksandr      -         Not well tested. Would be nice to have HTTPg as well.
-HED/DMC/LFC            Usable        Not needed                Mattias                  -         Porting of David's enhanced LFC code from ARC0 would be useful.
-HED/DMC/RLS            Done          Not needed                Mattias                  -
-HED/Java bibding       Maintained    None                      Ferenc                   -
-HED/Python bibding     Maintained    None                      Ferenc                   -
-ARCLib                 Being devel.  Design document           Mattias                  -
-ARCLib/ARC0 plugin     Being ported  None                      Mattias                  -
 AREX/BES               Done          In deliverable            Aleksandr                -
-AREX/BES extensions    Incomplete    In deliverable            Aleksandr                -
+AREX/BES extensions    Done          In deliverable            Aleksandr                -
 AREX/User mapping      Done          None                      Aleksandr                -
 AREX/Inform. interf.   Prototype     None                      Aleksandr                -         Uses code from ARC0
 AREX/Client            Prototype     In deliverable            Markus                   -
 Data/Clients           Done          -h                        Mattias                  -         Code ported from ARC0.
+
+*  Development started
+ Component/Feature    Status         Documentation            Assigned person        Due date       Comments
+HED/Cert. handling     Being devel.  None                      Weizhong                 -
+HED/Java bibding       Maintained    None                      Ferenc                   -
+HED/Python bibding     Maintained    None                      Ferenc                   -
+ARCLib                 Being devel.  Design document           Mattias                  -
+ARCLib/ARC0 plugin     Being ported  None                      Mattias                  -
 ISIS/Service           Being devel.  None                      Ferenc                   -
 ISIS/Client            Being devel.  None                      Ferenc                   -
+  
+*  Planned
+ Component/Feature    Status         Documentation            Assigned person        Due date       Comments
+HED/WS-Security        Being dev.    In header                 Undefined                -         Username token supported only. Needs integration.
 Security/PDP Service   Prototype     None                      Weizhong                 -
-
+Security/Attributes    Discussed     None                      Aleksandr,Johan          -
