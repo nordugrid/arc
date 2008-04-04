@@ -69,6 +69,8 @@ class Run {
   /** Wait till execution finished or till timeout seconds expires.
     Returns true if execution is complete. */
   bool Wait(int timeout);
+  /** Wait till execution finished */
+  bool Wait(void);
   /** Returns exit code of execution. */
   int Result(void) { return result_; };
   /** Return true if execution is going on. */

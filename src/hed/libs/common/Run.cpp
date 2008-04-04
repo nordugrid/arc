@@ -366,6 +366,42 @@ bool Run::Wait(int timeout) {
   return (!running_);
 }
 
+bool Run::Wait(void)
+{
+  if(!started_) return false;
+  if(!running_) return true;
+  lock_.lock();
+  while(running_) {
+#ifdef HAVE_GLIBMM_CHILDWATCH
+    cond_.wait(lock_);
+#else
+#ifndef WIN32
+    int status;
+    int r = waitpid(pid_,&status);
+    if(r == 0) {
+      lock_.unlock();
+      sleep(1);
+      lock_.lock();
+      continue;
+    };
+    if(r == -1) { // Child lost?
+      status=-1;
+    } else {
+      status=WEXITSTATUS(status);
+    };
+    // Child exited
+    lock_.unlock();
+    child_handler(pid_,status << 8);
+    lock_.lock();
+#else
+#error Must use newer version of GLibmm for Windows
+#endif
+#endif
+  };
+  lock_.unlock();
+  return (!running_);
+}
+
 void Run::AssignStdout(std::string& str) {
   if(!running_) stdout_str_=&str;
 }

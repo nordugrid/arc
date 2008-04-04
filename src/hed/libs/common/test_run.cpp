@@ -10,7 +10,7 @@ int main(void)
         std::string std_out;
         std::string std_err;
 
-        Arc::Run executer("/bin/ls -l");
+        Arc::Run executer("/bin/sleep 100");
     
         executer.AssignStdin(std_in);
         executer.AssignStdout(std_out);
@@ -20,7 +20,8 @@ int main(void)
             std::cout << "Failed to start" << std::endl;
             return -1;
         };
-        if ( executer.Wait(60) ) {
+        // if ( executer.Wait(60) ) {
+        if ( executer.Wait() ) {
             std::cout << std_out << std::endl;
         } else {
             std::cout << "Timeout" << std::endl;
