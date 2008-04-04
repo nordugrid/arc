@@ -382,11 +382,21 @@ if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
 
 # Check for LDAP
 AC_CHECK_HEADER(ldap.h, [LDAP=yes],[LDAP=no])
+SAVE_LDFLAGS=$LDFLAGS
+LDFLAGS=-lpthread
+AC_CHECK_LIB([ldap_r], [ldap_first_message], [ LDAP_LIBS=-lldap_r ], [
+  AC_CHECK_LIB([ldap], [ldap_first_message], [ LDAP_LIBS=-lldap ], [
+    LDAP=no
+  ])
+])
+AC_SUBST(LDAP_LIBS)
+LDFLAGS=$SAVE_LDFLAGS
+
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Check for the uuid lib
-AC_CHECK_HEADER(uuid/uuid.h, [UUID_LIB="-luuid"], [UUID_LIB=""])
-AC_SUBST(UUID_LIB)
+AC_CHECK_HEADER(uuid/uuid.h, [UUID_LIBS="-luuid"], [UUID_LIBS=""])
+AC_SUBST(UUID_LIBS)
 
 # Checks for header files.
 AC_HEADER_DIRENT
