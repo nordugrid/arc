@@ -19,11 +19,11 @@
     PDP can be used, if we need to use some standard XACML policy and do not want to write some 
     complicated XACML policy;
     Each service or resource can have one authorization policy file. 
-    It the policy enforcement point only includes one entity which needs to be enforced policy decision, 
-    then "Resources" can be omitted;
+    If the policy enforcement point only includes one entity on which the policy needs to be enforced,
+    the "Resources" element can be omitted;
  -->
- <!-- For quick reference here is a tree desribing interconnection of 
-    main elements. Multiplicity is specified in brackets.
+ <!-- For quick reference here is a tree desribing the interconnection of 
+    the main elements. Multiplicity is specified in brackets.
       Policy (1)
         Rule (1-)
           Subjects (1)
@@ -40,8 +40,8 @@
  <!-- Human-readable description of element -->
  <xsd:element name="Description" type="xsd:string"/>
 
- <!-- Authorization policy is combination of Rules. Rules evalutaion results
-      are combined according to specified rule combinning algorithm. -->
+ <!-- An authorization policy is a combination of Rules. Their evalutaion results
+      are combined according to a specified rule combining algorithm. -->
  <xsd:element name="Policy" type="policy-arc:PolicyType"/>
  <xsd:complexType name="PolicyType">
   <xsd:sequence>
@@ -55,7 +55,7 @@
  </xsd:complexType>
 
 
- <!--One rule is a unit of decision-making, which means there is implicit relationship 
+ <!--One rule is a unit of decision-making, which means there is an implicit relationship 
   among <Subjects, Resources, Actions, Conditions>. 
   There are some principles about the Rule definition:
    1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually 
