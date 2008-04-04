@@ -48,9 +48,9 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     cs.NewChild("Type") = "org.nordugrid.paul";
     cs.NewChild("QualityLevel") = "production";
     cs.NewChild("Complexity") = "endpoint=1,share=1,resource=1";
-    cs.NewChild("TotalJobs") = Arc::tostring(job_list.getTotalJobs());
-    cs.NewChild("RunningJobs") = Arc::tostring(job_list.getRunningJobs());
-    cs.NewChild("WaitingJobs") = Arc::tostring(job_list.getWaitingJobs());
+    cs.NewChild("TotalJobs") = Arc::tostring(jobq.getTotalJobs());
+    cs.NewChild("RunningJobs") = Arc::tostring(jobq.getRunningJobs());
+    cs.NewChild("WaitingJobs") = Arc::tostring(jobq.getWaitingJobs());
     cs.NewChild("StageingJobs") = "0"; // XXX get info from jobqueue
     cs.NewChild("PreLRMSWaitingJobs") = "0"; // XXX get info from jobqueue
     Arc::XMLNode endpoint = cs.NewChild("ComputingEndpoint");
@@ -122,10 +122,10 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     spolicy.NewAttribute("type") = "SharePolicy";
     Arc::XMLNode sstate = s.NewChild("ComputingShareState");
     sstate.NewAttribute("type") = "ShareState";
-    sstate.NewChild("TotalJobs") = Arc::tostring(job_list.getTotalJobs());
-    sstate.NewChild("RunningJobs") = Arc::tostring(job_list.getRunningJobs());
-    sstate.NewChild("LocalRunningJobs") = Arc::tostring(job_list.getLocalRunningJobs());
-    sstate.NewChild("WaitingJobs") = Arc::tostring(job_list.getWaitingJobs());
+    sstate.NewChild("TotalJobs") = Arc::tostring(jobq.getTotalJobs());
+    sstate.NewChild("RunningJobs") = Arc::tostring(jobq.getRunningJobs());
+    sstate.NewChild("LocalRunningJobs") = Arc::tostring(jobq.getLocalRunningJobs());
+    sstate.NewChild("WaitingJobs") = Arc::tostring(jobq.getWaitingJobs());
     sstate.NewChild("State") = "?";
     s.NewChild(policy); // use the same policy
     return true;
@@ -186,21 +186,35 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<Job> &re
     // Create jobs from response
     Arc::XMLNode activities;
     activities = (*response)["ibes:GetActivitiesResponse"]["ibes:Activities"];
-    {
-        std::string str;
-        activities.GetXML(str);
-        std::cout << str << std::endl;
-    }
     Arc::XMLNode activity;
     for (int i = 0; (activity = activities.Child(i)) != false; i++) {
         JobRequest jr(activity);
         std::string job_id = (std::string)activity.Attribute("ID");
         Job j(jr);
-        JobStatus status(ACCEPTING);
-        j.setStatus(status);
+        j.setStatus(status_factory.get(NEW));
         j.setID(job_id);
         ret.push_back(j);
+        jobq.addJob(j);
+        // j.save();
     }
+}
+
+typedef struct {
+    PaulService *self;
+    Job *job;
+} ServiceAndJob;
+
+void PaulService::process_job(void *arg)
+{
+    ServiceAndJob &info = *((ServiceAndJob *)arg);
+    PaulService &self = *(info.self);
+    Job &j = *(info.job);
+    self.logger_.msg(Arc::DEBUG, "Process job: %s", j.getID());
+    self.stage_in(j);
+    self.run(j);
+    self.stage_out(j);
+    // free memory
+    delete &info;
 }
 
 void PaulService::do_request(void)
@@ -211,9 +225,12 @@ void PaulService::do_request(void)
     std::vector<Job> jobs;
     GetActivities(url, jobs);
     for (int i = 0; i < jobs.size(); i++) {
-        Job j = jobs[i];
-        std::cout << j.getID() << std::endl;
+        ServiceAndJob *arg = new ServiceAndJob;
+        arg->self = this;
+        arg->job = new Job(jobs[i]);
+        Arc::CreateThreadFunction(&process_job, arg);
     }
+
     // invoke GetActivity function call aganst scheduler
     // if there was error: report and return
     // put job into queue
@@ -222,13 +239,13 @@ void PaulService::do_request(void)
 }
 
 // Main request loop
-static void request_loop(void* arg) 
+void PaulService::request_loop(void* arg) 
 {
     PaulService *self = (PaulService *)arg;
     
     for (;;) {
         self->do_request();
-        sleep(self->get_period());       
+        sleep(self->period);       
     }
 }
 
@@ -242,7 +259,9 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     std::string sched_endpoint = (std::string)((*cfg)["SchedulerEndpoint"]);
     schedulers.push_back(sched_endpoint);
     period = Arc::stringtoi((std::string)((*cfg)["RequestPeriod"]));
+    job_root = (std::string)((*cfg)["JobRoot"]);
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
+    cache_path = (std::string)((*cfg)["CacheDirectoryPath"]);
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
     pki["CertificatePath"] = (std::string)((*cfg)["CertificatePath"]);
     pki["PrivateKey"] = (std::string)((*cfg)["PrivateKey"]);  

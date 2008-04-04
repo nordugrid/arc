@@ -1,32 +1,56 @@
-#ifndef __ARC_PAUL_JOB_H__
-#define __ARC_PAUL_JOB_H__
+#ifndef SCHED_JOB
+#define SCHED_JOB
 
 #include <string>
-#include "job_status.h"
 #include "job_request.h"
+#include "job_sched_meta.h"
+#include "job_status.h"
 
 namespace Paul {
 
-class Job
-{
+
+class Job {
+
     private:
         JobRequest request;
-        JobStatus status;
-        std::string failure_;
+        JobSchedMetaData sched_meta;
+        std::string failure;
         std::string id;
-        std::string lrms_id;
+        std::string db;
+        SchedStatus status;
+        int timeout;
+        int check;
     public:
-        Job(void) { };
-        Job(JobRequest &r) { request = r; };
-        void setID(const std::string &id_) { id = id_; };
-        std::string getID(void) { return id; };
-        std::string getName(void) { return request.getName(); };
-        void setStatus(const JobStatus &s) { status = s; };
-        JobStatus getStatus(void) { return status; };
-        bool Cancel(void);
+        Job(void);
+        Job(const Job &j);
+        Job(JobRequest &r);
+        Job(JobRequest &r, JobSchedMetaData &m, int t, const std::string &db_path);
+        Job(const std::string& job, const std::string &db_path);
+        Job(std::istream &job, const std::string &db_path);
+        virtual ~Job(void);
+        void setJobRequest(JobRequest &r) { request = r; };
+        JobRequest &getJobRequest(void) { return request; };
+        void setJobSchedMetaData(JobSchedMetaData &sched_meta);
+        JobSchedMetaData &getSchedMetaData(void) { return sched_meta; };
+        const std::string getFailure(void);
+        void setID(const std::string& id_) { id = id_; };
+        const std::string &getID(void) { return id; };
+        void setStatus(const SchedStatus &s) { status = s; };
+        const SchedStatus &getStatus(void) { return status; };
+        operator bool(void) { return (id.empty() ? false : true ); };
+        bool operator!(void) { return (id.empty() ? true : false ); };
+        Arc::XMLNode &getJSDL(void) { return request.getJSDL(); };
+        void setResourceJobID(const std::string &id) { sched_meta.setResourceJobID(id); };
+        const std::string &getResourceJobID(void) { return sched_meta.getResourceJobID(); };
+        void setResourceID(const std::string &id) { sched_meta.setResourceID(id); };
+        const std::string &getResourceID(void) { return sched_meta.getResourceID(); };
+        bool CheckTimeout(void);
+        bool Cancel(const SchedStatus &killed_state);
+        bool save(void);
+        bool load(SchedStatusFactory &status_factory);
+        bool remove(void);
+};
 
-}; // class Job
+} // namespace Arc
 
-} // namespace Paul
-
-#endif
+#endif // SCHED_JOB

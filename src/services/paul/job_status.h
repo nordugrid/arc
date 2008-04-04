@@ -3,11 +3,24 @@
 
 #include <map>
 #include <string>
+#include <arc/StringConv.h>
 
 namespace Paul
 {
 
-enum JobStatusLevel 
+enum SchedStatusLevel {
+    NEW, 
+    STARTING, 
+    RUNNING, 
+    CANCELLED, 
+    FAILED, 
+    FINISHED, 
+    KILLED, 
+    KILLING,
+    UNKNOWN 
+};
+
+enum ARexStatusLevel 
 {
     ACCEPTING, 
     ACCEPTED, 
@@ -15,45 +28,43 @@ enum JobStatusLevel
     PREPARED, 
     SUBMITTING, 
     EXECUTING, 
-    KILLING, 
+    AREX_KILLING, 
     EXECUTED, 
     FINISHING, 
-    FAILED, 
-    HELD
+    AREX_FAILED, 
+    HELD,
+    AREX_UNKNOWN
 };
 
-class JobStatus
+class SchedStatus
 {
     private:
-        JobStatusLevel level;
-        std::map<int, std::string> str_map;
+        SchedStatusLevel level;
+        std::string level_str;
     public:
-        JobStatus(void);
-        JobStatus(JobStatusLevel l);
-        void add_map(std::map<int, std::string> &m);
-        JobStatusLevel get(void);
-        operator std::string(void);
-}; // job status
+        SchedStatus(void) { level = UNKNOWN; level_str = "UNKONWN"; };
+        SchedStatus(SchedStatusLevel l, const std::string &str) { level = l; level_str = str; };
+        operator std::string(void) const { return level_str; };
+        bool operator==(SchedStatusLevel l) const { return (l == level); };
+        bool operator==(const SchedStatus &s) const { return (s.level == level); };
+        bool operator==(const std::string &s) const { return (Arc::upper(s) == level_str); };
+        bool operator!=(SchedStatusLevel l) const { return (l != level); };
+        bool operator!=(const SchedStatus &s) const { return (s.level != level); };
+        bool operator!=(const std::string &s) const { return (Arc::upper(s) != level_str); };
+};
 
-#if 0
-/// XXX Factroy generates Job status: factory gets the string map
-
-template <typename T, SM>
-class JobStatus
+class SchedStatusFactory
 {
     private:
-        T level;
-        std::map<T, std::string> str_map;
+        std::map<SchedStatusLevel, std::string> str_map;
     public:
-        JobStatus(void);
-        JobStatus(std::map<T, std::string> const &);
-        JobStatus(T const&);
-        JobStatus(std::string &);
-        T get(void);
-        operator std::string(void) const;
-}; // class JobStatus
-#endif
+        SchedStatusFactory(void);
+        SchedStatus get(SchedStatusLevel l) { return SchedStatus(l, str_map[l]);};
+        SchedStatus get(const std::string &str);
+        SchedStatus getFromARexStatus(ARexStatusLevel l);
+        SchedStatus getFromARexStatus(const std::string &str);
+}; // sched status factory
 
-}; // namespace Paul
+} // namespace Paul
 
 #endif

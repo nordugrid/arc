@@ -4,42 +4,59 @@
 
 #include "job_status.h"
 
-namespace Paul 
+namespace Paul
 {
 
-JobStatus::JobStatus(void)
+SchedStatusFactory::SchedStatusFactory(void)
 {
-   str_map[ACCEPTING] = "ACCEPTING";
-   str_map[ACCEPTED] = "ACCEPTED";
-   str_map[PREPARING] = "PREPARING";
-   str_map[PREPARED] = "PREPARED";
-   str_map[SUBMITTING] = "SUBMITTING";
-   str_map[EXECUTING] = "EXECUTING";
-   str_map[KILLING] = "KILLING";
-   str_map[EXECUTED] = "EXECUTED";
-   str_map[FINISHING] = "FINISHING";
-   str_map[FAILED] = "FAILED";
-   str_map[HELD] = "HELD"; 
-}
-    
-JobStatus::JobStatus(JobStatusLevel l)
-{
-    level = l;
+    str_map[NEW] = "NEW";
+    str_map[STARTING] = "STARTING";
+    str_map[RUNNING] = "RUNNING"; 
+    str_map[CANCELLED] = "CANCELLED"; 
+    str_map[FAILED] = "FAILED"; 
+    str_map[FINISHED] = "FINISHED"; 
+    str_map[KILLED] = "KILLED"; 
+    str_map[KILLING] = "KILLING";
+    str_map[UNKNOWN] = "UNKNOWN"; 
 }
 
-void JobStatus::add_map(std::map<int, std::string> &m)
+SchedStatus SchedStatusFactory::get(const std::string &state)
 {
-    str_map = m;
+    std::map<SchedStatusLevel, std::string>::iterator it;
+    for (it = str_map.begin(); it != str_map.end(); it++) {
+        if (state == it->second) {
+            return SchedStatus(it->first, it->second);
+        }
+    }
+    return get(UNKNOWN);
 }
 
-JobStatusLevel JobStatus::get(void)
-{   
-    return level;
+SchedStatus SchedStatusFactory::getFromARexStatus(const std::string &arex_state) 
+{
+    if (arex_state == "ACCEPTED") {
+        return get(STARTING);
+    } else if(arex_state == "PREPARING") {
+        return get(STARTING);
+    } else if(arex_state == "SUBMITING") {
+        return get(STARTING);
+    } else if(arex_state == "EXECUTING") {
+        return get(RUNNING);
+    } else if(arex_state == "FINISHING") {
+        return get(RUNNING);
+    } else if(arex_state == "FINISHED") {
+        return get(FINISHED);
+    } else if(arex_state == "DELETED") {
+        return get(CANCELLED);
+    } else if(arex_state == "KILLING") {
+        return get(CANCELLED);
+    }
+    return get(UNKNOWN);
 }
 
-JobStatus::operator std::string(void) 
+SchedStatus SchedStatusFactory::getFromARexStatus(ARexStatusLevel al)
 {
-    return str_map[level];
+    // XXX  missing mapping
+    get(UNKNOWN);
 }
 
 }; // namespace Paul
