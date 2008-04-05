@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-04-02 08:59+0200\n"
-"PO-Revision-Date: 2008-04-02 08:58+0200\n"
+"POT-Creation-Date: 2008-04-05 07:26+0200\n"
+"PO-Revision-Date: 2008-04-05 07:28+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -1189,7 +1189,7 @@ msgstr "Misslyckades med att läsa data"
 msgid "Memory allocation error"
 msgstr "Minnesallokeringsfel"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:314
+#: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:60
 #, c-format
 msgid "Command: %s"
 msgstr "Kommando: %s"
@@ -2226,8 +2226,8 @@ msgstr "Mappar %s till %s"
 
 #: ../src/hed/libs/infosys/Register.cpp:52
 #, c-format
-msgid "invalid protocol: %s"
-msgstr "ogiltigt protokoll: %s"
+msgid "unsupported protocol: %s"
+msgstr "icke understött protokoll: &s"
 
 #: ../src/hed/libs/infosys/Register.cpp:56
 #, c-format
@@ -2728,7 +2728,17 @@ msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:604
+#: ../src/hed/mcc/tls/MCCTLS.cpp:483
+#, c-format
+msgid "Peer name: %s"
+msgstr "Peer-namn: %s"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:489 ../src/hed/mcc/tls/MCCTLS.cpp:500
+#, c-format
+msgid "Identity name: %s"
+msgstr "Identitetsnamn: %s"
+
+#: ../src/hed/mcc/tls/MCCTLS.cpp:515 ../src/hed/mcc/tls/MCCTLS.cpp:604
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för inkommande meddelande"
 
@@ -2769,7 +2779,7 @@ msgid "Peer cert verification fail"
 msgstr "Peer-certifikatvalidering misslyckades"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
-#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129 ../src/hed/pdc/ArcPDP.cpp:185
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129 ../src/hed/pdc/ArcPDP.cpp:186
 #: ../src/hed/pdc/CountPDP.cpp:101 ../src/services/a-rex/PayloadFile.cpp:35
 #: ../src/services/pdp/pdpservice.cpp:88
 #, c-format
@@ -2794,33 +2804,33 @@ msgstr ""
 msgid "Can not parse classname for Request from configuration"
 msgstr "Kan inte tolka klassnamn för Request från konfigurationen"
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:93
+#: ../src/hed/pdc/ArcEvaluator.cpp:94
 msgid "Can not dynamically produce AttributeFactory"
 msgstr "Kan inte skapa AttributeFactory dynamiskt"
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:99
+#: ../src/hed/pdc/ArcEvaluator.cpp:100
 msgid "Can not dynamically produce FnFactory"
 msgstr "Kan inte skapa FnFactory dynamiskt"
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:105
+#: ../src/hed/pdc/ArcEvaluator.cpp:106
 msgid "Can not dynamically produce AlgFacroty"
 msgstr "Kan inte skapa AlgFactory dynamiskt"
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:154 ../src/hed/pdc/test.cpp:136
+#: ../src/hed/pdc/ArcEvaluator.cpp:155 ../src/hed/pdc/test.cpp:136
 msgid "Can not dynamically produce Request"
 msgstr "Kan inte skapa Request dynamiskt"
 
-#: ../src/hed/pdc/ArcEvaluator.cpp:266
+#: ../src/hed/pdc/ArcEvaluator.cpp:267
 #, c-format
 msgid "Result value (0 means success): %d"
 msgstr "Resultatvärde (0 betyder OK): %d"
 
-#: ../src/hed/pdc/ArcPDP.cpp:73 ../src/hed/pdc/CountPDP.cpp:41
+#: ../src/hed/pdc/ArcPDP.cpp:74 ../src/hed/pdc/CountPDP.cpp:41
 #: ../src/hed/pdc/test.cpp:42 ../src/services/pdp/pdpservice.cpp:133
 msgid "Can not dynamically produce Evaluator"
 msgstr "Kan inte skapa Evaluator dynamiskt"
 
-#: ../src/hed/pdc/ArcPDP.cpp:99
+#: ../src/hed/pdc/ArcPDP.cpp:100
 msgid ""
 "Although there is pdp configuration for this component, no pdp context has "
 "been generated for this"
@@ -2828,22 +2838,22 @@ msgstr ""
 "Trots att det finns en pdp-inställning för denna komponent, har ingen "
 "kontext skapats för detta"
 
-#: ../src/hed/pdc/ArcPDP.cpp:171 ../src/hed/pdc/CountPDP.cpp:87
+#: ../src/hed/pdc/ArcPDP.cpp:172 ../src/hed/pdc/CountPDP.cpp:87
 #: ../src/hed/pdc/test.cpp:53 ../src/hed/pdc/test.cpp:149
 #: ../src/services/pdp/pdpservice.cpp:72
 #, c-format
 msgid "There is %d subjects, which satisfy at least one policy"
 msgstr "Det finns %d subjekt som uppfyller åtminstone en policy"
 
-#: ../src/hed/pdc/ArcPDP.cpp:191
+#: ../src/hed/pdc/ArcPDP.cpp:192
 msgid "Authorized from arc.pdp!!!"
 msgstr "Autoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/ArcPDP.cpp:197
+#: ../src/hed/pdc/ArcPDP.cpp:198
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr "Oautoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/ArcPolicy.cpp:51 ../src/hed/pdc/XACMLPolicy.cpp:56
+#: ../src/hed/pdc/ArcPolicy.cpp:52 ../src/hed/pdc/XACMLPolicy.cpp:56
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr "PolicyId: %s  Alg inuti denna policy är:-- %s"
@@ -4601,10 +4611,79 @@ msgstr "Kan inte samla in resursinformation"
 msgid "No response"
 msgstr "Inget svar"
 
-#: ../src/services/paul/paul.cpp:209
+#: ../src/services/paul/paul.cpp:212
+#, c-format
+msgid "Process job: %s"
+msgstr "Processera jobb: %s"
+
+#: ../src/services/paul/paul.cpp:223
 #, c-format
 msgid "Do Request: %s"
 msgstr "Utför förfrågan: %s"
+
+#: ../src/services/paul/run.cpp:14
+msgid "Start process"
+msgstr "Starta process"
+
+#: ../src/services/paul/run.cpp:21
+msgid "Invalid JSDL! Missing application section"
+msgstr "Ogiltig JSDL! Saknar application-stycke"
+
+#: ../src/services/paul/run.cpp:26
+msgid "Empty executable"
+msgstr "Tom executable"
+
+#: ../src/services/paul/run.cpp:49
+msgid "Cannot chdir"
+msgstr "Kan inte ändra katalog"
+
+#: ../src/services/paul/run.cpp:63
+msgid "Cannot start application"
+msgstr "Kan inte starta program"
+
+#: ../src/services/paul/run.cpp:67
+#, c-format
+msgid "StdOut: %s"
+msgstr "StdOut: %s"
+
+#: ../src/services/paul/run.cpp:68
+#, c-format
+msgid "StdErr: %s"
+msgstr "StdErr: %s"
+
+#: ../src/services/paul/run.cpp:70
+msgid "Error during the application run"
+msgstr "Fel under programexekveringen"
+
+#: ../src/services/paul/run.cpp:75
+#, c-format
+msgid "Exception: %s"
+msgstr "Undantag: %s"
+
+#: ../src/services/paul/run.cpp:78
+msgid "SpawnError"
+msgstr "Spawn-fel"
+
+#: ../src/services/paul/stage.cpp:115 ../src/services/paul/stage.cpp:155
+#, c-format
+msgid "%s -> %s"
+msgstr "%s -> %s"
+
+#: ../src/services/paul/stage.cpp:120 ../src/services/paul/stage.cpp:160
+msgid "Cannot accept source as URL"
+msgstr "Kan inte acceptera källa som URL"
+
+#: ../src/services/paul/stage.cpp:125 ../src/services/paul/stage.cpp:165
+msgid "Cannot accept destination as URL"
+msgstr "Kan inte acceptera destination som URL"
+
+#: ../src/services/paul/stage.cpp:186
+msgid "Stage in"
+msgstr "Nedladdning"
+
+#: ../src/services/paul/stage.cpp:195
+msgid "Stage out"
+msgstr "Uppladdning"
 
 #: ../src/services/pdp/pdpservice.cpp:62
 msgid "input does not include any request"
@@ -4837,16 +4916,16 @@ msgstr "Kan inte skapa outmsg-argument"
 msgid "Cannot convert outmsg to python object"
 msgstr "Kan inte omvandla outmsg till pythonobjekt"
 
-#: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:135
+#: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:139
 msgid "Input is not SOAP"
 msgstr "Indata är inte SOAP"
 
-#: ../src/tests/count/count.cpp:89 ../src/tests/echo/echo.cpp:125
+#: ../src/tests/count/count.cpp:89 ../src/tests/echo/echo.cpp:129
 msgid "echo: Unauthorized"
 msgstr "echo: Oautoriserad"
 
 #: ../src/tests/count/count.cpp:98 ../src/tests/count/count.cpp:104
-#: ../src/tests/echo/echo.cpp:141
+#: ../src/tests/echo/echo.cpp:145
 #, c-format
 msgid "Request is not supported - %s"
 msgstr "Förfrågan understöds inte - %s"
@@ -4855,7 +4934,7 @@ msgstr "Förfrågan understöds inte - %s"
 msgid "Failed to create context for pdp request and policy"
 msgstr "Misslyckades med att skapa kontext för pdp-begäran och policy"
 
-#: ../src/tests/echo/echo.cpp:111
+#: ../src/tests/echo/echo.cpp:115
 msgid "Can't get pdp request and policy information"
 msgstr "Kan inte erhålla pdp-begäran och policyinformation"
 

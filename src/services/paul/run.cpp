@@ -64,7 +64,7 @@ bool PaulService::run(Job &j)
             return false;
         }
         if(!run.Wait()) {
-            logger_.msg(Arc::DEBUG, "Stdout: %s", stdout_str);
+            logger_.msg(Arc::DEBUG, "StdOut: %s", stdout_str);
             logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
         } else {
             logger_.msg(Arc::ERROR, "Error during the application run");
