@@ -73,7 +73,7 @@ int main(void)
     Arc::XMLNode xml1(doc1);
     Arc::XMLNode xml2(doc1);
     Arc::Config cfg("./service.xml");
-    Arc::InfoCache cache(cfg, "test_service");
+    Arc::InfoCache cache(cfg, std::string("test_service"));
     bool ret;
     
     ret = cache.Set("/", xml1);

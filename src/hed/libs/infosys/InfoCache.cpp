@@ -20,23 +20,27 @@
 
 namespace Arc {
 
-static Arc::RegularExpression id_regex("@id=\"([a-zA-Z0-9_\\\\-]*)\"");
+static Logger logger(Logger::getRootLogger(), "InfoCache");
 
-InfoCache::InfoCache(Arc::Config &cfg, std::string &service_id)
-{
-    InfoCache(cfg, service_id.c_str());
-}
+static RegularExpression id_regex("@id=\"([a-zA-Z0-9_\\\\-]*)\"");
 
-InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
+InfoCache::InfoCache(Arc::Config &cfg, const std::string &service_id)
 {
     std::string root = std::string(cfg["InformationSystem"]["CacheRoot"]);
-    std::cout << "Cache root: " << root << std::endl;
+    if(root.empty()) {
+        logger.msg(ERROR,"Missing cache root in configuration");
+        return;
+    }
+    if(service_id.empty()) {
+        logger.msg(ERROR,"Missing service id");
+        return;
+    }
+    logger.msg(VERBOSE,"Cache root: %s",root);
     if (!Glib::file_test(root, Glib::FILE_TEST_IS_DIR)) {
         // create root directory
         if (MKDIR(root.c_str()) != 0)
         {
-            // rootLogger.msg(Arc::ERROR, "cannot create directory: %s", root);
-            std::cerr << "cannot create directory: " << root << std::endl;
+            logger.msg(ERROR,"cannot create directory: %s",root);
             return;
         }        
     }
@@ -46,12 +50,12 @@ InfoCache::InfoCache(Arc::Config &cfg, const char *service_id)
         // create path_base directory
         if (MKDIR(path_base.c_str()) != 0) 
         {
-            std::cerr << "cannot create directory: " << path_base << std::endl;
-            // rootLogger.msg(Arc::ERROR, "cannot create directory: %s", path_base);
+            logger.msg(ERROR,"cannot create directory: %s",path_base);
             path_base = "";
             return;
         }        
     }
+    logger.msg(VERBOSE,"Cache directory: %s",path_base);
 }
 
 InfoCache::~InfoCache()
@@ -94,10 +98,10 @@ static Arc::XMLNode get_node_by_path(Arc::XMLNode &xml, std::vector<std::string>
     std::vector<std::string>::iterator pe;
     Arc::XMLNode ret = xml;
     for (pe = path_elements.begin(); pe != path_elements.end(); pe++) {
-        std::cout << "node: " << *pe << std::endl;
+        //std::cout << "node: " << *pe << std::endl;
         Arc::XMLNode n = ret[(*pe)];
         if (n == false) {
-            std::cout << "invalid path" << std::endl;
+            //std::cout << "invalid path" << std::endl;
             return n;
         } else {
             ret = n; 
@@ -139,7 +143,7 @@ bool set_sub_path(std::string path_base, std::vector<std::string> &tokens, Arc::
         file_path = Glib::build_filename(dir, "xml"); 
     }
     
-    std::cout << file_path << std::endl;
+    //std::cout << file_path << std::endl;
 
     if (Glib::file_test(file_path, Glib::FILE_TEST_EXISTS) == true) {
         std::string xml_str = Glib::file_get_contents(file_path);
@@ -254,7 +258,7 @@ static bool set_full_path(std::string &path_base, std::vector<std::string> &toke
             // create directory
             if (MKDIR(dir.c_str()) != 0) 
             {
-                std::cerr << "Cannot create directory: " << dir << std::endl;
+                logger.msg(ERROR,"cannot create directory: %s",dir);
                 return false;
             }
         }
@@ -268,7 +272,11 @@ static bool set_full_path(std::string &path_base, std::vector<std::string> &toke
 bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
 {
     if (xml_path[0] != '/') {
-        std::cerr << "invalid xml_path" << std::endl;
+        logger.msg(ERROR,"Invalid path in Set(): %s",xml_path);
+        return false;
+    }
+    if (path_base.empty()) {
+        logger.msg(ERROR,"InfoCache object is not set up");
         return false;
     }
     std::string p(xml_path);
@@ -276,7 +284,7 @@ bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
     std::vector<std::string> tokens;
     tokenize(p, tokens, "/");
     bool ret;
-    std::cout << "path: " << p << "(" << tokens.size() << ")" << std::endl;
+    //std::cout << "path: " << p << "(" << tokens.size() << ")" << std::endl;
     if (tokens.size() < 2) {
         ret = set_full_path(path_base, tokens, value);
     } else {
@@ -298,10 +306,10 @@ static void merge_xml(std::string& path_base, Arc::XMLNode &node)
     Glib::Dir dir(path_base);
     std::string d;
     
-    std::cout << "merge_xml dir: " << path_base << std::endl;
+    //std::cout << "merge_xml dir: " << path_base << std::endl;
     while ((d = dir.read_name()) != "") {
         std::string path_fl1 = Glib::build_filename(path_base, d);
-        std::cout << "merge_xml f1: " << path_fl1 << std::endl;
+        //std::cout << "merge_xml f1: " << path_fl1 << std::endl;
         if (Glib::file_test(path_fl1, Glib::FILE_TEST_IS_DIR)) {
             Glib::Dir dir_fl1(path_fl1);
             std::string dd;
@@ -329,14 +337,18 @@ static void merge_xml(std::string& path_base, Arc::XMLNode &node)
 bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
 {
     if (xml_path[0] != '/') {
-        std::cerr << "invalid xml_path" << std::endl;
+        logger.msg(ERROR,"Invalid path in Get(): %s",xml_path);
+        return false;
+    }
+    if (path_base.empty()) {
+        logger.msg(ERROR,"InfoCache object is not set up");
         return false;
     }
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
     tokenize(p, tokens, "/");
-    std::cout << "get path: " << p << "(" << tokens.size() << ")" << std::endl;
+    //std::cout << "get path: " << p << "(" << tokens.size() << ")" << std::endl;
     if (tokens.size() < 2) {
         Arc::NS ns;
         Arc::XMLNode node(ns, "InfoDoc");
@@ -386,6 +398,10 @@ bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
 
 bool InfoCache::Query(const char *path, const char *query, Arc::XMLNodeContainer &result)
 {
+    if (path_base.empty()) {
+        logger.msg(ERROR,"InfoCache object is not set up");
+        return false;
+    }
     Arc::XMLNodeContainer gc;
     Get(path, gc);
     Arc::NS ns;
