@@ -53,7 +53,7 @@ void CentralISIService::InformationCollector(void)
         ep.NewChild("ID") = "0";
         ep.NewChild("URL") = "https://localhost:60000/isis";
         // Write data to info cache
-        icache->Set("/", node);
+        if(icache) icache->Cache().Set("/", node);
         sleep(60); // XXX: make it configurable
     }
 }
@@ -69,39 +69,49 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
     ns["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
     
     logger.msg(Arc::DEBUG, "Central ISIS initialized");
-    std::string dsn = (std::string)(*cfg)["DSN"];
-    Arc::URL dsn_url(dsn);
-    if (dsn_url.Protocol() != "file") {
-        logger.msg(Arc::ERROR, "remote database not supported");
+    std::string dsn = (std::string)((*cfg)["DSN"]);
+    if(dsn.empty()) {
+        logger.msg(Arc::ERROR, "Missing database location in configuration");
     } else {
-        db_path = dsn_url.Path();
-        logger.msg(Arc::INFO, "Intialize database %s", db_path);
-        if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
-            // create root directory
+        logger.msg(Arc::VERBOSE, "Database location is %s",dsn);
+        Arc::URL dsn_url(dsn);
+        if ((dsn_url.Protocol() != "file") ||
+            ((!dsn_url.Host().empty()) && (dsn_url.Host() != "localhost"))) {
+            logger.msg(Arc::ERROR, "remote database not supported");
+        } else {
+            logger.msg(Arc::VERBOSE, "Database URL is %s",dsn_url.str());
+            logger.msg(Arc::VERBOSE, "Database path is %s",dsn_url.Path());
+            logger.msg(Arc::VERBOSE, "Database host is %s",dsn_url.Host());
+            db_path = dsn_url.Path();
+            logger.msg(Arc::INFO, "Initializing database %s", db_path);
+            if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
+                // create root directory
 #ifndef WIN32
-            if (mkdir(db_path.c_str(), 0700) != 0) 
+                if (mkdir(db_path.c_str(), 0700) != 0) 
 #else
-            if (mkdir(db_path.c_str()) != 0) 
+                if (mkdir(db_path.c_str()) != 0) 
 #endif
-            {
-                logger.msg(Arc::ERROR, "cannot create directory: %s", db_path);
-                db_path = "";
+                {
+                    logger.msg(Arc::ERROR, "cannot create directory: %s", db_path);
+                    db_path = "";
+                }        
             }        
         }
     }
     std::string s_reg_period = (std::string)(*cfg)["Register"]["Period"];
     long int reg_period = strtol(s_reg_period.c_str(), NULL, 10);
     service_id = (std::string)(*cfg)["ID"];
-    reg = new Arc::Register(service_id, reg_period, (*cfg));
-    icache = new Arc::InfoCache(*cfg, service_id);
-    // CreateThreadFunction(&register_thread, this);
+    if(service_id.empty()) service_id="isis";
+    icache = new Arc::InfoCacheInterface(*cfg, service_id);
     CreateThreadFunction(&infocollector_thread, this);
+    //reg = new Arc::Register(service_id, reg_period, (*cfg));
+    // CreateThreadFunction(&register_thread, this);
 }
 
 CentralISIService::~CentralISIService(void)
 {
     // delete reg;
-    delete icache;
+    if(icache) delete icache;
 }
 
 Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &outmsg)
@@ -156,8 +166,8 @@ Arc::MCC_Status CentralISIService::process(Arc::Message &inmsg, Arc::Message &ou
         }
     */
     // WS-Property
-    } else if(MatchXMLNamespace(op, "http://docs.oasis-open.org/wsrf/rp-2")) {
-        Arc::SOAPEnvelope* out_ = infodoc.Process(*inpayload);
+    } else if(MatchXMLNamespace(op, "http://docs.oasis-open.org/wsrf/rp-2") && icache) {
+        Arc::SOAPEnvelope* out_ = icache->Process(*inpayload);
         if(out_) {
           *outpayload=*out_;
           delete out_;
@@ -193,6 +203,9 @@ Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &/*ou
     // TODO: protection against malicious id like '../../../../../etc/passwd'
     for (i = 0; (entry = in["RegEntry"][i]) == true; i++) {
         std::string id = (std::string)entry["ID"];
+
+        if(icache) icache->Cache().Set("/"+id,entry);
+
         std::string data;
         entry.GetXML(data);
         std::string entry_file = Glib::build_filename(db_path, id);
