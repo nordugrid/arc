@@ -377,7 +377,7 @@ bool Run::Wait(void)
 #else
 #ifndef WIN32
     int status;
-    int r = waitpid(pid_,&status);
+    int r = waitpid(pid_,&status,WNOHANG);
     if(r == 0) {
       lock_.unlock();
       sleep(1);
