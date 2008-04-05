@@ -210,16 +210,31 @@ class XMLNodeContainer {
  public:
   /** Default constructor */
   XMLNodeContainer(void);
-  /** Copy constructor */
+  /** Copy constructor.
+   Add nodes from argument. Nodes owning XML document are 
+   copied using AddNew(). Not owning nodes are linked using 
+   Add() method. */
   XMLNodeContainer(const XMLNodeContainer&);
   ~XMLNodeContainer(void);
+  /** Same as copy constructor with current nodes being deleted first. */
   XMLNodeContainer& operator=(const XMLNodeContainer&);
+  /** Link XML subtree refered by node to container.
+    XML tree must be available as long as this object is used. */
   void Add(const XMLNode&);
+  /** Link multiple XML subtrees to container. */
   void Add(const std::list<XMLNode>&);
+  /** Copy XML subtree referenced by node to container.
+    After this operation container refers to independent XML 
+   document. This document is deleted when container is destroyed. */
   void AddNew(const XMLNode&);
+  /** Copy multiple XML subtrees to container. */
   void AddNew(const std::list<XMLNode>&);
+  /** Return number of refered/stored nodes. */
   int Size(void);
+  /** Returns n-th node in a store. */
   XMLNode operator[](int);
+  /** Returns all stored nodes. */
+  std::list<XMLNode> Nodes(void);
 };
 
 /** Returns true if underlying XML elements have same names */
