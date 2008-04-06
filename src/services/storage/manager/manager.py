@@ -109,12 +109,12 @@ class Manager:
                     print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
                     if wasComplete:
                         success = 'LN exists'
-                    elif restLN != child_name or GUID == '':
-                        success = 'parent does not exist'
                     elif child_name == '': # this only can happen if the LN was a single GUID
                         child_metadata[('catalog','type')] = 'file'
                         child_metadata[('catalog','GUID')] = rootguid or global_root_guid
                         success, GUID = self._new(child_metadata)
+                    elif restLN != child_name or GUID == '':
+                        success = 'parent does not exist'
                     else:
                         child_metadata[('catalog','type')] = 'file'
                         success, GUID = self._new(child_metadata, child_name, GUID)
@@ -152,14 +152,15 @@ class Manager:
         for rID, (LN, child_metadata) in requests:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
+            print metadata, GUID, traversedLN, restLN, wasComplete, traversedlist
             if wasComplete:
                 success = 'LN exists'
-            elif restLN != child_name or GUID == '':
-                success = 'parent does not exist'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 child_metadata[('catalog','type')] = 'collection'
                 child_metadata[('catalog','GUID')] = rootguid or global_root_guid
                 success, _ = self._new(child_metadata)
+            elif restLN != child_name or GUID == '':
+                success = 'parent does not exist'
             else:
                 child_metadata[('catalog','type')] = 'collection'
                 success, _ = self._new(child_metadata, child_name, GUID)
@@ -330,7 +331,6 @@ class ManagerService:
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
-        print "Process called"
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         try:
@@ -343,6 +343,7 @@ class ManagerService:
                 raise Exception, 'wrong namespace (%s)' % request_prefix
             # get the name of the request without the namespace prefix
             request_name = inpayload.Child().Name()
+            print '     manager.%s called' % request_name
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name

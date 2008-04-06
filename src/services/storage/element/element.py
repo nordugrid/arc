@@ -7,7 +7,7 @@ import random
 
 import arc
 from storage.xmltree import XMLTree
-from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response
+from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true
 from storage.client import CatalogClient
 
 ALIVE = 'alive'
@@ -42,42 +42,36 @@ class Element:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
-            print 'Cannot set check_period, min_check_interval'
+            print 'Cannot set CheckPeriod, MinCheckInterval'
             raise
+        self.changed_states = self.store.list()
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
-
-    def changeState(self, referenceID, newState, onlyIf = None):
-        print 'element.changeState locking store'
-        self.store.lock()
-        try:
-            localData = self.store.get(referenceID)
-            oldState = localData['state']
-            if onlyIf and oldState != onlyIf:
-                print 'element.changeState unlocking store'
-                self.store.unlock()
-                return False
-            localData['state'] = newState
-            self.store.set(referenceID, localData)
-            print 'element.changeState unlocking store'
-            self.store.unlock()
-        except:
-            print traceback.format_exc()
-            print 'element.changeState unlocking store'
-            self.store.unlock()
-            return False
-        try:
-            GUID = localData['GUID']
-            if GUID:
-                location = '%s %s' % (self.serviceID, referenceID)
-                print 'Connecting', self.catalog.url
-                modify_response = self.catalog.modifyMetadata({'changeState' : (GUID, 'set', 'locations', location, newState)})
-                if modify_response['changeState'] != 'set':
-                    print 'failed to set file\'s state in catalog', referenceID, GUID, location, newState
-            return True
-        except:
-            print traceback.format_exc()
-            return False
-
+        self.doReporting = True
+        threading.Thread(target = self.reportingThread, args = []).start()
+        
+    def reportingThread(self):
+        time.sleep(5)
+        while True:
+            try:
+                if self.doReporting:
+                    filelist = []
+                    while len(self.changed_states) > 0:
+                        changed = self.changed_states.pop()
+                        localData = self.store.get(changed)
+                        filelist.append((localData['GUID'], changed, localData['state']))
+                    print 'reporting', self.serviceID, filelist
+                    next_report = self.catalog.report(self.serviceID, filelist)
+                    time.sleep(next_report * 0.9)
+                else:
+                    time.sleep(10)
+            except:
+                traceback.print_exc()
+                time.sleep(10)
+        
+    def toggleReport(self, doReporting):
+        self.doReporting = doReporting
+        return str(self.doReporting)
+        
     def checkingThread(self, period):
         while True:
             try:
@@ -114,6 +108,36 @@ class Element:
                     time.sleep(period)
             except:
                 print traceback.format_exc()
+
+    def changeState(self, referenceID, newState, onlyIf = None):
+        print 'element.changeState locking store'
+        self.store.lock()
+        try:
+            localData = self.store.get(referenceID)
+            oldState = localData['state']
+            if onlyIf and oldState != onlyIf:
+                self.store.unlock()
+                return False
+            localData['state'] = newState
+            self.store.set(referenceID, localData)
+            self.store.unlock()
+            self.changed_states.append(referenceID)
+        except:
+            print traceback.format_exc()
+            self.store.unlock()
+            return False
+        try:
+            GUID = localData['GUID']
+            if GUID:
+                location = '%s %s' % (self.serviceID, referenceID)
+                print 'Connecting', self.catalog.url
+                modify_response = self.catalog.modifyMetadata({'changeState' : (GUID, 'set', 'locations', location, newState)})
+                if modify_response['changeState'] != 'set':
+                    print 'failed to set file\'s state in catalog', referenceID, GUID, location, newState
+            return True
+        except:
+            print traceback.format_exc()
+            return False
 
 
     def get(self, request):
@@ -177,6 +201,7 @@ class Element:
                         if turl:
                             response[requestID] = [('TURL', turl), ('protocol', protocol), ('referenceID', referenceID)]
                             self.store.set(referenceID, file_data)
+                            self.changed_states.append(referenceID)
                         else:
                             response[requestID] = [('error', 'internal error (empty TURL)')]
                     except:
@@ -256,9 +281,16 @@ class ElementService:
         response = self.element.put(request)
         return self._putget_out('put', response)
 
+    def toggleReport(self, inpayload):
+        doReporting = str(inpayload.Child().Get('doReporting'))
+        response = self.element.toggleReport(doReporting == true)
+        out = arc.PayloadSOAP(self.se_ns)
+        response_node = out.NewChild('cat:toggleReportResponse')
+        response_node.Set(response)
+        return out
+
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
-        print "Process called"
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         try:
@@ -269,6 +301,7 @@ class ElementService:
                 raise Exception, 'wrong namespace (%s)' % request_node.Prefix()
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
+            print '     element.%s called' % request_name
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
@@ -294,4 +327,4 @@ class ElementService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['get', 'put', 'stat']
+    request_names = ['get', 'put', 'stat', 'toggleReport']

@@ -135,7 +135,6 @@ class ByteIOService:
         return out
 
     def process(self, inmsg, outmsg):
-        print "Process called"
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         # gets the last part of the request url
@@ -150,6 +149,7 @@ class ByteIOService:
                 raise Exception, 'wrong namespace (%s)' % request_name
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
+            print '     byteio.%s called' % request_name
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name

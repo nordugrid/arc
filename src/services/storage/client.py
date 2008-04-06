@@ -254,6 +254,23 @@ class CatalogClient(Client):
         node = arc.XMLNode(response)
         return parse_node(node.Child().Child().Child(), ['requestID', 'success'], True)
 
+    def report(self, serviceID, filelist):
+        tree = XMLTree(from_tree =
+            ('cat:report', [
+                ('cat:serviceID', serviceID),
+                ('cat:filelist', [
+                    ('cat:file', [
+                        ('cat:GUID', GUID),
+                        ('cat:referenceID', referenceID),
+                        ('cat:state', state)
+                    ]) for GUID, referenceID, state in filelist
+                ])
+            ])
+        )
+        response, _, _ = self.call(tree)
+        node = arc.XMLNode(response)
+        return int(str(node.Child().Child().Get('nextReportTime')))
+
 class ManagerClient(Client):
     
     def __init__(self, url, print_xml = False):
@@ -429,6 +446,13 @@ class ElementClient(Client):
         return parse_to_dict(xml.Child().Child().Child(),
             ['requestID', 'referenceID', 'state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID'])
 
+    def toggleReport(self, doReporting):
+        tree = XMLTree(from_tree =
+            ('se:toggleReport', [
+                ('se:doReporting', doReporting and true or false)
+            ])
+        )
+        return self.call(tree, True)
 
 class NotifyClient(Client):
 

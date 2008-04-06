@@ -2,6 +2,8 @@ import urlparse
 import httplib
 import arc
 import random
+import threading
+import time
 from storage.xmltree import XMLTree
 from storage.client import HashClient
 from storage.common import catalog_uri, global_root_guid, true, false
@@ -9,9 +11,34 @@ from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata,
 import traceback
 import copy
 
+sestore_guid = '1'
+
 class Catalog:
-    def __init__(self, hash):
-        self.hash = hash
+    def __init__(self, cfg):
+        # URL of the Hash
+        hash_url = str(cfg.Get('HashURL'))
+        self.hash = HashClient(hash_url)
+        try:
+            period = float(str(cfg.Get('CheckPeriod')))
+            self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
+        except:
+            print 'Cannot find CheckPeriod, HeartbeatTimeout in the config'
+            raise
+        threading.Thread(target = self.checkingThread, args = [period]).start()
+        
+    def checkingThread(self, period):
+        time.sleep(5)
+        while True:
+            try:
+                SEs = self.hash.get([sestore_guid])[sestore_guid]
+                print 'registered storage elements:', SEs
+                now = time.time()
+                late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now]
+                print 'late storage elements (it is %s now)' % now, late_SEs
+                time.sleep(period)
+            except:
+                print traceback.format_exc()
+                time.sleep(period)
 
     def new(self, requests):
         response = {}
@@ -146,6 +173,40 @@ class Catalog:
             else:
                 response[requestID] = 'failed: ' + success
         return response
+    
+    def report(self, serviceID, filelist):
+        ses = self.hash.get([sestore_guid])[sestore_guid]
+        serviceID = str(serviceID)
+        
+        serviceGUID = ses.get((serviceID,'serviceGUID'), None)
+        if not serviceGUID:
+            print 'report se is not registered yet', serviceID
+            serviceGUID = mkuid()
+            hash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
+            print 'report hash_request', hash_request
+            hash_response = self.hash.change(hash_request)
+            print 'report hash_response', hash_response
+            success, unmetConditionID = hash_response['report']
+            if unmetConditionID:
+                ses = self.hash.get([sestore_guid])[sestore_guid]
+                serviceGUID = ses.get(('storageelement', serviceID))
+        next_heartbeat = str(int(time.time() + self.hbtimeout))
+        hash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
+        print 'report hash_request', hash_request
+        hash_response = self.hash.change(hash_request)
+        print 'report hash_response', hash_response
+        if hash_response['report'][0] != 'set':
+            print 'ERROR setting next heartbeat time!'
+        se = self.hash.get([serviceGUID])[serviceGUID]
+        print 'report se before:', se
+        change_request = dict([(referenceID, (serviceGUID, 'set', GUID, referenceID, state, {}))
+            for GUID, referenceID, state in filelist])
+        print 'report change_request:', change_request
+        change_response = self.hash.change(change_request)
+        print 'report change_response:', change_response
+        se = self.hash.get([serviceGUID])[serviceGUID]
+        print 'report se after:', se
+        return int(self.hbtimeout)
 
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
@@ -158,10 +219,7 @@ class CatalogService:
         'cfg' is an XMLNode which containes the config of this service.
         """
         print "CatalogService constructor called"
-        # URL of the Hash
-        hash_url = str(cfg.Get('HashURL'))
-        hash = HashClient(hash_url)
-        self.catalog = Catalog(hash)
+        self.catalog = Catalog(cfg)
         # set the default namespace for the Catalog service
         self.cat_ns = arc.NS({'cat':catalog_uri})
 
@@ -216,10 +274,21 @@ class CatalogService:
         response = self.catalog.remove(requests)
         return create_response('cat:remove', ['cat:requestID', 'cat:success'],
             response, self.cat_ns, single = True)
+    
+    def report(self, inpayload):
+        request_node = inpayload.Child()
+        serviceID = str(request_node.Get('serviceID'))
+        filelist_node = request_node.Get('filelist')
+        file_nodes = get_child_nodes(filelist_node)
+        filelist = [(str(node.Get('GUID')), str(node.Get('referenceID')), str(node.Get('state'))) for node in file_nodes]
+        nextReportTime = self.catalog.report(serviceID, filelist)
+        out = arc.PayloadSOAP(self.cat_ns)
+        response_node = out.NewChild('cat:registerResponse')
+        response_node.NewChild('cat:nextReportTime').Set(str(nextReportTime))
+        return out
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
-        print "Process called"
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         try:
@@ -232,6 +301,7 @@ class CatalogService:
                 raise Exception, 'wrong namespace (%s)' % request_prefix
             # get the name of the request without the namespace prefix
             request_name = inpayload.Child().Name()
+            print '     catalog.%s called' % request_name
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
@@ -256,4 +326,4 @@ class CatalogService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove']
+    request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']

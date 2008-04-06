@@ -98,10 +98,10 @@ class CentralHash:
         response = {}
         for (changeID, (ID, changeType, section, property, value, conditionList)) in changes.items():
             # for each change in the changes list
-            print 'Prepare to lock store'
             # lock the store to avoid inconsistency
-            self.store.lock()
-            print 'Store locked'
+            while not self.store.lock(blocking = False):
+                print 'Hash cannot acquire lock, waiting...'
+                time.sleep(0.2)
             # prepare the 'success' of this change
             success = 'unknown'
             # prepare the 'conditionID' for an unmet condition
@@ -171,7 +171,6 @@ class CentralHash:
                 print traceback.format_exc()
             # we are done, release the lock
             self.store.unlock()
-            print 'Store unlocked'
             # append the result of the change to the response list
             response[changeID] = (success, unmetConditionID)
         return response
@@ -291,7 +290,6 @@ class HashService:
 
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
-        print "Process called"
         # gets the payload from the incoming message
         inpayload = inmsg.Payload()
         try:
@@ -305,6 +303,7 @@ class HashService:
                 raise Exception, 'wrong namespace (%s)' % request_name
             # get the name of the request without the namespace prefix
             request_name = inpayload.Child().Name()
+            print '     hash.%s called' % request_name
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
