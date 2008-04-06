@@ -78,7 +78,7 @@ class CentralHash:
                 'conditions' is a dictionary of {'conditionID' : 'condition'}, where
                     'conditionID' is an ID of this condition
                     'condition' is a (type, section, property, value) tuple:
-                        'type' could be 'is', 'not', 'exists', 'empty'
+                        'type' could be 'is', 'isnot', 'isset', 'unset'
                             'is': '(section, property)' is set to 'value'
                             'isnot': '(section, property)' is not set to 'value'
                             'isset': '(section, property)' is set to any value

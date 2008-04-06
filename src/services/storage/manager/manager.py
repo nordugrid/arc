@@ -5,7 +5,8 @@ import random
 from storage.xmltree import XMLTree
 from storage.client import CatalogClient, ElementClient
 from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
-                            splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid
+                            splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
+                            serialize_ids, parse_ids
 import traceback
 
 class Manager:
@@ -66,7 +67,7 @@ class Manager:
                 if not wasComplete:
                     success = 'not found'
                 else:
-                    valid_locations = [location.split() + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                    valid_locations = [parse_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
                     if not valid_locations:
                         success = 'file has no valid replica'
                     else:
@@ -133,7 +134,8 @@ class Manager:
                             referenceID = put_response['referenceID']
                             serviceID = self.element.url
                             print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
-                            modify_response = self.catalog.modifyMetadata({'putFile' : (GUID, 'set', 'locations', '%s %s' % (serviceID, referenceID), 'creating')})
+                            modify_response = self.catalog.modifyMetadata({'putFile' :
+                                    (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
                             modify_success = modify_response['putFile']
                             if modify_success != 'set':
                                 print 'failed to add location to file', GUID, LN, serviceID, referenceID
@@ -152,7 +154,7 @@ class Manager:
         for rID, (LN, child_metadata) in requests:
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            print metadata, GUID, traversedLN, restLN, wasComplete, traversedlist
+            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
             if wasComplete:
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID

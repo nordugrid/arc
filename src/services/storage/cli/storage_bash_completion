@@ -22,6 +22,18 @@ _storage()
                 ;;
         esac
     fi
-    COMPREPLY=( $( compgen -W "$options" -- $cur) )
+    if [[ "-$options" == "-" ]];
+    then
+        case $prev in
+            putFile)
+                COMPREPLY=( $( compgen -o default -- $cur) ) 
+                ;;
+            getFile)
+                COMPREPLY=( $( compgen -o default -- $cur) ) 
+                ;;
+        esac
+    else
+        COMPREPLY=( $( compgen -W "$options" -- $cur) )
+    fi
 }
 complete -F _storage storage

@@ -39,6 +39,12 @@ def import_class_from_string(str):
         cl = getattr(cl, name)
     return cl # return the class
 
+def serialize_ids(ids):
+    return ' '.join([str(id) for id in ids])
+
+def parse_ids(s):
+    return s.split()
+
 def mkuid():
     import random
     rnd = ''.join([ chr(random.randint(0,255)) for i in range(16) ])

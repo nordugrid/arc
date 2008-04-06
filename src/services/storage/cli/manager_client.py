@@ -45,7 +45,8 @@ else:
             f = file(filename,'rb')
             checksum = create_checksum(f, 'md5')
             LN = args[1]
-            metadata = {('states', 'size') : size, ('states', 'checksum') : checksum, ('states', 'checksumType') : 'md5'}
+            metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
+                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
             request = {'0': (LN, metadata, ['byteio'])}
             print 'putFile', request
             response = manager.putFile(request)

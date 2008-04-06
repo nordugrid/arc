@@ -61,7 +61,11 @@ class Element:
                         filelist.append((localData['GUID'], changed, localData['state']))
                     print 'reporting', self.serviceID, filelist
                     next_report = self.catalog.report(self.serviceID, filelist)
-                    time.sleep(next_report * 0.9)
+                    if next_report > 0:
+                        time.sleep(next_report * 0.9)
+                    else: # 'please send all'
+                        print '\nreporting - asked to send all file data again'
+                        self.changed_states = self.store.list()
                 else:
                     time.sleep(10)
             except:
@@ -126,19 +130,6 @@ class Element:
             print traceback.format_exc()
             self.store.unlock()
             return False
-        try:
-            GUID = localData['GUID']
-            if GUID:
-                location = '%s %s' % (self.serviceID, referenceID)
-                print 'Connecting', self.catalog.url
-                modify_response = self.catalog.modifyMetadata({'changeState' : (GUID, 'set', 'locations', location, newState)})
-                if modify_response['changeState'] != 'set':
-                    print 'failed to set file\'s state in catalog', referenceID, GUID, location, newState
-            return True
-        except:
-            print traceback.format_exc()
-            return False
-
 
     def get(self, request):
         print request

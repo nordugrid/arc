@@ -1,6 +1,7 @@
 import arc, sys
 from storage.xmltree import XMLTree
 from storage.client import HashClient
+print ":".join(sys.argv)
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
     args.pop(0)

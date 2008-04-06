@@ -7,7 +7,8 @@ import time
 from storage.xmltree import XMLTree
 from storage.client import HashClient
 from storage.common import catalog_uri, global_root_guid, true, false
-from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, create_metadata, parse_node
+from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
+    create_metadata, parse_node, serialize_ids, parse_ids
 import traceback
 import copy
 
@@ -27,18 +28,85 @@ class Catalog:
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
     def checkingThread(self, period):
-        time.sleep(5)
+        time.sleep(10)
         while True:
             try:
                 SEs = self.hash.get([sestore_guid])[sestore_guid]
                 print 'registered storage elements:', SEs
                 now = time.time()
-                late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now]
+                late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
                 print 'late storage elements (it is %s now)' % now, late_SEs
+                if late_SEs:
+                    serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
+                    print 'late storage elements serviceGUIDs', serviceGUIDs
+                    filelists = self.hash.get(serviceGUIDs.keys())
+                    changes = []
+                    for serviceGUID, serviceID in serviceGUIDs.items():
+                        filelist = filelists[serviceGUID]
+                        print 'filelist of late storage element', serviceID, filelist
+                        changes.extend([(GUID, serviceID, referenceID, 'offline')
+                            for (_, GUID), referenceID in filelist.items()])
+                    change_response = self._change_states(changes)
+                    for _, serviceID in serviceGUIDs.items():
+                        self._set_next_heartbeat(serviceID, -1)
                 time.sleep(period)
             except:
                 print traceback.format_exc()
                 time.sleep(period)
+
+    def _change_states(self, changes):
+        with_locations = [(GUID, serialize_ids([serviceID, referenceID]), state)
+            for GUID, serviceID, referenceID, state in changes]
+        change_request = dict([
+            (location, (GUID, 'set', 'locations', location, state,
+                {'only if exists' : ('isset', 'locations', location, '')}))
+                    for GUID, location, state in with_locations
+        ])
+        print '_change_states request', change_request
+        change_response = self.hash.change(change_request)
+        print '_change_states response', change_response
+        return change_response
+        
+    def _set_next_heartbeat(self, serviceID, next_heartbeat):
+        hash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
+        print '_set_next_heartbeat request', hash_request
+        hash_response = self.hash.change(hash_request)
+        print '_set_next_heartbeat response', hash_response
+        if hash_response['report'][0] != 'set':
+            print 'ERROR setting next heartbeat time!'
+    
+    def report(self, serviceID, filelist):
+        ses = self.hash.get([sestore_guid])[sestore_guid]
+        serviceID = str(serviceID)
+        serviceGUID = ses.get((serviceID,'serviceGUID'), None)
+        if not serviceGUID:
+            print 'report se is not registered yet', serviceID
+            serviceGUID = mkuid()
+            hash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
+            print 'report hash_request', hash_request
+            hash_response = self.hash.change(hash_request)
+            print 'report hash_response', hash_response
+            success, unmetConditionID = hash_response['report']
+            if unmetConditionID:
+                ses = self.hash.get([sestore_guid])[sestore_guid]
+                serviceGUID = ses.get((serviceID, 'serviceGUID'))
+        please_send_all = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
+        next_heartbeat = str(int(time.time() + self.hbtimeout))
+        self._set_next_heartbeat(serviceID, next_heartbeat)
+        self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
+        se = self.hash.get([serviceGUID])[serviceGUID]
+        print 'report se before:', se
+        change_request = dict([(referenceID, (serviceGUID, 'set', 'file', GUID, referenceID, {}))
+            for GUID, referenceID, _ in filelist])
+        print 'report change_request:', change_request
+        change_response = self.hash.change(change_request)
+        print 'report change_response:', change_response
+        se = self.hash.get([serviceGUID])[serviceGUID]
+        print 'report se after:', se
+        if please_send_all:
+            return -1
+        else:
+            return int(self.hbtimeout)
 
     def new(self, requests):
         response = {}
@@ -174,40 +242,6 @@ class Catalog:
                 response[requestID] = 'failed: ' + success
         return response
     
-    def report(self, serviceID, filelist):
-        ses = self.hash.get([sestore_guid])[sestore_guid]
-        serviceID = str(serviceID)
-        
-        serviceGUID = ses.get((serviceID,'serviceGUID'), None)
-        if not serviceGUID:
-            print 'report se is not registered yet', serviceID
-            serviceGUID = mkuid()
-            hash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
-            print 'report hash_request', hash_request
-            hash_response = self.hash.change(hash_request)
-            print 'report hash_response', hash_response
-            success, unmetConditionID = hash_response['report']
-            if unmetConditionID:
-                ses = self.hash.get([sestore_guid])[sestore_guid]
-                serviceGUID = ses.get(('storageelement', serviceID))
-        next_heartbeat = str(int(time.time() + self.hbtimeout))
-        hash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
-        print 'report hash_request', hash_request
-        hash_response = self.hash.change(hash_request)
-        print 'report hash_response', hash_response
-        if hash_response['report'][0] != 'set':
-            print 'ERROR setting next heartbeat time!'
-        se = self.hash.get([serviceGUID])[serviceGUID]
-        print 'report se before:', se
-        change_request = dict([(referenceID, (serviceGUID, 'set', GUID, referenceID, state, {}))
-            for GUID, referenceID, state in filelist])
-        print 'report change_request:', change_request
-        change_response = self.hash.change(change_request)
-        print 'report change_response:', change_response
-        se = self.hash.get([serviceGUID])[serviceGUID]
-        print 'report se after:', se
-        return int(self.hbtimeout)
-
 class CatalogService:
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
 
