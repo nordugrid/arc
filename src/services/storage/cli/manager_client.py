@@ -20,7 +20,19 @@ else:
         else:
             request = dict([(i, args[i]) for i in range(len(args))])
             print 'stat', request
-            print manager.stat(request)
+            stat = manager.stat(request)
+            print stat
+            for i,s in stat.items():
+                print '%s:' % args[int(i)]
+                c = {}
+                for k,v in s.items():
+                    sect, prop = k
+                    c[sect] = c.get(sect,[])
+                    c[sect].append((prop, v))
+                for k, vs in c.items():
+                    print k
+                    for p, v in vs:
+                        print '  %s: %s' % (p, v)
     elif command == 'getFile':
         if len(args) < 2:
             print 'Usage: getFile <target filename> <source LN>'

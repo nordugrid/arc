@@ -1,5 +1,5 @@
 from storage.common import rbyteio_uri, byteio_simple_uri, mkuid, create_checksum
-from storage.client import NotifyClient
+from storage.client import NotifyClient, ByteIOClient
 import traceback
 import arc
 import base64
@@ -26,6 +26,19 @@ class ByteIOBackend:
                 os.remove(os.path.join(self.transferdir, filename))
         print "ByteIOBackend transferdir:", self.transferdir
         self.idstore = {}
+
+    def copyTo(self, localID, turl, protocol):
+        f = file(os.path.join(self.datadir, localID),'rb')
+        print 'Uploading file to', turl
+        ByteIOClient(turl).write(f)
+        f.close()
+    
+    def copyFrom(self, localID, turl, protocol):
+        # TODO: download to a separate file, and if checksum OK, then copy the file 
+        f = file(os.path.join(self.datadir, localID), 'wb')
+        print 'Downloading file from', turl
+        ByteIOClient(turl).read(file = f)
+        f.close()
 
     def prepareToGet(self, referenceID, localID, protocol):
         if protocol not in self.supported_protocols:

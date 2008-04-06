@@ -8,7 +8,7 @@ import random
 import arc
 from storage.xmltree import XMLTree
 from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true
-from storage.client import CatalogClient
+from storage.client import CatalogClient, ManagerClient, ByteIOClient
 
 ALIVE = 'alive'
 CREATING = 'creating'
@@ -20,7 +20,7 @@ class Element:
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._checking_checksum)
+            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._file_arrived)
         except:
             print 'Cannot import backend class', backendclass
             raise
@@ -34,9 +34,11 @@ class Element:
         try:
             catalogURL = str(cfg.Get('CatalogURL'))
             self.catalog = CatalogClient(catalogURL)
+            managerURL = str(cfg.Get('ManagerURL'))
+            self.manager = ManagerClient(managerURL)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            print 'Cannot get CatalogURL or serviceID'
+            print 'Cannot get CatalogURL, ManagerURL or serviceID'
             raise
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
@@ -83,31 +85,66 @@ class Element:
         current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
         checksum = localData['checksum']
         state = localData.get('state','')
+        if state == CREATING:
+            return CREATING, None, None 
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             if state != ALIVE:
                 print '\nCHECKSUM OK', referenceID
                 self.changeState(referenceID, ALIVE)
+            return ALIVE, localData['GUID'], localData['localID']
         else:
             if state != INVALID:
                 print '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum
                 self.changeState(referenceID, INVALID)
+            return INVALID, localData['GUID'], localData['localID']
+        
+    def _file_arrived(self, referenceID):
+        self.changeState(referenceID, ALIVE, onlyIf = CREATING)
+        return self._checking_checksum(referenceID)
+    
+    def _checking_replicano(self, GUID):
+        try:
+            metadata = self.catalog.get([GUID])[GUID]
+            needed_replicas = int(metadata.get(('states','neededReplicas'),1))
+            valid_replicas = len([property for (section, property), value in metadata.items()
+                              if section == 'locations' and value == ALIVE])
+            return valid_replicas >= needed_replicas
+        except:
+            traceback.print_exc()
+            return True
         
     def checkingThread(self, period):
+        time.sleep(10)
         while True:
             try:
                 referenceIDs = self.store.list()
-                #print referenceIDs
                 number = len(referenceIDs)
                 if number > 0:
                     interval = period / number
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    #print 'Checking', number, 'files with interval', interval
+                    print '\nElement is checking', number, 'files with interval', interval
                     random.shuffle(referenceIDs)
                     for referenceID in referenceIDs:
                         try:
-                            self._checking_checksum(referenceID)
+                            state, GUID, localID = self._checking_checksum(referenceID)
+                            if state == ALIVE:
+                                if not self._checking_replicano(GUID):
+                                    print '\n\nFile', GUID, 'has fewer replicas than needed.'
+                                    response = self.manager.addReplica({'checkingThread' : GUID}, ['byteio'])
+                                    success, turl, protocol = response['checkingThread']
+                                    print 'addReplica response', success, turl, protocol
+                                    if success == 'done':
+                                        self.backend.copyTo(localID, turl, protocol)
+                            if state == INVALID:
+                                print '\n\nI have an ivalid replica of file', GUID
+                                response = self.manager.getFile({'checkingThread' : (GUID, ['byteio'])})
+                                success, turl, protocol = response['checkingThread']
+                                if success == 'done':
+                                    self.changeState(referenceID, CREATING)
+                                    self.backend.copyFrom(localID, turl, protocol)
+                                    self._file_arrived(referenceID)
                         except:
                             print 'ERROR checking checksum of', referenceID
                             print traceback.format_exc()
