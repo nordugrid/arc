@@ -15,7 +15,7 @@ _storage()
                 options='get traverseLN new modifyMetadata remove'
                 ;;
             manager)
-                options='stat makeCollection list move putFile getFile'
+                options='stat makeCollection list move putFile getFile addReplica'
                 ;;
             element)
                 options='get put stat'
@@ -29,6 +29,9 @@ _storage()
                 COMPREPLY=( $( compgen -o default -- $cur) ) 
                 ;;
             getFile)
+                COMPREPLY=( $( compgen -o default -- $cur) ) 
+                ;;
+            addReplica)
                 COMPREPLY=( $( compgen -o default -- $cur) ) 
                 ;;
         esac

@@ -10,8 +10,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 manager = ManagerClient('http://localhost:60000/Manager', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile']:
-    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile' 
+if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']:
+    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, addReplica' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -23,12 +23,12 @@ else:
             print manager.stat(request)
     elif command == 'getFile':
         if len(args) < 2:
-            print 'Usage: getFile <LN> <filename>'
+            print 'Usage: getFile <target filename> <source LN>'
         else:
-            LN = args[0]
-            filename = args[1]
+            LN = args[1]
+            filename = args[0]
             f = file(filename, 'wb')
-            request = {'0' : (args[0], ['byteio'])}
+            request = {'0' : (LN, ['byteio'])}
             print 'getFile', request
             response = manager.getFile(request)
             print response
@@ -36,9 +36,24 @@ else:
             if success == 'done':
                 print 'Downloading from', turl, 'to', filename
                 ByteIOClient(turl).read(file = f)
+    elif command == 'addReplica':
+        if len(args) < 2:
+            print 'Usage: addReplica <source filename> <GUID>'
+        else:
+            filename = args[0]
+            requests = {'0' : args[1]}
+            protocols = ['byteio']
+            print 'addReplica', requests, protocols
+            response = manager.addReplica(requests, protocols)
+            print response
+            success, turl, protocol = response['0']
+            if success == 'done':
+                f = file(filename,'rb')
+                print 'Uploading from', filename, 'to', turl
+                ByteIOClient(turl).write(f)
     elif command == 'putFile':
         if len(args) < 2:
-            print 'Usage: putFile <filename> <LN>'
+            print 'Usage: putFile <source filename> <target LN>'
         else:
             filename = args[0]
             size = os.path.getsize(filename)

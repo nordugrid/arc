@@ -10,8 +10,8 @@ class ByteIOBackend:
     public_request_names = ['notify']
     supported_protocols = ['byteio']
 
-    def __init__(self, backendcfg, ns_uri, changeState):
-        self.changeState = changeState
+    def __init__(self, backendcfg, ns_uri, file_arrived):
+        self.file_arrived = file_arrived
         self.ns = arc.NS({'se' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
@@ -70,11 +70,10 @@ class ByteIOBackend:
         subject = str(request_node.Get('subject'))
         referenceID = self.idstore.get(subject,None)
         state = str(request_node.Get('state'))
-        if state == 'received' and referenceID:
-            self.changeState(referenceID, 'alive', onlyIf = 'creating')
         path = os.path.join(self.transferdir, subject)
         print 'Removing', path
         os.remove(path)
+        self.file_arrived(referenceID)
         out = arc.PayloadSOAP(self.ns)
         response_node = out.NewChild('se:notifyResponse').Set('OK')
         return out

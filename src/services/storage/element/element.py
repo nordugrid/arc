@@ -20,7 +20,7 @@ class Element:
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self.changeState)
+            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._checking_checksum)
         except:
             print 'Cannot import backend class', backendclass
             raise
@@ -61,11 +61,12 @@ class Element:
                         filelist.append((localData['GUID'], changed, localData['state']))
                     print 'reporting', self.serviceID, filelist
                     next_report = self.catalog.report(self.serviceID, filelist)
-                    if next_report > 0:
-                        time.sleep(next_report * 0.9)
-                    else: # 'please send all'
+                    last_report = time.time()
+                    if next_report < 0: # 'please send all'
                         print '\nreporting - asked to send all file data again'
                         self.changed_states = self.store.list()
+                    while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
+                        time.sleep(1)
                 else:
                     time.sleep(10)
             except:
@@ -75,11 +76,27 @@ class Element:
     def toggleReport(self, doReporting):
         self.doReporting = doReporting
         return str(self.doReporting)
+    
+    def _checking_checksum(self, referenceID):
+        #print 'Checking checksum', referenceID
+        localData = self.store.get(referenceID)
+        current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
+        checksum = localData['checksum']
+        state = localData.get('state','')
+        #print '-=-', referenceID, state, checksum, current_checksum
+        if checksum == current_checksum:
+            if state != ALIVE:
+                print '\nCHECKSUM OK', referenceID
+                self.changeState(referenceID, ALIVE)
+        else:
+            if state != INVALID:
+                print '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum
+                self.changeState(referenceID, INVALID)
         
     def checkingThread(self, period):
         while True:
             try:
-                referenceIDs =  self.store.list()
+                referenceIDs = self.store.list()
                 #print referenceIDs
                 number = len(referenceIDs)
                 if number > 0:
@@ -90,20 +107,7 @@ class Element:
                     random.shuffle(referenceIDs)
                     for referenceID in referenceIDs:
                         try:
-                            #print 'Checking checksum', referenceID
-                            localData = self.store.get(referenceID)
-                            current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
-                            checksum = localData['checksum']
-                            state = localData.get('state','')
-                            #print '-=-', referenceID, state, checksum, current_checksum
-                            if checksum == current_checksum:
-                                if state != ALIVE:
-                                    print 'Checksum OK', referenceID
-                                    self.changeState(referenceID, ALIVE)
-                            else:
-                                if state != INVALID:
-                                    print 'Checksum mismatch:', referenceID, 'original:', checksum, 'current:', current_checksum
-                                    self.changeState(referenceID, INVALID)
+                            self._checking_checksum(referenceID)
                         except:
                             print 'ERROR checking checksum of', referenceID
                             print traceback.format_exc()
@@ -114,7 +118,6 @@ class Element:
                 print traceback.format_exc()
 
     def changeState(self, referenceID, newState, onlyIf = None):
-        print 'element.changeState locking store'
         self.store.lock()
         try:
             localData = self.store.get(referenceID)

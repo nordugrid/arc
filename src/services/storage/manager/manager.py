@@ -85,8 +85,48 @@ class Manager:
             except:
                 success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
-        return response 
+        return response
+    
+    def addReplica(self, requests, protocols):
+        data = self.catalog.get(requests.values(), [('states','')])
+        response = {}
+        for rID, GUID in requests.items():
+            states = data[GUID]
+            print 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols
+            size = states[('states','size')]
+            checksumType = states[('states','checksumType')]
+            checksum = states[('states','checksum')]
+            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
+            response[rID] = (success, turl, protocol)
+        return response
 
+    def _add_replica(self, size, checksumType, checksum, GUID, protocols):
+        turl = ''
+        protocol = ''
+        put_request = [('size', size), ('checksumType', checksumType),
+            ('checksum', checksum), ('GUID', GUID)] + \
+            [('protocol', protocol) for protocol in protocols]
+        put_response = dict(self.element.put({'putFile': put_request})['putFile'])
+        if put_response.has_key('error'):
+            print 'ERROR', put_response['error']
+            # we should handle this, remove the new file or something
+            return 'put error (%s)' % put_response['error'], turl, protocols
+        else:
+            turl = put_response['TURL']
+            protocol = put_response['protocol']
+            referenceID = put_response['referenceID']
+            serviceID = self.element.url
+            print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
+            modify_response = self.catalog.modifyMetadata({'putFile' :
+                    (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
+            modify_success = modify_response['putFile']
+            if modify_success != 'set':
+                print 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID
+                return 'failed to add new location to file', turl, protocol
+                # need some handling
+            else:
+                return 'done', turl, protocol
+            
     def putFile(self, requests):
         requests, traverse_response = self._traverse(requests)
         response = {}
@@ -120,29 +160,7 @@ class Manager:
                         child_metadata[('catalog','type')] = 'file'
                         success, GUID = self._new(child_metadata, child_name, GUID)
                     if success == 'done':
-                        put_request = [('size', size), ('checksumType', checksumType),
-                            ('checksum', checksum), ('GUID', GUID)] + \
-                            [('protocol', protocol) for protocol in protocols]
-                        put_response = dict(self.element.put({'putFile': put_request})['putFile'])
-                        if put_response.has_key('error'):
-                            print 'ERROR', put_response['error']
-                            # we should handle this, remove the new file or something
-                            success = 'put error (%s)' % put_response['error']
-                        else:
-                            turl = put_response['TURL']
-                            protocol = put_response['protocol']
-                            referenceID = put_response['referenceID']
-                            serviceID = self.element.url
-                            print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
-                            modify_response = self.catalog.modifyMetadata({'putFile' :
-                                    (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
-                            modify_success = modify_response['putFile']
-                            if modify_success != 'set':
-                                print 'failed to add location to file', GUID, LN, serviceID, referenceID
-                                success = 'failed to add new location to file'
-                                # need some handling
-                            else:
-                                success = 'done'
+                        success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
                 except:
                     success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
@@ -276,6 +294,15 @@ class ManagerService:
         return create_response('man:getFile',
             ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
     
+    def addReplica(self, inpayload):
+        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.man_ns)]
+        request_nodes = get_child_nodes(inpayload.Child().Get('addReplicaRequestList'))
+        requests = dict([(str(request_node.Get('requestID')), str(request_node.Get('GUID')))
+                for request_node in request_nodes])
+        response = self.manager.addReplica(requests, protocols)
+        return create_response('man:addReplica',
+            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
+    
     def putFile(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
         requests = dict([
@@ -331,6 +358,7 @@ class ManagerService:
             ['man:requestID', 'man:status'], response, self.man_ns, single = True)
 
 
+
     def process(self, inmsg, outmsg):
         """ Method to process incoming message and create outgoing one. """
         # gets the payload from the incoming message
@@ -370,4 +398,4 @@ class ManagerService:
             return arc.MCC_Status(arc.STATUS_OK)
 
     # names of provided methods
-    request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile']
+    request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']

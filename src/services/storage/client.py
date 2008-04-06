@@ -330,6 +330,23 @@ class ManagerClient(Client):
         xml = arc.XMLNode(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def addReplica(self, requests, protocols):
+        tree = XMLTree(from_tree =
+            ('man:addReplica', [
+                ('man:addReplicaRequestList', [
+                    ('man:putReplicaRequestElement', [
+                        ('man:requestID', rID),
+                        ('man:GUID', GUID),
+                    ]) for rID, GUID in requests.items()
+                ])
+            ] + [
+                ('man:protocol', protocol) for protocol in protocols
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
+
     def makeCollection(self, requests):
         tree = XMLTree(from_tree =
             ('man:makeCollection', [

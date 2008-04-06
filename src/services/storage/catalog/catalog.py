@@ -45,7 +45,7 @@ class Catalog:
                         filelist = filelists[serviceGUID]
                         print 'filelist of late storage element', serviceID, filelist
                         changes.extend([(GUID, serviceID, referenceID, 'offline')
-                            for (_, GUID), referenceID in filelist.items()])
+                            for (_, referenceID), GUID in filelist.items()])
                     change_response = self._change_states(changes)
                     for _, serviceID in serviceGUIDs.items():
                         self._set_next_heartbeat(serviceID, -1)
@@ -59,7 +59,7 @@ class Catalog:
             for GUID, serviceID, referenceID, state in changes]
         change_request = dict([
             (location, (GUID, 'set', 'locations', location, state,
-                {'only if exists' : ('isset', 'locations', location, '')}))
+                {'only if file exists' : ('is', 'catalog', 'type', 'file')}))
                     for GUID, location, state in with_locations
         ])
         print '_change_states request', change_request
@@ -96,7 +96,7 @@ class Catalog:
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
         se = self.hash.get([serviceGUID])[serviceGUID]
         print 'report se before:', se
-        change_request = dict([(referenceID, (serviceGUID, 'set', 'file', GUID, referenceID, {}))
+        change_request = dict([(referenceID, (serviceGUID, 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, _ in filelist])
         print 'report change_request:', change_request
         change_response = self.hash.change(change_request)
