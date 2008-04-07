@@ -29,14 +29,12 @@ static void infocollector_thread(void *arg)
     srv->InformationCollector();
 }
 
-/*
 static void register_thread(void *arg)
 {
     if (!arg) return;
     CentralISIService *srv = (CentralISIService *)arg;
     srv->reg->registration_forever();
 }
-*/
 
 void CentralISIService::InformationCollector(void)
 {
@@ -58,7 +56,7 @@ void CentralISIService::InformationCollector(void)
     }
 }
 
-CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "CentralISI")
+CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "CentralISI"),reg(NULL)
 {
     // Define supported namespaces
     ns["isis"]="http://www.nordugrid.org/schemas/isis/2007/06";
@@ -98,14 +96,20 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
             }        
         }
     }
-    std::string s_reg_period = (std::string)(*cfg)["Register"]["Period"];
-    long int reg_period = strtol(s_reg_period.c_str(), NULL, 10);
+    Arc::XMLNode regx = (*cfg)["Register"];
+    if(!regx) {
+        logger.msg(Arc::WARNING, "Missing registration section, won't register anywhere");
+        std::string s_reg_period = regx["Period"];
+        long int reg_period = strtol(s_reg_period.c_str(), NULL, 10);
+        if(reg_period == 0) reg_period=600;
+        reg = new Arc::InfoRegister(service_id, reg_period, (*cfg));
+        reg->AddUrl("https://localhost:60000/isis");
+    };
     service_id = (std::string)(*cfg)["ID"];
     if(service_id.empty()) service_id="isis";
     icache = new Arc::InfoCacheInterface(*cfg, service_id);
     CreateThreadFunction(&infocollector_thread, this);
-    //reg = new Arc::Register(service_id, reg_period, (*cfg));
-    // CreateThreadFunction(&register_thread, this);
+    if(reg) CreateThreadFunction(&register_thread, this);
 }
 
 CentralISIService::~CentralISIService(void)

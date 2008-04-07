@@ -6,7 +6,7 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/infosys/InfoCache.h>
-#include <arc/infosys/Register.h>
+#include <arc/infosys/InfoRegister.h>
 
 namespace CentralISI {
 
@@ -18,7 +18,7 @@ class CentralISIService: public Arc::Service
         virtual ~CentralISIService(void);
         virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
         void InformationCollector(void);
-        Arc::Register *reg;
+        Arc::InfoRegister *reg;
     private:
         long int reg_period;
         std::string service_id;
