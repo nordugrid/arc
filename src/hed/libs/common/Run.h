@@ -16,6 +16,8 @@ class Run {
   Run(const Run&);
   Run& operator=(Run&);
  protected:
+  // working directory
+  std::string working_directory;
   // Handles
   int stdout_;
   int stderr_;
@@ -115,6 +117,8 @@ class Run {
   //void DumpStderr(void);
   void AssignInitializer(void (*initializer_func)(void*),void* initializer_arg);
   void AssignKicker(void (*kicker_func)(void*),void* kicker_arg);
+  /** Assign working direcotry of the running process */
+  void AssignWorkingDirectory(std::string &wd) { working_directory = wd; };
   /** Kill running executable. 
     First soft kill signal (SIGTERM) is sent to executable. If
    after timeout seconds executable is still running it's killed
