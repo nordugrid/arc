@@ -137,14 +137,18 @@ class Element:
                                     print 'addReplica response', success, turl, protocol
                                     if success == 'done':
                                         self.backend.copyTo(localID, turl, protocol)
+                                    else:
+                                        print 'checkingThread error, manager responded', success
                             if state == INVALID:
-                                print '\n\nI have an ivalid replica of file', GUID
+                                print '\n\nI have an invalid replica of file', GUID
                                 response = self.manager.getFile({'checkingThread' : (GUID, ['byteio'])})
                                 success, turl, protocol = response['checkingThread']
                                 if success == 'done':
                                     self.changeState(referenceID, CREATING)
                                     self.backend.copyFrom(localID, turl, protocol)
                                     self._file_arrived(referenceID)
+                                else:
+                                    print 'checkingThread error, manager responded', success
                         except:
                             print 'ERROR checking checksum of', referenceID
                             print traceback.format_exc()
@@ -180,27 +184,30 @@ class Element:
             print 'Element.get:', referenceID, protocols
             localData = self.store.get(referenceID)
             print 'localData:', localData
-            if localData.has_key('localID'):
-                localID = localData['localID']
-                checksum = localData['checksum']
-                checksumType = localData['checksumType']
-                protocol_match = self.backend.matchProtocols(protocols)
-                if protocol_match:
-                    protocol = protocol_match[0]
-                    try:
-                        turl = self.backend.prepareToGet(referenceID, localID, protocol)
-                        if turl:
-                            response[requestID] = [('TURL', turl), ('protocol', protocol),
-                                ('checksum', localData['checksum']), ('checksumType', localData['checksumType'])]
-                        else:
-                            response[requestID] = [('error', 'internal error (empty TURL)')]
-                    except:
-                        print traceback.format_exc()
-                        response[requestID] = [('error', 'internal error (prepareToGet exception)')]
+            if localData.get('state', INVALID) == ALIVE:
+                if localData.has_key('localID'):
+                    localID = localData['localID']
+                    checksum = localData['checksum']
+                    checksumType = localData['checksumType']
+                    protocol_match = self.backend.matchProtocols(protocols)
+                    if protocol_match:
+                        protocol = protocol_match[0]
+                        try:
+                            turl = self.backend.prepareToGet(referenceID, localID, protocol)
+                            if turl:
+                                response[requestID] = [('TURL', turl), ('protocol', protocol),
+                                    ('checksum', localData['checksum']), ('checksumType', localData['checksumType'])]
+                            else:
+                                response[requestID] = [('error', 'internal error (empty TURL)')]
+                        except:
+                            print traceback.format_exc()
+                            response[requestID] = [('error', 'internal error (prepareToGet exception)')]
+                    else:
+                        response[requestID] = [('error', 'no supported protocol found')]
                 else:
-                    response[requestID] = [('error', 'no supported protocol found')]
+                    response[requestID] = [('error', 'no such referenceID')]
             else:
-                response[requestID] = [('error', 'no such referenceID')]
+                response[requestID] = [('error', 'file is not alive')]
         return response
 
     def put(self, request):

@@ -8,6 +8,7 @@ true = '1'
 false = '0'
 
 global_root_guid = '0'
+sestore_guid = '1'
 
 def create_checksum(file, type):
     if type == 'md5':

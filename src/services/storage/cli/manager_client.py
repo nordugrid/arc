@@ -45,6 +45,7 @@ else:
             response = manager.getFile(request)
             print response
             success, turl, protocol = response['0']
+            print '\n', LN, success
             if success == 'done':
                 print 'Downloading from', turl, 'to', filename
                 ByteIOClient(turl).read(file = f)
@@ -79,6 +80,7 @@ else:
             response = manager.putFile(request)
             print response
             success, turl, protocol = response['0']
+            print '\n', LN, success
             if success == 'done':
                 f = file(filename,'rb')
                 print 'Uploading from', filename, 'to', turl
@@ -89,7 +91,9 @@ else:
         else:
             request = {'0': (args[0], {('states', 'closed') : false})}
             print 'makeCollection', request
-            print manager.makeCollection(request)
+            response = manager.makeCollection(request)
+            print response
+            print '\n', dict(response.get('////'))['success']
     elif command == 'list':
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'
@@ -118,4 +122,6 @@ else:
                     preserveOriginal = True
             request = {'0' : (sourceLN, targetLN, preserveOriginal)}
             print 'move', request
-            print manager.move(request)
+            response = manager.move(request)
+            print response
+            print '\n', response['0'][0]

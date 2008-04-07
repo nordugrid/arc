@@ -2,11 +2,12 @@ import urlparse
 import httplib
 import arc
 import random
+import time
 from storage.xmltree import XMLTree
 from storage.client import CatalogClient, ElementClient
 from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, parse_ids
+                            serialize_ids, parse_ids, sestore_guid
 import traceback
 
 class Manager:
@@ -61,27 +62,36 @@ class Manager:
         for rID, (LN, protocols) in requests:
             turl = ''
             protocol = ''
+            success = 'unknown'
             try:
                 print traverse_response[rID]
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
                 if not wasComplete:
                     success = 'not found'
                 else:
-                    valid_locations = [parse_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
-                    if not valid_locations:
-                        success = 'file has no valid replica'
+                    type = metadata[('catalog', 'type')]
+                    if type != 'file':
+                        success = 'is not a file'
                     else:
-                        location = random.choice(valid_locations)
-                        print 'location chosen:', location
-                        url, referenceID, _ = location
-                        get_response = dict(ElementClient(url).get({'getFile' : [('referenceID', referenceID), ('protocol', 'byteio')]})['getFile'])
-                        if get_response.has_key('error'):
-                            print 'ERROR', get_response['error']
-                            success = 'error while getting TURL (%s)' % get_response['error']
+                        valid_locations = [parse_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                        if not valid_locations:
+                            success = 'file has no valid replica'
                         else:
-                            turl = get_response['TURL']
-                            protocol = get_response['protocol']
-                            success = 'done'
+                            ok = False
+                            while not ok and len(valid_locations) > 0:
+                                location = valid_locations.pop(random.choice(range(len(valid_locations))))
+                                print 'location chosen:', location
+                                url, referenceID, _ = location
+                                get_response = dict(ElementClient(url).get({'getFile' :
+                                    [('referenceID', referenceID), ('protocol', 'byteio')]})['getFile'])
+                                if get_response.has_key('error'):
+                                    print 'ERROR', get_response['error']
+                                    success = 'error while getting TURL (%s)' % get_response['error']
+                                else:
+                                    turl = get_response['TURL']
+                                    protocol = get_response['protocol']
+                                    success = 'done'
+                                    ok = True
             except:
                 success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
@@ -100,13 +110,30 @@ class Manager:
             response[rID] = (success, turl, protocol)
         return response
 
+    def find_alive_se(self):
+        SEs = self.catalog.get([sestore_guid])[sestore_guid]
+        print 'Registered Storage Elements in Catalog', SEs
+        alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0]
+        print 'Alive Storage Elements:', alive_SEs
+        try:
+            se = random.choice(alive_SEs)
+            print 'Storage Element chosen:', se        
+            return ElementClient(se)
+        except:
+            if se:
+                traceback.print_exc()
+            return None
+
     def _add_replica(self, size, checksumType, checksum, GUID, protocols):
         turl = ''
         protocol = ''
         put_request = [('size', size), ('checksumType', checksumType),
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
-        put_response = dict(self.element.put({'putFile': put_request})['putFile'])
+        element = self.find_alive_se()
+        if not element:
+            return 'no storage element found', turl, protocol
+        put_response = dict(element.put({'putFile': put_request})['putFile'])
         if put_response.has_key('error'):
             print 'ERROR', put_response['error']
             # we should handle this, remove the new file or something
@@ -115,7 +142,7 @@ class Manager:
             turl = put_response['TURL']
             protocol = put_response['protocol']
             referenceID = put_response['referenceID']
-            serviceID = self.element.url
+            serviceID = element.url
             print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
             modify_response = self.catalog.modifyMetadata({'putFile' :
                     (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})

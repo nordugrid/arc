@@ -6,13 +6,12 @@ import threading
 import time
 from storage.xmltree import XMLTree
 from storage.client import HashClient
-from storage.common import catalog_uri, global_root_guid, true, false
+from storage.common import catalog_uri, global_root_guid, true, false, sestore_guid
 from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
     create_metadata, parse_node, serialize_ids, parse_ids
 import traceback
 import copy
 
-sestore_guid = '1'
 
 class Catalog:
     def __init__(self, cfg):
