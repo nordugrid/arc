@@ -6,6 +6,7 @@
 #include <InfoCache.h>
 #include <arc/Logger.h>
 #include <arc/ArcRegex.h>
+#include <arc/StringConv.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <iostream>
@@ -72,25 +73,6 @@ static void clean_path(std::string s)
             s.replace(idx, 2, "/", 0, 1);
         }
     } while (idx != std::string::npos);
-}
-
-static void tokenize(const std::string& str, std::vector<std::string>& tokens,
-                     const std::string& delimiters = " ")
-{
-    // Skip delimiters at beginning.
-    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-    // Find first "non-delimiter".
-    std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
-
-    while (std::string::npos != pos || std::string::npos != lastPos)
-    {
-        // Found a token, add it to the vector.
-        tokens.push_back(str.substr(lastPos, pos - lastPos));
-        // Skip delimiters.  Note the "not_of"
-        lastPos = str.find_first_not_of(delimiters, pos);
-        // Find next "non-delimiter"
-        pos = str.find_first_of(delimiters, lastPos);
-    }
 }
 
 static Arc::XMLNode get_node_by_path(Arc::XMLNode &xml, std::vector<std::string> &path_elements)
@@ -282,7 +264,7 @@ bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
-    tokenize(p, tokens, "/");
+    Arc::tokenize(p, tokens, "/");
     bool ret;
     //std::cout << "path: " << p << "(" << tokens.size() << ")" << std::endl;
     if (tokens.size() < 2) {
@@ -347,7 +329,7 @@ bool InfoCache::Get(const char *xml_path, Arc::XMLNodeContainer &result)
     std::string p(xml_path);
     clean_path(p);
     std::vector<std::string> tokens;
-    tokenize(p, tokens, "/");
+    Arc::tokenize(p, tokens, "/");
     //std::cout << "get path: " << p << "(" << tokens.size() << ")" << std::endl;
     if (tokens.size() < 2) {
         Arc::NS ns;
