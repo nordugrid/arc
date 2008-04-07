@@ -4,14 +4,14 @@
 
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
-#include "Register.h"
+#include "InfoRegister.h"
 
 #include <unistd.h>
 
 namespace Arc
 {
 
-Register::Register(const std::string &sid, long int period, Arc::Config &cfg):logger(Arc::Logger::rootLogger, "Register")
+InfoRegister::InfoRegister(const std::string &sid, long int period, Arc::Config &cfg):logger(Arc::Logger::rootLogger, "InfoRegister")
 {
     ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
     service_id = sid;
@@ -23,12 +23,12 @@ Register::Register(const std::string &sid, long int period, Arc::Config &cfg):lo
     mcc_cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
 }
 
-void Register::AddUrl(std::string &url)
+void InfoRegister::AddUrl(const std::string &url)
 {
     urls.push_back(url);
 }
 
-void Register::registration_forever(void)
+void InfoRegister::registration_forever(void)
 {
     for (;;) {
         registration();
@@ -36,7 +36,7 @@ void Register::registration_forever(void)
     }
 }
 
-void Register::registration(void)
+void InfoRegister::registration(void)
 {
     std::list<std::string>::iterator it;
 

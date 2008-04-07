@@ -13,7 +13,7 @@ namespace Arc {
 /// Registration to ISIS interface
 /** This class provides an interface for service to register
   itself in Information Indexing Service. */
-class Register
+class InfoRegister
 {
     private:
         std::list<std::string> urls;
@@ -27,11 +27,11 @@ class Register
         /** Constructor.
           It takes service identifier @sid, registration frequency @reg_period 
           in seconds and configuration XML subtree @cfg. */
-        Register(const std::string &sid, long int reg_period, Arc::Config &cfg);
-        ~Register(void);
+        InfoRegister(const std::string &sid, long int reg_period, Arc::Config &cfg);
+        ~InfoRegister(void);
         /** Adds @url of ISIS service.
           Specified URLs will all be used during registration process. */
-        void AddUrl(std::string &url);
+        void AddUrl(const std::string &url);
         /** Perform registration.
           All specified ISIS services are contacted and service specified in 
           constructor is registred. */
@@ -41,7 +41,7 @@ class Register
           Never returns so should be run in a separate thread. */
         void registration_forever(void);
 
-}; // class Register
+}; // class InfoRegister
 
 } // namespace
 
