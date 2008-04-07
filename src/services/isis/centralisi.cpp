@@ -31,13 +31,9 @@ static void infocollector_thread(void *arg)
 
 static void register_thread(void *arg)
 {
-std::cerr<<"register_thread: 1"<<std::endl;
     if (!arg) return;
-std::cerr<<"register_thread: 2"<<std::endl;
     CentralISIService *srv = (CentralISIService *)arg;
-std::cerr<<"register_thread: 3"<<std::endl;
     srv->reg->registration_forever();
-std::cerr<<"register_thread: 4"<<std::endl;
 }
 
 void CentralISIService::InformationCollector(void)
@@ -101,22 +97,18 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
         }
     }
     Arc::XMLNode regx = (*cfg)["Register"];
-std::cerr<<"regx: 1"<<std::endl;
     service_id = (std::string)(*cfg)["ID"];
     if(service_id.empty()) service_id="ISIS";
     icache = new Arc::InfoCacheInterface(*cfg, service_id);
     CreateThreadFunction(&infocollector_thread, this);
     if(!regx) {
-std::cerr<<"regx: 2"<<std::endl;
         logger.msg(Arc::WARNING, "Missing registration section, won't register anywhere");
     } else {
         std::string s_reg_period = regx["Period"];
         long int reg_period = strtol(s_reg_period.c_str(), NULL, 10);
         if(reg_period == 0) reg_period=600;
-std::cerr<<"regx: reg_period="<<reg_period<<std::endl;
         reg = new Arc::InfoRegister(service_id, reg_period, (*cfg));
         reg->AddUrl("http://localhost:60000/isis");
-std::cerr<<"calling register_thread"<<std::endl;
         CreateThreadFunction(&register_thread, this);
     };
 }
@@ -213,19 +205,13 @@ Arc::MCC_Status CentralISIService::Register(Arc::XMLNode &in, Arc::XMLNode &/*ou
 {
     int i;
     Arc::XMLNode entry;
-std::string s;
-in.GetXML(s);
-std::cerr<<"Register: "<<s<<std::endl;
     // TODO: protection against malicious id like '../../../../../etc/passwd'
     for (i = 0; (bool)(entry = in["RegEntry"][i]); i++) {
-entry.GetXML(s);
-std::cerr<<"Register: RegEntry: "<<s<<std::endl;
         std::string id = (std::string)entry["ID"];
         if(id.empty()) {
             logger.msg(Arc::ERROR, "Missing identifier in registration request");
         }
 
-std::cerr<<"Register: Set: "<<("/"+id)<<std::endl;
         if(icache) icache->Cache().Set("/"+id,entry);
 
         std::string data;
