@@ -37,14 +37,14 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     // refresh dinamic system information
     sysinfo.refresh();
     Arc::XMLNode ad = doc.NewChild("AdminDomain");
-    ad.NewChild("ID") = "foobar"; // XXX: URI required
+    ad.NewChild("ID") = service_id;
     ad.NewChild("Name") = "DesktopPC";
     ad.NewChild("Distriuted") = "no";
     ad.NewChild("Owner") = "someone"; // get user name required
     Arc::XMLNode services = ad.NewChild("Services");
     Arc::XMLNode cs = services.NewChild("ComputingService");
     cs.NewAttribute("type") = "Service";
-    cs.NewChild("ID") = "uuid"; // get uuid
+    cs.NewChild("ID") = service_id;
     cs.NewChild("Type") = "org.nordugrid.paul";
     cs.NewChild("QualityLevel") = "production";
     cs.NewChild("Complexity") = "endpoint=1,share=1,resource=1";
@@ -131,7 +131,7 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     return true;
 }
 
-void PaulService::GetActivities(const std::string &url_str, std::vector<Job> &ret)
+void PaulService::GetActivities(const std::string &url_str, std::vector<std::string> &ret)
 {
     // Collect information about resources
     // and create Glue compatibile Resource description
@@ -168,10 +168,12 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<Job> &re
            logger_.msg(Arc::ERROR, str);
            delete response;
         }
+        // delete client;
         return;
     }
     if (!response) {
         logger_.msg(Arc::ERROR, "No response");
+        // delete client;
         return;
     }
     
@@ -181,61 +183,78 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<Job> &re
     std::string faultstring = (std::string)fs;
     if (faultstring != "") {
         logger_.msg(Arc::ERROR, faultstring);
+        // delete client;
         return;
     }
+    // delete client;
     // Create jobs from response
     Arc::XMLNode activities;
     activities = (*response)["ibes:GetActivitiesResponse"]["ibes:Activities"];
     Arc::XMLNode activity;
     for (int i = 0; (activity = activities.Child(i)) != false; i++) {
-        JobRequest jr(activity);
-        std::string job_id = (std::string)activity.Attribute("ID");
+        Arc::XMLNode id = activity["ActivityIdentifier"];
+        if (!id) {
+            logger_.msg(Arc::DEBUG, "Missing job identifier");
+            continue;
+        }
+        Arc::WSAEndpointReference epr(id);
+        std::string job_id = epr.ReferenceParameters()["sched:JobID"];
+        if (job_id.empty()) {
+            logger_.msg(Arc::DEBUG, "Cannot find job id");
+            continue;
+        }
+        std::string resource_id = epr.Address();
+        if (resource_id.empty()) {
+            logger_.msg(Arc::DEBUG, "Cannot find scheduler endpoint");
+            continue;
+        }
+        Arc::XMLNode jsdl = activity["ActivityDocument"]["JobDefinition"];
+        JobRequest jr(jsdl);
         Job j(jr);
-        j.setStatus(status_factory.get(NEW));
+        j.setStatus(NEW);
         j.setID(job_id);
-        ret.push_back(j);
+        j.setResourceID(resource_id); // here the resource is the scheduler endpoint
+        ret.push_back(job_id);
         jobq.addJob(j);
+        std::string s = sched_status_to_string(j.getStatus());
+        logger_.msg(Arc::DEBUG, "Status: %s %d",s,j.getStatus());
         // j.save();
     }
 }
 
 typedef struct {
     PaulService *self;
-    Job *job;
+    std::string *job_id;
 } ServiceAndJob;
 
 void PaulService::process_job(void *arg)
 {
     ServiceAndJob &info = *((ServiceAndJob *)arg);
     PaulService &self = *(info.self);
-    Job &j = *(info.job);
+    Job &j = self.jobq[*(info.job_id)];
     self.logger_.msg(Arc::DEBUG, "Process job: %s", j.getID());
     self.stage_in(j);
     self.run(j);
     self.stage_out(j);
+    j.setStatus(FINISHED);
     // free memory
+    delete info.job_id;
     delete &info;
 }
 
 void PaulService::do_request(void)
 {
+    // XXX pickup scheduler randomly from schdeuler list
     std::string url = (*schedulers.begin());
     logger_.msg(Arc::DEBUG, "Do Request: %s", url);
-    // pickup scheduler randomly from schdeuler list
-    std::vector<Job> jobs;
-    GetActivities(url, jobs);
-    for (int i = 0; i < jobs.size(); i++) {
+    std::vector<std::string> job_ids;
+    GetActivities(url, job_ids);
+    for (int i = 0; i < job_ids.size(); i++) {
         ServiceAndJob *arg = new ServiceAndJob;
         arg->self = this;
-        arg->job = new Job(jobs[i]);
+        arg->job_id = new std::string(job_ids[i]);
         Arc::CreateThreadFunction(&process_job, arg);
     }
-
-    // invoke GetActivity function call aganst scheduler
-    // if there was error: report and return
-    // put job into queue
-    // create thread to start and mointor job
-    // return
 }
 
 // Main request loop
@@ -249,13 +268,118 @@ void PaulService::request_loop(void* arg)
     }
 }
 
+// Report status of jobs
+void PaulService::do_report(void)
+{
+    logger_.msg(Arc::DEBUG, "Report statues");
+    std::map<const std::string, Job *> all = jobq.getAllJobs();
+    std::map<const std::string, Job *>::iterator it;
+    std::map<std::string, Arc::PayloadSOAP *> requests;
+
+    for (it = all.begin(); it != all.end(); it++) {
+        Job *j = it->second;
+        std::string sched_url = j->getResourceID();
+        Arc::XMLNode report;
+        std::map<std::string, Arc::PayloadSOAP *>::iterator r = requests.find(sched_url);
+        if (r == requests.end()) {
+            Arc::PayloadSOAP *request = new Arc::PayloadSOAP(ns_);
+            report = request->NewChild("ibes:ReportActivitiesStatus");
+            requests[sched_url] = request;
+        } else {
+            report = (*r->second)["ibes:ReportActivitiesStatus"];
+        }
+        
+        Arc::XMLNode resp = report.NewChild("ibes:Activity");
+        
+        // Make response
+        Arc::WSAEndpointReference identifier(resp.NewChild("ibes:ActivityIdentifier"));
+        identifier.Address(j->getResourceID()); // address of scheduler service
+        identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
+
+        Arc::XMLNode state = resp.NewChild("ibes:ActivityStatus");
+        state.NewAttribute("ibes:state") = sched_status_to_string(j->getStatus());
+        std::string s;
+        report.GetXML(s);
+        logger_.msg(Arc::DEBUG, s);
+    }
+    
+    Arc::MCCConfig cfg;
+    Arc::ClientSOAP *client;
+
+    std::map<std::string, Arc::PayloadSOAP *>::iterator i;
+    for (i = requests.begin(); i != requests.end(); i++) {
+        std::string url_str = i->first;
+        Arc::PayloadSOAP request = (*i->second);
+        Arc::URL url(url_str);
+        if (url.Protocol() == "https") {
+            cfg.AddPrivateKey(pki["PrivateKey"]);
+            cfg.AddCertificate(pki["CertificatePath"]);
+            cfg.AddCAFile(pki["CACertificatePath"]);
+        }
+        client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+
+        Arc::PayloadSOAP *response;
+        Arc::MCC_Status status = client->process(&request, &response);
+        if (!status) {
+            logger_.msg(Arc::ERROR, "Request failed");
+            if (response) {
+                std::string str;
+                response->GetXML(str);
+                logger_.msg(Arc::ERROR, str);
+                delete response;
+            }
+            // delete client;
+            continue;
+        }
+        if (!response) {
+            logger_.msg(Arc::ERROR, "No response");
+            delete response;
+            // delete client;
+            continue;
+        }
+    
+        // Handle soap level error
+        Arc::XMLNode fs;
+        (*response)["Fault"]["faultstring"].New(fs);
+        std::string faultstring = (std::string)fs;
+        if (faultstring != "") {
+            logger_.msg(Arc::ERROR, faultstring);
+        }
+        delete response;
+        // delete client;
+    }
+    // free
+    for (i = requests.begin(); i != requests.end(); i++) {
+        delete i->second;
+    }
+}
+
+void PaulService::do_action(void)
+{
+    logger_.msg(Arc::DEBUG, "Get activity status changes");   
+}
+
+// Main reported loop
+void PaulService::report_and_action_loop(void *arg)
+{
+    PaulService *self = (PaulService *)arg;
+    for (;;) {
+        self->do_report();
+        self->do_action();
+        sleep((int)(self->period*1.1));
+    }
+}
+
 // Constructor
 PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul") 
 {
     // Define supported namespaces
     ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
     ns_["glue2"] = "http://glue2";
+    ns_["sched"] = "http://www.nordugrid.org/schemas/sched";
+    ns_["wsa"] = "http://www.w3.org/2005/08/addressing";
 
+    service_id = (std::string)((*cfg)["UUID"]);
     std::string sched_endpoint = (std::string)((*cfg)["SchedulerEndpoint"]);
     schedulers.push_back(sched_endpoint);
     period = Arc::stringtoi((std::string)((*cfg)["RequestPeriod"]));
@@ -268,6 +392,8 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     pki["CACertificatePath"] = (std::string)((*cfg)["CACertificatePath"]);  
     // Start sched thread
     Arc::CreateThreadFunction(&request_loop, this);
+    // Start report and action thread
+    Arc::CreateThreadFunction(&report_and_action_loop, this);
 }
 
 // Destructor

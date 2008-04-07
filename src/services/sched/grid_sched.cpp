@@ -112,12 +112,12 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     } else if(MatchXMLName(op, "GetActivities")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivitiesResponse");
         ret = GetActivities(op, r);
-    } else if(MatchXMLName(op, "ReportActivityStatus")) {
-        Arc::XMLNode r = res.NewChild("ibes:ReportActivityStatusResponse");
-        ret = ReportActivityStatus(op, r);
-    } else if(MatchXMLName(op, "GetActivityStatusChanges")) {
-        Arc::XMLNode r = res.NewChild("ibes:GetActivityStatusChangesResponse");
-        ret = GetActivityStatusChanges(op, r);
+    } else if(MatchXMLName(op, "ReportActivitiesStatus")) {
+        Arc::XMLNode r = res.NewChild("ibes:ReportActivitiesStatusResponse");
+        ret = ReportActivitiesStatus(op, r);
+    } else if(MatchXMLName(op, "GetActivitiesStatusChanges")) {
+        Arc::XMLNode r = res.NewChild("ibes:GetActivitiesStatusChangesResponse");
+        ret = GetActivitiesStatusChanges(op, r);
       // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
@@ -286,8 +286,8 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
     IsAcceptingNewActivities = true;
   
-    Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
-    sched_resources.add(arex);
+    // Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
+    // sched_resources.add(arex);
     //Resource arex0("https://localhost:40000/arex", security);
     //Resource arex1("https://localhost:40001/arex", security);
     //Resource arex2("https://localhost:40002/arex", security);

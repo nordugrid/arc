@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <arc/Run.h>
 #include "paul.h"
@@ -22,12 +24,14 @@ bool PaulService::run(Job &j)
         return false;
     }
     std::string exec = (std::string)app["Executable"];
+    // XXX protection against ../../ stuff in the executable and all kind
+    // of path
     if (exec.empty()) {
         logger_.msg(Arc::ERROR, "Empty executable");
         return false;    
     }
     Arc::XMLNode arg;
-    std::string arg_str = "";
+    std::string arg_str = " ";
     for (int i=0; (arg = app["Argument"][i]) != false; i++) {
         arg_str += (std::string)arg + " ";
     }
@@ -39,16 +43,13 @@ bool PaulService::run(Job &j)
     // XXX unix specific
     std::string r = job_root+"/"+j.getID();
     if (exec[0] != '/') {
-        cmd = r+"/"+exec;
+        cmd = r + "/" + exec;
+        chmod(cmd.c_str(), 0700);
+        cmd = "./" + exec + arg_str;
     } else {
-        cmd = exec;
+        cmd = exec + arg_str;
     }
     
-    // XXX chdir
-    if (chdir(r.c_str()) != 0) {
-        logger_.msg(Arc::ERROR, "Cannot chdir");
-        return false;
-    }
     try {
         Arc::Run run(cmd);
         std::string stdin_str;
@@ -57,29 +58,31 @@ bool PaulService::run(Job &j)
         run.AssignStdin(stdin_str);
         run.AssignStdout(stdout_str);
         run.AssignStderr(stderr_str);
+        run.AssignWorkingDirectory(r);
         logger_.msg(Arc::DEBUG, "Command: %s", cmd);
         if(!run.Start()) {
-        } else {
             logger_.msg(Arc::ERROR, "Cannot start application");
-            return false;
+            goto error;
         }
-        if(!run.Wait()) {
+        j.setStatus(RUNNING);
+        if(run.Wait()) {
             logger_.msg(Arc::DEBUG, "StdOut: %s", stdout_str);
             logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
         } else {
             logger_.msg(Arc::ERROR, "Error during the application run");
-            return false;
+            goto error;
         }
         int r = run.Result();
     } catch (std::exception &e) {
         logger_.msg(Arc::ERROR, "Exception: %s", e.what());
-        return false;
+        goto error;
     } catch (Glib::SpawnError &e) {
         logger_.msg(Arc::ERROR, "SpawnError");
-        return false;
+        goto error;
     }
-    
-    return true;
+
+error:
+    return false;
 }
 
 }

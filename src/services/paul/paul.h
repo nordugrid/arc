@@ -14,6 +14,7 @@ namespace Paul {
 
 class PaulService: public Arc::Service {
     protected:
+        std::string service_id;
         std::string job_root;
         std::string db_path;
         std::string cache_path;
@@ -27,9 +28,11 @@ class PaulService: public Arc::Service {
         std::map<std::string, std::string> pki;
         SysInfo sysinfo;
         void do_request(void);
+        void do_report(void);
+        void do_action(void);
         static void process_job(void *arg);
         static void request_loop(void *arg);
-        SchedStatusFactory status_factory;
+        static void report_and_action_loop(void *arg);
         bool stage_in(Job &j);
         bool run(Job &j);
         bool stage_out(Job &j);
@@ -37,7 +40,7 @@ class PaulService: public Arc::Service {
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);
         Arc::MCC_Status process(Arc::Message &in, Arc::Message &out) { return Arc::MCC_Status(); };
-        void GetActivities(const std::string &url, std::vector<Job> &ret);
+        void GetActivities(const std::string &url, std::vector<std::string> &ret);
 
 }; // class PaulService
 

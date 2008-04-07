@@ -11,18 +11,11 @@
   </Server>
   <ModuleManager>
         <Path>.libs/</Path>
-        <Path>../../hed/mcc/http/.libs/</Path>
-        <Path>../../hed/mcc/tls/.libs/</Path>
-        <Path>../../hed/mcc/soap/.libs/</Path>
-        <Path>../../hed/mcc/tcp/.libs/</Path>
   </ModuleManager>
-<!--  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins> -->
   <Plugins><Name>paul</Name></Plugins>
   <Chain>
     <Service name="paul" id="paul">
+       <UUID>c220ccb6-fd7f-4ecb-a8ac-f7794248b83b</UUID>
        <paul:SchedulerEndpoint>https://localhost:60000/sched</paul:SchedulerEndpoint>
        <paul:JobRoot>./jobroot</paul:JobRoot>
        <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>

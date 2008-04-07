@@ -7,6 +7,54 @@
 namespace Paul
 {
 
+static std::map<SchedStatusLevel, std::string> str_map;
+
+std::string sched_status_to_string(SchedStatusLevel l)
+{
+    if (l == NEW) {
+        return "NEW";
+    } else if (l == STARTING) {
+        return "STARTING";
+    } else if (l == RUNNING) {
+        return "RUNNING";
+    } else if (l == CANCELLED) {
+        return "CANCELLED";
+    } else if (l == FAILED) {
+        return "FAILED";
+    } else if (l == FINISHED) {
+        return "FINISHED";
+    } else if (l == KILLED) {
+        return "KILLED";
+    } else if (l == KILLING) {
+        return "KILLING";
+    } 
+
+    return "UNKNOWN";
+}
+
+SchedStatusLevel sched_status_from_string(const std::string &s)
+{
+    if (s == "NEW") { 
+        return NEW;
+    } else if (s == "STARTING") {
+        return STARTING;
+    } else if (s == "RUNNING") {
+        return RUNNING;
+    } else if (s == "CANCELLED") {
+        return CANCELLED;
+    } else if (s == "FAILED") { 
+        return FAILED;
+    } else if (s == "FINISHED") {
+        return FINISHED;
+    } else if (s == "KILLED") {
+        return KILLED;
+    } else if (s == "KILLING")  {
+        return KILLING;
+    }
+
+    return UNKNOWN;
+}
+#if 0
 SchedStatusFactory::SchedStatusFactory(void)
 {
     str_map[NEW] = "NEW";
@@ -58,5 +106,6 @@ SchedStatus SchedStatusFactory::getFromARexStatus(ARexStatusLevel al)
     // XXX  missing mapping
     get(UNKNOWN);
 }
+#endif
 
 }; // namespace Paul

@@ -56,6 +56,24 @@ class FileTransfer
 
         FileTransfer(const std::string &_cache_path):logger_(Arc::Logger::rootLogger, "Paul-FileTransfer") {
             cache_path = _cache_path;
+            logger_.msg(Arc::DEBUG, "Filetransfer created");
+    
+        };
+
+        void create_cache(Job &j)
+        {
+            // Create cache
+            Arc::User cache_user;
+            std::string job_id = j.getID();
+            std::string cache_dir = cache_path;
+            std::string cache_data_dir = cache_dir;
+            std::string cache_link_dir;
+            cache = new Arc::DataCache (cache_dir, cache_data_dir, 
+                                        cache_link_dir, job_id, cache_user);
+        }
+
+        void download(const std::string &job_root, Job &j)
+        {
             // Init DMCs
             Arc::NS ns;
             Arc::Config cfg(ns);
@@ -63,7 +81,7 @@ class FileTransfer
             // fill up config with default config
             dmccfg.MakeConfig(cfg);
             // load modules
-            Arc::Loader dmcload(&cfg);
+            Arc::Loader dmcloader(&cfg);
 
             // Create mover
             mover = new Arc::DataMover();
@@ -84,25 +102,12 @@ class FileTransfer
             if(max_inactivity_time != 0) {
                 mover->set_default_max_inactivity_time(max_inactivity_time);
             }
-    
-        };
-
-        void create_cache(Job &j)
-        {
-            // Create cache
-            Arc::User cache_user;
-            std::string job_id = j.getID();
-            std::string cache_dir = cache_path;
-            std::string cache_data_dir = cache_dir;
-            std::string cache_link_dir;
-            cache = new Arc::DataCache (cache_dir, cache_data_dir, 
-                                        cache_link_dir, job_id, cache_user);
-        }
-
-        void download(const std::string &job_root, Job &j)
-        {
             create_cache(j);
+            logger_.msg(Arc::DEBUG, "download");
             Arc::XMLNode jd = j.getJSDL()["JobDescription"];
+            std::string xml_str;
+            j.getJSDL().GetXML(xml_str);
+            logger_.msg(Arc::DEBUG, xml_str);
             Arc::XMLNode ds;
             for (int i = 0; (ds = jd["DataStaging"][i]) != false; i++) {
                 std::string dest = "file://" + job_root + "/" + j.getID() + "/" + (std::string)ds["FileName"];
@@ -141,12 +146,40 @@ class FileTransfer
 
         void upload(const std::string &job_root, Job &j)
         {
+            // Init DMCs
+            Arc::NS ns;
+            Arc::Config cfg(ns);
+            Arc::DMCConfig dmccfg;
+            // fill up config with default config
+            dmccfg.MakeConfig(cfg);
+            // load modules
+            Arc::Loader dmcloader(&cfg);
+
+            // Create mover
+            mover = new Arc::DataMover();
+            mover->retry(false);
+            mover->secure(false); // XXX what if I download form https url? 
+            mover->passive(false);
+            mover->verbose(true);
+            min_speed = 0;
+            min_speed_time = 300;
+            min_average_speed = 0;
+            max_inactivity_time = 300;
+            if (min_speed != 0) {
+                mover->set_default_min_speed(min_speed,min_speed_time);
+            }
+            if (min_average_speed != 0) {
+                mover->set_default_min_average_speed(min_average_speed);
+            }
+            if(max_inactivity_time != 0) {
+                mover->set_default_max_inactivity_time(max_inactivity_time);
+            }
             create_cache(j);
             Arc::XMLNode jd = j.getJSDL()["JobDescription"];
             Arc::XMLNode ds;
             for (int i = 0; (ds = jd["DataStaging"][i]) != false; i++) {
                 std::string src = "file://" + job_root + "/" + j.getID() + "/" + (std::string)ds["FileName"];
-                Arc::XMLNode d = ds["Source"];
+                Arc::XMLNode d = ds["Target"];
                 if (d == false) {
                     // it should not upload
                     continue;
