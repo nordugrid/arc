@@ -55,8 +55,9 @@ void InfoRegister::registration(void)
         cli = new Arc::ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
         logger.msg(Arc::DEBUG, "Start registration to %s ISIS", isis_name);
         Arc::PayloadSOAP request(ns);
-        request.NewChild("Header").NewChild("RequesterID") = service_id;
-        Arc::XMLNode re = request.NewChild("RegEntry");
+        Arc::XMLNode op = request.NewChild("isis:Register");
+        op.NewChild("Header").NewChild("RequesterID") = service_id;
+        Arc::XMLNode re = op.NewChild("RegEntry");
         re.NewChild("ID") = service_id;
         Arc::XMLNode sa = re.NewChild("SrvAdv");
         // sa.NewChild("Type") = 
