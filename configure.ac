@@ -402,6 +402,9 @@ AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 AC_CHECK_HEADER(uuid/uuid.h, [UUID_LIBS="-luuid"], [UUID_LIBS=""])
 AC_SUBST(UUID_LIBS)
 
+# check for fsusage
+gl_FSUSAGE
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
