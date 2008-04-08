@@ -54,7 +54,6 @@
 # if HAVE_DUSTAT_H		/* AIX PS/2 */
 #  include <sys/dustat.h>
 # endif
-# include "full-read.h"
 #endif
 
 /* The results of open() in this file are not used with fchdir,
@@ -127,7 +126,8 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
 # ifndef SUPERBOFF
 #  define SUPERBOFF (SUPERB * 512)
 # endif
-
+  return -1;
+#if 0
   struct filsys fsd;
   int fd;
 
@@ -157,7 +157,7 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
 		    ? UINTMAX_MAX
 		    : (fsd.s_isize - 2) * INOPB * (fsd.s_type == Fs2b ? 2 : 1));
   fsp->fsu_ffree = PROPAGATE_ALL_ONES (fsd.s_tinode);
-
+#endif
 #elif defined STAT_STATFS3_OSF1
 
   struct statfs fsd;

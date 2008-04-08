@@ -50,29 +50,36 @@ bool PaulService::run(Job &j)
         cmd = exec + arg_str;
     }
     
+    Arc::Run *run = NULL;
+
     try {
-        Arc::Run run(cmd);
+        run = new Arc::Run(cmd);
         std::string stdin_str;
         std::string stderr_str;
         std::string stdout_str;
-        run.AssignStdin(stdin_str);
-        run.AssignStdout(stdout_str);
-        run.AssignStderr(stderr_str);
-        run.AssignWorkingDirectory(r);
+        run->AssignStdin(stdin_str);
+        run->AssignStdout(stdout_str);
+        run->AssignStderr(stderr_str);
+        run->AssignWorkingDirectory(r);
         logger_.msg(Arc::DEBUG, "Command: %s", cmd);
-        if(!run.Start()) {
+        if(!run->Start()) {
             logger_.msg(Arc::ERROR, "Cannot start application");
             goto error;
         }
         j.setStatus(RUNNING);
-        if(run.Wait()) {
+        runq[j.getID()] = run;
+        if(run->Wait()) {
             logger_.msg(Arc::DEBUG, "StdOut: %s", stdout_str);
             logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
+            if (run != NULL) {
+                delete run;
+            }
+            return true;
         } else {
             logger_.msg(Arc::ERROR, "Error during the application run");
             goto error;
         }
-        int r = run.Result();
+        int r = run->Result();
     } catch (std::exception &e) {
         logger_.msg(Arc::ERROR, "Exception: %s", e.what());
         goto error;
@@ -82,6 +89,9 @@ bool PaulService::run(Job &j)
     }
 
 error:
+    if (run != NULL) {
+        delete run;
+    }
     return false;
 }
 

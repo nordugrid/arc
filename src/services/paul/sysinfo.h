@@ -29,6 +29,9 @@ class SysInfo
         unsigned int getLogicalCPUs(void) { return logicalCPUs; };
         unsigned int getMainMemorySize(void) { return mainMemorySize; };
         unsigned int getVirtualMemorySize(void) { return virtualMemorySize; };
+        static unsigned int diskAvailable(const std::string &path);
+        static unsigned int diskFree(const std::string &path);
+        static unsigned int diskTotal(const std::string &path);
 
 };
 

@@ -9,6 +9,7 @@
 #include <arc/StringConv.h>
 
 #include "sysinfo.h"
+#include "fsusage.h"
 
 namespace Paul
 {
@@ -59,6 +60,39 @@ SysInfo::SysInfo(void)
     }
     virtualMemorySize = mainMemorySize + swap_size;
     m.close();
+}
+
+unsigned int SysInfo::diskAvailable(const std::string &path)
+{
+    struct fs_usage fsu;
+    int ret;
+    ret = get_fs_usage(path.c_str(), NULL, &fsu);
+    if (ret == 0) {
+        return (fsu.fsu_blocksize * fsu.fsu_bavail)/(1024*1024);
+    }
+    return 0;
+}
+
+unsigned int SysInfo::diskTotal(const std::string &path)
+{
+    struct fs_usage fsu;
+    int ret;
+    ret = get_fs_usage(path.c_str(), NULL, &fsu);
+    if (ret == 0) {
+        return (fsu.fsu_blocksize * fsu.fsu_blocks)/(1024*1024);
+    }
+    return 0;
+}
+
+unsigned int SysInfo::diskFree(const std::string &path)
+{
+    struct fs_usage fsu;
+    int ret;
+    ret = get_fs_usage(path.c_str(), NULL, &fsu);
+    if (ret == 0) {
+        return (fsu.fsu_blocksize * fsu.fsu_bfree)/(1024*1024);
+    }
+    return 0;
 }
 
 void SysInfo::refresh(void)

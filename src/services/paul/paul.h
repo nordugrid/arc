@@ -1,6 +1,7 @@
 #ifndef __ARC_PAUL_H__
 #define __ARC_PAUL_H__
 
+#include <arc/Run.h>
 #include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
@@ -26,6 +27,7 @@ class PaulService: public Arc::Service {
         JobQueue jobq;
         bool information_collector(Arc::XMLNode &doc);
         std::map<std::string, std::string> pki;
+        std::map<std::string, Arc::Run *> runq;
         SysInfo sysinfo;
         void do_request(void);
         void do_report(void);

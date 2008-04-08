@@ -94,8 +94,8 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     r.NewChild("Total") = "1"; // number of exec env
     r.NewChild("Used") = "0"; // comes from running job
     r.NewChild("Homogenity") = "True";
-    r.NewChild("SessionDirTotal") = "10000"; // XXX should calculated in MB
-    r.NewChild("SessionDirFree") = "10000"; // XXX should calculated in MB
+    r.NewChild("SessionDirTotal") = Arc::tostring(SysInfo::diskTotal(job_root));
+    r.NewChild("SessionDirFree") = Arc::tostring(SysInfo::diskFree(job_root));
     r.NewChild("SessionDirLifetime") = "10"; // XXX should come from config in sec
     Arc::XMLNode ee = r.NewChild("ExecutionEnvironment");
     ee.NewChild("ID") = "0";
@@ -357,6 +357,72 @@ void PaulService::do_report(void)
 void PaulService::do_action(void)
 {
     logger_.msg(Arc::DEBUG, "Get activity status changes");   
+    std::map<const std::string, Job *> all = jobq.getAllJobs();
+    std::map<const std::string, Job *>::iterator it;
+    std::map<std::string, int> schedulers;
+    // collect schedulers 
+    for (it = all.begin(); it != all.end(); it++) {
+        Job *j = it->second;
+        std::string sched_url = j->getResourceID();
+        schedulers[sched_url] = 1;
+    }
+    
+    Arc::MCCConfig cfg;
+    // call get activitiy changes to all scheduler
+    std::map<std::string, int>::iterator i;
+    for (i = schedulers.begin(); i != schedulers.end(); i++) {
+        std::string sched_url = i->first;
+        Arc::PayloadSOAP request(ns_);
+        request.NewChild("ibes:GetActivitiesStatusChange");
+        Arc::ClientSOAP *client;
+        Arc::URL url(sched_url);
+        if (url.Protocol() == "https") {
+            cfg.AddPrivateKey(pki["PrivateKey"]);
+            cfg.AddCertificate(pki["CertificatePath"]);
+            cfg.AddCAFile(pki["CACertificatePath"]);
+        }
+        client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
+        Arc::PayloadSOAP *response;
+        Arc::MCC_Status status = client->process(&request, &response);
+        if (!status) {
+            logger_.msg(Arc::ERROR, "Request failed");
+            if (response) {
+                std::string str;
+                response->GetXML(str);
+                logger_.msg(Arc::ERROR, str);
+                delete response;
+            }
+            // delete client;
+            continue;
+        }
+        if (!response) {
+            logger_.msg(Arc::ERROR, "No response");
+            delete response;
+            // delete client;
+            continue;
+        }
+    
+        // Handle soap level error
+        Arc::XMLNode fs;
+        (*response)["Fault"]["faultstring"].New(fs);
+        std::string faultstring = (std::string)fs;
+        if (faultstring != "") {
+            logger_.msg(Arc::ERROR, faultstring);
+        }
+        delete response;
+        
+        // process response
+        Arc::XMLNode activity;
+        for (int i = 0; (activity = (*response)["Activity"][i]) != false; i++) {
+            Arc::XMLNode id = activity["ActivityIdentifier"];
+            Arc::WSAEndpointReference epr(id);
+            std::string job_id = epr.ReferenceParameters()["sched:JobID"];
+            if (job_id.empty()) {
+                logger_.msg(Arc::WARNING, "Cannot find job id");
+            }
+
+        }
+    }
 }
 
 // Main reported loop
