@@ -11,8 +11,8 @@
 
 AC_DEFUN([gl_FSUSAGE],
 [
-  AC_CHECK_HEADERS_ONCE(sys/param.h)
-  AC_CHECK_HEADERS_ONCE(sys/vfs.h sys/fs_types.h)
+  AC_CHECK_HEADERS(sys/param.h)
+  AC_CHECK_HEADERS(sys/vfs.h sys/fs_types.h)
   AC_CHECK_HEADERS(sys/mount.h, [], [],
     [AC_INCLUDES_DEFAULT
      [#if HAVE_SYS_PARAM_H
