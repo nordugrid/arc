@@ -95,7 +95,6 @@ void RunPump::Pump(void) {
     //context_->acquire();
     for(;;) {
       list_lock_.lock();
-      sleep(1);
       list_lock_.unlock();
       pump_lock_.lock();
       context_->iteration(true);
@@ -379,9 +378,12 @@ bool Run::Wait(void)
   if(!started_) return false;
   if(!running_) return true;
   lock_.lock();
+  Glib::TimeVal till;
   while(running_) {
+    till.assign_current_time(); 
+    till+=1; // one sec later
 #ifdef HAVE_GLIBMM_CHILDWATCH
-    cond_.wait(lock_);
+    cond_.timed_wait(lock_,till);
 #else
 #ifndef WIN32
     int status;
