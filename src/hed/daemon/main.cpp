@@ -61,7 +61,7 @@ static std::string init_logger(Arc::Config& cfg)
     Arc::Logger::rootLogger.setThreshold(level); 
     std::fstream *dest = new std::fstream(log_file.c_str(), std::fstream::out | std::fstream::app);
     if(!(*dest)) {
-      std::cerr<<"Failed to open lof file: "<<log_file<<std::endl;
+      std::cerr<<"Failed to open log file: "<<log_file<<std::endl;
       _exit(1);
     }
     Arc::LogStream* sd = new Arc::LogStream(*dest); 
@@ -76,6 +76,7 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
+signal(SIGTTOU,SIG_IGN);
     /* Create options parser */
 #ifdef HAVE_GLIBMM_OPTIONS
     Glib::OptionContext opt_ctx;
