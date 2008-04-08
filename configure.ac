@@ -335,7 +335,11 @@ AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes") 
 AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service]) 
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"]) 
- 	 
+# ISI(S) 
+AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes") 
+AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service]) 
+AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"]) 
+
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
