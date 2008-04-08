@@ -12,7 +12,6 @@ Arc::MCC_Status GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, A
         Arc::XMLNode id = activity["ActivityIdentifier"];
         Arc::WSAEndpointReference epr(id);
         std::string job_id = epr.ReferenceParameters()["sched:JobID"];
-        std::cout << ">>>> " << job_id << std::endl;
         if (job_id.empty()) {
             logger_.msg(Arc::ERROR, "Cannot find job id");
             continue;

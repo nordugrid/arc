@@ -296,7 +296,9 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     //sched_resources.addResource(arex2);
  
     // start scheduler thread
-    Arc::CreateThreadFunction(&sched, this);
+    if (period > 0) { 
+        Arc::CreateThreadFunction(&sched, this);
+    }
 }
 
 // Destructor
