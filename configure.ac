@@ -629,6 +629,7 @@ RSL:                ${enable_rsl}
 
 Included components: 
 A-Rex service:      ${enable_a_rex_service}
+ISI service:        ${enable_isi_service}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
