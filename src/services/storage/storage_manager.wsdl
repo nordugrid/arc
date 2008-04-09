@@ -9,7 +9,7 @@
  xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2"
  xmlns:sm="http://www.nordugrid.org/schemas/storage-manager">
 
-  <wsdl:import namespase="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+  <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
 
   <wsdl:types>
     <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/storage-manager">
