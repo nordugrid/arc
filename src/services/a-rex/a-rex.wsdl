@@ -14,10 +14,10 @@
  xmlns:a-rex="http://www.nordugrid.org/schemas/a-rex">
 
 
-  <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
-  <wsdl:import namespase="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
-  <wsdl:import namespase="http://www.nordugrid.org/schemas/delegation" location="../schemas/delegation.wsdl"/>
-  <wsdl:import namespase="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+  <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-factory" location="./bes-factory.wsdl"/>
+  <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
+  <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation/delegation.wsdl"/>
+  <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
 
   <wsdl:types>
     <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/a-rex">
