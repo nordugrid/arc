@@ -14,6 +14,8 @@
         elementFormDefault="qualified"
         targetNamespace="http://schemas.ggf.org/bes/2006/08/bes-factory">
 
+      <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="ws-addr.xsd"/>
+
       <xsd:include schemaLocation="bes-factory.xsd"/>
 
       <!-- Message Types -->

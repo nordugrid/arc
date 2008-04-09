@@ -11,6 +11,7 @@
  xmlns:bes-mgmt="http://schemas.ggf.org/bes/2006/08/bes-management"
  xmlns:deleg="http://www.nordugrid.org/schemas/delegation"
  xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2"
+ xmlns:wsrf-rw="http://docs.oasis-open.org/wsrf/rw-2"
  xmlns:a-rex="http://www.nordugrid.org/schemas/a-rex">
 
 
@@ -18,11 +19,13 @@
   <wsdl:import namespace="http://schemas.ggf.org/bes/2006/08/bes-management" location="./bes-management.wsdl"/>
   <wsdl:import namespace="http://www.nordugrid.org/schemas/delegation" location="../../hed/libs/delegation/delegation.wsdl"/>
   <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+  <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rw-2" location="http://docs.oasis-open.org/wsrf/rw-2.wsdl"/>
 
   <wsdl:types>
     <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/a-rex">
 
       <xsd:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="./ws-addr.xsd"/>
+      <xsd:import namespace="http://schemas.ggf.org/bes/2006/08/bes-factory" schemaLocation="./bes-factory.xsd"/>
 
       <xsd:simpleType name="ActivitySubStateType">
         <xsd:restriction base="xsd:string">
@@ -44,29 +47,37 @@
       </xsd:simpleType>
       <xsd:element name="State" type="a-rex:ActivitySubStateType"/>
 		
+      <xsd:complexType name="Glue2ResourceType">
+        <xsd:sequence>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="Glue2JobType">
+        <xsd:sequence>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="ActivityType">
+        <xsd:sequence>
+          <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
+          <xsd:element ref="bes-factory:ActivityDocument" minOccurs='0'/>
+          <xsd:element name="Glue2Job" type="a-rex:Glue2JobType" minOccurs='0'/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="ActivitiesType">
+        <xsd:sequence>
+          <xsd:element name="Activity" type="a-rex:ActivityType" minOccurs='0' maxOccurs='unbounded'/>
+        </xsd:sequence>
+      </xsd:complexType>
+
       <xsd:complexType name="ResourceInformationDocumentType">
         <xsd:sequence>
-	   <xsd:element name="BESFactory" type="bes-factory:FactoryResourceAttributesDocumentType"/>
-          <xsd:complexType name="Glue2Resource" minOccurs='0'>
-            <xsd:sequence>
-              <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-          </xsd:complexType>
-          <xsd:complexType name="Activities" minOccurs='0'>
-            <xsd:sequence>
-              <xsd:complexType name="Activity" minOccurs='0' maxOccurs='unbounded'>
-                <xsd:sequence>
-                  <xsd:element name="ActivityIdentifier" type="wsa:EndpointReferenceType"/>
-                  <xsd:element ref="bes-factory:ActivityDocument" minOccurs='0'/>
-                  <xsd:complexType name="Glue2Job" minOccurs='0'>
-                    <xsd:sequence>
-                      <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                  </xsd:complexType>
-                </xsd:sequence>
-              </xsd:complexType>
-            </xsd:sequence>
-          </xsd:complexType>
+          <xsd:element name="BESFactory" type="bes-factory:FactoryResourceAttributesDocumentType"/>
+          <xsd:element name="Glue2Resource" type="a-rex:Glue2ResourceType" minOccurs='0'/>
+          <xsd:element name="Activities" type="a-rex:ActivitiesType" minOccurs='0'/>
         </xsd:sequence>
       </xsd:complexType>
 
@@ -126,6 +137,59 @@
          message="bes-factory:OperationWillBeAppliedEventuallyFault"
          wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
     </wsdl:operation>
+
+    <!-- WSRF operations supported by this portType -->
+    <wsdl:operation name="GetResourcePropertyDocument">
+      <wsdl:input name="GetResourcePropertyDocumentRequest"
+        message="wsrf-rpw:GetResourcePropertyDocumentRequest"/>
+      <wsdl:output name="GetResourcePropertyDocumentResponse"
+        message="wsrf-rpw:GetResourcePropertyDocumentResponse"/>
+      <wsdl:fault name="ResourceUnknownFault"
+        message="wsrf-rw:ResourceUnknownFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="ResourceUnavailableFault" 
+        message="wsrf-rw:ResourceUnavailableFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetResourceProperty">
+      <wsdl:input name="GetResourcePropertyRequest"
+        message="wsrf-rpw:GetResourcePropertyRequest"/>
+      <wsdl:output name="GetResourcePropertyResponse"
+        message="wsrf-rpw:GetResourcePropertyResponse"/>
+      <wsdl:fault name="ResourceUnknownFault"
+        message="wsrf-rw:ResourceUnknownFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="ResourceUnavailableFault" 
+        message="wsrf-rw:ResourceUnavailableFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidResourcePropertyQNameFault" 
+        message="wsrf-rpw:InvalidResourcePropertyQNameFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+    </wsdl:operation>
+    <wsdl:operation name="QueryResourceProperties">
+      <wsdl:input name="QueryResourcePropertiesRequest"
+        message="wsrf-rpw:QueryResourcePropertiesRequest"/>
+      <wsdl:output name="QueryResourcePropertiesResponse"
+        message="wsrf-rpw:QueryResourcePropertiesResponse"/>
+      <wsdl:fault name="ResourceUnknownFault"
+        message="wsrf-rw:ResourceUnknownFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="ResourceUnavailableFault" 
+        message="wsrf-rw:ResourceUnavailableFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidResourcePropertyQNameFault" 
+        message="wsrf-rpw:InvalidResourcePropertyQNameFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="UnknownQueryExpressionDialectFault" 
+        message="wsrf-rpw:UnknownQueryExpressionDialectFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="InvalidQueryExpressionFault" 
+        message="wsrf-rpw:InvalidQueryExpressionFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+      <wsdl:fault name="QueryEvaluationErrorFault" 
+        message="wsrf-rpw:QueryEvaluationErrorFault"
+        wsa:Action="http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault"/>
+    </wsdl:operation>
   </wsdl:portType>
 
   <wsdl:binding name="a-rex" type="a-rex:a-rex">
@@ -151,16 +215,12 @@
         <soap:fault name="OperationWillBeAppliedEventuallyFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
-  </wsdl:binding>
-
-  <wsdl:binding name="GetResourcePropertyDocument" type="wsrf-rpw:GetResourcePropertyDocument">
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="GetResourcePropertyDocument">
       <soap:operation soapAction="GetResourcePropertyDocument"/>
-      <wsdl:input name="wsrf-rpw:GetResourcePropertyDocumentRequest">
+      <wsdl:input name="GetResourcePropertyDocumentRequest">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="wsrf-rpw:GetResourcePropertyDocumentResponse">
+      <wsdl:output name="GetResourcePropertyDocumentResponse">
         <soap:body use="literal"/>
       </wsdl:output>
       <wsdl:fault name="ResourceUnknownFault">
@@ -170,45 +230,37 @@
         <soap:fault name="ResourceUnavailableFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
-  </wsdl:binding>
-
-  <wsdl:binding name="GetResourceProperty" type="wsrf-rpw:GetResourceProperty">
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="GetResourceProperty">
       <soap:operation soapAction="GetResourceProperty"/>
-      <wsdl:input name="wsrf-rpw:GetResourcePropertyRequest">
+      <wsdl:input name="GetResourcePropertyRequest">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="wsrf-rpw:GetResourcePropertyResponse">
+      <wsdl:output name="GetResourcePropertyResponse">
         <soap:body use="literal"/>
       </wsdl:output>
       <wsdl:fault name="ResourceUnknownFault">
         <soap:fault name="ResourceUnknownFault" use="literal" />
       </wsdl:fault>
       <wsdl:fault name="ResourceUnavailableFault">
-        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+        <soap:fault name="ResourceUnavailableFault" use="literal" />
       </wsdl:fault>
       <wsdl:fault name="InvalidResourcePropertyQNameFault">
         <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
-  </wsdl:binding>
-
-  <wsdl:binding name="QueryResourceProperties" type="wsrf:QueryResourceProperties">
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="QueryResourceProperties">
       <soap:operation soapAction="QueryResourceProperties"/>
-      <wsdl:input name="wsrf-rpw:QueryResourcePropertiesRequest">
+      <wsdl:input name="QueryResourcePropertiesRequest">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="wsrf-rpw:QueryResourcePropertiesResponse">
+      <wsdl:output name="QueryResourcePropertiesResponse">
         <soap:body use="literal"/>
       </wsdl:output>
       <wsdl:fault name="ResourceUnknownFault">
         <soap:fault name="ResourceUnknownFault" use="literal" />
       </wsdl:fault>
       <wsdl:fault name="ResourceUnavailableFault">
-        <soap:fault name="ResourceUnavailabbleFault" use="literal" />
+        <soap:fault name="ResourceUnavailableFault" use="literal" />
       </wsdl:fault>
       <wsdl:fault name="InvalidResourcePropertyQNameFault">
         <soap:fault name="InvalidResourcePropertyQNameFault" use="literal" />
@@ -227,18 +279,16 @@
 
   <wsdl:service name="a-rex">
     <wsdl:port name="delegation" binding="deleg:DelegationBinding">
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="bes-factory" binding="bes-factory:BESFactoryBinding">
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="bes-mgmt" binding="bes-mgmt:BESManagementBinding">
-    </wsdl:port>
-    <wsdl:port name="GetResourcePropertyDocument" binding="a-rex:GetResourcePropertyDocument">
-    </wsdl:port>
-    <wsdl:port name="GetResourceProperty" binding="a-rex:GetResourceProperty">
-    </wsdl:port>
-    <wsdl:port name="QueryResourceProperties" binding="a-rex:QueryResourceProperties">
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
     <wsdl:port name="a-rex" binding="a-rex:a-rex">
+      <soap:address location="http://localhost:80"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
