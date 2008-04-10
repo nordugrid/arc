@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
+
 #include <arc/Logger.h>
 #include <arc/URL.h>
 
@@ -369,8 +371,27 @@ namespace Arc {
     std::string dirname = url.Path();
     if (dirname[dirname.length() - 1] == '/')
       dirname.resize(dirname.length() - 1);
-    DIR *dir = opendir(dirname.c_str());
-    if (dir == NULL) {
+    
+    try {
+        Glib::Dir dir(dirname);
+        std::string file_name;
+        while ((file_name = dir.read_name()) != "") {
+            std::list<FileInfo>::iterator f =
+                files.insert(files.end(), FileInfo(file_name.c_str()));
+            if (resolve) {
+                std::string fname = dirname + "/" + file_name;
+                struct stat st;
+                if (stat(fname.c_str(), &st) == 0) {
+                    f->SetSize(st.st_size);
+                    f->SetCreated(st.st_mtime);
+                    if (S_ISDIR(st.st_mode))
+                        f->SetType(FileInfo::file_type_dir);
+                    else if (S_ISREG(st.st_mode))
+                        f->SetType(FileInfo::file_type_file);
+                }
+            }
+        }
+    } catch (Glib::FileError &e) {
       // maybe a file
       struct stat st;
       std::list<FileInfo>::iterator f =
@@ -387,34 +408,6 @@ namespace Arc {
       files.erase(f);
       logger.msg(INFO, "Failed to read object: %s", dirname);
       return DataStatus::ListError;
-    }
-    for(;;) {
-      struct dirent file_;
-      struct dirent *file;
-      readdir_r(dir, &file_, &file);
-      if (file == NULL)
-        break;
-      if (file->d_name[0] == '.') {
-        if (file->d_name[1] == 0)
-          continue;
-        if (file->d_name[1] == '.')
-          if (file->d_name[2] == 0)
-            continue;
-      }
-      std::list<FileInfo>::iterator f =
-        files.insert(files.end(), FileInfo(file->d_name));
-      if (resolve) {
-        std::string fname = dirname + "/" + file->d_name;
-        struct stat st;
-        if (stat(fname.c_str(), &st) == 0) {
-          f->SetSize(st.st_size);
-          f->SetCreated(st.st_mtime);
-          if (S_ISDIR(st.st_mode))
-            f->SetType(FileInfo::file_type_dir);
-          else if (S_ISREG(st.st_mode))
-            f->SetType(FileInfo::file_type_file);
-        }
-      }
     }
     return DataStatus::Success;
   }
