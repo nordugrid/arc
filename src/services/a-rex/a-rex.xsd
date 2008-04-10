@@ -3,7 +3,7 @@
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  targetNamespace="http://www.nordugrid.org/schemas/a-rex/Config"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007"
   elementFormDefault="qualified">
     <xsd:complexType name="endpoint_Type">
         <!--
