@@ -144,6 +144,10 @@ int User::check_file_access(const std::string& path, int flags)
 #else
 
 // Win32 implementation
+User::User(void)
+{
+    // XXX NOP
+}
 
 User::User(std::string name)
 {

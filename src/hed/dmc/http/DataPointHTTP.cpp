@@ -11,6 +11,11 @@
 #include <arc/data/DataBufferPar.h>
 #include <arc/misc/ClientInterface.h>
 #include "DataPointHTTP.h"
+#ifdef WIN32
+#define NOGDI
+#include <objbase.h>
+#define sleep(x) Sleep((x)*1000)
+#endif
 
 namespace Arc {
 

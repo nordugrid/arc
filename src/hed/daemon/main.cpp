@@ -76,7 +76,9 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
-signal(SIGTTOU,SIG_IGN);
+#ifndef WIN32
+    signal(SIGTTOU,SIG_IGN);
+#endif
     /* Create options parser */
 #ifdef HAVE_GLIBMM_OPTIONS
     Glib::OptionContext opt_ctx;
