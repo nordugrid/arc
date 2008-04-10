@@ -385,7 +385,6 @@ bool Run::Wait(void)
     till.assign_current_time(); 
     till+=1; // one sec later
     cond_.timed_wait(lock_,till);
-std::cout << "Wait" << std::endl;
 #else
 #ifndef WIN32
     int status;
