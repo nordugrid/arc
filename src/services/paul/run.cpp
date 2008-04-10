@@ -72,8 +72,10 @@ bool PaulService::run(Job &j)
             logger_.msg(Arc::DEBUG, "StdOut: %s", stdout_str);
             logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
             if (run != NULL) {
+                logger_.msg(Arc::DEBUG, "delete run");
                 delete run;
             }
+            logger_.msg(Arc::DEBUG, "return from run");
             return true;
         } else {
             logger_.msg(Arc::ERROR, "Error during the application run");

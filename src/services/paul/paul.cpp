@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <arc/URL.h>
+#include <arc/Run.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
 #include <arc/loader/Plexer.h>
@@ -21,6 +22,11 @@
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/misc/ClientInterface.h>
+#ifdef WIN32
+#define NOGDI
+#include <objbase.h>
+#define sleep(x) Sleep((x)*1000)
+#endif
 
 #include "paul.h"
 
@@ -236,10 +242,13 @@ void PaulService::process_job(void *arg)
     self.stage_in(j);
     self.run(j);
     self.stage_out(j);
-    j.setStatus(FINISHED);
+    if (j.getStatus() != KILLED | j.getStatus() != KILLING) {
+        j.setStatus(FINISHED);
+    }
     // free memory
     delete info.job_id;
     delete &info;
+    self.logger_.msg(Arc::DEBUG, "Finished job %s", j.getID());
 }
 
 void PaulService::do_request(void)
@@ -309,7 +318,7 @@ void PaulService::do_report(void)
     std::map<std::string, Arc::PayloadSOAP *>::iterator i;
     for (i = requests.begin(); i != requests.end(); i++) {
         std::string url_str = i->first;
-        Arc::PayloadSOAP request = (*i->second);
+        Arc::PayloadSOAP *request = i->second;
         Arc::URL url(url_str);
         if (url.Protocol() == "https") {
             cfg.AddPrivateKey(pki["PrivateKey"]);
@@ -319,7 +328,7 @@ void PaulService::do_report(void)
         client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
 
         Arc::PayloadSOAP *response;
-        Arc::MCC_Status status = client->process(&request, &response);
+        Arc::MCC_Status status = client->process(request, &response);
         if (!status) {
             logger_.msg(Arc::ERROR, "Request failed");
             if (response) {
@@ -359,21 +368,32 @@ void PaulService::do_action(void)
     logger_.msg(Arc::DEBUG, "Get activity status changes");   
     std::map<const std::string, Job *> all = jobq.getAllJobs();
     std::map<const std::string, Job *>::iterator it;
-    std::map<std::string, int> schedulers;
+    std::map<std::string, Arc::PayloadSOAP *> requests;
     // collect schedulers 
     for (it = all.begin(); it != all.end(); it++) {
         Job *j = it->second;
         std::string sched_url = j->getResourceID();
-        schedulers[sched_url] = 1;
+        Arc::XMLNode get;
+        std::map<std::string, Arc::PayloadSOAP *>::iterator r = requests.find(sched_url);
+        if (r == requests.end()) {
+            Arc::PayloadSOAP *request = new Arc::PayloadSOAP(ns_);
+            get = request->NewChild("ibes:GetActivitiesStatusChanges");
+            requests[sched_url] = request;
+        } else {
+            get = (*r->second)["ibes:GetActivitiesStatusChanges"];
+        }
+        // Make response
+        Arc::WSAEndpointReference identifier(get.NewChild("ibes:ActivityIdentifier"));
+        identifier.Address(j->getResourceID()); // address of scheduler service
+        identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
     }
     
     Arc::MCCConfig cfg;
     // call get activitiy changes to all scheduler
-    std::map<std::string, int>::iterator i;
-    for (i = schedulers.begin(); i != schedulers.end(); i++) {
+    std::map<std::string, Arc::PayloadSOAP *>::iterator i;
+    for (i = requests.begin(); i != requests.end(); i++) {
         std::string sched_url = i->first;
-        Arc::PayloadSOAP request(ns_);
-        request.NewChild("ibes:GetActivitiesStatusChange");
+        Arc::PayloadSOAP *request = i->second;
         Arc::ClientSOAP *client;
         Arc::URL url(sched_url);
         if (url.Protocol() == "https") {
@@ -383,7 +403,7 @@ void PaulService::do_action(void)
         }
         client = new Arc::ClientSOAP(cfg, url.Host(), url.Port(), url.Protocol() == "https", url.Path());
         Arc::PayloadSOAP *response;
-        Arc::MCC_Status status = client->process(&request, &response);
+        Arc::MCC_Status status = client->process(request, &response);
         if (!status) {
             logger_.msg(Arc::ERROR, "Request failed");
             if (response) {
@@ -409,20 +429,41 @@ void PaulService::do_action(void)
         if (faultstring != "") {
             logger_.msg(Arc::ERROR, faultstring);
         }
-        delete response;
         
+        std::string s;
+        (*response).GetXML(s);
+std::cout << s << std::endl;
         // process response
+        Arc::XMLNode activities = (*response)["ibes:GetActivitiesStatusChangesResponse"]["Activities"];
         Arc::XMLNode activity;
-        for (int i = 0; (activity = (*response)["Activity"][i]) != false; i++) {
+        for (int i = 0; (activity = activities["Activity"][i]) != false; i++) {
             Arc::XMLNode id = activity["ActivityIdentifier"];
             Arc::WSAEndpointReference epr(id);
             std::string job_id = epr.ReferenceParameters()["sched:JobID"];
             if (job_id.empty()) {
                 logger_.msg(Arc::WARNING, "Cannot find job id");
             }
-
+            std::string new_status = (std::string)activity["NewState"];
+            Job &j = jobq[job_id];
+            j.setStatus(sched_status_from_string(new_status));
+            // do actions
+            if (j.getStatus() == KILLED) { 
+                j.setStatus(FINISHED);
+            }
+            if (j.getStatus() == KILLING) {
+                Arc::Run *run = runq[job_id];
+                logger_.msg(Arc::DEBUG, "Killing %s", job_id);
+                run->Kill(1);
+                j.setStatus(KILLED);
+            }
         }
+        delete response;
     }
+    // free
+    for (i = requests.begin(); i != requests.end(); i++) {
+        delete i->second;
+    }
+    // cleanup finished process
 }
 
 // Main reported loop

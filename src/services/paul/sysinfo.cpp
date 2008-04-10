@@ -2,17 +2,23 @@
 #include <config.h>
 #endif
 
-#include <sys/utsname.h> // uname
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <arc/StringConv.h>
 
 #include "sysinfo.h"
+#ifndef WIN32
+#include <sys/utsname.h> // uname
 #include "fsusage.h"
+#else
+#endif
 
 namespace Paul
 {
+
+#ifndef WIN32
 
 // Linux specific
 SysInfo::SysInfo(void)
@@ -99,5 +105,39 @@ void SysInfo::refresh(void)
 {
     // NOP
 }
+#else
+// Win32 specific
+SysInfo::SysInfo(void)
+{
+    osName = "Win32";
+    osRelease = "x";
+    osVersion = "y";
+    platform = "intel";
+    physicalCPUs = 1;
+    logicalCPUs = 1;
+    mainMemorySize = 1;
+    virtualMemorySize = 1;
+}
+
+unsigned int SysInfo::diskAvailable(const std::string &path)
+{
+    return 0;
+}
+
+unsigned int SysInfo::diskTotal(const std::string &path)
+{
+    return 0;
+}
+
+unsigned int SysInfo::diskFree(const std::string &path)
+{
+    return 0;
+}
+
+void SysInfo::refresh(void)
+{
+    // NOP
+}
+#endif
 
 } // namespace Paul
