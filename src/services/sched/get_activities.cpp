@@ -18,7 +18,7 @@ Arc::MCC_Status GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNo
     Arc::XMLNode activities = out.NewChild("ibes:Activities");
     // XXX better scheduling algorithm: matchmaking required
     // XXX concurent locking
-    std::map<const std::string, Job *> jobs = sched_queue.getJobsWithState(status_factory.get(NEW));
+    std::map<const std::string, Job *> jobs = sched_queue.getJobsWithState(NEW);
     if (jobs.size() < 1) {
         logger_.msg(Arc::DEBUG, "NO job");
         return Arc::MCC_Status(Arc::STATUS_OK);
@@ -34,7 +34,7 @@ Arc::MCC_Status GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNo
     identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
     Arc::XMLNode activity_doc = a.NewChild("ibes:ActivityDocument");
     activity_doc.NewChild(j->getJSDL());
-    j->setStatus(status_factory.get(STARTING));
+    j->setStatus(STARTING);
     j->setResourceID(r_id);
     j->save();
     return Arc::MCC_Status(Arc::STATUS_OK);

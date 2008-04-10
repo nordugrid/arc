@@ -67,9 +67,9 @@ bool Job::CheckTimeout(void)
     return false;
 }
 
-bool Job::Cancel(const SchedStatus &killed_state) 
+bool Job::Cancel(void) 
 {
-    status = killed_state;
+    status = KILLED;
     return true;
 }
 
@@ -100,7 +100,7 @@ bool Job::save(void)
     write_pair(f2, "id", id);
     std::string arex_id = getResourceID();
     write_pair(f2, "arex_id", arex_id);
-    std::string status_str = (std::string)status;
+    std::string status_str = sched_status_to_string(status);
     write_pair(f2, "status", status_str);
     f2.close();
     
@@ -129,7 +129,7 @@ bool cut(std::string &input, std::string &name, std::string &value)
     return true;
 }
 
-bool Job::load(SchedStatusFactory &status_factory) 
+bool Job::load(void) 
 {
     char buf[250];
     std::string fname = db + "/" + id + ".metadata";
@@ -150,7 +150,7 @@ bool Job::load(SchedStatusFactory &status_factory)
         } else if (name == "arex_id") {
             sched_meta.setResourceID(value);
         } else if (name == "status") {
-            status = status_factory.get(value);
+            status = sched_status_from_string(value);
         }
     }
     f.close(); 

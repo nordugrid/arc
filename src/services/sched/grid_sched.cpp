@@ -17,6 +17,11 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
+#ifdef WIN32
+#define NOGDI
+#include <objbase.h>
+#define sleep(x) Sleep((x)*1000)
+#endif
 
 #include "grid_sched.h"
 
@@ -162,7 +167,7 @@ void GridSchedulerService::doSched(void)
                 getPeriod(), endpoint, db_path);
 
     // searching for new sched jobs:
-    std::map<const std::string, Job *> new_jobs = sched_queue.getJobsWithState(status_factory.get(NEW));
+    std::map<const std::string, Job *> new_jobs = sched_queue.getJobsWithState(NEW);
     // submit new jobs
     // XXX make it two step: collect job and mark them to going to submit, lock the queue until this, and do the submit after it
     std::map<const std::string, Job *>::iterator iter;
@@ -178,7 +183,7 @@ void GridSchedulerService::doSched(void)
         if (arex_job_id != "") {
             j->setResourceJobID(arex_job_id);
             j->setResourceID(arex.getURL());
-            j->setStatus(status_factory.get(STARTING));
+            j->setStatus(STARTING);
         } else {
             logger_.msg(Arc::DEBUG, "Sched job ID: %s NOT SUBMITTED", job_id);
             sched_resources.refresh(arex.getURL());
@@ -187,19 +192,19 @@ void GridSchedulerService::doSched(void)
     }
 
     // search for job which are killed by user
-    std::map<const std::string, Job *> killed_jobs = sched_queue.getJobsWithState(status_factory.get(KILLING));
+    std::map<const std::string, Job *> killed_jobs = sched_queue.getJobsWithState(KILLING);
     for (iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++) {
         Job *j = iter->second;
         const std::string &job_id = iter->first;
         const std::string &arex_job_id = j->getResourceJobID();
         if (arex_job_id.empty()) {
-            j->setStatus(status_factory.get(KILLED));
+            j->setStatus(KILLED);
             sched_queue.removeJob(job_id);
         } else {
             Resource &arex = sched_resources.get(j->getResourceID());
             if (arex.TerminateActivity(arex_job_id)) {
                 logger_.msg(Arc::DEBUG, "JobID: %s KILLED", job_id);
-                j->setStatus(status_factory.get(KILLED));
+                j->setStatus(KILLED);
                 sched_queue.removeJob(job_id);
             }
         }
@@ -211,7 +216,7 @@ void GridSchedulerService::doSched(void)
     for (iter = all_job.begin(); iter != all_job.end(); iter++) {
         const std::string &job_id = iter->first;
         Job *j = iter->second;
-        SchedStatus job_stat = j->getStatus();
+        SchedStatusLevel job_stat = j->getStatus();
         // skip jobs with FINISHED state
         if (job_stat == FINISHED) {
             continue;
@@ -227,7 +232,7 @@ void GridSchedulerService::doSched(void)
         std::string state = arex.GetActivityStatus(arex_job_id);
         if (state == "UNKOWN") {
             if (!j->CheckTimeout()) {  // job timeout check
-                j->setStatus(status_factory.get(NEW));
+                j->setStatus(NEW);
                 j->setResourceJobID("");
                 j->setResourceID("");
                 j->save();
@@ -238,7 +243,7 @@ void GridSchedulerService::doSched(void)
             }
         } else {
             // refresh status from A-REX state
-            job_stat = status_factory.getFromARexStatus(state); 
+            job_stat = sched_status_from_arex_status(state); 
             j->setStatus(job_stat);
             j->save();
             logger_.msg(Arc::DEBUG, "JobID: %s state: %s", job_id, state);
@@ -280,7 +285,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     //TODO db_path test
 
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
-    sched_queue.reload(db_path, status_factory);
+    sched_queue.reload(db_path);
     cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  

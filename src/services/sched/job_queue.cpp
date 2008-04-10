@@ -16,7 +16,7 @@ JobQueue::JobQueue()
     // NOP
 }
 
-bool JobQueue::reload(const std::string &db_path, SchedStatusFactory &status_factory) 
+bool JobQueue::reload(const std::string &db_path) 
 {
     // XXX make it more c++ 
     db = db_path;
@@ -37,7 +37,7 @@ bool JobQueue::reload(const std::string &db_path, SchedStatusFactory &status_fac
         std::cout << "Job recovered:  " << id << std::endl;
         std::string job_id(id);
         Job j(job_id, db);
-        j.load(status_factory);
+        j.load();
         jobs.insert (make_pair(j.getID(), j));
     }
     f.close();
@@ -94,7 +94,7 @@ bool JobQueue::checkJob(const std::string &job_id)
     }
 }
 
-std::map<const std::string, Job *> JobQueue::getJobsWithState(const SchedStatus &s) 
+std::map<const std::string, Job *> JobQueue::getJobsWithState(SchedStatusLevel s) 
 {   
     std::map<const std::string, Job *> job_list;
     std::map<std::string, Job>::iterator iter;

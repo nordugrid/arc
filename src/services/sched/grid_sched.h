@@ -25,7 +25,6 @@ class GridSchedulerService: public Arc::Service {
         Arc::Logger logger_;
         Arc::DelegationContainerSOAP delegations_;
         Arc::InformationContainer infodoc_;
-        SchedStatusFactory status_factory;
         // BES Interface
         Arc::MCC_Status CreateActivity(Arc::XMLNode &in, Arc::XMLNode &out);
         Arc::MCC_Status GetActivityStatuses(Arc::XMLNode &in, Arc::XMLNode &out);

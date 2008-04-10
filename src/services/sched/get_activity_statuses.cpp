@@ -51,11 +51,11 @@ Arc::MCC_Status GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in,Arc::
 
     std::string job_state;
 
-    SchedStatus stat = sched_queue[jobid].getStatus();
+    SchedStatusLevel stat = sched_queue[jobid].getStatus();
     
     // Make response
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
-    state.NewAttribute("bes-factory:state") = (std::string)stat;
+    state.NewAttribute("bes-factory:state") = sched_status_to_string(stat);
   };
   {
     std::string s;

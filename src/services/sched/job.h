@@ -17,7 +17,7 @@ class Job {
         std::string failure;
         std::string id;
         std::string db;
-        SchedStatus status;
+        SchedStatusLevel status;
         int timeout;
         int check;
     public:
@@ -33,8 +33,8 @@ class Job {
         const std::string getFailure(void);
         void setID(const std::string& id_) { id = id_; };
         const std::string &getID(void) { return id; };
-        void setStatus(const SchedStatus &s) { status = s; };
-        const SchedStatus &getStatus(void) { return status; };
+        void setStatus(SchedStatusLevel s) { status = s; };
+        SchedStatusLevel getStatus(void) { return status; };
         operator bool(void) { return (id.empty() ? false : true ); };
         bool operator!(void) { return (id.empty() ? true : false ); };
         Arc::XMLNode &getJSDL(void) { return request.getJSDL(); };
@@ -43,9 +43,9 @@ class Job {
         void setResourceID(const std::string &id) { sched_meta.setResourceID(id); };
         const std::string &getResourceID(void) { return sched_meta.getResourceID(); };
         bool CheckTimeout(void);
-        bool Cancel(const SchedStatus &killed_state);
+        bool Cancel(void);
         bool save(void);
-        bool load(SchedStatusFactory &status_factory);
+        bool load(void);
         bool remove(void);
 };
 

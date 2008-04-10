@@ -16,13 +16,13 @@ class JobQueue {
     public:
         JobQueue();
         virtual ~JobQueue();
-        bool reload(const std::string &db_path, SchedStatusFactory &status_factory);
+        bool reload(const std::string &db_path);
         void addJob(Job &job);
         void removeJob(Job &job);
         void removeJob(const std::string &job_id);
         bool checkJob(const std::string &job_id);
         int size(void) { return jobs.size(); };
-        std::map<const std::string, Job *> getJobsWithState(const SchedStatus &s);
+        std::map<const std::string, Job *> getJobsWithState(SchedStatusLevel s);
         std::map<const std::string, Job *> getAllJobs(void);
         Job &operator[](const std::string &job_id);
         // Job &getJob(const std::string &job_id);

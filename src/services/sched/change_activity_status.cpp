@@ -44,7 +44,7 @@ Arc::MCC_Status GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in,Arc:
         continue;
     }
 
-    SchedStatus state = status_factory.getFromARexStatus(new_s);
+    SchedStatusLevel state = sched_status_from_arex_status(new_s);
     sched_queue[jobid].setStatus(state);
 
     if (!id) break;

@@ -46,7 +46,7 @@ Arc::MCC_Status GridSchedulerService::TerminateActivities(Arc::XMLNode &in,Arc::
         }
     
         // XXX excpetion handling
-        sched_queue[jobid].setStatus(status_factory.get(KILLING));
+        sched_queue[jobid].setStatus(KILLING);
         resp.NewChild("bes-factory:Terminated") = "true";
     };
     {

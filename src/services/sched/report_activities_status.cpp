@@ -23,8 +23,11 @@ Arc::MCC_Status GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, A
             continue;
         }
         Job &j = sched_queue[job_id];
-        // XXX check if the job is not exists
-        j.setStatus(status_factory.get((std::string)state));
+        SchedStatusLevel new_status = sched_status_from_string(state);
+        if (j.getStatus() != KILLING | new_status == KILLED ) {
+            // do not update job with was requested to kill
+            j.setStatus(new_status);
+        }
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
