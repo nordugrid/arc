@@ -120,20 +120,20 @@ class DelegationProviderSOAP: public DelegationProvider {
   /** Performs DelegateCredentialsInit SOAP operation.
      As result request for delegated credentials is received by this instance and stored 
     internally. Call to UpdateCredentials should follow. */
-  bool DelegateCredentialsInit(MCCInterface& interface,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageContext* context);
   /** Extended version of DelegateCredentialsInit(MCCInterface&,MessageContext*).
      Additionally takes attributes for request and response message to make fine
     control on message processing possible. */
-  bool DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
   /** Performs UpdateCredentials SOAP operation.
      This concludes delegation procedure and passes delagated credentials to 
     DelegationConsumerSOAP instance.
   */
-  bool UpdateCredentials(MCCInterface& interface,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context);
   /** Extended version of UpdateCredentials(MCCInterface&,MessageContext*).
      Additionally takes attributes for request and response message to make fine
     control on message processing possible. */
-  bool UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
   /** Generates DelegatedToken element.
      Element is created as child of provided XML element and contains structure
     described in delegation.wsdl. */

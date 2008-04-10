@@ -590,6 +590,7 @@ namespace Arc {
                 }
               }
             }
+#ifndef WIN32
             // make link
             if(symlink(file_name.c_str(), link_name.c_str()) == -1) {
               char *err;
@@ -613,6 +614,7 @@ namespace Arc {
             }
             Arc::User user;
             (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
+#endif
             if(cacheable)
               cache.stop();
             return DataStatus::Success; // Leave after making a link. Rest moves data.
@@ -777,6 +779,7 @@ namespace Arc {
               logger.msg(DEBUG, "(Re)Trying next source");
           }
           else {
+#ifndef WIN32
             // Both endpoints were very slow? Choose randomly.
             logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
             if(random() < (RAND_MAX / 2)) {
@@ -787,6 +790,10 @@ namespace Arc {
               if(destination.NextLocation())
                 logger.msg(DEBUG, "(Re)Trying next destination");
             }
+#else
+            if(source.NextLocation())
+                logger.msg(DEBUG, "(Re)Trying next source");
+#endif
           }
         }
         continue;

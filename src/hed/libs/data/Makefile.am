@@ -14,4 +14,4 @@ libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GL
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = libarcdata2.la ../loader/libarcloader.la
+test_LDADD    = libarcdata2.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la

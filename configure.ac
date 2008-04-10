@@ -339,6 +339,15 @@ AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes") 
 AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service]) 
 AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"]) 
+# PDP service 
+AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable building PDP Service]),[],enable_pdp_service="yes") 
+AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service]) 
+AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"]) 
+
+# HTTPD service 
+AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable building HTTPD Service]),[],enable_httpd_service="yes") 
+AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service]) 
+AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"]) 
 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
@@ -453,9 +462,10 @@ AC_SUBST(LIBRESOLV)
 EXTRA_LIBS=""
 REGEX_LIBS=""
 SOCKET_LIBS=""
-
+WIN32=""
 case "${host}" in
   *-*-mingw32)
+    WIN32="yes"
     REGEX_LIBS="-lgnurx"
     SOCKET_LIBS="-lws2_32"
     EXTRA_LIBS="-lole32" 
@@ -464,6 +474,7 @@ esac
 AC_SUBST(EXTRA_LIBS)
 AC_SUBST(REGEX_LIBS)
 AC_SUBST(SOCKET_LIBS)
+AM_CONDITIONAL([WIN32], [ test "x$WIN32" == "xyes" ])
 
 case " $LDFLAGS " in
      " -Wl,--no-undefined ") ;;
@@ -633,6 +644,8 @@ RSL:                ${enable_rsl}
 Included components: 
 A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
+PDP service:        ${enable_pdp_service}
+HTTPD service:      ${enable_httpd_service}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then

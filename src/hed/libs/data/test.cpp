@@ -10,7 +10,9 @@
 #include "DataStatus.h"
 
 int main(int argc,char* argv[]) {
+#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
+#endif
   if(argc < 2) {
     std::cerr<<"Missing source URL"<<std::endl;
     return -1;

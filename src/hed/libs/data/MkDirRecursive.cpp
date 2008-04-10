@@ -23,18 +23,29 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
   /* go down */
   for(;;) {
     if((mkdir_force(name.substr(0,name_end).c_str(),mode) == 0) || (errno == EEXIST)) {
+#ifndef WIN32
       if(errno != EEXIST)
 	(lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid()) != 0);
+#endif
       /* go up */
       for(;;) {
         if(name_end >= name.length()) { return 0; };
         name_end=name.find('/',name_end + 1);
+#ifndef WIN32
         if(mkdir(name.substr(0,name_end).c_str(),mode) != 0) {
           if(errno == EEXIST) continue;
           return -1;
         };
+#else
+        if(mkdir(name.substr(0,name_end).c_str()) != 0) {
+          if(errno == EEXIST) continue;
+          return -1;
+        };
+#endif
         chmod(name.substr(0,name_end).c_str(),mode);
+#ifndef WIN32
         (lchown(name.substr(0,name_end).c_str(),user.get_uid(),user.get_gid()) != 0);
+#endif
       };
     };
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; }; */
@@ -48,17 +59,29 @@ int mkdir_force(const char* path,mode_t mode) {
   struct stat st;
   int r;
   if(stat(path,&st) != 0) {
+#ifndef WIN32
     r=mkdir(path,mode);
+#else
+    r=mkdir(path);
+#endif
     if(r==0) (void)chmod(path,mode);
     return r;
   };
   if(S_ISDIR(st.st_mode)) { /* simulate error */
+#ifndef WIN32
     r=mkdir(path,mode);
+#else
+    r=mkdir(path);
+#endif
     if(r==0) (void)chmod(path,mode);
     return r;
   };
   if(remove(path) != 0) return -1;
+#ifndef WIN32
   r=mkdir(path,mode);
+#else
+  r=mkdir(path);
+#endif
   if(r==0) (void)chmod(path,mode);
   return r;
 }

@@ -8,6 +8,11 @@
 #include <arc/misc/ClientInterface.h>
 #include <arc/misc/ClientTool.h>
 #include "arex_client.h"
+#ifdef WIN32
+#define NOGDI
+#include <windows.h>
+#include <io.h>
+#endif
 
 static bool html_to_list(const char* html,const Arc::URL base,std::list<Arc::URL>& urls) {
   for(const char* pos = html;;) {
@@ -122,9 +127,15 @@ static bool get_file(Arc::ClientHTTP& client,const Arc::URL& url,const std::stri
     };
     if(resp) delete resp;
     // Make directory
+#ifndef WIN32
     if(::mkdir(dir.c_str(),S_IRWXU) != 0) {
       if(errno != EEXIST) return false;
     };
+#else
+    if(::mkdir(dir.c_str()) != 0) {
+      if(errno != EEXIST) return false;
+    };
+#endif
     // Fetch files
     std::list<Arc::URL> urls;
     if(!html_to_list(html.c_str(),url,urls)) return false;

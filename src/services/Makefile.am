@@ -10,5 +10,17 @@ else
 ISI_SERVICE = 
 endif 
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) pdp httpd arex2 wrappers paul sched
+if PDP_SERVICE_ENABLED
+PDP_SERVICE = pdp 
+else 
+PDP_SERVICE = 
+endif 
+
+if HTTPD_SERVICE_ENABLED
+HTTPD_SERVICE = httpd 
+else 
+HTTPD_SERVICE = 
+endif 
+
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) arex2 wrappers paul sched
 DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd arex2 sched paul wrappers

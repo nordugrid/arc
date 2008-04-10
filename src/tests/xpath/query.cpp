@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -30,9 +31,9 @@ int main(int argc, char **argv)
 	    f.close();
 	    Arc::XMLNode doc(xml_str);
 	    Arc::NS ns;
-	    
-        int n = (int)((double)random()*attrnum/RAND_MAX);
-	    char query[200];
+	Glib::Rand r; 
+        int n = r.get_int_range(0, attrnum);
+	char query[200];
         sprintf(query, "//AttributeName%d", n);
         
         std::cout << "Query: " << query << std::endl;

@@ -13,6 +13,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fstream>
+#ifdef WIN32
+#define NOGDI
+#include <objbase.h>
+#define sleep(x) Sleep((x)*1000)
+#endif
 
 #include "centralisi.h"
 

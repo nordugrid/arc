@@ -8,8 +8,10 @@
 #include <arc/message/PayloadSOAP.h>
 
 int main(void) {
+#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
+#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);

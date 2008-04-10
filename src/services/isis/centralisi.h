@@ -2,8 +2,8 @@
 #ifndef __ARC_CENTRALISI_H__
 #define __ARC_CENTRALISI_H__
 
-#include <arc/message/Service.h>
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/message/Service.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/infosys/InfoCache.h>
 #include <arc/infosys/InfoRegister.h>

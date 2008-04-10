@@ -34,7 +34,7 @@ static ssize_t write_all(int h,const void* buf,size_t count) {
 // ------------------------------------------------------------------
 // General purpose list related functions
 // ------------------------------------------------------------------
-
+#ifndef WIN32
 static int lock_file(int h) {
   int res;
   struct flock fl;
@@ -53,7 +53,32 @@ static int unlock_file(int h) {
   fl.l_start=0; fl.l_len=0;
   return fcntl(h,F_SETLKW,&fl); /* hope unlock should not fail */
 }
+#else
 
+#include <windows.h>
+#include <io.h>
+
+static int lock_file(int h) {
+  HANDLE hdl = (HANDLE)_get_osfhandle(h);
+  DWORD low = 1, high = 0;
+  if (hdl < 0) {
+    return -1;
+  }
+  OVERLAPPED offset = {0, 0, 0, 0, NULL};
+  UnlockFileEx(hdl, 0, low, high, &offset);
+  return LockFileEx(hdl, LOCKFILE_EXCLUSIVE_LOCK ? LOCKFILE_FAIL_IMMEDIATELY : 0, 0, low, high, &offset);
+}
+
+static int unlock_file(int h) {
+  HANDLE hdl = (HANDLE)_get_osfhandle(h);
+  DWORD low = 1, high = 0;
+  if (hdl < 0) {
+    return -1;
+  }
+  OVERLAPPED offset = {0, 0, 0, 0, NULL};
+  return UnlockFileEx(hdl, 0, low, high, &offset);
+}
+#endif
 /*
   -1 - error,
    0 - found,
@@ -386,10 +411,12 @@ int cache_history(const std::string& cache_path,bool enable, const Arc::User &ca
     h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
     int uid = cache_user.get_uid();
+#ifndef WIN32 
     if(uid)
       (chown(fname_old.c_str(),uid,cache_user.get_gid()) != 0);
     if(uid)
       (chown(fname_new.c_str(),uid,cache_user.get_gid()) != 0);
+#endif
   } else {
     if(unlink(fname_old.c_str()) != 0) if(errno != ENOENT) goto error_exit;
     if(unlink(fname_new.c_str()) != 0) if(errno != ENOENT) goto error_exit;
@@ -413,8 +440,10 @@ static int cache_open_list(const std::string& cache_path, const Arc::User &cache
   int h=open(fname.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if(h == -1) return -1;
   int uid = cache_user.get_uid();
+#ifndef WIN32
   if(uid)
     (chown(fname.c_str(),uid,cache_user.get_gid()) != 0);
+#endif
   /* lock file */
   if(lock_file(h) != 0) { close(h); return -1; };
   return h;
@@ -674,6 +703,7 @@ static int cache_close_info(int h) {
       close(nh); remove(name.c_str()); remove(name_info.c_str()); remove(name_claim.c_str()); continue;
     };
     close(nh);
+#ifndef WIN32
     if(cache_user.get_uid() != 0) {
       (chown(name.c_str(),cache_user.get_uid(),cache_user.get_gid()) != 0);
       (chown(name_info.c_str(),cache_user.get_uid(),cache_user.get_gid()) != 0);
@@ -682,6 +712,7 @@ static int cache_close_info(int h) {
     else {
       chmod(name.c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     };
+#endif
     break;
   };
   if(i==INT_MAX) { return -1; };
@@ -1326,7 +1357,7 @@ static unsigned long long int cache_clean(const std::string& cache_path,const st
       case 0: {  /* have name and (possibly) url */
         /* check if claimed */
         bool claimed;
-        unsigned long long int fsize = -1;
+        unsigned long long int fsize = (unsigned long long int)-1;
         time_t accessed = -1;
         if(cache_file_info(cache_path,cache_data_path,fname,claimed,fsize,accessed)!=0) { break; };
         if(!claimed) {
