@@ -22,5 +22,11 @@ else
 HTTPD_SERVICE = 
 endif 
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) arex2 wrappers paul sched
-DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd arex2 sched paul wrappers
+if SAML_ENABLED
+SAML = saml
+else
+SAML =
+endif
+
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) arex2 wrappers paul sched $(SAML)
+DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd arex2 sched paul wrappers saml
