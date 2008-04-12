@@ -310,11 +310,11 @@ fi
 
 #check lasso
 LASSO_INSTALLED=no
-PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
-[AC_SUBST(LASSO_CFLAGS) 
- AC_SUBST(LASSO_LIBS)
- LASSO_INSTALLED=yes],
-[])
+#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
+#[AC_SUBST(LASSO_CFLAGS) 
+# AC_SUBST(LASSO_LIBS)
+# LASSO_INSTALLED=yes],
+#[])
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
@@ -403,7 +403,7 @@ if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
 enable_saml=no
-if test -n "$LASSO_INSTALLED" ; then enable_saml=yes; fi
+if test x$LASSO_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
 AC_CHECK_HEADER(ldap.h, [LDAP=yes],[LDAP=no])
