@@ -219,6 +219,7 @@ AC_SUBST(docdir)
 PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
+
 # check glibmm
 PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 AC_SUBST(GLIBMM_CFLAGS)
@@ -306,6 +307,11 @@ else
 	    OPENSSL_OLDRSA=no
     fi
 fi    
+
+#check lasso
+#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1])
+#AC_SUBST(LASSO_CFLAGS)
+#AC_SUBST(LASSO_LIBS)
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
@@ -529,6 +535,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/security/ArcPDP/fn/Makefile
                  src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
+                 src/hed/libs/ws-security/Makefile
                  src/hed/libs/infosys/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/ws/Makefile
@@ -550,7 +557,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
-                 src/hed/identitymap/Makefile
+                 src/arclib/Makefile
+		 src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/config/Makefile
@@ -588,6 +596,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile
                  src/services/isis/Makefile
+                 src/services/saml/Makefile
                  src/services/sched/Makefile
                  src/services/paul/Makefile
                  src/services/echo_java/Makefile
