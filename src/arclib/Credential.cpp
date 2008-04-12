@@ -462,15 +462,17 @@ namespace ArcLib {
       credentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile); LogError();
       throw CredentialError("Can not read certificate file");
     }
-    keybio = BIO_new_file(keyfile.c_str(), "r");
-    if(!keybio){
-      credentialLogger.msg(ERROR,"Can not read key file: %s", keyfile);  LogError();
-      throw CredentialError("Can not read key file");
+    if(!keyfile.empty()) {
+      keybio = BIO_new_file(keyfile.c_str(), "r");
+      if(!keybio){
+        credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile);  LogError();
+        throw CredentialError("Can not read key file");
+      }
     }
 
     loadCertificate(certbio, cert_, &cert_chain_);
 
-    loadKey(keybio, pkey_);
+    if(keybio!=NULL) loadKey(keybio, pkey_);
 
     //load CA
     
