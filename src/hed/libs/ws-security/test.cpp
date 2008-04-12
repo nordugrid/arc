@@ -35,8 +35,7 @@ int main(void) {
   /*Generate the UsenameToken, for derived key*/
   Arc::SOAPEnvelope soap1(xml);
   std::string username("user");
-  bool it = true;
-  Arc::UsernameToken ut3(soap1, username, it, 150, uid);
+  Arc::UsernameToken ut3(soap1, username, true, 150, uid);
 
   soap1.GetXML(str);
   std::cout<<"SOAP message with UsernameToken, for derived key:"<<str<<std::endl;
