@@ -309,9 +309,12 @@ else
 fi    
 
 #check lasso
-#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1])
-#AC_SUBST(LASSO_CFLAGS)
-#AC_SUBST(LASSO_LIBS)
+LASSO_INSTALLED=no
+PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
+[AC_SUBST(LASSO_CFLAGS) 
+ AC_SUBST(LASSO_LIBS)
+ LASSO_INSTALLED=yes],
+[])
 
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
@@ -362,6 +365,7 @@ AM_CONDITIONAL([LFC_ENABLED], test x$LFC = xyes)
 AM_CONDITIONAL([RSL_ENABLED], test -n "$GLOBUS_RSL_VERSION")
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
+AM_CONDITIONAL([SAML_ENABLED], test x$LASSO_INSTALLED = xyes)
 
 # Setup defines
 if test -n "$GLOBUS_RSL_VERSION"; then
@@ -398,6 +402,8 @@ enable_lfc=no
 if test x$LFC = xyes ; then enable_lfc=yes; fi
 enable_rsl=no
 if test -n "$GLOBUS_RSL_VERSION" ; then enable_rsl=yes; fi
+enable_saml=no
+if test -n "$LASSO_INSTALLED" ; then enable_saml=yes; fi
 
 # Check for LDAP
 AC_CHECK_HEADER(ldap.h, [LDAP=yes],[LDAP=no])
@@ -649,6 +655,7 @@ RLS:                ${enable_rls}
 GridFTP:            ${enable_gridftp}
 LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
+SAML:               ${enable_saml}
 
 Included components: 
 A-Rex service:      ${enable_a_rex_service}
