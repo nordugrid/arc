@@ -120,7 +120,7 @@ int main(void) {
    ArcLib::PROXYCERTINFO * cert_info2;
    X509V3_EXT_METHOD*  ext_method2 = X509V3_EXT_get_nid(certinfo_v3_NID);
    unsigned char* data2 = ext2->value->data;
-   cert_info2 = (ArcLib::PROXYCERTINFO*)ext_method2->d2i(NULL, (unsigned char **) &data2, ext2->value->length);
+   cert_info2 = (ArcLib::PROXYCERTINFO*)ext_method2->d2i(NULL,(const unsigned char **) &data2, ext2->value->length);
    //cert_info2 = (ArcLib::PROXYCERTINFO*)X509V3_EXT_d2i(ext2);
    
    if (cert_info2 == NULL) std::cerr<<"2. Can not convert DER encode PROXYCERTINFO extension to internal format"<<std::endl;
