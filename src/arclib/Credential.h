@@ -139,7 +139,7 @@ class Credential {
     *should be registered into openssl firstly
     *@param data, the data which will be inserted into certificate extension  
     */
-    bool Credential::AddExtension(std::string name, std::string data, bool crit = false);
+    bool AddExtension(std::string name, std::string data, bool crit = false);
 
     /**Add an extension to the extension part of the certificate
     *@param binary, the data which will be inserted into certificate extension part as a specific extension
@@ -150,7 +150,7 @@ class Credential {
     *In openssl, the specific X509V3_EXT_METHOD can be got according to the extension name/id,
     *see X509V3_EXT_get_nid(ext_nid) 
     */
-    bool Credential::AddExtension(std::string name, char** binary, bool crit = false);
+    bool AddExtension(std::string name, char** binary, bool crit = false);
 
     /**Generate a proxy request, base on the keybits and signing algorithm information inside this object
     *output the certificate request to output BIO
