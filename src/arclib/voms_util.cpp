@@ -150,6 +150,10 @@ namespace ArcLib{
 
     std::string buffer, complete;
 
+    GENERAL_NAME *g = GENERAL_NAME_new();
+    ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
+
+
     if (!subname || !issuer || !dirn1 || !dirn2 || !holdserial || !serial ||
       !capabilities || !cobj || !capnames || !time1 || !time2 || !ac_full_attrs || !ac_att_holder)
       ERROR(AC_ERR_MEMORY);
@@ -173,8 +177,8 @@ namespace ArcLib{
       sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
     }
  
-    GENERAL_NAME *g = GENERAL_NAME_new();
-    ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
+    //GENERAL_NAME *g = GENERAL_NAME_new();
+    //ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
     buffer.append(voname);
     buffer.append("://");
     buffer.append(uri);
