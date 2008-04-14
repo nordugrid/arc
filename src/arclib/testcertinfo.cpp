@@ -44,7 +44,7 @@ int main(void) {
    BIO* certbio;
    FILE* file;
    certbio = BIO_new(BIO_s_file());
-   file = fopen("./tmp_proxy", "r");
+   file = fopen("./out.pem", "r");
    BIO_set_fp(certbio, file, BIO_NOCLOSE);
 
    X509* cert;
