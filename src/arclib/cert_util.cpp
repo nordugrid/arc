@@ -161,6 +161,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090706fL)
     case X509_V_ERR_INVALID_CA:
+    {
       /*
       * If the previous cert in the chain is a proxy cert then
       * we get this error just because openssl does not recognize 
@@ -174,6 +175,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       certType type;
       if(check_cert_type(prev_cert, type)) { if(CERT_IS_PROXY(type)) ok = 1; } 
       break;
+    }
 #endif	
     default:
       break;
