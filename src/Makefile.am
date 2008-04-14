@@ -1,1 +1,1 @@
-SUBDIRS=hed tests services clients utils
+SUBDIRS=hed tests services clients utils arclib
