@@ -109,6 +109,9 @@ static void ReassignNamespace(xmlNsPtr ns,xmlNodePtr node) {
     };
     ns_prev=ns_cur; ns_cur=ns_cur->next;
   };
+  for(xmlNodePtr node_ = node->children;node_;node_=node_->next) {
+    ReassignNamespace(ns,node_);
+  };
 }
 
 static void SetNamespaces(const NS& namespaces,xmlNodePtr node_) {
