@@ -226,20 +226,22 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         ChangeActivityStatus(*config,op,res.NewChild("bes-factory:ChangeActivityStatusResponse"));
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
-          delete inpayload;
+          delete outpayload;
           return make_soap_fault(outmsg);
         };
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+        // TODO: do not copy out_ to outpayload.
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
         if(out_) {
           *outpayload=*out_;
           delete out_;
         } else {
-          delete inpayload; delete outpayload;
+          delete outpayload;
           return make_soap_fault(outmsg);
         };
       } else {
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
+        delete outpayload;
         return make_soap_fault(outmsg);
       };
       {
