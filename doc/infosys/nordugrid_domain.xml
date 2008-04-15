@@ -1,0 +1,316 @@
+<!-- A complete glue2 document describing user and admin domains with several services 
+This example intends to demonstrate the full capabilities of glue2, most of the glue2 xmls will be much simplier.
+The not-yet complete example is based upon the glue2 draft vrsion 39 -->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<glue:Domains xmlns:glue="http://schemas.ogf.org/glue/2008/04/spec/2/0/v37" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.ogf.org/glue/2008/04/spec/2/0/v37 ../xsd/GLUE2.xsd">
+    <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+        <ID>[URI]</ID>
+        <Name>NIIF-TOP</Name> <!-- string -->
+	<Description>This is the main NIIF admin unit</Description>        
+	<WWW>http://www.niif.hu</WWW>
+	<OtherInfo>Top domain of the Hungarian Clustergrid</OtherInfo>
+	<Distributed>false</Distributed>
+        <Owner>NIIF</Owner> <!-- string -->
+	<Owner>HGCC</Owner> <!-- string -->
+        <Location CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <LocalID>id1</LocalID>
+            <Name>Budapest, Hungary</Name>
+	    <Address>Victor Hugo 11</Address>
+	    <Place>Budapest</Place>
+	    <Country>Hungary</Country>
+	    <PostCode>HU-1200</PostCode>
+	    <Latitude>47.51</Latitude>
+	    <Longitude>19.05</Longitude>
+        </Location>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <LocalID>id2</LocalID>
+            <URL>mailto:support@niif.hu</URL>
+            <Type>usersupport</Type>
+	    <OtherInfo>Only for NIIF users</OtherInfo>
+        </Contact>
+        <Contact CreationTime="2008-04-21T10:05:12Z" Validity="500">
+            <LocalID>id3</LocalID>
+            <URL>http:www.niif.hu/contacts</URL>
+            <Type>general</Type>
+	    <OtherInfo>E-mail is preffered</OtherInfo>
+        </Contact>
+
+        <Services>
+            <ComputingService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
+                <ID>[URI]</ID>
+		<Name>NIIF CE</Name>
+		<Capability>executionmanagement.jobexecution</Capability>
+		<Type>org.nordugrid.arex</Type>
+		<QualityLevel>pre-production</QualityLevel>
+		<StatusPage>http://arex.niif.hu/status</StatusPage>
+		<Complexity>endpoint=1,share=2,resource=1</Complexity>
+		<Otherinfo>warning: frequent reconfiguration</Otherinfo>                                             
+                <!-- Computing service specific attributes -->
+                <TotalJobs>36</TotalJobs>
+                <RunningJobs>3</RunningJobs> 
+                <WaitingJobs>6</WaitingJobs>
+                <StagingJobs>7</StagingJobs>
+		<SuspendedJobs>4</SuspendedJobs>
+                <PreLRMSWaitingJobs>16</preLRMSWaitingJobs>
+		<Location>
+		    <LocalID>id4</LocalID>
+		    <Name>...</Name>
+		</Location>
+		<Contact>
+		    <LocalID>...</LocalID>		  
+		    <URL>...</URL>		    
+		    <Type>...</Type>
+		</Contact>                
+		<ComputingEndpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
+		    <ID>[URI]</ID>
+		    <Name>AREX</Name>
+		    <URL>https://129.12.231:60000/arex</URL>				    
+		    <Technology>webservice</Technology> 				    
+		    <InterfaceName>OGSA-BES</InterfaceName> <!-- what about extensions? -->
+		    <InterfaceVersion>1.0</InterfaceVersion>
+		    <WSDL>https://129.12.231:60000/arex/?wsdl</WSDL>
+		    <SupportedProfile>WS-I 1.0</SupportedProfile> <!-- wrong type, it should be URI--> 
+		    <SupportedProfile>HPC-BP </SupportedProfile> <!-- wrong type, it should be URI-->
+		    <Semantics> http://www.nordugrid.org/documents/arex.pdf </Semantics>
+		    <Implementor>NorduGrid</Implementor>
+		    <ImplementationName>ARC1</ImplementationName>
+		    <ImplementationVersion>0.9</ImplementationVersion>
+		    <QualityLevel>testing</QualityLevel>
+		    <HealthState>ok</HealthState>
+		    <HealthStateInfo>normal operation</HealthStateInfo>
+		    <ServingState>draining</ServingState> 				    
+		    <StartTime>2008-04-12T09:47:53+01:00</StartTime>
+		    <IssuerCA>/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority</IssuerCA>
+		    <DowntimeAnnounce>2008-03-12T09:59:56+01:00</DowntimeAnnounce>
+		    <DowntimeStart>2008-04-29T09:57:56+01:00</DowntimeStart>
+		    <DowntimeEnd>2008-04-30T09:59:56+01:00</DowntimeEnd>
+		    <DowntimeInfo>Opsys update</DowntimeInfo> 	    
+		    <!-- Computing endpoint specific attributes -->
+		    <Staging>staginginout</Staging>
+		    <AccessPolicy CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Policy">
+	  		<LocalID>id5</LocalID>
+	  		<Scheme>basic</Scheme>
+	  		<Rule>VO:CMS</Rule>
+	  		<Rule>VO:ATLAS</Rule>
+			<TrustedCA>CA DN1</TrustedCA> <!-- requires the DN of the trusted CA-->
+			<TrustedCA>CA DN2</TrustedCA>
+			<TrustedCA>CA DN3</TrustedCA>	
+  		    </AccessPolicy>
+                    <AccessPolicy>
+                        <ID>id6</ID>
+                        <Scheme>ARC</Scheme>
+                        <Rule>an ARC1 policy expression</Rule>                        
+                        <TrustedCA>CA DN1</TrustedCA> <!-- requires the DN of the trusted CA-->
+			<TrustedCA>CA DN2</TrustedCA>
+			<TrustedCA>CA DN3</TrustedCA>
+                    </AccessPolicy>
+		</ComputingEndpoint>   
+		<ComputingShares>										    
+	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
+			<LocalID>id7</LocalID>
+			<Name>Atlas-short</Name>
+			<Description>a share set up for short Atlas jobs</Description>
+			<!-- Computing share specific attributes -->
+			<MappingQueue>pbs-short</MappingQueue>  						        		   
+			<MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
+			<MinWallTime>11</MinWallTime>
+			<DefaultWallTime>9000</DefaultWallTime>
+			<MaxCPUTime>43200</MaxCPUTime>
+			<MinCPUTime>32</MinCPUTime>
+			<DefaultCPUTime>11</DefaultCPUTime>
+			<MaxTotalJobs>500</MaxTotalJobs>
+			<MaxRunningJobs>50</MaxRunningJobs>
+			<MaxWaitingJobs>200</MaxWaitingJobs>
+			<MaxPreLRMSWaitingJobs>400</MaxPreLRMSWaitingJobs>
+			<MaxUserRunningJobs>1</MaxUserRunningJobs>
+			<MaxSlotsPerJob>4</MaxSlotsPerJob>
+			<MaxStateInStreams>3</MaxStateInStreams>
+			<MaxStageOutStreams>2</MaxStageOutStreams>
+			<SchedulingPolicy>fairshare</SchedulingPolicy>
+			<MaxMemory>1</MaxMemory>
+			<MaxDiskSpace>1</MaxDiskSpace>
+			<DefaultStorageService>https://storage.niif.hu/default</DefaultStorageService>
+			<Preemption>true</Preemption>
+			<ServingState>production</ServingState>
+			<TotalJobs>40</TotalJobs>
+			<RunningJobs>30</RunningJobs>
+			<LocalRunningJobs>0</LocalRunningJobs>
+			<WaitingJobs>1</WaitingJobs>
+			<LocalWaitingJobs>1</LocalWaitingJobs>
+			<StagingJobs>1</StagingJobs>
+			<SuspendedJobs>12</SuspendedJobs>
+			<PreLRMSWaitingJobs>1</PreLRMSWaitingJobs>
+			<EstimatedAverageWaitingTime>1</EstimatedAverageWaitingTime>
+			<EstimatedWorstWaitingTime>1</EstimatedWorstWaitingTime>
+			<FreeSlots>14</FreeSlots>
+			<UsedSlots>7</UsedSlots>
+			<RequestedSlots>378</RequestedSlots>
+			<ReservationPolicy>none</ReservationPolicy>
+			<Tag>HEPPO</Tag>
+			<Tag>MIT12</Tag>			
+			<MappingPolicy>
+			    <LocalID>id8</LocalID>
+			    <Scheme>basic</Scheme>
+			    <Rule>VO:ATLAS</Rule>
+			</MappingPolicy>			
+		    </ComputingShare>		    
+	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
+			<LocalID>id9</LocalID>
+			<Name>Atlas-LONG</Name>
+			<Description>a share set up for long Atlas jobs</Description>
+			<!-- Computing share specific attributes -->
+			<MappingQueue>pbs-long</MappingQueue>							        		   
+			<MaxWallTime>12000</MaxWallTime>  <!-- do not attribute meaning to the numbers below-->
+			<MinWallTime>11</MinWallTime>
+			<DefaultWallTime>9000</DefaultWallTime>
+			<MaxCPUTime>43200</MaxCPUTime>
+			<MinCPUTime>32</MinCPUTime>
+			<DefaultCPUTime>11</DefaultCPUTime>
+			<MaxTotalJobs>500</MaxTotalJobs>
+			<MaxRunningJobs>50</MaxRunningJobs>
+			<MaxWaitingJobs>200</MaxWaitingJobs>
+			<MaxPreLRMSWaitingJobs>400</MaxPreLRMSWaitingJobs>
+			<MaxUserRunningJobs>1</MaxUserRunningJobs>
+			<MaxSlotsPerJob>4</MaxSlotsPerJob>
+			<MaxStateInStreams>3</MaxStateInStreams>
+			<MaxStageOutStreams>2</MaxStageOutStreams>
+			<SchedulingPolicy>fairshare</SchedulingPolicy>
+			<MaxMemory>1</MaxMemory>
+			<MaxDiskSpace>1</MaxDiskSpace>
+			<DefaultStorageService>https://storage.niif.hu/default</DefaultStorageService>
+			<Preemption>true</Preemption>
+			<ServingState>production</ServingState>
+			<TotalJobs>40</TotalJobs>
+			<RunningJobs>30</RunningJobs>
+			<LocalRunningJobs>0</LocalRunningJobs>
+			<WaitingJobs>1</WaitingJobs>
+			<LocalWaitingJobs>1</LocalWaitingJobs>
+			<StagingJobs>1</StagingJobs>
+			<SuspendedJobs>12</SuspendedJobs>
+			<PreLRMSWaitingJobs>1</PreLRMSWaitingJobs>
+			<EstimatedAverageWaitingTime>1</EstimatedAverageWaitingTime>
+			<EstimatedWorstWaitingTime>1</EstimatedWorstWaitingTime>
+			<FreeSlots>14</FreeSlots>
+			<UsedSlots>7</UsedSlots>
+			<RequestedSlots>378</RequestedSlots>
+			<ReservationPolicy>none</ReservationPolicy>
+			<Tag>TT1</Tag>
+			<Tag>HH12</Tag> 			
+			<MappingPolicy>
+			    <LocalID>id10</LocalID>
+			    <Scheme>basic</Scheme>
+			    <Rule>VO:ATLAS</Rule>
+			</MappingPolicy>
+		    </ComputingShare>
+		</ComputingShares>										    
+		    
+                <ComputingResource type="Resource"> <!-- not yet UPDATED, still based on v28!!! -->
+                    <ID></ID>
+                    <Name>Cluster</Name>
+                    <!-- Comuting Resource specific attributes -->
+                    <LRMSType>Condor</LRMSType>
+                    <LRMSVersion>6.6</LRMSVersion>
+                    <Total>1</Total> <!-- # of exec env -->
+                    <Used></Used>
+                    <PhysicalCPUs>20</PhysicalCPUs>
+                    <LogicalCPUs>40</LogicalCPUs>
+                    <Homogenetiy>True</Homogenety>
+                    <SessionDirTotal>1000M</SessionDirTotal>
+                    <SessionDirFree>10M</SessionDirFree>
+                    <SessionDirLifetime>100</SessionDirLifetime>
+                    <CacheTotal>100M</CacheTotal>
+                    <CacheFree>10M</CacheFree>
+                    <Benchmark>SPEC2000:1244</Benchmark>
+                    <ExecutionEnvironment> <!-- homogeneous cluster-->
+                        <ID>urn:exec:1</ID>
+                        <Type>RealNode</Type>
+                        <TotalInstances>20</TotalInstances>
+                        <UsedInstances>0</UsedInstances>
+                        <UnavailableInstances>0</UnavailableInstances>
+                        <PhysicalCPUs>1</PhysicalCPUs>
+                        <LogicalCPUs>2</LogicalCPUs>
+                        <MainMemorySize>1G</MainMemorySize>
+                        <VirtualMemorySize>5G</VirtualMemorySize>
+                        <OSName>Linux</OSName>
+                        <OSRelease>Debian</OSRelease>
+                        <OSVersion>3.1</OSVersion>
+                        <PlatformType>Intel</PlatformType>
+                        <Benchmark></Benchmark>
+                        <ConnectivityIn>True</ConnectivityIn>
+                        <ConnectivityOut>True</ConnectivityOut>
+                    </ExecutionEnvironment> 
+		    <ApplicationEnvironments>		    
+                    	<ApplicationEnvironment>
+                    	    <ID></ID>
+                    	    <Name>Bioc1</Name>
+                    	    <Version>1.1</Version>
+                    	    <State>Installed|Installable</State>
+                    	</ApplicationEnvironment>
+		    	<ApplicationEnvironment>
+                    	    <ID></ID>
+                    	    <Name>Bioc2</Name>
+                    	    <Version>1.1</Version>
+                    	    <State>Installed|Installable</State>
+                    	</ApplicationEnvironment>
+		    	 <ApplicationEnvironment>
+                    	    <ID></ID>
+                    	    <Name>Bioc3</Name>
+                    	    <Version>1.1</Version>
+                    	    <State>Installed|Installable</State>
+                    	</ApplicationEnvironment>
+		    <ApplicationEnvironments>
+                </ComputingResource>
+
+		<ComputingActivities>  <!-- not yet UPDATED, still based on v28!!! -->
+		    <ComputingActivity type="Computing">					    
+                	<ID>1</ID> <! EZ NEM A JOB ID ->					    
+                	<Type>Computing</Type>							    
+                	<!-- Computing Activity specific attributes --> 			    
+                	<EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->    
+                	<Name></Name>								    
+                	<State></State> 							    
+                	<Owner></Owner> 							    
+                	<....>									    
+                    </ComputingActivity>							    
+                    <ComputingActivity type="Computing">					    
+                	<ID>2</ID> <! EZ NEM A JOB ID ->					    
+                	<Type>Computing</Type>							    
+                	<!-- Computing Activity specific attributes --> 			    
+                	<EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->    
+                	<Name></Name>								    
+                	<State></State> 							    
+                	<Owner></Owner> 							    
+                	<!-- ... --> 								    
+                    </ComputingActivity>
+                </ComputingActivites>								                    
+		
+                <Associations>
+		  <--! to be filled-->
+                </Associations>                    
+		
+            </ComputingService>
+	    
+	    <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
+	      <!-- once the structure of the storage representation matures it'll be filled-->
+	    </StorageService>
+	    <Service> <!-- question: do we need the basetype this case as well?-->
+	       <!--general service will come here-->
+	    </Service>
+	    <Service>
+	       <!--another general service example will come here-->
+	    </Service>
+        </Services>
+	
+    </AdminDomain>
+    
+    <UserDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
+    	<ID>[URI]</ID>
+	<Name>ATLAS VO</Name>
+	<Description>HEP ATLAS USER GROUP</Description>
+	<WWW>http://www.cern.ch/ATLAS-VO</WWW>
+	<Otherinfo>AUP document is available on VO webpage</Otherinfo>
+	<Level>0</Level>
+	<ManagerEndpoint>[URI]</ManagerEndpoint>
+    </UserDomain>
+</glue:Domains>
