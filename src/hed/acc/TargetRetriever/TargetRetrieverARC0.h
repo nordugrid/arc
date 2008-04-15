@@ -1,4 +1,5 @@
 #include <arc/client/TargetRetriever.h>
+#include <arc/client/ComputingService.h>
 
 namespace Arc {
 
@@ -14,9 +15,9 @@ namespace Arc {
     
     
   public:
-    std::list<ACC*> getTargets(); 
+    std::list<Glue2::ComputingService_t> getTargets(); 
     static ACC* Instance(Arc::Config *cfg, Arc::ChainContext*);
 
-  };
+  }; //end class
 
 } // namespace Arc
