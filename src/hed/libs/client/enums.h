@@ -1,8 +1,45 @@
 /**
  * GLUE2 enums
  */
-#ifndef ARCLIB_ENUMS
-#define ARCLIB_ENUMS
+#ifndef GLUE2_ENUMS
+#define GLUE2_ENUMS
+
+#include <string>
+
+//enums presently replaced with typedefs in order 
+//to avoid crashes during runtime
+
+typedef std::string ServingState_t;
+typedef std::string ComputingActivityState_t;
+typedef std::string Staging_t;
+typedef std::string LRMSType_t;
+typedef std::string NetworkInfo_t;
+typedef std::string SchedulingPolicy_t;
+typedef std::string ServingState_t;
+typedef std::string EndpointType_t;
+typedef std::string QualityLevel_t;
+typedef std::string EndpointHealthState_t;
+typedef std::string EndpointCapability_t;
+typedef std::string ServiceCapability_t;
+typedef std::string ServiceType_t;
+typedef std::string ActivityType_t;
+typedef std::string CPUMultiplicity_t;
+typedef std::string OSFamily_t;
+typedef std::string OSName_t;
+typedef std::string Benchmark_t;
+typedef std::string AppEnvState_t;
+typedef std::string License_t;
+typedef std::string ParallelType_t;
+typedef std::string ApplicationHandle_t;
+typedef std::string Platform_t;
+
+/*
+
+//closed enumeration
+enum ServingState_t{production,
+		    draining,
+		    queueing,
+		    closed};
 
 //open enumeration
 enum ComputingActivityState_t{running,
@@ -27,12 +64,6 @@ enum NetworkInfo_t{gigabitethernet,
 enum SchedulingPolicy_t{fairshare,
 			fifo,
 			RANDOM};
-
-//closed enumeration
-enum ServingState_t{production,
-		    draining,
-		    queueing,
-		    closed};
 
 //open enumeration
 enum EndpointType_t{webservice,
@@ -87,5 +118,58 @@ typedef ServiceCapability_t EndpointCapability_t;
 enum ServiceType_t{org_glite_wms,
 		   org_glite_lb};
 
+//open enumeration
+enum ActivityType_t{computing};
+
+//closed enumeration
+enum CPUMultiplicity_t{singlecpu_singlecore,
+		       singlecpu_mulitcore,
+		       multicpu_singlecore,
+		       mulitcpu_mutlicore};
+//open enumeration
+enum OSFamily_t{linux,
+		macos,
+		windows,
+		solaris};
+
+
+//open enumeration
+enum OSName_t{scientificlinuxcern,
+	      scientificlinux,
+	      windowsxp,
+	      windowsvista,
+	      ubuntu,
+	      debian,
+	      centos,
+	      leopard};
+
+//open enumeration
+enum Benchmark_t{specint2000,
+		 specfp2000,
+		 bogomips};
+
+//open enumeration
+enum AppEnvState_t{tested,
+		   installed,
+		   dynamic,
+                   toberemoved};
+
+//open enumeration
+enum License_t{opensource,
+	       commercial,
+               unknown};
+
+//open enumeration
+enum ParallelType_t{Mpi,
+	            openmp,
+                    none};
+
+//open enumeration
+enum ApplicationHandle_t{module,
+	                 softenv,
+                         path,
+                         executable};
+
+*/
 
 #endif

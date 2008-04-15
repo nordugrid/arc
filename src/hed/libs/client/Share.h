@@ -1,24 +1,22 @@
 /**
  * GLUE2 Share class
  */
-#ifndef ARCLIB_SHARE
-#define ARCLIB_SHARE
+#ifndef GLUE2_SHARE_T
+#define GLUE2_SHARE_T
 
 #include <string>
 
-namespace Arc{
+namespace Glue2{
 
-  class Share{
-  protected:
-    Share();
+  class Share_t{
+
+  public:
+    Share_t(){};
+    virtual ~Share_t(){};
 
     std::string LocalID;
     std::string Name;
-    std::string Description;
-
-  public:
-    virtual ~Share();
-    
+    std::string Description;    
 
   }; //end class
 

@@ -7,7 +7,9 @@ libarclibclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
 	                      Submitter.h TargetRetriever.h TargetGenerator.h \
 			      Endpoint.h enums.h Service.h ComputingEndpoint.h Share.h \
 		              ComputingShare.h Resource.h ComputingResource.h \
-			      Activity.h ComputingActivity.h ComputingService.h	
+			      Activity.h ComputingActivity.h ComputingService.h \
+			      ApplicationEnvironment.h Contact.h ExecutionEnvironment.h \
+			      Location.h 	
 libarclibclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
 	                      Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp
 libarclibclient_la_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)

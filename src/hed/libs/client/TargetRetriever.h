@@ -1,4 +1,5 @@
 #include <arc/client/ACC.h>
+#include <arc/client/ComputingService.h>
 #include <list>
 #include <arc/URL.h>
 
@@ -10,7 +11,7 @@ namespace Arc {
     URL m_url;
   public:
     virtual ~TargetRetriever();
-    virtual std::list<ACC*> getTargets() = 0; 
+    virtual std::list<Glue2::ComputingService_t> getTargets() = 0; 
 
   };
 

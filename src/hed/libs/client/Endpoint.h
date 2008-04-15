@@ -1,19 +1,21 @@
 /**
  * GLUE2 Endpoint class
  */
-#ifndef ARCLIB_ENDPOINT
-#define ARCLIB_ENDPOINT
+#ifndef GLUE2_ENDPOINT_T
+#define GLUE2_ENDPOINT_T
 
 #include "enums.h"
 #include <arc/URL.h>
 #include <arc/DateTime.h>
 #include <string>
 
-namespace Arc{
+namespace Glue2{
 
-  class Endpoint{
+  class Endpoint_t{
   protected:
-    Endpoint();
+    Endpoint_t(){};
+
+  public:
     
     Arc::URL ID;
     std::string Name;
@@ -38,9 +40,7 @@ namespace Arc{
     Arc::Time DowntimeEnd;
     Arc::Time DowntimeInfo;
 
-  public:
-    virtual ~Endpoint();
-    
+    virtual ~Endpoint_t(){};
 
   };//end class endpoint
 

@@ -1,19 +1,21 @@
 /**
  * GLUE2 ComputingResource class
  */
-#ifndef ARCLIB_COMPUTINGRESOURCE
-#define ARCLIB_COMPUTINGRESOURCE
+#ifndef GLUE2_COMPUTINGRESOURCE_T
+#define GLUE2_COMPUTINGRESOURCE_T
 
+#include "ExecutionEnvironment.h"
+#include "ApplicationEnvironment.h"
 #include "Resource.h"
 #include "enums.h"
 #include <string>
 
-namespace Arc{
+namespace Glue2{
 
-  class ComputingResource : public Arc::Resource{
+  class ComputingResource_t : public Glue2::Resource_t{
   public:
-    ComputingResource();
-    ~ComputingResource();
+    ComputingResource_t(){};
+    ~ComputingResource_t(){};
 
     LRMSType_t LRMSType;
     std::string LRMSVersion;
@@ -34,6 +36,10 @@ namespace Arc{
     int GridAreaLifeTime;
     int CacheTotal;
     int CacheFree;
+    std::list<ExecutionEnvironment_t> ExecutionEnvironment;
+    std::list<ApplicationEnvironment_t> ApplicationEnvironments;
+    Benchmark_t Benchmark;
+
 
   };//end class
 

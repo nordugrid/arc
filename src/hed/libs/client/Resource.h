@@ -1,23 +1,23 @@
 /**
  * GLUE2 Endpoint class
  */
-#ifndef ARCLIB_RESOURCE
-#define ARCLIB_RESOURCE
+#ifndef GLUE2_RESOURCE_T
+#define GLUE2_RESOURCE_T
 
 #include <arc/URL.h>
 #include <string>
 
-namespace Arc{
+namespace Glue2{
 
-  class Resource{
+  class Resource_t{
   protected:
-    Resource();
+    Resource_t(){};
     
+  public:
     Arc::URL ID;
     std::string Name;
 
-  public:
-    virtual ~Resource();
+    virtual ~Resource_t(){};
 
   }; //end class
 

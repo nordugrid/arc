@@ -1,21 +1,22 @@
 /**
  * GLUE2 ComputingShare class
  */
-#ifndef ARCLIB_COMPUTINGSHARE
-#define ARCLIB_COMPUTINGSHARE
+#ifndef GLUE2_COMPUTINGSHARE_T
+#define GLUE2_COMPUTINGSHARE_T
 
+#include "ExecutionEnvironment.h"
 #include "Share.h"
 #include "enums.h"
 #include <arc/URL.h>
 #include <string>
 #include <stdint.h>
 
-namespace Arc{
+namespace Glue2{
 
-  class ComputingShare : public Arc::Share{
+  class ComputingShare_t : public Glue2::Share_t{
   public:
-    ComputingShare();
-    ~ComputingShare();
+    ComputingShare_t(){};
+    ~ComputingShare_t(){};
 
     std::string MappingQueue;
     int64_t MaxWallTime;

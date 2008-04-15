@@ -1,8 +1,8 @@
 /**
  * GLUE2 ComputingActivity class
  */
-#ifndef ARCLIB_COMPUTINGACTIVITY
-#define ARCLIB_COMPUTINGACTIVITY
+#ifndef GLUE2_COMPUTINGACTIVITY_T
+#define GLUE2_COMPUTINGACTIVITY_T
 
 #include "Activity.h"
 #include "enums.h"
@@ -10,13 +10,13 @@
 #include <string>
 #include <list>
 
-namespace Arc{
+namespace Glue2{
 
 
-  class ComputingActivity : public Arc::Activity{
+  class ComputingActivity_t : public Glue2::Activity_t{
   public:
-    ComputingActivity();
-    ~ComputingActivity();
+    ComputingActivity_t(){};
+    ~ComputingActivity_t(){};
 
     std::string LRMSID;
     std::string Name;

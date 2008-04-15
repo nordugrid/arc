@@ -1,19 +1,19 @@
 /**
  * GLUE2 ComputingEndpoint class
  */
-#ifndef ARCLIB_COMPUTINGENDPOINT
-#define ARCLIB_COMPUTINGENDPOINT
+#ifndef GLUE2_COMPUTINGENDPOINT_T
+#define GLUE2_COMPUTINGENDPOINT_T
 
 #include "Endpoint.h"
 #include "enums.h"
 #include <string>
 
-namespace Arc{
+namespace Glue2{
 
-  class ComputingEndpoint : public Arc::Endpoint{
+  class ComputingEndpoint_t : public Glue2::Endpoint_t{
   public:
-    ComputingEndpoint();
-    ~ComputingEndpoint();
+    ComputingEndpoint_t(){};
+    ~ComputingEndpoint_t(){};
 
     Staging_t Staging;
 

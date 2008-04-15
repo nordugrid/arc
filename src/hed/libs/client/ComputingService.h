@@ -1,22 +1,24 @@
 /**
  * GLUE2 ComputingService class
  */
-#ifndef ARCLIB_COMPUTINGSERVICE
-#define ARCLIB_COMPUTINGSERVICE
+#ifndef GLUE2_COMPUTINGSERVICE_T
+#define GLUE2_COMPUTINGSERVICE_T
 
 #include "ComputingEndpoint.h"
 #include "ComputingShare.h"
 #include "ComputingResource.h"
 #include "ComputingActivity.h"
+#include "Contact.h"
+#include "Service.h"
 #include <string>
 #include <list>
 
-namespace Arc{
+namespace Glue2{
 
-  class ComputingService : public Arc::Service{
+  class ComputingService_t : public Glue2::Service_t{
   public:
-    ComputingService();
-    ~ComputingService();
+    ComputingService_t(){};
+    ~ComputingService_t(){};
     
     int TotalJobs;
     int RunningJobs;
@@ -24,11 +26,12 @@ namespace Arc{
     int StagingJobs;
     int SuspendedJobs;
     int PreLRMSWaitingJobs;
+    Glue2::Contact_t Contact;
     
-    std::list<ComputingEndpoint> m_ComputingEndpoint;
-    std::list<ComputingShare> m_ComputingShare;
-    std::list<ComputingResource> m_ComputingResource;
-    std::list<ComputingActivity> m_ComputingActivities;    
+    std::list<ComputingEndpoint_t> ComputingEndpoint;
+    std::list<ComputingShare_t> ComputingShare;
+    std::list<ComputingResource_t> ComputingResource;
+    std::list<ComputingActivity_t> ComputingActivities;    
 
   };//end class
 

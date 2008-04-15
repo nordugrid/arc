@@ -1,26 +1,23 @@
 /**
  * GLUE2 Activity class
  */
-#ifndef ARCLIB_ACTIVITY
-#define ARCLIB_ACTIVITY
+#ifndef GLUE2_ACTIVITY_T
+#define GLUE2_ACTIVITY_T
 
+#include "enums.h"
 #include <arc/URL.h>
 
-namespace Arc{
+namespace Glue2{
 
-  //open enumeration
-  enum ActivityType_t{computing};
-  
-  
-  class Activity{
+  class Activity_t{
   protected:
-    Activity();
+    Activity_t(){};
 
     Arc::URL ID;
     ActivityType_t Type;
 
   public:
-    virtual ~Activity();
+    virtual ~Activity_t(){};
 
 
   };//end class endpoint
