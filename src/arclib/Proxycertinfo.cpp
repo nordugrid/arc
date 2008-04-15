@@ -433,6 +433,7 @@ STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method *method, PROXYCERT
   return extlist;
 }
 
+/*
 //The i2r_PROXYCERTINFO and r2i_PROXYCERTINFO are introduced from openssl-0.9.8e (crypto/x509v3/V3_pci.c)
 int i2r_PROXYCERTINFO(X509V3_EXT_METHOD *method, PROXYCERTINFO *ext, BIO *out, int indent) {
   BIO_printf(out, "%*sPath Length Constraint: ", indent, "");
@@ -555,7 +556,9 @@ err:
   }
   return 0;
 }
+*/
 
+/*
 PROXYCERTINFO *r2i_PROXYCERTINFO(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, char *value) {
   PROXYCERTINFO *ext = NULL;
   STACK_OF(CONF_VALUE) *vals;
@@ -595,7 +598,7 @@ PROXYCERTINFO *r2i_PROXYCERTINFO(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, cha
     }
   }
 
-  /* Language is mandatory */
+  // Language is mandatory 
   if (!language) {
     X509V3err(X509V3_F_R2I_PCI,X509V3_R_NO_PROXY_CERT_POLICY_LANGUAGE_DEFINED);
     goto err;
@@ -633,7 +636,7 @@ end:
   sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
   return ext;
 }
-
+*/
 
 X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth() {
     static X509V3_EXT_METHOD proxycertinfo_v4_x509v3_ext_meth =
@@ -648,8 +651,8 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth() {
         NULL, NULL,
         (X509V3_EXT_I2V) i2v_PROXYCERTINFO,
         NULL,
-        (X509V3_EXT_I2R) i2r_PROXYCERTINFO,
-        (X509V3_EXT_R2I) r2i_PROXYCERTINFO,
+        NULL, //(X509V3_EXT_I2R) i2r_PROXYCERTINFO,
+        NULL, //(X509V3_EXT_R2I) r2i_PROXYCERTINFO,
         NULL
     };
     return (&proxycertinfo_v4_x509v3_ext_meth);
@@ -668,8 +671,8 @@ X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth() {
     NULL, NULL,
     (X509V3_EXT_I2V) i2v_PROXYCERTINFO,
     NULL,
-    (X509V3_EXT_I2R) i2r_PROXYCERTINFO,
-    (X509V3_EXT_R2I) r2i_PROXYCERTINFO,
+    NULL, //(X509V3_EXT_I2R) i2r_PROXYCERTINFO,
+    NULL, //(X509V3_EXT_R2I) r2i_PROXYCERTINFO,
     NULL
   };
   return (&proxycertinfo_v3_x509v3_ext_meth);
