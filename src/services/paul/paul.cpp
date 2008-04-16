@@ -280,7 +280,7 @@ void PaulService::request_loop(void* arg)
 // Report status of jobs
 void PaulService::do_report(void)
 {
-    logger_.msg(Arc::DEBUG, "Report statues");
+    logger_.msg(Arc::DEBUG, "Report status");
     std::map<const std::string, Job *> all = jobq.getAllJobs();
     std::map<const std::string, Job *>::iterator it;
     std::map<std::string, Arc::PayloadSOAP *> requests;

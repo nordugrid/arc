@@ -465,7 +465,7 @@ namespace ArcLib {
     if(!keyfile.empty()) {
       keybio = BIO_new_file(keyfile.c_str(), "r");
       if(!keybio){
-        credentialLogger.msg(ERROR,"Can not read key file: %s ", keyfile);  LogError();
+        credentialLogger.msg(ERROR,"Can not read key file: %s", keyfile); LogError();
         throw CredentialError("Can not read key file");
       }
     }

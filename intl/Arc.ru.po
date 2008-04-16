@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-04-05 07:26+0200\n"
+"POT-Creation-Date: 2008-04-16 08:55+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -59,277 +59,277 @@ msgstr ""
 msgid "Can not read certificate file: %s"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:467
+#: ../src/arclib/Credential.cpp:468
 #, c-format
 msgid "Can not read key file: %s"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:516
+#: ../src/arclib/Credential.cpp:518
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:527
+#: ../src/arclib/Credential.cpp:529
 msgid "Can not create extension for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:549
+#: ../src/arclib/Credential.cpp:551
 msgid "The credential's private key has already been initialized"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:555
+#: ../src/arclib/Credential.cpp:557
 msgid "RSA_generate_key failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:569
+#: ../src/arclib/Credential.cpp:571
 msgid "RSA_generate_key_ex failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:576
+#: ../src/arclib/Credential.cpp:578
 msgid "BN_set_word failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:583
+#: ../src/arclib/Credential.cpp:585
 msgid "BN_new || RSA_new failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:604
+#: ../src/arclib/Credential.cpp:606
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:611
+#: ../src/arclib/Credential.cpp:613
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:636 ../src/arclib/Credential.cpp:646
-#: ../src/arclib/Credential.cpp:976 ../src/arclib/Credential.cpp:983
+#: ../src/arclib/Credential.cpp:638 ../src/arclib/Credential.cpp:648
+#: ../src/arclib/Credential.cpp:978 ../src/arclib/Credential.cpp:985
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:665
+#: ../src/arclib/Credential.cpp:667
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:679
+#: ../src/arclib/Credential.cpp:681
 msgid "Can not generate X509 request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:681
+#: ../src/arclib/Credential.cpp:683
 msgid "Can not set private key"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:694 ../src/arclib/Credential.cpp:711
+#: ../src/arclib/Credential.cpp:696 ../src/arclib/Credential.cpp:713
 msgid "Can not create BIO for request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:713
+#: ../src/arclib/Credential.cpp:715
 msgid "Can not set writable file for request BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:717
+#: ../src/arclib/Credential.cpp:719
 msgid "Wrote request into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:719
+#: ../src/arclib/Credential.cpp:721
 msgid "Failed to write request into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:728
+#: ../src/arclib/Credential.cpp:730
 msgid "NULL BIO passed to InquireRequest"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:731
+#: ../src/arclib/Credential.cpp:733
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:763
+#: ../src/arclib/Credential.cpp:765
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:772
+#: ../src/arclib/Credential.cpp:774
 msgid "Can not get policy from PROXYCERTINFO extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:776
+#: ../src/arclib/Credential.cpp:778
 msgid "Can not get policy language from PROXYCERTINFO extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:806 ../src/arclib/Credential.cpp:821
+#: ../src/arclib/Credential.cpp:808 ../src/arclib/Credential.cpp:823
 msgid "Can not create BIO for parsing request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:811
+#: ../src/arclib/Credential.cpp:813
 msgid "Read request from a string"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:813
+#: ../src/arclib/Credential.cpp:815
 msgid "Failed to read request from a string"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:823
+#: ../src/arclib/Credential.cpp:825
 msgid "Can not set readable file for request BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:828
+#: ../src/arclib/Credential.cpp:830
 msgid "Read request from a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:830
+#: ../src/arclib/Credential.cpp:832
 msgid "Failed to read request from a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:846 ../src/arclib/Credential.cpp:867
+#: ../src/arclib/Credential.cpp:848 ../src/arclib/Credential.cpp:869
 msgid ""
 "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:853 ../src/arclib/Credential.cpp:874
+#: ../src/arclib/Credential.cpp:855 ../src/arclib/Credential.cpp:876
 msgid ""
 "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:859 ../src/arclib/Credential.cpp:880
+#: ../src/arclib/Credential.cpp:861 ../src/arclib/Credential.cpp:882
 msgid "Failed to set notBefore for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:896
+#: ../src/arclib/Credential.cpp:898
 msgid "Private key of the credential object is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:898
+#: ../src/arclib/Credential.cpp:900
 msgid "Can not convert private key to DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:951
+#: ../src/arclib/Credential.cpp:953
 msgid "Failed to initialize X509 structure"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:994 ../src/arclib/Credential.cpp:1051
+#: ../src/arclib/Credential.cpp:996 ../src/arclib/Credential.cpp:1053
 msgid "Can not add X509 extension to proxy cert"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1016
+#: ../src/arclib/Credential.cpp:1018
 msgid "Can not get extension from issuer certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1021
+#: ../src/arclib/Credential.cpp:1023
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1031 ../src/arclib/Credential.cpp:1039
+#: ../src/arclib/Credential.cpp:1033 ../src/arclib/Credential.cpp:1041
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1060
+#: ../src/arclib/Credential.cpp:1062
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1065
+#: ../src/arclib/Credential.cpp:1067
 msgid "Can not copy extended KeyUsage extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1069
+#: ../src/arclib/Credential.cpp:1071
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1077
+#: ../src/arclib/Credential.cpp:1079
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1081
+#: ../src/arclib/Credential.cpp:1083
 msgid "Can not create name entry CN for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1086
+#: ../src/arclib/Credential.cpp:1088
 msgid "Can not set CN in proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1093
+#: ../src/arclib/Credential.cpp:1095
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1097
+#: ../src/arclib/Credential.cpp:1099
 msgid "Can not set version number for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1101
+#: ../src/arclib/Credential.cpp:1103
 msgid "Can not set serial number for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1105
+#: ../src/arclib/Credential.cpp:1107
 msgid "Can not set the lifetime for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1109
+#: ../src/arclib/Credential.cpp:1111
 msgid "Can not set pubkey for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1127
+#: ../src/arclib/Credential.cpp:1129
 msgid "The credential to be signed is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1128
+#: ../src/arclib/Credential.cpp:1130
 msgid "The BIO for output is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1136
+#: ../src/arclib/Credential.cpp:1138
 msgid "Error when extracting public key from request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1139
+#: ../src/arclib/Credential.cpp:1141
 msgid "Failed to verify the request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1143
+#: ../src/arclib/Credential.cpp:1145
 msgid "Failed to add issuer's extension into proxy"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1165
+#: ../src/arclib/Credential.cpp:1167
 msgid "Failed to duplicate extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1169
+#: ../src/arclib/Credential.cpp:1171
 msgid "Failed to add extension into proxy"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1175
+#: ../src/arclib/Credential.cpp:1177
 msgid "Can not get the issuer's private key"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1180
+#: ../src/arclib/Credential.cpp:1182
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed, it should be MD5 to sign "
 "certificate requests"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1186
+#: ../src/arclib/Credential.cpp:1188
 msgid "Failed to sign the request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1195
+#: ../src/arclib/Credential.cpp:1197
 msgid "Succeeded to sign and output the proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1197
+#: ../src/arclib/Credential.cpp:1199
 msgid "Can not convert signed proxy cert into DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1209 ../src/arclib/Credential.cpp:1226
+#: ../src/arclib/Credential.cpp:1211 ../src/arclib/Credential.cpp:1228
 msgid "Can not create BIO for signed proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1228
+#: ../src/arclib/Credential.cpp:1230
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1232
+#: ../src/arclib/Credential.cpp:1234
 msgid "Wrote signed proxy certificate into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1234
+#: ../src/arclib/Credential.cpp:1236
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 
@@ -742,65 +742,65 @@ msgstr ""
 msgid "Start foreground"
 msgstr ""
 
-#: ../src/hed/daemon/main.cpp:96 ../src/services/a-rex/test.cpp:37
+#: ../src/hed/daemon/main.cpp:99 ../src/services/a-rex/test.cpp:37
 #: ../src/services/pdp/test.cpp:32 ../src/services/sched/test_service.cpp:32
-#: ../src/tests/count/test_service.cpp:21 ../src/tests/echo/test.cpp:29
+#: ../src/tests/count/test_service.cpp:28 ../src/tests/echo/test.cpp:29
 #: ../src/tests/echo/test_service.cpp:32
 msgid "Failed to load service configuration"
 msgstr ""
 
-#: ../src/hed/daemon/main.cpp:100
+#: ../src/hed/daemon/main.cpp:103
 msgid "Configuration root element is not ArcConfig"
 msgstr ""
 
-#: ../src/hed/daemon/main.cpp:123 ../src/services/a-rex/test.cpp:41
+#: ../src/hed/daemon/main.cpp:126 ../src/services/a-rex/test.cpp:41
 #: ../src/services/pdp/test.cpp:36 ../src/services/sched/test_service.cpp:36
-#: ../src/tests/count/test_service.cpp:25 ../src/tests/echo/test.cpp:33
+#: ../src/tests/count/test_service.cpp:32 ../src/tests/echo/test.cpp:33
 #: ../src/tests/echo/test_service.cpp:36
 msgid "Service side MCCs are loaded"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:151
+#: ../src/hed/dmc/file/DataPointFile.cpp:153
 #, c-format
 msgid "File is not accessible: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:156
+#: ../src/hed/dmc/file/DataPointFile.cpp:158
 #, c-format
 msgid "Can't stat file: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:243
+#: ../src/hed/dmc/file/DataPointFile.cpp:245
 msgid "Failed to use channel stdout"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:256
+#: ../src/hed/dmc/file/DataPointFile.cpp:258
 #, c-format
 msgid "Invalid url: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:270
+#: ../src/hed/dmc/file/DataPointFile.cpp:272
 #: ../src/hed/libs/data/DataCache.cpp:197
-#: ../src/hed/libs/data/DataCache.cpp:230
+#: ../src/hed/libs/data/DataCache.cpp:232
 #, c-format
 msgid "Failed to create/find directory %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:286
+#: ../src/hed/dmc/file/DataPointFile.cpp:290
 #, c-format
 msgid "Failed to create/open file %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:297
+#: ../src/hed/dmc/file/DataPointFile.cpp:301
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:319
+#: ../src/hed/dmc/file/DataPointFile.cpp:323
 msgid "Failed to preallocate space"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:388
+#: ../src/hed/dmc/file/DataPointFile.cpp:411
 #, c-format
 msgid "Failed to read object: %s"
 msgstr ""
@@ -1171,7 +1171,7 @@ msgstr ""
 msgid "Memory allocation error"
 msgstr ""
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:60
+#: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:64
 #, c-format
 msgid "Command: %s"
 msgstr ""
@@ -1767,91 +1767,91 @@ msgstr ""
 msgid "URL protocol is not urllist: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1190
+#: ../src/hed/libs/data/Cache.cpp:1221
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1285
 #, c-format
 msgid "cache_download_url_start: cache_open_list failed: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1199
+#: ../src/hed/libs/data/Cache.cpp:1230
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1294
 #, c-format
 msgid "cache_download_url_start: url not found: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1203
+#: ../src/hed/libs/data/Cache.cpp:1234
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1298
 #, c-format
 msgid "cache_download_url_start: unknown result from cache_search_list: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1208
+#: ../src/hed/libs/data/Cache.cpp:1239
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1303
 #, c-format
 msgid "cache_download_url_start: locking url: %s (%s)"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1218
+#: ../src/hed/libs/data/Cache.cpp:1249
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1313
 #, c-format
 msgid "cache_download_file_start: failed to lock file: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1221
+#: ../src/hed/libs/data/Cache.cpp:1252
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1316
 #, c-format
 msgid "cache_download_file_start: locked file: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1229
+#: ../src/hed/libs/data/Cache.cpp:1260
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1324
 #, c-format
 msgid "cache_download_file_start: cache_read_info failed: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1234
+#: ../src/hed/libs/data/Cache.cpp:1265
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1329
 #, c-format
 msgid "cache_download_file_start: state - dead: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1240
+#: ../src/hed/libs/data/Cache.cpp:1271
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1335
 #, c-format
 msgid "cache_download_file_start: state - new/failed: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1245
+#: ../src/hed/libs/data/Cache.cpp:1276
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1340
 #, c-format
 msgid "cache_download_file_start: state - ready: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1249
+#: ../src/hed/libs/data/Cache.cpp:1280
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1344
 #, c-format
 msgid "cache_download_file_start: state - UNKNOWN: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1263
+#: ../src/hed/libs/data/Cache.cpp:1294
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1358
 #, c-format
 msgid "cache_download_url_end: cache_open_list failed: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1267
+#: ../src/hed/libs/data/Cache.cpp:1298
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1362
 #, c-format
 msgid "cache_download_url_end: file not found in list: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1349
+#: ../src/hed/libs/data/Cache.cpp:1380
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1444
 #, c-format
 msgid "Removing cache file: name = %s, url = %s"
 msgstr ""
 
-#: ../src/hed/libs/data/Cache.cpp:1356
+#: ../src/hed/libs/data/Cache.cpp:1387
 #, c-format
 msgid "Cleaned %llu bytes in cache"
 msgstr ""
@@ -1882,27 +1882,27 @@ msgstr ""
 msgid "Cache cleaned: %s, %llu bytes"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:213
+#: ../src/hed/libs/data/DataCache.cpp:214
 #, c-format
 msgid "Failed to make symbolic link %s to %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:243
+#: ../src/hed/libs/data/DataCache.cpp:245
 #, c-format
 msgid "Failed to create file for writing: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:250
+#: ../src/hed/libs/data/DataCache.cpp:254
 #, c-format
 msgid "Failed to open file for reading: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:258
+#: ../src/hed/libs/data/DataCache.cpp:262
 #, c-format
 msgid "Failed to read file: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:268
+#: ../src/hed/libs/data/DataCache.cpp:272
 #, c-format
 msgid "Failed to write file: %s"
 msgstr ""
@@ -2027,7 +2027,7 @@ msgstr ""
 #: ../src/hed/libs/data/DataMover.cpp:489
 #: ../src/hed/libs/data/DataMover.cpp:546
 #: ../src/hed/libs/data/DataMover.cpp:584
-#: ../src/hed/libs/data/DataMover.cpp:607
+#: ../src/hed/libs/data/DataMover.cpp:608
 msgid "source.next_location"
 msgstr ""
 
@@ -2041,7 +2041,7 @@ msgid "Cached file is outdated"
 msgstr ""
 
 #: ../src/hed/libs/data/DataMover.cpp:510
-#: ../src/hed/libs/data/DataMover.cpp:730
+#: ../src/hed/libs/data/DataMover.cpp:732
 msgid "Linking/copying cached file"
 msgstr ""
 
@@ -2067,110 +2067,111 @@ msgstr ""
 msgid "Failed to create/find directory %s : %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:604
+#: ../src/hed/libs/data/DataMover.cpp:605
 #, c-format
 msgid "Failed to make symbolic link %s to %s : %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:626
+#: ../src/hed/libs/data/DataMover.cpp:628
 #, c-format
 msgid "cache file: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:641
+#: ../src/hed/libs/data/DataMover.cpp:643
 #, c-format
 msgid "Failed to start reading from source: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:645
-#: ../src/hed/libs/data/DataMover.cpp:757
-#: ../src/hed/libs/data/DataMover.cpp:777
-#: ../src/hed/libs/data/DataMover.cpp:784
+#: ../src/hed/libs/data/DataMover.cpp:647
+#: ../src/hed/libs/data/DataMover.cpp:759
+#: ../src/hed/libs/data/DataMover.cpp:779
+#: ../src/hed/libs/data/DataMover.cpp:787
+#: ../src/hed/libs/data/DataMover.cpp:795
 msgid "(Re)Trying next source"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:656
+#: ../src/hed/libs/data/DataMover.cpp:658
 msgid "Metadata of source and destination are different"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:670
+#: ../src/hed/libs/data/DataMover.cpp:672
 #, c-format
 msgid "Failed to preregister destination: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:673
-#: ../src/hed/libs/data/DataMover.cpp:814
+#: ../src/hed/libs/data/DataMover.cpp:675
+#: ../src/hed/libs/data/DataMover.cpp:821
 msgid "destination.next_location"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:685
+#: ../src/hed/libs/data/DataMover.cpp:687
 #, c-format
 msgid "Failed to start writing to destination: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:690
-#: ../src/hed/libs/data/DataMover.cpp:809
+#: ../src/hed/libs/data/DataMover.cpp:692
+#: ../src/hed/libs/data/DataMover.cpp:816
 #, c-format
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
 "manually: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:694
-#: ../src/hed/libs/data/DataMover.cpp:762
-#: ../src/hed/libs/data/DataMover.cpp:772
-#: ../src/hed/libs/data/DataMover.cpp:788
+#: ../src/hed/libs/data/DataMover.cpp:696
+#: ../src/hed/libs/data/DataMover.cpp:764
+#: ../src/hed/libs/data/DataMover.cpp:774
+#: ../src/hed/libs/data/DataMover.cpp:791
 msgid "(Re)Trying next destination"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:700
+#: ../src/hed/libs/data/DataMover.cpp:702
 msgid "Failed to start writing to cache"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:706
-#: ../src/hed/libs/data/DataMover.cpp:736
-#: ../src/hed/libs/data/DataMover.cpp:750
+#: ../src/hed/libs/data/DataMover.cpp:708
+#: ../src/hed/libs/data/DataMover.cpp:738
+#: ../src/hed/libs/data/DataMover.cpp:752
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
 "manually"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:711
+#: ../src/hed/libs/data/DataMover.cpp:713
 msgid "Waiting for buffer"
-msgstr ""
-
-#: ../src/hed/libs/data/DataMover.cpp:714
-#, c-format
-msgid "buffer: read eof : %i"
-msgstr ""
-
-#: ../src/hed/libs/data/DataMover.cpp:715
-#, c-format
-msgid "buffer: write eof: %i"
 msgstr ""
 
 #: ../src/hed/libs/data/DataMover.cpp:716
 #, c-format
-msgid "buffer: error    : %i"
+msgid "buffer: read eof : %i"
 msgstr ""
 
 #: ../src/hed/libs/data/DataMover.cpp:717
+#, c-format
+msgid "buffer: write eof: %i"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:718
+#, c-format
+msgid "buffer: error    : %i"
+msgstr ""
+
+#: ../src/hed/libs/data/DataMover.cpp:719
 msgid "Closing read channel"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:721
+#: ../src/hed/libs/data/DataMover.cpp:723
 msgid "Closing write channel"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:781
+#: ../src/hed/libs/data/DataMover.cpp:784
 msgid "Cause of failure unclear - choosing randomly"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:800
+#: ../src/hed/libs/data/DataMover.cpp:807
 msgid "DataMover::Transfer: have valid checksum"
 msgstr ""
 
-#: ../src/hed/libs/data/DataMover.cpp:805
+#: ../src/hed/libs/data/DataMover.cpp:812
 #, c-format
 msgid "Failed to postregister destination %s"
 msgstr ""
@@ -2195,23 +2196,65 @@ msgstr ""
 msgid "Mapping %s to %s"
 msgstr ""
 
-#: ../src/hed/libs/infosys/Register.cpp:52
+#: ../src/hed/libs/infosys/InfoCache.cpp:32
+msgid "Missing cache root in configuration"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:36
+msgid "Missing service id"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:39
+#, c-format
+msgid "Cache root: %s"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:44
+#: ../src/hed/libs/infosys/InfoCache.cpp:54
+#: ../src/hed/libs/infosys/InfoCache.cpp:243
+#: ../src/services/isis/centralisi.cpp:98
+#, c-format
+msgid "cannot create directory: %s"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:59
+#, c-format
+msgid "Cache directory: %s"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:257
+#, c-format
+msgid "Invalid path in Set(): %s"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:261
+#: ../src/hed/libs/infosys/InfoCache.cpp:326
+#: ../src/hed/libs/infosys/InfoCache.cpp:384
+msgid "InfoCache object is not set up"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoCache.cpp:322
+#, c-format
+msgid "Invalid path in Get(): %s"
+msgstr ""
+
+#: ../src/hed/libs/infosys/InfoRegister.cpp:60
 #, c-format
 msgid "unsupported protocol: %s"
 msgstr ""
 
-#: ../src/hed/libs/infosys/Register.cpp:56
+#: ../src/hed/libs/infosys/InfoRegister.cpp:64
 #, c-format
 msgid "Start registration to %s ISIS"
 msgstr ""
 
-#: ../src/hed/libs/infosys/Register.cpp:70
+#: ../src/hed/libs/infosys/InfoRegister.cpp:79
 #, c-format
 msgid "Succesful registration to %s ISIS"
 msgstr ""
 
-#: ../src/hed/libs/infosys/Register.cpp:72
-#: ../src/hed/libs/infosys/Register.cpp:75
+#: ../src/hed/libs/infosys/InfoRegister.cpp:81
+#: ../src/hed/libs/infosys/InfoRegister.cpp:84
 #, c-format
 msgid "Error during registration to %s ISIS"
 msgstr ""
@@ -2560,7 +2603,7 @@ msgstr ""
 msgid "client process called"
 msgstr ""
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:356 ../src/hed/mcc/tls/MCCTLS.cpp:613
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:356 ../src/hed/mcc/tls/MCCTLS.cpp:614
 msgid "Failed to send content of buffer"
 msgstr ""
 
@@ -2671,45 +2714,45 @@ msgstr ""
 msgid "Private key does not match certificate"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:313
+#: ../src/hed/mcc/tls/MCCTLS.cpp:314
 msgid "MCC_TLS::do_ssl_init"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:316
+#: ../src/hed/mcc/tls/MCCTLS.cpp:317
 msgid "SSL_library_init failed"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:328
+#: ../src/hed/mcc/tls/MCCTLS.cpp:329
 msgid "Failed to allocate SSL locks"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:366 ../src/hed/mcc/tls/MCCTLS.cpp:553
+#: ../src/hed/mcc/tls/MCCTLS.cpp:367 ../src/hed/mcc/tls/MCCTLS.cpp:554
 msgid "Can not create the SSL Context object"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:393 ../src/hed/mcc/tls/MCCTLS.cpp:571
+#: ../src/hed/mcc/tls/MCCTLS.cpp:394 ../src/hed/mcc/tls/MCCTLS.cpp:572
 msgid "Can't set OpenSSL verify flags"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:410
+#: ../src/hed/mcc/tls/MCCTLS.cpp:411
 msgid "DH set error"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:483
+#: ../src/hed/mcc/tls/MCCTLS.cpp:484
 #, c-format
 msgid "Peer name: %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:489 ../src/hed/mcc/tls/MCCTLS.cpp:500
+#: ../src/hed/mcc/tls/MCCTLS.cpp:490 ../src/hed/mcc/tls/MCCTLS.cpp:501
 #, c-format
 msgid "Identity name: %s"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:515 ../src/hed/mcc/tls/MCCTLS.cpp:604
+#: ../src/hed/mcc/tls/MCCTLS.cpp:516 ../src/hed/mcc/tls/MCCTLS.cpp:605
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr ""
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:621
+#: ../src/hed/mcc/tls/MCCTLS.cpp:622
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr ""
 
@@ -2917,37 +2960,37 @@ msgstr ""
 msgid "No target available inside the rule"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:114 ../src/services/a-rex/arex.cpp:189
-#: ../src/services/isis/centralisi.cpp:121
+#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:189
+#: ../src/services/isis/centralisi.cpp:141
 #: ../src/services/pdp/pdpservice.cpp:56
-#: ../src/services/sched/grid_sched.cpp:72
+#: ../src/services/sched/grid_sched.cpp:77
 #: ../src/services/wrappers/java/javawrapper.cpp:112
 #: ../src/services/wrappers/python/pythonwrapper.cpp:318
 msgid "input is not SOAP"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:121 ../src/services/a-rex/arex.cpp:197
-#: ../src/services/isis/centralisi.cpp:127
-#: ../src/services/sched/grid_sched.cpp:79 ../src/tests/count/count.cpp:69
+#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:197
+#: ../src/services/isis/centralisi.cpp:147
+#: ../src/services/sched/grid_sched.cpp:84 ../src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:124 ../src/services/a-rex/arex.cpp:200
-#: ../src/services/isis/centralisi.cpp:130
-#: ../src/services/sched/grid_sched.cpp:82 ../src/tests/count/count.cpp:72
+#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:200
+#: ../src/services/isis/centralisi.cpp:150
+#: ../src/services/sched/grid_sched.cpp:87 ../src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:170 ../src/services/a-rex/arex.cpp:242
-#: ../src/services/isis/centralisi.cpp:169
-#: ../src/services/sched/grid_sched.cpp:138
+#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:243
+#: ../src/services/isis/centralisi.cpp:189
+#: ../src/services/sched/grid_sched.cpp:143
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:177 ../src/services/a-rex/arex.cpp:248
-#: ../src/services/sched/grid_sched.cpp:146
+#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:250
+#: ../src/services/sched/grid_sched.cpp:151
 #, c-format
 msgid "process: response=%s"
 msgstr ""
@@ -3005,23 +3048,23 @@ msgstr ""
 msgid "process: CreateActivity"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:267
+#: ../src/services/a-rex/arex.cpp:269
 msgid "process: GET"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:271
+#: ../src/services/a-rex/arex.cpp:273
 msgid "process: PUT"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:277
+#: ../src/services/a-rex/arex.cpp:279
 msgid "PUT: input stream not implemented yet"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:281
+#: ../src/services/a-rex/arex.cpp:283
 msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:287 ../src/services/pdp/pdpservice.cpp:110
+#: ../src/services/a-rex/arex.cpp:289 ../src/services/pdp/pdpservice.cpp:110
 #, c-format
 msgid "process: %s: not supported"
 msgstr ""
@@ -4361,7 +4404,7 @@ msgid "Put: there is no job: %s - %s"
 msgstr ""
 
 #: ../src/services/a-rex/terminate_activities.cpp:29
-#: ../src/services/sched/terminate_activities.cpp:25
+#: ../src/services/sched/terminate_activities.cpp:26
 #, c-format
 msgid ""
 "TerminateActivities: request = \n"
@@ -4369,7 +4412,7 @@ msgid ""
 msgstr ""
 
 #: ../src/services/a-rex/terminate_activities.cpp:65
-#: ../src/services/sched/terminate_activities.cpp:54
+#: ../src/services/sched/terminate_activities.cpp:55
 #, c-format
 msgid ""
 "TerminateActivities: response = \n"
@@ -4378,34 +4421,34 @@ msgstr ""
 
 #: ../src/services/a-rex/test.cpp:34 ../src/services/pdp/test.cpp:29
 #: ../src/services/sched/test_service.cpp:29
-#: ../src/tests/count/test_service.cpp:18 ../src/tests/echo/test.cpp:26
+#: ../src/tests/count/test_service.cpp:25 ../src/tests/echo/test.cpp:26
 #: ../src/tests/echo/test_service.cpp:29
 msgid "Creating service side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:43 ../src/services/pdp/test.cpp:37
-#: ../src/tests/count/test_client.cpp:16
+#: ../src/tests/count/test_client.cpp:18
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:20
 #: ../src/tests/echo/test_client.cpp:22
 msgid "Creating client side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:49 ../src/services/pdp/test.cpp:42
-#: ../src/tests/count/test_client.cpp:46 ../src/tests/data/test.cpp:40
+#: ../src/tests/count/test_client.cpp:48 ../src/tests/data/test.cpp:40
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:43
 #: ../src/tests/echo/test_client.cpp:52
 msgid "Failed to load client configuration"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:53 ../src/services/pdp/test.cpp:46
-#: ../src/tests/count/test_client.cpp:50
+#: ../src/tests/count/test_client.cpp:52
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:47
 #: ../src/tests/echo/test_client.cpp:56 ../src/tests/echo/test.cpp:42
 msgid "Client side MCCs are loaded"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:56 ../src/services/pdp/test.cpp:49
-#: ../src/tests/count/test_client.cpp:53
+#: ../src/tests/count/test_client.cpp:55
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:50
 #: ../src/tests/echo/test_client.cpp:59
 msgid "Client chain does not have entry point"
@@ -4418,8 +4461,9 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:112 ../src/services/a-rex/test.cpp:191
 #: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:296
 #: ../src/services/a-rex/test.cpp:344 ../src/services/a-rex/test.cpp:392
-#: ../src/services/paul/paul.cpp:164 ../src/services/pdp/test.cpp:111
-#: ../src/tests/count/test_client.cpp:80
+#: ../src/services/paul/paul.cpp:170 ../src/services/paul/paul.cpp:333
+#: ../src/services/paul/paul.cpp:408 ../src/services/pdp/test.cpp:111
+#: ../src/tests/count/test_client.cpp:82
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:74
 #: ../src/tests/echo/test_client.cpp:83 ../src/tests/echo/test.cpp:58
 msgid "Request failed"
@@ -4435,7 +4479,7 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:117 ../src/services/a-rex/test.cpp:196
 #: ../src/services/a-rex/test.cpp:253 ../src/services/a-rex/test.cpp:301
 #: ../src/services/a-rex/test.cpp:349 ../src/services/a-rex/test.cpp:397
-#: ../src/services/pdp/test.cpp:116 ../src/tests/count/test_client.cpp:86
+#: ../src/services/pdp/test.cpp:116 ../src/tests/count/test_client.cpp:88
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:80
 #: ../src/tests/echo/test_client.cpp:89 ../src/tests/echo/test.cpp:63
 msgid "There is no response"
@@ -4444,7 +4488,7 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:125 ../src/services/a-rex/test.cpp:204
 #: ../src/services/a-rex/test.cpp:261 ../src/services/a-rex/test.cpp:309
 #: ../src/services/a-rex/test.cpp:357 ../src/services/a-rex/test.cpp:405
-#: ../src/services/pdp/test.cpp:124 ../src/tests/count/test_client.cpp:93
+#: ../src/services/pdp/test.cpp:124 ../src/tests/count/test_client.cpp:95
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:87
 #: ../src/tests/echo/test_client.cpp:96
 msgid "Response is not SOAP"
@@ -4456,7 +4500,7 @@ msgstr ""
 
 #: ../src/services/a-rex/test.cpp:154 ../src/services/a-rex/test.cpp:227
 #: ../src/services/a-rex/test.cpp:275 ../src/services/a-rex/test.cpp:323
-#: ../src/services/a-rex/test.cpp:371 ../src/tests/count/test_client.cpp:57
+#: ../src/services/a-rex/test.cpp:371 ../src/tests/count/test_client.cpp:59
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:56
 #: ../src/tests/echo/test_client.cpp:65 ../src/tests/echo/test.cpp:46
 msgid "Creating and sending request"
@@ -4496,115 +4540,191 @@ msgstr ""
 msgid "Not supported operation"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:44
+#: ../src/services/isis/centralisi.cpp:47
 msgid "Information collector"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:71
+#: ../src/services/isis/centralisi.cpp:74
 msgid "Central ISIS initialized"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:75
+#: ../src/services/isis/centralisi.cpp:77
+msgid "Missing database location in configuration"
+msgstr ""
+
+#: ../src/services/isis/centralisi.cpp:79
+#, c-format
+msgid "Database location is %s"
+msgstr ""
+
+#: ../src/services/isis/centralisi.cpp:83
 msgid "remote database not supported"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:78
+#: ../src/services/isis/centralisi.cpp:85
 #, c-format
-msgid "Intialize database %s"
+msgid "Database URL is %s"
+msgstr ""
+
+#: ../src/services/isis/centralisi.cpp:86
+#, c-format
+msgid "Database path is %s"
 msgstr ""
 
 #: ../src/services/isis/centralisi.cpp:87
 #, c-format
-msgid "cannot create directory: %s"
+msgid "Database host is %s"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:109
+#: ../src/services/isis/centralisi.cpp:89
+#, c-format
+msgid "Initializing database %s"
+msgstr ""
+
+#: ../src/services/isis/centralisi.cpp:110
+msgid "Missing registration section, won't register anywhere"
+msgstr ""
+
+#: ../src/services/isis/centralisi.cpp:129
 msgid "process called"
 msgstr ""
 
-#: ../src/services/isis/centralisi.cpp:111
+#: ../src/services/isis/centralisi.cpp:131
 msgid "invalid database path"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:142
+#: ../src/services/isis/centralisi.cpp:217
+msgid "Missing identifier in registration request"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:148
 msgid "Cannot collect resource information"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:174
+#: ../src/services/paul/paul.cpp:181 ../src/services/paul/paul.cpp:344
+#: ../src/services/paul/paul.cpp:419
 msgid "No response"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:212
+#: ../src/services/paul/paul.cpp:203
+msgid "Missing job identifier"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:209 ../src/services/paul/paul.cpp:444
+#: ../src/services/sched/report_activities_status.cpp:16
+msgid "Cannot find job id"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:214
+msgid "Cannot find scheduler endpoint"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:226
+#, c-format
+msgid "Status: %s %d"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:241
 #, c-format
 msgid "Process job: %s"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:223
+#: ../src/services/paul/paul.cpp:251
+#, c-format
+msgid "Finished job %s"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:258
 #, c-format
 msgid "Do Request: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:14
+#: ../src/services/paul/paul.cpp:283
+msgid "Report status"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:368
+msgid "Get activity status changes"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:455
+#, c-format
+msgid "Killing %s"
+msgstr ""
+
+#: ../src/services/paul/run.cpp:16
 msgid "Start process"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:21
+#: ../src/services/paul/run.cpp:23
 msgid "Invalid JSDL! Missing application section"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:26
+#: ../src/services/paul/run.cpp:30
 msgid "Empty executable"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:49
-msgid "Cannot chdir"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:63
+#: ../src/services/paul/run.cpp:66
 msgid "Cannot start application"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:67
+#: ../src/services/paul/run.cpp:72
 #, c-format
 msgid "StdOut: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:68
+#: ../src/services/paul/run.cpp:73
 #, c-format
 msgid "StdErr: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:70
+#: ../src/services/paul/run.cpp:75
+msgid "delete run"
+msgstr ""
+
+#: ../src/services/paul/run.cpp:78
+msgid "return from run"
+msgstr ""
+
+#: ../src/services/paul/run.cpp:81
 msgid "Error during the application run"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:75
+#: ../src/services/paul/run.cpp:86
 #, c-format
 msgid "Exception: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:78
+#: ../src/services/paul/run.cpp:89
 msgid "SpawnError"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:115 ../src/services/paul/stage.cpp:155
+#: ../src/services/paul/stage.cpp:59
+msgid "Filetransfer created"
+msgstr ""
+
+#: ../src/services/paul/stage.cpp:106
+msgid "download"
+msgstr ""
+
+#: ../src/services/paul/stage.cpp:120 ../src/services/paul/stage.cpp:188
 #, c-format
 msgid "%s -> %s"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:120 ../src/services/paul/stage.cpp:160
+#: ../src/services/paul/stage.cpp:125 ../src/services/paul/stage.cpp:193
 msgid "Cannot accept source as URL"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:125 ../src/services/paul/stage.cpp:165
+#: ../src/services/paul/stage.cpp:130 ../src/services/paul/stage.cpp:198
 msgid "Cannot accept destination as URL"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:186
+#: ../src/services/paul/stage.cpp:219
 msgid "Stage in"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:195
+#: ../src/services/paul/stage.cpp:228
 msgid "Stage out"
 msgstr ""
 
@@ -4621,13 +4741,26 @@ msgstr ""
 msgid "Authorized from Service_PDP"
 msgstr ""
 
-#: ../src/services/sched/get_activities.cpp:13
+#: ../src/services/sched/get_activities.cpp:12
+msgid "Cannot get resource ID"
+msgstr ""
+
+#: ../src/services/sched/get_activities.cpp:15
+#, c-format
+msgid "Resource: %s"
+msgstr ""
+
+#: ../src/services/sched/get_activities.cpp:23
 msgid "NO job"
+msgstr ""
+
+#: ../src/services/sched/get_activities_status_changes.cpp:16
+msgid "invalid job id"
 msgstr ""
 
 #: ../src/services/sched/get_activity_documents.cpp:39
 #: ../src/services/sched/get_activity_statuses.cpp:43
-#: ../src/services/sched/terminate_activities.cpp:38
+#: ../src/services/sched/terminate_activities.cpp:39
 #, c-format
 msgid "GetActivityStatuses: job %s"
 msgstr ""
@@ -4637,50 +4770,54 @@ msgstr ""
 msgid "GetActivityStatuses: response = %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:156
+#: ../src/services/sched/grid_sched.cpp:161
 #, c-format
 msgid ""
 "Count of jobs: %i Count of resources: %i Scheduler period: %i Endpoint: %s "
 "DBPath: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:171
+#: ../src/services/sched/grid_sched.cpp:176
 #, c-format
 msgid "NEW job: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:177
+#: ../src/services/sched/grid_sched.cpp:182
 #, c-format
 msgid "A-REX ID: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:183
+#: ../src/services/sched/grid_sched.cpp:188
 #, c-format
 msgid "Sched job ID: %s NOT SUBMITTED"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:201
+#: ../src/services/sched/grid_sched.cpp:206
 #, c-format
 msgid "JobID: %s KILLED"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:222
+#: ../src/services/sched/grid_sched.cpp:227
 #, c-format
 msgid "Sched job ID: %s (A-REX job ID is empty)"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:237
+#: ../src/services/sched/grid_sched.cpp:242
 #, c-format
 msgid "Job RESCHEDULE: %s"
 msgstr ""
 
-#: ../src/services/sched/grid_sched.cpp:244
+#: ../src/services/sched/grid_sched.cpp:249
 #, c-format
 msgid "JobID: %s state: %s"
 msgstr ""
 
+#: ../src/services/sched/report_activities_status.cpp:22
+msgid "Invalid status report"
+msgstr ""
+
 #: ../src/services/sched/test_service.cpp:37
-#: ../src/tests/count/test_service.cpp:26
+#: ../src/tests/count/test_service.cpp:33
 #: ../src/tests/echo/test_service.cpp:37
 msgid "Service is waiting for requests"
 msgstr ""
