@@ -173,7 +173,12 @@ namespace ArcLib{
 
       std::cout<<"FQAN: "<<(*i)<<std::endl;
 
+#ifdef HAVE_OPENSSL_OLDRSA
+      ASN1_OCTET_STRING_set(tmpc, (unsigned char*)((*i).c_str()), (*i).length());
+#else
       ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
+#endif
+
       sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
     }
  
@@ -228,6 +233,15 @@ namespace ArcLib{
         value = (*i).substr(pos1 + 1);
       }
 
+#ifdef HAVE_OPENSSL_OLDRSA
+      if (!qual.empty())
+        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(qual.c_str()), qual.length());
+      else
+        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(voname.c_str()), voname.length());
+
+      ASN1_OCTET_STRING_set(ac_attr->name, (unsigned char*)(name.c_str()), name.length());
+      ASN1_OCTET_STRING_set(ac_attr->value, (unsigned char*)(value.c_str()), value.length());
+#else
       if (!qual.empty())
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(qual.c_str()), qual.length());
       else
@@ -235,6 +249,7 @@ namespace ArcLib{
 
       ASN1_OCTET_STRING_set(ac_attr->name, (const unsigned char*)(name.c_str()), name.length());
       ASN1_OCTET_STRING_set(ac_attr->value, (const unsigned char*)(value.c_str()), value.length());
+#endif
 
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
@@ -286,8 +301,14 @@ namespace ArcLib{
 /*   for (i=0; i <sk_X509_num(stk); i ++) */
 /*     fprintf(stderr, "stk[%i] = %s\n", i , X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); */
 
+#ifdef HAVE_OPENSSL_OLDRSA
+    sk_X509_push(stk, (X509 *)ASN1_dup((int (*)())i2d_X509,
+          (char*(*)())d2i_X509, (char *)issuer));
+#else
     sk_X509_push(stk, (X509 *)ASN1_dup((int (*)(void*, unsigned char**))i2d_X509,
           (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)issuer));
+#endif
+
 /*   for (i=0; i <sk_X509_num(stk); i ++) */
 /*     fprintf(stderr, "stk[%i] = %d\n", i , sk_X509_value(stk, i)); */
 
@@ -348,8 +369,13 @@ namespace ArcLib{
     X509_ALGOR_free(a->sig_alg);
     a->sig_alg = alg2;
 
-    ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
+#ifdef HAVE_OPENSSL_OLDRSA
+    ASN1_sign((int (*)())i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
 	    (char *)a->acinfo, pkey, EVP_md5());
+#else
+    ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
+            (char *)a->acinfo, pkey, EVP_md5());
+#endif
 
     *ac = a;
     return 0;

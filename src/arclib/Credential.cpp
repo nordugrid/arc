@@ -556,7 +556,7 @@ namespace ArcLib {
     if(!rsa_key) { 
       credentialLogger.msg(ERROR, "RSA_generate_key failed"); 
       LogError(); 
-      if(prime) BN_free(prime); 
+      if(rsa_key) RSA_free(rsa_key); 
       return false; 
     }
 #else
@@ -964,7 +964,12 @@ err:
       X509V3_EXT_METHOD* ext_method;
 
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
+#ifdef HAVE_OPENSSL_OLDRSA
+      ASN1_digest((int(*)())i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
+#else
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
+#endif
+
       sub_hash = md[0] + (md[1] + (md[2] + (md[3] >> 1) * 256) * 256) * 256; 
         
       CN_name = (char*)malloc(sizeof(long)*4 + 1);
