@@ -17,6 +17,8 @@ int main(void) {
   std::string key("./key.pem");
   std::string cafile("./ca.pem"); 
 
+  Arc::Time t;
+
   /**Generate certificate request on one side, 
   *and sign the certificate request on the other side.*/
   /**1.Use BIO as parameters */
@@ -24,7 +26,7 @@ int main(void) {
   //Request side
   BIO* req;
   req = BIO_new(BIO_s_mem());
-  ArcLib::Credential request(Arc::Time(), Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
+  ArcLib::Credential request(t, Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
   request.GenerateRequest(req);
 
   //Signing side
@@ -45,7 +47,7 @@ int main(void) {
   //Request side
   std::string req_string;
   std::string out_string;
-  ArcLib::Credential request1(Arc::Time(), Arc::Period(12*3600), 1024);
+  ArcLib::Credential request1(t, Arc::Period(12*3600), 1024);
   request1.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
@@ -63,7 +65,7 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  ArcLib::Credential request2(Arc::Time(), Arc::Period(168*3600), 1024);
+  ArcLib::Credential request2(t, Arc::Period(168*3600), 1024);
   request2.GenerateRequest(req_file.c_str());
 
   //Signing side
@@ -131,7 +133,7 @@ int main(void) {
   //Request side
   std::string req_file_ac("./request_withac.pem");
   std::string out_file_ac("./out_withac.pem");
-  ArcLib::Credential request3(Arc::Time(), Arc::Period(12*3600), 2048);
+  ArcLib::Credential request3(t, Arc::Period(12*3600), 2048);
   request3.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
