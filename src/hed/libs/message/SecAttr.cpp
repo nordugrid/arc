@@ -3,15 +3,12 @@
 
 namespace Arc {
 
+SecAttr::Format SecAttr::UNDEFINED;
+SecAttr::Format SecAttr::ARCAuth("format:arc");
+SecAttr::Format SecAttr::XACML("format:xacml");
+SecAttr::Format SecAttr::SAML("format:saml");
+
 bool SecAttr::equal(const SecAttr&) const {
-  return false;
-}
-
-bool SecAttr::IsSubsetOf(const SecAttr &b) const {
-  return false;
-}
-
-bool SecAttr::IsSupersetOf(const SecAttr &b) const {
   return false;
 }
 
@@ -37,15 +34,6 @@ bool SecAttr::Import(SecAttr::Format format,const std::string &val) {
 }
 
 bool SecAttr::Import(SecAttr::Format format,const XMLNode &val) {
-  return false;
-}
-
-
-bool MultiSecAttr::IsSubsetOf(const SecAttr &b) const {
-  return false;
-}
-
-bool MultiSecAttr::IsSupersetOf(const SecAttr &b) const {
   return false;
 }
 
