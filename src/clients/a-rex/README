@@ -1,0 +1,7 @@
+clients for a-rex service and other BES based service
+apclean - clean job 
+apget - get job result using a-rex HTTP interface
+apkill - kill job using BES interface
+apsstat - get service status using LIDI 
+apstat - status of job using BES interface
+apsub - submit jobs using BES interface

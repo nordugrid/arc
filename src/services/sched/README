@@ -1,0 +1,1 @@
+Sched: job scheduler service. It speaks BES and iBES as well. It implements a job queue and schedules job to other BES services like A-REX or iBES clients like Paul.
