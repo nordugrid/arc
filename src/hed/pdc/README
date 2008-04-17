@@ -1,3 +1,5 @@
+pdc = Policy Decision Component
+
 Some description about the ArcPDP directory:
 
 test.cpp: test file which call the existing ArcPDP api. It can be merged to any PDP (policy decision point).
