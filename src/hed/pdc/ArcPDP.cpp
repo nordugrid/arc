@@ -44,7 +44,7 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\ 
      xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
      <ModuleManager>\
-        <Path>../../hed/pdc/.libs/</Path>\
+        <Path></Path>\
      </ModuleManager>\
      <Plugins Name='arcpdc'>\
           <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
@@ -62,8 +62,12 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
      </pdp:PDPConfig>\
     </ArcConfig>");
 
+  //Get the lib path from environment, and put it into the configuration xml node
+  std::string libpath(LIBPATH);
+  pdp_cfg_nd["ModuleManager"]["Path"] = libpath;
+
   Config modulecfg(pdp_cfg_nd);
- 
+
   classloader = NULL;
   classloader = ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
