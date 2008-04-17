@@ -79,11 +79,13 @@ namespace Arc {
   DataStatus DataPointLDAP::StartReading(DataBufferPar& buf) {
     buffer = &buf;
     LDAPQuery q(url.Host(), url.Port());
-    q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
-            url.LDAPScope());
+    if (!q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
+                 url.LDAPScope()))
+      return DataStatus::ReadStartError;
     NS ns;
     XMLNode(ns, "LDAPQueryResult").New(node);
-    q.Result(CallBack, this);
+    if (!q.Result(CallBack, this))
+      return DataStatus::ReadStartError;      
     CreateThreadFunction(&ReadThread, this);
     return DataStatus::Success;
   }

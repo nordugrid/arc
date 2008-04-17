@@ -313,7 +313,8 @@ bool LDAPQuery::Query(const std::string& base,
                       const std::list <std::string>& attributes,
                       URL::Scope scope) {
 
-	Connect();
+	if (!Connect())
+		return false;
 
 	logger.msg(DEBUG, "LDAPQuery: Querying %s", host);
 
