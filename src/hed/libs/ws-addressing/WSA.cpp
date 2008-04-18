@@ -6,8 +6,6 @@
 
 namespace Arc {
 
-#define WSA_NAMESPACE "http://www.w3.org/2005/08/addressing"
-
 static std::string strip_spaces(const std::string& s) {
   std::string::size_type start = 0;
   for(;start<s.length();++start) if(!isspace(s[start])) break;

@@ -9,6 +9,8 @@
 
 namespace Arc {
 
+#define WSA_NAMESPACE "http://www.w3.org/2005/08/addressing"
+
 /// Interface for manipulation of WS-Adressing Endpoint Reference. 
 /** It works on Endpoint Reference stored in XML tree.
   No information is stored in this object except reference to corresponding
