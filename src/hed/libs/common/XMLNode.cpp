@@ -227,6 +227,44 @@ XMLNode XMLNode::operator[](const char* name) const {
   return XMLNode(p);
 }
 
+void XMLNode::operator++(void) {
+  if(!node_) return;
+  if(is_owner_) { // top node has no siblings
+    xmlFreeDoc(node_->doc);
+    node_=NULL; is_owner_=false;
+    return;
+  };
+  xmlNodePtr p = node_->next;
+  for(;p;p=p->next) {
+    if(node_->type != p->type) continue;
+    if(node_->name) {
+      if(!(p->name)) continue;
+      if(!MatchXMLName(node_,p)) continue;
+    };
+    break;
+  };
+  node_=p;
+}
+
+void XMLNode::operator--(void) {
+  if(!node_) return;
+  if(is_owner_) { // top node has no siblings
+    xmlFreeDoc(node_->doc);
+    node_=NULL; is_owner_=false;
+    return;
+  };
+  xmlNodePtr p = node_->prev;
+  for(;p;p=p->prev) {
+    if(node_->type != p->type) continue;
+    if(node_->name) {
+      if(!(p->name)) continue;
+      if(!MatchXMLName(node_,p)) continue;
+    };
+    break;
+  };
+  node_=p;
+}
+
 int XMLNode::Size(void) const {
   if(!node_) return 0;
   int n = 0;

@@ -95,6 +95,12 @@ class XMLNode {
     It's main purpose is to be used to retrieve element in array of children of same name
     like  node["name"][5] */
   XMLNode operator[](int n) const;
+  /** Convenience operator to switch to next element of same name.
+    If there is no such node this object becomes invalid. */
+  void operator++(void);
+  /** Convenience operator to switch to previous element of same name.
+    If there is no such node this object becomes invalid. */
+  void operator--(void);
   /** Returns number of children nodes */
   int Size(void) const;
   /** Same as operator[] **/
@@ -198,6 +204,8 @@ class XMLNode {
   bool ReadFromFile(const std::string &file_name);
   /** Read XML document from stream and associate it with this node */
   bool ReadFromStream(std::istream &in);
+  /** Remove all eye-candy information leaving only informational parts */
+  void Purify(void);
 };
 
 std::ostream& operator<<(std::ostream& out,const XMLNode& node);
