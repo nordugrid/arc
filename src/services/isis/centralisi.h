@@ -27,6 +27,7 @@ class CentralISIService: public Arc::Service
         Arc::Logger logger;
         Arc::DelegationContainerSOAP delegation;
         Arc::InfoCacheInterface *icache;
+        Arc::InfoCache *mcache;
 
         Arc::MCC_Status make_soap_fault(Arc::Message &outmsg);
         // Operations from WSDL

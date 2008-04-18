@@ -38,8 +38,8 @@
     <!-- Input type for RemoveRegistrations and GetRegistrationStatuses operations -->
     <xsd:complexType name="RegistrationEntryIDListType">
         <xsd:sequence>
-            <!-- xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/ -->
-            <xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"->
+            <!-- xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/ -->
         </xsd:sequence>
     </xsd:complexType>
     <!-- xsd:element name="RegistrationEntryIDList" type="isis:RegistrationEntryIDListType"/ -->
@@ -87,7 +87,7 @@
     <!-- === Helper type definitions === -->
     <xsd:complexType name="RegistrationEntryStatusType">
         <xsd:sequence>
-            <!-- xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="1"/ -->
+            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="Status" type="isis:StatusType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Fault" type="isis:FaultType" minOccurs="0" maxOccurs="1"/>
