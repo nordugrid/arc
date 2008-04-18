@@ -22,10 +22,11 @@ class InfoRegister
         Arc::ClientSOAP *cli;
         Arc::Logger logger;
         std::string service_id;
+        Arc::XMLNode service_epr;
         long int reg_period;
     public:
         /** Constructor.
-          It takes service identifier @sid, registration frequency @reg_period 
+          It takes service identifier @sid (optional), registration frequency @reg_period 
           in seconds and configuration XML subtree @cfg. */
         InfoRegister(const std::string &sid, long int reg_period, Arc::Config &cfg);
         ~InfoRegister(void);

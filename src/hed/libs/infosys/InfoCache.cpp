@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdio>
 
 #ifndef WIN32
 #define MKDIR(x) (mkdir(x, 0700))
@@ -59,6 +60,9 @@ static bool create_directory(const std::string dir) {
 
 InfoCache::InfoCache(Arc::Config &cfg, const std::string &service_id)
 {
+    std::string cfg_s;
+    cfg.GetXML(cfg_s);
+    logger.msg(VERBOSE,"Cache configuration: %s",cfg_s);
     std::string root = std::string(cfg["CacheRoot"]);
     if(root.empty()) {
         logger.msg(ERROR,"Missing cache root in configuration");
@@ -93,7 +97,7 @@ static void clean_path(std::string s)
     } while (idx != std::string::npos);
 }
 
-static bool set_path(const std::string &path_base,const std::vector<std::string> &tokens,const Arc::XMLNode &node)
+static bool set_path(const std::string &path_base,const std::vector<std::string> &tokens,const XMLNode &node)
 {
     if(tokens.size() < 1) return false;
     std::string dir = path_base;
@@ -103,7 +107,23 @@ static bool set_path(const std::string &path_base,const std::vector<std::string>
         if (!create_directory(dir)) return false;
     };
     std::string file = Glib::build_filename(dir, tokens[n] + ".xml");
-    return node.SaveToFile(file);
+    // Workaround needed to save namespacesc properly.
+    // TODO: solve it in some better way.
+    XMLNode doc; node.New(doc);
+    return doc.SaveToFile(file);
+}
+
+static bool unset_path(const std::string &path_base,const std::vector<std::string> &tokens)
+{
+    if(tokens.size() < 1) return false;
+    std::string dir = path_base;
+    int n = 0;
+    for(; n < (tokens.size()-1);++n) {
+        dir = Glib::build_filename(dir,tokens[n]);
+        if (!create_directory(dir)) return false;
+    };
+    std::string file = Glib::build_filename(dir, tokens[n] + ".xml");
+    return (::remove(file.c_str()) == 0);
 }
 
 static bool get_path(const std::string &path_base,const std::vector<std::string> &tokens,Arc::XMLNode &node)
@@ -135,6 +155,25 @@ bool InfoCache::Set(const char *xml_path, Arc::XMLNode &value)
     Arc::tokenize(p, tokens, "/");
     bool ret;
     ret = set_path(path_base, tokens, value);
+    return ret;
+}
+
+bool InfoCache::Unset(const char *xml_path)
+{
+    if (path_base.empty()) {
+        logger.msg(ERROR,"InfoCache object is not set up");
+        return false;
+    }
+    if (xml_path[0] != '/') {
+        logger.msg(ERROR,"Invalid path in Set(): %s",xml_path);
+        return false;
+    }
+    std::string p(xml_path);
+    clean_path(p);
+    std::vector<std::string> tokens;
+    Arc::tokenize(p, tokens, "/");
+    bool ret;
+    ret = unset_path(path_base, tokens);
     return ret;
 }
 

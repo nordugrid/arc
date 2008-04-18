@@ -15,11 +15,14 @@
 namespace Arc
 {
 
-InfoRegister::InfoRegister(const std::string &sid, long int period, Arc::Config &cfg):logger(Arc::Logger::rootLogger, "InfoRegister")
+InfoRegister::InfoRegister(const std::string &sid, long int period, Config &cfg):logger(Logger::rootLogger, "InfoRegister")
 {
     ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
     service_id = sid;
     reg_period = period;
+    cfg["EPR"].New(service_epr);
+    service_epr.Namespaces(ns);
+    service_epr.Name("isis:EPR");
     // XXX how to get plugin paths from cfg?
     mcc_cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
     mcc_cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
@@ -49,7 +52,7 @@ void InfoRegister::registration(void)
     std::list<std::string>::iterator it;
 
     for (it = urls.begin(); it != urls.end(); it++) {
-        Arc::URL u(*it);
+        URL u(*it);
         const char *isis_name = (*it).c_str();
         bool tls;
         if (u.Protocol() == "http") {
@@ -57,31 +60,35 @@ void InfoRegister::registration(void)
         } else if (u.Protocol() == "https") {
             tls = true;
         } else {
-            logger.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
+            logger.msg(WARNING, "unsupported protocol: %s", isis_name);
             continue;
         }
-        cli = new Arc::ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
-        logger.msg(Arc::DEBUG, "Start registration to %s ISIS", isis_name);
-        Arc::PayloadSOAP request(ns);
-        Arc::XMLNode op = request.NewChild("isis:Register");
-        op.NewChild("Header").NewChild("RequesterID") = service_id;
-        Arc::XMLNode re = op.NewChild("RegEntry");
-        re.NewChild("ID") = service_id;
-        Arc::XMLNode sa = re.NewChild("SrvAdv");
-        // sa.NewChild("Type") = 
-        // XXX read data from InfoCache
-        // request.NewChild()
-        Arc::PayloadSOAP *response;
-        Arc::MCC_Status status = cli->process(&request, &response);
-        if (!status) {
-            if (response) {
-                // XXX process response
-                logger.msg(Arc::DEBUG, "Succesful registration to %s ISIS", isis_name); 
+        cli = new ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
+        logger.msg(DEBUG, "Registering to %s ISIS", isis_name);
+        PayloadSOAP request(ns);
+        XMLNode op = request.NewChild("isis:Register");
+        op.NewChild("isis:Header").NewChild("isis:RequesterID") = service_id;
+        XMLNode re = op.NewChild("isis:RegEntry");
+        re.NewChild("isis:ID") = service_id;
+        XMLNode sa = re.NewChild("isis:SrcAdv");
+        XMLNode msa = re.NewChild("isis:MetaSrcAdv");
+        sa.NewChild(service_epr);
+        // TODO: Fill other required elements
+        msa.NewChild("isis:Expiration")="3600";
+        msa.NewChild("isis:GenTime")="";
+        msa.NewChild("isis:Source")="";
+        msa.NewChild("isis:Status")="";
+        PayloadSOAP *response;
+        MCC_Status status = cli->process(&request, &response);
+        if ((!status) || (!response)) {
+            logger.msg(ERROR, "Error during registration to %s ISIS", isis_name);
+         } else {
+            XMLNode fault = (*response)["Fault"];
+            if(!fault)  {
+                logger.msg(DEBUG, "Successful registration to %s ISIS", isis_name); 
             } else {
-                logger.msg(Arc::ERROR, "Error during registration to %s ISIS", isis_name);
+                logger.msg(DEBUG, "Failed to register to %s ISIS - %s", isis_name, std::string(fault["Description"])); 
             }
-        } else {
-            logger.msg(Arc::ERROR, "Error during registration to %s ISIS", isis_name);
         }
         
         delete cli;

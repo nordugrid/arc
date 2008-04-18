@@ -24,6 +24,8 @@ class InfoCache {
         bool Set(const std::string &xml_path, Arc::XMLNode &value) { return Set(xml_path.c_str(), value) ; };
         bool Get(const char *xml_path, Arc::XMLNodeContainer &result);
         bool Get(const std::string &xml_path, Arc::XMLNodeContainer &result) { return Get(xml_path.c_str(), result); };
+        bool Unset(const char *xml_path);
+        bool Unset(const std::string &xml_path) { return Unset(xml_path.c_str()); };
         InfoCache(Arc::Config &cfg, const std::string &service_id);
         ~InfoCache();
 };
