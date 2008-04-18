@@ -1,0 +1,19 @@
+ARC1 Documentation
+==================
+
+This directory contains documentation pertaining to individual ARC1 components, as well as deployment, installation and configuratuon instructions and other relevant overviews.
+
+a-rex              - ARC Resource-coupled EXecution service documentation
+dmc                - Data Management Component documentation
+hed                - Hosting Environment Daemon documentation
+infosys            - Information System documentation
+mcc                - Message Chain Components documentation
+sched              - Scheduler documentation
+sec                - Securty-related documents
+service_interfaces - Documentation of ARC1 service interfaces
+storage_system     - Storage System documentation
+
+
+TODO:
+-----
+More sub-directories need to be added, unsorted files to be moved to proper sub-directories
