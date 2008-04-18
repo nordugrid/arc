@@ -48,7 +48,7 @@
                 <WaitingJobs>6</WaitingJobs>
                 <StagingJobs>7</StagingJobs>
 		<SuspendedJobs>4</SuspendedJobs>
-                <PreLRMSWaitingJobs>16</preLRMSWaitingJobs>
+                <PreLRMSWaitingJobs>16</PreLRMSWaitingJobs>
 		<Location>
 		    <LocalID>id4</LocalID>
 		    <Name>...</Name>
@@ -159,8 +159,8 @@
 			</MappingPolicy>
 			<Associations>
 			    <ComputingEndpointID>..</ComputingEndpointID>
-			    <ExecutionEnvironmentLocalID>..</ComputingEndpointID>
-			    <ComputingActivityID>..</ComputingEndpointID>
+			    <ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+			    <ComputingActivityID>..</ComputingActivityID>
 			</Associations>			
 		    </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
@@ -212,8 +212,8 @@
 			</MappingPolicy>
 			<Associations>
 			    <ComputingEndpointID>..</ComputingEndpointID>
-			    <ExecutionEnvironmentLocalID>..</ComputingEndpointID>
-			    <ComputingActivityID>..</ComputingEndpointID>
+			    <ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+			    <ComputingActivityID>..</ComputingActivityID>
 			</Associations>				
 		    </ComputingShare>
 		</ComputingShares>										    
@@ -244,12 +244,12 @@
 		    <CacheTotal>568000</CacheTotal>
 		    <CacheFree>368000</CacheFree>
 		    <Benchmark>
-		        <LocalID><LocalID>
+		        <LocalID></LocalID>
 			<Type>APPBench1</Type>
 			<Value>23.6</Value>
 		    </Benchmark>
 		    <Benchmark>
-		        <LocalID><LocalID>
+		        <LocalID></LocalID>
 			<Type>SPECINT2000</Type>
 			<Value>399</Value>
 		    </Benchmark>		    	
@@ -351,7 +351,7 @@
 			<State>Running</State> <!-- the state model is not yet fixed -->
 			<RestartState>Stagein</RestartState>
 			<ExitCode>-12</ExitCode>
-			<LRMSExitCode>0<LRMSExitCode>
+			<LRMSExitCode>0</LRMSExitCode>
 			<Error>Downloader failed</Error> <!-- multivalued!-->
 			<Error>input file is not available</Error>
 			<LRMSWaitingPosition>0</LRMSWaitingPosition>
@@ -401,7 +401,7 @@
 			<State>Running</State> <!-- the state model is not yet fixed -->
 			<Owner>CONFIDENTIAL</Owner>           										    
                     </ComputingActivity>		    
-                </ComputingActivites>								                    
+                </ComputingActivities>
 		
                 <Associations>
 		  <ServiceID>...</ServiceID> <!-- related services can be listed here. What about StorageServiceID?-->
