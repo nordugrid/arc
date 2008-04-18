@@ -1,7 +1,3 @@
-<!-- A complete glue2 document describing user and admin domains with several services 
-This example intends to demonstrate the full capabilities of glue2, most of the glue2 xmls will be much simplier.
-The not-yet complete example is based upon the glue2 draft vrsion 39 -->
-
 <?xml version="1.0" encoding="UTF-8"?>
 <glue:Domains xmlns:glue="http://schemas.ogf.org/glue/2008/04/spec/2/0/v37" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.ogf.org/glue/2008/04/spec/2/0/v37 ../xsd/GLUE2.xsd">
     <AdminDomain CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Domain">
@@ -61,7 +57,8 @@ The not-yet complete example is based upon the glue2 draft vrsion 39 -->
 		    <LocalID>...</LocalID>		  
 		    <URL>...</URL>		    
 		    <Type>...</Type>
-		</Contact>                
+		</Contact>   
+		             
 		<ComputingEndpoint CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Endpoint">
 		    <ID>[URI]</ID>
 		    <Name>AREX</Name>
@@ -105,7 +102,13 @@ The not-yet complete example is based upon the glue2 draft vrsion 39 -->
 			<TrustedCA>CA DN2</TrustedCA>
 			<TrustedCA>CA DN3</TrustedCA>
                     </AccessPolicy>
-		</ComputingEndpoint>   
+		    <Associations>
+		        <ComputingShareLocalID>id7</ComputingShareLocalID>
+			<ComputingShareLocalID>id9</ComputingShareLocalID>
+			<ComputingActivityID>...</ComputingActivityID> <!--related activities can be listed here-->
+		    </Associations>
+		</ComputingEndpoint>
+		
 		<ComputingShares>										    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
 			<LocalID>id7</LocalID>
@@ -153,7 +156,12 @@ The not-yet complete example is based upon the glue2 draft vrsion 39 -->
 			    <LocalID>id8</LocalID>
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:ATLAS</Rule>
-			</MappingPolicy>			
+			</MappingPolicy>
+			<Associations>
+			    <ComputingEndpointID>..</ComputingEndpointID>
+			    <ExecutionEnvironmentLocalID>..</ComputingEndpointID>
+			    <ComputingActivityID>..</ComputingEndpointID>
+			</Associations>			
 		    </ComputingShare>		    
 	            <ComputingShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">	    
 			<LocalID>id9</LocalID>
@@ -202,93 +210,202 @@ The not-yet complete example is based upon the glue2 draft vrsion 39 -->
 			    <Scheme>basic</Scheme>
 			    <Rule>VO:ATLAS</Rule>
 			</MappingPolicy>
+			<Associations>
+			    <ComputingEndpointID>..</ComputingEndpointID>
+			    <ExecutionEnvironmentLocalID>..</ComputingEndpointID>
+			    <ComputingActivityID>..</ComputingEndpointID>
+			</Associations>				
 		    </ComputingShare>
 		</ComputingShares>										    
 		    
-                <ComputingResource type="Resource"> <!-- not yet UPDATED, still based on v28!!! -->
-                    <ID></ID>
-                    <Name>Cluster</Name>
+                <ComputingResource CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Resource">
+                    <ID>[URI]</ID>
+                    <Name>Cluster A</Name>
                     <!-- Comuting Resource specific attributes -->
                     <LRMSType>Condor</LRMSType>
                     <LRMSVersion>6.6</LRMSVersion>
-                    <Total>1</Total> <!-- # of exec env -->
-                    <Used></Used>
-                    <PhysicalCPUs>20</PhysicalCPUs>
-                    <LogicalCPUs>40</LogicalCPUs>
-                    <Homogenetiy>True</Homogenety>
-                    <SessionDirTotal>1000M</SessionDirTotal>
-                    <SessionDirFree>10M</SessionDirFree>
-                    <SessionDirLifetime>100</SessionDirLifetime>
-                    <CacheTotal>100M</CacheTotal>
-                    <CacheFree>10M</CacheFree>
-                    <Benchmark>SPEC2000:1244</Benchmark>
-                    <ExecutionEnvironment> <!-- homogeneous cluster-->
-                        <ID>urn:exec:1</ID>
-                        <Type>RealNode</Type>
-                        <TotalInstances>20</TotalInstances>
-                        <UsedInstances>0</UsedInstances>
-                        <UnavailableInstances>0</UnavailableInstances>
-                        <PhysicalCPUs>1</PhysicalCPUs>
-                        <LogicalCPUs>2</LogicalCPUs>
-                        <MainMemorySize>1G</MainMemorySize>
-                        <VirtualMemorySize>5G</VirtualMemorySize>
-                        <OSName>Linux</OSName>
-                        <OSRelease>Debian</OSRelease>
-                        <OSVersion>3.1</OSVersion>
-                        <PlatformType>Intel</PlatformType>
-                        <Benchmark></Benchmark>
-                        <ConnectivityIn>True</ConnectivityIn>
-                        <ConnectivityOut>True</ConnectivityOut>
-                    </ExecutionEnvironment> 
-		    <ApplicationEnvironments>		    
-                    	<ApplicationEnvironment>
-                    	    <ID></ID>
-                    	    <Name>Bioc1</Name>
-                    	    <Version>1.1</Version>
-                    	    <State>Installed|Installable</State>
-                    	</ApplicationEnvironment>
-		    	<ApplicationEnvironment>
-                    	    <ID></ID>
-                    	    <Name>Bioc2</Name>
-                    	    <Version>1.1</Version>
-                    	    <State>Installed|Installable</State>
-                    	</ApplicationEnvironment>
-		    	 <ApplicationEnvironment>
-                    	    <ID></ID>
-                    	    <Name>Bioc3</Name>
-                    	    <Version>1.1</Version>
-                    	    <State>Installed|Installable</State>
-                    	</ApplicationEnvironment>
+		    <LRMSOtherInfo>Basic Condor setup</LRMSOtherInfo>
+		    <LRMSReservation>true</LRMSReservation>
+		    <LRMSBulkSubmission>false</LRMSBulkSubmission>
+		    <TotalSlots>200</TotalSlots>
+		    <SlotsUsedByLocalJobs>34</SlotsUsedByLocalJobs>
+		    <SlotsUsedByGridJobs>15</SlotsUsedByGridJobs>
+		    <TotalPhysicalCPUs>100</TotalPhysicalCPUs>
+		    <TotalLogicalCPUs>200</TotalLogicalCPUs>
+		    <TmpDir>gridtemp</TmpDir>
+		    <ScratchDir>gridscratch</ScratchDir>
+		    <DataDir>griddata</DataDir>
+		    <Homogeneity>true</Homogeneity>
+		    <NetworkInfo>gigabitethernet</NetworkInfo>
+		    <LogicalCPUDistribution>1:100,2:24,4:56</LogicalCPUDistribution>
+		    <GridAreaTotal>2564</GridAreaTotal>
+		    <GridAreaFree>1564</GridAreaFree>
+		    <GridAreaLifeTime>20000</GridAreaLifeTime>
+		    <CacheTotal>568000</CacheTotal>
+		    <CacheFree>368000</CacheFree>
+		    <Benchmark>
+		        <LocalID><LocalID>
+			<Type>APPBench1</Type>
+			<Value>23.6</Value>
+		    </Benchmark>
+		    <Benchmark>
+		        <LocalID><LocalID>
+			<Type>SPECINT2000</Type>
+			<Value>399</Value>
+		    </Benchmark>		    	
 		    <ApplicationEnvironments>
+		        <ApplicationEnvironment>
+			    <LocalID>..</LocalID> 
+			    <Name>/HEP/ATLAS</Name>
+			    <Version>12.7</Version>
+			    <State>Static</State>
+			    <LifeTime>299999</LifeTime>  <!-- check how to set infinite-->
+			    <License>GPL</License>
+			    <Description>Atlas Toolkit</Description>
+			    <ParallelType>none</ParallelType>
+			    <MaxSlots>12</MaxSlots>
+			    <MaxJobs>40</MaxJobs>
+			    <MaxUserSeats>7</MaxUserSeats>
+			    <FreeSlots>5</FreeSlots>
+			    <FreeJobs>4</FreeJobs>
+			    <FreeUserSeats>2</FreeUserSeats>
+			    <ApplicationHandle>
+			        <LocalID>..</LocalID>
+				<Type>module</Type>
+				<Value>ATLAS</Value>
+			    </ApplicationHandle>
+			    <Associations> <!-- check how to use wildcards for all the executionenvironments-->
+			        <ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+				<ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+			    </Associations>
+			</ApplicationEnvironment>		    
+		        <ApplicationEnvironment>
+			    <LocalID>..</LocalID> 
+			    <Name>/BIO/GENSTAR</Name>
+			    <Version>0.99</Version>
+			    <State>DEPLOYED</State>
+			    <LifeTime>800</LifeTime> 
+			    <License>Propriatery</License>
+			    <Description>Sequencing Toolkit</Description>
+			    <ParallelType>mpi</ParallelType>
+			    <MaxSlots>12</MaxSlots>
+			    <MaxJobs>40</MaxJobs>
+			    <MaxUserSeats>7</MaxUserSeats>
+			    <FreeSlots>5</FreeSlots>
+			    <FreeJobs>4</FreeJobs>
+			    <FreeUserSeats>2</FreeUserSeats>			   
+			    <ApplicationHandle>
+			        <LocalID>..</LocalID>
+				<Type>path</Type>
+				<Value>PATH-To-Binaries</Value>
+			    </ApplicationHandle>			    
+			    <Associations>
+			        <ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+				<ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+			    </Associations>			    
+			</ApplicationEnvironment>										
+		    </ApplicationEnvironments>		    
+                    <ExecutionEnvironment> <!--there is only one, it is a homogeneous cluster-->
+			<LocalID>..</LocalID> 
+			<PlatformType>amd64</PlatformType>
+			<VirtualMachine>false</VirtualMachine>
+			<TotalInstances>24</TotalInstances>
+			<UsedInstances>21</UsedInstances>
+			<UnavailableInstances>2</UnavailableInstances>
+			<PhysicalCPUs>2</PhysicalCPUs>
+			<LogicalCPUs>4</LogicalCPUs>
+			<CPUMultiplicity>1</CPUMultiplicity> <!-- this attribute needs clarification-->
+			<CPUVendor>AMD</CPUVendor>String 0..1 Name of the CPU vendor
+			<CPUModel>Athlon</CPUModel>String 0..1 CPU model as defined by the vendor
+			<CPUVersion>12.7</CPUVersion>
+			<CPUClockSpeed>2000</CPUClockSpeed>
+			<CPUTimeScalingFactor>1</CPUTimeScalingFactor>
+			<WallTimeScalingFactor>1</WallTimeScalingFactor>
+			<MainMemorySize>1024</MainMemorySize>
+			<VirtualMemorySize>2048</VirtualMemorySize>
+			<OSFamily>linux</OSFamily>
+			<OSName>ubuntu</OSName>
+			<OSVersion>4</OSVersion>
+			<ConnectivityIn>true</ConnectivityIn> 
+			<ConnectivityOut>true</ConnectivityOut>
+			<NetworkInfo>gigabitethernet</NetworkInfo> 
+		        <Associations>
+		    	    <ComputingShareLocalID>..</ComputingShareLocalID>
+			    <ComputingShareLocalID>..</ComputingShareLocalID>
+			    <ApplicationEnvironmentLocalID>..</ApplicationEnvironmentLocalID>
+			    <ApplicationEnvironmentLocalID>..</ApplicationEnvironmentLocalID>
+			    <BenchmarkLocalID>..</BenchmarkLocalID> <!-- Check relation of Benchmark and ExecEnv!!! -->
+			    <BenchmarkLocalID>..</BenchmarkLocalID>
+			    <ComputingActivityID>..</ComputingActivityID>			    
+		       </Associations>	                          
+                    </ExecutionEnvironment> 
                 </ComputingResource>
 
-		<ComputingActivities>  <!-- not yet UPDATED, still based on v28!!! -->
-		    <ComputingActivity type="Computing">					    
-                	<ID>1</ID> <! EZ NEM A JOB ID ->					    
+		<ComputingActivities> 						
+		    <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">					    
+                	<ID>[URI]</ID> 														    
                 	<Type>Computing</Type>							    
-                	<!-- Computing Activity specific attributes --> 			    
-                	<EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->    
-                	<Name></Name>								    
-                	<State></State> 							    
-                	<Owner></Owner> 							    
-                	<....>									    
-                    </ComputingActivity>							    
-                    <ComputingActivity type="Computing">					    
-                	<ID>2</ID> <! EZ NEM A JOB ID ->					    
-                	<Type>Computing</Type>							    
-                	<!-- Computing Activity specific attributes --> 			    
-                	<EPR></EPR> <! EZ A JOB ID EndpointReferenc job strukurat tartalmazza ->    
-                	<Name></Name>								    
-                	<State></State> 							    
-                	<Owner></Owner> 							    
-                	<!-- ... --> 								    
+                	<!-- Computing Activity specific attributes --> 
+			<LRMSID>pbs012</LRMSID>
+			<Name>Myjob1</Name>
+			<State>Running</State> <!-- the state model is not yet fixed -->
+			<RestartState>Stagein</RestartState>
+			<ExitCode>-12</ExitCode>
+			<LRMSExitCode>0<LRMSExitCode>
+			<Error>Downloader failed</Error> <!-- multivalued!-->
+			<Error>input file is not available</Error>
+			<LRMSWaitingPosition>0</LRMSWaitingPosition>
+			<UserDomain>ATLAS/Prod</UserDomain>
+			<Owner>CONFIDENTIAL</Owner>
+			<LocalOwner>gridu2</LocalOwner>
+			<RequestedWallTime>6000</RequestedWallTime>
+			<RequestedCPUTime>5000</RequestedCPUTime>
+			<RequestedApplicationEnvironment>/BIO/GENSTAR</RequestedApplicationEnvironment> <!-- what about version??-->
+			<RequestedCPUs>12</RequestedCPUs>
+			<StdIn>datain.txt</StdIn>
+			<StdOut>output2</StdOut>
+			<StdErr>errfile</StdErr>
+			<LogDir>gridlog</LogDir>
+			<ExecutionNode>n1</ExecutionNode> <!-- multivalued-->
+			<ExecutionNode>n12</ExecutionNode>
+			<QueueName>atlas-long</QueueName>
+			<UsedWallTime>340</UsedWallTime>
+			<UsedCPUTime>1200</UsedCPUTime>
+			<UsedMainMemory>120</UsedMainMemory>
+			<SubmissionTime>2008-03-12T10:12:05Z</SubmissionTime>
+			<LRMSSubmissionTime>2008-03-12T10:12:05Z</LRMSSubmissionTime>
+			<StartTime>2008-03-12T10:12:05Z</StartTime>
+			<LRMSEndTime>2008-03-12T10:12:05Z</LRMSEndTime>
+			<EndTime>2008-03-12T10:12:05Z</EndTime>
+			<GridAreaEraseTime>2008-03-12T10:12:05Z</GridAreaEraseTime>
+			<ProxyExpirationTime>2008-03-12T10:12:05Z</ProxyExpirationTime>
+			<SubmissionHost>desk01.niif.hu</SubmissionHost>
+			<SubmissionClientName>ARC Broker</SubmissionClientName>
+			<OtherMessages>Completed in PBS</OtherMessages>	
+			<OtherMessages>Pending in Grid manager</OtherMessages>
+                    	<Associations> <!-- missing from the xsd!! -->
+		    	   <ComputingShareLocalID>..</ComputingShareLocalID>
+		    	   <ComputingEndpointID>..</ComputingEndpointID>
+		    	   <ExecutionEnvironmentLocalID>..</ExecutionEnvironmentLocalID>
+		    	</Associations>
+		    </ComputingActivity>
+                    <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">					    
+                	<ID>[URI]</ID> 														    
+                	<Type>Computing</Type>							                    	
+			<State>Running</State> <!-- the state model is not yet fixed -->
+			<Owner>CONFIDENTIAL</Owner>           										    
                     </ComputingActivity>
+                    <ComputingActivity CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Activity">					    
+                	<ID>[URI]</ID> 														    
+                	<Type>Computing</Type>							                    	
+			<State>Running</State> <!-- the state model is not yet fixed -->
+			<Owner>CONFIDENTIAL</Owner>           										    
+                    </ComputingActivity>		    
                 </ComputingActivites>								                    
 		
                 <Associations>
-		  <--! to be filled-->
-                </Associations>                    
-		
+		  <ServiceID>...</ServiceID> <!-- related services can be listed here. What about StorageServiceID?-->
+                </Associations>		
             </ComputingService>
 	    
 	    <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
@@ -314,3 +431,14 @@ The not-yet complete example is based upon the glue2 draft vrsion 39 -->
 	<ManagerEndpoint>[URI]</ManagerEndpoint>
     </UserDomain>
 </glue:Domains>
+
+
+<!-- This example presents a complete glue2 document describing user and admin domains with several services. 
+It intends to demonstrate the full capabilities of glue2, most of the glue2 xmls will be much simplier.
+The example is based upon the glue2 draft version 37.
+TODO:
+- add more complex computing services (inhomogeneous cluster, desktop cluster built from VM machines, etc..)
+- add the storage part
+- add couple of ordinary services 
+- indicate mandatory attributes
+-->
