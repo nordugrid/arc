@@ -408,8 +408,51 @@
                 </Associations>		
             </ComputingService>
 	    
-	    <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service">
-	      <!-- once the structure of the storage representation matures it'll be filled-->
+	    <StorageService CreationTime="2008-04-21T10:05:12Z" Validity="500"  BaseType="Service"> <!--not complete, just the skeleton elements-->
+	        <ID>[URI]</ID>
+	        <StorageEndpoint>
+		    <AccessPolicy/> 
+		    <Associations/>		        
+		</StorageEndpoint>
+		<StorageEndpoint>
+		    <AccessPolicy/> 
+		    <Associations/>			
+		</StorageEndpoint>
+	        <StorageAccessProtocol></StorageAccessProtocol>
+		<StorageAccessProtocol></StorageAccessProtocol>
+		<StorageServiceCapacity></StorageServiceCapacity>
+		<StorageShares>
+		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
+		        <StorageShareCapacity/>
+			<MappingPolicy>
+			    <LocalID>idxx</LocalID>
+			    <Scheme>basic</Scheme>
+			    <Rule>VO:ATLAS</Rule>
+			</MappingPolicy>			
+		    </StorageShare>
+		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
+			<MappingPolicy>
+			    <LocalID>idxx</LocalID>
+			    <Scheme>basic</Scheme>
+			    <Rule>VO:BIO</Rule>
+			</MappingPolicy>			    
+		    </StorageShare>
+		    <StorageShare CreationTime="2008-04-21T10:05:12Z" Validity="500" BaseType="Share">
+			<MappingPolicy>
+			    <LocalID>idxx</LocalID>
+			    <Scheme>basic</Scheme>
+			    <Rule>VO:GEO</Rule>
+			</MappingPolicy>		    
+		    </StorageShare>		    		    
+		</StorageShares>		
+		<StorageResource>
+		    <DataStore>
+		        <Associations/>
+		    </DataStore>
+		    <DataStore>
+		        <Associations/>
+		    </DataStore>		    
+		</StorageResource>		
 	    </StorageService>
 	    <Service> <!-- question: do we need the basetype this case as well?-->
 	       <!--general service will come here-->
