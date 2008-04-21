@@ -19,6 +19,7 @@ class MessageAuth {
     void set(const std::string& key, SecAttr* value);
     void remove(const std::string& key);
     SecAttr* get(const std::string& key);
+    SecAttr* operator[](const std::string& key) { return get(key); }; 
 };
 
 }

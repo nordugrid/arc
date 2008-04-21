@@ -25,7 +25,7 @@ class MessageContextElement {
   virtual ~MessageContextElement(void) { };
 };
 
-/// Handler for context of message context.
+/// Handler for content of message context.
 /** This class is a container for objects derived from MessageContextElement.
  It gets associated with Message object usually by first MCC in a chain and 
  is kept as long as connection persists. */
@@ -39,6 +39,16 @@ class MessageContext {
     remembered by it and destroyed when this class is destroyed. */
   void Add(const std::string& name,MessageContextElement* element);
   MessageContextElement* operator[](const std::string& id);
+};
+
+/// Handler for content of message auth* context.
+/** This class is a container for authorization and authentication 
+ information.  It gets associated with Message object usually by 
+ first MCC in a chain and is kept as long as connection persists. */
+class MessageAuthContext: public MessageAuth {
+ public:
+  MessageAuthContext(void);
+  ~MessageAuthContext(void);
 };
 
 /// Object being passed through chain of MCCs. 
@@ -89,12 +99,14 @@ class Message {
     related to connection. All the other objects are only guaranteed to stay
     during single request. */
   MessageContext* ctx_;
-  bool ctx_created_; /** true if context_ was created internally */
+  bool ctx_created_; /** true if ctx_ was created internally */
+  MessageAuthContext* auth_ctx_;
+  bool auth_ctx_created_; /** true if auth_ctx_ was created internally */
  public:
   /** Dummy constructor */
-  Message(void):payload_(NULL),auth_(NULL),auth_created_(false),attr_(NULL),attr_created_(false),ctx_(NULL),ctx_created_(false) { };
+  Message(void):payload_(NULL),auth_(NULL),auth_created_(false),attr_(NULL),attr_created_(false),ctx_(NULL),ctx_created_(false),auth_ctx_(NULL),auth_ctx_created_(false) { };
   /** Copy constructor. Ensures shallow copy. */
-  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),auth_created_(false),attr_(msg.attr_),attr_created_(false),ctx_(msg.ctx_),ctx_created_(false) { };
+  Message(Message& msg):payload_(msg.payload_),auth_(msg.auth_),auth_created_(false),attr_(msg.attr_),attr_created_(false),ctx_(msg.ctx_),ctx_created_(false),auth_ctx_(msg.auth_ctx_),auth_ctx_created_(false) { };
   /** Copy constructor. Used by language bindigs */
   Message(long msg_ptr_addr);
   /** Destructor does not affect refered objects except those created internally */
@@ -102,6 +114,7 @@ class Message {
     if(attr_created_) delete attr_;
     if(auth_created_) delete auth_;
     if(ctx_created_) delete ctx_;
+    if(auth_ctx_created_) delete auth_ctx_;
   };
   /** Assignment. Ensures shallow copy. */
   Message& operator=(Message& msg) {
@@ -109,6 +122,7 @@ class Message {
     if(msg.auth_) Auth(msg.auth_);
     if(msg.attr_) Attributes(msg.attr_);
     if(msg.ctx_) Context(msg.ctx_);
+    if(msg.auth_ctx_) AuthContext(msg.auth_ctx_);
     return *this;
   };
   /** Returns pointer to current payload or NULL if no payload assigned. */
@@ -156,12 +170,27 @@ class Message {
     };
     return ctx_;
   };
+  /** Returns a pointer to the current auth* context object or creates it if no 
+    object has been assigned. */
+  MessageAuthContext* AuthContext(void) {
+    if(auth_ctx_ == NULL) {
+      auth_ctx_created_=true; auth_ctx_=new MessageAuthContext;
+    };
+    return auth_ctx_;
+  };
   /** Assigns message context object */
   void Context(MessageContext* ctx) {
     if(ctx_created_) {
       ctx_created_=false; delete ctx_;
     };
     ctx_=ctx;
+  };
+  /** Assigns auth* context object */
+  void AuthContext(MessageAuthContext* auth_ctx) {
+    if(auth_ctx_created_) {
+      auth_ctx_created_=false; delete auth_ctx_;
+    };
+    auth_ctx_=auth_ctx;
   };
 };
 
