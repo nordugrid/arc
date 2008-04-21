@@ -19,6 +19,7 @@
 
 #include "LDAPQuery.h"
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -54,10 +55,10 @@ sasl_defaults::sasl_defaults (ldap *ld,
                               const std::string & authcid,
                               const std::string & authzid,
                               const std::string & passwd) : p_mech    (mech),
-							    p_realm   (realm),
-							    p_authcid (authcid),
-							    p_authzid (authzid),
-							    p_passwd  (passwd) {
+                                                            p_realm   (realm),
+                                                            p_authcid (authcid),
+                                                            p_authzid (authzid),
+                                                            p_passwd  (passwd) {
 
 	if (p_mech.empty()) {
 		char * temp;
@@ -141,7 +142,7 @@ int my_sasl_interact(ldap *ld,
 
 		if (flags != LDAP_SASL_INTERACTIVE &&
 		   (interact->defresult || interact->id == SASL_CB_USER)) {
-				use_default = true;
+			use_default = true;
 		}
 		else {
 			if (flags == LDAP_SASL_QUIET) return 1;
@@ -187,7 +188,7 @@ int my_sasl_interact(ldap *ld,
 		}
 
 		interact++;
-		}
+	}
 	return 0;
 }
 #endif
@@ -197,23 +198,19 @@ LDAPQuery::LDAPQuery(const std::string& ldaphost,
                      int ldapport,
                      bool anonymous,
                      const std::string& usersn,
-                     int timeout) {
-
-	this->host = ldaphost;
-	this->port = ldapport;
-	this->anonymous = anonymous;
-	this->usersn = usersn;
-	this->timeout = timeout;
-
-	this->connection = NULL;
-	this->messageid = 0;
-}
+                     int timeout) : host(ldaphost),
+                                    port(ldapport),
+                                    anonymous(anonymous),
+                                    usersn(usersn),
+                                    timeout(timeout),
+                                    connection(NULL),
+                                    messageid(0) {}
 
 
 LDAPQuery::~LDAPQuery() {
 
 	if (connection) {
-		ldap_unbind(connection);
+		ldap_unbind_ext (connection, NULL, NULL);
 		connection = NULL;
 	}
 }
@@ -231,7 +228,8 @@ bool LDAPQuery::Connect() {
 		return false;
 	}
 
-	connection = ldap_init(host.c_str(), port);
+	ldap_initialize(&connection,
+	                ("ldap://" + host + ':' + tostring(port)).c_str());
 
 	if (!connection) {
 		logger.msg(ERROR, "Could not open LDAP connection to %s", host);
@@ -239,7 +237,7 @@ bool LDAPQuery::Connect() {
 	}
 
 	if (!SetConnectionOptions(version)) {
-		ldap_unbind(connection);
+		ldap_unbind_ext (connection, NULL, NULL);
 		connection = NULL;
 		return false;
 	}
@@ -255,33 +253,37 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 	tout.tv_usec = 0;
 
 	if (ldap_set_option (connection, LDAP_OPT_NETWORK_TIMEOUT, &tout) !=
-	                     LDAP_OPT_SUCCESS) {
+	    LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
 		           "Could not set LDAP network timeout (%s)", host);
 		return false;
 	}
 
 	if (ldap_set_option (connection, LDAP_OPT_TIMELIMIT, &timeout) !=
-	                     LDAP_OPT_SUCCESS) {
+	    LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
 			   "Could not set LDAP timelimit (%s)", host);
 		return false;
 	}
 
 	if (ldap_set_option (connection, LDAP_OPT_PROTOCOL_VERSION, &version) !=
-	                     LDAP_OPT_SUCCESS) {
+	    LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
 			   "Could not set LDAP protocol version (%s)", host);
 		return false;
 	}
 
 	int ldresult = 0;
-	if (anonymous)
-		ldresult = ldap_simple_bind_s (connection, NULL, NULL);
+	if (anonymous) {
+		BerValue cred = { 0, "" };
+		ldresult = ldap_sasl_bind_s (connection, NULL, LDAP_SASL_SIMPLE,
+		                             &cred, NULL, NULL, NULL);
+	}
 	else {
-		int ldapflag = LDAP_SASL_QUIET;
-		if (logger.getThreshold() >= DEBUG) ldapflag = LDAP_SASL_AUTOMATIC;
 #if defined(HAVE_SASL_H) || defined(HAVE_SASL_SASL_H)
+		int ldapflag = LDAP_SASL_QUIET;
+		if (logger.getThreshold() >= DEBUG)
+			ldapflag = LDAP_SASL_AUTOMATIC;
 		sasl_defaults defaults = sasl_defaults (connection,
 		                                        SASLMECH,
 		                                        "",
@@ -297,9 +299,12 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 		                                         my_sasl_interact,
 		                                         &defaults);
 #else
-		ldresult = ldap_simple_bind_s (connection, NULL, NULL);
+		BerValue cred = { 0, "" };
+		ldresult = ldap_sasl_bind_s (connection, NULL, LDAP_SASL_SIMPLE,
+		                             &cred, NULL, NULL, NULL);
 #endif
 	}
+
 	if (ldresult != LDAP_SUCCESS) {
 		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
 		return false;
@@ -320,12 +325,11 @@ bool LDAPQuery::Query(const std::string& base,
 
 	logger.msg(VERBOSE, "  base dn: %s", base);
 	if (!filter.empty())
-	  logger.msg(VERBOSE, "  filter: %s", filter);
+		logger.msg(VERBOSE, "  filter: %s", filter);
 	if (!attributes.empty()) {
 		logger.msg(VERBOSE, "  attributes:");
 		for (std::list<std::string>::const_iterator vs = attributes.begin();
-		                                              vs != attributes.end();
-		                                              vs++)
+		     vs != attributes.end(); vs++)
 			logger.msg(VERBOSE, "    %s", *vs);
 	}
 
@@ -359,11 +363,12 @@ bool LDAPQuery::Query(const std::string& base,
 	                                0,
 	                                &messageid);
 
-	if (attrs) delete[] attrs; // Okay to delete null pointers..
+	if (attrs)
+		delete[] attrs;
 
 	if (ldresult != LDAP_SUCCESS) {
 		logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
-		ldap_unbind (connection);
+		ldap_unbind_ext (connection, NULL, NULL);
 		connection = NULL;
 		return false;
 	}
@@ -376,7 +381,7 @@ bool LDAPQuery::Result(ldap_callback callback, void* ref) {
 
 	bool result = HandleResult(callback, ref);
 
-	ldap_unbind (connection);
+	ldap_unbind_ext (connection, NULL, NULL);
 	connection = NULL;
 	messageid = 0;
 
