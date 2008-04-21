@@ -204,8 +204,8 @@ class XMLNode {
   bool ReadFromFile(const std::string &file_name);
   /** Read XML document from stream and associate it with this node */
   bool ReadFromStream(std::istream &in);
-  /** Remove all eye-candy information leaving only informational parts */
-  void Purify(void);
+  /** Remove all eye-candy information leaving only informational parts *
+  void Purify(void); */
 };
 
 std::ostream& operator<<(std::ostream& out,const XMLNode& node);
