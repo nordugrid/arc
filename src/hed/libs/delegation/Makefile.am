@@ -10,4 +10,4 @@ libdelegation_la_LIBADD   = $(top_srcdir)/src/hed/libs/message/libarcmessage.la 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
-test_LDADD    = libdelegation.la
+test_LDADD    = libdelegation.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(OPENSSL_LIBS)
