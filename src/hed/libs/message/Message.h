@@ -47,8 +47,8 @@ class MessageContext {
  first MCC in a chain and is kept as long as connection persists. */
 class MessageAuthContext: public MessageAuth {
  public:
-  MessageAuthContext(void);
-  ~MessageAuthContext(void);
+  MessageAuthContext(void) { };
+  ~MessageAuthContext(void) { };
 };
 
 /// Object being passed through chain of MCCs. 

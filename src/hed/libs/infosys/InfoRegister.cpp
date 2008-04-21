@@ -23,11 +23,6 @@ InfoRegister::InfoRegister(const std::string &sid, long int period, Config &cfg)
     cfg["EPR"].New(service_epr);
     service_epr.Namespaces(ns);
     service_epr.Name("isis:EPR");
-    // XXX how to get plugin paths from cfg?
-    mcc_cfg.AddPluginsPath("../../hed/mcc/tcp/.libs/");
-    mcc_cfg.AddPluginsPath("../../hed/mcc/tls/.libs/");
-    mcc_cfg.AddPluginsPath("../../hed/mcc/soap/.libs/");
-    mcc_cfg.AddPluginsPath("../../hed/mcc/http/.libs/");
 }
 
 void InfoRegister::AddUrl(const std::string &url)
