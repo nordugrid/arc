@@ -696,7 +696,7 @@ void AC_TARGET_free(AC_TARGET *a)
 
 int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp)
 {
-  int v1=0, v2=0, v3=0;
+  //int v1=0, v2=0, v3=0;
 
   M_ASN1_I2D_vars(a);
   M_ASN1_I2D_len_SEQUENCE(a->stackcert, i2d_X509);

@@ -17,7 +17,7 @@ namespace ArcLib {
 
 #define PASS_MIN_LENGTH 4
   static int passwordcb(char* pwd, int len, int rwflag, void* u) {
-    int i, j, r;
+    int j, r;
     char prompt[128];
     for(;;) {
       snprintf(prompt, sizeof(prompt), "Enter password for Username Token: ");
@@ -128,6 +128,7 @@ namespace ArcLib {
     
     X509* x509 = NULL;
     PKCS12* pkcs12 = NULL;
+    STACK_OF(X509)* pkcs12_certs = NULL;
     format = getFormat(certbio);
     credentialLogger.msg(INFO,"Certificate format for BIO is: %d", format);
 
@@ -170,7 +171,6 @@ namespace ArcLib {
         break;
 
       case PKCS:
-        STACK_OF(X509)* pkcs12_certs = NULL;
         pkcs12 = d2i_PKCS12_bio(certbio, NULL);
         if(pkcs12){
           char password[100];
@@ -196,6 +196,9 @@ namespace ArcLib {
         if(pkcs12) { PKCS12_free(pkcs12); }
         if(pkcs12_certs) { sk_X509_pop_free(pkcs12_certs, X509_free); }
 
+        break;
+
+      default:  
         break;
      } // end switch
 
@@ -300,8 +303,8 @@ namespace ArcLib {
       std::string policyfile, int pathlength) : 
          start_(start), lifetime_(lifetime), 
          req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), 
-         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL), 
-         proxyversion_(proxyversion), policylang_(policylang), policyfile_(policyfile), pathlength_(pathlength) {
+         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), proxyversion_(proxyversion), 
+         extensions_(NULL), policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength) {
 
     OpenSSL_add_all_algorithms();
 
@@ -455,7 +458,6 @@ namespace ArcLib {
      extensions_ = sk_X509_EXTENSION_new_null();
 
     BIO* certbio = NULL, *keybio = NULL; 
-    Credformat format;
 
     certbio = BIO_new_file(certfile.c_str(), "r"); 
     if(!certbio){
@@ -541,8 +543,6 @@ namespace ArcLib {
 
   bool Credential::GenerateRequest(BIO* &reqbio){
     bool res = false;
-    X509_NAME *         req_name = NULL;
-    X509_NAME_ENTRY *   req_name_entry = NULL;
     RSA *               rsa_key = NULL;
     int keybits = keybits_;
     const EVP_MD *digest = signing_alg_;
@@ -744,7 +744,7 @@ err:
     PROXYPOLICY*  policy = NULL;
     ASN1_OBJECT*  policy_lang = NULL;
     ASN1_OBJECT*  extension_oid = NULL;
-    int certinfo_NID, certinfo_old_NID, certinfo_v3_NID, certinfo_v4_NID, nid;
+    int certinfo_v3_NID, certinfo_v4_NID, nid = NID_undef;
     int i;
 
     //Get the PROXYCERTINFO from request' extension
@@ -779,7 +779,7 @@ err:
         LogError(); goto err;
       }    
       int policy_nid = OBJ_obj2nid(policy_lang);
-      if(nid == certinfo_old_NID || nid == certinfo_v3_NID) { 
+      if(nid == certinfo_v3_NID) { 
         if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_= CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
         else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
         else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY; }
