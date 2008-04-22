@@ -58,7 +58,7 @@ int main(void) {
   LassoAssertionQuery *assertionqry, *assertionqry1;
 
   int rc;
-  char *assertionRequestUrl, *assertionRequestQuery;
+  char *assertionRequestBody = NULL;
 
   char *responseUrl, *responseQuery;
   char *idpIdentityContextDump, *idpSessionContextDump;
@@ -66,6 +66,18 @@ int main(void) {
   char *spIdentityContextDump;
   char *spSessionDump;
   int requestType;
+
+  std::string identity("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
+    <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
+       RemoteProviderID=\"https://idp1/metadata\"\
+       FederationDumpVersion=\"2\">\
+      <RemoteNameIdentifier>\
+        <saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\"\
+         NameQualifier=\"http://idp.localhost\"\
+         SPNameQualifier=\"http://sp.localhost/\">abcdefg</saml:NameID>\
+      </RemoteNameIdentifier>\
+    </Federation>\
+   </Identity>");
 
 
   // Construct a SAML assertion requester/queryer
@@ -77,21 +89,19 @@ int main(void) {
   assertionqry = lasso_assertion_query_new(spContext);
   if(assertionqry == NULL) { std::cout<<"lasso_assertion_query_new() failed"<<std::endl; goto exit; }
 
-  rc = lasso_assertion_query_init_request(assertionqry, "https://idp1/metadata", LASSO_HTTP_METHOD_REDIRECT, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
+  lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertionqry), identity.c_str());
+
+  rc = lasso_assertion_query_init_request(assertionqry, "https://idp1/metadata", LASSO_HTTP_METHOD_SOAP, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
   if(rc != 0) { std::cout<<"lasso_assertion_query_init_request failed"<< rc <<std::endl; goto exit; }
 
 
   rc = lasso_assertion_query_build_request_msg(assertionqry);
-  if(rc != 0) { std::cout<<"lasso_assertion_query_build_request_msg failed"<<std::endl; goto exit; }
+  if(rc != 0) { std::cout<<"lasso_assertion_query_build_request_msg failed"<< rc <<std::endl; goto exit; }
 
 
-  assertionRequestUrl = LASSO_PROFILE(assertionqry)->msg_url;
-  if(assertionRequestUrl == NULL) { std::cout<<"assertionRequestUrl shouldn't be NULL"<<std::endl; goto exit; }
-  std::cout<<"Request: ---assertionRequestUrl: "<<assertionRequestUrl<<std::endl;
-
-  assertionRequestQuery = strchr(assertionRequestUrl, '?')+1;
-  if(strlen(assertionRequestQuery) == 0) { std::cout<<"assertionRequestQuery shouldn't be empty string"<<std::endl; goto exit; }
-  std::cout<<"Request:---assertionRequestQuery: "<<assertionRequestQuery<<std::endl;
+  assertionRequestBody = LASSO_PROFILE(assertionqry)->msg_body;
+  if(assertionRequestBody == NULL) { std::cout<<"assertionRequestBody shouldn't be NULL"<<std::endl; goto exit; }
+  std::cout<<"Request: ---assertionRequestBody: "<<assertionRequestBody<<std::endl;
 
 
   //Construct a Attribute Authority
@@ -104,7 +114,7 @@ int main(void) {
   assertionqry1 = lasso_assertion_query_new(idpContext);
   if(assertionqry1 == NULL) { std::cout<<"lasso_assertion_query_new() failed"<<std::endl; goto exit; }
 
-  rc = lasso_assertion_query_process_request_msg(assertionqry1, assertionRequestQuery);
+  rc = lasso_assertion_query_process_request_msg(assertionqry1, assertionRequestBody);
   if(rc != 0) { std::cout<<"lasso_assertion_query_process_request_msg failed"<<std::endl; goto exit; }
 
   rc = lasso_assertion_query_validate_request(assertionqry1);
