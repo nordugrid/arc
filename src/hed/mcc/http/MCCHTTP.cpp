@@ -5,6 +5,7 @@
 #include <arc/XMLNode.h>
 #include <arc/StringConv.h>
 #include <arc/message/PayloadRaw.h>
+#include <arc/message/SecAttr.h>
 #include <arc/loader/MCCLoader.h>
 
 #include "PayloadHTTP.h"
@@ -32,6 +33,63 @@ mcc_descriptors ARC_MCC_LOADER = {
 
 using namespace Arc;
 
+
+class HTTPSecAttr: public SecAttr {
+ friend class MCC_HTTP_Service;
+ friend class MCC_HTTP_Client;
+ public:
+  HTTPSecAttr(PayloadHTTP& payload);
+  virtual ~HTTPSecAttr(void);
+  virtual operator bool(void);
+  virtual bool Export(Format format,XMLNode &val) const;
+ protected:
+  std::string action_;
+  std::string object_;
+  virtual bool equal(const SecAttr &b) const;
+};
+
+HTTPSecAttr::HTTPSecAttr(PayloadHTTP& payload) {
+  action_=payload.Method();
+  object_=payload.Endpoint();
+}
+
+HTTPSecAttr::~HTTPSecAttr(void) {
+}
+
+HTTPSecAttr::operator bool(void) {
+  return true;
+}
+
+bool HTTPSecAttr::equal(const SecAttr &b) const {
+  try {
+    const HTTPSecAttr& a = (const HTTPSecAttr&)b;
+    return ((action_ == a.action_) && (object_ == a.object_));
+  } catch(std::exception&) { };
+  return false;
+}
+
+bool HTTPSecAttr::Export(Format format,XMLNode &val) const {
+  if(format == UNDEFINED) {
+  } else if(format == ARCAuth) {
+    NS ns;
+    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ar:Request");
+    XMLNode item = val.NewChild("ar:RequestItem");
+    if(!object_.empty()) {
+      XMLNode object = item.NewChild("ar:Resource");
+      object=object_;
+      object.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
+    };
+    if(!action_.empty()) {
+      XMLNode action = item.NewChild("ar:Action");
+      action=action_;
+      action.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/method";
+    };
+    return true;
+  } else {
+  };
+  return false;
+}
 
 MCC_HTTP_Service::MCC_HTTP_Service(Arc::Config *cfg):MCC_HTTP(cfg) {
 }
@@ -108,6 +166,9 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Attributes()->set("ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
+  // Filling security attributes
+  HTTPSecAttr* sattr = new HTTPSecAttr(nextpayload);
+  inmsg.Auth()->set("HTTP",sattr);
   parse_http_range(nextpayload,nextinmsg);
   // Reason ?
   for(std::map<std::string,std::string>::const_iterator i = 
