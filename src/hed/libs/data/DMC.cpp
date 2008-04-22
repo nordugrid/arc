@@ -4,6 +4,9 @@
 
 #include "DMC.h"
 #include <arc/Logger.h>
+#include <arc/ArcConfig.h>
+#include <arc/misc/ClientInterface.h>
+#include <arc/loader/Loader.h>
 
 namespace Arc {
 
@@ -32,5 +35,24 @@ namespace Arc {
     Glib::Mutex::Lock lock(mutex);
     dmcs.remove(dmc);
   }
+
+
+  static class DMCLoader {
+
+   public:
+    DMCLoader() {
+      DMCConfig dmcconf;
+      NS ns;
+      Config cfg(ns);
+      dmcconf.MakeConfig(cfg);
+      loader = new Loader(&cfg);
+    }
+
+    ~DMCLoader() {}
+
+   private:
+    Loader *loader;
+
+  } dmcloader;
 
 } // namespace Arc

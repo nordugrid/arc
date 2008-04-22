@@ -8,10 +8,7 @@
 #include <arc/URL.h>
 #include <arc/Logger.h>
 
-#include <arc/loader/Loader.h>
-
-#include <arc/misc/ClientInterface.h>
-
+#include <arc/data/DMC.h>
 #include <arc/data/DataCache.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataMover.h>
@@ -74,15 +71,6 @@ class FileTransfer
 
         void download(const std::string &job_root, Job &j)
         {
-            // Init DMCs
-            Arc::NS ns;
-            Arc::Config cfg(ns);
-            Arc::DMCConfig dmccfg;
-            // fill up config with default config
-            dmccfg.MakeConfig(cfg);
-            // load modules
-            Arc::Loader dmcloader(&cfg);
-
             // Create mover
             mover = new Arc::DataMover();
             mover->retry(false);
@@ -146,15 +134,6 @@ class FileTransfer
 
         void upload(const std::string &job_root, Job &j)
         {
-            // Init DMCs
-            Arc::NS ns;
-            Arc::Config cfg(ns);
-            Arc::DMCConfig dmccfg;
-            // fill up config with default config
-            dmccfg.MakeConfig(cfg);
-            // load modules
-            Arc::Loader dmcloader(&cfg);
-
             // Create mover
             mover = new Arc::DataMover();
             mover->retry(false);

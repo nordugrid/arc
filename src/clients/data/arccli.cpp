@@ -1,9 +1,6 @@
 #include <getopt.h>
 
-#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
-#include <arc/misc/ClientInterface.h>
-#include <arc/loader/Loader.h>
 
 #define _(A) (A)
 
@@ -370,13 +367,6 @@ int main(int argc, char ** argv) {
 		}
 
 		while (argc > optind) params.push_back(argv[optind++]);
-
-		Arc::DMCConfig dmcconf;
-		Arc::NS ns;
-		Arc::Config client_config(ns);
-		dmcconf.MakeConfig(client_config);
-		Arc::Loader client_loader(&client_config);
-		logger.msg(Arc::INFO, "DMCs are loaded");
 
 #ifdef ARCLS
 			if(params.size() != 1) {

@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <pwd.h>
 
-//#include <arc/data/DMC.h>
+#include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataCache.h>
 #include <arc/data/DataPoint.h>
@@ -19,9 +19,6 @@
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
-#include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
 
 #include "../jobs/job.h"
 #include "../jobs/users.h"
@@ -408,13 +405,6 @@ int main(int argc,char** argv) {
 */
   UrlMapConfig url_map;
   olog<<"Downloader started"<<std::endl;
-
-  // Load plugins
-  Arc::NS ns;
-  Arc::Config cfg(ns);
-  Arc::DMCConfig dmccfg;
-  dmccfg.MakeConfig(cfg);
-  Arc::Loader dmcload(&cfg);
 
   // prepare Job and User descriptions
   desc=JobDescription(id,session_dir);

@@ -1,7 +1,5 @@
 #include "TargetRetrieverARC0.h"
 #include <arc/client/ExecutionTarget.h>
-#include <arc/misc/ClientInterface.h>
-#include <arc/loader/Loader.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/StringConv.h>
@@ -32,11 +30,6 @@ namespace Arc{
       return;
     }
 
-    NS ns;
-    Arc::Config cfg(ns);
-    DMCConfig dmccfg;
-    dmccfg.MakeConfig(cfg);
-    Loader m_loader(&cfg);
     DataHandle handler(m_url);
     DataBufferPar buffer;
     handler->StartReading(buffer);
