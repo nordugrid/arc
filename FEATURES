@@ -1,4 +1,39 @@
-*  Partially or fully developed (at least usable)
+* Coarse-grained prioritized features and plans
+
+ Component/Feature                        Priority    Internal rel.    Summer rel.    Later
+  A-REX
+    Basic functionality                    high            x
+    Support for same LRMS as ARC0          high                           x
+  Storage System
+    Centralised solution                   high                           x
+    Integration of Storage Manager to DMC  high                           x
+    Distributed solution                   medium                                      x
+  Information Indexing Service
+    Centralised simplified solution        high                           x
+    Proper interfaces and schemas          very high                      x
+    Unified registration for all services  medium                         x
+  Arclib
+    Basic infrastructure                   high                           x
+    ARC0 support                           medium                         x
+    ARC1 based on BES and Glue2            high                           x
+    Generic BES/WSRF/Glue2 (for compat.)   low                                         x
+    gLite CREAM2 support                   medium                                      x
+  Security
+    Basic framework                        high            x
+    Unified and easy to use autz framework very high                      x
+    Support for basic authz techniques     very high                      x
+    Support for exotic authz techniques    medium                         x            x
+    Delegation framework                   high                           x
+      Supported by clients                 high                           x
+      Supported by A-Rex                   high                           x
+      Supported by Storage                 high                                        ?
+  OGF UR based Logging                     medium                                      x
+
+
+
+* Fine-grained implemented, being developed and planned features
+
+**  Partially or fully developed (at least usable)
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
 HED/XML & SOAP         Partial       In header                 Aleksandr                -         Only needed parts are implemented.
 HED/WSRF               Partial       In header, incomplete     Aleksandr                -         Only parts needed for information interface are implemented
@@ -28,7 +63,7 @@ AREX/Inform. interf.   Prototype     None                      Aleksandr        
 AREX/Client            Prototype     In deliverable            Markus                   -
 Data/Clients           Done          -h                        Mattias                  -         Code ported from ARC0.
 
-*  Development started
+**  Development started
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
 HED/Cert. handling     Being devel.  None                      Weizhong                 -
 HED/Java bibding       Maintained    None                      Ferenc                   -
@@ -38,7 +73,7 @@ ARCLib/ARC0 plugin     Being ported  None                      Mattias          
 ISIS/Service           Being devel.  None                      Ferenc                   -
 ISIS/Client            Being devel.  None                      Ferenc                   -
   
-*  Planned
+**  Planned
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
 HED/WS-Security        Being dev.    In header                 Undefined                -         Username token supported only. Needs integration.
 Security/PDP Service   Prototype     None                      Weizhong                 -
