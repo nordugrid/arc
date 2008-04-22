@@ -2,6 +2,7 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/MessageAttributes.h>
+#include <arc/message/SecAttr.h> 
 #include <arc/message/MessageAuth.h>
 #include <arc/message/Message.h>
 #include <arc/message/PayloadRaw.h>
@@ -21,6 +22,7 @@
 %include "../src/hed/libs/message/MCC.h"
 %include "../src/hed/libs/message/MCC_Status.h"
 %include "../src/hed/libs/message/MessageAttributes.h"
+%include "../src/hed/libs/message/SecAttr.h"
 %include "../src/hed/libs/message/MessageAuth.h"
 %include "../src/hed/libs/message/Message.h"
 %include "../src/hed/libs/message/PayloadRaw.h"

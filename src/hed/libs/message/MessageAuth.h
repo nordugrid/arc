@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include "SecAttr.h"
+#include <arc/message/SecAttr.h>
 
 namespace Arc {
 
