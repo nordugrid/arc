@@ -115,6 +115,8 @@ class XMLNode {
   std::string FullName(void) const {
     return Prefix()+":"+Name();
   };
+  /** Returns namespace URI of XML node */
+  std::string Namespace(void) const;
   /** Assigns new name to XML node */
   void Name(const char* name);
   /** Assigns new name to XML node */

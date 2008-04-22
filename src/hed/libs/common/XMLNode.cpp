@@ -340,6 +340,14 @@ std::string XMLNode::Prefix(void) const {
   return (const char*)(ns->prefix);
 }
 
+std::string XMLNode::Namespace(void) const {
+  if(!node_) return "";
+  xmlNsPtr ns = GetNamespace(node_);
+  if(!ns) return "";
+  if(!(ns->prefix)) return "";
+  return (const char*)(ns->href);
+}
+
 void XMLNode::Name(const char* name) {
   if(!node_) return;
   const char* name_ = strchr(name,':');
