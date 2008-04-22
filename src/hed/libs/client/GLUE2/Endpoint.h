@@ -12,10 +12,8 @@
 namespace Glue2{
 
   class Endpoint_t{
-  protected:
-    Endpoint_t(){};
-
   public:
+    Endpoint_t(){};
     
     Arc::URL ID;
     std::string Name;
@@ -39,9 +37,10 @@ namespace Glue2{
     Arc::Time DowntimeAnnounce;
     Arc::Time DowntimeEnd;
     Arc::Time DowntimeInfo;
-
+    std::string Staging;
+    
     virtual ~Endpoint_t(){};
-
+    
   };//end class endpoint
 
 } //end namespace

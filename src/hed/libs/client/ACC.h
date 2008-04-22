@@ -3,11 +3,9 @@
 
 namespace Arc {
 
-  class Config;
-
   class ACC {
    protected:
-    ACC(Config*) {};
+    ACC() {};
    public:
     virtual ~ACC() {};
   };

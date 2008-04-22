@@ -1,6 +1,11 @@
+/**
+ * Base class for target retrievers
+ */
+#ifndef ARCLIB_TARGETRETRIEVER
+#define ARCLIB_TARGETRETRIEVER
+
+#include <arc/client/TargetGenerator.h>
 #include <arc/client/ACC.h>
-#include <arc/client/ComputingService.h>
-#include <list>
 #include <arc/URL.h>
 
 namespace Arc {
@@ -11,8 +16,10 @@ namespace Arc {
     URL m_url;
   public:
     virtual ~TargetRetriever();
-    virtual std::list<Glue2::ComputingService_t> getTargets() = 0; 
-
+    virtual void GetTargets(Arc::TargetGenerator &Mom, int TargetType, int DetailLevel) = 0;
+    
   };
-
+  
 } // namespace Arc
+
+#endif

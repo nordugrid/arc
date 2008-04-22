@@ -3,8 +3,6 @@
 #include <arc/Logger.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
-#include "ComputingService.h"
-
 
 int main(){
 
@@ -21,11 +19,8 @@ int main(){
   AnotherOne.NewAttribute("id") = "retriever1";
   AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,o=grid?giisregistrationstatus?base";
 
-  //mcfg.SaveToStream(std::cout);
-  //std::cout << std::endl;
-
   Arc::TargetGenerator test(mcfg);
-  test.getTargets();
+  test.GetTargets();
 
   return 0;
 

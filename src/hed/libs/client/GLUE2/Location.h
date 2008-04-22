@@ -13,8 +13,8 @@ namespace Glue2{
     Location_t(){};
     ~Location_t(){};
 
-    std::string LocalID;
     std::string Name;
+    std::string Owner;
     std::string Address;
     std::string Place;
     std::string Country;

@@ -4,12 +4,14 @@
 #ifndef ARCLIB_TARGETGENERATOR
 #define ARCLIB_TARGETGENERATOR
 
-#include <arc/client/TargetRetriever.h>
 #include <arc/ArcConfig.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/ACC.h>
-
+#include <arc/client/ExecutionTarget.h>
+#include <glibmm/thread.h>
+#include <arc/URL.h>
 #include <string>
+#include <list>
 
 namespace Arc{
   
@@ -18,12 +20,23 @@ namespace Arc{
     TargetGenerator(Arc::Config &cfg);
     ~TargetGenerator();
     
-    std::list<ACC*> getTargets();
+    void GetTargets();
+
+    bool AddService(Arc::URL NewService);
+    void AddTarget(Arc::ExecutionTarget NewTarget);    
+    bool DoIAlreadyExist(Arc::URL NewServer);
+    
+    std::list<Arc::URL> FoundServices;
+    std::list<Arc::URL> CheckedInfoServers;
+    std::list<Arc::ACC> FoundTargets; 
     
   private:
-
-    Arc::Loader *ACCloader;
+    Glib::Mutex ServiceMutex;
+    Glib::Mutex ServerMutex;
+    Glib::Mutex TargetMutex;
     
+    Arc::Loader *ACCloader;
+
   };
   
 } //namespace ARC
