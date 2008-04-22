@@ -78,3 +78,4 @@ ISIS/Client            Being devel.  None                      Ferenc           
 HED/WS-Security        Being dev.    In header                 Undefined                -         Username token supported only. Needs integration.
 Security/PDP Service   Prototype     None                      Weizhong                 -
 Security/Attributes    Discussed     None                      Aleksandr,Johan          -
+ARCLib/CREAM2 plugin   Considered    None                      Ivan                     -
