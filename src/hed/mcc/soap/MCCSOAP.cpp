@@ -5,6 +5,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/SecAttr.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/MCCLoader.h>
 #include <arc/ws-addressing/WSA.h>
@@ -14,6 +15,7 @@
 
 
 Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
+
 
 Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : MCC(cfg) {
 }
@@ -34,6 +36,69 @@ mcc_descriptors ARC_MCC_LOADER = {
 
 using namespace Arc;
 
+class SOAPSecAttr: public SecAttr {
+ friend class MCC_SOAP_Service;
+ friend class MCC_SOAP_Client;
+ public:
+  SOAPSecAttr(PayloadSOAP& payload);
+  virtual ~SOAPSecAttr(void);
+  virtual operator bool(void);
+  virtual bool Export(Format format,XMLNode &val) const;
+ protected:
+  std::string action_;
+  std::string object_;
+  std::string context_;
+  virtual bool equal(const SecAttr &b) const;
+};
+
+SOAPSecAttr::SOAPSecAttr(PayloadSOAP& payload) {
+  action_=payload.Name();
+  context_=payload.Namespace();
+  if(WSAHeader::Check(payload)) object_ = WSAHeader(payload).To();
+}
+
+SOAPSecAttr::~SOAPSecAttr(void) {
+}
+
+SOAPSecAttr::operator bool(void) {
+  return !action_.empty();
+}
+
+bool SOAPSecAttr::equal(const SecAttr &b) const {
+  try {
+    const SOAPSecAttr& a = (const SOAPSecAttr&)b;
+    return ((action_ == a.action_) && (context_ == a.context_));
+  } catch(std::exception&) { };
+  return false;
+}
+
+bool SOAPSecAttr::Export(Format format,XMLNode &val) const {
+  if(format == UNDEFINED) {
+  } else if(format == ARCAuth) {
+    NS ns;
+    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ar:Request");
+    XMLNode item = val.NewChild("ar:RequestItem");
+    if(!object_.empty()) {
+      XMLNode object = item.NewChild("ar:Resource");
+      object=object_;
+      object.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
+    };
+    if(!action_.empty()) {
+      XMLNode action = item.NewChild("ar:Action");
+      action=action_;
+      action.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation";
+    };
+    if(!context_.empty()) {
+      XMLNode context = item.NewChild("ar:Context").NewChild("ar:ContextAttribute");
+      context=context_;
+      context.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";
+    };
+    return true;
+  } else {
+  };
+  return false;
+}
 
 MCC_SOAP_Service::MCC_SOAP_Service(Arc::Config *cfg):MCC_SOAP(cfg) {
 }
@@ -97,6 +162,8 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("SOAP:ENDPOINT",endpoint_attr);
     nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
   };
+  SOAPSecAttr* sattr = new SOAPSecAttr(nextpayload);
+  inmsg.Auth()->set("SOAP",sattr);
   // Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
