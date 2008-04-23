@@ -5,12 +5,6 @@
 #include <fstream>
 #include <sys/types.h>
 
-#include <arc/loader/PDPLoader.h>
-#include <arc/XMLNode.h>
-#include <arc/Thread.h>
-#include <arc/ArcConfig.h>
-#include <arc/Logger.h>
-
 #include "DenyPDP.h"
 
 using namespace Arc;

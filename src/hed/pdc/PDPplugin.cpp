@@ -5,9 +5,9 @@
 #include <arc/loader/PDPLoader.h>
 #include "SimpleListPDP.h"
 #include "ArcPDP.h"
-#include "CountPDP.h"
+#include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
-#include "DenyPDP.h"
+#include "denypdp/DenyPDP.h"
 
 using namespace ArcSec;
 

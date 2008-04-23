@@ -41,7 +41,7 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   //TODO: get the <Path> of the library
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
-     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\ 
+     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
      xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
      <ModuleManager>\
         <Path></Path>\
