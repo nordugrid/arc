@@ -18,6 +18,7 @@ int main(){
   AnotherOne.NewAttribute("name") = "TargetRetrieverARC0";
   AnotherOne.NewAttribute("id") = "retriever1";
   AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,o=grid?giisregistrationstatus?base";
+  //AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue))";
 
   Arc::TargetGenerator test(mcfg);
   test.GetTargets();
