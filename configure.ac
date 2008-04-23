@@ -563,8 +563,9 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
+                 src/hed/pdc/allowpdp/Makefile
                  src/arclib/Makefile
-		 src/hed/identitymap/Makefile
+                 src/hed/identitymap/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/config/Makefile
