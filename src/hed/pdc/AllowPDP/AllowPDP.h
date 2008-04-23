@@ -5,6 +5,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/security/PDP.h>
+#include <arc/loader/PDPLoader.h>
 
 namespace ArcSec {
 
