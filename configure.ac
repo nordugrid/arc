@@ -628,6 +628,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/wsrf/apinfo.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/approxy.1
+                 src/clients/arclib/Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
