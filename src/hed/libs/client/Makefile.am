@@ -5,7 +5,8 @@ lib_LTLIBRARIES = libarclibclient.la
 libarclibclient_ladir = $(pkgincludedir)/client
 libarclibclient_la_HEADERS  = ACC.h Broker.h ExecutionTarget.h \
 	                      Submitter.h TargetRetriever.h TargetGenerator.h \
-			      GLUE2/Endpoint.h GLUE2/Location.h GLUE2/ApplicationEnvironment.h 
+			      GLUE2/Endpoint.h GLUE2/Location.h GLUE2/ApplicationEnvironment.h \
+			      GLUE2/enums.h 
 libarclibclient_la_SOURCES  = ACC.cpp Broker.cpp ExecutionTarget.cpp \
 	                      Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp
 libarclibclient_la_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
