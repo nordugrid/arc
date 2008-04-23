@@ -566,6 +566,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/pdc/allowpdp/Makefile
                  src/hed/pdc/denypdp/Makefile
                  src/hed/pdc/countpdp/Makefile
+                 src/hed/pdc/simplelistpdp/Makefile
                  src/arclib/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
