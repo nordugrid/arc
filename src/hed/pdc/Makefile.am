@@ -1,4 +1,4 @@
-SUBDIRS = AllowPDP
+SUBDIRS = allowpdp
 noinst_PROGRAMS = test
 # classload_test 
 
