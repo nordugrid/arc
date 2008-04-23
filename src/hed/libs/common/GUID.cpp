@@ -131,14 +131,17 @@ std::string Arc::UUID(void)
 #else
 std::string Arc::UUID(void)
 {
-    srand((unsigned)time(NULL));
+    if(!initialized) {
+    	srandom(time(NULL));
+    	initialized=true;
+    }
     std::string uuid_str("");
     int rnd[10];
     char buffer[20];
     unsigned long uuid_part;
     for (int j =0; j < 4; j++) {
         for (int i =0; i < 16;i++) {
-            rnd[i] = std::rand() % 256;
+            rnd[i] = random() % 256;
         }
         rnd[6] = (rnd[6] & 0x4F) | 0x40;
         rnd[8] = (rnd[8] & 0xBF) | 0x80;
