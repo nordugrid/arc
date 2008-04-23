@@ -6,7 +6,7 @@
 #include "SimpleListPDP.h"
 #include "ArcPDP.h"
 #include "CountPDP.h"
-#include "AllowPDP.h"
+#include "allowpdp/AllowPDP.h"
 #include "DenyPDP.h"
 
 using namespace ArcSec;
