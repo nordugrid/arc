@@ -481,6 +481,8 @@ case "${host}" in
     REGEX_LIBS="-lgnurx"
     SOCKET_LIBS="-lws2_32"
     EXTRA_LIBS="-lole32" 
+    # its required to libtool generate .dlls on win32 using mingw
+    LDFLAGS="$LDFLAGS -no-undefined"
   ;;
 esac
 AC_SUBST(EXTRA_LIBS)
