@@ -14,7 +14,7 @@
 #include <vector>
 #include <cstdio>
 
-#ifndef WIN32
+#ifdef WIN32
 #include <arc/win32.h>
 #endif
 
