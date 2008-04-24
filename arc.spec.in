@@ -32,6 +32,8 @@ BuildRequires: globus_ftp_control-devel
 BuildRequires: globus_rls_client-devel
 BuildRequires: globus_rsl-devel
 #
+BuildRequires: LFC-client-devel
+#
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
 %if "%{pyver}" < "2.4"
@@ -87,12 +89,14 @@ Requires: globus_common
 Requires: globus_ftp_client
 Requires: globus_ftp_control
 Requires: globus_rls_client
+Requires: LFC-client
 
 %description plugins-globus
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs):
 
   libdmcgridftp.so
+  libdmclfc.so
   libdmcrls.so
 
 %package devel
@@ -284,6 +288,7 @@ exit 0
 %files plugins-globus
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
+%{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmcrls.so
 
 %files python
