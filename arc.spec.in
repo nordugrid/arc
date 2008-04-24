@@ -205,6 +205,7 @@ exit 0
 %doc %{_mandir}/man1/arcls.1*
 %{_bindir}/arcrm
 %doc %{_mandir}/man1/arcrm.1*
+%{_bindir}/arcstat
 %{_bindir}/perftest
 
 %files server
