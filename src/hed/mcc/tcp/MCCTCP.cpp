@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #ifdef WIN32
-#define NOGDI
+#include <arc/win32.h>
 #include <winsock2.h>
 typedef int socklen_t;
 #define ErrNo WSAGetLastError()
@@ -134,18 +134,10 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
     };
     // Wait for threads to exit
     while(executers_.size() > 0) {
-#ifdef WIN32
-        lock_.unlock(); Sleep(1000); lock_.lock();
-#else
         lock_.unlock(); sleep(1); lock_.lock();
-#endif
     };
     while(handles_.size() > 0) {
-#ifdef WIN32
-        lock_.unlock(); Sleep(1000); lock_.lock();
-#else
         lock_.unlock(); sleep(1); lock_.lock();
-#endif
     };
     lock_.unlock();
 }
@@ -159,7 +151,7 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o)
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
         logger.msg(Arc::ERROR, "Failed to start thread for communication");
 #ifdef WIN32
-	::closesocket(handle); handle=-1; o->executers_.erase(e);
+	    ::closesocket(handle); handle=-1; o->executers_.erase(e);
 #else
         ::close(handle);  handle=-1; o->executers_.erase(e);
 #endif
@@ -209,8 +201,7 @@ void MCC_TCP_Service::listener(void* arg) {
                 socklen_t addrlen = sizeof(addr);
                 int h = accept(s,&addr,&addrlen);
                 if(h == -1) {
-		    logger.msg(Arc::ERROR,
-			    "Failed to accept connection request");
+                    logger.msg(Arc::ERROR, "Failed to accept connection request");
                     it.lock_.lock();
                 } else {
                     it.lock_.lock();

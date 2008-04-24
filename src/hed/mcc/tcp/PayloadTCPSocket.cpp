@@ -1,8 +1,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #ifdef WIN32
 #define NOGDI
+#include <arc/win32.h>
 #include <winsock2.h>
 typedef int socklen_t;
 #define ErrNo WSAGetLastError()

@@ -13,15 +13,12 @@
 #include <arc/message/PayloadSOAP.h>
 
 #ifdef WIN32
-#define NOGDI
-#include <objbase.h>
+#include <arc/win32.h>
 #endif
 
 int main(void) {
-#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
-#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
@@ -36,11 +33,7 @@ int main(void) {
   logger.msg(Arc::INFO, "Service side MCCs are loaded");
   logger.msg(Arc::INFO, "Service is waiting for requests");
   for(;;) {
-#ifndef WIN32 
    sleep(10);
-#else
-   Sleep(10000);
-#endif
   }
   return 0;
 }

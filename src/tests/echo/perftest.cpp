@@ -119,10 +119,10 @@ void sendRequests(){
       tAfter.assign_current_time();
       
       if(!status) {
-	// Request failed.
-	failedRequests++;
-	failedTime+=tAfter-tBefore;
-	connected=false;
+        // Request failed.
+        failedRequests++;
+        failedTime+=tAfter-tBefore;
+	    connected=false;
       } else {
         Arc::PayloadSOAP* resp = NULL;
         if(repmsg.Payload() != NULL) {

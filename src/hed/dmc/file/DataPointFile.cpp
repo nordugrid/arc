@@ -11,6 +11,9 @@
 #include <arc/data/CheckFile.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataCallback.h>
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 #include "DataPointFile.h"
 
@@ -282,9 +285,7 @@ namespace Arc {
       if (fd == -1)
         fd = open(url.Path().c_str(), O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       else {/* this file was created by us. Hence we can set it's owner */
-#ifndef WIN32
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
-#endif
       }
       if (fd == -1) {
         logger.msg(ERROR, "Failed to create/open file %s", url.Path());

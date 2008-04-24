@@ -11,12 +11,13 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/misc/ClientInterface.h>
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 int main(void) {
-#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
-#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr1(std::cerr, "C");
   Arc::Logger::rootLogger.addDestination(logcerr1);

@@ -35,8 +35,8 @@ Daemon::Daemon(std::string& pid_file_, std::string& log_file_)
     pid = fork();
     switch(pid) {
         case -1: // parent fork error
- 	  logger.msg(ERROR, "Daemonization fork failed: %s", strerror(errno));
-	  exit(1);
+            logger.msg(ERROR, "Daemonization fork failed: %s", strerror(errno));
+            exit(1);
         case 0: // child
             /* clear inherited umasks */
             ::umask(0);

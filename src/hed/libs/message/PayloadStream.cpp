@@ -8,9 +8,7 @@
 #include <unistd.h>
 #include <sys/poll.h>
 #else
-#define NOGDI
-#include <objbase.h>
-#include <io.h>
+#include <arc/win32.h>
 #endif
 
 #include "PayloadStream.h"

@@ -18,9 +18,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #ifdef WIN32
-#define NOGDI
-#include <objbase.h>
-#define sleep(x) Sleep((x)*1000)
+#include <arc/win32.h>
 #endif
 
 #include "grid_sched.h"

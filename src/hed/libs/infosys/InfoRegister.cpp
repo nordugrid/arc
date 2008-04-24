@@ -6,8 +6,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include "InfoRegister.h"
 #ifdef WIN32
-#define NOGDI
-#include <objbase.h>
+#include <arc/win32.h>
 #endif
 
 #include <unistd.h>
@@ -34,11 +33,7 @@ void InfoRegister::registration_forever(void)
 {
     for (;;) {
         registration();
-#ifndef WIN32
         sleep(reg_period);
-#else
-	Sleep(reg_period*1000);
-#endif
     }
 }
 

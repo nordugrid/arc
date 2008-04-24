@@ -8,11 +8,12 @@
 #include <arc/data/URLMap.h>
 #include <arc/data/DataMover.h>
 #include "DataStatus.h"
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 int main(int argc,char* argv[]) {
-#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
-#endif
   if(argc < 2) {
     std::cerr<<"Missing source URL"<<std::endl;
     return -1;

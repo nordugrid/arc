@@ -14,9 +14,7 @@
 #include <unistd.h>
 #include <fstream>
 #ifdef WIN32
-#define NOGDI
-#include <objbase.h>
-#define sleep(x) Sleep((x)*1000)
+#include <arc/win32.h>
 #endif
 
 #include "centralisi.h"
@@ -99,11 +97,7 @@ CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::
             logger.msg(Arc::INFO, "Initializing database %s", db_path);
             if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
                 // create root directory
-#ifndef WIN32
                 if (mkdir(db_path.c_str(), 0700) != 0) 
-#else
-                if (mkdir(db_path.c_str()) != 0) 
-#endif
                 {
                     logger.msg(Arc::ERROR, "cannot create directory: %s", db_path);
                     db_path = "";

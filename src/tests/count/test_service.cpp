@@ -8,16 +8,12 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
 #ifdef WIN32
-#define NOGDI
-#include <objbase.h>
-#define sleep(x) Sleep((x)*1000)
+#include <arc/win32.h>
 #endif
 
 int main(void) {
-#ifndef WIN32
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
-#endif
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);

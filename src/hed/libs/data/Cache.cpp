@@ -10,6 +10,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 namespace Arc {
 
@@ -54,10 +57,6 @@ static int unlock_file(int h) {
   return fcntl(h,F_SETLKW,&fl); /* hope unlock should not fail */
 }
 #else
-
-#include <windows.h>
-#include <io.h>
-
 static int lock_file(int h) {
   HANDLE hdl = (HANDLE)_get_osfhandle(h);
   DWORD low = 1, high = 0;
@@ -411,12 +410,10 @@ int cache_history(const std::string& cache_path,bool enable, const Arc::User &ca
     h_new=open(fname_new.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
     if(h_new == -1) goto error_exit;
     int uid = cache_user.get_uid();
-#ifndef WIN32 
     if(uid)
       (chown(fname_old.c_str(),uid,cache_user.get_gid()) != 0);
     if(uid)
       (chown(fname_new.c_str(),uid,cache_user.get_gid()) != 0);
-#endif
   } else {
     if(unlink(fname_old.c_str()) != 0) if(errno != ENOENT) goto error_exit;
     if(unlink(fname_new.c_str()) != 0) if(errno != ENOENT) goto error_exit;
@@ -440,10 +437,8 @@ static int cache_open_list(const std::string& cache_path, const Arc::User &cache
   int h=open(fname.c_str(),O_RDWR | O_CREAT,S_IRUSR | S_IWUSR);
   if(h == -1) return -1;
   int uid = cache_user.get_uid();
-#ifndef WIN32
   if(uid)
     (chown(fname.c_str(),uid,cache_user.get_gid()) != 0);
-#endif
   /* lock file */
   if(lock_file(h) != 0) { close(h); return -1; };
   return h;
@@ -703,7 +698,6 @@ static int cache_close_info(int h) {
       close(nh); remove(name.c_str()); remove(name_info.c_str()); remove(name_claim.c_str()); continue;
     };
     close(nh);
-#ifndef WIN32
     if(cache_user.get_uid() != 0) {
       (chown(name.c_str(),cache_user.get_uid(),cache_user.get_gid()) != 0);
       (chown(name_info.c_str(),cache_user.get_uid(),cache_user.get_gid()) != 0);
@@ -712,7 +706,6 @@ static int cache_close_info(int h) {
     else {
       chmod(name.c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     };
-#endif
     break;
   };
   if(i==INT_MAX) { return -1; };

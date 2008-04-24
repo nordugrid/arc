@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 #include <fstream>
 #include <signal.h>
@@ -11,11 +14,6 @@
 #include <arc/Logger.h>
 #include "daemon.h"
 #include "options.h"
-
-#ifdef WIN32
-#define NOGDI
-#include <windows.h>
-#endif
 
 Arc::Daemon *main_daemon;
 Arc::Config config;
@@ -76,9 +74,7 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
-#ifndef WIN32
     signal(SIGTTOU,SIG_IGN);
-#endif
     /* Create options parser */
 #ifdef HAVE_GLIBMM_OPTIONS
     Glib::OptionContext opt_ctx;
@@ -126,11 +122,7 @@ int main(int argc, char **argv)
             logger.msg(Arc::INFO, "Service side MCCs are loaded");
             // sleep forever
             for (;;) {
-#ifndef WIN32
                 sleep(INT_MAX);
-#else
-		Sleep(INT_MAX);
-#endif
             }
         }
     } catch (const Glib::Error& error) {

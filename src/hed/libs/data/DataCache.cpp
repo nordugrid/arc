@@ -9,6 +9,9 @@
 #include "DataCache.h"
 #include <cerrno>
 #include <fcntl.h>
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 namespace Arc {
 
@@ -209,14 +212,12 @@ namespace Arc {
                             const Arc::User &user) {
     std::string fname(cache_file.substr (cache_data_path.length()));
     fname = cache_link_path + fname;
-#ifndef WIN32
     if(symlink(fname.c_str(), link_path.c_str()) == -1) {
       logger.msg(ERROR, "Failed to make symbolic link %s to %s",
                  link_path, fname);
       return false;
     }
     (lchown(link_path.c_str(), user.get_uid(), user.get_gid()) != 0);
-#endif
     return true;
   }
 
@@ -245,9 +246,7 @@ namespace Arc {
       logger.msg(ERROR, "Failed to create file for writing: %s", link_path);
       return false;
     }
-#ifndef WIN32
     (fchown(fd, user.get_uid(), user.get_gid()) != 0);
-#endif
     int fd_ = open(cache_file.c_str(), O_RDONLY);
     if(fd_ == -1) {
       close(fd);

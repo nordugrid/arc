@@ -15,9 +15,7 @@
 #include <cstdio>
 
 #ifndef WIN32
-#define MKDIR(x) (mkdir(x, 0700))
-#else
-#define MKDIR(x) (mkdir(x))
+#include <arc/win32.h>
 #endif
 
 namespace Arc {
@@ -48,7 +46,7 @@ static void merge_xml(std::string& path_base, Arc::XMLNode &node)
 static bool create_directory(const std::string dir) {
     if (!Glib::file_test(dir, Glib::FILE_TEST_IS_DIR)) {
         // create directory
-        if (MKDIR(dir.c_str()) != 0) {
+        if (mkdir(dir.c_str(), 0700) != 0) {
             logger.msg(ERROR,"cannot create directory: %s",dir);
             return false;
         }
