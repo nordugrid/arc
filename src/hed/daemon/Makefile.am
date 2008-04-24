@@ -1,7 +1,14 @@
 SUBDIRS = scripts
 
 sbin_PROGRAMS = arched
-SOURCES = main.cpp options.cpp options.h daemon.cpp daemon.h
+SRC_UNIX = main.cpp options.cpp options.h daemon.cpp daemon.h
+SRC_WIN32 = main_win32.cpp options.cpp options.h
+if WIN32
+SRC = $(SRC_WIN32)
+else
+SRC = $(SRC_UNIX)
+endif
+SOURCES=$(SRC)
 
 arched_SOURCES  = $(SOURCES)
 arched_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
