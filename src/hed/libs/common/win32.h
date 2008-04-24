@@ -5,6 +5,9 @@
 #include <objbase.h>
 #include <io.h>
 
+#define SIGPIPE 13
+#define SIGTTIN 21
+#define SIGTTOU 22
 #define sleep(x) Sleep((x)*1000)
 #define mkdir(x,y) mkdir((x))
 // no windows functions

@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #else
-#include <win32.h>
+#include <arc/win32.h>
 #endif
 
 #include <unistd.h>
