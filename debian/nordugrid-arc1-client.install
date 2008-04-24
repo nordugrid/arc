@@ -1,4 +1,3 @@
-usr/bin/arcls
 usr/bin/apinfo
 usr/bin/approxy
 usr/bin/apsub
@@ -10,7 +9,9 @@ usr/bin/apget
 usr/bin/apecho
 usr/bin/perftest
 usr/bin/arccp
+usr/bin/arcls
 usr/bin/arcrm
+usr/bin/arcstat
 usr/share/man/man1/apinfo.1
 usr/share/man/man1/approxy.1
 usr/share/man/man1/apsub.1
