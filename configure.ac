@@ -565,6 +565,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
+                 src/hed/pdc/arcpdp/Makefile
                  src/hed/pdc/allowpdp/Makefile
                  src/hed/pdc/denypdp/Makefile
                  src/hed/pdc/countpdp/Makefile

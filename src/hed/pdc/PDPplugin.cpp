@@ -4,7 +4,7 @@
 
 #include <arc/loader/PDPLoader.h>
 #include "simplelistpdp/SimpleListPDP.h"
-#include "ArcPDP.h"
+#include "arcpdp/ArcPDP.h"
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
