@@ -372,6 +372,7 @@ char* PayloadHTTP::Insert(const char* s,int pos,int size) {
 }
 
 char* PayloadHTTP::Buffer(unsigned int num) {
+std::cout << "HTTP Buffer " << num << "/" << buf_.size() <<"/"<< &body_ << std::endl;
   if(num < buf_.size()) {
     return PayloadRaw::Buffer(num);
   };

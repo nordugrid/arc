@@ -12,7 +12,6 @@
 #include "MCCHTTP.h"
 
 
-namespace Arc {
 
 Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
 
@@ -32,6 +31,8 @@ mcc_descriptors ARC_MCC_LOADER = {
     { "http.client",  0, &get_mcc_client },
     { NULL, 0, NULL }
 };
+
+namespace Arc {
 
 class HTTPSecAttr: public SecAttr {
  friend class MCC_HTTP_Service;
@@ -304,6 +305,9 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
+  MessagePayload *tmp = nextinmsg.Payload();
+  logger.msg(Arc::DEBUG, "http: %s", Arc::ContentFromPayload(*tmp));
+
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg);

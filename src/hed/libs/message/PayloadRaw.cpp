@@ -42,6 +42,7 @@ static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,int pos,std::vector<Pay
 }
 
 char* PayloadRaw::Content(int pos) {
+// std::cout << "Raw::Content" << std::endl;
   unsigned int bufnum;
   int bufpos;
   if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return NULL;

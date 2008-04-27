@@ -140,6 +140,9 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
         lock_.unlock(); sleep(1); lock_.lock();
     };
     lock_.unlock();
+#ifdef WIN32
+    WSACleanup();
+#endif
 }
 
 MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h):obj(o),handle(h) {
@@ -294,6 +297,13 @@ MCC_Status MCC_TCP_Service::process(Message&,Message&) {
 }
 
 MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC_TCP(cfg),s_(NULL) {
+#ifdef WIN32
+    WSADATA wsadata;
+    if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
+    	logger.msg(Arc::ERROR, "Cannot initialize winsock library");
+        return;
+    }
+#endif
     XMLNode c = (*cfg)["Connect"][0];
     if(!c) {
         logger.msg(Arc::ERROR,"No Connect element specified");
@@ -320,6 +330,9 @@ MCC_TCP_Client::MCC_TCP_Client(Arc::Config *cfg):MCC_TCP(cfg),s_(NULL) {
 
 MCC_TCP_Client::~MCC_TCP_Client(void) {
     if(s_) delete(s_);
+#ifdef WIN32
+    WSACleanup();
+#endif
 }
 
 MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
@@ -342,9 +355,10 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
         if(!buf) break;
+        logger.msg(Arc::DEBUG, "tcp: (%d, %d) %s", n, strlen(buf), buf);
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
-	    logger.msg(Arc::ERROR,"Failed to send content of buffer");
+            logger.msg(Arc::ERROR, "Failed to send content of buffer");
             return MCC_Status();
         };
     };

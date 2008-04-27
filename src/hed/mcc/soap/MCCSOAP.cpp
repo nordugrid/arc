@@ -13,7 +13,6 @@
 
 #include "MCCSOAP.h"
 
-namespace Arc {
 
 Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
 
@@ -35,6 +34,7 @@ mcc_descriptors ARC_MCC_LOADER = {
     { NULL, 0, NULL }
 };
 
+namespace Arc {
 
 class SOAPSecAttr: public SecAttr {
  friend class MCC_SOAP_Service;
