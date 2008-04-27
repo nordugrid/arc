@@ -259,19 +259,24 @@ class Element:
                 response[requestID].append(localData.get(p, None))
         return response
 
-class ElementService:
+from storage.service import Service
+
+class ElementService(Service):
 
     def __init__(self, cfg):
-        print "Storage Element service constructor called"
-        self.se_ns = arc.NS({'se':element_uri})
+        # names of provided methods
+        request_names = ['get', 'put', 'stat', 'toggleReport']
+        # create the business-logic class
         self.element = Element(cfg)
+        # get the additional request names from the backend
         backend_request_names = self.element.backend.public_request_names
+        # bring the additional request methods into the namespace of this object
         for name in backend_request_names:
             if not hasattr(self, name):
                 setattr(self, name, getattr(self.element.backend, name))
-                self.request_names.append(name)
-        #print self.request_names
-        #print self.notify
+                request_names.append(name)
+        # call the Service's constructor
+        Service.__init__(self, 'Element', request_names, 'se', element_uri)
 
 
     def stat(self, inpayload):
@@ -279,7 +284,7 @@ class ElementService:
         response = self.element.stat(request)
         print response
         return create_response('se:stat',
-            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.se_ns)
+            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.ns)
 
     def _putget_in(self, putget, inpayload):
         request = dict([
@@ -304,7 +309,7 @@ class ElementService:
                 ]) for requestID, responseData in response.items()
             ])
         )
-        out = arc.PayloadSOAP(self.se_ns)
+        out = self.newSOAPPayload()
         response_node = out.NewChild(putget + 'response')
         tree.add_to_node(response_node)
         return out
@@ -322,47 +327,7 @@ class ElementService:
     def toggleReport(self, inpayload):
         doReporting = str(inpayload.Child().Get('doReporting'))
         response = self.element.toggleReport(doReporting == true)
-        out = arc.PayloadSOAP(self.se_ns)
+        out = self.newSOAPPayload()
         response_node = out.NewChild('cat:toggleReportResponse')
         response_node.Set(response)
         return out
-
-    def process(self, inmsg, outmsg):
-        """ Method to process incoming message and create outgoing one. """
-        # gets the payload from the incoming message
-        inpayload = inmsg.Payload()
-        try:
-            # gets the namespace prefix of the Hash namespace in its incoming payload
-            element_prefix = inpayload.NamespacePrefix(element_uri)
-            request_node = inpayload.Child()
-            if request_node.Prefix() != element_prefix:
-                raise Exception, 'wrong namespace (%s)' % request_node.Prefix()
-            # get the name of the request without the namespace prefix
-            request_name = request_node.Name()
-            print '     element.%s called' % request_name
-            if request_name not in self.request_names:
-                # if the name of the request is not in the list of supported request names
-                raise Exception, 'wrong request (%s)' % request_name
-            # if the request name is in the supported names,
-            # then this class should have a method with this name
-            # the 'getattr' method returns this method
-            # which then we could call with the incoming payload
-            # and which will return the response payload
-            if request_name in self.request_names:
-                outpayload = getattr(self, request_name)(inpayload)
-            # sets the payload of the outgoing message
-            outmsg.Payload(outpayload)
-            # return with the STATUS_OK status
-            return arc.MCC_Status(arc.STATUS_OK)
-        except:
-            # if there is any exception, print it
-            exc = traceback.format_exc()
-            print exc
-            # set an empty outgoing payload
-            outpayload = arc.PayloadSOAP(self.se_ns)
-            outpayload.NewChild('se:Fault').Set(exc)
-            outmsg.Payload(outpayload)
-            return arc.MCC_Status(arc.STATUS_OK)
-
-    # names of provided methods
-    request_names = ['get', 'put', 'stat', 'toggleReport']

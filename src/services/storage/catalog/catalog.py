@@ -241,7 +241,9 @@ class Catalog:
                 response[requestID] = 'failed: ' + success
         return response
     
-class CatalogService:
+from storage.service import Service
+    
+class CatalogService(Service):
     """ CatalogService class implementing the XML interface of the storage Catalog service. """
 
     def __init__(self, cfg):
@@ -251,11 +253,11 @@ class CatalogService:
 
         'cfg' is an XMLNode which containes the config of this service.
         """
-        print "CatalogService constructor called"
+        # names of provided methods
+        request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
+        # call the Service's constructor
+        Service.__init__(self, 'Catalog', request_names, 'cat', catalog_uri)
         self.catalog = Catalog(cfg)
-        # set the default namespace for the Catalog service
-        self.cat_ns = arc.NS({'cat':catalog_uri})
-
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
@@ -264,7 +266,7 @@ class CatalogService:
             for requestID, metadataList in requests0.items()])
         resp = self.catalog.new(requests)
         return create_response('cat:new',
-            ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.cat_ns)
+            ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.newSOAPPayload())
 
     def get(self, inpayload):
         requests = [str(node.Get('GUID')) for node in get_child_nodes(inpayload.Child().Get('getRequestList'))]
@@ -273,7 +275,7 @@ class CatalogService:
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
         tree = self.catalog.get(requests, neededMetadata)
-        out = arc.PayloadSOAP(self.cat_ns)
+        out = arc.PayloadSOAP(self.newSOAPPayload())
         response_node = out.NewChild('cat:getResponse')
         tree.add_to_node(response_node)
         return out
@@ -293,20 +295,20 @@ class CatalogService:
                 traversedLN, GUID, metadataTree, restLN)
         return create_response('cat:traverseLN',
             ['cat:requestID', 'cat:traversedList', 'cat:wasComplete',
-                'cat:traversedLN', 'cat:GUID', 'cat:metadataList', 'cat:restLN'], response, self.cat_ns)
+                'cat:traversedLN', 'cat:GUID', 'cat:metadataList', 'cat:restLN'], response, self.newSOAPPayload())
 
     def modifyMetadata(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['cat:changeID',
             'cat:GUID', 'cat:changeType', 'cat:section', 'cat:property', 'cat:value'])
         response = self.catalog.modifyMetadata(requests)
         return create_response('cat:modifyMetadata', ['cat:changeID', 'cat:success'],
-            response, self.cat_ns, single = True)
+            response, self.newSOAPPayload(), single = True)
 
     def remove(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['cat:requestID', 'cat:GUID'], single = True)
         response = self.catalog.remove(requests)
         return create_response('cat:remove', ['cat:requestID', 'cat:success'],
-            response, self.cat_ns, single = True)
+            response, self.newSOAPPayload(), single = True)
     
     def report(self, inpayload):
         request_node = inpayload.Child()
@@ -315,48 +317,8 @@ class CatalogService:
         file_nodes = get_child_nodes(filelist_node)
         filelist = [(str(node.Get('GUID')), str(node.Get('referenceID')), str(node.Get('state'))) for node in file_nodes]
         nextReportTime = self.catalog.report(serviceID, filelist)
-        out = arc.PayloadSOAP(self.cat_ns)
+        out = self.newSOAPPayload()
         response_node = out.NewChild('cat:registerResponse')
         response_node.NewChild('cat:nextReportTime').Set(str(nextReportTime))
         return out
 
-    def process(self, inmsg, outmsg):
-        """ Method to process incoming message and create outgoing one. """
-        # gets the payload from the incoming message
-        inpayload = inmsg.Payload()
-        try:
-            # gets the namespace prefix of the catalog namespace in its incoming payload
-            catalog_prefix = inpayload.NamespacePrefix(catalog_uri)
-            # gets the namespace prefix of the request
-            request_prefix = inpayload.Child().Prefix()
-            if request_prefix != catalog_prefix:
-                # if the request is not in the catalog namespace
-                raise Exception, 'wrong namespace (%s)' % request_prefix
-            # get the name of the request without the namespace prefix
-            request_name = inpayload.Child().Name()
-            print '     catalog.%s called' % request_name
-            if request_name not in self.request_names:
-                # if the name of the request is not in the list of supported request names
-                raise Exception, 'wrong request (%s)' % request_name
-            # if the request name is in the supported names,
-            # then this class should have a method with this name
-            # the 'getattr' method returns this method
-            # which then we could call with the incoming payload
-            # and which will return the response payload
-            outpayload = getattr(self,request_name)(inpayload)
-            # sets the payload of the outgoing message
-            outmsg.Payload(outpayload)
-            # return with the STATUS_OK status
-            return arc.MCC_Status(arc.STATUS_OK)
-        except:
-            # if there is any exception, print it
-            exc = traceback.format_exc()
-            print exc
-            # set an empty outgoing payload
-            outpayload = arc.PayloadSOAP(self.cat_ns)
-            outpayload.NewChild('catalog:Fault').Set(exc)
-            outmsg.Payload(outpayload)
-            return arc.MCC_Status(arc.STATUS_OK)
-
-    # names of provided methods
-    request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']

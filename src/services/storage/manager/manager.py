@@ -120,8 +120,7 @@ class Manager:
             print 'Storage Element chosen:', se        
             return ElementClient(se)
         except:
-            if se:
-                traceback.print_exc()
+            traceback.print_exc()
             return None
 
     def _add_replica(self, size, checksumType, checksum, GUID, protocols):
@@ -283,16 +282,20 @@ class Manager:
             response[requestID] = success
         return response
 
-class ManagerService:
+from storage.service import Service
+
+class ManagerService(Service):
 
     def __init__(self, cfg):
-        print "Storage Manager service constructor called"
+        # names of provided methods
+        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']
+        # call the Service's constructor
+        Service.__init__(self, 'Manager', request_names, 'man', manager_uri)
         catalog_url = str(cfg.Get('CatalogURL'))
         catalog = CatalogClient(catalog_url)
         element_url = str(cfg.Get('ElementURL'))
         element = ElementClient(element_url)
         self.manager = Manager(catalog, element)
-        self.man_ns = arc.NS({'man':manager_uri})
 
     def stat(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -304,7 +307,7 @@ class ManagerService:
         for requestID, metadata in response.items():
             response[requestID] = create_metadata(metadata, 'man')
         return create_response('man:stat',
-            ['man:requestID', 'man:metadataList'], response, self.man_ns, single = True)
+            ['man:requestID', 'man:metadataList'], response, self.newSOAPPayload(), single = True)
 
     def getFile(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -313,22 +316,22 @@ class ManagerService:
                 str(request_node.Get('requestID')), 
                 (
                     str(request_node.Get('LN')),
-                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.man_ns)]
+                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.ns)]
                 )
             ) for request_node in request_nodes
         ])
         response = self.manager.getFile(requests)
         return create_response('man:getFile',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
+            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
     
     def addReplica(self, inpayload):
-        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.man_ns)]
+        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.newSOAPPayload())]
         request_nodes = get_child_nodes(inpayload.Child().Get('addReplicaRequestList'))
         requests = dict([(str(request_node.Get('requestID')), str(request_node.Get('GUID')))
                 for request_node in request_nodes])
         response = self.manager.addReplica(requests, protocols)
         return create_response('man:addReplica',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
+            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
     
     def putFile(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -338,13 +341,13 @@ class ManagerService:
                 (
                     str(request_node.Get('LN')),
                     parse_metadata(request_node.Get('metadataList')),
-                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.man_ns)]
+                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.newSOAPPayload())]
                 )
             ) for request_node in request_nodes
         ])
         response = self.manager.putFile(requests)
         return create_response('man:putFile',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.man_ns)
+            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
 
     def makeCollection(self, inpayload):
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -355,7 +358,7 @@ class ManagerService:
         ])
         response = self.manager.makeCollection(requests)
         return create_response('man:makeCollection',
-            ['man:requestID', 'man:success'], response, self.man_ns, single = True)
+            ['man:requestID', 'man:success'], response, self.newSOAPPayload(), single = True)
 
     def list(self, inpayload):
         requests = parse_node(inpayload.Child().Get('listRequestList'),
@@ -375,54 +378,12 @@ class ManagerService:
             status)
         ) for requestID, (entries, status) in response0.items()])
         return create_response('man:list',
-            ['man:requestID', 'man:entries', 'man:status'], response, self.man_ns)
+            ['man:requestID', 'man:entries', 'man:status'], response, self.newSOAPPayload())
 
     def move(self, inpayload):
         requests = parse_node(inpayload.Child().Child(),
             ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
         response = self.manager.move(requests)
         return create_response('man:move',
-            ['man:requestID', 'man:status'], response, self.man_ns, single = True)
+            ['man:requestID', 'man:status'], response, self.newSOAPPayload(), single = True)
 
-
-
-    def process(self, inmsg, outmsg):
-        """ Method to process incoming message and create outgoing one. """
-        # gets the payload from the incoming message
-        inpayload = inmsg.Payload()
-        try:
-            # gets the namespace prefix of the manager namespace in its incoming payload
-            manager_prefix = inpayload.NamespacePrefix(manager_uri)
-            # gets the namespace prefix of the request
-            request_prefix = inpayload.Child().Prefix()
-            if request_prefix != manager_prefix:
-                # if the request is not in the manager namespace
-                raise Exception, 'wrong namespace (%s)' % request_prefix
-            # get the name of the request without the namespace prefix
-            request_name = inpayload.Child().Name()
-            print '     manager.%s called' % request_name
-            if request_name not in self.request_names:
-                # if the name of the request is not in the list of supported request names
-                raise Exception, 'wrong request (%s)' % request_name
-            # if the request name is in the supported names,
-            # then this class should have a method with this name
-            # the 'getattr' method returns this method
-            # which then we could call with the incoming payload
-            # and which will return the response payload
-            outpayload = getattr(self,request_name)(inpayload)
-            # sets the payload of the outgoing message
-            outmsg.Payload(outpayload)
-            # return with the STATUS_OK status
-            return arc.MCC_Status(arc.STATUS_OK)
-        except:
-            # if there is any exception, print it
-            exc = traceback.format_exc()
-            print exc
-            # set an empty outgoing payload
-            outpayload = arc.PayloadSOAP(self.man_ns)
-            outpayload.NewChild('manager:Fault').Set(exc)
-            outmsg.Payload(outpayload)
-            return arc.MCC_Status(arc.STATUS_OK)
-
-    # names of provided methods
-    request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']

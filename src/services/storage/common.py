@@ -109,9 +109,8 @@ def parse_to_dict(node, names):
     return dict([(str(n.Get(names[0])), dict([(name, str(n.Get(name))) for name in names[1:]]))
         for n in get_child_nodes(node)])
 
-def create_response(method_name, tag_names, elements, ns, single = False):
+def create_response(method_name, tag_names, elements, payload, single = False):
     from storage.xmltree import XMLTree
-    import arc
     if single:
         tree = XMLTree(from_tree =
             (method_name + 'ResponseList', [
@@ -131,10 +130,9 @@ def create_response(method_name, tag_names, elements, ns, single = False):
                 ]) for element in elements.items()
             ])
         )
-    out = arc.PayloadSOAP(ns)
-    response_node = out.NewChild(method_name + 'Response')
+    response_node = payload.NewChild(method_name + 'Response')
     tree.add_to_node(response_node)
-    return out
+    return payload
 
 def remove_trailing_slash(LN):
     if LN.endswith('/'):

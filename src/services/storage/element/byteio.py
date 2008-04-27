@@ -94,11 +94,15 @@ class ByteIOBackend:
     def checksum(self, localID, checksumType):
         return create_checksum(file(os.path.join(self.datadir, localID), 'rb'), checksumType)
 
-class ByteIOService:
+from storage.service import Service
+
+class ByteIOService(Service):
 
     def __init__(self, cfg):
-        print "ByteIOService constructor called"
-        self.rb_ns = arc.NS({'rb' : rbyteio_uri})
+        # names of provided methods
+        request_names = ['read', 'write']
+        # call the Service's constructor
+        Service.__init__(self, 'ByteIO', request_names, 'rb', rbyteio_uri)
         self.transferdir = str(cfg.Get('TransferDir'))
         print "ByteIOService transfer dir:", self.transferdir
         self.notify = NotifyClient(str(cfg.Get('NotifyURL')))
@@ -127,7 +131,7 @@ class ByteIOService:
             print traceback.format_exc()
             raise Exception, 'write failed'
         self.notify.notify(subject, 'received')
-        out = arc.PayloadSOAP(self.rb_ns)
+        out = self.newSOAPPayload()
         response_node = out.NewChild('rb:writeResponse').Set('OK')
         return out
 
@@ -138,7 +142,7 @@ class ByteIOService:
             print traceback.format_exc()
             data = ''
         self.notify.notify(subject, 'sent')
-        out = arc.PayloadSOAP(self.rb_ns)
+        out = self.newSOAPPayload()
         response_node = out.NewChild('rb:readResponse')
         transfer_node = response_node.NewChild('rb:transfer-information')
         transfer_node.NewAttribute('transfer-mechanism').Set(byteio_simple_uri)
@@ -146,46 +150,12 @@ class ByteIOService:
         transfer_node.Set(encoded_data)
         return out
 
-    def process(self, inmsg, outmsg):
-        # gets the payload from the incoming message
-        inpayload = inmsg.Payload()
+    def _call_request(self, request_name, inmsg):
         # gets the last part of the request url
-        # TODO somehow detect if this is just the path of the service which means: no subject
+        # TODO: somehow detect if this is just the path of the service which means: no subject
         subject = inmsg.Attributes().get('ENDPOINT').split('/')[-1]
+        # the subject of the byteio request: reference to the file
         print 'Subject:', subject
-        try:
-            # gets the namespace prefix of the Hash namespace in its incoming payload
-            rbyteio_prefix = inpayload.NamespacePrefix(rbyteio_uri)
-            request_node = inpayload.Child()
-            if request_node.Prefix() != rbyteio_prefix:
-                raise Exception, 'wrong namespace (%s)' % request_name
-            # get the name of the request without the namespace prefix
-            request_name = request_node.Name()
-            print '     byteio.%s called' % request_name
-            if request_name not in self.request_names:
-                # if the name of the request is not in the list of supported request names
-                raise Exception, 'wrong request (%s)' % request_name
-            # if the request name is in the supported names,
-            # then this class should have a method with this name
-            # the 'getattr' method returns this method
-            # which then we could call with the incoming payload and the subject
-            # and which will return the response payload
-            outpayload = getattr(self,request_name)(inpayload, subject)
-            # sets the payload of the outgoing message
-            outmsg.Payload(outpayload)
-            # return with the STATUS_OK status
-            return arc.MCC_Status(arc.STATUS_OK)
-        except:
-            # if there is any exception, print it
-            exc = traceback.format_exc()
-            print exc
-            # set an empty outgoing payload
-            outpayload = arc.PayloadSOAP(arc.NS({}))
-            outpayload.NewChild('Fault').Set(exc)
-            outmsg.Payload(outpayload)
-            # return with the status GENERIC_ERROR
-            return arc.MCC_Status(arc.STATUS_OK)
-
-    # names of provided methods
-    request_names = ['read', 'write']
+        inpayload = inmsg.Payload()
+        return getattr(self,request_name)(inpayload, subject)
 

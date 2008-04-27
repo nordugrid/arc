@@ -176,8 +176,9 @@ class CentralHash:
         return response
 
 from storage.xmltree import XMLTree
+from storage.service import Service
 
-class HashService:
+class HashService(Service):
     """ HashService class implementing the XML interface of the Hash service. """
 
     def __init__(self, cfg):
@@ -187,7 +188,10 @@ class HashService:
 
         'cfg' is an XMLNode which containes the config of this service.
         """
-        print "HashService constructor called"
+        # names of provided methods
+        request_names = ['get','change']
+        # call the Service's constructor
+        Service.__init__(self, 'Hash', request_names, 'hash', hash_uri)
         # the name of the class which implements the business logic of the Hash service
         hashclass = str(cfg.Get('HashClass'))
         # the name of the class which is capable of storing the object
@@ -196,8 +200,6 @@ class HashService:
         storecfg = cfg.Get('StoreCfg')
         # import and instatiate the business logic class
         self.hash = import_class_from_string(hashclass)(storeclass, storecfg)
-        # set the default namespace for the Hash service
-        self.hash_ns = arc.NS({'hash':hash_uri})
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
@@ -207,7 +209,7 @@ class HashService:
         'inpayload' is an XMLNode containing the IDs of the requested objects
         """
         # extract the IDs from the XMLNode using the '//ID' XPath expression
-        ids = [str(id) for id in inpayload.XPathLookup('//hash:ID', self.hash_ns)]
+        ids = [str(id) for id in inpayload.XPathLookup('//hash:ID', self.ns)]
         # get the neededMetadata from the XMLNode
         try:
             neededMetadata = [
@@ -220,7 +222,7 @@ class HashService:
         # gets the result from the business logic class
         objects = self.hash.get(ids, neededMetadata)
         # create the response payload
-        out = arc.PayloadSOAP(self.hash_ns)
+        out = self.newSOAPPayload()
         # create the 'getResponse' node
         response_node = out.NewChild('hash:getResponse')
         # create an XMLTree from the results
@@ -271,7 +273,7 @@ class HashService:
         # call the business logic class
         resp = self.hash.change(changes)
         # prepare the response payload
-        out = arc.PayloadSOAP(self.hash_ns)
+        out = self.newSOAPPayload()
         # create the 'changeResponse' node
         response_node = out.NewChild('hash:changeResponse')
         # create an XMLTree for the response
@@ -287,47 +289,3 @@ class HashService:
         # add the XMLTree to the XMLNode
         tree.add_to_node(response_node)
         return out
-
-    def process(self, inmsg, outmsg):
-        """ Method to process incoming message and create outgoing one. """
-        # gets the payload from the incoming message
-        inpayload = inmsg.Payload()
-        try:
-            # gets the namespace prefix of the Hash namespace in its incoming payload
-            hash_prefix = inpayload.NamespacePrefix(hash_uri)
-            # get the qualified name of the request
-            request_name = inpayload.Child().FullName()
-            #print request_name
-            if not request_name.startswith(hash_prefix + ':'):
-                # if the request is not in the Hash namespace
-                raise Exception, 'wrong namespace (%s)' % request_name
-            # get the name of the request without the namespace prefix
-            request_name = inpayload.Child().Name()
-            print '     hash.%s called' % request_name
-            if request_name not in self.request_names:
-                # if the name of the request is not in the list of supported request names
-                raise Exception, 'wrong request (%s)' % request_name
-            # if the request name is in the supported names,
-            # then this class should have a method with this name
-            # the 'getattr' method returns this method
-            # which then we could call with the incoming payload
-            # and which will return the response payload
-            outpayload = getattr(self,request_name)(inpayload)
-            # sets the payload of the outgoing message
-            outmsg.Payload(outpayload)
-            # return with the STATUS_OK status
-            return arc.MCC_Status(arc.STATUS_OK)
-        except:
-            # if there is any exception, print it
-            exc = traceback.format_exc()
-            print exc
-            # set an empty outgoing payload
-            outpayload = arc.PayloadSOAP(self.hash_ns)
-            outpayload.NewChild('hash:Fault').Set(exc)
-            outmsg.Payload(outpayload)
-            # return with the status GENERIC_ERROR
-            return arc.MCC_Status(arc.STATUS_OK)
-
-    # names of provided methods
-    request_names = ['get','change']
-
