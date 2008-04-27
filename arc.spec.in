@@ -223,6 +223,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libcentralisi.so
 %{_libdir}/%{pkgdir}/libgrid_sched.so
 %{_libdir}/%{pkgdir}/libacctargetretriever.so
+%{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libpaul.so
 
 %files arex
