@@ -52,7 +52,7 @@ namespace Arc {
   }
 
 
-  const std::list<std::string> ArcLocation::GetPlugins() {
+  std::list<std::string> ArcLocation::GetPlugins() {
     std::list<std::string> plist;
     std::string arcpluginpath = Glib::getenv("ARC_PLUGIN_PATH");
     if(!arcpluginpath.empty()) {
