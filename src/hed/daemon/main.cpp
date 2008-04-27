@@ -12,6 +12,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+#include <arc/ArcLocation.h>
 #include "daemon.h"
 #include "options.h"
 
@@ -85,6 +86,7 @@ int main(int argc, char **argv)
     Arc::ServerOptions options;
     Arc::ServerOptions& opt_ctx = options;
 #endif
+    if((argc>0) && (argv[0])) Arc::ArcLocation::Init(argv[0]);
 
     try {
         int status = opt_ctx.parse(argc, argv);
