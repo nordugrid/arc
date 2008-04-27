@@ -6,6 +6,7 @@
 #define NOGDI
 #include <arc/win32.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 typedef int socklen_t;
 #define ErrNo WSAGetLastError()
 #else // UNIX
@@ -15,10 +16,12 @@ typedef int socklen_t;
 #endif
 #include <unistd.h>
 
+#include <arc/StringConv.h>
 #include "PayloadTCPSocket.h"
 
 namespace Arc {
 
+#if 0
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
   struct hostent* host = NULL;
   struct hostent  hostbuf;
@@ -59,6 +62,37 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
     logger.msg(WARNING, "Failed to connect to %s:%i", hostname, port);
     close(s); return -1;
   };
+  return s;
+}
+#endif
+int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
+{
+  struct addrinfo hint;
+  memset(&hint, 0, sizeof(hint));
+  hint.ai_family = AF_UNSPEC;
+  hint.ai_socktype = SOCK_STREAM;
+  hint.ai_protocol = IPPROTO_TCP;
+  std::string port_str = Arc::tostring(port);
+  struct addrinfo *info;
+  int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
+  if (ret != 0) {
+    std::string err_str = gai_strerror(ret); 
+    logger.msg(WARNING, "Failed to resolve %s (%s)", hostname, err_str);
+	return -1;
+  }
+  int s = ::socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+  if(s == -1) {
+    logger.msg(ERROR, "Failed to create socket to %s:%d", hostname, port);
+    freeaddrinfo(info);
+    return -1;
+  }
+  if(::connect(s, info->ai_addr, info->ai_addrlen) == -1) {
+    logger.msg(ERROR, "Failed to connect to %s:%i", hostname, port);
+    close(s); 
+    freeaddrinfo(info);
+    return -1;
+  };
+  freeaddrinfo(info);
   return s;
 }
 
