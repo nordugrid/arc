@@ -18,7 +18,7 @@ _storage()
                 options='stat makeCollection list move putFile getFile addReplica'
                 ;;
             element)
-                options='get put stat'
+                options='get put stat reporting'
                 ;;
         esac
     fi
