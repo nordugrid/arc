@@ -8,6 +8,7 @@
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 
 #include <arc/security/ArcPDP/Response.h>
@@ -63,8 +64,9 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
     </ArcConfig>");
 
   //Get the lib path from environment, and put it into the configuration xml node
-  std::string libpath(LIBPATH);
-  pdp_cfg_nd["ModuleManager"]["Path"] = libpath;
+  std::list<std::string> plugins = ArcLocation::GetPlugins();
+  for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p)
+    pdp_cfg_nd["ModuleManager"].NewChild("Path")=*p;
 
   Config modulecfg(pdp_cfg_nd);
 
