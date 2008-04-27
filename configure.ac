@@ -421,6 +421,9 @@ AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Check for the uuid lib
 AC_CHECK_HEADER(uuid/uuid.h, [UUID_LIBS="-luuid"], [UUID_LIBS=""])
+case "${host}" in
+    *darwin*) UUID_LIBS="";;
+esac
 AC_SUBST(UUID_LIBS)
 
 # check for fsusage
@@ -495,7 +498,12 @@ case " $LDFLAGS " in
      " -Wl,-no-undefined ") ;;
      " -Wl,-z -Wl,defs ") ;;
      " -Wl,-z,defs ") ;;
-     *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
+     *)
+        case "${host}" in
+            *darwin*);;
+            *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
+        esac
+        ;;
 esac
 
 

@@ -12,6 +12,8 @@
 #include "MCCHTTP.h"
 
 
+namespace Arc {
+
 Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
 
 Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : MCC(cfg) {
@@ -30,9 +32,6 @@ mcc_descriptors ARC_MCC_LOADER = {
     { "http.client",  0, &get_mcc_client },
     { NULL, 0, NULL }
 };
-
-using namespace Arc;
-
 
 class HTTPSecAttr: public SecAttr {
  friend class MCC_HTTP_Service;
@@ -335,3 +334,4 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(Arc::STATUS_OK);
 }
 
+} // namespace Arc
