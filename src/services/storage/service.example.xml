@@ -6,7 +6,7 @@
     <Server>
         <Foreground/>
         <Pidfile>./arched.pid</Pidfile>
-        <Logger level="VERBOSE">./logfile</Logger>
+        <Logger level="WARNING">./logfile</Logger>
     </Server>
     <ModuleManager>
         <Path>/Users/zsombor/Development/arc/arc1/src/services/wrappers/python/.libs/</Path>
@@ -34,20 +34,46 @@
             <next id="hash">/Hash</next>
             <next id="catalog">/Catalog</next>
             <next id="manager">/Manager</next>
+            <next id="element">/Element</next>
+            <next id="byteio">/byteio</next>
         </Plexer>
         <Service name="pythonservice" id="hash">
             <ClassName>storage.hash.hash.HashService</ClassName>
-            <DataDir>hash_data</DataDir>
             <HashClass>storage.hash.hash.CentralHash</HashClass>
-            <StoreClass>storage.hash.hash.PickleStore</StoreClass>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>hash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="catalog">
             <ClassName>storage.catalog.catalog.CatalogService</ClassName>
             <HashURL>http://localhost:60000/Hash</HashURL>
+            <HeartbeatTimeout>30</HeartbeatTimeout>
+            <CheckPeriod>20</CheckPeriod>
         </Service>
         <Service name="pythonservice" id="manager">
             <ClassName>storage.manager.manager.ManagerService</ClassName>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <ElementURL>http://localhost:60000/Element</ElementURL>
+        </Service>
+        <Service name="pythonservice" id="element">
+            <ClassName>storage.element.element.ElementService</ClassName>
+            <ServiceID>http://localhost:60000/Element</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>element_data</DataDir></StoreCfg>
+            <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>element_store</DataDir>
+                <TransferDir>element_transfer</TransferDir>
+                <TURLPrefix>http://localhost:60000/byteio/</TURLPrefix>
+            </BackendCfg>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+        </Service>
+        <Service name="pythonservice" id="byteio">
+            <ClassName>storage.element.byteio.ByteIOService</ClassName>
+            <TransferDir>element_transfer</TransferDir>
+            <NotifyURL>http://localhost:60000/Element</NotifyURL>
         </Service>
     </Chain>
 </ArcConfig>
