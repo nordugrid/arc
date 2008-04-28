@@ -66,13 +66,15 @@ namespace Arc {
     /// Stop reading.
     /** Must be called after corresponding start_reading method,
 	either after all data is transferred or to cancel transfer.
-	Use buffer object to find out when data is transferred. */
+	Use buffer object to find out when data is transferred.
+        Must return failure if any happened during transfer. */
     virtual DataStatus StopReading() = 0;
 
     /// Stop writing.
     /** Must be called after corresponding start_writing method,
 	either after all data is transferred or to cancel transfer.
-	Use buffer object to find out when data is transferred. */
+	Use buffer object to find out when data is transferred.
+        Must return failure if any happened during transfer. */
     virtual DataStatus StopWriting() = 0;
 
     /// Query the DataPoint to check if object is accessible.

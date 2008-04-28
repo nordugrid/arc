@@ -382,7 +382,7 @@ namespace Arc {
     cond.wait();
     logger.msg(DEBUG, "stop_reading_ftp: exiting: %s", url.str());
     globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
-    return DataStatus::Success;
+    return condstatus;
   }
 
   void *DataPointGridFTP::ftp_read_thread(void *arg) {
@@ -543,7 +543,7 @@ namespace Arc {
     }
     cond.wait();
     globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
-    return DataStatus::Success;
+    return condstatus;
   }
 
   void *DataPointGridFTP::ftp_write_thread(void *arg) {

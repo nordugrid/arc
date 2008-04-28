@@ -230,6 +230,7 @@ namespace Arc {
       fd = -1;
     }
     buffer->wait_eof_read();         /* wait till reading thread exited */
+    if(buffer->error_read()) return DataStatus::ReadError;
     return DataStatus::Success;
   }
 
@@ -362,6 +363,7 @@ namespace Arc {
       fd = -1;
     }
     buffer->wait_eof_write();         /* wait till writing thread exited */
+    if(buffer->error_write()) return DataStatus::WriteError;
     return DataStatus::Success;
   }
 

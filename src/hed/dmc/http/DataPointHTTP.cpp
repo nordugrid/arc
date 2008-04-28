@@ -348,6 +348,7 @@ namespace Arc {
     buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
+    if(buffer->error_read()) return DataStatus::ReadError;
     return DataStatus::Success;
   }
 
@@ -405,6 +406,7 @@ namespace Arc {
     buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
+    if(buffer->error_write()) return DataStatus::WriteError;
     return DataStatus::Success;
   }
 

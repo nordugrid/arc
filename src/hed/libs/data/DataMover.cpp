@@ -759,11 +759,13 @@ namespace Arc {
           if(source.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next source");
           res = read_failure;
+          if(res) res = DataStatus::ReadError;
         }
         else if(buffer.error_write()) {
           if(destination.NextLocation())
             logger.msg(DEBUG, "(Re)Trying next destination");
           res = write_failure;
+          if(res) res = DataStatus::WriteError;
         }
         else if(buffer.error_transfer()) {
           // Here is more complicated case - operation timeout
