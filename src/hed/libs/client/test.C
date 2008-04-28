@@ -15,11 +15,13 @@ int main(){
   Arc::Config mcfg(ns);
   acccfg.MakeConfig(mcfg);
   Arc::XMLNode AnotherOne = mcfg.NewChild("ArcClientComponent");
-  AnotherOne.NewAttribute("name") = "TargetRetrieverARC0";
+  //AnotherOne.NewAttribute("name") = "TargetRetrieverARC0";
+  AnotherOne.NewAttribute("name") = "TargetRetrieverCREAM";
   AnotherOne.NewAttribute("id") = "retriever1";
-  AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,o=grid?giisregistrationstatus?base";
+  //AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,o=grid?giisregistrationstatus?base";
   //AnotherOne.NewChild("URL") = "ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue))";
-
+  AnotherOne.NewChild("URL") = "ldap://cream.grid.upjs.sk:2170/o=grid??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))";
+  
   Arc::TargetGenerator test(mcfg);
   test.GetTargets();
 
