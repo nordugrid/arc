@@ -196,7 +196,7 @@ namespace Arc {
   }
 
   bool DataPointGridFTP::mkdir_ftp() {
-    ftp_dir_path = url;
+    ftp_dir_path = url.str();
     for(;;)
       if (!remove_last_dir(ftp_dir_path))
         break;
@@ -496,7 +496,7 @@ namespace Arc {
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
     if (additional_checks) {
       logger.msg(DEBUG, "start_writing_ftp: mkdir");
-      if (!DataPointGridFTP::mkdir_ftp()) {
+      if (!mkdir_ftp()) {
         logger.msg(DEBUG,
                    "start_writing_ftp: mkdir failed - still trying to write");
       }
