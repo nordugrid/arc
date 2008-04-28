@@ -13,19 +13,48 @@ import traceback
 class Manager:
 
     def __init__(self, catalog, element):
+        """ Constructor of the Manager business-logic class.
+        
+        Manager(catalog, element)
+        
+        catalog is CatalogClient object which can be used to access a Catalog service
+        element is an ElementClient object which can be used to access an Element service
+        """
         self.catalog = catalog
         self.element = element
 
     def stat(self, requests):
+        """ Returns stat information about entries.
+        
+        stat(requests)
+        
+        requests is a dictionary with requestIDs as keys, and Logical Names as values.
+    
+        Returns a dictionary with requestIDs as keys, and metadata as values.
+        The 'metadata' is a dictionary with (section, property) pairs as keys.
+        """
         response = {}
-        for requestID, (metadata, _, _, _, wasComplete, _) in self.catalog.traverseLN(requests).items():
-            if wasComplete:
+        # get the information from the catalog
+        traverse_response = self.catalog.traverseLN(requests)
+        # we are only interested in the metadata and if the traversing was complete or not
+        for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
+            if wasComplete: # if it was complete, then we found the entry and got the metadata
                 response[requestID] = metadata
-            else:
+            else: # if it was not complete, then we didn't found the entry, so metadata will be empty
                 response[requestID] = {}
         return response
     
     def _traverse(self, requests):
+        """ Helper method which connects the catalog, and traverses the LNs of the requests.
+        
+        _traverse(requests)
+        
+        Removes the trailing slash from  all the LNs in the request.
+        Returns the requests and the traverse response.
+        """
+        # in each request the requestID is the key and the value is a list
+        # the first item of the list is the Logical Name, we want to remove the trailing slash, and
+        # leave the other items intact
         requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
         print '//// _traverse request trailing slash removed:', dict(requests)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
