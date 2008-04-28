@@ -84,8 +84,8 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   unsigned long flag = get_flag_STORE_CTX(sctx);
   if(!(flag & FLAG_CRL_DISABLED)) {
      // Not sure if this will work
-     if(!(flag & X509_V_FLAG_CRL_CHECK)) {
-       set_flag_STORE_CTX(sctx, flag | X509_V_FLAG_CRL_CHECK);
+     if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
+       sctx->flags |= X509_V_FLAG_CRL_CHECK;
        ok=X509_verify_cert(sctx);
        return ok;
      };
@@ -121,11 +121,11 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
         };
 #else
-  	unsigned long flag = get_flag_STORE_CTX(sctx);
-        set_flag_STORE_CTX(sctx,flag & (~X509_V_FLAG_CRL_CHECK) | FLAG_CRL_DISABLED);
+        sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
+        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
         ok=X509_verify_cert(sctx);
-  	flag = get_flag_STORE_CTX(sctx);
-        set_flag_STORE_CTX(sctx,flag | X509_V_FLAG_CRL_CHECK & (~FLAG_CRL_DISABLED));
+        sctx->flags |= X509_V_FLAG_CRL_CHECK;
+        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
         if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
 #endif
       }; break;
@@ -307,7 +307,6 @@ unsigned long MCC_TLS::ssl_id_cb(void) {
 //}
 
 bool MCC_TLS::do_ssl_init(void) {
-   std::cout << ">>>SSL INIT " << ssl_initialized_ << std::endl;
    if(ssl_initialized_) return true;
    lock_.lock();
    if(!ssl_initialized_) {
