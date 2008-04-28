@@ -286,7 +286,9 @@ namespace Arc {
     info->code = stringtoi(repmsg.Attributes()->get("HTTP:CODE"));
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
     info->size = stringtoull(repmsg.Attributes()->get("HTTP:content-length"));
-    info->lastModified = repmsg.Attributes()->get("HTTP:last-modified");
+    std::string lm;
+    lm = repmsg.Attributes()->get("HTTP:last-modified");
+    if (lm.size()>11) info->lastModified = lm;
     info->type = repmsg.Attributes()->get("HTTP:content-type");
     if(repmsg.Payload() != NULL)
       try {
