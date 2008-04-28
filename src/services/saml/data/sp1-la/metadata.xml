@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<EntityDescriptor
+    providerID="https://sp1/metadata"
+    xmlns="urn:liberty:metadata:2003-08">
+ <SPDescriptor>
+
+  <AssertionConsumerServiceURL id="AssertionConsumerServiceURL1" isDefault="true">https://sp1:2006/assertionConsumer</AssertionConsumerServiceURL>
+
+  <SingleLogoutServiceURL>https://sp1:2006/singleLogout</SingleLogoutServiceURL>
+  <SingleLogoutServiceReturnURL>https://sp1:2006/singleLogoutReturn</SingleLogoutServiceReturnURL>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-idp-soap</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-idp-http</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-sp-soap</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-sp-http</SingleLogoutProtocolProfile>
+
+  <FederationTerminationServiceURL>https://sp1:2006/federationTermination</FederationTerminationServiceURL>
+  <FederationTerminationServiceReturnURL>https://sp1:2006/federationTerminationReturn</FederationTerminationServiceReturnURL>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-idp-soap</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-idp-http</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-sp-soap</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-sp-http</FederationTerminationNotificationProtocolProfile>
+
+  <RegisterNameIdentifierServiceURL>https://sp1:2006/registerNameIdentifier</RegisterNameIdentifierServiceURL>
+  <RegisterNameIdentifierServiceReturnURL>https://sp1:2006/registerNameIdentifierReturn</RegisterNameIdentifierServiceReturnURL>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-idp-soap</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-idp-http</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-sp-soap</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-sp-http</RegisterNameIdentifierProtocolProfile>
+
+  <NameIdentifierMappingProtocolProfile>http://projectliberty.org/profiles/nim-sp-http</NameIdentifierMappingProtocolProfile>
+
+  <SoapEndpoint>https://sp1:2006/soapEndpoint</SoapEndpoint>
+
+  <AuthnRequestsSigned>true</AuthnRequestsSigned>
+
+ </SPDescriptor>
+ <Organization>
+  <OrganizationName>Name of the organization</OrganizationName>
+ </Organization>
+
+</EntityDescriptor>

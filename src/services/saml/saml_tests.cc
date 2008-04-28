@@ -22,7 +22,7 @@ generateIdentityProviderContextDump()
   lasso_server_add_provider(
                    serverContext,
                    LASSO_PROVIDER_ROLE_SP,
-                   TESTSDATADIR "/sp1-la/metadata.xml",
+                   TESTSDATADIR "/sp1-la/saml_metadata.xml",
                    TESTSDATADIR "/sp1-la/public-key.pem",
                    TESTSDATADIR "/ca1-la/certificate.pem");
   return lasso_server_dump(serverContext);
@@ -67,9 +67,21 @@ int main(void) {
   char *spSessionDump;
   int requestType;
 
-  std::string identity("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
+  std::string identity_sp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
     <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
        RemoteProviderID=\"https://idp1/metadata\"\
+       FederationDumpVersion=\"2\">\
+      <RemoteNameIdentifier>\
+        <saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\"\
+         NameQualifier=\"http://idp.localhost\"\
+         SPNameQualifier=\"http://sp.localhost/\">abcdefg</saml:NameID>\
+      </RemoteNameIdentifier>\
+    </Federation>\
+   </Identity>");
+
+  std::string identity_idp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
+    <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
+       RemoteProviderID=\"https://sp1/metadata\"\
        FederationDumpVersion=\"2\">\
       <RemoteNameIdentifier>\
         <saml:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\"\
@@ -89,7 +101,7 @@ int main(void) {
   assertionqry = lasso_assertion_query_new(spContext);
   if(assertionqry == NULL) { std::cout<<"lasso_assertion_query_new() failed"<<std::endl; goto exit; }
 
-  lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertionqry), identity.c_str());
+  lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertionqry), identity_sp.c_str());
 
   rc = lasso_assertion_query_init_request(assertionqry, "https://idp1/metadata", LASSO_HTTP_METHOD_SOAP, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
   if(rc != 0) { std::cout<<"lasso_assertion_query_init_request failed"<< rc <<std::endl; goto exit; }
@@ -114,6 +126,8 @@ int main(void) {
   assertionqry1 = lasso_assertion_query_new(idpContext);
   if(assertionqry1 == NULL) { std::cout<<"lasso_assertion_query_new() failed"<<std::endl; goto exit; }
 
+  lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertionqry1), identity_idp.c_str());
+
   rc = lasso_assertion_query_process_request_msg(assertionqry1, assertionRequestBody);
   if(rc != 0) { std::cout<<"lasso_assertion_query_process_request_msg failed"<<std::endl; goto exit; }
 
@@ -122,7 +136,6 @@ int main(void) {
   // AA: Generate a response 
   rc = lasso_assertion_query_build_response_msg(assertionqry1);
   if(rc != 0 ) { std::cout<<"lasso_assertion_query_build_response_msg failed"<<std::endl; goto exit; }
-
 
 
   /* Service provider assertion consumer */
