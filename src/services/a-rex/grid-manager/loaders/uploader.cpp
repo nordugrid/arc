@@ -105,7 +105,6 @@ class PointPair {
   static void callback(Arc::DataMover*,Arc::DataStatus res,const std::string&,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
     pair_condition.lock();
-std::cerr<<"uploader: callback: res = "<<(std::string)res<<std::endl;
     if(!res) {
       it->failure_description=(std::string)res;
       it->res=res;
