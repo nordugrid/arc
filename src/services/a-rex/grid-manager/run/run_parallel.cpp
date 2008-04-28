@@ -135,7 +135,7 @@ void RunParallel::initializer(void* arg) {
   else { h=open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
-  if(!(it->job_proxy_)) {
+  if(it->job_proxy_) {
     setenv("GLOBUS_LOCATION",globus_loc.c_str(),1);
     unsetenv("X509_USER_KEY");
     unsetenv("X509_USER_CERT");
