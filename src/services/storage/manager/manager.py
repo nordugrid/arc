@@ -7,7 +7,7 @@ from storage.xmltree import XMLTree
 from storage.client import CatalogClient, ElementClient
 from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
-                            serialize_ids, parse_ids, sestore_guid
+                            serialize_ids, deserialize_ids, sestore_guid
 import traceback
 
 class Manager:
@@ -73,7 +73,7 @@ class Manager:
                     if type != 'file':
                         success = 'is not a file'
                     else:
-                        valid_locations = [parse_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                        valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
                         if not valid_locations:
                             success = 'file has no valid replica'
                         else:

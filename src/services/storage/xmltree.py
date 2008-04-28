@@ -198,11 +198,14 @@ class XMLTree:
     def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False):
         """ Constructor of the XMLTree class
 
-        XMLTree(from_node = None, from_string = '', from_tree = None)
+        XMLTree(from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False)
 
         'from_tree' could be tree structure or an XMLTree object
         'from_string' could be an XML string
         'from_node' could be an XMLNode
+        'rewrite' is a dictionary, if an XML node has a name which is a key in this dictionary,
+            then it will be renamed as the value of that key
+        'forget_namespace' is a boolean, if it is true, the XMLTree will not contain the namespace prefixes
 
         'from_tree' has the highest priority, if it is not None,
             then the other two is ignored.

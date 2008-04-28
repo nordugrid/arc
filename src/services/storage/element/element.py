@@ -284,7 +284,8 @@ class ElementService(Service):
         response = self.element.stat(request)
         print response
         return create_response('se:stat',
-            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.ns)
+            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.newSOAPPayload())
+    
 
     def _putget_in(self, putget, inpayload):
         request = dict([
