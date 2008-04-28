@@ -2,11 +2,19 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <wait.h>
 #include <arc/Run.h>
 #include "paul.h"
+#define DIR_SEPARATOR '/'
+#ifdef WIN32
+#undef DIR_SEPARATOR
+#define DIR_SEPARATOR '\\'
+#include <arc/win32.h>
+#endif
 
 namespace Paul
 {
@@ -41,17 +49,59 @@ bool PaulService::run(Job &j)
     std::string cmd;
     
     // XXX unix specific
-    std::string r = job_root+"/"+j.getID();
+    std::string r = job_root+DIR_SEPARATOR+j.getID();
+    mkdir(r.c_str(), 0700);
+#ifndef WIN32
     if (exec[0] != '/') {
-        cmd = r + "/" + exec;
+#else
+    if (exec[1] != ':') {
+#endif
+        cmd = r + DIR_SEPARATOR + exec;
         chmod(cmd.c_str(), 0700);
+#ifndef WIN32
         cmd = "./" + exec + arg_str;
+#else
+        cmd = exec + arg_str;
+#endif
     } else {
         cmd = exec + arg_str;
     }
     
+    logger_.msg(Arc::DEBUG, "Command: %s", cmd);
+    Glib::ArrayHandle<std::string> argv(Glib::shell_parse_argv(cmd));
+    Glib::Pid pid;
+    try {
+        Glib::spawn_async_with_pipes(r, argv, 
+                             Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
+                                 sigc::slot<void>(), &pid, NULL, NULL, NULL);
+        j.setStatus(RUNNING);
+    } catch (Glib::Exception &e) {
+        logger_.msg(Arc::ERROR, "Cannot start %s", cmd);
+        return false;
+    } catch (std::exception &e) {
+        logger_.msg(Arc::ERROR, "Cannot start %s (%s)", cmd, e.what());
+        return false;
+    }
+#ifndef WIN32
+    int status;
+    int ret = waitpid(pid, &status, 0);
+    if (ret == 0) {
+        logger_.msg(Arc::WARNING, "Zero return");
+        return true;
+    } else if (ret == -1) {
+        logger_.msg(Arc::ERROR, "Error return");
+        return false;
+    } else {
+        logger_.msg(Arc::DEBUG, "Process %s finished", ret);
+        return true;
+    }
+#else
+    WaitForSignleObject(pid, INFINITE);
+    logger_.msg(Arc::DEBUG, "Process finished");
+    return true;
+#endif
+#if 0
     Arc::Run *run = NULL;
-
     try {
         run = new Arc::Run(cmd);
         std::string stdin_str;
@@ -95,6 +145,8 @@ error:
         delete run;
     }
     return false;
+#endif
+
 }
 
 }
