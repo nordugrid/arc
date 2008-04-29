@@ -355,7 +355,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
         if(!buf) break;
-        logger.msg(Arc::DEBUG, "tcp: (%d, %d) %s", n, strlen(buf), buf);
+        //logger.msg(Arc::DEBUG, "tcp: (%d, %d) %s", n, strlen(buf), buf);
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
             logger.msg(Arc::ERROR, "Failed to send content of buffer");
