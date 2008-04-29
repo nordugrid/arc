@@ -1,0 +1,77 @@
+\documentclass[a4paper,10pt]{article}
+
+
+%opening
+\title{The Hosting Environment Daemon of the Advanced Resource Connector middleware}
+
+\author{J. J\"{o}nemo, et al}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+
+The Hosting Environment Daemon (HED) is the container of all the functional components of the new generation of the Advanced Resource Connector (ARC) middleware on the server side. It is the central part in a new very lightweight incarnation of ARC that is aimed at - but not limited to - providing Web Service.
+
+\section{Architecture}
+
+\subsection{Requirements}
+% Perhaps this can be an introductory part of the section without any subsection, we'll see
+In the design of the HED, several goals and requirements were considered. These were weighed against each other and the factual context.
+
+The implementation language needed to be object oriented, efficient and provide easy access to system functionality. This eventually lead to the adoption of C++. but languages such as Java and Python were also considered at an early stage.
+
+External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity and license related concerns. Software of this level of complexity must of course depend on many external libraries and components but each such dependenscy has been introduced only after due consideration.
+
+Conservation of resources was an important goal. The present design enables many services sharing both the same process and the same network ports or even port while at the same time exhibiting a remarkably low memory footprint.
+
+%\subsection{Functional design}
+
+%firewalls, modularity, portability, flexibility
+
+\subsection{Technical design}
+
+%How was this implemented, dynamic loading, mcc...
+In the technical design it turned out that the endeavours to provide dynamic loading, portability and a well tested high level memory management could all be greatly assisted by introducing glibmm - the C++ interface to the gnome projects library for memory management and related functionality. This enables the daemon process to dynamically load the components it is going to use in a portable way.
+
+Most of the configuration 
+
+\subsubsection{MCC}
+
+In the HED all data channels to the outside world are set up by chains of small processing units called Message Chain Components (MCCs). These work on units called messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general attributes and security attributes. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configuered.
+
+As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
+
+Each MCC can also be configured to have loadable modules called security handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized scurity information.
+
+\paragraph{TCP MCC}
+
+The TCP MCC in the HED is special in that it produces messages by listening on a socket rather than passing on messages from other MCCs. As such it spawns new threads to handle the message and its response throughout the message chain. One could envision other parallel MCCs having these properties but producing messages from other sources such as e g unix sockets.
+
+This MCC can be configured as to what port to listen to.
+
+\paragraph{TLS MCC}
+
+\paragraph{HTTP MCC}
+
+\paragraph{SOAP MCC}
+
+
+\subsubsection{Services}
+
+The services are dynamically loaded on start up just like the MCCs. They can even be regarded as special cases of MCCs in that they constitute the last link in the so called Message Chain and are attached in much the same manner as other MCCs. After being loaded, instanciated and configured by the HED, services are provided with a range of 
+
+The services are typically expected to receive parsed SOAP messages which they service - possibly by invoking or communicating with external processes.
+
+\subsubsection{Alternative implementation languages}
+
+In order to facilitate e g the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done 
+%Not much aboút the actual services, more about what they need to implement and what 
+\section{Conclusion}
+
+\end{document}
