@@ -435,7 +435,7 @@ namespace Arc {
     logger.msg(DEBUG, "ftp_read_thread: waiting for eof");
     it->buffer->wait_eof_read();
     logger.msg(DEBUG, "ftp_read_thread: exiting");
-    it->condstatus = it->buffer->error_read() ? DataStatus::TransferError :
+    it->condstatus = it->buffer->error_read() ? DataStatus::ReadError :
       DataStatus::Success;
     it->cond.signal();
     return NULL;
@@ -583,7 +583,7 @@ namespace Arc {
     }
     /* make sure complete callback is called */
     it->buffer->wait_eof_write();
-    it->condstatus = it->buffer->error_write() ? DataStatus::TransferError :
+    it->condstatus = it->buffer->error_write() ? DataStatus::WriteError :
       DataStatus::Success;
     it->cond.signal();
     return NULL;
@@ -716,8 +716,9 @@ namespace Arc {
 
   DataPointGridFTP::DataPointGridFTP(const URL& url) : DataPointDirect(url),
                                                        ftp_active(false),
-                                                       condstatus(DataStatus::
-                                                                  Success) {
+                                                       condstatus(DataStatus::Success),
+                                                       reading(false),
+                                                       writing(false) {
     is_secure = false;
     if (url.Protocol() == "gsiftp")
       is_secure = true;
