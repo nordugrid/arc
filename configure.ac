@@ -326,6 +326,9 @@ AC_SUBST(GLOBUS_FTP_CLIENT_LIBS)
 GPT_PKG(globus_rsl)
 AC_SUBST(GLOBUS_RSL_CFLAGS)
 AC_SUBST(GLOBUS_RSL_LIBS)
+GPT_PKG(globus_io)
+AC_SUBST(GLOBUS_IO_CFLAGS)
+AC_SUBST(GLOBUS_IO_LIBS)
 
 # Check for gridftp-v2 
 SAVE_CFLAGS=$CFLAGS
@@ -336,25 +339,12 @@ AC_CHECK_FUNCS(globus_ftp_client_handleattr_set_gridftp2)
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
-# Check for globus io version 
-SAVE_CFLAGS=$CFLAGS
-SAVE_LIBS=$LIBS
-CFLAGS="$CFLAGS $GLOBUS_FTP_CLIENT_CFLAGS"
-LIBS="$LIBS $GLOBUS_FTP_CLIENT_LIBS"
-AC_MSG_CHECKING(for globus_io version)
-IO_VERSION=`$GPT_LOCATION/sbin/gpt-query -name globus_io 2>/dev/null | \
-  egrep 'ver(sion:|:)' 2>/dev/null | head -n 1 2>/dev/null | \
-  sed 's/^.*ver\(sion\)*: \([[^ ]]*\).*/\2/' 2>/dev/null`
-IO_VERSION_MAJOR=`echo "$IO_VERSION" | sed 's/^\([[^.]]\).*/\1/'`;
-if test "x$IO_VERSION_MAJOR" = "x"; then
+if test "x$GLOBUS_IO_VERSION" = "x"; then
   IO_VERSION_MAJOR=0
-  AC_MSG_RESULT(failed to determine. Is Globus IO installed?)
 else
-  AC_MSG_RESULT($IO_VERSION)
+  IO_VERSION_MAJOR=`echo "$GLOBUS_IO_VERSION" | sed 's/^\([[^.]]\).*/\1/'`;
 fi
 AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
-CFLAGS=$SAVE_CFLAGS
-LIBS=$SAVE_LIBS
 
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
