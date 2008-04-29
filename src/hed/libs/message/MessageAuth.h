@@ -16,10 +16,16 @@ class MessageAuth {
   public:
     MessageAuth(void);
     ~MessageAuth(void);
+    /// Adds/overwrites security attribute stored under specified key
     void set(const std::string& key, SecAttr* value);
+    /// Deletes security attribute stored under specified key
     void remove(const std::string& key);
+    /// Retrieves reference to security attribute stored under specified key
     SecAttr* get(const std::string& key);
+    /// Same as MessageAuth::get
     SecAttr* operator[](const std::string& key) { return get(key); }; 
+    /// Returns properly catenated attributes in specified format
+    bool Export(SecAttr::Format format,XMLNode &val) const;
 };
 
 }

@@ -33,6 +33,8 @@ namespace Arc {
       inline Format operator=(const char* format) { format_=format; return *this; };
       inline bool operator==(Format format) { return (strcmp(format_,format.format_) == 0); };
       inline bool operator==(const char* format) { return (strcmp(format_,format) == 0); };
+      inline bool operator!=(Format format) { return (strcmp(format_,format.format_) != 0); };
+      inline bool operator!=(const char* format) { return (strcmp(format_,format) != 0); };
     };
     //typedef const char* Format;
     static Format UNDEFINED; /// own serialization/deserialization format
@@ -94,6 +96,8 @@ namespace Arc {
     virtual bool equal(const SecAttr &b) const;
     virtual bool Add(Format format,XMLNode &val);
   };
+
+  
 
 }
 
