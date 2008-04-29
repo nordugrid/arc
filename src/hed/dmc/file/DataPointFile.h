@@ -4,6 +4,7 @@
 #include <list>
 
 #include <arc/data/DataPointDirect.h>
+#include <arc/Thread.h>
 
 namespace Arc {
 
@@ -22,6 +23,7 @@ namespace Arc {
                                  bool resolve = true);
     virtual bool WriteOutOfOrder();
    private:
+    SimpleCondition transfer_cond;
     void read_file();
     void write_file();
     bool reading;

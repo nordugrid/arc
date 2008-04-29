@@ -102,6 +102,7 @@ namespace Arc {
     }
     close(fd);
     buffer->eof_read(true);
+    transfer_cond.signal();
   }
 
   void DataPointFile::write_file() {
@@ -143,6 +144,7 @@ namespace Arc {
       buffer->is_written(h);
     }
     close(fd);
+    transfer_cond.signal();
   }
 
   DataStatus DataPointFile::Check() {
@@ -205,6 +207,7 @@ namespace Arc {
       SetCreated(st.st_mtime);
     }
     buffer = &buf;
+    transfer_cond.reset();
     /* create thread to maintain reading */
     Glib::Thread* thr = NULL;
     try {
@@ -229,7 +232,8 @@ namespace Arc {
       close(fd);
       fd = -1;
     }
-    buffer->wait_eof_read();         /* wait till reading thread exited */
+    // buffer->wait_eof_read();
+    transfer_cond.wait();         /* wait till reading thread exited */
     if(buffer->error_read()) return DataStatus::ReadError;
     return DataStatus::Success;
   }
@@ -336,6 +340,7 @@ namespace Arc {
     }
     buffer->speed.reset();
     buffer->speed.hold(false);
+    transfer_cond.reset();
     /* create thread to maintain writing */
     Glib::Thread* thr = NULL;
     try {
@@ -362,7 +367,8 @@ namespace Arc {
       close(fd);
       fd = -1;
     }
-    buffer->wait_eof_write();         /* wait till writing thread exited */
+    // buffer->wait_eof_write();
+    transfer_cond.wait();         /* wait till writing thread exited */
     if(buffer->error_write()) return DataStatus::WriteError;
     return DataStatus::Success;
   }
