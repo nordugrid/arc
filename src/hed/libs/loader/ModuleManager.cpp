@@ -61,7 +61,7 @@ Glib::Module *ModuleManager::load(const std::string& name)
     Loader::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
-  Glib::Module *module = new Glib::Module(path);
+  Glib::Module *module = new Glib::Module(path,Glib::MODULE_BIND_LOCAL);
   if ((!module) || (!(*module))) {
     Loader::logger.msg(ERROR, Glib::Module::get_last_error());
     if(module) delete module;
