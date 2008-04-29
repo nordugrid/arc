@@ -6,10 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#ifndef HAVE_SETENV
 #include <glibmm/miscutils.h>
-#define setenv Glib::setenv
-#endif
+#include <arc/ArcLocation.h>
 #define olog std::cerr
 #define DEFAULT_ARC_LOCATION "/usr"
 #include "environment.h"
@@ -52,34 +50,34 @@ static bool dir_exists(const char* name) {
 }
 
 bool read_env_vars(bool guess) {
-  char* tmp;
   if(globus_loc.length() == 0) {
-    tmp=getenv("GLOBUS_LOCATION");
-    if((tmp == NULL) || (*tmp == 0)) {
+    globus_loc=Glib::getenv("GLOBUS_LOCATION");
+    if(globus_loc.empty()) {
       if(!guess) {
         olog<<"Warning: GLOBUS_LOCATION environment variable not defined"<<std::endl;
-        tmp="";
         //return false;
       }
       else {
-        tmp="/opt/globus";
+        globus_loc="/opt/globus";
       };
     };
-    globus_loc=tmp;
+    Glib::setenv("GLOBUS_LOCATION",globus_loc);
   };
   globus_scripts_loc=globus_loc+"/libexec";
-  if(nordugrid_loc.length() == 0) {
-    tmp=getenv("ARC_LOCATION");
-    if((tmp == NULL) || (*tmp == 0)) {
-      if(!guess) {
-        olog<<"ARC_LOCATION environment variable is not defined"
-            <<std::endl;
-        return false;
-      } else {
-        tmp=DEFAULT_ARC_LOCATION;
+  if(nordugrid_loc.empty()) {
+    nordugrid_loc=Glib::getenv("ARC_LOCATION");
+    if(nordugrid_loc.empty()) {
+      nordugrid_loc=Arc::ArcLocation::Get();
+      if(nordugrid_loc.empty()) {
+        if(!guess) {
+          olog<<"ARC_LOCATION environment variable is not defined"<<std::endl;
+          return false;
+        } else {
+          nordugrid_loc=DEFAULT_ARC_LOCATION;
+        };
       };
     };
-    nordugrid_loc=tmp;
+    Glib::setenv("ARC_LOCATION",nordugrid_loc);
   };
   nordugrid_bin_loc=nordugrid_loc+"/bin";
   // Try /usr installation first
@@ -89,12 +87,11 @@ bool read_env_vars(bool guess) {
     nordugrid_libexec_loc=nordugrid_loc+"/libexec";
     nordugrid_lib_loc=nordugrid_loc+"/lib";
   };
-  if(nordugrid_config_loc.length() == 0) {
-    tmp=getenv("ARC_CONFIG");
-    if((tmp == NULL) || (*tmp == 0)) {
-      tmp=getenv("NORDUGRID_CONFIG");
-      if((tmp == NULL) || (*tmp == 0)) {
-        tmp=NULL;
+  if(nordugrid_config_loc.empty()) {
+    std::string tmp = Glib::getenv("ARC_CONFIG");
+    if(tmp.empty()) {
+      tmp=Glib::getenv("NORDUGRID_CONFIG");
+      if(tmp.empty()) {
         if(!central_configuration) {
           nordugrid_config_loc=nordugrid_loc+"/etc/"+nordugrid_config_basename;
           if(!file_exists(nordugrid_config_loc.c_str())) {
@@ -124,7 +121,7 @@ bool read_env_vars(bool guess) {
         };
       };
     };
-    if(tmp) nordugrid_config_loc=tmp;
+    if(!tmp.empty()) nordugrid_config_loc=tmp;
   };
   // Set all environement variables for other tools
   setenv("ARC_CONFIG",nordugrid_config_loc.c_str(),1);
@@ -139,10 +136,8 @@ bool read_env_vars(bool guess) {
       support_mail_address+="localhost";
     };
   };
-  tmp=getenv("GRIDMAP");
-  if((tmp == NULL) || (*tmp == 0)) {
-    globus_gridmap="/etc/grid-security/grid-mapfile";
-  }
+  std::string tmp=Glib::getenv("GRIDMAP");
+  if(tmp.empty()) { globus_gridmap="/etc/grid-security/grid-mapfile"; }
   else { globus_gridmap=tmp; };
   return true;
 }
