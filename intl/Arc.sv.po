@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-04-28 12:00+0200\n"
-"PO-Revision-Date: 2008-04-16 08:55+0200\n"
+"POT-Creation-Date: 2008-04-29 16:15+0200\n"
+"PO-Revision-Date: 2008-04-29 16:23+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -784,37 +784,37 @@ msgstr "Filen är inte tillgänglig: %s"
 msgid "Can't stat file: %s"
 msgstr "Kan inte göra stat på filen: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:248
+#: ../src/hed/dmc/file/DataPointFile.cpp:249
 msgid "Failed to use channel stdout"
 msgstr "Misslyckades med att använda stdout-kanalen"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:261
+#: ../src/hed/dmc/file/DataPointFile.cpp:262
 #, c-format
 msgid "Invalid url: %s"
 msgstr "Ogiltig URL: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:275
+#: ../src/hed/dmc/file/DataPointFile.cpp:276
 #: ../src/hed/libs/data/DataCache.cpp:200
 #: ../src/hed/libs/data/DataCache.cpp:233
 #, c-format
 msgid "Failed to create/find directory %s"
 msgstr "Misslyckades med att skapa/hitta katalog %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:291
+#: ../src/hed/dmc/file/DataPointFile.cpp:292
 #, c-format
 msgid "Failed to create/open file %s"
 msgstr "Misslyckades med att skapa/öppna fil: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:302
+#: ../src/hed/dmc/file/DataPointFile.cpp:303
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr "Sätter fil %s till storlek %llu"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:324
+#: ../src/hed/dmc/file/DataPointFile.cpp:325
 msgid "Failed to preallocate space"
 msgstr "Misslyckades med förallokera utrymme"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:412
+#: ../src/hed/dmc/file/DataPointFile.cpp:414
 #, c-format
 msgid "Failed to read object: %s"
 msgstr "Misslyckades med att läsa object: %s"
@@ -1187,7 +1187,8 @@ msgstr "Misslyckades med att läsa data"
 msgid "Memory allocation error"
 msgstr "Minnesallokeringsfel"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:64
+#: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:70
+#: ../src/services/paul/run.cpp:114
 #, c-format
 msgid "Command: %s"
 msgstr "Kommando: %s"
@@ -2107,8 +2108,8 @@ msgstr "Misslyckades med att påbörja läsning från källa: %s"
 
 #: ../src/hed/libs/data/DataMover.cpp:648
 #: ../src/hed/libs/data/DataMover.cpp:760
-#: ../src/hed/libs/data/DataMover.cpp:780
-#: ../src/hed/libs/data/DataMover.cpp:788
+#: ../src/hed/libs/data/DataMover.cpp:782
+#: ../src/hed/libs/data/DataMover.cpp:790
 msgid "(Re)Trying next source"
 msgstr "Försöker med nästa källa (igen)"
 
@@ -2122,7 +2123,7 @@ msgid "Failed to preregister destination: %s"
 msgstr "Misslyckades med att förregistrera destination: %s"
 
 #: ../src/hed/libs/data/DataMover.cpp:676
-#: ../src/hed/libs/data/DataMover.cpp:818
+#: ../src/hed/libs/data/DataMover.cpp:820
 msgid "destination.next_location"
 msgstr "destination.next_location"
 
@@ -2132,7 +2133,7 @@ msgid "Failed to start writing to destination: %s"
 msgstr "Misslyckades med att påbörja skrivning till destination: %s"
 
 #: ../src/hed/libs/data/DataMover.cpp:693
-#: ../src/hed/libs/data/DataMover.cpp:813
+#: ../src/hed/libs/data/DataMover.cpp:815
 #, c-format
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
@@ -2142,9 +2143,9 @@ msgstr ""
 "avregistrera det manuellt: %s"
 
 #: ../src/hed/libs/data/DataMover.cpp:697
-#: ../src/hed/libs/data/DataMover.cpp:765
-#: ../src/hed/libs/data/DataMover.cpp:775
-#: ../src/hed/libs/data/DataMover.cpp:792
+#: ../src/hed/libs/data/DataMover.cpp:766
+#: ../src/hed/libs/data/DataMover.cpp:777
+#: ../src/hed/libs/data/DataMover.cpp:794
 msgid "(Re)Trying next destination"
 msgstr "Försöker med nästa destination (igen)"
 
@@ -2189,15 +2190,15 @@ msgstr "Stänger läskanal"
 msgid "Closing write channel"
 msgstr "Stänger skrivkanal"
 
-#: ../src/hed/libs/data/DataMover.cpp:784
+#: ../src/hed/libs/data/DataMover.cpp:786
 msgid "Cause of failure unclear - choosing randomly"
 msgstr "Anledning till misslyckande oklar - väljer slumpvis"
 
-#: ../src/hed/libs/data/DataMover.cpp:804
+#: ../src/hed/libs/data/DataMover.cpp:806
 msgid "DataMover::Transfer: have valid checksum"
 msgstr "DataMover::Transfer: har giltig checksum"
 
-#: ../src/hed/libs/data/DataMover.cpp:809
+#: ../src/hed/libs/data/DataMover.cpp:811
 #, c-format
 msgid "Failed to postregister destination %s"
 msgstr "Misslyckades med att efterregistrera destination: %s"
@@ -2228,9 +2229,9 @@ msgid "cannot create directory: %s"
 msgstr "kan inte skapa katalog: %s"
 
 #: ../src/hed/libs/infosys/InfoCache.cpp:63
-#, fuzzy, c-format
+#, c-format
 msgid "Cache configuration: %s"
-msgstr "Använder cachade inställningar: %s"
+msgstr "Cacheinställningar: %s"
 
 #: ../src/hed/libs/infosys/InfoCache.cpp:66
 msgid "Missing cache root in configuration"
@@ -2274,9 +2275,9 @@ msgid "unsupported protocol: %s"
 msgstr "icke understött protokoll: &s"
 
 #: ../src/hed/libs/infosys/InfoRegister.cpp:57
-#, fuzzy, c-format
+#, c-format
 msgid "Registering to %s ISIS"
-msgstr "Påbörja registrering till %s ISIS"
+msgstr "Registrerar till %s ISIS"
 
 #: ../src/hed/libs/infosys/InfoRegister.cpp:74
 #, c-format
@@ -2284,14 +2285,14 @@ msgid "Error during registration to %s ISIS"
 msgstr "Fel vid registrering till %s ISIS"
 
 #: ../src/hed/libs/infosys/InfoRegister.cpp:78
-#, fuzzy, c-format
+#, c-format
 msgid "Successful registration to %s ISIS"
 msgstr "Lyckosam registrering till %s ISIS"
 
 #: ../src/hed/libs/infosys/InfoRegister.cpp:80
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to register to %s ISIS - %s"
-msgstr "Misslyckades med att registrera plugin för tillstånd %s"
+msgstr "Misslyckades med att registrera till %s ISIS - %s"
 
 #: ../src/hed/libs/loader/Loader.cpp:178
 msgid "SecHandler has no configuration"
@@ -2558,9 +2559,9 @@ msgid "Error to flush output payload"
 msgstr "Fel vid utmatning av utdatabarlast"
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:309
-#, fuzzy, c-format
+#, c-format
 msgid "http: %s"
-msgstr "StdOut: %s"
+msgstr "http: %s"
 
 #: ../src/hed/mcc/soap/MCCSOAP.cpp:146
 msgid "empty input payload"
@@ -2645,9 +2646,9 @@ msgstr "klientprocess anropad"
 #: ../src/hed/mcc/tcp/MCCTCP.cpp:358
 #, c-format
 msgid "tcp: (%d, %d) %s"
-msgstr ""
+msgstr "tcp: (%d, %d) %s"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:361 ../src/hed/mcc/tls/MCCTLS.cpp:614
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:361 ../src/hed/mcc/tls/MCCTLS.cpp:613
 msgid "Failed to send content of buffer"
 msgstr "Misslyckades med att skicka innehåll till buffer"
 
@@ -2664,14 +2665,14 @@ msgid "Failed to connect to %s:%i"
 msgstr "Misslyckades med att koppla upp mot %s:%i"
 
 #: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:80
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to resolve %s (%s)"
-msgstr "Misslyckades med att slå upp %s"
+msgstr "Misslyckades med att slå upp %s (%s)"
 
 #: ../src/hed/mcc/tcp/PayloadTCPSocket.cpp:85
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create socket to %s:%d"
-msgstr "Misslyckades med att skapa socket"
+msgstr "Misslyckades med att skapa socket till %s:%d"
 
 #: ../src/hed/mcc/tls/GlobusSigningPolicy.cpp:70
 #: ../src/hed/mcc/tls/GlobusSigningPolicy.cpp:121
@@ -2773,45 +2774,45 @@ msgstr "Kunde inte ladda nyckelfil - %s"
 msgid "Private key does not match certificate"
 msgstr "Den privata nyckeln passar inte certifikatet"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:314
+#: ../src/hed/mcc/tls/MCCTLS.cpp:313
 msgid "MCC_TLS::do_ssl_init"
 msgstr "MCC_TLS::do_ssl_init"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:317
+#: ../src/hed/mcc/tls/MCCTLS.cpp:316
 msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:329
+#: ../src/hed/mcc/tls/MCCTLS.cpp:328
 msgid "Failed to allocate SSL locks"
 msgstr "Misslyckades med att allokera SSL-lås"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:367 ../src/hed/mcc/tls/MCCTLS.cpp:554
+#: ../src/hed/mcc/tls/MCCTLS.cpp:366 ../src/hed/mcc/tls/MCCTLS.cpp:553
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:394 ../src/hed/mcc/tls/MCCTLS.cpp:572
+#: ../src/hed/mcc/tls/MCCTLS.cpp:393 ../src/hed/mcc/tls/MCCTLS.cpp:571
 msgid "Can't set OpenSSL verify flags"
 msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:411
+#: ../src/hed/mcc/tls/MCCTLS.cpp:410
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:484
+#: ../src/hed/mcc/tls/MCCTLS.cpp:483
 #, c-format
 msgid "Peer name: %s"
 msgstr "Peer-namn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:490 ../src/hed/mcc/tls/MCCTLS.cpp:501
+#: ../src/hed/mcc/tls/MCCTLS.cpp:489 ../src/hed/mcc/tls/MCCTLS.cpp:500
 #, c-format
 msgid "Identity name: %s"
 msgstr "Identitetsnamn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:516 ../src/hed/mcc/tls/MCCTLS.cpp:605
+#: ../src/hed/mcc/tls/MCCTLS.cpp:515 ../src/hed/mcc/tls/MCCTLS.cpp:604
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för inkommande meddelande"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:622
+#: ../src/hed/mcc/tls/MCCTLS.cpp:621
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för utgående meddelande"
 
@@ -4662,43 +4663,38 @@ msgid "process called"
 msgstr "process anropad"
 
 #: ../src/services/isis/centralisi.cpp:161
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP request: %s"
-msgstr "Förfrågan: %s"
+msgstr "SOAP-förfrågan: %s"
 
 #: ../src/services/isis/centralisi.cpp:206
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP response: %s"
-msgstr "Svar: %s"
+msgstr "SOAP-svar: %s"
 
 #: ../src/services/isis/centralisi.cpp:247
-#, fuzzy
 msgid "Missing address in registering service EPR"
-msgstr "Identifierare saknas i registreringsbegäran"
+msgstr "Identifierare saknas vid registrering av service-EPR"
 
 #: ../src/services/isis/centralisi.cpp:254
-#, fuzzy
 msgid "Missing service advertisement in registering service"
-msgstr "Identifierare saknas i registreringsbegäran"
+msgstr "Serviceannonsering saknas vid registrering av service"
 
 #: ../src/services/isis/centralisi.cpp:259
-#, fuzzy
 msgid "Missing service meta advertisement in registering service"
-msgstr "Identifierare saknas i registreringsbegäran"
+msgstr "Servicemetaannonsering saknas vid registrering av service"
 
 #: ../src/services/isis/centralisi.cpp:286
 msgid "Register: reporting fault"
-msgstr ""
+msgstr "Registrering: rapporterar fel"
 
 #: ../src/services/isis/centralisi.cpp:299
-#, fuzzy
 msgid "Missing address in unregistering service EPR"
-msgstr "Identifierare saknas i registreringsbegäran"
+msgstr "Adress saknas vid avregistrering av service-EPR"
 
 #: ../src/services/isis/centralisi.cpp:321
-#, fuzzy
 msgid "Missing address in service EPR"
-msgstr "Service-ID saknas"
+msgstr "Adress saknas i service-EPR"
 
 #: ../src/services/paul/paul.cpp:146
 msgid "Cannot collect resource information"
@@ -4755,50 +4751,77 @@ msgstr "Erhåll aktivitetstatusändringar"
 msgid "Killing %s"
 msgstr "Dödar: %s"
 
-#: ../src/services/paul/run.cpp:16
+#: ../src/services/paul/run.cpp:24
 msgid "Start process"
 msgstr "Starta process"
 
-#: ../src/services/paul/run.cpp:23
+#: ../src/services/paul/run.cpp:31
 msgid "Invalid JSDL! Missing application section"
 msgstr "Ogiltig JSDL! Saknar application-stycke"
 
-#: ../src/services/paul/run.cpp:30
+#: ../src/services/paul/run.cpp:38
 msgid "Empty executable"
 msgstr "Tom executable"
 
-#: ../src/services/paul/run.cpp:66
+#: ../src/services/paul/run.cpp:79
+#, c-format
+msgid "Cannot start %s"
+msgstr "Kan inte starta %s"
+
+#: ../src/services/paul/run.cpp:82
+#, c-format
+msgid "Cannot start %s (%s)"
+msgstr "Kan inte starta %s (%s)"
+
+#: ../src/services/paul/run.cpp:89
+msgid "Zero return"
+msgstr "Nollretur"
+
+#: ../src/services/paul/run.cpp:92
+msgid "Error return"
+msgstr "Felretur"
+
+#: ../src/services/paul/run.cpp:95
+#, c-format
+msgid "Process %s finished"
+msgstr "Process: %s: avslutad"
+
+#: ../src/services/paul/run.cpp:100
+msgid "Process finished"
+msgstr "Process avslutad"
+
+#: ../src/services/paul/run.cpp:116
 msgid "Cannot start application"
 msgstr "Kan inte starta program"
 
-#: ../src/services/paul/run.cpp:72
+#: ../src/services/paul/run.cpp:122
 #, c-format
 msgid "StdOut: %s"
 msgstr "StdOut: %s"
 
-#: ../src/services/paul/run.cpp:73
+#: ../src/services/paul/run.cpp:123
 #, c-format
 msgid "StdErr: %s"
 msgstr "StdErr: %s"
 
-#: ../src/services/paul/run.cpp:75
+#: ../src/services/paul/run.cpp:125
 msgid "delete run"
 msgstr "radera körning"
 
-#: ../src/services/paul/run.cpp:78
+#: ../src/services/paul/run.cpp:128
 msgid "return from run"
 msgstr "återkomst från körning"
 
-#: ../src/services/paul/run.cpp:81
+#: ../src/services/paul/run.cpp:131
 msgid "Error during the application run"
 msgstr "Fel under programexekveringen"
 
-#: ../src/services/paul/run.cpp:86
+#: ../src/services/paul/run.cpp:136
 #, c-format
 msgid "Exception: %s"
 msgstr "Undantag: %s"
 
-#: ../src/services/paul/run.cpp:89
+#: ../src/services/paul/run.cpp:139
 msgid "SpawnError"
 msgstr "Spawn-fel"
 
@@ -5108,27 +5131,3 @@ msgstr "Kan inte erhålla pdp-begäran och policyinformation"
 #: ../src/tests/echo/test.cpp:36
 msgid "Creating client interface"
 msgstr "Skapar klientgränssnitt"
-
-#~ msgid "Missing database location in configuration"
-#~ msgstr "Databasplats saknas i inställningar"
-
-#~ msgid "Database location is %s"
-#~ msgstr "Databasplats är: %s"
-
-#~ msgid "remote database not supported"
-#~ msgstr "fjärrdatabas ej understödd"
-
-#~ msgid "Database URL is %s"
-#~ msgstr "Databas-URL är %s"
-
-#~ msgid "Database path is %s"
-#~ msgstr "Databassökväg är %s"
-
-#~ msgid "Database host is %s"
-#~ msgstr "Databasvärd är %s"
-
-#~ msgid "Initializing database %s"
-#~ msgstr "Initialiserar databas %s"
-
-#~ msgid "invalid database path"
-#~ msgstr "ogiltig databassökväg"
