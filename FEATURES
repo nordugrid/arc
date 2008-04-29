@@ -62,20 +62,30 @@ AREX/User mapping      Done          None                      Aleksandr        
 AREX/Inform. interf.   Prototype     None                      Aleksandr                -         Uses code from ARC0
 AREX/Client            Prototype     In deliverable            Markus                   -
 Data/Clients           Done          -h                        Mattias                  -         Code ported from ARC0.
+ISIS/Centralised Serv. Partial       In deliverable            Aleksandr                -         Code and schemas cleaning needed.
+ISIS/Client            Partial       None                      Aleksandr,Ferenc         -         Only registration class is available
 
 **  Development started
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
 HED/Cert. handling     Being devel.  None                      Weizhong                 -
 HED/Java bibding       Maintained    None                      Ferenc                   -
 HED/Python bibding     Maintained    None                      Ferenc                   -
-ARCLib                 Being devel.  Design document           Mattias                  -
-ARCLib/ARC0 plugin     Being ported  None                      Mattias                  -
-ISIS/Service           Being devel.  None                      Ferenc                   -
-ISIS/Client            Being devel.  None                      Ferenc                   -
+ARCLib                 Being devel.  Design document           Mattias                  -         Basic code infrastructure available
+ARCLib/CLI             Being devel.  None                      Bjarte                   -
+ARCLib/Job submission  Being devel.  None                      Mattias                  -
+ARCLib/Job description Being  devel. None                      Ivan                     -
+ARCLib/Brokering       Being devel.  None                      Gabor                    -
+ARCLib/CREAM2 plugin   Being devel.  None                      Ivan                     -
+ARCLib/ARC0 plugin     Being ported  None                      Bjarte                   -
+ISIS/Distributed Serv. Being devel.  None                      Ferenc                   -
+AREX/Backends          Being devel.  None                      Thomas, Adrian           -
+Security/Attributes    Being devel.  None                      Aleksandr,Johan          -
   
 **  Planned
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
+ARCLib/ARC1 plugin     Considered    None                      Undefined                -
 HED/WS-Security        Being dev.    In header                 Undefined                -         Username token supported only. Needs integration.
 Security/PDP Service   Prototype     None                      Weizhong                 -
-Security/Attributes    Discussed     None                      Aleksandr,Johan          -
 ARCLib/CREAM2 plugin   Considered    None                      Ivan                     -
+Security/XACML         Investigated  None                      Weizhong                 -
+Security/SAML          Investigated  None                      Weizhong                 -
