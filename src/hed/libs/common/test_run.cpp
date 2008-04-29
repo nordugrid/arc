@@ -12,6 +12,7 @@
 #endif
 
 #include <glibmm.h>
+#include <unistd.h>
 
 Arc::Run *executer = NULL;
 
