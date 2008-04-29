@@ -33,7 +33,7 @@ namespace Arc {
       "Unknown error"
   };
 
-  DataStatus::operator std::string(void) {
+  DataStatus::operator std::string(void) const {
     if(status >= UnknownError) {
       return status_string[UnknownError] + (" " + Arc::tostring(status));
     };
