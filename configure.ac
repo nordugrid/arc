@@ -347,6 +347,7 @@ IO_VERSION=`$GPT_LOCATION/sbin/gpt-query -name globus_io 2>/dev/null | \
   sed 's/^.*ver\(sion\)*: \([[^ ]]*\).*/\2/' 2>/dev/null`
 IO_VERSION_MAJOR=`echo "$IO_VERSION" | sed 's/^\([[^.]]\).*/\1/'`;
 if test "x$IO_VERSION_MAJOR" = "x"; then
+  IO_VERSION_MAJOR=0
   AC_MSG_RESULT(failed to determine. Is Globus IO installed?)
 else
   AC_MSG_RESULT($IO_VERSION)
