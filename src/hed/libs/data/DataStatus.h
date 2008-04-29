@@ -2,6 +2,7 @@
 #define __ARC_DATASTATUS__
 
 #include <string>
+#include <iostream>
 
 namespace Arc {
 
@@ -104,7 +105,7 @@ namespace Arc {
 
     bool Passed(void) { return (status == Success) || (status == NotSupportedForDirectDataPointsError); }
 
-    operator std::string(void);
+    operator std::string(void) const;
 
    private:
 
@@ -112,6 +113,9 @@ namespace Arc {
 
   };
 
+
 } // namespace Arc
+
+inline std::ostream& operator<<(std::ostream& o,const Arc::DataStatus& d) { return (o<<((std::string)d)); };
 
 #endif
