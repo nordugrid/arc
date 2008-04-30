@@ -416,7 +416,7 @@ enable_saml=no
 if test x$LASSO_INSTALLED = xyes ; then enable_saml=yes; fi
 
 # Check for LDAP
-AC_CHECK_HEADER(ldap.h, [LDAP=yes],[LDAP=no])
+AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
 SAVE_LDFLAGS=$LDFLAGS
 LDFLAGS=-lpthread
 AC_CHECK_LIB([ldap_r], [ldap_first_message], [ LDAP_LIBS=-lldap_r ], [
@@ -430,10 +430,13 @@ LDFLAGS=$SAVE_LDFLAGS
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Check for the uuid lib
-AC_CHECK_HEADER(uuid/uuid.h, [UUID_LIBS="-luuid"], [UUID_LIBS=""])
-case "${host}" in
-    *darwin*) UUID_LIBS="";;
-esac
+AC_CHECK_HEADER(uuid/uuid.h, [
+  AC_CHECK_FUNC([uuid_generate], [UUID_LIBS=], [
+    AC_CHECK_LIB([uuid], [uuid_generate], [UUID_LIBS=-luuid], [
+      AC_ERROR([Can't find library containing uuid implementation])
+    ])
+  ])
+], [AC_ERROR([Can't find uuid header])])
 AC_SUBST(UUID_LIBS)
 
 # check for fsusage
