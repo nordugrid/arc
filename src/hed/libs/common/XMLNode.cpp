@@ -83,13 +83,16 @@ bool MatchXMLNamespace(const XMLNode& node,const std::string& uri) {
 static void ReplaceNamespace(xmlNsPtr ns,xmlNodePtr node,xmlNsPtr new_ns) {
   if(node->type == XML_ELEMENT_NODE) {
     if(node->ns == ns) node->ns = new_ns;
+    for(xmlAttrPtr node_ = node->properties;node_;node_=node_->next) {
+      ReplaceNamespace(ns,(xmlNodePtr)node_,new_ns);
+    };
+    for(xmlNodePtr node_ = node->children;node_;node_=node_->next) {
+      ReplaceNamespace(ns,node_,new_ns);
+    };
   } else if(node->type == XML_ATTRIBUTE_NODE) {
     if(((xmlAttrPtr)node)->ns == ns) ((xmlAttrPtr)node)->ns = new_ns;
   } else {
     return;
-  };
-  for(xmlNodePtr node_ = node->children;node_;node_=node_->next) {
-    ReplaceNamespace(ns,node_,new_ns);
   };
 }
 
