@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <wait.h>
+#include <sys/wait.h>
 #include <arc/Run.h>
 #include "paul.h"
 #define DIR_SEPARATOR '/'
