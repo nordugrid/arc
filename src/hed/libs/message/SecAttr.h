@@ -20,6 +20,7 @@ namespace Arc {
   class SecAttr {
    public:
 
+    class Format;
     /// Export/import format.
     /** Format is identified by textual identity string. Class description
        includes basic formats only. That list may be extended. */
