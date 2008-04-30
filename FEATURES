@@ -17,7 +17,7 @@
     ARC0 support                           medium                         x
     ARC1 based on BES and Glue2            high                           x
     Generic BES/WSRF/Glue2 (for compat.)   low                                         x
-    gLite CREAM2 support                   medium                                      x
+    gLite CREAM2 support                   high                           x
   Security
     Basic framework                        high            x
     Unified and easy to use autz framework very high                      x
