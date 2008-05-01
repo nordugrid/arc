@@ -90,8 +90,11 @@ namespace Arc {
       /// File listing failed
       ListError = 25,
 
+      /// Object initialization failed
+      NotInitializedError = 26,
+
       /// Undefined
-      UnknownError = 26
+      UnknownError = 27
     };
 
     DataStatus(const DataStatusType &status) : status(status) {}

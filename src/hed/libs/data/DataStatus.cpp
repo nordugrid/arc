@@ -30,6 +30,7 @@ namespace Arc {
       "DataPoint is already writing",
       "Access check failed",
       "File listing failed",
+      "Object not initialized (internal error)",
       "Unknown error"
   };
 

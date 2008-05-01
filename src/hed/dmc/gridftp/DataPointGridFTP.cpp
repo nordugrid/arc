@@ -61,6 +61,8 @@ namespace Arc {
   }
 
   DataStatus DataPointGridFTP::Check() {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -70,6 +72,7 @@ namespace Arc {
     globus_abstime_t gl_modify_time;
     time_t modify_time;
     int modify_utime;
+    set_attributes();
     res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
                                  &size, &ftp_complete_callback, this);
     if (!res) {
@@ -145,11 +148,14 @@ namespace Arc {
   }
 
   DataStatus DataPointGridFTP::Remove() {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
     GlobusResult res;
+    set_attributes();
     res = globus_ftp_client_delete(&ftp_handle, url.str().c_str(),
                                    &ftp_opattr, &ftp_complete_callback, this);
     if(!res) {
@@ -226,10 +232,13 @@ namespace Arc {
   }
 
   DataStatus DataPointGridFTP::StartReading(DataBufferPar& buf) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
+    set_attributes();
     reading = true;
     buffer = &buf;
     /* size of file first */
@@ -478,10 +487,13 @@ namespace Arc {
 
   DataStatus DataPointGridFTP::StartWriting(DataBufferPar& buf,
                                             DataCallback*) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
+    set_attributes();
     writing = true;
     buffer = &buf;
     /* size of file first */
@@ -624,10 +636,13 @@ namespace Arc {
 
   DataStatus DataPointGridFTP::ListFiles(std::list<FileInfo>& files,
                                          bool resolve) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
+    set_attributes();
     Lister lister;
     if (lister.retrieve_dir(url) != 0) {
       logger.msg(ERROR, "Failed to obtain listing from ftp: %s", url.str());
@@ -724,7 +739,6 @@ namespace Arc {
       is_secure = true;
     if (!ftp_active) {
       GlobusResult res;
-#ifdef HAVE_GLOBUS_FTP_CLIENT_HANDLEATTR_SET_GRIDFTP2
       globus_ftp_client_handleattr_t ftp_attr;
       if (!(res = globus_ftp_client_handleattr_init(&ftp_attr))) {
         logger.msg(ERROR,
@@ -733,14 +747,17 @@ namespace Arc {
         ftp_active = false;
         return;
       }
+#ifdef HAVE_GLOBUS_FTP_CLIENT_HANDLEATTR_SET_GRIDFTP2
       if (!(res = globus_ftp_client_handleattr_set_gridftp2(&ftp_attr,
                                                           GLOBUS_TRUE))) {
+        globus_ftp_client_handleattr_destroy(&ftp_attr);
         logger.msg(ERROR,"init_handle: "
                    "globus_ftp_client_handleattr_set_gridftp2 failed");
         logger.msg(ERROR, "Globus error: %s", res.str());
         ftp_active = false;
         return;
       }
+#endif
       if (!(res = globus_ftp_client_handle_init(&ftp_handle, &ftp_attr))) {
         globus_ftp_client_handleattr_destroy(&ftp_attr);
         logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
@@ -749,14 +766,6 @@ namespace Arc {
         return;
       }
       globus_ftp_client_handleattr_destroy(&ftp_attr);
-#else
-      if (!(res = globus_ftp_client_handle_init(&ftp_handle, GLOBUS_NULL))) {
-        logger.msg(ERROR, "init_handle: globus_ftp_client_handle_init failed");
-        logger.msg(ERROR, "Globus error: %s", res.str());
-        ftp_active = false;
-        return;
-      }
-#endif
       if (!(res = globus_ftp_client_operationattr_init(&ftp_opattr))) {
         logger.msg(ERROR, "init_handle: "
                    "globus_ftp_client_operationattr_init failed");
@@ -775,6 +784,9 @@ namespace Arc {
       if(ftp_threads > MAX_PARALLEL_STREAMS)
         ftp_threads = MAX_PARALLEL_STREAMS;
     }
+  }
+
+  void DataPointGridFTP::set_attributes(void) {
     globus_ftp_control_parallelism_t paral;
     if(ftp_threads > 1) {
       paral.fixed.mode = GLOBUS_FTP_CONTROL_PARALLELISM_FIXED;
@@ -810,7 +822,7 @@ namespace Arc {
                                                           GSS_C_NO_CREDENTIAL,
                                                           NULL, NULL, NULL,
                                                           subj);
-      if (force_secure || url.Option("secure") == "yes") {
+      if (force_secure || (url.Option("secure") == "yes")) {
         globus_ftp_client_operationattr_set_mode(&ftp_opattr,
           GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
         globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
