@@ -51,6 +51,7 @@ time_t JobsList::min_speed_time=300;
 unsigned long long int JobsList::min_average_speed=0;
 time_t JobsList::max_inactivity_time=300;
 bool JobsList::use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
+bool JobsList::use_passive_transfer=false;
 bool JobsList::use_local_transfer=false;
 bool JobsList::cache_registration=false;
 unsigned int JobsList::wakeup_period = 120; // default wakeup every 3 min.
@@ -392,6 +393,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       NULL, // -n
       NULL, // (-n)
       NULL, // -c
+      NULL, // -p
       NULL, // -l
       NULL, // -Z
       NULL, // -s
@@ -418,6 +420,9 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     };
     if(!use_secure_transfer) { 
       args[argn]="-c"; argn++;
+    };
+    if(!use_passive_transfer) { 
+      args[argn]="-p"; argn++;
     };
     if(use_local_transfer) { 
       args[argn]="-l"; argn++;

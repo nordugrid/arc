@@ -53,6 +53,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   unsigned long long int min_average_speed;
   time_t max_inactivity_time;
   bool use_secure_transfer = true;
+  bool use_passive_transfer = false;
   bool use_local_transfer = false;
   bool superuser = (my_uid == 0);
   long long int cache_max = 0;
@@ -288,6 +289,19 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR,"wrong option in securetransfer"); goto exit;
       };
       JobsList::SetSecureTransfer(use_secure_transfer);
+    }
+    else if(command == "passivetransfer") {
+      std::string s = config_next_arg(rest);
+      if(strcasecmp("yes",s.c_str()) == 0) {
+        use_passive_transfer=true;
+      }
+      else if(strcasecmp("no",s.c_str()) == 0) {
+        use_passive_transfer=false;
+      }
+      else {
+        logger.msg(Arc::ERROR,"wrong option in passivetransfer"); goto exit;
+      };
+      JobsList::SetPassiveTransfer(use_passive_transfer);
     }
     else if(command == "norootpower") {
       std::string s = config_next_arg(rest);

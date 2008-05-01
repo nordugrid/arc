@@ -54,6 +54,7 @@ class JobsList {
   static time_t max_inactivity_time;
   static int max_downloads;
   static bool use_secure_transfer;
+  static bool use_passive_transfer;
   static bool use_local_transfer;
   static bool cache_registration;
   static unsigned int wakeup_period;
@@ -116,6 +117,9 @@ class JobsList {
   };
   static void SetSecureTransfer(bool val) {
     use_secure_transfer=val;
+  };
+  static void SetPassiveTransfer(bool val) {
+    use_passive_transfer=val;
   };
   static void SetLocalTransfer(bool val) {
     use_local_transfer=val;
