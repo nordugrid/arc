@@ -168,7 +168,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
   // Filling security attributes
   HTTPSecAttr* sattr = new HTTPSecAttr(nextpayload);
-  inmsg.Auth()->set("HTTP",sattr);
+  nextinmsg.Auth()->set("HTTP",sattr);
   parse_http_range(nextpayload,nextinmsg);
   // Reason ?
   for(std::map<std::string,std::string>::const_iterator i = 

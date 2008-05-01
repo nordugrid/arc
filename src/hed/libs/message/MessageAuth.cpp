@@ -6,10 +6,10 @@
 
 namespace Arc {
 
-MessageAuth::MessageAuth(void) {
-}
+MessageAuth::MessageAuth(void):attrs_created_(true) { }
 
 MessageAuth::~MessageAuth(void) {
+  if(!attrs_created_) return;
   std::map<std::string,SecAttr*>::iterator attr = attrs_.begin();
   for(;attr != attrs_.end();++attr) {
     if(attr->second) delete attr->second;
@@ -17,6 +17,7 @@ MessageAuth::~MessageAuth(void) {
 }
 
 void MessageAuth::set(const std::string& key, SecAttr* value) {
+  if(!attrs_created_) return;
   std::map<std::string,SecAttr*>::iterator attr = attrs_.find(key);
   if(attr == attrs_.end()) {
     attrs_[key]=value;
@@ -29,7 +30,7 @@ void MessageAuth::set(const std::string& key, SecAttr* value) {
 void MessageAuth::remove(const std::string& key) {
   std::map<std::string,SecAttr*>::iterator attr = attrs_.find(key);
   if(attr != attrs_.end()) {
-    if(attr->second) delete attr->second;
+    if(attrs_created_) if(attr->second) delete attr->second;
     attrs_.erase(attr);
   };
 }
@@ -45,51 +46,61 @@ static void add_subject(XMLNode request,XMLNode subject) {
   for(;(bool)item;++item) item.NewChild(subject);
 }
 
-static void add_resource_action(XMLNode request,XMLNode resource,XMLNode action) {
-  XMLNode newitem = request.NewChild("RequestItem");
+static void add_new_request(XMLNode request,XMLNode resource,XMLNode action) {
+  if((!resource) && (!action)) return;
+  XMLNode newitem = request.NewChild("ra:RequestItem");
   for(;(bool)resource;++resource) newitem.NewChild(resource);
   for(;(bool)action;++action) newitem.NewChild(action);
-  XMLNode item = request["RequestItem"];
-  if(!item) return;
-  // Copy all Subject elements to new item
-  XMLNode subject = item["Subject"];
-  for(;(bool)subject;++subject) newitem.NewChild(subject);
 }
 
+// All Subject elements go to all new request items.
+// Every Resource, Action or Resource+Action set makes own request item.
 bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   // Currently only ARCAuth is supported
   if(format != SecAttr::ARCAuth) return false;
   NS ns;
-  XMLNode newreq(ns,"Request");
-  newreq.NewChild("RequestItem");
-  std::list<XMLNode> reqs;
-  std::list<XMLNode> items;
-  std::list<XMLNode> subjects;
-  std::list<XMLNode> resources;
-  std::list<XMLNode> actions;
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+  XMLNode newreq = val;
+  newreq.Namespaces(ns);
+  newreq.Name("ra:Request");
   std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
   for(;attr != attrs_.end();++attr) {
-    std::list<XMLNode>::iterator r = reqs.insert(reqs.end(),XMLNode());
+    XMLNode r(ns,"");
     if(!(attr->second)) return false;
-    if(!(attr->second->Export(format,*r))) return false;
-    XMLNode item = (*r)["RequestItem"];
-    for(;(bool)item;++item) {
-      items.push_back(item);
-      // All Subjects are combined together under every RequestItem
-      XMLNode subject = item["Subject"];
-      for(;(bool)subject;++subject) add_subject(newreq,subject); // subjects.push_back(subject);
-      // Every new Resource+Action create separate RequestItem
-
+    if(!(attr->second->Export(format,r))) return false;
+    XMLNode item;
+    for(item=r["RequestItem"];(bool)item;++item) {
       XMLNode resource = item["Resource"];
-      for(;(bool)resource;++resource) resources.push_back(resource);
       XMLNode action = item["Action"];
-      for(;(bool)action;++action) actions.push_back(action);
+      add_new_request(newreq,resource,action);
+    };
+    if(!newreq["RequestItem"]) newreq.NewChild("ra:RequestItem");
+    for(item=r["RequestItem"];(bool)item;++item) {
+      XMLNode subject = item["Subject"];
+      for(;(bool)subject;++subject) add_subject(newreq,subject);
     };
   };
-  // 
+}
 
-
-
+MessageAuth* MessageAuth::Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const {
+  MessageAuth* newauth = new MessageAuth;
+  newauth->attrs_created_=false;
+  if(selected_keys.empty()) {
+    newauth->attrs_=attrs_;
+  } else {
+    for(std::list<std::string>::const_iterator key = selected_keys.begin();
+                       key!=selected_keys.end();++key) {
+      std::map<std::string,SecAttr*>::const_iterator attr = attrs_.find(*key);
+      if((attr != attrs_.end()) && (attr->second != NULL)) newauth->attrs_[*key]=attr->second;
+    };
+  };
+  if(!rejected_keys.empty()) {
+    for(std::list<std::string>::const_iterator key = rejected_keys.begin();
+                       key!=rejected_keys.end();++key) {
+      newauth->remove(*key);
+    };
+  };
+  return newauth;
 }
 
 }

@@ -29,7 +29,7 @@ namespace Arc {
       const char* format_;
      public:
       inline Format(const Format& format):format_(format.format_) {};
-      inline Format(const char* format = NULL):format_(format) {};
+      inline Format(const char* format = ""):format_(format) {};
       inline Format operator=(Format format) { format_=format.format_; return *this; };
       inline Format operator=(const char* format) { format_=format; return *this; };
       inline bool operator==(Format format) { return (strcmp(format_,format.format_) == 0); };
@@ -62,8 +62,12 @@ namespace Arc {
 
     /** Convert internal structure into specified format.
       Returns false if format is not supported/suitable for 
-      this attribute. */
+      this attribute.  */
     virtual bool Export(Format format,std::string &val) const;
+    /** Convert internal structure into specified format.
+      Returns false if format is not supported/suitable for 
+      this attribute. XML node referenced by @val is turned 
+      into top level element of specified format. */
     virtual bool Export(Format format,XMLNode &val) const;
 
     /** Fills internal structure from external object of 

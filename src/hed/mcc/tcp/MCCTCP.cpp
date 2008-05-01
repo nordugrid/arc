@@ -252,7 +252,10 @@ void MCC_TCP_Service::executer(void* arg) {
     PayloadStream stream(s);
     MessageAttributes attributes_in;
     MessageAttributes attributes_out;
+    MessageAuth auth_in;
+    MessageAuth auth_out;
     MessageContext context;
+    MessageAuthContext auth_context;
     for(;;) {
         // Preparing Message objects for chain
         Message nextinmsg;
@@ -267,7 +270,10 @@ void MCC_TCP_Service::executer(void* arg) {
         nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
         nextinmsg.Context(&context);
         nextoutmsg.Attributes(&attributes_out);
+        nextinmsg.Auth(&auth_in);
+        nextoutmsg.Auth(&auth_out);
         nextoutmsg.Context(&context);
+        nextoutmsg.AuthContext(&auth_context);
         if(!it.ProcessSecHandlers(nextinmsg,"incoming")) break;
         // Call next MCC 
         MCCInterface* next = it.Next();

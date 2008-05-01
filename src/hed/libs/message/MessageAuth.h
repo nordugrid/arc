@@ -13,6 +13,8 @@ namespace Arc {
 class MessageAuth {
   private:
     std::map<std::string,SecAttr*> attrs_;
+    bool attrs_created_;
+    MessageAuth(const MessageAuth&) { };
   public:
     MessageAuth(void);
     ~MessageAuth(void);
@@ -26,6 +28,13 @@ class MessageAuth {
     SecAttr* operator[](const std::string& key) { return get(key); }; 
     /// Returns properly catenated attributes in specified format
     bool Export(SecAttr::Format format,XMLNode &val) const;
+    /// Creates new instance of MessageAuth with attributes filtered
+    /** In new instance all attributes with keys listed in @rejected_keys are 
+      removed. If @selected_keys is not empty only corresponding attributes
+      are transfered to new instance. Created instance does not own refered
+      attributes. Hence parent instance must not be deleted as long as 
+      this one is in use. */
+    MessageAuth* Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const;
 };
 
 }

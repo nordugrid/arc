@@ -52,8 +52,8 @@ class SOAPSecAttr: public SecAttr {
 };
 
 SOAPSecAttr::SOAPSecAttr(PayloadSOAP& payload) {
-  action_=payload.Name();
-  context_=payload.Namespace();
+  action_=payload.Child().Name();
+  context_=payload.Child().Namespace();
   if(WSAHeader::Check(payload)) object_ = WSAHeader(payload).To();
 }
 
@@ -163,7 +163,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
   };
   SOAPSecAttr* sattr = new SOAPSecAttr(nextpayload);
-  inmsg.Auth()->set("SOAP",sattr);
+  nextinmsg.Auth()->set("SOAP",sattr);
   // Checking authentication and authorization; 
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
