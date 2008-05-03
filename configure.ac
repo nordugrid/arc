@@ -436,13 +436,14 @@ LDFLAGS=$SAVE_LDFLAGS
 AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 
 # Check for the uuid lib
+UUID_LIBS=""
 AC_CHECK_HEADER(uuid/uuid.h, [
   AC_CHECK_FUNC([uuid_generate], [UUID_LIBS=], [
     AC_CHECK_LIB([uuid], [uuid_generate], [UUID_LIBS=-luuid], [
-      AC_ERROR([Can't find library containing uuid implementation])
+      AC_MSG_NOTICE([Can't find library containing uuid implementation])
     ])
   ])
-], [AC_ERROR([Can't find uuid header])])
+], [AC_MSG_NOTICE([Can't find uuid header])])
 AC_SUBST(UUID_LIBS)
 
 # check for fsusage
