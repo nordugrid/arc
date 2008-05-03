@@ -41,16 +41,22 @@ SecAttr* MessageAuth::get(const std::string& key) {
   return attr->second;
 }
 
-static void add_subject(XMLNode request,XMLNode subject) {
+static void add_subject(XMLNode request,XMLNode subject,XMLNode context) {
   XMLNode item = request["RequestItem"];
-  for(;(bool)item;++item) item.NewChild(subject);
+  for(;(bool)item;++item) {
+    XMLNode subject_ = subject;
+    for(;(bool)subject_;++subject_) item.NewChild(subject_);
+    XMLNode context_ = context;
+    for(;(bool)context_;++context_) item.NewChild(context_);
+  };
 }
 
-static void add_new_request(XMLNode request,XMLNode resource,XMLNode action) {
+static void add_new_request(XMLNode request,XMLNode resource,XMLNode action,XMLNode context) {
   if((!resource) && (!action)) return;
   XMLNode newitem = request.NewChild("ra:RequestItem");
   for(;(bool)resource;++resource) newitem.NewChild(resource);
   for(;(bool)action;++action) newitem.NewChild(action);
+  for(;(bool)context;++context) newitem.NewChild(context);
 }
 
 // All Subject elements go to all new request items.
@@ -72,14 +78,16 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
     for(item=r["RequestItem"];(bool)item;++item) {
       XMLNode resource = item["Resource"];
       XMLNode action = item["Action"];
-      add_new_request(newreq,resource,action);
+      XMLNode context = item["Context"];
+      add_new_request(newreq,resource,action,context);
     };
     if(!newreq["RequestItem"]) newreq.NewChild("ra:RequestItem");
     for(item=r["RequestItem"];(bool)item;++item) {
       XMLNode subject = item["Subject"];
-      for(;(bool)subject;++subject) add_subject(newreq,subject);
+      add_subject(newreq,subject,XMLNode());
     };
   };
+  return true;
 }
 
 MessageAuth* MessageAuth::Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const {
