@@ -12,7 +12,7 @@ Logger EvaluationCtx::logger(Arc::Logger::rootLogger, "EvaluationCtx");
 
 RequestTuple::RequestTuple() {
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode tupledoc(ns,"ra:RequestItem");
   tupledoc.New(tuple);
 }
