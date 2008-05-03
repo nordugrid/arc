@@ -22,6 +22,9 @@ class ArcPDP : public PDP {
  private:
   Evaluator *eval;
   Arc::ClassLoader* classloader;
+  std::list<std::string> select_attrs;
+  std::list<std::string> reject_attrs;
+  std::list<std::string> policy_locations;
  protected:
   static Arc::Logger logger;
 };

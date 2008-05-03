@@ -122,7 +122,7 @@ void ArcRequest::addRequestItem(Attrs& sub, Attrs& res, Attrs& act, Attrs& ctx){
 void ArcRequest::make_request(){
   Arc::NS nsList;
 
-  nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/ws/schemas/request-arc"));
+  nsList.insert(std::pair<std::string, std::string>("request","http://www.nordugrid.org/schemas/request-arc"));
 
   std::list<XMLNode>::iterator itemit;
     std::list<XMLNode> itemlist = reqnode.XPathLookup("//request:RequestItem", nsList);
@@ -146,7 +146,7 @@ ArcRequest::ArcRequest(const char* filename) : Request(filename) {
 
   Arc::XMLNode node(xml_str);
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   node.Namespaces(ns);
   node.New(reqnode);
 }
@@ -157,7 +157,7 @@ ArcRequest::ArcRequest (const XMLNode* node) : Request(node) {
 
 ArcRequest::ArcRequest () {
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode request(ns,"ra:Request");
   request.New(reqnode);
 }

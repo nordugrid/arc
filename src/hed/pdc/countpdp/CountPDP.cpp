@@ -45,7 +45,7 @@ CountPDP::CountPDP(Config* cfg):PDP(cfg), eval(NULL){
 bool CountPDP::isPermitted(Message *msg){
   //Compose Request based on the information inside message, the Request will be like below:
   /*
-  <Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
+  <Request xmlns="http://www.nordugrid.org/schemas/request-arc">
     <RequestItem>
         <Subject>
           <Attribute AttributeId="xyz" Type="string">/O=NorduGrid/OU=UIO/CN=test</Attribute>
@@ -58,7 +58,7 @@ bool CountPDP::isPermitted(Message *msg){
   std::string action=msg->Attributes()->get("COUNT:METHOD");
   
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode request(ns,"ra:Request");
   XMLNode requestitem = request.NewChild("ra:RequestItem");
 

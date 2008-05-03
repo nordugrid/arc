@@ -10,6 +10,7 @@
 #include <arc/security/ArcPDP/attr/DateTimeAttribute.h>
 #include <arc/security/ArcPDP/attr/X500NameAttribute.h>
 #include <arc/security/ArcPDP/attr/AnyURIAttribute.h>
+#include <arc/security/ArcPDP/attr/GenericAttribute.h>
 
 
 static Arc::LoadableClass* get_attr_factory (void**) {
@@ -34,6 +35,7 @@ void ArcAttributeFactory::initDatatypes(){
   apmap.insert(std::pair<std::string, AttributeProxy*>(PeriodAttribute::getIdentifier(), new ArcAttributeProxy<PeriodAttribute>));
   apmap.insert(std::pair<std::string, AttributeProxy*>(X500NameAttribute::getIdentifier(), new ArcAttributeProxy<X500NameAttribute>));
   apmap.insert(std::pair<std::string, AttributeProxy*>(AnyURIAttribute::getIdentifier(), new ArcAttributeProxy<AnyURIAttribute>));
+  apmap.insert(std::pair<std::string, AttributeProxy*>(GenericAttribute::getIdentifier(), new ArcAttributeProxy<GenericAttribute>));
 
  /** TODO:  other datatype............. */
 
@@ -47,7 +49,11 @@ AttributeValue* ArcAttributeFactory::createValue(const XMLNode& node, const std:
   AttrProxyMap::iterator it;
   if((it=apmap.find(type)) != apmap.end())
     return ((*it).second)->getAttribute(node);
-  else return NULL;
+  // This may look like hack, but generic attribute needs special treatment
+  GenericAttribute* attr = new GenericAttribute((std::string)node);
+  attr->setType(type);
+  return attr;
+  // return NULL;
 }
 
 ArcAttributeFactory::~ArcAttributeFactory(){
@@ -58,3 +64,4 @@ ArcAttributeFactory::~ArcAttributeFactory(){
     if(attrproxy) delete attrproxy;
   }
 }
+

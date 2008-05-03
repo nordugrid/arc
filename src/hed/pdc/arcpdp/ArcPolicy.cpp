@@ -13,6 +13,8 @@ using namespace Arc;
 using namespace ArcSec;
 
 ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+  if((!node) || (node.Size() == 0)) 
+    logger.msg(WARNING,"Policy is empty");
   node.New(policynode);
 
   std::string xml;

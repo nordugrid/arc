@@ -39,7 +39,6 @@ PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   XMLNode pdp_node(*cfg);
 
-  //TODO: get the <Path> of the library
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -79,12 +78,21 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
   if(eval == NULL)
     logger.msg(ERROR, "Can not dynamically produce Evaluator");
 
+  XMLNode filter = (*cfg)["Filter"];
+  if((bool)filter) {
+    XMLNode select_attr = filter["Select"];
+    XMLNode reject_attr = filter["Reject"];
+    for(;(bool)select_attr;++select_attr) select_attrs.push_back((std::string)select_attr);
+    for(;(bool)reject_attr;++reject_attr) reject_attrs.push_back((std::string)reject_attr);
+  };
+  XMLNode policy_location = (*cfg)["PolicyStore"];
+  for(;(bool)policy_location;++policy_location) policy_locations.push_back((std::string)policy_location);
 }
 
 bool ArcPDP::isPermitted(Message *msg){
   //Compose Request based on the information inside message, the Request will be like below:
   /*
-  <Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
+  <Request xmlns="http://www.nordugrid.org/schemas/request-arc">
     <RequestItem>
         <Subject>
           <Attribute AttributeId="123" Type="string">123.45.67.89</Attribute>
@@ -95,6 +103,10 @@ bool ArcPDP::isPermitted(Message *msg){
   </Request>
   */
 
+  if(eval == NULL) {
+    logger.msg(ERROR,"Evaluator for ArcPDP was not loaded"); 
+    return false;
+  };
   PDPConfigContext *config = NULL;
   Arc::MessageContextElement* context = (*(msg->Context()))[id_];;
   if(context) { 
@@ -102,11 +114,13 @@ bool ArcPDP::isPermitted(Message *msg){
       config = dynamic_cast<PDPConfigContext*>(context);
     } catch(std::exception& e) { };
   }
-  if(config == NULL)
-    logger.msg(INFO, "Although there is pdp configuration for this component, no pdp context has been generated for this"); 
+  if(config == NULL) {
+    logger.msg(INFO,"Although there is pdp configuration for this component, no pdp context has been generated for it"); 
+  };
+  /*
 
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode requestxml(ns,"ra:Request");
 
   for(int i = 0; i<config->RequestItemSize(); i++) {
@@ -166,19 +180,41 @@ bool ArcPDP::isPermitted(Message *msg){
       ctxattr = (*it).issuer;
     }
   }
+  */
+
+  MessageAuth* mauth = msg->Auth()->Filter(select_attrs,reject_attrs);
+  if(!mauth) {
+    logger.msg(ERROR,"Missing security object in message");
+    return false;
+  };
+  NS ns;
+  XMLNode requestxml(ns,"");
+  if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+    logger.msg(ERROR,"Failed to convert security information to ARC request");
+    return false;
+  };
+  {
+    std::string s;
+    requestxml.GetXML(s);
+    logger.msg(VERBOSE,"ARC Auth. request: %s",s);
+  };
+  if(requestxml.Size() <= 0) {
+    logger.msg(ERROR,"No requested security information was collected");
+    return false;
+  };
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = NULL;
   //resp = eval->evaluate("Request.xml", policy_loc);
-  std::list<std::string> policylocation = config->GetPolicyLocation();
+  std::list<std::string> policylocation = (config!=NULL)?config->GetPolicyLocation():policy_locations;
   for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
     eval->addPolicy(*it);
   }
   resp = eval->evaluate(requestxml);
-  logger.msg(INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
+  logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
-  for(int i = 0; i < size; i++){
+  for(int i = 0; i < size; i++) {
     ResponseItem* item = rlist[i];
     RequestTuple* tp = item->reqtp;
     Subject::iterator it;
@@ -200,7 +236,7 @@ bool ArcPDP::isPermitted(Message *msg){
       delete resp;
     return true;
   }
-  else{
+  else {
     logger.msg(ERROR, "UnAuthorized from arc.pdp!!!");
     if(resp)
       delete resp;

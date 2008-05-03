@@ -16,6 +16,8 @@
 using namespace Arc;
 using namespace ArcSec;
 
+static Arc::Logger logger(Arc::Logger::rootLogger, "PolicyParser");
+
 PolicyParser::PolicyParser(){
 }
 
@@ -23,6 +25,7 @@ PolicyParser::PolicyParser(){
 void getfromFile(const std::string name, std::string& xml_policy){
   std::string str;
   std::ifstream f(name.c_str());
+  if(!f) logger.msg(ERROR,"Failed to read policy file %s",name);
 
   while (f >> str) {
     xml_policy.append(str);
@@ -35,6 +38,7 @@ void getfromFile(const std::string name, std::string& xml_policy){
 void getfromURL(const std::string name, std::string& xml_policy){
   Arc::URL url(name.c_str());
 
+  // TODO: IMPORTANT: Use client interface.
   Arc::NS ns;
   Arc::Config c(ns);
   Arc::XMLNode cfg = c;
@@ -93,12 +97,15 @@ void getfromURL(const std::string name, std::string& xml_policy){
   request.Context(&context);
   Arc::Message response;
 
-  l["http"]->process(request,response);
+  if(!(l["http"]->process(request,response)))
+    logger.msg(ERROR,"Failed to read policy from URL %s",name);
 
-  Arc::PayloadRaw& payload =
-    dynamic_cast<Arc::PayloadRaw&>(*response.Payload());
-  xml_policy.append(payload.Content());
-  xml_policy.append(" ");
+  try {
+    Arc::PayloadRaw& payload =
+      dynamic_cast<Arc::PayloadRaw&>(*response.Payload());
+    xml_policy.append(payload.Content());
+    xml_policy.append(" ");
+  } catch(std::exception&) { };
 }
 
 Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext* ctx){

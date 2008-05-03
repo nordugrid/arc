@@ -195,7 +195,7 @@ Response* ArcEvaluator::evaluate(const std::string& reqfile){
 
   Arc::XMLNode node(xml_str);
   NS ns;
-  ns["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   node.Namespaces(ns);
 
   //2.Create the request object according to the configuration
