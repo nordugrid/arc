@@ -2,22 +2,25 @@
 #include <config.h>
 #endif
 
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <stdlib.h>
-#include <iomanip>
+//#include <iomanip>
+
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
 #endif 
 
-#include "../common/DateTime.h"
-#include <sys/time.h>
-#include "../common/Base64.h"
+#include <arc/DateTime.h>
+#include <arc/Base64.h>
+#include <arc/StringConv.h>
 #include "UsernameToken.h"
 
 namespace Arc {
@@ -416,7 +419,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, std::string& username, bool mac
 
   //Check the arguments
   if(username_.empty() || salt_.empty()) {
-    std::cerr<<"Username or Salt should not be empty"<<std::endl;
+    std::cerr<<"Username and Salt should not be empty"<<std::endl;
     return;
   }
 
@@ -428,12 +431,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, std::string& username, bool mac
   }
   get_node(ut, "wsse:Username") = username_;
   get_node(ut, "wsse11:Salt") = salt_;
-
-  std::string it;
-  std::ostringstream strout;
-  strout<<iteration;
-  it = strout.str();
-  get_node(ut, "wsse11:Iteration") = it;
+  get_node(ut, "wsse11:Iteration") = tostring(iteration);
 }
 
 } // namespace Arc
