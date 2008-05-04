@@ -2,7 +2,7 @@ bin_PROGRAMS = apsub apstat apkill apsstat apget apclean
 doc_DATA = client.xml jsdl_simple.xml jsdl_stage.xml
 EXTRA_DIST = $(doc_DATA)
 SOURCES = arex_client.cpp arex_client.h
-LIBS = $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
+LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
 
 apsub_SOURCES  = $(SOURCES) apsub.cpp
 apsub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
