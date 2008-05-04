@@ -305,8 +305,6 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
-  MessagePayload *tmp = nextinmsg.Payload();
-  logger.msg(Arc::DEBUG, "http: %s", Arc::ContentFromPayload(*tmp));
 
   // Call next MCC 
   MCCInterface* next = Next();

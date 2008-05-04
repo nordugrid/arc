@@ -275,6 +275,7 @@ namespace Arc {
         dirpath = "/";
       else
         dirpath.erase(n, dirpath.length() - n + 1);
+      
       if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0) {
         if (errno != EEXIST) {
           logger.msg(ERROR, "Failed to create/find directory %s", dirpath);

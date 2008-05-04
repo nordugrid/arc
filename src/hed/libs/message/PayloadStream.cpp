@@ -85,11 +85,8 @@ bool PayloadStream::Put(const char* buf,int size) {
     if(!(fd.revents & POLLOUT)) return false;
 #endif
     l=::write(handle_,buf,size);
-std::cout << buf << std::endl;
-std::cout << size << "/" << strlen(buf) << std::endl;
     if(l == -1) {
-// std::cout << GetOsErrorMessage() << std::endl;
-	return false;
+	    return false;
     }
     buf+=l; size-=l;
 #ifdef WIN32

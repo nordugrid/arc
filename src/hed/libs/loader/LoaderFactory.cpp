@@ -36,12 +36,13 @@ void *LoaderFactory::get_instance(const std::string& name,int min_version,int ma
         // Load module
         Glib::Module *module = ModuleManager::load(name);
         if (module == NULL) {
+            Loader::logger.msg(ERROR, "Error at load (%s)", Glib::Module::get_last_error());
             return NULL;
         }
         // Identify table of descriptors
         void *ptr = NULL;
         if (!module->get_symbol(id_.c_str(), ptr)) {
-	        Loader::logger.msg(INFO, "Not a '%s' type plugin", id_);
+	        Loader::logger.msg(INFO, "Not a '%s' type plugin (%s)", id_, Glib::Module::get_last_error());
 	        return NULL;
         }
         // Copy new description to a table. TODO: check for duplicate names
