@@ -98,7 +98,7 @@ class FileTransfer
             logger_.msg(Arc::DEBUG, xml_str);
             Arc::XMLNode ds;
             for (int i = 0; (ds = jd["DataStaging"][i]) != false; i++) {
-                std::string dest = "file://" + job_root + "/" + j.getID() + "/" + (std::string)ds["FileName"];
+                std::string dest = Glib::build_filename(Glib::build_filename(job_root, j.getID()), (std::string)ds["FileName"]);
                 Arc::XMLNode s = ds["Source"];
                 if (s == false) {
                     // it should not download
@@ -157,7 +157,7 @@ class FileTransfer
             Arc::XMLNode jd = j.getJSDL()["JobDescription"];
             Arc::XMLNode ds;
             for (int i = 0; (ds = jd["DataStaging"][i]) != false; i++) {
-                std::string src = "file://" + job_root + "/" + j.getID() + "/" + (std::string)ds["FileName"];
+                std::string src = Glib::build_filename(Glib::build_filename(job_root, j.getID()), (std::string)ds["FileName"]);
                 Arc::XMLNode d = ds["Target"];
                 if (d == false) {
                     // it should not upload

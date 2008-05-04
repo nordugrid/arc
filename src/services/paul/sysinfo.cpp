@@ -13,6 +13,7 @@
 #include <sys/utsname.h> // uname
 #include "fsusage.h"
 #else
+#include <arc/win32.h>
 #endif
 
 namespace Paul

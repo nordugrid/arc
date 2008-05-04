@@ -146,9 +146,6 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         logger_.msg(Arc::ERROR, "Cannot collect resource information");
         return;
     }
-    // std::string str;
-    // glue2.GetXML(str);
-    // std::cout << str << std::endl;
     // Create client to url
     Arc::ClientSOAP *client;
     Arc::MCCConfig cfg;
@@ -237,6 +234,7 @@ void PaulService::process_job(void *arg)
     PaulService &self = *(info.self);
     Job &j = self.jobq[*(info.job_id)];
     self.logger_.msg(Arc::DEBUG, "Process job: %s", j.getID());
+    j.setStatus(STARTING);
     self.stage_in(j);
     self.run(j);
     self.stage_out(j);
@@ -253,7 +251,24 @@ void PaulService::do_request(void)
 {
     // XXX pickup scheduler randomly from schdeuler list
     std::string url = (*schedulers.begin());
+    // XXX check if there is no scheduler
     logger_.msg(Arc::DEBUG, "Do Request: %s", url);
+    // check if there is no free CPU slot
+    int active_job = 0;
+    std::map<const std::string, Job *> all = jobq.getAllJobs();
+    std::map<const std::string, Job *>::iterator it;
+    for (it = all.begin(); it != all.end(); it++) {
+        Job *j = it->second;
+        SchedStatusLevel status = j->getStatus();
+        if (status == NEW || status == STARTING || status == RUNNING) {
+            active_job++;
+        }
+    }
+    int cpu_num = sysinfo.getPhysicalCPUs();
+    if (active_job >= cpu_num) {
+        logger_.msg(Arc::DEBUG, "No free CPU slot");
+        return;
+    }   
     std::vector<std::string> job_ids;
     GetActivities(url, job_ids);
     for (int i = 0; i < job_ids.size(); i++) {
@@ -296,18 +311,15 @@ void PaulService::do_report(void)
             report = (*r->second)["ibes:ReportActivitiesStatus"];
         }
         
-        Arc::XMLNode resp = report.NewChild("ibes:Activity");
+        Arc::XMLNode activity = report.NewChild("ibes:Activity");
         
-        // Make response
-        Arc::WSAEndpointReference identifier(resp.NewChild("ibes:ActivityIdentifier"));
+        // request
+        Arc::WSAEndpointReference identifier(activity.NewChild("ibes:ActivityIdentifier"));
         identifier.Address(j->getResourceID()); // address of scheduler service
         identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
 
-        Arc::XMLNode state = resp.NewChild("ibes:ActivityStatus");
+        Arc::XMLNode state = activity.NewChild("ibes:ActivityStatus");
         state.NewAttribute("ibes:state") = sched_status_to_string(j->getStatus());
-        std::string s;
-        report.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
     }
     
     Arc::MCCConfig cfg;
@@ -354,6 +366,24 @@ void PaulService::do_report(void)
         }
         delete response;
         // delete client;
+        // mark all finsihed job as sucessfully reported finished job
+        Arc::XMLNode req = (*request)["ibes:ReportActivitiesStatus"];
+        Arc::XMLNode activity;
+        for (int i = 0; (activity = req["Activity"][i]) != false; i++) {
+            Arc::XMLNode id = activity["ActivityIdentifier"];
+            Arc::WSAEndpointReference epr(id);
+            std::string job_id = epr.ReferenceParameters()["sched:JobID"];
+            if (job_id.empty()) {
+                logger_.msg(Arc::ERROR, "Cannot find job id");
+                continue;
+            }
+            logger_.msg(Arc::DEBUG, "%s reported", job_id);
+            Job &j = jobq[job_id];
+            if (j.getStatus() == FINISHED) {
+                logger_.msg(Arc::DEBUG, "%s job reported finished", j.getID());
+                j.finishedReported();
+            }
+        }
     }
     // free
     for (i = requests.begin(); i != requests.end(); i++) {
@@ -428,9 +458,6 @@ void PaulService::do_action(void)
             logger_.msg(Arc::ERROR, faultstring);
         }
         
-        std::string s;
-        (*response).GetXML(s);
-std::cout << s << std::endl;
         // process response
         Arc::XMLNode activities = (*response)["ibes:GetActivitiesStatusChangesResponse"]["Activities"];
         Arc::XMLNode activity;
@@ -449,9 +476,12 @@ std::cout << s << std::endl;
                 j.setStatus(FINISHED);
             }
             if (j.getStatus() == KILLING) {
-                Arc::Run *run = runq[job_id];
                 logger_.msg(Arc::DEBUG, "Killing %s", job_id);
+                TerminateProcess(runq[job_id], 256);
+#if 0
+                Arc::Run *run = runq[job_id];
                 run->Kill(1);
+#endif
                 j.setStatus(KILLED);
             }
         }
@@ -462,6 +492,16 @@ std::cout << s << std::endl;
         delete i->second;
     }
     // cleanup finished process
+    for (it = all.begin(); it != all.end(); it++) {
+        Job *j = it->second;
+        if (j->getStatus() == FINISHED) {
+            // do clean if and only if the finished state already reported
+            if (j->isFinishedReported()) {
+                j->clean(job_root);
+                jobq.removeJob(*j);
+            }           
+        } 
+    }
 }
 
 // Main reported loop
@@ -489,6 +529,7 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     schedulers.push_back(sched_endpoint);
     period = Arc::stringtoi((std::string)((*cfg)["RequestPeriod"]));
     job_root = (std::string)((*cfg)["JobRoot"]);
+    mkdir(job_root.c_str(), 0700);
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
     cache_path = (std::string)((*cfg)["CacheDirectoryPath"]);
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));

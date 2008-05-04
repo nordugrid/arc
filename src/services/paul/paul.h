@@ -10,6 +10,7 @@
 #include "job.h"
 #include "job_queue.h"
 #include "sysinfo.h"
+#include <arc/win32.h>
 
 namespace Paul {
 
@@ -27,7 +28,8 @@ class PaulService: public Arc::Service {
         JobQueue jobq;
         bool information_collector(Arc::XMLNode &doc);
         std::map<std::string, std::string> pki;
-        std::map<std::string, Arc::Run *> runq;
+        // std::map<std::string, Arc::Run *> runq;
+        std::map<std::string, HANDLE> runq;
         SysInfo sysinfo;
         void do_request(void);
         void do_report(void);

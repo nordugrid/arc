@@ -9,10 +9,7 @@
 #include <sys/wait.h>
 #include <arc/Run.h>
 #include "paul.h"
-#define DIR_SEPARATOR '/'
 #ifdef WIN32
-#undef DIR_SEPARATOR
-#define DIR_SEPARATOR '\\'
 #include <arc/win32.h>
 #endif
 
@@ -49,30 +46,70 @@ bool PaulService::run(Job &j)
     std::string cmd;
     
     // XXX unix specific
-    std::string r = job_root+DIR_SEPARATOR+j.getID();
-    mkdir(r.c_str(), 0700);
-#ifndef WIN32
-    if (exec[0] != '/') {
-#else
-    if (exec[1] != ':') {
-#endif
-        cmd = r + DIR_SEPARATOR + exec;
+    std::string wd = Glib::build_filename(job_root, j.getID());
+    mkdir(wd.c_str(), 0700);
+    if (!Glib::path_is_absolute(exec)) {
+        cmd = Glib::build_filename(wd, exec);
         chmod(cmd.c_str(), 0700);
 #ifndef WIN32
         cmd = "./" + exec + arg_str;
 #else
-        cmd = exec + arg_str;
+        cmd += (" " + arg_str);
 #endif
     } else {
         cmd = exec + arg_str;
     }
-    
+    // cmd += " > s.out";
     logger_.msg(Arc::DEBUG, "Command: %s", cmd);
+
+    
+    STARTUPINFO startupinfo;
+    memset(&startupinfo, 0, sizeof(startupinfo));
+    // startupinfo.cb = sizeof(STARTUPINFO);
+    // startupinfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+    // startupinfo.dwFlags = STARTF_USESHOWWINDOW | ;
+    // startupinfo.wShowWindow = SW_HIDE;
+    PROCESS_INFORMATION processinfo;
+    
+    char *cmd_s = (char *)calloc(cmd.length(), sizeof(char));
+    char *wd_s = (char *)calloc(wd.length(), sizeof(char));
+    strcpy(cmd_s, cmd.c_str());
+    strcpy(wd_s, wd.c_str());
+    // int result = CreateProcess(NULL, cmd_s, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, wd_s, &startupinfo, &processinfo);
+    int result = CreateProcess(NULL, 
+                              (LPSTR)cmd.c_str(), 
+                               NULL, 
+                               NULL, 
+                               FALSE, 
+                               CREATE_NEW_PROCESS_GROUP|CREATE_NO_WINDOW|IDLE_PRIORITY_CLASS, 
+                               NULL, 
+                               (LPSTR)wd.c_str(),
+                               &startupinfo, 
+                               &processinfo);
+    
+    free(cmd_s);
+    free(wd_s);
+    if (!result) {
+        logger_.msg(Arc::ERROR, "Spawn Error: %s", GetOsErrorMessage());
+        return false;
+    }
+    runq[j.getID()] = processinfo.hProcess;
+    j.setStatus(RUNNING);
+    logger_.msg(Arc::DEBUG, "Wait for process");
+    WaitForSingleObject(processinfo.hProcess, INFINITE);
+    logger_.msg(Arc::DEBUG, "close process");
+    WaitForSingleObject(processinfo.hThread, INFINITE);
+    CloseHandle(processinfo.hThread);
+    CloseHandle(processinfo.hProcess);
+    logger_.msg(Arc::DEBUG, "end process");
+    return true;   
+
+#if 0
     Glib::ArrayHandle<std::string> argv(Glib::shell_parse_argv(cmd));
     Glib::Pid pid;
     try {
         Glib::spawn_async_with_pipes(r, argv, 
-                             Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
+                             Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD | Glib::SPAWN_STDERR_TO_DEV_NULL | Glib::SPAWN_STDOUT_TO_DEV_NULL),
                                  sigc::slot<void>(), &pid, NULL, NULL, NULL);
         j.setStatus(RUNNING);
     } catch (Glib::Exception &e) {
@@ -96,10 +133,13 @@ bool PaulService::run(Job &j)
         return true;
     }
 #else
-    WaitForSignleObject(pid, INFINITE);
+    WaitForSingleObject(HANDLE(pid), INFINITE);
     logger_.msg(Arc::DEBUG, "Process finished");
     return true;
 #endif
+    Glib::spawn_close_pid(pid);
+#endif
+
 #if 0
     Arc::Run *run = NULL;
     try {

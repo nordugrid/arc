@@ -2,16 +2,19 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
 #include "job.h"
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 
 namespace Paul {
 
 Job::Job(void) 
 {
+    finished_reported = false;
     timeout = 5;
     check = 0;
 }
@@ -24,11 +27,13 @@ Job::Job(const Job &j)
     id = j.id;
     db = j.db;
     check = j.check;
+    finished_reported = false;
 }
 
 Job::Job(JobRequest &r)
 {
     request = r;
+    finished_reported = false;
 }
 
 Job::Job(JobRequest &r, JobSchedMetaData &m, int t, const std::string &db_path) 
@@ -39,6 +44,7 @@ Job::Job(JobRequest &r, JobSchedMetaData &m, int t, const std::string &db_path)
     id = Arc::UUID();
     db = db_path;
     check = 0;
+    finished_reported = false;
 }
 
 Job::Job(const std::string &jobid, const std::string &db_path) 
@@ -47,6 +53,7 @@ Job::Job(const std::string &jobid, const std::string &db_path)
     db = db_path;
     check = 0;
     timeout = 5;
+    finished_reported = false;
 }
 
 Job::Job(std::istream &job, const std::string &db_path) 
@@ -206,6 +213,29 @@ bool Job::remove(void)
     std::remove(file3.c_str());
 
     return true;
+}
+
+static void Remove(const std::string &path)
+{
+    if (Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) {
+        unlink(path.c_str());
+        return;
+    }
+    if (Glib::file_test(path, Glib::FILE_TEST_IS_DIR)) {
+        Glib::Dir dir(path);
+        std::string d;
+        while ((d = dir.read_name()) != "") {
+            Remove(Glib::build_filename(path, d));
+        }
+        dir.close();
+        rmdir(path.c_str());
+    }
+}
+
+void Job::clean(const std::string &jobroot)
+{
+    std::string wd = Glib::build_filename(jobroot, id);
+    Remove(wd);
 }
 
 const std::string Job::getFailure(void)

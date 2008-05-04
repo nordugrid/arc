@@ -20,6 +20,7 @@ class Job {
         SchedStatusLevel status;
         int timeout;
         int check;
+        bool finished_reported;
     public:
         Job(void);
         Job(const Job &j);
@@ -49,6 +50,9 @@ class Job {
         bool save(void);
         bool load(void);
         bool remove(void);
+        void finishedReported(void) { finished_reported = true; };
+        bool isFinishedReported(void) { return finished_reported; };
+        void clean(const std::string &jobroot);
 };
 
 } // namespace Arc
