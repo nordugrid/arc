@@ -39,24 +39,58 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
 #endif
     entry3.set_description("full path of pid file");
     add_entry_filename(entry3, pid_file);
+#ifdef WIN32
+    install = false;
+    Glib::OptionEntry entry4;
+    entry4.set_long_name("install");
+    entry4.set_short_name('i');
+#ifdef HAVE_GLIBMM_OPTIONFLAGS
+    entry4.set_flags(Glib::OptionEntry::FLAG_NO_ARG | Glib::OptionEntry::FLAG_OPTIONAL_ARG);
+#endif
+    entry4.set_description("install windows service");
+    add_entry(entry4, install);
+    
+    uninstall = false;
+    Glib::OptionEntry entry5;
+    entry5.set_long_name("uninstall");
+    entry5.set_short_name('u');
+#ifdef HAVE_GLIBMM_OPTIONFLAGS
+    entry5.set_flags(Glib::OptionEntry::FLAG_NO_ARG | Glib::OptionEntry::FLAG_OPTIONAL_ARG);
+#endif
+    entry5.set_description("uninstall windows service");
+    add_entry(entry5, uninstall);
+#endif
 }
 
 #else
 
+#ifndef WIN32
 const char* ServerOptions::optstring = "fc:p:";
+#else
+const char* ServerOptions::optstring = "fc:p:iu";
+#endif
 const struct option ServerOptions::longopts[] = {
     {"foreground", 0, NULL, 'f'},
     {"config", 1, NULL, 'c'},
     {"pid-file", 1, NULL, 'p'},
+#ifdef WIN32
+    {"install", 0, NULL, 'i'},
+    {"uninstall", 0, NULL, 'u'},
+#endif
     {NULL, 0, NULL, 0}
 };
 
 ServerOptions::ServerOptions() {
     foreground = false;
-    config_file = "/etc/arc/server.xml";
+    // config_file = "/etc/arc/server.xml";
+    config_file = "service.xml";
     pid_file = "";
     user="";
     group="";
+#ifdef WIW32
+    install = false;
+    uninstall = false;
+#endif
 }
 
 int ServerOptions::parse(int argc,char * const argv[]) {
@@ -69,6 +103,10 @@ int ServerOptions::parse(int argc,char * const argv[]) {
             case 'f': foreground=true; break;
             case 'c': config_file=optarg; break;
             case 'p': pid_file=optarg; break;
+#ifdef WIN32
+	    case 'i': install = true; break;
+	    case 'u': uninstall = true; break;
+#endif
             default: return 0;
         };
     };

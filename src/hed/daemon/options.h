@@ -23,7 +23,10 @@ class ServerOptions : public Glib::OptionGroup {
         std::string pid_file;
         std::string user;
         std::string group;
-
+#ifdef WIN32
+	bool install;
+	bool uninstall;
+#endif
 }; // ServerOptions
 
 #else
@@ -39,6 +42,10 @@ class ServerOptions {
         std::string pid_file;
         std::string user;
         std::string group;
+#ifdef WIN32
+	bool install;
+	bool uninstall;
+#endif
 
     private:
         static const char* optstring;
