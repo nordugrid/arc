@@ -1,5 +1,5 @@
 pkglib_LTLIBRARIES = libpaul.la
-#noinst_PROGRAMS=test_r
+# noinst_PROGRAMS=test_r
 if WIN32
 UTIL_SRC=
 else

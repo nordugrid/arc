@@ -40,5 +40,5 @@ else
 SCHED_SERVICE =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) $(PAUL) $(SCHED_SERVICE) arex2 wrappers $(SAML)
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) arex2 wrappers $(SAML)
 DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd paul sched arex2 wrappers saml
