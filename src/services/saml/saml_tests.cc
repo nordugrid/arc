@@ -134,7 +134,7 @@ int main(void) {
     </Federation>\
    </Identity>");
 
-//The RemoteNameIdentifier could be parsed from the remote credential during authentication 
+//The RemoteNameIdentifier could be parsed from the remote credential during transport level authentication 
   std::string identity_idp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
     <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
        RemoteProviderID=\"https://sp.com/SAML\"\
