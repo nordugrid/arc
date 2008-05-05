@@ -1,5 +1,5 @@
 pkglib_LTLIBRARIES = libpaul.la
-noinst_PROGRAMS=test_r
+#noinst_PROGRAMS=test_r
 if WIN32
 UTIL_SRC=
 else
@@ -11,7 +11,7 @@ libpaul_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libpaul_la_LIBADD   = $(GLIBMM_LIBS) $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la
 libpaul_la_LDFLAGS=-no-undefined -avoid-version -module
 
-test_r_SOURCES  = test_r.cpp
-test_r_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_r_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_r_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(SOCKET_LIB) $(EXTRA_LIBS)
+#test_r_SOURCES  = test_r.cpp
+#test_r_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+#test_r_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+#test_r_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(SOCKET_LIB) $(EXTRA_LIBS)
