@@ -367,7 +367,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
             return MCC_Status();
         };
     };
-    outmsg.Payload(new PayloadStream(*s_));
+    outmsg.Payload(new PayloadTCPSocket(*s_));
     if(!ProcessSecHandlers(outmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
     return MCC_Status(Arc::STATUS_OK);
 }
