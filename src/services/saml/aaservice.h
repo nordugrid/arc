@@ -18,7 +18,7 @@ class Service_AA: public Arc::Service {
   Service_AA(Arc::Config *cfg);
   virtual ~Service_AA(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
- privated:
+ private:
   LassoAssertionQuery *assertion_query_;
 };
 

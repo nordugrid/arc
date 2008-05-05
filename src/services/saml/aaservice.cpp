@@ -14,8 +14,10 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
+#include <arc/message/SOAPEnvelope.h>
 #include <arc/Thread.h>
 #include <arc/DateTime.h>
+#include <arc/GUID.h>
 
 #include <lasso/lasso.h>
 #include <lasso/saml-2.0/assertion_query.h>
@@ -94,9 +96,9 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
 
   std::string assertionRequestBody;
-  inpayload.GetXML(assertionRequestBody);
-  int rc = lasso_assertion_query_process_request_msg(assertion_query_, assertionRequestBody);
-  if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_process_request_msg failed"; return Arc::MCC_Status(););
+  inpayload->GetXML(assertionRequestBody);
+  int rc = lasso_assertion_query_process_request_msg(assertion_query_, (gchar*)(assertionRequestBody.c_str()));
+  if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_process_request_msg failed"); return Arc::MCC_Status();}
 
   //Compare the <saml:NameID> inside the <AttributeQuery> message with the <saml:NameID>
   //which has been got from the former authentication
@@ -126,16 +128,16 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   //TODO: access the local attribute database, probabaly by using the <NameID> as searching key
   LassoSaml2Attribute *attribute;
-  std:list<std::string> attribute_name_list;
+  std::list<std::string> attribute_name_list;
   int length = g_list_length(attrs);
   for(int i=0; i<length; i++) {
-    attribute = (LassoSamlp2Attribute*)g_list_nth_data(attrs, i);
+    attribute = (LassoSaml2Attribute*)g_list_nth_data(attrs, i);
     if(attribute->Name != NULL) { 
       std::string attribute_name(attribute->Name);
       attribute_name_list.push_back(attribute_name); 
     }
     else {
-      logger.msg(Arc::Error, "There should be Name attribute in request's <Attribute> node");
+      logger.msg(Arc::ERROR, "There should be Name attribute in request's <Attribute> node");
       return Arc::MCC_Status();
     }
   }
@@ -152,7 +154,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   attrval= LASSO_SAML2_ATTRIBUTE_VALUE(lasso_saml2_attribute_value_new());
   //attrval->any = g_list_prepend(NULL, g_strdup("RoleA"));
   //Add one or more <AttributeValue> into <Attribute>
-  attr->AttributeValue = g_list_append(attr->AttributeValue, attrval);
+  attribute->AttributeValue = g_list_append(attribute->AttributeValue, attrval);
 
   //Compose <Assertion>
   LassoSaml2Assertion *assertion;
@@ -162,8 +164,8 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string id = Arc::UUID();
   assertion->ID = g_strdup(id.c_str());
   assertion->Version = g_strdup("2.0");
-  Arc::Time t();
-  std::string current_time = t.str(UTCTime); 
+  Arc::Time t;
+  std::string current_time = t.str(Arc::UTCTime); 
   assertion->IssueInstant = g_strdup(current_time.c_str());
   assertion->Issuer = LASSO_SAML2_NAME_ID(lasso_saml2_name_id_new_with_string(
                           LASSO_PROVIDER(LASSO_PROFILE(assertion_query_)->server)->ProviderID));
@@ -191,7 +193,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   LassoSaml2AttributeStatement *attribute_statement;
   attribute_statement = LASSO_SAML2_ATTRIBUTE_STATEMENT(lasso_saml2_attribute_statement_new());
   //Add one or more <Attribute> into <Assertion>
-  attribute_statement->Attribute = g_list_append(attribute_statement->Attribute, attr);
+  attribute_statement->Attribute = g_list_append(attribute_statement->Attribute, attribute);
 
   assertion->AttributeStatement= g_list_append(assertion->AttributeStatement, attribute_statement);
 
@@ -220,14 +222,14 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //Conver the lasso-generated soap message into Arc's PayloasSOAP. It could be not efficient here
   Arc::XMLNode response_soap(assertionResponseBody);
   Arc::XMLNode response_saml_assertion = response_soap["Envelop"]["Body"].Child(0);
-  Arc::SOAPEnvelop envelop(response_saml_assertion);
+  Arc::SOAPEnvelope envelope(response_saml_assertion);
 
-  Arc::PayloadSOAP *outpayload = new Arc::PayloadSOAP(envelop);
+  Arc::PayloadSOAP *outpayload = new Arc::PayloadSOAP(envelope);
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "AA_Service"), eval(NULL) {
+Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "AA_Service") {
   logger_.addDestination(logcerr);
   assertion_query_ = NULL;
   lasso_init();
@@ -239,9 +241,9 @@ Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::root
 }
 
 Service_AA::~Service_AA(void) {
-  if(eval)
-    delete eval;
-  eval = NULL;
+  if(assertion_query_ != NULL)
+    lasso_assertion_query_destroy(assertion_query_);
+  assertion_query_ = NULL;
 }
 
 } // namespace ArcSec
