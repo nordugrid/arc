@@ -117,7 +117,7 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //AA will only return those <Attribute> which is required by request
   LassoSamlp2AttributeQuery *attribute_query;
   attribute_query = LASSO_SAMLP2_ATTRIBUTE_QUERY(LASSO_PROFILE(assertion_query_)->request);
-  GList *attrs = attribute_query->Attribute;
+  GList *attrs = (GList*)(attribute_query->Attribute);
 
   rc = lasso_assertion_query_validate_request(assertion_query_);
 

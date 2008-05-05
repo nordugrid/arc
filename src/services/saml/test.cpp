@@ -75,8 +75,8 @@ int main(void) {
   LassoServer *server;
   server = lasso_server_new("./sp_saml_metadata.xml", "./sp_private-key-raw.pem", NULL, "./sp_public-key.pem");
   lasso_server_add_provider(server, LASSO_PROVIDER_ROLE_ATTRIBUTEAUTHORITY, "./aa_saml_metadata.xml", "./aa_public-key.pem", "./ca.pem");
-  assertion_query_ = lasso_assertion_query_new (server);
-  if(assertion_query_ == NULL) { logger.msg(Arc::DEBUG, "lasso_assertion_query_new() failed"); return -1; }
+  assertion_query = lasso_assertion_query_new (server);
+  if(assertion_query == NULL) { logger.msg(Arc::DEBUG, "lasso_assertion_query_new() failed"); return -1; }
 
   //The LocalNameIdentifier could be parsed from the local credential
   std::string identity_sp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
@@ -102,7 +102,7 @@ int main(void) {
   lasso_profile_set_identity_from_dump(LASSO_PROFILE(assertion_query), identity_sp.c_str());
 
   std::string remote_provide_id = (std::string)(id_node["Federation"].Attribute("RemoteProviderID"));
-  int rc = lasso_assertion_query_init_request(assertion_query, remote_provide_id.c_str(), LASSO_HTTP_METHOD_SOAP, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
+  int rc = lasso_assertion_query_init_request(assertion_query, (char*)(remote_provide_id.c_str()), LASSO_HTTP_METHOD_SOAP, LASSO_ASSERTION_QUERY_REQUEST_TYPE_ATTRIBUTE);
   if(rc != 0) { logger.msg(Arc::ERROR, "lasso_assertion_query_init_request failed"); return -1; }
 
   //Add one or more <Attribute>s into AttributeQuery here, which means the Requestor would
@@ -117,7 +117,7 @@ int main(void) {
 
   LassoSamlp2AttributeQuery *attribute_query;
   attribute_query = LASSO_SAMLP2_ATTRIBUTE_QUERY(LASSO_PROFILE(assertion_query)->request);
-  attribute_query->Attribute = g_list_append(attribute_query>Attribute, attribute);
+  attribute_query->Attribute = g_list_append(attribute_query->Attribute, attribute);
 
   //Build the soap message
   rc = lasso_assertion_query_build_request_msg(assertion_query);
