@@ -14,13 +14,13 @@ UninstPage instfiles
 Section "Main Components"
 	SetOutPath $INSTDIR
 	File /oname=arched.exe "src\hed\daemon\.libs\arched.exe"
-	File /oname=test.exe "src\tests\echo\.libs\test.exe"
-	File /oname=service.xml "src\tests\echo\service.xml.win32"
-	File /oname=accesslist "src\tests\echo\accesslist"
-	File /oname=Policy_Example.xml "src\tests\echo\Policy_Example.xml"
-	File /oname=ca.pem "src\tests\echo\ca.pem"
-	File /oname=key.pem "src\tests\echo\key.pem"
-	File /oname=cert.pem "src\tests\echo\cert.pem"
+	; File /oname=test.exe "src\tests\echo\.libs\test.exe"
+	; File /oname=echo_service.xml "src\tests\echo\service.xml.win32"
+	; File /oname=accesslist "src\tests\echo\accesslist"
+	; File /oname=Policy_Example.xml "src\tests\echo\Policy_Example.xml"
+	; File /oname=ca.pem "src\tests\echo\ca.pem"
+	; File /oname=key.pem "src\tests\echo\key.pem"
+	; File /oname=cert.pem "src\tests\echo\cert.pem"
 
 	; Libs
 	File /oname=libarccommon-0.dll "src\hed\libs\common\.libs\libarccommon-0.dll"
@@ -29,6 +29,7 @@ Section "Main Components"
 	File /oname=libarcsecurity-0.dll "src\hed\libs\security\.libs\libarcsecurity-0.dll"
 	File /oname=libarcclient-0.dll "src\hed\libs\misc\.libs\libarcclient-0.dll"
 	File /oname=libarcws-0.dll "src\hed\libs\ws\.libs\libarcws-0.dll"
+	File /oname=libarcdata2-0.dll "src\hed\libs\data\.libs\libarcdata2-0.dll"
 	; XXX Dependency libs with hard coded paths
 	File /oname=libgnurx-0.dll "C:\msys\lib\libgnurx-0.dll"
 	File /oname=libglib-2.0-0.dll "C:\GTK\bin\libglib-2.0-0.dll"
@@ -50,16 +51,21 @@ Section "Plugins"
 	File /oname=plugins\mcc\libmcctls.dll "src\hed\mcc\tls\.libs\libmcctls.dll"
 	File /oname=plugins\mcc\libmcchttp.dll "src\hed\mcc\http\.libs\libmcchttp.dll"
 	File /oname=plugins\mcc\libmccsoap.dll "src\hed\mcc\soap\.libs\libmccsoap.dll"
-	CreateDirectory $INSTDIR\plugins\pdc
-	File /oname=plugins\pdc\libarcpdc.dll "src\hed\pdc\.libs\libarcpdc.dll"
+	; CreateDirectory $INSTDIR\plugins\pdc
+	; File /oname=plugins\pdc\libarcpdc.dll "src\hed\pdc\.libs\libarcpdc.dll"
 
 	CreateDirectory $INSTDIR\plugins\dmc
-		
+	File /oname=plugins\dmc\libdmcfile.dll "src\hed\dmc\file\.libs\libdmcfile.dll"
+	File /oname=plugins\dmc\libdmchttp.dll "src\hed\dmc\http\.libs\libdmchttp.dll"
 SectionEnd
 
 Section "Services"
 	CreateDirectory $INSTDIR\services
-	File /oname=services\libecho.dll "src\tests\echo\.libs\libecho.dll"
+	; File /oname=services\libecho.dll "src\tests\echo\.libs\libecho.dll"
+	; Paul service
+    File /oname=services\libpaul.dll "src\services\paul\.libs\libpaul.dll"
+    File /oname=paul_service.xml "src\services\paul\paul_service_win32.xml"
+    File /oname=paul.bat "src\services\paul\paul.bat"
 SectionEnd
 
 Section "Uninstall"
