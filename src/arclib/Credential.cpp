@@ -120,6 +120,14 @@ namespace ArcLib {
     return format;
   }
 
+  std::string Credential::GetDN(void) {
+    X509_NAME *subject = NULL;
+    subject = X509_get_subject_name(cert_);
+    std::string str;
+    if(subject!=NULL)
+      str.append(X509_NAME_oneline(subject,0,0));
+    return str;
+  }
 
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
@@ -153,8 +161,8 @@ namespace ArcLib {
           }
           
           if(!sk_X509_insert(*certchain, tmp, n)) {
-            X509_free(tmp);
             std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
+            X509_free(tmp);
             credentialLogger.msg(ERROR, "Can not insert cert %s into certificate's issuer chain", str); LogError();
             throw CredentialError("Can not insert cert into certificate's issuer chain");
           }

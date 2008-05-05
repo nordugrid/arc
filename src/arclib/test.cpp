@@ -35,6 +35,9 @@ int main(void) {
   ArcLib::Credential proxy;
 
   ArcLib::Credential signer(cert, key, "", cafile); 
+  std::string dn_name = signer.GetDN();
+  std::cout<<"DN:--"<<dn_name<<std::endl;
+
   proxy.InquireRequest(req);
   signer.SignRequest(&proxy, out);
 

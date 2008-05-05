@@ -128,6 +128,8 @@ class Credential {
     /**Get the certificate format, PEM PKCS12 or DER */
     Credformat getFormat(BIO * in);
 
+    /**Get the DN of the certificate attached to this object*/
+    std::string GetDN(void);
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
