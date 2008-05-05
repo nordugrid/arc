@@ -20,7 +20,12 @@ ServerOptions::ServerOptions() : Glib::OptionGroup("Server options", "server opt
     entry1.set_description("run daemon in foreground");
     add_entry(entry1, foreground);
     
+#ifdef WIN32
+    config_file = "service.xml";
+#else
     config_file = "/etc/arc/server.xml";
+#endif
+
     Glib::OptionEntry entry2;
     entry2.set_long_name("config");
     entry2.set_short_name('c');

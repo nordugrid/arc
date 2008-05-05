@@ -28,5 +28,17 @@ else
 SAML =
 endif
 
-SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) arex2 wrappers paul sched $(SAML)
-DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd arex2 sched paul wrappers saml
+if PAUL_SERVICE_ENABLED 
+PAUL_SERVICE = paul
+else
+PAUL_SERVICE =
+endif
+
+if SCHED_SERVICE_ENABLED
+SCHED_SERVICE = sched
+else
+SCHED_SERVICE =
+endif
+
+SUBDIRS=$(AREX_SERVICE) $(ISI_SERVICE) $(PDP_SERVICE) $(HTTPD_SERVICE) $(PAUL) $(SCHED) arex2 wrappers $(SAML)
+DIST_SUBDIRS = echo_java echo_python a-rex isis pdp httpd paul sched arex2 wrappers saml

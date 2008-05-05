@@ -6,12 +6,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <arc/Run.h>
-#include "paul.h"
 #ifdef WIN32
 #include <arc/win32.h>
+#else
+#include <sys/wait.h>
 #endif
+
+#include "paul.h"
 
 namespace Paul
 {

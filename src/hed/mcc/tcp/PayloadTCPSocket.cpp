@@ -2,69 +2,23 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #ifdef WIN32
-#define NOGDI
 #include <arc/win32.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-typedef int socklen_t;
-#define ErrNo WSAGetLastError()
 #else // UNIX
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <sys/poll.h>
 #endif
-#include <unistd.h>
 
 #include <arc/StringConv.h>
 #include "PayloadTCPSocket.h"
 
 namespace Arc {
 
-#if 0
-int PayloadTCPSocket::connect_socket(const char* hostname,int port) {
-  struct hostent* host = NULL;
-  struct hostent  hostbuf;
-  int    errcode = 0;
-#ifndef HAVE_GETHOSTBYNAME_R
-  /* According to the developer manual the Darwin's version of gethostbyname
-     is thread-safe */
-  host = gethostbyname(hostname);
-  if (host == NULL) {
-#else
-  #if defined(_AIX)
-  struct hostent_data buf[BUFSIZ];
-  if((errcode=gethostbyname_r(hostname,
-                                  (host=&hostbuf),buf)) != 0) {
-  #else
-  char   buf[BUFSIZ];
-  if((gethostbyname_r(hostname,&hostbuf,buf,sizeof(buf),
-                                        &host,&errcode) != 0) ||
-     (host == NULL)) {
-  #endif
-#endif
-    logger.msg(WARNING, "Failed to resolve %s", hostname);
-    return -1;
-  };
-  if( (host->h_length < (int)sizeof(struct in_addr)) ||
-      (host->h_addr_list[0] == NULL) ) {
-    logger.msg(WARNING, "Failed to resolve %s", hostname);
-    return -1;
-  };
-  struct sockaddr_in addr;
-  memset(&addr,0,sizeof(addr));
-  addr.sin_family=AF_INET;
-  addr.sin_port=htons(port);
-  memcpy(&addr.sin_addr,host->h_addr_list[0],sizeof(struct in_addr));
-  int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
-  if(s==-1) return -1;
-  if(::connect(s,(struct sockaddr *)&addr,sizeof(addr))==-1) {
-    logger.msg(WARNING, "Failed to connect to %s:%i", hostname, port);
-    close(s); return -1;
-  };
-  return s;
-}
-#endif
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
 {
   struct addrinfo hint;
@@ -120,6 +74,61 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint,
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {
   if(acquired_) { shutdown(handle_,2); close(handle_); };
+}
+
+bool PayloadTCPSocket::Get(char* buf,int& size) {
+  if(handle_ == -1) return false;
+  ssize_t l = size;
+  size=0;
+  if(seekable_) { // check for EOF
+    struct stat st;
+    if(fstat(handle_,&st) != 0) return false;
+    off_t o = lseek(handle_,0,SEEK_CUR);
+    if(o == (off_t)(-1)) return false;
+    o++;
+    if(o >= st.st_size) return false;
+  };
+#ifndef WIN32
+  struct pollfd fd;
+  fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
+  if(poll(&fd,1,timeout_*1000) != 1) return false;
+  if(!(fd.revents & (POLLIN | POLLPRI))) return false;
+#endif
+  l=::recv(handle_,buf,l,0);
+  if(l == -1) return false;
+  size=l;
+#ifndef WIN32
+  if((l == 0) && (fd.revents && POLLERR)) return false;
+#else
+  if(l == 0) return false;
+#endif
+  return true;
+}
+
+bool PayloadTCPSocket::Put(const char* buf,int size) {
+  ssize_t l;
+  if(handle_ == -1) return false;
+  time_t start = time(NULL);
+  for(;size;) {
+#ifndef WIN32
+    struct pollfd fd;
+    fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
+    int to = timeout_-(unsigned int)(time(NULL)-start);
+    if(to < 0) to=0;
+    if(poll(&fd,1,to*1000) != 1) return false;
+    if(!(fd.revents & POLLOUT)) return false;
+#endif
+    l=::send(handle_, buf, size, 0);
+    if(l == -1) {
+	    return false;
+    }
+    buf+=l; size-=l;
+#ifdef WIN32
+    int to = timeout_-(unsigned int)(time(NULL)-start);
+    if(to < 0) return false;
+#endif
+  };  
+  return true;
 }
 
 } // namespace Arc

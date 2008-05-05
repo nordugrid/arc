@@ -29,7 +29,9 @@ export ACLOCAL="aclocal -I /c/GTK/share/aclocal"
 export PATH=$PATH:/c/MingW/bin
 export PKG_CONFIG_PATH=/c/GTK/lib/pkgconfig
 ./autogen.sh
-./configure CXXFLAGS="-g -O0 -I/include -L/usr/lib" OPENSSL_CFLAGS=-I/c/OpenSSL/include OPENSSL_LIBS="-L/c/OpenSSL/lib/MinGW/ -lssleay32 -leay32 -lz"
+./configure CXXFLAGS="-g -O0 -I/include -L/usr/lib" OPENSSL_CFLAGS=-I/c/OpenS
+SL/include OPENSSL_LIBS="-L/c/OpenSSL/lib/MinGW/ -lssleay32 -leay32 -lz" OPENSS
+L_BIN="/c/OpenSSL/bin/openssl.exe" --disable-a-rex-service --disable-isi-servic
+e --disable-pdp-service --disable-httpd-service
 make
-
 add paths of DLLs to $PATH

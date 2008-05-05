@@ -149,8 +149,12 @@ int main(int argc, char ** argv) {
 		}
 
 		std::string progname = argv[0];
+#ifdef WIN32
+        // cut .exe|.com|.bat
+        progname = progname.substr(progname.length() - 6, 2);
+#else
 		progname = progname.substr(progname.length() - 2);
-
+#endif
 		char * optstring;
 
 		if (progname == "ls")
@@ -297,7 +301,7 @@ int main(int argc, char ** argv) {
 
 		int opt = 0;
 		while (opt != -1) {
-			opt = getopt_long_only(argc, argv, optstring, longoptions, NULL);
+			opt = getopt_long(argc, argv, optstring, longoptions, NULL);
 			if (opt == -1) continue;
 			if (optarg) {
 				switch (opt) {

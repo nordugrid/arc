@@ -2,8 +2,13 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
 #include "Logger.h"
 #include "StringConv.h"
+#ifdef WIN32
+#include "win32.h"
+#endif
+
 #include "URL.h"
 
 #include <fstream>
@@ -34,10 +39,10 @@ namespace Arc {
 
       pos2 = opt.find('=');
       if(pos2 == std::string::npos) {
-	options[opt] = "";
+        options[opt] = "";
       }
       else {
-	options[opt.substr(0, pos2)] = opt.substr(pos2 + 1);
+        options[opt.substr(0, pos2)] = opt.substr(pos2 + 1);
       }
     }
     return options;
@@ -54,7 +59,7 @@ namespace Arc {
     for(std::map<std::string, std::string>::const_iterator
         it = options.begin(); it != options.end(); it++) {
       if(it != options.begin())
-	optstring += separator;
+        optstring += separator;
       optstring += it->first + '=' + it->second;
     }
     return optstring;
@@ -96,7 +101,7 @@ namespace Arc {
     for(std::list<std::string>::const_iterator it = attributes.begin();
         it != attributes.end(); it++) {
       if(it != attributes.begin())
-	attrstring += separator;
+        attrstring += separator;
       attrstring += *it;
     }
     return attrstring;
@@ -117,17 +122,18 @@ namespace Arc {
     pos = url.find("://");
     if(pos == std::string::npos) {
       if(url[0] == '@') {
-	protocol = "urllist";
-	path = url.substr(1);
+        protocol = "urllist";
+        path = url.substr(1);
       }
       else {
-	protocol = "file";
-	path = url;
+        protocol = "file";
+        path = url;
       }
-      if(path[0] != '/') {
-	char cwd[PATH_MAX];
-	if(getcwd(cwd, PATH_MAX))
-	  path = cwd + ('/' + path);
+      if (!Glib::path_is_absolute(path)) {
+        char cwd[PATH_MAX];
+        if(getcwd(cwd, PATH_MAX)) {
+            path = Glib::build_filename(cwd, path);
+        }
       }
       return;
     }
@@ -141,49 +147,49 @@ namespace Arc {
       if(protocol == "rc" || protocol == "rls" ||
          protocol == "fireman" || protocol == "lfc") {
 
-	std::string locstring = url.substr(pos, pos2 - pos);
-	pos = pos2 + 1;
+        std::string locstring = url.substr(pos, pos2 - pos);
+        pos = pos2 + 1;
 
-	pos2 = 0;
-	while(pos2 != std::string::npos) {
+        pos2 = 0;
+        while(pos2 != std::string::npos) {
 
-	  pos3 = locstring.find('|', pos2);
-	  std::string loc = (pos3 == std::string::npos ?
-	                     locstring.substr(pos2) :
-	                     locstring.substr(pos2, pos3 - pos2));
+          pos3 = locstring.find('|', pos2);
+          std::string loc = (pos3 == std::string::npos ?
+                     locstring.substr(pos2) :
+                     locstring.substr(pos2, pos3 - pos2));
 
-	  pos2 = pos3;
-	  if(pos2 != std::string::npos) pos2++;
+          pos2 = pos3;
+          if(pos2 != std::string::npos) pos2++;
 
-	  if (loc[0] == ';')
-	    commonlocoptions = ParseOptions(loc.substr(1), ';');
-	  else {
-	    if(protocol == "rc") {
-	      pos3 = loc.find(';');
-	      if(pos3 == std::string::npos)
-		locations.push_back(URLLocation(ParseOptions("", ';'), loc));
-	      else
-		locations.push_back(URLLocation
-		                    (ParseOptions(loc.substr(pos3 + 1), ';'),
-		                     loc.substr(pos3 + 1)));
-	    }
-	    else
-	      locations.push_back(loc);
-	  }
-	}
+          if (loc[0] == ';')
+            commonlocoptions = ParseOptions(loc.substr(1), ';');
+          else {
+            if(protocol == "rc") {
+                pos3 = loc.find(';');
+                if(pos3 == std::string::npos)
+                    locations.push_back(URLLocation(ParseOptions("", ';'), loc));
+                else
+                    locations.push_back(URLLocation
+                    (ParseOptions(loc.substr(pos3 + 1), ';'),
+                     loc.substr(pos3 + 1)));
+            }
+            else
+                locations.push_back(loc);
+         }
+        }
       }
       else {
-	pos3 = url.find("/", pos);
-	if(pos3 == std::string::npos) pos3 = url.length();
-	if(pos3 > pos2) {
-	  username = url.substr(pos, pos2 - pos);
-	  pos3 = username.find(':');
-	  if(pos3 != std::string::npos) {
-	    passwd = username.substr(pos3 + 1);
-	    username.resize(pos3);
-	  }
-	  pos = pos2 + 1;
-	}
+        pos3 = url.find("/", pos);
+        if(pos3 == std::string::npos) pos3 = url.length();
+        if(pos3 > pos2) {
+            username = url.substr(pos, pos2 - pos);
+            pos3 = username.find(':');
+            if(pos3 != std::string::npos) {
+                passwd = username.substr(pos3 + 1);
+                username.resize(pos3);
+            }
+            pos = pos2 + 1;
+        }
       }
     }
 
@@ -238,8 +244,8 @@ namespace Arc {
        protocol == "srm") {
       pos = path.find("?");
       if(pos != std::string::npos) {
-	httpoptions = ParseOptions(path.substr(pos + 1), '&');
-	path = path.substr(0, pos);
+        httpoptions = ParseOptions(path.substr(pos + 1), '&');
+        path = path.substr(0, pos);
       }
     }
 
@@ -248,42 +254,42 @@ namespace Arc {
       std::string ldapscopestr;
       pos = path.find('?');
       if(pos != std::string::npos) {
-	pos2 = path.find('?', pos + 1);
-	if(pos2 != std::string::npos) {
-	  pos3 = path.find('?', pos2 + 1);
-	  if(pos3 != std::string::npos) {
-	    ldapfilter = path.substr(pos3 + 1);
-	    ldapscopestr = path.substr(pos2 + 1, pos3 - pos2 - 1);
-	  }
-	  else
-	    ldapscopestr = path.substr(pos2 + 1);
-	  ldapattributes = ParseAttributes(path.substr(pos + 1,
-	                                               pos2 - pos - 1), ',');
-	}
-	else
-	  ldapattributes = ParseAttributes(path.substr(pos + 1), ',');
-	path = path.substr(0, pos);
+        pos2 = path.find('?', pos + 1);
+    if(pos2 != std::string::npos) {
+      pos3 = path.find('?', pos2 + 1);
+      if(pos3 != std::string::npos) {
+        ldapfilter = path.substr(pos3 + 1);
+        ldapscopestr = path.substr(pos2 + 1, pos3 - pos2 - 1);
+      }
+      else
+        ldapscopestr = path.substr(pos2 + 1);
+      ldapattributes = ParseAttributes(path.substr(pos + 1,
+                                                   pos2 - pos - 1), ',');
+    }
+    else
+      ldapattributes = ParseAttributes(path.substr(pos + 1), ',');
+    path = path.substr(0, pos);
       }
       if(ldapscopestr == "base")
-	ldapscope = base;
+    ldapscope = base;
       else if(ldapscopestr == "one")
-	ldapscope = onelevel;
+    ldapscope = onelevel;
       else if(ldapscopestr == "sub")
-	ldapscope = subtree;
+    ldapscope = subtree;
       else if(!ldapscopestr.empty())
-	URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
-	              ldapscopestr);
+    URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
+                  ldapscopestr);
       if(ldapfilter.empty())
-	ldapfilter = "(objectClass=*)";
+    ldapfilter = "(objectClass=*)";
       if(path.find("/") != std::string::npos)
-	path = Path2BaseDN(path);
+    path = Path2BaseDN(path);
     }
 
     // add absolute path for relative file URLs
-    if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
+    if((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
       char cwd[PATH_MAX];
       if(getcwd(cwd, PATH_MAX))
-	path = cwd + ('/' + path);
+        path = Glib::build_filename(cwd, path);
     }
 
     // expand SRM short URLs
@@ -340,13 +346,13 @@ namespace Arc {
     // parse basedn in case of ldap-protocol
     if(protocol == "ldap")
       if(path.find("/") != std::string::npos)
-	path = Path2BaseDN(path);
+        path = Path2BaseDN(path);
 
     // add absolute path for relative file URLs
-    if((protocol == "file" || protocol == "urllist") && path[0] != '/') {
+    if((protocol == "file" || protocol == "urllist") && !Glib::path_is_absolute(path)) {
       char cwd[PATH_MAX];
       if(getcwd(cwd, PATH_MAX))
-	path = cwd + ('/' + path);
+        path = Glib::build_filename(cwd, path);
     }
   }
 
@@ -467,14 +473,14 @@ namespace Arc {
     if((ldapscope != base) || !ldapfilter.empty()) {
       switch(ldapscope) {
       case base:
-	urlstr += "?base";
-	break;
+        urlstr += "?base";
+        break;
       case onelevel:
-	urlstr += "?one";
-	break;
+        urlstr += "?one";
+        break;
       case subtree:
-	urlstr += "?sub";
-	break;
+        urlstr += "?sub";
+        break;
       }
     }
 
@@ -520,14 +526,14 @@ namespace Arc {
     if((ldapscope != base) || !ldapfilter.empty()) {
       switch(ldapscope) {
       case base:
-	urlstr += "?base";
-	break;
+            urlstr += "?base";
+            break;
       case onelevel:
-	urlstr += "?one";
-	break;
+            urlstr += "?one";
+            break;
       case subtree:
-	urlstr += "?sub";
-	break;
+            urlstr += "?sub";
+            break;
       }
     }
 
@@ -657,12 +663,12 @@ namespace Arc {
       std::ifstream f(url.Path().c_str());
       std::string line;
       while(getline(f, line)) {
-	Arc::URL url(line);
-	if(url)
-	  urllist.push_back(url);
-	else
-	  URLLogger.msg(ERROR, "urllist %s contains invalid URL: %s",
-	                url.Path(), line);
+        Arc::URL url(line);
+        if(url)
+          urllist.push_back(url);
+        else
+          URLLogger.msg(ERROR, "urllist %s contains invalid URL: %s",
+                        url.Path(), line);
       }
     }
     else

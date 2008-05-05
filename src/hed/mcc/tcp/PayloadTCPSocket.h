@@ -32,6 +32,8 @@ class PayloadTCPSocket: public PayloadStream {
   PayloadTCPSocket(PayloadStream& s,Logger& logger):
     PayloadStream(s),acquired_(false),logger(logger) { };
   virtual ~PayloadTCPSocket(void);
+  virtual bool Get(char* buf,int& size);
+  virtual bool Put(const char* buf,int size);
 };
 
 } // namespace Arc 

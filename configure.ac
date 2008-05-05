@@ -266,13 +266,14 @@ AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 "$PKG_CONFIG" openssl
 if test "$?" = '1'; then
-    if "x$OPENSSL_BIN" != "x"; then
+    if test "x$OPENSSL_BIN" != "x"; then
         OPENSSL_VERSION=`$OPENSSL_BIN version | cut -d' ' -f2`
+        AC_MSG_NOTICE([Found OpenSSL version $OPENSSL_VERSION])
         OPENSSL_V1=`echo $OPENSSL_VERSION | cut -d'.' -f2`
-        OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [:alpha:]`
-        OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [:digit:]`
+        OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:alpha:]]`
+        OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:digit:]] | od -td1 | awk 'NR==1{print $2}'`
         OPENSSL_PROXY=no
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" > "f"; then 
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" -ge "102"; then 
 	        OPENSSL_PROXY=yes
             AC_MSG_NOTICE([Found OpenSSL with PROXY support])
         else
@@ -286,10 +287,13 @@ if test "$?" = '1'; then
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
         fi
         OPENSSL_OLDRSA=yes    
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "$OPENSSL_V3" > " "; then
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "x$OPENSSL_V3" != "x"; then
+            AC_MSG_NOTICE([NO old RSA])
             OPENSSL_OLDRSA=no
         fi    
-    fi 
+    else
+        AC_ERROR([Cannot determine OpenSSL version!])
+    fi
 else
     OPENSSL_PROXY=no
     "$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
@@ -355,7 +359,7 @@ AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 
-# Check for explicitely disabled packages 
+# Check for explicitely disabled services
 # A-Rex 
 AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes") 
 AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service]) 
@@ -364,6 +368,7 @@ AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes") 
 AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service]) 
 AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"]) 
+
 # PDP service 
 AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable building PDP Service]),[],enable_pdp_service="yes") 
 AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service]) 
@@ -373,6 +378,22 @@ AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"])
 AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable building HTTPD Service]),[],enable_httpd_service="yes") 
 AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service]) 
 AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"]) 
+
+case "${host}" in
+  *-*-mingw32)
+    # Paul service 
+    AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
+    ;;
+  *) enable_paul_service="no"
+    ;;
+esac
+AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service]) 
+AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"]) 
+
+# Sched service 
+AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes") 
+AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service]) 
+AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"]) 
 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
@@ -700,6 +721,8 @@ A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
 PDP service:        ${enable_pdp_service}
 HTTPD service:      ${enable_httpd_service}
+SCHED service:      ${enable_sched_service}
+PAUL service:       ${enable_paul_service}
 ])
 
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then

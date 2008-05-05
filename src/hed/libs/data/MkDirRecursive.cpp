@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,8 +10,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#define DIR_SEPARATOR '/'
 #ifdef WIN32
 #include <arc/win32.h>
+#undef DIR_SEPARATOR
+#define DIR_SEPARATOR '\\'
 #endif
 
 #include "MkDirRecursive.h"
@@ -19,8 +23,11 @@ static int mkdir_force(const char* path,mode_t mode);
 
 int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t mode,const Arc::User &user) {
   std::string name = base_path;
+#ifndef WIN32
   if(path[0]!='/')
     name += '/';
+#else
+#endif
   name += path;
   std::string::size_type name_start = base_path.length();
   std::string::size_type name_end   = name.length();
@@ -32,7 +39,7 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
       /* go up */
       for(;;) {
         if(name_end >= name.length()) { return 0; };
-        name_end=name.find('/',name_end + 1);
+        name_end=name.find(DIR_SEPARATOR, name_end + 1);
         if(mkdir(name.substr(0,name_end).c_str(),mode) != 0) {
           if(errno == EEXIST) continue;
           return -1;
@@ -42,7 +49,7 @@ int mkdir_recursive(const std::string& base_path,const std::string& path,mode_t 
       };
     };
     /* if(errno == EEXIST) { free(name); errno=EEXIST; return -1; }; */
-    if((name_end=name.rfind('/',name_end - 1)) == std::string::npos) break;
+    if((name_end=name.rfind(DIR_SEPARATOR, name_end - 1)) == std::string::npos) break;
     if(name_end == name_start) break;
   };
   return -1;

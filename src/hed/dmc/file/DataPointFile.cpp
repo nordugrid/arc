@@ -11,7 +11,10 @@
 #include <arc/data/CheckFile.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataCallback.h>
+#define DIR_SEPARATOR '/'
 #ifdef WIN32
+#undef DIR_SEPARATOR
+#define DIR_SEPARATOR '\\'
 #include <arc/win32.h>
 #endif
 
@@ -186,15 +189,20 @@ namespace Arc {
       return DataStatus::IsWritingError;
     reading = true;
     /* try to open */
+    int flags = O_RDONLY;
+#ifdef WIN32
+    flags |= O_BINARY;
+#endif
+    
     if (url.Path() == "-")
       fd = dup(STDIN_FILENO);
     else {
       Arc::User user;
-      if (user.check_file_access(url.Path(), O_RDONLY) != 0) {
+      if (user.check_file_access(url.Path(), flags) != 0) {
         reading = false;
         return DataStatus::ReadStartError;
       }
-      fd = open(url.Path().c_str(), O_RDONLY);
+      fd = open(url.Path().c_str(), flags);
     }
     if (fd == -1) {
       reading = false;
@@ -270,12 +278,11 @@ namespace Arc {
         return DataStatus::WriteStartError;
       }
       std::string dirpath = url.Path();
-      int n = dirpath.rfind('/');
+      int n = dirpath.rfind(DIR_SEPARATOR);
       if (n == 0)
         dirpath = "/";
       else
         dirpath.erase(n, dirpath.length() - n + 1);
-      
       if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0) {
         if (errno != EEXIST) {
           logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
@@ -285,16 +292,20 @@ namespace Arc {
           return DataStatus::WriteStartError;
         }
       }
+
       /* try to create file, if failed - try to open it */
-      fd = open(url.Path().c_str(),
-                O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      int flags = O_WRONLY;
+#ifdef WIN32
+      flags |= O_BINARY;
+#endif
+      fd = open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = open(url.Path().c_str(), O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+        fd = open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
       else {/* this file was created by us. Hence we can set it's owner */
         (fchown(fd, user.get_uid(), user.get_gid()) != 0);
       }
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to create/open file %s", url.Path());
+        logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
