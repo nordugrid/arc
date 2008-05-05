@@ -13,6 +13,7 @@
 #include <lasso/xml/saml-2.0/saml2_audience_restriction.h>
 #include <lasso/xml/saml-2.0/samlp2_response.h>
 #include <lasso/xml/saml-2.0/saml2_attribute_statement.h>
+#include <lasso/xml/misc_text_node.h>
 #include <lasso/xml/xml.h>
 
 static char*
@@ -123,6 +124,7 @@ int main(void) {
   LassoProvider *provider = NULL;
   LassoSaml2EncryptedElement *encrypted_element = NULL;
   LassoFederation *federation = NULL;
+  LassoMiscTextNode *text_node = NULL;
 
   std::string identity_sp("<Identity xmlns=\"http://www.entrouvert.org/namespaces/lasso/0.0\" Version=\"2\">\
     <Federation xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\
@@ -204,7 +206,10 @@ int main(void) {
   attr->NameFormat = g_strdup("urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
   attr->FriendlyName = g_strdup("eduPersonPrincipalName");
   attrval= LASSO_SAML2_ATTRIBUTE_VALUE(lasso_saml2_attribute_value_new());
-//  attrval->any = g_list_prepend(NULL, g_strdup("RoleA"));
+
+  text_node = LASSO_MISC_TEXT_NODE(lasso_misc_text_node_new_with_string(g_strdup("RoleA")));
+  text_node->text_child = TRUE;
+  attrval->any = g_list_prepend(NULL, text_node);
   //Add one or more <AttributeValue> into <Attribute>
   attr->AttributeValue = g_list_append(attr->AttributeValue, attrval);
 
