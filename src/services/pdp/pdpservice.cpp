@@ -116,7 +116,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::rootLogger, "PDP_Service"), eval(NULL) {
   logger_.addDestination(logcerr);
   // Define supported namespaces
-  ns_["ra"]="http://www.nordugrid.org/ws/schemas/request-arc";
+  ns_["ra"]="http://www.nordugrid.org/schemas/request-arc";
 
   //Parse configuration file (service.xml) to get the PDP specific information
   Arc::XMLNode node(*cfg);
