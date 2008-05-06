@@ -734,7 +734,7 @@ PAUL service:       ${enable_paul_service}
 if test ! "X$OPENSSL_PROXY" = "Xyes"; then
 AC_MSG_RESULT([
 
-OpenSSL contains no support for proxy credntials.
+OpenSSL contains no support for proxy credentials.
 You will have to use certificate/private key pairs directly.
 Make sure private keys are not protected by password before
 using them.
