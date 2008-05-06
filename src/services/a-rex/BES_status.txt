@@ -1,0 +1,93 @@
+Conformance to BES specs (GFD.108)
+----------------------------------
+
+
+BES-Management  - not supported
+  StopAcceptingNewActivities - not supported
+  StartAcceptingNewActivities - not supported
+
+BES-Factory
+  CreateActivity - supported
+  GetActivityStatuses - supported
+  TerminateActivities - supported
+  GetActivityDocuments - supported
+  GetFactoryAttributesDocument - supported
+
+BES-Activity - no operations
+
+WS-Naming extension to WS-Addressing EPRs - not supported, ignored as BES specs require.
+
+Activity states:
+  Pending - supported
+  Running - supported
+  Finished - supported
+  Terminated - not supported. All canceled jobs are considered as failed by A-Rex.
+  Failed - supported
+
+
+BES-Factory attributes
+  IsAcceptingNewActivities - supported. Always "true".
+  CommonName - not supported
+  LongDescription - not supported
+  TotalNumberOfActivities - supported
+  ActivityReference - supported
+  ContainedResource - not supported. It is not clear what contained resource is.
+  TotalNumberOfcontainedResources - supported. Always 0.
+  NamingProfile - supported - http://schemas.ggf.org/bes/2006/08/bes/naming/BasicWSAddressing.
+  BESExtension - supported - http://www.nordugrid.org/schemas/a-rex
+  LocalResourceManagerType - supported. Always "uri:unknown"
+  ResourceName - not supported
+  OperatingSystem - not supported
+  CPUArchitecture - not supported
+  CPUCount - not supported
+  CPUSpeed - not supported
+  PhysicalMemory - not supported
+  VirtualMemory  - not supported
+ 
+
+BES-Activity attributes - not supported. It is not specified how those attributes are accesible.
+  Status - not supported
+  ActivityDocument - not supported
+  FactoryReference - not supported
+
+
+Faults
+  NotAuthorizedFault - not supported
+  InvalidRequestMessageFault - not supported  
+  UnknownActivityIdentfierFault - not supported
+  
+
+BES Extensions
+  Idempotent Execution - not supported
+  Subscription to Notification Events - not supported
+  LifeTime Management - not supported
+  
+
+WSRF Rendering (non-normative)
+  WS-Resource Properties - supported
+  WS-Resource Lifetime - not supported
+  WS-BaseNotifications - not supported
+  BES-Factory attributes through WSRF - not supported
+
+
+
+Conformance to HPC basic profile (GFD.108)
+------------------------------------------
+
+BES base specs (MUST) - mostly supported
+BES extension profiles (MAY) - not supported
+Vector operations
+  1 element (MUST) - supported
+  >1 elementd (MAY) - supported
+FactoryResourceAttributesCocument content
+  Activities and Contained Resources may be not peovided - always provided
+BasicFilter extension (MAY) - not supported
+TLS/SSL for BES message security
+  R0631 - 
+  R0632
+  R0633
+  R0634
+  R0635
+  R0636
+  R0637
+
