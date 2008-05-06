@@ -5,11 +5,19 @@
 #include "ArcLocation.h"
 
 #include <unistd.h>
-#include <glibmm/miscutils.h>
 #include <arc/Logger.h>
 
 #ifdef HAVE_LIBINTL_H
 #include <libintl.h>
+#endif
+
+#ifdef HAVE_GLIBMM_GETENV
+#include <glibmm/miscutils.h>
+#define GetEnv(NAME) Glib::getenv(NAME)
+#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
+#else
+#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
+#define SetEnv(NAME,VALUE) setenv(NAME,VALUE,1)
 #endif
 
 namespace Arc {
@@ -18,7 +26,7 @@ namespace Arc {
 
   void ArcLocation::Init(std::string path) {
     location.clear();
-    location = getenv("ARC_LOCATION");
+    location = GetEnv("ARC_LOCATION");
     if (location.empty() && !path.empty()) {
       if (path.rfind('/') == std::string::npos)
         path = Glib::find_program_in_path(path);
@@ -54,7 +62,7 @@ namespace Arc {
 
   std::list<std::string> ArcLocation::GetPlugins() {
     std::list<std::string> plist;
-    std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
+    std::string arcpluginpath = GetEnv("ARC_PLUGIN_PATH");
     if(!arcpluginpath.empty()) {
       std::string::size_type pos = 0;
       while(pos != std::string::npos) {
