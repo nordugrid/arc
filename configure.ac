@@ -252,6 +252,12 @@ if test "$glibmm_bind_local" = yes; then
 else
   AC_MSG_NOTICE([WARNING: glibmm has no way to limit scope of symbols of shared libraries. Make sure external libraries used by plugins have no conflicting symbols. HINT: use Globus compiled against system OpenSSL library.])
 fi
+AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::getenv("");],[glibmm_getenv=yes],[glibmm_getenv=no])
+if test "$glibmm_getenv" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_GETENV,,[define if glibmm have getenv/setenv operations])
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no support for getenv/setenv. Usage of libc getenv/setenv is unsafe in multi-threaded applications.])
+fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
 
