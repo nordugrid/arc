@@ -55,7 +55,7 @@ int main(void) {
   // -------------------------------------------------------
   //Compose request
   Arc::NS ns;
-  ns["ra"] = "http://www.nordugrid.org/ws/schemas/request-arc";
+  ns["ra"] = "http://www.nordugrid.org/schemas/request-arc";
   Arc::PayloadSOAP reqdoc(ns);
   
   Arc::XMLNode request = reqdoc.NewChild("ra:Request");

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Request xmlns="http://www.nordugrid.org/ws/schemas/request-arc">
+<Request xmlns="http://www.nordugrid.org/schemas/request-arc">
   <RequestItem>
    <Subject>
      <Attribute AttributeId="123" Type="string">127.0.0.1</Attribute>
