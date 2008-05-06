@@ -18,7 +18,7 @@ namespace Arc {
 
   void ArcLocation::Init(std::string path) {
     location.clear();
-    location = Glib::getenv("ARC_LOCATION");
+    location = getenv("ARC_LOCATION");
     if (location.empty() && !path.empty()) {
       if (path.rfind('/') == std::string::npos)
         path = Glib::find_program_in_path(path);
@@ -54,7 +54,7 @@ namespace Arc {
 
   std::list<std::string> ArcLocation::GetPlugins() {
     std::list<std::string> plist;
-    std::string arcpluginpath = Glib::getenv("ARC_PLUGIN_PATH");
+    std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
     if(!arcpluginpath.empty()) {
       std::string::size_type pos = 0;
       while(pos != std::string::npos) {

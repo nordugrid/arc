@@ -12,6 +12,11 @@
 #define DEFAULT_ARC_LOCATION "/usr"
 #include "environment.h"
 
+#ifndef HAVE_SETENV
+#include <glibmm/miscutils.h>
+#define setenv Glib::setenv
+#endif
+
 // Globus installation path - $GLOBUS_LOCATION
 std::string globus_loc(""); 
 // Various Globus scripts - $GLOBUS_LOCATION/libexec
@@ -61,11 +66,11 @@ bool read_env_vars(bool guess) {
         globus_loc="/opt/globus";
       };
     };
-    Glib::setenv("GLOBUS_LOCATION",globus_loc);
+    setenv("GLOBUS_LOCATION",globus_loc);
   };
   globus_scripts_loc=globus_loc+"/libexec";
   if(nordugrid_loc.empty()) {
-    nordugrid_loc=Glib::getenv("ARC_LOCATION");
+    nordugrid_loc=getenv("ARC_LOCATION");
     if(nordugrid_loc.empty()) {
       nordugrid_loc=Arc::ArcLocation::Get();
       if(nordugrid_loc.empty()) {
@@ -77,7 +82,7 @@ bool read_env_vars(bool guess) {
         };
       };
     };
-    Glib::setenv("ARC_LOCATION",nordugrid_loc);
+    setenv("ARC_LOCATION",nordugrid_loc);
   };
   nordugrid_bin_loc=nordugrid_loc+"/bin";
   // Try /usr installation first
