@@ -67,10 +67,10 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
       bes_state="Running"; arex_state="Finishing";
     } else if(gm_state == "FINISHED") {
       bes_state="Finished"; arex_state="Finished";
-
+      if(job.Failed()) bes_state="Failed";
     } else if(gm_state == "DELETED") {
       bes_state="Finished"; arex_state="Deleted";
-
+      if(job.Failed()) bes_state="Failed";
     } else if(gm_state == "CANCELING") {
       bes_state="Running"; arex_state="Killing";
     };

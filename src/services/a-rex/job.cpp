@@ -351,6 +351,11 @@ std::string ARexJob::State(void) {
   return states_all[state].name;
 }
 
+bool ARexJob::Failed(void) {
+  if(id_.empty()) return false;
+  return job_failed_mark_check(id_,*config_.User());
+}
+
 /*
 bool ARexJob::make_job_id(const std::string &id) {
   if((id.find('/') != std::string::npos) || (id.find('\n') != std::string::npos)) {

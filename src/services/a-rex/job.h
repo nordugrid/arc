@@ -66,6 +66,8 @@ class ARexJob {
   bool Resume(void);
   /** Returns current state of job */
   std::string State(void);
+  /** Returns true if job has failed */
+  bool Failed(void);
   /** Returns path to session directory */
   std::string SessionDir(void);
   /** Return number of jobs associated with this configuration.
