@@ -82,17 +82,20 @@ bool SOAPSecAttr::Export(Format format,XMLNode &val) const {
     if(!object_.empty()) {
       XMLNode object = item.NewChild("ar:Resource");
       object=object_;
-      object.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
+      object.NewAttribute("Type")="string";
+      object.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
     };
     if(!action_.empty()) {
       XMLNode action = item.NewChild("ar:Action");
       action=action_;
-      action.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation";
+      action.NewAttribute("Type")="string";
+      action.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation";
     };
     if(!context_.empty()) {
       XMLNode context = item.NewChild("ar:Context").NewChild("ar:ContextAttribute");
       context=context_;
-      context.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";
+      context.NewAttribute("Type")="string";
+      context.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";
     };
     return true;
   } else {

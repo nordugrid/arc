@@ -217,6 +217,72 @@ void MCC_TCP_Service::listener(void* arg) {
     return;
 }
 
+class TCPSecAttr: public SecAttr {
+ friend class MCC_TCP_Service;
+ public:
+  TCPSecAttr(void);
+  virtual ~TCPSecAttr(void);
+  virtual operator bool(void);
+  virtual bool Export(Format format,XMLNode &val) const;
+ protected:
+  std::string local_ip_;
+  std::string local_port_;
+  std::string remote_ip_;
+  std::string remote_port_;
+  virtual bool equal(const SecAttr &b) const;
+};
+
+TCPSecAttr::TCPSecAttr(void) {
+}
+
+TCPSecAttr::~TCPSecAttr(void) {
+}
+
+TCPSecAttr::operator bool(void) {
+  return true;
+}
+
+bool TCPSecAttr::equal(const SecAttr &b) const {
+  try {
+    const TCPSecAttr& a = (const TCPSecAttr&)b;
+    if((!local_ip_.empty()) && (!a.local_ip_.empty()) && (local_ip_ != a.local_ip_)) return false;
+    if((!local_port_.empty()) && (!a.local_port_.empty()) && (local_port_ != a.local_port_)) return false;
+    if((!remote_ip_.empty()) && (!a.remote_ip_.empty()) && (remote_ip_ != a.remote_ip_)) return false;
+    if((!remote_port_.empty()) && (!a.remote_port_.empty()) && (remote_port_ != a.remote_port_)) return false;
+    return true;
+  } catch(std::exception&) { };
+  return false;
+}
+
+static void fill_string_attribute(XMLNode object,std::string value,const char* id) {
+  object=value;
+  object.NewAttribute("Type")="string";
+  object.NewAttribute("AttributeId")=id;
+}
+
+bool TCPSecAttr::Export(Format format,XMLNode &val) const {
+  if(format == UNDEFINED) {
+  } else if(format == ARCAuth) {
+    NS ns;
+    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ar:Request");
+    XMLNode item = val.NewChild("ar:RequestItem");
+    if(!local_port_.empty()) {
+      fill_string_attribute(item.NewChild("ar:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/http/path");
+    } else if(!local_ip_.empty()) {
+      fill_string_attribute(item.NewChild("ar:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/http/path");
+    };
+    if(!remote_port_.empty()) {
+      fill_string_attribute(item.NewChild("ar:Resource"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/http/path");
+    } else if(!remote_ip_.empty()) {
+      fill_string_attribute(item.NewChild("ar:Resource"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/http/path");
+    };
+    return true;
+  } else {
+  };
+  return false;
+}
+
 void MCC_TCP_Service::executer(void* arg) {
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;

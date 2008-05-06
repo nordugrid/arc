@@ -78,12 +78,14 @@ bool HTTPSecAttr::Export(Format format,XMLNode &val) const {
     if(!object_.empty()) {
       XMLNode object = item.NewChild("ar:Resource");
       object=object_;
-      object.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
+      object.NewAttribute("Type")="string";
+      object.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
     };
     if(!action_.empty()) {
       XMLNode action = item.NewChild("ar:Action");
       action=action_;
-      action.NewAttribute("Type")="http://www.nordugrid.org/schemas/policy-arc/types/http/method";
+      action.NewAttribute("Type")="string";
+      action.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/http/method";
     };
     return true;
   } else {
