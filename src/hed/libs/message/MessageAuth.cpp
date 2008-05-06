@@ -43,9 +43,17 @@ SecAttr* MessageAuth::get(const std::string& key) {
 
 static void add_subject(XMLNode request,XMLNode subject,XMLNode context) {
   XMLNode item = request["RequestItem"];
+  // Adding subject attributes to every request item
   for(;(bool)item;++item) {
-    XMLNode subject_ = subject;
-    for(;(bool)subject_;++subject_) item.NewChild(subject_);
+    XMLNode reqsubject = item["Subject"];
+    if(!reqsubject) reqsubject=item.NewChild("ra:Subject");
+    XMLNode subject_ = subject; // Normally there should be one subject, but who knows
+    for(;(bool)subject_;++subject_) {
+      XMLNode subattr = subject_["SubjectAttribute"];
+      for(;(bool)subattr;++subattr) {
+        reqsubject.NewChild(subattr);
+      };
+    };
     XMLNode context_ = context;
     for(;(bool)context_;++context_) item.NewChild(context_);
   };
