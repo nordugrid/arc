@@ -73,7 +73,7 @@ mcc_descriptors ARC_MCC_LOADER = {
     { NULL, 0, NULL }
 };
 
-using namespace Arc;
+namespace Arc {
 
 
 MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
@@ -437,4 +437,4 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     if(!ProcessSecHandlers(outmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
     return MCC_Status(Arc::STATUS_OK);
 }
-
+} // namespace ARC
