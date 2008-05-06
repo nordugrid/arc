@@ -19,11 +19,12 @@ class DateTimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value; //using the Time class definition in DateTime.h
-  std::string type;
+  //std::string type;
+  std::string id;
 
 public:
-  DateTimeAttribute() : type(identifier){ };
-  DateTimeAttribute(std::string v) : value(v), type(identifier) {};
+  DateTimeAttribute() /*: type(identifier)*/{ };
+  DateTimeAttribute(const std::string& v,const std::string& i) : value(v), /*type(identifier),*/ id(i) {};
   virtual ~DateTimeAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
@@ -31,7 +32,8 @@ public:
   virtual bool inrange(AttributeValue* other);
   virtual std::string encode(); //encode value into ISOTime format
   Arc::Time getValue(){ return value; };
-  virtual std::string getType() {return type;};
+  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getId() {return id;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -45,18 +47,20 @@ class TimeAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value;
-  std::string type;
+  //std::string type;
+  std::string id;
 
 public:
-  TimeAttribute() : type(identifier){ };
-  TimeAttribute(std::string v);
+  TimeAttribute() /*: type(identifier)*/{ };
+  TimeAttribute(const std::string& v,const std::string& i);
   virtual ~TimeAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
-  virtual std::string getType() {return type;};
+  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getId() {return id;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -67,18 +71,20 @@ class DateAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Time value;
-  std::string type;
+  //std::string type;
+  std::string id;
 
 public:
-  DateAttribute() : type(identifier){ };
-  DateAttribute(std::string v);
+  DateAttribute() /*: type(identifier)*/{ };
+  DateAttribute(const std::string& v,const std::string& i);
   virtual ~DateAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual bool lessthan(AttributeValue* other);
   virtual std::string encode();
   Arc::Time getValue(){ return value; };
-  virtual std::string getType() {return type;};
+  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getId() {return id;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -90,17 +96,19 @@ class DurationAttribute : public AttributeValue {
 private:
   static std::string identifier;
   Arc::Period value;
-  std::string type;
+  //std::string type;
+  std::string id;
 
 public:
-  DurationAttribute() : type(identifier){ };
-  DurationAttribute(std::string v) : value(v), type(identifier){};
+  DurationAttribute() /*: type(identifier)*/{ };
+  DurationAttribute(const std::string& v,const std::string& i) : value(v), /*type(identifier),*/ id(i){};
   virtual ~DurationAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   Arc::Period getValue(){ return value; };
-  virtual std::string getType() {return type;};
+  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getId() {return id;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 
@@ -120,17 +128,19 @@ class PeriodAttribute : public AttributeValue {
 private:
   static std::string identifier;
   ArcPeriod value;
-  std::string type;
+  //std::string type;
+  std::string id;
 
 public:
-  PeriodAttribute() : type(identifier){ };
-  PeriodAttribute(std::string v);
+  PeriodAttribute() /*: type(identifier)*/{ };
+  PeriodAttribute(const std::string& v,const std::string& i);
   virtual ~PeriodAttribute(){ };
 
   virtual bool equal(AttributeValue* other);
   virtual std::string encode();
   ArcPeriod getValue(){ return value; };
-  virtual std::string getType() {return type;};
+  virtual std::string getType() {return identifier; /*type;*/};
+  virtual std::string getId() {return id;};
   static const std::string& getIdentifier(void) { return identifier; };
 };
 

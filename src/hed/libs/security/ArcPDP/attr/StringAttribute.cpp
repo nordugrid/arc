@@ -15,9 +15,10 @@ bool StringAttribute::equal(AttributeValue* o){
     other = dynamic_cast<StringAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not StringAttribute"<<std::endl;
+    //std::cerr<<"not StringAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if((value.compare(other->getValue()))==0)
     return true;
   else 

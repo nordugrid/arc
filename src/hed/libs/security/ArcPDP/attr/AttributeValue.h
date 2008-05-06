@@ -14,7 +14,6 @@ public:
   AttributeValue(){};
   virtual ~AttributeValue(){};
 
-public:
   /**evluate whether "this" equale to the parameter value */
   virtual bool equal(AttributeValue* value) = 0;
 
@@ -25,6 +24,9 @@ public:
 
   /**get the type of the <Attribute>*/
   virtual std::string getType() = 0;
+
+  /**get the id of the <Attribute>*/
+  virtual std::string getId() = 0;
 
 };
 

@@ -15,9 +15,10 @@ bool DateTimeAttribute::equal(AttributeValue* o){
     other = dynamic_cast<DateTimeAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not DateTimeAttribute"<<std::endl;
+    //std::cerr<<"not DateTimeAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if(value==(other->getValue()))
     return true;
   else
@@ -30,7 +31,7 @@ bool DateTimeAttribute::lessthan(AttributeValue* o){
     other = dynamic_cast<DateTimeAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not DateTimeAttribute"<<std::endl;
+    //std::cerr<<"not DateTimeAttribute"<<std::endl;
     return false;
   }
   if(value<(other->getValue()))
@@ -45,7 +46,7 @@ bool DateTimeAttribute::inrange(AttributeValue* o){
     other = dynamic_cast<PeriodAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not PeriodAttribute"<<std::endl;
+    //std::cerr<<"not PeriodAttribute"<<std::endl;
     return false;
   } 
   ArcPeriod period = other->getValue(); 
@@ -70,9 +71,10 @@ std::string DateTimeAttribute::encode(){
 
 //TimeAttribute
 std::string TimeAttribute::identifier = "time";
-TimeAttribute::TimeAttribute(std::string v) : type(identifier){
+TimeAttribute::TimeAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+  id=i;
   std::string v1 = "1970-01-01T" + v;
-  DateTimeAttribute attr(v1);
+  DateTimeAttribute attr(v1,i);
   value = attr.getValue(); 
 }
 
@@ -82,9 +84,10 @@ bool TimeAttribute::equal(AttributeValue* o){
     other = dynamic_cast<TimeAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not TimeAttribute"<<std::endl;
+    //std::cerr<<"not TimeAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if(value==(other->getValue()))
     return true;
   else
@@ -97,7 +100,7 @@ bool TimeAttribute::lessthan(AttributeValue* o){
     other = dynamic_cast<TimeAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not TimeAttribute"<<std::endl;
+    //std::cerr<<"not TimeAttribute"<<std::endl;
     return false;
   }
   if(value<(other->getValue()))
@@ -114,9 +117,10 @@ std::string TimeAttribute::encode(){
 
 //DateAttribute
 std::string DateAttribute::identifier = "date";
-DateAttribute::DateAttribute(std::string v) : type(identifier){
+DateAttribute::DateAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+  id=i;
   std::string v1 = v + "T00:00:00+00:00";
-  DateTimeAttribute attr(v1);
+  DateTimeAttribute attr(v1,i);
   value = attr.getValue();
 }
 
@@ -126,9 +130,10 @@ bool DateAttribute::equal(AttributeValue* o){
     other = dynamic_cast<DateAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not DateAttribute"<<std::endl;
+    //std::cerr<<"not DateAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if(value==(other->getValue()))
     return true;
   else
@@ -141,9 +146,10 @@ bool DateAttribute::lessthan(AttributeValue* o){
     other = dynamic_cast<DateAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not DateAttribute"<<std::endl;
+    //std::cerr<<"not DateAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if(value<(other->getValue()))
     return true;
   else
@@ -164,9 +170,10 @@ bool DurationAttribute::equal(AttributeValue* o){
     other = dynamic_cast<DurationAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not DurationAttribute"<<std::endl;
+    //std::cerr<<"not DurationAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if((value.GetPeriod())==((other->getValue()).GetPeriod()))
     return true;
   else
@@ -179,7 +186,8 @@ std::string DurationAttribute::encode(){
 
 //PeriodAttribute
 std::string PeriodAttribute::identifier = "period";
-PeriodAttribute::PeriodAttribute(std::string v) : type(identifier){
+PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) /*: type(identifier)*/{
+  id=i;
   (value.starttime).SetTime(-1);
   (value.endtime).SetTime(-1);
   (value.duration).SetPeriod(0);
@@ -201,8 +209,9 @@ PeriodAttribute::PeriodAttribute(std::string v) : type(identifier){
       value.starttime = t1;
       value.duration = d2;
     }
-    else
-      std::cerr<<"Invalid ISO period format!"<<std::endl;
+    else {
+      //std::cerr<<"Invalid ISO period format!"<<std::endl;
+    }
   }
   else{
     if(d1.GetPeriod()!=0){
@@ -210,11 +219,13 @@ PeriodAttribute::PeriodAttribute(std::string v) : type(identifier){
         value.duration = d1;
         value.endtime = t2;
       }
-      else
-        std::cerr<<"Invalid ISO period format!"<<std::endl;
+      else {
+        //std::cerr<<"Invalid ISO period format!"<<std::endl;
+      }
     }
-    else 
-      std::cerr<<"Invalid ISO period format!"<<std::endl;
+    else {
+      //std::cerr<<"Invalid ISO period format!"<<std::endl;
+    }
   }
 }
 
@@ -224,9 +235,10 @@ bool PeriodAttribute::equal(AttributeValue* o){
     other = dynamic_cast<PeriodAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not PeriodAttribute"<<std::endl;
+    //std::cerr<<"not PeriodAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   
   ArcPeriod oth = other->getValue();
   Arc::Time ls, le, os, oe;

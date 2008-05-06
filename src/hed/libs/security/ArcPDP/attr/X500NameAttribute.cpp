@@ -18,6 +18,7 @@ bool X500NameAttribute::equal(AttributeValue* o){
     std::cerr<<"not X500NameAttribute"<<std::endl;
     return false;
   }
+  if(id != other->id) return false;
   if((value.compare(other->getValue()))==0)  //Now, deal with it the same as StringAttribute.  
     return true;
   else 

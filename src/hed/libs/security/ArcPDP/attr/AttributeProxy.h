@@ -33,9 +33,11 @@ public:
 ///Implementation of getAttribute 
 template <class TheAttribute>
 AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const Arc::XMLNode& node){
-  std::string value = (std::string)node;
-  if(value.empty()) value = (std::string)(node.Child(0));
-  return new TheAttribute(value);
+  Arc::XMLNode x = node;
+  std::string value = (std::string)x;
+  if(value.empty()) x=x.Child(0); // ???
+  value = (std::string)x;
+  return new TheAttribute(value,(std::string)(x.Attribute("AttributeId")));
 }
 
 } // namespace ArcSec
