@@ -57,24 +57,48 @@ class Manager:
         # leave the other items intact
         requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
         print '//// _traverse request trailing slash removed:', dict(requests)
+        # then we do the traversing. a traverse request contains a requestID and the Logical Name
+        # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
+        # call the catalog service
         traverse_response = self.catalog.traverseLN(traverse_request)
+        # return the requests as list (without the trailing slashes) and the traverse response from the catalog
         return requests, traverse_response
 
     def _new(self, child_metadata, child_name = None, parent_GUID = None):
+        """ Helper method which create a new entry in the catalog.
+        
+        _new(child_metadata, child_name = None, parent_GUID = None)
+        
+        child_metadata is a dictionary with {(section, property) : values} containing the metadata of the new entry
+        child_name is the name of the new entry 
+        parent_GUID is the GUID of the parent of the new entry
+        
+        This method creates a new catalog-entry with the given metadata.
+        If child_name and parent_GUID are both given, then this method adds a new entry to the parent collection.
+        """
         try:
+            # call the new method of the catalog with the child's metadata (reqeustID is '_new')
             new_response = self.catalog.new({'_new' : child_metadata})
+            # we can access the response with the requestID, so we get the GUID of the newly created entry
             (child_GUID, new_success) = new_response['_new']
+            # if the new method was not successful
             if new_success != 'success':
                 return 'failed to create new catalog entry', child_GUID
             else:
+                # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
+                    # we need to add the newly created catalog-entry to the parent collection
                     print 'adding', child_GUID, 'to parent', parent_GUID
+                    # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
                     modify_response = self.catalog.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
                     print 'modifyMetadata response', modify_response
+                    # get the 'success' value
                     modify_success = modify_response['_new']
+                    # if the new element was not set, we have a problem
                     if modify_success != 'set':
                         print 'modifyMetadata failed, removing the new catalog entry', child_GUID
+                        # remove the newly created catalog-entry
                         self.catalog.remove({'_new' : child_GUID})
                         return 'failed to add child to parent', child_GUID
                     else:
@@ -86,110 +110,187 @@ class Manager:
             return 'internal error', None
 
     def getFile(self, requests):
+        """ Get files from the storage.
+        
+        getFile(requests)
+        
+        requests is a dictionary with requestID as key, and (Logical Name, protocol list) as value
+        """
+        # call the _traverse helper method the get the information about the requested Logical Names
         requests, traverse_response = self._traverse(requests)
         response = {}
+        # for each requested LN
         for rID, (LN, protocols) in requests:
             turl = ''
             protocol = ''
             success = 'unknown'
             try:
                 print traverse_response[rID]
+                # split the traverse response
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
+                # wasComplete is true if the given LN was found, so it could have been fully traversed
                 if not wasComplete:
                     success = 'not found'
                 else:
+                    # metadata contains all the metadata of the given entry
+                    # ('catalog', 'type') is the type of the entry: file, collection, etc.
                     type = metadata[('catalog', 'type')]
                     if type != 'file':
                         success = 'is not a file'
                     else:
+                        # if it is a file,  then we need all the locations where it is stored and alive
+                        # this means all the metadata entries with in the 'locations' sections whose value is 'alive'
+                        # the location itself serialized from the ID of the service and the ID of the replica within the service
+                        # so the location needs to be deserialized into two ID with deserialize_ids()
+                        # valid_locations will contain a list if (serviceID, referenceID, state)
                         valid_locations = [deserialize_ids(location) + [state] for (section, location), state in metadata.items() if section == 'locations' and state == 'alive']
+                        # if this list is empty
                         if not valid_locations:
                             success = 'file has no valid replica'
                         else:
                             ok = False
                             while not ok and len(valid_locations) > 0:
+                                # if there are more valid_locations, randomly select one
                                 location = valid_locations.pop(random.choice(range(len(valid_locations))))
                                 print 'location chosen:', location
+                                # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                 url, referenceID, _ = location
+                                # create an ElementClient with this URL, then send a get request with the referenceID
+                                #   we only support byteio protocol currently. 'getFile' is the requestID of this request
                                 get_response = dict(ElementClient(url).get({'getFile' :
                                     [('referenceID', referenceID), ('protocol', 'byteio')]})['getFile'])
+                                # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                 if get_response.has_key('error'):
+                                    # if there was an error
                                     print 'ERROR', get_response['error']
                                     success = 'error while getting TURL (%s)' % get_response['error']
                                 else:
+                                    # get the TURL and the choosen protocol, these will be set as reply for this requestID
                                     turl = get_response['TURL']
                                     protocol = get_response['protocol']
                                     success = 'done'
                                     ok = True
             except:
                 success = 'internal error (%s)' % traceback.format_exc()
+            # set the success, turl, protocol for this request
             response[rID] = (success, turl, protocol)
         return response
-    
+   
     def addReplica(self, requests, protocols):
+        """ This method initiates the addition of a new replica to a file.
+        
+        addReplica(requests, protocols)
+        
+        requests is a dictionary with requestID-GUID pairs
+        protocols is a list of supported protocols
+        """
+        # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
+        #   the second argument of the get method specifies that we only need metadata from the 'states' section
         data = self.catalog.get(requests.values(), [('states','')])
         response = {}
         for rID, GUID in requests.items():
+            # for each requested GUID
             states = data[GUID]
             print 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols
+            # get the size and checksum information of the file
             size = states[('states','size')]
             checksumType = states[('states','checksumType')]
             checksum = states[('states','checksum')]
+            # initiate replica addition of this file with the given protocols 
             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
+            # set the response of this request
             response[rID] = (success, turl, protocol)
         return response
 
     def find_alive_se(self):
+        """  Get the list of currently alive Storage Elements.
+        
+        find_alive_se()
+        """
+        # sestore_guid is the GUID of the catalog entry which the list of Storage Elements registered by the Catalog
         SEs = self.catalog.get([sestore_guid])[sestore_guid]
+        # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
+        #   when a specific Storage Element service should report next
+        #   if this timestamp is not a positive number, that means the Storage Element have not reported in time, probably it is not alive
         print 'Registered Storage Elements in Catalog', SEs
+        # get all the Storage Elements which has a positiv nextHeartbeat timestamp
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0]
         print 'Alive Storage Elements:', alive_SEs
         try:
+            # choose one randomly
             se = random.choice(alive_SEs)
-            print 'Storage Element chosen:', se        
+            print 'Storage Element chosen:', se
+            # the serviceID currently is a URL 
+            # create an ElementClient with this URL
             return ElementClient(se)
         except:
             traceback.print_exc()
             return None
 
     def _add_replica(self, size, checksumType, checksum, GUID, protocols):
+        """ Helper method to initiate addition of a replica to a file.
+        
+        _add_replica(size, checksumType, checksum, GUID, protocols)
+        
+        size is the size of the file
+        checksumType indicates the type of the checksum
+        checksum is the checksum itself
+        GUID is the GUID of the file
+        protocols is a list of protocols
+        """
         turl = ''
         protocol = ''
+        # prepare the 'put' request for the storage element
         put_request = [('size', size), ('checksumType', checksumType),
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
+        # find an alive Storage Element
         element = self.find_alive_se()
         if not element:
             return 'no storage element found', turl, protocol
+        # call the SE's put method with the prepared request
         put_response = dict(element.put({'putFile': put_request})['putFile'])
         if put_response.has_key('error'):
             print 'ERROR', put_response['error']
-            # we should handle this, remove the new file or something
+            # TODO: we should handle this, remove the new file or something
             return 'put error (%s)' % put_response['error'], turl, protocols
         else:
+            # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
             turl = put_response['TURL']
             protocol = put_response['protocol']
             referenceID = put_response['referenceID']
+            # currently the serviceID is the URL of the storage element service
             serviceID = element.url
             print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
+            # the serviceID and the referenceID is the location of the replica, serialized as one string
+            # put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
             modify_response = self.catalog.modifyMetadata({'putFile' :
                     (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
             modify_success = modify_response['putFile']
             if modify_success != 'set':
                 print 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID
                 return 'failed to add new location to file', turl, protocol
-                # need some handling
+                # TODO: error handling
             else:
                 return 'done', turl, protocol
             
     def putFile(self, requests):
+        """ Put a new file to the storage: initiate the process.
+        
+        putFile(requests)
+        
+        requests is a dictionary with requestID as key and (Logical Name, child metadata, protocols) as value
+        """
+        # get all the information about the requested Logical Names from the catalog
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, (LN, child_metadata, protocols) in requests:
+            # for each request
             turl = ''
             protocol = ''
             metadata_ok = False
             try:
+                # get the size and checksum of the new file
                 print protocols
                 size = child_metadata[('states', 'size')]
                 checksum = child_metadata[('states', 'checksum')]
@@ -198,23 +299,41 @@ class Manager:
             except Exception, e:
                 success = 'missing metadata ' + str(e)
             if metadata_ok:
+                # if the metadata of the new file is OK
                 try:
+                    # split the Logical Name, rootguid will be the GUID of the root collection of this LN,
+                    #   child_name is the name of the new file withing the parent collection
                     rootguid, _, child_name = splitLN(LN)
                     print 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid
+                    # get the traverse response corresponding to this request
+                    #   metadata is the metadata of the last element which could been traversed, e.g. the parent of the new file
+                    #   GUID is the GUID of the same
+                    #   traversedLN indicates which part of the requested LN could have been traversed
+                    #   restLN is the non-traversed part of the Logical Name, e.g. the filename of a non-existent file whose parent does exist
+                    #   wasComplete indicates if the traverse was complete or not, if it was complete means that this LN exists
+                    #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
                     print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
-                    if wasComplete:
+                    if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
                     elif child_name == '': # this only can happen if the LN was a single GUID
+                        # this means that the new file will have no parent
+                        # set the type and GUID of the new file
                         child_metadata[('catalog','type')] = 'file'
                         child_metadata[('catalog','GUID')] = rootguid or global_root_guid
+                        # create the new entry
                         success, GUID = self._new(child_metadata)
                     elif restLN != child_name or GUID == '':
+                        # if the non-traversed part of the Logical Name is not actully the name of the new file
+                        #   or we have no parent guid
                         success = 'parent does not exist'
                     else:
+                        # if everything is OK, then we set the type of the new entry
                         child_metadata[('catalog','type')] = 'file'
+                        # then create it
                         success, GUID = self._new(child_metadata, child_name, GUID)
                     if success == 'done':
+                        # if the file was successfully created, it still has no replica, so we initiate creating one
                         success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
                 except:
                     success = 'internal error (%s)' % traceback.format_exc()
@@ -222,15 +341,24 @@ class Manager:
         return response
 
     def makeCollection(self, requests):
+        """ Create a new collection.
+        
+        makeCollection(requests)
+        
+        requests is dictionary with requestID as key and (Logical Name, metadata) as value
+        """
+        # do traverse all the requests
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, (LN, child_metadata) in requests:
+            # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
             print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
-            if wasComplete:
+            if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
+                # this means the collection has no parent
                 child_metadata[('catalog','type')] = 'collection'
                 child_metadata[('catalog','GUID')] = rootguid or global_root_guid
                 success, _ = self._new(child_metadata)
@@ -238,25 +366,42 @@ class Manager:
                 success = 'parent does not exist'
             else:
                 child_metadata[('catalog','type')] = 'collection'
+                # if everything is OK, create the new collection
+                #   here GUID is of the parent collection
                 success, _ = self._new(child_metadata, child_name, GUID)
             response[rID] = success
         return response
 
-    def list(self, requests, neededMetadata):
+    def list(self, requests, neededMetadata = []):
+        """ List the contents of a collection.
+        
+        list(requests, neededMetadata = [])
+        
+        requests is a dictionary with requestID as key and Logical Name as value
+        neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
+            if neededMetadata is empty it means we need everything
+        """
+        # do traverse the requested Logical Names
         traverse_response = self.catalog.traverseLN(requests)
         response = {}
         for requestID, LN in requests.items():
+            # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
+                # this means the LN exists, get its type
                 type = metadata[('catalog', 'type')]
-                if type == 'file':
+                if type == 'file': # files have no contents, we do not list them
                     status = 'is a file'
                     entries = {}
-                else:
+                else: # if it is not a file, it must be a collection (currently there is no other type)
                     status = 'found'
+                    # get all the properties and values from the 'entries' metadata section of the collection
+                    #   these are the names and GUIDs: the contents of the collection
                     GUIDs = dict([(name, GUID)
                         for (section, name), GUID in metadata.items() if section == 'entries'])
+                    # get the needed metadata of all the entries
                     metadata = self.catalog.get(GUIDs.values(), neededMetadata)
+                    # create a dictionary with the name of the entry as key and (GUID, metadata) as value
                     entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
             else:
                 entries = {}
@@ -265,31 +410,52 @@ class Manager:
         return response
 
     def move(self, requests):
+        """ Move a file or collection within the global namespace.
+        
+        move(requests)
+        
+        requests is a dictionary with requestID as key and
+            (sourceLN, targetLN, preserverOriginal) as value
+        if preserverOriginal is true this method creates a hard link instead of moving
+        """
         traverse_request = {}
+        # create a traverse request, each move request needs two traversing: source and target
         for requestID, (sourceLN, targetLN, _) in requests.items():
+            # from one requestID we create two: one for the source and one for the target
             traverse_request[requestID + 'source'] = sourceLN
             traverse_request[requestID + 'target'] = targetLN
         traverse_response = self.catalog.traverseLN(traverse_request)
         print '\/\/', traverse_response
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
+            # for each request
             print requestID, sourceLN, targetLN, preserveOriginal
+            # get the old and the new name of the entry, these are the last elements of the Logical Names
             _, _, old_child_name = splitLN(sourceLN)
             _, _, new_child_name = splitLN(targetLN)
+            # get the GUID of the source LN from the traverse response
             _, sourceGUID, _, _, sourceWasComplete, sourceTraversedList \
                 = traverse_response[requestID + 'source']
+            # get the GUID form the target's traverse response, this should be the parent of the target LN
             _, targetGUID, _, targetRestLN, targetWasComplete, _ \
                 = traverse_response[requestID + 'target']
+            # if the source traverse was not complete: the source LN does not exist
             if not sourceWasComplete:
                 success = 'nosuchLN'
+            # if the target traverse was complete: the target LN already exists
+            #   but if the new_child_name was empty, then the target is considered to be a collection, so it is OK
             elif targetWasComplete and new_child_name != '':
                 success = 'targetexists'
+            # if the target traverse was not complete, and the non-traversed part is not just the new name, we have a problem
             elif not targetWasComplete and targetRestLN != new_child_name:
                 success = 'invalidtarget'
-            else: 
+            else:
+                # if the new child name is empty that means that the target LN has a trailing slash
+                #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
                 print 'adding', sourceGUID, 'to parent', targetGUID
+                # adding the entry to the new parent
                 mm_resp = self.catalog.modifyMetadata(
                     {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID)})
                 mm_succ = mm_resp['move']
@@ -299,8 +465,11 @@ class Manager:
                     if preserveOriginal == true:
                         success = 'moved'
                     else:
+                        # then we need to remove the source LN
+                        # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
                         source_parent_guid = sourceTraversedList[-2][1]
                         print 'removing', sourceGUID, 'from parent', source_parent_guid
+                        # delete the entry from the source parent
                         mm_resp = self.catalog.modifyMetadata(
                             {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, '')})
                         mm_succ = mm_resp['move']
