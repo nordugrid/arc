@@ -73,7 +73,7 @@ class FileTransfer
         {
             // Create mover
             mover = new Arc::DataMover();
-            mover->retry(false);
+            mover->retry(true);
             mover->secure(false); // XXX what if I download form https url? 
             mover->passive(false);
             mover->verbose(true);
@@ -136,7 +136,7 @@ class FileTransfer
         {
             // Create mover
             mover = new Arc::DataMover();
-            mover->retry(false);
+            mover->retry(true);
             mover->secure(false); // XXX what if I download form https url? 
             mover->passive(false);
             mover->verbose(true);
@@ -187,6 +187,7 @@ class FileTransfer
                     delete pair;
                     continue;
                 }
+                logger_.msg(Arc::DEBUG, "Transfer completed");
                 delete pair;
             }
         };

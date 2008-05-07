@@ -238,7 +238,8 @@ void PaulService::process_job(void *arg)
     self.stage_in(j);
     self.run(j);
     self.stage_out(j);
-    if (j.getStatus() != KILLED | j.getStatus() != KILLING) {
+    if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+        self.logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
         j.setStatus(FINISHED);
     }
     // free memory
@@ -470,6 +471,10 @@ void PaulService::do_action(void)
             }
             std::string new_status = (std::string)activity["NewState"];
             Job &j = jobq[job_id];
+            if (j.isFinishedReported()) {
+                // skip job which was already finished
+                continue;
+            }
             j.setStatus(sched_status_from_string(new_status));
             // do actions
             if (j.getStatus() == KILLED) { 
