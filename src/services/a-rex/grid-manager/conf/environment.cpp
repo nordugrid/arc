@@ -74,7 +74,7 @@ bool read_env_vars(bool guess) {
         globus_loc="/opt/globus";
       };
     };
-    SetEnv("GLOBUS_LOCATION",globus_loc);
+    SetEnv("GLOBUS_LOCATION",globus_loc.c_str());
   };
   globus_scripts_loc=globus_loc+"/libexec";
   if(nordugrid_loc.empty()) {
@@ -90,7 +90,7 @@ bool read_env_vars(bool guess) {
         };
       };
     };
-    SetEnv("ARC_LOCATION",nordugrid_loc);
+    SetEnv("ARC_LOCATION",nordugrid_loc.c_str());
   };
   nordugrid_bin_loc=nordugrid_loc+"/bin";
   // Try /usr installation first
