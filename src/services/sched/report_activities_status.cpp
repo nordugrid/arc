@@ -24,7 +24,8 @@ Arc::MCC_Status GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, A
         }
         Job &j = sched_queue[job_id];
         SchedStatusLevel new_status = sched_status_from_string(state);
-        if (j.getStatus() != KILLING | new_status == KILLED ) {
+        logger_.msg(Arc::DEBUG, "%s reported state: %d", j.getID(), new_status);
+        if (j.getStatus() != KILLING || new_status == KILLED ) {
             // do not update job with was requested to kill
             j.setStatus(new_status);
         }
