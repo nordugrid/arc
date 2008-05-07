@@ -254,9 +254,15 @@ else
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::getenv("");],[glibmm_getenv=yes],[glibmm_getenv=no])
 if test "$glibmm_getenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_GETENV,,[define if glibmm have getenv/setenv operations])
+  AC_DEFINE(HAVE_GLIBMM_GETENV,,[define if glibmm have getenv operations])
 else
-  AC_MSG_NOTICE([WARNING: glibmm has no support for getenv/setenv. Usage of libc getenv/setenv is unsafe in multi-threaded applications.])
+  AC_MSG_NOTICE([WARNING: glibmm has no support for getenv. Usage of libc getenv is unsafe in multi-threaded applications.])
+fi
+AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::setenv("", "");],[glibmm_setenv=yes],[glibmm_setenv=no])
+if test "$glibmm_setenv" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_SETENV,,[define if glibmm have setenv operations])
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no support for setenv. Usage of libc setenv is unsafe in multi-threaded applications.])
 fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
