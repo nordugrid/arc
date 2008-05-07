@@ -2,7 +2,7 @@
 
 
 %opening
-\title{The Hosting Environment Daemon of the Advanced Resource Connector middleware}
+\title{The Hosting Environment of the Advanced Resource Connector middleware}
 
 \author{J. J\"{o}nemo, et al}
 
@@ -41,17 +41,31 @@ In the technical design it turned out that the endeavours to provide dynamic loa
 
 Most of the configuration 
 
+The HED itself means two things:
+\begin{enumerate}
+\item the daemon (called \texttt{arched}) which hooks up the system and initialize components the way as it is described by the configuration files. This configuration describes the components and their relations to each other. In optimal cases these single services runs on any node where ARC1 is deployed and started. Without loadable components the daemon itself does nothing at all.
+\item sometimes using the HED terms to refer to collection of libraries which is used by service or other component developers. These libraries implements some common classes which may simplify the life of service and component developes however only few of these classes are mandatory to use to make the components and services loadable and hookable by the daemon.
+\end{enumerate}
+
 \subsubsection{MCC}
 
-In the HED all data channels to the outside world are set up by chains of small processing units called Message Chain Components (MCCs). These work on units called messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general attributes and security attributes. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configuered.
+In the HED all data channels to the outside world are set up by chains of small processing units called Message Chain Components (MCCs). These work on units called messages which represent data going in to or out of the HED. The message consists of the so called Payload which is its main content structured in a way relevant to the protocol of the corresponding MCC, and auxiliary structures such as general attributes and security attributes. Each MCC typically implements one level in the Internet Protocol suite by transforming a message to an input suitable to propagate to the next component and then performs the corresponding transformation of the response on the way back. The components are all dynamically loaded to provide maximum flexibility and extensibility. Each instance of these MCC's can be individually configured.
 
 As the data is passed through the individual MCCs, they each populate structures with both general attributes and special security attributes that are available at that particular protocol level.
 
-Each MCC can also be configured to have loadable modules called security handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized scurity information.
+Each MCC can also be configured to have loadable modules called security handlers attached to it in order to enforce security policies such as authentication and authorization or to assist such activities by gathering specialized security information.
+
+The chain formulation using MCCs is up to the administrator. The chain is an ordered list the MCCs and their interconection can be described in the configuration file. Based on the configuration information the Loader components formulates the actual chain in the memory of the daemon. The MCC may implement some routing algorithm which means one MCC may connection to multiple other MCCs. Tipical scenario is that the HTTP MCC at the server side routes the HTTP messages with POST HTTP operation to SOAP MCC but the messages with GET operation are goes to for example a simple and limited HTTPD service component. 
+
+Most of the MCCs has client and server version because the behavior of MCCs should be different depending on wheater it is sitting on server or client part. The tipical scenarion here the TCP MCC which should listen and wait for incomming messages on socket on server part but call connect method on client part.     
+
+In general every MCC have optimal and natural places in certain chain and this place is not always can be modified. For example in the server part the TCP MCC must be the first MCC in any chain where it is used and the TLS MCC should be right after of the TCP MCC. 
+
+The developer whoes write an MCC is free to choose any 3rd party library and comonent to implement functionalty of the MCC but at least currently the MCCs should be written in the same language as the HED was written (C++) and should use the \texttt{MCC} interface class and \texttt{Message} class provided by libarcloader and libarcmessage libraries of ARC1.
 
 \paragraph{TCP MCC}
 
-The TCP MCC in the HED is special in that it produces messages by listening on a socket rather than passing on messages from other MCCs. As such it spawns new threads to handle the message and its response throughout the message chain. One could envision other parallel MCCs having these properties but producing messages from other sources such as e g unix sockets.
+The server TCP MCC in the HED is special in that it produces messages by listening on a socket rather than passing on messages from other MCCs. As such it spawns new threads to handle the message and its response throughout the message chain. One could envision other parallel MCCs having these properties but producing messages from other sources such as e.g. unix sockets.
 
 This MCC can be configured as to what port to listen to.
 
@@ -61,6 +75,9 @@ This MCC can be configured as to what port to listen to.
 
 \paragraph{SOAP MCC}
 
+\paragraph{Plexer}
+
+In general case multiple service living in the HED so the incomming message should route to the proper service. The Plexer MCC does this job. It takes the the ENDPOINT attributes of the message collected by other MCCs compares this attribute to regular expression defined in the configuration file and forward the message to the all matching service. It acts as a dispacher. The Plexer is special in a sence that it is not a plugin but part of the libarcloader library. 
 
 \subsubsection{Services}
 
@@ -70,7 +87,7 @@ The services are typically expected to receive parsed SOAP messages which they s
 
 \subsubsection{Alternative implementation languages}
 
-In order to facilitate e g the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done 
+In order to facilitate the developement of services, API bindings for languages other than C++ are provided and some service developement has already been done 
 %Not much aboút the actual services, more about what they need to implement and what 
 \section{Conclusion}
 
