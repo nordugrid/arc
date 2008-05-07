@@ -22,7 +22,7 @@
 #include <glibmm/miscutils.h>
 #define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
 #else
-#define SetEnv(NAME,VALUE) setenv(NAME,VALUE,1)
+#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
 #endif
 
 // Globus installation path - $GLOBUS_LOCATION
@@ -74,7 +74,7 @@ bool read_env_vars(bool guess) {
         globus_loc="/opt/globus";
       };
     };
-    SetEnv("GLOBUS_LOCATION",globus_loc.c_str());
+    SetEnv("GLOBUS_LOCATION",globus_loc);
   };
   globus_scripts_loc=globus_loc+"/libexec";
   if(nordugrid_loc.empty()) {
@@ -90,7 +90,7 @@ bool read_env_vars(bool guess) {
         };
       };
     };
-    SetEnv("ARC_LOCATION",nordugrid_loc.c_str());
+    SetEnv("ARC_LOCATION",nordugrid_loc);
   };
   nordugrid_bin_loc=nordugrid_loc+"/bin";
   // Try /usr installation first
@@ -137,8 +137,8 @@ bool read_env_vars(bool guess) {
     if(!tmp.empty()) nordugrid_config_loc=tmp;
   };
   // Set all environement variables for other tools
-  SetEnv("ARC_CONFIG",nordugrid_config_loc.c_str());
-  SetEnv("ARC_LOCATION",nordugrid_loc.c_str());
+  SetEnv("ARC_CONFIG",nordugrid_config_loc);
+  SetEnv("ARC_LOCATION",nordugrid_loc);
   if(support_mail_address.length() == 0) {
     char hn[100];
     support_mail_address="grid.manager@";
