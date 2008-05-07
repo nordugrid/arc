@@ -345,10 +345,13 @@ namespace Arc {
     transfer_lock.unlock();
     if(chunks) delete chunks;
     chunks = NULL;
-    buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
-    if(buffer->error_read()) return DataStatus::ReadError;
+    if(buffer->error_read()) {
+        buffer = NULL;
+        return DataStatus::ReadError;
+    }
+    buffer = NULL;
     return DataStatus::Success;
   }
 
@@ -403,10 +406,13 @@ namespace Arc {
     transfer_lock.unlock();
     if(chunks) delete chunks;
     chunks = NULL;
-    buffer = NULL;
     transfers_finished=0;
     transfers_started=0;
-    if(buffer->error_write()) return DataStatus::WriteError;
+    if(buffer->error_write()) {
+        buffer = NULL;
+        return DataStatus::WriteError;
+    }
+    buffer = NULL;
     return DataStatus::Success;
   }
 
