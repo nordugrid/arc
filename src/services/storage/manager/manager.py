@@ -12,16 +12,14 @@ import traceback
 
 class Manager:
 
-    def __init__(self, catalog, element):
+    def __init__(self, catalog):
         """ Constructor of the Manager business-logic class.
         
-        Manager(catalog, element)
+        Manager(catalog)
         
         catalog is CatalogClient object which can be used to access a Catalog service
-        element is an ElementClient object which can be used to access an Element service
         """
         self.catalog = catalog
-        self.element = element
 
     def stat(self, requests):
         """ Returns stat information about entries.
@@ -487,23 +485,68 @@ class ManagerService(Service):
     def __init__(self, cfg):
         # names of provided methods
         request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']
-        # call the Service's constructor
+        # call the Service's constructor, 'Manager' is the human-readable name of the service
+        # request_names is the list of the names of the provided methods
+        # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
         Service.__init__(self, 'Manager', request_names, 'man', manager_uri)
+        # get the URL of the Catalog from the config file
         catalog_url = str(cfg.Get('CatalogURL'))
+        # create a CatalogClient from the URL
         catalog = CatalogClient(catalog_url)
-        element_url = str(cfg.Get('ElementURL'))
-        element = ElementClient(element_url)
-        self.manager = Manager(catalog, element)
+        self.manager = Manager(catalog)
 
     def stat(self, inpayload):
+        # incoming SOAP message example:
+        #
+        #   <man:stat>
+        #       <man:statRequestList>
+        #           <man:statRequestElement>
+        #               <man:requestID>0</man:requestID>
+        #               <man:LN>/</man:LN>
+        #           </man:statRequestElement>
+        #       </man:statRequestList>
+        #   </man:stat>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <man:statResponse>
+        #       <man:statResponseList>
+        #           <man:statResponseElement>
+        #              <man:requestID>0</man:requestID>
+        #               <man:metadataList>
+        #                   <man:metadata>
+        #                       <man:section>states</man:section>
+        #                       <man:property>closed</man:property>
+        #                       <man:value>0</man:value>
+        #                   </man:metadata>
+        #                   <man:metadata>
+        #                       <man:section>entries</man:section>
+        #                       <man:property>testfile</man:property>
+        #                       <man:value>cf05727b-73f3-4318-8454-16eaf10f302c</man:value>
+        #                   </man:metadata>
+        #                   <man:metadata>
+        #                       <man:section>catalog</man:section>
+        #                       <man:property>type</man:property>
+        #                       <man:value>collection</man:value>
+        #                   </man:metadata>
+        #               </man:metadataList>
+        #           </man:statResponseElement>
+        #       </man:statResponseList>
+        #   </man:statResponse>
+
+        # get all the requests
         request_nodes = get_child_nodes(inpayload.Child().Child())
+        # get the requestID and LN of each request and create a dictionary where the requestID is the key and the LN is the value
         requests = dict([
             (str(request_node.Get('requestID')), str(request_node.Get('LN')))
                 for request_node in request_nodes
         ])
+        # call the Manager class
         response = self.manager.stat(requests)
+        # create the metadata XML structure of each request
         for requestID, metadata in response.items():
             response[requestID] = create_metadata(metadata, 'man')
+        # create the response message with the requestID and the metadata for each request
         return create_response('man:stat',
             ['man:requestID', 'man:metadataList'], response, self.newSOAPPayload(), single = True)
 
