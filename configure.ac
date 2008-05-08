@@ -479,6 +479,15 @@ AC_CHECK_HEADER(uuid/uuid.h, [
 ], [AC_MSG_NOTICE([Can't find uuid header])])
 AC_SUBST(UUID_LIBS)
 
+# Check for dlopen
+DLOPEN_LIBS=""
+AC_CHECK_FUNC([dlopen], [DLOPEN_LIBS=], [
+  AC_CHECK_LIB([dl], [dlopen], [DLOPEN_LIBS=-ldl], [
+    AC_MSG_NOTICE([Can't find library containing dlopen implementation])
+  ])
+])
+AC_SUBST(DLOPEN_LIBS)
+
 # check for fsusage
 gl_FSUSAGE
 
