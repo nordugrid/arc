@@ -13,7 +13,7 @@ namespace Arc {
 
   public:
     void GetTargets(TargetGenerator &mom, int TargetType, int DetailLevel);
-    void InterrogateTarget(TargetGenerator &mom, URL url);
+    void InterrogateTarget(TargetGenerator &mom, std::string url, int TargetType, int DetailLevel);
     static ACC* Instance(Config *cfg, ChainContext *ctx);
   };
 

@@ -17,83 +17,104 @@ namespace Arc{
     return new TargetRetrieverCREAM(cfg);
   }
 
-  void TargetRetrieverCREAM::GetTargets(TargetGenerator &mom,
-					int TargetType, int DetailLevel) {
+  void TargetRetrieverCREAM::GetTargets(TargetGenerator &mom, int TargetType, int DetailLevel) {
 
     if (mom.DoIAlreadyExist(m_url))
       return;
 
-    DataHandle handler(m_url);
-    DataBufferPar buffer;
 
-    if (!handler->StartReading(buffer))
-      return;
-
-    int handle;
-    unsigned int length;
-    unsigned long long int offset;
-    std::string result;
-
-    while (buffer.for_write() || !buffer.eof_read()) {
-      if (buffer.for_write(handle, length, offset, true)) {
-	result.append(buffer[handle], length);
-	buffer.is_written(handle);
-      }
-    }
-
-    if (!handler->StopReading())
-      return;
-
-    XMLNode XMLresult(result);
-
-    std::list<XMLNode> topBDIIs =
-      XMLresult.XPathLookup("//*[GlueServiceType='bdii_top']", NS());
-
-    std::list<XMLNode>::iterator iter;
-
-    for(iter = topBDIIs.begin(); iter!= topBDIIs.end(); ++iter) {
-
-      if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
-	continue;
-
-      std::string url = (std::string)(*iter)["GlueServiceEndpoint"] +
-	"??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))";
-
-      NS ns;
-      Config cfg(ns);
-      cfg.NewChild("URL") = url;
-
-      TargetRetrieverCREAM thisBDII(&cfg);
-
-      thisBDII.GetTargets(mom, TargetType, DetailLevel); 
-
-    } //end topBDIIs
-
-    std::list<XMLNode> siteBDIIs =
-      XMLresult.XPathLookup("//*[GlueServiceType='bdii_site']", NS());
-
-    for(iter = siteBDIIs.begin(); iter!= siteBDIIs.end(); ++iter){
-      if ((std::string)(*iter)["GlueServiceStatus"] != "OK" )
-	continue;
-      std::string url = (std::string)(*iter)["GlueServiceEndpoint"] + "??sub";
-
-      //Should filter here on allowed VOs, not yet implemented
-
+    if(ServiceType=="computing") {
       //Add Service to TG list
-      bool AddedService(mom.AddService(url));
 
+      bool AddedService(mom.AddService(m_url));
+
+      std::cout <<"TargetRetriverCREAM initialized with computing service url"<< std::endl;
+      
       //If added, interrogate service
       //Lines below this point depend on the usage of TargetGenerator
       //i.e. if it is used to find Targets for execution or storage,
       //and/or if the entire information is requested or only endpoints
-      if(AddedService && TargetType == 0 && DetailLevel == 1)
-	InterrogateTarget(mom, url);
-    }
+      if(AddedService){
+	InterrogateTarget(mom, m_url, TargetType, DetailLevel);
+      }
+    }else if(ServiceType=="storage"){
+      
+    }else if(ServiceType=="index"){
+
+      std::cout <<"TargetRetriverCREAM initialized with index service url"<< std::endl;
+      
+      DataHandle handler(m_url+"??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))");
+      DataBufferPar buffer;
+      
+      if (!handler->StartReading(buffer))
+	return;
+      
+      int handle;
+      unsigned int length;
+      unsigned long long int offset;
+      std::string result;
+      
+      while (buffer.for_write() || !buffer.eof_read()) {
+	if (buffer.for_write(handle, length, offset, true)) {
+	result.append(buffer[handle], length);
+	buffer.is_written(handle);
+	}
+      }
+      
+      if (!handler->StopReading())
+	return;
+
+      XMLNode XMLresult(result);
+      
+      std::list<XMLNode> topBDIIs =
+	XMLresult.XPathLookup("//*[GlueServiceType='bdii_top']", NS());
+      
+      std::list<XMLNode>::iterator iter;
+      
+      for(iter = topBDIIs.begin(); iter!= topBDIIs.end(); ++iter) {
+	
+	if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
+	  continue;
+	
+	std::string url = (std::string)(*iter)["GlueServiceEndpoint"];
+	
+	NS ns;
+	Arc::Config cfg(ns);
+	Arc::XMLNode URLXML = cfg.NewChild("URL") = url;
+	URLXML.NewAttribute("ServiceType") = "index";
+
+	TargetRetrieverCREAM thisBDII(&cfg);
+	
+	thisBDII.GetTargets(mom, TargetType, DetailLevel); 
+	
+      } //end topBDIIs
+
+      std::list<XMLNode> siteBDIIs =
+	XMLresult.XPathLookup("//*[GlueServiceType='bdii_site']", NS());
+
+      for(iter = siteBDIIs.begin(); iter!= siteBDIIs.end(); ++iter){
+	if ((std::string)(*iter)["GlueServiceStatus"] != "OK" )
+	  continue;
+	std::string url = (std::string)(*iter)["GlueServiceEndpoint"];
+	
+	//Should filter here on allowed VOs, not yet implemented
+	
+	//Add Service to TG list
+	bool AddedService(mom.AddService(url));
+	
+	//If added, interrogate service
+	//Lines below this point depend on the usage of TargetGenerator
+	//i.e. if it is used to find Targets for execution or storage,
+	//and/or if the entire information is requested or only endpoints
+	if(AddedService)
+	  InterrogateTarget(mom, url, TargetType, DetailLevel);
+      }
+    } //end if index type
   }
 
-  void TargetRetrieverCREAM::InterrogateTarget(TargetGenerator &mom, URL url){
-
-    DataHandle handler(url);
+  void TargetRetrieverCREAM::InterrogateTarget(TargetGenerator &mom, std::string url, int TargetType, int DetailLevel){
+      
+    DataHandle handler(url + "??sub");
     DataBufferPar buffer;
 
     if (!handler->StartReading(buffer))
@@ -115,6 +136,8 @@ namespace Arc{
       return;
 
     XMLNode XMLresult(result);
+
+    XMLresult.SaveToStream(std::cout);
 
     // Create one ExecutionTarget per VOView record.
 
@@ -284,23 +307,23 @@ namespace Arc{
       ... now do the mapping */
 
       if (Site["GlueSiteName"])
-	target.Location.Name = (std::string) Site["GlueSiteName"];
+	target.Name = (std::string) Site["GlueSiteName"];
 
       if (Site["GlueSiteLocation"])
-	target.Location.Place = (std::string) Site["GlueSiteLocation"];
+	target.Place = (std::string) Site["GlueSiteLocation"];
 
       if (Site["GlueSiteLatitude"])
-	target.Location.Latitude = stringtof(Site["GlueSiteLatitude"]);
+	target.Latitude = stringtof(Site["GlueSiteLatitude"]);
 
       if (Site["GlueSiteLongitude"])
-	target.Location.Longitude = stringtof(Site["GlueSiteLongitude"]);
+	target.Longitude = stringtof(Site["GlueSiteLongitude"]);
 
       if (CE["GlueCEImplementationName"])
-	target.Endpoint.ImplementationName =
+	target.ImplementationName =
 	  (std::string) CE["GlueCEImplementationName"];
 
       if (CE["GlueCEImplementationVersion"])
-	target.Endpoint.ImplementationVersion =
+	target.ImplementationVersion =
 	  (std::string) CE["GlueCEImplementationVersion"];
 
       if (VOView["GlueCEStateTotalJobs"])
@@ -421,6 +444,7 @@ namespace Arc{
       // target.RequestedSlots;
       // target.ReservationPolicy;
 
+      /*
       for (XMLNode node =
 	     SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
 	   node; ++node) {
@@ -428,6 +452,7 @@ namespace Arc{
 	env.Name = (std::string) node;
 	target.ApplicationEnvironments.push_back(env);
       }
+      */
 
       //Register target in TargetGenerator list
       mom.AddTarget(target);
