@@ -1,85 +1,102 @@
-#include <getopt.h> //Is this the best for supporting windows ?
+#include <list>
+#include <string>
 #include <stdio.h>
-#include <arc/client/TargetGenerator.h>
-#include <arc/ArcConfig.h>
+#include <iostream>
 #include <arc/Logger.h>
-#include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfig.h>
+#include <arc/StringConv.h>
+#include <arc/misc/ClientInterface.h>
+#include <arc/client/TargetGenerator.h>
 
-int main(int argc, char ** argv) {
+static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
 
-  Arc::LogStream logcerr(std::cerr);
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+void arcstat(const std::list<std::string>& jobs,
+             const std::list<std::string>& clusterselect,
+             const std::list<std::string>& clusterreject,
+             const std::list<std::string>& status,
+             const std::list<std::string>& giisurls,
+             const bool clusters,
+             const bool longlist,
+             const int timeout,
+             const bool anonymous) {
+  
+  if (clusters) { //i.e we are looking for queue or cluster info, not jobs
+    
+    Arc::ACCConfig acccfg;
+    Arc::NS ns;
+    Arc::Config mcfg(ns);
+    acccfg.MakeConfig(mcfg);
+    
+    bool ClustersSpecified = false;
+    bool IndexServersSpecified = false;
+    int TargetURL = 1;
 
-  char * optstring = "g:c:j:";
-
-  int opt = 0;
-
-  Arc::ACCConfig acccfg;
-  Arc::NS ns;
-  Arc::Config mcfg(ns);
-  acccfg.MakeConfig(mcfg);
-  Arc::XMLNode AnotherOne = mcfg.NewChild("ArcClientComponent");
-  char GridFlavour[20];
-  char SomeURL[50];
-
-  while(opt != -1){
-    opt = getopt(argc,argv,optstring);
-    if(opt == -1) continue;
-    switch(opt){
-    case 'g':
-      std::cout<< "Arcstat called with option: -g" <<std::endl;
-      std::cout<< "And argument given was:" <<optarg<<std::endl;     
+    //first add to config element the specified target clusters (if any)
+    for (std::list<std::string>::const_iterator it = clusterselect.begin(); it != clusterselect.end(); it++){
       
-      sscanf(optarg, "%[^:]:%s", GridFlavour, SomeURL);
- 
-      std::cout<< "GridFlavour:" <<GridFlavour<<std::endl;     
-      std::cout<< "URL:" <<SomeURL<<std::endl;     
-
-      if(!strcmp(GridFlavour,"ARC0")){
-	AnotherOne.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-	AnotherOne.NewAttribute("id") = "retriever1";
-	AnotherOne.NewChild("URL") = (std::string) SomeURL + "?giisregistrationstatus?base"; 
-      }else {
-	std::cout<< "Your favorite GRID flavour is not your supported" <<std::endl;     	
-      }
-
-      std::cout<< "End of case -g" <<std::endl;      
-      break;
-    case 'c':
-
-      std::cout<< "Arcstat called with option: -c" <<std::endl;
-      std::cout<< "And argument given was:" <<optarg<<std::endl;     
+      std::cout<<"Received cluster input"<<std::endl;
       
-      sscanf(optarg, "%[^:]:%s", GridFlavour, SomeURL);
-      
-      std::cout<< "GridFlavour:" <<GridFlavour<<std::endl;     
-      std::cout<< "URL:" <<SomeURL<<std::endl;
-      if(!strcmp(GridFlavour,"ARC0")){
-	AnotherOne.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-	AnotherOne.NewAttribute("id") = "retriever1";
-	AnotherOne.NewChild("URL") = (std::string) SomeURL + 
-                                   ",Mds-Vo-name=local,o=grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue))";
- 
-      }else{
-	std::cout<< "Your favorite GRID flavour is not your supported" <<std::endl;     	
-      }
+      size_t colon = (*it).find_first_of(":");
+      std::string GridFlavour = (*it).substr(0, colon);
+      std::string SomeURL = (*it).substr(colon+1);
 
-      break;
-    case 'j':
-      std::cout<< "arcstat called with option: -j which is not yet implemented" <<std::endl;
-      break;
-    default:
-      std::cout<< "invalid options" <<std::endl;
-      break;    
+      std::cout<<"Input cluster URL = "<<SomeURL<<std::endl;
+
+      Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
+      ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
+      ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
+      Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
+      ThisRetriever1.NewAttribute("ServiceType") = "computing";
+
+      TargetURL++;
+      ClustersSpecified = true;
     }
+
+    //if no cluster url are given next steps are index servers (giis'es in ARC0)
+    if (!ClustersSpecified){ //means that -c option takes priority over -g
+      for (std::list<std::string>::const_iterator it = giisurls.begin(); it != giisurls.end(); it++){      
+
+	std::cout<<"Received giis input"<<std::endl;
+
+	size_t colon = (*it).find_first_of(":");
+	std::string GridFlavour = (*it).substr(0, colon);
+	std::string SomeURL = (*it).substr(colon+1);
+	
+	Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
+	ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
+	ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
+	Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
+	ThisRetriever1.NewAttribute("ServiceType") = "index";
+	
+	TargetURL++;
+	IndexServersSpecified = true;
+      }
+    }
+    
+    //if neither clusters nor index servers are specified, read from config file
+    if(!ClustersSpecified && !IndexServersSpecified){
+      
+    }
+
+    //remove cluster that are rejected by user
+    for (std::list<std::string>::const_iterator it = clusterreject.begin();it != clusterreject.end(); it++){
+
+    }
+    
+    //get cluster information
+    Arc::TargetGenerator TarGen(mcfg);
+    TarGen.GetTargets(0, 1);
+    
+    //finally print information to screen
+    TarGen.PrintTargetInfo(longlist);
+    
+  } //end if clusters
+    
+  else { //i.e we are looking for the status of jobs
+    
   }
-  
-  //Get targets
-  std::cout<<"Create TargetGenerator"<<std::endl;
-  Arc::TargetGenerator test(mcfg);
-  std::cout<<"Get Targets"<<std::endl;
-  test.GetTargets();
-  
-}//end main
+}
+
+#define ARCSTAT
+#include "arccli.cpp"
