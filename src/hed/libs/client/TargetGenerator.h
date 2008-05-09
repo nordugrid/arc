@@ -20,15 +20,17 @@ namespace Arc{
     TargetGenerator(Arc::Config &cfg);
     ~TargetGenerator();
     
-    void GetTargets();
+    void GetTargets(int TargetType, int DetailLevel);
 
-    bool AddService(Arc::URL NewService);
+    bool AddService(std::string NewService);
     void AddTarget(Arc::ExecutionTarget NewTarget);    
-    bool DoIAlreadyExist(Arc::URL NewServer);
+    bool DoIAlreadyExist(std::string NewServer);
     
-    std::list<Arc::URL> FoundServices;
-    std::list<Arc::URL> CheckedInfoServers;
-    std::list<Arc::ACC> FoundTargets; 
+    void PrintTargetInfo(bool longlist);
+
+    std::list<std::string> FoundServices;
+    std::list<std::string> CheckedInfoServers;
+    std::list<Arc::ExecutionTarget> FoundTargets; 
     
   private:
     Glib::Mutex ServiceMutex;

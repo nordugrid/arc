@@ -1,6 +1,4 @@
-#include "GLUE2/Endpoint.h"
-#include "GLUE2/Location.h"
-#include "GLUE2/ApplicationEnvironment.h"
+#include <arc/URL.h>
 #include <arc/client/ACC.h>
 #include <string>
 #include <list>
@@ -10,16 +8,34 @@
 
 namespace Arc {
 
-  class ExecutionTarget : public ACC {
+  class ExecutionTarget{
   public:
     ExecutionTarget();
     virtual ~ExecutionTarget();
 
     //One million attributes, possibly interesting for brokering
-    Glue2::Location_t Location;
-    Glue2::Endpoint_t Endpoint;
+   
+    //Below attributes inspired by Glue2:Location
     std::string Name;
+    std::string Alias;
+    std::string Owner;
+    std::string PostCode;
+    std::string Place;
+    float Latitude;
+    float Longitude;
 
+    //Below attributes inspired by Glue2:Endpoint
+    Arc::URL URL;
+    std::string InterfaceName;
+    std::string InterfaceVersion;
+    std::string Implementor;
+    std::string ImplementationName;
+    std::string ImplementationVersion;
+    std::string HealthState;
+    std::string IssuerCA;
+    std::string Staging;
+
+    //The rest
     int TotalJobs;
     int RunningJobs;
     int WaitingJobs;
@@ -42,7 +58,7 @@ namespace Arc {
     int MaxUserRunningJobs;
     int MaxSlotsPerJobs;
     int MaxStageInStreams;
-    int MaxStaegOutStreams;
+    int MaxStageOutStreams;
     std::string SchedulingPolicy;
     int MaxMemory;
     int MaxDiskSpace;
@@ -55,8 +71,6 @@ namespace Arc {
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
-
-    std::list<Glue2::ApplicationEnvironment_t> ApplicationEnvironments;
 
   };
 

@@ -7,13 +7,15 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/ACC.h>
 #include <arc/URL.h>
+#include <string>
 
 namespace Arc {
-
+  
   class TargetRetriever : public ACC {
   protected:
     TargetRetriever(Arc::Config *cfg);
-    URL m_url;
+    std::string m_url;
+    std::string ServiceType;
   public:
     virtual ~TargetRetriever();
     virtual void GetTargets(Arc::TargetGenerator &Mom, int TargetType, int DetailLevel) = 0;

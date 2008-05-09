@@ -3,9 +3,8 @@
 namespace Arc {
 
   ExecutionTarget::ExecutionTarget() :
-    ACC(),
-    Location(),
-    Endpoint(),
+    Latitude(0),
+    Longitude(0),
     TotalJobs(-1),
     RunningJobs(-1),
     WaitingJobs(-1),
@@ -26,7 +25,7 @@ namespace Arc {
     MaxUserRunningJobs(-1),
     MaxSlotsPerJobs(-1),
     MaxStageInStreams(-1),
-    MaxStaegOutStreams(-1),
+    MaxStageOutStreams(-1),
     MaxMemory(-1),
     MaxDiskSpace(-1),
     DefaultStorageService(),
