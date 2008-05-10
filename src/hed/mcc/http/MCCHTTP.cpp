@@ -50,7 +50,17 @@ class HTTPSecAttr: public SecAttr {
 
 HTTPSecAttr::HTTPSecAttr(PayloadHTTP& payload) {
   action_=payload.Method();
-  object_=payload.Endpoint();
+  std::string path = payload.Endpoint();
+  // Remove service, port and protocol - those will be provided by 
+  // another layer
+  std::string::size_type p = path.find("://");
+  if(p != std::string::npos) {
+    p=path.find('/',p+3);
+    if(p != std::string::npos) {
+      path.erase(0,p);
+    };
+  };
+  object_=path;
 }
 
 HTTPSecAttr::~HTTPSecAttr(void) {
