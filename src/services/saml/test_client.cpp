@@ -40,18 +40,8 @@ int main(void) {
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
-  // Load service chain
-  logger.msg(Arc::INFO, "Creating service side chain");
-  Arc::Config service_config("service.xml");
-  if(!service_config) {
-    logger.msg(Arc::ERROR, "Failed to load service configuration");
-    return -1;
-  };
-  Arc::Loader service_loader(&service_config);
-  logger.msg(Arc::INFO, "Service side MCCs are loaded");
-  logger.msg(Arc::INFO, "Creating client side chain");
-
   // Create client chain
+  logger.msg(Arc::INFO, "Creating client side chain");
   Arc::Config client_config("client.xml");
   if(!client_config) {
     logger.msg(Arc::ERROR, "Failed to load client configuration");
@@ -166,7 +156,7 @@ int main(void) {
     delete repmsg.Payload();
     return -1;
   };
-  
+ 
   std::string assertionResponseBody;
   resp->GetXML(assertionResponseBody);
   //Can't use logger here, because it has restriction for string length

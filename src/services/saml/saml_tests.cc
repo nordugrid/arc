@@ -23,15 +23,15 @@ generateIdentityProviderContextDump()
 	
   serverContext = lasso_server_new(
                    TESTSDATADIR "/idp1-la/saml_metadata.xml",
-                   TESTSDATADIR "/idp1-la/private-key-raw.pem",
+                   "./key.pem",
                    NULL, /* Secret key to unlock private key */
-                   TESTSDATADIR "/idp1-la/certificate.pem");
+                   "./cert.pem");
   lasso_server_add_provider(
                    serverContext,
                    LASSO_PROVIDER_ROLE_SP,
                    TESTSDATADIR "/sp1-la/saml_metadata.xml",
-                   TESTSDATADIR "/sp1-la/public-key.pem",
-                   TESTSDATADIR "/ca1-la/certificate.pem");
+                   "./cert.pem",
+                   "./ca.pem");
   return lasso_server_dump(serverContext);
 }
 
@@ -42,15 +42,15 @@ generateServiceProviderContextDump()
 	
   serverContext = lasso_server_new(
                    TESTSDATADIR "/sp1-la/saml_metadata.xml",
-                   TESTSDATADIR "/sp1-la/private-key-raw.pem",
+                   "./key.pem",
                    NULL, /* Secret key to unlock private key */
-                   TESTSDATADIR "/sp1-la/certificate.pem");
+                   "./cert.pem");
   lasso_server_add_provider(
                    serverContext,
                    LASSO_PROVIDER_ROLE_ATTRIBUTEAUTHORITY,
                    TESTSDATADIR "/idp1-la/saml_metadata.xml",
-                   TESTSDATADIR "/idp1-la/public-key.pem",
-                   TESTSDATADIR "/ca1-la/certificate.pem");
+                   "./cert.pem",
+                   "./ca.pem");
   return lasso_server_dump(serverContext);
 }
 

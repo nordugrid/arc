@@ -219,12 +219,15 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string assertionResponseBody(LASSO_PROFILE(assertion_query_)->msg_body);
   if(assertionResponseBody.empty()) { logger.msg(Arc::ERROR, "assertionResponseBody shouldn't be NULL"); return Arc::MCC_Status(); }
   
-  //Conver the lasso-generated soap message into Arc's PayloasSOAP. It could be not efficient here
-  Arc::XMLNode response_soap(assertionResponseBody);
-  Arc::XMLNode response_saml_assertion = response_soap["Envelop"]["Body"].Child(0);
-  Arc::SOAPEnvelope envelope(response_saml_assertion);
+  //Conver the lasso-generated soap message into Arc's PayloasSOAP.
+  Arc::SOAPEnvelope envelope(assertionResponseBody);
 
   Arc::PayloadSOAP *outpayload = new Arc::PayloadSOAP(envelope);
+
+  std::string tmp;
+  outpayload->GetXML(tmp);
+  std::cout<<"Output payload: ----"<<tmp<<std::endl;
+
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
@@ -234,8 +237,8 @@ Service_AA::Service_AA(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::root
   assertion_query_ = NULL;
   lasso_init();
   LassoServer *server;
-  server = lasso_server_new("./aa_saml_metadata.xml", "./aa_private-key-raw.pem", NULL, "./aa_public-key.pem"); 
-  lasso_server_add_provider(server, LASSO_PROVIDER_ROLE_SP, "./sp_saml_metadata.xml", "./sp_public-key.pem", "./ca.pem");
+  server = lasso_server_new("./aa_saml_metadata.xml", "./key.pem", NULL, "./cert.pem"); 
+  lasso_server_add_provider(server, LASSO_PROVIDER_ROLE_SP, "./sp_saml_metadata.xml", "./cert.pem", "./ca.pem");
   assertion_query_ = lasso_assertion_query_new (server);
   if(assertion_query_ == NULL) logger.msg(Arc::DEBUG, "lasso_assertion_query_new() failed"); 
 }
