@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <string>
 #include <fstream>
 #include <iostream>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
@@ -69,7 +70,7 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         items.push_back(item);
       }
       else{
-        std::cerr <<"Error definition in policy"<<std::endl;
+        //std::cerr <<"Error definition in policy"<<std::endl;
         //logger.msg(Arc::ERROR, "Error definition in policy"); 
         return;
       }
@@ -132,11 +133,11 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
     effect="Permit";
   else if((std::string)(node.Attribute("Effect"))=="Deny")
     effect="Deny";
-  else
-    std::cerr<< "Invalid Effect" <<std::endl; 
+  //else
+    //std::cerr<< "Invalid Effect" <<std::endl; 
     //logger.msg(Arc::ERROR, "Invalid Effect");
- 
-  std::string type, funcname;
+
+  std::string type,funcname;
   //Parse the "Subjects" part of a Rule
   nd = node["Subjects"];
   type = (std::string)(nd.Attribute("Type"));
@@ -208,10 +209,25 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
 
 MatchResult ArcRule::match(EvaluationCtx* ctx){
   ArcSec::RequestTuple* evaltuple = ctx->getEvalTuple();  
-  if((subjects.empty()||(!subjects.empty())&&(itemMatch(subjects, evaltuple->sub)==MATCH)) &&
-    (resources.empty()||(!resources.empty())&&(itemMatch(resources, evaltuple->res)==MATCH)) &&
-    (actions.empty()||(!actions.empty())&&(itemMatch(actions, evaltuple->act)==MATCH)) &&
-    (conditions.empty()||(!conditions.empty())&&(itemMatch(conditions, evaltuple->ctx)==MATCH)))
+
+  if(
+      (
+        subjects.empty() ||
+        (itemMatch(subjects, evaltuple->sub)==MATCH)
+      ) &&
+      (
+        resources.empty() ||
+        (itemMatch(resources, evaltuple->res)==MATCH)
+      ) &&
+      (
+        actions.empty() || 
+        (itemMatch(actions, evaltuple->act)==MATCH)
+      ) &&
+      (
+        conditions.empty() || 
+        (itemMatch(conditions, evaltuple->ctx)==MATCH)
+      )
+    )
     return MATCH;
   else return NO_MATCH;
 }
