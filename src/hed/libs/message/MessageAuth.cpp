@@ -41,34 +41,11 @@ SecAttr* MessageAuth::get(const std::string& key) {
   return attr->second;
 }
 
-static void add_subject(XMLNode request,XMLNode subject,XMLNode context) {
-  XMLNode item = request["RequestItem"];
-  // Adding subject attributes to every request item
-  for(;(bool)item;++item) {
-    XMLNode reqsubject = item["Subject"];
-    if(!reqsubject) reqsubject=item.NewChild("ra:Subject");
-    XMLNode subject_ = subject; // Normally there should be one subject, but who knows
-    for(;(bool)subject_;++subject_) {
-      XMLNode subattr = subject_["SubjectAttribute"];
-      for(;(bool)subattr;++subattr) {
-        reqsubject.NewChild(subattr);
-      };
-    };
-    XMLNode context_ = context;
-    for(;(bool)context_;++context_) item.NewChild(context_);
-  };
+static void add_new_elements(XMLNode item,XMLNode element) {
+  for(;(bool)element;++element) item.NewChild(element);
 }
 
-static void add_new_request(XMLNode request,XMLNode resource,XMLNode action,XMLNode context) {
-  if((!resource) && (!action)) return;
-  XMLNode newitem = request.NewChild("ra:RequestItem");
-  for(;(bool)resource;++resource) newitem.NewChild(resource);
-  for(;(bool)action;++action) newitem.NewChild(action);
-  for(;(bool)context;++context) newitem.NewChild(context);
-}
-
-// All Subject elements go to all new request items.
-// Every Resource, Action or Resource+Action set makes own request item.
+// All Subject, Resource, Action elements do to same RequestItem.
 bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   // Currently only ARCAuth is supported
   if(format != SecAttr::ARCAuth) return false;
@@ -77,6 +54,7 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   XMLNode newreq = val;
   newreq.Namespaces(ns);
   newreq.Name("ra:Request");
+  XMLNode newitem = newreq.NewChild("ra:RequestItem");
   std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
   for(;attr != attrs_.end();++attr) {
     XMLNode r(ns,"");
@@ -84,15 +62,10 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
     if(!(attr->second->Export(format,r))) return false;
     XMLNode item;
     for(item=r["RequestItem"];(bool)item;++item) {
-      XMLNode resource = item["Resource"];
-      XMLNode action = item["Action"];
-      XMLNode context = item["Context"];
-      add_new_request(newreq,resource,action,context);
-    };
-    if(!newreq["RequestItem"]) newreq.NewChild("ra:RequestItem");
-    for(item=r["RequestItem"];(bool)item;++item) {
-      XMLNode subject = item["Subject"];
-      add_subject(newreq,subject,XMLNode());
+      add_new_elements(newitem,item["Subject"]);
+      add_new_elements(newitem,item["Resource"]);
+      add_new_elements(newitem,item["Action"]);
+      add_new_elements(newitem,item["Context"]);
     };
   };
   return true;
