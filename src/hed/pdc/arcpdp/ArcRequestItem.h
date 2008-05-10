@@ -23,6 +23,11 @@ public:
   virtual CtxList getContexts () const;
   virtual void setContexts (const CtxList& ctx);
 
+private:
+  void removeSubjects ();
+  void removeResources ();
+  void removeActions ();
+  void removeContexts ();
 };
 
 } // namespace ArcSec
