@@ -20,8 +20,8 @@ class ArcPDP : public PDP {
   /***/
   virtual bool isPermitted(Arc::Message *msg);
  private:
-  Evaluator *eval;
-  Arc::ClassLoader* classloader;
+  // Evaluator *eval;
+  // Arc::ClassLoader* classloader;
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;
   std::list<std::string> policy_locations;

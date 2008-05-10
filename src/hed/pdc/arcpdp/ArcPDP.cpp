@@ -29,16 +29,34 @@ pdp_descriptors ARC_PDP_LOADER = {
     { NULL, 0, NULL }
 };
 */
+
 using namespace Arc;
-using namespace ArcSec;
+
+namespace ArcSec {
 
 PDP* ArcPDP::get_arc_pdp(Config *cfg,ChainContext*) {
     return new ArcPDP(cfg);
 }
 
-ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
-  XMLNode pdp_node(*cfg);
+// This class is used to store Evaluator per connection
+class ArcPDPContext:public Arc::MessageContextElement {
+ friend class ArcPDP;
+ private:
+  Evaluator* eval;
+ public:
+  ArcPDPContext(Evaluator* e);
+  ArcPDPContext(void);
+  virtual ~ArcPDPContext(void);
+};
 
+ArcPDPContext::~ArcPDPContext(void) {
+  if(eval) delete eval;
+}
+
+ArcPDPContext::ArcPDPContext(Evaluator* e):eval(e) {
+}
+
+ArcPDPContext::ArcPDPContext(void):eval(NULL) {
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -69,14 +87,15 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg), eval(NULL){
 
   Config modulecfg(pdp_cfg_nd);
 
-  classloader = NULL;
-  classloader = ClassLoader::getClassLoader(&modulecfg);
+  Arc::ClassLoader* classloader = ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
 
   //Dynamically load Evaluator object according to configure information
   eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
-  if(eval == NULL)
-    logger.msg(ERROR, "Can not dynamically produce Evaluator");
+}
+
+ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
+  XMLNode pdp_node(*cfg);
 
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {
@@ -102,21 +121,53 @@ bool ArcPDP::isPermitted(Message *msg){
     </RequestItem>
   </Request>
   */
+  Evaluator* eval = NULL;
 
-  if(eval == NULL) {
-    logger.msg(ERROR,"Evaluator for ArcPDP was not loaded"); 
-    return false;
-  };
   PDPConfigContext *config = NULL;
-  Arc::MessageContextElement* context = (*(msg->Context()))[id_];;
-  if(context) { 
-    try {
+  try {
+    Arc::MessageContextElement* context = (*(msg->Context()))[id_];;
+    if(context) { 
       config = dynamic_cast<PDPConfigContext*>(context);
-    } catch(std::exception& e) { };
-  }
+    }
+  } catch(std::exception& e) { };
   if(config == NULL) {
     logger.msg(INFO,"Although there is pdp configuration for this component, no pdp context has been generated for it"); 
   };
+
+  std::string ctxid = "arcsec.arcpdp."+id_;
+  try {
+    // Using ID of PDP here to allow for multiple ArcPDP in a chain.
+    // If PDPs with same IDs are present user must understand that 
+    // they will be merged.
+    Arc::MessageContextElement* mctx = (*(msg->Context()))[ctxid];
+    if(mctx) {
+      ArcPDPContext* pdpctx = dynamic_cast<ArcPDPContext*>(mctx);
+      if(pdpctx) {
+        eval=pdpctx->eval;
+      };
+    };
+  } catch(std::exception& e) { };
+  if(!eval) {
+    ArcPDPContext* pdpctx = new ArcPDPContext();
+    if(pdpctx) {
+      eval=pdpctx->eval;
+      if(eval) {
+        std::list<std::string> policylocation = (config!=NULL)?config->GetPolicyLocation():policy_locations;
+        for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
+          eval->addPolicy(*it);
+        }
+        msg->Context()->Add(ctxid,pdpctx);
+      } else {
+        delete pdpctx;
+      }
+    }
+    if(!eval) logger.msg(ERROR, "Can not dynamically produce Evaluator");
+  }
+  if(!eval) {
+    logger.msg(ERROR,"Evaluator for ArcPDP was not loaded"); 
+    return false;
+  };
+
   /*
 
   NS ns;
@@ -190,9 +241,11 @@ bool ArcPDP::isPermitted(Message *msg){
   NS ns;
   XMLNode requestxml(ns,"");
   if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+    delete mauth;
     logger.msg(ERROR,"Failed to convert security information to ARC request");
     return false;
   };
+  delete mauth;
   {
     std::string s;
     requestxml.GetXML(s);
@@ -204,13 +257,7 @@ bool ArcPDP::isPermitted(Message *msg){
   };
 
   //Call the evaluation functionality inside Evaluator
-  Response *resp = NULL;
-  //resp = eval->evaluate("Request.xml", policy_loc);
-  std::list<std::string> policylocation = (config!=NULL)?config->GetPolicyLocation():policy_locations;
-  for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
-    eval->addPolicy(*it);
-  }
-  resp = eval->evaluate(requestxml);
+  Response *resp = eval->evaluate(requestxml);
   logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
@@ -245,7 +292,10 @@ bool ArcPDP::isPermitted(Message *msg){
 }
 
 ArcPDP::~ArcPDP(){
-  if(eval)
-    delete eval;
-  eval = NULL;
+  //if(eval)
+  //  delete eval;
+  //eval = NULL;
 }
+
+} // namespace ArcSec
+
