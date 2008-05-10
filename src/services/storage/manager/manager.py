@@ -551,11 +551,42 @@ class ManagerService(Service):
             ['man:requestID', 'man:metadataList'], response, self.newSOAPPayload(), single = True)
 
     def getFile(self, inpayload):
+        # incoming SOAP message example:
+        #
+        #   <soap-env:Body>
+        #       <man:getFile>
+        #           <man:getFileRequestList>
+        #               <man:getFileRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:LN>/testfile</man:LN>
+        #                   <man:protocol>byteio</man:protocol>
+        #               </man:getFileRequestElement>
+        #           </man:getFileRequestList>
+        #       </man:getFile>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:getFileResponse>
+        #               <man:getFileResponseList>
+        #                   <man:getFileResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:success>done</man:success>
+        #                       <man:TURL>http://localhost:60000/byteio/12d86ba3-99d5-408e-91d1-35f7c47774e4</man:TURL>
+        #                       <man:protocol>byteio</man:protocol>
+        #                   </man:getFileResponseElement>
+        #               </man:getFileResponseList>
+        #           </man:getFileResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
         request_nodes = get_child_nodes(inpayload.Child().Child())
         requests = dict([
             (
                 str(request_node.Get('requestID')), 
-                (
+                ( # get the LN and all the protocols for each request and put them in a list
                     str(request_node.Get('LN')),
                     [str(node) for node in request_node.XPathLookup('//man:protocol', self.ns)]
                 )
@@ -566,7 +597,40 @@ class ManagerService(Service):
             ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
     
     def addReplica(self, inpayload):
-        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.newSOAPPayload())]
+        # incoming SOAP message example:
+        #
+        #   <soap-env:Body>
+        #       <man:addReplica>
+        #           <man:addReplicaRequestList>
+        #               <man:putReplicaRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</man:GUID>
+        #               </man:putReplicaRequestElement>
+        #           </man:addReplicaRequestList>
+        #           <man:protocol>byteio</man:protocol>
+        #       </man:addReplica>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:addReplicaResponse>
+        #               <man:addReplicaResponseList>
+        #                   <man:addReplicaResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:success>done</man:success>
+        #                       <man:TURL>http://localhost:60000/byteio/f568be18-26ae-4925-ae0c-68fe023ef1a5</man:TURL>
+        #                       <man:protocol>byteio</man:protocol>
+        #                   </man:addReplicaResponseElement>
+        #               </man:addReplicaResponseList>
+        #           </man:addReplicaResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+        
+        # get the list of supported protocols
+        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.ns)]
+        # get the GUID of each request
         request_nodes = get_child_nodes(inpayload.Child().Get('addReplicaRequestList'))
         requests = dict([(str(request_node.Get('requestID')), str(request_node.Get('GUID')))
                 for request_node in request_nodes])
@@ -575,6 +639,49 @@ class ManagerService(Service):
             ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
     
     def putFile(self, inpayload):
+        # incoming SOAP message example:
+        #
+        #   <soap-env:Body>
+        #       <man:putFile>
+        #           <man:putFileRequestList>
+        #               <man:putFileRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:LN>/testfile2</man:LN>
+        #                   <man:metadataList>
+        #                       <man:metadata>
+        #                           <man:section>states</man:section>
+        #                           <man:property>neededReplicas</man:property>
+        #                           <man:value>2</man:value>
+        #                       </man:metadata>
+        #                       <man:metadata>
+        #                           <man:section>states</man:section>
+        #                           <man:property>size</man:property>
+        #                           <man:value>11</man:value>
+        #                       </man:metadata>
+        #                   </man:metadataList>
+        #                   <man:protocol>byteio</man:protocol>
+        #               </man:putFileRequestElement>
+        #           </man:putFileRequestList>
+        #       </man:putFile>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:putFileResponse>
+        #               <man:putFileResponseList>
+        #                   <man:putFileResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:success>done</man:success>
+        #                       <man:TURL>http://localhost:60000/byteio/b8f2987b-a718-47b3-82bb-e838470b7e00</man:TURL>
+        #                       <man:protocol>byteio</man:protocol>
+        #                   </man:putFileResponseElement>
+        #               </man:putFileResponseList>
+        #           </man:putFileResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
         request_nodes = get_child_nodes(inpayload.Child().Child())
         requests = dict([
             (
@@ -582,7 +689,7 @@ class ManagerService(Service):
                 (
                     str(request_node.Get('LN')),
                     parse_metadata(request_node.Get('metadataList')),
-                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.newSOAPPayload())]
+                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.ns)]
                 )
             ) for request_node in request_nodes
         ])
@@ -591,6 +698,41 @@ class ManagerService(Service):
             ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
 
     def makeCollection(self, inpayload):
+        # incoming SOAP message example:
+        # 
+        #   <soap-env:Body>
+        #       <man:makeCollection>
+        #           <man:makeCollectionRequestList>
+        #               <man:makeCollectionRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:LN>/testdir</man:LN>
+        #                   <man:metadataList>
+        #                       <man:metadata>
+        #                           <man:section>states</man:section>
+        #                           <man:property>closed</man:property>
+        #                           <man:value>0</man:value>
+        #                       </man:metadata>
+        #                   </man:metadataList>
+        #               </man:makeCollectionRequestElement>
+        #           </man:makeCollectionRequestList>
+        #       </man:makeCollection>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:makeCollectionResponse>
+        #               <man:makeCollectionResponseList>
+        #                   <man:makeCollectionResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:success>done</man:success>
+        #                   </man:makeCollectionResponseElement>
+        #               </man:makeCollectionResponseList>
+        #           </man:makeCollectionResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
         request_nodes = get_child_nodes(inpayload.Child().Child())
         requests = dict([
             (str(request_node.Get('requestID')), 
@@ -602,6 +744,64 @@ class ManagerService(Service):
             ['man:requestID', 'man:success'], response, self.newSOAPPayload(), single = True)
 
     def list(self, inpayload):
+        # incoming SOAP message example:
+        #
+        #   <soap-env:Body>
+        #       <man:list>
+        #           <man:listRequestList>
+        #               <man:listRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:LN>/</man:LN>
+        #               </man:listRequestElement>
+        #           </man:listRequestList>
+        #           <man:neededMetadataList>
+        #               <man:neededMetadataElement>
+        #                   <man:section>catalog</man:section>
+        #                   <man:property></man:property>
+        #               </man:neededMetadataElement>
+        #           </man:neededMetadataList>
+        #       </man:list>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:listResponse>
+        #               <man:listResponseList>
+        #                   <man:listResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:entries>
+        #                           <man:entry>
+        #                               <man:name>testfile</man:name>
+        #                               <man:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</man:GUID>
+        #                               <man:metadataList>
+        #                                   <man:metadata>
+        #                                       <man:section>catalog</man:section>
+        #                                       <man:property>type</man:property>
+        #                                       <man:value>file</man:value>
+        #                                   </man:metadata>
+        #                               </man:metadataList>
+        #                           </man:entry>
+        #                           <man:entry>
+        #                               <man:name>testdir</man:name>
+        #                               <man:GUID>4cabc8cb-599d-488c-a253-165f71d4e180</man:GUID>
+        #                               <man:metadataList>
+        #                                   <man:metadata>
+        #                                       <man:section>catalog</man:section>
+        #                                       <man:property>type</man:property>
+        #                                       <man:value>collection</man:value>
+        #                                   </man:metadata>
+        #                               </man:metadataList>
+        #                           </man:entry>
+        #                       </man:entries>
+        #                       <man:status>found</man:status>
+        #                   </man:listResponseElement>
+        #               </man:listResponseList>
+        #           </man:listResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
         requests = parse_node(inpayload.Child().Get('listRequestList'),
             ['requestID', 'LN'], single = True)
         neededMetadata = [
@@ -622,6 +822,35 @@ class ManagerService(Service):
             ['man:requestID', 'man:entries', 'man:status'], response, self.newSOAPPayload())
 
     def move(self, inpayload):
+        # incoming SOAP message example:
+        #   <soap-env:Body>
+        #       <man:move>
+        #           <man:moveRequestList>
+        #               <man:moveRequestElement>
+        #                   <man:requestID>0</man:requestID>
+        #                   <man:sourceLN>/testfile2</man:sourceLN>
+        #                   <man:targetLN>/testdir/</man:targetLN>
+        #                   <man:preserveOriginal>0</man:preserveOriginal>
+        #               </man:moveRequestElement>
+        #           </man:moveRequestList>
+        #       </man:move>
+        #   </soap-env:Body>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:moveResponse>
+        #               <man:moveResponseList>
+        #                   <man:moveResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:status>moved</man:status>
+        #                   </man:moveResponseElement>
+        #               </man:moveResponseList>
+        #           </man:moveResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
         requests = parse_node(inpayload.Child().Child(),
             ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
         response = self.manager.move(requests)
