@@ -181,7 +181,7 @@ ArcRequestItem::ArcRequestItem(XMLNode& node, AttributeFactory* attrfactory) : R
   }
 }
 
-ArcRequestItem::~ArcRequestItem(void){
+void ArcRequestItem::removeSubjects() {
   while(!(subjects.empty())){
     Subject sub = subjects.back();
     while(!(sub.empty())){
@@ -190,7 +190,9 @@ ArcRequestItem::~ArcRequestItem(void){
     }
     subjects.pop_back();
   }
+}
   
+void ArcRequestItem::removeResources() {
   while(!(resources.empty())){
     Resource res = resources.back();
     while(!(res.empty())){
@@ -199,7 +201,9 @@ ArcRequestItem::~ArcRequestItem(void){
     }
     resources.pop_back();
   }
+}
 
+void ArcRequestItem::removeActions() {
   while(!(actions.empty())){
     Action act = actions.back();
     while(!(act.empty())){
@@ -208,7 +212,9 @@ ArcRequestItem::~ArcRequestItem(void){
     }
     actions.pop_back();
   }
+}
 
+void ArcRequestItem::removeContexts() {
   while(!(contexts.empty())){
     Context ctx = subjects.back();
     while(!(ctx.empty())){
@@ -219,11 +225,19 @@ ArcRequestItem::~ArcRequestItem(void){
   }
 }
 
+ArcRequestItem::~ArcRequestItem(void){
+  removeSubjects();
+  removeResources();
+  removeActions();
+  removeContexts();
+}
+
 SubList ArcRequestItem::getSubjects () const{
   return subjects;
 }
 
 void ArcRequestItem::setSubjects (const SubList& sl){
+  removeSubjects();
   subjects = sl;
 }
 
@@ -232,6 +246,7 @@ ResList ArcRequestItem::getResources () const{
 }
 
 void ArcRequestItem::setResources (const ResList& rl){
+  removeResources();
   resources = rl;
 }
 
@@ -240,6 +255,7 @@ ActList ArcRequestItem::getActions () const {
 }
 
 void ArcRequestItem::setActions (const ActList& al){
+  removeActions();
   actions = al;
 }
 
@@ -248,6 +264,7 @@ CtxList ArcRequestItem::getContexts () const{
 }
 
 void ArcRequestItem::setContexts (const CtxList& ctx){
+  removeContexts();
   contexts = ctx;
 }
 

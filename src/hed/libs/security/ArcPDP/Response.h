@@ -48,7 +48,7 @@ protected:
   ResponseList rlist;
 public:
   virtual ResponseList& getResponseItems () { return rlist; };
-  virtual void setResponseItems (const ResponseList& rl) { rlist = rl; };
+  virtual void setResponseItems (const ResponseList& rl) { rlist.clear(); rlist = rl; };
   virtual void addResponseItem(ResponseItem* respitem){ rlist.addItem(respitem); }; 
 
   virtual ~Response() { rlist.clear(); };
