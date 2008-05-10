@@ -32,10 +32,9 @@ public:
   bool empty() { return resps.empty(); };
   void clear() {
     std::map<int, ResponseItem*>::iterator it;
-    for(it = resps.begin(); it != resps.end(); it++){
+    for(it = resps.begin(); it != resps.end();it = resps.begin()){
       RequestTuple* tpl = ((*it).second)->reqtp;
-      if(tpl!=NULL)
-        tpl->erase();
+      if(tpl!=NULL) tpl->erase();
       resps.erase(it);
     }
   };
