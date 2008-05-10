@@ -860,7 +860,7 @@ void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
 std::cerr<<"Consumer touched: "<<consumers_.size()<<std::endl;
 }
 
-void DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
+DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
   ConsumerIterator previous = i->second.previous;
   ConsumerIterator next = i->second.next;
   if(previous != consumers_.end()) previous->second.next=next;
@@ -870,6 +870,7 @@ void DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
   if(i->second.deleg) delete i->second.deleg;
   consumers_.erase(i);
 std::cerr<<"Consumer removed: "<<consumers_.size()<<std::endl;
+  return next;
 }
 
 void DelegationContainerSOAP::CheckConsumers(void) {
@@ -880,9 +881,9 @@ void DelegationContainerSOAP::CheckConsumers(void) {
   };
   if(max_duration_ > 0) {
     time_t t = time(NULL);
-    for(ConsumerIterator i = consumers_last_;i!=consumers_.end();i=i->second.previous) {
+    for(ConsumerIterator i = consumers_last_;i!=consumers_.end();) {
       if(((unsigned int)(t - i->second.last_used)) > max_duration_) {
-        RemoveConsumer(i);
+        i=RemoveConsumer(i);
       } else {
         break;
       };

@@ -155,7 +155,7 @@ class DelegationContainerSOAP {
   ConsumerIterator consumers_last_;
   void AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer);
   void TouchConsumer(ConsumerIterator i);
-  void RemoveConsumer(ConsumerIterator i);
+  ConsumerIterator RemoveConsumer(ConsumerIterator i);
   void CheckConsumers(void);
  protected:
   Glib::Mutex lock_;
