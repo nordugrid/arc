@@ -60,9 +60,13 @@ void PolicyStore::addPolicy(std::string& policyfile, EvaluatorContext* ctx) {
   policies.push_back(plparser.parsePolicy(policyfile, ctx));
 }
 
-PolicyStore::~PolicyStore(){
+void PolicyStore::removePolicies(void) {
   while(!(policies.empty())){
     delete policies.back();
     policies.pop_back();
   }
+}
+
+PolicyStore::~PolicyStore(){
+  removePolicies();
 }

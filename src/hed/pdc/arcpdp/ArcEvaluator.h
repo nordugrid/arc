@@ -50,6 +50,7 @@ public:
   virtual AlgFactory* getAlgFactory () { return algfactory; };
 
   virtual void addPolicy(std::string policyfile) { plstore->addPolicy(policyfile, context); };
+  virtual void removePolicies(void) { plstore->removePolicies(); };
 
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx);
