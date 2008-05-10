@@ -36,8 +36,7 @@ bool MatchFunction::evaluate(AttributeValue* arg0, AttributeValue* arg1){
     if(regex.match(value, unmatched, matched))
       return true;
   }
-  else 
-    std::cerr<<"Bad Regex label"<<std::endl;
+  // std::cerr<<"Bad Regex"<<std::endl;
   return false;
 }
 

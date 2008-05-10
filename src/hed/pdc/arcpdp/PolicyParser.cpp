@@ -81,10 +81,10 @@ void getfromURL(const std::string name, std::string& xml_policy){
   Arc::XMLNode httpep = http.NewChild("Endpoint");
   httpep = url.str();
 
-  std::cout<<"------ Configuration ------"<<std::endl;
-  std::string cfgstr;
-  c.GetDoc(cfgstr);
-  std::cerr << cfgstr << std::endl;
+  //std::cout<<"------ Configuration ------"<<std::endl;
+  //std::string cfgstr;
+  //c.GetDoc(cfgstr);
+  //std::cerr << cfgstr << std::endl;
 
   Arc::Loader l(&c);
 
@@ -118,7 +118,7 @@ Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext
     getfromURL(sourcename, xml_policy);
   }
 
-  std::cout<<xml_policy<<std::endl;   
+  //std::cout<<xml_policy<<std::endl;   
 
   XMLNode node(xml_policy);
   

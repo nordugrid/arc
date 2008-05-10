@@ -15,7 +15,7 @@ bool X500NameAttribute::equal(AttributeValue* o){
     other = dynamic_cast<X500NameAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not X500NameAttribute"<<std::endl;
+    //std::cerr<<"not X500NameAttribute"<<std::endl;
     return false;
   }
   if(id != other->id) return false;

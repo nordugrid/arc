@@ -15,7 +15,7 @@ bool AnyURIAttribute::equal(AttributeValue* o){
     other = dynamic_cast<AnyURIAttribute*>(o);
   } catch(std::exception&) { };
   if(other==NULL){
-    std::cerr<<"not AnyURIAttribute"<<std::endl;
+    //std::cerr<<"not AnyURIAttribute"<<std::endl;
     return false;
   }
   if(id != other->id) return false;
