@@ -178,6 +178,62 @@ ArrtibuteValue * EvaluationCtx::getContextAttribute(){
 }
 */
 
+static void add_tuple(std::list<RequestTuple*>& reqtuples,Subject* subject,Resource* resource,Action* action,Context* context) {
+  if(subject || resource || action || context) {
+    RequestTuple* reqtuple = new RequestTuple;
+    if(subject) reqtuple->sub = *subject;
+    if(resource) reqtuple->res = *resource;
+    if(action) reqtuple->act = *action;
+    if(context) reqtuple->ctx = *context;
+    reqtuples.push_back(reqtuple);
+  };
+}
+
+static void add_contexts(std::list<RequestTuple*>& reqtuples,Subject* subject,Resource* resource,Action* action,CtxList& contexts) {
+  if(contexts.empty()) {
+    add_tuple(reqtuples,subject,resource,action,NULL);
+    return;
+  }
+  CtxList::iterator cit = contexts.begin();
+  for(;cit != contexts.end();++cit) {
+    add_tuple(reqtuples,subject,resource,action,&(*cit));
+  }
+}
+
+static void add_actions(std::list<RequestTuple*>& reqtuples,Subject* subject,Resource* resource,ActList& actions,CtxList& contexts) {
+  if(actions.empty()) {
+    add_contexts(reqtuples,subject,resource,NULL,contexts);
+    return;
+  }
+  ActList::iterator ait = actions.begin();
+  for(;ait != actions.end();++ait) {
+    add_contexts(reqtuples,subject,resource,&(*ait),contexts);
+  }
+}
+
+static void add_resources(std::list<RequestTuple*>& reqtuples,Subject* subject,ResList& resources,ActList& actions,CtxList& contexts) {
+  if(resources.empty()) {
+    add_actions(reqtuples,subject,NULL,actions,contexts);
+    return;
+  }
+  ResList::iterator rit = resources.begin();
+  for(;rit != resources.end();++rit) {
+    add_actions(reqtuples,subject,&(*rit),actions,contexts);
+  }
+}
+
+static void add_subjects(std::list<RequestTuple*>& reqtuples,SubList& subjects,ResList& resources,ActList& actions,CtxList& contexts) {
+  if(subjects.empty()) {
+    add_resources(reqtuples,NULL,resources,actions,contexts);
+    return;
+  }
+  SubList::iterator sit = subjects.begin();
+  for(;sit != subjects.end();++sit) {
+    add_resources(reqtuples,&(*sit),resources,actions,contexts);
+  }
+}
+
+
 void EvaluationCtx::split(){
   while(!reqtuples.empty()) { 
     delete reqtuples.back();
@@ -202,6 +258,8 @@ void EvaluationCtx::split(){
     //Scan subjects, resources, actions and contexts inside one RequestItem object
     //to split subjects, resources, actions or contexts into some tuple with one subject, one resource, one action and context
     //See more descrioption in inteface RequestItem.h
+    add_subjects(reqtuples,subjects,resources,actions,contexts);
+/*
     for(sit = subjects.begin(); sit != subjects.end(); sit++) { //The subject part will never be empty
       if(!resources.empty()) {
         for(rit = resources.begin(); rit != resources.end(); rit++){
@@ -283,7 +341,7 @@ void EvaluationCtx::split(){
         }
       }
     }
-
+*/
 
 /*
     for(sit = subjects.begin(); sit != subjects.end(); sit++) {
