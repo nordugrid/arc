@@ -20,7 +20,7 @@ static Arc::LoadableClass* get_xacmlrequest(void** arg) {
 }
 
 loader_descriptors __xacml_request_modules__  = {
-    { "arc.request", 0, &get_xacmlrequest },
+    { "xacml.request", 0, &get_xacmlrequest },
     { NULL, 0, NULL }
 };
 
