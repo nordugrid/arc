@@ -2,6 +2,7 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
+#include <unistd.h>
 
 #include <getopt.h>
 #include <arc/ArcLocation.h>
