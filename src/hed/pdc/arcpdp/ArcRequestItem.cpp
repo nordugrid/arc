@@ -216,7 +216,7 @@ void ArcRequestItem::removeActions() {
 
 void ArcRequestItem::removeContexts() {
   while(!(contexts.empty())){
-    Context ctx = subjects.back();
+    Context ctx = contexts.back();
     while(!(ctx.empty())){
       delete ctx.back();
       ctx.pop_back();

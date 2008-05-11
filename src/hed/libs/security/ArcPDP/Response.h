@@ -33,9 +33,16 @@ public:
   void clear() {
     std::map<int, ResponseItem*>::iterator it;
     for(it = resps.begin(); it != resps.end();it = resps.begin()){
-      RequestTuple* tpl = ((*it).second)->reqtp;
-      if(tpl!=NULL) tpl->erase();
+      ResponseItem* item = it->second;
       resps.erase(it);
+      if(item) {
+        RequestTuple* tpl = item->reqtp;
+        if(tpl) {
+          tpl->erase();
+          delete tpl;
+        };
+        delete item;
+      };
     }
   };
 private:
@@ -50,7 +57,6 @@ public:
   virtual ResponseList& getResponseItems () { return rlist; };
   virtual void setResponseItems (const ResponseList& rl) { rlist.clear(); rlist = rl; };
   virtual void addResponseItem(ResponseItem* respitem){ rlist.addItem(respitem); }; 
-
   virtual ~Response() { rlist.clear(); };
 };
 
