@@ -12,7 +12,7 @@ doc_DATA = arex.xml arc_arex.conf arex_secure.xml
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp PayloadFile.cpp create_activity.cpp get_activity_documents.cpp get_activity_statuses.cpp terminate_activities.cpp \
-                      change_activity_status.cpp get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp arex.h job.h PayloadFile.h gacl.cpp gacl.h
+                      change_activity_status.cpp get_factory_attributes_document.cpp get.cpp put.cpp information_collector.cpp faults.cpp arex.h job.h PayloadFile.h gacl.cpp gacl.h tools.cpp tools.h
 libarex_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD   = $(GRIDMANAGER_LIBS) $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la ldif/libldif.la ./config/libconfig.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la

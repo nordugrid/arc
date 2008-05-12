@@ -37,6 +37,13 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
   Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
   Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath,Arc::PayloadRawInterface& buf);
+  void NotAuthorizedFault(Arc::XMLNode fault);
+  void NotAcceptingNewActivitiesFault(Arc::XMLNode fault);
+  void UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& feature);
+  void CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message);
+  void OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message);
+  void InvalidActivityIdentifierFault(Arc::XMLNode fault,const std::string& message);
+  void InvalidRequestMessageFaultType(Arc::XMLNode fault,const std::string& element,const std::string& message);
  public:
   ARexService(Arc::Config *cfg);
   virtual ~ARexService(void);

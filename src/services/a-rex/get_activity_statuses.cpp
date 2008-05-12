@@ -5,6 +5,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
+#include "tools.h"
 
 #include "arex.h"
 
@@ -53,6 +54,8 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     // TODO: Check permissions on that ID
     */
     std::string gm_state = job.State();
+    addActivityStatus(resp,gm_state,job.Failed());
+    /*
     std::string bes_state("");
     std::string arex_state("");
     if(gm_state == "ACCEPTED") {
@@ -78,6 +81,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("bes-factory:state")=bes_state;
     state.NewChild("a-rex:state")=arex_state;
+    */
   };
   {
     std::string s;
