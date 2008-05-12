@@ -194,7 +194,7 @@ or
 
       <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
 
-The key file has to be with or without passphrase for the server side.
+The key file has to be without passphrase for the server side.
 
 The same requirements are valid for the client tools of ARC1. You may use
 the pregenerated user certificate and key located at the same
