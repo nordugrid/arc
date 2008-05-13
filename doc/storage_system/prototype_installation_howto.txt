@@ -63,7 +63,7 @@ I want to create some scripts outside the sourcetree:
 
 
 Running the server
-------------------------------------------
+------------------
 
     $ pwd
     /home/zsombor/arc
@@ -113,7 +113,7 @@ let's create a runner script:
 
 
 Client tools
-------------------------------------------
+------------
 
 so the server is running, we need some client tools
 
@@ -156,7 +156,7 @@ which says:
 
 
 Using the CLI client of the Manager
-------------------------------------------
+-----------------------------------
 
 so, first we need a root collection, which will be the root of the global namespace
 
@@ -271,7 +271,7 @@ download a file:
     ./arc1/src/hed/daemon/arched -f -c ./service.xml
 
 Using Manager from python (ManagerClient)
-------------------------------------------
+-----------------------------------------
 
 I often use an add-on to python called 'ipython', but you can use the basic python interactive interpreter as well.
 
@@ -373,4 +373,169 @@ let's move our file:
              ('states', 'closed'): '0'}}
 
 Using other services with the CLI
-------------------------------------------
+---------------------------------
+
+The users usually don't need to access the other services but the Manager.
+But while developing the services these clients are very useful.
+
+let's see what we can do with the Catalog service:
+
+    $ ./storage catalog 
+    Supported methods: new get traverseLN modifyMetadata
+    $ ./storage catalog get
+    Usage: get <GUID> [<GUID> ...] neededMetadata [<section> [<property>] ...] 
+    $ ./storage catalog get 0
+    get ['0'] []
+    {'0': {('states', 'closed'): '0', ('entries', 'run.sh'): '54ed1fc4-1275-4889-8055-af24d3053f7a', ('catalog', 'type'): 'collection', ('entries', 'subcoll'): 'adba6e13-709e-483a-be51-bfcae4218ef6'}}
+
+the root collection always has the GUID '0' so we could get that, now we know the GUID of the '/run.sh', which is 54ed1fc4-1275-4889-8055-af24d3053f7a
+
+    $ ./storage catalog get 54ed1fc4-1275-4889-8055-af24d3053f7a
+    get ['54ed1fc4-1275-4889-8055-af24d3053f7a'] []
+    {'54ed1fc4-1275-4889-8055-af24d3053f7a': {('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): '2', ('states', 'size'): '121', ('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('locations', 'http://localhost:60000/Element 89d19f17-23e2-475a-bc3f-fca02c6b1425'): 'alive', ('locations', 'http://localhost:60000/Element 50c15c1c-7c07-41e8-8f07-a503e1bf7517'): 'alive', ('catalog', 'type'): 'file'}}
+
+we can use the traverseLN method to translate Logical Names to a list of GUIDs along the path:
+
+    $ ./storage catalog traverseLN /subcoll/run.sh
+    traverseLN {'0': '/subcoll/run.sh'}
+    {'0': ({('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): '2', ('states', 'size'): '121', ('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('catalog', 'type'): 'file', ('locations', 'http://localhost:60000/Element 4177e062-50cc-42b9-bfbb-9841e4ee595d'): 'alive', ('locations', 'http://localhost:60000/Element dd43dfb0-4389-40fd-ac41-378de24d4a9e'): 'alive'}, '9b511fcb-e64e-4fb0-927b-2be96776028a', '/subcoll/run.sh', '', True, [('', '0'), ('subcoll', 'adba6e13-709e-483a-be51-bfcae4218ef6'), ('run.sh', '9b511fcb-e64e-4fb0-927b-2be96776028a')])}
+
+we could modify the metadata of any entry using the Catalog. this actually create a hardlink to a directory:
+
+    $ ./storage catalog modifyMetadata 0 set entries othername adba6e13-709e-483a-be51-bfcae4218ef6
+    modifyMetadata {'0': ['0', 'set', 'entries', 'othername', 'adba6e13-709e-483a-be51-bfcae4218ef6']}
+    {'0': 'set'}
+    $ ./storage manager list /
+        run.sh	<file>
+        othername	<collection>
+        subcoll	<collection>
+    $ ./storage manager list /othername
+        run.sh	<file>
+    $ ./storage manager list /subcoll
+        run.sh	<file>
+
+let's check the Hash service which is the actual metadata store.
+the Catalog stores everything in the Hash service using the GUIDs as IDs:
+
+    $ ./storage hash get
+    ./arc1/src/services/storage/cli/hash_client.py:get
+    Usage: get <ID> [<ID> ...] neededMetadata [<section> [<property>] ...]
+    $ ./storage hash get 0
+    ./arc1/src/services/storage/cli/hash_client.py:get:0
+    get ['0'] []
+    {'0': {('states', 'closed'): '0', ('entries', 'run.sh'): '54ed1fc4-1275-4889-8055-af24d3053f7a', ('catalog', 'type'): 'collection', ('entries', 'subcoll'): 'adba6e13-709e-483a-be51-bfcae4218ef6'}}
+
+the Element service stores the replicas of the files:
+
+    $ ./storage manager stat /run.sh
+    [...]
+    locations
+      http://localhost:60000/Element 89d19f17-23e2-475a-bc3f-fca02c6b1425: alive
+      http://localhost:60000/Element 50c15c1c-7c07-41e8-8f07-a503e1bf7517: alive
+
+a replica location is a serviceID and referenceID, the serviceID is currently a URL
+let's check one of the referenceIDs:
+
+    $ ./storage element stat 89d19f17-23e2-475a-bc3f-fca02c6b1425
+    stat {'0': '89d19f17-23e2-475a-bc3f-fca02c6b1425'}
+    {'0': {'referenceID': '89d19f17-23e2-475a-bc3f-fca02c6b1425', 'checksumType': 'md5', 'checksum': 'ea0daccc52d3fdc7228863b47900569e', 'localID': 'dba5b5d1-d311-4f64-a2e7-dd951b34c1bf', 'acl': '', 'state': 'alive', 'GUID': '54ed1fc4-1275-4889-8055-af24d3053f7a', 'size': '121'}}
+
+and let's get it:
+
+    $ ./storage element get 89d19f17-23e2-475a-bc3f-fca02c6b1425
+    get {'0': [('referenceID', '89d19f17-23e2-475a-bc3f-fca02c6b1425'), ('protocol', 'byteio')]}
+    Downloading: http://localhost:60000/byteio/ecb7ad5e-8755-4aad-b16b-a7cd9ef989ab
+    Checksum is ea0daccc52d3fdc7228863b47900569e
+    ***
+    export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
+    ./arc1/src/hed/daemon/arched -f -c ./service.xml
+    
+    ***
+    actual checksum is ea0daccc52d3fdc7228863b47900569e
+
+it just prints the content of the file to the screen.
+
+Using other services from python with client.py
+-----------------------------------------------
+
+The storage.client package contains not just the ManagerClient but clients for all the other services.
+Currently they are not very well documented.
+
+after starting ipython:
+
+    In [1]: import storage.client
+    
+    In [2]: storage.client.<TAB>
+    [...]
+    storage.client.ByteIOClient       
+    storage.client.CatalogClient      
+    storage.client.Client             
+    storage.client.ElementClient      
+    storage.client.HashClient         
+    storage.client.ManagerClient      
+    storage.client.NotifyClient       
+    [...]
+
+
+the HashClient:
+
+    In [2]: h = storage.client.HashClient('http://localhost:60000/Hash')
+    
+    In [3]: h.get([0])
+    Out[3]: 
+    {'0': {('catalog', 'type'): 'collection',
+           ('entries', 'othername'): 'adba6e13-709e-483a-be51-bfcae4218ef6',
+           ('entries', 'run.sh'): '54ed1fc4-1275-4889-8055-af24d3053f7a',
+           ('entries', 'subcoll'): 'adba6e13-709e-483a-be51-bfcae4218ef6',
+           ('states', 'closed'): '0'}}
+
+the CatalogClient:
+
+    In [4]: c = storage.client.CatalogClient('http://localhost:60000/Catalog')
+    
+    In [5]: c.traverseLN({'0':'/othername/run.sh'})
+    Out[5]: 
+    {'0': ({('catalog', 'type'): 'file',
+            ('locations', 'http://localhost:60000/Element 4177e062-50cc-42b9-bfbb-9841e4ee595d'): 'alive',
+            ('locations', 'http://localhost:60000/Element dd43dfb0-4389-40fd-ac41-378de24d4a9e'): 'alive',
+            ('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e',
+            ('states', 'checksumType'): 'md5',
+            ('states', 'neededReplicas'): '2',
+            ('states', 'size'): '121'},
+           '9b511fcb-e64e-4fb0-927b-2be96776028a',
+           '/othername/run.sh',
+           '',
+           True,
+           [('', '0'),
+            ('othername', 'adba6e13-709e-483a-be51-bfcae4218ef6'),
+            ('run.sh', '9b511fcb-e64e-4fb0-927b-2be96776028a')])}
+    
+the ElementClient:
+
+    In [9]: e = storage.client.ElementClient('http://localhost:60000/Element')
+    In [11]: e.stat({'q':'89d19f17-23e2-475a-bc3f-fca02c6b1425'})
+    Out[11]: 
+    {'q': {'GUID': '54ed1fc4-1275-4889-8055-af24d3053f7a',
+           'acl': '',
+           'checksum': 'ea0daccc52d3fdc7228863b47900569e',
+           'checksumType': 'md5',
+           'localID': 'dba5b5d1-d311-4f64-a2e7-dd951b34c1bf',
+           'referenceID': '89d19f17-23e2-475a-bc3f-fca02c6b1425',
+           'size': '121',
+           'state': 'alive'}}
+
+let's get the file from the Manager:
+
+    In [17]: m = storage.client.ManagerClient('http://localhost:60000/Manager')
+    In [21]: m.getFile({'1':['/run.sh', ['byteio']]})
+    Out[21]: 
+    {'1': ['done',
+           'http://localhost:60000/byteio/fb418bd6-ca7a-4c03-875b-45be520eb2e0',
+           'byteio']}
+
+now we have a byteio URL: http://localhost:60000/byteio/fb418bd6-ca7a-4c03-875b-45be520eb2e0
+let's grab it with the ByteIOClient:
+
+    In [22]: b = storage.client.ByteIOClient('http://localhost:60000/byteio/fb418bd6-ca7a-4c03-875b-45be520eb2e0')
+    In [24]: b.read()
+    Out[24]: 'export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs\n./arc1/src/hed/daemon/arched -f -c ./service.xml\n'
