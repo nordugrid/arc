@@ -8,7 +8,6 @@
 #include <arc/URL.h>
 
 #include <arc/data/MkDirRecursive.h>
-#include <arc/data/CheckFile.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataCallback.h>
 #define DIR_SEPARATOR '/'
