@@ -1,4 +1,5 @@
 #!/bin/bash
+export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
 if [ "$#" == "0" ]
 then
     echo "USAGE:"
@@ -8,17 +9,17 @@ fi
 if [ "$1" == "hash" ]
 then
     shift
-    python hash_client.py $*
+    python ./arc1/src/services/storage/cli/hash_client.py $*
 elif [ "$1" == "catalog" ]
 then
     shift
-    python catalog_client.py $*
+    python ./arc1/src/services/storage/cli/catalog_client.py $*
 elif [ "$1" == "manager" ]
 then
     shift
-    python manager_client.py $*
+    python ./arc1/src/services/storage/cli/manager_client.py $*
 elif [ "$1" == "element" ]
 then
     shift
-    python element_client.py $*
+    python ./arc1/src/services/storage/cli/element_client.py $*
 fi
