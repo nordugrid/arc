@@ -702,6 +702,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/a-rex/apsub.1
                  src/clients/a-rex/apstat.1
                  src/clients/a-rex/apsstat.1
+		 src/clients/cream2/Makefile
                  src/clients/data/Makefile
                  src/clients/data/arccp.1
                  src/clients/data/arcls.1

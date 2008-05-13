@@ -249,7 +249,7 @@ namespace Arc{
                 Arc::MCC_Status status = client->process("http://glite.org/2007/11/ce/cream/JobPurge",&req,&resp);
                 if(resp == NULL) {
                     logger.msg(Arc::ERROR,"There was no SOAP response.");
-                    throw AREXClientError("There was no SOAP response.");
+                    throw CREAMClientError("There was no SOAP response.");
                 }
             } else if(client_entry) {
                 Arc::Message reqmsg;
@@ -339,7 +339,7 @@ namespace Arc{
                         };
                         if(!s_url.empty()) {
                             x_url.Destroy();
-                            AREXFile file(s_name,s_url);
+                            CREAMFile file(s_name,s_url);
                             file_list.push_back(file);
                         };
                     };
@@ -371,7 +371,7 @@ namespace Arc{
                     client->GetConfig().GetXML(s);
                     std::cerr<<s<<std::endl;
                     logger.msg(Arc::ERROR,"Failed to find delegation credentials in client configuration.");
-                    throw AREXClientError("Failed to find delegation credentials in client configuration.");
+                    throw CREAMClientError("Failed to find delegation credentials in client configuration.");
                 };
             };
 
@@ -383,7 +383,7 @@ namespace Arc{
                         logger.msg(Arc::INFO, "Initiating delegation procedure");
                         if(!deleg.DelegateCredentialsInit(*(client->GetEntry()),&(client->GetContext()))) {
                             logger.msg(Arc::ERROR,"Failed to initiate delegation.");
-                            throw AREXClientError("Failed to initiate delegation.");
+                            throw CREAMClientError("Failed to initiate delegation.");
                         };
                         deleg.DelegatedToken(op);
                     };
@@ -391,11 +391,11 @@ namespace Arc{
                 Arc::MCC_Status status = client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity", &req,&resp);
                 if(!status) {
                     logger.msg(Arc::ERROR, "Submission request failed.");
-                    throw AREXClientError("Submission request failed.");
+                    throw CREAMClientError("Submission request failed.");
                 }
                 if(resp == NULL) {
                     logger.msg(Arc::ERROR,"There was no SOAP response.");
-                    throw AREXClientError("There was no SOAP response.");
+                    throw CREAMClientError("There was no SOAP response.");
                 };
             } else if (client_entry) {
                 Arc::Message reqmsg;
@@ -410,7 +410,7 @@ namespace Arc{
                         logger.msg(Arc::INFO, "Initiating delegation procedure");
                         if(!deleg.DelegateCredentialsInit(*client_entry,&context)) {
                             logger.msg(Arc::ERROR,"Failed to initiate delegation.");
-                            throw AREXClientError("Failed to initiate delegation.");
+                            throw CREAMClientError("Failed to initiate delegation.");
                         };
                         deleg.DelegatedToken(op);
                     };
@@ -423,12 +423,12 @@ namespace Arc{
                 Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
                 if(!status) {
                     logger.msg(Arc::ERROR, "Submission request failed.");
-                    throw AREXClientError("Submission request failed.");
+                    throw CREAMClientError("Submission request failed.");
                 }
                 logger.msg(Arc::INFO, "Submission request succeed.");
                 if(repmsg.Payload() == NULL) {
                     logger.msg(Arc::ERROR, "There were no response to a submission request.");
-                    throw AREXClientError("There were no response to the submission request.");
+                    throw CREAMClientError("There were no response to the submission request.");
                 }
                 try {
                     resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
@@ -436,9 +436,9 @@ namespace Arc{
                 if(resp == NULL) {
                     logger.msg(Arc::ERROR,"A response to a submission request was not a SOAP message.");
                     delete repmsg.Payload();
-                    throw AREXClientError("The response to the submission request was not a SOAP message.");
+                    throw CREAMClientError("The response to the submission request was not a SOAP message.");
                 };
-            } else throw AREXClientError("There is no connection chain configured.");
+            } else throw CREAMClientError("There is no connection chain configured.");
             Arc::XMLNode id, fs;
             (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
             (*resp)["Fault"]["faultstring"].New(fs);
@@ -446,7 +446,7 @@ namespace Arc{
             faultstring=(std::string)fs;
             delete resp;
             if (faultstring=="") return jobid;
-            else throw AREXClientError(faultstring);
+            else throw CREAMClientError(faultstring);
         }    
  */
         
