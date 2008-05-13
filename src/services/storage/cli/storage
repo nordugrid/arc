@@ -1,11 +1,5 @@
 #!/bin/bash
 export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
-if [ "$#" == "0" ]
-then
-    echo "USAGE:"
-    echo "  storage hash|catalog|manager|element <command> <arguments>"
-    exit 1
-fi
 if [ "$1" == "hash" ]
 then
     shift
@@ -22,4 +16,8 @@ elif [ "$1" == "element" ]
 then
     shift
     python ./arc1/src/services/storage/cli/element_client.py $*
+else
+    echo "USAGE:"
+    echo "  storage hash|catalog|manager|element <command> <arguments>"
+    exit 1
 fi
