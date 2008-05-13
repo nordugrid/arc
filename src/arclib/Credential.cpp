@@ -274,6 +274,10 @@ namespace ArcLib {
     OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
   }
 
+  void Credential::AddCertExtObj(std::string& sn, std::string& oid) {
+    OBJ_create(oid.c_str(), sn.c_str(), sn.c_str());
+  }
+
   void Credential::InitVerification(void) {
     verify_ctx_.cert_store = NULL;
     verify_ctx_.cert_depth = 0;

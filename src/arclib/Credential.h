@@ -72,8 +72,11 @@ class Credential {
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir, const std::string& cafile);
 
-
+    /**Initiate nid for proxy certificate extension*/
     void static InitProxyCertInfo(void);
+
+    /**General method for adding a new nid into openssl's global const*/
+    void AddCertExtObj(std::string& sn, std::string& oid);
 
   private:
     static Arc::Logger credentialLogger;
