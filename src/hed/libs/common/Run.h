@@ -6,6 +6,7 @@
 namespace Arc {
 
 class RunPump;
+class Pid;
 
 /** This class runs external executable.
   It is possible to read/write it's standard handles
@@ -36,7 +37,7 @@ class Run {
   sigc::connection stdin_conn_;
   sigc::connection child_conn_;
   // PID of child
-  Glib::Pid pid_;
+  Arc::Pid *pid_;
   // Arguments to execute
   Glib::ArrayHandle<std::string> argv_;
   void (*initializer_func_)(void*);

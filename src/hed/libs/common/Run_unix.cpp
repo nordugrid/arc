@@ -8,14 +8,10 @@
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
-#ifndef WIN32
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#else
-#include <arc/win32.h>
-#endif
 
 #include <unistd.h>
 #include "Run.h"
@@ -46,6 +42,16 @@ class RunPump {
 
 RunPump* RunPump::instance_ = NULL;
 unsigned int RunPump::mark_ = ~RunPumpMagic;
+
+class Pid {
+    friend class Run;
+    friend class RunPump;
+    private:
+        Glib::Pid p;
+        Pid(void) { p = 0; };
+        Pid(int p_) { p = p_; }; 
+};
+
 
 class RunInitializerArgument {
  private:
@@ -126,7 +132,7 @@ void RunPump::Add(Run* r) {
     if(r->stdin_str_ && !(r->stdin_keep_))
       r->stdin_conn_ =context_->signal_io().connect(sigc::mem_fun(*r,&Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
 #ifdef HAVE_GLIBMM_CHILDWATCH
-    r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_);
+    r->child_conn_=context_->signal_child_watch().connect(sigc::mem_fun(*r,&Run::child_handler),r->pid_->p);
     //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
   } catch (Glib::Exception& e) { 
@@ -157,10 +163,12 @@ void RunPump::Remove(Run* r) {
   list_lock_.unlock();
 }
 
-Run::Run(const std::string& cmdline):working_directory("."),stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),pid_(0),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
+Run::Run(const std::string& cmdline):working_directory("."),stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
+    pid_ = new Pid();
 }
 
-Run::Run(const std::list<std::string>& argv):working_directory("."),stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),pid_(0),argv_(argv),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
+Run::Run(const std::list<std::string>& argv):working_directory("."),stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),argv_(argv),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
+    pid_ = new Pid();
 }
 
 Run::~Run(void) {
@@ -170,6 +178,7 @@ Run::~Run(void) {
   CloseStderr();
   CloseStdin();
   RunPump::Instance().Remove(this);
+  delete pid_;
 }
 
 bool Run::Start(void) {
@@ -177,7 +186,6 @@ bool Run::Start(void) {
   if(argv_.size() < 1) return false;
   RunPump& pump = RunPump::Instance();
   RunInitializerArgument* arg = NULL;
-  // TODO: Windows paths
   try {
     running_=true;
     if(initializer_func_) {
@@ -185,13 +193,13 @@ bool Run::Start(void) {
       spawn_async_with_pipes(working_directory,argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg,&RunInitializerArgument::Run),
-                             &pid_,stdin_keep_?NULL:&stdin_,
+                             &(pid_->p),stdin_keep_?NULL:&stdin_,
                              stdout_keep_?NULL:&stdout_,
                              stderr_keep_?NULL:&stderr_);
     } else {
       spawn_async_with_pipes(working_directory,argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                             sigc::slot<void>(),&pid_,
+                             sigc::slot<void>(),&(pid_->p),
                              stdin_keep_?NULL:&stdin_,
                              stdout_keep_?NULL:&stdout_,
                              stderr_keep_?NULL:&stderr_);
@@ -215,20 +223,16 @@ void Run::Kill(int timeout) {
   Wait(0);
 #endif
   if(!running_) return;
-#ifndef WIN32
   if(timeout > 0) {
     // Kill softly
-    ::kill(pid_,SIGTERM);
+    ::kill(pid_->p,SIGTERM);
     Wait(timeout);
   };
   if(!running_) return;
   // Kill with no merci
   running_=false;
-  ::kill(pid_,SIGKILL);
-  pid_=0;
-#else
-#warning Must implement kill functionality for Windows
-#endif
+  ::kill(pid_->p,SIGKILL);
+  pid_->p=0;
 }
 
 bool Run::stdout_handler(Glib::IOCondition) {
@@ -348,9 +352,8 @@ bool Run::Wait(int timeout) {
     if(!t.negative()) break;
     cond_.timed_wait(lock_,till);
 #else
-#ifndef WIN32
     int status;
-    int r = waitpid(pid_,&status,WNOHANG);
+    int r = waitpid(pid_->p, &status, WNOHANG);
     if(r == 0) {
       if(!t.negative()) break;
       lock_.unlock();
@@ -365,11 +368,8 @@ bool Run::Wait(int timeout) {
     };
     // Child exited
     lock_.unlock();
-    child_handler(pid_,status << 8);
+    child_handler(pid_->p, status << 8);
     lock_.lock();
-#else
-#error Must use newer version of GLibmm for Windows
-#endif
 #endif
   };
   lock_.unlock();
@@ -388,9 +388,8 @@ bool Run::Wait(void)
     till+=1; // one sec later
     cond_.timed_wait(lock_,till);
 #else
-#ifndef WIN32
     int status;
-    int r = waitpid(pid_,&status,WNOHANG);
+    int r = waitpid(pid_->p, &status, WNOHANG);
     if(r == 0) {
       lock_.unlock();
       sleep(1);
@@ -404,11 +403,8 @@ bool Run::Wait(void)
     };
     // Child exited
     lock_.unlock();
-    child_handler(pid_,status << 8);
+    child_handler(pid_->p, status << 8);
     lock_.lock();
-#else
-#error Must use newer version of GLibmm for Windows
-#endif
 #endif
   };
   lock_.unlock();

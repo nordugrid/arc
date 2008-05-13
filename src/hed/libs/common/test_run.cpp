@@ -18,6 +18,7 @@ Arc::Run *executer = NULL;
 
 void start_thread(void *arg) 
 {
+#if 0
 std::cout << "Start" << std::endl;
       std::string cmdline = "test2";
       std::string working_directory = ".";
@@ -32,18 +33,18 @@ std::cout << "Start" << std::endl;
                                    NULL,
                                    NULL);
 std::cout << "End" << std::endl;
-#if 0
+#endif
     std::cout << "Start" << std::endl;
     try {
         std::string std_in;   
         std::string std_out;
         std::string std_err;
 
-        // executer = new Arc::Run("/bin/sleep 60");
+        executer = new Arc::Run("/bin/sleep 60");
         // executer = new Arc::Run("C:/msys/bin/sleep.exe 60");
         // executer = new Arc::Run("/c/msys/bin/sleep.exe 60");
-        executer = new Arc::Run("C:/ARC/arc1-new/src/hed/libs/common/PCP.exe c:/ARC/arc1-new/src/hed/libs/common/input.txt");
-        executer = new Arc::Run("C:/ARC/arc1-new/src/hed/libs/common/test2.exe");
+        // executer = new Arc::Run("C:/ARC/arc1-new/src/hed/libs/common/PCP.exe c:/ARC/arc1-new/src/hed/libs/common/input.txt");
+        // executer = new Arc::Run("C:/ARC/arc1-new/src/hed/libs/common/test2.exe");
     
         executer->AssignStdin(std_in);
         executer->AssignStdout(std_out);
@@ -53,7 +54,6 @@ std::cout << "End" << std::endl;
             std::cout << "Failed to start" << std::endl;
             return;
         };
-	sleep(10);
 std::cout << "Wait" << std::endl;
         if (executer->Wait()) {
             std::cout << "End of run" << std::endl;
@@ -67,7 +67,6 @@ std::cout << "Wait" << std::endl;
         std::cout << e.what() << std::endl;
     }
     std::cout << "end of start_thread" << std::endl;
-#endif
 }
 
 void stop_thread(void *arg)
