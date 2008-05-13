@@ -1,4 +1,4 @@
-SUBDIRS = counter
+SUBDIRS = counter test
 
 lib_LTLIBRARIES = libarccommon.la
 libarccommon_ladir       = $(pkgincludedir)
@@ -13,7 +13,7 @@ libarccommon_la_SOURCES  = Logger.cpp ArcConfig.cpp ArcLocation.cpp XMLNode.cpp 
 libarccommon_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 libarccommon_la_LIBADD   = counter/libcounter.la $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS)
 
-noinst_PROGRAMS = DTtest testxpath test test_run test_regex
+noinst_PROGRAMS = DTtest testxpath test_run test_regex
 
 DTtest_SOURCES=DTtest.cpp
 DTtest_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
@@ -24,11 +24,6 @@ testxpath_SOURCES=testxpath.cpp
 testxpath_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 testxpath_LDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) 
 testxpath_LDADD=./libarccommon.la
-
-test_SOURCES=test.cpp
-test_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-test_LDFLAGS=$(LIBXML2_LIBS) 
-test_LDADD=./libarccommon.la
 
 test_run_SOURCES=test_run.cpp
 test_run_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include

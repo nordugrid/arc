@@ -330,6 +330,11 @@ else
     fi
 fi    
 
+# check libxml
+PKG_CHECK_MODULES(CPPUNIT, [cppunit])
+AC_SUBST(CPPUNIT_CFLAGS)
+AC_SUBST(CPPUNIT_LIBS)
+
 #check lasso
 LASSO_INSTALLED=no
 #PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
@@ -601,6 +606,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/client/Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/counter/Makefile
+                 src/hed/libs/common/test/Makefile
                  src/hed/libs/data/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
