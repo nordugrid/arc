@@ -14,6 +14,7 @@ typedef std::list<Policy*> Policies;
 ///Evaluation result concerning one RequestTuple
 /**Include the RequestTuple, related XMLNode, the set of policy objects which give positive evaluation result, and the related XMLNode*/
 typedef struct{
+  //Convertion method to decrease memory consumption
   RequestTuple* reqtp;
   Arc::XMLNode reqxml;
   Policies pls;
