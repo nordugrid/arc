@@ -36,6 +36,8 @@ class SOAPFault {
   } SOAPFaultCode;
   /** Parse Fault elements of SOAP Body or any other XML tree with Fault element */
   SOAPFault(XMLNode& body);
+  /** Creates Fault element inside @body SOAP Body node with specified @code and @reason */
+  SOAPFault(XMLNode& body,SOAPFaultCode code,const char* reason,bool ver12 = true);
   /** Returns true if instance refers to SOAP Fault */
   operator bool(void) { return (bool)fault; };
   /** Returns Fault Code element */
@@ -60,7 +62,7 @@ class SOAPFault {
   std::string Role(void);
   /** Set content of Fault Role element to 'role' */
   void Role(const char* role);
-  /** Access Fault Detail element. If create is set to true this element is creted if not present. */
+  /** Access Fault Detail element. If create is set to true this element is created if not present. */
   XMLNode Detail(bool create = false);
 };
 

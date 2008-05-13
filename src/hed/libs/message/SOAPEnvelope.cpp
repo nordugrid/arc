@@ -147,6 +147,7 @@ void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
 }
 
 SOAPFault::SOAPFault(XMLNode& body) {
+  // TODO: set namespaces
   if(body.Size() != 1) return;
   fault=body.Child(0);
   if(!MatchXMLName(fault,"soap-env:Fault")) { fault=XMLNode(); return; };
@@ -170,6 +171,14 @@ SOAPFault::SOAPFault(XMLNode& body) {
   };
   fault=XMLNode();
   return;
+}
+
+SOAPFault::SOAPFault(XMLNode& body,SOAPFaultCode c,const char* r,bool v12) {
+  ver12=v12;
+  fault=body.NewChild("soap-env:Fault");
+  if(!fault) return;
+  Code(c);
+  Reason(0,r);
 }
 
 std::string SOAPFault::Reason(int num) {
@@ -255,9 +264,10 @@ SOAPFault::SOAPFaultCode SOAPFault::Code(void) {
 }
 
 void SOAPFault::Code(SOAPFaultCode c) {
-  if(!code) code=fault.NewChild("soap-env:Code");
   if(ver12) {
+    if(!code) code=fault.NewChild("soap-env:Code");
     XMLNode value = code["soap-env:Value"];
+    if(!value) value=code.NewChild("soap-env:Value");
     switch(c) {
       case VersionMismatch: value="soap-env:VersionMismatch"; break;
       case MustUnderstand: value="soap-env:MustUnderstand"; break;
@@ -267,6 +277,14 @@ void SOAPFault::Code(SOAPFaultCode c) {
       default: value="";
     };
   } else {
+    if(!code) code=fault.NewChild("soap-env:faultcode");
+    switch(c) {
+      case VersionMismatch: code="soap-env:VersionMismatch"; break;
+      case MustUnderstand: code="soap-env:MustUnderstand"; break;
+      case Sender: code="soap-env:Client"; break;
+      case Receiver: code="soap-env:Server"; break;
+      default: code="";
+    };
   };
 }
 
@@ -302,7 +320,11 @@ void SOAPFault::Subcode(int level,const char* s) {
 XMLNode SOAPFault::Detail(bool create) {
   if(detail) return detail;
   if(!create) return XMLNode();
-  detail=fault.NewChild("soap-env:Detail");
+  if(!ver12) {
+    detail=fault.NewChild("soap-env:detail");
+  } else {
+    detail=fault.NewChild("soap-env:Detail");
+  };
   return detail;
 }
 
