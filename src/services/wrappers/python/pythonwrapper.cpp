@@ -393,12 +393,12 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     MCC_Status *status_ptr2 = (MCC_Status *)extract_swig_wrappered_pointer(py_status);
     Arc::MCC_Status status(*status_ptr2);
     std::string str = (std::string)status;
-    std::cout << "status: " << str << std::endl;   
+    // std::cout << "status: " << str << std::endl;   
     SOAPMessage *outmsg_ptr2 = (SOAPMessage *)extract_swig_wrappered_pointer(py_outmsg);
     std::string xml;
     SOAPEnvelope *p = outmsg_ptr2->Payload();
     p->GetXML(xml);
-    std::cout << "XML: " << xml << std::endl; 
+    // std::cout << "XML: " << xml << std::endl; 
 
     Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
     // pl->GetXML(xml);   
