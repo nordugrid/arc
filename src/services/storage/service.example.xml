@@ -6,14 +6,14 @@
     <Server>
         <Foreground/>
         <Pidfile>./arched.pid</Pidfile>
-        <Logger level="WARNING">./logfile</Logger>
+        <Logger level="ERROR">./logfile</Logger>
     </Server>
     <ModuleManager>
-        <Path>/Users/zsombor/Development/arc/arc1/src/services/wrappers/python/.libs/</Path>
-        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/http/.libs/</Path>
-        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/soap/.libs/</Path>
-        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/tcp/.libs/</Path>
-        <Path>/Users/zsombor/Development/arc/arc1/src/hed/mcc/tls/.libs/</Path>
+        <Path>./arc1/src/services/wrappers/python/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/http/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/soap/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/tls/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -41,7 +41,7 @@
             <ClassName>storage.hash.hash.HashService</ClassName>
             <HashClass>storage.hash.hash.CentralHash</HashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>hash_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>./hash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="catalog">
             <ClassName>storage.catalog.catalog.CatalogService</ClassName>
@@ -52,7 +52,6 @@
         <Service name="pythonservice" id="manager">
             <ClassName>storage.manager.manager.ManagerService</ClassName>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
-            <ElementURL>http://localhost:60000/Element</ElementURL>
         </Service>
         <Service name="pythonservice" id="element">
             <ClassName>storage.element.element.ElementService</ClassName>
@@ -60,11 +59,11 @@
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>element_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>./element_data</DataDir></StoreCfg>
             <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
             <BackendCfg>
-                <DataDir>element_store</DataDir>
-                <TransferDir>element_transfer</TransferDir>
+                <DataDir>./element_store</DataDir>
+                <TransferDir>./element_transfer</TransferDir>
                 <TURLPrefix>http://localhost:60000/byteio/</TURLPrefix>
             </BackendCfg>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
@@ -72,7 +71,7 @@
         </Service>
         <Service name="pythonservice" id="byteio">
             <ClassName>storage.element.byteio.ByteIOService</ClassName>
-            <TransferDir>element_transfer</TransferDir>
+            <TransferDir>./element_transfer</TransferDir>
             <NotifyURL>http://localhost:60000/Element</NotifyURL>
         </Service>
     </Chain>
