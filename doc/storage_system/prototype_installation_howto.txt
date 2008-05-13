@@ -1,0 +1,111 @@
+Installing ARC1 storage system from source
+------------------------------------------
+
+I've used a newly installed debian system and did the following steps.
+
+$ sudo aptitude install subversion
+$ mkdir arc
+$ cd arc
+$ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
+$ cd arc1
+$ less README
+
+the README file lists the dependencies.
+
+$ sudo aptitude install build-essential
+$ sudo aptitude install autoconf
+$ sudo aptitude install automake
+$ sudo aptitude install libtool
+$ sudo aptitude install python-dev
+$ sudo aptitude install pkg-config
+$ sudo aptitude install libglibmm-2.4-dev
+$ sudo aptitude install libxml2-dev
+$ sudo aptitude install libssl-dev
+$ sudo aptitude install gettext
+
+for python binding:
+
+$ sudo aptitude install swig
+
+configuration:
+
+$ ./autogen.sh
+$ ./configure
+
+[...]
+Java binding:       no
+Python binding:     yes (2.4)
+
+Available third-party features:
+
+RLS:                no
+GridFTP:            no
+LFC:                no
+RSL:                no
+SAML:               no
+
+Included components:
+A-Rex service:      yes
+ISI service:        yes
+PDP service:        yes
+HTTPD service:      yes
+SCHED service:      yes
+PAUL service:       no
+
+$ make
+
+I do not want to 'install' it, just run from the source directory.
+I want to create some scripts outside the sourcetree:
+
+$ cd ..
+$ pwd
+/home/zsombor/arc
+$ cp arc1/src/services/storage/service.example.xml service.xml
+$ cat service.xml
+[...]
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/> 
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="hash">/Hash</next>
+            <next id="catalog">/Catalog</next>
+            <next id="manager">/Manager</next>
+            <next id="element">/Element</next>
+            <next id="byteio">/byteio</next>
+        </Plexer>
+[...]
+
+let's create a runner script:
+
+$ cat run.sh 
+export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
+./arc1/src/hed/daemon/arched -f -c ./service.xml
+
+$ ./run.sh
+[2008-05-06 23:44:13] [Arc.Service.PythonWrapper] [ERROR] [22741/134565136] Cannot import module
+Traceback (most recent call last):
+  File "/home/zsombor/arc/arc1/src/services/storage/hash/hash.py", line 24, in ?
+    from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata, get_child_nodes
+  File "/home/zsombor/arc/arc1/src/services/storage/common.py", line 33, in ?
+    import md5
+ImportError: /usr/lib/python2.4/lib-dynload/md5.so: undefined symbol: _Py_NoneStruct
+[2008-05-06 23:44:13] [Arc.Service.PythonWrapper] [ERROR] [22741/134565136] Cannot import module
+Traceback (most recent call last):
+  File "/home/zsombor/arc/arc1/src/services/storage/catalog/catalog.py", line 2, in ?
+    import httplib
+  File "/usr/lib/python2.4/httplib.py", line 70, in ?
+    import mimetools
+  File "/usr/lib/python2.4/mimetools.py", line 5, in ?
+    import rfc822
+  File "/usr/lib/python2.4/rfc822.py", line 74, in ?
+    import time
+ImportError: /usr/lib/python2.4/lib-dynload/time.so: undefined symbol: PyExc_IOError
+
+well...
