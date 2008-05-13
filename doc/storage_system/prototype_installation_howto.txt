@@ -3,109 +3,374 @@ Installing ARC1 storage system from source
 
 I've used a newly installed debian system and did the following steps.
 
-$ sudo aptitude install subversion
-$ mkdir arc
-$ cd arc
-$ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
-$ cd arc1
-$ less README
+    $ sudo aptitude install subversion
+    $ mkdir arc
+    $ cd arc
+    $ svn co http://svn.nordugrid.org/repos/nordugrid/arc1/trunk arc1
+    $ cd arc1
+    $ less README
 
 the README file lists the dependencies.
 
-$ sudo aptitude install build-essential
-$ sudo aptitude install autoconf
-$ sudo aptitude install automake
-$ sudo aptitude install libtool
-$ sudo aptitude install python-dev
-$ sudo aptitude install pkg-config
-$ sudo aptitude install libglibmm-2.4-dev
-$ sudo aptitude install libxml2-dev
-$ sudo aptitude install libssl-dev
-$ sudo aptitude install gettext
+    $ sudo aptitude install build-essential
+    $ sudo aptitude install autoconf
+    $ sudo aptitude install automake
+    $ sudo aptitude install libtool
+    $ sudo aptitude install python-dev
+    $ sudo aptitude install pkg-config
+    $ sudo aptitude install libglibmm-2.4-dev
+    $ sudo aptitude install libxml2-dev
+    $ sudo aptitude install libssl-dev
+    $ sudo aptitude install gettext
+    $ sudo aptitude install libcppunit-dev
 
 for python binding:
 
-$ sudo aptitude install swig
+    $ sudo aptitude install swig
 
 configuration:
 
-$ ./autogen.sh
-$ ./configure
-
-[...]
-Java binding:       no
-Python binding:     yes (2.4)
-
-Available third-party features:
-
-RLS:                no
-GridFTP:            no
-LFC:                no
-RSL:                no
-SAML:               no
-
-Included components:
-A-Rex service:      yes
-ISI service:        yes
-PDP service:        yes
-HTTPD service:      yes
-SCHED service:      yes
-PAUL service:       no
-
-$ make
+    $ ./autogen.sh
+    $ ./configure
+    
+    [...]
+    Java binding:       no
+    Python binding:     yes (2.4)
+    
+    Available third-party features:
+    
+    RLS:                no
+    GridFTP:            no
+    LFC:                no
+    RSL:                no
+    SAML:               no
+    
+    Included components:
+    A-Rex service:      yes
+    ISI service:        yes
+    PDP service:        yes
+    HTTPD service:      yes
+    SCHED service:      yes
+    PAUL service:       no
+    
+    $ make
 
 I do not want to 'install' it, just run from the source directory.
 I want to create some scripts outside the sourcetree:
 
-$ cd ..
-$ pwd
-/home/zsombor/arc
-$ cp arc1/src/services/storage/service.example.xml service.xml
-$ cat service.xml
-[...]
-        <Component name="tcp.service" id="tcp">
-            <next id="http"/> 
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
-        </Component>
-        <Component name="http.service" id="http">
-            <next id="soap">POST</next>
-        </Component>
-        <Component name="soap.service" id="soap">
-            <next id="plexer"/>
-        </Component>
-        <Plexer name="plexer.service" id="plexer">
-            <next id="hash">/Hash</next>
-            <next id="catalog">/Catalog</next>
-            <next id="manager">/Manager</next>
-            <next id="element">/Element</next>
-            <next id="byteio">/byteio</next>
-        </Plexer>
-[...]
+    $ cd ..
+
+
+
+Running the server
+------------------------------------------
+
+    $ pwd
+    /home/zsombor/arc
+    $ ln -s arc1/src/services/storage/service.example.xml service.xml
+    $ cat service.xml
+    [...]
+            <Component name="tcp.service" id="tcp">
+                <next id="http"/> 
+                <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+            </Component>
+            <Component name="http.service" id="http">
+                <next id="soap">POST</next>
+            </Component>
+            <Component name="soap.service" id="soap">
+                <next id="plexer"/>
+            </Component>
+            <Plexer name="plexer.service" id="plexer">
+                <next id="hash">/Hash</next>
+                <next id="catalog">/Catalog</next>
+                <next id="manager">/Manager</next>
+                <next id="element">/Element</next>
+                <next id="byteio">/byteio</next>
+            </Plexer>
+    [...]
 
 let's create a runner script:
 
-$ cat run.sh 
-export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
-./arc1/src/hed/daemon/arched -f -c ./service.xml
+    $ cat run.sh 
+    export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
+    ./arc1/src/hed/daemon/arched -f -c ./service.xml
+    
+    $ ./run.sh
+    Hash constructor called
+    CentralHash constructor called
+    PickleStore constructor called
+    datadir: ./hash_data
+    Catalog constructor called
+    Manager constructor called
+    ByteIOBackend datadir: ./element_store
+    ByteIOBackend transferdir: ./element_transfer
+    PickleStore constructor called
+    datadir: ./element_data
+    Element constructor called
+    ByteIO constructor called
+    ByteIOService transfer dir: ./element_transfer
+    [...]
 
-$ ./run.sh
-[2008-05-06 23:44:13] [Arc.Service.PythonWrapper] [ERROR] [22741/134565136] Cannot import module
-Traceback (most recent call last):
-  File "/home/zsombor/arc/arc1/src/services/storage/hash/hash.py", line 24, in ?
-    from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata, get_child_nodes
-  File "/home/zsombor/arc/arc1/src/services/storage/common.py", line 33, in ?
-    import md5
-ImportError: /usr/lib/python2.4/lib-dynload/md5.so: undefined symbol: _Py_NoneStruct
-[2008-05-06 23:44:13] [Arc.Service.PythonWrapper] [ERROR] [22741/134565136] Cannot import module
-Traceback (most recent call last):
-  File "/home/zsombor/arc/arc1/src/services/storage/catalog/catalog.py", line 2, in ?
-    import httplib
-  File "/usr/lib/python2.4/httplib.py", line 70, in ?
-    import mimetools
-  File "/usr/lib/python2.4/mimetools.py", line 5, in ?
-    import rfc822
-  File "/usr/lib/python2.4/rfc822.py", line 74, in ?
-    import time
-ImportError: /usr/lib/python2.4/lib-dynload/time.so: undefined symbol: PyExc_IOError
 
-well...
+Client tools
+------------------------------------------
+
+so the server is running, we need some client tools
+
+    $ ln -s arc1/src/services/storage/cli/storage storage
+    $ ./storage
+    USAGE:
+      storage hash|catalog|manager|element <command> <arguments>
+    $ ./storage manager
+    Supported methods: stat, makeCollection, list, move, putFile, getFile, addReplica
+
+we can use some bash completion:
+
+    $ source arc1/src/services/storage/cli/storage_bash_completion
+
+now you can type:
+    $ ./storage m<TAB>
+
+and it completes:
+
+    $ ./storage manager
+
+and:
+
+    $ ./storage manager l<TAB>
+
+to:
+
+    $ ./storage manager list
+
+which says:
+
+    $ ./storage manager list 
+    Usage: list <LN> [<LN> ...]
+    
+    $ ./storage manager list /
+    list {'0': '/'}
+    {'0': ({}, 'not found')}
+    
+    /: not found
+
+
+Using the CLI client of the Manager
+------------------------------------------
+
+so, first we need a root collection, which will be the root of the global namespace
+
+    $ ./storage manager makeCollection /
+    makeCollection {'0': ('/', {('states', 'closed'): '0'})}
+    {'0': 'done'}
+    
+    done
+    $ ./storage manager list /
+    list {'0': '/'}
+    {'0': ({}, 'found')}
+    
+    /:
+
+now we can create a sub-collection within
+
+    $ ./storage manager makeCollection /subcoll
+    makeCollection {'0': ('/subcoll', {('states', 'closed'): '0'})}
+    {'0': 'done'}
+    
+    done
+    $ ./storage manager list / /subcoll
+    list {'1': '/subcoll', '0': '/'}
+    {'1': ({}, 'found'), '0': ({'subcoll': ('adba6e13-709e-483a-be51-bfcae4218ef6', {('catalog', 'type'): 'collection'})}, 'found')}
+    
+    /subcoll:
+    
+    /:
+        subcoll	<collection>
+
+this means '/subcoll' is empty, and '/' has one entry which is a collection called 'subcoll'
+
+lets upload some file:
+
+    $ ./storage manager putFile run.sh /myfile
+    putFile {'0': ('/myfile', {('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): 2, ('states', 'size'): 121L}, ['byteio'])}
+    {'0': ['done', 'http://localhost:60000/byteio/2fd75fae-7dbc-4c3b-806f-18935ebee6d7', 'byteio']}
+    
+    /myfile done
+    Uploading from run.sh to http://localhost:60000/byteio/2fd75fae-7dbc-4c3b-806f-18935ebee6d7
+    $ ./storage manager putFile run.sh /subcoll
+    putFile {'0': ('/subcoll', {('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): 2, ('states', 'size'): 121L}, ['byteio'])}
+    {'0': ['LN exists', '', '']}
+    
+    /subcoll LN exists
+    $ ./storage manager putFile run.sh /subcoll/
+    putFile {'0': ('/subcoll/run.sh', {('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): 2, ('states', 'size'): 121L}, ['byteio'])}
+    {'0': ['done', 'http://localhost:60000/byteio/c1ca88be-2c2c-4b0b-8a67-19916a87333a', 'byteio']}
+    
+    /subcoll/run.sh done
+    Uploading from run.sh to http://localhost:60000/byteio/c1ca88be-2c2c-4b0b-8a67-19916a87333a
+    $ ./storage manager list / /subcoll
+    list {'1': '/subcoll', '0': '/'}
+    {'1': ({'run.sh': ('9b511fcb-e64e-4fb0-927b-2be96776028a', {('catalog', 'type'): 'file'})}, 'found'), '0': ({'myfile': ('54ed1fc4-1275-4889-8055-af24d3053f7a', {('catalog', 'type'): 'file'}), 'subcoll': ('adba6e13-709e-483a-be51-bfcae4218ef6', {('catalog', 'type'): 'collection'})}, 'found')}
+    
+    /subcoll:
+        run.sh	<file>
+    
+    /:
+        myfile	<file>
+        subcoll	<collection>
+
+get metadata of an entry:
+
+    $ ./storage manager stat /myfile /subcoll
+    stat {0: '/myfile', 1: '/subcoll'}
+    {'1': {('states', 'closed'): '0', ('entries', 'run.sh'): '9b511fcb-e64e-4fb0-927b-2be96776028a', ('catalog', 'type'): 'collection'}, '0': {('states', 'checksumType'): 'md5', ('states', 'neededReplicas'): '2', ('states', 'size'): '121', ('states', 'checksum'): 'ea0daccc52d3fdc7228863b47900569e', ('locations', 'http://localhost:60000/Element 89d19f17-23e2-475a-bc3f-fca02c6b1425'): 'alive', ('locations', 'http://localhost:60000/Element 50c15c1c-7c07-41e8-8f07-a503e1bf7517'): 'alive', ('catalog', 'type'): 'file'}}
+    /subcoll:
+    states
+      closed: 0
+    catalog
+      type: collection
+    entries
+      run.sh: 9b511fcb-e64e-4fb0-927b-2be96776028a
+    /myfile:
+    states
+      checksumType: md5
+      neededReplicas: 2
+      size: 121
+      checksum: ea0daccc52d3fdc7228863b47900569e
+    catalog
+      type: file
+    locations
+      http://localhost:60000/Element 89d19f17-23e2-475a-bc3f-fca02c6b1425: alive
+      http://localhost:60000/Element 50c15c1c-7c07-41e8-8f07-a503e1bf7517: alive
+
+move something within the namespace:
+
+    $ ./storage manager move /myfile /subcoll/
+    move {'0': ('/myfile', '/subcoll/', False)}
+    {'0': ['moved']}
+    
+    moved
+    $ ./storage manager list /subcoll
+    list {'0': '/subcoll'}
+    {'0': ({'run.sh': ('9b511fcb-e64e-4fb0-927b-2be96776028a', {('catalog', 'type'): 'file'}), 'myfile': ('54ed1fc4-1275-4889-8055-af24d3053f7a', {('catalog', 'type'): 'file'})}, 'found')}
+    
+    /subcoll:
+        run.sh	<file>
+        myfile	<file>
+
+download a file:
+
+    $ ./storage manager getFile downloaded_file /subcoll/myfile
+    getFile {'0': ('/subcoll/myfile', ['byteio'])}
+    {'0': ['done', 'http://localhost:60000/byteio/b569e8ca-2910-4528-9c2e-453f2eb1d4d2', 'byteio']}
+    
+    /subcoll/myfile done
+    Downloading from http://localhost:60000/byteio/b569e8ca-2910-4528-9c2e-453f2eb1d4d2 to downloaded_file
+    $ cat downloaded_file 
+    export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
+    ./arc1/src/hed/daemon/arched -f -c ./service.xml
+
+Using Manager from python (ManagerClient)
+------------------------------------------
+
+I often use an add-on to python called 'ipython', but you can use the basic python interactive interpreter as well.
+
+    $ sudo aptitude install ipython
+    $ PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs ipython
+    Python 2.4.4 (#2, Apr 15 2008, 23:43:20) 
+    Type "copyright", "credits" or "license" for more information.
+    
+    IPython 0.7.2 -- An enhanced Interactive Python.
+    ?       -> Introduction to IPython's features.
+    %magic  -> Information about IPython's 'magic' % functions.
+    help    -> Python's own help system.
+    object? -> Details about 'object'. ?object also works, ?? prints more.
+    In [1]: 
+
+lets import the ManagerClient class:
+
+    In [1]: from storage.client import ManagerClient
+    
+you can always ask help with a question mark after an object name (classes and methods are objects as well):
+    
+    In [2]: ManagerClient?
+    Type:		classobj
+    String Form:	storage.client.ManagerClient
+    Namespace:	Interactive
+    File:		/home/zsombor/arc/arc1/src/services/storage/client.py
+    Docstring:
+        Client for the Storage Manager service. 
+    
+    Constructor information:
+    Definition:	ManagerClient(self, url, print_xml=False)
+    Docstring:
+        Constructior of the client.
+        
+        ManagerClient(url, print_xml = False)
+        
+        url is the URL of the Manager service
+        if print_xml is true this will print the SOAP messages
+
+let's create a ManagerClient object with the URL of the service
+
+    In [3]: m = ManagerClient('http://localhost:60000/Manager')
+    
+    In [4]: m
+    Out[4]: <storage.client.ManagerClient instance at 0xb724cf8c>
+
+you can use TAB here as well:
+    In [6]: m.<TAB>
+    m.__class__       m.addReplica      m.host            m.ns              m.putFile
+    m.__doc__         m.call            m.list            m.path            m.stat
+    m.__init__        m.call_raw        m.makeCollection  m.port            m.url
+    m.__module__      m.getFile         m.move            m.print_xml       
+    
+    In [6]: m.l<TAB>
+    In [6]: m.list
+
+and ask for help with the question mark:
+
+    In [6]: m.list?
+    [...]
+    Docstring:
+        List the contents of a collection.
+        
+        list(requests, neededMetadata = [])
+        
+        requests is a dictionary with requestID as key and Logical Name as value
+        neededMetadata is a list of (section, property) pairs
+            if neededMetadata is empty, list will return all metadata for each collection-entry
+            otherwise just those values will be returnd which has a listed (section, property)
+            if a property is empty means that all properties will be listed from that section
+        returns a dictionary with requestID as key and (entries, status) as value, where
+            entries is a dictionary with the entry name as key and (GUID, metadata) as value
+            status is the status of the request
+    [...]
+    
+the docstring tells everything. let's list some collections with specifying that we only need the 'catalog' section of the metadata
+    
+    In [9]: m.list({'0':'/', '1':'/subcoll'},[('catalog','')])
+    Out[9]: 
+    {'0': ({'subcoll': ('adba6e13-709e-483a-be51-bfcae4218ef6',
+                        {('catalog', 'type'): 'collection'})},
+           'found'),
+     '1': ({'myfile': ('54ed1fc4-1275-4889-8055-af24d3053f7a',
+                       {('catalog', 'type'): 'file'}),
+            'run.sh': ('9b511fcb-e64e-4fb0-927b-2be96776028a',
+                       {('catalog', 'type'): 'file'})},
+           'found')}
+
+let's move our file:
+
+    In [11]: m.move({'a': ['/subcoll/myfile','/run.sh',False]})
+    Out[11]: {'a': ['moved']}
+    
+    In [12]: m.stat({'xxx' : '/'})
+    Out[12]: 
+    {'xxx': {('catalog', 'type'): 'collection',
+             ('entries', 'run.sh'): '54ed1fc4-1275-4889-8055-af24d3053f7a',
+             ('entries', 'subcoll'): 'adba6e13-709e-483a-be51-bfcae4218ef6',
+             ('states', 'closed'): '0'}}
+
+Using other services with the CLI
+------------------------------------------
