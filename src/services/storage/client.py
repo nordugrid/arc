@@ -6,8 +6,17 @@ import arc
 import base64
 
 class Client:
+    """ Base Client class for sending SOAP messages to services """
 
     def __init__(self, url, ns, print_xml = False):
+        """ The constructor of the Client class.
+        
+        Client(url, ns, print_xml = false)
+        
+        url is the URL of the service
+        ns contains the namespaces we want to use with each message
+        print_xml is for debugging, prints all the SOAP messages to the screen
+        """
         import urlparse
         (_, host_port, path, _, _, _) = urlparse.urlparse(url)
         if ':' in host_port:
@@ -23,32 +32,55 @@ class Client:
         self.print_xml = print_xml
 
     def call(self, tree, return_tree_only = False):
+        """ Create a SOAP message from an XMLTree and send it to the service.
+        
+        call(tree, return_tree_only = False)
+        
+        tree is an XMLTree object containing the content of the request
+        return_tree_only indicates that we only need to put the response into an XMLTree
+        """
+        # create a new PayloadSOAP object with the given namespace
         out = arc.PayloadSOAP(self.ns)
+        # add the content of the XMLTree to the XMLNode of the SOAP object
         tree.add_to_node(out)
         if self.print_xml:
             msg = out.GetXML()
             print 'Request:'
-            print parseString(msg).toprettyxml()
+            print XMLTree(out).pretty_xml(indent = '    ', prefix = '        #   ')
             print
+        # call the service and get back the response, and the HTTP status
         resp, status, reason = self.call_raw(out)
         if self.print_xml:
             print 'Response:'
             try:
-                print parseString(resp).toprettyxml()
+                print XMLTree(from_string = resp).pretty_xml(indent = '    ', prefix = '        #   ')
             except:
                 print resp
             print
         if return_tree_only:
+            # wrap the response into an XMLTree and return only the tree
             return XMLTree(from_string = resp, forget_namespace = True).get_trees('///')[0]
         else:
             return resp, status, reason
 
     def call_raw(self, outpayload):
+        """ Send a POST request with the SOAP XML message.
+        
+        call_raw(outpayload)
+        
+        outpayload is an XMLNode with the SOAP message
+        """
+        # TODO: use the client-side libs of ARCHED
         import httplib
+        # create an HTTP connection
         h = httplib.HTTPConnection(self.host, self.port)
+        # get the XML from outpayload, and send it as POST
         h.request('POST', self.path, outpayload.GetXML())
+        # get the response object
         r = h.getresponse()
+        # read the response data
         resp = r.read()
+        # return the data and the status
         return resp, r.status, r.reason
 
 
@@ -272,12 +304,45 @@ class CatalogClient(Client):
         return int(str(node.Child().Child().Get('nextReportTime')))
 
 class ManagerClient(Client):
+    """ Client for the Storage Manager service. """
     
     def __init__(self, url, print_xml = False):
+        """ Constructior of the client.
+        
+        ManagerClient(url, print_xml = False)
+        
+        url is the URL of the Manager service
+        if print_xml is true this will print the SOAP messages
+        """
+        # sets the namespace
         ns = arc.NS({'man':manager_uri})
+        # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml)
 
     def stat(self, requests):
+        """ Get metadata of a file or collection
+        
+        stat(requests)
+        
+        requests is a dictionary where requestIDs are the keys, and Logical Names are the values.
+        this method returns a dictionary for each requestID which contains all the metadata with (section, dictionary) as the key
+        
+        e.g.
+        
+        In: {'frodo':'/', 'sam':'/testfile'}
+        Out: 
+            {'frodo': {('catalog', 'type'): 'collection',
+                       ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
+                       ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
+                       ('states', 'closed'): '0'},
+             'sam': {('catalog', 'type'): 'file',
+                     ('locations', 'http://localhost:60000/Element 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
+                     ('locations', 'http://localhost:60000/Element 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
+                     ('states', 'checksum'): '0927c28a393e8834aa7b838ad8a69400',
+                     ('states', 'checksumType'): 'md5',
+                     ('states', 'neededReplicas'): '5',
+                     ('states', 'size'): '11'}}
+        """
         tree = XMLTree(from_tree =
             ('man:stat', [
                 ('man:statRequestList', [
@@ -296,6 +361,26 @@ class ManagerClient(Client):
             for requestID, metadataList in elements.items()])
 
     def getFile(self, requests):
+        """ Initiate download of a file.
+        
+        getFile(requests)
+        
+        requests is a dicitonary with requestID as key and (LN, protocols) as value,
+            where LN is the Logical Name
+            protocols is a list of strings: the supported transfer protocols by the client
+        returns a dictionary with requestID as key and [success, TURL, protocol] as value, where
+            success is the status of the request
+            TURL is the Transfer URL
+            protocol is the name of the choosen protocol
+            
+        Example:
+        In: {'1':['/', ['byteio']], 'a':['/testfile', ['ftp', 'byteio']]}
+        Out: 
+            {'1': ['is not a file', '', ''],
+             'a': ['done',
+                   'http://localhost:60000/byteio/29563f36-e9cb-47eb-8186-0d720adcbfca',
+                   'byteio']}
+        """
         tree = XMLTree(from_tree =
             ('man:getFile', [
                 ('man:getFileRequestList', [
@@ -313,6 +398,28 @@ class ManagerClient(Client):
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
     
     def putFile(self, requests):
+        """ Initiate uploading a file.
+        
+        putFile(requests)
+        
+        requests is a dictionary with requestID as key, and (LN, metadata, protocols) as value, where
+            LN is the Logical Name
+            metadata is a dictionary with (section,property) as key, it contains the metadata of the new file
+            protocols is a list of protocols supported by the client
+        returns a dictionary with requestID as key, and (success, TURL, protocol) as value, where
+            success is the state of the request
+            TURL is the transfer URL
+            protocol is the name of the choosen protocol
+            
+        Example:
+        In: {'qwe': ['/newfile',
+                    {('states', 'size') : 1055, ('states', 'checksum') : 'none', ('states', 'checksumType') : 'none'},
+                    ['byteio']]}
+        Out: 
+            {'qwe': ['done',
+                     'http://localhost:60000/byteio/d42f0993-79a8-4bba-bd86-84324367c65f',
+                     'byteio']}
+        """
         tree = XMLTree(from_tree =
             ('man:putFile', [
                 ('man:putFileRequestList', [
@@ -331,6 +438,26 @@ class ManagerClient(Client):
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
     def addReplica(self, requests, protocols):
+        """ Add a new replica to an existing file.
+        
+        addReplica(requests, protocols)
+        
+        requests is a dictionary with requestID as key and GUID as value.
+        protocols is a list of protocols supported by the client
+        
+        returns a dictionary with requestID as key and (success, TURL, protocol) as value, where
+            success is the status of the request,
+            TURL is the transfer URL
+            protocol is the choosen protocol
+            
+        Example:
+        
+        In: requests = {'001':'c9c82371-4773-41e4-aef3-caf7c7eaf6f8'}, protocols = ['http','byteio']
+        Out:
+            {'001': ['done',
+                     'http://localhost:60000/byteio/c94a77a1-347c-430c-ae1b-02d83786fb2d',
+                    'byteio']}
+        """
         tree = XMLTree(from_tree =
             ('man:addReplica', [
                 ('man:addReplicaRequestList', [
@@ -348,6 +475,18 @@ class ManagerClient(Client):
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
     def makeCollection(self, requests):
+        """ Create a new collection.
+        
+        makeCollection(requests)
+
+        requests is a dictionary with requestID as key and (LN, metadata) as value, where
+            LN is the Logical Name
+            metadata is the metadata of the new collection, a dictionary with (section, property) as key
+        returns a dictionary with requestID as key and the state of the request as value
+        
+        In: {'b5':['/coloredcollection', {('metadata','color') : 'light blue'}]}
+        Out: {'b5': 'done'}
+        """
         tree = XMLTree(from_tree =
             ('man:makeCollection', [
                 ('man:makeCollectionRequestList', [
@@ -359,9 +498,35 @@ class ManagerClient(Client):
                 ])
             ])
         )
-        return self.call(tree, True)
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
 
     def list(self, requests, neededMetadata = []):
+        """ List the contents of a collection.
+        
+        list(requests, neededMetadata = [])
+        
+        requests is a dictionary with requestID as key and Logical Name as value
+        neededMetadata is a list of (section, property) pairs
+            if neededMetadata is empty, list will return all metadata for each collection-entry
+            otherwise just those values will be returnd which has a listed (section, property)
+            if a property is empty means that all properties will be listed from that section
+        returns a dictionary with requestID as key and (entries, status) as value, where
+            entries is a dictionary with the entry name as key and (GUID, metadata) as value
+            status is the status of the request
+        
+        Example:
+        In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('catalog','type')]
+        Out: 
+            {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('catalog', 'type'): 'collection'}),
+                      'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('catalog', 'type'): 'collection'}),
+                      'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('catalog', 'type'): 'file', ('states', 'size'): '1055'}),
+                      'testdir': ('4cabc8cb-599d-488c-a253-165f71d4e180', {('catalog', 'type'): 'collection'}),
+                      'testfile': ('cf05727b-73f3-4318-8454-16eaf10f302c', {('catalog', 'type'): 'file', ('states', 'size'): '11'})},
+                     'found'),
+             'kirk': ({}, 'is a file')}
+        """
         tree = XMLTree(from_tree =
             ('man:list', [
                 ('man:listRequestList', [
@@ -391,6 +556,20 @@ class ManagerClient(Client):
         ])
 
     def move(self, requests):
+        """ Move a file or collection within the global namespace.
+        
+        move(requests)
+        
+        requests is a dictionary with requestID as key, and (sourceLN, targetLN, preserveOriginal) as value, where
+            sourceLN is the source Logical Name
+            targetLN is the target Logical Name
+            preserverOriginal is True if we want to create a hardlink
+        returns a dictionary with requestID as key and status as value
+        
+        Example:
+        In: {'shoo':['/testfile','/newname',False]}
+        Out: {'shoo': ['moved']}
+        """
         tree = XMLTree(from_tree =
             ('man:move', [
                 ('man:moveRequestList', [

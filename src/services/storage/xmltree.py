@@ -277,22 +277,22 @@ class XMLTree:
                 else: # if it has no child, create a string from it
                     child_node.Set(str(element[1]))
 
-    def pretty_xml(self, indent = ' ', path = None):
+    def pretty_xml(self, indent = ' ', path = None, prefix = ''):
         data = self.get(path)
-        return self._pretty_xml(data, indent, level = 0)
+        return self._pretty_xml(data, indent, level = 0, prefix = prefix)
 
-    def _pretty_xml(self, data, indent, level):
+    def _pretty_xml(self, data, indent, level, prefix ):
         out = []
         for element in data:
             if element[0]:
                 if isinstance(element[1], list):
                     out.append(
-                        indent * level + '<%s>\n' % element[0] +
-                            self._pretty_xml(element[1], indent, level+1) + '\n' +
-                        indent * level +'</%s>' % element[0]
+                        prefix + indent * level + '<%s>\n' % element[0] +
+                            self._pretty_xml(element[1], indent, level+1, prefix) + '\n' +
+                        prefix + indent * level +'</%s>' % element[0]
                     )
                 else:
-                    out.append(indent * level + '<%s>%s</%s>' % (element[0], element[1], element[0]))
+                    out.append(prefix + indent * level + '<%s>%s</%s>' % (element[0], element[1], element[0]))
         return '\n'.join(out)
             
 

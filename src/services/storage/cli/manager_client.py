@@ -93,7 +93,7 @@ else:
             print 'makeCollection', request
             response = manager.makeCollection(request)
             print response
-            print '\n', dict(response.get('////'))['success']
+            print '\n', response['0']
     elif command == 'list':
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'
