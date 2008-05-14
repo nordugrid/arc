@@ -213,6 +213,7 @@ exit 0
 %doc %{_mandir}/man1/arcrm.1*
 %{_bindir}/arcstat
 %{_bindir}/perftest
+%{_bindir}/glitesub
 
 %files server
 %defattr(-,root,root,-)

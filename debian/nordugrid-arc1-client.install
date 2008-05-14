@@ -12,6 +12,7 @@ usr/bin/arccp
 usr/bin/arcls
 usr/bin/arcrm
 usr/bin/arcstat
+usr/bin/glitesub
 usr/share/man/man1/apinfo.1
 usr/share/man/man1/approxy.1
 usr/share/man/man1/apsub.1
