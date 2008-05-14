@@ -487,6 +487,11 @@ namespace ArcLib {
     loadCertificate(certbio, cert_, &cert_chain_);
 
     if(keybio!=NULL) loadKey(keybio, pkey_);
+    else {
+      //the private key could be in the certificate file, if the certificate is a proxy.
+      keybio = BIO_new_file(certfile.c_str(), "r");
+      loadKey(keybio, pkey_);
+    }
 
     //load CA
     
@@ -935,8 +940,8 @@ err:
     BIO*  bio = NULL;
     int length;
     bio = BIO_new(BIO_s_mem());
-    length = i2d_PrivateKey_bio(bio, pkey_);
     if(pkey_ == NULL) {credentialLogger.msg(ERROR, "Private key of the credential object is NULL"); BIO_free(bio); return NULL;}
+    length = i2d_PrivateKey_bio(bio, pkey_);
     if(length <= 0) {
       credentialLogger.msg(ERROR, "Can not convert private key to DER format");
       LogError(); BIO_free(bio); return NULL;

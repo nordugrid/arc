@@ -3,10 +3,10 @@
 #endif
 
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <arc/Logger.h>
 #include "Credential.h"
-#include "voms_util.h"
-
 
 int main(void) {
   Arc::LogStream cdest(std::cerr);
@@ -17,19 +17,54 @@ int main(void) {
 
   /**Generate a proxy certificate based on existing proxy certificate*/
   //Request side
-  std::string req_file("./request1.pem");
-  std::string out_file("./out1.pem");
-  ArcLib::Credential request(Arc::Time(), Arc::Period(168*3600), 1024);
-  request.GenerateRequest(req_file.c_str());
+  std::string req_file1("./request1.pem");
+  std::string out_file1("./proxy1.pem");
+  ArcLib::Credential request1(Arc::Time(), Arc::Period(168*3600), 1024);
+  request1.GenerateRequest(req_file1.c_str());
 
   //Signing side
-  ArcLib::Credential proxy;
+  ArcLib::Credential proxy1;
+  std::string signer_cert1("./out.pem");
+  ArcLib::Credential signer1(signer_cert1, "", "", cafile);
+  proxy1.InquireRequest(req_file1.c_str());
+  signer1.SignRequest(&proxy1, out_file1.c_str());
 
-  std::string cert_proxy("./out.pem");
-  ArcLib::Credential signer(cert_proxy, "", "", cafile);
+  //Back to request side, compose the signed proxy certificate, local private key,
+  //and signing certificate into one file.
+  std::string private_key1, signing_cert1;
+  request1.OutputPrivatekey(private_key1);
+  signer1.OutputCertificate(signing_cert1);
+  std::cout<<"Private key of request: " <<private_key1<<std::endl;
+  std::ofstream out_f1(out_file1.c_str(), std::ofstream::app);
+  out_f1.write(private_key1.c_str(), private_key1.size());
+  out_f1.write(signing_cert1.c_str(), signing_cert1.size());
+  out_f1.close();
 
-  proxy.InquireRequest(req_file.c_str());
 
-  signer.SignRequest(&proxy, out_file.c_str());
+  //Generate one more proxy based on the proxy which just has been generated
+  std::string req_file2("./request2.pem");
+  std::string out_file2("./proxy2.pem");
+  ArcLib::Credential request2(Arc::Time(), Arc::Period(168*3600), 1024);
+  request2.GenerateRequest(req_file2.c_str());
+
+  //Signing side
+  ArcLib::Credential proxy2;
+  std::string signer_cert2("./proxy1.pem");
+  ArcLib::Credential signer2(signer_cert2, "", "", cafile);
+  proxy2.InquireRequest(req_file2.c_str());
+  signer2.SignRequest(&proxy2, out_file2.c_str());
+
+  //Back to request side, compose the signed proxy certificate, local private key,
+  //and signing certificate into one file.
+  std::string private_key2, signing_cert2;
+  request2.OutputPrivatekey(private_key2);
+  signer2.OutputCertificate(signing_cert2);
+  std::cout<<"Private key of request: " <<private_key2<<std::endl;
+  std::ofstream out_f2(out_file2.c_str(), std::ofstream::app);
+  out_f2.write(private_key2.c_str(), private_key2.size());
+  out_f2.write(signing_cert2.c_str(), signing_cert2.size());
+  //Here add the up-level signer certificate
+  out_f2.write(signing_cert1.c_str(), signing_cert1.size());
+  out_f2.close();
 
 }

@@ -503,8 +503,8 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else {type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("OLD_PROXYCERTINFO"), -1)) != -1 ||
+             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;
         } 
@@ -533,8 +533,8 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else {type = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
         
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("OLD_PROXYCERTINFO"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
+             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;
         }
