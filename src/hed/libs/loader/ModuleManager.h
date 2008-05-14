@@ -29,7 +29,9 @@ class ModuleManager
         ModuleManager(Arc::Config *cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding shared library */
-        Glib::Module *load(const std::string& name);
+        Glib::Module *load(const std::string& name,bool load_local = true,bool reload = false);
+        /** Finds shared library corresponding to module 'name' and returns path to it */
+        std::string findLocation(const std::string& name);
         /** Input the configuration subtree, and trigger the module loading (do almost the same as the Constructor); 
         It is function desgined for ClassLoader to adopt the singleton pattern */
         void setCfg (Arc::Config *cfg);

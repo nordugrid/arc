@@ -34,16 +34,8 @@ ModuleManager::~ModuleManager(void)
     plugin_cache.clear();
 }
 
-Glib::Module *ModuleManager::load(const std::string& name)
+std::string ModuleManager::findLocation(const std::string& name)
 {
-  if (!Glib::Module::get_supported()) {
-    return false;
-  }
-  // find name in plugin_cache 
-  if (plugin_cache.find(name) != plugin_cache.end()) {
-    Loader::logger.msg(DEBUG, "Found %s in cache", name);
-    return plugin_cache[name];
-  }
   std::string path;
   std::vector<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
@@ -57,12 +49,29 @@ Glib::Module *ModuleManager::load(const std::string& name)
       break;
     }
   }
-  if(i == plugin_dir.end()) {
+  if(i == plugin_dir.end()) path="";
+  return path;
+}
+
+Glib::Module *ModuleManager::load(const std::string& name,bool load_local,bool reload)
+{
+  if (!Glib::Module::get_supported()) {
+    return false;
+  }
+  // find name in plugin_cache 
+  if(!reload) {
+    if (plugin_cache.find(name) != plugin_cache.end()) {
+      Loader::logger.msg(DEBUG, "Found %s in cache", name);
+      return plugin_cache[name];
+    }
+  }
+  std::string path = findLocation(name);
+  if(path.empty()) {
     Loader::logger.msg(DEBUG, "Could not locate module %s", name);
     return NULL;
   };
 #ifdef HAVE_GLIBMM_BIND_LOCAL
-  Glib::Module *module = new Glib::Module(path,Glib::MODULE_BIND_LOCAL);
+  Glib::Module *module = new Glib::Module(path,load_local?Glib::MODULE_BIND_LOCAL:(Glib::ModuleFlags(0)));
 #else
   Glib::Module *module = new Glib::Module(path);
 #endif
