@@ -616,14 +616,20 @@ namespace ArcLib {
               if(cert_) { //self-sign, copy the X509_NAME
                 if ((name = X509_NAME_dup(X509_get_subject_name(cert_))) == NULL) {
                   credentialLogger.msg(ERROR, "Can not duplicate the subject name for the self-signing proxy certificate request");
-                  LogError(); res = false; goto err;
+                  LogError(); res = false;     
+                  if(pkey) EVP_PKEY_free(pkey);
+                  if(rsa_key) RSA_free(rsa_key);
+                  return res;
                 }
               }
               else { name = X509_NAME_new();}
               if((entry = X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE,
                           (unsigned char *) "NULL SUBJECT NAME ENTRY", -1)) == NULL) {
                 credentialLogger.msg(ERROR, "Can not create a new X509_NAME_ENTRY for the proxy certificate request");
-                LogError(); res = false; X509_NAME_free(name); goto err;
+                LogError(); res = false; X509_NAME_free(name); 
+                if(pkey) EVP_PKEY_free(pkey);
+                if(rsa_key) RSA_free(rsa_key);
+                return res;
               }
               X509_NAME_add_entry(name, entry, X509_NAME_entry_count(name), 0);
               X509_REQ_set_subject_name(req,name);
@@ -643,9 +649,7 @@ namespace ArcLib {
                 unsigned char* data = NULL;
                 int length;
                 ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
- std::cout<<"certinfo "<<certinfo_sn<<std::endl;
                 length = ext_method->i2d(proxy_cert_info_, NULL);
- std::cout<<"length "<<length<<std::endl;
                 if(length < 0) { 
                   credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); 
                   LogError(); 
@@ -696,10 +700,6 @@ namespace ArcLib {
       }
     }
 
-err:
-    if(pkey) EVP_PKEY_free(pkey);
-    if(rsa_key) RSA_free(rsa_key);
-
     return res;
   }
 
@@ -732,6 +732,35 @@ err:
     }
     else {credentialLogger.msg(ERROR, "Failed to write request into a file"); BIO_free_all(out); return false;}
  
+    BIO_free_all(out);
+    return true;
+  }
+
+  bool Credential::OutputPrivatekey(std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) return false;
+    EVP_CIPHER *enc = NULL;
+    if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,NULL,NULL)) { BIO_free_all(out); return false; };
+    for(;;) {
+      char s[256];
+      int l = BIO_read(out,s,sizeof(s));
+      if(l <= 0) break;
+      content.append(s,l);
+    }
+    BIO_free_all(out);
+    return true;
+  }
+
+  bool Credential::OutputCertificate(std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) return false;
+    if(!PEM_write_bio_X509(out,cert_)) { BIO_free_all(out); return false; };
+    for(;;) {
+      char s[256];
+      int l = BIO_read(out,s,sizeof(s));
+      if(l <= 0) break;
+      content.append(s,l);
+    }
     BIO_free_all(out);
     return true;
   }

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libcredential.la
-noinst_PROGRAMS = test  testcertinfo 
+noinst_PROGRAMS = test  testcertinfo testproxy2proxy 
 
 libcredential_ladir = $(pkgincludedir)/arclib
 libcredential_la_HEADERS  = Credential.h
@@ -13,9 +13,13 @@ test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
 test_LDADD    = ./libcredential.la
 
-
 testcertinfo_SOURCES  = testcertinfo.cpp
 testcertinfo_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 testcertinfo_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
 testcertinfo_LDADD    = ./libcredential.la
+
+testproxy2proxy_SOURCES  = testproxy2proxy.cpp
+testproxy2proxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testproxy2proxy_LDFLAGS  = $(GLIBMM_LIBS) $(EXTRA_LIBS)
+testproxy2proxy_LDADD    = ./libcredential.la
 

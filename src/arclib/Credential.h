@@ -167,7 +167,13 @@ class Credential {
    
     /**Generate a proxy request, output the certificate request to a file*/
     bool GenerateRequest(const char* filename);
-  
+
+    /**Output the private key into string*/
+    bool OutputPrivatekey(std::string &content); 
+   
+    /**Output the certificate into string*/
+    bool OutputCertificate(std::string &content);  
+
     /**Inquire the certificate request from BIO, and put the request information to X509_REQ inside this object,
     *and parse the certificate type from the PROXYCERTINFO of request' extension
     */

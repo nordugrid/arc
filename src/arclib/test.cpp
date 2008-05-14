@@ -3,6 +3,8 @@
 #endif
 
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <arc/Logger.h>
 #include "Credential.h"
 #include "voms_util.h"
@@ -45,7 +47,6 @@ int main(void) {
   BIO_free_all(out);
 
 
-
   /**2.Use string as parameters */
   //Request side
   std::string req_string;
@@ -56,12 +57,23 @@ int main(void) {
 
   //Signing side
   ArcLib::Credential proxy1;
-
   proxy1.InquireRequest(req_string);
 
   signer.SignRequest(&proxy1, out_string);
   std::cout<<"Signed proxy certificate: " <<out_string<<std::endl;
+  
+  std::string signing_cert;
+  signer.OutputCertificate(signing_cert);
+  std::cout<<"Signing certificate: " <<signing_cert<<std::endl;
 
+  //Back to request side, compose the signed proxy certificate, local private key, 
+  //and signing certificate into one file.
+  std::string private_key;
+  request1.OutputPrivatekey(private_key);
+  std::cout<<"Private key of request: " <<private_key<<std::endl;
+  out_string.append(private_key);
+  out_string.append(signing_cert);
+  std::cout<<"Final proxy certificate: " <<out_string<<std::endl;
 
 
   /**3.Use file location as parameters*/
@@ -73,12 +85,19 @@ int main(void) {
 
   //Signing side
   ArcLib::Credential proxy2;
-
   proxy2.InquireRequest(req_file.c_str());
 
   signer.SignRequest(&proxy2, out_file.c_str());
 
-
+  //Back to request side, compose the signed proxy certificate, local private key,
+  //and signing certificate into one file.
+  std::string private_key1;
+  request1.OutputPrivatekey(private_key1);
+  std::cout<<"Private key of request: " <<private_key<<std::endl;
+  std::ofstream out_f(out_file.c_str(), std::ofstream::app);
+  out_f.write(private_key1.c_str(), private_key1.size());
+  out_f.write(signing_cert.c_str(), signing_cert.size());
+  out_f.close();
 
   /**4.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
   //Get information from a credential which acts as AC issuer.
