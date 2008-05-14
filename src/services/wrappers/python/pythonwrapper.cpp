@@ -12,6 +12,10 @@
 #include <arc/message/PayloadSOAP.h>
 #include "pythonwrapper.h"
 
+#ifndef WIN32
+#include <dlfcn.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,7 +70,12 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 static PyThreadState *tstate = NULL;
 static int python_service_counter = 0;
 
-static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext*) {
+static Arc::Service* get_service(Arc::Config *cfg,Arc::ChainContext *ctx) {
+
+#ifndef WIN32
+    // ((Arc::ServiceFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
+    ::dlopen(((Arc::ServiceFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
+#endif
     
     // Initialize the Python Interpreter
     if (!Py_IsInitialized()) {
