@@ -417,14 +417,8 @@ AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable 
 AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service])
 AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"])
 
-case "${host}" in
-  *-*-mingw32)
-    # Paul service
-    AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
-    ;;
-  *) enable_paul_service="no"
-    ;;
-esac
+# Paul service 
+AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
 AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service])
 AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
