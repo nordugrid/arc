@@ -17,7 +17,7 @@ namespace Arc {
 
 class RunPump {
     // NOP
-}
+};
 
 class Pid {
     friend class Run;
@@ -26,7 +26,7 @@ class Pid {
         Pid(void) { };
         Pid(int p_) { }; 
         Pid(const PROCESS_INFORMATION p_) { processinfo = p_; }
-}
+};
 
 Run::Run(const std::string& cmdline):working_directory("."),stdout_(-1),stderr_(-1),stdin_(-1),stdout_str_(NULL),stderr_str_(NULL),stdin_str_(NULL),stdout_keep_(false),stderr_keep_(false),stdin_keep_(false),argv_(Glib::shell_parse_argv(cmdline)),initializer_func_(NULL),kicker_func_(NULL),started_(false),running_(false),result_(-1) {
     pid_ = new Pid();
@@ -38,6 +38,7 @@ Run::Run(const std::list<std::string>& argv):working_directory("."),stdout_(-1),
 
 Run::~Run(void) {
   if(!(*this)) return;
+  delete pid_;
   Kill(0);
   CloseStdout();
   CloseStderr();
@@ -52,10 +53,11 @@ bool Run::Start(void) {
     
     STARTUPINFO startupinfo;
     memset(&startupinfo, 0, sizeof(startupinfo));
-    const char **args = const_cast<char**>(argv_.data());
+    char **args = const_cast<char**>(argv_.data());
     std::string cmd = "";
     for (int i = 0; args[i] != NULL; i++) {
-        cmd += args[i] + " ";
+        std::string a(args[i])
+        cmd += (a + " ");
     }
     std::cout << "Cmd: " << cmd << std::endl;
     int result = CreateProcess(NULL, 
@@ -67,7 +69,7 @@ bool Run::Start(void) {
                                NULL, 
                                (LPSTR)working_directory.c_str(),
                                &startupinfo, 
-                               &processinfo);
+                               &pid_->processinfo);
     
     if (!result) {
         std::cout << "Spawn Error: " << GetOsErrorMessage() << std::endl;
@@ -78,7 +80,6 @@ bool Run::Start(void) {
     running_=false;
     return false;
   };
-  if(arg) delete arg;
   return true;
 }
 
