@@ -1,4 +1,5 @@
-SUBDIRS = counter test
+DIST_SUBDIRS = counter test
+SUBDIRS = counter $(TEST_DIR)
 
 lib_LTLIBRARIES = libarccommon.la
 libarccommon_ladir       = $(pkgincludedir)

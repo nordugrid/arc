@@ -330,10 +330,29 @@ else
     fi
 fi    
 
-# check libxml
-PKG_CHECK_MODULES(CPPUNIT, [cppunit])
+# check cppunit
+PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
+[AC_PATH_PROG(CPPUNIT_CONFIG, cppunit-config, no)
+if test "x$CPPUNIT_CONFIG" = "xno"; then
+        AC_MSG_WARN([cppunit-config not found - no UNIT testing will be performed])
+        CPPUNIT_CFLAGS=
+        CPPUNIT_LIBS=
+else
+        CPPUNIT_CFLAGS="`$CPPUNIT_CONFIG --cflags`"
+          CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
+fi])
+if test "x$CPPUNIT_CONFIG" != "xno" || "x$CPPUNIT_PKG_ERRORS" != "x"
+then
+  enable_cppunit=yes
+  TEST_DIR=test
+else
+  enable_cppunit=no
+  TEST_DIR=
+fi
+AM_CONDITIONAL([CPPUNIT_ENABLED],[test "x$enable_cppunit" != "xyes"])
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
+AC_SUBST(TEST_DIR)
 
 #check lasso
 LASSO_INSTALLED=no
@@ -736,6 +755,7 @@ AC_CONFIG_FILES([Makefile
 AC_OUTPUT
 
 AC_MSG_RESULT([
+Unit testing:       ${enable_cppunit} 
 Java binding:       ${enable_java} 
 Python binding:     ${enable_python} ($PYTHON_VERSION)
 
