@@ -482,11 +482,8 @@ void PaulService::do_action(void)
             }
             if (j.getStatus() == KILLING) {
                 logger_.msg(Arc::DEBUG, "Killing %s", job_id);
-                TerminateProcess(runq[job_id], 256);
-#if 0
                 Arc::Run *run = runq[job_id];
                 run->Kill(1);
-#endif
                 j.setStatus(KILLED);
             }
         }
@@ -499,9 +496,11 @@ void PaulService::do_action(void)
     // cleanup finished process
     for (it = all.begin(); it != all.end(); it++) {
         Job *j = it->second;
+        logger_.msg(Arc::DEBUG, "cleanup %s %d", j->getID(), j->getStatus());
         if (j->getStatus() == FINISHED) {
             // do clean if and only if the finished state already reported
             if (j->isFinishedReported()) {
+                logger_.msg(Arc::DEBUG, "cleanup %s", j->getID());
                 j->clean(job_root);
                 jobq.removeJob(*j);
             }           
