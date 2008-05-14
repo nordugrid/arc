@@ -9,6 +9,7 @@ URL: http://www.nordugrid.org/
 Source:	%{name}-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 #
+BuildRequires: cppunit
 BuildRequires: pkgconfig
 BuildRequires: e2fsprogs-devel
 BuildRequires: gcc-java
@@ -144,6 +145,7 @@ ARC API docmentation
 %configure --disable-static %{?disable_java:--disable-java}
 make %{?_smp_mflags}
 
+make check
 
 %install
 rm -rf $RPM_BUILD_ROOT
