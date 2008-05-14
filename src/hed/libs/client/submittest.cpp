@@ -1,0 +1,36 @@
+#include <arc/client/Submitter.h>
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
+#include <arc/misc/ClientInterface.h>
+#include <arc/XMLNode.h>
+#include <arc/loader/Loader.h>
+
+int main(){
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  
+  Arc::ACCConfig acccfg;
+  Arc::NS ns;
+  Arc::Config cfg(ns);
+  acccfg.MakeConfig(cfg);
+
+  Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
+  SubmitterComp.NewAttribute("name") = "SubmitterARC0";
+  SubmitterComp.NewAttribute("id") = "submitter";
+  SubmitterComp.NewChild("Endpoint") = "gsiftp://grid.tsl.uu.se:2811/jobs";
+
+  Arc::Loader loader(&cfg);
+
+  Arc::Submitter *submitter =
+    dynamic_cast<Arc::Submitter*>(loader.getACC("submitter"));
+
+  Arc::URL jobid =
+    submitter->Submit("&(executable=echo)(arguments=\"Hello World\")"
+		      "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
+
+  std::cout << "Jobid: " << jobid << std::endl;
+
+  return 0;
+}

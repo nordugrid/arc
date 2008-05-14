@@ -259,8 +259,3 @@ namespace Arc{
 
   
 } //namespace
-
-acc_descriptors ARC_ACC_LOADER = {
-  { "TargetRetrieverARC0", 0, &Arc::TargetRetrieverARC0::Instance },
-  { NULL, 0, NULL }
-};
