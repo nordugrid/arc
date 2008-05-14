@@ -55,7 +55,7 @@ namespace ArcLib {
     std::cout<<"Cert Chain number: "<<  sk_X509_num(certchain) <<std::endl;
 
     for (n = 0; n < sk_X509_num(certchain); n++) {
-      tmp_cert = X509_dup(sk_X509_value(certchain, n));
+      tmp_cert = sk_X509_value(certchain, n);
 
       atime = X509_get_notAfter(tmp_cert);
       std::string tmp_notafter;
@@ -765,6 +765,24 @@ namespace ArcLib {
       int l = BIO_read(out,s,sizeof(s));
       if(l <= 0) break;
       content.append(s,l);
+    }
+    BIO_free_all(out);
+    return true;
+  }
+
+  bool Credential::OutputCertificateChain(std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) return false;
+    X509 *cert;
+    for (int n = 0; n < sk_X509_num(cert_chain_); n++) {
+      cert = sk_X509_value(cert_chain_, n);
+      if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
+      for(;;) {
+        char s[256];
+        int l = BIO_read(out,s,sizeof(s));
+        if(l <= 0) break;
+        content.append(s,l);
+      }
     }
     BIO_free_all(out);
     return true;

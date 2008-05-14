@@ -56,15 +56,16 @@ int main(void) {
 
   //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.
-  std::string private_key2, signing_cert2;
+  std::string private_key2, signing_cert2, signing_cert2_chain;
   request2.OutputPrivatekey(private_key2);
   signer2.OutputCertificate(signing_cert2);
+  signer2.OutputCertificateChain(signing_cert2_chain);
   std::cout<<"Private key of request: " <<private_key2<<std::endl;
   std::ofstream out_f2(out_file2.c_str(), std::ofstream::app);
   out_f2.write(private_key2.c_str(), private_key2.size());
   out_f2.write(signing_cert2.c_str(), signing_cert2.size());
   //Here add the up-level signer certificate
-  out_f2.write(signing_cert1.c_str(), signing_cert1.size());
+  out_f2.write(signing_cert2_chain.c_str(), signing_cert2_chain.size());
   out_f2.close();
 
 }

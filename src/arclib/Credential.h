@@ -174,6 +174,9 @@ class Credential {
     /**Output the certificate into string*/
     bool OutputCertificate(std::string &content);  
 
+    /**Output the certificate chain into string*/
+    bool OutputCertificateChain(std::string &content);
+
     /**Inquire the certificate request from BIO, and put the request information to X509_REQ inside this object,
     *and parse the certificate type from the PROXYCERTINFO of request' extension
     */
