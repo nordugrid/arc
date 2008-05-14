@@ -47,10 +47,10 @@ if test "X$with_jdk" != "X"; then
     SUN_EXTRA_INCLUDE=
     case "${host}" in
 	*-pc-mingw32)
-	    SUN_EXTRA_INCLUDE="win32" 
+	    SUN_EXTRA_INCLUDE="win32"
 	    ;;
 	*-pc-cygwin)
-	    SUN_EXTRA_INCLUDE="win32" 
+	    SUN_EXTRA_INCLUDE="win32"
 	    ;;
 	*linux*)
 	    SUN_EXTRA_INCLUDE="linux"
@@ -234,16 +234,16 @@ if test "$glibmm_optiongroup_h" = yes; then
   AC_TRY_COMPILE([#include <glibmm.h>],[Glib::OptionEntry::Flags flags = Glib::OptionEntry::FLAG_NO_ARG;],[glibmm_optionflags=yes],[glibmm_optionflags=no])
   if test "$glibmm_optionflags" = yes; then
     AC_DEFINE(HAVE_GLIBMM_OPTIONFLAGS,,[define if glibmm have proper support for option flags])
-  else  
+  else
     AC_MSG_NOTICE([WARNING: glibmm has no all arguments flags defined - arguments parsing may be inconsistent])
   fi
 else
-  AC_MSG_NOTICE([WARNING: glibmm has no support for command lineparsing - using reduced functionality])  
+  AC_MSG_NOTICE([WARNING: glibmm has no support for command lineparsing - using reduced functionality])
 fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then
   AC_DEFINE(HAVE_GLIBMM_CHILDWATCH,,[define if glibmm have support for controling state of children processes])
-else  
+else
   AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
 fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::ModuleFlags flags = Glib::MODULE_BIND_LOCAL;],[glibmm_bind_local=yes],[glibmm_bind_local=no])
@@ -285,24 +285,24 @@ if test "$?" = '1'; then
         OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:alpha:]]`
         OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:digit:]] | od -td1 | awk 'NR==1{print $2}'`
         OPENSSL_PROXY=no
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" -ge "102"; then 
-	        OPENSSL_PROXY=yes
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" -ge "102"; then
+            OPENSSL_PROXY=yes
             AC_MSG_NOTICE([Found OpenSSL with PROXY support])
         else
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
         fi
         OPENSSL_X509_VERIFY_PARAM=no
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8"; then 
-	        OPENSSL_X509_VERIFY_PARAM=yes
+        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8"; then
+            OPENSSL_X509_VERIFY_PARAM=yes
             AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
         else
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
         fi
-        OPENSSL_OLDRSA=yes    
+        OPENSSL_OLDRSA=yes
         if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "x$OPENSSL_V3" != "x"; then
             AC_MSG_NOTICE([NO old RSA])
             OPENSSL_OLDRSA=no
-        fi    
+        fi
     else
         AC_ERROR([Cannot determine OpenSSL version!])
     fi
@@ -310,7 +310,7 @@ else
     OPENSSL_PROXY=no
     "$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
     if test "$?" = '0' ; then
-	        OPENSSL_PROXY=yes
+            OPENSSL_PROXY=yes
             AC_MSG_NOTICE([Found OpenSSL with PROXY support])
     else
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
@@ -318,7 +318,7 @@ else
     OPENSSL_X509_VERIFY_PARAM=no
     "$PKG_CONFIG" --exists 'openssl >= 0.9.8'
     if test "$?" = '0' ; then
-	        OPENSSL_X509_VERIFY_PARAM=yes
+            OPENSSL_X509_VERIFY_PARAM=yes
             AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
     else
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
@@ -326,9 +326,9 @@ else
     OPENSSL_OLDRSA=yes
     "$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
     if test "$?" = '0' ; then
-	    OPENSSL_OLDRSA=no
+            OPENSSL_OLDRSA=no
     fi
-fi    
+fi
 
 # check cppunit
 PKG_CHECK_MODULES(CPPUNIT, [cppunit],[],
@@ -339,7 +339,7 @@ if test "x$CPPUNIT_CONFIG" = "xno"; then
         CPPUNIT_LIBS=
 else
         CPPUNIT_CFLAGS="`$CPPUNIT_CONFIG --cflags`"
-          CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
+        CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
 fi])
 if test "x$CPPUNIT_CONFIG" != "xno" || "x$CPPUNIT_PKG_ERRORS" != "x"
 then
@@ -349,15 +349,14 @@ else
   enable_cppunit=no
   TEST_DIR=
 fi
-AM_CONDITIONAL([CPPUNIT_ENABLED],[test "x$enable_cppunit" != "xyes"])
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
 AC_SUBST(TEST_DIR)
 
 #check lasso
 LASSO_INSTALLED=no
-#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
-#[AC_SUBST(LASSO_CFLAGS) 
+#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1],
+#[AC_SUBST(LASSO_CFLAGS)
 # AC_SUBST(LASSO_LIBS)
 # LASSO_INSTALLED=yes],
 #[])
@@ -379,7 +378,7 @@ GPT_PKG(globus_io)
 AC_SUBST(GLOBUS_IO_CFLAGS)
 AC_SUBST(GLOBUS_IO_LIBS)
 
-# Check for gridftp-v2 
+# Check for gridftp-v2
 SAVE_CFLAGS=$CFLAGS
 SAVE_LIBS=$LIBS
 CFLAGS="$CFLAGS $GLOBUS_FTP_CLIENT_CFLAGS"
@@ -399,40 +398,40 @@ AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
 
 # Check for explicitely disabled services
-# A-Rex 
-AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes") 
-AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service]) 
-AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"]) 
-# ISI(S) 
-AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes") 
-AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service]) 
-AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"]) 
+# A-Rex
+AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),[],enable_a_rex_service="yes")
+AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
+AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
+# ISI(S)
+AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes")
+AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service])
+AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"])
 
-# PDP service 
-AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable building PDP Service]),[],enable_pdp_service="yes") 
-AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service]) 
-AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"]) 
+# PDP service
+AC_ARG_ENABLE(pdp_service, AC_HELP_STRING([--disable-pdp-service], [disable building PDP Service]),[],enable_pdp_service="yes")
+AC_MSG_NOTICE([PDP Service enabled: $enable_pdp_service])
+AM_CONDITIONAL([PDP_SERVICE_ENABLED],[test "x$enable_pdp_service" = "xyes"])
 
-# HTTPD service 
-AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable building HTTPD Service]),[],enable_httpd_service="yes") 
-AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service]) 
-AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"]) 
+# HTTPD service
+AC_ARG_ENABLE(httpd_service, AC_HELP_STRING([--disable-httpd-service], [disable building HTTPD Service]),[],enable_httpd_service="yes")
+AC_MSG_NOTICE([HTTPD Service enabled: $enable_httpd_service])
+AM_CONDITIONAL([HTTPD_SERVICE_ENABLED],[test "x$enable_httpd_service" = "xyes"])
 
 case "${host}" in
   *-*-mingw32)
-    # Paul service 
+    # Paul service
     AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),[],enable_paul_service="yes")
     ;;
   *) enable_paul_service="no"
     ;;
 esac
-AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service]) 
-AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"]) 
+AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service])
+AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
-# Sched service 
-AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes") 
-AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service]) 
-AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"]) 
+# Sched service
+AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes")
+AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
+AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
@@ -572,7 +571,7 @@ case "${host}" in
     WIN32="yes"
     REGEX_LIBS="-lgnurx"
     SOCKET_LIBS="-lws2_32"
-    EXTRA_LIBS="-lole32" 
+    EXTRA_LIBS="-lole32"
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
   ;;
@@ -653,7 +652,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/tcp/Makefile
                  src/hed/mcc/http/Makefile
                  src/hed/mcc/tls/Makefile
-                 src/hed/acc/Makefile		 
+                 src/hed/acc/Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/CREAM/Makefile
                  src/hed/dmc/Makefile
@@ -724,7 +723,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/a-rex/apsub.1
                  src/clients/a-rex/apstat.1
                  src/clients/a-rex/apsstat.1
-		 src/clients/cream2/Makefile
+                 src/clients/cream2/Makefile
                  src/clients/data/Makefile
                  src/clients/data/arccp.1
                  src/clients/data/arcls.1
@@ -748,15 +747,15 @@ AC_CONFIG_FILES([Makefile
                  intl/Makefile
                  doc/Makefile
                  include/Makefile
-                 debian/Makefile 
+                 debian/Makefile
                  arc.spec
                  src/hed/daemon/arched.8
 ])
 AC_OUTPUT
 
 AC_MSG_RESULT([
-Unit testing:       ${enable_cppunit} 
-Java binding:       ${enable_java} 
+Unit testing:       ${enable_cppunit}
+Java binding:       ${enable_java}
 Python binding:     ${enable_python} ($PYTHON_VERSION)
 
 Available third-party features:
@@ -767,7 +766,7 @@ LFC:                ${enable_lfc}
 RSL:                ${enable_rsl}
 SAML:               ${enable_saml}
 
-Included components: 
+Included components:
 A-Rex service:      ${enable_a_rex_service}
 ISI service:        ${enable_isi_service}
 PDP service:        ${enable_pdp_service}
