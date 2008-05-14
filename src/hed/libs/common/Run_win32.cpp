@@ -56,7 +56,7 @@ bool Run::Start(void) {
     char **args = const_cast<char**>(argv_.data());
     std::string cmd = "";
     for (int i = 0; args[i] != NULL; i++) {
-        std::string a(args[i])
+        std::string a(args[i]);
         cmd += (a + " ");
     }
     std::cout << "Cmd: " << cmd << std::endl;
@@ -69,7 +69,7 @@ bool Run::Start(void) {
                                NULL, 
                                (LPSTR)working_directory.c_str(),
                                &startupinfo, 
-                               &pid_->processinfo);
+                               &(pid_->processinfo));
     
     if (!result) {
         std::cout << "Spawn Error: " << GetOsErrorMessage() << std::endl;
