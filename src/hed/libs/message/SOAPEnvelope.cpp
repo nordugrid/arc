@@ -146,7 +146,7 @@ void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
   envelope.GetXML(out_xml_str,user_friendly);
 }
 
-SOAPFault::SOAPFault(XMLNode& body) {
+SOAPFault::SOAPFault(const XMLNode& body) {
   // TODO: set namespaces
   if(body.Size() != 1) return;
   fault=body.Child(0);
@@ -173,9 +173,17 @@ SOAPFault::SOAPFault(XMLNode& body) {
   return;
 }
 
-SOAPFault::SOAPFault(XMLNode& body,SOAPFaultCode c,const char* r,bool v12) {
+SOAPFault::SOAPFault(const XMLNode& body,SOAPFaultCode c,const char* r) {
+  bool ver12 = (body.Namespace() == "http://www.w3.org/2003/05/soap-envelope");
+  fault=((XMLNode&)body).NewChild("soap-env:Fault");
+  if(!fault) return;
+  Code(c);
+  Reason(0,r);
+}
+
+SOAPFault::SOAPFault(const XMLNode& body,SOAPFaultCode c,const char* r,bool v12) {
   ver12=v12;
-  fault=body.NewChild("soap-env:Fault");
+  fault=((XMLNode&)body).NewChild("soap-env:Fault");
   if(!fault) return;
   Code(c);
   Reason(0,r);
