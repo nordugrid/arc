@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-13 13:28+0200\n"
+"POT-Creation-Date: 2008-05-15 17:15+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -46,290 +46,290 @@ msgstr ""
 msgid "Can not read credential key from PEM key BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:291
+#: ../src/arclib/Credential.cpp:295
 msgid "Certificate verify OK"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:294
+#: ../src/arclib/Credential.cpp:298
 msgid "Certificate verify failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:472
+#: ../src/arclib/Credential.cpp:476
 #, c-format
 msgid "Can not read certificate file: %s"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:478
+#: ../src/arclib/Credential.cpp:482
 #, c-format
 msgid "Can not read key file: %s"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:528
+#: ../src/arclib/Credential.cpp:537
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:539
+#: ../src/arclib/Credential.cpp:548
 msgid "Can not create extension for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:559
+#: ../src/arclib/Credential.cpp:568
 msgid "The credential's private key has already been initialized"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:565
+#: ../src/arclib/Credential.cpp:574
 msgid "RSA_generate_key failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:579
+#: ../src/arclib/Credential.cpp:588
 msgid "RSA_generate_key_ex failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:586
+#: ../src/arclib/Credential.cpp:595
 msgid "BN_set_word failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:593
+#: ../src/arclib/Credential.cpp:602
 msgid "BN_new || RSA_new failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:614
+#: ../src/arclib/Credential.cpp:623
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:621
+#: ../src/arclib/Credential.cpp:633
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:646 ../src/arclib/Credential.cpp:656
-#: ../src/arclib/Credential.cpp:991 ../src/arclib/Credential.cpp:998
+#: ../src/arclib/Credential.cpp:659 ../src/arclib/Credential.cpp:669
+#: ../src/arclib/Credential.cpp:1047 ../src/arclib/Credential.cpp:1054
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:675
+#: ../src/arclib/Credential.cpp:688
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:689
+#: ../src/arclib/Credential.cpp:702
 msgid "Can not generate X509 request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:691
+#: ../src/arclib/Credential.cpp:704
 msgid "Can not set private key"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:704 ../src/arclib/Credential.cpp:721
+#: ../src/arclib/Credential.cpp:713 ../src/arclib/Credential.cpp:730
 msgid "Can not create BIO for request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:723
+#: ../src/arclib/Credential.cpp:732
 msgid "Can not set writable file for request BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:727
+#: ../src/arclib/Credential.cpp:736
 msgid "Wrote request into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:729
+#: ../src/arclib/Credential.cpp:738
 msgid "Failed to write request into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:738
+#: ../src/arclib/Credential.cpp:794
 msgid "NULL BIO passed to InquireRequest"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:741
+#: ../src/arclib/Credential.cpp:797
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:773
+#: ../src/arclib/Credential.cpp:829
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:782
+#: ../src/arclib/Credential.cpp:838
 msgid "Can not get policy from PROXYCERTINFO extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:786
+#: ../src/arclib/Credential.cpp:842
 msgid "Can not get policy language from PROXYCERTINFO extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:816 ../src/arclib/Credential.cpp:831
+#: ../src/arclib/Credential.cpp:872 ../src/arclib/Credential.cpp:887
 msgid "Can not create BIO for parsing request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:821
+#: ../src/arclib/Credential.cpp:877
 msgid "Read request from a string"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:823
+#: ../src/arclib/Credential.cpp:879
 msgid "Failed to read request from a string"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:833
+#: ../src/arclib/Credential.cpp:889
 msgid "Can not set readable file for request BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:838
+#: ../src/arclib/Credential.cpp:894
 msgid "Read request from a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:840
+#: ../src/arclib/Credential.cpp:896
 msgid "Failed to read request from a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:856 ../src/arclib/Credential.cpp:877
+#: ../src/arclib/Credential.cpp:912 ../src/arclib/Credential.cpp:933
 msgid ""
 "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:863 ../src/arclib/Credential.cpp:884
+#: ../src/arclib/Credential.cpp:919 ../src/arclib/Credential.cpp:940
 msgid ""
 "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:869 ../src/arclib/Credential.cpp:890
+#: ../src/arclib/Credential.cpp:925 ../src/arclib/Credential.cpp:946
 msgid "Failed to set notBefore for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:906
+#: ../src/arclib/Credential.cpp:961
 msgid "Private key of the credential object is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:908
+#: ../src/arclib/Credential.cpp:964
 msgid "Can not convert private key to DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:961
+#: ../src/arclib/Credential.cpp:1017
 msgid "Failed to initialize X509 structure"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1009 ../src/arclib/Credential.cpp:1066
+#: ../src/arclib/Credential.cpp:1065 ../src/arclib/Credential.cpp:1122
 msgid "Can not add X509 extension to proxy cert"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1031
+#: ../src/arclib/Credential.cpp:1087
 msgid "Can not get extension from issuer certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1036
+#: ../src/arclib/Credential.cpp:1092
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1046 ../src/arclib/Credential.cpp:1054
+#: ../src/arclib/Credential.cpp:1102 ../src/arclib/Credential.cpp:1110
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1075
+#: ../src/arclib/Credential.cpp:1131
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1080
+#: ../src/arclib/Credential.cpp:1136
 msgid "Can not copy extended KeyUsage extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1084
+#: ../src/arclib/Credential.cpp:1140
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1092
+#: ../src/arclib/Credential.cpp:1148
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1096
+#: ../src/arclib/Credential.cpp:1152
 msgid "Can not create name entry CN for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1101
+#: ../src/arclib/Credential.cpp:1157
 msgid "Can not set CN in proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1108
+#: ../src/arclib/Credential.cpp:1164
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1112
+#: ../src/arclib/Credential.cpp:1168
 msgid "Can not set version number for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1116
+#: ../src/arclib/Credential.cpp:1172
 msgid "Can not set serial number for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1120
+#: ../src/arclib/Credential.cpp:1176
 msgid "Can not set the lifetime for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1124
+#: ../src/arclib/Credential.cpp:1180
 msgid "Can not set pubkey for proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1142
+#: ../src/arclib/Credential.cpp:1198
 msgid "The credential to be signed is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1143
+#: ../src/arclib/Credential.cpp:1199
 msgid "The BIO for output is NULL"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1151
+#: ../src/arclib/Credential.cpp:1207
 msgid "Error when extracting public key from request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1154
+#: ../src/arclib/Credential.cpp:1210
 msgid "Failed to verify the request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1158
+#: ../src/arclib/Credential.cpp:1214
 msgid "Failed to add issuer's extension into proxy"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1180
+#: ../src/arclib/Credential.cpp:1236
 msgid "Failed to duplicate extension"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1184
+#: ../src/arclib/Credential.cpp:1240
 msgid "Failed to add extension into proxy"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1190
+#: ../src/arclib/Credential.cpp:1246
 msgid "Can not get the issuer's private key"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1195
+#: ../src/arclib/Credential.cpp:1251
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed, it should be MD5 to sign "
 "certificate requests"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1201
+#: ../src/arclib/Credential.cpp:1257
 msgid "Failed to sign the request"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1210
+#: ../src/arclib/Credential.cpp:1266
 msgid "Succeeded to sign and output the proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1212
+#: ../src/arclib/Credential.cpp:1268
 msgid "Can not convert signed proxy cert into DER format"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1224 ../src/arclib/Credential.cpp:1241
+#: ../src/arclib/Credential.cpp:1280 ../src/arclib/Credential.cpp:1297
 msgid "Can not create BIO for signed proxy certificate"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1243
+#: ../src/arclib/Credential.cpp:1299
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1247
+#: ../src/arclib/Credential.cpp:1303
 msgid "Wrote signed proxy certificate into a file"
 msgstr ""
 
-#: ../src/arclib/Credential.cpp:1249
+#: ../src/arclib/Credential.cpp:1305
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 
@@ -339,19 +339,16 @@ msgid "Creating an A-REX client."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:53
-#: ../src/clients/cream2/cream_client.cpp:29
 #: ../src/clients/echo/echo_client.cpp:26
 msgid "Failed to load client configuration."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:58
-#: ../src/clients/cream2/cream_client.cpp:34
 #: ../src/clients/echo/echo_client.cpp:31
 msgid "Client side MCCs are loaded."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:61
-#: ../src/clients/cream2/cream_client.cpp:37
 #: ../src/clients/echo/echo_client.cpp:34
 msgid "Client chain does not have entry point."
 msgstr ""
@@ -362,6 +359,7 @@ msgid "Creating and sending request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:143
+#: ../src/clients/cream2/cream_client.cpp:178
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr ""
@@ -382,6 +380,8 @@ msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:188
 #: ../src/clients/a-rex/arex_client.cpp:220
+#: ../src/clients/cream2/cream_client.cpp:189
+#: ../src/clients/cream2/cream_client.cpp:236
 msgid "Submission request failed."
 msgstr ""
 
@@ -390,9 +390,11 @@ msgstr ""
 #: ../src/clients/a-rex/arex_client.cpp:343
 #: ../src/clients/a-rex/arex_client.cpp:409
 #: ../src/clients/a-rex/arex_client.cpp:479
-#: ../src/clients/cream2/cream_client.cpp:79
-#: ../src/clients/cream2/cream_client.cpp:181
-#: ../src/clients/cream2/cream_client.cpp:251
+#: ../src/clients/cream2/cream_client.cpp:55
+#: ../src/clients/cream2/cream_client.cpp:104
+#: ../src/clients/cream2/cream_client.cpp:141
+#: ../src/clients/cream2/cream_client.cpp:193
+#: ../src/clients/cream2/cream_client.cpp:240
 msgid "There was no SOAP response."
 msgstr ""
 
@@ -409,27 +411,23 @@ msgid "A response to a submission request was not a SOAP message."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:255
-#: ../src/clients/cream2/cream_client.cpp:57
+#: ../src/clients/cream2/cream_client.cpp:33
 msgid "Creating and sending a status request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:287
-#: ../src/clients/cream2/cream_client.cpp:96
 msgid "A status request failed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:290
-#: ../src/clients/cream2/cream_client.cpp:99
 msgid "A status request succeed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:292
-#: ../src/clients/cream2/cream_client.cpp:101
 msgid "There were no response to a status request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:300
-#: ../src/clients/cream2/cream_client.cpp:108
 msgid "The response of a status request was not a SOAP message."
 msgstr ""
 
@@ -455,57 +453,90 @@ msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:395
 #: ../src/clients/a-rex/arex_client.cpp:466
-#: ../src/clients/cream2/cream_client.cpp:165
+#: ../src/clients/cream2/cream_client.cpp:88
 msgid "Creating and sending request to terminate a job."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:426
-#: ../src/clients/cream2/cream_client.cpp:198
 msgid "A job termination request failed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:429
-#: ../src/clients/cream2/cream_client.cpp:201
 msgid "A job termination request succeed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:432
-#: ../src/clients/cream2/cream_client.cpp:203
 msgid "There was no response to a job termination request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:441
-#: ../src/clients/cream2/cream_client.cpp:211
 msgid "The response of a job termination request was not a SOAP message"
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:495
-#: ../src/clients/cream2/cream_client.cpp:268
 msgid "A job cleaning request failed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:498
-#: ../src/clients/cream2/cream_client.cpp:271
 msgid "A job cleaning request succeed."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:501
-#: ../src/clients/cream2/cream_client.cpp:273
 msgid "There was no response to a job cleaning request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:510
-#: ../src/clients/cream2/cream_client.cpp:280
 msgid "The response of a job cleaning request was not a SOAP message"
 msgstr ""
 
+#: ../src/clients/arclib/arccli.cpp:425 ../src/clients/data/arccli.cpp:147
+msgid "No program name"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:472 ../src/clients/data/arccli.cpp:167
+#, c-format
+msgid "Unknown program name: %s"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1019 ../src/clients/arclib/arccli.cpp:1115
+#: ../src/clients/data/arccli.cpp:327 ../src/clients/data/arccli.cpp:366
+msgid "Use -help option for help"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1167 ../src/clients/arclib/arccli.cpp:1172
+msgid "Incompatible Options"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1176
+msgid "No valid jobnames/jobids given"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1182
+msgid "Wrong number of parameters specified. Use -h for help"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1185
+msgid "Must give only one of -q, -c or -l options"
+msgstr ""
+
+#: ../src/clients/arclib/arccli.cpp:1189
+msgid "Must give service endpoint when using -q, -c or -l options"
+msgstr ""
+
 #: ../src/clients/cream2/cream_client.cpp:22
-#: ../src/clients/cream2/cream_client.cpp:45
 msgid "Creating a CREAM client."
 msgstr ""
 
-#: ../src/clients/cream2/cream_client.cpp:235
+#: ../src/clients/cream2/cream_client.cpp:125
 msgid "Creating and sending request to clean a job."
+msgstr ""
+
+#: ../src/clients/cream2/cream_client.cpp:162
+msgid "Creating and sending job register request."
+msgstr ""
+
+#: ../src/clients/cream2/cream_client.cpp:215
+msgid "Creating and sending job start request."
 msgstr ""
 
 #: ../src/clients/credentials/approxy.cpp:62
@@ -526,19 +557,6 @@ msgstr ""
 #: ../src/clients/credentials/approxy.cpp:65
 #, c-format
 msgid "Reason   : %s"
-msgstr ""
-
-#: ../src/clients/data/arccli.cpp:147
-msgid "No program name"
-msgstr ""
-
-#: ../src/clients/data/arccli.cpp:167
-#, c-format
-msgid "Unknown program name: %s"
-msgstr ""
-
-#: ../src/clients/data/arccli.cpp:327 ../src/clients/data/arccli.cpp:366
-msgid "Use -help option for help"
 msgstr ""
 
 #: ../src/clients/data/arccli.cpp:377 ../src/clients/data/arccli.cpp:385
@@ -769,7 +787,8 @@ msgstr ""
 
 #: ../src/hed/daemon/main.cpp:97 ../src/hed/daemon/main_win32.cpp:92
 #: ../src/services/a-rex/test.cpp:37 ../src/services/pdp/test.cpp:32
-#: ../src/services/saml/test.cpp:47 ../src/services/sched/test_service.cpp:29
+#: ../src/services/saml/test.cpp:47 ../src/services/saml/test_service.cpp:29
+#: ../src/services/sched/test_service.cpp:29
 #: ../src/tests/count/test_service.cpp:24 ../src/tests/echo/test.cpp:30
 #: ../src/tests/echo/test_service.cpp:29
 msgid "Failed to load service configuration"
@@ -781,53 +800,54 @@ msgstr ""
 
 #: ../src/hed/daemon/main.cpp:124 ../src/hed/daemon/main_win32.cpp:113
 #: ../src/services/a-rex/test.cpp:41 ../src/services/pdp/test.cpp:36
-#: ../src/services/saml/test.cpp:51 ../src/services/sched/test_service.cpp:33
+#: ../src/services/saml/test.cpp:51 ../src/services/saml/test_service.cpp:33
+#: ../src/services/sched/test_service.cpp:33
 #: ../src/tests/count/test_service.cpp:28 ../src/tests/echo/test.cpp:34
 #: ../src/tests/echo/test_service.cpp:33
 msgid "Service side MCCs are loaded"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:161
+#: ../src/hed/dmc/file/DataPointFile.cpp:160
 #, c-format
 msgid "File is not accessible: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:166
+#: ../src/hed/dmc/file/DataPointFile.cpp:165
 #, c-format
 msgid "Can't stat file: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:261
+#: ../src/hed/dmc/file/DataPointFile.cpp:260
 msgid "Failed to use channel stdout"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:274
+#: ../src/hed/dmc/file/DataPointFile.cpp:273
 #, c-format
 msgid "Invalid url: %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:288
-#: ../src/hed/libs/data/DataCache.cpp:200
-#: ../src/hed/libs/data/DataCache.cpp:233
+#: ../src/hed/dmc/file/DataPointFile.cpp:287
+#: ../src/hed/libs/data/DataCache.cpp:199
+#: ../src/hed/libs/data/DataCache.cpp:232
 #, c-format
 msgid "Failed to create/find directory %s"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:308
+#: ../src/hed/dmc/file/DataPointFile.cpp:307
 #, c-format
 msgid "Failed to create/open file %s (%d)"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:319
+#: ../src/hed/dmc/file/DataPointFile.cpp:318
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:341
+#: ../src/hed/dmc/file/DataPointFile.cpp:340
 msgid "Failed to preallocate space"
 msgstr ""
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:432
+#: ../src/hed/dmc/file/DataPointFile.cpp:431
 #, c-format
 msgid "Failed to read object: %s"
 msgstr ""
@@ -1166,7 +1186,6 @@ msgstr ""
 #: ../src/hed/dmc/gridftp/Lister.cpp:131 ../src/hed/dmc/gridftp/Lister.cpp:150
 #: ../src/hed/dmc/gridftp/Lister.cpp:349 ../src/hed/dmc/gridftp/Lister.cpp:356
 #: ../src/hed/dmc/gridftp/Lister.cpp:378 ../src/services/pdp/test.cpp:131
-#: ../src/services/saml/test.cpp:171
 #, c-format
 msgid "Response: %s"
 msgstr ""
@@ -1198,7 +1217,7 @@ msgid "Memory allocation error"
 msgstr ""
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:314 ../src/services/paul/run.cpp:65
-#: ../src/services/paul/run.cpp:156
+#: ../src/services/paul/run.cpp:77
 #, c-format
 msgid "Command: %s"
 msgstr ""
@@ -1703,7 +1722,7 @@ msgstr ""
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr ""
 
-#: ../src/hed/libs/common/ArcLocation.cpp:47
+#: ../src/hed/libs/common/ArcLocation.cpp:52
 #, c-format
 msgid ""
 "Can not determine the install location. Using %s. Please set ARC_LOCATION if "
@@ -1792,6 +1811,22 @@ msgstr ""
 #: ../src/hed/libs/common/URL.cpp:675
 #, c-format
 msgid "URL protocol is not urllist: %s"
+msgstr ""
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:40
+msgid "This DEBUG message should not be seen"
+msgstr ""
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:44
+msgid "This INFO message should be seen"
+msgstr ""
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:55
+msgid "This DEBUG message should now be seen"
+msgstr ""
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:61
+msgid "This INFO message should also be seen"
 msgstr ""
 
 #: ../src/hed/libs/data/Cache.cpp:1214
@@ -1883,53 +1918,53 @@ msgstr ""
 msgid "Cleaned %llu bytes in cache"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:29
+#: ../src/hed/libs/data/DataCache.cpp:28
 msgid "DataCache: constructor with copy"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:33
+#: ../src/hed/libs/data/DataCache.cpp:32
 msgid "DataCache: constructor with copy: calling start"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:100
+#: ../src/hed/libs/data/DataCache.cpp:99
 msgid "Error while locking file in cache"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:134
+#: ../src/hed/libs/data/DataCache.cpp:133
 msgid "Unknown error while locking file in cache"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:171
+#: ../src/hed/libs/data/DataCache.cpp:170
 #, c-format
 msgid "Cache cleaning requested: %s, %llu bytes"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:175
+#: ../src/hed/libs/data/DataCache.cpp:174
 #, c-format
 msgid "Cache cleaned: %s, %llu bytes"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:216
+#: ../src/hed/libs/data/DataCache.cpp:215
 #, c-format
 msgid "Failed to make symbolic link %s to %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:246
+#: ../src/hed/libs/data/DataCache.cpp:245
 #, c-format
 msgid "Failed to create file for writing: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:253
+#: ../src/hed/libs/data/DataCache.cpp:252
 #, c-format
 msgid "Failed to open file for reading: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:261
+#: ../src/hed/libs/data/DataCache.cpp:260
 #, c-format
 msgid "Failed to read file: %s"
 msgstr ""
 
-#: ../src/hed/libs/data/DataCache.cpp:271
+#: ../src/hed/libs/data/DataCache.cpp:270
 #, c-format
 msgid "Failed to write file: %s"
 msgstr ""
@@ -2475,22 +2510,22 @@ msgstr ""
 msgid "Module Manager Init"
 msgstr ""
 
-#: ../src/hed/libs/loader/ModuleManager.cpp:44
+#: ../src/hed/libs/loader/ModuleManager.cpp:64
 #, c-format
 msgid "Found %s in cache"
 msgstr ""
 
-#: ../src/hed/libs/loader/ModuleManager.cpp:61
+#: ../src/hed/libs/loader/ModuleManager.cpp:70
 #, c-format
 msgid "Could not locate module %s"
 msgstr ""
 
-#: ../src/hed/libs/loader/ModuleManager.cpp:74
+#: ../src/hed/libs/loader/ModuleManager.cpp:83
 #, c-format
 msgid "Loaded %s"
 msgstr ""
 
-#: ../src/hed/libs/loader/ModuleManager.cpp:82
+#: ../src/hed/libs/loader/ModuleManager.cpp:91
 msgid "Module Manager Init by ModuleManager::setCfg"
 msgstr ""
 
@@ -2522,7 +2557,7 @@ msgstr ""
 msgid "Security processing/check passed"
 msgstr ""
 
-#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:189
+#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:245
 #, c-format
 msgid "There is %d RequestItems"
 msgstr ""
@@ -2537,32 +2572,32 @@ msgstr ""
 msgid "No Attribute exists, which can deal with type: %s"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:111
+#: ../src/hed/mcc/http/MCCHTTP.cpp:121
 #, c-format
 msgid "HTTP Error: %d %s"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:158
+#: ../src/hed/mcc/http/MCCHTTP.cpp:168
 msgid "Cannot create http payload"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:186
+#: ../src/hed/mcc/http/MCCHTTP.cpp:196
 msgid "No next element in the chain"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:193 ../src/hed/mcc/soap/MCCSOAP.cpp:185
+#: ../src/hed/mcc/http/MCCHTTP.cpp:203 ../src/hed/mcc/soap/MCCSOAP.cpp:185
 msgid "next element of the chain returned error status"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:197 ../src/hed/mcc/soap/MCCSOAP.cpp:189
+#: ../src/hed/mcc/http/MCCHTTP.cpp:207 ../src/hed/mcc/soap/MCCSOAP.cpp:189
 msgid "next element of the chain returned empty payload"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:205 ../src/hed/mcc/soap/MCCSOAP.cpp:197
+#: ../src/hed/mcc/http/MCCHTTP.cpp:215 ../src/hed/mcc/soap/MCCSOAP.cpp:197
 msgid "next element of the chain returned invalid payload"
 msgstr ""
 
-#: ../src/hed/mcc/http/MCCHTTP.cpp:244
+#: ../src/hed/mcc/http/MCCHTTP.cpp:254
 msgid "Error to flush output payload"
 msgstr ""
 
@@ -2837,7 +2872,7 @@ msgstr ""
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:228
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:275
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:101
 #: ../src/services/a-rex/PayloadFile.cpp:35
 #: ../src/services/pdp/pdpservice.cpp:88
@@ -2900,48 +2935,49 @@ msgstr ""
 msgid "Result value (0 means success): %d"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:79 ../src/hed/pdc/countpdp/CountPDP.cpp:41
-#: ../src/hed/pdc/test.cpp:43 ../src/services/pdp/pdpservice.cpp:133
-msgid "Can not dynamically produce Evaluator"
-msgstr ""
-
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:107
-msgid "Evaluator for ArcPDP was not loaded"
-msgstr ""
-
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:118
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:134
 msgid ""
 "Although there is pdp configuration for this component, no pdp context has "
 "been generated for it"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:187
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:164
+#: ../src/hed/pdc/countpdp/CountPDP.cpp:41 ../src/hed/pdc/test.cpp:43
+#: ../src/services/pdp/pdpservice.cpp:133
+msgid "Can not dynamically produce Evaluator"
+msgstr ""
+
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:167
+msgid "Evaluator for ArcPDP was not loaded"
+msgstr ""
+
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:238
 msgid "Missing security object in message"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:193
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:245
 msgid "Failed to convert security information to ARC request"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:199
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:252
 #, c-format
 msgid "ARC Auth. request: %s"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:202
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:255
 msgid "No requested security information was collected"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:214
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:261
 #, c-format
 msgid "There are %d requests, which satisfy at least one policy"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:234
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:281
 msgid "Authorized from arc.pdp!!!"
 msgstr ""
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:240
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:287
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr ""
 
@@ -3098,7 +3134,7 @@ msgstr ""
 #: ../src/services/pdp/pdpservice.cpp:56 ../src/services/saml/aaservice.cpp:94
 #: ../src/services/sched/grid_sched.cpp:75
 #: ../src/services/wrappers/java/javawrapper.cpp:112
-#: ../src/services/wrappers/python/pythonwrapper.cpp:318
+#: ../src/services/wrappers/python/pythonwrapper.cpp:327
 msgid "input is not SOAP"
 msgstr ""
 
@@ -3157,7 +3193,7 @@ msgstr ""
 msgid "process: %s: not supported"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:31
+#: ../src/services/a-rex/change_activity_status.cpp:34
 #: ../src/services/sched/change_activity_status.cpp:29
 #, c-format
 msgid ""
@@ -3165,37 +3201,37 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:36
+#: ../src/services/a-rex/change_activity_status.cpp:39
 msgid "ChangeActivityStatus: no ActivityIdentifier found"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:43
+#: ../src/services/a-rex/change_activity_status.cpp:48
 msgid "ChangeActivityStatus: EPR contains no JobID"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:51
+#: ../src/services/a-rex/change_activity_status.cpp:58
 #, c-format
-msgid "ChangeActivityStatus: %s"
+msgid "ChangeActivityStatus: no job found: %s"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:65
+#: ../src/services/a-rex/change_activity_status.cpp:74
 msgid "ChangeActivityStatus: missing NewStatus element"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:95
+#: ../src/services/a-rex/change_activity_status.cpp:109
 msgid "ChangeActivityStatus: old BES state does not match"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:100
+#: ../src/services/a-rex/change_activity_status.cpp:116
 msgid "ChangeActivityStatus: old A-Rex state does not match"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:129
+#: ../src/services/a-rex/change_activity_status.cpp:147
 #, c-format
 msgid "ChangeActivityStatus: state change not allowed: from %s/%s to %s/%s"
 msgstr ""
 
-#: ../src/services/a-rex/change_activity_status.cpp:142
+#: ../src/services/a-rex/change_activity_status.cpp:162
 #, c-format
 msgid ""
 "ChangeActivityStatus: response = \n"
@@ -3212,7 +3248,7 @@ msgstr ""
 msgid "Reading configuration file: %s"
 msgstr ""
 
-#: ../src/services/a-rex/create_activity.cpp:28
+#: ../src/services/a-rex/create_activity.cpp:29
 #: ../src/services/sched/create_activity.cpp:36
 #, c-format
 msgid ""
@@ -3220,23 +3256,31 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/create_activity.cpp:33
+#: ../src/services/a-rex/create_activity.cpp:34
 #: ../src/services/sched/create_activity.cpp:51
 msgid "CreateActivity: no job description found"
 msgstr ""
 
-#: ../src/services/a-rex/create_activity.cpp:63
+#: ../src/services/a-rex/create_activity.cpp:46
+msgid "CreateActivity: Failed to accept delegation"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:56
 #: ../src/services/sched/create_activity.cpp:83
 #, c-format
 msgid "CreateActivity: Failed to create new job: %s"
 msgstr ""
 
-#: ../src/services/a-rex/create_activity.cpp:80
+#: ../src/services/a-rex/create_activity.cpp:58
+msgid "CreateActivity: Failed to create new job"
+msgstr ""
+
+#: ../src/services/a-rex/create_activity.cpp:70
 #: ../src/services/sched/create_activity.cpp:101
 msgid "CreateActivity finished successfully"
 msgstr ""
 
-#: ../src/services/a-rex/create_activity.cpp:84
+#: ../src/services/a-rex/create_activity.cpp:74
 #: ../src/services/sched/create_activity.cpp:105
 #, c-format
 msgid ""
@@ -3267,13 +3311,17 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_documents.cpp:47
-#: ../src/services/a-rex/get_activity_documents.cpp:57
+#: ../src/services/a-rex/get_activity_documents.cpp:40
+msgid "GetActivityDocuments: non-ARex job requested"
+msgstr ""
+
+#: ../src/services/a-rex/get_activity_documents.cpp:49
+#: ../src/services/a-rex/get_activity_documents.cpp:60
 #, c-format
 msgid "GetActivityDocuments: job %s - %s"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_documents.cpp:68
+#: ../src/services/a-rex/get_activity_documents.cpp:72
 #: ../src/services/sched/get_activity_documents.cpp:61
 #, c-format
 msgid ""
@@ -3281,7 +3329,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_statuses.cpp:31
+#: ../src/services/a-rex/get_activity_statuses.cpp:32
 #: ../src/services/sched/get_activity_statuses.cpp:28
 #, c-format
 msgid ""
@@ -3289,17 +3337,17 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_statuses.cpp:42
+#: ../src/services/a-rex/get_activity_statuses.cpp:43
 #, c-format
 msgid "GetActivityStatuses: job %s - can't understand EPR"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_statuses.cpp:49
+#: ../src/services/a-rex/get_activity_statuses.cpp:52
 #, c-format
 msgid "GetActivityStatuses: job %s - %s"
 msgstr ""
 
-#: ../src/services/a-rex/get_activity_statuses.cpp:85
+#: ../src/services/a-rex/get_activity_statuses.cpp:66
 #, c-format
 msgid ""
 "GetActivityStatuses: response = \n"
@@ -4503,7 +4551,16 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/services/a-rex/terminate_activities.cpp:65
+#: ../src/services/a-rex/terminate_activities.cpp:40
+msgid "TerminateActivities: non-ARex job requested"
+msgstr ""
+
+#: ../src/services/a-rex/terminate_activities.cpp:49
+#, c-format
+msgid "TerminateActivities: job %s - %s"
+msgstr ""
+
+#: ../src/services/a-rex/terminate_activities.cpp:69
 #: ../src/services/sched/terminate_activities.cpp:55
 #, c-format
 msgid ""
@@ -4512,36 +4569,40 @@ msgid ""
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:34 ../src/services/pdp/test.cpp:29
-#: ../src/services/saml/test.cpp:44 ../src/services/sched/test_service.cpp:26
+#: ../src/services/saml/test.cpp:44 ../src/services/saml/test_service.cpp:26
+#: ../src/services/sched/test_service.cpp:26
 #: ../src/tests/count/test_service.cpp:21 ../src/tests/echo/test.cpp:27
 #: ../src/tests/echo/test_service.cpp:26
 msgid "Creating service side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:43 ../src/services/pdp/test.cpp:37
-#: ../src/services/saml/test.cpp:52 ../src/tests/count/test_client.cpp:19
+#: ../src/services/saml/test.cpp:52 ../src/services/saml/test_client.cpp:44
+#: ../src/tests/count/test_client.cpp:19
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:20
 #: ../src/tests/echo/test_client.cpp:23
 msgid "Creating client side chain"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:49 ../src/services/pdp/test.cpp:42
-#: ../src/services/saml/test.cpp:57 ../src/tests/count/test_client.cpp:49
-#: ../src/tests/data/test.cpp:40
+#: ../src/services/saml/test.cpp:57 ../src/services/saml/test_client.cpp:47
+#: ../src/tests/count/test_client.cpp:49 ../src/tests/data/test.cpp:40
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:43
 #: ../src/tests/echo/test_client.cpp:53
 msgid "Failed to load client configuration"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:53 ../src/services/pdp/test.cpp:46
-#: ../src/services/saml/test.cpp:61 ../src/tests/count/test_client.cpp:53
+#: ../src/services/saml/test.cpp:61 ../src/services/saml/test_client.cpp:51
+#: ../src/tests/count/test_client.cpp:53
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:47
 #: ../src/tests/echo/test.cpp:43 ../src/tests/echo/test_client.cpp:57
 msgid "Client side MCCs are loaded"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:56 ../src/services/pdp/test.cpp:49
-#: ../src/services/saml/test.cpp:64 ../src/tests/count/test_client.cpp:56
+#: ../src/services/saml/test.cpp:64 ../src/services/saml/test_client.cpp:54
+#: ../src/tests/count/test_client.cpp:56
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:50
 #: ../src/tests/echo/test_client.cpp:60
 msgid "Client chain does not have entry point"
@@ -4554,9 +4615,10 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:112 ../src/services/a-rex/test.cpp:191
 #: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:296
 #: ../src/services/a-rex/test.cpp:344 ../src/services/a-rex/test.cpp:392
-#: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:343
-#: ../src/services/paul/paul.cpp:436 ../src/services/pdp/test.cpp:111
-#: ../src/services/saml/test.cpp:151 ../src/tests/count/test_client.cpp:83
+#: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:344
+#: ../src/services/paul/paul.cpp:437 ../src/services/pdp/test.cpp:111
+#: ../src/services/saml/test.cpp:152 ../src/services/saml/test_client.cpp:142
+#: ../src/tests/count/test_client.cpp:83
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:74
 #: ../src/tests/echo/test.cpp:59 ../src/tests/echo/test_client.cpp:84
 msgid "Request failed"
@@ -4565,15 +4627,16 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:115 ../src/services/a-rex/test.cpp:194
 #: ../src/services/a-rex/test.cpp:251 ../src/services/a-rex/test.cpp:299
 #: ../src/services/a-rex/test.cpp:347 ../src/services/a-rex/test.cpp:395
-#: ../src/services/pdp/test.cpp:114 ../src/services/saml/test.cpp:154
-#: ../src/tests/echo/test.cpp:67
+#: ../src/services/pdp/test.cpp:114 ../src/services/saml/test.cpp:155
+#: ../src/services/saml/test_client.cpp:145 ../src/tests/echo/test.cpp:67
 msgid "Request succeed!!!"
 msgstr ""
 
 #: ../src/services/a-rex/test.cpp:117 ../src/services/a-rex/test.cpp:196
 #: ../src/services/a-rex/test.cpp:253 ../src/services/a-rex/test.cpp:301
 #: ../src/services/a-rex/test.cpp:349 ../src/services/a-rex/test.cpp:397
-#: ../src/services/pdp/test.cpp:116 ../src/services/saml/test.cpp:156
+#: ../src/services/pdp/test.cpp:116 ../src/services/saml/test.cpp:157
+#: ../src/services/saml/test_client.cpp:147
 #: ../src/tests/count/test_client.cpp:89
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:80
 #: ../src/tests/echo/test.cpp:64 ../src/tests/echo/test_client.cpp:90
@@ -4583,7 +4646,8 @@ msgstr ""
 #: ../src/services/a-rex/test.cpp:125 ../src/services/a-rex/test.cpp:204
 #: ../src/services/a-rex/test.cpp:261 ../src/services/a-rex/test.cpp:309
 #: ../src/services/a-rex/test.cpp:357 ../src/services/a-rex/test.cpp:405
-#: ../src/services/pdp/test.cpp:124 ../src/services/saml/test.cpp:164
+#: ../src/services/pdp/test.cpp:124 ../src/services/saml/test.cpp:165
+#: ../src/services/saml/test_client.cpp:155
 #: ../src/tests/count/test_client.cpp:96
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:87
 #: ../src/tests/echo/test_client.cpp:97
@@ -4690,8 +4754,8 @@ msgstr ""
 msgid "Cannot collect resource information"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:176 ../src/services/paul/paul.cpp:354
-#: ../src/services/paul/paul.cpp:447
+#: ../src/services/paul/paul.cpp:176 ../src/services/paul/paul.cpp:355
+#: ../src/services/paul/paul.cpp:448
 msgid "No response"
 msgstr ""
 
@@ -4699,8 +4763,8 @@ msgstr ""
 msgid "Missing job identifier"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:204 ../src/services/paul/paul.cpp:377
-#: ../src/services/paul/paul.cpp:469
+#: ../src/services/paul/paul.cpp:204 ../src/services/paul/paul.cpp:378
+#: ../src/services/paul/paul.cpp:470
 #: ../src/services/sched/report_activities_status.cpp:16
 msgid "Cannot find job id"
 msgstr ""
@@ -4719,41 +4783,56 @@ msgstr ""
 msgid "Process job: %s"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:247
+#: ../src/services/paul/paul.cpp:242
+#, c-format
+msgid "%s set finished"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:248
 #, c-format
 msgid "Finished job %s"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:255
+#: ../src/services/paul/paul.cpp:256
 #, c-format
 msgid "Do Request: %s"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:269
+#: ../src/services/paul/paul.cpp:270
 msgid "No free CPU slot"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:296
+#: ../src/services/paul/paul.cpp:297
 msgid "Report status"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:380
+#: ../src/services/paul/paul.cpp:381
 #, c-format
 msgid "%s reported"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:383
+#: ../src/services/paul/paul.cpp:384
 #, c-format
 msgid "%s job reported finished"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:396
+#: ../src/services/paul/paul.cpp:397
 msgid "Get activity status changes"
 msgstr ""
 
-#: ../src/services/paul/paul.cpp:479
+#: ../src/services/paul/paul.cpp:484
 #, c-format
 msgid "Killing %s"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:499
+#, c-format
+msgid "cleanup %s %d"
+msgstr ""
+
+#: ../src/services/paul/paul.cpp:503
+#, c-format
+msgid "cleanup %s"
 msgstr ""
 
 #: ../src/services/paul/run.cpp:23
@@ -4768,82 +4847,38 @@ msgstr ""
 msgid "Empty executable"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:95
-#, c-format
-msgid "Spawn Error: %s"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:100
-msgid "Wait for process"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:102
-msgid "close process"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:106
-msgid "end process"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:118
-#, c-format
-msgid "Cannot start %s"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:121
-#, c-format
-msgid "Cannot start %s (%s)"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:128
-msgid "Zero return"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:131
-msgid "Error return"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:134
-#, c-format
-msgid "Process %s finished"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:139
-msgid "Process finished"
-msgstr ""
-
-#: ../src/services/paul/run.cpp:158
+#: ../src/services/paul/run.cpp:79
 msgid "Cannot start application"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:164
+#: ../src/services/paul/run.cpp:85
 #, c-format
 msgid "StdOut: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:165
+#: ../src/services/paul/run.cpp:86
 #, c-format
 msgid "StdErr: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:167
+#: ../src/services/paul/run.cpp:88
 msgid "delete run"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:170
+#: ../src/services/paul/run.cpp:91
 msgid "return from run"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:173
+#: ../src/services/paul/run.cpp:94
 msgid "Error during the application run"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:178
+#: ../src/services/paul/run.cpp:99
 #, c-format
 msgid "Exception: %s"
 msgstr ""
 
-#: ../src/services/paul/run.cpp:181
+#: ../src/services/paul/run.cpp:102
 msgid "SpawnError"
 msgstr ""
 
@@ -4868,11 +4903,15 @@ msgstr ""
 msgid "Cannot accept destination as URL"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:198
+#: ../src/services/paul/stage.cpp:190
+msgid "Transfer completed"
+msgstr ""
+
+#: ../src/services/paul/stage.cpp:199
 msgid "Stage in"
 msgstr ""
 
-#: ../src/services/paul/stage.cpp:207
+#: ../src/services/paul/stage.cpp:208
 msgid "Stage out"
 msgstr ""
 
@@ -4927,20 +4966,32 @@ msgstr ""
 msgid "assertionResponseBody shouldn't be NULL"
 msgstr ""
 
-#: ../src/services/saml/aaservice.cpp:240 ../src/services/saml/test.cpp:79
+#: ../src/services/saml/aaservice.cpp:243 ../src/services/saml/test.cpp:79
+#: ../src/services/saml/test_client.cpp:69
 msgid "lasso_assertion_query_new() failed"
 msgstr ""
 
-#: ../src/services/saml/test.cpp:106
+#: ../src/services/saml/test.cpp:106 ../src/services/saml/test_client.cpp:96
 msgid "lasso_assertion_query_init_request failed"
 msgstr ""
 
-#: ../src/services/saml/test.cpp:124
+#: ../src/services/saml/test.cpp:124 ../src/services/saml/test_client.cpp:114
 msgid "lasso_assertion_query_build_request_msg failed"
 msgstr ""
 
-#: ../src/services/saml/test.cpp:127
+#: ../src/services/saml/test.cpp:127 ../src/services/saml/test_client.cpp:117
 msgid "assertionRequestBody shouldn't be NULL"
+msgstr ""
+
+#: ../src/services/saml/test.cpp:178 ../src/services/saml/test_client.cpp:168
+msgid "lasso_assertion_query_process_response_msg failed"
+msgstr ""
+
+#: ../src/services/saml/test_service.cpp:34
+#: ../src/services/sched/test_service.cpp:34
+#: ../src/tests/count/test_service.cpp:29
+#: ../src/tests/echo/test_service.cpp:34
+msgid "Service is waiting for requests"
 msgstr ""
 
 #: ../src/services/sched/get_activities.cpp:12
@@ -5018,10 +5069,9 @@ msgstr ""
 msgid "Invalid status report"
 msgstr ""
 
-#: ../src/services/sched/test_service.cpp:34
-#: ../src/tests/count/test_service.cpp:29
-#: ../src/tests/echo/test_service.cpp:34
-msgid "Service is waiting for requests"
+#: ../src/services/sched/report_activities_status.cpp:27
+#, c-format
+msgid "%s reported state: %d"
 msgstr ""
 
 #: ../src/services/wrappers/java/javawrapper.cpp:29
@@ -5052,7 +5102,7 @@ msgid "Destroy jvm"
 msgstr ""
 
 #: ../src/services/wrappers/java/javawrapper.cpp:116
-#: ../src/services/wrappers/python/pythonwrapper.cpp:324
+#: ../src/services/wrappers/python/pythonwrapper.cpp:333
 msgid "output is not SOAP"
 msgstr ""
 
@@ -5064,115 +5114,115 @@ msgstr ""
 msgid "Java object returned NULL status"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:105
+#: ../src/services/wrappers/python/pythonwrapper.cpp:114
 msgid "Invalid class name"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:110
+#: ../src/services/wrappers/python/pythonwrapper.cpp:119
 #, c-format
 msgid "class name: %s"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:111
+#: ../src/services/wrappers/python/pythonwrapper.cpp:120
 #, c-format
 msgid "module name: %s"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:116
+#: ../src/services/wrappers/python/pythonwrapper.cpp:125
 msgid "Cannot convert module name to Python string"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:125
+#: ../src/services/wrappers/python/pythonwrapper.cpp:134
 msgid "Cannot import module"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:137
+#: ../src/services/wrappers/python/pythonwrapper.cpp:146
 msgid "Cannot convert arc module name to Python string"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:147
+#: ../src/services/wrappers/python/pythonwrapper.cpp:156
 msgid "Cannot import arc module"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:158
+#: ../src/services/wrappers/python/pythonwrapper.cpp:167
 msgid "Cannot get dictionary of arc module"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:168
+#: ../src/services/wrappers/python/pythonwrapper.cpp:177
 msgid "Cannot find arc Config class"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:177
+#: ../src/services/wrappers/python/pythonwrapper.cpp:186
 msgid "Config klass is not an object"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:185
+#: ../src/services/wrappers/python/pythonwrapper.cpp:194
 msgid "Cannot get dictionary of module"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:195
+#: ../src/services/wrappers/python/pythonwrapper.cpp:204
 msgid "Cannot find service class"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:206
+#: ../src/services/wrappers/python/pythonwrapper.cpp:215
 msgid "Cannot create config argument"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:215
+#: ../src/services/wrappers/python/pythonwrapper.cpp:224
 msgid "Cannot convert config to python object"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:225
+#: ../src/services/wrappers/python/pythonwrapper.cpp:234
 msgid "Cannot create argument of the constructor"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:235
+#: ../src/services/wrappers/python/pythonwrapper.cpp:244
 msgid "Cannot create instance of python class"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:244
+#: ../src/services/wrappers/python/pythonwrapper.cpp:253
 #, c-format
 msgid "%s is not an object"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:251
+#: ../src/services/wrappers/python/pythonwrapper.cpp:260
 msgid "Cannot find arc Message class"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:260
+#: ../src/services/wrappers/python/pythonwrapper.cpp:269
 msgid "Message klass is not an object"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:266
+#: ../src/services/wrappers/python/pythonwrapper.cpp:275
 msgid "Python Wrapper constructor called"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:277
+#: ../src/services/wrappers/python/pythonwrapper.cpp:286
 #, c-format
 msgid "Python Wrapper destructor called (%d)"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:304
+#: ../src/services/wrappers/python/pythonwrapper.cpp:313
 msgid "Python wrapper process called"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:308
+#: ../src/services/wrappers/python/pythonwrapper.cpp:317
 msgid "Python interpreter locked"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:333
+#: ../src/services/wrappers/python/pythonwrapper.cpp:342
 msgid "Cannot create inmsg argument"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:344
+#: ../src/services/wrappers/python/pythonwrapper.cpp:353
 msgid "Cannot convert inmsg to python object"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:357
+#: ../src/services/wrappers/python/pythonwrapper.cpp:366
 msgid "Cannot create outmsg argument"
 msgstr ""
 
-#: ../src/services/wrappers/python/pythonwrapper.cpp:368
+#: ../src/services/wrappers/python/pythonwrapper.cpp:377
 msgid "Cannot convert outmsg to python object"
 msgstr ""
 
