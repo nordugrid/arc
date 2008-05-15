@@ -214,6 +214,9 @@ exit 0
 %{_bindir}/arcstat
 %{_bindir}/perftest
 %{_bindir}/glitesub
+%{_bindir}/glitestat
+%{_bindir}/glitekill
+%{_bindir}/gliteclean
 
 %files server
 %defattr(-,root,root,-)
