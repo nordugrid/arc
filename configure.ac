@@ -262,7 +262,13 @@ AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::setenv("", "");],[glibmm_s
 if test "$glibmm_setenv" = yes; then
   AC_DEFINE(HAVE_GLIBMM_SETENV,,[define if glibmm have setenv operations])
 else
-  AC_MSG_NOTICE([WARNING: glibmm has no support for setenv. Usage of libc setenv is unsafe in multi-threaded applications.])
+  AC_MSG_NOTICE([WARNING: glibmm has no support for setenv. Usage of libc setenv may be unsafe in multi-threaded applications.])
+fi
+AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::unsetenv("");],[glibmm_unsetenv=yes],[glibmm_unsetenv=no])
+if test "$glibmm_unsetenv" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_UNSETENV,,[define if glibmm have unsetenv operations])
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no support for unsetenv. Usage of libc unsetenv may be unsafe in multi-threaded applications.])
 fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
