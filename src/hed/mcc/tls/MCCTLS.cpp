@@ -16,6 +16,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/MCCLoader.h>
 #include <arc/XMLNode.h>
+#include <arc/message/SecAttr.h>
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -27,6 +28,22 @@
 #include "PayloadTLSMCC.h"
 
 #include "MCCTLS.h"
+
+namespace Arc {
+class TLSSecAttr: public Arc::SecAttr {
+ friend class MCC_TLS_Service;
+ friend class MCC_TLS_Client;
+ public:
+  TLSSecAttr(PayloadTLSStream&);
+  virtual ~TLSSecAttr(void);
+  virtual operator bool(void);
+  virtual bool Export(Format format,XMLNode &val) const;
+ protected:
+  std::string identity_; // Subject of last non-proxy certificate
+  std::list<std::string> subjects_; // Subjects of all certificates in chain
+  virtual bool equal(const SecAttr &b) const;
+};
+}
 
 bool Arc::MCC_TLS::ssl_initialized_ = false;
 Glib::Mutex Arc::MCC_TLS::lock_;
@@ -182,6 +199,93 @@ mcc_descriptors ARC_MCC_LOADER = {
 };
 
 using namespace Arc;
+
+
+TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload) {
+   char buf[100];
+   std::string subject;
+   STACK_OF(X509)* peerchain = payload.GetPeerChain();
+   if(peerchain != NULL) {
+      for(int idx = 0;;++idx) {
+         if(idx >= sk_X509_num(peerchain)) break;
+         X509* cert = sk_X509_value(peerchain,idx);
+         buf[0]=0;
+         X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
+         subject=buf;
+         subjects_.push_back(subject);
+#ifdef HAVE_OPENSSL_PROXY
+         if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
+            identity_=subject;
+         };
+#endif
+      };
+   };
+   X509* peercert = payload.GetPeerCert();
+   if (peercert != NULL) {
+      buf[0]=0;
+      X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
+      subject=buf;
+      //logger.msg(DEBUG, "Peer name: %s", peer_dn);
+      subjects_.push_back(subject);
+#ifdef HAVE_OPENSSL_PROXY
+      if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
+         identity_=subject;
+      };
+#endif
+      X509_free(peercert);
+   };
+   if(identity_.empty()) identity_=subject;
+}
+
+TLSSecAttr::~TLSSecAttr(void) {
+}
+
+TLSSecAttr::operator bool(void) {
+  return true;
+}
+
+bool TLSSecAttr::equal(const SecAttr &b) const {
+  try {
+    const TLSSecAttr& a = (const TLSSecAttr&)b;
+    // ...
+    return false;
+  } catch(std::exception&) { };
+  return false;
+}
+
+static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
+   XMLNode attr = item.NewChild("ar:SubjectAttribute");
+   attr=subject; attr.NewAttribute("Type")="string";
+   attr.NewAttribute("AttributeId")=id;
+}
+
+bool TLSSecAttr::Export(Format format,XMLNode &val) const {
+  if(format == UNDEFINED) {
+  } else if(format == ARCAuth) {
+    NS ns;
+    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ar:Request");
+    XMLNode item = val.NewChild("ar:RequestItem");
+    XMLNode subj = item.NewChild("ar:Subject");
+    std::list<std::string>::const_iterator s = subjects_.begin();
+    std::string subject;
+    if(s != subjects_.end()) {
+      subject=*s;
+      add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/ca");
+      for(;s != subjects_.end();++s) {
+        subject=*s;
+        add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/chain");
+      };
+      add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
+    };
+    if(!identity_.empty()) {
+       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+    };
+    return true;
+  } else {
+  };
+  return false;
+}
 
 static int no_passphrase_callback(char*, int, int, void*) {
    return -1;
@@ -473,41 +577,46 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    nextinmsg.Payload(stream);
    Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
 
-//* @@@@@@
-   //Getting the subject name of peer(client) certificate
-   char buf[100];     
-   X509* peercert = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerCert();
-   if (peercert != NULL) {
-      X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
-      std::string peer_dn = buf;
-      logger.msg(DEBUG, "Peer name: %s", peer_dn);
-      // Putting the subject name into nextoutmsg.Attribute; so far, the subject is put into Attribute temporally, 
-      // it should be put into MessageAuth later.
-      nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
+//* @@@@@@ 
+   PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
+   // Filling security attributes
+   if(tstream) {
+      TLSSecAttr* sattr = new TLSSecAttr(*tstream);
+      nextinmsg.Auth()->set("TLS",sattr);
+      // TODO: Remove following code, use SecAttr instead
+      //Getting the subject name of peer(client) certificate
+      char buf[100];     
+      X509* peercert = tstream->GetPeerCert();
+      if (peercert != NULL) {
+         X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
+         std::string peer_dn = buf;
+         logger.msg(DEBUG, "Peer name: %s", peer_dn);
+         nextinmsg.Attributes()->set("TLS:PEERDN",peer_dn);
 #ifdef HAVE_OPENSSL_PROXY
-      if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
-         logger.msg(DEBUG, "Identity name: %s", peer_dn);
-         nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
-      } else {
-         STACK_OF(X509)* peerchain = (dynamic_cast<PayloadTLSStream*>(stream))->GetPeerChain();
-         if(peerchain != NULL) {
-            for(int idx = 0;;++idx) {
-               if(idx >= sk_X509_num(peerchain)) break;
-               X509* cert = sk_X509_value(peerchain,idx);
-               if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) >= 0) {
-                  X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
-                  std::string identity_dn = buf;
-                  logger.msg(DEBUG, "Identity name: %s", identity_dn);
-                  nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
-                  break;
+         if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
+            logger.msg(DEBUG, "Identity name: %s", peer_dn);
+            nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+         } else {
+            STACK_OF(X509)* peerchain = tstream->GetPeerChain();
+            if(peerchain != NULL) {
+               for(int idx = 0;;++idx) {
+                  if(idx >= sk_X509_num(peerchain)) break;
+                  X509* cert = sk_X509_value(peerchain,idx);
+                  if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) >= 0) {
+                     X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
+                     std::string identity_dn = buf;
+                     logger.msg(DEBUG, "Identity name: %s", identity_dn);
+                     nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+                     break;
+                  };
                };
             };
          };
-      };
 #else
-      nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+         nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
 #endif
-      X509_free(peercert);
+         X509_free(peercert);
+      }
    }
 
    // Checking authentication and authorization;
