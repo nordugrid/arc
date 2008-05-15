@@ -32,9 +32,9 @@ namespace Arc{
                 std::string CREAMClient::registerJob(std::string& jsdl_text) throw(CREAMClientError);
                 void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError);
                 std::string submit(std::string& jsdl_text) throw(CREAMClientError);
-                std::string stat(const std::string& jobid) throw(CREAMClientError); // OK
-                void cancel(const std::string& jobid) throw(CREAMClientError); // OK
-                void purge(const std::string& jobid) throw(CREAMClientError); // OK
+                std::string stat(const std::string& jobid) throw(CREAMClientError);
+                void cancel(const std::string& jobid) throw(CREAMClientError);
+                void purge(const std::string& jobid) throw(CREAMClientError);
                 Arc::ClientSOAP* SOAP(void) { return client; };
             private:
                 Arc::ClientSOAP* client;

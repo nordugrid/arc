@@ -1,5 +1,4 @@
-#bin_PROGRAMS = apsub apstat apkill apsstat apget apclean
-bin_PROGRAMS = glitesub
+bin_PROGRAMS = glitesub glitestat glitekill gliteclean
 #doc_DATA = client.xml jsdl_simple.xml jsdl_stage.xml
 #EXTRA_DIST = $(doc_DATA)
 EXTRA_DIST = openSSLFunctions.cpp
@@ -10,30 +9,20 @@ glitesub_SOURCES  = $(SOURCES) glitesub.cpp
 glitesub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
 glitesub_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 glitesub_LDADD    = $(LIBS)
-#
-#apstat_SOURCES  = $(SOURCES) apstat.cpp
-#apstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
-#apstat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#apstat_LDADD    = $(LIBS)
-#
-#apkill_SOURCES  = $(SOURCES) apkill.cpp
-#apkill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#apkill_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#apkill_LDADD    = $(LIBS)
-#
-#apclean_SOURCES  = $(SOURCES) apclean.cpp
-#apclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#apclean_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#apclean_LDADD    = $(LIBS)
-#
-#apsstat_SOURCES  = $(SOURCES) apsstat.cpp
-#apsstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#apsstat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#apsstat_LDADD    = $(LIBS)
-#
-#apget_SOURCES  = $(SOURCES) apget.cpp
-#apget_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-#apget_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-#apget_LDADD    = $(LIBS)
-#
+
+glitestat_SOURCES  = $(SOURCES) glitestat.cpp
+glitestat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
+glitestat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitestat_LDADD    = $(LIBS)
+
+glitekill_SOURCES  = $(SOURCES) glitekill.cpp
+glitekill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+glitekill_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitekill_LDADD    = $(LIBS)
+
+gliteclean_SOURCES  = $(SOURCES) gliteclean.cpp
+gliteclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+gliteclean_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+gliteclean_LDADD    = $(LIBS)
+
 #man_MANS = apsub.1 apstat.1 apkill.1 apsstat.1 apclean.1
