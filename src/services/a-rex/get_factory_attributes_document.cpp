@@ -38,8 +38,8 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   Arc::XMLNode doc = out.NewChild("bes-factory:FactoryResourceAttributesDocument");
   //doc.NewChild("bes-factory:BasicResourceAttributesDocument");
   doc.NewChild("bes-factory:IsAcceptingNewActivities")="true";
-  //doc.NewChild("bes-factory:CommonName")="";
-  //doc.NewChild("bes-factory:LongDescription")="";
+  //doc.NewChild("bes-factory:CommonName")=common_name_;
+  //doc.NewChild("bes-factory:LongDescription")=long_description_;
   std::list<std::string> jobs = ARexJob::Jobs(config);
   doc.NewChild("bes-factory:TotalNumberOfActivities")=Arc::tostring(jobs.size());
   for(std::list<std::string>::iterator j = jobs.begin();j!=jobs.end();++j) {

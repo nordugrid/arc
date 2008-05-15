@@ -22,6 +22,8 @@ class ARexService: public Arc::Service {
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;
+  std::string common_name_;
+  std::string long_description_;
   GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);

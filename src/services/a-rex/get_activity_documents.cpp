@@ -63,8 +63,6 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
       Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Failed processing activity");
       UnknownActivityIdentifierFault(fault,("Failed processing activity "+jobid+": "+job.Failure()).c_str());
       continue;
-
-      continue;
     };
     jsdl.Name("bes-factory:JobDefinition"); // Recovering namespace of element
   };

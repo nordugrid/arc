@@ -27,8 +27,8 @@ Activity states:
 
 BES-Factory attributes
   IsAcceptingNewActivities - supported. Always "true".
-  CommonName - not supported
-  LongDescription - not supported
+  CommonName - supported
+  LongDescription - supported
   TotalNumberOfActivities - supported
   ActivityReference - supported
   ContainedResource - not supported. It is not clear what contained resource is.
@@ -52,10 +52,13 @@ BES-Activity attributes - not supported. It is not specified how those attribute
 
 
 Faults
-  NotAuthorizedFault - not supported
-  InvalidRequestMessageFault - not supported  
-  UnknownActivityIdentfierFault - not supported
-  
+  NotAuthorizedFault - supported
+  InvalidRequestMessageFault - supported  
+  UnknownActivityIdentfierFault - supported
+  NotAcceptingNewActivitiesFault - no applicable
+  UnsupportedFeatureFault - not applicable
+  CantApplyOperationToCurentStateFault - supported
+  OperationWillBeApliedEventuallyFault - ignored in specs
 
 BES Extensions
   Idempotent Execution - not supported
@@ -74,7 +77,7 @@ WSRF Rendering (non-normative)
 Conformance to HPC basic profile (GFD.108)
 ------------------------------------------
 
-BES base specs (MUST) - mostly supported
+BES base specs (MUST) - supported
 BES extension profiles (MAY) - not supported
 Vector operations
   1 element (MUST) - supported
