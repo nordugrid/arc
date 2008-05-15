@@ -17,7 +17,7 @@
     ActivityStatus (ActivityStatusType)
     Message (xsd:string)
 
-  InvalidActivityIdentifierFault
+  UnknownActivityIdentifierFault
     Message (string)
 
   InvalidRequestMessageFaultType
@@ -38,10 +38,18 @@ void ARexService::NotAcceptingNewActivitiesFault(Arc::XMLNode fault) {
   return;
 }
 
+void ARexService::NotAcceptingNewActivitiesFault(Arc::SOAPFault& fault) {
+  NotAcceptingNewActivitiesFault(fault.Detail(true).NewChild("dummy"));
+}
+
 void ARexService::UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& feature) {
   fault.Name("bes-factory:UnsupportedFeatureFault");
   if(!feature.empty()) fault.NewChild("bes-factory:Feature")=feature;
   return;
+}
+
+void ARexService::UnsupportedFeatureFault(Arc::SOAPFault& fault,const std::string& feature) {
+  UnsupportedFeatureFault(fault.Detail(true).NewChild("dummy"),feature);
 }
 
 void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
@@ -51,6 +59,10 @@ void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const
   return;
 }
 
+void ARexService::CantApplyOperationToCurrentStateFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
+  CantApplyOperationToCurrentStateFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
+}
+
 void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
   fault.Name("bes-factory:OperationWillBeAppliedEventuallyFault");
   addActivityStatus(fault,gm_state,failed);
@@ -58,17 +70,29 @@ void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const
   return;
 }
 
-void ARexService::InvalidActivityIdentifierFault(Arc::XMLNode fault,const std::string& message) {
-  fault.Name("bes-factory:InvalidActivityIdentifierFault");
+void ARexService::OperationWillBeAppliedEventuallyFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
+  OperationWillBeAppliedEventuallyFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
+}
+
+void ARexService::UnknownActivityIdentifierFault(Arc::XMLNode fault,const std::string& message) {
+  fault.Name("bes-factory:UnknownActivityIdentifierFault");
   fault.NewChild("bes-factory:Message")=message;
   return;
 }
 
-void ARexService::InvalidRequestMessageFaultType(Arc::XMLNode fault,const std::string& element,const std::string& message) {
+void ARexService::UnknownActivityIdentifierFault(Arc::SOAPFault& fault,const std::string& message) {
+  UnknownActivityIdentifierFault(fault.Detail(true).NewChild("dummy"),message);
+}
+
+void ARexService::InvalidRequestMessageFault(Arc::XMLNode fault,const std::string& element,const std::string& message) {
   fault.Name("bes-factory:InvalidRequestMessageFaultType");
   if(!element.empty()) fault.NewChild("bes-factory:InvalidElement")=element;
   fault.NewChild("bes-factory:Message")=message;
   return;
+}
+
+void ARexService::InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::string& element,const std::string& message) {
+  InvalidRequestMessageFault(fault.Detail(true).NewChild("dummy"),element,message);
 }
 
 }

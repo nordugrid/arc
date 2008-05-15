@@ -24,6 +24,9 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     NewStatus (a-rex)
         attribute = state (bes-factory:ActivityStateEnumeration)
 
+  NotAuthorizedFault
+  InvalidActivityIdentifierFault
+  CantApplyOperationToCurrentStateFault
   */
   {
     std::string s;
@@ -34,22 +37,28 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   if(!(Arc::XMLNode)id) {
     // Wrong request
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: no ActivityIdentifier found");
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find ActivityIdentifier element in request");
+    InvalidRequestMessageFault(fault,"jsdl:ActivityIdentifier","Element is missing");
+    out.Destroy();
     return Arc::MCC_Status();
   };
   std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
   if(jobid.empty()) {
     // EPR is wrongly formated or not an A-REX EPR
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: EPR contains no JobID");
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobID element in ActivityIdentifier");
+    InvalidRequestMessageFault(fault,"a-rex:JobID","Element is missing");
+    out.Destroy();
     return Arc::MCC_Status();
   };
   ARexJob job(jobid,config);
   if(!job) {
     // There is no such job
     std::string failure = job.Failure();
-    logger_.msg(Arc::ERROR, "ChangeActivityStatus: %s",failure);
-
+    logger_.msg(Arc::ERROR, "ChangeActivityStatus: no job found: %s",failure);
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find requested Activity");
+    UnknownActivityIdentifierFault(fault,"No corresponding Activity found");
+    out.Destroy();
     return Arc::MCC_Status();
   };
 
@@ -63,13 +72,16 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   if(!new_state) {
     // Wrong request
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: missing NewStatus element");
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Missing NewStatus element in request");
+    InvalidRequestMessageFault(fault,"a-rex:NewStatus","Element is missing");
+    out.Destroy();
     return Arc::MCC_Status();
   };
   std::string new_bes_state = new_state.Attribute("state");
   std::string new_arex_state = new_state["a-rex:state"];
 
   std::string gm_state = job.State();
+  bool failed = job.Failed();
   std::string bes_state("");
   std::string arex_state("");
   if(gm_state == "ACCEPTED") {
@@ -84,8 +96,10 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     bes_state="Running"; arex_state="Finishing";
   } else if(gm_state == "FINISHED") {
     bes_state="Finished"; arex_state="Finished";
+    if(failed) bes_state="Failed";
   } else if(gm_state == "DELETED") {
     bes_state="Finished"; arex_state="Deleted";
+    if(failed) bes_state="Failed";
   } else if(gm_state == "CANCELING") {
     bes_state="Running"; arex_state="Killing";
   };
@@ -93,12 +107,16 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   // Old state in request must be checked against current one
   if((!old_bes_state.empty()) && (old_bes_state != bes_state)) {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: old BES state does not match");
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same ass current status");
+    CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
+    out.Destroy();
     return Arc::MCC_Status();
   };
   if((!old_arex_state.empty()) && (old_arex_state != arex_state)) {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: old A-Rex state does not match");
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same ass current status");
+    CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
+    out.Destroy();
     return Arc::MCC_Status();
   };
 
@@ -128,7 +146,9 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   } else {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: state change not allowed: from %s/%s to %s/%s",
                 bes_state.c_str(),arex_state.c_str(),new_bes_state.c_str(),new_arex_state.c_str());
-
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Status transition is not supported");
+    CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"Status transition is not supported");
+    out.Destroy();
     return Arc::MCC_Status();
   };
   // Make response

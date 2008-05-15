@@ -24,7 +24,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
         attribute = state (bes-factory:ActivityStateEnumeration)
           Pending,Running,Cancelled,Failed,Finished
       Fault (soap:Fault)
-
+  UnknownActivityIdentifierFault
   */
   {
     std::string s;
@@ -41,6 +41,8 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - can't understand EPR", jobid);
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Missing a-rex:JobID in ActivityIdentifier");
+      UnknownActivityIdentifierFault(fault,"Unrecognized EPR in ActivityIdentifier");
       continue;
     };
     // Look for obtained ID
@@ -48,6 +50,8 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s - %s", jobid, job.Failure());
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"No corresponding activity found");
+      UnknownActivityIdentifierFault(fault,("No activity "+jobid+" found: "+job.Failure()).c_str());
       continue;
     };
     /*
@@ -55,33 +59,6 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     */
     std::string gm_state = job.State();
     addActivityStatus(resp,gm_state,job.Failed());
-    /*
-    std::string bes_state("");
-    std::string arex_state("");
-    if(gm_state == "ACCEPTED") {
-      bes_state="Pending"; arex_state="Accepted";
-    } else if(gm_state == "PREPARING") {
-      bes_state="Running"; arex_state="Preparing";
-    } else if(gm_state == "SUBMIT") {
-      bes_state="Running"; arex_state="Submiting";
-    } else if(gm_state == "INLRMS") {
-      bes_state="Running"; arex_state="Executing";
-    } else if(gm_state == "FINISHING") {
-      bes_state="Running"; arex_state="Finishing";
-    } else if(gm_state == "FINISHED") {
-      bes_state="Finished"; arex_state="Finished";
-      if(job.Failed()) bes_state="Failed";
-    } else if(gm_state == "DELETED") {
-      bes_state="Finished"; arex_state="Deleted";
-      if(job.Failed()) bes_state="Failed";
-    } else if(gm_state == "CANCELING") {
-      bes_state="Running"; arex_state="Killing";
-    };
-    // Make response
-    Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
-    state.NewAttribute("bes-factory:state")=bes_state;
-    state.NewChild("a-rex:state")=arex_state;
-    */
   };
   {
     std::string s;

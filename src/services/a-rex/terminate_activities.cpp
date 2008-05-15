@@ -37,14 +37,18 @@ Arc::MCC_Status ARexService::TerminateActivities(ARexGMConfig& config,Arc::XMLNo
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
-
+      logger_.msg(Arc::ERROR, "TerminateActivities: non-ARex job requested");
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Missing a-rex:JobID in ActivityIdentifier");
+      UnknownActivityIdentifierFault(fault,"Unrecognized EPR in ActivityIdentifier");
       continue;
     };
     // Look for obtained ID
     ARexJob job(jobid,config);
     if(!job) {
       // There is no such job
-
+      logger_.msg(Arc::ERROR, "TerminateActivities: job %s - %s", jobid, job.Failure());
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"No corresponding activity found");
+      UnknownActivityIdentifierFault(fault,("No activity "+jobid+" found: "+job.Failure()).c_str());
       continue;
     };
     /*

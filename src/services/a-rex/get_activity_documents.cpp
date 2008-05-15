@@ -21,7 +21,7 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
       ActivityIdentifier
       JobDefinition (jsdl:JobDefinition)
       Fault (soap:Fault)
-
+  UnknownActivityIdentifierFault
   */
   {
     std::string s;
@@ -37,7 +37,9 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
     std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
     if(jobid.empty()) {
       // EPR is wrongly formated or not an A-REX EPR
-
+      logger_.msg(Arc::ERROR, "GetActivityDocuments: non-ARex job requested");
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Missing a-rex:JobID in ActivityIdentifier");
+      UnknownActivityIdentifierFault(fault,"Unrecognized EPR in ActivityIdentifier");
       continue;
     };
     // Look for obtained ID
@@ -45,7 +47,8 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s - %s", jobid, job.Failure());
-
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"No corresponding activity found");
+      UnknownActivityIdentifierFault(fault,("No activity "+jobid+" found: "+job.Failure()).c_str());
       continue;
     };
     /*
@@ -57,6 +60,9 @@ Arc::MCC_Status ARexService::GetActivityDocuments(ARexGMConfig& config,Arc::XMLN
       logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s - %s", jobid, job.Failure());
       // Processing failure
       jsdl.Destroy();
+      Arc::SOAPFault fault(resp,Arc::SOAPFault::Sender,"Failed processing activity");
+      UnknownActivityIdentifierFault(fault,("Failed processing activity "+jobid+": "+job.Failure()).c_str());
+      continue;
 
       continue;
     };
