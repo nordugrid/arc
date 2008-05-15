@@ -209,6 +209,12 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload) {
       for(int idx = 0;;++idx) {
          if(idx >= sk_X509_num(peerchain)) break;
          X509* cert = sk_X509_value(peerchain,idx);
+         if(idx == 0) { // Obtain CA subject
+           buf[0]=0;
+           X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof buf);
+           subject=buf;
+           subjects_.push_back(subject);
+         };
          buf[0]=0;
          X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
          subject=buf;
