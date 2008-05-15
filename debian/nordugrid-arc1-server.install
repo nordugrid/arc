@@ -6,4 +6,5 @@ usr/lib/arc/libcentralisi.so
 usr/lib/arc/libgrid_sched.so
 usr/lib/arc/libaccARC0.so
 usr/lib/arc/libaccCREAM.so
+usr/lib/arc/libpaul.so
 usr/share/man/man8/arched.8*
