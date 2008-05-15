@@ -32,7 +32,7 @@ void LoggerTest::setUp() {
 }
 
 void LoggerTest::tearDown() {
-	delete output;
+	// delete output;
 }
 
 void LoggerTest::TestLoggerINFO() {
