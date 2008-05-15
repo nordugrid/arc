@@ -12,9 +12,25 @@
 
 #include "proxy.h"
 
+#ifdef HAVE_GLIBMM_GETENV
+#include <glibmm/miscutils.h>
+#define GetEnv(NAME) Glib::getenv(NAME)
+#else
+#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
+#endif
+
+#ifdef HAVE_GLIBMM_SETENV
+#include <glibmm/miscutils.h>
+#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
+#else
+#ifdef HAVE_SETENV
+#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
+#else
+#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
+#endif
+#endif
+
 int prepare_proxy(void) {
-  char* proxy_file = NULL;
-  char* proxy_file_tmp = NULL;
   int h = -1;
   off_t len;
   char* buf = NULL;
@@ -22,9 +38,9 @@ int prepare_proxy(void) {
   int res=-1;
 
   if(getuid() == 0) { /* create temporary proxy */
-    proxy_file=getenv("X509_USER_PROXY");
-    if(proxy_file==NULL) goto exit;
-    h=open(proxy_file,O_RDONLY);
+    std::string proxy_file=GetEnv("X509_USER_PROXY");
+    if(proxy_file.empty()) goto exit;
+    h=open(proxy_file.c_str(),O_RDONLY);
     if(h==-1) goto exit;
     if((len=lseek(h,0,SEEK_END))==-1) goto exit;
     lseek(h,0,SEEK_SET);
@@ -37,34 +53,31 @@ int prepare_proxy(void) {
       l+=ll;
     };
     close(h); h=-1; len=l;
-    proxy_file_tmp=(char*)malloc(strlen(proxy_file)+5);
-    if(proxy_file_tmp==NULL) goto exit;
-    strcpy(proxy_file_tmp,proxy_file); strcat(proxy_file_tmp,".tmp");
-    h=open(proxy_file_tmp,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+    std::string proxy_file_tmp = proxy_file;
+    proxy_file_tmp+=".tmp";
+    h=open(proxy_file_tmp.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
     if(h==-1) goto exit;
-    (void)chmod(proxy_file_tmp,S_IRUSR | S_IWUSR);
+    (void)chmod(proxy_file_tmp.c_str(),S_IRUSR | S_IWUSR);
     for(l=0;l<len;) {
       ll=write(h,buf+l,len-l);
       if(ll==1) goto exit;
       l+=ll;
     };
     close(h); h=-1; 
-    setenv("X509_USER_PROXY",proxy_file_tmp,1);
+    SetEnv("X509_USER_PROXY",proxy_file_tmp);
   };
   res=0;
  exit:
-  if(proxy_file_tmp) free (proxy_file_tmp);
   if(buf) free(buf);
   if(h!=-1) close(h);
   return res;
 }
 
 int remove_proxy(void) {
-  char* proxy_file = NULL;
   if(getuid() == 0) {
-    proxy_file=getenv("X509_USER_PROXY");
-    if(proxy_file == NULL) return 0;
-    remove(proxy_file);
+    std::string proxy_file=GetEnv("X509_USER_PROXY");
+    if(proxy_file.empty()) return 0;
+    remove(proxy_file.c_str());
   };
   return 0;
 }

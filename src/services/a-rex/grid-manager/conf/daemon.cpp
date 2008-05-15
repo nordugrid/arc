@@ -10,9 +10,23 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifndef HAVE_SETENV
+
+#ifdef HAVE_GLIBMM_GETENV
 #include <glibmm/miscutils.h>
-#define setenv Glib::setenv
+#define GetEnv(NAME) Glib::getenv(NAME)
+#else
+#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
+#endif
+
+#ifdef HAVE_GLIBMM_SETENV
+#include <glibmm/miscutils.h>
+#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
+#else
+#ifdef HAVE_SETENV
+#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
+#else
+#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
+#endif
 #endif
 
 #include "../conf/conf.h"
@@ -89,21 +103,21 @@ int Daemon::arg(char c) {
 int Daemon::config(const std::string& cmd,std::string& rest) {
   if(central_configuration) {
     if(cmd == "gridmap") {
-      setenv("GRIDMAP",rest.c_str(),1); return 0;
+      SetEnv("GRIDMAP",rest); return 0;
     } else if(cmd == "hostname") {
-      setenv("GLOBUS_HOSTNAME",rest.c_str(),1); return 0;
+      SetEnv("GLOBUS_HOSTNAME",rest); return 0;
     } else if(cmd == "globus_tcp_port_range") {
-      setenv("GLOBUS_TCP_PORT_RANGE",rest.c_str(),1); return 0;
+      SetEnv("GLOBUS_TCP_PORT_RANGE",rest); return 0;
     } else if(cmd == "globus_udp_port_range") {
-      setenv("GLOBUS_UDP_PORT_RANGE",rest.c_str(),1); return 0;
+      SetEnv("GLOBUS_UDP_PORT_RANGE",rest); return 0;
     } else if(cmd == "x509_user_key") {
-      setenv("X509_USER_KEY",rest.c_str(),1); return 0;
+      SetEnv("X509_USER_KEY",rest); return 0;
     } else if(cmd == "x509_user_cert") {
-      setenv("X509_USER_CERT",rest.c_str(),1); return 0;
+      SetEnv("X509_USER_CERT",rest); return 0;
     } else if(cmd == "x509_cert_dir") {
-      setenv("X509_CERT_DIR",rest.c_str(),1); return 0;
+      SetEnv("X509_CERT_DIR",rest); return 0;
     } else if(cmd == "http_proxy") {
-      setenv("ARC_HTTP_PROXY",rest.c_str(),1); return 0;
+      SetEnv("ARC_HTTP_PROXY",rest); return 0;
     };
   };
   if(cmd == "daemon") {

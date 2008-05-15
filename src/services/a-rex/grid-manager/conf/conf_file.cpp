@@ -16,9 +16,22 @@
 #include "../run/run_plugin.h"
 #include "conf_file.h"
 
-#ifndef HAVE_SETENV
+#ifdef HAVE_GLIBMM_GETENV
 #include <glibmm/miscutils.h>
-#define setenv Glib::setenv
+#define GetEnv(NAME) Glib::getenv(NAME)
+#else
+#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
+#endif
+
+#ifdef HAVE_GLIBMM_SETENV
+#include <glibmm/miscutils.h>
+#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
+#else
+#ifdef HAVE_SETENV
+#define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
+#else
+#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
+#endif
 #endif
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
@@ -109,24 +122,24 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     };
     // pbs,gnu_time,etc. it is ugly hack here
     if(central_configuration && (command == "pbs_bin_path")) {
-      setenv("PBS_BIN_PATH",rest.c_str(),1);
+      SetEnv("PBS_BIN_PATH",rest);
     } else if(central_configuration && (command == "pbs_log_path")) {
-      setenv("PBS_LOG_PATH",rest.c_str(),1);
+      SetEnv("PBS_LOG_PATH",rest);
     } else if(central_configuration && (command == "gnu_time")) {
-      setenv("GNU_TIME",rest.c_str(),1);
+      SetEnv("GNU_TIME",rest);
     } else if(central_configuration && (command == "tmpdir")) {
-      setenv("TMP_DIR",rest.c_str(),1);
+      SetEnv("TMP_DIR",rest);
     } else if(central_configuration && (command == "runtimedir")) {
-      setenv("RUNTIME_CONFIG_DIR",rest.c_str(),1);
+      SetEnv("RUNTIME_CONFIG_DIR",rest);
     } else if(central_configuration && (command == "shared_filesystem")) {
       if(rest == "NO") rest="no";
-      setenv("RUNTIME_NODE_SEES_FRONTEND",rest.c_str(),1);
+      SetEnv("RUNTIME_NODE_SEES_FRONTEND",rest);
     } else if(central_configuration && (command == "scratchdir")) {
-      setenv("RUNTIME_LOCAL_SCRATCH_DIR",rest.c_str(),1);
+      SetEnv("RUNTIME_LOCAL_SCRATCH_DIR",rest);
     } else if(central_configuration && (command == "shared_scratch")) {
-      setenv("RUNTIME_FRONTEND_SEES_NODE",rest.c_str(),1);
+      SetEnv("RUNTIME_FRONTEND_SEES_NODE",rest);
     } else if(central_configuration && (command == "nodename")) {
-      setenv("NODENAME",rest.c_str(),1);
+      SetEnv("NODENAME",rest);
     } else if((!central_configuration && (command == "cache")) || 
               (central_configuration  && (command == "cachedir"))) { 
       cache_dir = config_next_arg(rest);

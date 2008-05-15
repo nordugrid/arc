@@ -22,7 +22,11 @@
 #include <glibmm/miscutils.h>
 #define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
 #else
+#ifdef HAVE_SETENV
 #define SetEnv(NAME,VALUE) setenv(NAME,VALUE.c_str(),1)
+#else
+#define SetEnv(NAME,VALUE) { char* __s = strdup((std::string(NAME)+"="+VALUE).c_str()); putenv(__s);  }
+#endif
 #endif
 
 // Globus installation path - $GLOBUS_LOCATION
