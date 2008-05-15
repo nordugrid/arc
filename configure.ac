@@ -341,7 +341,7 @@ else
         CPPUNIT_CFLAGS="`$CPPUNIT_CONFIG --cflags`"
         CPPUNIT_LIBS="`$CPPUNIT_CONFIG --libs`"
 fi])
-if test "x$CPPUNIT_CONFIG" != "xno" || "x$CPPUNIT_PKG_ERRORS" != "x"
+if test "x$CPPUNIT_CONFIG" != "xno" || test "x$CPPUNIT_PKG_ERRORS" != "x"
 then
   enable_cppunit=yes
   TEST_DIR=test
