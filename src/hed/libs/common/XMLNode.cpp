@@ -564,6 +564,17 @@ XMLNode XMLNode::GetRoot(void) {
   return XMLNode(doc->children);
 }
 
+XMLNode XMLNode::Parent(void) {
+  if(node_ == NULL) return XMLNode();
+  if(node_->type == XML_ELEMENT_NODE) {
+    return XMLNode(node_->parent);
+  };
+  if(node_->type == XML_ATTRIBUTE_NODE) {
+    return XMLNode(((xmlAttrPtr)node_)->parent);
+  };
+  return XMLNode();
+}
+
 XMLNode& XMLNode::operator=(const XMLNode& node) {
   if(is_owner_ && node_) {
     xmlDocPtr doc = node_->doc;

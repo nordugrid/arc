@@ -198,6 +198,8 @@ class XMLNode {
   XMLNodeList XPathLookup(const std::string& xpathExpr, const Arc::NS& nsList);
   /** Get the root node from any child node of the tree */
   XMLNode GetRoot(void);
+  /** Get the parent node from any child node of the tree */
+  XMLNode Parent(void);
   /** Save string representation of node to file */
   bool SaveToFile(const std::string &file_name) const;
   /** Save string representation of node to stream */
