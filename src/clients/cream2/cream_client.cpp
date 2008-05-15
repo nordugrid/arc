@@ -96,7 +96,7 @@ namespace Arc{
                 id.Set(jobid);
                 Arc::XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
     
-            // Send kill request
+            // Send cancel request
             Arc::PayloadSOAP* resp = NULL;
             if(client) {
                 Arc::MCC_Status status = client->process("http://glite.org/2007/11/ce/cream/JobCancel",&req,&resp);
