@@ -6,14 +6,24 @@
   targetNamespace="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   elementFormDefault="qualified">
   
+    <xsd:simpleType name="Version_Type">
+        <!-- This element defines TCP/IP protocol version.  -->
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="4"/>
+            <xsd:enumeration value="6"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="Version" type="Version_Type"/>
+
     <xsd:complexType name="Listen_Type">
         <!--
             This element defines listening TCP socket. If interface is missing socket
-            is bound to all local interfaces. There may be multiple Listen elements.
+            is bound to all local interfaces (not supported). There may be multiple Listen elements.
         -->
         <xsd:sequence>
             <xsd:element name="Interface" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Port" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Version" type="Version_Type" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="Listen" type="Listen_Type"/>
@@ -21,7 +31,7 @@
     <xsd:complexType name="Connect_Type">
         <!--
             This element defines TCP connection to be established to specified Host at specified Port.
-            If LocalPort is defined TCP socket will be bound to this port number.
+            If LocalPort is defined TCP socket will be bound to this port number (not supported).
         -->
         <xsd:sequence>
             <xsd:element name="Host" type="xsd:string" minOccurs="1" maxOccurs="1"/>
@@ -30,4 +40,5 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="Connect" type="Connect_Type"/>
+
 </xsd:schema>

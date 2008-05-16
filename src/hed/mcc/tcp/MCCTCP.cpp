@@ -39,6 +39,7 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <errno.h>
 #define ErrNo errno
 #endif
@@ -85,36 +86,57 @@ MCC_TCP_Service::MCC_TCP_Service(Arc::Config *cfg):MCC_TCP(cfg) {
     }
 #endif
     for(int i = 0;;++i) {
+        struct addrinfo hint;
+        struct addrinfo *info = NULL;
+        memset(&hint, 0, sizeof(hint));
+        hint.ai_socktype = SOCK_STREAM;
+        hint.ai_protocol = IPPROTO_TCP; // ?
+        hint.ai_flags = AI_PASSIVE;
         XMLNode l = (*cfg)["Listen"][i];
         if(!l) break;
         std::string port_s = l["Port"];
         if(port_s.empty()) {
-            logger.msg(Arc::WARNING, "Missing Port in Listen element");
+            logger.msg(Arc::ERROR, "Missing Port in Listen element");
             continue;
         };
-        int port = atoi(port_s.c_str());
-        int s = ::socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
-        if(s == -1) {
-	    logger.msg(Arc::WARNING, "Failed to create socket");
+        std::string version_s = l["Version"];
+        if(!version_s.empty()) {
+            if(version_s == "4") { hint.ai_family = AF_INET; }
+            else if(version_s == "6") { hint.ai_family = AF_INET6; }
+            else {
+                logger.msg(Arc::ERROR, "Version in Listen element can't be recognized");
+                continue;
+            };
+        };
+        int ret = getaddrinfo(NULL, port_s.c_str(), &hint, &info);
+        if (ret != 0) {
+            std::string err_str = gai_strerror(ret);
+            logger.msg(ERROR, "Failed to obtain local address for port %s - %s", port_s, err_str);
             continue;
         };
-        struct sockaddr_in myaddr;
-        memset(&myaddr,0,sizeof(myaddr));
-        myaddr.sin_family=AF_INET;
-        myaddr.sin_port=htons(port);
-        myaddr.sin_addr.s_addr=INADDR_ANY;
-        if(bind(s,(struct sockaddr *)&myaddr,sizeof(myaddr)) == -1) {
-	    logger.msg(Arc::WARNING, "Failed to bind socket");
-            continue;
+        for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
+            logger.msg(Arc::DEBUG, "Trying to listen on port %s", port_s);
+            int s = ::socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
+            if(s == -1) {
+	        logger.msg(Arc::ERROR, "Failed to create socket for port %s", port_s);
+                continue;
+            };
+            if(::bind(s,info->ai_addr,info->ai_addrlen) == -1) {
+	        logger.msg(Arc::ERROR, "Failed to bind socket for port %s", port_s);
+                close(s);
+                continue;
+            };
+            if(::listen(s,-1) == -1) {
+	        logger.msg(Arc::WARNING, "Failed to listen at port %s", port_s);
+                close(s);
+                continue;
+            };
+            handles_.push_back(s);
         };
-        if(::listen(s,-1) == -1) {
-	    logger.msg(Arc::WARNING, "Failed to listen on socket");
-            continue;
-        };
-        handles_.push_back(s);
+        freeaddrinfo(info);
     };
     if(handles_.size() == 0) {
-        logger.msg(Arc::ERROR, "No listening ports configured");
+        logger.msg(Arc::ERROR, "No listening ports initiated");
         return;
     };
     if(!CreateThreadFunction(&listener,this)) {

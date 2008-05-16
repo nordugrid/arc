@@ -28,7 +28,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   hint.ai_protocol = IPPROTO_TCP;
   hint.ai_flags = AI_CANONNAME;
   std::string port_str = Arc::tostring(port);
-  struct addrinfo *info;
+  struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if (ret != 0) {
     std::string err_str = gai_strerror(ret); 
