@@ -27,6 +27,10 @@ class MessageAuth {
     /// Same as MessageAuth::get
     SecAttr* operator[](const std::string& key) { return get(key); }; 
     /// Returns properly catenated attributes in specified format
+    /** Content of XML node at @val is replaced with generated information
+       if XML tree is empty. If tree at @val is not empty then Export() tries 
+       to merge generated information to already existing like everything would 
+       be generated inside same Export() method. */
     bool Export(SecAttr::Format format,XMLNode &val) const;
     /// Creates new instance of MessageAuth with attributes filtered
     /** In new instance all attributes with keys listed in @rejected_keys are 

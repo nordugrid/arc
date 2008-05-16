@@ -234,18 +234,29 @@ bool ArcPDP::isPermitted(Message *msg){
   */
 
   MessageAuth* mauth = msg->Auth()->Filter(select_attrs,reject_attrs);
-  if(!mauth) {
+  MessageAuth* cauth = msg->AuthContext()->Filter(select_attrs,reject_attrs);
+  if((!mauth) && (!cauth)) {
     logger.msg(ERROR,"Missing security object in message");
     return false;
   };
   NS ns;
   XMLNode requestxml(ns,"");
-  if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+  if(mauth) {
+    if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
+      delete mauth;
+      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      return false;
+    };
     delete mauth;
-    logger.msg(ERROR,"Failed to convert security information to ARC request");
-    return false;
   };
-  delete mauth;
+  if(cauth) {
+    if(!cauth->Export(SecAttr::ARCAuth,requestxml)) {
+      delete mauth;
+      logger.msg(ERROR,"Failed to convert security information to ARC request");
+      return false;
+    };
+    delete cauth;
+  };
   {
     std::string s;
     requestxml.GetXML(s);

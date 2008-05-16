@@ -54,7 +54,8 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   XMLNode newreq = val;
   newreq.Namespaces(ns);
   newreq.Name("ra:Request");
-  XMLNode newitem = newreq.NewChild("ra:RequestItem");
+  XMLNode newitem = newreq["ra:RequestItem"];
+  if(!newitem) newitem=newreq.NewChild("ra:RequestItem");
   std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
   for(;attr != attrs_.end();++attr) {
     XMLNode r(ns,"");
