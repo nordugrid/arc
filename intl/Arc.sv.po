@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-15 17:15+0200\n"
-"PO-Revision-Date: 2008-04-29 16:23+0200\n"
+"POT-Creation-Date: 2008-05-16 16:36+0200\n"
+"PO-Revision-Date: 2008-05-16 17:20+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -343,6 +343,73 @@ msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 "Misslyckades med att skriva det signerade proxycertifikatet till en fil"
 
+#: ../src/clients/arclib/arccli.cpp:431 ../src/clients/data/arccli.cpp:147
+msgid "No program name"
+msgstr "Inget programnamn"
+
+#: ../src/clients/arclib/arccli.cpp:478 ../src/clients/data/arccli.cpp:167
+#, c-format
+msgid "Unknown program name: %s"
+msgstr "Okänt programnamn: %s"
+
+#: ../src/clients/arclib/arccli.cpp:1025 ../src/clients/arclib/arccli.cpp:1121
+#: ../src/clients/data/arccli.cpp:327 ../src/clients/data/arccli.cpp:366
+msgid "Use -help option for help"
+msgstr "Använd flaggan -help för hjälp"
+
+#: ../src/clients/arclib/arccli.cpp:1172 ../src/clients/arclib/arccli.cpp:1177
+msgid "Incompatible Options"
+msgstr "Inkompatibla flaggor"
+
+#: ../src/clients/arclib/arccli.cpp:1181
+msgid "No valid jobnames/jobids given"
+msgstr "Inga giltiga jobbnamn/jobb-id angivna"
+
+#: ../src/clients/arclib/arccli.cpp:1187
+msgid "Wrong number of parameters specified. Use -h for help"
+msgstr "Fel antal parametrar angivna. Använd -h för hjälp"
+
+#: ../src/clients/arclib/arccli.cpp:1190
+msgid "Must give only one of -q, -c or -l options"
+msgstr "Endast en av flaggorna -q, -c eller -l kan anges"
+
+#: ../src/clients/arclib/arccli.cpp:1194
+msgid "Must give service endpoint when using -q, -c or -l options"
+msgstr "Serviceändpunkt måste anges när flaggorna -q, -c eller -l används"
+
+#: ../src/clients/arclib/arcsub.cpp:32
+msgid "No job description input specified"
+msgstr "Ingen jobbeskrivning angiven"
+
+#: ../src/clients/arclib/arcsub.cpp:44
+#, c-format
+msgid "Can not open file: %s"
+msgstr "Kan inte öpna fil: %s"
+
+#: ../src/clients/arclib/arcsub.cpp:151
+#, c-format
+msgid ""
+"Job submission failed due to: \n"
+"The specified cluster %s \n"
+"did not return any information"
+msgstr ""
+"Jobbinsändning misslyckades p.g.a. att det angivna klustret %s inte "
+"returnerade någon information"
+
+#: ../src/clients/arclib/arcsub.cpp:269
+msgid "Job submission summary:"
+msgstr "Jobbinsändningssammanfattning:"
+
+#: ../src/clients/arclib/arcsub.cpp:271
+#, c-format
+msgid "%d of %d jobs were submitted"
+msgstr "%d av %d jobb sändes in"
+
+#: ../src/clients/arclib/arcsub.cpp:274
+#, c-format
+msgid "The following %d were not submitted"
+msgstr "Följande %d sändes inte in"
+
 #: ../src/clients/a-rex/arex_client.cpp:44
 #: ../src/clients/a-rex/arex_client.cpp:72
 msgid "Creating an A-REX client."
@@ -502,60 +569,21 @@ msgstr ""
 "Ett svar på en förfrågan om uppstädning efter ett jobb var inget SOAP-"
 "meddelande."
 
-#: ../src/clients/arclib/arccli.cpp:425 ../src/clients/data/arccli.cpp:147
-msgid "No program name"
-msgstr "Inget programnamn"
-
-#: ../src/clients/arclib/arccli.cpp:472 ../src/clients/data/arccli.cpp:167
-#, c-format
-msgid "Unknown program name: %s"
-msgstr "Okänt programnamn: %s"
-
-#: ../src/clients/arclib/arccli.cpp:1019 ../src/clients/arclib/arccli.cpp:1115
-#: ../src/clients/data/arccli.cpp:327 ../src/clients/data/arccli.cpp:366
-msgid "Use -help option for help"
-msgstr "Använd flaggan -help för hjälp"
-
-#: ../src/clients/arclib/arccli.cpp:1167 ../src/clients/arclib/arccli.cpp:1172
-msgid "Incompatible Options"
-msgstr ""
-
-#: ../src/clients/arclib/arccli.cpp:1176
-msgid "No valid jobnames/jobids given"
-msgstr ""
-
-#: ../src/clients/arclib/arccli.cpp:1182
-#, fuzzy
-msgid "Wrong number of parameters specified. Use -h for help"
-msgstr "Fel antal parametrar angivna"
-
-#: ../src/clients/arclib/arccli.cpp:1185
-msgid "Must give only one of -q, -c or -l options"
-msgstr ""
-
-#: ../src/clients/arclib/arccli.cpp:1189
-msgid "Must give service endpoint when using -q, -c or -l options"
-msgstr ""
-
 #: ../src/clients/cream2/cream_client.cpp:22
-#, fuzzy
 msgid "Creating a CREAM client."
-msgstr "Skapar en A-REX-klient."
+msgstr "Skapar en CREAM-klient."
 
 #: ../src/clients/cream2/cream_client.cpp:125
-#, fuzzy
 msgid "Creating and sending request to clean a job."
-msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
+msgstr "Skapar och sänder förfrågan för att städa upp ett jobb."
 
 #: ../src/clients/cream2/cream_client.cpp:162
-#, fuzzy
 msgid "Creating and sending job register request."
-msgstr "Skapar och sänder en statusförfrågan."
+msgstr "Skapar och sänder en registreringsförfrågan."
 
 #: ../src/clients/cream2/cream_client.cpp:215
-#, fuzzy
 msgid "Creating and sending job start request."
-msgstr "Skapar och sänder en statusförfrågan."
+msgstr "Skapar och sänder en jobbstartförfrågan."
 
 #: ../src/clients/credentials/approxy.cpp:62
 #, c-format
@@ -855,9 +883,9 @@ msgid "Failed to create/find directory %s"
 msgstr "Misslyckades med att skapa/hitta katalog %s"
 
 #: ../src/hed/dmc/file/DataPointFile.cpp:307
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create/open file %s (%d)"
-msgstr "Misslyckades med att skapa/öppna fil: %s"
+msgstr "Misslyckades med att skapa/öppna fil %s (%d)"
 
 #: ../src/hed/dmc/file/DataPointFile.cpp:318
 #, c-format
@@ -1748,6 +1776,170 @@ msgstr "PDP: %s kan inte laddas"
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr "Grididentitet mappas till lokal identitet '%s'"
 
+#: ../src/hed/libs/client/TargetGenerator.cpp:83
+#, c-format
+msgid "Cluster: %s"
+msgstr "Kluster: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:85
+#, c-format
+msgid " Alias: %s"
+msgstr " Alias: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:89
+#, c-format
+msgid " Owner: %s"
+msgstr " Ägare: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:91
+#, c-format
+msgid " PostCode: %s"
+msgstr " Postnummer: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:93
+#, c-format
+msgid " Place: %s"
+msgstr " Ort: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:95
+#, c-format
+msgid " Latitude: %f"
+msgstr " Latitud: %f"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:97
+#, c-format
+msgid " Longitude: %f"
+msgstr " Longitud: %f"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:99
+msgid "Endpoint information"
+msgstr "Ändpunktsinformation"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:101
+#, c-format
+msgid " URL: %s"
+msgstr " URL: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:103
+#, c-format
+msgid " Interface Name: %s"
+msgstr " Gränssnittsnamn: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:105
+#, c-format
+msgid " Interface Version: %s"
+msgstr " Gränssnittsversion: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:107
+#, c-format
+msgid " Implementor: %s"
+msgstr " Implementerare: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:109
+#, c-format
+msgid " Implementation Name: %s"
+msgstr " Implementeringsnamn: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:111
+#, c-format
+msgid " Implementation Version: %s"
+msgstr " Implementeringsversion: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:113
+#, c-format
+msgid " Health State: %s"
+msgstr " Hälsotillstånd: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:115
+#, c-format
+msgid " Issuer CA: %s"
+msgstr " Utfärdar-CA: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:117
+#, c-format
+msgid " Staging: %s"
+msgstr " Laddar ned/upp: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:119
+msgid "Queue information"
+msgstr "Köinformation"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:121
+#, c-format
+msgid " Mapping Queue: %s"
+msgstr " Mappar till kö: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:123
+#, c-format
+msgid " Max Wall Time: %i"
+msgstr " Största klocktid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:125
+#, c-format
+msgid " Min Wall Time: %i"
+msgstr " Minsta klocktid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:127
+#, c-format
+msgid " Default Wall Time: %i"
+msgstr " Förvald klocktid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:129
+#, c-format
+msgid " Max CPU Time: %i"
+msgstr " Största CPU-tid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:131
+#, c-format
+msgid " Min CPU Time: %i"
+msgstr " Minsta CPU-tid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:133
+#, c-format
+msgid " Default CPU Time: %i"
+msgstr " Förvald CPU-tid: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:135
+#, c-format
+msgid " Max Total Jobs: %i"
+msgstr " Största totalt antal jobb: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:137
+#, c-format
+msgid " Max Running Jobs: %i"
+msgstr " Största antal exekverande jobb: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:139
+#, c-format
+msgid " Max Waiting Jobs: %i"
+msgstr " Största antal väntade jobb: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:141
+#, c-format
+msgid " Max Pre LRMS Waiting Jobs: %i"
+msgstr " Största antal pre-LRMS-väntade jobb: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:143
+#, c-format
+msgid " Max User Running Jobs: %i"
+msgstr " Största antal exekverande jobb för användaren: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:145
+#, c-format
+msgid " Max Slots Per Job: %i"
+msgstr " Största antal slotar per jobb: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:147
+#, c-format
+msgid " Max Stage In Streams: %i"
+msgstr " Största antal nedladdningsströmmar: %i"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:149
+#: ../src/hed/libs/client/TargetGenerator.cpp:151
+#, c-format
+msgid " Max Stage Out Streams: %i"
+msgstr " Största antal uppladdningsströmmar: %i"
+
 #: ../src/hed/libs/common/ArcLocation.cpp:52
 #, c-format
 msgid ""
@@ -1813,6 +2005,22 @@ msgstr "Konvertering misslyckades: %s"
 msgid "Full string not used: %s"
 msgstr "Hela strängen användes inte: %s"
 
+#: ../src/hed/libs/common/test/LoggerTest.cpp:40
+msgid "This DEBUG message should not be seen"
+msgstr "Detta DEBUG-meddelande borde inte ses"
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:44
+msgid "This INFO message should be seen"
+msgstr "Detta INFO-meddelande borde ses"
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:55
+msgid "This DEBUG message should now be seen"
+msgstr "Detta DEBUG-meddelande borde nu ses"
+
+#: ../src/hed/libs/common/test/LoggerTest.cpp:61
+msgid "This INFO message should also be seen"
+msgstr "Detta INFO-meddelande borde också ses"
+
 #: ../src/hed/libs/common/Thread.cpp:18
 msgid "Initialize thread system"
 msgstr "Initialisera trådsystemet"
@@ -1831,31 +2039,15 @@ msgstr "Okänt LDAP-scope %s - använder base"
 msgid "Illegal URL - no hostname given"
 msgstr "Ogiltig URL - inget värdnamn givet"
 
-#: ../src/hed/libs/common/URL.cpp:670
+#: ../src/hed/libs/common/URL.cpp:678
 #, c-format
 msgid "urllist %s contains invalid URL: %s"
 msgstr "urllistan %s innehåller ogiltig URL: %s"
 
-#: ../src/hed/libs/common/URL.cpp:675
+#: ../src/hed/libs/common/URL.cpp:683
 #, c-format
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
-
-#: ../src/hed/libs/common/test/LoggerTest.cpp:40
-msgid "This DEBUG message should not be seen"
-msgstr ""
-
-#: ../src/hed/libs/common/test/LoggerTest.cpp:44
-msgid "This INFO message should be seen"
-msgstr ""
-
-#: ../src/hed/libs/common/test/LoggerTest.cpp:55
-msgid "This DEBUG message should now be seen"
-msgstr ""
-
-#: ../src/hed/libs/common/test/LoggerTest.cpp:61
-msgid "This INFO message should also be seen"
-msgstr ""
 
 #: ../src/hed/libs/data/Cache.cpp:1214
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1285
@@ -2514,12 +2706,12 @@ msgstr "Plexer (%s) - nästa %s(%s) saknar mål"
 #: ../src/hed/libs/loader/LoaderFactory.cpp:39
 #, c-format
 msgid "Error at load (%s)"
-msgstr ""
+msgstr "Fel vid inladdning (%s)"
 
 #: ../src/hed/libs/loader/LoaderFactory.cpp:45
-#, fuzzy, c-format
+#, c-format
 msgid "Not a '%s' type plugin (%s)"
-msgstr "Ingen plugin av typen '%s'"
+msgstr "Ingen plugin av typen '%s' (%s)"
 
 #: ../src/hed/libs/loader/LoaderFactory.cpp:64
 #, c-format
@@ -2591,11 +2783,6 @@ msgstr "Säkerhetsprocessering/kontroll misslyckades"
 msgid "Security processing/check passed"
 msgstr "Säkerhetsprocessering/kontroll OK"
 
-#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:245
-#, c-format
-msgid "There is %d RequestItems"
-msgstr "Det finns %s RequestItem"
-
 #: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:29
 #, c-format
 msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
@@ -2605,6 +2792,11 @@ msgstr "Id= %s,Typ= %s,Utfärdare= %s,Värde= %s"
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
 msgstr "Inget attribut existerar som kan hantera typen: %s"
+
+#: ../src/hed/libs/security/ArcPDP/EvaluationCtx.cpp:245
+#, c-format
+msgid "There is %d RequestItems"
+msgstr "Det finns %s RequestItem"
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:121
 #, c-format
@@ -2715,7 +2907,7 @@ msgstr "Värd saknas i Connect-element"
 msgid "client process called"
 msgstr "klientprocess anropad"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:432 ../src/hed/mcc/tls/MCCTLS.cpp:613
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:432 ../src/hed/mcc/tls/MCCTLS.cpp:728
 msgid "Failed to send content of buffer"
 msgstr "Misslyckades med att skicka innehåll till buffer"
 
@@ -2803,76 +2995,76 @@ msgstr "Saknade villkorssubjekt i Globus signeringspolicy"
 msgid "Unknown element in Globus signing policy"
 msgstr "Okänt element i Globus sugneringspolicy"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:47
+#: ../src/hed/mcc/tls/MCCTLS.cpp:64
 msgid "Failed to store application data into OpenSSL"
 msgstr "Misslyckades med att lagra tillämpningsdata i OpenSSL"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:62
+#: ../src/hed/mcc/tls/MCCTLS.cpp:79
 msgid "Failed to retrieve application data from OpenSSL"
 msgstr "Misslyckades med att hämta tillämpningsdata från OpenSSL"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:152
+#: ../src/hed/mcc/tls/MCCTLS.cpp:169
 #, c-format
 msgid "Certificate %s failed Globus signing policy"
 msgstr "Certifikat %s underkändes av Globus signeringspolicy"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:216
+#: ../src/hed/mcc/tls/MCCTLS.cpp:326
 msgid "tls_random_seed from file: could not read files"
 msgstr "tls_random_seed från fil: kunde inte läsa filer"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:270
+#: ../src/hed/mcc/tls/MCCTLS.cpp:380
 #, c-format
 msgid "Can not load certificate file - %s"
 msgstr "Kunde inte ladda certifikatfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:276
+#: ../src/hed/mcc/tls/MCCTLS.cpp:386
 #, c-format
 msgid "Can not load key file - %s"
 msgstr "Kunde inte ladda nyckelfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:281
+#: ../src/hed/mcc/tls/MCCTLS.cpp:391
 msgid "Private key does not match certificate"
 msgstr "Den privata nyckeln passar inte certifikatet"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:313
+#: ../src/hed/mcc/tls/MCCTLS.cpp:423
 msgid "MCC_TLS::do_ssl_init"
 msgstr "MCC_TLS::do_ssl_init"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:316
+#: ../src/hed/mcc/tls/MCCTLS.cpp:426
 msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:328
+#: ../src/hed/mcc/tls/MCCTLS.cpp:438
 msgid "Failed to allocate SSL locks"
 msgstr "Misslyckades med att allokera SSL-lås"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:366 ../src/hed/mcc/tls/MCCTLS.cpp:553
+#: ../src/hed/mcc/tls/MCCTLS.cpp:476 ../src/hed/mcc/tls/MCCTLS.cpp:668
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:393 ../src/hed/mcc/tls/MCCTLS.cpp:571
+#: ../src/hed/mcc/tls/MCCTLS.cpp:503 ../src/hed/mcc/tls/MCCTLS.cpp:686
 msgid "Can't set OpenSSL verify flags"
 msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:410
+#: ../src/hed/mcc/tls/MCCTLS.cpp:520
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:483
+#: ../src/hed/mcc/tls/MCCTLS.cpp:599
 #, c-format
 msgid "Peer name: %s"
 msgstr "Peer-namn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:489 ../src/hed/mcc/tls/MCCTLS.cpp:500
+#: ../src/hed/mcc/tls/MCCTLS.cpp:603 ../src/hed/mcc/tls/MCCTLS.cpp:614
 #, c-format
 msgid "Identity name: %s"
 msgstr "Identitetsnamn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:515 ../src/hed/mcc/tls/MCCTLS.cpp:604
+#: ../src/hed/mcc/tls/MCCTLS.cpp:630 ../src/hed/mcc/tls/MCCTLS.cpp:719
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för inkommande meddelande"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:621
+#: ../src/hed/mcc/tls/MCCTLS.cpp:736
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för utgående meddelande"
 
@@ -2910,30 +3102,13 @@ msgstr "Peer-certifikatvalidering misslyckades"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:275
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:286
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:101
 #: ../src/services/a-rex/PayloadFile.cpp:35
 #: ../src/services/pdp/pdpservice.cpp:88
 #, c-format
 msgid "%s"
 msgstr "%s"
-
-#: ../src/hed/pdc/XACMLPolicy.cpp:56 ../src/hed/pdc/arcpdp/ArcPolicy.cpp:54
-#, c-format
-msgid "PolicyId: %s  Alg inside this policy is:-- %s"
-msgstr "PolicyId: %s  Alg inuti denna policy är:-- %s"
-
-#: ../src/hed/pdc/XACMLPolicy.cpp:72
-msgid "No target available inside the policy"
-msgstr "Inget mål tillgängligt inuti policyn"
-
-#: ../src/hed/pdc/XACMLRule.cpp:33
-msgid "Invalid Effect"
-msgstr "Ogiltig effekt"
-
-#: ../src/hed/pdc/XACMLRule.cpp:42
-msgid "No target available inside the rule"
-msgstr "Inget mål tillgängligt inuti regeln"
 
 #: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:57
 msgid "Can not parse classname for FunctionFactory from configuration"
@@ -2975,12 +3150,11 @@ msgid "Result value (0 means success): %d"
 msgstr "Resultatvärde (0 betyder OK): %d"
 
 #: ../src/hed/pdc/arcpdp/ArcPDP.cpp:134
-#, fuzzy
 msgid ""
 "Although there is pdp configuration for this component, no pdp context has "
 "been generated for it"
 msgstr ""
-"Trots att det finns en pdp-inställning för denna komponent, har ingen "
+"Trots att det finns en pdp-inställning för denna komponent, har ingen pdp-"
 "kontext skapats för detta"
 
 #: ../src/hed/pdc/arcpdp/ArcPDP.cpp:164
@@ -2991,54 +3165,56 @@ msgstr "Kan inte skapa Evaluator dynamiskt"
 
 #: ../src/hed/pdc/arcpdp/ArcPDP.cpp:167
 msgid "Evaluator for ArcPDP was not loaded"
-msgstr ""
+msgstr "Utvärderare för ArcPDP laddedes inte"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:238
-#, fuzzy
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:239
 msgid "Missing security object in message"
-msgstr "Saknad exekverbar fil i RSL"
+msgstr "Säkerhetsobjekt saknas i meddelande"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:245
-#, fuzzy
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:247 ../src/hed/pdc/arcpdp/ArcPDP.cpp:255
 msgid "Failed to convert security information to ARC request"
-msgstr "Misslyckades med att skapa informationsdokument"
+msgstr "Misslyckades med att konvertera säkerhetsinformation till ARC-begäran"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:252
-#, fuzzy, c-format
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:263
+#, c-format
 msgid "ARC Auth. request: %s"
-msgstr "SOAP-förfrågan: %s"
+msgstr "ARC-auktoriseringsförfrågan: %s"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:255
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:266
 msgid "No requested security information was collected"
-msgstr ""
+msgstr "Ingen begärd säkerhetsinformation samlades in"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:261
-#, fuzzy, c-format
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:272
+#, c-format
 msgid "There are %d requests, which satisfy at least one policy"
-msgstr "Det finns %d subjekt som uppfyller åtminstone en policy"
+msgstr "Det finns %d begärningar som uppfyller åtminstone en policy"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:281
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:292
 msgid "Authorized from arc.pdp!!!"
 msgstr "Autoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:287
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:298
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr "Oautoriserad från arc.pdp!!!"
 
 #: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:17
-#, fuzzy
 msgid "Policy is empty"
-msgstr "mail är tom"
+msgstr "Policy är tom"
+
+#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:54 ../src/hed/pdc/XACMLPolicy.cpp:56
+#, c-format
+msgid "PolicyId: %s  Alg inside this policy is:-- %s"
+msgstr "PolicyId: %s  Alg inuti denna policy är:-- %s"
 
 #: ../src/hed/pdc/arcpdp/PolicyParser.cpp:28
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read policy file %s"
-msgstr "Misslyckades med att läsa fil: %s"
+msgstr "Misslyckades med att läsa policyfil: %s"
 
 #: ../src/hed/pdc/arcpdp/PolicyParser.cpp:101
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read policy from URL %s"
-msgstr "Misslyckades med att läsa object: %s"
+msgstr "Misslyckades med att läsa policy från URL %s"
 
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:81
 #, c-format
@@ -3131,6 +3307,53 @@ msgstr "Mata in begäran från kod"
 msgid "Attribute Value (2): %s"
 msgstr "Attributvärde (2): %s"
 
+#: ../src/hed/pdc/XACMLPolicy.cpp:72
+msgid "No target available inside the policy"
+msgstr "Inget mål tillgängligt inuti policyn"
+
+#: ../src/hed/pdc/XACMLRule.cpp:33
+msgid "Invalid Effect"
+msgstr "Ogiltig effekt"
+
+#: ../src/hed/pdc/XACMLRule.cpp:42
+msgid "No target available inside the rule"
+msgstr "Inget mål tillgängligt inuti regeln"
+
+#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:189
+#: ../src/services/isis/centralisi.cpp:150
+#: ../src/services/pdp/pdpservice.cpp:56 ../src/services/saml/aaservice.cpp:94
+#: ../src/services/sched/grid_sched.cpp:75
+#: ../src/services/wrappers/java/javawrapper.cpp:112
+#: ../src/services/wrappers/python/pythonwrapper.cpp:327
+msgid "input is not SOAP"
+msgstr "indata är inte SOAP"
+
+#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:197
+#: ../src/services/isis/centralisi.cpp:156
+#: ../src/services/sched/grid_sched.cpp:82 ../src/tests/count/count.cpp:69
+msgid "input does not define operation"
+msgstr "indata definierar ej operation"
+
+#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:200
+#: ../src/services/isis/centralisi.cpp:162
+#: ../src/services/sched/grid_sched.cpp:85 ../src/tests/count/count.cpp:72
+#, c-format
+msgid "process: operation: %s"
+msgstr "process: operation: %s"
+
+#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:243
+#: ../src/services/isis/centralisi.cpp:201
+#: ../src/services/sched/grid_sched.cpp:141
+#, c-format
+msgid "SOAP operation is not supported: %s"
+msgstr "SOAP-process understöds inte: %s"
+
+#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:250
+#: ../src/services/sched/grid_sched.cpp:149
+#, c-format
+msgid "process: response=%s"
+msgstr "process: svar=%s"
+
 #: ../src/services/a-rex/arex.cpp:97
 msgid "Will not map to 'root' account by default"
 msgstr "Kommer ej att mappa 'root'-konto som förval"
@@ -3176,28 +3399,6 @@ msgstr "Misslyckades med att ladda inställningar"
 msgid "process: POST"
 msgstr "process: POST"
 
-#: ../src/services/a-rex/arex.cpp:189 ../src/services/arex2/arex2.cpp:113
-#: ../src/services/isis/centralisi.cpp:150
-#: ../src/services/pdp/pdpservice.cpp:56 ../src/services/saml/aaservice.cpp:94
-#: ../src/services/sched/grid_sched.cpp:75
-#: ../src/services/wrappers/java/javawrapper.cpp:112
-#: ../src/services/wrappers/python/pythonwrapper.cpp:327
-msgid "input is not SOAP"
-msgstr "indata är inte SOAP"
-
-#: ../src/services/a-rex/arex.cpp:197 ../src/services/arex2/arex2.cpp:120
-#: ../src/services/isis/centralisi.cpp:156
-#: ../src/services/sched/grid_sched.cpp:82 ../src/tests/count/count.cpp:69
-msgid "input does not define operation"
-msgstr "indata definierar ej operation"
-
-#: ../src/services/a-rex/arex.cpp:200 ../src/services/arex2/arex2.cpp:123
-#: ../src/services/isis/centralisi.cpp:162
-#: ../src/services/sched/grid_sched.cpp:85 ../src/tests/count/count.cpp:72
-#, c-format
-msgid "process: operation: %s"
-msgstr "process: operation: %s"
-
 #: ../src/services/a-rex/arex.cpp:205
 msgid "process: factory endpoint"
 msgstr "process: factoryändpunkt"
@@ -3205,19 +3406,6 @@ msgstr "process: factoryändpunkt"
 #: ../src/services/a-rex/arex.cpp:211
 msgid "process: CreateActivity"
 msgstr "process: CreateActivity"
-
-#: ../src/services/a-rex/arex.cpp:243 ../src/services/arex2/arex2.cpp:169
-#: ../src/services/isis/centralisi.cpp:201
-#: ../src/services/sched/grid_sched.cpp:141
-#, c-format
-msgid "SOAP operation is not supported: %s"
-msgstr "SOAP-process understöds inte: %s"
-
-#: ../src/services/a-rex/arex.cpp:250 ../src/services/arex2/arex2.cpp:176
-#: ../src/services/sched/grid_sched.cpp:149
-#, c-format
-msgid "process: response=%s"
-msgstr "process: svar=%s"
 
 #: ../src/services/a-rex/arex.cpp:269
 msgid "process: GET"
@@ -3259,9 +3447,9 @@ msgid "ChangeActivityStatus: EPR contains no JobID"
 msgstr "ChangeActivityStatus: EPR innehåller ingen JobID"
 
 #: ../src/services/a-rex/change_activity_status.cpp:58
-#, fuzzy, c-format
+#, c-format
 msgid "ChangeActivityStatus: no job found: %s"
-msgstr "ChangeActivityStatus: %s"
+msgstr "ChangeActivityStatus: inget jobb funnet: %s"
 
 #: ../src/services/a-rex/change_activity_status.cpp:74
 msgid "ChangeActivityStatus: missing NewStatus element"
@@ -3316,9 +3504,8 @@ msgid "CreateActivity: no job description found"
 msgstr "CreateActivity: ingen jobbeskrivning funnen"
 
 #: ../src/services/a-rex/create_activity.cpp:46
-#, fuzzy
 msgid "CreateActivity: Failed to accept delegation"
-msgstr "CreateActivity: Misslyckades med att skapa nytt jobb: %s"
+msgstr "CreateActivity: Misslyckades med att acceptera delegering"
 
 #: ../src/services/a-rex/create_activity.cpp:56
 #: ../src/services/sched/create_activity.cpp:83
@@ -3327,9 +3514,8 @@ msgid "CreateActivity: Failed to create new job: %s"
 msgstr "CreateActivity: Misslyckades med att skapa nytt jobb: %s"
 
 #: ../src/services/a-rex/create_activity.cpp:58
-#, fuzzy
 msgid "CreateActivity: Failed to create new job"
-msgstr "CreateActivity: Misslyckades med att skapa nytt jobb: %s"
+msgstr "CreateActivity: Misslyckades med att skapa nytt jobb"
 
 #: ../src/services/a-rex/create_activity.cpp:70
 #: ../src/services/sched/create_activity.cpp:101
@@ -3346,21 +3532,6 @@ msgstr ""
 "CreateActivity: svar = \n"
 "%s"
 
-#: ../src/services/a-rex/get.cpp:72
-#, c-format
-msgid "Get: there is no job %s - %s"
-msgstr "Get: det finns inget jobb %s - %s"
-
-#: ../src/services/a-rex/get.cpp:79
-#, c-format
-msgid "Get: can't process file %s/%s"
-msgstr "Get: kan inte processera fil %s/%s"
-
-#: ../src/services/a-rex/get.cpp:87
-#, c-format
-msgid "http_get: start=%u, end=%u"
-msgstr "http_get: början=%u, slut=%u"
-
 #: ../src/services/a-rex/get_activity_documents.cpp:29
 #: ../src/services/sched/get_activity_documents.cpp:25
 #, c-format
@@ -3372,11 +3543,8 @@ msgstr ""
 "%s"
 
 #: ../src/services/a-rex/get_activity_documents.cpp:40
-#, fuzzy
 msgid "GetActivityDocuments: non-ARex job requested"
-msgstr ""
-"GetActivityDocuments: begäran = \n"
-"%s"
+msgstr "GetActivityDocuments: icke-ARex-jobb begärt"
 
 #: ../src/services/a-rex/get_activity_documents.cpp:49
 #: ../src/services/a-rex/get_activity_documents.cpp:60
@@ -3423,6 +3591,21 @@ msgstr ""
 "GetActivityStatuses: begäran = \n"
 "%s"
 
+#: ../src/services/a-rex/get.cpp:72
+#, c-format
+msgid "Get: there is no job %s - %s"
+msgstr "Get: det finns inget jobb %s - %s"
+
+#: ../src/services/a-rex/get.cpp:79
+#, c-format
+msgid "Get: can't process file %s/%s"
+msgstr "Get: kan inte processera fil %s/%s"
+
+#: ../src/services/a-rex/get.cpp:87
+#, c-format
+msgid "http_get: start=%u, end=%u"
+msgstr "http_get: början=%u, slut=%u"
+
 #: ../src/services/a-rex/get_factory_attributes_document.cpp:36
 #: ../src/services/sched/get_factory_attributes_document.cpp:33
 #, c-format
@@ -3442,11 +3625,6 @@ msgid ""
 msgstr ""
 "GetFactoryAttributesDocument: svar = \n"
 "%s"
-
-#: ../src/services/a-rex/grid-manager/cache/cache.cpp:1451
-#, c-format
-msgid "Cleaned %lli bytes in cache"
-msgstr "Rensade %lli byte i cache"
 
 #: ../src/services/a-rex/grid-manager/cache/cache_cleaner.cpp:43
 msgid "Cache: Can't recognize myself."
@@ -3486,216 +3664,220 @@ msgstr ""
 msgid "Cache: in %s - %s requested to remove %lli, removed %lli"
 msgstr "Cache: i %s - %s begärde att ta bort %lli, tog bort %lli"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:70
+#: ../src/services/a-rex/grid-manager/cache/cache.cpp:1451
+#, c-format
+msgid "Cleaned %lli bytes in cache"
+msgstr "Rensade %lli byte i cache"
+
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:83
 msgid "Can't read configuration file."
 msgstr "Misslyckades med att läsa inställningsfil."
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:135
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:148
 msgid "junk in cache command"
 msgstr "skräp i cache-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:143
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:156
 msgid "junk in privatecache command"
 msgstr "skräp i privatecache-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:150
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:163
 msgid "junk in cachedata command"
 msgstr "skräp i cachedata-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:161
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:171
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:174
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:184
 msgid "wrong number in cachesize"
 msgstr "felaktigt nummer i cachesize"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:198
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:205
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:211
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:218
 msgid "wrong number in maxjobs"
 msgstr "felaktigt nummer i maxjobs"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:220
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:227
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:234
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:233
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:240
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:247
 msgid "wrong number in maxload"
 msgstr "felaktigt nummer i maxload"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:247
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:253
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:259
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:265
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:260
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:266
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:272
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:278
 msgid "wrong number in speedcontrol"
 msgstr "felaktigt nummer i speedcontrol"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:275
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:288
 msgid "wrong number in wakeupperiod"
 msgstr "felaktigt nummer i wakeupperiod"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:289
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:302
 msgid "wrong option in securetransfer"
 msgstr "felaktig inställning i securetransfer"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:302
-#, fuzzy
-msgid "wrong option in passivetransfer"
-msgstr "felaktig inställning i securetransfer"
-
 #: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:315
+msgid "wrong option in passivetransfer"
+msgstr "felaktig inställning i passivetransfer"
+
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:328
 msgid "wrong option in norootpower"
 msgstr "felaktig inställning i norootpower"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:327
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:340
 msgid "wrong option in localtransfer"
 msgstr "felaktig inställning i localtransfer"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:340
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:353
 msgid "wrong option in cacheregistration"
 msgstr "felaktig inställning i cacheregistration"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:347
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:360
 msgid "mail is empty"
 msgstr "mail är tom"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:354
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:367
 msgid "defaultttl is empty"
 msgstr "defaultttl är tom"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:358
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:367
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:371
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:380
 msgid "wrong number in defaultttl command"
 msgstr "felaktigt nummer i defaultttl-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:363
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:376
 msgid "junk in defaultttl command"
 msgstr "skräp i defaultttl-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:376
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:389
 msgid "maxrerun is empty"
 msgstr "maxrerun är tom"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:379
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:392
 msgid "junk in maxrerun command"
 msgstr "skräp i maxrerun-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:384
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:397
 msgid "wrong number in maxrerun command"
 msgstr "felaktigt nummer i maxrerun-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:390
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:403
 msgid "diskspace is empty"
 msgstr "diskspace är tom"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:393
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:406
 msgid "junk in diskspace command"
 msgstr "skräp i diskspace-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:398
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:411
 msgid "wrong number in diskspace command"
 msgstr "felaktigt nummer i diskspace-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:409
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:422
 msgid "defaultlrms is empty"
 msgstr "defaultlrms är tom"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:412
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:425
 msgid "junk in defaultlrms command"
 msgstr "skräp i defaultlrms-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:419
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:432
 msgid "state name for plugin is missing"
 msgstr "tillståndsnamn för plugin saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:423
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:436
 msgid "Options for plugin are missing"
 msgstr "Inställningar för plugin saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:426
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:439
 #, c-format
 msgid "Failed to register plugin for state %s"
 msgstr "Misslyckades med att registrera plugin för tillstånd %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:433
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:446
 msgid "timeout for plugin is missing"
 msgstr "timeout för plugin saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:438
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:451
 msgid "wrong number for timeout in plugin command"
 msgstr "felaktigt nummer för timeout i plugin-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:450
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:463
 msgid "session root dir is missing"
 msgstr "sessionskatalog saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:453
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:466
 msgid "junk in session root command"
 msgstr "skräp i session-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:461
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:474
 msgid "missing directory in control command"
 msgstr "saknad katalog i control-kommando"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:470
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:483
 #, c-format
 msgid "Can't read users in gridmap file %s"
 msgstr "Kan inte läsa användare i gridmap-fil %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:487
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:500
 #, c-format
 msgid "Warning: creation of user \"%s\" failed"
 msgstr "Varning: skapande av användare \"%s\" misslyckades"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:529
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:542
 msgid "user for helper program is missing"
 msgstr "tillståndsnamn för hjälpprogram saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:532
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:545
 msgid "helper program is missing"
 msgstr "hjälpprogram saknas"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:562
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:575
 #, c-format
 msgid "%s user for helper program is not configured"
 msgstr "%s användare för hjälpprogram ej inställd"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:600
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:613
 #, c-format
 msgid "Added user : %s"
 msgstr "Lagt till användare : %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:601
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:614
 #, c-format
 msgid "\tSession root dir : %s"
 msgstr "\tSessionkatalog   : %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:602
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:615
 #, c-format
 msgid "\tControl dir      : %s"
 msgstr "\tKontrollkatalog  : %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:603
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:616
 #, c-format
 msgid "\tdefault LRMS     : %s"
 msgstr "\tförvalt LRMS     : %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:604
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:617
 #, c-format
 msgid "\tdefault queue    : %s"
 msgstr "\tförvald kö       : %s"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:605
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:618
 #, c-format
 msgid "\tdefault ttl      : %u"
 msgstr "\tförvald ttl      : %u"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:608
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:621
 #, c-format
 msgid "\tCache dir        : %s (%s)"
 msgstr "\tCachekatalog     : %s (%s)"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:610
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:623
 #, c-format
 msgid "\tCache info dir   : %s (%s)"
 msgstr "\tCacheinfokatalog : %s (%s)"
 
-#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:611
+#: ../src/services/a-rex/grid-manager/conf/conf_file.cpp:624
 #, c-format
 msgid "\tCache data dir   : %s"
 msgstr "\tCachedatakatalog : %s"
@@ -3713,43 +3895,43 @@ msgstr "Ej tillräckligt antal parametrar i copyurl"
 msgid "Not enough parameters in linkurl"
 msgstr "Ej tillräckligt antal parametrar i linkurl"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:54
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:160
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:68
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:174
 #, c-format
 msgid "No such user: %s"
 msgstr "Ingen sådan användare: %s"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:66
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:172
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:80
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:186
 #, c-format
 msgid "No such group: %s"
 msgstr "Ingen sådan grupp: %s"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:79
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:185
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:93
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:199
 #, c-format
 msgid "Improper debug level '%s'"
 msgstr "Ogiltig debugnivå '%s'"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:113
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:127
 msgid "Missing option for command daemon"
 msgstr "Saknad inställning för kommandot daemon"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:118
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:132
 msgid "Wrong option in daemon"
 msgstr "Felaktig inställning i daemon"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:128
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:142
 #, c-format
 msgid "Improper size of log '%s'"
 msgstr "Ogiltig loggstorlek '%s'"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:137
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:151
 #, c-format
 msgid "Improper number of logs '%s'"
 msgstr "Ogiltigt antal loggar '%s'"
 
-#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:143
+#: ../src/services/a-rex/grid-manager/conf/daemon.cpp:157
 #, c-format
 msgid "Improper argument for logsize '%s'"
 msgstr "Ogiltigt argument för loggstorlek '%s'"
@@ -4489,12 +4671,12 @@ msgstr "%s: Radera begäran p.g.a. interna problem"
 msgid "Failed reading control directory: %s"
 msgstr "Misslyckades med att läsa kontrollkatalog: %s"
 
-#: ../src/services/a-rex/grid-manager/jobs/users.cpp:395
+#: ../src/services/a-rex/grid-manager/jobs/users.cpp:409
 #, c-format
 msgid "Starting helper process (%s): %s"
 msgstr "Startar hjälpprocess (%s): %s"
 
-#: ../src/services/a-rex/grid-manager/jobs/users.cpp:406
+#: ../src/services/a-rex/grid-manager/jobs/users.cpp:420
 #, c-format
 msgid "Helper process start failed (%s): %s"
 msgstr "Hjälpprocessstart misslyckades (%s): %s"
@@ -4508,7 +4690,7 @@ msgid "Failed running mailer."
 msgstr "Misslyckades med att exekvera e-postsändare."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:20
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:74
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:102
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:22
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:51
 #, c-format
@@ -4516,7 +4698,7 @@ msgid "%s: Failure creating slot for child process."
 msgstr "%s: Misslyckades med skapa slot för barnprocess."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:25
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:82
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:110
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:28
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:57
 #, c-format
@@ -4524,7 +4706,7 @@ msgid "%s: Failure creating data storage for child process."
 msgstr "%s: Misslyckades med att skapa datalagring för barnprocess."
 
 #: ../src/services/a-rex/grid-manager/run/run_function.cpp:34
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:89
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:117
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:37
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:66
 #, c-format
@@ -4538,18 +4720,18 @@ msgstr "%s: Misslyckande vid start av barnprocess."
 msgid "%s: Failure waiting for child process to finish."
 msgstr "%s: Misslyckande vid väntan på att barnprocess skall avslutas."
 
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:109
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:137
 #: ../src/services/a-rex/grid-manager/run/run_redirected.cpp:89
 #, c-format
 msgid "%s: Failed switching user"
 msgstr "%s: Misslyckades med att byta användare"
 
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:114
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:142
 #, c-format
 msgid "%s: Failed to run plugin"
 msgstr "%s: Misslyckades med att exekvera plugin"
 
-#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:117
+#: ../src/services/a-rex/grid-manager/run/run_parallel.cpp:145
 #, c-format
 msgid "%s: Plugin failed"
 msgstr "%s: Plugin misslyckades"
@@ -4642,18 +4824,13 @@ msgstr ""
 "%s"
 
 #: ../src/services/a-rex/terminate_activities.cpp:40
-#, fuzzy
 msgid "TerminateActivities: non-ARex job requested"
-msgstr ""
-"TerminateActivities: begäran = \n"
-"%s"
+msgstr "TerminateActivities: icke-ARex-job begärt"
 
 #: ../src/services/a-rex/terminate_activities.cpp:49
-#, fuzzy, c-format
+#, c-format
 msgid "TerminateActivities: job %s - %s"
-msgstr ""
-"TerminateActivities: svar = \n"
-"%s"
+msgstr "TerminateActivities: jobb %s - %s"
 
 #: ../src/services/a-rex/terminate_activities.cpp:69
 #: ../src/services/sched/terminate_activities.cpp:55
@@ -4674,7 +4851,7 @@ msgid "Creating service side chain"
 msgstr "Skapar servicesidokedjan"
 
 #: ../src/services/a-rex/test.cpp:43 ../src/services/pdp/test.cpp:37
-#: ../src/services/saml/test.cpp:52 ../src/services/saml/test_client.cpp:44
+#: ../src/services/saml/test_client.cpp:44 ../src/services/saml/test.cpp:52
 #: ../src/tests/count/test_client.cpp:19
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:20
 #: ../src/tests/echo/test_client.cpp:23
@@ -4682,7 +4859,7 @@ msgid "Creating client side chain"
 msgstr "Skapar klientsidokedjan"
 
 #: ../src/services/a-rex/test.cpp:49 ../src/services/pdp/test.cpp:42
-#: ../src/services/saml/test.cpp:57 ../src/services/saml/test_client.cpp:47
+#: ../src/services/saml/test_client.cpp:47 ../src/services/saml/test.cpp:57
 #: ../src/tests/count/test_client.cpp:49 ../src/tests/data/test.cpp:40
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:43
 #: ../src/tests/echo/test_client.cpp:53
@@ -4690,15 +4867,15 @@ msgid "Failed to load client configuration"
 msgstr "Misslyckades med att ladda klientinställningar"
 
 #: ../src/services/a-rex/test.cpp:53 ../src/services/pdp/test.cpp:46
-#: ../src/services/saml/test.cpp:61 ../src/services/saml/test_client.cpp:51
+#: ../src/services/saml/test_client.cpp:51 ../src/services/saml/test.cpp:61
 #: ../src/tests/count/test_client.cpp:53
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:47
-#: ../src/tests/echo/test.cpp:43 ../src/tests/echo/test_client.cpp:57
+#: ../src/tests/echo/test_client.cpp:57 ../src/tests/echo/test.cpp:43
 msgid "Client side MCCs are loaded"
 msgstr "Klientsidans MCC:er har laddats"
 
 #: ../src/services/a-rex/test.cpp:56 ../src/services/pdp/test.cpp:49
-#: ../src/services/saml/test.cpp:64 ../src/services/saml/test_client.cpp:54
+#: ../src/services/saml/test_client.cpp:54 ../src/services/saml/test.cpp:64
 #: ../src/tests/count/test_client.cpp:56
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:50
 #: ../src/tests/echo/test_client.cpp:60
@@ -4714,38 +4891,36 @@ msgstr "Misslyckades med att initiera delegering"
 #: ../src/services/a-rex/test.cpp:344 ../src/services/a-rex/test.cpp:392
 #: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:344
 #: ../src/services/paul/paul.cpp:437 ../src/services/pdp/test.cpp:111
-#: ../src/services/saml/test.cpp:152 ../src/services/saml/test_client.cpp:142
+#: ../src/services/saml/test_client.cpp:142 ../src/services/saml/test.cpp:152
 #: ../src/tests/count/test_client.cpp:83
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:74
-#: ../src/tests/echo/test.cpp:59 ../src/tests/echo/test_client.cpp:84
+#: ../src/tests/echo/test_client.cpp:84 ../src/tests/echo/test.cpp:59
 msgid "Request failed"
 msgstr "Förfrågan misslyckades"
 
 #: ../src/services/a-rex/test.cpp:115 ../src/services/a-rex/test.cpp:194
 #: ../src/services/a-rex/test.cpp:251 ../src/services/a-rex/test.cpp:299
 #: ../src/services/a-rex/test.cpp:347 ../src/services/a-rex/test.cpp:395
-#: ../src/services/pdp/test.cpp:114 ../src/services/saml/test.cpp:155
-#: ../src/services/saml/test_client.cpp:145 ../src/tests/echo/test.cpp:67
+#: ../src/services/pdp/test.cpp:114 ../src/services/saml/test_client.cpp:145
+#: ../src/services/saml/test.cpp:155 ../src/tests/echo/test.cpp:67
 msgid "Request succeed!!!"
 msgstr "Förfrågan lyckades!!!"
 
 #: ../src/services/a-rex/test.cpp:117 ../src/services/a-rex/test.cpp:196
 #: ../src/services/a-rex/test.cpp:253 ../src/services/a-rex/test.cpp:301
 #: ../src/services/a-rex/test.cpp:349 ../src/services/a-rex/test.cpp:397
-#: ../src/services/pdp/test.cpp:116 ../src/services/saml/test.cpp:157
-#: ../src/services/saml/test_client.cpp:147
-#: ../src/tests/count/test_client.cpp:89
+#: ../src/services/pdp/test.cpp:116 ../src/services/saml/test_client.cpp:147
+#: ../src/services/saml/test.cpp:157 ../src/tests/count/test_client.cpp:89
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:80
-#: ../src/tests/echo/test.cpp:64 ../src/tests/echo/test_client.cpp:90
+#: ../src/tests/echo/test_client.cpp:90 ../src/tests/echo/test.cpp:64
 msgid "There is no response"
 msgstr "Det finns inget svar"
 
 #: ../src/services/a-rex/test.cpp:125 ../src/services/a-rex/test.cpp:204
 #: ../src/services/a-rex/test.cpp:261 ../src/services/a-rex/test.cpp:309
 #: ../src/services/a-rex/test.cpp:357 ../src/services/a-rex/test.cpp:405
-#: ../src/services/pdp/test.cpp:124 ../src/services/saml/test.cpp:165
-#: ../src/services/saml/test_client.cpp:155
-#: ../src/tests/count/test_client.cpp:96
+#: ../src/services/pdp/test.cpp:124 ../src/services/saml/test_client.cpp:155
+#: ../src/services/saml/test.cpp:165 ../src/tests/count/test_client.cpp:96
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:87
 #: ../src/tests/echo/test_client.cpp:97
 msgid "Response is not SOAP"
@@ -4759,7 +4934,7 @@ msgstr "Svaret är inte förväntad WS-RP"
 #: ../src/services/a-rex/test.cpp:275 ../src/services/a-rex/test.cpp:323
 #: ../src/services/a-rex/test.cpp:371 ../src/tests/count/test_client.cpp:60
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:56
-#: ../src/tests/echo/test.cpp:47 ../src/tests/echo/test_client.cpp:66
+#: ../src/tests/echo/test_client.cpp:66 ../src/tests/echo/test.cpp:47
 msgid "Creating and sending request"
 msgstr "Skapar och skickar förfrågan"
 
@@ -4881,9 +5056,9 @@ msgid "Process job: %s"
 msgstr "Processera jobb: %s"
 
 #: ../src/services/paul/paul.cpp:242
-#, fuzzy, c-format
+#, c-format
 msgid "%s set finished"
-msgstr "%s: Jobbet avslutat."
+msgstr "%s uppsättning avslutad"
 
 #: ../src/services/paul/paul.cpp:248
 #, c-format
@@ -4897,21 +5072,21 @@ msgstr "Utför förfrågan: %s"
 
 #: ../src/services/paul/paul.cpp:270
 msgid "No free CPU slot"
-msgstr ""
+msgstr "Ingen ledig CPU-slot"
 
 #: ../src/services/paul/paul.cpp:297
 msgid "Report status"
 msgstr "Rapportera status"
 
 #: ../src/services/paul/paul.cpp:381
-#, fuzzy, c-format
+#, c-format
 msgid "%s reported"
-msgstr "%s skapad"
+msgstr "%s rapporteras"
 
 #: ../src/services/paul/paul.cpp:384
-#, fuzzy, c-format
+#, c-format
 msgid "%s job reported finished"
-msgstr "%s: Jobbet avslutat."
+msgstr "%s job rapporterat avslutat"
 
 #: ../src/services/paul/paul.cpp:397
 msgid "Get activity status changes"
@@ -4923,14 +5098,14 @@ msgid "Killing %s"
 msgstr "Dödar: %s"
 
 #: ../src/services/paul/paul.cpp:499
-#, fuzzy, c-format
+#, c-format
 msgid "cleanup %s %d"
-msgstr "Status: %s %d"
+msgstr "Uppstädning %s %d"
 
 #: ../src/services/paul/paul.cpp:503
 #, c-format
 msgid "cleanup %s"
-msgstr ""
+msgstr "uppstädning %s"
 
 #: ../src/services/paul/run.cpp:23
 msgid "Start process"
@@ -5001,9 +5176,8 @@ msgid "Cannot accept destination as URL"
 msgstr "Kan inte acceptera destination som URL"
 
 #: ../src/services/paul/stage.cpp:190
-#, fuzzy
 msgid "Transfer completed"
-msgstr "Överföring slutförd."
+msgstr "Överföring slutförd"
 
 #: ../src/services/paul/stage.cpp:199
 msgid "Stage in"
@@ -5028,14 +5202,14 @@ msgstr "Autoriserad från Service PDP"
 
 #: ../src/services/saml/aaservice.cpp:101
 msgid "lasso_assertion_query_process_request_msg failed"
-msgstr ""
+msgstr "lasso_assertion_query_process_request_msg misslyckades"
 
 #: ../src/services/saml/aaservice.cpp:108
 #, c-format
 msgid ""
 "The NameID inside request is the same as the NameID from the tls "
 "authentication: %s"
-msgstr ""
+msgstr "Namn-id i begäran är detsamma som namn-id från TLS-autentiseringen: %s"
 
 #: ../src/services/saml/aaservice.cpp:111
 #, c-format
@@ -5043,48 +5217,49 @@ msgid ""
 "The NameID inside request is: %s; not the same as the NameID from the tls "
 "authentication: %s"
 msgstr ""
+"Namn-id i begäran är: %s; inte detsamma som namn-id från TLS-"
+"autentiseringen: %s"
 
 #: ../src/services/saml/aaservice.cpp:140
 msgid "There should be Name attribute in request's <Attribute> node"
-msgstr ""
+msgstr "Det skall finnas ett Name-attribute i begärans Attribute-nod"
 
 #: ../src/services/saml/aaservice.cpp:185
 msgid "Can't find federation for identity"
-msgstr ""
+msgstr "Kan inte hitta federation för identitet"
 
 #: ../src/services/saml/aaservice.cpp:190
-#, fuzzy
 msgid "Can not find NameID"
-msgstr "Kan inte hitta Jobb-ID"
+msgstr "Kan inte hitta namn-ID"
 
 #: ../src/services/saml/aaservice.cpp:217
 msgid "lasso_assertion_query_build_response_msg failed"
-msgstr ""
+msgstr "lasso_assertion_query_build_response_msg misslyckades"
 
 #: ../src/services/saml/aaservice.cpp:220
 msgid "assertionResponseBody shouldn't be NULL"
-msgstr ""
+msgstr "assertionResponseBody skall inte vara NULL"
 
-#: ../src/services/saml/aaservice.cpp:243 ../src/services/saml/test.cpp:79
-#: ../src/services/saml/test_client.cpp:69
+#: ../src/services/saml/aaservice.cpp:243
+#: ../src/services/saml/test_client.cpp:69 ../src/services/saml/test.cpp:79
 msgid "lasso_assertion_query_new() failed"
-msgstr ""
+msgstr "lasso_assertion_query_new() misslyckades"
 
-#: ../src/services/saml/test.cpp:106 ../src/services/saml/test_client.cpp:96
+#: ../src/services/saml/test_client.cpp:96 ../src/services/saml/test.cpp:106
 msgid "lasso_assertion_query_init_request failed"
-msgstr ""
+msgstr "lasso_assertion_query_init_request misslyckades"
 
-#: ../src/services/saml/test.cpp:124 ../src/services/saml/test_client.cpp:114
+#: ../src/services/saml/test_client.cpp:114 ../src/services/saml/test.cpp:124
 msgid "lasso_assertion_query_build_request_msg failed"
-msgstr ""
+msgstr "lasso_assertion_query_build_request_msg misslyckades"
 
-#: ../src/services/saml/test.cpp:127 ../src/services/saml/test_client.cpp:117
+#: ../src/services/saml/test_client.cpp:117 ../src/services/saml/test.cpp:127
 msgid "assertionRequestBody shouldn't be NULL"
-msgstr ""
+msgstr "assertionRequestBody skall inte vara NULL"
 
-#: ../src/services/saml/test.cpp:178 ../src/services/saml/test_client.cpp:168
+#: ../src/services/saml/test_client.cpp:168 ../src/services/saml/test.cpp:178
 msgid "lasso_assertion_query_process_response_msg failed"
-msgstr ""
+msgstr "lasso_assertion_query_process_response_msg failed"
 
 #: ../src/services/saml/test_service.cpp:34
 #: ../src/services/sched/test_service.cpp:34
@@ -5171,9 +5346,9 @@ msgid "Invalid status report"
 msgstr "Ogiltig statusrapport"
 
 #: ../src/services/sched/report_activities_status.cpp:27
-#, fuzzy, c-format
+#, c-format
 msgid "%s reported state: %d"
-msgstr "%s skapad"
+msgstr "%s rapporterade status: %d"
 
 #: ../src/services/wrappers/java/javawrapper.cpp:29
 #, c-format
@@ -5356,46 +5531,3 @@ msgstr "Kan inte erhålla pdp-begäran och policyinformation"
 #: ../src/tests/echo/test.cpp:36
 msgid "Creating client interface"
 msgstr "Skapar klientgränssnitt"
-
-#, fuzzy
-#~ msgid "Spawn Error: %s"
-#~ msgstr "Spawn-fel"
-
-#, fuzzy
-#~ msgid "Wait for process"
-#~ msgstr "Väntar på svar"
-
-#, fuzzy
-#~ msgid "close process"
-#~ msgstr "klientprocess anropad"
-
-#, fuzzy
-#~ msgid "end process"
-#~ msgstr "Starta process"
-
-#~ msgid "Cannot start %s"
-#~ msgstr "Kan inte starta %s"
-
-#~ msgid "Cannot start %s (%s)"
-#~ msgstr "Kan inte starta %s (%s)"
-
-#~ msgid "Zero return"
-#~ msgstr "Nollretur"
-
-#~ msgid "Error return"
-#~ msgstr "Felretur"
-
-#~ msgid "Process %s finished"
-#~ msgstr "Process: %s: avslutad"
-
-#~ msgid "Process finished"
-#~ msgstr "Process avslutad"
-
-#~ msgid "http: %s"
-#~ msgstr "http: %s"
-
-#~ msgid "tcp: (%d, %d) %s"
-#~ msgstr "tcp: (%d, %d) %s"
-
-#~ msgid "Failed to resolve %s"
-#~ msgstr "Misslyckades med att slå upp %s"
