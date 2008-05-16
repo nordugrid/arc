@@ -27,7 +27,7 @@ time_t timegm (struct tm *tm) {
 #else
     static std::string oldtz;
     oldtz = std::string("TZ=") + tz;
-    putenv(const_cast<char*>(oldtz.c_str()));
+    putenv(strdup(const_cast<char*>(oldtz.c_str())));
 #endif
   }
   else {
