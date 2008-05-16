@@ -29,8 +29,8 @@ namespace Arc{
                 CREAMClient(const Arc::URL& url,const Arc::MCCConfig& cfg) throw(CREAMClientError);
                 ~CREAMClient();
             
-                std::string CREAMClient::registerJob(std::string& jsdl_text) throw(CREAMClientError);
-                void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError);
+                std::string registerJob(std::string& jsdl_text) throw(CREAMClientError);
+                void startJob(const std::string& jobid) throw(CREAMClientError);
                 std::string submit(std::string& jsdl_text) throw(CREAMClientError);
                 std::string stat(const std::string& jobid) throw(CREAMClientError);
                 void cancel(const std::string& jobid) throw(CREAMClientError);
