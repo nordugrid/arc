@@ -65,8 +65,6 @@ namespace Arc{
       
       XMLNode XMLresult(result);
       
-      XMLresult.SaveToStream(std::cout);
-      
       //Next read XML result and decode into further servers (GIIS) or services (GRIS)
       
       //First do GIISes (if any)
@@ -74,6 +72,7 @@ namespace Arc{
       
       XMLNodeList::iterator iter;
       
+      /*
       for(iter = GIISes.begin(); iter!= GIISes.end(); iter++){
 	if(!(*iter)["Mds-Service-type"]) continue; //remove first entry
 	if((std::string)(*iter)["Mds-Reg-status"] == "PURGED" ) continue;
@@ -94,7 +93,8 @@ namespace Arc{
 	
 	thisGIIS.GetTargets(Mom, TargetType, DetailLevel); 
 	
-      } //end GIISes
+       } //end GIISes
+      */      
       
       //Next GRISes (if any)
       XMLNodeList GRISes = XMLresult.XPathLookup("//nordugrid-cluster-name[objectClass='MdsService']", NS());
@@ -112,6 +112,8 @@ namespace Arc{
 	//Add Service to TG list
 	bool AddedService(Mom.AddService(url));
 	
+	std::cout<<"This is a GRIS: "<<url<<std::endl;
+
 	//If added, interrogate service
 	//Lines below this point depend on the usage of TargetGenerator
 	//i.e. if it is used to find Targets for execution or storage,
@@ -164,6 +166,9 @@ namespace Arc{
     for(QueueIter = XMLqueues.begin(); QueueIter != XMLqueues.end(); QueueIter++){
       std::list<std::string> attributes;
       Arc::ExecutionTarget ThisTarget;
+
+      ThisTarget.GridFlavour = "ARC0";
+      ThisTarget.Source = url;
 
       //Find and fill location information
       //Information like address, longitude, latitude etc not available in ARC0

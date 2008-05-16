@@ -12,6 +12,7 @@ usr/bin/arccp
 usr/bin/arcls
 usr/bin/arcrm
 usr/bin/arcstat
+usr/bin/arcsub
 usr/bin/glitesub
 usr/bin/glitestat
 usr/bin/glitekill

@@ -151,6 +151,8 @@ namespace Arc{
 
       ExecutionTarget target;
 
+      target.GridFlavour = "CREAM";
+
       std::string key;
       std::string::size_type pos;
 

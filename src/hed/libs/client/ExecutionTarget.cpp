@@ -1,4 +1,9 @@
+#include <arc/misc/ClientInterface.h>
+#include <arc/loader/Loader.h>
 #include "ExecutionTarget.h"
+#include <arc/ArcConfig.h>
+#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 
@@ -37,5 +42,29 @@ namespace Arc {
     RequestedSlots(-1){}
 
   ExecutionTarget::~ExecutionTarget() {}
+  
+  Arc::Submitter* ExecutionTarget::GetSubmitter(){
+
+    Arc::LogStream logcerr(std::cerr);
+    Arc::Logger::getRootLogger().addDestination(logcerr);
+    Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+    
+    Arc::ACCConfig acccfg;
+    Arc::NS ns;
+    Arc::Config cfg(ns);
+    acccfg.MakeConfig(cfg);
+    
+    Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
+    SubmitterComp.NewAttribute("name") = "Submitter"+GridFlavour;
+    SubmitterComp.NewAttribute("id") = "submitter";
+    SubmitterComp.NewChild("Endpoint") = URL.str();
+    SubmitterComp.NewChild("Source") = Source;
+    SubmitterComp.NewChild("MappingQueue") = MappingQueue;
+
+    loader = new Arc::Loader(&cfg);
+    
+    return dynamic_cast<Arc::Submitter*>(loader->getACC("submitter"));
+
+  }
 
 } // namespace Arc

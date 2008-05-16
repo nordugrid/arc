@@ -26,11 +26,12 @@ int main(){
   Arc::Submitter *submitter =
     dynamic_cast<Arc::Submitter*>(loader.getACC("submitter"));
 
-  Arc::URL jobid =
-    submitter->Submit("&(executable=echo)(arguments=\"Hello World\")"
-		      "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
+  std::pair<Arc::URL, Arc::URL> results;
+  results = submitter->Submit("&(executable=echo)(arguments=\"Hello World\")"
+		              "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
 
-  std::cout << "Jobid: " << jobid << std::endl;
-
+  std::cout << "Jobid: " << results.first.str() << std::endl;
+  std::cout << "Jobid: " << results.first.str() << std::endl;
+  
   return 0;
 }

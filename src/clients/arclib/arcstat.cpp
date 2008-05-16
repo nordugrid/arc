@@ -19,9 +19,9 @@ void arcstat(const std::list<std::string>& jobs,
              const bool clusters,
              const bool longlist,
              const int timeout,
-             const bool anonymous) {
+             const bool anonymous){
   
-  if (clusters) { //i.e we are looking for queue or cluster info, not jobs
+  if (clusters){ //i.e we are looking for queue or cluster info, not jobs
     
     Arc::ACCConfig acccfg;
     Arc::NS ns;
@@ -35,13 +35,9 @@ void arcstat(const std::list<std::string>& jobs,
     //first add to config element the specified target clusters (if any)
     for (std::list<std::string>::const_iterator it = clusterselect.begin(); it != clusterselect.end(); it++){
       
-      std::cout<<"Received cluster input"<<std::endl;
-      
       size_t colon = (*it).find_first_of(":");
       std::string GridFlavour = (*it).substr(0, colon);
       std::string SomeURL = (*it).substr(colon+1);
-
-      std::cout<<"Input cluster URL = "<<SomeURL<<std::endl;
 
       Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
       ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
@@ -56,8 +52,6 @@ void arcstat(const std::list<std::string>& jobs,
     //if no cluster url are given next steps are index servers (giis'es in ARC0)
     if (!ClustersSpecified){ //means that -c option takes priority over -g
       for (std::list<std::string>::const_iterator it = giisurls.begin(); it != giisurls.end(); it++){      
-
-	std::cout<<"Received giis input"<<std::endl;
 
 	size_t colon = (*it).find_first_of(":");
 	std::string GridFlavour = (*it).substr(0, colon);
@@ -85,6 +79,7 @@ void arcstat(const std::list<std::string>& jobs,
     }
     
     //get cluster information
+    mcfg.SaveToStream(std::cout);
     Arc::TargetGenerator TarGen(mcfg);
     TarGen.GetTargets(0, 1);
     
@@ -95,7 +90,19 @@ void arcstat(const std::list<std::string>& jobs,
     
   else { //i.e we are looking for the status of jobs
     
-  }
+    Arc::XMLNode JobIdStorage;
+    JobIdStorage.ReadFromFile("jobs.xml");
+    
+    for (std::list<std::string>::const_iterator it = jobs.begin(); it != jobs.end(); it++){    
+      
+      Arc::XMLNodeList ThisJob = JobIdStorage.XPathLookup("/jobs/job[@id='"+ *it+"']", Arc::NS());
+
+      ThisJob.begin()->SaveToStream(std::cout);
+
+    }//end loop over jobs
+
+  } //end if we are looking for status of jobs
+
 }
 
 #define ARCSTAT

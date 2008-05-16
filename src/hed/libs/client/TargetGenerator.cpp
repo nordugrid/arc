@@ -96,7 +96,7 @@ namespace Arc {
 	if(cli->Longitude != 0)
 	  std::cout<<Arc::IString(" Longitude: %f", cli->Longitude)<<std::endl;
 
-	std::cout<<"Endpoint information"<<std::endl;
+	std::cout<<IString("Endpoint information")<<std::endl;
 	if(cli->URL)
 	  std::cout<<Arc::IString(" URL: %s", cli->URL.str())<<std::endl;
 	if(!cli->InterfaceName.empty())
@@ -116,7 +116,7 @@ namespace Arc {
 	if(!cli->Staging.empty())
 	  std::cout<<Arc::IString(" Staging: %s", cli->Staging)<<std::endl;
 
-	std::cout<<"Queue information"<<std::endl;
+	std::cout<<IString("Queue information")<<std::endl;
 	if(!cli->MappingQueue.empty())
 	  std::cout<<Arc::IString(" Mapping Queue: %s", cli->MappingQueue)<<std::endl;
 	if(cli->MaxWallTime != -1)

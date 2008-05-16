@@ -212,6 +212,7 @@ exit 0
 %{_bindir}/arcrm
 %doc %{_mandir}/man1/arcrm.1*
 %{_bindir}/arcstat
+%{_bindir}/arcsub
 %{_bindir}/perftest
 %{_bindir}/glitesub
 %{_bindir}/glitestat

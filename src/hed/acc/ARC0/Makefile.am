@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libaccARC0.la
 
 libaccARC0_la_SOURCES  = TargetRetrieverARC0.cpp TargetRetrieverARC0.h \
                          SubmitterARC0.cpp SubmitterARC0.h \
-                         DescriptorsARC0.cpp
+                         DescriptorsARC0.cpp JobARC0.cpp JobARC0.h
 libaccARC0_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
                          $(GLOBUS_FTP_CONTROL_CFLAGS) \
                          -I$(top_srcdir)/include

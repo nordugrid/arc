@@ -1,5 +1,6 @@
-#include <arc/URL.h>
+#include <arc/client/Submitter.h>
 #include <arc/client/ACC.h>
+#include <arc/URL.h>
 #include <string>
 #include <list>
 
@@ -71,9 +72,18 @@ namespace Arc {
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
-
+    
+    //Other
+    Arc::Submitter* GetSubmitter();
+    std::string GridFlavour;
+    std::string Source;
+    
+  private:
+    
+    Arc::Loader *loader;
+    
   };
-
+  
 } // namespace Arc
 
 #endif

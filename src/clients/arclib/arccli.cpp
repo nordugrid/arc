@@ -397,6 +397,12 @@ static void arcusage(const std::string & progname, const char * optstring) {
 	  std::cout<<"GRID:URL e.g."<<std::endl;
 	  std::cout<<"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid"<<std::endl;
 	  std::cout<<"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid"<<std::endl;
+
+	  std::cout<< std::endl;
+	  std::cout<<"Argument to (-c, -C) has format:"<<std::endl;
+	  std::cout<<"GRID:URL e.g."<<std::endl;
+	  std::cout<<"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"<<std::endl;
+
 	}
 	std::cout << std::endl;
 	std::cout << _(
@@ -1128,8 +1134,7 @@ int main(int argc, char ** argv) {
     if (!debuglevel.empty())
       SetNotifyLevel((NotifyLevel) stringtoi(debuglevel));
   }
-  */
-  
+  */  
   if (progname == "sub" && params.empty() && xrslstrings.empty()) {
     std::string xrsl;
     std::string line;
@@ -1229,7 +1234,12 @@ int main(int argc, char ** argv) {
 #ifdef ARCSTAT  
   arcstat(params, clusterselect, clusterreject, status,
 	  giisurls, clusters, longlist, timeout, anonymous);
-#endif  
+#endif
+
+#ifdef ARCSUB
+  arcsub(params, xrslstrings, clusterselect, clusterreject, giisurls,
+	 joblistfile, dryrun, dumpxrsl, unknownattr, timeout, anonymous);
+#endif
 
   return 0;
 

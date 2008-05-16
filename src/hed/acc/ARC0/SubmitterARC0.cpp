@@ -65,7 +65,7 @@ namespace Arc {
     return new SubmitterARC0(cfg);
   }
 
-  URL SubmitterARC0::Submit(const std::string& jobdesc) {
+  std::pair<URL, URL> SubmitterARC0::Submit(const std::string& jobdesc) {
     cbarg cb;
 
     globus_ftp_control_handle_t control_handle;
@@ -73,8 +73,8 @@ namespace Arc {
 
     cb.ctrl = false;
     globus_ftp_control_connect(&control_handle,
-			       const_cast<char*>(endpoint.Host().c_str()),
-			       endpoint.Port(), &ControlCallback, &cb);
+			       const_cast<char*>(SubmissionEndpoint.Host().c_str()),
+			       SubmissionEndpoint.Port(), &ControlCallback, &cb);
     while(!cb.ctrl)
       cb.cond.wait();
 
@@ -166,10 +166,16 @@ namespace Arc {
 
     globus_ftp_control_handle_destroy(&control_handle);
 
-    URL jobid(endpoint);
+    URL jobid(SubmissionEndpoint);
     jobid.ChangePath(jobid.Path() + '/' + jobnumber);
 
-    return jobid;
+    //prepare contact url for information about this job
+    //ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
+    InfoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid="+jobid.str()+")");
+    InfoEndpoint.ChangeLDAPScope(URL::subtree);
+
+    return std::make_pair(jobid,InfoEndpoint);
+
   }
 
 } // namespace Arc

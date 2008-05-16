@@ -1,4 +1,4 @@
-bin_PROGRAMS = arcstat
+bin_PROGRAMS = arcstat arcsub
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
@@ -10,5 +10,9 @@ CLILIBS = ../../hed/libs/data/libarcdata2.la \
 arcstat_SOURCES  = arcstat.cpp
 arcstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcstat_LDADD    = $(CLILIBS)
+
+arcsub_SOURCES  = arcsub.cpp
+arcsub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcsub_LDADD    = $(CLILIBS)
 
 EXTRA_DIST = arccli.cpp
