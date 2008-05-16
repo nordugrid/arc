@@ -26,7 +26,6 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   hint.ai_family = AF_UNSPEC;
   hint.ai_socktype = SOCK_STREAM;
   hint.ai_protocol = IPPROTO_TCP;
-  hint.ai_flags = AI_CANONNAME;
   std::string port_str = Arc::tostring(port);
   struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
@@ -37,18 +36,18 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   }
   int s = -1;
   for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
-    const char* canonname = info_->ai_canonname;
-    if(canonname == NULL) canonname="";
-    logger.msg(DEBUG,"Trying to connect %s (%s, %s)",
-                     hostname,canonname,info_->ai_family==AF_INET6?"IPv6":"IPv4");
+    logger.msg(DEBUG,"Trying to connect %s(%s):%d",
+                     hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
     s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
     if(s == -1) {
       // TODO: print error description
-      logger.msg(DEBUG, "Failed to create socket to %s(%s):%d", hostname, canonname, port);
+      logger.msg(DEBUG, "Failed to create socket to %s(%s):%d",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       continue;
     }
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
-      logger.msg(DEBUG, "Failed to connect to %s(%s):%i", hostname, canonname, port);
+      logger.msg(DEBUG, "Failed to connect to %s(%s):%i",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       close(s); s = -1;
       continue;
     };
