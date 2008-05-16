@@ -1,4 +1,4 @@
-SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp simplelistsh
+SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp simplelistsh delegationsh
 noinst_PROGRAMS = test
 # classload_test 
 
