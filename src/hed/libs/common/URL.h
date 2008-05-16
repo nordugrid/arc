@@ -90,8 +90,14 @@ namespace Arc {
     /** Returns the LDAP scope. */
     Scope LDAPScope() const;
 
+    /** Changes the LDAP scope. */
+    void ChangeLDAPScope(const Scope newscope);
+
     /** Returns the LDAP filter. */
     const std::string& LDAPFilter() const;
+
+    /** Changes the LDAP filter. */
+    void ChangeLDAPFilter(const std::string& newfilter);
 
     /** Returns URL options if any. */
     const std::map<std::string, std::string>& Options() const;

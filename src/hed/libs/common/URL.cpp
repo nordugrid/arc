@@ -378,8 +378,16 @@ namespace Arc {
     return ldapscope;
   }
 
+  void URL::ChangeLDAPScope(const Scope newscope) {
+    ldapscope = newscope;
+  }
+
   const std::string& URL::LDAPFilter() const {
     return ldapfilter;
+  }
+
+  void URL::ChangeLDAPFilter(const std::string& newfilter) {
+    ldapfilter = newfilter;
   }
 
   const std::map<std::string, std::string>& URL::Options() const {
