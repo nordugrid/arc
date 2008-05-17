@@ -2,7 +2,9 @@
 #include <config.h>
 #endif
 
+#include <cstring>
 #include <iostream>
+
 #include "PayloadRaw.h"
 
 namespace Arc {

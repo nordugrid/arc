@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstring>
+
 #include "SOAPEnvelope.h"
 
 namespace Arc {

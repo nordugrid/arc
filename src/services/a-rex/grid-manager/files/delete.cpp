@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <cstring>
+#include <cstdlib>
  
 #include "../files/info_types.h"
 #include "delete.h"

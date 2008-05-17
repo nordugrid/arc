@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstring>
+
 #include "jobdesc_util.h"
 
 std::ostream& operator<<(std::ostream &o,const value_for_shell &s) {

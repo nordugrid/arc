@@ -1,5 +1,8 @@
 #include <iostream>
+#include <cstring>
+
 #include <openssl/err.h>
+
 #include "cert_util.h"
 
 #define X509_CERT_DIR  "X509_CERT_DIR"

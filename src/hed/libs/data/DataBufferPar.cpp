@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+
 #include "DataBufferPar.h"
 #include "CheckSum.h"
 

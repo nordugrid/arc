@@ -4,6 +4,8 @@
 
 // Counter.cpp
 
+#include <cstdlib>
+
 #include "Counter.h"
 
 namespace Arc {

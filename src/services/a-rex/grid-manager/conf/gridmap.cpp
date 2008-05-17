@@ -10,6 +10,7 @@
 
 #if defined __GNUC__ && __GNUC__ >= 3
 
+#include <limits>
 #define istream_readline(__f,__s,__n) {      \
    __f.get(__s,__n,__f.widen('\n'));         \
    if(__f.fail()) __f.clear();               \

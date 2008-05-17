@@ -9,6 +9,7 @@
 */
 
 #include <string>
+#include <cstring>
 
 //# #include "../run/run.h"
 #include "../files/info_types.h"

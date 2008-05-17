@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstring>
+
 #include <arc/Run.h>
 #include "../jobs/job.h"
 #include "../jobs/states.h"

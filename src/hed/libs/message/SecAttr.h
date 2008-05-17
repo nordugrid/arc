@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include <cstring>
 
 #include <arc/XMLNode.h>
 

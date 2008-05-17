@@ -6,6 +6,7 @@
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
 #include <fstream>
+#include <algorithm>
 #include <glibmm/fileutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/StringConv.h>

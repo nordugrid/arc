@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <cstdlib>
 #endif
 
 #include "GUID.h"

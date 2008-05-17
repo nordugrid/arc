@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include <stdio.h>
+#include <cstring>
 
 #include <openssl/err.h>
 #include <openssl/asn1_mac.h>

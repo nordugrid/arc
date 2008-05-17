@@ -4,6 +4,8 @@
 
 // Counter.cpp
 
+#include <cstdlib>
+
 #include "IntraProcessCounter.h"
 
 namespace Arc {

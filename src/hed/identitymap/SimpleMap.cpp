@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
+#include <cstring>
 
 #define odlog(LEVEL) std::cerr
 

@@ -7,6 +7,7 @@
 #include <arc/IString.h>
 
 #include <iostream>
+#include <algorithm>
 
 namespace Arc {
 

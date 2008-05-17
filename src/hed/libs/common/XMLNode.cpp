@@ -1,9 +1,12 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include "XMLNode.h"
+
 #include <iostream>
 #include <fstream>
+#include <cstring>
+
+#include "XMLNode.h"
 
 namespace Arc {
 

@@ -2,8 +2,10 @@
 #include <config.h>
 #endif
 
-#include "escaped.h"
 #include <ctype.h>
+#include <cstring>
+
+#include "escaped.h"
 
 // TODO: not all functions can handle tabs and other non-space spaces.
 

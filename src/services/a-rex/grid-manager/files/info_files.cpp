@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <limits>
 
 #include <arc/StringConv.h>
 #include "../files/delete.h"

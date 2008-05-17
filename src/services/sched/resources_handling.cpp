@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+
 #include "resources_handling.h"
 
 namespace GridScheduler
