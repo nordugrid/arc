@@ -60,6 +60,11 @@ namespace Arc{
                 }
             } else throw CREAMClientError("There is no connection chain configured.");
             
+            // Testing: write the incoming SOAP message
+            std::cout << "jobStatusResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             Arc::XMLNode name, failureReason;
             (*resp)["JobStatusResponse"]["result"]["jobStatus"]["name"].New(name);
             if ((*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"]) (*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"].New(failureReason);
@@ -101,7 +106,12 @@ namespace Arc{
                 Arc::XMLNode delegId = jobCancelRequest.NewChild("ns2:delegationProxyId", ns2);
                 delegId.Set(this->delegationId);
             }
-    
+            
+            // Testing: write the outgoing SOAP message
+            std::string test;
+            req.GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             // Send cancel request
             Arc::PayloadSOAP* resp = NULL;
             if(client) {
@@ -112,6 +122,11 @@ namespace Arc{
                 }
             } else throw CREAMClientError("There is no connection chain configured.");
 
+            // Testing: write the incoming SOAP message
+            std::cout << "jobCancelResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             Arc::XMLNode cancelled;
             (*resp)["JobCancelResponse"]["Response"]["JobId"]["id"].New(cancelled);
             std::string result = (std::string)cancelled;
@@ -139,6 +154,11 @@ namespace Arc{
             id.Set(jobid);
             Arc::XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
             
+            // Testing: write the outgoing SOAP message
+            std::string test;
+            req.GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             // Send clean request
             Arc::PayloadSOAP* resp = NULL;
             if(client) {
@@ -149,6 +169,11 @@ namespace Arc{
                 }
             } else throw CREAMClientError("There is no connection chain configured.");
         
+            // Testing: write the incoming SOAP message
+            std::cout << "jobPurgeResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             Arc::XMLNode cancelled;
             (*resp)["JobPurgeResponse"]["Response"]["JobId"]["id"].New(cancelled);
             std::string result = (std::string)cancelled;
@@ -208,6 +233,11 @@ namespace Arc{
             (*resp)["JobRegisterResponse"]["result"]["JobId"]["id"].New(id);
             (*resp)["Fault"]["faultstring"].New(fs);
 
+            // Testing: write the incoming SOAP message
+            std::cout << "jobRegisterResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+
             std::string faultstring = "";
             faultstring=(std::string)fs;
             if ((*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
@@ -258,6 +288,11 @@ namespace Arc{
             (*resp)["JobRegisterResponse"]["result"]["JobId"]["id"].New(id);
             (*resp)["Fault"]["faultstring"].New(fs);
 
+            // Testing: write the incoming SOAP message
+            std::cout << "jobStartResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+            
             std::string faultstring = "";
             faultstring=(std::string)fs;
             if ((*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
@@ -321,7 +356,12 @@ namespace Arc{
                     throw CREAMClientError("There was no SOAP response.");
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
-            
+
+            // Testing: write the incoming SOAP message
+            std::cout << "getProxyReqResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+                        
             std::string getProxyReqReturnValue;
             if ((bool)(*resp) && (bool)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] && (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] != "") getProxyReqReturnValue = (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"];
             else throw CREAMClientError("Delegation creating failed.");
@@ -360,6 +400,11 @@ namespace Arc{
                     throw CREAMClientError("There was no SOAP response.");
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
+
+            // Testing: write the incoming SOAP message
+            std::cout << "putProxyResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
             
             //Error handling!!!
             
