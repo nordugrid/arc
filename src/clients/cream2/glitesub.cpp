@@ -21,16 +21,23 @@
 
 class GLiteSubTool: public Arc::ClientTool {
     public:
+        std::string delegation_id;
         GLiteSubTool(int argc,char* argv[]):Arc::ClientTool("glitesub") {
-            ProcessOptions(argc,argv,"");
+            this->delegation_id = "";
+            ProcessOptions(argc,argv,"d:");
         };
     virtual void PrintHelp(void) {
-        std::cout<<"glitesub service_url jsdl_file id_file"<<std::endl;
+        std::cout<<"glitesub [-d delegation_id] service_url jsdl_file id_file"<<std::endl;
     };
     virtual bool ProcessOption(char option,char* option_arg) {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
+        switch(option) {
+            case 'd': this->delegation_id=option_arg;; break;
+            default: {
+                std::cerr<<"Error processing option: "<<(char)option<<std::endl;
+                PrintHelp();
+                return false;
+            };
+        };
     };
 };
 
@@ -50,6 +57,9 @@ int main(int argc, char* argv[]){
         if(!url) throw(std::invalid_argument(std::string("Can't parse specified URL")));
         Arc::MCCConfig cfg;
         Arc::Cream::CREAMClient gLiteClient(url,cfg);
+        
+        // Set delegation if necessary
+        if (tool.delegation_id != "") gLiteClient.setDelegationId(tool.delegation_id);
         
         // Read the job description from file to string
         std::ifstream jsdlfile(argv[tool.FirstOption()+1]);

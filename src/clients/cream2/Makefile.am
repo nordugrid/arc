@@ -1,4 +1,4 @@
-bin_PROGRAMS = glitesub glitestat glitekill gliteclean
+bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate
 #doc_DATA = client.xml jsdl_simple.xml jsdl_stage.xml
 #EXTRA_DIST = $(doc_DATA)
 EXTRA_DIST = openSSLFunctions.cpp
@@ -24,5 +24,10 @@ gliteclean_SOURCES  = $(SOURCES) gliteclean.cpp
 gliteclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 gliteclean_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 gliteclean_LDADD    = $(LIBS)
+
+glitedelegate_SOURCES  = $(SOURCES) glitedelegate.cpp
+glitedelegate_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+glitedelegate_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitedelegate_LDADD    = $(LIBS)
 
 #man_MANS = apsub.1 apstat.1 apkill.1 apsstat.1 apclean.1

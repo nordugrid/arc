@@ -36,10 +36,13 @@ namespace Arc{
             Arc::NS ns2;
             ns2["ns2"]="http://glite.org/2007/11/ce/cream/types";
             Arc::XMLNode jobStatusRequest = req.NewChild("ns2:JobStatusRequest", ns2);
-              Arc::XMLNode jobId = jobStatusRequest.NewChild("ns2:jobId", ns2);
-                Arc::XMLNode id = jobId.NewChild("ns2:id", ns2);
-                id.Set(jobid);
-                Arc::XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
+            Arc::XMLNode jobId = jobStatusRequest.NewChild("ns2:jobId", ns2);
+            Arc::XMLNode id = jobId.NewChild("ns2:id", ns2);
+            id.Set(jobid);
+            if (this->delegationId != "") {
+                Arc::XMLNode delegId = jobStatusRequest.NewChild("ns2:delegationProxyId", ns2);
+                delegId.Set(this->delegationId);
+            }
     
             // Send status request
             Arc::PayloadSOAP* resp = NULL;
@@ -90,11 +93,14 @@ namespace Arc{
             Arc::PayloadSOAP req(cream_ns);
             Arc::NS ns2;
             ns2["ns2"]="http://glite.org/2007/11/ce/cream/types";
-            Arc::XMLNode jobStatusRequest = req.NewChild("ns2:JobCancelRequest", ns2);
-              Arc::XMLNode jobId = jobStatusRequest.NewChild("ns2:jobId", ns2);
-                Arc::XMLNode id = jobId.NewChild("ns2:id", ns2);
-                id.Set(jobid);
-                Arc::XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
+            Arc::XMLNode jobCancelRequest = req.NewChild("ns2:JobCancelRequest", ns2);
+            Arc::XMLNode jobId = jobCancelRequest.NewChild("ns2:jobId", ns2);
+            Arc::XMLNode id = jobId.NewChild("ns2:id", ns2);
+            id.Set(jobid);
+            if (this->delegationId != "") {
+                Arc::XMLNode delegId = jobCancelRequest.NewChild("ns2:delegationProxyId", ns2);
+                delegId.Set(this->delegationId);
+            }
     
             // Send cancel request
             Arc::PayloadSOAP* resp = NULL;
@@ -171,6 +177,10 @@ namespace Arc{
             Arc::XMLNode act_job = jobRegisterRequest.NewChild("ns2:JobDescriptionList", ns2);
             Arc::XMLNode jdl_node = act_job.NewChild("ns2:JDL", ns2);
             jdl_node.Set(jdl_text);
+            if (this->delegationId != "") {
+                Arc::XMLNode delegId = jobRegisterRequest.NewChild("ns2:delegationProxyId", ns2);
+                delegId.Set(this->delegationId);
+            }
             Arc::XMLNode autostart_node = act_job.NewChild("ns2:autostart", ns2);
             autostart_node.Set("false");
             Arc::PayloadSOAP* resp = NULL;
@@ -221,7 +231,10 @@ namespace Arc{
             Arc::XMLNode jobId = jobStartRequest.NewChild("ns2:jobId", ns2);
             Arc::XMLNode id_node = jobId.NewChild("ns2:id", ns2);
             id_node.Set(jobid);
-            Arc::XMLNode creamURL = jobId.NewChild("ns2:creamURL", ns2);
+            if (this->delegationId != "") {
+                Arc::XMLNode delegId = jobStartRequest.NewChild("ns2:delegationProxyId", ns2);
+                delegId.Set(this->delegationId);
+            }
             Arc::PayloadSOAP* resp = NULL;
             
             // Testing: write the outgoing SOAP message
@@ -278,6 +291,78 @@ namespace Arc{
             }
             
             return jobid;
-        }    
+        }
+        
+        void CREAMClient::createDelegation(std::string& delegation_id) throw(CREAMClientError) {
+            logger.msg(Arc::INFO, "Creating delegation.");
+            
+            Arc::PayloadSOAP req(cream_ns);
+            Arc::NS ns1;
+            ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
+            Arc::XMLNode getProxyReqRequest = req.NewChild("ns1:getProxyReqRequest", ns1);
+            Arc::XMLNode delegid = getProxyReqRequest.NewChild("ns1:delegationID", ns1);
+            delegid.Set(delegation_id);
+            Arc::PayloadSOAP* resp = NULL;
+            
+            // Testing: write the outgoing SOAP message
+            std::string test;
+            req.GetDoc(test,true);
+            std::cout << test << std::endl;
+            
+            // Send job request
+            if(client) {
+                Arc::MCC_Status status = client->process("", &req,&resp);
+                if(!status) {
+                    logger.msg(Arc::ERROR, "Submission request failed.");
+                    throw CREAMClientError("Submission request failed.");
+                }
+                if(resp == NULL) {
+                    logger.msg(Arc::ERROR,"There was no SOAP response.");
+                    throw CREAMClientError("There was no SOAP response.");
+                };
+            } else throw CREAMClientError("There is no connection chain configured.");
+            
+            std::string getProxyReqReturnValue;
+            if ((bool)(*resp) && (bool)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] && (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] != "") getProxyReqReturnValue = (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"];
+            else throw CREAMClientError("Delegation creating failed.");
+            delete resp;
+
+            std::string proxy = getProxy();
+            std::string signedcert;
+            char *cert=NULL; 
+            int timeleft = getCertTimeLeft(proxy);
+            
+            if (makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) throw CREAMClientError("DelegateProxy failed.");
+            signedcert.assign(cert);
+  
+            Arc::PayloadSOAP req2(cream_ns);
+            Arc::XMLNode putProxyRequest = req2.NewChild("ns1:putProxyRequest", ns1);
+            
+            Arc::XMLNode delegid_node = putProxyRequest.NewChild("ns1:delegationID", ns1);
+            delegid_node.Set(delegation_id);
+            Arc::XMLNode proxy_node = putProxyRequest.NewChild("ns1:proxy", ns1);
+            proxy_node.Set(signedcert);
+            resp = NULL;
+            
+            // Testing: write the outgoing SOAP message
+            req.GetDoc(test,true);
+            std::cout << test << std::endl;
+            
+            // Send job request
+            if(client) {
+                Arc::MCC_Status status = client->process("", &req2,&resp);
+                if(!status) {
+                    logger.msg(Arc::ERROR, "Submission request failed.");
+                    throw CREAMClientError("Submission request failed.");
+                }
+                if(resp == NULL) {
+                    logger.msg(Arc::ERROR,"There was no SOAP response.");
+                    throw CREAMClientError("There was no SOAP response.");
+                };
+            } else throw CREAMClientError("There is no connection chain configured.");
+            
+            //Error handling!!!
+            
+        } // CREAMClient::createDelegation()
     } // namespace cream
 } // namespace arc
