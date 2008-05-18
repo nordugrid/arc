@@ -17,6 +17,7 @@ usr/bin/glitesub
 usr/bin/glitestat
 usr/bin/glitekill
 usr/bin/gliteclean
+usr/bin/glitedelegate
 usr/share/man/man1/apinfo.1
 usr/share/man/man1/approxy.1
 usr/share/man/man1/apsub.1
