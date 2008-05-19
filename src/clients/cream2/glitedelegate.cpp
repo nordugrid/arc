@@ -9,16 +9,22 @@
 
 class GLiteSubTool: public Arc::ClientTool {
     public:
+        std::string config_path;
         GLiteSubTool(int argc,char* argv[]):Arc::ClientTool("glitedelegate") {
-            ProcessOptions(argc,argv,"");
+            ProcessOptions(argc,argv,"c:");
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitedelegate delegation_id service_url"<<std::endl;
     };
     virtual bool ProcessOption(char option,char* option_arg) {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
+        switch(option) {
+            case 'c': this->config_path=option_arg; break;
+            default: {
+                std::cerr<<"Error processing option: "<<(char)option<<std::endl;
+                PrintHelp();
+                return false;
+            };
+        };
     };
 };
 
@@ -37,6 +43,7 @@ int main(int argc, char* argv[]){
         Arc::URL url(argv[tool.FirstOption()+1]);
         if(!url) throw(std::invalid_argument(std::string("Can't parse specified service URL")));
         Arc::MCCConfig cfg;
+        if(tool.config_path != "") cfg.GetOverlay(tool.config_path);
         Arc::Cream::CREAMClient gLiteClient(url,cfg);
         
         // Get the delegationid from the command line arguments
