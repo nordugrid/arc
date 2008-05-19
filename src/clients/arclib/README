@@ -1,0 +1,1 @@
+Next generation command line interface (ARC1 arclib). In order to give same look and feel as the ARC0 cli the arccli.cpp and arc* is reused to the extent possible.
