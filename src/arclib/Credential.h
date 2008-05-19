@@ -122,6 +122,9 @@ class Credential {
     /**Get the private key attached to this object*/
     EVP_PKEY* GetPrivKey(void);
 
+    /**Get the public key attached to this object*/
+    EVP_PKEY* GetPubKey(void);
+
     /**Get the certificate attached to this object*/
     X509* GetCert(void);
 

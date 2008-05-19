@@ -76,7 +76,9 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
 #endif
 
     X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx);
-                 
+  
+    //X509_STORE_CTX_set_depth(store_ctx, 10);   
+               
     if(!X509_verify_cert(store_ctx)) { goto err; }
   } 
 
@@ -132,7 +134,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * As OpenSSL does not recognize legacy proxies (pre-RFC, and older fasion proxies)
       */
     case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
-      std::cout<<"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"<<std::endl;;
+      std::cout<<"X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"<<std::endl;
       /*
       * Setting this for 098 or later versions avoid the invalid
       * CA error but would result in proxy path len exceeded which
@@ -206,13 +208,34 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
       else { std::cerr<<"Certificate verification error: "<< X509_verify_cert_error_string(store_ctx->error) <<std::endl; }
 
+      std::cout<<"Current certificate is: "<<subject_name<<std::endl;
+
+      char * issuer_name = X509_NAME_oneline(X509_get_issuer_name(store_ctx->current_cert), 0, 0);
+      std::cout<<"The issuer certificate for current certificate is: "<<issuer_name<<std::endl;
+
+      char * issuer_name1 = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_issuer), 0, 0);
+      std::cout<<"Current issuer certificate in X509_STORE_CTX is: "<<issuer_name1<<std::endl;
+
+      std::cout<<"Current error depth: "<<store_ctx->error_depth<<" error number: "<<store_ctx->error<<std::endl;
+  
+      if(issuer_name) OPENSSL_free(issuer_name);
+      if(issuer_name1) OPENSSL_free(issuer_name1);
       if(subject_name) OPENSSL_free(subject_name);
+
       return ok;
     }
     store_ctx->error = 0;
     return ok;
   }
-  
+
+  char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
+  std::cout<<"Current certificate is: "<<subject_name<<std::endl;
+  char * issuer_name = X509_NAME_oneline(X509_get_issuer_name(store_ctx->current_cert), 0, 0);
+  std::cout<<"The issuer certificate for current certificate is: "<<issuer_name<<std::endl;
+  char * issuer_name1 = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_issuer), 0, 0);
+  std::cout<<"Current issuer certificate in X509_STORE_CTX is: "<<issuer_name1<<std::endl;
+  std::cout<<"Chain number: "<<sk_X509_num(store_ctx->chain)<<std::endl;
+
   /* All of the OpenSSL tests have passed and we now get to 
    * look at the certificate to verify the proxy rules, 
    * and ca-signing-policy rules. We will also do a CRL check
@@ -250,12 +273,10 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
       return (0);
     }
- 
-    std::cout<<"Passed the proxy test"<<std::endl;
      
     vctx->proxy_depth++;  
     if(vctx->max_proxy_depth!=-1 && vctx->max_proxy_depth < vctx->proxy_depth) {
-      std::cerr<<"The proxy depth is out of maxium limitation"<<std::endl;
+      std::cerr<<"The proxy depth is out of maxium limitation:"<<"max_proxy_depth is "<<vctx->max_proxy_depth<<"current proxy_depth is: "<<vctx->proxy_depth<<std::endl;
       return (0);  
     }
     vctx->cert_type=type;  
@@ -380,7 +401,6 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
       //TODO check the certificate against policy
 
-
       free(ca_policy_file_path);
     }
   } 
@@ -424,6 +444,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         if(path_length > -1) {
           if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
             vctx->max_proxy_depth = vctx->proxy_depth + path_length;
+            std::cout<<"proxy_depth: "<<vctx->proxy_depth<<"path_length: "<<path_length<<std::endl;
           }
         }
       }

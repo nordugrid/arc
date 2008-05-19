@@ -303,6 +303,7 @@ namespace ArcLib {
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_md5());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -319,6 +320,7 @@ namespace ArcLib {
          extensions_(NULL), policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength) {
 
     OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_md5());
 
     extensions_ = sk_X509_EXTENSION_new_null();
 
@@ -465,9 +467,10 @@ namespace ArcLib {
         certfile_(certfile), keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024) {
 
-     OpenSSL_add_all_algorithms();
+    OpenSSL_add_all_algorithms();
+    //EVP_add_digest(EVP_md5());
 
-     extensions_ = sk_X509_EXTENSION_new_null();
+    extensions_ = sk_X509_EXTENSION_new_null();
 
     BIO* certbio = NULL, *keybio = NULL; 
 
@@ -969,6 +972,12 @@ err:
 
     return key;
   }
+  
+  EVP_PKEY* Credential::GetPubKey(void){
+    EVP_PKEY* key = NULL;
+    key = X509_get_pubkey(cert_);
+    return key;
+  }
 
   X509* Credential::GetCert(void) {
     X509* cert = NULL;
@@ -1041,7 +1050,7 @@ err:
      
       serial_number = ASN1_INTEGER_new();
       ASN1_INTEGER_set(serial_number, sub_hash);
-        
+       
       int length = ext_method->i2d(proxy->proxy_cert_info_, NULL);
       if(length < 0) {
         credentialLogger.msg(ERROR, "Can not convert PROXYCERTINFO struct from internal to DER encoded format"); LogError();
@@ -1123,7 +1132,7 @@ err:
           X509_EXTENSION_free(ext); ext = NULL; goto err;
         }
       }
-      X509_EXTENSION_free(ext); ext = NULL;
+      X509_EXTENSION_free(ext); ext = NULL; 
     }
 
     if((position = X509_get_ext_by_NID(issuer, NID_ext_key_usage, -1)) > -1) {
@@ -1142,7 +1151,7 @@ err:
       }
       //X509_EXTENSION_free(ext); ext = NULL;
     }
-    
+
     /* Create proxy subject name */
     if((subject_name = X509_NAME_dup(X509_get_subject_name(issuer))) == NULL) {
       credentialLogger.msg(ERROR, "Can not copy the subject name from issuer for proxy certificate"); goto err;
@@ -1157,14 +1166,15 @@ err:
       credentialLogger.msg(ERROR, "Can not set CN in proxy certificate"); 
       LogError(); X509_NAME_ENTRY_free(name_entry); goto err;
     }
-    X509_NAME_free(subject_name);
+
+    X509_NAME_free(subject_name); subject_name = NULL;
     X509_NAME_ENTRY_free(name_entry);
 
     if(!X509_set_issuer_name(*tosign, X509_get_subject_name(issuer))) {
       credentialLogger.msg(ERROR, "Can not set issuer's subject for proxy certificate"); LogError(); goto err;
     }
 
-    if(!X509_set_version(*tosign, 2)) {
+    if(!X509_set_version(*tosign, 2L)) {
       credentialLogger.msg(ERROR, "Can not set version number for proxy certificate"); LogError(); goto err;
     }
 
@@ -1199,11 +1209,13 @@ err:
     if(outputbio == NULL) { credentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
     
     EVP_PKEY* issuer_priv = NULL;
+    EVP_PKEY* issuer_pub = NULL;
     X509*  proxy_cert = NULL;
     X509_CINF*  proxy_cert_info = NULL;
     X509_EXTENSION* ext = NULL;
     EVP_PKEY* req_pubkey = NULL;
     req_pubkey = X509_REQ_get_pubkey(proxy->req_);
+
     if(!req_pubkey) { credentialLogger.msg(ERROR, "Error when extracting public key from request"); LogError(); return false;}
 
     if(!X509_REQ_verify(proxy->req_, req_pubkey)){
@@ -1256,6 +1268,13 @@ err:
     if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
       credentialLogger.msg(ERROR, "Failed to sign the request"); LogError(); goto err;
     }
+
+    /*Verify the signature, not needed later*/
+    issuer_pub = GetPubKey();
+    if((X509_verify(proxy_cert, issuer_pub)) != 1) {
+      credentialLogger.msg(ERROR, "Failed to verify the signed certificate"); LogError(); goto err;
+    }
+    else credentialLogger.msg(INFO, "Succeded to verify the signed certificate");
 
     std::cout<<"Number of extension, proxy object: "<<sk_X509_EXTENSION_num(proxy->extensions_)<<std::endl;
     std::cout<<"Number of extension: "<<sk_X509_EXTENSION_num(proxy_cert->cert_info->extensions)<<std::endl;

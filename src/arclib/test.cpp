@@ -28,7 +28,7 @@ int main(void) {
   //Request side
   BIO* req;
   req = BIO_new(BIO_s_mem());
-  ArcLib::Credential request(t, Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
+  ArcLib::Credential request(t, Arc::Period(24*3600), 1024,  "rfc", "independent");
   request.GenerateRequest(req);
 
   //Signing side
@@ -51,7 +51,7 @@ int main(void) {
   //Request side
   std::string req_string;
   std::string out_string;
-  ArcLib::Credential request1(t, Arc::Period(12*3600), 1024);
+  ArcLib::Credential request1(t, Arc::Period(12*3600), 1024, "rfc", "independent");
   request1.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
@@ -60,19 +60,16 @@ int main(void) {
   proxy1.InquireRequest(req_string);
 
   signer.SignRequest(&proxy1, out_string);
-  std::cout<<"Signed proxy certificate: " <<out_string<<std::endl;
   
-  std::string signing_cert;
-  signer.OutputCertificate(signing_cert);
-  std::cout<<"Signing certificate: " <<signing_cert<<std::endl;
+  std::string signing_cert1;
+  signer.OutputCertificate(signing_cert1);
 
   //Back to request side, compose the signed proxy certificate, local private key, 
   //and signing certificate into one file.
-  std::string private_key;
-  request1.OutputPrivatekey(private_key);
-  std::cout<<"Private key of request: " <<private_key<<std::endl;
-  out_string.append(private_key);
-  out_string.append(signing_cert);
+  std::string private_key1;
+  request1.OutputPrivatekey(private_key1);
+  out_string.append(private_key1);
+  out_string.append(signing_cert1);
   std::cout<<"Final proxy certificate: " <<out_string<<std::endl;
 
 
@@ -80,7 +77,7 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  ArcLib::Credential request2(t, Arc::Period(168*3600), 1024);
+  ArcLib::Credential request2(t, Arc::Period(168*3600), 1024, "rfc", "independent");
   request2.GenerateRequest(req_file.c_str());
 
   //Signing side
@@ -91,12 +88,14 @@ int main(void) {
 
   //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.
-  std::string private_key1;
-  request1.OutputPrivatekey(private_key1);
-  std::cout<<"Private key of request: " <<private_key<<std::endl;
+  std::string private_key2, signing_cert2, signing_cert2_chain;
+  request2.OutputPrivatekey(private_key2);
+  signer.OutputCertificate(signing_cert2);
+  signer.OutputCertificateChain(signing_cert2_chain);
   std::ofstream out_f(out_file.c_str(), std::ofstream::app);
-  out_f.write(private_key1.c_str(), private_key1.size());
-  out_f.write(signing_cert.c_str(), signing_cert.size());
+  out_f.write(private_key2.c_str(), private_key2.size());
+  out_f.write(signing_cert2.c_str(), signing_cert2.size());
+  out_f.write(signing_cert2_chain.c_str(), signing_cert2_chain.size());
   out_f.close();
 
   /**4.Create VOMS AC (attribute certificate), and put it into extension part of proxy certificate*/
