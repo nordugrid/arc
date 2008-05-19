@@ -44,8 +44,9 @@ int main(void) {
    BIO* certbio;
    FILE* file;
    certbio = BIO_new(BIO_s_file());
-   file = fopen("./out.pem", "r");
+   file = fopen("./proxy1.pem", "r");
    BIO_set_fp(certbio, file, BIO_NOCLOSE);
+   int res;
 
    X509* cert;
    if(!(cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL))) {
@@ -68,7 +69,7 @@ int main(void) {
    certinfo_v3_NID = OBJ_sn2nid("PROXYCERTINFO_V3");
    certinfo_v4_NID = OBJ_sn2nid("PROXYCERTINFO_V4");
 
-   int res = X509_get_ext_by_NID(cert, certinfo_v3_NID, -1);
+   res = X509_get_ext_by_NID(cert, certinfo_v3_NID, -1);
    if (res == -1) X509_get_ext_by_NID(cert, certinfo_v4_NID, -1);
 
    if (res != -1) ext = X509_get_ext(cert,res);
@@ -84,7 +85,8 @@ int main(void) {
    FILE* fp = fopen("./proxycertinfo1", "a");
    PROXYCERTINFO_print_fp(fp, cert_info);
 
-
+   int l = PROXYCERTINFO_get_path_length(cert_info);
+   std::cout<<"Path length: "<<l<<std::endl;
 
    X509V3_EXT_METHOD*  ext_method1 = X509V3_EXT_get_nid(certinfo_v3_NID);
    int length = ext_method1->i2d(cert_info, NULL);
@@ -127,7 +129,7 @@ int main(void) {
 
 
    FILE* fp1 = fopen("./proxycertinfo3", "a");
-   PROXYCERTINFO_print_fp(fp1, cert_info);
+   PROXYCERTINFO_print_fp(fp1, cert_info2);
 
 
 }

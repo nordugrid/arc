@@ -25,8 +25,6 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
   X509* cert_in_chain = NULL;
   X509* user_cert = NULL;
 
-  std::cout<<"Cert number in cert chain: "<<sk_X509_num(certchain)<<std::endl;
-
   user_cert = cert;
   cert_store = X509_STORE_new();
   X509_STORE_set_verify_cb_func(cert_store, verify_callback);
@@ -49,8 +47,6 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
       }
     }
   }
-
-  std::cout<<"Verifying chain: CA directory--"<<vctx->ca_dir<<"  ;CA file--"<<vctx->ca_file<<std::endl;
 
   if (X509_STORE_load_locations(cert_store, vctx->ca_file.empty() ? NULL:vctx->ca_file.c_str(), 
      vctx->ca_dir.empty() ? NULL:vctx->ca_dir.c_str())) {
@@ -208,18 +204,6 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
       else { std::cerr<<"Certificate verification error: "<< X509_verify_cert_error_string(store_ctx->error) <<std::endl; }
 
-      std::cout<<"Current certificate is: "<<subject_name<<std::endl;
-
-      char * issuer_name = X509_NAME_oneline(X509_get_issuer_name(store_ctx->current_cert), 0, 0);
-      std::cout<<"The issuer certificate for current certificate is: "<<issuer_name<<std::endl;
-
-      char * issuer_name1 = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_issuer), 0, 0);
-      std::cout<<"Current issuer certificate in X509_STORE_CTX is: "<<issuer_name1<<std::endl;
-
-      std::cout<<"Current error depth: "<<store_ctx->error_depth<<" error number: "<<store_ctx->error<<std::endl;
-  
-      if(issuer_name) OPENSSL_free(issuer_name);
-      if(issuer_name1) OPENSSL_free(issuer_name1);
       if(subject_name) OPENSSL_free(subject_name);
 
       return ok;
@@ -227,14 +211,6 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     store_ctx->error = 0;
     return ok;
   }
-
-  char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
-  std::cout<<"Current certificate is: "<<subject_name<<std::endl;
-  char * issuer_name = X509_NAME_oneline(X509_get_issuer_name(store_ctx->current_cert), 0, 0);
-  std::cout<<"The issuer certificate for current certificate is: "<<issuer_name<<std::endl;
-  char * issuer_name1 = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_issuer), 0, 0);
-  std::cout<<"Current issuer certificate in X509_STORE_CTX is: "<<issuer_name1<<std::endl;
-  std::cout<<"Chain number: "<<sk_X509_num(store_ctx->chain)<<std::endl;
 
   /* All of the OpenSSL tests have passed and we now get to 
    * look at the certificate to verify the proxy rules, 
@@ -263,7 +239,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if((CERT_IS_GSI_2_PROXY(vctx->cert_type) && !CERT_IS_GSI_2_PROXY(type)) ||
          (CERT_IS_GSI_3_PROXY(vctx->cert_type) && !CERT_IS_GSI_3_PROXY(type)) ||
          (CERT_IS_RFC_PROXY(vctx->cert_type) && !CERT_IS_RFC_PROXY(type))) {
-      std::cerr<<"The proxy to be signed should be compatible with the signing certificate"<<std::endl;
+      std::cerr<<"The proxy to be signed should be compatible with the signing certificate"<<vctx->cert_type<<type<<std::endl;
       return (0);
     }
 
@@ -439,6 +415,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       if(nid == OBJ_sn2nid("PROXYCERTINFO") || nid == OBJ_sn2nid("OLD_PROXYCERTINFO") ||
          nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
         proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
+        if (proxycertinfo == NULL) std::cerr<<"Can not convert DER encoded PROXYCERTINFO extension to internal format"<<std::endl;
         int path_length = PROXYCERTINFO_get_path_length(proxycertinfo);
         /* ignore negative values */    
         if(path_length > -1) {

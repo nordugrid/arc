@@ -51,7 +51,7 @@ int main(void) {
   //Request side
   std::string req_string;
   std::string out_string;
-  ArcLib::Credential request1(t, Arc::Period(12*3600), 1024, "rfc", "independent");
+  ArcLib::Credential request1(t, Arc::Period(12*3600));//, 1024, "rfc", "independent");
   request1.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
@@ -77,7 +77,7 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  ArcLib::Credential request2(t, Arc::Period(168*3600), 1024, "rfc", "independent");
+  ArcLib::Credential request2(t, Arc::Period(168*3600), 1024, "rfc", "independent", "", 20);
   request2.GenerateRequest(req_file.c_str());
 
   //Signing side

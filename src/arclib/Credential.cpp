@@ -52,8 +52,6 @@ namespace ArcLib {
     int n;
     ASN1_UTCTIME* atime = NULL;
 
-    std::cout<<"Cert Chain number: "<<  sk_X509_num(certchain) <<std::endl;
-
     for (n = 0; n < sk_X509_num(certchain); n++) {
       tmp_cert = sk_X509_value(certchain, n);
 
@@ -88,8 +86,6 @@ namespace ArcLib {
 
     start = start_time;
     lifetime = end_time - start_time; 
-    
-    std::cout<<"StartTime: "<<start_time.str()<<" EndTime: " <<end_time.str()<<std::endl; 
   }
 
   //Parse the BIO for certificate and get the format of it
@@ -292,10 +288,10 @@ namespace ArcLib {
 
   bool Credential::Verify(void) {
     if(verify_cert_chain(cert_, cert_chain_, &verify_ctx_)) {
-      credentialLogger.msg(INFO, "Certificate verify OK");
+      credentialLogger.msg(INFO, "Certificate verification succeeded");
       return true;
     }
-    else {credentialLogger.msg(ERROR, "Certificate verify failed"); LogError(); return false;}
+    else {credentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
   } 
 
   Credential::Credential() : start_(Arc::Time()), lifetime_(Arc::Period(0)),
@@ -495,8 +491,6 @@ namespace ArcLib {
       keybio = BIO_new_file(certfile.c_str(), "r");
       loadKey(keybio, pkey_);
     }
-
-    //load CA
     
     //Get the lifetime of the credential
     getLifetime(cert_chain_, cert_, start_, lifetime_);
@@ -1240,8 +1234,6 @@ err:
       proxy_cert_info->extensions = sk_X509_EXTENSION_new_null();
     }    
 
-    std::cout<<"Number of extension, proxy object: "<<sk_X509_EXTENSION_num(proxy->extensions_)<<std::endl;
-
     for (int i=0; i<sk_X509_EXTENSION_num(proxy->extensions_); i++) {
       ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(proxy->extensions_, i));
       if (ext == NULL) {
@@ -1266,23 +1258,21 @@ err:
     }
 
     if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
-      credentialLogger.msg(ERROR, "Failed to sign the request"); LogError(); goto err;
+      credentialLogger.msg(ERROR, "Failed to sign the proxy certificate"); LogError(); goto err;
     }
+    else credentialLogger.msg(INFO, "Succeeded to sign the proxy certificate");
 
     /*Verify the signature, not needed later*/
     issuer_pub = GetPubKey();
     if((X509_verify(proxy_cert, issuer_pub)) != 1) {
       credentialLogger.msg(ERROR, "Failed to verify the signed certificate"); LogError(); goto err;
     }
-    else credentialLogger.msg(INFO, "Succeded to verify the signed certificate");
-
-    std::cout<<"Number of extension, proxy object: "<<sk_X509_EXTENSION_num(proxy->extensions_)<<std::endl;
-    std::cout<<"Number of extension: "<<sk_X509_EXTENSION_num(proxy_cert->cert_info->extensions)<<std::endl;
+    else credentialLogger.msg(INFO, "Succeeded to verify the signed certificate");
 
     /*Output the signed certificate into BIO*/
     //if(i2d_X509_bio(outputbio, proxy_cert)) {
     if(PEM_write_bio_X509(outputbio, proxy_cert)) {
-      credentialLogger.msg(INFO, "Succeeded to sign and output the proxy certificate"); res = true;
+      credentialLogger.msg(INFO, "Output the proxy certificate"); res = true;
     }
     else { credentialLogger.msg(ERROR, "Can not convert signed proxy cert into DER format"); LogError();}
    
