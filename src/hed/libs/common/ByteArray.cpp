@@ -68,6 +68,8 @@ void ByteArray::append(const std::string &str)
 
 void ByteArray::append(ByteArray &buf)
 {
+    size_t s = buf.size();
+    append(&s, sizeof(size_t));
     append(buf.data(), buf.size());
 }
 
