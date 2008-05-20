@@ -22,7 +22,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCLDAP::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCLDAP::Instance(Config *cfg, ChainContext *) {
     return new DMCLDAP(cfg);
   }
 

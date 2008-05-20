@@ -21,7 +21,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCLFC::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCLFC::Instance(Config *cfg, ChainContext *) {
     return new DMCLFC(cfg);
   }
 

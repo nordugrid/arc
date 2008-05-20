@@ -36,7 +36,7 @@ namespace Arc {
 
   DataStatus::operator std::string(void) const {
     if (status >= UnknownError)
-      return status_string[UnknownError] + (" " + Arc::tostring(status));
+      return status_string[UnknownError] + (" " + tostring(status));
     return status_string[status];
   }
 

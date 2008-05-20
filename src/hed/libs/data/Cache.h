@@ -54,13 +54,13 @@ namespace Arc {
    */
   int cache_download_url_start(const std::string& cache_path,
 			       const std::string& cache_data_path,
-			       const Arc::User& cache_user,
+			       const User& cache_user,
 			       const std::string& url,
 			       const std::string& id,
 			       cache_download_handler& handler);
   int cache_download_file_start(const std::string& cache_path,
 				const std::string& cache_data_path,
-				const Arc::User& cache_user,
+				const User& cache_user,
 				const std::string& fname,
 				const std::string& id,
 				cache_download_handler& handler);
@@ -78,7 +78,7 @@ namespace Arc {
    */
   int cache_download_url_end(const std::string& cache_path,
 			     const std::string& cache_data_path,
-			     const Arc::User& cache_user,
+			     const User& cache_user,
 			     const std::string& url,
 			     cache_download_handler& handler, bool success);
 
@@ -89,19 +89,19 @@ namespace Arc {
   class cache_download_handler {
     friend int cache_download_url_start(const std::string&,
 					const std::string&,
-					const Arc::User&,
+					const User&,
 					const std::string&,
 					const std::string&,
 					cache_download_handler&);
     friend int cache_download_url_end(const std::string& cache_path,
 				      const std::string& cache_data_path,
-				      const Arc::User& cache_user,
+				      const User& cache_user,
 				      const std::string& url,
 				      cache_download_handler& handler,
 				      bool success);
     friend int cache_download_file_start(const std::string& cache_path,
 					 const std::string& cache_data_path,
-					 const Arc::User& cache_user,
+					 const User& cache_user,
 					 const std::string& fname,
 					 const std::string& id,
 					 cache_download_handler& handler);
@@ -140,7 +140,7 @@ namespace Arc {
    */
   int cache_find_url(const std::string& cache_path,
 		     const std::string& cache_data_path,
-		     const Arc::User& cache_user, const std::string& url,
+		     const User& cache_user, const std::string& url,
 		     const std::string& id, std::string& options,
 		     std::string& fname);
 
@@ -150,7 +150,7 @@ namespace Arc {
    */
   int cache_find_file(const std::string& cache_path,
 		      const std::string& cache_data_path,
-		      const Arc::User& cache_user, const std::string& fname,
+		      const User& cache_user, const std::string& fname,
 		      std::string& url, std::string& options);
 
   /*
@@ -169,21 +169,21 @@ namespace Arc {
    */
   int cache_release_url(const std::string& cache_path,
 			const std::string& cache_data_path,
-			const Arc::User& cache_user, const std::string& url,
+			const User& cache_user, const std::string& url,
 			const std::string& id, bool remove);
   int cache_release_url(const std::string& cache_path,
 			const std::string& cache_data_path,
-			const Arc::User& cache_user, const std::string& id,
+			const User& cache_user, const std::string& id,
 			bool remove);
   int cache_release_file(const std::string& cache_path,
 			 const std::string& cache_data_path,
-			 const Arc::User& cache_user,
+			 const User& cache_user,
 			 const std::string& fname, const std::string& id,
 			 bool remove);
 
   int cache_invalidate_url(const std::string& cache_path,
 			   const std::string& cache_data_path,
-			   const Arc::User& cache_user,
+			   const User& cache_user,
 			   const std::string& fname);
 
   /*
@@ -198,7 +198,7 @@ namespace Arc {
    */
   unsigned long long int cache_clean(const std::string& cache_path,
 				     const std::string& cache_data_path,
-				     const Arc::User& cache_user,
+				     const User& cache_user,
 				     unsigned long long int size);
 
   // These function are intended for internal usage.
@@ -241,7 +241,7 @@ namespace Arc {
       -1 - error.
    */
   int cache_files_list(const std::string& cache_path,
-		       const Arc::User& cache_user,
+		       const User& cache_user,
 		       std::list<std::string>& files);
 
   // Obtain records stored in history files
@@ -256,7 +256,7 @@ namespace Arc {
 
   // Enable/disable cache history. Disabling history deletes all records.
   int cache_history(const std::string& cache_path, bool enable,
-		    const Arc::User& cache_user);
+		    const User& cache_user);
 
 } // namespace Arc
 

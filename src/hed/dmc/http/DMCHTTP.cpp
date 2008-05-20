@@ -20,7 +20,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCHTTP::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCHTTP::Instance(Config *cfg, ChainContext *) {
     return new DMCHTTP(cfg);
   }
 

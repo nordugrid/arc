@@ -155,7 +155,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-    Arc::User user;
+    User user;
     int res = user.check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
       logger.msg(INFO, "File is not accessible: %s", url.Path());
@@ -197,7 +197,7 @@ namespace Arc {
     if (url.Path() == "-")
       fd = dup(STDIN_FILENO);
     else {
-      Arc::User user;
+      User user;
       if (user.check_file_access(url.Path(), flags) != 0) {
 	reading = false;
 	return DataStatus::ReadStartError;
@@ -267,7 +267,7 @@ namespace Arc {
       }
     }
     else {
-      Arc::User user;
+      User user;
       /* do not check permissions to create anything here -
          suppose it path was checked at higher level */
       /* make directories */

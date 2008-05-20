@@ -42,8 +42,7 @@ namespace Arc {
   DataCache::DataCache(const std::string& cache_path_,
 		       const std::string& cache_data_path_,
 		       const std::string& cache_link_path_,
-		       const std::string& id,
-		       const Arc::User& cache_user)
+		       const std::string& id, const User& cache_user)
     : cache_path(cache_path_),
       cache_data_path(cache_data_path_),
       cache_link_path(cache_link_path_),
@@ -184,16 +183,16 @@ namespace Arc {
   }
 
   bool DataCache::link(const std::string& link_path) {
-    Arc::User user;
+    User user;
     return link(link_path, user);
   }
 
   bool DataCache::copy(const std::string& link_path) {
-    Arc::User user;
+    User user;
     return copy(link_path, user);
   }
 
-  bool DataCache::link(const std::string& link_path, const Arc::User& user) {
+  bool DataCache::link(const std::string& link_path, const User& user) {
     std::string dirpath = link_path;
     std::string::size_type n = dirpath.rfind('/');
     if (n == std::string::npos)
@@ -212,8 +211,7 @@ namespace Arc {
       return link_file(link_path, user);
   }
 
-  bool DataCache::link_file(const std::string& link_path,
-			    const Arc::User& user) {
+  bool DataCache::link_file(const std::string& link_path, const User& user) {
     std::string fname(cache_file.substr(cache_data_path.length()));
     fname = cache_link_path + fname;
     if (symlink(fname.c_str(), link_path.c_str()) == -1) {
@@ -225,7 +223,7 @@ namespace Arc {
     return true;
   }
 
-  bool DataCache::copy(const std::string& link_path, const Arc::User& user) {
+  bool DataCache::copy(const std::string& link_path, const User& user) {
     std::string dirpath = link_path;
     std::string::size_type n = dirpath.rfind('/');
     if (n == std::string::npos)
@@ -240,8 +238,7 @@ namespace Arc {
     return copy_file(link_path, user);
   }
 
-  bool DataCache::copy_file(const std::string& link_path,
-			    const Arc::User& user) {
+  bool DataCache::copy_file(const std::string& link_path, const User& user) {
     char buf[65536];
     int fd = open(link_path.c_str(),
 		  O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);

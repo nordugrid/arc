@@ -26,7 +26,7 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
 
-  DMC *DMCGridFTP::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCGridFTP::Instance(Config *cfg, ChainContext *) {
     return new DMCGridFTP(cfg);
   }
 

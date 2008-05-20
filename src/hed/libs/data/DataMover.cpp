@@ -555,7 +555,7 @@ namespace Arc {
 	      destination.CurrentLocation().Path();
 	    // create directory structure for link_name
 	    {
-	      Arc::User user;
+	      User user;
 	      std::string dirpath = link_name;
 	      std::string::size_type n = dirpath.rfind('/');
 	      if (n == std::string::npos)
@@ -609,7 +609,7 @@ namespace Arc {
 			   DataCache::file_keep);
 	      continue;
 	    }
-	    Arc::User user;
+	    User user;
 	    (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
 	    if (cacheable)
 	      cache.stop();

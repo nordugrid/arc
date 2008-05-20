@@ -8,12 +8,12 @@
 
 namespace Arc {
 
-  TargetRetrieverARC1::TargetRetrieverARC1(Arc::Config *cfg)
-    : Arc::TargetRetriever(cfg) {}
+  TargetRetrieverARC1::TargetRetrieverARC1(Config *cfg)
+    : TargetRetriever(cfg) {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
-  ACC *TargetRetrieverARC1::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  ACC *TargetRetrieverARC1::Instance(Config *cfg, ChainContext *) {
     return new TargetRetrieverARC1(cfg);
   }
 
@@ -51,13 +51,16 @@ namespace Arc {
 
   } //end GetTargets()
 
-  void TargetRetrieverARC1::InterrogateTarget(TargetGenerator& Mom, std::string url, int TargetType, int DetailLevel) {
+  void TargetRetrieverARC1::InterrogateTarget(TargetGenerator& Mom,
+					      std::string url, int TargetType,
+					      int DetailLevel) {
 
     // TODO: A-REX
 
   } //end TargetInterrogator
 
-  std::list<std::string> TargetRetrieverARC1::getAttribute(std::string attr, Arc::XMLNode& node) {
+  std::list<std::string> TargetRetrieverARC1::getAttribute(std::string attr,
+							   XMLNode& node) {
     std::list<std::string> results;
 
     XMLNodeList nodelist = node.XPathLookup(attr, NS());

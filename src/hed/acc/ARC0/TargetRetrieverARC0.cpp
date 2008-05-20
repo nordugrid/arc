@@ -186,7 +186,7 @@ namespace Arc {
       //Find and fill endpoint information (once again some entities are missing)
       attributes = getAttribute("//nordugrid-cluster-contactstring", XMLresult);
       if (attributes.size())
-	ThisTarget.URL = *attributes.begin();
+	ThisTarget.url = *attributes.begin();
       ThisTarget.InterfaceName = "GridFTP";
       ThisTarget.Implementor = "NorduGrid";
       ThisTarget.ImplementationName = "ARC0";

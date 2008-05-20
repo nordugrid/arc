@@ -22,7 +22,7 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC *DMCFile::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCFile::Instance(Config *cfg, ChainContext *) {
     return new DMCFile(cfg);
   }
 

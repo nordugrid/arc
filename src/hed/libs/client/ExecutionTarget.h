@@ -1,11 +1,11 @@
+#ifndef ARCLIB_EXECUTIONTARGET
+#define ARCLIB_EXECUTIONTARGET
+
 #include <arc/client/Submitter.h>
 #include <arc/client/ACC.h>
 #include <arc/URL.h>
 #include <string>
 #include <list>
-
-#ifndef ARCLIB_EXECUTIONTARGET
-#define ARCLIB_EXECUTIONTARGET
 
 namespace Arc {
 
@@ -26,7 +26,7 @@ namespace Arc {
     float Longitude;
 
     //Below attributes inspired by Glue2:Endpoint
-    Arc::URL URL;
+    URL url;
     std::string InterfaceName;
     std::string InterfaceVersion;
     std::string Implementor;
@@ -63,7 +63,7 @@ namespace Arc {
     std::string SchedulingPolicy;
     int MaxMemory;
     int MaxDiskSpace;
-    Arc::URL DefaultStorageService;
+    URL DefaultStorageService;
     bool Preemption;
     std::string ServingState;
     int EstimatedAverageWaitingTime;
@@ -74,16 +74,16 @@ namespace Arc {
     std::string ReservationPolicy;
 
     //Other
-    Arc::Submitter *GetSubmitter();
+    Submitter *GetSubmitter();
     std::string GridFlavour;
     std::string Source;
 
   private:
 
-    Arc::Loader *loader;
+    Loader *loader;
 
   };
 
 } // namespace Arc
 
-#endif
+#endif // ARCLIB_EXECUTIONTARGET

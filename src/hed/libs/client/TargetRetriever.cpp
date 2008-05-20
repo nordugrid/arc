@@ -4,7 +4,7 @@
 
 namespace Arc {
 
-  TargetRetriever::TargetRetriever(Arc::Config *cfg)
+  TargetRetriever::TargetRetriever(Config *cfg)
     : ACC() {
 
     m_url = (std::string)(*cfg)["URL"];

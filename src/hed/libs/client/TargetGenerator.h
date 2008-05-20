@@ -17,27 +17,27 @@ namespace Arc {
 
   class TargetGenerator {
   public:
-    TargetGenerator(Arc::Config& cfg);
+    TargetGenerator(Config& cfg);
     ~TargetGenerator();
 
     void GetTargets(int TargetType, int DetailLevel);
 
     bool AddService(std::string NewService);
-    void AddTarget(Arc::ExecutionTarget NewTarget);
+    void AddTarget(ExecutionTarget NewTarget);
     bool DoIAlreadyExist(std::string NewServer);
 
     void PrintTargetInfo(bool longlist);
 
     std::list<std::string> FoundServices;
     std::list<std::string> CheckedInfoServers;
-    std::list<Arc::ExecutionTarget> FoundTargets;
+    std::list<ExecutionTarget> FoundTargets;
 
   private:
     Glib::Mutex ServiceMutex;
     Glib::Mutex ServerMutex;
     Glib::Mutex TargetMutex;
 
-    Arc::Loader *ACCloader;
+    Loader *ACCloader;
 
   };
 

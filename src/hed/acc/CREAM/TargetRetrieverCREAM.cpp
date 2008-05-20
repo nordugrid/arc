@@ -78,8 +78,8 @@ namespace Arc {
 	std::string url = (std::string)(*iter)["GlueServiceEndpoint"];
 
 	NS ns;
-	Arc::Config cfg(ns);
-	Arc::XMLNode URLXML = cfg.NewChild("URL") = url;
+	Config cfg(ns);
+	XMLNode URLXML = cfg.NewChild("URL") = url;
 	URLXML.NewAttribute("ServiceType") = "index";
 
 	TargetRetrieverCREAM thisBDII(&cfg);

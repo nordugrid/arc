@@ -43,27 +43,27 @@ namespace Arc {
 
   ExecutionTarget::~ExecutionTarget() {}
 
-  Arc::Submitter *ExecutionTarget::GetSubmitter() {
+  Submitter *ExecutionTarget::GetSubmitter() {
 
-    Arc::LogStream logcerr(std::cerr);
-    Arc::Logger::getRootLogger().addDestination(logcerr);
-    Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+    LogStream logcerr(std::cerr);
+    Logger::getRootLogger().addDestination(logcerr);
+    Logger::getRootLogger().setThreshold(DEBUG);
 
-    Arc::ACCConfig acccfg;
-    Arc::NS ns;
-    Arc::Config cfg(ns);
+    ACCConfig acccfg;
+    NS ns;
+    Config cfg(ns);
     acccfg.MakeConfig(cfg);
 
-    Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
+    XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
     SubmitterComp.NewAttribute("name") = "Submitter" + GridFlavour;
     SubmitterComp.NewAttribute("id") = "submitter";
-    SubmitterComp.NewChild("Endpoint") = URL.str();
+    SubmitterComp.NewChild("Endpoint") = url.str();
     SubmitterComp.NewChild("Source") = Source;
     SubmitterComp.NewChild("MappingQueue") = MappingQueue;
 
-    loader = new Arc::Loader(&cfg);
+    loader = new Loader(&cfg);
 
-    return dynamic_cast<Arc::Submitter *>(loader->getACC("submitter"));
+    return dynamic_cast<Submitter *>(loader->getACC("submitter"));
 
   }
 

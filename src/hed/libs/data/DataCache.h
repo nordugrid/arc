@@ -36,12 +36,12 @@ namespace Arc {
     /* file storing content of url */
     std::string cache_file;
     /* owner:group of cache */
-    Arc::User cache_user;
+    User cache_user;
     Time creation_time;
     Time expiration_time;
     static Logger logger;
-    bool link_file(const std::string& link_path, const Arc::User& user);
-    bool copy_file(const std::string& link_path, const Arc::User& user);
+    bool link_file(const std::string& link_path, const User& user);
+    bool copy_file(const std::string& link_path, const User& user);
   public:
     typedef enum {
       file_no_error = 0,
@@ -61,7 +61,7 @@ namespace Arc {
     DataCache(const std::string& cache_path,
 	      const std::string& cache_data_path,
 	      const std::string& cache_link_path,
-	      const std::string& id, const Arc::User& cache_user);
+	      const std::string& id, const User& cache_user);
     /// Copy constructor
     DataCache(const DataCache& cache);
     /// and destructor
@@ -89,10 +89,10 @@ namespace Arc {
     /// \param link_path path for soft-link or new file.
     bool link(const std::string& link_path);
     /// \param user set owner of soft-link
-    bool link(const std::string& link_path, const Arc::User& user);
+    bool link(const std::string& link_path, const User& user);
     /// Do same as link() but always create copy
     bool copy(const std::string& link_path);
-    bool copy(const std::string& link_path, const Arc::User& user);
+    bool copy(const std::string& link_path, const User& user);
     /// Remove some amount of oldest information from cache.
     /// Returns true on success.
     /// \param size amount to be removed (bytes)

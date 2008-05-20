@@ -8,15 +8,16 @@ namespace Arc {
   class URL;
 
   class TargetRetrieverARC1
-    : public Arc::TargetRetriever {
-    TargetRetrieverARC1(Arc::Config *cfg);
+    : public TargetRetriever {
+    TargetRetrieverARC1(Config *cfg);
     ~TargetRetrieverARC1();
 
   public:
-    void GetTargets(Arc::TargetGenerator& Mom, int TargetType, int DetailLevel);
-    void InterrogateTarget(Arc::TargetGenerator& Mom, std::string url, int TargetType, int DetailLevel);
-    static ACC *Instance(Arc::Config *cfg, Arc::ChainContext *);
-    std::list<std::string> getAttribute(std::string attr, Arc::XMLNode& node);
+    void GetTargets(TargetGenerator& Mom, int TargetType, int DetailLevel);
+    void InterrogateTarget(TargetGenerator& Mom, std::string url,
+			   int TargetType, int DetailLevel);
+    static ACC *Instance(Config *cfg, ChainContext *);
+    std::list<std::string> getAttribute(std::string attr, XMLNode& node);
 
   }; //end class
 

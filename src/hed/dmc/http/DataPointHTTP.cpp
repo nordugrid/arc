@@ -255,7 +255,7 @@ namespace Arc {
   }
 
   // Globus legacy
-  static void get_environment_credentials(Arc::BaseConfig& cfg) {
+  static void get_environment_credentials(BaseConfig& cfg) {
     if (getenv("X509_USER_CERT"))
       cfg.AddCertificate(getenv("X509_USER_CERT"));
     if (getenv("X509_USER_KEY"))
@@ -289,7 +289,7 @@ namespace Arc {
     PayloadRaw request;
     PayloadRawInterface *response;
 
-    Arc::HTTPClientInfo info;
+    HTTPClientInfo info;
     client.process("GET", &request, &info, &response);
 
     std::list<FileInfo>::iterator f = files.insert(files.end(), url.Path());
@@ -453,7 +453,7 @@ namespace Arc {
 	break;
       uint64_t transfer_end = transfer_offset + chunk_length - 1;
       // Read chunk
-      Arc::HTTPClientInfo transfer_info;
+      HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface *inbuf;
       std::string path = point.CurrentLocation().Path();
@@ -570,7 +570,7 @@ namespace Arc {
       //uint64_t transfer_offset = 0;
       //uint64_t transfer_end = transfer_offset+transfer_size;
       // Write chunk
-      Arc::HTTPClientInfo transfer_info;
+      HTTPClientInfo transfer_info;
       PayloadMemConst request((*point.buffer)[transfer_handle], transfer_offset, transfer_size,
 			      point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;

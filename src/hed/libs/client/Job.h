@@ -18,7 +18,7 @@ namespace Arc {
     virtual void Kill() = 0;
 
   protected:
-    Arc::URL InfoEndpoint;
+    URL InfoEndpoint;
 
   };
 

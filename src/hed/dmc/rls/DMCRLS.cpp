@@ -31,7 +31,7 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_COMMON_MODULE);
   }
 
-  DMC *DMCRLS::Instance(Arc::Config *cfg, Arc::ChainContext *) {
+  DMC *DMCRLS::Instance(Config *cfg, ChainContext *) {
     return new DMCRLS(cfg);
   }
 

@@ -20,7 +20,7 @@ namespace Arc {
 
   static unsigned long long int cache_clean(const std::string& cache_path,
 					    const std::string& cache_data_path,
-					    const Arc::User& cache_user,
+					    const User& cache_user,
 					    unsigned long long int size,
 					    int h);
 
@@ -544,7 +544,7 @@ namespace Arc {
   }
 
   int cache_history(const std::string& cache_path, bool enable,
-		    const Arc::User& cache_user) {
+		    const User& cache_user) {
     std::string fname_old(cache_path);
     fname_old += "/old";
     std::string fname_new(cache_path);
@@ -590,7 +590,7 @@ namespace Arc {
   // ------------------------------------------------------------------
 
   static int cache_open_list(const std::string& cache_path,
-			     const Arc::User& cache_user) {
+			     const User& cache_user) {
     std::string fname(cache_path);
     fname += "/list";
     int h = open(fname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
@@ -890,7 +890,7 @@ namespace Arc {
   static int cache_add_list(int h, const std::string& url,
 			    const std::string& cache_path,
 			    const std::string& cache_data_path,
-			    const Arc::User& cache_user,
+			    const User& cache_user,
 			    const std::string& id, std::string& fname) {
 
 #define OUT_OF_SPACE_CHECK						   \
@@ -998,7 +998,7 @@ namespace Arc {
   static int cache_remove_list(int h, const std::string& fname,
 			       const std::string& cache_path,
 			       const std::string& cache_data_path,
-			       const Arc::User&) {
+			       const User&) {
     if (h == -1)
       return -1;
     std::string name = cache_data_path + '/' + fname;
@@ -1027,7 +1027,7 @@ namespace Arc {
   }
 
   static int cache_invalidate_list(int h, const std::string& cache_path,
-				   const std::string&, const Arc::User&,
+				   const std::string&, const User&,
 				   const std::string& fname) {
     if (h == -1)
       return -1;
@@ -1323,7 +1323,7 @@ namespace Arc {
   // returns: 0 - success, 1 - unspecified error
   int cache_find_url(const std::string& cache_path,
 		     const std::string& cache_data_path,
-		     const Arc::User& cache_user, const std::string& url,
+		     const User& cache_user, const std::string& url,
 		     const std::string& id, std::string& options,
 		     std::string& fname) {
     if (cache_path.empty())
@@ -1387,7 +1387,7 @@ namespace Arc {
   }
 
   int cache_find_file(const std::string& cache_path, const std::string&,
-		      const Arc::User& cache_user, const std::string& fname,
+		      const User& cache_user, const std::string& fname,
 		      std::string& url, std::string& options) {
     if (cache_path.empty())
       return 1;
@@ -1446,7 +1446,7 @@ namespace Arc {
 
   int cache_release_url(const std::string& cache_path,
 			const std::string& cache_data_path,
-			const Arc::User& cache_user, const std::string& id,
+			const User& cache_user, const std::string& id,
 			bool remove) {
     if (cache_path.empty())
       return 1;
@@ -1496,7 +1496,7 @@ namespace Arc {
 
   int cache_release_url(const std::string& cache_path,
 			const std::string& cache_data_path,
-			const Arc::User& cache_user, const std::string& url,
+			const User& cache_user, const std::string& url,
 			const std::string& id, bool remove) {
     if (cache_path.empty())
       return 1;
@@ -1545,7 +1545,7 @@ namespace Arc {
 
   int cache_release_file(const std::string& cache_path,
 			 const std::string& cache_data_path,
-			 const Arc::User& cache_user,
+			 const User& cache_user,
 			 const std::string& fname, const std::string& id,
 			 bool remove) {
     if (cache_path.empty())
@@ -1575,7 +1575,7 @@ namespace Arc {
 
   int cache_invalidate_url(const std::string& cache_path,
 			   const std::string& cache_data_path,
-			   const Arc::User& cache_user,
+			   const User& cache_user,
 			   const std::string& fname) {
     if (cache_path.empty())
       return 1;
@@ -1611,7 +1611,7 @@ namespace Arc {
   // This function is unsafe because it can fail if url was invalidated
   int cache_download_url_start(const std::string& cache_path,
 			       const std::string& cache_data_path,
-			       const Arc::User& cache_user,
+			       const User& cache_user,
 			       const std::string& url, const std::string& id,
 			       cache_download_handler& handler) {
     if (cache_path.empty())
@@ -1660,7 +1660,7 @@ namespace Arc {
 
   int cache_download_file_start(const std::string& cache_path,
 				const std::string& cache_data_path,
-				const Arc::User& cache_user,
+				const User& cache_user,
 				const std::string& fname,
 				const std::string& id,
 				cache_download_handler& handler) {
@@ -1744,7 +1744,7 @@ namespace Arc {
   }
 
   int cache_download_url_end(const std::string& cache_path, const std::string&,
-			     const Arc::User& cache_user,
+			     const User& cache_user,
 			     const std::string& url,
 			     cache_download_handler& handler, bool success) {
     if (!url.empty()) {
@@ -1802,14 +1802,14 @@ namespace Arc {
   // remove old files from cache to provide 'size' space
   unsigned long long int cache_clean(const std::string& cache_path,
 				     const std::string& cache_data_path,
-				     const Arc::User& cache_user,
+				     const User& cache_user,
 				     unsigned long long int size) {
     return cache_clean(cache_path, cache_data_path, cache_user, size, -1);
   }
 
   static unsigned long long int cache_clean(const std::string& cache_path,
 					    const std::string& cache_data_path,
-					    const Arc::User& cache_user,
+					    const User& cache_user,
 					    unsigned long long int size,
 					    int h) {
     if (cache_path.empty())
@@ -1884,8 +1884,7 @@ namespace Arc {
     return total_size;
   }
 
-  int cache_files_list(const std::string& cache_path,
-		       const Arc::User& cache_user,
+  int cache_files_list(const std::string& cache_path, const User& cache_user,
 		       std::list<std::string>& files) {
     if (cache_path.empty())
       return 0;
