@@ -1,0 +1,80 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "ByteArray.h"
+
+namespace Arc
+{
+
+void ByteArray::init(size_t length)
+{
+    size_t new_length = length + BYTE_ARRAY_PAD_SIZE;
+    data_ = (char *)calloc(new_length, sizeof(char));
+    if (data_ == NULL) {
+        throw MemoryAllocationException();
+    }
+    size_ = 0;
+    length_ = new_length;
+}
+
+ByteArray::ByteArray(size_t length)
+{
+    init(length);
+}
+
+ByteArray::ByteArray(void *buf, size_t s)
+{
+    init(s);
+    append(buf, s);
+}
+
+ByteArray::~ByteArray()
+{
+    if (data_ != NULL) {
+        free(data_);
+    }
+    size_ = 0;
+    length_ = 0;
+}
+
+void ByteArray::resize(size_t new_size)
+{
+    size_t new_length = new_size + BYTE_ARRAY_PAD_SIZE;
+    char *new_data = (char *)calloc(new_length, sizeof(char));
+    if (new_data == NULL) {
+        throw MemoryAllocationException();
+    }
+    // memmove?
+    memcpy(new_data, data_, size_);
+    data_ = new_data;
+    length_ = new_length;
+}
+
+void ByteArray::append(const void *buf, size_t s)
+{
+    unsigned int new_size = size_ + s;
+    if (new_size > length_) {
+         resize(new_size);
+    }
+    memcpy(data_+size_, buf, s);
+    size_ = new_size;
+}
+
+void ByteArray::append(const std::string &str)
+{
+    append(str.c_str(), str.size() + 1);
+}
+
+void ByteArray::append(ByteArray &buf)
+{
+    append(buf.data(), buf.size());
+}
+
+void ByteArray::clean(void)
+{
+    memset(data_, 0, length_);
+    size_ = 0;
+}
+
+} // namespace Arc
