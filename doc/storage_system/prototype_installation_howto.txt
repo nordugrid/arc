@@ -539,3 +539,237 @@ let's grab it with the ByteIOClient:
     In [22]: b = storage.client.ByteIOClient('http://localhost:60000/byteio/fb418bd6-ca7a-4c03-875b-45be520eb2e0')
     In [24]: b.read()
     Out[24]: 'export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs\n./arc1/src/hed/daemon/arched -f -c ./service.xml\n'
+    
+    
+Adding an echo service to the system
+------------------------------------
+
+there is an example Echo service in the subversion which was written in python:
+
+$ cat arc1/src/services/echo_python/EchoService.py 
+import arc
+import time
+
+class EchoService:
+
+    def __init__(self, cfg):
+        print "EchoService (python) constructor called"
+        # get the response-prefix from the config XML
+        self.prefix = str(cfg.Get('prefix'))
+        # get the response-suffix from the config XML
+        self.suffix = str(cfg.Get('suffix'))
+        print "EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix)
+
+    def process(self, inmsg, outmsg):
+        print "EchoService (python) 'Process' called"
+        # time.sleep(10)
+        # get the payload from the message
+        inpayload = inmsg.Payload()
+        print "EchoService (python) got:", inpayload.GetXML()
+        # we want to use members of the 'urn:echo' namespace
+        # so we need to know which namespace prefix was assigned to it
+        # we get the namespace prefix
+        echo_ns = inpayload.NamespacePrefix('urn:echo')
+        # then we can get 'prefix:echo/prefix:say'
+        echo_op = inpayload.Get(echo_ns + ':echo')
+        say = str(echo_op.Get(echo_ns + ':say'))
+        # put it between the response-prefix and the response-suffix
+        hear = self.prefix + say + self.suffix
+        # create an answer payload
+        outpayload = arc.PayloadSOAP(arc.NS({'echo':'urn:echo'}))
+        # here we defined that 'echo' prefix will be the namespace prefix of 'urn:echo'
+        # and we create a node at '/echo:echoResponse/echo:hear' and put the string in it
+        outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set(hear)
+        # put the payload into the outgoing message
+        outmsg.Payload(outpayload)
+        # return with STATUS_OK
+        return arc.MCC_Status(arc.STATUS_OK)
+
+If we want to start this we need to edit the service.xml config file:
+
+    add /Echo to the plexer:
+
+        <Plexer name="plexer.service" id="plexer">
+            <next id="echo">/Echo</next>
+            <next id="hash">/Hash</next>
+            <next id="catalog">/Catalog</next>
+            <next id="manager">/Manager</next>
+            <next id="element">/Element</next>
+            <next id="byteio">/byteio</next>
+        </Plexer>
+
+    create Service node for it:
+        
+        <Service name="pythonservice" id="echo">
+            <ClassName>echo_python.EchoService.EchoService</ClassName>
+            <Prefix>TADAA! </Prefix>
+        </Service>
+
+    the ClassName is manditory, here 'echo_python' is the directory name (module),
+    the first 'EchoService' is the name of the .py file (package),
+    the second 'EchoService' is the name of the class within the package
+    
+We could create a small shellscript to test it:
+
+    $ cat echo_test.sh 
+    MESSAGE='<?xml version="1.0"?><soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:star="urn:echo"><soap-env:Body><star:echo><star:say>HELLO</star:say></star:echo></soap-env:Body></soap-env:Envelope>'
+    echo Request:
+    echo $MESSAGE
+    echo
+    echo Response:
+    curl -d "$MESSAGE" http://localhost:60000/Echo
+echo
+
+    $ chmod +x echo_test.sh 
+   
+    $ ./echo_test.sh 
+    Request:
+    <?xml version="1.0"?><soap-env:Envelope xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:star="urn:echo"><soap-env:Body><star:echo><star:say>HELLO</star:say></star:echo></soap-env:Body></soap-env:Envelope>
+    
+    Response:
+    <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echoResponse><echo:hear>TADAA! HELLO</echo:hear></echo:echoResponse></soap-env:Body></soap-env:Envelope>
+
+The answer has a "TADAA! HELLO" string in it.
+
+
+Client tools in python
+----------------------
+
+Let's call it from python! I use ipython as usual:
+
+    In [1]: from storage.client import Client
+    
+    In [2]: Client?
+    Type:		classobj
+    String Form:	storage.client.Client
+    Namespace:	Interactive
+    File:		/Users/zsombor/Development/arc/arc1/src/services/storage/client.py
+    Docstring:
+        Base Client class for sending SOAP messages to services 
+    
+    Constructor information:
+    Definition:	Client(self, url, ns, print_xml=False)
+    Docstring:
+        The constructor of the Client class.
+        
+        Client(url, ns, print_xml = false)
+        
+        url is the URL of the service
+        ns contains the namespaces we want to use with each message
+        print_xml is for debugging, prints all the SOAP messages to the screen
+
+We need a namespace object with the namespace of the Echo service, which is currently 'urn:echo', and we want to call it 'echo':
+
+    In [4]: import arc
+    
+    In [5]: ns = arc.NS({'echo':'urn:echo'})
+
+Now 'ns' contains the namespace object, we could create the Client:
+
+    In [6]: echo_client = Client('http://localhost:60000/Echo', ns, print_xml = True)
+    
+We want it to print out the SOAP messages for debug: print_xml = True
+
+We could create an XML object to send:
+
+    In [32]: xml = arc.XMLNode("""<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echo><echo:say>HI!</echo:say></echo:echo></soap-env:Body></soap-env:Envelope>""")
+    
+    In [34]: print xml.GetXML()
+    <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echo><echo:say>HI!</echo:say></echo:echo></soap-env:Body></soap-env:Envelope>
+
+Then we could call the service with the call_raw method of the Client:
+
+    In [35]: echo_client.call_raw(xml)
+    Out[35]: 
+    ('<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echoResponse><echo:hear>TADAA! HI!</echo:hear></echo:echoResponse></soap-env:Body></soap-env:Envelope>',
+     200,
+     'OK')
+
+There is an XMLTree class which can be used to create simple XML structures from python lists:
+
+    In [9]: from storage.xmltree import XMLTree
+    
+    In [11]: tree = XMLTree(from_tree =
+                ('echo:echo', [
+                    ('echo:say', 'HI!')
+                ])
+             )
+             
+It is the same as:
+
+    In [36]: tree = XMLTree(from_tree = ('echo:echo', [('echo:say','HI!')]))
+
+just with a few newlines to look better.
+
+This XMLTree can be serialized as a simple XML document:
+
+    In [18]: print tree.pretty_xml()
+    <echo:echo>
+      <echo:say>HI!</echo:say>
+    </echo:echo>
+
+There is no attributes support in XMLTree, just plain XML tags with text contents.
+
+So now we have an XMLTree with the actual message, we could use the 'call' method of the client,
+which will print the XML documents because of the 'print_xml = True' argument when we created it.
+
+    In [19]: echo_client.call(tree)
+    Request:
+            #   <soap-env:Body>
+            #       <echo:echo>
+            #           <echo:say>HI!</echo:say>
+            #       </echo:echo>
+            #   </soap-env:Body>
+    
+    Response:
+            #   <soap-env:Envelope>
+            #       <soap-env:Body>
+            #           <echo:echoResponse>
+            #               <echo:hear>TADAA! HI!</echo:hear>
+            #           </echo:echoResponse>
+            #       </soap-env:Body>
+            #   </soap-env:Envelope>
+    
+    Out[19]: 
+    ('<soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echoResponse><echo:hear>TADAA! HI!</echo:hear></echo:echoResponse></soap-env:Body></soap-env:Envelope>',
+     200,
+ 'OK')
+
+And if we do not need the HTTP status messages and we need the answer as an XMLTree, we could ask 'call' to return only that:
+
+In [21]: print echo_client.call(tree, True)
+    Request:
+            #   <soap-env:Body>
+            #       <echo:echo>
+            #           <echo:say>HI!</echo:say>
+            #       </echo:echo>
+            #   </soap-env:Body>
+    
+    Response:
+            #   <soap-env:Envelope>
+            #       <soap-env:Body>
+            #           <echo:echoResponse>
+            #               <echo:hear>TADAA! HI!</echo:hear>
+            #           </echo:echoResponse>
+            #       </soap-env:Body>
+            #   </soap-env:Envelope>
+    
+    ('echoResponse', [('hear', 'TADAA! HI!')])
+
+
+To summarize the whole thing, here is the shortest example of calling the echo service from python:
+
+    In [1]: import arc
+    In [2]: ns = arc.NS({'echo':'urn:echo'})
+    In [3]: from storage.xmltree import XMLTree
+    In [4]: tree = XMLTree(from_tree = ('echo:echo', [('echo:say','HI!')]))
+    In [5]: from storage.client import Client
+    In [6]: echo_client = Client('http://localhost:60000/Echo', ns)
+    In [7]: print echo_client.call(tree, True)
+
+    ('echoResponse', [('hear', 'TADAA! HI!')])
+
+Meanwhile the server log has:
+
+    EchoService (python) 'Process' called
+    EchoService (python) got: <soap-env:Envelope xmlns:echo="urn:echo" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap-env:Body><echo:echo><echo:say>HI!</echo:say></echo:echo></soap-env:Body></soap-env:Envelope>
