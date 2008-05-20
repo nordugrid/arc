@@ -34,6 +34,7 @@ class Job {
         Arc::XMLNode &getJSDL(void) { return request_->getJSDL(); };
         operator bool(void) { return (id_.empty() ? false : true ); };
         bool operator!(void) { return (id_.empty() ? true : false ); };
+        operator std::string(void) const;
 };
 
 } // namespace Arc

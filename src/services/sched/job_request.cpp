@@ -45,4 +45,12 @@ ByteArray &JobRequest::serialize(void)
     return buffer_;
 }
 
+JobRequest::operator std::string(void) const
+{
+    std::string xml_str;
+    request_.GetXML(xml_str);
+    std::string out = "Request XML:\n" + xml_str + "\n";
+    return out;
+}
+
 } //namespace

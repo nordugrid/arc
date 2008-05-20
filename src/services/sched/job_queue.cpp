@@ -8,6 +8,60 @@
 namespace Arc
 {
 
+JobQueueIterator::JobQueueIterator()
+{
+    cursor_ = NULL;
+    job_ = NULL;
+    has_more_ = false; 
+}
+
+void JobQueueIterator::next(void)
+{
+    int ret;
+    Dbt key, value;
+    key.set_flags(DB_DBT_MALLOC);
+    value.set_flags(DB_DBT_MALLOC);
+    ret = cursor_->get(&key, &value, DB_NEXT); 
+    if (ret == DB_NOTFOUND) {
+        has_more_ = false;
+    }
+    free(key.get_data());
+    ByteArray a(value.get_data(), value.get_size());
+    free(value.get_data());
+    job_ = new Job(a);
+}
+
+JobQueueIterator::JobQueueIterator(Dbc *cursor)
+{
+    has_more_ = true;
+    cursor_ = cursor;
+    next();
+}
+
+const JobQueueIterator &JobQueueIterator::operator++()
+{
+    delete job_;
+    next();
+    return *this;
+}
+
+const JobQueueIterator &JobQueueIterator::operator++(int)
+{
+    delete job_;
+    next();
+    return *this;
+}
+
+JobQueueIterator::~JobQueueIterator()
+{
+    if (job_ != NULL) {
+        delete job_;
+    }
+    if (cursor_ != NULL) {
+        cursor_->close();
+    }
+}
+
 void JobQueue::init(const std::string &dbroot, const std::string &store_name)
 {
     env_ = NULL;
@@ -62,6 +116,17 @@ Job *JobQueue::operator[](const std::string &id)
 void JobQueue::remove(Job &j)
 {
     // XXX NOP
+}
+
+JobQueueIterator JobQueue::getAll(void) 
+{
+    Dbc *cursor;
+    try {
+        db_->cursor(NULL, &cursor, 0);
+        return JobQueueIterator(cursor);
+    } catch (DbException &e) {
+        return JobQueueIterator();
+    }
 }
 
 }

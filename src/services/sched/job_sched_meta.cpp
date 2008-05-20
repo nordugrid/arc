@@ -41,4 +41,11 @@ JobSchedMetaData::~JobSchedMetaData(void)
     // NOP
 }
 
+JobSchedMetaData::operator std::string(void) const
+{
+    std::string out =   "ResourceID: " + resource_id_ + "\n"
+                      + "Failure: " + failure_ + "\n";
+    return out;
+}
+
 } //namespace arc

@@ -64,4 +64,13 @@ Job::~Job(void)
     // NOP
 }
 
+Job::operator std::string(void) const
+{
+    std::string out =   "ID: " + id_ + "\n"
+                      + "Status: " + sched_status_to_string(status_) + "\n"
+                      + (std::string)*request_ 
+                      + (std::string)*sched_meta_;
+    return out;
+}
+
 }

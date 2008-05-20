@@ -23,6 +23,7 @@ class JobSchedMetaData {
         const std::string& getResourceID(void) { return resource_id_; };
         void setFailure(const std::string &f) { failure_ = f; };
         const std::string& getFailure(void) { return failure_; };
+        operator std::string(void) const;
 };
 
 } // namespace Arc

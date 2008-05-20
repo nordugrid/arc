@@ -285,6 +285,7 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
     //TODO db_path test
+    jobq.init(db_path, "jobq");
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
     cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  

@@ -23,6 +23,7 @@ class JobRequest {
         ~JobRequest(void);
         Arc::XMLNode &getJSDL(void) { return request_; };
         Arc::XMLNode operator[](const std::string &key) { return request_[key]; };
+        operator std::string(void) const;
 };
 
 }

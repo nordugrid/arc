@@ -15,6 +15,25 @@ class JobNotFoundException: public std::exception
     }
 };
 
+class JobQueueIterator
+{
+    friend class JobQueue;
+    private:
+        Dbc *cursor_;
+        bool has_more_;
+        Job *job_;
+    protected:
+        JobQueueIterator(Dbc *cursor);
+        void next(void);
+    public:
+        JobQueueIterator();
+        ~JobQueueIterator();
+        bool hasMore(void) const { return has_more_; };
+        Job *operator*() const { return job_; };
+        const JobQueueIterator &operator++();
+        const JobQueueIterator &operator++(int);
+};
+
 class JobQueue 
 {
     private:
@@ -28,6 +47,7 @@ class JobQueue
         Job *operator[](const std::string &id);
         void remove(Job &job);
         void remove(const std::string &id);
+        JobQueueIterator getAll(void);
 };
 
 } // namespace Arc

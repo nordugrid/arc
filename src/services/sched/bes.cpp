@@ -138,6 +138,9 @@ GridSchedulerService::TerminateActivities(Arc::XMLNode &in, Arc::XMLNode &out)
                 logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
             }
             return Arc::MCC_Status();
+        } catch (std::exception &e) {
+            logger_.msg(Arc::ERROR, "Fatal error: %s", e.what());
+            return Arc::MCC_Status();
         }
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -174,6 +177,9 @@ GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in, Arc::XMLNode& out)
             } else {
                 logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
             }
+            return Arc::MCC_Status();
+        } catch (std::exception &e) {
+            logger_.msg(Arc::ERROR, "Fatal error: %s", e.what());
             return Arc::MCC_Status();
         }
     }
@@ -219,6 +225,9 @@ GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in, Arc::XMLNode& out)
                 logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
             }
             return Arc::MCC_Status();
+        } catch (std::exception &e) {
+            logger_.msg(Arc::ERROR, "Fatal error: %s", e.what());
+            return Arc::MCC_Status();
         }
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -254,6 +263,9 @@ GridSchedulerService::GetActivityDocuments(Arc::XMLNode &in, Arc::XMLNode &out)
             } else {
                 logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
             }
+            return Arc::MCC_Status();
+        } catch (std::exception &e) {
+            logger_.msg(Arc::ERROR, "Fatal error: %s", e.what());
             return Arc::MCC_Status();
         }
     }
