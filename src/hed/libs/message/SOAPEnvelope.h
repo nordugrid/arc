@@ -58,6 +58,8 @@ class SOAPFault {
   void Reason(int num,const char* reason);
   /** Set Fault Reason element at top level */
   void Reason(const char* reason) { Reason(0,reason); };
+  /** Set Fault Reason element at top level */
+  void Reason(const std::string &reason) { Reason(0, reason.c_str()); };
   /** Returns content of Fault Node element */
   std::string Node(void);
   /** Set content of Fault Node element to 'node' */
