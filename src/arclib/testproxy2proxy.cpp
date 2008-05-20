@@ -21,7 +21,7 @@ int main(void) {
   //Request side
   std::string req_file1("./request1.pem");
   std::string out_file1("./proxy1.pem");
-  ArcLib::Credential request1(Arc::Time(), Arc::Period(168*3600), 1024, "rfc", "independent", "", 10);//"rfc", "INDEPENDENT_PROXY", "", 20);
+  ArcLib::Credential request1(Arc::Time(), Arc::Period(168*3600), 1024, "rfc", "independent", "", 10);
   request1.GenerateRequest(req_file1.c_str());
 
   //Signing side

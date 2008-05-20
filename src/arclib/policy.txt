@@ -1,0 +1,31 @@
+<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc"
+PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+   <Rule RuleId="rule1" Effect="Permit">
+      <Description>
+         Sample Permit rule for Storage_manager service
+      </Description>
+      <Subjects>
+         <Subject Type="string">/O=NorduGrid/OU=UIO/CN=test</Subject>
+         <Subject Type="string">/vo.knowarc/usergroupA</Subject>
+         <Subject>
+            <SubFraction Type="string">/O=Grid/OU=KnowARC/CN=XYZ</SubFraction>
+            <SubFraction
+Type="string">urn:mace:shibboleth:examples</SubFraction>
+         </Subject>
+         <GroupIdRef Location="./subjectgroup.xml">subgrpexample1</GroupIdRef>
+      </Subjects>
+      <Resources>
+         <Resource Type="string">file://home/test</Resource>
+      </Resources>
+      <Actions Type="string">
+         <Action>read</Action>
+         <Action>stat</Action>
+         <Action>list</Action>
+      </Actions>
+      <Conditions>
+         <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
+         <GroupIdRef
+Location="./conditiongroup.xml">normalcondition</GroupIdRef>
+      </Conditions>
+   </Rule>
+</Policy>
