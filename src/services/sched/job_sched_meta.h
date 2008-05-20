@@ -1,35 +1,28 @@
 #ifndef SCHED_METADATA
 #define SCHED_METADATA
 
+#include <arc/ByteArray.h>
 #include <string>
-#include <list>
-#include <arc/XMLNode.h>
-#include <arc/DateTime.h>
 
-namespace GridScheduler {
+namespace Arc {
 
 class JobSchedMetaData {
 
     private:
-        int reruns;
-        Arc::Time start_time;
-        Arc::Time end_time;
-        unsigned last_check_time;
-        int timeout;
-        std::map<std::string,std::string> data; //scheduling data
-        std::map<std::string,std::string> blacklisted_hosts; //host names
-        std::string resource_id;
-        std::string resource_job_id;
-        std::string failure;
+        std::string resource_id_;
+        std::string failure_;
+        // for serialization
+        ByteArray buffer_;
     public:
-        JobSchedMetaData();
-        JobSchedMetaData(int r);
-        virtual ~JobSchedMetaData(void);
-        void setResourceID(const std::string &id) { resource_id = id; };
-        const std::string& getResourceID(void) { return resource_id; };
-        void setResourceJobID(const std::string &id) { resource_job_id = id; };
-        const std::string& getResourceJobID(void) { return resource_job_id; };
-        const std::string& getFailure(void) { return failure; };
+        JobSchedMetaData(void);
+        JobSchedMetaData(const JobSchedMetaData &s); // copy constructor
+        JobSchedMetaData(ByteArray &buffer); // unserialize
+        ByteArray &serialize(void);
+        ~JobSchedMetaData(void);
+        void setResourceID(const std::string &id) { resource_id_ = id; };
+        const std::string& getResourceID(void) { return resource_id_; };
+        void setFailure(const std::string &f) { failure_ = f; };
+        const std::string& getFailure(void) { return failure_; };
 };
 
 } // namespace Arc

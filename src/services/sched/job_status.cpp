@@ -4,131 +4,63 @@
 
 #include "job_status.h"
 
-namespace GridScheduler
+namespace Arc
 {
 
-static std::map<SchedStatusLevel, std::string> str_map;
-
-std::string sched_status_to_string(SchedStatusLevel l)
+std::string sched_status_to_string(SchedJobStatus l)
 {
-    if (l == NEW) {
+    if (l == JOB_STATUS_SCHED_NEW) {
         return "NEW";
-    } else if (l == STARTING) {
+    } else if (l == JOB_STATUS_SCHED_STARTING) {
         return "STARTING";
-    } else if (l == RUNNING) {
+    } else if (l == JOB_STATUS_SCHED_RUNNING) {
         return "RUNNING";
-    } else if (l == CANCELLED) {
+    } else if (l == JOB_STATUS_SCHED_CANCELLED) {
         return "CANCELLED";
-    } else if (l == FAILED) {
+    } else if (l == JOB_STATUS_SCHED_FAILED) {
         return "FAILED";
-    } else if (l == FINISHED) {
+    } else if (l == JOB_STATUS_SCHED_FINISHED) {
         return "FINISHED";
-    } else if (l == KILLED) {
+    } else if (l == JOB_STATUS_SCHED_KILLED) {
         return "KILLED";
-    } else if (l == KILLING) {
+    } else if (l == JOB_STATUS_SCHED_KILLING) {
         return "KILLING";
     } 
 
     return "UNKNOWN";
 }
 
-SchedStatusLevel sched_status_from_string(const std::string &s)
+SchedJobStatus sched_status_from_string(const std::string &s)
 {
     if (s == "NEW") { 
-        return NEW;
+        return JOB_STATUS_SCHED_NEW;
     } else if (s == "STARTING") {
-        return STARTING;
+        return JOB_STATUS_SCHED_STARTING;
     } else if (s == "RUNNING") {
-        return RUNNING;
+        return JOB_STATUS_SCHED_RUNNING;
     } else if (s == "CANCELLED") {
-        return CANCELLED;
+        return JOB_STATUS_SCHED_CANCELLED;
     } else if (s == "FAILED") { 
-        return FAILED;
+        return JOB_STATUS_SCHED_FAILED;
     } else if (s == "FINISHED") {
-        return FINISHED;
+        return JOB_STATUS_SCHED_FINISHED;
     } else if (s == "KILLED") {
-        return KILLED;
+        return JOB_STATUS_SCHED_KILLED;
     } else if (s == "KILLING")  {
-        return KILLING;
+        return JOB_STATUS_SCHED_KILLING;
     }
 
-    return UNKNOWN;
+    return JOB_STATUS_SCHED_UNKNOWN;
 }
 
-SchedStatusLevel sched_status_from_arex_status(const std::string &arex_state) 
+ARexJobStatus arex_status_from_string(const std::string &s)
 {
-    if (arex_state == "ACCEPTED") {
-        return STARTING;
-    } else if(arex_state == "PREPARING") {
-        return STARTING;
-    } else if(arex_state == "SUBMITING") {
-        return STARTING;
-    } else if(arex_state == "EXECUTING") {
-        return RUNNING;
-    } else if(arex_state == "FINISHING") {
-        return RUNNING;
-    } else if(arex_state == "FINISHED") {
-        return FINISHED;
-    } else if(arex_state == "DELETED") {
-        return CANCELLED;
-    } else if(arex_state == "KILLING") {
-        return CANCELLED;
-    }
-    return UNKNOWN;
+    return JOB_STATUS_AREX_UNKNOWN;
 }
 
-#if 0
-SchedStatusFactory::SchedStatusFactory(void)
+PaulJobStatus paul_status_from_string(const std::string &s)
 {
-    str_map[NEW] = "NEW";
-    str_map[STARTING] = "STARTING";
-    str_map[RUNNING] = "RUNNING"; 
-    str_map[CANCELLED] = "CANCELLED"; 
-    str_map[FAILED] = "FAILED"; 
-    str_map[FINISHED] = "FINISHED"; 
-    str_map[KILLED] = "KILLED"; 
-    str_map[KILLING] = "KILLING";
-    str_map[UNKNOWN] = "UNKNOWN"; 
+    return JOB_STATUS_PAUL_UNKNOWN;
 }
 
-SchedStatus SchedStatusFactory::get(const std::string &state)
-{
-    std::map<SchedStatusLevel, std::string>::iterator it;
-    for (it = str_map.begin(); it != str_map.end(); it++) {
-        if (state == it->second) {
-            return SchedStatus(it->first, it->second);
-        }
-    }
-    return get(UNKNOWN);
-}
-
-SchedStatus SchedStatusFactory::getFromARexStatus(const std::string &arex_state) 
-{
-    if (arex_state == "ACCEPTED") {
-        return get(STARTING);
-    } else if(arex_state == "PREPARING") {
-        return get(STARTING);
-    } else if(arex_state == "SUBMITING") {
-        return get(STARTING);
-    } else if(arex_state == "EXECUTING") {
-        return get(RUNNING);
-    } else if(arex_state == "FINISHING") {
-        return get(RUNNING);
-    } else if(arex_state == "FINISHED") {
-        return get(FINISHED);
-    } else if(arex_state == "DELETED") {
-        return get(CANCELLED);
-    } else if(arex_state == "KILLING") {
-        return get(CANCELLED);
-    }
-    return get(UNKNOWN);
-}
-
-SchedStatus SchedStatusFactory::getFromARexStatus(ARexStatusLevel al)
-{
-    // XXX  missing mapping
-    get(UNKNOWN);
-}
-#endif
-
-}; // namespace Paul
+} // namespace Arc

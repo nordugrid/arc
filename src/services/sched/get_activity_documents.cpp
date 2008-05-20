@@ -35,7 +35,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode &in,Arc:
       continue;
     };
 
-    if (!sched_queue.checkJob(jobid)) {
+    if (!jobq.checkJob(jobid)) {
        logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s", jobid);
        Arc::SOAPEnvelope fault(ns_,true);
        fault.Fault()->Code(Arc::SOAPFault::Sender);
@@ -52,7 +52,7 @@ Arc::MCC_Status GridSchedulerService::GetActivityDocuments(Arc::XMLNode &in,Arc:
     // Read JSDL of job
     Arc::XMLNode jsdl = resp.NewChild("bes-factory:JobDefinition");
 
-    jsdl = sched_queue[jobid].getJSDL();
+    jsdl = jobq[jobid].getJSDL();
     jsdl.Name("bes-factory:JobDefinition"); // Recovering namespace of element
   };
   {

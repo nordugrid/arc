@@ -25,6 +25,23 @@
 
 namespace GridScheduler {
 
+
+#if 0
+Arc::MCC_Status 
+GridSchedulerService::make_fault(Arc::Message& /*outmsg*/) 
+{
+    return Arc::MCC_Status();
+}
+
+Arc::MCC_Status 
+GridSchedulerService::make_response(Arc::Message& outmsg) 
+{
+    Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+    outmsg.Payload(outpayload);
+    return Arc::MCC_Status(Arc::STATUS_OK);
+}
+#endif
+
 // Static initializator
 static Arc::Service *
 get_service(Arc::Config *cfg,Arc::ChainContext*) 
@@ -47,20 +64,6 @@ GridSchedulerService::make_soap_fault(Arc::Message& outmsg)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status 
-GridSchedulerService::make_fault(Arc::Message& /*outmsg*/) 
-{
-    return Arc::MCC_Status();
-}
-
-Arc::MCC_Status 
-GridSchedulerService::make_response(Arc::Message& outmsg) 
-{
-    Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
-    outmsg.Payload(outpayload);
-    return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
 // Main process 
 Arc::MCC_Status 
 GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
@@ -75,7 +78,6 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         logger_.msg(Arc::ERROR, "input is not SOAP");
         return make_soap_fault(outmsg);
     }
-
     // Get operation
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
@@ -121,13 +123,13 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     } else if(MatchXMLName(op, "GetActivitiesStatusChanges")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivitiesStatusChangesResponse");
         ret = GetActivitiesStatusChanges(op, r);
-      // Delegation
+    // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete inpayload;
           return make_soap_fault(outmsg);
         };
-      // WS-Property
+    // WS-Property
     } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         Arc::SOAPEnvelope* out_ = infodoc_.Process(*inpayload);
         if(out_) {
@@ -137,6 +139,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
           delete inpayload; delete outpayload;
           return make_soap_fault(outmsg);
         };
+    // Undefined operation
     } else {
         logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         return make_soap_fault(outmsg);
@@ -153,6 +156,7 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+#if 0
 void GridSchedulerService::doSched(void)
 {   
     // log status
@@ -258,12 +262,12 @@ void sched(void* arg)
         sleep(self->getPeriod());
     }
 }
-
-// Constructor
+#endif
 
 GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
 {
     // Define supported namespaces
+    // XXX use defs from ARC1 LIBS
     ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
     ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
     ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
@@ -275,33 +279,35 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     ns_["ibes"]="http://www.nordugrid.org/schemas/ibes";
     ns_["sched"]="http://www.nordugrid.org/schemas/sched";
     ns_["bes-mgmt"]="http://schemas.ggf.org/bes/2006/08/bes-management";
-
+    
+    // Read configs 
     endpoint = (std::string)((*cfg)["Endpoint"]);
     period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
-
     //TODO db_path test
-
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
-    sched_queue.reload(db_path);
     cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
     IsAcceptingNewActivities = true;
   
-    // Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
-    // sched_resources.add(arex);
-    //Resource arex0("https://localhost:40000/arex", security);
-    //Resource arex1("https://localhost:40001/arex", security);
-    //Resource arex2("https://localhost:40002/arex", security);
-    //sched_resources.addResource(arex0);
-    //sched_resources.addResource(arex1);
-    //sched_resources.addResource(arex2);
- 
+    /* 
+    Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
+    sched_resources.add(arex);
+    Resource arex0("https://localhost:40000/arex", security);
+    Resource arex1("https://localhost:40001/arex", security);
+    Resource arex2("https://localhost:40002/arex", security);
+    sched_resources.addResource(arex0);
+    sched_resources.addResource(arex1);
+    sched_resources.addResource(arex2);
+    */
+
+#if 0
     // start scheduler thread
     if (period > 0) { 
         Arc::CreateThreadFunction(&sched, this);
     }
+#endif
 }
 
 // Destructor

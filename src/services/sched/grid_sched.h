@@ -14,8 +14,9 @@ namespace GridScheduler {
 
 class GridSchedulerService: public Arc::Service {
     private:
-        JobQueue sched_queue;
-        ResourcesHandling sched_resources;
+        bool IsAcceptingNewActivities;
+        Arc::JobQueue jobq;
+        ResourcesHandling resources;
         std::string db_path;
         std::string endpoint;
         std::map<std::string, std::string> cli_config;
@@ -47,17 +48,14 @@ class GridSchedulerService: public Arc::Service {
         Arc::MCC_Status GetActivityDocuments(Arc::XMLNode &in, 
                                              Arc::XMLNode &out);
         // Fault handlers
-        Arc::MCC_Status make_response(Arc::Message& outmsg);
-        Arc::MCC_Status make_fault(Arc::Message& outmsg);
         Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
-        bool IsAcceptingNewActivities;
     public:
         GridSchedulerService(Arc::Config *cfg);
-        int getPeriod(void) { return period; };
         virtual ~GridSchedulerService(void);
         virtual Arc::MCC_Status process(Arc::Message& inmsg,
                                         Arc::Message& outmsg);
         void doSched(void);
+        int getPeriod(void) { return period; };
         void InformationCollector(void);
 }; // class GridSchedulerService
 

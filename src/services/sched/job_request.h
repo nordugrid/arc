@@ -1,31 +1,30 @@
-#ifndef SCHED_JOB_REQUEST
-#define SCHED_JOB_REQUEST
+#ifndef __ARC_JOB_REQUEST_H__
+#define __ARC_JOB_REQUEST_H__
 
 #include <string>
-
 #include <arc/XMLNode.h>
+#include <arc/ByteArray.h>
 
-namespace GridScheduler
+namespace Arc
 {
 
 class JobRequest {
 
     private:
-        Arc::XMLNode request;
+        Arc::XMLNode request_;
+        // for serialization
+        ByteArray buffer_;        
     public:
         JobRequest();
+        JobRequest(const JobRequest &r); // copy constructor
         JobRequest(Arc::XMLNode &d);
-        JobRequest(const JobRequest &j);
-        virtual ~JobRequest(void);
-        const std::string getName(void);
-        const std::string getOS(void);
-        const std::string getArch(void);
-        Arc::XMLNode &getJSDL(void) { return request; };
-        JobRequest& operator=(const JobRequest &j);
-        Arc::XMLNode operator[](const std::string &key) { return request[key]; };
-
+        JobRequest(ByteArray &buffer); // unserialization
+        ByteArray &serialize(void);
+        ~JobRequest(void);
+        Arc::XMLNode &getJSDL(void) { return request_; };
+        Arc::XMLNode operator[](const std::string &key) { return request_[key]; };
 };
 
 }
 
-#endif // SCHED_JOB_REQUEST
+#endif // __ARC_JOB_REQUEST__

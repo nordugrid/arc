@@ -4,9 +4,9 @@
 
 #include "job_request.h"
 
-namespace GridScheduler {
+namespace Arc {
 
-JobRequest::JobRequest() 
+JobRequest::JobRequest():buffer_(0) 
 {
     // NOP
 }
@@ -16,36 +16,33 @@ JobRequest::~JobRequest()
     // NOP
 }
 
-JobRequest::JobRequest(Arc::XMLNode &r) 
+JobRequest::JobRequest(Arc::XMLNode &r):buffer_(0)
 {
-    r.New(request);
+    r.New(request_);
 }
 
-JobRequest::JobRequest(const JobRequest &j) 
+JobRequest::JobRequest(const JobRequest &r):buffer_(0)
 {
-    j.request.New(request);
+    r.request_.New(request_);
 }
 
-const std::string JobRequest::getName(void) { 
-    return (std::string)request["JobDefinition"]["JobDescription"]["JobIdentification"]["JobName"];  
-}
-
-const std::string JobRequest::getOS(void) { 
-    return (std::string)request["JobDefinition"]["Resources"]["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"]; 
-}
- 
- 
-const std::string JobRequest::getArch(void) { 
-    return (std::string)request["JobDefinition"]["Resources"]["CPUArchitecture"]["CPUArchitectureName"]; 
-}
-
-JobRequest &JobRequest::operator=(const JobRequest &j) 
+JobRequest::JobRequest(ByteArray &buffer)
 {
-   if (this != &j) {
-     j.request.New(request);
-   }
+    int buf_len = 0;
+    char *buf = buffer.data();
+    std::string xml_str = buf;
+    buf_len = xml_str.size() + 1;
+    Arc::XMLNode n(xml_str);
+    n.New(request_);
+}
 
-   return *this;
+ByteArray &JobRequest::serialize(void)
+{
+    buffer_.clean();
+    std::string xml_str;
+    request_.GetXML(xml_str);
+    buffer_.append(xml_str);
+    return buffer_;
 }
 
 } //namespace

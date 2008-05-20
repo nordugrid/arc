@@ -1,77 +1,59 @@
 #ifndef __ARC_JOB_STATUS_H__
 #define __ARC_JOB_STATUS_H__
 
-#include <map>
 #include <string>
 #include <arc/StringConv.h>
 
-namespace GridScheduler
+namespace Arc
 {
 
-enum SchedStatusLevel {
-    NEW, 
-    STARTING, 
-    RUNNING, 
-    CANCELLED, 
-    FAILED, 
-    FINISHED, 
-    KILLED, 
-    KILLING,
-    UNKNOWN 
+enum SchedJobStatus {
+    JOB_STATUS_SCHED_NEW, 
+    JOB_STATUS_SCHED_STARTING, 
+    JOB_STATUS_SCHED_RUNNING, 
+    JOB_STATUS_SCHED_CANCELLED, 
+    JOB_STATUS_SCHED_FAILED, 
+    JOB_STATUS_SCHED_FINISHED, 
+    JOB_STATUS_SCHED_KILLED, 
+    JOB_STATUS_SCHED_KILLING,
+    JOB_STATUS_SCHED_UNKNOWN 
 };
 
-enum ARexStatusLevel 
+enum ARexJobStatus
 {
-    ACCEPTING, 
-    ACCEPTED, 
-    PREPARING, 
-    PREPARED, 
-    SUBMITTING, 
-    EXECUTING, 
-    AREX_KILLING, 
-    EXECUTED, 
-    FINISHING, 
-    AREX_FAILED, 
-    HELD,
-    AREX_UNKNOWN
+    JOB_STATUS_AREX_ACCEPTING, 
+    JOB_STATUS_AREX_ACCEPTED, 
+    JOB_STATUS_AREX_PREPARING, 
+    JOB_STATUS_AREX_PREPARED, 
+    JOB_STATUS_AREX_SUBMITTING, 
+    JOB_STATUS_AREX_EXECUTING, 
+    JOB_STATUS_AREX_KILLING, 
+    JOB_STATUS_AREX_EXECUTED, 
+    JOB_STATUS_AREX_FINISHING, 
+    JOB_STATUS_AREX_FAILED, 
+    JOB_STATUS_AREX_HELD,
+    JOB_STATUS_AREX_UNKNOWN
 };
 
-std::string sched_status_to_string(SchedStatusLevel l);
-SchedStatusLevel sched_status_from_string(const std::string &s);
-SchedStatusLevel sched_status_from_arex_status(const std::string &arex_state);
-
-#if 0
-class SchedStatus
+enum PaulJobStatus
 {
-    private:
-        SchedStatusLevel level;
-        std::string level_str;
-    public:
-        SchedStatus(void) { level = UNKNOWN; level_str = "UNKONWN"; };
-        SchedStatus(SchedStatusLevel l, const std::string &str) { level = l; level_str = str; };
-        operator std::string(void) const { return level_str; };
-        bool operator==(SchedStatusLevel l) const { return (l == level); };
-        bool operator==(const SchedStatus &s) const { return (s.level == level); };
-        bool operator==(const std::string &s) const { return (Arc::upper(s) == level_str); };
-        bool operator!=(SchedStatusLevel l) const { return (l != level); };
-        bool operator!=(const SchedStatus &s) const { return (s.level != level); };
-        bool operator!=(const std::string &s) const { return (Arc::upper(s) != level_str); };
-        SchedStatusLevel get(void) { return level; };
+    JOB_STATUS_PAUL_NEW,
+    JOB_STATUS_PAUL_STARTING,
+    JOB_STATUS_PAUL_STAGEIN,
+    JOB_STATUS_PAUL_RUNNING,
+    JOB_STATUS_PAUL_STAGEOUT,
+    JOB_STATUS_PAUL_FAILDE,
+    JOB_STATUS_PAUL_KILLING,
+    JOB_STATUS_PAUL_KILLED,
+    JOB_STATUS_PAUL_FINISHED,
+    JOB_STATUS_PAUL_UNKNOWN
 };
 
-class SchedStatusFactory
-{
-    private:
-        std::map<SchedStatusLevel, std::string> str_map;
-    public:
-        SchedStatusFactory(void);
-        SchedStatus get(SchedStatusLevel l) { return SchedStatus(l, str_map[l]);};
-        SchedStatus get(const std::string &str);
-        SchedStatus getFromARexStatus(ARexStatusLevel l);
-        SchedStatus getFromARexStatus(const std::string &str);
-}; // sched status factory
-#endif
+std::string sched_status_to_string(SchedJobStatus l);
+SchedJobStatus sched_status_from_string(const std::string &s);
+PaulJobStatus paul_status_from_string(const std::string &s);
+ARexJobStatus arex_status_from_string(const std::string &s);
 
-} // namespace Paul
+} // namespace arc
 
 #endif
