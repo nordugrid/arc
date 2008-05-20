@@ -45,10 +45,6 @@ namespace Arc {
 
   Submitter *ExecutionTarget::GetSubmitter() {
 
-    LogStream logcerr(std::cerr);
-    Logger::getRootLogger().addDestination(logcerr);
-    Logger::getRootLogger().setThreshold(DEBUG);
-
     ACCConfig acccfg;
     NS ns;
     Config cfg(ns);
