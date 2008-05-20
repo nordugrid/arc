@@ -3,7 +3,8 @@
 
 namespace Arc {
 
-  Submitter::Submitter(Config *cfg) : ACC() {
+  Submitter::Submitter(Config *cfg)
+    : ACC() {
     SubmissionEndpoint = (std::string)(*cfg)["Endpoint"];
     InfoEndpoint = (std::string)(*cfg)["Source"];
     MappingQueue = (std::string)(*cfg)["MappingQueue"];

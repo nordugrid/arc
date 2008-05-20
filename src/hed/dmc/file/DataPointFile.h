@@ -8,21 +8,22 @@
 
 namespace Arc {
 
-  class DataPointFile : public DataPointDirect {
-   public:
+  class DataPointFile
+    : public DataPointDirect {
+  public:
     DataPointFile(const URL& url);
     virtual ~DataPointFile();
     virtual DataStatus StartReading(DataBufferPar& buffer);
     virtual DataStatus StartWriting(DataBufferPar& buffer,
-                                    DataCallback *space_cb = NULL);
+				    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
-                                 bool resolve = true);
+				 bool resolve = true);
     virtual bool WriteOutOfOrder();
-   private:
+  private:
     SimpleCondition transfer_cond;
     void read_file();
     void write_file();

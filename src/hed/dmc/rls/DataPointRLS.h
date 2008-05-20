@@ -14,8 +14,9 @@ namespace Arc {
   class Logger;
   class URL;
 
-  class DataPointRLS : public DataPointIndex {
-   public:
+  class DataPointRLS
+    : public DataPointIndex {
+  public:
     DataPointRLS(const URL& url);
     ~DataPointRLS();
     virtual DataStatus Resolve(bool source);
@@ -23,12 +24,12 @@ namespace Arc {
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
-    virtual DataStatus ListFiles(std::list<FileInfo> &files,
-                                 bool resolve = true);
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+				 bool resolve = true);
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);
-   protected:
+  protected:
     static Logger logger;
     bool guid_enabled;
     std::string pfn_path;

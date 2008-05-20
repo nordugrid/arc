@@ -8,7 +8,8 @@ namespace Arc {
 
   class Config;
 
-  class Job : public ACC {
+  class Job
+    : public ACC {
   protected:
     Job(Config *cfg);
   public:

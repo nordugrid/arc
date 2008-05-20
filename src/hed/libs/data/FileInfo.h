@@ -12,7 +12,7 @@ namespace Arc {
   /// FileInfo stores information about files (metadata).
   class FileInfo {
 
-   public:
+  public:
 
     typedef enum {
       file_type_unknown = 0,
@@ -20,11 +20,12 @@ namespace Arc {
       file_type_dir = 2
     } Type;
 
-    FileInfo(const std::string& name = "") : name(name),
-                                             size((unsigned long long int)(-1)),
-                                             created((time_t)(-1)),
-                                             valid((time_t)(-1)),
-                                             type(file_type_unknown) {}
+    FileInfo(const std::string& name = "")
+      : name(name),
+	size((unsigned long long int)(-1)),
+	created((time_t)(-1)),
+	valid((time_t)(-1)),
+	type(file_type_unknown) {}
 
     ~FileInfo() {}
 
@@ -108,7 +109,7 @@ namespace Arc {
       type = t;
     }
 
-   private:
+  private:
 
     std::string name;
     std::list<URL> urls;         // Physical enpoints/URLs.

@@ -1,6 +1,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif 
+#endif
 
 #include <list>
 
@@ -12,11 +12,12 @@ namespace Arc {
 
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
-  DataPoint::DataPoint(const URL& url) : url(url),
-                                         size((unsigned long long int)-1),
-                                         created(-1),
-                                         valid(-1),
-                                         triesleft(5) {}
+  DataPoint::DataPoint(const URL& url)
+    : url(url),
+      size((unsigned long long int)(-1)),
+      created(-1),
+      valid(-1),
+      triesleft(5) {}
 
   DataPoint::~DataPoint() {}
 
@@ -28,7 +29,7 @@ namespace Arc {
     return url.str();
   }
 
-  DataPoint::operator bool () const {
+  DataPoint::operator bool() const {
     return (bool)url;
   }
 

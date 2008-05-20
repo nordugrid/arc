@@ -97,20 +97,31 @@ namespace Arc {
       UnknownError = 27
     };
 
-    DataStatus(const DataStatusType &status) : status(status) {}
+    DataStatus(const DataStatusType& status)
+      : status(status) {}
     ~DataStatus() {}
 
-    bool operator==(const DataStatusType &s) { return status == s; }
-    bool operator==(const DataStatus &s) { return status == s.status; }
+    bool operator==(const DataStatusType& s) {
+      return status == s;
+    }
+    bool operator==(const DataStatus& s) {
+      return status == s.status;
+    }
 
-    bool operator!() { return status != Success; }
-    operator bool() { return status == Success; }
+    bool operator!() {
+      return status != Success;
+    }
+    operator bool() {
+      return status == Success;
+    }
 
-    bool Passed(void) { return (status == Success) || (status == NotSupportedForDirectDataPointsError); }
+    bool Passed(void) {
+      return (status == Success) || (status == NotSupportedForDirectDataPointsError);
+    }
 
     operator std::string(void) const;
 
-   private:
+  private:
 
     DataStatusType status;
 
@@ -119,6 +130,8 @@ namespace Arc {
 
 } // namespace Arc
 
-inline std::ostream& operator<<(std::ostream& o,const Arc::DataStatus& d) { return (o<<((std::string)d)); };
+inline std::ostream& operator<<(std::ostream& o, const Arc::DataStatus& d) {
+  return (o << ((std::string)d));
+}
 
 #endif

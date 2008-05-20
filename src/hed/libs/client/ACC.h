@@ -4,10 +4,10 @@
 namespace Arc {
 
   class ACC {
-   protected:
-    ACC() {};
-   public:
-    virtual ~ACC() {};
+  protected:
+    ACC() {}
+  public:
+    virtual ~ACC() {}
   };
 
 } // namespace Arc

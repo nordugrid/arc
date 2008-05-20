@@ -12,17 +12,18 @@ namespace Arc {
   class URL;
   class ChunkControl;
 
-  class DataPointHTTP : public DataPointDirect {
-   private:
+  class DataPointHTTP
+    : public DataPointDirect {
+  private:
     static Logger logger;
     unsigned int transfer_chunk_size;
-    ChunkControl* chunks;
+    ChunkControl *chunks;
     int transfers_started;
     int transfers_finished;
     Glib::Mutex transfer_lock;
     static void read_thread(void *arg);
     static void write_thread(void *arg);
-   public:
+  public:
     DataPointHTTP(const URL& url);
     virtual ~DataPointHTTP();
     DataStatus Check();
@@ -30,7 +31,7 @@ namespace Arc {
     DataStatus ListFiles(std::list<FileInfo>& files, bool resolve = true);
     DataStatus StartReading(DataBufferPar& buffer);
     DataStatus StartWriting(DataBufferPar& buffer,
-                            DataCallback *space_cb = NULL);
+			    DataCallback *space_cb = NULL);
     DataStatus StopReading();
     DataStatus StopWriting();
   };

@@ -1,6 +1,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif 
+#endif
 
 #include <list>
 
@@ -10,8 +10,9 @@
 
 namespace Arc {
 
-  DataPointIndex::DataPointIndex(const URL& url) : DataPoint(url),
-                                                   registered(false) {
+  DataPointIndex::DataPointIndex(const URL& url)
+    : DataPoint(url),
+      registered(false) {
     location = locations.end();
   }
 
@@ -47,10 +48,9 @@ namespace Arc {
     if (!LocationValid())
       return false;
     ++location;
-    if (location == locations.end()) {
+    if (location == locations.end())
       if (--triesleft > 0)
-        location = locations.begin();
-    }
+	location = locations.begin();
     if (location != locations.end())
       h = *location;
     else
@@ -74,24 +74,21 @@ namespace Arc {
   DataStatus DataPointIndex::RemoveLocations(const DataPoint& p_) {
     if (!p_.IsIndex())
       return DataStatus::Success;
-    const DataPointIndex& p = dynamic_cast<const DataPointIndex &>(p_);
+    const DataPointIndex& p = dynamic_cast<const DataPointIndex&>(p_);
     std::list<URLLocation>::iterator p_int;
     std::list<URLLocation>::const_iterator p_ext;
-    for (p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext) {
-      for (p_int = locations.begin(); p_int != locations.end();) {
-        // Compare protocol+host+port part
-        if ((p_int->ConnectionURL() == p_ext->ConnectionURL())) {
-          if (location == p_int) {
-            p_int = locations.erase(p_int);
-            location = p_int;
-          }
-          else
-            p_int = locations.erase(p_int);
-        }
-        else
-          ++p_int;
-      }
-    }
+    for (p_ext = p.locations.begin(); p_ext != p.locations.end(); ++p_ext)
+      for (p_int = locations.begin(); p_int != locations.end();)
+	// Compare protocol+host+port part
+	if ((p_int->ConnectionURL() == p_ext->ConnectionURL()))
+	  if (location == p_int) {
+	    p_int = locations.erase(p_int);
+	    location = p_int;
+	  }
+	  else
+	    p_int = locations.erase(p_int);
+	else
+	  ++p_int;
     if (location == locations.end())
       location = locations.begin();
     if (location != locations.end())
@@ -102,13 +99,13 @@ namespace Arc {
   }
 
   DataStatus DataPointIndex::AddLocation(const URL& url,
-                                   const std::string& meta) {
+					 const std::string& meta) {
     logger.msg(DEBUG, "Add location: url: %s", url.str());
     logger.msg(DEBUG, "Add location: metadata: %s", meta);
     for (std::list<URLLocation>::iterator i = locations.begin();
-        i != locations.end(); ++i)
+	 i != locations.end(); ++i)
       if (i->Name() == meta)
-        return DataStatus::LocationAlreadyExistsError;
+	return DataStatus::LocationAlreadyExistsError;
     locations.push_back(URLLocation(url, meta));
     return DataStatus::Success;
   }
@@ -148,7 +145,7 @@ namespace Arc {
   }
 
   DataStatus DataPointIndex::StartWriting(DataBufferPar& buffer,
-                                          DataCallback *cb) {
+					  DataCallback *cb) {
     if (!h)
       return DataStatus::NoLocationError;
     return h->StartWriting(buffer, cb);
@@ -247,7 +244,7 @@ namespace Arc {
   }
 
   void DataPointIndex::Range(unsigned long long int start,
-                             unsigned long long int end) {
+			     unsigned long long int end) {
     if (h)
       h->Range(start, end);
   }

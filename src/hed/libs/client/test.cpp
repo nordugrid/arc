@@ -4,12 +4,12 @@
 #include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
 
-int main(){
+int main() {
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
-  
+
   Arc::ACCConfig acccfg;
   Arc::NS ns;
   Arc::Config mcfg(ns);
@@ -31,7 +31,7 @@ int main(){
   mcfg.SaveToStream(std::cout);
 
   Arc::TargetGenerator test(mcfg);
-  test.GetTargets(0,1);
+  test.GetTargets(0, 1);
 
   return 0;
 

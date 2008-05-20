@@ -8,14 +8,15 @@ namespace Arc {
   class ChainContext;
   class Config;
 
-  class SubmitterARC0 : public Submitter {
+  class SubmitterARC0
+    : public Submitter {
 
-   private:
+  private:
     SubmitterARC0(Config *cfg);
     ~SubmitterARC0();
 
-   public:
-    static ACC* Instance(Config *cfg, ChainContext *cxt);
+  public:
+    static ACC *Instance(Config *cfg, ChainContext *cxt);
     std::pair<URL, URL> Submit(const std::string& jobdesc);
   };
 

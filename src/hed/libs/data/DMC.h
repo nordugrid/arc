@@ -13,18 +13,18 @@ namespace Arc {
   class URL;
 
   class DMC {
-   protected:
-    DMC(Config*) {};
-   public:
-    virtual ~DMC() {};
-    virtual DataPoint* iGetDataPoint(const URL& url) = 0;
-    static DataPoint* GetDataPoint(const URL& url);
-   protected:
+  protected:
+    DMC(Config *) {}
+  public:
+    virtual ~DMC() {}
+    virtual DataPoint *iGetDataPoint(const URL& url) = 0;
+    static DataPoint *GetDataPoint(const URL& url);
+  protected:
     static Logger logger;
-    static void Register(DMC* dmc);
-    static void Unregister(DMC* dmc);
-   private:
-    static std::list<DMC*> dmcs;
+    static void Register(DMC *dmc);
+    static void Unregister(DMC *dmc);
+  private:
+    static std::list<DMC *> dmcs;
     static Glib::Mutex mutex;
   };
 

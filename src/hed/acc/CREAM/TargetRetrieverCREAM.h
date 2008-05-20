@@ -7,14 +7,16 @@ namespace Arc {
   class XMLNode;
   class URL;
 
-  class TargetRetrieverCREAM : public TargetRetriever {
+  class TargetRetrieverCREAM
+    : public TargetRetriever {
     TargetRetrieverCREAM(Config *cfg);
     ~TargetRetrieverCREAM();
 
   public:
-    void GetTargets(TargetGenerator &mom, int TargetType, int DetailLevel);
-    void InterrogateTarget(TargetGenerator &mom, std::string url, int TargetType, int DetailLevel);
-    static ACC* Instance(Config *cfg, ChainContext *ctx);
+    void GetTargets(TargetGenerator& mom, int TargetType, int DetailLevel);
+    void InterrogateTarget(TargetGenerator& mom, std::string url,
+			   int TargetType, int DetailLevel);
+    static ACC *Instance(Config *cfg, ChainContext *ctx);
   };
 
 } // namespace Arc

@@ -10,7 +10,7 @@ namespace Arc {
   /// Keeps track of average and instantaneous transfer speed.
   /** Also detects data transfer inactivity and other transfer timeouts. */
   class DataSpeed {
-   private:
+  private:
     time_t first_time;
     time_t last_time;
     time_t last_activity_time;
@@ -34,15 +34,15 @@ namespace Arc {
 
     bool disabled;
 
-   public:
+  public:
     typedef void (*show_progress_t)(FILE *o, const char *s, unsigned int t,
-                                    unsigned long long int all,
-                                    unsigned long long int max,
-                                    double instant, double average);
-   private:
+				    unsigned long long int all,
+				    unsigned long long int max,
+				    double instant, double average);
+  private:
     show_progress_t show_progress;
     void print_statistics(FILE *o, time_t t);
-   public:
+  public:
     /// Constructor
     /// \param base time period used to average values (default 1 minute).
     DataSpeed(time_t base = DATASPEED_AVERAGING_PERIOD);
@@ -57,9 +57,9 @@ namespace Arc {
     /// \param max_inactivity_time - if no data is passing for specified
     /// amount of time (seconds), error is triggered.
     DataSpeed(unsigned long long int min_speed, time_t min_speed_time,
-              unsigned long long int min_average_speed,
-              time_t max_inactivity_time,
-              time_t base = DATASPEED_AVERAGING_PERIOD);
+	      unsigned long long int min_average_speed,
+	      time_t max_inactivity_time,
+	      time_t base = DATASPEED_AVERAGING_PERIOD);
     /// Destructor
     ~DataSpeed(void);
     /// Activate printing information about current time speeds, amount
@@ -76,7 +76,7 @@ namespace Arc {
     /// is triggered.
     /// \param min_speed_time
     void set_min_speed(unsigned long long int min_speed,
-                       time_t min_speed_time);
+		       time_t min_speed_time);
     /// Set minmal avaerage speed.
     /// \param min_average_speed_ minimal average speed (Bytes per second)
     /// to trigger error. Averaged over whole current transfer time.
@@ -108,19 +108,19 @@ namespace Arc {
     /// Check if minimal speed error was triggered.
     bool min_speed_failure() {
       return min_speed_failed;
-    };
+    }
     /// Check if minimal average speed error was triggered.
     bool min_average_speed_failure() {
       return min_average_speed_failed;
-    };
+    }
     /// Check if maximal inactivity time error was triggered.
     bool max_inactivity_time_failure() {
       return max_inactivity_time_failed;
-    };
+    }
     /// Returns amount of data this object knows about.
     unsigned long long int transfered_size(void) {
       return Nall;
-    };
+    }
   };
 
 } // namespace Arc

@@ -11,7 +11,8 @@ namespace Arc {
 
   Logger DMCHTTP::logger(DMC::logger, "HTTP");
 
-  DMCHTTP::DMCHTTP(Config *cfg) : DMC(cfg) {
+  DMCHTTP::DMCHTTP(Config *cfg)
+    : DMC(cfg) {
     Register(this);
   }
 
@@ -19,20 +20,21 @@ namespace Arc {
     Unregister(this);
   }
 
-  DMC* DMCHTTP::Instance(Arc::Config *cfg, Arc::ChainContext*) {
+  DMC *DMCHTTP::Instance(Arc::Config *cfg, Arc::ChainContext *) {
     return new DMCHTTP(cfg);
   }
 
-  DataPoint* DMCHTTP::iGetDataPoint(const URL& url) {
+  DataPoint *DMCHTTP::iGetDataPoint(const URL& url) {
     if (url.Protocol() != "http" &&
-        url.Protocol() != "https" &&
-        url.Protocol() != "httpg") return NULL;
+	url.Protocol() != "https" &&
+	url.Protocol() != "httpg")
+      return NULL;
     return new DataPointHTTP(url);
   }
 
 } // namespace Arc
 
 dmc_descriptors ARC_DMC_LOADER = {
-  { "http", 0, &Arc::DMCHTTP::Instance },
-  { NULL, 0, NULL }
+  {"http", 0, &Arc::DMCHTTP::Instance},
+  {NULL, 0, NULL}
 };

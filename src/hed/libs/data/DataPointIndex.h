@@ -12,8 +12,9 @@ namespace Arc {
   /// Complements DataPoint with attributes common for Indexing Service URLs
   /** It should never be used directly. Instead inherit from it to provide
       a class for specific a Indexing Service. */
-  class DataPointIndex : public DataPoint {
-   public:
+  class DataPointIndex
+    : public DataPoint {
+  public:
     DataPointIndex(const URL& url);
     virtual ~DataPointIndex();
 
@@ -43,7 +44,7 @@ namespace Arc {
 
     virtual DataStatus StartReading(DataBufferPar& buffer);
     virtual DataStatus StartWriting(DataBufferPar& buffer,
-                                    DataCallback *space_cb = NULL);
+				    DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
 
@@ -63,8 +64,8 @@ namespace Arc {
     virtual void Passive(bool v);
 
     virtual void Range(unsigned long long int start = 0,
-                       unsigned long long int end = 0);
-   protected:
+		       unsigned long long int end = 0);
+  protected:
     /// List of locations at which file can be probably found.
     std::list<URLLocation> locations;
     std::list<URLLocation>::iterator location;

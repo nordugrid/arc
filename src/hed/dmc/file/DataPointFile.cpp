@@ -28,10 +28,11 @@ namespace Arc {
 
   Logger DataPointFile::logger(DataPoint::logger, "File");
 
-  DataPointFile::DataPointFile(const URL& url) : DataPointDirect(url),
-                                                 reading(false),
-                                                 writing(false),
-                                                 is_channel(false) {
+  DataPointFile::DataPointFile(const URL& url)
+    : DataPointDirect(url),
+      reading(false),
+      writing(false),
+      is_channel(false) {
     if (url.Protocol() == "file") {
       cache = false;
       is_channel = false;
@@ -59,47 +60,47 @@ namespace Arc {
     }
     else
       lseek(fd, 0, SEEK_SET);
-    for(;;) {
+    for (;;) {
       if (limit_length)
-        if (range_length == 0)
-          break;
+	if (range_length == 0)
+	  break;
       /* read from fd here and push to buffer */
       /* 1. claim buffer */
       int h;
       unsigned int l;
       if (!buffer->for_read(h, l, true)) {
-        /* failed to get buffer - must be error or request to exit */
-        buffer->error_read(true);
-        break;
+	/* failed to get buffer - must be error or request to exit */
+	buffer->error_read(true);
+	break;
       }
       if (buffer->error()) {
-        buffer->is_read(h, 0, 0);
-        break;
+	buffer->is_read(h, 0, 0);
+	break;
       }
       /* 2. read */
       if (limit_length)
-        if (l > range_length)
-          l = range_length;
+	if (l > range_length)
+	  l = range_length;
       unsigned long long int p = lseek(fd, 0, SEEK_CUR);
       if (p == (unsigned long long int)(-1))
-        p = offset;
+	p = offset;
       int ll = read(fd, (*(buffer))[h], l);
-      if (ll == -1) {/* error */
-        buffer->is_read(h, 0, 0);
-        buffer->error_read(true);
-        break;
+      if (ll == -1) { /* error */
+	buffer->is_read(h, 0, 0);
+	buffer->error_read(true);
+	break;
       }
-      if (ll == 0) {/* eof */
-        buffer->is_read(h, 0, 0);
-        break;
+      if (ll == 0) { /* eof */
+	buffer->is_read(h, 0, 0);
+	break;
       }
       /* 3. announce */
       buffer->is_read(h, ll, p);
       if (limit_length)
-        if (ll > range_length)
-          range_length = 0;
-        else
-          range_length -= ll;
+	if (ll > range_length)
+	  range_length = 0;
+	else
+	  range_length -= ll;
       offset += ll; // for non-seakable files
     }
     close(fd);
@@ -108,40 +109,40 @@ namespace Arc {
   }
 
   void DataPointFile::write_file() {
-    for(;;) {
+    for (;;) {
       /* take from buffer and write to fd */
       /* 1. claim buffer */
       int h;
       unsigned int l;
       unsigned long long int p;
       if (!buffer->for_write(h, l, p, true)) {
-        /* failed to get buffer - must be error or request to exit */
-        if (!buffer->eof_read())
-          buffer->error_write(true);
-        buffer->eof_write(true);
-        break;
+	/* failed to get buffer - must be error or request to exit */
+	if (!buffer->eof_read())
+	  buffer->error_write(true);
+	buffer->eof_write(true);
+	break;
       }
       if (buffer->error()) {
-        buffer->is_written(h);
-        buffer->eof_write(true);
-        break;
+	buffer->is_written(h);
+	buffer->eof_write(true);
+	break;
       }
       /* 2. write */
       lseek(fd, p, SEEK_SET);
       int l_ = 0;
       int ll = 0;
       while (l_ < l) {
-        ll = write(fd, (*(buffer))[h] + l_, l - l_);
-        if (ll == -1) {/* error */
-          buffer->is_written(h);
-          buffer->error_write(true);
-          buffer->eof_write(true);
-          break;
-        }
-        l_ += ll;
+	ll = write(fd, (*(buffer))[h] + l_, l - l_);
+	if (ll == -1) { /* error */
+	  buffer->is_written(h);
+	  buffer->error_write(true);
+	  buffer->eof_write(true);
+	  break;
+	}
+	l_ += ll;
       }
       if (ll == -1)
-        break;
+	break;
       /* 3. announce */
       buffer->is_written(h);
     }
@@ -177,7 +178,7 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (unlink(url.Path().c_str()) == -1)
       if (errno != ENOENT)
-        return DataStatus::DeleteError;
+	return DataStatus::DeleteError;
     return DataStatus::Success;
   }
 
@@ -192,14 +193,14 @@ namespace Arc {
 #ifdef WIN32
     flags |= O_BINARY;
 #endif
-    
+
     if (url.Path() == "-")
       fd = dup(STDIN_FILENO);
     else {
       Arc::User user;
       if (user.check_file_access(url.Path(), flags) != 0) {
-        reading = false;
-        return DataStatus::ReadStartError;
+	reading = false;
+	return DataStatus::ReadStartError;
       }
       fd = open(url.Path().c_str(), flags);
     }
@@ -216,7 +217,7 @@ namespace Arc {
     buffer = &buf;
     transfer_cond.reset();
     /* create thread to maintain reading */
-    Glib::Thread* thr = NULL;
+    Glib::Thread *thr = NULL;
     try {
       thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::read_file), false);
     }
@@ -241,12 +242,13 @@ namespace Arc {
     }
     // buffer->wait_eof_read();
     transfer_cond.wait();         /* wait till reading thread exited */
-    if(buffer->error_read()) return DataStatus::ReadError;
+    if (buffer->error_read())
+      return DataStatus::ReadError;
     return DataStatus::Success;
   }
 
   DataStatus DataPointFile::StartWriting(DataBufferPar& buf,
-                                         DataCallback *space_cb) {
+					 DataCallback *space_cb) {
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -257,11 +259,11 @@ namespace Arc {
     if (url.Path() == "-") {
       fd = dup(STDOUT_FILENO);
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to use channel stdout");
-        buffer->error_write(true);
-        buffer->eof_write(true);
-        writing = false;
-        return DataStatus::WriteStartError;
+	logger.msg(ERROR, "Failed to use channel stdout");
+	buffer->error_write(true);
+	buffer->eof_write(true);
+	writing = false;
+	return DataStatus::WriteStartError;
       }
     }
     else {
@@ -270,27 +272,26 @@ namespace Arc {
          suppose it path was checked at higher level */
       /* make directories */
       if (url.Path().empty()) {
-        logger.msg(ERROR, "Invalid url: %s", url.str());
-        buffer->error_write(true);
-        buffer->eof_write(true);
-        writing = false;
-        return DataStatus::WriteStartError;
+	logger.msg(ERROR, "Invalid url: %s", url.str());
+	buffer->error_write(true);
+	buffer->eof_write(true);
+	writing = false;
+	return DataStatus::WriteStartError;
       }
       std::string dirpath = url.Path();
       int n = dirpath.rfind(DIR_SEPARATOR);
       if (n == 0)
-        dirpath = "/";
+	dirpath = "/";
       else
-        dirpath.erase(n, dirpath.length() - n + 1);
-      if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0) {
-        if (errno != EEXIST) {
-          logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
-          buffer->error_write(true);
-          buffer->eof_write(true);
-          writing = false;
-          return DataStatus::WriteStartError;
-        }
-      }
+	dirpath.erase(n, dirpath.length() - n + 1);
+      if (mkdir_recursive("", dirpath, S_IRWXU, user) != 0)
+	if (errno != EEXIST) {
+	  logger.msg(ERROR, "Failed to create/find directory %s", dirpath);
+	  buffer->error_write(true);
+	  buffer->eof_write(true);
+	  writing = false;
+	  return DataStatus::WriteStartError;
+	}
 
       /* try to create file, if failed - try to open it */
       int flags = O_WRONLY;
@@ -299,61 +300,60 @@ namespace Arc {
 #endif
       fd = open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
-      else {/* this file was created by us. Hence we can set it's owner */
-        (fchown(fd, user.get_uid(), user.get_gid()) != 0);
-      }
+	fd = open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
+      else  /* this file was created by us. Hence we can set it's owner */
+	(fchown(fd, user.get_uid(), user.get_gid()) != 0);
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
-        buffer->error_write(true);
-        buffer->eof_write(true);
-        writing = false;
-        return DataStatus::WriteStartError;
+	logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
+	buffer->error_write(true);
+	buffer->eof_write(true);
+	writing = false;
+	return DataStatus::WriteStartError;
       }
 
       /* preallocate space */
       buffer->speed.hold(true);
       if (CheckSize()) {
-        unsigned long long int fsize = GetSize();
-        logger.msg(INFO, "setting file %s to size %llu",
-                   url.Path(), fsize);
-        /* because filesytem can skip empty blocks do real write */
-        unsigned long long int old_size = lseek(fd, 0, SEEK_END);
-        if (old_size < fsize) {
-          char buf[65536];
-          memset(buf, 0xFF, sizeof(buf));
-          unsigned int l = 1;
-          while (l > 0) {
-            old_size = lseek(fd, 0, SEEK_END);
-            l = sizeof(buf);
-            if (l > (fsize - old_size))
-              l = fsize - old_size;
-            if (write(fd, buf, l) == -1) {
-              /* out of space */
-              if (space_cb != NULL)
-                if (space_cb->cb((unsigned long long int)l))
-                  continue;
-              lseek(fd, 0, SEEK_SET);
-              (ftruncate(fd, 0) != 0);
-              close(fd);
-              fd = -1;
-              logger.msg(INFO, "Failed to preallocate space");
-              buffer->speed.reset();
-              buffer->speed.hold(false);
-              buffer->error_write(true);
-              buffer->eof_write(true);
-              writing = false;
-              return DataStatus::WriteStartError;
-            }
-          }
-        }
+	unsigned long long int fsize = GetSize();
+	logger.msg(INFO, "setting file %s to size %llu",
+		   url.Path(), fsize);
+	/* because filesytem can skip empty blocks do real write */
+	unsigned long long int old_size = lseek(fd, 0, SEEK_END);
+	if (old_size < fsize) {
+	  char buf[65536];
+	  memset(buf, 0xFF, sizeof(buf));
+	  unsigned int l = 1;
+	  while (l > 0) {
+	    old_size = lseek(fd, 0, SEEK_END);
+	    l = sizeof(buf);
+	    if (l > (fsize - old_size))
+	      l = fsize - old_size;
+	    if (write(fd, buf, l) == -1) {
+	      /* out of space */
+	      if (space_cb != NULL)
+		if (space_cb->cb((unsigned long long int)l))
+		  continue;
+	      lseek(fd, 0, SEEK_SET);
+	      (ftruncate(fd, 0) != 0);
+	      close(fd);
+	      fd = -1;
+	      logger.msg(INFO, "Failed to preallocate space");
+	      buffer->speed.reset();
+	      buffer->speed.hold(false);
+	      buffer->error_write(true);
+	      buffer->eof_write(true);
+	      writing = false;
+	      return DataStatus::WriteStartError;
+	    }
+	  }
+	}
       }
     }
     buffer->speed.reset();
     buffer->speed.hold(false);
     transfer_cond.reset();
     /* create thread to maintain writing */
-    Glib::Thread* thr = NULL;
+    Glib::Thread *thr = NULL;
     try {
       thr = Glib::Thread::create(sigc::mem_fun(*this, &DataPointFile::write_file), false);
     }
@@ -380,12 +380,13 @@ namespace Arc {
     }
     // buffer->wait_eof_write();
     transfer_cond.wait();         /* wait till writing thread exited */
-    if(buffer->error_write()) return DataStatus::WriteError;
+    if (buffer->error_write())
+      return DataStatus::WriteError;
     return DataStatus::Success;
   }
 
   DataStatus DataPointFile::ListFiles(std::list<FileInfo>& files,
-                                      bool resolve) {
+				      bool resolve) {
     if (reading)
       return DataStatus::IsReadingError;
     if (writing)
@@ -393,39 +394,40 @@ namespace Arc {
     std::string dirname = url.Path();
     if (dirname[dirname.length() - 1] == '/')
       dirname.resize(dirname.length() - 1);
-    
+
     try {
-        Glib::Dir dir(dirname);
-        std::string file_name;
-        while ((file_name = dir.read_name()) != "") {
-            std::list<FileInfo>::iterator f =
-                files.insert(files.end(), FileInfo(file_name.c_str()));
-            if (resolve) {
-                std::string fname = dirname + "/" + file_name;
-                struct stat st;
-                if (stat(fname.c_str(), &st) == 0) {
-                    f->SetSize(st.st_size);
-                    f->SetCreated(st.st_mtime);
-                    if (S_ISDIR(st.st_mode))
-                        f->SetType(FileInfo::file_type_dir);
-                    else if (S_ISREG(st.st_mode))
-                        f->SetType(FileInfo::file_type_file);
-                }
-            }
-        }
-    } catch (Glib::FileError &e) {
+      Glib::Dir dir(dirname);
+      std::string file_name;
+      while ((file_name = dir.read_name()) != "") {
+	std::list<FileInfo>::iterator f =
+	  files.insert(files.end(), FileInfo(file_name.c_str()));
+	if (resolve) {
+	  std::string fname = dirname + "/" + file_name;
+	  struct stat st;
+	  if (stat(fname.c_str(), &st) == 0) {
+	    f->SetSize(st.st_size);
+	    f->SetCreated(st.st_mtime);
+	    if (S_ISDIR(st.st_mode))
+	      f->SetType(FileInfo::file_type_dir);
+	    else if (S_ISREG(st.st_mode))
+	      f->SetType(FileInfo::file_type_file);
+	  }
+	}
+      }
+    }
+    catch (Glib::FileError& e) {
       // maybe a file
       struct stat st;
       std::list<FileInfo>::iterator f =
-        files.insert(files.end(), FileInfo(dirname));
+	files.insert(files.end(), FileInfo(dirname));
       if (stat(dirname.c_str(), &st) == 0) {
-        f->SetSize(st.st_size);
-        f->SetCreated(st.st_mtime);
-        if (S_ISDIR(st.st_mode))
-          f->SetType(FileInfo::file_type_dir);
-        else if (S_ISREG(st.st_mode))
-          f->SetType(FileInfo::file_type_file);
-        return DataStatus::Success;
+	f->SetSize(st.st_size);
+	f->SetCreated(st.st_mtime);
+	if (S_ISDIR(st.st_mode))
+	  f->SetType(FileInfo::file_type_dir);
+	else if (S_ISREG(st.st_mode))
+	  f->SetType(FileInfo::file_type_file);
+	return DataStatus::Success;
       }
       files.erase(f);
       logger.msg(INFO, "Failed to read object: %s", dirname);

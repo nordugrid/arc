@@ -5,12 +5,12 @@
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
 
-int main(){
+int main() {
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
-  
+
   Arc::ACCConfig acccfg;
   Arc::NS ns;
   Arc::Config cfg(ns);
@@ -24,14 +24,14 @@ int main(){
   Arc::Loader loader(&cfg);
 
   Arc::Submitter *submitter =
-    dynamic_cast<Arc::Submitter*>(loader.getACC("submitter"));
+    dynamic_cast<Arc::Submitter *>(loader.getACC("submitter"));
 
   std::pair<Arc::URL, Arc::URL> results;
   results = submitter->Submit("&(executable=echo)(arguments=\"Hello World\")"
-		              "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
+			      "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
   std::cout << "Jobid: " << results.first.str() << std::endl;
-  
+
   return 0;
 }

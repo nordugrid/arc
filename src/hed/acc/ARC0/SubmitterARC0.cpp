@@ -12,13 +12,13 @@ struct cbarg {
 };
 
 
-static void ControlCallback(void* arg,
-			    globus_ftp_control_handle_t* handle,
-			    globus_object_t* error,
-			    globus_ftp_control_response_t* response) {
-  cbarg *cb = (cbarg*) arg;
+static void ControlCallback(void *arg,
+			    globus_ftp_control_handle_t *handle,
+			    globus_object_t *error,
+			    globus_ftp_control_response_t *response) {
+  cbarg *cb = (cbarg *)arg;
   if (response && response->response_buffer)
-    cb->response.assign((const char*)response->response_buffer,
+    cb->response.assign((const char *)response->response_buffer,
 			response->response_length);
   else
     cb->response.clear();
@@ -27,25 +27,25 @@ static void ControlCallback(void* arg,
 }
 
 
-static void ConnectCallback(void* arg,
-			    globus_ftp_control_handle_t* handle,
+static void ConnectCallback(void *arg,
+			    globus_ftp_control_handle_t *handle,
 			    unsigned int stripe_ndx,
 			    globus_bool_t reused,
-			    globus_object_t* error) {
-  cbarg *cb = (cbarg*) arg;
+			    globus_object_t *error) {
+  cbarg *cb = (cbarg *)arg;
   cb->data = true;
   cb->cond.signal();
 }
 
 
-static void ReadWriteCallback(void* arg,
-			      globus_ftp_control_handle_t* handle,
-			      globus_object_t* error,
-			      globus_byte_t* buffer,
+static void ReadWriteCallback(void *arg,
+			      globus_ftp_control_handle_t *handle,
+			      globus_object_t *error,
+			      globus_byte_t *buffer,
 			      globus_size_t length,
 			      globus_off_t offset,
 			      globus_bool_t eof) {
-  cbarg *cb = (cbarg*) arg;
+  cbarg *cb = (cbarg *)arg;
   cb->data = true;
   cb->cond.signal();
 }
@@ -53,15 +53,16 @@ static void ReadWriteCallback(void* arg,
 
 namespace Arc {
 
-  SubmitterARC0::SubmitterARC0(Config *cfg) : Submitter(cfg) {
-    globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);    
+  SubmitterARC0::SubmitterARC0(Config *cfg)
+    : Submitter(cfg) {
+    globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);
   }
 
   SubmitterARC0::~SubmitterARC0() {
-    globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);    
+    globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
   }
 
-  ACC* SubmitterARC0::Instance(Config *cfg, ChainContext*){
+  ACC *SubmitterARC0::Instance(Config *cfg, ChainContext *) {
     return new SubmitterARC0(cfg);
   }
 
@@ -73,9 +74,9 @@ namespace Arc {
 
     cb.ctrl = false;
     globus_ftp_control_connect(&control_handle,
-			       const_cast<char*>(SubmissionEndpoint.Host().c_str()),
+			       const_cast<char *>(SubmissionEndpoint.Host().c_str()),
 			       SubmissionEndpoint.Port(), &ControlCallback, &cb);
-    while(!cb.ctrl)
+    while (!cb.ctrl)
       cb.cond.wait();
 
     // should do some clever thing here to integrate ARC1 security framework
@@ -86,17 +87,20 @@ namespace Arc {
     cb.ctrl = false;
     globus_ftp_control_authenticate(&control_handle, &auth, GLOBUS_TRUE,
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     cb.ctrl = false;
     globus_ftp_control_send_command(&control_handle, "CWD jobs",
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     cb.ctrl = false;
     globus_ftp_control_send_command(&control_handle, "CWD new",
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     std::string::size_type pos1, pos2;
     pos2 = cb.response.rfind('"');
@@ -107,17 +111,20 @@ namespace Arc {
     cb.ctrl = false;
     globus_ftp_control_send_command(&control_handle, "DCAU N",
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     cb.ctrl = false;
     globus_ftp_control_send_command(&control_handle, "TYPE I",
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     cb.ctrl = false;
     globus_ftp_control_send_command(&control_handle, "PASV",
 				    &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     pos1 = cb.response.find('(');
     pos2 = cb.response.find(')', pos1 + 1);
@@ -145,24 +152,29 @@ namespace Arc {
     cb.ctrl = false;
     globus_ftp_control_data_connect_write(&control_handle,
 					  &ConnectCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
-    while(!cb.data) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
+    while (!cb.data)
+      cb.cond.wait();
 
     cb.data = false;
     cb.ctrl = false;
     globus_ftp_control_data_write(&control_handle,
-				  (globus_byte_t*) jobdesc.c_str(),
+				  (globus_byte_t *)jobdesc.c_str(),
 				  jobdesc.size(),
 				  0,
 				  GLOBUS_TRUE,
 				  &ReadWriteCallback,
 				  &cb);
-    while(!cb.data) cb.cond.wait();
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.data)
+      cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     cb.ctrl = false;
     globus_ftp_control_quit(&control_handle, &ControlCallback, &cb);
-    while(!cb.ctrl) cb.cond.wait();
+    while (!cb.ctrl)
+      cb.cond.wait();
 
     globus_ftp_control_handle_destroy(&control_handle);
 
@@ -171,10 +183,10 @@ namespace Arc {
 
     //prepare contact url for information about this job
     //ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
-    InfoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid="+jobid.str()+")");
+    InfoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + jobid.str() + ")");
     InfoEndpoint.ChangeLDAPScope(URL::subtree);
 
-    return std::make_pair(jobid,InfoEndpoint);
+    return std::make_pair(jobid, InfoEndpoint);
 
   }
 

@@ -16,7 +16,8 @@ namespace Arc {
 
   Logger DMCRLS::logger(DMC::logger, "RLS");
 
-  DMCRLS::DMCRLS(Config *cfg) : DMC(cfg) {
+  DMCRLS::DMCRLS(Config *cfg)
+    : DMC(cfg) {
     globus_module_activate(GLOBUS_COMMON_MODULE);
     globus_module_activate(GLOBUS_IO_MODULE);
     globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
@@ -30,18 +31,19 @@ namespace Arc {
     globus_module_deactivate(GLOBUS_COMMON_MODULE);
   }
 
-  DMC* DMCRLS::Instance(Arc::Config *cfg, Arc::ChainContext*) {
+  DMC *DMCRLS::Instance(Arc::Config *cfg, Arc::ChainContext *) {
     return new DMCRLS(cfg);
   }
 
-  DataPoint* DMCRLS::iGetDataPoint(const URL& url) {
-    if (url.Protocol() != "rls") return NULL;
+  DataPoint *DMCRLS::iGetDataPoint(const URL& url) {
+    if (url.Protocol() != "rls")
+      return NULL;
     return new DataPointRLS(url);
   }
 
 } // namespace Arc
 
 dmc_descriptors ARC_DMC_LOADER = {
-  { "rls", 0, &Arc::DMCRLS::Instance },
-  { NULL, 0, NULL }
+  {"rls", 0, &Arc::DMCRLS::Instance},
+  {NULL, 0, NULL}
 };

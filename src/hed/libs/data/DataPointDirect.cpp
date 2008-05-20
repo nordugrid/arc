@@ -8,21 +8,22 @@
 
 namespace Arc {
 
-  DataPointDirect::DataPointDirect(const URL& url) : DataPoint(url),
-                                                     buffer(NULL),
-                                                     bufsize(-1),
-                                                     bufnum(1),
-                                                     cache(true),
-                                                     local(false),
-                                                     readonly(true),
-                                                     linkable(false),
-                                                     is_secure(false),
-                                                     force_secure(true),
-                                                     force_passive(false),
-                                                     additional_checks(true),
-                                                     allow_out_of_order(false),
-                                                     range_start(0),
-                                                     range_end(0) {
+  DataPointDirect::DataPointDirect(const URL& url)
+    : DataPoint(url),
+      buffer(NULL),
+      bufsize(-1),
+      bufnum(1),
+      cache(true),
+      local(false),
+      readonly(true),
+      linkable(false),
+      is_secure(false),
+      force_secure(true),
+      force_passive(false),
+      additional_checks(true),
+      allow_out_of_order(false),
+      range_start(0),
+      range_end(0) {
     bufnum = stringtoi(url.Option("threads"));
     if (bufnum < 1)
       bufnum = 1;
@@ -92,7 +93,7 @@ namespace Arc {
   }
 
   void DataPointDirect::Range(unsigned long long int start,
-                              unsigned long long int end) {
+			      unsigned long long int end) {
     range_start = start;
     range_end = end;
   }

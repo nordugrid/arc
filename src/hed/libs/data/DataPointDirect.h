@@ -22,8 +22,9 @@ namespace Arc {
       object. It is used by higher-level classes DataMove and
       DataMovePar to provide data transfer service for application. */
 
-  class DataPointDirect : public DataPoint {
-   public:
+  class DataPointDirect
+    : public DataPoint {
+  public:
     DataPointDirect(const URL& url);
     virtual ~DataPointDirect();
 
@@ -48,7 +49,7 @@ namespace Arc {
     virtual void Passive(bool v);
 
     virtual void Range(unsigned long long int start = 0,
-                       unsigned long long int end = 0);
+		       unsigned long long int end = 0);
 
     // Not supported for direct data points:
     virtual DataStatus Resolve(bool source);
@@ -68,7 +69,7 @@ namespace Arc {
     virtual DataStatus RemoveLocation();
     virtual DataStatus RemoveLocations(const DataPoint& p);
 
-   protected:
+  protected:
     DataBufferPar *buffer;
     unsigned long long int bufsize;
     int bufnum;

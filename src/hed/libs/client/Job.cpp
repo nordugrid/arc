@@ -3,12 +3,9 @@
 
 namespace Arc {
 
-  Job::Job(Config *cfg) : ACC() {
+  Job::Job(Config *cfg)
+    : ACC() {}
 
-  }
-
-  Job::~Job(){
-    
-  }
+  Job::~Job() {}
 
 } // namespace Arc

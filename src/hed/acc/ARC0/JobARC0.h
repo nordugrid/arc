@@ -8,14 +8,15 @@ namespace Arc {
   class ChainContext;
   class Config;
 
-  class JobARC0 : public Job {
+  class JobARC0
+    : public Job {
 
-   private:
+  private:
     JobARC0(Config *cfg);
     ~JobARC0();
 
-   public:
-    static ACC* Instance(Config *cfg, ChainContext *cxt);
+  public:
+    static ACC *Instance(Config *cfg, ChainContext *cxt);
     void GetStatus();
     void Kill();
   };

@@ -9,13 +9,13 @@
 
 namespace Arc {
 
-  class ExecutionTarget{
+  class ExecutionTarget {
   public:
     ExecutionTarget();
     virtual ~ExecutionTarget();
 
     //One million attributes, possibly interesting for brokering
-   
+
     //Below attributes inspired by Glue2:Location
     std::string Name;
     std::string Alias;
@@ -43,7 +43,7 @@ namespace Arc {
     int StagingJobs;
     int SuspendedJobs;
     int PreLRMSWaitingJobs;
-    
+
     std::string MappingQueue;
     int MaxWallTime;
     int MinWallTime;
@@ -72,18 +72,18 @@ namespace Arc {
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
-    
+
     //Other
-    Arc::Submitter* GetSubmitter();
+    Arc::Submitter *GetSubmitter();
     std::string GridFlavour;
     std::string Source;
-    
+
   private:
-    
+
     Arc::Loader *loader;
-    
+
   };
-  
+
 } // namespace Arc
 
 #endif

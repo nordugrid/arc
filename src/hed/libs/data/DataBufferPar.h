@@ -8,10 +8,10 @@ namespace Arc {
 
   class CheckSum;
 
-  /// Represents set of buffers 
+  /// Represents set of buffers
   /** This class is used used during data transfer using DataPoint classes. */
   class DataBufferPar {
-   private:
+  private:
     /* used to check if configuration changed */
     int set_counter;
     /* general purpose mutex and condition used to
@@ -58,13 +58,13 @@ namespace Arc {
     unsigned long long int checksum_offset;
     bool checksum_ready;
 
-   public:
+  public:
     /// This object controls transfer speed
     DataSpeed speed;
     /// Check if DataBufferPar object is initialized
     operator bool() {
       return (bufs != 0);
-    };
+    }
     /// Contructor
     /// \param size size of every buffer in bytes.
     /// \param blocks number of buffers.
@@ -83,7 +83,7 @@ namespace Arc {
     /// \param cksum object which will compute checksum. Should not be
     /// destroyed till DataBufferPar itself.
     bool set(CheckSum *cksum = NULL, unsigned int size = 65536,
-             int blocks = 3);
+	     int blocks = 3);
     /// Direct access to buffer by number.
     char *operator[](int n);
     /// Request buffer for READING INTO it.
@@ -102,20 +102,20 @@ namespace Arc {
     /// \param length amount of data.
     /// \param offset offset in stream, file, etc.
     bool is_read(int handle, unsigned int length,
-                 unsigned long long int offset);
+		 unsigned long long int offset);
     /// Informs object that data was read into buffer.
     /// \param buf - address of buffer
     /// \param length amount of data.
     /// \param offset offset in stream, file, etc.
     bool is_read(char *buf, unsigned int length,
-                 unsigned long long int offset);
+		 unsigned long long int offset);
     /// Request buffer for WRITING FROM it.
     /// \param handle returns buffer's number.
     /// \param length returns size of buffer
     /// \param wait if true and there are no free buffers, method will wait
     /// for one.
     bool for_write(int& handle, unsigned int& length,
-                   unsigned long long int& offset, bool wait);
+		   unsigned long long int& offset, bool wait);
     /// Check if there are buffers which can be taken by for_write(). This
     /// function checks only for buffers and does not take eof and error
     /// conditions into account.
@@ -183,7 +183,7 @@ namespace Arc {
     /// Returns offset following last piece of data transfered.
     unsigned long long int eof_position() const {
       return eof_pos;
-    };
+    }
     /// Returns size of buffer in object. If not initialized then this
     /// number represents size of default buffer.
     unsigned int buffer_size();

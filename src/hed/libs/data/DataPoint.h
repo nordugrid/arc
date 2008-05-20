@@ -16,7 +16,7 @@ namespace Arc {
   class DataBufferPar;
   class DataCallback;
 
-  /// This base class is an abstraction of URL. 
+  /// This base class is an abstraction of URL.
   /** Specializations should be provided for different kind of direct
       access URLs (file://, ftp://, gsiftp://, http://, https://,
       httpg://, ...) or indexing service URLs (rls://, lfc://, ...).
@@ -24,7 +24,7 @@ namespace Arc {
       multiple URLs and to loop through them. */
 
   class DataPoint {
-   public:
+  public:
     /// Constructor requires URL to be provided.
     DataPoint(const URL& url);
 
@@ -45,41 +45,41 @@ namespace Arc {
 
     /// Start reading data from URL.
     /** Separate thread to transfer data will be created. No other
-	operation can be performed while reading is in progress.
-	\param buffer operation will use this buffer to put
-	information into. Should not be destroyed before stop_reading
-	was called and returned. */
+       operation can be performed while reading is in progress.
+     \param buffer operation will use this buffer to put
+       information into. Should not be destroyed before stop_reading
+       was called and returned. */
     virtual DataStatus StartReading(DataBufferPar& buffer) = 0;
 
     /// Start writing data to URL.
     /** Separate thread to transfer data will be created. No other
-	operation can be performed while writing is in progress.
-	\param buffer operation will use this buffer to get
-	information from. Should not be destroyed before stop_writing
-	was called and returned.
-	\param space_cb callback which is called if there is not
-	enough space to store data. May not implemented for all
-	protocols. */
+       operation can be performed while writing is in progress.
+     \param buffer operation will use this buffer to get
+       information from. Should not be destroyed before stop_writing
+       was called and returned.
+     \param space_cb callback which is called if there is not
+       enough space to store data. May not implemented for all
+       protocols. */
     virtual DataStatus StartWriting(DataBufferPar& buffer,
 				    DataCallback *space_cb = NULL) = 0;
 
     /// Stop reading.
     /** Must be called after corresponding start_reading method,
-	either after all data is transferred or to cancel transfer.
-	Use buffer object to find out when data is transferred.
-        Must return failure if any happened during transfer. */
+       either after all data is transferred or to cancel transfer.
+       Use buffer object to find out when data is transferred.
+       Must return failure if any happened during transfer. */
     virtual DataStatus StopReading() = 0;
 
     /// Stop writing.
     /** Must be called after corresponding start_writing method,
-	either after all data is transferred or to cancel transfer.
-	Use buffer object to find out when data is transferred.
-        Must return failure if any happened during transfer. */
+       either after all data is transferred or to cancel transfer.
+       Use buffer object to find out when data is transferred.
+       Must return failure if any happened during transfer. */
     virtual DataStatus StopWriting() = 0;
 
     /// Query the DataPoint to check if object is accessible.
     /** If possible this method will also try to provide meta
-	information about the object. */
+       information about the object. */
     virtual DataStatus Check() = 0;
 
     /// Remove/delete object at URL.
@@ -87,11 +87,11 @@ namespace Arc {
 
     /// List file(s).
     /** If the DataPoint represents a directory its contents will be
-	listed.
-	\param files will contain list of file names and optionally
-	their attributes.
-	\param resolve if false, do not try to obtain properties of
-	objects. */
+       listed.
+     \param files will contain list of file names and optionally
+       their attributes.
+     \param resolve if false, do not try to obtain properties of
+       objects. */
     virtual DataStatus ListFiles(std::list<FileInfo>& files,
 				 bool resolve = true) = 0;
 
@@ -106,8 +106,8 @@ namespace Arc {
 
     /// Allow/disallow additional checks
     /** Check for existance of remote file (and probably other checks
-	too) before initiating reading and writing operations.
-	\param v true if allowed (default is true). */
+       too) before initiating reading and writing operations.
+     \param v true if allowed (default is true). */
     virtual void SetAdditionalChecks(bool v) = 0;
 
     /// Check if additional checks before will be performed.
@@ -131,8 +131,8 @@ namespace Arc {
 
     /// Resolves index service URL into list of ordinary URLs.
     /** Also obtains meta information about the file.
-	\param source true if DataPoint object represents source of
-	information. */
+     \param source true if DataPoint object represents source of
+       information. */
     virtual DataStatus Resolve(bool source) = 0;
 
     /// Check if file is registered in Indexing Service.
@@ -141,37 +141,37 @@ namespace Arc {
 
     /// Index service preregistration.
     /** This function registers the physical location of a file into
-	an indexing service. It should be called *before* the actual
-	transfer to that location happens.
-	\param replication if true, the file is being replicated
-	between two locations registered in the indexing service under
-	same name.
-	\param force if true, perform registration of a new file even
-	if it already exists. Should be used to fix failures in
-	Indexing Service. */
+       an indexing service. It should be called *before* the actual
+       transfer to that location happens.
+     \param replication if true, the file is being replicated
+       between two locations registered in the indexing service under
+       same name.
+     \param force if true, perform registration of a new file even
+       if it already exists. Should be used to fix failures in
+       Indexing Service. */
     virtual DataStatus PreRegister(bool replication, bool force = false) = 0;
 
     /// Index Service postregistration.
     /** Used for same purpose as meta_preregister. Should be called
-	after actual transfer of file successfully finished.
-	\param replication if true, the file is being replicated
-	between two locations registered in Indexing Service under
-	same name. */
+       after actual transfer of file successfully finished.
+     \param replication if true, the file is being replicated
+       between two locations registered in Indexing Service under
+       same name. */
     virtual DataStatus PostRegister(bool replication) = 0;
 
     /// Index Service preunregistration.
     /** Should be called if file transfer failed. It removes changes made
-	by PreRegister.
-	\param replication if true, the file is being replicated
-	between two locations registered in Indexing Service under
-	same name. */
+       by PreRegister.
+     \param replication if true, the file is being replicated
+       between two locations registered in Indexing Service under
+       same name. */
     virtual DataStatus PreUnregister(bool replication) = 0;
 
     /// Index Service unregistration.
     /** Remove information about file registered in Indexing Service.
-	\param all if true, information about file itself is (LFN) is
-	removed. Otherwise only particular physical instance is
-	unregistered. */
+     \param all if true, information about file itself is (LFN) is
+       removed. Otherwise only particular physical instance is
+       unregistered. */
     virtual DataStatus Unregister(bool all) = 0;
 
     /// Check if meta-information 'size' is available.
@@ -243,12 +243,12 @@ namespace Arc {
 
     /// Copy meta information from another object.
     /** Already defined values are not overwritten.
-	\param p object from which information is taken. */
+     \param p object from which information is taken. */
     virtual void SetMeta(const DataPoint& p);
 
     /// Compare meta information from another object.
     /** Undefined values are not used for comparison.
-	\param p object to which to compare. */
+     \param p object to which to compare. */
     virtual bool CompareMeta(const DataPoint& p) const;
 
     /// Returns current (resolved) URL.
@@ -260,7 +260,7 @@ namespace Arc {
 
     /// Switch to next location in list of URLs.
     /** At last location switch to first if number of allowed retries
-	is not exceeded. Returns false if no retries left. */
+       is not exceeded. Returns false if no retries left. */
     virtual bool NextLocation() = 0;
 
     /// Returns false if out of retries.
@@ -271,7 +271,7 @@ namespace Arc {
 
     /// Add URL to list.
     /** \param url Location URL to add.
-	\param meta Location meta information. */
+     \param meta Location meta information. */
     virtual DataStatus AddLocation(const URL& url,
 				   const std::string& meta) = 0;
 
@@ -281,7 +281,7 @@ namespace Arc {
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
 
-   protected:
+  protected:
     URL url;
     static Logger logger;
 

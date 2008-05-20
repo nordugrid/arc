@@ -11,32 +11,31 @@ namespace Arc {
 
   bool DataBufferPar::set(CheckSum *cksum, unsigned int size, int blocks) {
     lock.lock();
-    if(blocks < 0) {
+    if (blocks < 0) {
       lock.unlock();
       return false;
     }
-    if(bufs != NULL) {
-      for(int i = 0; i < bufs_n; i++) {
-        if(bufs[i].start)
-          free(bufs[i].start);
-      }
+    if (bufs != NULL) {
+      for (int i = 0; i < bufs_n; i++)
+	if (bufs[i].start)
+	  free(bufs[i].start);
       free(bufs);
       bufs_n = 0;
       bufs = NULL;
       set_counter++;
       cond.broadcast(); /* make all waiting loops to exit */
     }
-    if((size == 0) || (blocks == 0)) {
+    if ((size == 0) || (blocks == 0)) {
       lock.unlock();
       return true;
     }
     bufs = (buf_desc *)malloc(sizeof(buf_desc) * blocks);
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
     bufs_n = blocks;
-    for(int i = 0; i < blocks; i++) {
+    for (int i = 0; i < blocks; i++) {
       bufs[i].start = NULL;
       bufs[i].taken_for_read = false;
       bufs[i].taken_for_write = false;
@@ -47,7 +46,7 @@ namespace Arc {
     checksum = cksum;
     checksum_offset = 0;
     checksum_ready = true;
-    if(checksum)
+    if (checksum)
       checksum->start();
     lock.unlock();
     return true;
@@ -67,7 +66,7 @@ namespace Arc {
   }
 
   DataBufferPar::DataBufferPar(CheckSum *cksum, unsigned int size,
-                               int blocks) {
+			       int blocks) {
     bufs_n = 0;
     bufs = NULL;
     set_counter = 0;
@@ -106,9 +105,9 @@ namespace Arc {
 
   void DataBufferPar::eof_read(bool eof_) {
     lock.lock();
-    if(eof_)
-      if(checksum)
-        checksum->end();
+    if (eof_)
+      if (checksum)
+	checksum->end();
     eof_read_flag = eof_;
     cond.broadcast();
     lock.unlock();
@@ -128,11 +127,11 @@ namespace Arc {
   void DataBufferPar::error_read(bool error_) {
     lock.lock();
     // error_read_flag=error_;
-    if(error_) {
-      if(!(error_write_flag || error_transfer_flag))
-        error_read_flag = true;
-      if(checksum)
-        checksum->end();
+    if (error_) {
+      if (!(error_write_flag || error_transfer_flag))
+	error_read_flag = true;
+      if (checksum)
+	checksum->end();
       eof_read_flag = true;
     }
     else
@@ -144,9 +143,9 @@ namespace Arc {
   void DataBufferPar::error_write(bool error_) {
     lock.lock();
     // error_write_flag=error_;
-    if(error_) {
-      if(!(error_read_flag || error_transfer_flag))
-        error_write_flag = true;
+    if (error_) {
+      if (!(error_read_flag || error_transfer_flag))
+	error_write_flag = true;
       eof_write_flag = true;
     }
     else
@@ -157,9 +156,9 @@ namespace Arc {
 
   bool DataBufferPar::wait_eof_read() {
     lock.lock();
-    for(;;) {
-      if(eof_read_flag)
-        break;
+    for (;;) {
+      if (eof_read_flag)
+	break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -168,11 +167,11 @@ namespace Arc {
 
   bool DataBufferPar::wait_read() {
     lock.lock();
-    for(;;) {
-      if(eof_read_flag)
-        break;
-      if(error_read_flag)
-        break;
+    for (;;) {
+      if (eof_read_flag)
+	break;
+      if (error_read_flag)
+	break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -181,9 +180,9 @@ namespace Arc {
 
   bool DataBufferPar::wait_eof_write() {
     lock.lock();
-    for(;;) {
-      if(eof_write_flag)
-        break;
+    for (;;) {
+      if (eof_write_flag)
+	break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -192,11 +191,11 @@ namespace Arc {
 
   bool DataBufferPar::wait_write() {
     lock.lock();
-    for(;;) {
-      if(eof_write_flag)
-        break;
-      if(error_write_flag)
-        break;
+    for (;;) {
+      if (eof_write_flag)
+	break;
+      if (error_write_flag)
+	break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -205,9 +204,9 @@ namespace Arc {
 
   bool DataBufferPar::wait_eof() {
     lock.lock();
-    for(;;) {
-      if(eof_read_flag && eof_write_flag)
-        break;
+    for (;;) {
+      if (eof_read_flag && eof_write_flag)
+	break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -219,32 +218,29 @@ namespace Arc {
     int tmp = set_counter;
     bool eof_read_flag_tmp = eof_read_flag;
     bool eof_write_flag_tmp = eof_write_flag;
-    /*
-       cond.wait(lock);
-     */
+    // cond.wait(lock);
     bool err = false;
-    for(;;) {
-      if(!speed.transfer()) {
-        if((!(error_read_flag || error_write_flag)) &&
-           (!(eof_read_flag && eof_write_flag)))
-          error_transfer_flag = true;
+    for (;;) {
+      if (!speed.transfer())
+	if ((!(error_read_flag || error_write_flag)) &&
+	    (!(eof_read_flag && eof_write_flag)))
+	  error_transfer_flag = true;
+      if (eof_read_flag && eof_write_flag) { // there wil be no more events
+	lock.unlock();
+	Glib::Thread::yield();
+	lock.lock();
+	return true;
       }
-      if(eof_read_flag && eof_write_flag) { // there wil be no more events
-        lock.unlock();
-        Glib::Thread::yield();
-        lock.lock();
-        return true;
-      }
-      if(eof_read_flag_tmp != eof_read_flag)
-        return true;
-      if(eof_write_flag_tmp != eof_write_flag)
-        return true;
-      if(error())
-        return false; // useless to wait for - better fail
-      if(set_counter != tmp)
-        return false;
-      if(err)
-        break; // Some event
+      if (eof_read_flag_tmp != eof_read_flag)
+	return true;
+      if (eof_write_flag_tmp != eof_write_flag)
+	return true;
+      if (error())
+	return false; // useless to wait for - better fail
+      if (set_counter != tmp)
+	return false;
+      if (err)
+	break; // Some event
       int t = 60;
       Glib::TimeVal stime;
       stime.assign_current_time();
@@ -255,59 +251,57 @@ namespace Arc {
   }
 
   bool DataBufferPar::for_read() {
-    if(bufs == NULL)
+    if (bufs == NULL)
       return false;
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
-         (bufs[i].used == 0)) {
-        lock.unlock();
-        return true;
+    for (int i = 0; i < bufs_n; i++)
+      if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
+	  (bufs[i].used == 0)) {
+	lock.unlock();
+	return true;
       }
-    }
     lock.unlock();
     return false;
   }
 
   bool DataBufferPar::for_read(int& handle, unsigned int& length, bool wait) {
     lock.lock();
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
-    for(;;) {
-      if(error()) { /* errors detected/set - any continuation is unusable */
-        lock.unlock();
-        return false;
+    for (;;) {
+      if (error()) { /* errors detected/set - any continuation is unusable */
+	lock.unlock();
+	return false;
       }
-      for(int i = 0; i < bufs_n; i++) {
-        if((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
-           (bufs[i].used == 0)) {
-          if(bufs[i].start == NULL) {
-            bufs[i].start = (char *)malloc(bufs[i].size);
-            if(bufs[i].start == NULL)
-              continue;
-          }
-          handle = i;
-          bufs[i].taken_for_read = true;
-          length = bufs[i].size;
-          cond.broadcast();
-          lock.unlock();
-          return true;
-        }
-      }
+      for (int i = 0; i < bufs_n; i++)
+	if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
+	    (bufs[i].used == 0)) {
+	  if (bufs[i].start == NULL) {
+	    bufs[i].start = (char *)malloc(bufs[i].size);
+	    if (bufs[i].start == NULL)
+	      continue;
+	  }
+	  handle = i;
+	  bufs[i].taken_for_read = true;
+	  length = bufs[i].size;
+	  cond.broadcast();
+	  lock.unlock();
+	  return true;
+	}
       /* suitable block not found - wait for changes or quit */
-      if(eof_write_flag) { /* writing side quited, no need to wait */
-        lock.unlock();
-        return false;
+      if (eof_write_flag) { /* writing side quited, no need to wait */
+	lock.unlock();
+	return false;
       }
-      if(!wait) {
-        lock.unlock();
-        return false;
+      if (!wait) {
+	lock.unlock();
+	return false;
       }
-      if(!cond_wait()) {
-        lock.unlock();
-        return false;
+      if (!cond_wait()) {
+	lock.unlock();
+	return false;
       }
     }
     lock.unlock();
@@ -315,75 +309,69 @@ namespace Arc {
   }
 
   bool DataBufferPar::is_read(char *buf, unsigned int length,
-                              unsigned long long int offset) {
+			      unsigned long long int offset) {
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if(bufs[i].start == buf) {
-        lock.unlock();
-        return is_read(i, length, offset);
+    for (int i = 0; i < bufs_n; i++)
+      if (bufs[i].start == buf) {
+	lock.unlock();
+	return is_read(i, length, offset);
       }
-    }
     lock.unlock();
     return false;
   }
 
   bool DataBufferPar::is_read(int handle, unsigned int length,
-                              unsigned long long int offset) {
+			      unsigned long long int offset) {
     lock.lock();
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
-    if(handle >= bufs_n) {
+    if (handle >= bufs_n) {
       lock.unlock();
       return false;
     }
-    if(!bufs[handle].taken_for_read) {
+    if (!bufs[handle].taken_for_read) {
       lock.unlock();
       return false;
     }
-    if(length > bufs[handle].size) {
+    if (length > bufs[handle].size) {
       lock.unlock();
       return false;
     }
     bufs[handle].taken_for_read = false;
     bufs[handle].used = length;
     bufs[handle].offset = offset;
-    if((offset + length) > eof_pos)
+    if ((offset + length) > eof_pos)
       eof_pos = offset + length;
     /* checksum on the fly */
-    if((checksum != NULL) && (offset == checksum_offset)) {
-      for(int i = handle; i < bufs_n; i++) {
-        if(bufs[i].used != 0) {
-          if(bufs[i].offset == checksum_offset) {
-            checksum->add(bufs[i].start, bufs[i].used);
-            checksum_offset += bufs[i].used;
-            i = -1;
-            checksum_ready = true;
-          }
-          else {
-            if(checksum_offset < bufs[i].offset)
-              checksum_ready = false;
-          }
-        }
-      }
-    }
+    if ((checksum != NULL) && (offset == checksum_offset))
+      for (int i = handle; i < bufs_n; i++)
+	if (bufs[i].used != 0)
+	  if (bufs[i].offset == checksum_offset) {
+	    checksum->add(bufs[i].start, bufs[i].used);
+	    checksum_offset += bufs[i].used;
+	    i = -1;
+	    checksum_ready = true;
+	  }
+	  else
+	    if (checksum_offset < bufs[i].offset)
+	      checksum_ready = false;
     cond.broadcast();
     lock.unlock();
     return true;
   }
 
   bool DataBufferPar::for_write() {
-    if(bufs == NULL)
+    if (bufs == NULL)
       return false;
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
-         (bufs[i].used != 0)) {
-        lock.unlock();
-        return true;
+    for (int i = 0; i < bufs_n; i++)
+      if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
+	  (bufs[i].used != 0)) {
+	lock.unlock();
+	return true;
       }
-    }
     lock.unlock();
     return false;
   }
@@ -391,69 +379,67 @@ namespace Arc {
   /* return true + buffer with data,
      return false in case of failure, or eof + no buffers claimed for read */
   bool DataBufferPar::for_write(int& handle, unsigned int& length,
-                                unsigned long long int& offset, bool wait) {
+				unsigned long long int& offset, bool wait) {
     lock.lock();
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
-    for(;;) {
-      if(error()) {/* internal/external errors - no need to continue */
-        lock.unlock();
-        return false;
+    for (;;) {
+      if (error()) { /* internal/external errors - no need to continue */
+	lock.unlock();
+	return false;
       }
       bool have_for_read = false;
       bool have_unused = false;
       unsigned long long int min_offset = (unsigned long long int)(-1);
       handle = -1;
-      for(int i = 0; i < bufs_n; i++) {
-        if(bufs[i].taken_for_read)
-          have_for_read = true;
-        if((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
-           (bufs[i].used != 0)) {
-          if(bufs[i].offset < min_offset) {
-            min_offset = bufs[i].offset;
-            handle = i;
-          }
-        }
-        if(bufs[i].taken_for_read || (bufs[i].used == 0))
-          have_unused = true;
+      for (int i = 0; i < bufs_n; i++) {
+	if (bufs[i].taken_for_read)
+	  have_for_read = true;
+	if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
+	    (bufs[i].used != 0))
+	  if (bufs[i].offset < min_offset) {
+	    min_offset = bufs[i].offset;
+	    handle = i;
+	  }
+	if (bufs[i].taken_for_read || (bufs[i].used == 0))
+	  have_unused = true;
       }
-      if(handle != -1) {
-        if((!checksum_ready) && (bufs[handle].offset >= checksum_offset)) {
-          /* try to keep buffers as long as possible for checksuming */
-          if(have_unused && (!eof_read_flag)) {
-            /* still have chances to get that block */
-            if(!wait) {
-              lock.unlock();
-              return false;
-            }
-            if(!cond_wait()) {
-              lock.unlock();
-              return false;
-            }
-            continue;
-          }
-        }
-        bufs[handle].taken_for_write = true;
-        length = bufs[handle].used;
-        offset = bufs[handle].offset;
-        cond.broadcast();
-        lock.unlock();
-        return true;
+      if (handle != -1) {
+	if ((!checksum_ready) && (bufs[handle].offset >= checksum_offset))
+	  /* try to keep buffers as long as possible for checksuming */
+	  if (have_unused && (!eof_read_flag)) {
+	    /* still have chances to get that block */
+	    if (!wait) {
+	      lock.unlock();
+	      return false;
+	    }
+	    if (!cond_wait()) {
+	      lock.unlock();
+	      return false;
+	    }
+	    continue;
+	  }
+	bufs[handle].taken_for_write = true;
+	length = bufs[handle].used;
+	offset = bufs[handle].offset;
+	cond.broadcast();
+	lock.unlock();
+	return true;
       }
-      if(eof_read_flag && (!have_for_read)) {
-        lock.unlock();
-        return false;
+      if (eof_read_flag && (!have_for_read)) {
+	lock.unlock();
+	return false;
       }
       /* suitable block not found - wait for changes or quit */
-      if(!wait) {
-        lock.unlock();
-        return false;
+      if (!wait) {
+	lock.unlock();
+	return false;
       }
-      if(!cond_wait()) {
-        lock.unlock();
-        return false;
+      if (!cond_wait()) {
+	lock.unlock();
+	return false;
       }
     }
     lock.unlock();
@@ -462,48 +448,45 @@ namespace Arc {
 
   bool DataBufferPar::is_written(char *buf) {
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if(bufs[i].start == buf) {
-        lock.unlock();
-        return is_written(i);
+    for (int i = 0; i < bufs_n; i++)
+      if (bufs[i].start == buf) {
+	lock.unlock();
+	return is_written(i);
       }
-    }
     lock.unlock();
     return false;
   }
 
   bool DataBufferPar::is_notwritten(char *buf) {
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if(bufs[i].start == buf) {
-        lock.unlock();
-        return is_notwritten(i);
+    for (int i = 0; i < bufs_n; i++)
+      if (bufs[i].start == buf) {
+	lock.unlock();
+	return is_notwritten(i);
       }
-    }
     lock.unlock();
     return false;
   }
 
   bool DataBufferPar::is_written(int handle) {
     lock.lock();
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
-    if(handle >= bufs_n) {
+    if (handle >= bufs_n) {
       lock.unlock();
       return false;
     }
-    if(!bufs[handle].taken_for_write) {
+    if (!bufs[handle].taken_for_write) {
       lock.unlock();
       return false;
     }
     /* speed control */
-    if(!speed.transfer(bufs[handle].used)) {
-      if((!(error_read_flag || error_write_flag)) &&
-         (!(eof_read_flag && eof_write_flag)))
-        error_transfer_flag = true;
-    }
+    if (!speed.transfer(bufs[handle].used))
+      if ((!(error_read_flag || error_write_flag)) &&
+	  (!(eof_read_flag && eof_write_flag)))
+	error_transfer_flag = true;
     bufs[handle].taken_for_write = false;
     bufs[handle].used = 0;
     bufs[handle].offset = 0;
@@ -514,15 +497,15 @@ namespace Arc {
 
   bool DataBufferPar::is_notwritten(int handle) {
     lock.lock();
-    if(bufs == NULL) {
+    if (bufs == NULL) {
       lock.unlock();
       return false;
     }
-    if(handle >= bufs_n) {
+    if (handle >= bufs_n) {
       lock.unlock();
       return false;
     }
-    if(!bufs[handle].taken_for_write) {
+    if (!bufs[handle].taken_for_write) {
       lock.unlock();
       return false;
     }
@@ -534,7 +517,7 @@ namespace Arc {
 
   char *DataBufferPar::operator[](int block) {
     lock.lock();
-    if((block < 0) || (block >= bufs_n)) {
+    if ((block < 0) || (block >= bufs_n)) {
       lock.unlock();
       return NULL;
     }
@@ -552,16 +535,15 @@ namespace Arc {
 
   bool DataBufferPar::wait_used() {
     lock.lock();
-    for(int i = 0; i < bufs_n; i++) {
-      if((bufs[i].taken_for_read) || (bufs[i].taken_for_write) ||
-         (bufs[i].used != 0)) {
-        if(!cond_wait()) {
-          lock.unlock();
-          return false;
-        }
-        i = -1;
+    for (int i = 0; i < bufs_n; i++)
+      if ((bufs[i].taken_for_read) || (bufs[i].taken_for_write) ||
+	  (bufs[i].used != 0)) {
+	if (!cond_wait()) {
+	  lock.unlock();
+	  return false;
+	}
+	i = -1;
       }
-    }
     lock.unlock();
     return true;
   }
@@ -575,12 +557,12 @@ namespace Arc {
   }
 
   unsigned int DataBufferPar::buffer_size() {
-    if(bufs == NULL) return 65536;
+    if (bufs == NULL)
+      return 65536;
     unsigned int size = 0;
-    for(int i = 0; i < bufs_n; i++) {
-      if(size < bufs[i].size)
-        size = bufs[i].size;
-    }
+    for (int i = 0; i < bufs_n; i++)
+      if (size < bufs[i].size)
+	size = bufs[i].size;
     return size;
   }
 

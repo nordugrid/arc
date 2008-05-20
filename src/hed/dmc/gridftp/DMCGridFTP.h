@@ -5,13 +5,14 @@
 
 namespace Arc {
 
-  class DMCGridFTP : public DMC {
-   public:
+  class DMCGridFTP
+    : public DMC {
+  public:
     DMCGridFTP(Config *cfg);
     ~DMCGridFTP();
-    static DMC* Instance(Config *cfg, ChainContext *ctx);
-    DataPoint* iGetDataPoint(const URL& url);
-   protected:
+    static DMC *Instance(Config *cfg, ChainContext *ctx);
+    DataPoint *iGetDataPoint(const URL& url);
+  protected:
     static Logger logger;
   };
 

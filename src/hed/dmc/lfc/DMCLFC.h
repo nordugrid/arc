@@ -5,13 +5,14 @@
 
 namespace Arc {
 
-  class DMCLFC : public DMC {
-   public:
+  class DMCLFC
+    : public DMC {
+  public:
     DMCLFC(Config *cfg);
     ~DMCLFC();
-    static DMC* Instance(Config *cfg, ChainContext *ctx);
-    DataPoint* iGetDataPoint(const URL& url);
-   protected:
+    static DMC *Instance(Config *cfg, ChainContext *ctx);
+    DataPoint *iGetDataPoint(const URL& url);
+  protected:
     static Logger logger;
   };
 

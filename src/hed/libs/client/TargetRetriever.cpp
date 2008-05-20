@@ -4,14 +4,15 @@
 
 namespace Arc {
 
-  TargetRetriever::TargetRetriever(Arc::Config *cfg) : ACC(){
+  TargetRetriever::TargetRetriever(Arc::Config *cfg)
+    : ACC() {
 
-    m_url = (std::string) (*cfg)["URL"];
+    m_url = (std::string)(*cfg)["URL"];
 
-    ServiceType = (std::string) (*cfg)["URL"].Attribute("ServiceType");
-    
+    ServiceType = (std::string)(*cfg)["URL"].Attribute("ServiceType");
+
   }
 
-  TargetRetriever::~TargetRetriever(){}
+  TargetRetriever::~TargetRetriever() {}
 
 } // namespace Arc

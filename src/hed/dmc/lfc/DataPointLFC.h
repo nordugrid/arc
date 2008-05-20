@@ -9,8 +9,9 @@ namespace Arc {
   class Logger;
   class URL;
 
-  class DataPointLFC : public DataPointIndex {
-   public:
+  class DataPointLFC
+    : public DataPointIndex {
+  public:
     DataPointLFC(const URL& url);
     ~DataPointLFC();
     virtual DataStatus Resolve(bool source);
@@ -18,9 +19,9 @@ namespace Arc {
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
-    virtual DataStatus ListFiles(std::list<FileInfo> &files,
-                                 bool resolve = true);
-   protected:
+    virtual DataStatus ListFiles(std::list<FileInfo>& files,
+				 bool resolve = true);
+  protected:
     static Logger logger;
     std::string guid;
   };

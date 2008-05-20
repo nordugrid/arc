@@ -9,7 +9,8 @@ namespace Arc {
 
   class Config;
 
-  class Submitter : public ACC {
+  class Submitter
+    : public ACC {
   protected:
     Submitter(Config *cfg);
   public:

@@ -14,8 +14,9 @@ namespace Arc {
 
   /// High level interface to cache operations (same functionality :) )
   /// and additional functionality to integrate into grid-manager environment.
-  class DataCache : public DataCallback {
-   private:
+  class DataCache
+    : public DataCallback {
+  private:
     /* path to directory with cache info files */
     std::string cache_path;
     /* path to directory with cache data files.
@@ -39,9 +40,9 @@ namespace Arc {
     Time creation_time;
     Time expiration_time;
     static Logger logger;
-    bool link_file(const std::string& link_path, const Arc::User &user);
-    bool copy_file(const std::string& link_path, const Arc::User &user);
-   public:
+    bool link_file(const std::string& link_path, const Arc::User& user);
+    bool copy_file(const std::string& link_path, const Arc::User& user);
+  public:
     typedef enum {
       file_no_error = 0,
       file_download_failed = 1,
@@ -58,9 +59,9 @@ namespace Arc {
     /// \param id identifier used to claim files in cache
     /// \param cache_user owner of cahce (0 for public cache)
     DataCache(const std::string& cache_path,
-              const std::string& cache_data_path,
-              const std::string& cache_link_path,
-              const std::string& id, const Arc::User &cache_user);
+	      const std::string& cache_data_path,
+	      const std::string& cache_link_path,
+	      const std::string& id, const Arc::User& cache_user);
     /// Copy constructor
     DataCache(const DataCache& cache);
     /// and destructor
@@ -75,7 +76,7 @@ namespace Arc {
     /// assigned url.
     const std::string& file() const {
       return cache_file;
-    };
+    }
     /// This method must be called after file was downloaded or download
     /// failed.
     /// \param failure true if download failed
@@ -88,10 +89,10 @@ namespace Arc {
     /// \param link_path path for soft-link or new file.
     bool link(const std::string& link_path);
     /// \param user set owner of soft-link
-    bool link(const std::string& link_path, const Arc::User &user);
+    bool link(const std::string& link_path, const Arc::User& user);
     /// Do same as link() but always create copy
     bool copy(const std::string& link_path);
-    bool copy(const std::string& link_path, const Arc::User &user);
+    bool copy(const std::string& link_path, const Arc::User& user);
     /// Remove some amount of oldest information from cache.
     /// Returns true on success.
     /// \param size amount to be removed (bytes)
@@ -101,33 +102,33 @@ namespace Arc {
     /// Returns true if object is useable.
     operator bool() {
       return (cache_path.length() != 0);
-    };
+    }
     /// Check if there is an information about creation time.
     bool CheckCreated() {
       return (creation_time != -1);
-    };
+    }
     /// Set creation time.
     /// \param val creation time
     void SetCreated(Time val) {
       creation_time = val;
-    };
+    }
     /// Get creation time.
     Time GetCreated() {
       return creation_time;
-    };
+    }
     /// Check if there is an information about invalidation time.
     bool CheckValid() {
       return (expiration_time != -1);
-    };
+    }
     /// Set invalidation time.
     /// \param val validity time
     void SetValid(Time val) {
       expiration_time = val;
-    };
+    }
     /// Get invalidation time.
     Time GetValid() {
       return expiration_time;
-    };
+    }
   };
 
 } // namespace Arc
