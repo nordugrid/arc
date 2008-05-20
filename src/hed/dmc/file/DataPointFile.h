@@ -3,8 +3,8 @@
 
 #include <list>
 
-#include <arc/data/DataPointDirect.h>
 #include <arc/Thread.h>
+#include <arc/data/DataPointDirect.h>
 
 namespace Arc {
 

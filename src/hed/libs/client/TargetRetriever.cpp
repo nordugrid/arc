@@ -1,6 +1,7 @@
 #include <iostream>
-#include "TargetRetriever.h"
+
 #include <arc/ArcConfig.h>
+#include <arc/client/TargetRetriever.h>
 
 namespace Arc {
 

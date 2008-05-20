@@ -1,14 +1,14 @@
 #ifndef __ARC_DATAPOINT_H__
 #define __ARC_DATAPOINT_H__
 
-#include <string>
 #include <list>
 #include <map>
+#include <string>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
-#include <arc/data/FileInfo.h>
 #include <arc/data/DataStatus.h>
+#include <arc/data/FileInfo.h>
 
 namespace Arc {
 

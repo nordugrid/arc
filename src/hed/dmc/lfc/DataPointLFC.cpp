@@ -2,20 +2,22 @@
 #include <config.h>
 #endif
 
-#include <sys/stat.h>
 #include <cerrno>
 
-#include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/URL.h>
-#include <arc/GUID.h>
-
-#include "DataPointLFC.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 extern "C" {
 #include <lfc_api.h>
 #include <serrno.h>
 }
+
+#include <arc/GUID.h>
+#include <arc/Logger.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
+
+#include "DataPointLFC.h"
 
 namespace Arc {
 

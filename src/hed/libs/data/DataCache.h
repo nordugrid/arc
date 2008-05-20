@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include "Cache.h"
-#include "DataCallback.h"
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/data/Cache.h>
+#include <arc/data/DataCallback.h>
 
 namespace Arc {
 

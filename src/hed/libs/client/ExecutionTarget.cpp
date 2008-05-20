@@ -1,9 +1,9 @@
-#include <arc/misc/ClientInterface.h>
-#include <arc/loader/Loader.h>
-#include "ExecutionTarget.h"
 #include <arc/ArcConfig.h>
-#include <arc/XMLNode.h>
 #include <arc/Logger.h>
+#include <arc/XMLNode.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/loader/Loader.h>
+#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 

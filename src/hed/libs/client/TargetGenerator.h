@@ -1,17 +1,16 @@
-/**
- * Class for generation of targets
- */
-#ifndef ARCLIB_TARGETGENERATOR
-#define ARCLIB_TARGETGENERATOR
+#ifndef __ARC_TARGETGENERATOR_H__
+#define __ARC_TARGETGENERATOR_H__
+
+#include <list>
+#include <string>
+
+#include <glibmm/thread.h>
 
 #include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
+#include <arc/URL.h>
 #include <arc/client/ACC.h>
 #include <arc/client/ExecutionTarget.h>
-#include <glibmm/thread.h>
-#include <arc/URL.h>
-#include <string>
-#include <list>
+#include <arc/loader/Loader.h>
 
 namespace Arc {
 
@@ -43,4 +42,4 @@ namespace Arc {
 
 } //namespace ARC
 
-#endif
+#endif // __ARC_TARGETGENERATOR_H__

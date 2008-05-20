@@ -2,8 +2,8 @@
 #include <config.h>
 #endif
 
-#include <string>
 #include <list>
+#include <string>
 
 #include <globus_common.h>
 #include <globus_ftp_control.h>

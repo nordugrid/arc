@@ -2,14 +2,14 @@
 #include <config.h>
 #endif
 
+#include "globus_ftp_client.h"
+
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/loader/DMCLoader.h>
 
-#include "DMCGridFTP.h"
 #include "DataPointGridFTP.h"
-
-#include "globus_ftp_client.h"
+#include "DMCGridFTP.h"
 
 namespace Arc {
 

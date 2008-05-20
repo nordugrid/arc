@@ -3,8 +3,7 @@
 #endif
 
 #include <arc/StringConv.h>
-
-#include "DataPointDirect.h"
+#include <arc/data/DataPointDirect.h>
 
 namespace Arc {
 

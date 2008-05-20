@@ -1,8 +1,8 @@
 #ifndef __ARC_FILEINFO_H__
 #define __ARC_FILEINFO_H__
 
-#include <string>
 #include <list>
+#include <string>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>

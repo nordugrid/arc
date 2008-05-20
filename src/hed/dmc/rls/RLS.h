@@ -1,8 +1,8 @@
 #ifndef __ARC_RLS_H__
 #define __ARC_RLS_H__
 
-#include <string>
 #include <list>
+#include <string>
 
 extern "C" {
 #include <globus_rls_client.h>

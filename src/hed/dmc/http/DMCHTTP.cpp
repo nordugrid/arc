@@ -1,11 +1,13 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/loader/DMCLoader.h>
-#include "DMCHTTP.h"
+
 #include "DataPointHTTP.h"
+#include "DMCHTTP.h"
 
 namespace Arc {
 

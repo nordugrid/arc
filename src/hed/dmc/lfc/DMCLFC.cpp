@@ -5,8 +5,9 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/loader/DMCLoader.h>
-#include "DMCLFC.h"
+
 #include "DataPointLFC.h"
+#include "DMCLFC.h"
 
 namespace Arc {
 

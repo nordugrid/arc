@@ -1,10 +1,11 @@
-#include "TargetRetrieverARC0.h"
-#include <arc/client/ExecutionTarget.h>
-#include <arc/data/DataHandle.h>
-#include <arc/data/DataBufferPar.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
+#include <arc/client/ExecutionTarget.h>
+#include <arc/data/DataBufferPar.h>
+#include <arc/data/DataHandle.h>
+
+#include "TargetRetrieverARC0.h"
 
 namespace Arc {
 

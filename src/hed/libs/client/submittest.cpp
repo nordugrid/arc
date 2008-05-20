@@ -1,9 +1,9 @@
-#include <arc/client/Submitter.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
+#include <arc/client/Submitter.h>
 #include <arc/loader/Loader.h>
+#include <arc/misc/ClientInterface.h>
 
 int main() {
 
@@ -31,7 +31,7 @@ int main() {
 			      "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
-  std::cout << "Jobid: " << results.first.str() << std::endl;
+  std::cout << "InfoEndpoint: " << results.second.str() << std::endl;
 
   return 0;
 }

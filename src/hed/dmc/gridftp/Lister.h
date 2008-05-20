@@ -1,13 +1,13 @@
 #ifndef __ARC_LISTER_H__
 #define __ARC_LISTER_H__
 
-#include <string>
 #include <list>
+#include <string>
+
+#include <globus_ftp_control.h>
 
 #include <arc/DateTime.h>
 #include <arc/data/FileInfo.h>
-
-#include <globus_ftp_control.h>
 
 #define LISTER_MAX_RESPONSES 3
 

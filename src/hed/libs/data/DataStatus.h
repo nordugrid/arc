@@ -1,8 +1,8 @@
-#ifndef __ARC_DATASTATUS__
-#define __ARC_DATASTATUS__
+#ifndef __ARC_DATASTATUS_H__
+#define __ARC_DATASTATUS_H__
 
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace Arc {
 
@@ -134,4 +134,4 @@ inline std::ostream& operator<<(std::ostream& o, const Arc::DataStatus& d) {
   return (o << ((std::string)d));
 }
 
-#endif
+#endif // __ARC_DATASTATUS_H__

@@ -6,8 +6,8 @@
 #include <arc/URL.h>
 #include <arc/loader/DMCLoader.h>
 
-#include "DMCFile.h"
 #include "DataPointFile.h"
+#include "DMCFile.h"
 
 namespace Arc {
 

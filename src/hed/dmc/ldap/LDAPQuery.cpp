@@ -2,28 +2,34 @@
 #include "config.h"
 #endif
 
+#include <cstring>
+#include <iostream>
+#include <list>
+#include <string>
+
 #include <ldap.h>
+#include <sys/time.h>
+#include <unistd.h>
+
 #ifdef HAVE_SASL_H
 #include <sasl.h>
 #endif
 #ifdef HAVE_SASL_SASL_H
 #include <sasl/sasl.h>
 #endif
+
 #ifndef LDAP_SASL_QUIET
 #define LDAP_SASL_QUIET 0  /* Does not exist in Solaris LDAP */
 #endif
 
-#include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
+#ifndef LDAP_OPT_SUCCESS
+#define LDAP_OPT_SUCCESS LDAP_SUCCESS
+#endif
 
-#include <iostream>
-#include <string>
-#include <list>
-
-#include "LDAPQuery.h"
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+
+#include "LDAPQuery.h"
 
 namespace Arc {
 
@@ -275,24 +281,14 @@ namespace Arc {
 #endif
 
     if (ldap_set_option(connection, LDAP_OPT_TIMELIMIT, &timeout) !=
-#ifdef LDAP_OPT_SUCCESS
 	LDAP_OPT_SUCCESS) {
-#else
-	// solaris
-	LDAP_SUCCESS) {
-#endif
       logger.msg(ERROR,
 		 "Could not set LDAP timelimit (%s)", host);
       return false;
     }
 
     if (ldap_set_option(connection, LDAP_OPT_PROTOCOL_VERSION, &version) !=
-#ifdef LDAP_OPT_SUCCESS
 	LDAP_OPT_SUCCESS) {
-#else
-	// solaris
-	LDAP_SUCCESS) {
-#endif
       logger.msg(ERROR,
 		 "Could not set LDAP protocol version (%s)", host);
       return false;

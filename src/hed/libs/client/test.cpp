@@ -1,8 +1,8 @@
-#include "TargetGenerator.h"
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
-#include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
+#include <arc/client/TargetGenerator.h>
+#include <arc/misc/ClientInterface.h>
 
 int main() {
 

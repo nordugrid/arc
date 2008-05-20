@@ -1,8 +1,8 @@
 #ifndef __ARC_DATAPOINTHTTP_H__
 #define __ARC_DATAPOINTHTTP_H__
 
-#include <string>
 #include <list>
+#include <string>
 
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>

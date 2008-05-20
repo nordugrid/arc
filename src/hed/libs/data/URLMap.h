@@ -1,9 +1,10 @@
 #ifndef __ARC_URLMAP_H__
 #define __ARC_URLMAP_H__
 
+#include <list>
+
 #include <arc/URL.h>
 #include <arc/Logger.h>
-#include <list>
 
 namespace Arc {
 

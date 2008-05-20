@@ -1,5 +1,5 @@
-#ifndef __ARC_JOBARC0__
-#define __ARC_JOBARC0__
+#ifndef __ARC_JOBARC0_H__
+#define __ARC_JOBARC0_H__
 
 #include <arc/client/Job.h>
 
@@ -23,4 +23,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_JOBARC0__
+#endif // __ARC_JOBARC0_H__

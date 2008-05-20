@@ -1,13 +1,16 @@
-#ifndef ARCLIB_EXECUTIONTARGET
-#define ARCLIB_EXECUTIONTARGET
+#ifndef __ARC_EXECUTIONTARGET_H__
+#define __ARC_EXECUTIONTARGET_H__
 
-#include <arc/client/Submitter.h>
-#include <arc/client/ACC.h>
-#include <arc/URL.h>
-#include <string>
 #include <list>
+#include <string>
+
+#include <arc/URL.h>
+#include <arc/client/ACC.h>
+#include <arc/client/Submitter.h>
 
 namespace Arc {
+
+  class Loader;
 
   class ExecutionTarget {
   public:
@@ -86,4 +89,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // ARCLIB_EXECUTIONTARGET
+#endif // __ARC_EXECUTIONTARGET_H__

@@ -2,27 +2,28 @@
 #include <config.h>
 #endif
 
+#include <cerrno>
+
+#include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <glibmm.h>
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
-
-#include <arc/data/MkDirRecursive.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataCallback.h>
-#define DIR_SEPARATOR '/'
+#include <arc/data/MkDirRecursive.h>
+
 #ifdef WIN32
-#undef DIR_SEPARATOR
-#define DIR_SEPARATOR '\\'
 #include <arc/win32.h>
+#define DIR_SEPARATOR '\\'
+#else
+#define DIR_SEPARATOR '/'
 #endif
 
 #include "DataPointFile.h"
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <cerrno>
 
 namespace Arc {
 

@@ -1,16 +1,17 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include <arc/Logger.h>
-#include <arc/URL.h>
-#include <arc/loader/DMCLoader.h>
-
-#include "DMCRLS.h"
-#include "DataPointRLS.h"
 
 extern "C" {
 #include "globus_rls_client.h"
 }
+
+#include <arc/Logger.h>
+#include <arc/URL.h>
+#include <arc/loader/DMCLoader.h>
+
+#include "DataPointRLS.h"
+#include "DMCRLS.h"
 
 namespace Arc {
 

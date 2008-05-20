@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include "DataSpeed.h"
+#include <arc/data/DataSpeed.h>
 
 namespace Arc {
 

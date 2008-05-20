@@ -3,9 +3,9 @@
 #endif
 
 #include <arc/DateTime.h>
+#include <arc/GUID.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/GUID.h>
 
 #include "DataPointRLS.h"
 #include "RLS.h"

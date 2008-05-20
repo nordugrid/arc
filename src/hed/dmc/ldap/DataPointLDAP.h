@@ -1,14 +1,13 @@
 #ifndef __ARC_DATAPOINTLDAP_H__
 #define __ARC_DATAPOINTLDAP_H__
 
-#include <string>
 #include <list>
-
-#include <arc/data/DataPointDirect.h>
+#include <string>
 
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/XMLNode.h>
+#include <arc/data/DataPointDirect.h>
 
 namespace Arc {
 

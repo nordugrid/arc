@@ -1,3 +1,6 @@
+#ifndef __ARC_TARGETRETRIEVERCREAM_H__
+#define __ARC_TARGETRETRIEVERCREAM_H__
+
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
 
@@ -20,3 +23,5 @@ namespace Arc {
   };
 
 } // namespace Arc
+
+#endif // __ARC_TARGETRETRIEVERCREAM_H__

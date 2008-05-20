@@ -2,22 +2,24 @@
 #include <config.h>
 #endif
 
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <errno.h>
-#define DIR_SEPARATOR '/'
+
+#include <arc/data/MkDirRecursive.h>
+
 #ifdef WIN32
 #include <arc/win32.h>
-#undef DIR_SEPARATOR
 #define DIR_SEPARATOR '\\'
+#else
+#define DIR_SEPARATOR '/'
 #endif
-
-#include "MkDirRecursive.h"
 
 static int mkdir_force(const char *path, mode_t mode);
 

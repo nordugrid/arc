@@ -2,24 +2,25 @@
 #include <config.h>
 #endif
 
+#include <cerrno>
+
 #include <glibmm.h>
+
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/data/DataBufferPar.h>
+#include <arc/data/CheckSum.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
+#include <arc/data/MkDirRecursive.h>
+#include <arc/data/URLMap.h>
 
-#include "CheckSum.h"
-#include "DataPoint.h"
-#include "DataHandle.h"
-#include "DataBufferPar.h"
-#include "URLMap.h"
-#include "MkDirRecursive.h"
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
-#include "DataMover.h"
-
-#include <cerrno>
 
 #ifndef BUFLEN
 #define BUFLEN 1024

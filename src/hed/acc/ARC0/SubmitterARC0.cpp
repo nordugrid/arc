@@ -1,8 +1,8 @@
-#include <arc/Thread.h>
-#include "SubmitterARC0.h"
-
 #include <globus_ftp_control.h>
 
+#include <arc/Thread.h>
+
+#include "SubmitterARC0.h"
 
 struct cbarg {
   Arc::SimpleCondition cond;

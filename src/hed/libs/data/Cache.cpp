@@ -2,14 +2,18 @@
 #include <config.h>
 #endif
 
-#include <arc/Logger.h>
-#include <string>
 #include <cerrno>
-#include <unistd.h>
-#include "Cache.h"
+#include <string>
+
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
+
 #include <fcntl.h>
+
+#include <arc/Logger.h>
+#include <arc/data/Cache.h>
+
 #ifdef WIN32
 #include <arc/win32.h>
 #endif

@@ -2,11 +2,12 @@
 #include <config.h>
 #endif
 
-#include "CheckSum.h"
+#include <cctype>
+#include <cstdio>
 
-#include <stdio.h>
-#include <ctype.h>
 #include <sys/types.h>
+
+#include <arc/data/CheckSum.h>
 
 #ifdef WIN32
 typedef unsigned char u_char;

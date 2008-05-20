@@ -2,11 +2,11 @@
 #include <config.h>
 #endif
 
-#include "DMC.h"
-#include <arc/Logger.h>
 #include <arc/ArcConfig.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/Logger.h>
+#include <arc/data/DMC.h>
 #include <arc/loader/Loader.h>
+#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 

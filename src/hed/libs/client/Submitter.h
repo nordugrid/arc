@@ -1,9 +1,10 @@
-#ifndef ARCLIB_SUBMITTER
-#define ARCLIB_SUBMITTER
+#ifndef __ARC_SUBMITTER_H__
+#define __ARC_SUBMITTER_H__
+
+#include <string>
 
 #include <arc/client/ACC.h>
 #include <arc/URL.h>
-#include <string>
 
 namespace Arc {
 
@@ -24,4 +25,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // ARCLIB_SUBMITTER
+#endif // __ARC_SUBMITTER_H__

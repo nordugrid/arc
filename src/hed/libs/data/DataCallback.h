@@ -1,5 +1,5 @@
-#ifndef __DATACALLBACK_H__
-#define __DATACALLBACK_H__
+#ifndef __ARC_DATACALLBACK_H__
+#define __ARC_DATACALLBACK_H__
 
 namespace Arc {
 
@@ -26,4 +26,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __DATACALLBACK_H__
+#endif // __ARC_DATACALLBACK_H__

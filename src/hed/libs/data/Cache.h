@@ -1,5 +1,13 @@
 #ifndef __ARC_CACHE_H__
 #define __ARC_CACHE_H__
+
+#include <list>
+#include <string>
+
+#include <unistd.h>
+
+#include <arc/User.h>
+
 /*
    Functions to support (relatively) low-level access to cache.
    Cache consists of plain files stored in directory refered as cache_path.
@@ -20,11 +28,6 @@
      XXXXXXXX.claim - stores list of applications' ids using this file.
        ids are stored one per line.
  */
-
-#include <string>
-#include <list>
-#include <unistd.h>
-#include <arc/User.h>
 
 namespace Arc {
 

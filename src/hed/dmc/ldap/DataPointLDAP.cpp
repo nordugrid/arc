@@ -2,12 +2,11 @@
 #include <config.h>
 #endif
 
+#include <arc/data/DataBufferPar.h>
+#include <arc/URL.h>
+
 #include "DataPointLDAP.h"
 #include "LDAPQuery.h"
-
-#include <arc/data/DataBufferPar.h>
-
-#include <arc/URL.h>
 
 namespace Arc {
 

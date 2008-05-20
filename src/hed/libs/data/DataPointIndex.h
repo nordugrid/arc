@@ -1,11 +1,11 @@
 #ifndef __ARC_DATAPOINTINDEX_H__
 #define __ARC_DATAPOINTINDEX_H__
 
-#include <string>
 #include <list>
+#include <string>
 
-#include <arc/data/DataPoint.h>
 #include <arc/data/DataHandle.h>
+#include <arc/data/DataPoint.h>
 
 namespace Arc {
 

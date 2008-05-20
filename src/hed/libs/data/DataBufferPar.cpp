@@ -4,8 +4,8 @@
 
 #include <cstdlib>
 
-#include "DataBufferPar.h"
-#include "CheckSum.h"
+#include <arc/data/CheckSum.h>
+#include <arc/data/DataBufferPar.h>
 
 namespace Arc {
 

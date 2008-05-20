@@ -2,6 +2,7 @@
 #define __ARC_DMC_H__
 
 #include <list>
+
 #include <glibmm/thread.h>
 
 namespace Arc {

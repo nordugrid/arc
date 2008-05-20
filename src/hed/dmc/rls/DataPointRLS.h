@@ -1,14 +1,14 @@
 #ifndef __ARC_DATAPOINTRLS_H__
 #define __ARC_DATAPOINTRLS_H__
 
-#include <string>
 #include <list>
-
-#include <arc/data/DataPointIndex.h>
+#include <string>
 
 extern "C" {
 #include <globus_rls_client.h>
 }
+
+#include <arc/data/DataPointIndex.h>
 
 namespace Arc {
   class Logger;

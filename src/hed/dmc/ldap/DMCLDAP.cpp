@@ -6,8 +6,8 @@
 #include <arc/URL.h>
 #include <arc/loader/DMCLoader.h>
 
-#include "DMCLDAP.h"
 #include "DataPointLDAP.h"
+#include "DMCLDAP.h"
 
 namespace Arc {
 

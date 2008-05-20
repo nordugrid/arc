@@ -1,13 +1,11 @@
-/**
- * Base class for target retrievers
- */
-#ifndef ARCLIB_TARGETRETRIEVER
-#define ARCLIB_TARGETRETRIEVER
+#ifndef __ARC_TARGETRETRIEVER_H__
+#define __ARC_TARGETRETRIEVER_H__
 
-#include <arc/client/TargetGenerator.h>
-#include <arc/client/ACC.h>
-#include <arc/URL.h>
 #include <string>
+
+#include <arc/URL.h>
+#include <arc/client/ACC.h>
+#include <arc/client/TargetGenerator.h>
 
 namespace Arc {
 
@@ -25,4 +23,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif
+#endif // __ARC_TARGETRETRIEVER_H__

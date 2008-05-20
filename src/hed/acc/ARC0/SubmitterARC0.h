@@ -1,5 +1,5 @@
-#ifndef __ARC_SUBMITTERARC0__
-#define __ARC_SUBMITTERARC0__
+#ifndef __ARC_SUBMITTERARC0_H__
+#define __ARC_SUBMITTERARC0_H__
 
 #include <arc/client/Submitter.h>
 
@@ -22,4 +22,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTERARC0__
+#endif // __ARC_SUBMITTERARC0_H__

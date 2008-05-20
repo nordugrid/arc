@@ -1,9 +1,10 @@
-#ifndef __ARC_DATA_CHECKSUM_H__
-#define __ARC_DATA_CHECKSUM_H__
+#ifndef __ARC_CHECKSUM_H__
+#define __ARC_CHECKSUM_H__
 
-#include <sys/types.h>
+#include <cstring>
+
 #include <stdint.h>
-#include <string.h>
+#include <sys/types.h>
 
 namespace Arc {
 
@@ -173,4 +174,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_DATA_CHECKSUM_H__
+#endif // __ARC_CHECKSUM_H__

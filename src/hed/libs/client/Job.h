@@ -1,8 +1,8 @@
-#ifndef ARCLIB_JOB
-#define ARCLIB_JOB
+#ifndef __ARC_JOB_H__
+#define __ARC_JOB_H__
 
-#include <arc/client/ACC.h>
 #include <arc/URL.h>
+#include <arc/client/ACC.h>
 
 namespace Arc {
 
@@ -24,4 +24,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // ARCLIB_JOB
+#endif // __ARC_JOB_H__

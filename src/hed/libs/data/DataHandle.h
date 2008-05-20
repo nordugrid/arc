@@ -1,8 +1,8 @@
 #ifndef __ARC_DATAHANDLE_H__
 #define __ARC_DATAHANDLE_H__
 
-#include "DataPoint.h"
-#include "DMC.h"
+#include <arc/data/DataPoint.h>
+#include <arc/data/DMC.h>
 
 namespace Arc {
 

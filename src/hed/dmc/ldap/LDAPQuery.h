@@ -1,11 +1,10 @@
 #ifndef __ARC_LDAPQUERY_H__
 #define __ARC_LDAPQUERY_H__
 
-#include <ldap.h>
-
 #include <list>
 #include <string>
-#include <list>
+
+#include <ldap.h>
 
 #include <arc/Logger.h>
 #include <arc/URL.h>

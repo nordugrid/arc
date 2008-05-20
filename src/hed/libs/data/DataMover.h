@@ -1,11 +1,11 @@
 #ifndef __ARC_DATAMOVER_H__
 #define __ARC_DATAMOVER_H__
 
-#include <string>
 #include <list>
+#include <string>
 
-#include <arc/data/DataPoint.h>
 #include <arc/data/DataCache.h>
+#include <arc/data/DataPoint.h>
 #include <arc/data/DataSpeed.h>
 #include <arc/data/DataStatus.h>
 

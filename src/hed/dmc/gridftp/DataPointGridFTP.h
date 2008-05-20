@@ -1,14 +1,14 @@
 #ifndef __ARC_DATAPOINTGRIDFTP_H__
 #define __ARC_DATAPOINTGRIDFTP_H__
 
-#include <string>
 #include <list>
+#include <string>
 
 #include <globus_common.h>
 #include <globus_ftp_client.h>
 
-#include <arc/data/DataPointDirect.h>
 #include <arc/Thread.h>
+#include <arc/data/DataPointDirect.h>
 
 namespace Arc {
 

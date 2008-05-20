@@ -2,13 +2,13 @@
 #include <config.h>
 #endif
 
-#include <arc/Logger.h>
-
-#include "URLMap.h"
-
 #include <string>
-#include <unistd.h>
+
 #include <fcntl.h>
+#include <unistd.h>
+
+#include <arc/Logger.h>
+#include <arc/data/URLMap.h>
 
 namespace Arc {
 

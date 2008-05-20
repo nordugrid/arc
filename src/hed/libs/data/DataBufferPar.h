@@ -2,7 +2,8 @@
 #define __ARC_DATABUFFERPAR_H__
 
 #include <glibmm/thread.h>
-#include "DataSpeed.h"
+
+#include <arc/data/DataSpeed.h>
 
 namespace Arc {
 

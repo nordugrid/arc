@@ -1,7 +1,9 @@
 #include <iostream>
-#include "JobARC0.h"
-#include <arc/data/DataHandle.h>
+
 #include <arc/data/DataBufferPar.h>
+#include <arc/data/DataHandle.h>
+
+#include "JobARC0.h"
 
 namespace Arc {
 

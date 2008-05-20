@@ -5,8 +5,7 @@
 #include <list>
 
 #include <arc/Logger.h>
-
-#include "DataPointIndex.h"
+#include <arc/data/DataPointIndex.h>
 
 namespace Arc {
 

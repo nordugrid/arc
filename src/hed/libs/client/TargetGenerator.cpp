@@ -1,13 +1,13 @@
-#include "TargetGenerator.h"
-#include "TargetRetriever.h"
-#include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
-#include <arc/XMLNode.h>
+#include <algorithm>
+#include <iostream>
+
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
-
-#include <iostream>
-#include <algorithm>
+#include <arc/XMLNode.h>
+#include <arc/client/TargetGenerator.h>
+#include <arc/client/TargetRetriever.h>
+#include <arc/loader/Loader.h>
+#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 

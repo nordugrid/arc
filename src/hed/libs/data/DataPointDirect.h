@@ -1,10 +1,10 @@
 #ifndef __ARC_DATAPOINTDIRECT_H__
 #define __ARC_DATAPOINTDIRECT_H__
 
-#include <string>
 #include <list>
+#include <string>
 
-#include "DataPoint.h"
+#include <arc/data/DataPoint.h>
 
 #define MAX_PARALLEL_STREAMS 20
 #define MAX_BLOCK_SIZE (1024 * 1024)
