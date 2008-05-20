@@ -3,7 +3,7 @@ dist_libexec_SCRIPTS  = smtp-send.sh
 noinst_LTLIBRARIES = libmail.la
 
 smtp_send_SOURCES = smtp-send.c
-smtp_send_LDADD   = $(LIBRESOLV)
+smtp_send_LDADD   = $(LIBRESOLV) $(SOCKET_LIBS)
 
 libmail_la_SOURCES  = send_mail.cpp send_mail.h
 libmail_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include

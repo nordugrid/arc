@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <errno.h>
 
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
@@ -128,7 +129,8 @@ int user_file_exists(FileData &dt,char* session_dir,std::string* error = NULL) {
   unsigned long long int fsum = (unsigned long long int)(-1);
   bool have_size = false;
   bool have_checksum = false;
-  fsize = strtouq(str,&str_,10);
+  errno = 0;
+  fsize = strtoull(str,&str_,10);
   if((*str_) == '.') {
     if(str_ != str) have_size=true;
     str=str_+1;

@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <iostream>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <string>
 #include <arc/Logger.h>
 #include "cache.h"

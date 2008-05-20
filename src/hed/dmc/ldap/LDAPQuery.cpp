@@ -9,6 +9,10 @@
 #ifdef HAVE_SASL_SASL_H
 #include <sasl/sasl.h>
 #endif
+#ifndef LDAP_SASL_QUIET
+#define LDAP_SASL_QUIET 0  /* Does not exist in Solaris LDAP */
+#endif
+
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -228,8 +232,12 @@ bool LDAPQuery::Connect() {
 		return false;
 	}
 
+#ifdef HAVE_LDAP_INITIALIZE
 	ldap_initialize(&connection,
 	                ("ldap://" + host + ':' + tostring(port)).c_str());
+#else
+    connection = ldap_init(host.c_str(), port);
+#endif
 
 	if (!connection) {
 		logger.msg(ERROR, "Could not open LDAP connection to %s", host);
@@ -252,22 +260,35 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 	tout.tv_sec = timeout;
 	tout.tv_usec = 0;
 
+#ifdef LDAP_OPT_NETWORK_TIMEOUT
+    // solaris does not have LDAP_OPT_NETWORK_TIMEOUT
 	if (ldap_set_option (connection, LDAP_OPT_NETWORK_TIMEOUT, &tout) !=
 	    LDAP_OPT_SUCCESS) {
 		logger.msg(ERROR,
 		           "Could not set LDAP network timeout (%s)", host);
 		return false;
 	}
+#endif
 
 	if (ldap_set_option (connection, LDAP_OPT_TIMELIMIT, &timeout) !=
+#ifdef LDAP_OPT_SUCCESS
 	    LDAP_OPT_SUCCESS) {
+#else   
+        // solaris
+        LDAP_SUCCESS) {
+#endif
 		logger.msg(ERROR,
 			   "Could not set LDAP timelimit (%s)", host);
 		return false;
 	}
 
 	if (ldap_set_option (connection, LDAP_OPT_PROTOCOL_VERSION, &version) !=
+#ifdef LDAP_OPT_SUCCESS
 	    LDAP_OPT_SUCCESS) {
+#else   
+        // solaris
+        LDAP_SUCCESS) {
+#endif
 		logger.msg(ERROR,
 			   "Could not set LDAP protocol version (%s)", host);
 		return false;
@@ -282,8 +303,11 @@ bool LDAPQuery::SetConnectionOptions(int version) {
 	else {
 #if defined(HAVE_SASL_H) || defined(HAVE_SASL_SASL_H)
 		int ldapflag = LDAP_SASL_QUIET;
+#ifdef LDAP_SASL_AUTOMATIC
+        // solaris does not have LDAP_SASL_AUTOMATIC
 		if (logger.getThreshold() >= DEBUG)
 			ldapflag = LDAP_SASL_AUTOMATIC;
+#endif
 		sasl_defaults defaults = sasl_defaults (connection,
 		                                        SASLMECH,
 		                                        "",

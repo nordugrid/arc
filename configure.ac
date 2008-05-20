@@ -306,7 +306,7 @@ if test "$?" = '1'; then
         fi
         OPENSSL_OLDRSA=yes
         if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "x$OPENSSL_V3" != "x"; then
-            AC_MSG_NOTICE([NO old RSA])
+            AC_MSG_NOTICE([No old RSA])
             OPENSSL_OLDRSA=no
         fi
     else
@@ -330,8 +330,9 @@ else
             AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
     fi
     OPENSSL_OLDRSA=yes
-    "$PKG_CONFIG" --exists 'openssl >= 0.9.8a'
+    "$PKG_CONFIG" --exists 'openssl >= 0.9.8'
     if test "$?" = '0' ; then
+            AC_MSG_NOTICE([No old RSA])
             OPENSSL_OLDRSA=no
     fi
 fi
@@ -358,6 +359,9 @@ fi
 AC_SUBST(CPPUNIT_CFLAGS)
 AC_SUBST(CPPUNIT_LIBS)
 AC_SUBST(TEST_DIR)
+
+#gettext
+# AM_GNU_GETTEXT([external])
 
 #check lasso
 LASSO_INSTALLED=no
@@ -484,11 +488,16 @@ if test x$LASSO_INSTALLED = xyes ; then enable_saml=yes; fi
 AC_CHECK_HEADER(ldap.h, [LDAP=yes], [LDAP=no])
 SAVE_LDFLAGS=$LDFLAGS
 LDFLAGS=-lpthread
-AC_CHECK_LIB([ldap_r], [ldap_first_message], [ LDAP_LIBS=-lldap_r ], [
-  AC_CHECK_LIB([ldap], [ldap_first_message], [ LDAP_LIBS=-lldap ], [
+AC_CHECK_LIB([ldap_r], [ldap_first_message], [ 
+    AC_CHECK_LIB([ldap_r], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])  
+    LDAP_LIBS=-lldap_r ], [
+  AC_CHECK_LIB([ldap], [ldap_first_message], [ 
+    AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function]) ])  
+    LDAP_LIBS=-lldap ], [
     LDAP=no
   ])
 ])
+AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], []) 
 AC_SUBST(LDAP_LIBS)
 LDFLAGS=$SAVE_LDFLAGS
 
@@ -504,6 +513,7 @@ AC_CHECK_HEADER(uuid/uuid.h, [
   ])
 ], [AC_MSG_NOTICE([Can't find uuid header])])
 AC_SUBST(UUID_LIBS)
+LIBS="$LIBS $UUID_LIBS"
 
 # Check for dlopen
 DLOPEN_LIBS=""
@@ -555,8 +565,9 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
 AC_FUNC_STAT
 AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv])
-AC_CHECK_LIB([resolv], [res_query], LIBRESOLV=-lresolv, LIBRESOLV=)
-AC_CHECK_LIB([resolv], [__dn_skipname], LIBRESOLV=-lresolv, )
+AC_CHECK_LIB([resolv], [res_query], [LIBRESOLV=-lresolv], [LIBRESOLV=])
+AC_CHECK_LIB([resolv], [__dn_skipname], [LIBRESOLV=-lresolv], [LIBRESOLV=])
+AC_CHECK_LIB([nsl], [gethostbyname], [LIBRESOLV="$LIBRESOLV -lnsl"], [])
 AC_SUBST(LIBRESOLV)
 
 
@@ -574,7 +585,10 @@ case "${host}" in
     EXTRA_LIBS="-lole32"
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
-  ;;
+    ;;
+  *solaris*)
+    SOCKET_LIBS="-lsocket"
+    ;;
 esac
 AC_SUBST(EXTRA_LIBS)
 AC_SUBST(REGEX_LIBS)
@@ -589,6 +603,7 @@ case " $LDFLAGS " in
      *)
         case "${host}" in
             *darwin*);;
+            *solaris*);;
             *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
         esac
         ;;
