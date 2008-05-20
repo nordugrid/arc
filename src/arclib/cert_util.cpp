@@ -214,7 +214,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
   /* All of the OpenSSL tests have passed and we now get to 
    * look at the certificate to verify the proxy rules, 
-   * and ca-signing-policy rules. We will also do a CRL check
+   * and ca-signing-policy rules. CRL checking will also be done.
    */
 
   /*
@@ -385,7 +385,8 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   if(vctx->cert_chain == NULL) { vctx->cert_chain = sk_X509_new_null(); }
   sk_X509_push(vctx->cert_chain, X509_dup(store_ctx->current_cert));
   vctx->cert_depth++;
-  
+ 
+  /**Check the proxy certificate infomation extension*/ 
   STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
@@ -402,18 +403,65 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          nid != NID_netscape_cert_type &&
          nid != NID_subject_key_identifier &&
          nid != NID_authority_key_identifier &&
-         nid != OBJ_sn2nid("PROXYCERTINFO") &&
-         nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
          nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
-         nid != OBJ_sn2nid("PROXYCERTINFO_V4")) {
+         nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
+         nid != NID_proxyCertInfo) {
         store_ctx->error = X509_V_ERR_CERT_REJECTED;
         std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<std::endl;
         return (0);
       }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL) && (nid == NID_proxyCertInfo)
+    /* If the openssl version >=097g (which means proxy cert info is supported), and
+     * NID_proxyCertInfo can be got from the extension, then we use 
+     * the proxy cert info support from openssl itself. Otherwise we need
+     * use globus-customized proxy cert info support.
+     */
+      PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
+      proxycertinfo = (PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext);
+        if (proxycertinfo == NULL) std::cerr<<"Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format"<<std::endl;
+        int path_length = ASN1_INTEGER_get(proxycertinfo->pcPathLengthConstraint);
+        /* ignore negative values */
+        if(path_length > -1) {
+          if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
+            vctx->max_proxy_depth = vctx->proxy_depth + path_length;
+            std::cout<<"proxy_depth: "<<vctx->proxy_depth<<"path_length: "<<path_length<<std::endl;
+          }
+        }
+      }
+      
+      /**Parse the policy*/
+      if(proxycertinfo != NULL) {
+        if(store_ctx->current_cert->ex_flags & EXFLAG_PROXY) {
+          switch (OBJ_obj2nid(proxycertinfo->proxyPolicy->policyLanguage)) 
+          {
+            case NID_Independent:
+               /* Put whatever explicit policy here to this particular proxy certificate, usually by
+                * pulling them from some database. If there is none policy which need to be explicitly
+                * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
+                * be void of any policy, because here the policylanguage is independent)
+                */
+              vctx->proxy_policy.clear();
+              break;
+            case NID_id_ppl_inheritAll:
+               /* This is basically a NOP */
+              break;
+            default:
+              {
+              /* Here get the proxy policy */
+              vctx->proxy_policy.clear();
+              vctx->proxy_policy.append(proxycertinfo->proxyPolicy->policy->data, proxycertinfo->proxyPolicy->policy->length);
+              /* Use : as seperator for policies parsed from different proxy certificate*/
+              vctx->proxy_policy.append(":");
+              }
+              break;
+          }
+        } 
+      }
+      if(proxycertinfo != NULL) { PROXY_CERT_INFO_EXTENSION_free(proxycertinfo); proxycertinfo = NULL; }
+#else
       PROXYCERTINFO*  proxycertinfo = NULL;
-      if(nid == OBJ_sn2nid("PROXYCERTINFO") || nid == OBJ_sn2nid("OLD_PROXYCERTINFO") ||
-         nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
+      if(nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
         proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
         if (proxycertinfo == NULL) std::cerr<<"Can not convert DER encoded PROXYCERTINFO extension to internal format"<<std::endl;
         int path_length = PROXYCERTINFO_get_path_length(proxycertinfo);
@@ -425,7 +473,35 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
           }
         }
       }
-      if(proxycertinfo != NULL) { PROXYCERTINFO_free(proxycertinfo); }
+
+      /**Parse the policy*/
+      if(proxycertinfo != NULL) {
+        int policynid = OBJ_obj2nid(PROXYPOLICY_get_policy_language(proxycertinfo->proxypolicy));
+        if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) {
+               /* Put whatever explicit policy here to this particular proxy certificate, usually by
+                * pulling them from some database. If there is none policy which need to be explicitly
+                * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
+                * be void of any policy, because here the policylanguage is independent)
+                */
+            vctx->proxy_policy.clear();
+        }
+        else if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) {
+               /* This is basically a NOP */
+        }
+        else {
+            /* Here get the proxy policy */
+            vctx->proxy_policy.clear();
+            int length;
+            char* policy_string = NULL;
+            policy_string = (char*)PROXYPOLICY_get_policy(proxycertinfo->proxypolicy, &length);
+            vctx->proxy_policy.append(policy_string, length);
+            /* Use : as seperator for policies parsed from different proxy certificate*/
+            vctx->proxy_policy.append(":");
+            if(policy_string != NULL) free(policy_string);
+        }
+      }
+      if(proxycertinfo != NULL) { PROXYCERTINFO_free(proxycertinfo); proxycertinfo = NULL; }
+#endif
     }
   }
 
@@ -482,8 +558,7 @@ bool check_cert_type(X509* cert, certType& type) {
     data = X509_NAME_ENTRY_get_data(name_entry);
     if (data->length == 5 && !memcmp(data->data,"proxy",5)) { type = CERT_TYPE_GSI_2_PROXY; }
     else if(data->length == 13 && !memcmp(data->data,"limited proxy",13)) { type = CERT_TYPE_GSI_2_LIMITED_PROXY; }
-    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
         if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
@@ -504,16 +579,15 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else {type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("OLD_PROXYCERTINFO"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1 ||
+             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;
         } 
       }
       //Do not need to release certinfo_ext?
     }
-    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("OLD_PROXYCERTINFO"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
+    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
         if((certinfo = (PROXYCERTINFO *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
@@ -534,7 +608,7 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else {type = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
         
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO"), -1)) != -1 ||
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1 ||
              (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;

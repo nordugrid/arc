@@ -154,7 +154,7 @@ int main(void) {
   //Request side
   std::string req_file_ac("./request_withac.pem");
   std::string out_file_ac("./out_withac.pem");
-  ArcLib::Credential request3(t, Arc::Period(12*3600), 2048);
+  ArcLib::Credential request3(t, Arc::Period(12*3600), 2048, "rfc", "independent", "policy.txt", 20);
   request3.GenerateRequest(req_file_ac.c_str());
 
   //Signing side
@@ -168,6 +168,18 @@ int main(void) {
   //ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("acseq"), (char*)aclist);
 
   signer.SignRequest(&proxy3, out_file_ac.c_str());
+
+  //Back to request side, compose the signed proxy certificate, local private key,
+  //and signing certificate into one file.
+  std::string private_key3, signing_cert3, signing_cert3_chain;
+  request3.OutputPrivatekey(private_key3);
+  signer.OutputCertificate(signing_cert3);
+  signer.OutputCertificateChain(signing_cert3_chain);
+  std::ofstream out_f3(out_file_ac.c_str(), std::ofstream::app);
+  out_f3.write(private_key3.c_str(), private_key3.size());
+  out_f3.write(signing_cert3.c_str(), signing_cert3.size());
+  out_f3.write(signing_cert3_chain.c_str(), signing_cert3_chain.size());
+  out_f3.close();
 
 
   //TODO: Get the proxy certificate with voms AC extension, and parse the extension by using voms api.

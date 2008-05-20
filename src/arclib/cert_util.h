@@ -87,6 +87,9 @@ namespace ArcLib {
          cert_type == CERT_TYPE_GSI_2_PROXY || \
          cert_type == CERT_TYPE_GSI_2_LIMITED_PROXY)
 
+    /* VERIFY_CTX_STORE_EX_DATA_IDX here could be temperal solution, for openssl>=098, there is 
+     * get_proxy_auth_ex_data_idx() which is specific for proxy extention
+     */
     #define VERIFY_CTX_STORE_EX_DATA_IDX  1
 
     typedef struct {
@@ -99,6 +102,7 @@ namespace ArcLib {
       STACK_OF(X509) *                    cert_chain; /*  X509 */
       std::string                         ca_dir;
       std::string                         ca_file;
+      std::string                         proxy_policy; /* The policy attached to proxy cert info extension*/
     } cert_verify_context;
 
     int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context* vctx);
