@@ -33,7 +33,9 @@ void LoggerTest::setUp() {
 }
 
 void LoggerTest::tearDown() {
-  // delete output;
+  Arc::Logger::getRootLogger().removeDestinations();
+  delete logger;
+  delete output;
 }
 
 void LoggerTest::TestLoggerINFO() {
