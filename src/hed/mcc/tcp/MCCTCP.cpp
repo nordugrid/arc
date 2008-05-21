@@ -360,7 +360,7 @@ void MCC_TCP_Service::executer(void* arg) {
     // Extract useful attributes
     {
         struct sockaddr_storage addr;
-        size_t addrlen;
+        socklen_t addrlen;
         addrlen=sizeof(addr);
         if(getsockname(s, (struct sockaddr*)(&addr), &addrlen) == 0) {
             if (get_host_port(&addr, host_attr, port_attr) == true) {
