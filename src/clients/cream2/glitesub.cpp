@@ -56,7 +56,7 @@ int main(int argc, char* argv[]){
         std::ifstream jsdlfile(argv[tool.FirstOption()+1]);
         std::string jsdl_text = "";
         
-        if (!jsdlfile) throw std::invalid_argument(std::string("Could not open ") + std::string(argv[1]));
+        if (!jsdlfile) throw std::invalid_argument(std::string("Could not open ") + argv[tool.FirstOption()+1]);
         std::string s;
         while(getline(jsdlfile, s)) jsdl_text +=  s + "\n"; // ... must add it back
         
