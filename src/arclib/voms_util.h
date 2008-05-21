@@ -6,10 +6,6 @@
 
 #include "Credential.h"
 
-extern "C" {
-#include "VOMSAttribute.h"
-}
-
 namespace ArcLib {
   
   void InitVOMSAttribute(void);

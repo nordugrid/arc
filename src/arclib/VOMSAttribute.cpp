@@ -1,8 +1,25 @@
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <cstring>
 
 #include "VOMSAttribute.h"
 
-/////////////////////////////////////
+namespace ArcLib {
+
+
+#define M_ASN1_D2I_get_imp_set(r,func,free_func,a,b) \
+	c.q=c.p; \
+	if (d2i_ASN1_SET(&(r),&c.p,c.slen,(char *(*)())func,\
+		(void (*)(void*))free_func,a,b) == NULL) \
+		{ c.line=__LINE__; goto err; } \
+	c.slen-=(c.p-c.q);
+
+#define M_ASN1_D2I_get_seq(r,func,free_func) \
+		M_ASN1_D2I_get_imp_set(r,func,free_func,\
+			V_ASN1_SEQUENCE,V_ASN1_UNIVERSAL);
+
 int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
 {
   char text[1000];
@@ -15,10 +32,10 @@ int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
     return 0;
   
   M_ASN1_I2D_len(a->type, i2d_ASN1_OBJECT);
-  M_ASN1_I2D_len_SET_type(AC_IETFATTR, a->ietfattr, i2d_AC_IETFATTR);
+  M_ASN1_I2D_len_SET_type(AC_IETFATTR, a->ietfattr, (int (*)())i2d_AC_IETFATTR);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put(a->type, i2d_ASN1_OBJECT);
-  M_ASN1_I2D_put_SET_type(AC_IETFATTR,a->ietfattr, i2d_AC_IETFATTR);
+  M_ASN1_I2D_put_SET_type(AC_IETFATTR,a->ietfattr, (int (*)())i2d_AC_IETFATTR);
   M_ASN1_I2D_finish();
 }
 
@@ -37,7 +54,7 @@ AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, unsigned char **pp, long length)
   }
 
   if (strcmp(text, "idatcap") == 0)
-    M_ASN1_D2I_get_set_type(AC_IETFATTR, ret->ietfattr, d2i_AC_IETFATTR, AC_IETFATTR_free);
+    M_ASN1_D2I_get_set_type(AC_IETFATTR, ret->ietfattr, (AC_IETFATTR* (*)())d2i_AC_IETFATTR, AC_IETFATTR_free);
   M_ASN1_D2I_Finish(a, AC_ATTR_free, ASN1_F_D2I_AC_ATTR);
 }
 
@@ -66,11 +83,11 @@ int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
   M_ASN1_I2D_len_IMP_opt(a->names, i2d_GENERAL_NAMES);
-  M_ASN1_I2D_len_SEQUENCE(a->values,    i2d_AC_IETFATTRVAL);
+  M_ASN1_I2D_len_SEQUENCE(a->values,  (int (*)())i2d_AC_IETFATTRVAL);
   M_ASN1_I2D_seq_total();
 
   M_ASN1_I2D_put_IMP_opt(a->names, i2d_GENERAL_NAMES, 0);
-  M_ASN1_I2D_put_SEQUENCE(a->values,    i2d_AC_IETFATTRVAL);
+  M_ASN1_I2D_put_SEQUENCE(a->values,  (int (*)())i2d_AC_IETFATTRVAL);
   M_ASN1_I2D_finish();
 }
 
@@ -448,9 +465,9 @@ int i2d_AC_INFO(AC_INFO *a, unsigned char **pp)
   M_ASN1_I2D_len(a->alg,      i2d_X509_ALGOR);
   M_ASN1_I2D_len(a->serial,   i2d_ASN1_INTEGER);
   M_ASN1_I2D_len(a->validity, i2d_AC_VAL);
-  M_ASN1_I2D_len_SEQUENCE(a->attrib, i2d_AC_ATTR);
+  M_ASN1_I2D_len_SEQUENCE(a->attrib, (int (*)())i2d_AC_ATTR);
   M_ASN1_I2D_len_IMP_opt(a->id,       i2d_ASN1_BIT_STRING);
-  M_ASN1_I2D_len_SEQUENCE_opt(a->exts, i2d_X509_EXTENSION);
+  M_ASN1_I2D_len_SEQUENCE_opt(a->exts, (int (*)())i2d_X509_EXTENSION);
   M_ASN1_I2D_seq_total();
 
   M_ASN1_I2D_put(a->version,  i2d_ASN1_INTEGER);
@@ -459,9 +476,9 @@ int i2d_AC_INFO(AC_INFO *a, unsigned char **pp)
   M_ASN1_I2D_put(a->alg,      i2d_X509_ALGOR);
   M_ASN1_I2D_put(a->serial,   i2d_ASN1_INTEGER);
   M_ASN1_I2D_put(a->validity, i2d_AC_VAL);
-  M_ASN1_I2D_put_SEQUENCE(a->attrib, i2d_AC_ATTR);
+  M_ASN1_I2D_put_SEQUENCE(a->attrib, (int (*)())i2d_AC_ATTR);
   M_ASN1_I2D_put_IMP_opt(a->id,       i2d_ASN1_BIT_STRING, V_ASN1_BIT_STRING);
-  M_ASN1_I2D_put_SEQUENCE_opt(a->exts, i2d_X509_EXTENSION);
+  M_ASN1_I2D_put_SEQUENCE_opt(a->exts, (int (*)())i2d_X509_EXTENSION);
   M_ASN1_I2D_finish();
 }
 
@@ -574,9 +591,9 @@ void AC_free(AC *a)
 int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
-  M_ASN1_I2D_len_SEQUENCE(a->acs, i2d_AC);
+  M_ASN1_I2D_len_SEQUENCE(a->acs, (int (*)())i2d_AC);
   M_ASN1_I2D_seq_total();
-  M_ASN1_I2D_put_SEQUENCE(a->acs, i2d_AC);
+  M_ASN1_I2D_put_SEQUENCE(a->acs, (int (*)())i2d_AC);
   M_ASN1_I2D_finish();
 }
 
@@ -612,9 +629,9 @@ void AC_SEQ_free(AC_SEQ *a)
 int i2d_AC_TARGETS(AC_TARGETS *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
-  M_ASN1_I2D_len_SEQUENCE(a->targets, i2d_AC_TARGET);
+  M_ASN1_I2D_len_SEQUENCE(a->targets, (int (*)())i2d_AC_TARGET);
   M_ASN1_I2D_seq_total();
-  M_ASN1_I2D_put_SEQUENCE(a->targets, i2d_AC_TARGET);
+  M_ASN1_I2D_put_SEQUENCE(a->targets, (int (*)())i2d_AC_TARGET);
   M_ASN1_I2D_finish();
 }
 AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, unsigned char **pp, long length)
@@ -699,9 +716,9 @@ int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp)
   //int v1=0, v2=0, v3=0;
 
   M_ASN1_I2D_vars(a);
-  M_ASN1_I2D_len_SEQUENCE(a->stackcert, i2d_X509);
+  M_ASN1_I2D_len_SEQUENCE(a->stackcert, (int (*)())i2d_X509);
   M_ASN1_I2D_seq_total();
-  M_ASN1_I2D_put_SEQUENCE(a->stackcert, i2d_X509);
+  M_ASN1_I2D_put_SEQUENCE(a->stackcert, (int (*)())i2d_X509);
   M_ASN1_I2D_finish();
 }
 
@@ -791,11 +808,11 @@ int i2d_AC_ATT_HOLDER(AC_ATT_HOLDER *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
   M_ASN1_I2D_len(a->grantor,      i2d_GENERAL_NAMES);
-  M_ASN1_I2D_len_SEQUENCE(a->attributes, i2d_AC_ATTRIBUTE);
+  M_ASN1_I2D_len_SEQUENCE(a->attributes, (int (*)())i2d_AC_ATTRIBUTE);
   M_ASN1_I2D_seq_total();
 
   M_ASN1_I2D_put(a->grantor,      i2d_GENERAL_NAMES);
-  M_ASN1_I2D_put_SEQUENCE(a->attributes, i2d_AC_ATTRIBUTE);
+  M_ASN1_I2D_put_SEQUENCE(a->attributes, (int (*)())i2d_AC_ATTRIBUTE);
   M_ASN1_I2D_finish();
 }
 
@@ -836,9 +853,9 @@ void AC_ATT_HOLDER_free(AC_ATT_HOLDER *a)
 int i2d_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
-  M_ASN1_I2D_len_SEQUENCE(a->providers, i2d_AC_ATT_HOLDER);
+  M_ASN1_I2D_len_SEQUENCE(a->providers, (int (*)())i2d_AC_ATT_HOLDER);
   M_ASN1_I2D_seq_total();
-  M_ASN1_I2D_put_SEQUENCE(a->providers, i2d_AC_ATT_HOLDER);
+  M_ASN1_I2D_put_SEQUENCE(a->providers, (int (*)())i2d_AC_ATT_HOLDER);
   M_ASN1_I2D_finish();
 }
 
@@ -1029,8 +1046,8 @@ void *authkey_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *da
   if (str && keyid) {
     SHA1(cert->cert_info->key->public_key->data,
 	 cert->cert_info->key->public_key->length,
-	 digest);
-    ASN1_OCTET_STRING_set(str, digest, 20);
+	 (unsigned char*)digest);
+    ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
     ASN1_OCTET_STRING_free(keyid->keyid);
     keyid->keyid = str;
   }
@@ -1189,3 +1206,4 @@ X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth() {
   return (&vomsattribute_attribs_x509v3_ext_meth);
 }
 
+} //namespace ArcLib

@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include "VOMSAttribute.h"
 #include "voms_util.h"
 extern "C" {
 #include "listfunc.h"

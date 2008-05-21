@@ -142,7 +142,7 @@ int main(void) {
   * e.g. the voms-proxy-init(voms client) receives a few Attribute Certificates from different VOs(voms server, and voms server
   * signs AC), then composes the ACs into a AC list, and puts the AC list as a proxy certificate's extension.
   */
-  AC** aclist = NULL;
+  ArcLib::AC** aclist = NULL;
   ArcLib::addVOMSAC(aclist, codedac);
    
 

@@ -16,6 +16,7 @@
 #include <openssl/safestack.h>
 #include <openssl/err.h>
 
+namespace ArcLib {
 
 #define ASN1_F_D2I_AC_ATTR          5000
 #define AC_F_ATTR_New               5001
@@ -224,29 +225,29 @@ typedef struct ACFULLATTRIBUTES {
 
 #define DECL_STACK(type) \
    DECLARE_STACK_OF(type) \
-   extern STACK_OF(type) *sk_##type##_new (int (*)(const type * const *, const type * const *)); \
-   extern STACK_OF(type) *sk_##type##_new_null (); \
-   extern void   sk_##type##_free (STACK_OF(type) *); \
-   extern int    sk_##type##_num (const STACK_OF(type) *); \
-   extern type  *sk_##type##_value (const STACK_OF(type) *, int); \
-   extern type  *sk_##type##_set (STACK_OF(type) *, int, type *); \
-   extern void   sk_##type##_zero (STACK_OF(type) *); \
-   extern int    sk_##type##_push (STACK_OF(type) *, type *); \
-   extern int    sk_##type##_unshift (STACK_OF(type) *, type *); \
-   extern int    sk_##type##_find (STACK_OF(type) *, type *); \
-   extern type  *sk_##type##_delete (STACK_OF(type) *, int); \
-   extern type  *sk_##type##_delete_ptr (STACK_OF(type) *, type *); \
-   extern int    sk_##type##_insert (STACK_OF(type) *, type *, int); \
-   extern int (*sk_##type##_set_cmp_func (STACK_OF(type) *, int (*)(const type * const *, const type * const *)))(const type * const *, const type * const *); \
-   extern STACK_OF(type) *sk_##type##_dup (STACK_OF(type) *); \
-   extern void   sk_##type##_pop_free (STACK_OF(type) *, void (*)(type *)); \
-   extern type  *sk_##type##_shift (STACK_OF(type) *); \
-   extern type  *sk_##type##_pop (STACK_OF(type) *); \
-   extern void   sk_##type##_sort (STACK_OF(type) *); \
-   extern STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **, unsigned char **, long, type *(*)(), void (*)(type *), int, int); \
-   extern int i2d_ASN1_SET_OF_##type (STACK_OF(type) *, unsigned char **, int (*)(), int, int, int); \
-   extern unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *, int (*)(), unsigned char **, int *); \
-   extern STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *, int, type *(*)(), void (*)(type *)) ;
+   STACK_OF(type) *sk_##type##_new (int (*)(const type * const *, const type * const *)); \
+   STACK_OF(type) *sk_##type##_new_null (); \
+   void   sk_##type##_free (STACK_OF(type) *); \
+   int    sk_##type##_num (const STACK_OF(type) *); \
+   type  *sk_##type##_value (const STACK_OF(type) *, int); \
+   type  *sk_##type##_set (STACK_OF(type) *, int, type *); \
+   void   sk_##type##_zero (STACK_OF(type) *); \
+   int    sk_##type##_push (STACK_OF(type) *, type *); \
+   int    sk_##type##_unshift (STACK_OF(type) *, type *); \
+   int    sk_##type##_find (STACK_OF(type) *, type *); \
+   type  *sk_##type##_delete (STACK_OF(type) *, int); \
+   type  *sk_##type##_delete_ptr (STACK_OF(type) *, type *); \
+   int    sk_##type##_insert (STACK_OF(type) *, type *, int); \
+   int (*sk_##type##_set_cmp_func (STACK_OF(type) *, int (*)(const type * const *, const type * const *)))(const type * const *, const type * const *); \
+   STACK_OF(type) *sk_##type##_dup (STACK_OF(type) *); \
+   void   sk_##type##_pop_free (STACK_OF(type) *, void (*)(type *)); \
+   type  *sk_##type##_shift (STACK_OF(type) *); \
+   type  *sk_##type##_pop (STACK_OF(type) *); \
+   void   sk_##type##_sort (STACK_OF(type) *); \
+   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **, unsigned char **, long, type *(*)(), void (*)(type *), int, int); \
+   int i2d_ASN1_SET_OF_##type (STACK_OF(type) *, unsigned char **, int (*)(), int, int, int); \
+   unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *, int (*)(), unsigned char **, int *); \
+   STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *, int, type *(*)(), void (*)(type *)) ;
 
 DECL_STACK(AC_TARGET)
 DECL_STACK(AC_TARGETS)
@@ -270,98 +271,98 @@ DECL_STACK(AC_FULL_ATTRIBUTES)
 
 
 
-extern int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp);
-extern AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, unsigned char **p, long length);
-extern AC_ATTR *AC_ATTR_new();
-extern void AC_ATTR_free(AC_ATTR *a);
-extern int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp);
-extern AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, unsigned char **p, long length);
-extern AC_IETFATTR *AC_IETFATTR_new();
-extern void AC_IETFATTR_free (AC_IETFATTR *a);
-extern int i2d_AC_IETFATTRVAL(AC_IETFATTRVAL *a, unsigned char **pp);
-extern AC_IETFATTRVAL *d2i_AC_IETFATTRVAL(AC_IETFATTRVAL **a, unsigned char **pp, long length);
-extern AC_IETFATTRVAL *AC_IETFATTRVAL_new();
-extern void AC_IETFATTRVAL_free(AC_IETFATTRVAL *a);
-extern int i2d_AC_DIGEST(AC_DIGEST *a, unsigned char **pp);
-extern AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, unsigned char **pp, long length);;
-extern AC_DIGEST *AC_DIGEST_new(void);
-extern void AC_DIGEST_free(AC_DIGEST *a);
-extern int i2d_AC_IS(AC_IS *a, unsigned char **pp);
-extern AC_IS *d2i_AC_IS(AC_IS **a, unsigned char **pp, long length);
-extern AC_IS *AC_IS_new(void);
-extern void AC_IS_free(AC_IS *a);
-extern int i2d_AC_FORM(AC_FORM *a, unsigned char **pp);
-extern AC_FORM *d2i_AC_FORM(AC_FORM **a, unsigned char **pp, long length);
-extern AC_FORM *AC_FORM_new(void);
-extern void AC_FORM_free(AC_FORM *a);
-extern int i2d_AC_ACI(AC_ACI *a, unsigned char **pp);
-extern AC_ACI *d2i_AC_ACI(AC_ACI **a, unsigned char **pp, long length);
-extern AC_ACI *AC_ACI_new(void);
-extern void AC_ACI_free(AC_ACI *a);
+int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp);
+AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, unsigned char **p, long length);
+AC_ATTR *AC_ATTR_new();
+void AC_ATTR_free(AC_ATTR *a);
+int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp);
+AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, unsigned char **p, long length);
+AC_IETFATTR *AC_IETFATTR_new();
+void AC_IETFATTR_free (AC_IETFATTR *a);
+int i2d_AC_IETFATTRVAL(AC_IETFATTRVAL *a, unsigned char **pp);
+AC_IETFATTRVAL *d2i_AC_IETFATTRVAL(AC_IETFATTRVAL **a, unsigned char **pp, long length);
+AC_IETFATTRVAL *AC_IETFATTRVAL_new();
+void AC_IETFATTRVAL_free(AC_IETFATTRVAL *a);
+int i2d_AC_DIGEST(AC_DIGEST *a, unsigned char **pp);
+AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, unsigned char **pp, long length);;
+AC_DIGEST *AC_DIGEST_new(void);
+void AC_DIGEST_free(AC_DIGEST *a);
+int i2d_AC_IS(AC_IS *a, unsigned char **pp);
+AC_IS *d2i_AC_IS(AC_IS **a, unsigned char **pp, long length);
+AC_IS *AC_IS_new(void);
+void AC_IS_free(AC_IS *a);
+int i2d_AC_FORM(AC_FORM *a, unsigned char **pp);
+AC_FORM *d2i_AC_FORM(AC_FORM **a, unsigned char **pp, long length);
+AC_FORM *AC_FORM_new(void);
+void AC_FORM_free(AC_FORM *a);
+int i2d_AC_ACI(AC_ACI *a, unsigned char **pp);
+AC_ACI *d2i_AC_ACI(AC_ACI **a, unsigned char **pp, long length);
+AC_ACI *AC_ACI_new(void);
+void AC_ACI_free(AC_ACI *a);
 
-extern int i2d_AC_HOLDER(AC_HOLDER *a, unsigned char **pp);
-extern AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, unsigned char **pp, long length);
-extern AC_HOLDER *AC_HOLDER_new(void);
-extern void AC_HOLDER_free(AC_HOLDER *a);
+int i2d_AC_HOLDER(AC_HOLDER *a, unsigned char **pp);
+AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, unsigned char **pp, long length);
+AC_HOLDER *AC_HOLDER_new(void);
+void AC_HOLDER_free(AC_HOLDER *a);
 
 /* new AC_VAL functions by Valerio */
-extern int i2d_AC_VAL(AC_VAL *a, unsigned char **pp);
-extern AC_VAL *d2i_AC_VAL(AC_VAL **a, unsigned char **pp, long length);
-extern AC_VAL *AC_VAL_new(void);
-extern void AC_VAL_free(AC_VAL *a);
+int i2d_AC_VAL(AC_VAL *a, unsigned char **pp);
+AC_VAL *d2i_AC_VAL(AC_VAL **a, unsigned char **pp, long length);
+AC_VAL *AC_VAL_new(void);
+void AC_VAL_free(AC_VAL *a);
 /* end*/
 
-extern int i2d_AC_INFO(AC_INFO *a, unsigned char **pp);
-extern AC_INFO *d2i_AC_INFO(AC_INFO **a, unsigned char **p, long length);
-extern AC_INFO *AC_INFO_new(void);
-extern void AC_INFO_free(AC_INFO *a);
-extern int i2d_AC(AC *a, unsigned char **pp) ;
-extern AC *d2i_AC(AC **a, unsigned char **pp, long length);
-extern AC *AC_new(void);
-extern void AC_free(AC *a);
-extern int i2d_AC_TARGETS(AC_TARGETS *a, unsigned char **pp) ;
-extern AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, unsigned char **pp, long length);
-extern AC_TARGETS *AC_TARGETS_new(void);
-extern void AC_TARGETS_free(AC_TARGETS *a);
-extern int i2d_AC_TARGET(AC_TARGET *a, unsigned char **pp) ;
-extern AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, unsigned char **pp, long length);
-extern AC_TARGET *AC_TARGET_new(void);
-extern void AC_TARGET_free(AC_TARGET *a);
-extern int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp) ;
-extern AC_SEQ *d2i_AC_SEQ(AC_SEQ **a, unsigned char **pp, long length);
-extern AC_SEQ *AC_SEQ_new(void);
-extern void AC_SEQ_free(AC_SEQ *a);
+int i2d_AC_INFO(AC_INFO *a, unsigned char **pp);
+AC_INFO *d2i_AC_INFO(AC_INFO **a, unsigned char **p, long length);
+AC_INFO *AC_INFO_new(void);
+void AC_INFO_free(AC_INFO *a);
+int i2d_AC(AC *a, unsigned char **pp) ;
+AC *d2i_AC(AC **a, unsigned char **pp, long length);
+AC *AC_new(void);
+void AC_free(AC *a);
+int i2d_AC_TARGETS(AC_TARGETS *a, unsigned char **pp) ;
+AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, unsigned char **pp, long length);
+AC_TARGETS *AC_TARGETS_new(void);
+void AC_TARGETS_free(AC_TARGETS *a);
+int i2d_AC_TARGET(AC_TARGET *a, unsigned char **pp) ;
+AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, unsigned char **pp, long length);
+AC_TARGET *AC_TARGET_new(void);
+void AC_TARGET_free(AC_TARGET *a);
+int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp) ;
+AC_SEQ *d2i_AC_SEQ(AC_SEQ **a, unsigned char **pp, long length);
+AC_SEQ *AC_SEQ_new(void);
+void AC_SEQ_free(AC_SEQ *a);
 
-extern int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp) ;
-extern AC_CERTS *d2i_AC_CERTS(AC_CERTS **a, unsigned char **pp, long length);
-extern AC_CERTS *AC_CERTS_new(void);
-extern void AC_CERTS_free(AC_CERTS *a);
+int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp) ;
+AC_CERTS *d2i_AC_CERTS(AC_CERTS **a, unsigned char **pp, long length);
+AC_CERTS *AC_CERTS_new(void);
+void AC_CERTS_free(AC_CERTS *a);
 
 
+int i2d_AC_ATTRIBUTE(AC_ATTRIBUTE *, unsigned char **);
+int i2d_AC_ATT_HOLDER(AC_ATT_HOLDER *, unsigned char **);
+int i2d_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES *, unsigned char **);
 
-extern int i2d_AC_ATTRIBUTE(AC_ATTRIBUTE *, unsigned char **);
-extern int i2d_AC_ATT_HOLDER(AC_ATT_HOLDER *, unsigned char **);
-extern int i2d_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES *, unsigned char **);
+AC_ATTRIBUTE *d2i_AC_ATTRIBUTE(AC_ATTRIBUTE **, unsigned char **, long);
+AC_ATT_HOLDER *d2i_AC_ATT_HOLDER(AC_ATT_HOLDER **, unsigned char **, long);
+AC_FULL_ATTRIBUTES *d2i_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES **, unsigned char **, long);
 
-extern AC_ATTRIBUTE *d2i_AC_ATTRIBUTE(AC_ATTRIBUTE **, unsigned char **, long);
-extern AC_ATT_HOLDER *d2i_AC_ATT_HOLDER(AC_ATT_HOLDER **, unsigned char **, long);
-extern AC_FULL_ATTRIBUTES *d2i_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES **, unsigned char **, long);
+AC_ATTRIBUTE *AC_ATTRIBUTE_new();
+AC_ATT_HOLDER *AC_ATT_HOLDER_new();
+AC_FULL_ATTRIBUTES *AC_FULL_ATTRIBUTES_new();
 
-extern AC_ATTRIBUTE *AC_ATTRIBUTE_new();
-extern AC_ATT_HOLDER *AC_ATT_HOLDER_new();
-extern AC_FULL_ATTRIBUTES *AC_FULL_ATTRIBUTES_new();
+void AC_ATTRIBUTE_free(AC_ATTRIBUTE *);
+void AC_ATT_HOLDER_free(AC_ATT_HOLDER *);
+void AC_FULL_ATTRIBUTES_free(AC_FULL_ATTRIBUTES *);
 
-extern void AC_ATTRIBUTE_free(AC_ATTRIBUTE *);
-extern void AC_ATT_HOLDER_free(AC_ATT_HOLDER *);
-extern void AC_FULL_ATTRIBUTES_free(AC_FULL_ATTRIBUTES *);
+X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
 
-extern X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth();
-extern X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth();
-extern X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
-extern X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
-extern X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
-extern X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
-
+} //namespace ArcLib
 
 #endif
 
