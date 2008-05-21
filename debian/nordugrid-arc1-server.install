@@ -1,4 +1,5 @@
 usr/sbin/arched
+usr/sbin/sched_jobq_dump
 usr/lib/arc/libecho.so
 usr/lib/arc/libpdp.so
 usr/lib/arc/libhttpd.so

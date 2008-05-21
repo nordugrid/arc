@@ -227,12 +227,13 @@ exit 0
 %defattr(-,root,root,-)
 /etc/init.d/arched
 %{_sbindir}/arched
+@SCHED_SERVICE_ENABLED_TRUE@%{_sbindir}/sched_jobq_dump
 %doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libhttpd.so
 %{_libdir}/%{pkgdir}/libcentralisi.so
-%{_libdir}/%{pkgdir}/libgrid_sched.so
+@SCHED_SERVICE_ENABLED_TRUE@%{_libdir}/%{pkgdir}/libgrid_sched.so
 %{_libdir}/%{pkgdir}/libaccARC0.so
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
