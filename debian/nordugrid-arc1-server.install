@@ -1,10 +1,11 @@
 usr/sbin/arched
-usr/sbin/sched_jobq_dump
+@SCHED_SERVICE_ENABLED_TRUE@usr/sbin/sched_jobq_dump
 usr/lib/arc/libecho.so
 usr/lib/arc/libpdp.so
 usr/lib/arc/libhttpd.so
 usr/lib/arc/libcentralisi.so
-usr/lib/arc/libgrid_sched.so
+@SCHED_SERVICE_ENABLED_TRUE@usr/lib/arc/libgrid_sched.so
+@GRIDFTP_ENABLED_TRUE@usr/lib/arc/libaccARC0.so
 usr/lib/arc/libaccARC1.so
 usr/lib/arc/libaccCREAM.so
 usr/lib/arc/libpaul.so
