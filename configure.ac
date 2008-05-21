@@ -8,7 +8,6 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
-
 AC_PROG_CXX
 AC_PROG_CC_STDC
 AC_PROG_CPP
@@ -371,6 +370,14 @@ LASSO_INSTALLED=no
 # LASSO_INSTALLED=yes],
 #[])
 
+#check Berkeley DB C++
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADER(db_cxx.h,[HAVE_DBCXX=yes DBCXX_LIBS="-ldb_cxx"],
+                          [HAVE_DBCXX=no DBCXX_LIBS=""])
+AC_SUBST(DBCXX_LIBS)
+AC_LANG_RESTORE
+
 # globus/gpt packages
 GPT_PKG(globus_rls_client)
 AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
@@ -433,9 +440,14 @@ AC_MSG_NOTICE([PAUL Service enabled: $enable_paul_service])
 AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enable_paul_service" = "xyes"])
 
 # Sched service
-AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes")
+if test "x$HAVE_DBCXX" = "xyes"; then
+    AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),[],enable_sched_service="yes")
+else
+    enable_sched_service="no"
+fi
 AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
+    
 
 # Setup conditionals
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
