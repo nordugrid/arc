@@ -35,6 +35,9 @@ BuildRequires: globus_rsl-devel
 #
 BuildRequires: LFC-client-devel
 #
+# Currently only needed for the sched service:
+# File dependencies should really not be used
+BuildRequires: /usr/include/db_cxx.h
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
 %if "%{pyver}" < "2.4"
