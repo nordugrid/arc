@@ -110,6 +110,8 @@ bool DelegationPDP::isPermitted(Message *msg){
       logger.msg(ERROR, "Can not dynamically produce Evaluator");
       throw std::exception();
     };
+    // Just make sure algorithm is proper one
+    eval->setCombiningAlg(EvaluatorFailsOnDeny);
 
     // Add policies to evaluator
     int policies_num = 0;
@@ -178,13 +180,16 @@ bool DelegationPDP::isPermitted(Message *msg){
       throw std::exception();
     };
 
+   
     //Call the evaluation functionality inside Evaluator
     Response *resp = eval->evaluate(requestxml);
     logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
     ResponseList rlist = resp->getResponseItems();
     int size = rlist.size();
+    bool all_policies_matched = (size > 0);
     for(int i = 0; i < size; i++) {
       ResponseItem* item = rlist[i];
+      if(item->pls.size() != policies_num) all_policies_matched=false;
       RequestTuple* tp = item->reqtp;
       Subject::iterator it;
       Subject subject = tp->sub;
@@ -199,13 +204,16 @@ bool DelegationPDP::isPermitted(Message *msg){
       }
     } 
 
-    if(!(rlist.empty())){
-      logger.msg(INFO, "Authorized from arc.pdp!!!");
+    if(all_policies_matched) {
       result=true;
-    } else {
-      logger.msg(ERROR, "UnAuthorized from arc.pdp!!!");
     }
-  } catch(std::exception&) { };
+  } catch(std::exception&) {
+  };
+  if(result) {
+    logger.msg(INFO, "Delegation authorization passed");
+  } else {
+    logger.msg(INFO, "Delegation authorization failed");
+  };
   if(mauth) delete mauth;
   if(cauth) delete cauth;
   if(eval) delete eval;
