@@ -25,18 +25,18 @@ using namespace Arc;
 using namespace ArcSec;
 
 PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
-  combalg = alg;
+  //combalg = alg;
   PolicyParser plparser;
   
   //call parsePolicy to parse each policies
   for(std::list<std::string>::const_iterator it = filelist.begin(); it != filelist.end(); it++){
-    policies.push_back(plparser.parsePolicy(*it, ctx));
+    policies.push_back(PolicyElement(plparser.parsePolicy(*it, ctx)));
   }    
 }
 
 //Policy list  
 //there also can be a class "PolicySet", which includes a few policies
-std::list<Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
+std::list<PolicyStore::PolicyElement> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
   //For the existing Arc policy expression, we only need to return all the policies, because there is 
   //no Target definition in ArcPolicy (the Target is only in ArcRule)
 
@@ -55,14 +55,14 @@ std::list<Policy*> PolicyStore::findPolicy(EvaluationCtx*) { //ctx){
  //TODO 
 }
 
-void PolicyStore::addPolicy(std::string& policyfile, EvaluatorContext* ctx) {
+void PolicyStore::addPolicy(const std::string& policyfile, EvaluatorContext* ctx, const std::string& id) {
   PolicyParser plparser;
-  policies.push_back(plparser.parsePolicy(policyfile, ctx));
+  policies.push_back(PolicyElement(plparser.parsePolicy(policyfile, ctx),id));
 }
 
 void PolicyStore::removePolicies(void) {
   while(!(policies.empty())){
-    delete policies.back();
+    delete (Policy*)(policies.back());
     policies.pop_back();
   }
 }

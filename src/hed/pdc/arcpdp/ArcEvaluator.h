@@ -31,6 +31,8 @@ private:
   Arc::XMLNode* m_cfg;
   std::string request_classname;
 
+  EvaluatorCombiningAlg combining_alg;
+
 public:
   ArcEvaluator (Arc::XMLNode* cfg);
   ArcEvaluator (const char * cfgfile);
@@ -49,8 +51,12 @@ public:
   virtual FnFactory* getFnFactory () { return fnfactory; };
   virtual AlgFactory* getAlgFactory () { return algfactory; };
 
-  virtual void addPolicy(std::string policyfile) { plstore->addPolicy(policyfile, context); };
+  virtual void addPolicy(const std::string& policyfile,const std::string& id = "") {
+    plstore->addPolicy(policyfile, context, id);
+  };
   virtual void removePolicies(void) { plstore->removePolicies(); };
+
+  virtual void setCombiningAlg(EvaluatorCombiningAlg alg);
 
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx);

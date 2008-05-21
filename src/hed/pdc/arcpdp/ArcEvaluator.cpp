@@ -120,6 +120,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
   fnfactory = NULL;
   attrfactory = NULL;
   algfactory = NULL;
+  combining_alg = EvaluatorFailsOnDeny;
 
   context = NULL;
 
@@ -127,6 +128,7 @@ ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
 }
 
 ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
+  combining_alg = EvaluatorFailsOnDeny;
   std::string str;
   std::string xml_str = "";
   std::ifstream f(cfgfile);
@@ -138,6 +140,10 @@ ArcEvaluator::ArcEvaluator(const char * cfgfile) : Evaluator(cfgfile){
 
   Arc::XMLNode node(xml_str);
   parsecfg(node); 
+}
+
+void ArcEvaluator::setCombiningAlg(EvaluatorCombiningAlg alg) {
+  combining_alg = alg;
 }
 
 Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
@@ -245,8 +251,8 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
   //Split request into <subject, action, object, environment> tuples
   ctx->split();
   
-  std::list<Policy*> policies;
-  std::list<Policy*>::iterator policyit;
+  std::list<PolicyStore::PolicyElement> policies;
+  std::list<PolicyStore::PolicyElement>::iterator policyit;
   std::list<RequestTuple*> reqtuples = ctx->getRequestTuples();
   std::list<RequestTuple*>::iterator it;
   
@@ -258,24 +264,44 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
 
     policies = plstore->findPolicy(ctx);
     
-    std::list<Policy*> permitset;
+    std::list<PolicyStore::PolicyElement> permitset;
     bool atleast_onepermit = false;
     //Each policy evaluates the present RequestTuple, using default combiningalg between <Policy>s: DENY-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
-      Result res = (*policyit)->eval(ctx);
+      Result res = ((Policy*)(*policyit))->eval(ctx);
 
       logger.msg(INFO,"Result value (0 means success): %d", res);
 
-      //If there is one policy gives negative evaluation result, then jump out
-      //For RequestTuple which is denied, we will not feedback any information so far
-      if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
-        while(!permitset.empty()) permitset.pop_back();
-        break;
-      }
-      if(res == DECISION_PERMIT){
-        permitset.push_back(*policyit);
-        atleast_onepermit = true;
-      }
+      if(combining_alg == EvaluatorStopsOnDeny) {
+        if(res == DECISION_PERMIT){
+          permitset.push_back(*policyit);
+          atleast_onepermit = true;
+        } else {
+          break;
+        };
+      } else if(combining_alg == EvaluatorStopsOnPermit) {
+        if(res == DECISION_PERMIT){
+          permitset.push_back(*policyit);
+          atleast_onepermit = true;
+          break;
+        };
+      } else if(combining_alg == EvaluatorStopsNever) {
+        if(res == DECISION_PERMIT){
+          permitset.push_back(*policyit);
+          atleast_onepermit = true;
+        };
+      } else { // EvaluatorFailsOnDeny
+        //If there is one policy gives negative evaluation result, then jump out
+        //For RequestTuple which is denied, we will not feedback any information so far
+        if(res == DECISION_PERMIT){
+          permitset.push_back(*policyit);
+          atleast_onepermit = true;
+        } else {
+          //if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
+          permitset.clear();
+          break;
+        }
+      };
     }
 
     //For RequestTuple that passes the evaluation check, fill the information into ResponseItem
@@ -285,13 +311,14 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
       reqtuple->duplicate(*(*it));
 
       item->reqtp = reqtuple; 
-      item->pls = permitset;
+      //item->pls = permitset;
 
       item->reqxml = reqtuple->getNode();
       
-      std::list<Policy*>::iterator permit_it;
+      std::list<PolicyStore::PolicyElement>::iterator permit_it;
       for(permit_it = permitset.begin(); permit_it != permitset.end(); permit_it++){
-        EvalResult evalres = (*permit_it)->getEvalResult();
+        item->pls.push_back((Policy*)(*permit_it));
+        EvalResult evalres = ((Policy*)(*permit_it))->getEvalResult();
         //TODO, handle policyset
         XMLNode policyxml = evalres.node;
         (item->plsxml).push_back(policyxml);
@@ -325,17 +352,20 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
 }
 
 Response* ArcEvaluator::evaluate(Request* request, std::string& policyfile) {
-  plstore->addPolicy(policyfile, context);
+  plstore->removePolicies();
+  plstore->addPolicy(policyfile, context, "");
   return (evaluate(request));
 }
 
 Response* ArcEvaluator::evaluate(Arc::XMLNode& node, std::string& policyfile) {
-  plstore->addPolicy(policyfile, context);
+  plstore->removePolicies();
+  plstore->addPolicy(policyfile, context, "");
   return (evaluate(node));
 }
 
 Response* ArcEvaluator::evaluate(const std::string& reqfile, std::string& policyfile) {
-  plstore->addPolicy(policyfile, context);
+  plstore->removePolicies();
+  plstore->addPolicy(policyfile, context, "");
   return (evaluate(reqfile));
 }
 
