@@ -119,7 +119,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       break;
 #endif
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL)
+#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
       /*
       * In the later version (097g+) OpenSSL does know about 
       * proxies, but not non-rfc compliant proxies, it will 
@@ -160,7 +160,7 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       break;
 #endif
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL)
+#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
     case X509_V_ERR_INVALID_CA:
     {
       /*
@@ -404,14 +404,17 @@ int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          nid != NID_subject_key_identifier &&
          nid != NID_authority_key_identifier &&
          nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
-         nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
-         nid != NID_proxyCertInfo) {
+         nid != OBJ_sn2nid("PROXYCERTINFO_V4")
+#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
+         && nid != NID_proxyCertInfo
+#endif
+        ) {
         store_ctx->error = X509_V_ERR_CERT_REJECTED;
         std::cerr<<"Certificate has unknown extension with numeric ID: "<<nid<<std::endl;
         return (0);
       }
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090706fL) && (nid == NID_proxyCertInfo)
+#if (OPENSSL_VERSION_NUMBER > 0x0090706fL) && (nid == NID_proxyCertInfo)
     /* If the openssl version >=097g (which means proxy cert info is supported), and
      * NID_proxyCertInfo can be got from the extension, then we use 
      * the proxy cert info support from openssl itself. Otherwise we need
