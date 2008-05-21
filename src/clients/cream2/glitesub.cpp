@@ -12,22 +12,22 @@ class GLiteSubTool: public Arc::ClientTool {
         std::string delegation_id;
         std::string config_path;
         GLiteSubTool(int argc,char* argv[]):Arc::ClientTool("glitesub") {
-            this->delegation_id = "";
-            ProcessOptions(argc,argv,"D:c:");
+            ProcessOptions(argc,argv,"c:D:");
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitesub [-c client_config][-D delegation_id] service_url jsdl_file id_file"<<std::endl;
     };
     virtual bool ProcessOption(char option,char* option_arg) {
         switch(option) {
-            case 'c': this->config_path=option_arg; break;
-            case 'D': this->delegation_id=option_arg; break;
+            case 'D': delegation_id=option_arg; break;
+            case 'c': config_path=option_arg; break;
             default: {
                 std::cerr<<"Error processing option: "<<(char)option<<std::endl;
                 PrintHelp();
                 return false;
             };
-        };
+	};
+	return true;
     };
 };
 
@@ -51,12 +51,12 @@ int main(int argc, char* argv[]){
         
         // Set delegation if necessary
         if (tool.delegation_id != "") gLiteClient.setDelegationId(tool.delegation_id);
-        
+
         // Read the job description from file to string
         std::ifstream jsdlfile(argv[tool.FirstOption()+1]);
         std::string jsdl_text = "";
         
-        if (!jsdlfile) throw std::invalid_argument(std::string("Could not open ") + std::string(argv[tool.FirstOption()+1]));
+        if (!jsdlfile) throw std::invalid_argument(std::string("Could not open ") + std::string(argv[1]));
         std::string s;
         while(getline(jsdlfile, s)) jsdl_text +=  s + "\n"; // ... must add it back
         

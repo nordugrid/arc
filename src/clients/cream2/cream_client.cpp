@@ -6,7 +6,7 @@
 namespace Arc{
     namespace Cream{
         CREAMClientError::CREAMClientError(const std::string& what) : std::runtime_error(what){  }
-        Arc::Logger CREAMClient::logger(Arc::Logger::rootLogger, "CREAMClient");
+        Arc::Logger CREAMClient::logger(Arc::Logger::rootLogger, "CREAM-Client");
         
         static void set_cream_namespaces(Arc::NS& ns) {
             ns["SOAP-ENV"]="http://schemas.xmlsoap.org/soap/envelope/";
@@ -21,6 +21,9 @@ namespace Arc{
         CREAMClient::CREAMClient(const Arc::URL& url, const Arc::MCCConfig& cfg) throw(CREAMClientError):client(NULL) {
             logger.msg(Arc::INFO, "Creating a CREAM client.");
             Arc::MCCConfig modified_cfg = cfg;
+	    std::stringstream uid;
+	    uid << "/tmp/x509up_u" << getuid() ;
+            modified_cfg.AddProxy(uid.str());
             client = new Arc::ClientSOAP(modified_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
             set_cream_namespaces(cream_ns);
         }
@@ -86,9 +89,8 @@ namespace Arc{
             if (!status.compare("ABORTED")) statusarc.assign("FAILES"); //failure at LRMS level
             if (!status.compare("UNKNOWN")) statusarc.assign("EXECUTED"); //Chosen because this seems to be the default ARC behaviour
             
-            if (faultstring!="") throw CREAMClientError(faultstring);
-            else if (status=="") throw CREAMClientError("The job status could not be retrieved.");
-            else return statusarc;
+            if (status=="") throw CREAMClientError("The job status could not be retrieved.");
+            else return statusarc + " (" + faultstring + ")";
             
         }  // CREAMClient::stat()
         
@@ -102,10 +104,6 @@ namespace Arc{
             Arc::XMLNode jobId = jobCancelRequest.NewChild("ns2:jobId", ns2);
             Arc::XMLNode id = jobId.NewChild("ns2:id", ns2);
             id.Set(jobid);
-            if (this->delegationId != "") {
-                Arc::XMLNode delegId = jobCancelRequest.NewChild("ns2:delegationProxyId", ns2);
-                delegId.Set(this->delegationId);
-            }
             
             // Testing: write the outgoing SOAP message
             std::string test;
@@ -127,18 +125,17 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            Arc::XMLNode cancelled;
-            (*resp)["JobCancelResponse"]["Response"]["JobId"]["id"].New(cancelled);
+            Arc::XMLNode cancelled, fault;
+            (*resp)["JobCancelResponse"]["result"]["jobId"]["id"].New(cancelled);
             std::string result = (std::string)cancelled;
-            std::string faultstring = "";
-            if ((*resp)["JobCancelResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobCancelResponse"]["Response"]["JobStatusInvalidFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["JobStatusInvalidFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobCancelResponse"]["Response"]["DelegationIdMismatchFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["DelegationIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobCancelResponse"]["Response"]["DateMismatchFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["DateMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobCancelResponse"]["Response"]["LeaseIdMismatchFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["LeaseIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobCancelResponse"]["Response"]["GenericFault"]) faultstring += (*resp)["JobCancelResponse"]["Response"]["GenericFault"]["FaultCause"] + "\n";
+            if ((*resp)["JobCancelResponse"]["result"]["JobUnknownFault"]) (*resp)["JobCancelResponse"]["result"]["JobUnknownFault"].New(fault);
+            if ((*resp)["JobCancelResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobCancelResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+            if ((*resp)["JobCancelResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobCancelResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+            if ((*resp)["JobCancelResponse"]["result"]["DateMismatchFault"]) (*resp)["JobCancelResponse"]["result"]["DateMismatchFault"].New(fault);
+            if ((*resp)["JobCancelResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobCancelResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+            if ((*resp)["JobCancelResponse"]["result"]["GenericFault"]) (*resp)["JobCancelResponse"]["result"]["GenericFault"].New(fault);
             delete resp;
-            if (faultstring!="") throw CREAMClientError(faultstring);
+            if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
             if (result=="") throw CREAMClientError("Job termination failed.");
         }  // CREAMClient::cancel()
         
@@ -174,18 +171,17 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            Arc::XMLNode cancelled;
-            (*resp)["JobPurgeResponse"]["Response"]["JobId"]["id"].New(cancelled);
+            Arc::XMLNode cancelled, fault;
+            (*resp)["JobPurgeResponse"]["result"]["jobId"]["id"].New(cancelled);
             std::string result = (std::string)cancelled;
-            std::string faultstring = "";
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["GenericFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["GenericFault"]["FaultCause"] + "\n";
+            if ((*resp)["JobPurgeResponse"]["result"]["JobUnknownFault"]) (*resp)["JobPurgeResponse"]["result"]["JobUnknownFault"].New(fault);
+            if ((*resp)["JobPurgeResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobPurgeResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+            if ((*resp)["JobPurgeResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobPurgeResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+            if ((*resp)["JobPurgeResponse"]["result"]["DateMismatchFault"]) (*resp)["JobPurgeResponse"]["result"]["DateMismatchFault"].New(fault);
+            if ((*resp)["JobPurgeResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobPurgeResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+            if ((*resp)["JobPurgeResponse"]["result"]["GenericFault"]) (*resp)["JobPurgeResponse"]["result"]["GenericFault"].New(fault);
             delete resp;
-            if (faultstring!="") throw CREAMClientError(faultstring);
+            if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
             if (result=="") throw CREAMClientError("Job cleaning failed.");
         }  // CREAMClient::purge()
        
@@ -203,10 +199,10 @@ namespace Arc{
             Arc::XMLNode jdl_node = act_job.NewChild("ns2:JDL", ns2);
             jdl_node.Set(jdl_text);
             if (this->delegationId != "") {
-                Arc::XMLNode delegId = jobRegisterRequest.NewChild("ns2:delegationProxyId", ns2);
+                Arc::XMLNode delegId = act_job.NewChild("ns2:delegationId", ns2);
                 delegId.Set(this->delegationId);
             }
-            Arc::XMLNode autostart_node = act_job.NewChild("ns2:autostart", ns2);
+            Arc::XMLNode autostart_node = act_job.NewChild("ns2:autoStart", ns2);
             autostart_node.Set("false");
             Arc::PayloadSOAP* resp = NULL;
             
@@ -230,7 +226,7 @@ namespace Arc{
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
             Arc::XMLNode id, fs;
-            (*resp)["JobRegisterResponse"]["result"]["JobId"]["id"].New(id);
+            (*resp)["JobRegisterResponse"]["result"]["jobId"]["id"].New(id);
             (*resp)["Fault"]["faultstring"].New(fs);
 
             // Testing: write the incoming SOAP message
@@ -238,17 +234,13 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
 
-            std::string faultstring = "";
-            faultstring=(std::string)fs;
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["GenericFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["GenericFault"]["FaultCause"] + "\n";
+            std::string faultstring = (std::string)fs;
             delete resp;
-            if (faultstring=="" && (bool)id) return (std::string)id;
-            else throw CREAMClientError(faultstring);
+            if (faultstring=="" && (std::string)id != "") return (std::string)id;
+            else {
+	        if (faultstring != "") throw CREAMClientError(faultstring);
+	        if ( (std::string)id  == "") throw CREAMClientError("No job ID has been received");
+	    }
         } // CREAMClient::registerJob()
        
         void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError) {
@@ -262,7 +254,7 @@ namespace Arc{
             Arc::XMLNode id_node = jobId.NewChild("ns2:id", ns2);
             id_node.Set(jobid);
             if (this->delegationId != "") {
-                Arc::XMLNode delegId = jobStartRequest.NewChild("ns2:delegationProxyId", ns2);
+                Arc::XMLNode delegId = jobStartRequest.NewChild("ns2:delegationId", ns2);
                 delegId.Set(this->delegationId);
             }
             Arc::PayloadSOAP* resp = NULL;
@@ -285,7 +277,7 @@ namespace Arc{
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
             Arc::XMLNode id, fs;
-            (*resp)["JobRegisterResponse"]["result"]["JobId"]["id"].New(id);
+            (*resp)["JobStartResponse"]["result"]["jobId"]["id"].New(id);
             (*resp)["Fault"]["faultstring"].New(fs);
 
             // Testing: write the incoming SOAP message
@@ -293,14 +285,7 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            std::string faultstring = "";
-            faultstring=(std::string)fs;
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobUnknownFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["JobStatusInvalidFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DelegationIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["DateMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["LeaseIdMismatchFault"]["FaultCause"] + "\n";
-            if ((*resp)["JobPurgeResponse"]["Response"]["GenericFault"]) faultstring += (*resp)["JobPurgeResponse"]["Response"]["GenericFault"]["FaultCause"] + "\n";
+            std::string faultstring = (std::string)fs;
             delete resp;
             if (faultstring!="") throw CREAMClientError(faultstring);
             if (!(bool)id && (std::string)id=="") throw CREAMClientError("Job starting failed.");
@@ -335,7 +320,7 @@ namespace Arc{
             Arc::NS ns1;
             ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
             Arc::XMLNode getProxyReqRequest = req.NewChild("ns1:getProxyReq", ns1);
-            Arc::XMLNode delegid = getProxyReqRequest.NewChild("ns1:delegationID", ns1);
+            Arc::XMLNode delegid = getProxyReqRequest.NewChild("delegationID", ns1);
             delegid.Set(delegation_id);
             Arc::PayloadSOAP* resp = NULL;
             
@@ -363,8 +348,13 @@ namespace Arc{
             std::cout << test << std::endl;
                         
             std::string getProxyReqReturnValue;
-            if ((bool)(*resp) && (bool)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] && (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] != "") getProxyReqReturnValue = (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
-            else throw CREAMClientError("Delegation creating failed.");
+
+            if ((bool)(*resp) && (bool)((*resp)["getProxyReqResponse"]["getProxyReqReturn"]) && ((std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] != "")) {
+	    	getProxyReqReturnValue = (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
+		}
+            else {
+	    	throw CREAMClientError("Delegation creating failed.");
+	    }
             delete resp;
 
             std::string proxy = getProxy();
@@ -377,15 +367,14 @@ namespace Arc{
   
             Arc::PayloadSOAP req2(cream_ns);
             Arc::XMLNode putProxyRequest = req2.NewChild("ns1:putProxy", ns1);
-            
-            Arc::XMLNode delegid_node = putProxyRequest.NewChild("ns1:delegationID", ns1);
+            Arc::XMLNode delegid_node = putProxyRequest.NewChild("delegationID", ns1);
             delegid_node.Set(delegation_id);
-            Arc::XMLNode proxy_node = putProxyRequest.NewChild("ns1:proxy", ns1);
+            Arc::XMLNode proxy_node = putProxyRequest.NewChild("proxy", ns1);
             proxy_node.Set(signedcert);
             resp = NULL;
             
             // Testing: write the outgoing SOAP message
-            req.GetDoc(test,true);
+            req2.GetDoc(test,true);
             std::cout << test << std::endl;
             
             // Send job request

@@ -17,14 +17,19 @@ class GLiteSubTool: public Arc::ClientTool {
         std::cout<<"glitedelegate delegation_id service_url"<<std::endl;
     };
     virtual bool ProcessOption(char option,char* option_arg) {
+	try {
         switch(option) {
-            case 'c': this->config_path=option_arg; break;
+            case 'c': config_path=option_arg; break;
             default: {
                 std::cerr<<"Error processing option: "<<(char)option<<std::endl;
                 PrintHelp();
                 return false;
             };
-        };
+        };} catch (std::exception& ex) {
+	  std::cout << "There was an error(" << option << "): " << std::endl;
+	  std::cout << ex.what() << std::endl;
+	}
+	return true;
     };
 };
 
