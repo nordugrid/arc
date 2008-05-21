@@ -6,7 +6,7 @@
 namespace Arc{
     namespace Cream{
         CREAMClientError::CREAMClientError(const std::string& what) : std::runtime_error(what){  }
-        Arc::Logger CREAMClient::logger(Arc::Logger::rootLogger, "A-REX-Client");
+        Arc::Logger CREAMClient::logger(Arc::Logger::rootLogger, "CREAMClient");
         
         static void set_cream_namespaces(Arc::NS& ns) {
             ns["SOAP-ENV"]="http://schemas.xmlsoap.org/soap/envelope/";
