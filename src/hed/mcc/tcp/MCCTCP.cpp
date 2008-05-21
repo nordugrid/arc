@@ -305,6 +305,51 @@ bool TCPSecAttr::Export(Format format,XMLNode &val) const {
   return false;
 }
 
+static bool get_host_port(struct sockaddr_storage *addr, std::string &host, std::string &port)
+{
+    char buf[INET6_ADDRSTRLEN];
+    const char *ret = NULL;
+    switch (addr->ss_family) {
+        case AF_INET: {
+            struct sockaddr_in *sin = (struct sockaddr_in *)addr;
+            ret = inet_ntop(AF_INET, &(sin->sin_addr), buf, sizeof(buf)-1);
+            if (ret != NULL) {
+                port = tostring(ntohs(sin->sin_port));
+            }
+            break;
+        }
+        case AF_INET6: {
+            struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)addr;
+            if (!IN6_IS_ADDR_V4MAPPED(&(sin6->sin6_addr))) {
+                ret = inet_ntop(AF_INET6, &(sin6->sin6_addr), buf, sizeof(buf)-1);
+            } else {
+                // ipv4 address mapped to ipv6 so resolve as ipv4 address
+                struct sockaddr_in sin;
+                memset(&sin, 0, sizeof(struct sockaddr_in));
+                sin.sin_family = AF_INET;
+                sin.sin_port = sin6->sin6_port;
+                sin.sin_addr.s_addr = ((uint32_t *)&sin6->sin6_addr)[3];
+                memcpy(addr, &sin, sizeof(struct sockaddr_in));
+                ret = inet_ntop(AF_INET, &(sin.sin_addr), buf, sizeof(buf)-1);
+            }
+            if (ret != NULL) {
+                port = tostring(ntohs(sin6->sin6_port));
+            }
+            break;
+        }
+        default:
+            return false;
+            break;
+    }
+    if (ret != NULL) {
+        buf[sizeof(buf)-1] = 0;
+        host = buf;
+    } else {
+        return false;
+    }
+    return true;
+}
+
 void MCC_TCP_Service::executer(void* arg) {
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
@@ -314,26 +359,17 @@ void MCC_TCP_Service::executer(void* arg) {
     std::string endpoint_attr;
     // Extract useful attributes
     {
-        struct sockaddr_in addr;
-        socklen_t addrlen;
+        struct sockaddr_storage addr;
+        size_t addrlen;
         addrlen=sizeof(addr);
-        if(getsockname(s,(sockaddr*)(&addr),&addrlen) == 0) {
-            char buf[256];
-            if(inet_ntop(AF_INET,&addr.sin_addr,buf,sizeof(buf)-1) != NULL) {
-                buf[sizeof(buf)-1]=0;
-                host_attr=buf;
-                port_attr=tostring(ntohs(addr.sin_port));
+        if(getsockname(s, (struct sockaddr*)(&addr), &addrlen) == 0) {
+            if (get_host_port(&addr, host_attr, port_attr) == true) {
                 endpoint_attr = "://"+host_attr+":"+port_attr;
-            };
-        };
-        if(getpeername(s,(sockaddr*)(&addr),&addrlen) == 0) {
-            char buf[256];
-            if(inet_ntop(AF_INET,&addr.sin_addr,buf,sizeof(buf)-1) != NULL) {
-                buf[sizeof(buf)-1]=0;
-                remotehost_attr=buf;
-                remoteport_attr=tostring(ntohs(addr.sin_port));
-            };
-        };
+            }
+        }
+        if(getpeername(s, (struct sockaddr*)&addr, &addrlen) == 0) {
+            get_host_port(&addr, remotehost_attr, remoteport_attr);
+        }
         // SESSIONID
     };
     // Creating stream payload
