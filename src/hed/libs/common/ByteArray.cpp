@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+#include <cstring>
+
 #include "ByteArray.h"
 
 namespace Arc
