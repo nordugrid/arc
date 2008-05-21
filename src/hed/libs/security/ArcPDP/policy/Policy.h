@@ -22,7 +22,7 @@ protected:
   static Arc::Logger logger; 
  
 public:
-  Policy(Arc::XMLNode&){};  
+  Policy(Arc::XMLNode) {};  
   virtual ~Policy(){};
   
   ///Evaluate whether the two targets to be evaluated match to each other
@@ -83,7 +83,7 @@ public:
   */   
   virtual MatchResult match(EvaluationCtx* ctx) = 0;
 
-  ///Evaluete policy
+  ///Evaluate policy
   /*For the <Rule> of Arc, only get the "Effect" from rules; 
     For the <Policy< of Arc, combine the evaluation result from <Rule>
     

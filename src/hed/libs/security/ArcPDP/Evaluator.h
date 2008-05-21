@@ -17,6 +17,19 @@
 
 namespace ArcSec {
 
+typedef enum {
+  /** Evaluation is carried out till any non-matching policy found
+    and all matching policies are discarded from reported list.
+    This is a default behavior. */
+  EvaluatorFailsOnDeny,
+  /** Evaluation is carried out till any non-matching policy found */
+  EvaluatorStopsOnDeny,
+  /** Evaluation is carried out till any matching policy found */
+  EvaluatorStopsOnPermit,
+  /** Evaluation is done till all policies are checked. */
+  EvaluatorStopsNever
+} EvaluatorCombiningAlg;
+
 class Evaluator : public Arc::LoadableClass {
 protected:
   static Arc::Logger logger;
@@ -32,7 +45,8 @@ public:
   Evaluator (const char *) {};
   virtual ~Evaluator() {};
 
-  /**Evaluates the request by using a Request object */
+  /**Evaluates the request by using a Request object.
+    Evaluation is done till at least one of policies is satisfied. */
   virtual Response* evaluate(Request* request) = 0;
 
   /**Evaluates the request by using a XMLNode*/
@@ -56,7 +70,9 @@ public:
   virtual AlgFactory* getAlgFactory () = 0;
 
   /**Add policy to the evaluator*/
-  virtual void addPolicy(std::string policyfile) = 0;
+  virtual void addPolicy(const std::string& policyfile,const std::string& id = "") = 0;
+
+  virtual void setCombiningAlg(EvaluatorCombiningAlg alg) = 0;
 
 protected:
   /**Evaluate the request by using the EvaluationCtx object (which includes the information about request)*/
