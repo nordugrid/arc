@@ -334,7 +334,7 @@ namespace Arc{
             Arc::PayloadSOAP req(cream_ns);
             Arc::NS ns1;
             ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
-            Arc::XMLNode getProxyReqRequest = req.NewChild("ns1:getProxyReqRequest", ns1);
+            Arc::XMLNode getProxyReqRequest = req.NewChild("ns1:getProxyReq", ns1);
             Arc::XMLNode delegid = getProxyReqRequest.NewChild("ns1:delegationID", ns1);
             delegid.Set(delegation_id);
             Arc::PayloadSOAP* resp = NULL;
@@ -363,7 +363,7 @@ namespace Arc{
             std::cout << test << std::endl;
                         
             std::string getProxyReqReturnValue;
-            if ((bool)(*resp) && (bool)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] && (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"] != "") getProxyReqReturnValue = (std::string)(*resp)["JobRegisterResponse"]["getProxyReqReturn"];
+            if ((bool)(*resp) && (bool)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] && (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] != "") getProxyReqReturnValue = (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
             else throw CREAMClientError("Delegation creating failed.");
             delete resp;
 
@@ -376,7 +376,7 @@ namespace Arc{
             signedcert.assign(cert);
   
             Arc::PayloadSOAP req2(cream_ns);
-            Arc::XMLNode putProxyRequest = req2.NewChild("ns1:putProxyRequest", ns1);
+            Arc::XMLNode putProxyRequest = req2.NewChild("ns1:putProxy", ns1);
             
             Arc::XMLNode delegid_node = putProxyRequest.NewChild("ns1:delegationID", ns1);
             delegid_node.Set(delegation_id);
