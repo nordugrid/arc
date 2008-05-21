@@ -728,6 +728,36 @@ namespace Arc {
   }
 
 
+  bool Period::operator<(const Period& othertime) const {
+    return seconds < othertime.GetPeriod();
+  }
+
+
+  bool Period::operator>(const Period& othertime) const {
+    return seconds > othertime.GetPeriod();
+  }
+
+
+  bool Period::operator<=(const Period& othertime) const {
+    return seconds <= othertime.GetPeriod();
+  }
+
+
+  bool Period::operator>=(const Period& othertime) const {
+    return seconds >= othertime.GetPeriod();
+  }
+
+
+  bool Period::operator==(const Period& othertime) const {
+    return seconds == othertime.GetPeriod();
+  }
+
+
+  bool Period::operator!=(const Period& othertime) const {
+    return seconds != othertime.GetPeriod();
+  }
+
+
   std::ostream& operator<<(std::ostream& out, const Period& period) {
     return (out << (std::string) period);
   }

@@ -52,6 +52,24 @@ namespace Arc {
     /** Returns a string representation of the period. */
     operator std::string() const;
 
+    /** Comparing two Period objects. */
+    bool operator<(const Period&) const;
+
+    /** Comparing two Period objects. */
+    bool operator>(const Period&) const;
+
+    /** Comparing two Period objects. */
+    bool operator<=(const Period&) const;
+
+    /** Comparing two Period objects. */
+    bool operator>=(const Period&) const;
+
+    /** Comparing two Period objects. */
+    bool operator==(const Period&) const;
+
+    /** Comparing two Period objects. */
+    bool operator!=(const Period&) const;
+
    private:
     /** The duration of the period */
     time_t seconds;
