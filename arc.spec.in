@@ -22,6 +22,7 @@ BuildRequires: libxml2-devel
 BuildRequires: openssl-devel
 %if %{_vendor} == "suse"
 BuildRequires: openldap2-devel
+BuildRequires: gettext-devel
 %endif
 %if %{_vendor} != "suse"
 BuildRequires: openldap-devel
