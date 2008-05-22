@@ -16,6 +16,7 @@ class GLiteSubTool: public Arc::ClientTool {
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitesub [-c client_config][-D delegation_id] service_url jsdl_file id_file"<<std::endl;
+	exit(1);
     };
     virtual bool ProcessOption(char option,char* option_arg) {
         switch(option) {

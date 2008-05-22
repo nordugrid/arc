@@ -15,6 +15,7 @@ class GLiteSubTool: public Arc::ClientTool {
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitedelegate delegation_id service_url"<<std::endl;
+	exit(1);
     };
     virtual bool ProcessOption(char option,char* option_arg) {
 	try {
