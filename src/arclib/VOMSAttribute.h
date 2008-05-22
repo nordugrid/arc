@@ -191,6 +191,65 @@ typedef struct ACFULLATTRIBUTES {
   STACK_OF(AC_ATT_HOLDER) *providers;
 } AC_FULL_ATTRIBUTES;
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+#define IMPL_STACK(type) \
+   DECLARE_STACK_OF(type) \
+   STACK_OF(type) *sk_##type##_new (int (*cmp)(const type * const *, const type * const *)) \
+       { return sk_new ( (int (*)(const char * const *, const char * const *))cmp);} \
+   STACK_OF(type) *sk_##type##_new_null () { return sk_new_null(); } \
+   void   sk_##type##_free (STACK_OF(type) *st) { sk_free(st); } \
+   int    sk_##type##_num (const STACK_OF(type) *st) { return sk_num(st); } \
+   type  *sk_##type##_value (const STACK_OF(type) *st, int i) { return (type *)sk_value(st, i); } \
+   type  *sk_##type##_set (STACK_OF(type) *st, int i, type *val) { return ((type *)sk_set(st, i, (char *)val)); } \
+   void   sk_##type##_zero (STACK_OF(type) *st) { sk_zero(st);} \
+   int    sk_##type##_push (STACK_OF(type) *st, type *val) { return sk_push(st, (char *)val); } \
+   int    sk_##type##_unshift (STACK_OF(type) *st, type *val) { return sk_unshift(st, (char *)val); } \
+   int    sk_##type##_find (STACK_OF(type) *st, type *val) { return sk_find(st, (char *)val); } \
+   type  *sk_##type##_delete (STACK_OF(type) *st, int i) { return (type *)sk_delete(st, i); } \
+   type  *sk_##type##_delete_ptr (STACK_OF(type) *st, type *ptr) { return (type *)sk_delete_ptr(st, (char *)ptr); } \
+   int    sk_##type##_insert (STACK_OF(type) *st, type *val, int i) { return sk_insert(st, (char *)val, i); } \
+   int (*sk_##type##_set_cmp_func (STACK_OF(type) *st, int (*cmp)(const type * const *, const type * const *)))(const type * const *, const type * const *) \
+       { return (int ((*)(const type * const *, const type * const *)))sk_set_cmp_func (st, (int (*)(const char * const *, const char * const *))cmp); } \
+   STACK_OF(type) *sk_##type##_dup (STACK_OF(type) *st) { return sk_dup(st); } \
+   void   sk_##type##_pop_free (STACK_OF(type) *st, void (*func)(type *)) { sk_pop_free(st, (void (*)(void *))func); } \
+   type  *sk_##type##_shift (STACK_OF(type) *st) { return (type *)sk_shift(st); } \
+   type  *sk_##type##_pop (STACK_OF(type) *st) { return (type *)sk_pop(st); } \
+   void   sk_##type##_sort (STACK_OF(type) *st) { sk_sort(st); } \
+   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **st, const unsigned char **pp, long length, type *(*d2ifunc)(), void (*freefunc)(type *), int ex_tag, int ex_class) \
+       { return d2i_ASN1_SET(st, pp, length, (void*(*)(void**, const unsigned char**, long int))d2ifunc, (void (*)(void *))freefunc, ex_tag, ex_class); } \
+   int i2d_ASN1_SET_OF_##type (STACK_OF(type) *st, unsigned char **pp, int (*i2dfunc)(void*, unsigned char**), int ex_tag, int ex_class, int is_set) \
+       { return i2d_ASN1_SET(st, pp, i2dfunc, ex_tag, ex_class, is_set); }  \
+   unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *st, int (*i2d)(void*, unsigned char**), unsigned char **buf, int *len) { return ASN1_seq_pack(st, i2d, buf, len); } \
+   STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *buf, int len, type *(*d2i)(), void (*freefunc)(type *)) \
+       { return ASN1_seq_unpack(buf, len, (void*(*)(void**, const unsigned char**, long int))d2i, (void (*)(void *))freefunc); }
+
+#define DECL_STACK(type) \
+   DECLARE_STACK_OF(type) \
+   STACK_OF(type) *sk_##type##_new (int (*)(const type * const *, const type * const *)); \
+   STACK_OF(type) *sk_##type##_new_null (); \
+   void   sk_##type##_free (STACK_OF(type) *); \
+   int    sk_##type##_num (const STACK_OF(type) *); \
+   type  *sk_##type##_value (const STACK_OF(type) *, int); \
+   type  *sk_##type##_set (STACK_OF(type) *, int, type *); \
+   void   sk_##type##_zero (STACK_OF(type) *); \
+   int    sk_##type##_push (STACK_OF(type) *, type *); \
+   int    sk_##type##_unshift (STACK_OF(type) *, type *); \
+   int    sk_##type##_find (STACK_OF(type) *, type *); \
+   type  *sk_##type##_delete (STACK_OF(type) *, int); \
+   type  *sk_##type##_delete_ptr (STACK_OF(type) *, type *); \
+   int    sk_##type##_insert (STACK_OF(type) *, type *, int); \
+   int (*sk_##type##_set_cmp_func (STACK_OF(type) *, int (*)(const type * const *, const type * const *)))(const type * const *, const type * const *); \
+   STACK_OF(type) *sk_##type##_dup (STACK_OF(type) *); \
+   void   sk_##type##_pop_free (STACK_OF(type) *, void (*)(type *)); \
+   type  *sk_##type##_shift (STACK_OF(type) *); \
+   type  *sk_##type##_pop (STACK_OF(type) *); \
+   void   sk_##type##_sort (STACK_OF(type) *); \
+   STACK_OF(type) *d2i_ASN1_SET_OF_##type (STACK_OF(type) **, const unsigned char **, long, type *(*)(), void (*)(type *), int, int); \
+   int i2d_ASN1_SET_OF_##type (STACK_OF(type) *, unsigned char **, int (*)(void*, unsigned char**), int, int, int); \
+   unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *, int (*)(void*, unsigned char**), unsigned char **, int *); \
+   STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *, int, type *(*)(), void (*)(type *)) ;
+
+#else
 #define IMPL_STACK(type) \
    DECLARE_STACK_OF(type) \
    STACK_OF(type) *sk_##type##_new (int (*cmp)(const type * const *, const type * const *)) \
@@ -222,7 +281,6 @@ typedef struct ACFULLATTRIBUTES {
    STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *buf, int len, type *(*d2i)(), void (*freefunc)(type *)) \
        { return ASN1_seq_unpack(buf, len, (char *(*)())d2i, (void (*)(void *))freefunc); }
 
-
 #define DECL_STACK(type) \
    DECLARE_STACK_OF(type) \
    STACK_OF(type) *sk_##type##_new (int (*)(const type * const *, const type * const *)); \
@@ -248,6 +306,7 @@ typedef struct ACFULLATTRIBUTES {
    int i2d_ASN1_SET_OF_##type (STACK_OF(type) *, unsigned char **, int (*)(), int, int, int); \
    unsigned char *ASN1_seq_pack_##type (STACK_OF(type) *, int (*)(), unsigned char **, int *); \
    STACK_OF(type) *ASN1_seq_unpack_##type (unsigned char *, int, type *(*)(), void (*)(type *)) ;
+#endif
 
 DECL_STACK(AC_TARGET)
 DECL_STACK(AC_TARGETS)
@@ -272,7 +331,11 @@ DECL_STACK(AC_FULL_ATTRIBUTES)
 
 
 int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, const unsigned char **p, long length);
+#else
 AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, unsigned char **p, long length);
+#endif
 AC_ATTR *AC_ATTR_new();
 void AC_ATTR_free(AC_ATTR *a);
 int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp);
@@ -284,15 +347,27 @@ AC_IETFATTRVAL *d2i_AC_IETFATTRVAL(AC_IETFATTRVAL **a, unsigned char **pp, long 
 AC_IETFATTRVAL *AC_IETFATTRVAL_new();
 void AC_IETFATTRVAL_free(AC_IETFATTRVAL *a);
 int i2d_AC_DIGEST(AC_DIGEST *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, const unsigned char **pp, long length);
+#else
 AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, unsigned char **pp, long length);;
+#endif
 AC_DIGEST *AC_DIGEST_new(void);
 void AC_DIGEST_free(AC_DIGEST *a);
 int i2d_AC_IS(AC_IS *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_IS *d2i_AC_IS(AC_IS **a, const unsigned char **pp, long length);
+#else
 AC_IS *d2i_AC_IS(AC_IS **a, unsigned char **pp, long length);
+#endif
 AC_IS *AC_IS_new(void);
 void AC_IS_free(AC_IS *a);
 int i2d_AC_FORM(AC_FORM *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_FORM *d2i_AC_FORM(AC_FORM **a, const unsigned char **pp, long length);
+#else
 AC_FORM *d2i_AC_FORM(AC_FORM **a, unsigned char **pp, long length);
+#endif
 AC_FORM *AC_FORM_new(void);
 void AC_FORM_free(AC_FORM *a);
 int i2d_AC_ACI(AC_ACI *a, unsigned char **pp);
@@ -301,19 +376,31 @@ AC_ACI *AC_ACI_new(void);
 void AC_ACI_free(AC_ACI *a);
 
 int i2d_AC_HOLDER(AC_HOLDER *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, const unsigned char **pp, long length);
+#else
 AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, unsigned char **pp, long length);
+#endif
 AC_HOLDER *AC_HOLDER_new(void);
 void AC_HOLDER_free(AC_HOLDER *a);
 
 /* new AC_VAL functions by Valerio */
 int i2d_AC_VAL(AC_VAL *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_VAL *d2i_AC_VAL(AC_VAL **a, const unsigned char **pp, long length);
+#else
 AC_VAL *d2i_AC_VAL(AC_VAL **a, unsigned char **pp, long length);
+#endif
 AC_VAL *AC_VAL_new(void);
 void AC_VAL_free(AC_VAL *a);
 /* end*/
 
 int i2d_AC_INFO(AC_INFO *a, unsigned char **pp);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_INFO *d2i_AC_INFO(AC_INFO **a, const unsigned char **p, long length);
+#else
 AC_INFO *d2i_AC_INFO(AC_INFO **a, unsigned char **p, long length);
+#endif
 AC_INFO *AC_INFO_new(void);
 void AC_INFO_free(AC_INFO *a);
 int i2d_AC(AC *a, unsigned char **pp) ;
@@ -325,7 +412,11 @@ AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, unsigned char **pp, long length);
 AC_TARGETS *AC_TARGETS_new(void);
 void AC_TARGETS_free(AC_TARGETS *a);
 int i2d_AC_TARGET(AC_TARGET *a, unsigned char **pp) ;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, const unsigned char **pp, long length);
+#else
 AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, unsigned char **pp, long length);
+#endif
 AC_TARGET *AC_TARGET_new(void);
 void AC_TARGET_free(AC_TARGET *a);
 int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp) ;

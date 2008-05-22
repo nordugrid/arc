@@ -9,12 +9,21 @@
 namespace ArcLib {
 
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
 #define M_ASN1_D2I_get_imp_set(r,func,free_func,a,b) \
 	c.q=c.p; \
-	if (d2i_ASN1_SET(&(r),&c.p,c.slen,(char *(*)())func,\
+	if (d2i_ASN1_SET(&(r),&c.p,c.slen,(void*(*)(void**, const unsigned char**, long int))func,\
 		(void (*)(void*))free_func,a,b) == NULL) \
 		{ c.line=__LINE__; goto err; } \
 	c.slen-=(c.p-c.q);
+#else
+#define M_ASN1_D2I_get_imp_set(r,func,free_func,a,b) \
+        c.q=c.p; \
+        if (d2i_ASN1_SET(&(r),&c.p,c.slen,(char *(*)())func,\
+                (void (*)(void*))free_func,a,b) == NULL) \
+                { c.line=__LINE__; goto err; } \
+        c.slen-=(c.p-c.q);
+#endif
 
 #define M_ASN1_D2I_get_seq(r,func,free_func) \
 		M_ASN1_D2I_get_imp_set(r,func,free_func,\
@@ -32,14 +41,25 @@ int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
     return 0;
   
   M_ASN1_I2D_len(a->type, i2d_ASN1_OBJECT);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SET_type(AC_IETFATTR, a->ietfattr, (int (*)(void*, unsigned char**))i2d_AC_IETFATTR);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put(a->type, i2d_ASN1_OBJECT);
+  M_ASN1_I2D_put_SET_type(AC_IETFATTR,a->ietfattr, (int (*)(void*, unsigned char**))i2d_AC_IETFATTR);
+#else
   M_ASN1_I2D_len_SET_type(AC_IETFATTR, a->ietfattr, (int (*)())i2d_AC_IETFATTR);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put(a->type, i2d_ASN1_OBJECT);
   M_ASN1_I2D_put_SET_type(AC_IETFATTR,a->ietfattr, (int (*)())i2d_AC_IETFATTR);
+#endif
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, const unsigned char **pp, long length)
+#else
 AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, unsigned char **pp, long length)
+#endif
 {
   char text[1000];
 
@@ -83,11 +103,19 @@ int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
   M_ASN1_I2D_len_IMP_opt(a->names, i2d_GENERAL_NAMES);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->values, (int (*)(void*, unsigned char**))i2d_AC_IETFATTRVAL);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->values,  (int (*)())i2d_AC_IETFATTRVAL);
+#endif
   M_ASN1_I2D_seq_total();
 
   M_ASN1_I2D_put_IMP_opt(a->names, i2d_GENERAL_NAMES, 0);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_put_SEQUENCE(a->values,  (int (*)(void*, unsigned char**))i2d_AC_IETFATTRVAL);
+#else
   M_ASN1_I2D_put_SEQUENCE(a->values,  (int (*)())i2d_AC_IETFATTRVAL);
+#endif
   M_ASN1_I2D_finish();
 }
 
@@ -98,7 +126,11 @@ AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, unsigned char **pp, long length)
   M_ASN1_D2I_Init();
   M_ASN1_D2I_start_sequence();
   M_ASN1_D2I_get_IMP_opt(ret->names, d2i_GENERAL_NAMES, 0, V_ASN1_SEQUENCE);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
   M_ASN1_D2I_get_seq(ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
+#else
+  M_ASN1_D2I_get_seq(ret->values, d2i_AC_IETFATTRVAL, AC_IETFATTRVAL_free);
+#endif
   M_ASN1_D2I_Finish(a, AC_IETFATTR_free, ASN1_F_D2I_AC_IETFATTR);
 }
 
@@ -139,11 +171,19 @@ AC_IETFATTRVAL *d2i_AC_IETFATTRVAL(AC_IETFATTRVAL **a, unsigned char **pp, long 
   unsigned char tag;
   tag = **pp & ~V_ASN1_CONSTRUCTED;
   if (tag == (V_ASN1_OCTET_STRING|V_ASN1_UNIVERSAL))
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+    return d2i_ASN1_OCTET_STRING(a, (const unsigned char**)pp, length);
+  if (tag == (V_ASN1_OBJECT|V_ASN1_UNIVERSAL))
+    return (AC_IETFATTRVAL *)d2i_ASN1_OBJECT((ASN1_OBJECT **)a, (const unsigned char**)pp, length);
+  if (tag == (V_ASN1_UTF8STRING|V_ASN1_UNIVERSAL))
+    return d2i_ASN1_UTF8STRING(a, (const unsigned char**)pp, length);
+#else
     return d2i_ASN1_OCTET_STRING(a, pp, length);
   if (tag == (V_ASN1_OBJECT|V_ASN1_UNIVERSAL))
     return (AC_IETFATTRVAL *)d2i_ASN1_OBJECT((ASN1_OBJECT **)a, pp, length);
   if (tag == (V_ASN1_UTF8STRING|V_ASN1_UNIVERSAL))
     return d2i_ASN1_UTF8STRING(a, pp, length);
+#endif
   ASN1err(ASN1_F_D2I_AC_IETFATTRVAL, ASN1_R_WRONG_TYPE);
   return (NULL);
 }
@@ -174,7 +214,11 @@ int i2d_AC_DIGEST(AC_DIGEST *a, unsigned char **pp)
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, const unsigned char **pp, long length)
+#else
 AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_DIGEST *, AC_DIGEST_new);
 
@@ -227,7 +271,11 @@ int i2d_AC_IS(AC_IS *a, unsigned char **pp)
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_IS *d2i_AC_IS(AC_IS **a, const unsigned char **pp, long length)
+#else
 AC_IS *d2i_AC_IS(AC_IS **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_IS *, AC_IS_new);
 
@@ -277,7 +325,11 @@ int i2d_AC_FORM(AC_FORM *a, unsigned char **pp)
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_FORM *d2i_AC_FORM(AC_FORM **a, const unsigned char **pp, long length)
+#else
 AC_FORM *d2i_AC_FORM(AC_FORM **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_FORM *, AC_FORM_new);
 
@@ -367,7 +419,11 @@ int i2d_AC_HOLDER(AC_HOLDER *a, unsigned char **pp)
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, const unsigned char **pp, long length)
+#else
 AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_HOLDER *, AC_HOLDER_new);
 
@@ -431,7 +487,11 @@ int i2d_AC_VAL(AC_VAL *a, unsigned char **pp)
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_VAL *d2i_AC_VAL(AC_VAL **a, const unsigned char **pp, long length)
+#else
 AC_VAL *d2i_AC_VAL(AC_VAL **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_VAL *, AC_VAL_new);
 
@@ -465,9 +525,15 @@ int i2d_AC_INFO(AC_INFO *a, unsigned char **pp)
   M_ASN1_I2D_len(a->alg,      i2d_X509_ALGOR);
   M_ASN1_I2D_len(a->serial,   i2d_ASN1_INTEGER);
   M_ASN1_I2D_len(a->validity, i2d_AC_VAL);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->attrib, (int (*)(void*, unsigned char**))i2d_AC_ATTR);
+  M_ASN1_I2D_len_IMP_opt(a->id,       i2d_ASN1_BIT_STRING);
+  M_ASN1_I2D_len_SEQUENCE_opt(a->exts, (int (*)(void*, unsigned char**))i2d_X509_EXTENSION);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->attrib, (int (*)())i2d_AC_ATTR);
   M_ASN1_I2D_len_IMP_opt(a->id,       i2d_ASN1_BIT_STRING);
   M_ASN1_I2D_len_SEQUENCE_opt(a->exts, (int (*)())i2d_X509_EXTENSION);
+#endif
   M_ASN1_I2D_seq_total();
 
   M_ASN1_I2D_put(a->version,  i2d_ASN1_INTEGER);
@@ -476,13 +542,23 @@ int i2d_AC_INFO(AC_INFO *a, unsigned char **pp)
   M_ASN1_I2D_put(a->alg,      i2d_X509_ALGOR);
   M_ASN1_I2D_put(a->serial,   i2d_ASN1_INTEGER);
   M_ASN1_I2D_put(a->validity, i2d_AC_VAL);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_put_SEQUENCE(a->attrib, (int (*)(void*, unsigned char**))i2d_AC_ATTR);
+  M_ASN1_I2D_put_IMP_opt(a->id,       i2d_ASN1_BIT_STRING, V_ASN1_BIT_STRING);
+  M_ASN1_I2D_put_SEQUENCE_opt(a->exts, (int (*)(void*, unsigned char**))i2d_X509_EXTENSION);
+#else
   M_ASN1_I2D_put_SEQUENCE(a->attrib, (int (*)())i2d_AC_ATTR);
   M_ASN1_I2D_put_IMP_opt(a->id,       i2d_ASN1_BIT_STRING, V_ASN1_BIT_STRING);
   M_ASN1_I2D_put_SEQUENCE_opt(a->exts, (int (*)())i2d_X509_EXTENSION);
+#endif
   M_ASN1_I2D_finish();
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_INFO *d2i_AC_INFO(AC_INFO **a, const unsigned char **pp, long length)
+#else
 AC_INFO *d2i_AC_INFO(AC_INFO **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_INFO *, AC_INFO_new);
 
@@ -591,9 +667,15 @@ void AC_free(AC *a)
 int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->acs, (int (*)(void*, unsigned char**))i2d_AC);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put_SEQUENCE(a->acs, (int (*)(void*, unsigned char**))i2d_AC);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->acs, (int (*)())i2d_AC);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put_SEQUENCE(a->acs, (int (*)())i2d_AC);
+#endif
   M_ASN1_I2D_finish();
 }
 
@@ -629,9 +711,15 @@ void AC_SEQ_free(AC_SEQ *a)
 int i2d_AC_TARGETS(AC_TARGETS *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->targets, (int (*)(void*, unsigned char**))i2d_AC_TARGET);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put_SEQUENCE(a->targets, (int (*)(void*, unsigned char**))i2d_AC_TARGET);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->targets, (int (*)())i2d_AC_TARGET);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put_SEQUENCE(a->targets, (int (*)())i2d_AC_TARGET);
+#endif
   M_ASN1_I2D_finish();
 }
 AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, unsigned char **pp, long length)
@@ -677,8 +765,11 @@ int i2d_AC_TARGET(AC_TARGET *a, unsigned char **pp)
   M_ASN1_I2D_put_EXP_opt(a->cert, i2d_AC_IS, 2, v3);
   M_ASN1_I2D_finish();
 }
-
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, const unsigned char **pp, long length)
+#else
 AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, unsigned char **pp, long length)
+#endif
 {
   M_ASN1_D2I_vars(a, AC_TARGET *, AC_TARGET_new);
 
@@ -716,9 +807,15 @@ int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp)
   //int v1=0, v2=0, v3=0;
 
   M_ASN1_I2D_vars(a);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->stackcert, (int (*)(void*, unsigned char**))i2d_X509);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put_SEQUENCE(a->stackcert, (int (*)(void*, unsigned char**))i2d_X509);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->stackcert, (int (*)())i2d_X509);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put_SEQUENCE(a->stackcert, (int (*)())i2d_X509);
+#endif
   M_ASN1_I2D_finish();
 }
 
@@ -808,11 +905,17 @@ int i2d_AC_ATT_HOLDER(AC_ATT_HOLDER *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
   M_ASN1_I2D_len(a->grantor,      i2d_GENERAL_NAMES);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->attributes, (int (*)(void*, unsigned char**))i2d_AC_ATTRIBUTE);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put(a->grantor,      i2d_GENERAL_NAMES);
+  M_ASN1_I2D_put_SEQUENCE(a->attributes, (int (*)(void*, unsigned char**))i2d_AC_ATTRIBUTE);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->attributes, (int (*)())i2d_AC_ATTRIBUTE);
   M_ASN1_I2D_seq_total();
-
   M_ASN1_I2D_put(a->grantor,      i2d_GENERAL_NAMES);
   M_ASN1_I2D_put_SEQUENCE(a->attributes, (int (*)())i2d_AC_ATTRIBUTE);
+#endif
   M_ASN1_I2D_finish();
 }
 
@@ -853,9 +956,15 @@ void AC_ATT_HOLDER_free(AC_ATT_HOLDER *a)
 int i2d_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES *a, unsigned char **pp)
 {
   M_ASN1_I2D_vars(a);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+  M_ASN1_I2D_len_SEQUENCE(a->providers, (int (*)(void*, unsigned char**))i2d_AC_ATT_HOLDER);
+  M_ASN1_I2D_seq_total();
+  M_ASN1_I2D_put_SEQUENCE(a->providers, (int (*)(void*, unsigned char**))i2d_AC_ATT_HOLDER);
+#else
   M_ASN1_I2D_len_SEQUENCE(a->providers, (int (*)())i2d_AC_ATT_HOLDER);
   M_ASN1_I2D_seq_total();
   M_ASN1_I2D_put_SEQUENCE(a->providers, (int (*)())i2d_AC_ATT_HOLDER);
+#endif
   M_ASN1_I2D_finish();
 }
 
@@ -1014,11 +1123,17 @@ void *attributes_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char 
     a->providers = sk_AC_ATT_HOLDER_new_null();
 /*     a->providers = sk_AC_ATT_HOLDER_dup(stack); */
     for (i = 0; i < sk_AC_ATT_HOLDER_num(stack); i++) 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+      sk_AC_ATT_HOLDER_push(a->providers,
+                            (AC_ATT_HOLDER *)ASN1_dup((int (*)(void*, unsigned char**))i2d_AC_ATT_HOLDER,
+                                                      (void*(*)(void**, const unsigned char**, long int))d2i_AC_ATT_HOLDER, 
+                                                      (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
+#else
       sk_AC_ATT_HOLDER_push(a->providers,
                             (AC_ATT_HOLDER *)ASN1_dup((int (*)())i2d_AC_ATT_HOLDER,
-                                                      (char * (*)())d2i_AC_ATT_HOLDER, 
+                                                      (char * (*)())d2i_AC_ATT_HOLDER,
                                                       (char *)(sk_AC_ATT_HOLDER_value(stack, i))));
-
+#endif
     
     return a;
   }
