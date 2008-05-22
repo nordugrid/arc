@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <arc/misc/ClientTool.h>
+#include <cstdlib>
 #include "cream_client.h"
 
 class GLiteSubTool: public Arc::ClientTool {
@@ -16,7 +17,7 @@ class GLiteSubTool: public Arc::ClientTool {
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitesub [-c client_config][-D delegation_id] service_url jsdl_file id_file"<<std::endl;
-	exit(1);
+        exit(1);
     };
     virtual bool ProcessOption(char option,char* option_arg) {
         switch(option) {
@@ -27,8 +28,8 @@ class GLiteSubTool: public Arc::ClientTool {
                 PrintHelp();
                 return false;
             };
-	};
-	return true;
+        };
+        return true;
     };
 };
 

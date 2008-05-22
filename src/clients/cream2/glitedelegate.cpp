@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <arc/misc/ClientTool.h>
+#include <cstdlib>
 #include "cream_client.h"
 
 class GLiteSubTool: public Arc::ClientTool {
@@ -15,10 +16,10 @@ class GLiteSubTool: public Arc::ClientTool {
         };
     virtual void PrintHelp(void) {
         std::cout<<"glitedelegate delegation_id service_url"<<std::endl;
-	exit(1);
+        exit(1);
     };
     virtual bool ProcessOption(char option,char* option_arg) {
-	try {
+        try {
         switch(option) {
             case 'c': config_path=option_arg; break;
             default: {
@@ -27,10 +28,10 @@ class GLiteSubTool: public Arc::ClientTool {
                 return false;
             };
         };} catch (std::exception& ex) {
-	  std::cout << "There was an error(" << option << "): " << std::endl;
-	  std::cout << ex.what() << std::endl;
-	}
-	return true;
+          std::cout << "There was an error(" << option << "): " << std::endl;
+          std::cout << ex.what() << std::endl;
+        }
+        return true;
     };
 };
 

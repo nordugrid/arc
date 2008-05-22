@@ -5,12 +5,12 @@
 #include <string>
 #include <stdexcept>
 #include <arc/misc/ClientTool.h>
+#include <cstdlib>
 #include "cream_client.h"
 
 class GLiteSubTool: public Arc::ClientTool {
     public:
         std::string config_path;
-
         GLiteSubTool(int argc,char* argv[]):Arc::ClientTool("glitestat") {
             ProcessOptions(argc,argv,"c:");
         };
