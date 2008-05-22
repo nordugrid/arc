@@ -51,6 +51,9 @@ requirements is shown:
       - Globus RLS client
       - Globus FTP client
       - Globus RSL
+    o LHC File Catalog (LFC) (https://savannah.cern.ch/projects/jra1mdw/) (build, run)
+    o CppUnit for unit testing (build)
+    o Berkeley DB C++ interface (build, run)
 
 Please note that depending on operating system distribution in order to 
 build ARC1 you may need to install development versions of mentioned 
