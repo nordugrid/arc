@@ -22,7 +22,6 @@ namespace Arc {
     void InterrogateTarget(TargetGenerator& mom, URL& url,
 			   int targetType, int detailLevel);
     static ACC *Instance(Config *cfg, ChainContext *ctx);
-    std::list<std::string> getAttribute(std::string attr, XMLNode& node);
 
   private:
     static Logger logger;
