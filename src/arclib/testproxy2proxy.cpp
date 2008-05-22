@@ -17,11 +17,14 @@ int main(void) {
 
   std::string cafile("./ca.pem");
 
+  int keybits = 1024;
+  int proxydepth = 10;
+
   /**Generate a proxy certificate based on existing proxy certificate*/
   //Request side
   std::string req_file1("./request1.pem");
   std::string out_file1("./proxy1.pem");
-  ArcLib::Credential request1(Arc::Time(), Arc::Period(168*3600), 1024, "rfc", "independent", "", 10);
+  ArcLib::Credential request1(Arc::Time(), Arc::Period(168*3600), keybits, "rfc", "independent", "", proxydepth);
   request1.GenerateRequest(req_file1.c_str());
 
   //Signing side
@@ -46,7 +49,7 @@ int main(void) {
   //Generate one more proxy based on the proxy which just has been generated
   std::string req_file2("./request2.pem");
   std::string out_file2("./proxy2.pem");
-  ArcLib::Credential request2(Arc::Time(), Arc::Period(168*3600), 1024,  "rfc", "independent", "", 20);
+  ArcLib::Credential request2(Arc::Time(), Arc::Period(168*3600), keybits,  "rfc", "independent", "", proxydepth);
   request2.GenerateRequest(req_file2.c_str());
 
   //Signing side
