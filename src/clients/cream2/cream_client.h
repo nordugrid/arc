@@ -31,6 +31,7 @@ namespace Arc{
                 void setDelegationId(std::string delegId) { this->delegationId = delegId; };
             
                 void createDelegation(std::string& delegation_id) throw(CREAMClientError);
+                void destroyDelegation(std::string& delegation_id) throw(CREAMClientError);
                 std::string registerJob(std::string& jsdl_text) throw(CREAMClientError);
                 void startJob(const std::string& jobid) throw(CREAMClientError);
                 std::string submit(std::string& jsdl_text) throw(CREAMClientError);

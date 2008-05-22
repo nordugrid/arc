@@ -398,5 +398,46 @@ namespace Arc{
             //Error handling!!!
             
         } // CREAMClient::createDelegation()
+	
+	void CREAMClient::destroyDelegation(std::string& delegation_id) throw(CREAMClientError) {
+            logger.msg(Arc::INFO, "Creating delegation.");
+            
+            Arc::PayloadSOAP req(cream_ns);
+            Arc::NS ns1;
+            ns1["ns1"]="http://www.gridsite.org/namespaces/delegation-2";
+            Arc::XMLNode getProxyReqRequest = req.NewChild("ns1:destroy", ns1);
+            Arc::XMLNode delegid = getProxyReqRequest.NewChild("delegationID", ns1);
+            delegid.Set(delegation_id);
+            Arc::PayloadSOAP* resp = NULL;
+            
+            // Testing: write the outgoing SOAP message
+            std::string test;
+            req.GetDoc(test,true);
+            std::cout << test << std::endl;
+            
+            // Send job request
+            if(client) {
+                Arc::MCC_Status status = client->process("", &req,&resp);
+                if(!status) {
+                    logger.msg(Arc::ERROR, "Submission request failed.");
+                    throw CREAMClientError("Submission request failed.");
+                }
+                if(resp == NULL) {
+                    logger.msg(Arc::ERROR,"There was no SOAP response.");
+                    throw CREAMClientError("There was no SOAP response.");
+                };
+            } else throw CREAMClientError("There is no connection chain configured.");
+
+            // Testing: write the incoming SOAP message
+            std::cout << "destroyProxyResponse:" << std::endl;
+            (*resp).GetDoc(test,true);
+            std::cout << test << std::endl;
+                        
+            std::string getProxyReqReturnValue;
+
+            if (!(bool)(*resp) || !(bool)((*resp)["destroyResponse"])) throw CREAMClientError("Delegation destroying failed.");
+            delete resp;
+            
+        } // CREAMClient::destroyDelegation()
     } // namespace cream
 } // namespace arc
