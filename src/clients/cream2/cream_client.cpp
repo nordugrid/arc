@@ -21,8 +21,8 @@ namespace Arc{
         CREAMClient::CREAMClient(const Arc::URL& url, const Arc::MCCConfig& cfg) throw(CREAMClientError):client(NULL) {
             logger.msg(Arc::INFO, "Creating a CREAM client.");
             Arc::MCCConfig modified_cfg = cfg;
-	    std::stringstream uid;
-	    uid << "/tmp/x509up_u" << getuid() ;
+            std::stringstream uid;
+            uid << "/tmp/x509up_u" << getuid() ;
             modified_cfg.AddProxy(uid.str());
             client = new Arc::ClientSOAP(modified_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
             set_cream_namespaces(cream_ns);
@@ -68,14 +68,14 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            Arc::XMLNode name, failureReason;
+            Arc::XMLNode name, failureReason, fault;
             (*resp)["JobStatusResponse"]["result"]["jobStatus"]["name"].New(name);
             if ((*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"]) (*resp)["JobStatusResponse"]["result"]["jobStatus"]["failureReason"].New(failureReason);
             std::string statusarc;
             std::string status = (std::string)name;
             std::string faultstring = (std::string)failureReason;
-	    
-	    std::string result = (std::string)name;
+            
+            std::string result = (std::string)name;
             if ((*resp)["JobStatusResponse"]["result"]["JobUnknownFault"]) (*resp)["JobStatusResponse"]["result"]["JobUnknownFault"].New(fault);
             if ((*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"].New(fault);
             if ((*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
@@ -366,11 +366,11 @@ namespace Arc{
             std::string getProxyReqReturnValue;
 
             if ((bool)(*resp) && (bool)((*resp)["getProxyReqResponse"]["getProxyReqReturn"]) && ((std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"] != "")) {
-	    	getProxyReqReturnValue = (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
-		}
+                getProxyReqReturnValue = (std::string)(*resp)["getProxyReqResponse"]["getProxyReqReturn"];
+            }
             else {
-	    	throw CREAMClientError("Delegation creating failed.");
-	    }
+                throw CREAMClientError("Delegation creating failed.");
+            }
             delete resp;
 
             std::string proxy = getProxy();
@@ -415,8 +415,8 @@ namespace Arc{
             delete resp;
             
         } // CREAMClient::createDelegation()
-	
-	void CREAMClient::destroyDelegation(std::string& delegation_id) throw(CREAMClientError) {
+        
+        void CREAMClient::destroyDelegation(std::string& delegation_id) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating delegation.");
             
             Arc::PayloadSOAP req(cream_ns);
