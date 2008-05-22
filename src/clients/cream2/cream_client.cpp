@@ -74,7 +74,16 @@ namespace Arc{
             std::string statusarc;
             std::string status = (std::string)name;
             std::string faultstring = (std::string)failureReason;
+	    
+	    std::string result = (std::string)name;
+            if ((*resp)["JobStatusResponse"]["result"]["JobUnknownFault"]) (*resp)["JobStatusResponse"]["result"]["JobUnknownFault"].New(fault);
+            if ((*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobStatusResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+            if ((*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobStatusResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+            if ((*resp)["JobStatusResponse"]["result"]["DateMismatchFault"]) (*resp)["JobStatusResponse"]["result"]["DateMismatchFault"].New(fault);
+            if ((*resp)["JobStatusResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobStatusResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+            if ((*resp)["JobStatusResponse"]["result"]["GenericFault"]) (*resp)["JobStatusResponse"]["result"]["GenericFault"].New(fault);
             delete resp;
+            if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
             
             //translate to ARC terminology
             if (!status.compare("REGISTERED")) statusarc.assign("ACCEPTING");
@@ -225,22 +234,24 @@ namespace Arc{
                     throw CREAMClientError("There was no SOAP response.");
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
-            Arc::XMLNode id, fs;
+            Arc::XMLNode id, fault;
             (*resp)["JobRegisterResponse"]["result"]["jobId"]["id"].New(id);
-            (*resp)["Fault"]["faultstring"].New(fs);
 
             // Testing: write the incoming SOAP message
             std::cout << "jobRegisterResponse:" << std::endl;
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
 
-            std::string faultstring = (std::string)fs;
+            std::string result = (std::string)id;
+            if ((*resp)["JobRegisterResponse"]["result"]["JobUnknownFault"]) (*resp)["JobRegisterResponse"]["result"]["JobUnknownFault"].New(fault);
+            if ((*resp)["JobRegisterResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobRegisterResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+            if ((*resp)["JobRegisterResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobRegisterResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+            if ((*resp)["JobRegisterResponse"]["result"]["DateMismatchFault"]) (*resp)["JobRegisterResponse"]["result"]["DateMismatchFault"].New(fault);
+            if ((*resp)["JobRegisterResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobRegisterResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+            if ((*resp)["JobRegisterResponse"]["result"]["GenericFault"]) (*resp)["JobRegisterResponse"]["result"]["GenericFault"].New(fault);
             delete resp;
-            if (faultstring=="" && (std::string)id != "") return (std::string)id;
-            else {
-	        if (faultstring != "") throw CREAMClientError(faultstring);
-	        if ( (std::string)id  == "") throw CREAMClientError("No job ID has been received");
-	    }
+            if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
+            if (result=="") throw CREAMClientError("No job ID has been received");
         } // CREAMClient::registerJob()
        
         void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError) {
@@ -276,19 +287,24 @@ namespace Arc{
                     throw CREAMClientError("There was no SOAP response.");
                 };
             } else throw CREAMClientError("There is no connection chain configured.");
-            Arc::XMLNode id, fs;
+            Arc::XMLNode id, fault;
             (*resp)["JobStartResponse"]["result"]["jobId"]["id"].New(id);
-            (*resp)["Fault"]["faultstring"].New(fs);
 
             // Testing: write the incoming SOAP message
             std::cout << "jobStartResponse:" << std::endl;
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            std::string faultstring = (std::string)fs;
+            std::string result = (std::string)id;
+            if ((*resp)["JobStartResponse"]["result"]["JobUnknownFault"]) (*resp)["JobStartResponse"]["result"]["JobUnknownFault"].New(fault);
+            if ((*resp)["JobStartResponse"]["result"]["JobStatusInvalidFault"]) (*resp)["JobStartResponse"]["result"]["JobStatusInvalidFault"].New(fault);
+            if ((*resp)["JobStartResponse"]["result"]["DelegationIdMismatchFault"]) (*resp)["JobStartResponse"]["result"]["DelegationIdMismatchFault"].New(fault);
+            if ((*resp)["JobStartResponse"]["result"]["DateMismatchFault"]) (*resp)["JobStartResponse"]["result"]["DateMismatchFault"].New(fault);
+            if ((*resp)["JobStartResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobStartResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
+            if ((*resp)["JobStartResponse"]["result"]["GenericFault"]) (*resp)["JobStartResponse"]["result"]["GenericFault"].New(fault);
             delete resp;
-            if (faultstring!="") throw CREAMClientError(faultstring);
-            if (!(bool)id && (std::string)id=="") throw CREAMClientError("Job starting failed.");
+            if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
+            if (result=="") throw CREAMClientError("Job starting failed.");
         } // CREAMClient::startJob()
        
         std::string CREAMClient::submit(std::string& jsdl_text) throw(CREAMClientError) {
@@ -395,7 +411,8 @@ namespace Arc{
             (*resp).GetDoc(test,true);
             std::cout << test << std::endl;
             
-            //Error handling!!!
+            if (!(bool)(*resp) || !(bool)((*resp)["putProxyResponse"])) throw CREAMClientError("Delegation creating failed.");
+            delete resp;
             
         } // CREAMClient::createDelegation()
 	
