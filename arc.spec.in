@@ -223,6 +223,7 @@ exit 0
 %{_bindir}/glitekill
 %{_bindir}/gliteclean
 %{_bindir}/glitedelegate
+%{_bindir}/gliteundelegate
 
 %files server
 %defattr(-,root,root,-)
