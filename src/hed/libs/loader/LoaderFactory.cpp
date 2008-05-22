@@ -74,7 +74,7 @@ void LoaderFactory::load_all_instances(const std::string& libname) {
     // Load module
     Glib::Module *module = ModuleManager::load(libname);
     if (module == NULL) {
-      Loader::logger.msg(ERROR, "Module %s could not be loaded", libname);
+      Loader::logger.msg(INFO, "Module %s could not be loaded", libname);
       return;
     };
     // Identify table of descriptors
