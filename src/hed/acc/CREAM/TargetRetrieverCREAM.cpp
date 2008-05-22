@@ -321,6 +321,9 @@ namespace Arc {
       if (Site["GlueSiteLongitude"])
 	target.Longitude = stringtof(Site["GlueSiteLongitude"]);
 
+      if (CE["GlueCEUniqueID"])
+	target.url = "https://" + (std::string)CE["GlueCEUniqueID"];
+
       if (CE["GlueCEImplementationName"])
 	target.ImplementationName =
 	  (std::string)CE["GlueCEImplementationName"];
