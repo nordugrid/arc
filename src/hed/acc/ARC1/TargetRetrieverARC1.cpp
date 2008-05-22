@@ -1,13 +1,13 @@
-#include <arc/StringConv.h>
-#include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/data/DataBufferPar.h>
-#include <arc/data/DataHandle.h>
+#include <arc/client/TargetGenerator.h>
 
 #include "TargetRetrieverARC1.h"
 
 namespace Arc {
+
+  Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
 
   TargetRetrieverARC1::TargetRetrieverARC1(Config *cfg)
     : TargetRetriever(cfg) {}
@@ -18,61 +18,34 @@ namespace Arc {
     return new TargetRetrieverARC1(cfg);
   }
 
-  /**
-   * The present GetTargets implementation will
-   * perform a "discover all" search based on the starting point url
-   */
-  void TargetRetrieverARC1::GetTargets(TargetGenerator& Mom, int TargetType, int DetailLevel) {
+  void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,
+				       int detailLevel) {
 
-    //If TargetRetriever for this URL already exist, return
-    if (Mom.DoIAlreadyExist(m_url))
+    logger.msg(INFO, "TargetRetriverARC1 initialized with %s service url: %s",
+	       serviceType, url.str());
+
+    if (mom.DoIAlreadyExist(url))
       return;
 
-    if (ServiceType == "computing") {
-      //Add Service to TG list
-      bool AddedService(Mom.AddService(m_url));
-
-      //If added, interrogate service
-      //Lines below this point depend on the usage of TargetGenerator
-      //i.e. if it is used to find Targets for execution or storage,
-      //and/or if the entire information is requested or only endpoints
-      if (AddedService)
-	InterrogateTarget(Mom, m_url, TargetType, DetailLevel);
+    if (serviceType == "computing") {
+      bool added = mom.AddService(url);
+      if (added)
+	InterrogateTarget(mom, url, targetType, detailLevel);
     }
-    else if (ServiceType == "storage") {}
-    else if (ServiceType == "index") {
-
+    else if (serviceType == "storage") {}
+    else if (serviceType == "index") {
       // TODO: ISIS
-
     }
     else
+      logger.msg(ERROR,
+		 "TargetRetrieverARC1 initialized with unknown url type");
+  }
 
-      std::cout << "TargetRetrieverARC1 initialized with unknown url type" << std::endl;
-
-
-  } //end GetTargets()
-
-  void TargetRetrieverARC1::InterrogateTarget(TargetGenerator& Mom,
-					      std::string url, int TargetType,
-					      int DetailLevel) {
+  void TargetRetrieverARC1::InterrogateTarget(TargetGenerator& mom,
+					      URL& url, int targetType,
+					      int detailLevel) {
 
     // TODO: A-REX
+  }
 
-  } //end TargetInterrogator
-
-  std::list<std::string> TargetRetrieverARC1::getAttribute(std::string attr,
-							   XMLNode& node) {
-    std::list<std::string> results;
-
-    XMLNodeList nodelist = node.XPathLookup(attr, NS());
-
-    XMLNodeList::iterator iter;
-
-    for (iter = nodelist.begin(); iter != nodelist.end(); iter++)
-      results.push_back((*iter));
-
-    return results;
-
-  } //end getAttribute
-
-} //namespace
+} // namespace Arc

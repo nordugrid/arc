@@ -87,6 +87,9 @@ namespace Arc {
     /** Returns the LDAP attributes if any. */
     const std::list<std::string>& LDAPAttributes() const;
 
+    /** Adds an LDAP attribute. */
+    void AddLDAPAttribute(const std::string& attribute);
+
     /** Returns the LDAP scope. */
     Scope LDAPScope() const;
 

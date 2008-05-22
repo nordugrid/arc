@@ -3,6 +3,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
+#include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
@@ -11,22 +12,18 @@
 
 namespace Arc {
 
+  Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
+
   TargetGenerator::TargetGenerator(Config& cfg) {
-
     ACCloader = new Loader(&cfg);
-
   }
 
   TargetGenerator::~TargetGenerator() {
-
     if (ACCloader)
       delete ACCloader;
   }
 
-
-  void TargetGenerator::GetTargets(int TargetType, int DetailLevel) {
-
-    //Get retrievers
+  void TargetGenerator::GetTargets(int targetType, int detailLevel) {
     bool AreThereRetrievers = true;
     char RetrieverID[20];
     int RetrieverNumber = 1;
@@ -39,18 +36,16 @@ namespace Arc {
 	//TargetType: Execution = 0, Storage = 1, ...
 	//DetailLevel: Minimum = 0, Processed = 1, Full = 2
 	//All options not yet implemented
-	TR->GetTargets(*this, TargetType, DetailLevel);
+	TR->GetTargets(*this, targetType, detailLevel);
 	RetrieverNumber++;
       }
       else
 	AreThereRetrievers = false;
-    } //end loop over existing retrievers
-
-    std::cout << "Number of Targets found: " << FoundTargets.size() << std::endl;
-
+    }
+    logger.msg(INFO, "Number of Targets found: %ld", FoundTargets.size());
   }
 
-  bool TargetGenerator::AddService(std::string NewService) {
+  bool TargetGenerator::AddService(const URL& NewService) {
     bool added = false;
     //lock this function call
     Glib::Mutex::Lock ServiceWriteLock(ServiceMutex);
@@ -62,18 +57,16 @@ namespace Arc {
     return added;
   }
 
-  void TargetGenerator::AddTarget(ExecutionTarget NewTarget) {
+  void TargetGenerator::AddTarget(const ExecutionTarget& NewTarget) {
     //lock this function call
     Glib::Mutex::Lock TargetWriteLock(TargetMutex);
     FoundTargets.push_back(NewTarget);
   }
 
-  bool TargetGenerator::DoIAlreadyExist(std::string NewServer) {
+  bool TargetGenerator::DoIAlreadyExist(const URL& NewServer) {
+    bool existence = true;
     //lock this function call
     Glib::Mutex::Lock ServerAddLock(ServerMutex);
-    bool existence = true;
-
-    //if not already found add to list of giises
     if (std::find(CheckedInfoServers.begin(), CheckedInfoServers.end(),
 		  NewServer) == CheckedInfoServers.end()) {
       CheckedInfoServers.push_back(NewServer);
@@ -126,17 +119,17 @@ namespace Arc {
 	if (!cli->MappingQueue.empty())
 	  std::cout << IString(" Mapping Queue: %s", cli->MappingQueue) << std::endl;
 	if (cli->MaxWallTime != -1)
-	  std::cout << IString(" Max Wall Time: %i", cli->MaxWallTime) << std::endl;
+	  std::cout << IString(" Max Wall Time: %s", (std::string)cli->MaxWallTime) << std::endl;
 	if (cli->MinWallTime != -1)
-	  std::cout << IString(" Min Wall Time: %i", cli->MinWallTime) << std::endl;
+	  std::cout << IString(" Min Wall Time: %s", (std::string)cli->MinWallTime) << std::endl;
 	if (cli->DefaultWallTime != -1)
-	  std::cout << IString(" Default Wall Time: %i", cli->DefaultWallTime) << std::endl;
+	  std::cout << IString(" Default Wall Time: %s", (std::string)cli->DefaultWallTime) << std::endl;
 	if (cli->MaxCPUTime != -1)
-	  std::cout << IString(" Max CPU Time: %i", cli->MaxCPUTime) << std::endl;
+	  std::cout << IString(" Max CPU Time: %s", (std::string)cli->MaxCPUTime) << std::endl;
 	if (cli->MinCPUTime != -1)
-	  std::cout << IString(" Min CPU Time: %i", cli->MinCPUTime) << std::endl;
+	  std::cout << IString(" Min CPU Time: %s", (std::string)cli->MinCPUTime) << std::endl;
 	if (cli->DefaultCPUTime != -1)
-	  std::cout << IString(" Default CPU Time: %i", cli->DefaultCPUTime) << std::endl;
+	  std::cout << IString(" Default CPU Time: %s", (std::string)cli->DefaultCPUTime) << std::endl;
 	if (cli->MaxTotalJobs != -1)
 	  std::cout << IString(" Max Total Jobs: %i", cli->MaxTotalJobs) << std::endl;
 	if (cli->MaxRunningJobs != -1)

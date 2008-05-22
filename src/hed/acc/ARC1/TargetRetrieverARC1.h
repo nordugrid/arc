@@ -1,28 +1,31 @@
 #ifndef __ARC_TARGETRETRIEVERARC1_H__
 #define __ARC_TARGETRETRIEVERARC1_H__
 
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
 
 namespace Arc {
 
   class ChainContext;
-  class XMLNode;
+  class Logger;
+  class TargetGenerator;
   class URL;
+  class XMLNode;
 
   class TargetRetrieverARC1
     : public TargetRetriever {
+  private:
     TargetRetrieverARC1(Config *cfg);
     ~TargetRetrieverARC1();
 
   public:
-    void GetTargets(TargetGenerator& Mom, int TargetType, int DetailLevel);
-    void InterrogateTarget(TargetGenerator& Mom, std::string url,
-			   int TargetType, int DetailLevel);
-    static ACC *Instance(Config *cfg, ChainContext *);
-    std::list<std::string> getAttribute(std::string attr, XMLNode& node);
+    void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
+    void InterrogateTarget(TargetGenerator& mom, URL& url,
+			   int targetType, int detailLevel);
+    static ACC *Instance(Config *cfg, ChainContext *ctx);
 
-  }; //end class
+  private:
+    static Logger logger;
+  };
 
 } // namespace Arc
 

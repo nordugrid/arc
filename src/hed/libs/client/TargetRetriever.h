@@ -5,20 +5,27 @@
 
 #include <arc/URL.h>
 #include <arc/client/ACC.h>
-#include <arc/client/TargetGenerator.h>
 
 namespace Arc {
+
+  class Config;
+  class Logger;
+  class TargetGenerator;
 
   class TargetRetriever
     : public ACC {
   protected:
     TargetRetriever(Config *cfg);
-    std::string m_url;
-    std::string ServiceType;
   public:
     virtual ~TargetRetriever();
-    virtual void GetTargets(TargetGenerator& Mom, int TargetType,
-			    int DetailLevel) = 0;
+    virtual void GetTargets(TargetGenerator& mom, int targetType,
+			    int detailLevel) = 0;
+    virtual void InterrogateTarget(TargetGenerator& mom, URL& url,
+				   int targetType, int detailLevel) = 0;
+  protected:
+    URL url;
+    std::string serviceType;
+    static Logger logger;
   };
 
 } // namespace Arc

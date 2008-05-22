@@ -1,13 +1,18 @@
+#include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataHandle.h>
 
 #include "TargetRetrieverARC0.h"
 
 namespace Arc {
+
+  Logger TargetRetrieverARC0::logger(TargetRetriever::logger, "ARC0");
 
   TargetRetrieverARC0::TargetRetrieverARC0(Config *cfg)
     : TargetRetriever(cfg) {}
@@ -18,33 +23,27 @@ namespace Arc {
     return new TargetRetrieverARC0(cfg);
   }
 
-  /**
-   * The present GetTargets implementation will
-   * perform a "discover all" search based on the starting point url
-   */
-  void TargetRetrieverARC0::GetTargets(TargetGenerator& Mom, int TargetType,
-				       int DetailLevel) {
+  void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,
+				       int detailLevel) {
 
-    //If TargetRetriever for this URL already exist, return
-    if (Mom.DoIAlreadyExist(m_url))
+    logger.msg(INFO, "TargetRetriverARC0 initialized with %s service url: %s",
+	       serviceType, url.str());
+
+    if (mom.DoIAlreadyExist(url))
       return;
 
-    if (ServiceType == "computing") {
-      //Add Service to TG list
-      bool AddedService(Mom.AddService(m_url));
-
-      //If added, interrogate service
-      //Lines below this point depend on the usage of TargetGenerator
-      //i.e. if it is used to find Targets for execution or storage,
-      //and/or if the entire information is requested or only endpoints
-      if (AddedService)
-	InterrogateTarget(Mom, m_url, TargetType, DetailLevel);
+    if (serviceType == "computing") {
+      bool added = mom.AddService(url);
+      if (added)
+	InterrogateTarget(mom, url, targetType, detailLevel);
     }
-    else if (ServiceType == "storage") {}
-    else if (ServiceType == "index") {
-
-      DataHandle handler(m_url + "?giisregistrationstatus?base");
+    else if (serviceType == "storage") {}
+    else if (serviceType == "index") {
+      url.ChangeLDAPScope(URL::base);
+      url.AddLDAPAttribute("giisregistrationstatus");
+      DataHandle handler(url);
       DataBufferPar buffer;
+
       if (!handler->StartReading(buffer))
 	return;
 
@@ -64,79 +63,69 @@ namespace Arc {
 
       XMLNode XMLresult(result);
 
-      //Next read XML result and decode into further servers (GIIS) or services (GRIS)
+      // GIISes
+      std::list<XMLNode> GIISes =
+	XMLresult.XPathLookup("//Mds-Vo-name[Mds-Service-type]", NS());
 
-      //First do GIISes (if any)
-      XMLNodeList GIISes = XMLresult.XPathLookup("//Mds-Vo-name", NS());
+      for (std::list<XMLNode>::iterator iter = GIISes.begin();
+	   iter != GIISes.end(); iter++) {
 
-      XMLNodeList::iterator iter;
-
-      /*
-         for(iter = GIISes.begin(); iter!= GIISes.end(); iter++){
-         if(!(*iter)["Mds-Service-type"]) continue; //remove first entry
-         if((std::string)(*iter)["Mds-Reg-status"] == "PURGED" ) continue;
-         std::cout<<"This GIIS was accepted"<<std::endl;
-         iter->SaveToStream(std::cout);
-         std::string url;
-         url = (std::string) (*iter)["Mds-Service-type"] + "://" +
-          (std::string) (*iter)["Mds-Service-hn"] + ":" +
-          (std::string) (*iter)["Mds-Service-port"] + "/" +
-          (std::string) (*iter)["Mds-Service-Ldap-suffix"];
-
-         NS ns;
-         Config cfg(ns);
-         XMLNode URLXML = cfg.NewChild("URL") = url;
-         URLXML.NewAttribute("ServiceType") = "index";
-
-         TargetRetrieverARC0 thisGIIS(&cfg);
-
-         thisGIIS.GetTargets(Mom, TargetType, DetailLevel);
-
-         } //end GIISes
-       */
-
-      //Next GRISes (if any)
-      XMLNodeList GRISes = XMLresult.XPathLookup("//nordugrid-cluster-name[objectClass='MdsService']", NS());
-      for (iter = GRISes.begin(); iter != GRISes.end(); iter++) {
 	if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
 	  continue;
 
-	XMLNode ThisGRIS = (XMLNode)(*iter);
+	std::string urlstr;
+	urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
+		 (std::string)(*iter)["Mds-Service-hn"] + ":" +
+		 (std::string)(*iter)["Mds-Service-port"] + "/" +
+		 (std::string)(*iter)["Mds-Service-Ldap-suffix"];
+	URL url(urlstr);
 
-	std::string url;
-	url = (std::string)(*iter)["Mds-Service-type"] + "://" +
-	      (std::string)(*iter)["Mds-Service-hn"] + ":" +
-	      (std::string)(*iter)["Mds-Service-port"] + "/" +
-	      (std::string)(*iter)["Mds-Service-Ldap-suffix"];
+	NS ns;
+	Config cfg(ns);
+	XMLNode URLXML = cfg.NewChild("URL") = url.str();
+	URLXML.NewAttribute("ServiceType") = "index";
 
-	//Add Service to TG list
-	bool AddedService(Mom.AddService(url));
+	TargetRetrieverARC0 thisGIIS(&cfg);
 
-	std::cout << "This is a GRIS: " << url << std::endl;
+	thisGIIS.GetTargets(mom, targetType, detailLevel);
+      }
 
-	//If added, interrogate service
-	//Lines below this point depend on the usage of TargetGenerator
-	//i.e. if it is used to find Targets for execution or storage,
-	//and/or if the entire information is requested or only endpoints
-	if (AddedService)
-	  InterrogateTarget(Mom, url, TargetType, DetailLevel);
-      } //end GRISes
+      // GRISes
+      std::list<XMLNode> GRISes =
+	XMLresult.XPathLookup("//nordugrid-cluster-name"
+			      "[objectClass='MdsService']", NS());
 
-      //end if this TR was initialized with a GIIS url i.e. index
+      for (std::list<XMLNode>::iterator iter = GRISes.begin();
+	   iter != GRISes.end(); iter++) {
+
+	if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
+	  continue;
+
+	std::string urlstr;
+	urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
+		 (std::string)(*iter)["Mds-Service-hn"] + ":" +
+		 (std::string)(*iter)["Mds-Service-port"] + "/" +
+		 (std::string)(*iter)["Mds-Service-Ldap-suffix"];
+	URL url(urlstr);
+
+	if (mom.AddService(url))
+	  InterrogateTarget(mom, url, targetType, detailLevel);
+      }
     }
     else
+      logger.msg(ERROR,
+		 "TargetRetrieverARC0 initialized with unknown url type");
+  }
 
-      std::cout << "TargetRetrieverARC0 initialized with unknown url type" << std::endl;
-
-
-  } //end GetTargets()
-
-  void TargetRetrieverARC0::InterrogateTarget(TargetGenerator& Mom,
-					      std::string url, int TargetType,
-					      int DetailLevel) {
+  void TargetRetrieverARC0::InterrogateTarget(TargetGenerator& mom,
+					      URL& url, int targetType,
+					      int detailLevel) {
 
     //Query GRIS for all relevant information
-    DataHandle handler(url + "??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue))");
+    url.ChangeLDAPScope(URL::subtree);
+    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
+			 "(objectclass=nordugrid-queue))");
+    DataHandle handler(url);
     DataBufferPar buffer;
 
     if (!handler->StartReading(buffer))
@@ -158,131 +147,107 @@ namespace Arc {
 
     XMLNode XMLresult(result);
 
-    //Process information and prepare ExecutionTargets
-    //Map 1 queue == 1 ExecutionTarget
-    std::list<XMLNode> XMLqueues = XMLresult.XPathLookup("//nordugrid-queue-name[objectClass='nordugrid-queue']", NS());
-    std::list<XMLNode>::iterator QueueIter;
+    // Process information and prepare ExecutionTargets
+    // Map 1 queue == 1 ExecutionTarget
 
-    for (QueueIter = XMLqueues.begin(); QueueIter != XMLqueues.end(); QueueIter++) {
-      std::list<std::string> attributes;
-      ExecutionTarget ThisTarget;
+    std::list<XMLNode> XMLqueues =
+      XMLresult.XPathLookup("//nordugrid-queue-name"
+			    "[objectClass='nordugrid-queue']", NS());
 
-      ThisTarget.GridFlavour = "ARC0";
-      ThisTarget.Source = url;
+    for (std::list<XMLNode>::iterator iter = XMLqueues.begin();
+	 iter != XMLqueues.end(); iter++) {
 
-      //Find and fill location information
-      //Information like address, longitude, latitude etc not available in ARC0
-      attributes = getAttribute("//nordugrid-cluster-name", XMLresult);
-      if (attributes.size())
-	ThisTarget.Name = *attributes.begin();
-      attributes = getAttribute("//nordugrid-cluster-aliasname", XMLresult);
-      if (attributes.size())
-	ThisTarget.Alias = *attributes.begin();
-      attributes = getAttribute("//nordugrid-cluster-owner", XMLresult);
-      if (attributes.size())
-	ThisTarget.Owner = *attributes.begin();
-      attributes = getAttribute("//nordugrid-cluster-location", XMLresult);
-      if (attributes.size())
-	ThisTarget.PostCode = *attributes.begin();
-      //Find and fill endpoint information (once again some entities are missing)
-      attributes = getAttribute("//nordugrid-cluster-contactstring", XMLresult);
-      if (attributes.size())
-	ThisTarget.url = *attributes.begin();
-      ThisTarget.InterfaceName = "GridFTP";
-      ThisTarget.Implementor = "NorduGrid";
-      ThisTarget.ImplementationName = "ARC0";
-      attributes = getAttribute("//nordugrid-cluster-middleware", XMLresult);
-      if (attributes.size())
-	ThisTarget.ImplementationVersion = *attributes.begin();
-      attributes = getAttribute("//nordugrid-queue-status", XMLresult);
-      if (attributes.size())
-	ThisTarget.HealthState = *attributes.begin();
-      attributes = getAttribute("//nordugrid-cluster-issuerca", XMLresult);
-      if (attributes.size())
-	ThisTarget.IssuerCA = *attributes.begin();
-      attributes = getAttribute("//nordugrid-cluster-nodeaccess", XMLresult);
-      if (attributes.size())
-	ThisTarget.Staging = *attributes.begin();
+      XMLNode queue = *iter;
+      XMLNode cluster = queue.Parent();
+
+      ExecutionTarget target;
+
+      target.GridFlavour = "ARC0";
+      target.Source = url;
+
+      // Find and fill location information
+      // Information like address, longitude, latitude etc not available
+
+      if (cluster["nordugrid-cluster-name"])
+	target.Name = (std::string)cluster["nordugrid-cluster-name"];
+      if (cluster["nordugrid-cluster-aliasname"])
+	target.Alias = (std::string)cluster["nordugrid-cluster-aliasname"];
+      if (cluster["nordugrid-cluster-owner"])
+	target.Owner = (std::string)cluster["nordugrid-cluster-owner"];
+      if (cluster["nordugrid-cluster-location"])
+	target.PostCode = (std::string)cluster["nordugrid-cluster-location"];
+
+      // Find and fill endpoint information
+      // (once again some entities are missing)
+      if (cluster["nordugrid-cluster-contactstring"])
+	target.url = (std::string)cluster["nordugrid-cluster-contactstring"];
+      target.InterfaceName = "GridFTP";
+      target.Implementor = "NorduGrid";
+      target.ImplementationName = "ARC0";
+      if (cluster["nordugrid-cluster-middleware"])
+	target.ImplementationVersion =
+	  (std::string)cluster["nordugrid-cluster-middleware"];
+      if (queue["nordugrid-queue-status"])
+	target.HealthState = (std::string)queue["nordugrid-queue-status"];
+      if (cluster["nordugrid-cluster-issuerca"])
+	target.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"];
+      if (cluster["nordugrid-cluster-nodeaccess"])
+	target.Staging = (std::string)cluster["nordugrid-cluster-nodeaccess"];
+
       //Jobs, RTEs, Memory, CPU ...
-      attributes = getAttribute("//nordugrid-queue-name", XMLresult);
-      if (attributes.size())
-	ThisTarget.MappingQueue = *attributes.begin();
-      attributes = getAttribute("//nordugrid-queue-maxwalltime", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxWallTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-minwalltime", XMLresult);
-      if (attributes.size())
-	ThisTarget.MinWallTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-defaultwalltime", XMLresult);
-      if (attributes.size())
-	ThisTarget.DefaultWallTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-maxcputime", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxCPUTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-mincputime", XMLresult);
-      if (attributes.size())
-	ThisTarget.MinCPUTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-defaultcputime", XMLresult);
-      if (attributes.size())
-	ThisTarget.DefaultCPUTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-defaultcputime", XMLresult);
-      if (attributes.size())
-	ThisTarget.DefaultCPUTime = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-maxrunning", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxRunningJobs = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-maxqueable", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxWaitingJobs = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-maxuserrun", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxUserRunningJobs = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-schedulingpolicy", XMLresult);
-      if (attributes.size())
-	ThisTarget.SchedulingPolicy = *attributes.begin();
-      attributes = getAttribute("//nordugrid-queue-nodememory", XMLresult);
-      if (attributes.size())
-	ThisTarget.NodeMemory = stringtoi(*attributes.begin());
-      else {
-	attributes = getAttribute("//nordugrid-cluster-nodememory", XMLresult);
-	if (attributes.size())
-	  ThisTarget.NodeMemory = stringtoi(*attributes.begin());
-      }
-      attributes = getAttribute("//nordugrid-cluster-sessiondir-free", XMLresult);
-      if (attributes.size())
-	ThisTarget.MaxDiskSpace = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-cluster-localse", XMLresult);
-      if (attributes.size())
-	ThisTarget.DefaultStorageService = *attributes.begin();
-      attributes = getAttribute("//nordugrid-queue-running", XMLresult);
-      if (attributes.size())
-	ThisTarget.RunningJobs = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-queued", XMLresult);
-      if (attributes.size())
-	ThisTarget.WaitingJobs = stringtoi(*attributes.begin());
-      attributes = getAttribute("//nordugrid-queue-prelrmsqueued", XMLresult);
-      if (attributes.size())
-	ThisTarget.PreLRMSWaitingJobs = stringtoi(*attributes.begin());
+      if (queue["nordugrid-queue-name"])
+	target.MappingQueue = (std::string)queue["nordugrid-queue-name"];
+      if (queue["nordugrid-queue-maxwalltime"])
+	target.MaxWallTime = (std::string)queue["nordugrid-queue-maxwalltime"];
+      if (queue["nordugrid-queue-minwalltime"])
+	target.MinWallTime = (std::string)queue["nordugrid-queue-minwalltime"];
+      if (queue["nordugrid-queue-defaultwalltime"])
+	target.DefaultWallTime =
+	  (std::string)queue["nordugrid-queue-defaultwalltime"];
+      if (queue["nordugrid-queue-maxcputime"])
+	target.MaxCPUTime = (std::string)queue["nordugrid-queue-maxcputime"];
+      if (queue["nordugrid-queue-mincputime"])
+	target.MinCPUTime = (std::string)queue["nordugrid-queue-mincputime"];
+      if (queue["nordugrid-queue-defaultcputime"])
+	target.DefaultCPUTime =
+	  (std::string)queue["nordugrid-queue-defaultcputime"];
+      if (queue["nordugrid-queue-maxrunning"])
+	target.MaxRunningJobs =
+	  stringtoi((std::string)queue["nordugrid-queue-maxrunning"]);
+      if (queue["nordugrid-queue-maxqueable"])
+	target.MaxWaitingJobs =
+	  stringtoi((std::string)queue["nordugrid-queue-maxqueable"]);
+      if (queue["nordugrid-queue-maxuserrun"])
+	target.MaxUserRunningJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-maxuserrun"]));
+      if (queue["nordugrid-queue-schedulingpolicy"])
+	target.SchedulingPolicy =
+	  std::string(queue["nordugrid-queue-schedulingpolicy"]);
+      if (queue["nordugrid-queue-nodememory"])
+	target.NodeMemory =
+	  stringtoi(std::string(queue["nordugrid-queue-nodememory"]));
+      else if (cluster["nordugrid-cluster-nodememory"])
+	target.NodeMemory =
+	  stringtoi(std::string(cluster["nordugrid-cluster-nodememory"]));
+      if (cluster["nordugrid-cluster-sessiondir-free"])
+	target.MaxDiskSpace =
+	  stringtoi(std::string(cluster["nordugrid-cluster-sessiondir-free"]));
+      if (cluster["nordugrid-cluster-localse"])
+	target.DefaultStorageService =
+	  std::string(cluster["nordugrid-cluster-localse"]);
+      if (queue["nordugrid-queue-running"])
+	target.RunningJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-running"]));
+      if (queue["nordugrid-queue-queued"])
+	target.WaitingJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-queued"]));
+      if (queue["nordugrid-queue-prelrmsqueued"])
+	target.PreLRMSWaitingJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-prelrmsqueued"]));
+
       //Register target in TargetGenerator list
-      Mom.AddTarget(ThisTarget);
+      mom.AddTarget(target);
+    }
+  }
 
-    } // end loop over queues
-
-  } //end TargetInterrogator
-
-  std::list<std::string> TargetRetrieverARC0::getAttribute(std::string attr,
-							   XMLNode& node) {
-    std::list<std::string> results;
-
-    XMLNodeList nodelist = node.XPathLookup(attr, NS());
-
-    XMLNodeList::iterator iter;
-
-    for (iter = nodelist.begin(); iter != nodelist.end(); iter++)
-      results.push_back((*iter));
-
-    return results;
-
-  } //end getAttribute
-
-} //namespace
+} // namespace Arc

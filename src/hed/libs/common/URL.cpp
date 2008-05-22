@@ -374,6 +374,10 @@ namespace Arc {
     return ldapattributes;
   }
 
+  void URL::AddLDAPAttribute(const std::string& attribute) {
+    ldapattributes.push_back(attribute);
+  }
+
   URL::Scope URL::LDAPScope() const {
     return ldapscope;
   }

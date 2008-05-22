@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 
+#include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/client/ACC.h>
 #include <arc/client/Submitter.h>
@@ -48,12 +49,12 @@ namespace Arc {
     int PreLRMSWaitingJobs;
 
     std::string MappingQueue;
-    int MaxWallTime;
-    int MinWallTime;
-    int DefaultWallTime;
-    int MaxCPUTime;
-    int MinCPUTime;
-    int DefaultCPUTime;
+    Period MaxWallTime;
+    Period MinWallTime;
+    Period DefaultWallTime;
+    Period MaxCPUTime;
+    Period MinCPUTime;
+    Period DefaultCPUTime;
     int MaxTotalJobs;
     int MaxRunningJobs;
     int MaxWaitingJobs;
@@ -69,8 +70,8 @@ namespace Arc {
     URL DefaultStorageService;
     bool Preemption;
     std::string ServingState;
-    int EstimatedAverageWaitingTime;
-    int EstimatedWorstWaitingTime;
+    Period EstimatedAverageWaitingTime;
+    Period EstimatedWorstWaitingTime;
     int FreeSlots;
     int UsedSlots;
     int RequestedSlots;

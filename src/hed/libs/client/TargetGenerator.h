@@ -6,29 +6,30 @@
 
 #include <glibmm/thread.h>
 
-#include <arc/ArcConfig.h>
-#include <arc/URL.h>
-#include <arc/client/ACC.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/loader/Loader.h>
 
 namespace Arc {
+
+  class Config;
+  class Loader;
+  class Logger;
+  class URL;
 
   class TargetGenerator {
   public:
     TargetGenerator(Config& cfg);
     ~TargetGenerator();
 
-    void GetTargets(int TargetType, int DetailLevel);
+    void GetTargets(int targetType, int detailLevel);
 
-    bool AddService(std::string NewService);
-    void AddTarget(ExecutionTarget NewTarget);
-    bool DoIAlreadyExist(std::string NewServer);
+    bool AddService(const URL& NewService);
+    void AddTarget(const ExecutionTarget& NewTarget);
+    bool DoIAlreadyExist(const URL& NewServer);
 
     void PrintTargetInfo(bool longlist);
 
-    std::list<std::string> FoundServices;
-    std::list<std::string> CheckedInfoServers;
+    std::list<URL> FoundServices;
+    std::list<URL> CheckedInfoServers;
     std::list<ExecutionTarget> FoundTargets;
 
   private:
@@ -37,7 +38,7 @@ namespace Arc {
     Glib::Mutex TargetMutex;
 
     Loader *ACCloader;
-
+    static Logger logger;
   };
 
 } //namespace ARC

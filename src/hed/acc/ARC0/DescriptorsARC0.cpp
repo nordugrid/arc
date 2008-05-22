@@ -1,3 +1,5 @@
+#include <arc/loader/ACCLoader.h>
+
 #include "TargetRetrieverARC0.h"
 #include "SubmitterARC0.h"
 

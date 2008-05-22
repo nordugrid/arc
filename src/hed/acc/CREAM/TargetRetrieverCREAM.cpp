@@ -1,13 +1,18 @@
+#include <arc/ArcConfig.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataHandle.h>
+#include <arc/loader/ACCLoader.h>
 
 #include "TargetRetrieverCREAM.h"
 
 namespace Arc {
+
+  Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
 
   TargetRetrieverCREAM::TargetRetrieverCREAM(Config *cfg)
     : TargetRetriever(cfg) {}
@@ -18,33 +23,26 @@ namespace Arc {
     return new TargetRetrieverCREAM(cfg);
   }
 
-  void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int TargetType,
-					int DetailLevel) {
+  void TargetRetrieverCREAM::GetTargets(TargetGenerator& mom, int targetType,
+					int detailLevel) {
 
-    if (mom.DoIAlreadyExist(m_url))
+    logger.msg(INFO, "TargetRetriverCREAM initialized with %s service url: %s",
+	       serviceType, url.str());
+
+    if (mom.DoIAlreadyExist(url))
       return;
 
-
-    if (ServiceType == "computing") {
-      //Add Service to TG list
-
-      bool AddedService(mom.AddService(m_url));
-
-      std::cout << "TargetRetriverCREAM initialized with computing service url" << std::endl;
-
-      //If added, interrogate service
-      //Lines below this point depend on the usage of TargetGenerator
-      //i.e. if it is used to find Targets for execution or storage,
-      //and/or if the entire information is requested or only endpoints
-      if (AddedService)
-	InterrogateTarget(mom, m_url, TargetType, DetailLevel);
+    if (serviceType == "computing") {
+      bool added = mom.AddService(url);
+      if (added)
+	InterrogateTarget(mom, url, targetType, detailLevel);
     }
-    else if (ServiceType == "storage") {}
-    else if (ServiceType == "index") {
-
-      std::cout << "TargetRetriverCREAM initialized with index service url" << std::endl;
-
-      DataHandle handler(m_url + "??sub?(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))");
+    else if (serviceType == "storage") {}
+    else if (serviceType == "index") {
+      url.ChangeLDAPScope(URL::subtree);
+      url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
+			   "(GlueServiceType=bdii_top))");
+      DataHandle handler(url);
       DataBufferPar buffer;
 
       if (!handler->StartReading(buffer))
@@ -69,54 +67,51 @@ namespace Arc {
       std::list<XMLNode> topBDIIs =
 	XMLresult.XPathLookup("//*[GlueServiceType='bdii_top']", NS());
 
-      std::list<XMLNode>::iterator iter;
-
-      for (iter = topBDIIs.begin(); iter != topBDIIs.end(); ++iter) {
+      for (std::list<XMLNode>::iterator iter = topBDIIs.begin();
+	   iter != topBDIIs.end(); ++iter) {
 
 	if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
 	  continue;
 
-	std::string url = (std::string)(*iter)["GlueServiceEndpoint"];
+	URL url = (std::string)(*iter)["GlueServiceEndpoint"];
 
 	NS ns;
 	Config cfg(ns);
-	XMLNode URLXML = cfg.NewChild("URL") = url;
+	XMLNode URLXML = cfg.NewChild("URL") = url.str();
 	URLXML.NewAttribute("ServiceType") = "index";
 
 	TargetRetrieverCREAM thisBDII(&cfg);
 
-	thisBDII.GetTargets(mom, TargetType, DetailLevel);
-
-      } //end topBDIIs
+	thisBDII.GetTargets(mom, targetType, detailLevel);
+      }
 
       std::list<XMLNode> siteBDIIs =
 	XMLresult.XPathLookup("//*[GlueServiceType='bdii_site']", NS());
 
-      for (iter = siteBDIIs.begin(); iter != siteBDIIs.end(); ++iter) {
+      for (std::list<XMLNode>::iterator iter = siteBDIIs.begin();
+	   iter != siteBDIIs.end(); ++iter) {
+
 	if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
 	  continue;
-	std::string url = (std::string)(*iter)["GlueServiceEndpoint"];
+
+	URL url = (std::string)(*iter)["GlueServiceEndpoint"];
 
 	//Should filter here on allowed VOs, not yet implemented
 
-	//Add Service to TG list
-	bool AddedService(mom.AddService(url));
-
-	//If added, interrogate service
-	//Lines below this point depend on the usage of TargetGenerator
-	//i.e. if it is used to find Targets for execution or storage,
-	//and/or if the entire information is requested or only endpoints
-	if (AddedService)
-	  InterrogateTarget(mom, url, TargetType, DetailLevel);
+	if (mom.AddService(url))
+	  InterrogateTarget(mom, url, targetType, detailLevel);
       }
-    } //end if index type
+    }
+    else
+      logger.msg(ERROR,
+		 "TargetRetrieverCREAM initialized with unknown url type");
   }
 
   void TargetRetrieverCREAM::InterrogateTarget(TargetGenerator& mom,
-					       std::string url, int TargetType,
-					       int DetailLevel) {
-
-    DataHandle handler(url + "??sub");
+					       URL& url, int targetType,
+					       int detailLevel) {
+    url.ChangeLDAPScope(URL::subtree);
+    DataHandle handler(url);
     DataBufferPar buffer;
 
     if (!handler->StartReading(buffer))
@@ -137,8 +132,6 @@ namespace Arc {
       return;
 
     XMLNode XMLresult(result);
-
-    XMLresult.SaveToStream(std::cout);
 
     // Create one ExecutionTarget per VOView record.
 
@@ -389,9 +382,9 @@ namespace Arc {
       // target.MaxPreLRMSWaitingJobs - not available in schema
 
       // is this correct ???
-      if (VOView["GlueCEStateFreeJobSlots"])
+      if (VOView["GlueCEPolicyAssignedJobSlots"])
 	target.MaxUserRunningJobs = stringtoi(VOView["GlueCEPolicyAssignedJobSlots"]);
-      else if (CE["GlueCEStateFreeJobSlots"])
+      else if (CE["GlueCEPolicyAssignedJobSlots"])
 	target.MaxUserRunningJobs = stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
 
       if (VOView["MaxSlotsPerJob"])
