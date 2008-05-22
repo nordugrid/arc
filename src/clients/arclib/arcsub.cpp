@@ -135,7 +135,6 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   }
     
   //get cluster information end prepare execution targets to be considered by the broker
-  mcfg.SaveToStream(std::cout);
   Arc::TargetGenerator TarGen(mcfg);
   TarGen.GetTargets(0, 1);  
 

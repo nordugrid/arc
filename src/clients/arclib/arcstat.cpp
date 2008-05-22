@@ -79,7 +79,6 @@ void arcstat(const std::list<std::string>& jobs,
     }
     
     //get cluster information
-    mcfg.SaveToStream(std::cout);
     Arc::TargetGenerator TarGen(mcfg);
     TarGen.GetTargets(0, 1);
     
