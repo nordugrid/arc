@@ -401,6 +401,12 @@ else
 	if test "$DBCXX_LIBS" == ""
 	then
 		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
+	        AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="") 
+	fi
+
+	if test "$DBCXX_LIBS" == ""
+	then
+		AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.2 was not found!])
 	fi
 
 	if test "$DBCXX_LIBS" == ""
