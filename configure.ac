@@ -377,7 +377,7 @@ LASSO_INSTALLED=no
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 
-AC_CHECK_HEADER(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
 if test "$HAVE_DBCXX" = no
 then
         AC_MSG_WARN([db_cxx.h not found, Checking db4 subdir])
