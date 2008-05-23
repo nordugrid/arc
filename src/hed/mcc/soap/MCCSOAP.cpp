@@ -83,7 +83,7 @@ bool SOAPSecAttr::Export(Format format,XMLNode &val) const {
       XMLNode object = item.NewChild("ar:Resource");
       object=object_;
       object.NewAttribute("Type")="string";
-      object.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/http/path";
+      object.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint";
     };
     if(!action_.empty()) {
       XMLNode action = item.NewChild("ar:Action");
