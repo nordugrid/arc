@@ -37,16 +37,16 @@ BuildRequires: globus_rsl-devel
 BuildRequires: LFC-client-devel
 #
 %if %{_vendor} == "redhat"
-BuildRequires: libdb4-devel
+BuildRequires: db4-devel
 %endif
 #%if %{_vendor} == "suse" && %{dist} != ".oss10.3"
-#BuildRequires: libdb-devel
+#BuildRequires: db-devel
 #%endif
 #%if %{_vendor} == "suse" && %{dist} == ".oss10.3"
 #BuildRequires: libdb_cxx-4_4-devel
 #%endif
 %if %{_vendor} == "suse"
-BuildRequires: libdb-devel
+BuildRequires: db-devel
 %endif
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
