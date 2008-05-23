@@ -354,9 +354,8 @@ namespace Arc {
 	    i = -1;
 	    checksum_ready = true;
 	  }
-	  else
-	    if (checksum_offset < bufs[i].offset)
-	      checksum_ready = false;
+	  else if (checksum_offset < bufs[i].offset)
+	    checksum_ready = false;
     cond.broadcast();
     lock.unlock();
     return true;

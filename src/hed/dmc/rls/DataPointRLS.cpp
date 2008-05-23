@@ -283,8 +283,7 @@ namespace Arc {
 	  else
 	    u += guid;
 	}
-	else
-	if ((!se_uses_lfn) && (!pfn_path.empty()))
+	else if ((!se_uses_lfn) && (!pfn_path.empty()))
 	  u += pfn_path;
 	else
 	  u += url.Path();
@@ -370,9 +369,10 @@ namespace Arc {
 	  // generate guid
 	  guid = UUID();
 	  // store in LRC
-	  if ((err = globus_rls_client_lrc_create
-		     (h, const_cast<char *>(guid.c_str()),
-		      const_cast<char *>(pfn.c_str()))) != GLOBUS_SUCCESS) {
+	  err = globus_rls_client_lrc_create
+		(h, const_cast<char *>(guid.c_str()),
+		 const_cast<char *>(pfn.c_str()));
+	  if (err != GLOBUS_SUCCESS) {
 	    err = globus_rls_client_error_info(err, &errcode, NULL, 0,
 					       GLOBUS_TRUE);
 	    if (errcode == GLOBUS_RLS_LFN_EXIST) {
@@ -434,55 +434,57 @@ namespace Arc {
 	  return DataStatus::PostRegisterError;
 	}
       }
-      else
-      if ((err = globus_rls_client_lrc_create
-		 (h, const_cast<char *>(url.Path().c_str()),
-		  const_cast<char *>(pfn.c_str()))) != GLOBUS_SUCCESS) {
-	err = globus_rls_client_error_info(err, &errcode, NULL, 0,
-					   GLOBUS_TRUE);
-	if (errcode == GLOBUS_RLS_LFN_EXIST) {
-	  globus_rls_free_result(err);
-	  err = globus_rls_client_lrc_add
-		(h, const_cast<char *>(url.Path().c_str()),
-		 const_cast<char *>(pfn.c_str()));
-	}
-      }
       else {
-	if (guid_enabled) {
-	  // get guid
-	  globus_rls_attribute_t opr;
-	  opr.type = globus_rls_attr_type_str;
-	  opr.val.s = const_cast<char *>(url.Path().c_str());
-	  int off = 0;
-	  globus_list_t *guids = NULL;
-	  err = globus_rls_client_lrc_attr_search(h, "lfn",
-						  globus_rls_obj_lrc_lfn,
-						  globus_rls_attr_op_eq,
-						  &opr, NULL, &off, 1, &guids);
-	  if (err != GLOBUS_SUCCESS) {
-	    globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
-					 GLOBUS_FALSE);
-	    logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
-		       url.str(), errmsg);
-	    globus_rls_client_close(h);
-	    return DataStatus::PostRegisterError;
-	  }
-	  if (!guids) {
-	    logger.msg(INFO, "There is no GUID for specified LFN in %s",
-		       url.str());
-	    globus_rls_client_close(h);
-	    return DataStatus::PostRegisterError;
-	  }
-	  globus_rls_attribute_object_t *obattr =
-	    (globus_rls_attribute_object_t *)globus_list_first(guids);
-	  guid = obattr->key;
-	  globus_rls_client_free_list(guids);
-	  rls_lfn = guid;
-	}
-	err = globus_rls_client_lrc_add
-	      (h, const_cast<char *>(rls_lfn.c_str()),
+	err = globus_rls_client_lrc_create
+	      (h, const_cast<char *>(url.Path().c_str()),
 	       const_cast<char *>(pfn.c_str()));
+	if (err != GLOBUS_SUCCESS) {
+	  err = globus_rls_client_error_info(err, &errcode, NULL, 0,
+					     GLOBUS_TRUE);
+	  if (errcode == GLOBUS_RLS_LFN_EXIST) {
+	    globus_rls_free_result(err);
+	    err = globus_rls_client_lrc_add
+		  (h, const_cast<char *>(url.Path().c_str()),
+		   const_cast<char *>(pfn.c_str()));
+	  }
+	}
       }
+    else {
+      if (guid_enabled) {
+	// get guid
+	globus_rls_attribute_t opr;
+	opr.type = globus_rls_attr_type_str;
+	opr.val.s = const_cast<char *>(url.Path().c_str());
+	int off = 0;
+	globus_list_t *guids = NULL;
+	err = globus_rls_client_lrc_attr_search(h, "lfn",
+						globus_rls_obj_lrc_lfn,
+						globus_rls_attr_op_eq,
+						&opr, NULL, &off, 1, &guids);
+	if (err != GLOBUS_SUCCESS) {
+	  globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
+				       GLOBUS_FALSE);
+	  logger.msg(INFO, "Failed to find GUID for specified LFN in %s: %s",
+		     url.str(), errmsg);
+	  globus_rls_client_close(h);
+	  return DataStatus::PostRegisterError;
+	}
+	if (!guids) {
+	  logger.msg(INFO, "There is no GUID for specified LFN in %s",
+		     url.str());
+	  globus_rls_client_close(h);
+	  return DataStatus::PostRegisterError;
+	}
+	globus_rls_attribute_object_t *obattr =
+	  (globus_rls_attribute_object_t *)globus_list_first(guids);
+	guid = obattr->key;
+	globus_rls_client_free_list(guids);
+	rls_lfn = guid;
+      }
+      err = globus_rls_client_lrc_add
+	    (h, const_cast<char *>(rls_lfn.c_str()),
+	     const_cast<char *>(pfn.c_str()));
+    }
     if (err != GLOBUS_SUCCESS) {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
 				   GLOBUS_FALSE);
@@ -581,8 +583,7 @@ namespace Arc {
     meta_unregister_rls_t(DataPointRLS& d, bool a)
       : dprls(d),
 	all(a),
-	success(DataStatus::
-		Success) {}
+	success(DataStatus::Success) {}
   };
 
   static bool meta_unregister_callback(globus_rls_handle_t *h,

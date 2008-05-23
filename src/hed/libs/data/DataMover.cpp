@@ -693,8 +693,7 @@ namespace Arc {
 	    logger.msg(DEBUG, "(Re)Trying next destination");
 	  continue;
 	}
-	else
-	if (!chdest.StartWriting(buffer, &cache)) {
+	else if (!chdest.StartWriting(buffer, &cache)) {
 	  logger.msg(ERROR, "Failed to start writing to cache");
 	  source_url.StopReading();
 	  // hope there will be more space next time
@@ -781,8 +780,7 @@ namespace Arc {
 		if (r.get_int() < (RAND_MAX / 2))
 		  if (source.NextLocation())
 		    logger.msg(DEBUG, "(Re)Trying next source");
-		  else
-		  if (destination.NextLocation())
+		  else if (destination.NextLocation())
 		    logger.msg(DEBUG, "(Re)Trying next destination");
 	      }
 	}

@@ -71,8 +71,8 @@ namespace Arc {
 		   url.ConnectionURL(), entries[n].sfn);
       }
     else
-      for (std::list<URLLocation>::const_iterator loc = url.Locations().begin();
-	   loc != url.Locations().end(); ++loc)
+      for (std::list<URLLocation>::const_iterator loc =
+	     url.Locations().begin(); loc != url.Locations().end(); ++loc)
 	for (int n = 0; n < nbentries; n++)
 	  if (strncmp(entries[n].sfn, loc->Name().c_str(),
 		      loc->Name().length()) == 0) {
@@ -290,8 +290,8 @@ namespace Arc {
 	  return DataStatus::UnregisterError;
 	}
     }
-    else
-    if (lfc_delreplica(guid.c_str(), NULL, location->str().c_str()) != 0) {
+    else if (lfc_delreplica(guid.c_str(), NULL,
+			    location->str().c_str()) != 0) {
       lfc_endsess();
       logger.msg(ERROR, "Failed to remove location from LFC");
       return DataStatus::UnregisterError;

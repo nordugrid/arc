@@ -240,7 +240,6 @@ namespace Arc {
 	    skip_filename = false;
 	    break;
 	  }
-	;
 	if ((p - buf) == l)
 	  continue;
 	if (skip_filename) {
@@ -254,7 +253,6 @@ namespace Arc {
 	    skip_spaces = false;
 	    break;
 	  }
-	;
 	if ((p - buf) == l)
 	  continue;
 	if (skip_spaces) {
@@ -640,7 +638,6 @@ namespace Arc {
 	    continue;
 	  else
 	    before_name = false;
-	;
 	if (before_sep)
 	  if ((c != 0) && (c != ' ')) {
 	    fname += c;
@@ -1201,8 +1198,7 @@ namespace Arc {
     std::string name = cache_path + '/' + fname + ".claim";
     if (stat(name.c_str(), &st) != 0)
       claimed = false;
-    else
-    if (st.st_size == 0)
+    else if (st.st_size == 0)
       claimed = false;
     else
       claimed = true;
@@ -1469,8 +1465,7 @@ namespace Arc {
 	  // have url and name
 	  if (cache_release_file(cache_path, id, fname) == -1)
 	    fail = true;
-	  else
-	  if (remove) {
+	  else if (remove) {
 	    char state = cache_read_info_nonblock(cache_path, fname);
 	    if (((state == 'f') || (state == 'c')) &&
 		(cache_is_claimed_file(cache_path, fname) == 1))
