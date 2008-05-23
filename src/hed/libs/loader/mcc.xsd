@@ -35,15 +35,15 @@
             at various stages of message processing. Depending on produced
             result message may be either sent farther through chain or 
             processing would be cancelled. Required attribute 'name' specifies
-	    name of plugin. Attibute 'id' creates identifier of SecHandler
-	    which may be used to refer to it. If attribute 'refid' is defined
-	    then configuration of SecHendler is provided by another element
-	    within ArcConfig with corresponding 'id'. Attribute 'event' defines
-	    to which queue inside MCC SecHandler to be attached. If it's 
-	    missing SecHandler is attached to default queue if MCC has such. 
-	    Names of queues are MCC specific. If not otherwise specified they
-	    are 'incoming' and 'outgoing' and are processed for incoming
-	    and outgoing messages. There is no default queue by default.
+            name of plugin. Attibute 'id' creates identifier of SecHandler
+            which may be used to refer to it. If attribute 'refid' is defined
+            then configuration of SecHendler is provided by another element
+            within ArcConfig with corresponding 'id'. Attribute 'event' defines
+            to which queue inside MCC SecHandler to be attached. If it's 
+            missing SecHandler is attached to default queue if MCC has such. 
+            Names of queues are MCC specific. If not otherwise specified they
+            are 'incoming' and 'outgoing' and are processed for incoming
+            and outgoing messages. There is no default queue by default.
         -->
         <xsd:sequence>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
@@ -88,17 +88,17 @@
             which is used to refer to this element from others. If not specified it will be
             assigned automatically. Sub-elements 'next' refer to next components in a chain and
             their content represent requested endpoints. 
-	    In Plexer content of element 'next' represents Regular Expression pattern.
-	    For every incoming message path part of message's endpoint is matched pattern.
-	    In case of ordinary service element 'next' may look like
-	       <next>^/service$</next>
-	    If service is also responsible for whole subtree then simple solution is
-	       <next>^/service</next>
-	    But more safer solution would be to use 2 elements
-	       <next>^/service$</next>
-	       <next>^/service/</next>
-	    Unmatched part of message endpoint is propagated with incoming message in
-	    attribute PLEXER:EXTENSION and may be used by service to determine response. 
+            In Plexer content of element 'next' represents Regular Expression pattern.
+            For every incoming message path part of message's endpoint is matched pattern.
+            In case of ordinary service element 'next' may look like
+              <next>^/service$</next>
+            If service is also responsible for whole subtree then simple solution is
+              <next>^/service</next>
+            But more safer solution would be to use 2 elements
+              <next>^/service$</next>
+              <next>^/service/</next>
+            Unmatched part of message endpoint is propagated with incoming message in
+            attribute PLEXER:EXTENSION and may be used by service to determine response. 
         -->
             <xsd:element ref="next"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
