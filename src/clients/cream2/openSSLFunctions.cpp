@@ -3,6 +3,9 @@
 #include <sstream>
 #include <ctime>
 
+#include <unistd.h>
+#include <sys/types.h>
+
 #ifndef HAVE_TIMEGM
 time_t timegm (struct tm *tm) {
   char *tz = getenv("TZ");
