@@ -41,7 +41,7 @@ to enforce policies defined/selected by service providers.
 documents directly from Security Attributes. Differently from Arc PDP it 
 is meant to be used for enforcing policies defined by client.
 
- Typical service 
+ Typical service example - TODO
 
 
 Appendix A. Avaialable Security Attributes
@@ -51,34 +51,35 @@ Appendix A. Avaialable Security Attributes
 ARC Request with following attributes
 
   Element          AttributeId                                                       Content
- Resource          http://www.nordugrid.org/schemas/policy-arc/types/localendpoint  service_ip:service_port   
- Resource          http://www.nordugrid.org/schemas/policy-arc/types/localip            service_ip   
- SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint client_ip:client_port   
- SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/remoteip           client_ip   
+ Resource          http://www.nordugrid.org/schemas/policy-arc/types/localendpoint  service_ip[:service_port]   
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint client_ip[:client_port]   
 
 * TLS
  Information is collected inside TLS MCC. Security Attribute exports 
 ARC Request with following attributes
 
   Element          AttributeId                                                       Content
-
-
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/tls/ca        Subject of signer of first certificate in client's chain
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/tls/chain     Subject of certificate in client's chain - multiple items
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/tls/subject   Subject of last certificate in client's chain
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/tls/identity  Subject of last non-proxy certificate in client's chain
 
 * HTTP
  Information is collected inside TLS MCC. Security Attribute exports 
 ARC Request with following attributes
 
   Element          AttributeId                                                       Content
-
-
+ Resource  http://www.nordugrid.org/schemas/policy-arc/types/http/path   HTTP path without host and port part
+ Action    http://www.nordugrid.org/schemas/policy-arc/types/http/method           HTTP method 
 
 * SOAP
  Information is collected inside TLS MCC. Security Attribute exports 
 ARC Request with following attributes
 
   Element          AttributeId                                                       Content
-
-
+ Resource  http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint      WS-Addr To element
+ Action    http://www.nordugrid.org/schemas/policy-arc/types/soap/operation     SOAP top level element name without namespace prefix
+ Context   http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace     Namespace of SOAP top level element
 
 * Delegation
  This Security Attribute is collected by dedicated Security Handler plugin.
