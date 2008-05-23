@@ -400,6 +400,8 @@ else
 	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
 	if test "$DBCXX_LIBS" == ""
 	then
+		# Try with pthread (needed for RH9)
+	        AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx -lpthread",DBCXX_LIBS="",-lpthread) 
 		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
 	        AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="") 
 	fi
