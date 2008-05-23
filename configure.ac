@@ -385,12 +385,12 @@ then
 fi
 if test "$HAVE_DBCXX" = no
 then
-        AC_MSG_WARN([db_cxx.h not found, Checking db44 subdir])
+        AC_MSG_WARN([db4/db_cxx.h not found, Checking db44 subdir])
         AC_CHECK_HEADERS(db44/db_cxx.h,[HAVE_DBCXX=yes],[HAVE_DBCXX=no])
 fi
 if test "$HAVE_DBCXX" = no
 then
-	AC_MSG_WARN([BerkeleyDB db_cxx header not found!])
+	AC_MSG_WARN([db44/db_cxx.h not found])
 fi
 
 if test "$HAVE_DBCXX" = no
