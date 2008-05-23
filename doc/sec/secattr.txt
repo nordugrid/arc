@@ -1,0 +1,94 @@
+   Security Attributes framework and it's usage for delegation restriction
+   -----------------------------------------------------------------------
+
+
+ Delegation framework in ARC1 is based on Security Attributes infrastructure.
+There are 3 key components which make that infrastrcture:
+  * Security Attributes themselves
+  * Collectors of Security Attributes
+  * Processors of Security Attributes
+
+ Security Attributes represent security related information inside
+HED framework and store information representing various aspects 
+needed to perform authorization decison - identity of client, requested
+action, targeted resource, constraint policies. Each kind of Security 
+Attribute is represented by own class inherited from parent SecAttr class.
+
+ Each Security Attribute stores it's information in internal format and 
+provides it to external code in one of predefined formats. Currently
+only supported format is Arc Policy/Request.
+
+ Collectors of Security Attributes instantiate corresponding classes and
+link them to Secuirity Attributes containers - MessageAuth and 
+MessageAuthContext representing attributes per request and per session 
+correspondingly. Current implementations of Security Attributes Collectors
+are either integratd into existing MCCs or implemented as separate SecHandler
+plugins. See Appendix A for available collectors and corresponding Security
+Attributes. 
+
+Note for service developers: Services may implement own authorization 
+algorithms. But they may use Security Atributes as well by providing 
+instances of classes inherited from SecAttr and running them through
+either configured or hardcoded processors/PDPs (see below).
+
+ Processors of Security Attributes are implemented as Policy Decision Point 
+components. Currently there are 2 PDP components available:
+  * Arc PDP makes use of Security Attributes containing identities of client,
+resource and requested action. It evaluates either all or selected set 
+of attributes against specified Policy documents thus making it possible
+to enforce policies defined/selected by service providers. 
+  * Delegation PDP is similar to Arc PDP except that it takes it's Policy
+documents directly from Security Attributes. Differently from Arc PDP it 
+is meant to be used for enforcing policies defined by client.
+
+ Typical service 
+
+
+Appendix A. Avaialable Security Attributes
+
+* TCP
+ Information is collected inside TCP MCC. Security Attribute exports 
+ARC Request with following attributes
+
+  Element          AttributeId                                                       Content
+ Resource          http://www.nordugrid.org/schemas/policy-arc/types/localendpoint  service_ip:service_port   
+ Resource          http://www.nordugrid.org/schemas/policy-arc/types/localip            service_ip   
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint client_ip:client_port   
+ SubjectAttribute  http://www.nordugrid.org/schemas/policy-arc/types/remoteip           client_ip   
+
+* TLS
+ Information is collected inside TLS MCC. Security Attribute exports 
+ARC Request with following attributes
+
+  Element          AttributeId                                                       Content
+
+
+
+* HTTP
+ Information is collected inside TLS MCC. Security Attribute exports 
+ARC Request with following attributes
+
+  Element          AttributeId                                                       Content
+
+
+
+* SOAP
+ Information is collected inside TLS MCC. Security Attribute exports 
+ARC Request with following attributes
+
+  Element          AttributeId                                                       Content
+
+
+
+* Delegation
+ This Security Attribute is collected by dedicated Security Handler plugin.
+It extracts policy document stored inside X509 certificate proxy extension
+as defined in RFC3820.  All certificates in a chain provided by client are 
+examined.  Proxy certificates with id-ppl-inheritAll property are passed 
+through and no policy is generated for them. From those with id-ppl-anyLanguage 
+string content of ProxyPolicy element is extracted and converted into XML 
+document. Then document is check to be of Arc Policy kind. If policy is
+not recognized as Arc Policy procedure fails and that causes failure of
+comunication. Proxies with other type of policies including id-ppl-independent
+are not accepted and generate immediate failure.
+
