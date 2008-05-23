@@ -208,15 +208,15 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload) {
    if(peerchain != NULL) {
       for(int idx = 0;;++idx) {
          if(idx >= sk_X509_num(peerchain)) break;
-         X509* cert = sk_X509_value(peerchain,idx);
+         X509* cert = sk_X509_value(peerchain,sk_X509_num(peerchain)-idx-1);
          if(idx == 0) { // Obtain CA subject
            buf[0]=0;
-           X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof buf);
+           X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
            subject=buf;
            subjects_.push_back(subject);
          };
          buf[0]=0;
-         X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
+         X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
          subject=buf;
          subjects_.push_back(subject);
 #ifdef HAVE_OPENSSL_PROXY
@@ -285,7 +285,7 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/subject");
     };
     if(!identity_.empty()) {
-       add_subject_attribute(subj,subject,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+       add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     return true;
   } else {
@@ -608,7 +608,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
                for(int idx = 0;;++idx) {
                   if(idx >= sk_X509_num(peerchain)) break;
                   X509* cert = sk_X509_value(peerchain,idx);
-                  if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) >= 0) {
+                  if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
                      X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
                      std::string identity_dn = buf;
                      logger.msg(DEBUG, "Identity name: %s", identity_dn);
