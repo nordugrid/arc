@@ -39,11 +39,14 @@ BuildRequires: LFC-client-devel
 %if %{_vendor} == "redhat"
 BuildRequires: libdb4-devel
 %endif
-%if %{_vendor} == "suse" && %{dist} != ".oss10.3"
+#%if %{_vendor} == "suse" && %{dist} != ".oss10.3"
+#BuildRequires: libdb-devel
+#%endif
+#%if %{_vendor} == "suse" && %{dist} == ".oss10.3"
+#BuildRequires: libdb_cxx-4_4-devel
+#%endif
+%if %{_vendor} == "suse"
 BuildRequires: libdb-devel
-%endif
-%if %{_vendor} == "suse" && %{dist} == ".oss10.3"
-BuildRequires: libdb_cxx-4_4-devel
 %endif
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
