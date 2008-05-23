@@ -1124,10 +1124,9 @@ int main(int argc, char ** argv) {
     }
   }
   
-  optind++;
-  
   while (argc > optind) params.push_back(argv[optind++]);
-  
+
+
   /*
   if (!debugset) {
     std::string debuglevel = GetOption("debug", "NGDEBUG");

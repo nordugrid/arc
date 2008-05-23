@@ -6,7 +6,9 @@
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/StringConv.h>
+#include <arc/loader/Loader.h>
 #include <arc/misc/ClientInterface.h>
+#include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
@@ -88,17 +90,11 @@ void arcstat(const std::list<std::string>& jobs,
   } //end if clusters
     
   else { //i.e we are looking for the status of jobs
-    
+
     Arc::XMLNode JobIdStorage;
     JobIdStorage.ReadFromFile("jobs.xml");
     
-    for (std::list<std::string>::const_iterator it = jobs.begin(); it != jobs.end(); it++){    
-      
-      Arc::XMLNodeList ThisJob = JobIdStorage.XPathLookup("/jobs/job[@id='"+ *it+"']", Arc::NS());
-
-      ThisJob.begin()->SaveToStream(std::cout);
-
-    }//end loop over jobs
+    Arc::JobSupervisor JobMaster(JobIdStorage, jobs);
 
   } //end if we are looking for status of jobs
 
