@@ -43,11 +43,15 @@ MultiSecAttr::operator bool() {
 
 bool MultiSecAttr::Export(Format format,XMLNode &val) const {
   // Name of created node to be replaced by inheriting class
-  NS ns;
-  XMLNode(ns,"MultiSecAttr").New(val);
+  if(!val) {
+    NS ns;
+    XMLNode(ns,"MultiSecAttr").New(val);
+  } else {
+    val.Name("MultiSecAttr");
+  };
   for(std::list<SecAttr*>::const_iterator a = attrs_.begin();
                a!=attrs_.end();++a) {
-    XMLNode x;
+    NS ns; XMLNode x(ns,"");
     if(!((*a)->Export(format,x))) return false;
     val.NewChild(x);
   }
