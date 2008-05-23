@@ -397,12 +397,11 @@ if test "$HAVE_DBCXX" = no
 then
 	DBCXX_LIBS=""
 else
+	# pthread needed for RH9
+	SAVE_LDFLAGS=$LDFLAGS
+	LDFLAGS=-lpthread
+
 	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
-	if test "$DBCXX_LIBS" = ""
-	then
-		# Try with pthread (needed for RH9)
-		AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx -lpthread",DBCXX_LIBS="",-lpthread) 
-	fi
 
 	if test "$DBCXX_LIBS" = ""
 	then
@@ -419,6 +418,7 @@ else
 	then
 		AC_MSG_WARN([No BerkeleyDB library found!])
 	fi
+	LDFLAGS=$SAVE_LDFLAGS
 fi
 
 
