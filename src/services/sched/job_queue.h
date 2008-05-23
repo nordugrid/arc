@@ -1,8 +1,20 @@
 #ifndef __ARC__JOB_QUEUE_H__
 #define __ARC__JOB_QUEUE_H__ 
 
-#include <db_cxx.h>
 #include <string>
+
+#ifdef HAVE_DB_CXX_H
+#include <db_cxx.h>
+#endif
+
+#ifdef HAVE_DB4_DB_CXX_H
+#include <db4/db_cxx.h>
+#endif
+
+#ifdef HAVE_DB44_DB_CXX_H
+#include <db44/db_cxx.h>
+#endif
+
 #include "job.h"
 
 namespace Arc {
