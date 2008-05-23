@@ -435,6 +435,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   EVP_PKEY *pkey = NULL;
   ASN1_INTEGER *sno = NULL;
   ASN1_OBJECT *obj= NULL;
+  ASN1_OCTET_STRING* policy_string = NULL;
   X509_EXTENSION *ex = NULL;
   PROXY_CERT_INFO_EXTENSION proxy_info;
   PROXY_POLICY proxy_policy;
@@ -445,6 +446,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   time_t validity_start = time(NULL);
   time_t validity_end = (time_t)(-1);
   DelegationRestrictions& restrictions_ = (DelegationRestrictions&)restrictions;
+  std::string proxyPolicy;
 
   if(!cert_) {
     std::cerr<<"Missing certificate chain"<<std::endl;
@@ -522,12 +524,23 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   proxy_info.proxyPolicy=&proxy_policy;
   proxy_policy.policyLanguage=NULL;
   proxy_policy.policy=NULL;
-  obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
-  if(!obj) goto err;
-  proxy_policy.policyLanguage=obj;
+  proxyPolicy=restrictions_["proxyPolicy"];
+  if(!proxyPolicy.empty()) {
+    obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
+    if(!obj) goto err;
+    policy_string=ASN1_OCTET_STRING_new();
+    if(!policy_string) goto err;
+    ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)(proxyPolicy.c_str()),proxyPolicy.length());
+    proxy_policy.policyLanguage=obj;
+    proxy_policy.policy=policy_string;
+  } else {
+    obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
+    if(!obj) goto err;
+    proxy_policy.policyLanguage=obj;
+  };
   if(X509_add1_ext_i2d(cert,NID_proxyCertInfo,&proxy_info,1,X509V3_ADD_REPLACE) != 1) goto err;
+  if(policy_string) ASN1_OCTET_STRING_free(policy_string); policy_string=NULL;
   ASN1_OBJECT_free(obj); obj=NULL;
-
   /*
   PROXY_CERT_INFO_EXTENSION *pci = X509_get_ext_d2i(x, NID_proxyCertInfo, NULL, NULL);
   typedef struct PROXY_CERT_INFO_EXTENSION_st {
@@ -612,6 +625,7 @@ err:
   if(ex) X509_EXTENSION_free(ex);
   if(obj) ASN1_OBJECT_free(obj);
   if(subject) X509_NAME_free(subject);
+  if(policy_string) ASN1_OCTET_STRING_free(policy_string);
   return res;
 #else
   return "";

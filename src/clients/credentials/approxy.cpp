@@ -31,6 +31,7 @@ class APProxyTool: public Arc::ClientTool {
     std::cout<<"\t\tvalidityStart=time"<<std::endl;
     std::cout<<"\t\tvalidityEnd=time"<<std::endl;
     std::cout<<"\t\tvalidityPeriod=time"<<std::endl;
+    std::cout<<"\t\tproxyPolicy=policy content"<<std::endl;
   };
   virtual bool ProcessOption(char option,char* option_arg) {
     switch(option) {
@@ -40,7 +41,7 @@ class APProxyTool: public Arc::ClientTool {
       case 'c': {
         const char* p = strchr(option_arg,'=');
         if(!p) p=option_arg+strlen(option_arg);
-        constraints[std::string(option_arg,p-option_arg)]=p;
+        constraints[std::string(option_arg,p-option_arg)]=p+1;
       }; break;
       default: {
         std::cerr<<"Error processing option: "<<(char)option<<std::endl;
