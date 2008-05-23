@@ -36,9 +36,15 @@ BuildRequires: globus_rsl-devel
 #
 BuildRequires: LFC-client-devel
 #
-# Currently only needed for the sched service:
-# File dependencies should really not be used
-BuildRequires: /usr/include/db_cxx.h
+%if %{_vendor} == "redhat"
+BuildRequires: libdb4-devel
+%endif
+%if %{_vendor} == "suse" && %{dist} != ".oss10.3"
+BuildRequires: libdb-devel
+%endif
+%if %{_vendor} == "suse" && %{dist} == ".oss10.3"
+BuildRequires: libdb_cxx-4_4-devel
+%endif
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
 %if "%{pyver}" < "2.4"
