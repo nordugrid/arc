@@ -370,11 +370,46 @@ LASSO_INSTALLED=no
 # LASSO_INSTALLED=yes],
 #[])
 
-#check Berkeley DB C++
+#
+# Check for Berkeley DB C++
+#
+
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
-AC_CHECK_HEADER(db_cxx.h,[HAVE_DBCXX=yes DBCXX_LIBS="-ldb_cxx"],
-                          [HAVE_DBCXX=no DBCXX_LIBS=""])
+
+AC_CHECK_HEADER(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+if test "$HAVE_DBCXX" = no
+then
+        AC_MSG_WARN([db_cxx.h not found, Checking db4 subdir])
+        AC_CHECK_HEADERS(db4/db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+fi
+if test "$HAVE_DBCXX" = no
+then
+        AC_MSG_WARN([db_cxx.h not found, Checking db44 subdir])
+        AC_CHECK_HEADERS(db44/db_cxx.h,[HAVE_DBCXX=yes],[HAVE_DBCXX=no])
+fi
+if test "$HAVE_DBCXX" = no
+then
+	AC_MSG_WARN([BerkeleyDB db_cxx header not found!])
+fi
+
+if test "$HAVE_DBCXX" = no
+then
+	DBCXX_LIBS=""
+else
+	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
+	if test "$DBCXX_LIBS" == ""
+	then
+		AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
+	fi
+
+	if test "$DBCXX_LIBS" == ""
+	then
+		AC_MSG_WARN([No BerkeleyDB library found!])
+	fi
+fi
+
+
 AC_SUBST(DBCXX_LIBS)
 AC_LANG_RESTORE
 
@@ -778,6 +813,7 @@ AC_CONFIG_FILES([Makefile
                  include/Makefile
                  debian/Makefile
                  debian/nordugrid-arc1-server.install
+                 debian/nordugrid-arc1-java.install
                  arc.spec
                  src/hed/daemon/arched.8
 ])

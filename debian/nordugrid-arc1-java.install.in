@@ -1,0 +1,5 @@
+@JAVA_ENABLED_TRUE@usr/lib/java/libjarc.so
+@JAVA_ENABLED_TRUE@usr/lib/java/libjarc.la
+@JAVA_ENABLED_TRUE@usr/lib/java/libjarc.a
+@JAVA_ENABLED_TRUE@usr/share/java/arc.jar
+@JAVA_ENABLED_TRUE@usr/lib/arc/libjavaservice.so
