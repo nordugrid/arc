@@ -56,8 +56,8 @@ bool DelegationPDP::isPermitted(Message *msg){
   };
 
   // Extract policies
-  // TODO: Probably make MessageAuth do it or there shoudlbe some other way
-  //    to avoid multiple extraction of same object.
+  // TODO: Probably make MessageAuth do it or there should be some other way
+  //       to avoid multiple extraction of same object.
   // Currently delegated policies are simply stored under special name "DELEGATION POLICY"
   // To have multiple policies in same object MultiSecAttr class may be used. Then
   // Policies are catenated under top-level element "Policies".
