@@ -46,7 +46,7 @@ GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out)
     if (delegated_token) {
         // Client wants to delegate credentials
         if (!delegations_.DelegatedToken(delegation, delegated_token)) {
-            logger_.msg(Arc::ERROR, "Failed to accpet delegation");
+            logger_.msg(Arc::ERROR, "Failed to accept delegation");
             Arc::SOAPEnvelope fault(ns_, true);
             if (fault) {
                 fault.Fault()->Code(Arc::SOAPFault::Receiver);
