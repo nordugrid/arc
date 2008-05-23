@@ -62,10 +62,27 @@ namespace Arc {
       delete ACCloader;
   }
 
+  void JobSupervisor::GetJobInformation() {
+
+    std::list<JobController*>::iterator iter;
+    
+    //This may benefit from being threaded
+    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
+      (*iter)->GetJobInformation();
+    }
+
+  }
+
 
   void JobSupervisor::PrintJobInformation(bool longlist) {
 
-
+    std::list<JobController*>::iterator iter;
+    
+    //This may benefit from being threaded
+    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
+      (*iter)->PrintJobInformation(longlist);
+    }
+    
   }
 
 } // namespace Arc

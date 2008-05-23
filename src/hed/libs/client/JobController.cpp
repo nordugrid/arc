@@ -22,6 +22,7 @@ namespace Arc {
       for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
 	Job ThisJob;
 	ThisJob.id = (std::string) (*iter)["id"];
+	ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
 	JobStore.push_back(ThisJob);
       }
 

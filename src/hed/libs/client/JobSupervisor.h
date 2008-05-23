@@ -14,6 +14,7 @@ namespace Arc {
     JobSupervisor(Arc::XMLNode JobIdStorage, std::list<std::string> jobids);
     ~JobSupervisor();
 
+    void GetJobInformation();
     void PrintJobInformation(bool longlist);
 
   private:

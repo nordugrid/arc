@@ -95,6 +95,8 @@ void arcstat(const std::list<std::string>& jobs,
     JobIdStorage.ReadFromFile("jobs.xml");
     
     Arc::JobSupervisor JobMaster(JobIdStorage, jobs);
+    JobMaster.GetJobInformation();
+    JobMaster.PrintJobInformation(longlist);
 
   } //end if we are looking for status of jobs
 
