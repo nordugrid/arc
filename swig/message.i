@@ -16,6 +16,7 @@
 
 #ifdef SWIGJAVA
 %ignore SOAPEnvelope(const char *);
+%ignore Reason(const char *);
 %ignore *::Put(const char *);
 #endif
 
