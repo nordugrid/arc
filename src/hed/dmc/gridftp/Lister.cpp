@@ -395,13 +395,13 @@ namespace Arc {
     /* !!!!!!! Memory LOST - cmd !!!!!!!! */
   }
 
-  Lister::Lister() {
-    callback_status = CALLBACK_NOTREADY;
-    inited = false;
-    connected = false;
-    port = -1;
-    resp_n = 0;
-    handle = NULL;
+  Lister::Lister()
+    : callback_status(CALLBACK_NOTREADY),
+      inited(false),
+      connected(false),
+      port((unsigned short int)(-1)),
+      resp_n(0),
+      handle(NULL) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Failed initing condition");
       return;
