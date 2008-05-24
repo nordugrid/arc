@@ -28,12 +28,24 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Thread.h>
 
 #include "LDAPQuery.h"
 
 namespace Arc {
 
   Logger LDAPQuery::logger(Logger::rootLogger, "LDAPQuery");
+
+  struct ldap_bind_arg {
+    LDAP *connection;
+    LogLevel loglevel;
+    SimpleCondition cond;
+    bool valid;
+    bool anonymous;
+    std::string usersn;
+  };
+
+  static void* ldap_bind_with_timeout(void* arg);
 
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
   class sasl_defaults {
@@ -260,6 +272,40 @@ namespace Arc {
       return false;
     }
 
+    ldap_bind_arg arg;
+
+    arg.connection = connection;
+    arg.loglevel = logger.getThreshold();
+    arg.valid = true;
+    arg.anonymous = anonymous;
+    arg.usersn = usersn;
+
+    pthread_t thr;
+    if (pthread_create(&thr, NULL, &ldap_bind_with_timeout, &arg) != 0) {
+      ldap_unbind_ext (connection, NULL, NULL);
+      connection = NULL;
+      logger.msg(ERROR, "Failed to create ldap bind thread (%s)", host);
+      return false;
+    }
+
+    if (!arg.cond.wait(1000 * (timeout + 1))) {
+      pthread_cancel (thr);
+      pthread_detach (thr);
+      // if bind fails unbind will fail too - so don't call it
+      connection = NULL;
+      logger.msg(ERROR, "Ldap bind timeout (%s)", host);
+      return false;
+    }
+
+    pthread_join (thr, NULL);
+
+    if (!arg.valid) {
+      ldap_unbind_ext (connection, NULL, NULL);
+      connection = NULL;
+      logger.msg(ERROR, "Failed to bind to ldap server (%s)", host);
+      return false;
+    }
+
     return true;
   }
 
@@ -294,12 +340,19 @@ namespace Arc {
       return false;
     }
 
+    return true;
+  }
+
+  static void* ldap_bind_with_timeout(void* arg_) {
+
+    ldap_bind_arg* arg = (ldap_bind_arg* ) arg_;
+
     int ldresult = 0;
-    if (anonymous) {
+    if (arg->anonymous) {
       BerValue cred = {
 	0, ""
       };
-      ldresult = ldap_sasl_bind_s(connection, NULL, LDAP_SASL_SIMPLE,
+      ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
 				  &cred, NULL, NULL, NULL);
     }
     else {
@@ -307,16 +360,16 @@ namespace Arc {
       int ldapflag = LDAP_SASL_QUIET;
 #ifdef LDAP_SASL_AUTOMATIC
       // solaris does not have LDAP_SASL_AUTOMATIC
-      if (logger.getThreshold() >= DEBUG)
+      if (arg->loglevel >= DEBUG)
 	ldapflag = LDAP_SASL_AUTOMATIC;
 #endif
-      sasl_defaults defaults = sasl_defaults(connection,
+      sasl_defaults defaults = sasl_defaults(arg->connection,
 					     SASLMECH,
 					     "",
 					     "",
-					     usersn,
+					     arg->usersn,
 					     "");
-      ldresult = ldap_sasl_interactive_bind_s(connection,
+      ldresult = ldap_sasl_interactive_bind_s(arg->connection,
 					      NULL,
 					      SASLMECH,
 					      NULL,
@@ -328,16 +381,18 @@ namespace Arc {
       BerValue cred = {
 	0, ""
       };
-      ldresult = ldap_sasl_bind_s(connection, NULL, LDAP_SASL_SIMPLE,
+      ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
 				  &cred, NULL, NULL, NULL);
 #endif
     }
 
-    if (ldresult != LDAP_SUCCESS) {
-      logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
-      return false;
-    }
-    return true;
+    if (ldresult != LDAP_SUCCESS)
+      arg->valid = false;
+    else
+      arg->valid = true;
+
+    arg->cond.signal();
+    return NULL;
   }
 
 
