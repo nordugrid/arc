@@ -69,7 +69,11 @@ void JobQueue::init(const std::string &dbroot, const std::string &store_name)
     env_ = new DbEnv(0); // Exception will occure
     env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL | DB_THREAD /*|  DB_INIT_TXN*/, 0644);
     db_ = new Db(env_, 0);
+#if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
+    db_->open(store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_THREAD, 0644);
+#else
     db_->open(NULL, store_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_THREAD, 0644);
+#endif
 }
 
 JobQueue::~JobQueue(void) 
