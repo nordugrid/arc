@@ -63,7 +63,7 @@ namespace Arc {
 #define stringtold(A) stringto<long double>((A))
 
 
-    /// This method converts a long to any type of the width given.
+    /// This method converts any type to a string of the width given.
     template<typename T>
     std::string tostring(T t, const int width = 0, const int precision = 0) 
     {
@@ -82,7 +82,7 @@ namespace Arc {
     void tokenize(const std::string &str, std::vector<std::string> &tokens,
                   const std::string &delimiters = " ");
     
-    /// This method remove given separatos from the beginig and the end of the string
+    /// This method removes given separators from the beginning and the end of the string
     std::string trim(const std::string &str, const char *sep = NULL);
 
 } // namespace Arc
