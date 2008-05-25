@@ -42,7 +42,6 @@ namespace Arc {
     Glib::Mutex indexServerMutex;
     Glib::Mutex targetMutex;
 
-    bool done;
     int threadCounter;
     Glib::Mutex threadMutex;
     Glib::Cond threadCond;

@@ -16,7 +16,6 @@ namespace Arc {
 
   TargetGenerator::TargetGenerator(Config& cfg)
     : loader(&cfg),
-      done(false),
       threadCounter(0) {}
 
   TargetGenerator::~TargetGenerator() {}
@@ -28,7 +27,7 @@ namespace Arc {
 							    tostring(i)));
 	 i++)
       TR->GetTargets(*this, targetType, detailLevel);
-    while (!done)
+    while (threadCounter > 0)
       threadCond.wait(threadMutex);
     logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
   }
@@ -71,10 +70,8 @@ namespace Arc {
   void TargetGenerator::RetrieverDone() {
     Glib::Mutex::Lock threadLock(threadMutex);
     threadCounter--;
-    if (threadCounter == 0) {
-      done = true;
+    if (threadCounter == 0)
       threadCond.signal();
-    }
   }
 
   void TargetGenerator::PrintTargetInfo(bool longlist) const {
