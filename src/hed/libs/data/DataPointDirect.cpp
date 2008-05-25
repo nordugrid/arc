@@ -10,7 +10,7 @@ namespace Arc {
   DataPointDirect::DataPointDirect(const URL& url)
     : DataPoint(url),
       buffer(NULL),
-      bufsize(-1),
+      bufsize((unsigned long long int)(-1)),
       bufnum(1),
       cache(true),
       local(false),
@@ -23,13 +23,19 @@ namespace Arc {
       allow_out_of_order(false),
       range_start(0),
       range_end(0) {
-    bufnum = stringtoi(url.Option("threads"));
+    std::string optval;
+
+    optval = url.Option("threads");
+    if (!optval.empty())
+      bufnum = stringtoi(optval);
     if (bufnum < 1)
       bufnum = 1;
     if (bufnum > MAX_PARALLEL_STREAMS)
       bufnum = MAX_PARALLEL_STREAMS;
 
-    bufsize = stringtoull(url.Option("blocksize"));
+    optval = url.Option("blocksize");
+    if (!optval.empty())
+      bufsize = stringtoull(optval);
     if (bufsize > MAX_BLOCK_SIZE)
       bufsize = MAX_BLOCK_SIZE;
 
