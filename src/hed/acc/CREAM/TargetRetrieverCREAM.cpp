@@ -1,7 +1,9 @@
 #include <arc/ArcConfig.h>
+#include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/XMLNode.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBufferPar.h>
@@ -11,6 +13,13 @@
 #include "TargetRetrieverCREAM.h"
 
 namespace Arc {
+
+  struct ThreadArg {
+    Arc::TargetGenerator *mom;
+    Arc::URL url;
+    int targetType;
+    int detailLevel;
+  };
 
   Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
 
@@ -29,77 +38,33 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverCREAM initialized with %s service url: %s",
 	       serviceType, url.str());
 
-    if (mom.DoIAlreadyExist(url))
-      return;
-
     if (serviceType == "computing") {
       bool added = mom.AddService(url);
-      if (added)
-	InterrogateTarget(mom, url, targetType, detailLevel);
+      if (added) {
+	ThreadArg *arg = new ThreadArg;
+	arg->mom = &mom;
+	arg->url = url;
+	arg->targetType = targetType;
+	arg->detailLevel = detailLevel;
+	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
+	  delete arg;
+	  mom.RetrieverDone();
+	}
+      }
     }
     else if (serviceType == "storage") {}
     else if (serviceType == "index") {
-      url.ChangeLDAPScope(URL::subtree);
-      url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
-			   "(GlueServiceType=bdii_top))");
-      DataHandle handler(url);
-      DataBufferPar buffer;
-
-      if (!handler->StartReading(buffer))
-	return;
-
-      int handle;
-      unsigned int length;
-      unsigned long long int offset;
-      std::string result;
-
-      while (buffer.for_write() || !buffer.eof_read())
-	if (buffer.for_write(handle, length, offset, true)) {
-	  result.append(buffer[handle], length);
-	  buffer.is_written(handle);
+      bool added = mom.AddIndexServer(url);
+      if (added) {
+	ThreadArg *arg = new ThreadArg;
+	arg->mom = &mom;
+	arg->url = url;
+	arg->targetType = targetType;
+	arg->detailLevel = detailLevel;
+	if (!CreateThreadFunction(&QueryIndex, arg)) {
+	  delete arg;
+	  mom.RetrieverDone();
 	}
-
-      if (!handler->StopReading())
-	return;
-
-      XMLNode XMLresult(result);
-
-      std::list<XMLNode> topBDIIs =
-	XMLresult.XPathLookup("//*[GlueServiceType='bdii_top']", NS());
-
-      for (std::list<XMLNode>::iterator iter = topBDIIs.begin();
-	   iter != topBDIIs.end(); ++iter) {
-
-	if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
-	  continue;
-
-	URL url = (std::string)(*iter)["GlueServiceEndpoint"];
-
-	NS ns;
-	Config cfg(ns);
-	XMLNode URLXML = cfg.NewChild("URL") = url.str();
-	URLXML.NewAttribute("ServiceType") = "index";
-
-	TargetRetrieverCREAM thisBDII(&cfg);
-
-	thisBDII.GetTargets(mom, targetType, detailLevel);
-      }
-
-      std::list<XMLNode> siteBDIIs =
-	XMLresult.XPathLookup("//*[GlueServiceType='bdii_site']", NS());
-
-      for (std::list<XMLNode>::iterator iter = siteBDIIs.begin();
-	   iter != siteBDIIs.end(); ++iter) {
-
-	if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
-	  continue;
-
-	URL url = (std::string)(*iter)["GlueServiceEndpoint"];
-
-	//Should filter here on allowed VOs, not yet implemented
-
-	if (mom.AddService(url))
-	  InterrogateTarget(mom, url, targetType, detailLevel);
       }
     }
     else
@@ -107,15 +72,23 @@ namespace Arc {
 		 "TargetRetrieverCREAM initialized with unknown url type");
   }
 
-  void TargetRetrieverCREAM::InterrogateTarget(TargetGenerator& mom,
-					       URL& url, int targetType,
-					       int detailLevel) {
+  void TargetRetrieverCREAM::QueryIndex(void *arg) {
+    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
+    URL& url = ((ThreadArg *)arg)->url;
+    int& targetType = ((ThreadArg *)arg)->targetType;
+    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+
     url.ChangeLDAPScope(URL::subtree);
+    url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)"
+			 "(GlueServiceType=bdii_top))");
     DataHandle handler(url);
     DataBufferPar buffer;
 
-    if (!handler->StartReading(buffer))
+    if (!handler->StartReading(buffer)) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
       return;
+    }
 
     int handle;
     unsigned int length;
@@ -128,8 +101,92 @@ namespace Arc {
 	buffer.is_written(handle);
       }
 
-    if (!handler->StopReading())
+    if (!handler->StopReading()) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
       return;
+    }
+
+    XMLNode XMLresult(result);
+
+    std::list<XMLNode> topBDIIs =
+      XMLresult.XPathLookup("//*[GlueServiceType='bdii_top']", NS());
+
+    for (std::list<XMLNode>::iterator iter = topBDIIs.begin();
+	 iter != topBDIIs.end(); ++iter) {
+
+      if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
+	continue;
+
+      URL url = (std::string)(*iter)["GlueServiceEndpoint"];
+
+      NS ns;
+      Config cfg(ns);
+      XMLNode URLXML = cfg.NewChild("URL") = url.str();
+      URLXML.NewAttribute("ServiceType") = "index";
+
+      TargetRetrieverCREAM retriever(&cfg);
+      retriever.GetTargets(mom, targetType, detailLevel);
+    }
+
+    std::list<XMLNode> siteBDIIs =
+      XMLresult.XPathLookup("//*[GlueServiceType='bdii_site']", NS());
+
+    for (std::list<XMLNode>::iterator iter = siteBDIIs.begin();
+	 iter != siteBDIIs.end(); ++iter) {
+
+      if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
+	continue;
+
+      URL url = (std::string)(*iter)["GlueServiceEndpoint"];
+
+      //Should filter here on allowed VOs, not yet implemented
+
+      NS ns;
+      Config cfg(ns);
+      XMLNode URLXML = cfg.NewChild("URL") = url.str();
+      URLXML.NewAttribute("ServiceType") = "computing";
+
+      TargetRetrieverCREAM retriever(&cfg);
+      retriever.GetTargets(mom, targetType, detailLevel);
+    }
+
+    delete (ThreadArg *)arg;
+    mom.RetrieverDone();
+  }
+
+  void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
+    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
+    URL& url = ((ThreadArg *)arg)->url;
+    int& targetType = ((ThreadArg *)arg)->targetType;
+    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+
+    url.ChangeLDAPScope(URL::subtree);
+    DataHandle handler(url);
+    DataBufferPar buffer;
+
+    if (!handler->StartReading(buffer)) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
+      return;
+    }
+
+    int handle;
+    unsigned int length;
+    unsigned long long int offset;
+    std::string result;
+
+    while (buffer.for_write() || !buffer.eof_read())
+      if (buffer.for_write(handle, length, offset, true)) {
+	result.append(buffer[handle], length);
+	buffer.is_written(handle);
+      }
+
+    if (!handler->StopReading()) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
+      return;
+    }
 
     XMLNode XMLresult(result);
 
@@ -443,19 +500,17 @@ namespace Arc {
       // target.RequestedSlots;
       // target.ReservationPolicy;
 
-      /*
-         for (XMLNode node =
-             SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
-           node; ++node) {
-         Glue2::ApplicationEnvironment_t env;
-         env.Name = (std::string) node;
-         target.ApplicationEnvironments.push_back(env);
-         }
-       */
+      for (XMLNode node =
+	     SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
+	   node; ++node)
+	target.RunTimeEnvironment.push_back((std::string)node);
 
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }
+
+    delete (ThreadArg *)arg;
+    mom.RetrieverDone();
   }
 
 } // namespace Arc

@@ -146,7 +146,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   int jobnr = 1;
   std::list<std::string> jobids;
   
-  if (ClusterSelect.size()==1 && TarGen.FoundTargets.size()==0) {
+  if (ClusterSelect.size()==1 && TarGen.FoundTargets().size()==0) {
     std::cout<< Arc::IString("Job submission failed due to: \n"
                              "The specified cluster %s \n"
                              "did not return any information", *ClusterSelect.begin()) << std::endl;
@@ -174,7 +174,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     //get submitter from chosen target 
     //for now use the first executiontarget found
     
-    Arc::Submitter *submitter = TarGen.FoundTargets.begin()->GetSubmitter();
+    Arc::Submitter *submitter = TarGen.FoundTargets().begin()->GetSubmitter();
     
     std::cout<<"Submitting jobs ..."<<std::endl;
     std::pair<Arc::URL, Arc::URL> jobid;
@@ -183,7 +183,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     Arc::XMLNode ThisJob = JobIdStorage.NewChild("job");
     ThisJob.NewChild("id") = jobid.first.str();
     ThisJob.NewChild("name") = "test";
-    ThisJob.NewChild("flavour") = TarGen.FoundTargets.begin()->GridFlavour;   
+    ThisJob.NewChild("flavour") = TarGen.FoundTargets().begin()->GridFlavour;   
     ThisJob.NewChild("source") = jobid.second.str();
     
     std::cout<<"Job submitted with jobid: "<< jobid.first.str() <<std::endl;

@@ -7,6 +7,7 @@
 #include <glibmm/thread.h>
 
 #include <arc/client/ExecutionTarget.h>
+#include <arc/loader/Loader.h>
 
 namespace Arc {
 
@@ -21,23 +22,31 @@ namespace Arc {
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
+    const std::list<ExecutionTarget> FoundTargets() const;
 
-    bool AddService(const URL& NewService);
-    void AddTarget(const ExecutionTarget& NewTarget);
-    bool DoIAlreadyExist(const URL& NewServer);
+    bool AddService(const URL& url);
+    bool AddIndexServer(const URL& url);
+    void AddTarget(const ExecutionTarget& target);
+    void RetrieverDone();
 
-    void PrintTargetInfo(bool longlist);
-
-    std::list<URL> FoundServices;
-    std::list<URL> CheckedInfoServers;
-    std::list<ExecutionTarget> FoundTargets;
+    void PrintTargetInfo(bool longlist) const;
 
   private:
-    Glib::Mutex ServiceMutex;
-    Glib::Mutex ServerMutex;
-    Glib::Mutex TargetMutex;
+    Loader loader;
 
-    Loader *ACCloader;
+    std::list<URL> foundServices;
+    std::list<URL> foundIndexServers;
+    std::list<ExecutionTarget> foundTargets;
+
+    Glib::Mutex serviceMutex;
+    Glib::Mutex indexServerMutex;
+    Glib::Mutex targetMutex;
+
+    bool done;
+    int threadCounter;
+    Glib::Mutex threadMutex;
+    Glib::Cond threadCond;
+
     static Logger logger;
   };
 

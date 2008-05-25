@@ -4,80 +4,85 @@
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/loader/Loader.h>
 #include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
 
-  TargetGenerator::TargetGenerator(Config& cfg) {
-    ACCloader = new Loader(&cfg);
-  }
+  TargetGenerator::TargetGenerator(Config& cfg)
+    : loader(&cfg),
+      done(false),
+      threadCounter(0) {}
 
-  TargetGenerator::~TargetGenerator() {
-    if (ACCloader)
-      delete ACCloader;
-  }
+  TargetGenerator::~TargetGenerator() {}
 
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
-    bool AreThereRetrievers = true;
-    char RetrieverID[20];
-    int RetrieverNumber = 1;
-    while (AreThereRetrievers) {
-      sprintf(RetrieverID, "retriever%d", RetrieverNumber);
-      TargetRetriever *TR =
-	dynamic_cast<TargetRetriever *>(ACCloader->getACC(RetrieverID));
-      if (TR) {
-	//Get those targets ...
-	//TargetType: Execution = 0, Storage = 1, ...
-	//DetailLevel: Minimum = 0, Processed = 1, Full = 2
-	//All options not yet implemented
-	TR->GetTargets(*this, targetType, detailLevel);
-	RetrieverNumber++;
-      }
-      else
-	AreThereRetrievers = false;
-    }
-    logger.msg(INFO, "Number of Targets found: %ld", FoundTargets.size());
+    TargetRetriever *TR;
+    for (int i = 1;
+	 TR = dynamic_cast<TargetRetriever *>(loader.getACC("retriever" +
+							    tostring(i)));
+	 i++)
+      TR->GetTargets(*this, targetType, detailLevel);
+    std::cout << done << " " << threadCounter << std::endl;
+    while (!done)
+      threadCond.wait(threadMutex);
+    logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
   }
 
-  bool TargetGenerator::AddService(const URL& NewService) {
+  const std::list<ExecutionTarget> TargetGenerator::FoundTargets() const {
+    return foundTargets;
+  }
+
+  bool TargetGenerator::AddService(const URL& url) {
     bool added = false;
-    //lock this function call
-    Glib::Mutex::Lock ServiceWriteLock(ServiceMutex);
-    if (std::find(FoundServices.begin(), FoundServices.end(), NewService) ==
-	FoundServices.end()) {
-      FoundServices.push_back(NewService);
+    Glib::Mutex::Lock serviceLock(serviceMutex);
+    if (std::find(foundServices.begin(), foundServices.end(), url) ==
+	foundServices.end()) {
+      foundServices.push_back(url);
       added = true;
+      Glib::Mutex::Lock threadLock(threadMutex);
+      threadCounter++;
     }
     return added;
   }
 
-  void TargetGenerator::AddTarget(const ExecutionTarget& NewTarget) {
-    //lock this function call
-    Glib::Mutex::Lock TargetWriteLock(TargetMutex);
-    FoundTargets.push_back(NewTarget);
-  }
-
-  bool TargetGenerator::DoIAlreadyExist(const URL& NewServer) {
-    bool existence = true;
-    //lock this function call
-    Glib::Mutex::Lock ServerAddLock(ServerMutex);
-    if (std::find(CheckedInfoServers.begin(), CheckedInfoServers.end(),
-		  NewServer) == CheckedInfoServers.end()) {
-      CheckedInfoServers.push_back(NewServer);
-      existence = false;
+  bool TargetGenerator::AddIndexServer(const URL& url) {
+    bool added = false;
+    std::cout << "TargetGenerator::AddIndexServer" << std::endl;
+    Glib::Mutex::Lock indexServerLock(indexServerMutex);
+    if (std::find(foundIndexServers.begin(), foundIndexServers.end(), url) ==
+	foundIndexServers.end()) {
+      foundIndexServers.push_back(url);
+      added = true;
+      Glib::Mutex::Lock threadLock(threadMutex);
+      threadCounter++;
     }
-    return existence;
+    std::cout << "AddIndexServer" << threadCounter << std::endl;
+    return added;
   }
 
-  void TargetGenerator::PrintTargetInfo(bool longlist) {
-    for (std::list<ExecutionTarget>::iterator cli = FoundTargets.begin();
-	 cli != FoundTargets.end(); cli++) {
+  void TargetGenerator::AddTarget(const ExecutionTarget& target) {
+    Glib::Mutex::Lock targetLock(targetMutex);
+    foundTargets.push_back(target);
+  }
+
+  void TargetGenerator::RetrieverDone() {
+    Glib::Mutex::Lock threadLock(threadMutex);
+    threadCounter--;
+    if (threadCounter == 0) {
+      done = true;
+      threadCond.signal();
+    }
+  }
+
+  void TargetGenerator::PrintTargetInfo(bool longlist) const {
+    for (std::list<ExecutionTarget>::const_iterator cli = foundTargets.begin();
+	 cli != foundTargets.end(); cli++) {
 
       std::cout << IString("Cluster: %s", cli->Name) << std::endl;
       if (!cli->Alias.empty())

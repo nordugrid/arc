@@ -1,8 +1,9 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/XMLNode.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/data/DataBufferPar.h>
@@ -11,6 +12,13 @@
 #include "TargetRetrieverARC0.h"
 
 namespace Arc {
+
+  struct ThreadArg {
+    Arc::TargetGenerator *mom;
+    Arc::URL url;
+    int targetType;
+    int detailLevel;
+  };
 
   Logger TargetRetrieverARC0::logger(TargetRetriever::logger, "ARC0");
 
@@ -29,87 +37,33 @@ namespace Arc {
     logger.msg(INFO, "TargetRetriverARC0 initialized with %s service url: %s",
 	       serviceType, url.str());
 
-    if (mom.DoIAlreadyExist(url))
-      return;
-
     if (serviceType == "computing") {
       bool added = mom.AddService(url);
-      if (added)
-	InterrogateTarget(mom, url, targetType, detailLevel);
+      if (added) {
+	ThreadArg *arg = new ThreadArg;
+	arg->mom = &mom;
+	arg->url = url;
+	arg->targetType = targetType;
+	arg->detailLevel = detailLevel;
+	if (!CreateThreadFunction(&InterrogateTarget, arg)) {
+	  delete arg;
+	  mom.RetrieverDone();
+	}
+      }
     }
     else if (serviceType == "storage") {}
     else if (serviceType == "index") {
-      url.ChangeLDAPScope(URL::base);
-      url.AddLDAPAttribute("giisregistrationstatus");
-      DataHandle handler(url);
-      DataBufferPar buffer;
-
-      if (!handler->StartReading(buffer))
-	return;
-
-      int handle;
-      unsigned int length;
-      unsigned long long int offset;
-      std::string result;
-
-      while (buffer.for_write() || !buffer.eof_read())
-	if (buffer.for_write(handle, length, offset, true)) {
-	  result.append(buffer[handle], length);
-	  buffer.is_written(handle);
+      bool added = mom.AddIndexServer(url);
+      if (added) {
+	ThreadArg *arg = new ThreadArg;
+	arg->mom = &mom;
+	arg->url = url;
+	arg->targetType = targetType;
+	arg->detailLevel = detailLevel;
+	if (!CreateThreadFunction(&QueryIndex, arg)) {
+	  delete arg;
+	  mom.RetrieverDone();
 	}
-
-      if (!handler->StopReading())
-	return;
-
-      XMLNode XMLresult(result);
-
-      // GIISes
-      std::list<XMLNode> GIISes =
-	XMLresult.XPathLookup("//Mds-Vo-name[Mds-Service-type]", NS());
-
-      for (std::list<XMLNode>::iterator iter = GIISes.begin();
-	   iter != GIISes.end(); iter++) {
-
-	if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
-	  continue;
-
-	std::string urlstr;
-	urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
-		 (std::string)(*iter)["Mds-Service-hn"] + ":" +
-		 (std::string)(*iter)["Mds-Service-port"] + "/" +
-		 (std::string)(*iter)["Mds-Service-Ldap-suffix"];
-	URL url(urlstr);
-
-	NS ns;
-	Config cfg(ns);
-	XMLNode URLXML = cfg.NewChild("URL") = url.str();
-	URLXML.NewAttribute("ServiceType") = "index";
-
-	TargetRetrieverARC0 thisGIIS(&cfg);
-
-	thisGIIS.GetTargets(mom, targetType, detailLevel);
-      }
-
-      // GRISes
-      std::list<XMLNode> GRISes =
-	XMLresult.XPathLookup("//nordugrid-cluster-name"
-			      "[objectClass='MdsService']", NS());
-
-      for (std::list<XMLNode>::iterator iter = GRISes.begin();
-	   iter != GRISes.end(); iter++) {
-
-	if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
-	  continue;
-
-	std::string urlstr;
-	urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
-		 (std::string)(*iter)["Mds-Service-hn"] + ":" +
-		 (std::string)(*iter)["Mds-Service-port"] + "/" +
-		 (std::string)(*iter)["Mds-Service-Ldap-suffix"];
-	URL url(urlstr);
-
-	if (mom.AddService(url))
-	  InterrogateTarget(mom, url, targetType, detailLevel);
       }
     }
     else
@@ -117,19 +71,22 @@ namespace Arc {
 		 "TargetRetrieverARC0 initialized with unknown url type");
   }
 
-  void TargetRetrieverARC0::InterrogateTarget(TargetGenerator& mom,
-					      URL& url, int targetType,
-					      int detailLevel) {
+  void TargetRetrieverARC0::QueryIndex(void *arg) {
+    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
+    URL& url = ((ThreadArg *)arg)->url;
+    int& targetType = ((ThreadArg *)arg)->targetType;
+    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
-    //Query GRIS for all relevant information
-    url.ChangeLDAPScope(URL::subtree);
-    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
-			 "(objectclass=nordugrid-queue))");
+    url.ChangeLDAPScope(URL::base);
+    url.AddLDAPAttribute("giisregistrationstatus");
     DataHandle handler(url);
     DataBufferPar buffer;
 
-    if (!handler->StartReading(buffer))
+    if (!handler->StartReading(buffer)) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
       return;
+    }
 
     int handle;
     unsigned int length;
@@ -142,8 +99,106 @@ namespace Arc {
 	buffer.is_written(handle);
       }
 
-    if (!handler->StopReading())
+    if (!handler->StopReading()) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
       return;
+    }
+
+    XMLNode XMLresult(result);
+
+    // GIISes
+    std::list<XMLNode> GIISes =
+      XMLresult.XPathLookup("//Mds-Vo-name[Mds-Service-type]", NS());
+
+    for (std::list<XMLNode>::iterator iter = GIISes.begin();
+	 iter != GIISes.end(); iter++) {
+
+      if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
+	continue;
+
+      std::string urlstr;
+      urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
+	       (std::string)(*iter)["Mds-Service-hn"] + ":" +
+	       (std::string)(*iter)["Mds-Service-port"] + "/" +
+	       (std::string)(*iter)["Mds-Service-Ldap-suffix"];
+      URL url(urlstr);
+
+      NS ns;
+      Config cfg(ns);
+      XMLNode URLXML = cfg.NewChild("URL") = url.str();
+      URLXML.NewAttribute("ServiceType") = "index";
+
+      TargetRetrieverARC0 retriever(&cfg);
+      retriever.GetTargets(mom, targetType, detailLevel);
+    }
+
+    // GRISes
+    std::list<XMLNode> GRISes =
+      XMLresult.XPathLookup("//nordugrid-cluster-name"
+			    "[objectClass='MdsService']", NS());
+
+    for (std::list<XMLNode>::iterator iter = GRISes.begin();
+	 iter != GRISes.end(); iter++) {
+
+      if ((std::string)(*iter)["Mds-Reg-status"] == "PURGED")
+	continue;
+
+      std::string urlstr;
+      urlstr = (std::string)(*iter)["Mds-Service-type"] + "://" +
+	       (std::string)(*iter)["Mds-Service-hn"] + ":" +
+	       (std::string)(*iter)["Mds-Service-port"] + "/" +
+	       (std::string)(*iter)["Mds-Service-Ldap-suffix"];
+      URL url(urlstr);
+
+      NS ns;
+      Config cfg(ns);
+      XMLNode URLXML = cfg.NewChild("URL") = url.str();
+      URLXML.NewAttribute("ServiceType") = "computing";
+
+      TargetRetrieverARC0 retriever(&cfg);
+      retriever.GetTargets(mom, targetType, detailLevel);
+    }
+
+    delete (ThreadArg *)arg;
+    mom.RetrieverDone();
+  }
+
+  void TargetRetrieverARC0::InterrogateTarget(void *arg) {
+    TargetGenerator& mom = *((ThreadArg *)arg)->mom;
+    URL& url = ((ThreadArg *)arg)->url;
+    int& targetType = ((ThreadArg *)arg)->targetType;
+    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+
+    //Query GRIS for all relevant information
+    url.ChangeLDAPScope(URL::subtree);
+    url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
+			 "(objectclass=nordugrid-queue))");
+    DataHandle handler(url);
+    DataBufferPar buffer;
+
+    if (!handler->StartReading(buffer)) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
+      return;
+    }
+
+    int handle;
+    unsigned int length;
+    unsigned long long int offset;
+    std::string result;
+
+    while (buffer.for_write() || !buffer.eof_read())
+      if (buffer.for_write(handle, length, offset, true)) {
+	result.append(buffer[handle], length);
+	buffer.is_written(handle);
+      }
+
+    if (!handler->StopReading()) {
+      delete (ThreadArg *)arg;
+      mom.RetrieverDone();
+      return;
+    }
 
     XMLNode XMLresult(result);
 
@@ -248,6 +303,9 @@ namespace Arc {
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }
+
+    delete (ThreadArg *)arg;
+    mom.RetrieverDone();
   }
 
 } // namespace Arc

@@ -15,15 +15,14 @@ namespace Arc {
     : public TargetRetriever {
   private:
     TargetRetrieverARC1(Config *cfg);
-    ~TargetRetrieverARC1();
-
   public:
+    ~TargetRetrieverARC1();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
-    void InterrogateTarget(TargetGenerator& mom, URL& url,
-			   int targetType, int detailLevel);
     static ACC *Instance(Config *cfg, ChainContext *ctx);
 
   private:
+    static void QueryIndex(void *arg);
+    static void InterrogateTarget(void *arg);
     static Logger logger;
   };
 

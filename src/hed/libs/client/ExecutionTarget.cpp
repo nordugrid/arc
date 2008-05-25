@@ -43,7 +43,7 @@ namespace Arc {
 
   ExecutionTarget::~ExecutionTarget() {}
 
-  Submitter *ExecutionTarget::GetSubmitter() {
+  Submitter *ExecutionTarget::GetSubmitter() const {
 
     ACCConfig acccfg;
     NS ns;
@@ -57,7 +57,7 @@ namespace Arc {
     SubmitterComp.NewChild("Source") = Source;
     SubmitterComp.NewChild("MappingQueue") = MappingQueue;
 
-    loader = new Loader(&cfg);
+    const_cast<ExecutionTarget *>(this)->loader = new Loader(&cfg);
 
     return dynamic_cast<Submitter *>(loader->getACC("submitter"));
 

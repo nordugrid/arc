@@ -77,8 +77,10 @@ namespace Arc {
     int RequestedSlots;
     std::string ReservationPolicy;
 
+    std::list<std::string> RunTimeEnvironment;
+
     //Other
-    Submitter *GetSubmitter();
+    Submitter *GetSubmitter() const;
     std::string GridFlavour;
     std::string Source;
 
