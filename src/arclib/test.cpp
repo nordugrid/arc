@@ -80,7 +80,7 @@ int main(void) {
   //Request side
   std::string req_file("./request.pem");
   std::string out_file("./out.pem");
-  ArcLib::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "independent", "policy.txt", proxydepth);
+  ArcLib::Credential request2(t, Arc::Period(168*3600), keybits, "rfc", "inheritall", "policy.txt", proxydepth);
   request2.GenerateRequest(req_file.c_str());
 
   //Signing side

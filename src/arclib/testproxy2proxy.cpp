@@ -36,6 +36,10 @@ int main(void) {
   proxy1.InquireRequest(req_file1.c_str());
   signer1.SignRequest(&proxy1, out_file1.c_str());
 
+  //Get the proxy information
+  std::string policy = signer1.GetProxyPolicy();
+  std::cout<<"Policy information: "<<policy<<std::endl;
+
   //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.
   std::string private_key1, signing_cert1, signing_cert1_chain;

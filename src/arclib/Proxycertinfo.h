@@ -14,12 +14,16 @@
 
 namespace ArcLib {
 /* predefined policy language */
+#define ANYLANGUAGE_PROXY_OID         "1.3.6.1.5.5.7.21.0"
+#define ANYLANGUAGE_PROXY_SN          "ANYLANGUAGE_PROXY"      //"anyLanguage" in openssl >= 098
+#define ANYLANGUAGE_PROXY_LN          "anyLanguage proxy"
+
 #define IMPERSONATION_PROXY_OID         "1.3.6.1.5.5.7.21.1"
-#define IMPERSONATION_PROXY_SN          "IMPERSONATION_PROXY"
-#define IMPERSONATION_PROXY_LN          "GSI impersonation proxy"
+#define IMPERSONATION_PROXY_SN          "IMPERSONATION_PROXY"  //"inheritAll" in openssl >= 098
+#define IMPERSONATION_PROXY_LN          "GSI impersonation proxy"  
 
 #define INDEPENDENT_PROXY_OID           "1.3.6.1.5.5.7.21.2"
-#define INDEPENDENT_PROXY_SN            "INDEPENDENT_PROXY"
+#define INDEPENDENT_PROXY_SN            "INDEPENDENT_PROXY"    //"independent" in openssl >=098
 #define INDEPENDENT_PROXY_LN            "GSI independent proxy"
 
 /* generic policy language */

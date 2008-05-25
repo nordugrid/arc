@@ -71,7 +71,9 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)* certchain, cert_verify_context
     X509_STORE_CTX_set_flags(store_ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
 #endif
 
-    X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx);
+    if (!X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx)) {
+      std::cerr<<"Can not set the STORE_CTX"<<std::endl; goto err;
+    }
   
     //X509_STORE_CTX_set_depth(store_ctx, 10);   
                
@@ -579,11 +581,11 @@ bool check_cert_type(X509* cert, certType& type) {
         policynid = OBJ_obj2nid(policylang);
         if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { type = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
         else if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)){ type = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
+        else if(policynid == OBJ_sn2nid(ANYLANGUAGE_PROXY_SN)){ type = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else {type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;
         } 
@@ -611,8 +613,7 @@ bool check_cert_type(X509* cert, certType& type) {
         else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else {type = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
         
-        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V3"), -1)) != -1 ||
-             (index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid("PROXYCERTINFO_V4"), -1)) != -1) {
           std::cerr<<"Found more than one PCI extension"<<std::endl;
           goto err;
         }

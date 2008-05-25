@@ -28,14 +28,16 @@ namespace ArcLib {
       CERT_TYPE_GSI_2_PROXY,
       /** A legacy Globus limited impersonation proxy */
       CERT_TYPE_GSI_2_LIMITED_PROXY,
-      /** A X.509 Proxy Certificate Profile RFC compliant impersonation proxy */
+      /** A X.509 Proxy Certificate Profile RFC compliant impersonation proxy; RFC inheritAll proxy */
       CERT_TYPE_RFC_IMPERSONATION_PROXY,
-      /** A X.509 Proxy Certificate Profile RFC compliant independent proxy */
+      /** A X.509 Proxy Certificate Profile RFC compliant independent proxy; RFC independent proxy */
       CERT_TYPE_RFC_INDEPENDENT_PROXY,
       /** A X.509 Proxy Certificate Profile RFC compliant limited proxy */
       CERT_TYPE_RFC_LIMITED_PROXY,
       /** A X.509 Proxy Certificate Profile RFC compliant restricted proxy */
       CERT_TYPE_RFC_RESTRICTED_PROXY,
+      /** RFC anyLanguage proxy */
+      CERT_TYPE_RFC_ANYLANGUAGE_PROXY,
     } certType; 
 
     #define CERT_IS_PROXY(cert_type) \
@@ -47,6 +49,7 @@ namespace ArcLib {
          cert_type == CERT_TYPE_RFC_INDEPENDENT_PROXY || \
          cert_type == CERT_TYPE_RFC_LIMITED_PROXY || \
          cert_type == CERT_TYPE_RFC_RESTRICTED_PROXY || \
+         cert_type == CERT_TYPE_RFC_ANYLANGUAGE_PROXY || \
          cert_type == CERT_TYPE_GSI_2_PROXY || \
          cert_type == CERT_TYPE_GSI_2_LIMITED_PROXY)
 
@@ -54,7 +57,8 @@ namespace ArcLib {
         (cert_type == CERT_TYPE_RFC_IMPERSONATION_PROXY || \
          cert_type == CERT_TYPE_RFC_INDEPENDENT_PROXY || \
          cert_type == CERT_TYPE_RFC_LIMITED_PROXY || \
-         cert_type == CERT_TYPE_RFC_RESTRICTED_PROXY)
+         cert_type == CERT_TYPE_RFC_RESTRICTED_PROXY || \
+         cert_type == CERT_TYPE_RFC_ANYLANGUAGE_PROXY)
 
     #define CERT_IS_GSI_3_PROXY(cert_type) \
         (cert_type == CERT_TYPE_GSI_3_IMPERSONATION_PROXY || \

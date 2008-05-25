@@ -57,11 +57,18 @@ class Credential {
 
     /**Constructor, specific constructor for proxy certificate, only acts as a container for generating certificate request,
     *is meaningless for any other use.
+    *The proxyversion and policylang is for specifying the proxy certificate type and the policy language inside proxy.
+    *The definition of proxyversion and policy language is based on http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
+    *The code is supposed to support proxy version: GSI2(legacy proxy), GSI3(Proxy draft) and RFC(RFC3820 proxy), and correspoding 
+    *policy language. GSI2(GSI2, GSI2_LIMITED) GSI3 and RFC (IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1, INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2, 
+    *LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9, RESTRICTED_PROXY--policy language undefined)
+    *In openssl>=098, there are three types of policy languages: id-ppl-inheritAll--1.3.6.1.5.5.7.21.1,
+    *id-ppl-independent--1.3.6.1.5.5.7.21.2, and id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0 
     *@param start, start time of proxy certificate
     *@param lifetime, lifetime of proxy certificate
     *@param keybits, modulus size for RSA key generation, it should be greater than 1024
-    */
-    Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024, 
+    */ 
+   Credential(Arc::Time start, Arc::Period lifetime = Arc::Period(12*3600), int keybits = 1024, 
              std::string proxyversion = "", std::string policylang = "independent",
              std::string policyfile = "", int pathlength = 0);
 
@@ -137,6 +144,22 @@ class Credential {
     /**Get the DN of the certificate attached to this object*/
     std::string GetDN(void);
 
+    /**Get the proxy policy attached to the "proxy certificate information" extension of the proxy certicate*/
+    std::string GetProxyPolicy(void);
+
+    /**Output the private key into string*/
+    bool OutputPrivatekey(std::string &content);
+
+    /**Output the public key into string*/
+    bool OutputPublickey(std::string &content);
+
+    /**Output the certificate into string*/
+    bool OutputCertificate(std::string &content);
+
+    /**Output the certificate chain into string*/
+    bool OutputCertificateChain(std::string &content);
+
+
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
     *and sign certificate request
@@ -170,15 +193,6 @@ class Credential {
    
     /**Generate a proxy request, output the certificate request to a file*/
     bool GenerateRequest(const char* filename);
-
-    /**Output the private key into string*/
-    bool OutputPrivatekey(std::string &content); 
-   
-    /**Output the certificate into string*/
-    bool OutputCertificate(std::string &content);  
-
-    /**Output the certificate chain into string*/
-    bool OutputCertificateChain(std::string &content);
 
     /**Inquire the certificate request from BIO, and put the request information to X509_REQ inside this object,
     *and parse the certificate type from the PROXYCERTINFO of request' extension
@@ -216,7 +230,7 @@ class Credential {
     certType         cert_type_;
     EVP_PKEY *       pkey_;    //private key
     STACK_OF(X509) * cert_chain_;  //cert chain
-    PROXYCERTINFO*   proxy_cert_info_;
+    PROXYCERTINFO* proxy_cert_info_;
     Credformat       format;
     Arc::Time        start_;
     Arc::Period      lifetime_;

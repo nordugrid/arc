@@ -125,6 +125,10 @@ namespace ArcLib {
     return str;
   }
 
+  std::string Credential::GetProxyPolicy(void) {
+    return (verify_ctx_.proxy_policy);
+  }
+
   void Credential::loadCertificate(BIO* &certbio, X509* &cert, STACK_OF(X509) **certchain) {
     //Parse the certificate
     Credformat format;
@@ -248,25 +252,22 @@ namespace ArcLib {
 
     /* Proxy Certificate Extension's related objects */
     OBJC(PROXYCERTINFO_V3, "PROXYCERTINFO_V3");
-    OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
-
     pci_x509v3_ext_meth = PROXYCERTINFO_v3_x509v3_ext_meth();
     if (pci_x509v3_ext_meth) {
       pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V3");
       X509V3_EXT_add(pci_x509v3_ext_meth);
     }
 
+    OBJC(PROXYCERTINFO_V4, "PROXYCERTINFO_V4");
     pci_x509v3_ext_meth = PROXYCERTINFO_v4_x509v3_ext_meth();
     if (pci_x509v3_ext_meth) {
       pci_x509v3_ext_meth->ext_nid = OBJ_txt2nid("PROXYCERTINFO_V4");
       X509V3_EXT_add(pci_x509v3_ext_meth);
     }
 
-
     OBJ_create(IMPERSONATION_PROXY_OID, IMPERSONATION_PROXY_SN, IMPERSONATION_PROXY_LN);
-
     OBJ_create(INDEPENDENT_PROXY_OID, INDEPENDENT_PROXY_SN, INDEPENDENT_PROXY_LN);
-
+    OBJ_create(ANYLANGUAGE_PROXY_OID, ANYLANGUAGE_PROXY_SN, ANYLANGUAGE_PROXY_LN);
     OBJ_create(LIMITED_PROXY_OID, LIMITED_PROXY_SN, LIMITED_PROXY_LN);
   }
 
@@ -337,6 +338,8 @@ namespace ArcLib {
       }
     }
     else if (proxyversion_.compare("RFC") == 0 || proxyversion_.compare("rfc") == 0) {
+      //The "limited" and "restricted" are from the definition in
+      //http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
       if(policylang_.compare("LIMITED") == 0 || policylang_.compare("limited") == 0) {
         cert_type_ = CERT_TYPE_RFC_LIMITED_PROXY;
       }
@@ -346,8 +349,13 @@ namespace ArcLib {
       else if(policylang_.compare("INDEPENDENT") == 0 || policylang_.compare("independent") == 0) {
         cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY;
       }
-      else {
-        cert_type_ = CERT_TYPE_RFC_IMPERSONATION_PROXY;
+      else if(policylang_.compare("IMPERSONATION") == 0 || policylang_.compare("impersonation") == 0 ||
+         policylang_.compare("INHERITALL") == 0 || policylang_.compare("inheritAll") == 0){
+        cert_type_ = CERT_TYPE_RFC_IMPERSONATION_PROXY;  
+        //For RFC here, "impersonation" is the same as the "inheritAll" in openssl version>098
+      }
+      else if(policylang_.compare("ANYLANGUAGE") == 0 || policylang_.compare("anylanguage") == 0) {
+        cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY;  //Defined in openssl version>098
       }
     }
     else {
@@ -370,39 +378,37 @@ namespace ArcLib {
       exit(1);
     }
 
-
     proxy_cert_info_ = PROXYCERTINFO_new();
-
-    PROXYPOLICY *   policy;
-    ASN1_OBJECT *   policy_object;
+    PROXYPOLICY *   policy =PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
+    PROXYPOLICY_set_policy(policy, NULL, 0);
+    ASN1_OBJECT *   policy_object = NULL;
 
     //set policy language, see definiton in: http://dev.globus.org/wiki/Security/ProxyCertTypes
     switch(cert_type_)
     {
       case CERT_TYPE_GSI_3_IMPERSONATION_PROXY:
       case CERT_TYPE_RFC_IMPERSONATION_PROXY:
-        policy = PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
         if((policy_object = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN))) != NULL) {
           PROXYPOLICY_set_policy_language(policy, policy_object); 
-          PROXYPOLICY_set_policy(policy, NULL, 0);
         }
         break;
 
       case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
       case CERT_TYPE_RFC_INDEPENDENT_PROXY:
-        policy = PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
         if((policy_object = OBJ_nid2obj(OBJ_sn2nid(INDEPENDENT_PROXY_SN))) != NULL) {
           PROXYPOLICY_set_policy_language(policy, policy_object);
-          PROXYPOLICY_set_policy(policy, NULL, 0);
         }
         break;
 
       case CERT_TYPE_GSI_3_LIMITED_PROXY:
       case CERT_TYPE_RFC_LIMITED_PROXY:
-        policy = PROXYCERTINFO_get_proxypolicy(proxy_cert_info_);
         if((policy_object = OBJ_nid2obj(OBJ_sn2nid(LIMITED_PROXY_SN))) != NULL) {
           PROXYPOLICY_set_policy_language(policy, policy_object);
-          PROXYPOLICY_set_policy(policy, NULL, 0);
+        }
+        break;
+      case CERT_TYPE_RFC_ANYLANGUAGE_PROXY:
+        if((policy_object = OBJ_nid2obj(OBJ_sn2nid(ANYLANGUAGE_PROXY_SN))) != NULL) {
+          PROXYPOLICY_set_policy_language(policy, policy_object);
         }
         break;
       default:
@@ -753,6 +759,20 @@ namespace ArcLib {
     return true;
   }
 
+  bool Credential::OutputPublickey(std::string &content) {
+    BIO *out = BIO_new(BIO_s_mem());
+    if(!out) return false;
+    if(!PEM_write_bio_RSAPublicKey(out,rsa_key_)) { BIO_free_all(out); return false; };
+    for(;;) {
+      char s[256];
+      int l = BIO_read(out,s,sizeof(s));
+      if(l <= 0) break;
+      content.append(s,l);
+    }
+    BIO_free_all(out);
+    return true;
+  }
+
   bool Credential::OutputCertificate(std::string &content) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
@@ -849,6 +869,7 @@ namespace ArcLib {
       else {
         if(policy_nid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
         else if(policy_nid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
+        else if(policy_nid == OBJ_sn2nid(ANYLANGUAGE_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
         else if(policy_nid == OBJ_sn2nid(LIMITED_PROXY_SN)) { cert_type_ = CERT_TYPE_RFC_LIMITED_PROXY; }
         else { cert_type_ = CERT_TYPE_RFC_RESTRICTED_PROXY; }
       }
@@ -1031,10 +1052,10 @@ err:
       X509V3_EXT_METHOD* ext_method;
 
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
-#ifdef HAVE_OPENSSL_OLDRSA
-      ASN1_digest((int(*)())i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
-#else
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
+#else
+      ASN1_digest((int(*)())i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
 #endif
 
       sub_hash = md[0] + (md[1] + (md[2] + (md[3] >> 1) * 256) * 256) * 256; 
