@@ -28,7 +28,6 @@ namespace Arc {
 							    tostring(i)));
 	 i++)
       TR->GetTargets(*this, targetType, detailLevel);
-    std::cout << done << " " << threadCounter << std::endl;
     while (!done)
       threadCond.wait(threadMutex);
     logger.msg(INFO, "Number of Targets found: %ld", foundTargets.size());
@@ -53,7 +52,6 @@ namespace Arc {
 
   bool TargetGenerator::AddIndexServer(const URL& url) {
     bool added = false;
-    std::cout << "TargetGenerator::AddIndexServer" << std::endl;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);
     if (std::find(foundIndexServers.begin(), foundIndexServers.end(), url) ==
 	foundIndexServers.end()) {
@@ -62,7 +60,6 @@ namespace Arc {
       Glib::Mutex::Lock threadLock(threadMutex);
       threadCounter++;
     }
-    std::cout << "AddIndexServer" << threadCounter << std::endl;
     return added;
   }
 
