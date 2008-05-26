@@ -30,9 +30,11 @@ PayloadFile::PayloadFile(const char* filename,size_t start,size_t end):handle_(-
 error:
   char errbuf[256];
   errbuf[0]=0;
+#if HAVE_DECL_STRERROR_R == 1
   strerror_r(errno,errbuf,sizeof(errbuf)-1);
   errbuf[sizeof(errbuf)-1]=0;
   Arc::Logger::rootLogger.msg(Arc::ERROR,"%s",errbuf);
+#endif
   if(handle_ != -1) close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;
