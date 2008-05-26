@@ -125,27 +125,26 @@ namespace Arc {
   class mcc_connectors_t : public std::list<mcc_connector_t> {};
   class plexer_connectors_t : public std::list<plexer_connector_t> {};
 
-  static XMLNode FindElementByID(XMLNode node, const std::string& id,
-				 const std::string& name) {
+  static XMLNode FindElementByID(XMLNode node, const std::string &fn, const std::string& id, const std::string& name) {
     for(int n = 0;; ++n) {
       XMLNode cn = node.Child(n);
       if(!cn) break;
-      Config cfg_(cn);
+      Config cfg_(cn, fn);
 
       if(MatchXMLName(cn, "ArcConfig")) {
-	XMLNode result = FindElementByID(cn, id, name);
-	if(result) return result;
-	continue;
+        XMLNode result = FindElementByID(cn, fn, id, name);
+        if(result) return result;
+        continue;
       }
 
       if(MatchXMLName(cn, "Chain")) {
-	XMLNode result = FindElementByID(cn, id, name);
-	if(result) return result;
-	continue;
+        XMLNode result = FindElementByID(cn, fn, id, name);
+        if(result) return result;
+	    continue;
       }
 
       if(MatchXMLName(cn, name)) {
-	if((std::string)(cn.Attribute("id")) == id) return cn;
+	    if((std::string)(cn.Attribute("id")) == id) return cn;
       }
     }
     return XMLNode();
@@ -172,7 +171,7 @@ namespace Arc {
 	    return phandler->second;
       }
       // Look for it's configuration
-      desc_node = FindElementByID(*cfg, refid, "SecHandler");
+      desc_node = FindElementByID(*cfg, cfg->getFileName(), refid, "SecHandler");
     }
     if(!desc_node) {
       Loader::logger.msg(ERROR, "SecHandler has no configuration");
@@ -184,7 +183,7 @@ namespace Arc {
       return NULL;
     }
     // Create new security handler
-    Config cfg_(desc_node);
+    Config cfg_(desc_node, cfg->getFileName());
     ArcSec::SecHandler* sechandler =
       sechandler_factory->get_instance(name, &cfg_, ctx);
     Loader::logger.msg(INFO, "SecHandler name: %s", name);
@@ -203,7 +202,7 @@ namespace Arc {
     for(int n = 0;; ++n) {
       XMLNode cn = cfg->Child(n);
       if(!cn) break;
-      Config cfg_(cn);
+      Config cfg_(cn, cfg->getFileName());
 
       if(MatchXMLName(cn, "ArcConfig")) {
 	make_elements(&cfg_, level + 1, mcc_connectors, plexer_connectors);

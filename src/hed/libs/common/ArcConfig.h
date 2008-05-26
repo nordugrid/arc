@@ -19,9 +19,11 @@ namespace Arc {
    So far there are no schema and/or namespaces assigned.
  */
 class Config: public Arc::XMLNode {
+    private:
+        std::string file_name_;
     public:
 	/** Dummy constructor - produces invalid structure */
-        Config() { };
+        Config() { file_name_ = ""; };
 	/** Creates empty XML tree */
         Config(const NS& ns): XMLNode(ns,"ArcConfig") { };
 	/** Loads configuration document from file 'filename' */
@@ -32,6 +34,7 @@ class Config: public Arc::XMLNode {
 	  Content is not copied. Make sure XML tree is not destroyed
 	  while in use by this object. */
         Config(Arc::XMLNode xml): XMLNode(xml) { };
+        Config(Arc::XMLNode xml, const std::string &filename): XMLNode(xml) { file_name_ = filename; };
         ~Config(void);
     /** Copy constructor used by language bindings */
         Config(long cfg_ptr_addr);
@@ -42,6 +45,10 @@ class Config: public Arc::XMLNode {
         void print(void);
     /** Parse configuration document from file 'filename' */
         void parse(const char *filename);
+    /** Gives back file name of config file or empty string if it was generared from the XMLNode subtree **/
+        const std::string &getFileName(void) { return file_name_; };
+    /** Save to file **/
+        void save(const char *filename);
 };
 
 } // namespace Arc 

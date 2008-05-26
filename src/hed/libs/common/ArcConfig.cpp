@@ -9,7 +9,7 @@
 
 namespace Arc {
 
-Config::Config(const char *filename)
+Config::Config(const char *filename):file_name_(filename)
 {
     ReadFromFile(filename);
 }
@@ -42,6 +42,7 @@ void Config::print(void)
 
 void Config::parse(const char *filename)
 {
+    file_name_ = filename;
     ReadFromFile(filename);
 }
 
@@ -54,6 +55,15 @@ Config::Config(long cfg_ptr_addr)
 Config::Config(const Config &cfg) : XMLNode()
 {
     cfg.New(*this);
+}
+
+void Config::save(const char *filename) 
+{
+    std::string str;
+    GetDoc(str);
+    std::ofstream out(filename);
+    out << str;
+    out.close();
 }
 
 } // namespace Arc
