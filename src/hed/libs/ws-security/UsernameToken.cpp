@@ -92,7 +92,7 @@ static int get_username(std::string& user) {
   return r;  
 }
 
-//Get the password from a local file; it could be extended to get password from some datebase
+//Get the password from a local file; it could be extended to get password from some database
 static std::string get_password_fromplain(std::string& filename, std::string& username) {
   size_t left, right, found, found1, found2;
   std::string str, user, passwd;
@@ -418,7 +418,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, std::string& username, bool mac
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;
-  soap.Namespaces(ns);
+  header.Namespaces(ns);
 
   //Check the arguments
   if(username_.empty() || salt_.empty()) {

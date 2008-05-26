@@ -51,3 +51,4 @@ private:
 } // namespace Arc
 
 #endif /* __ARC_USERNAMETOKEN_H__ */
+
