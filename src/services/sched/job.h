@@ -32,6 +32,7 @@ class Job {
         void setStatus(SchedJobStatus s) { status_ = s; };
         SchedJobStatus getStatus(void) { return status_; };
         Arc::XMLNode &getJSDL(void) { return request_->getJSDL(); };
+        JobSchedMetaData *getJobSchedMetaData(void) { return sched_meta_; };
         operator bool(void) { return (id_.empty() ? false : true ); };
         bool operator!(void) { return (id_.empty() ? true : false ); };
         operator std::string(void) const;

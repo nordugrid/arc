@@ -31,11 +31,15 @@ class JobQueueIterator
 {
     friend class JobQueue;
     private:
+        DbTxn *tid_;
         Dbc *cursor_;
         bool has_more_;
         Job *job_;
+        bool have_status_;
+        SchedJobStatus status_;
     protected:
-        JobQueueIterator(Dbc *cursor);
+        JobQueueIterator(DbTxn *tid_, Dbc *cursor);
+        JobQueueIterator(DbTxn *tid_, Dbc *cursor, SchedJobStatus status);
         void next(void);
     public:
         JobQueueIterator();
@@ -44,6 +48,8 @@ class JobQueueIterator
         Job *operator*() const { return job_; };
         const JobQueueIterator &operator++();
         const JobQueueIterator &operator++(int);
+        void write_back(Job &);
+        void finish(void);
 };
 
 class JobQueue 
@@ -51,8 +57,9 @@ class JobQueue
     private:
         DbEnv *env_;
         Db *db_;
+        DbTxn *tid_;
     public:
-        JobQueue() { env_ = NULL; db_ = NULL; };
+        JobQueue() { env_ = NULL; db_ = NULL; tid_ = NULL; };
         ~JobQueue();
         void init(const std::string &dbroot, const std::string &store_name);
         void refresh(Job &j);
@@ -60,6 +67,7 @@ class JobQueue
         void remove(Job &job);
         void remove(const std::string &id);
         JobQueueIterator getAll(void);
+        JobQueueIterator getAll(SchedJobStatus status);
 };
 
 } // namespace Arc

@@ -116,7 +116,8 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     // iBES
     } else if(MatchXMLName(op, "GetActivities")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivitiesResponse");
-        ret = GetActivities(op, r);
+        std::string resource_id = inmsg.Attributes()->get("TCP:REMOTEHOST");
+        ret = GetActivities(op, r, resource_id);
     } else if(MatchXMLName(op, "ReportActivitiesStatus")) {
         Arc::XMLNode r = res.NewChild("ibes:ReportActivitiesStatusResponse");
         ret = ReportActivitiesStatus(op, r);

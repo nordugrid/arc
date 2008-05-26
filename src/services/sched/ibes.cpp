@@ -7,32 +7,26 @@
 namespace GridScheduler {
 
 Arc::MCC_Status 
-GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out) 
+GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const std::string &resource_id) 
 {
-#if 0
+    Arc::XMLNode activities = out.NewChild("ibes:Activities");
     // create resource
-    std::string x;
-    in.GetXML(x);
-    logger_.msg(Arc::DEBUG, x);
-    std::string r_id = (std::string)in["Grid"]["AdminDomain"]["Services"]["ComputingService"]["ID"];
-    if (r_id.empty()) {
+    if (resource_id.empty()) {
         logger_.msg(Arc::WARNING, "Cannot get resource ID");
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
-    logger_.msg(Arc::DEBUG, "Resource: %s", r_id);
-    Resource r(r_id, cli_config);
-    resources.add(r);
-    Arc::XMLNode activities = out.NewChild("ibes:Activities");
+    // Resource r(resource_id, cli_config);
+    // resources.add(r);
     // XXX better scheduling algorithm: matchmaking required
     // XXX concurent locking
-    std::map<const std::string, Job *> jobs = jobq.getJobsWithState(NEW);
-    if (jobs.size() < 1) {
+    Arc::JobQueueIterator jobs = jobq.getAll(Arc::JOB_STATUS_SCHED_NEW);
+    if (jobs.hasMore() == false) {
         logger_.msg(Arc::DEBUG, "NO job");
         return Arc::MCC_Status(Arc::STATUS_OK);
     }
     // pick up first job in the q XXX: locking required
-    std::map<const std::string, Job *>::iterator it = jobs.begin();
-    Job *j = it->second;
+    logger_.msg(Arc::DEBUG, "Pickup job");
+    Arc::Job *j = *jobs;
     Arc::XMLNode a = activities.NewChild("ibes:Activity");
     
     // Make job's ID
@@ -41,22 +35,22 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out)
     identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
     Arc::XMLNode activity_doc = a.NewChild("ibes:ActivityDocument");
     activity_doc.NewChild(j->getJSDL());
-    j->setStatus(STARTING);
-    j->setResourceID(r_id);
-    j->save();
-#endif
+    j->setStatus(Arc::JOB_STATUS_SCHED_STARTING);
+    // set job scheduling meta data
+    Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+    m->setResourceID(resource_id);
+    // save job state
+    logger_.msg(Arc::DEBUG, "Save state start");
+    jobs.write_back(*j);
+    logger_.msg(Arc::DEBUG, "Save state end");
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status 
 GridSchedulerService::GetActivitiesStatusChanges(Arc::XMLNode &in, Arc::XMLNode &out) 
 {
-#if 0
     Arc::XMLNode id_node;
     Arc::XMLNode activities = out.NewChild("ibes:Activities");
-    std::string s;
-    in.GetXML(s);
-std::cout << s << std::endl;
     for (int i = 0; (id_node = in["ibes:ActivityIdentifier"][i]) != false; i++) {
         Arc::WSAEndpointReference id(id_node);
         std::string job_id = id.ReferenceParameters()["sched:JobID"];
@@ -67,21 +61,22 @@ std::cout << s << std::endl;
         Arc::XMLNode activity = activities.NewChild("ibes:Activity");
         activity.NewChild(id_node); // copy identifier from inut
         Arc::XMLNode new_state = activity.NewChild("ibes:NewState");
-        new_state = sched_status_to_string(jobq[job_id].getStatus());
+        try {
+            Arc::Job *j = jobq[job_id];
+            new_state = Arc::sched_status_to_string(j->getStatus());
+        } catch (Arc::JobNotFoundException &e) {
+            logger_.msg(Arc::ERROR, "Cannot find job id: %s", job_id);
+            // said kill job ?
+        }
     }
-#endif
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status 
 GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, Arc::XMLNode &/*out*/) 
 {
-#if 0
     Arc::XMLNode activity;
     for (int i = 0; (activity = in["Activity"][i]) != false; i++) {
-        std::string s;
-        activity.GetXML(s);
-        logger_.msg(Arc::DEBUG, s);
         Arc::XMLNode id = activity["ActivityIdentifier"];
         Arc::WSAEndpointReference epr(id);
         std::string job_id = epr.ReferenceParameters()["sched:JobID"];
@@ -95,15 +90,20 @@ GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, Arc::XMLNode &/*o
             logger_.msg(Arc::ERROR, "Invalid status report");
             continue;
         }
-        Job &j = jobq[job_id];
-        SchedStatusLevel new_status = sched_status_from_string(state);
-        logger_.msg(Arc::DEBUG, "%s reported state: %d", j.getID(), new_status);
-        if (j.getStatus() != KILLING || new_status == KILLED ) {
-            // do not update job with was requested to kill
-            j.setStatus(new_status);
+        try {
+            Arc::Job *j = jobq[job_id];
+            Arc::SchedJobStatus new_status = Arc::sched_status_from_string(state);
+            logger_.msg(Arc::DEBUG, "%s reported state: %d", j->getID(), new_status);
+            if (j->getStatus() != Arc::JOB_STATUS_SCHED_KILLING 
+                || new_status == Arc::JOB_STATUS_SCHED_KILLED) {
+                // do not update job which was requested to kill
+                j->setStatus(new_status);
+            }
+            jobq.refresh(*j);
+        } catch (Arc::JobNotFoundException &e) {
+            logger_.msg(Arc::ERROR, "Cannot find job id: %s", job_id);
         }
     }
-#endif
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

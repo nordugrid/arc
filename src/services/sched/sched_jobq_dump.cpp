@@ -13,6 +13,11 @@ int main(int argc, char **argv)
         Arc::Job *j = *it;
         std::cout << "-------------------" << std::endl;
         std::cout << (std::string)*j << std::endl;
+        Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+        std::string resource_id = "foo";
+        m->setResourceID(resource_id);
+        // save job state
+        it.write_back(*j);
     }
     return 0;
 }
