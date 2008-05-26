@@ -46,6 +46,7 @@ public:
   virtual Response* evaluate(Request* request, std::string& policyfile);
   virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile);
   virtual Response* evaluate(const std::string& reqfile, std::string& policyfile);
+  //Other interface to put policy string, policy object
 
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};
   virtual FnFactory* getFnFactory () { return fnfactory; };
@@ -54,6 +55,7 @@ public:
   virtual void addPolicy(const std::string& policyfile,const std::string& id = "") {
     plstore->addPolicy(policyfile, context, id);
   };
+  //Other way to add policy, like string
   virtual void removePolicies(void) { plstore->removePolicies(); };
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg);

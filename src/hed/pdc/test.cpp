@@ -7,7 +7,7 @@
 
 #include <string>
 #include <arc/security/ArcPDP/Evaluator.h>
-//#include "ArcEvaluator.h"
+#include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/XMLNode.h>
@@ -33,16 +33,23 @@ int main(void){
   logger.msg(Arc::INFO, "Start test");
 
   //Load the Evaluator
-  ArcSec::Evaluator* eval;
+  ArcSec::Evaluator* eval = NULL;
+
+#if 0
   Arc::Config modulecfg("EvaluatorCfg.xml");
   Arc::ClassLoader* classloader = NULL;
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
   std::string evaluator = "arc.evaluator";
   eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)(void*)&modulecfg));
-  if(eval == NULL)
+#endif
+
+  std::string evaluator = "arc.evaluator";
+  ArcSec::EvaluatorLoader eval_loader;
+  eval = eval_loader.getEvaluator(evaluator);  
+  if(eval == NULL) {
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
-  //ArcSec::ArcEvaluator eval("EvaluatorCfg.xml");
-  
+    return 0;  
+  }
 
   ArcSec::Response *resp = NULL;
 

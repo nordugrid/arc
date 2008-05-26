@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <arc/loader/PDPLoader.h>
-//#include <arc/loader/ClassLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
@@ -12,8 +11,8 @@
 #include <arc/Logger.h>
 
 #include <arc/security/ArcPDP/Response.h>
-
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/EvaluatorLoader.h>
 
 #include "ArcPDP.h"
 
@@ -57,6 +56,7 @@ ArcPDPContext::ArcPDPContext(Evaluator* e):eval(e) {
 }
 
 ArcPDPContext::ArcPDPContext(void):eval(NULL) {
+#if 0
   XMLNode pdp_cfg_nd("\
     <ArcConfig\
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -92,6 +92,11 @@ ArcPDPContext::ArcPDPContext(void):eval(NULL) {
 
   //Dynamically load Evaluator object according to configure information
   eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
+#endif
+ 
+  std::string evaluator = "arc.evaluator"; 
+  EvaluatorLoader eval_loader;
+  eval = eval_loader.getEvaluator(evaluator);
 }
 
 ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {

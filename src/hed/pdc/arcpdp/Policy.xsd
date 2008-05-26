@@ -61,10 +61,11 @@
    1. Each Rule has a tuple <Subjects, Resources, Actios, Conditions> (actually 
       <Subjects, Resources, Actions, Conditions, Effect>). The policy administrator should 
       define the rules according to granularity of Actions and Resources, and constraints 
-      to Subjects. For example, there is a Rule: <UserA/UserB, FileX, Read/List, 14:00, Permit>.
+      to Subjects. For example, there is a Rule: <UserA/UserB, FileX, Read/List, 2008-05-01T14:00:00Z~2008-05-01T20:00:00Z, Permit>.
       If the administrator wants to add "Delete" permssion for "UserA/UserB" to "FileX" at Condition 
-      "14:00", then the constraint can be added to the existing rule: <UserA/UserB, FileX, Read/List/Delete, 
-      14:00, Permit>; Otherwise, if any of the other element (Subjects, Resources, Conditions, Effect) 
+      "2008-05-01T14:00:00Z~2008-05-01T20:00:00Z", then the constraint can be added to the existing rule: 
+      <UserA/UserB, FileX, Read/List/Delete, 2008-05-01T14:00:00Z~2008-05-01T20:00:00Z, Permit>; 
+      Otherwise, if any of the other element (Subjects, Resources, Conditions, Effect) 
       does not match, he should add a new Rule.
    2. Subjects is a must element for each Rule. Each Rule must have one and only one Requests element.
    3. Each Rule can have zero or one Resources, Actions, Conditions element. 
