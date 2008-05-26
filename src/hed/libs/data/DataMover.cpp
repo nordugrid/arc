@@ -491,12 +491,14 @@ namespace Arc {
 	    logger.msg(DEBUG, "Permission checking passed");
 	    /* check if file is fresh enough */
 	    bool outdated = true;
-	    if (source.CheckCreated() && cache.CheckCreated())
+	    if (source.CheckCreated() && cache.CheckCreated()) {
 	      if (source.GetCreated() <= cache.GetCreated())
 		outdated = false;
-	      else if (cache.CheckValid())
-		if (cache.GetValid() > Time())
-		  outdated = false;
+	    }
+	    else if (cache.CheckValid()) {
+	      if (cache.GetValid() > Time())
+		outdated = false;
+	    }
 	    if (outdated) {
 	      cache.stop(DataCache::file_not_valid);
 	      logger.msg(INFO, "Cached file is outdated");
@@ -679,7 +681,7 @@ namespace Arc {
       buffer.speed.reset();
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
-      if (!cacheable)
+      if (!cacheable) {
 	if (!(res = destination.StartWriting(buffer))) {
 	  logger.msg(ERROR, "Failed to start writing to destination: %s",
 		     destination.str());
@@ -693,7 +695,9 @@ namespace Arc {
 	    logger.msg(DEBUG, "(Re)Trying next destination");
 	  continue;
 	}
-	else if (!chdest.StartWriting(buffer, &cache)) {
+      }
+      else {
+	if (!chdest.StartWriting(buffer, &cache)) {
 	  logger.msg(ERROR, "Failed to start writing to cache");
 	  source_url.StopReading();
 	  // hope there will be more space next time
@@ -704,6 +708,7 @@ namespace Arc {
 		       "You may need to unregister it manually");
 	  return DataStatus::CacheError; // repeating won't help here
 	}
+      }
       logger.msg(DEBUG, "Waiting for buffer");
       for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
 	buffer.wait();
@@ -765,24 +770,29 @@ namespace Arc {
 	  // Here is more complicated case - operation timeout
 	  // Let's first check if buffer was full
 	  res = DataStatus::TransferError;
-	  if (!buffer.for_read())
+	  if (!buffer.for_read()) {
 	    // No free buffers for 'read' side. Buffer must be full.
 	    if (destination.NextLocation())
 	      logger.msg(DEBUG, "(Re)Trying next destination");
-	    else if (!buffer.for_write())
-	      // Buffer is empty
+	  }
+	  else if (!buffer.for_write()) {
+	    // Buffer is empty
+	    if (source.NextLocation())
+	      logger.msg(DEBUG, "(Re)Trying next source");
+	  }
+	  else {
+	    // Both endpoints were very slow? Choose randomly.
+	    logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
+	    Glib::Rand r;
+	    if (r.get_int() < (RAND_MAX / 2)) {
 	      if (source.NextLocation())
 		logger.msg(DEBUG, "(Re)Trying next source");
-	      else {
-		// Both endpoints were very slow? Choose randomly.
-		logger.msg(DEBUG, "Cause of failure unclear - choosing randomly");
-		Glib::Rand r;
-		if (r.get_int() < (RAND_MAX / 2))
-		  if (source.NextLocation())
-		    logger.msg(DEBUG, "(Re)Trying next source");
-		  else if (destination.NextLocation())
-		    logger.msg(DEBUG, "(Re)Trying next destination");
-	      }
+	    }
+	    else {
+	      if (destination.NextLocation())
+		logger.msg(DEBUG, "(Re)Trying next destination");
+	    }
+	  }
 	}
 	continue;
       }
