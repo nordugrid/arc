@@ -590,7 +590,7 @@ gl_FSUSAGE
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h sasl.h sasl/sasl.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h libintl.h limits.h netdb.h netinet/in.h sasl.h sasl/sasl.h stdint.h stdlib.h string.h sys/file.h sys/socket.h sys/vfs.h unistd.h uuid/uuid.h getopt.h])
 AC_CXX_HAVE_SSTREAM
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -623,7 +623,7 @@ AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
 AC_FUNC_STAT
-AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv])
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strerror_r strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv])
 AC_CHECK_LIB([resolv], [res_query], [LIBRESOLV=-lresolv], [LIBRESOLV=])
 AC_CHECK_LIB([resolv], [__dn_skipname], [LIBRESOLV=-lresolv], [LIBRESOLV=])
 AC_CHECK_LIB([nsl], [gethostbyname], [LIBRESOLV="$LIBRESOLV -lnsl"], [])

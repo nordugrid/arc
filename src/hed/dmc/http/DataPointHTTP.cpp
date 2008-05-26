@@ -3,7 +3,9 @@
 #endif
 
 #define __STDC_LIMIT_MACROS
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <unistd.h>
 
 #include <arc/Logger.h>

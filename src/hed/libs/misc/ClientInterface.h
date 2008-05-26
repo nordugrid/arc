@@ -1,7 +1,9 @@
 #ifndef __ARC_CLIENTINTERFACE_H__
 #define __ARC_CLIENTINTERFACE_H__
 
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <string>
 #include <list>
 #include <arc/ArcConfig.h>

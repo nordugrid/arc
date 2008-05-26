@@ -1,4 +1,7 @@
+#include <stdio.h> // sometimes getopt is here
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
 
 #include <arc/ArcLocation.h>
 
@@ -168,7 +171,7 @@ int main(int argc, char ** argv) {
 			           progname);
 			return 1;
 		}
-
+#ifdef HAVE_GETOPT_H
 		struct option longoptions[MAX_EXPECTED_OPTIONS+1];
 		int nopt = 0;
 		for (int i = 0; optstring[i]; i++) {
@@ -282,7 +285,7 @@ int main(int argc, char ** argv) {
 
 		struct option lopt = {0, 0, 0, 0};
 		longoptions[nopt++] = lopt;
-
+#endif
 		int timeout = 20;
 		bool force = false;
 		bool longlist = false;
@@ -301,7 +304,11 @@ int main(int argc, char ** argv) {
 
 		int opt = 0;
 		while (opt != -1) {
+#ifdef HAVE_GETOPT_H
 			opt = getopt_long(argc, argv, optstring, longoptions, NULL);
+#else
+			opt = getopt(argc, argv, optstring);
+#endif			
 			if (opt == -1) continue;
 			if (optarg) {
 				switch (opt) {
