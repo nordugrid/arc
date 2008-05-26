@@ -6,7 +6,7 @@
 namespace ArcSec {
 
 ///Interface for different type of <Attribute>, e.g. StringAttribute
-/**<Attribute> uses different "Type" definition; Each type of <Attribute> will have different approach to compare 
+/**<Attribute> uses different "Type" definition; Each type of <Attribute> needs different approach to compare 
  The "Type" supported so far is: StringAttribute, DateAttribute, TimeAttribute, DurationAttribute, PeriodAttribute, AnyURIAttribute, X500NameAttribute
 */
 class AttributeValue {
