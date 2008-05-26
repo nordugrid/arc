@@ -191,6 +191,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     // Aplying known namespaces
     inpayload->Namespaces(ns_);
+    {
+        std::string str;
+        inpayload->GetXML(str);
+        logger_.msg(Arc::DEBUG, "process: request=%s",str);
+    };
     // Analyzing request
     Arc::XMLNode op = inpayload->Child(0);
     if(!op) {
