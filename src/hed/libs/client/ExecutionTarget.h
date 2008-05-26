@@ -61,7 +61,7 @@ namespace Arc {
     int NodeMemory;
     int MaxPreLRMSWaitingJobs;
     int MaxUserRunningJobs;
-    int MaxSlotsPerJobs;
+    int MaxSlotsPerJob;
     int MaxStageInStreams;
     int MaxStageOutStreams;
     std::string SchedulingPolicy;

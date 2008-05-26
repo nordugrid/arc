@@ -28,7 +28,7 @@ namespace Arc {
       NodeMemory(-1),
       MaxPreLRMSWaitingJobs(-1),
       MaxUserRunningJobs(-1),
-      MaxSlotsPerJobs(-1),
+      MaxSlotsPerJob(-1),
       MaxStageInStreams(-1),
       MaxStageOutStreams(-1),
       MaxMemory(-1),

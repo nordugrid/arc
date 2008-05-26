@@ -48,6 +48,8 @@ namespace Arc {
     Glib::Mutex threadMutex;
     Glib::Cond threadCond;
 
+    std::list<std::string> ResolveAlias(std::string lookup, XMLNode cfg);
+
     static Logger logger;
   };
 

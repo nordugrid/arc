@@ -27,22 +27,31 @@ namespace Arc {
     bool ClustersSpecified = false;
     bool IndexServersSpecified = false;
     int TargetURL = 1;
+
+    //Read acc config file (final version should read from install area)
+    Arc::XMLNode ArclibConfig;
+    ArclibConfig.ReadFromFile("ACCConfig.xml");
     
     //first add to config element the specified target clusters (if any)
     for (std::list<std::string>::const_iterator it = clusterselect.begin(); it != clusterselect.end(); it++){
       
-      size_t colon = (*it).find_first_of(":");
-      std::string GridFlavour = (*it).substr(0, colon);
-      std::string SomeURL = (*it).substr(colon+1);
-      
-      Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-      ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-      ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
-      Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
-      ThisRetriever1.NewAttribute("ServiceType") = "computing";
-      
-      TargetURL++;
-      ClustersSpecified = true;
+      std::list<std::string> aliasTO = ResolveAlias(*it, ArclibConfig);
+
+      for (std::list<std::string>::const_iterator iter = aliasTO.begin(); iter != aliasTO.end(); iter++){
+	
+	size_t colon = (*iter).find_first_of(":");
+	std::string GridFlavour = (*iter).substr(0, colon);
+	std::string SomeURL = (*iter).substr(colon+1);
+	
+	Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
+	ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
+	ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
+	Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
+	ThisRetriever1.NewAttribute("ServiceType") = "computing";
+	
+	TargetURL++;
+	ClustersSpecified = true;
+      }
     }
     
     //if no cluster url are given next steps are index servers (giis'es in ARC0)
@@ -66,7 +75,29 @@ namespace Arc {
     
     //if neither clusters nor index servers are specified, read from config file
     if(!ClustersSpecified && !IndexServersSpecified){
+
+      XMLNodeList defaults = ArclibConfig.XPathLookup("//Defaults//URL", Arc::NS());
       
+      for (XMLNodeList::iterator iter = defaults.begin(); iter != defaults.end(); iter++){
+	std::string ThisServer = (std::string) (*iter);
+	
+	size_t colon = ThisServer.find_first_of(":");
+	std::string GridFlavour = ThisServer.substr(0, colon);
+	std::string SomeURL = ThisServer.substr(colon+1);
+	
+	Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
+	ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
+	ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
+	Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
+	ThisRetriever1.NewAttribute("ServiceType") = "index";
+	
+	TargetURL++;
+
+      }
+    }
+
+    if(TargetURL == 1){
+      std::cout<<"No Target URL specified (no alias match), no targets will be found"<<std::endl;
     }
 
     //finally, initialize loader
@@ -194,8 +225,8 @@ namespace Arc {
 	  std::cout << IString(" Max Pre LRMS Waiting Jobs: %i", cli->MaxPreLRMSWaitingJobs) << std::endl;
 	if (cli->MaxUserRunningJobs != -1)
 	  std::cout << IString(" Max User Running Jobs: %i", cli->MaxUserRunningJobs) << std::endl;
-	if (cli->MaxSlotsPerJobs != -1)
-	  std::cout << IString(" Max Slots Per Job: %i", cli->MaxSlotsPerJobs) << std::endl;
+	if (cli->MaxSlotsPerJob != -1)
+	  std::cout << IString(" Max Slots Per Job: %i", cli->MaxSlotsPerJob) << std::endl;
 	if (cli->MaxStageInStreams != -1)
 	  std::cout << IString(" Max Stage In Streams: %i", cli->MaxStageInStreams) << std::endl;
 	if (cli->MaxStageOutStreams != -1)
@@ -207,5 +238,34 @@ namespace Arc {
       std::cout << std::endl;
     }
   }
+
+  std::list<std::string> TargetGenerator::ResolveAlias(std::string lookup, XMLNode cfg){
+    
+
+    std::list<std::string> ToBeReturned;
+    
+    //find alias in alias listing
+    XMLNode Result = *(cfg.XPathLookup("//Alias[@name='"+lookup+"']", Arc::NS())).begin(); 
+    
+    if(Result){
+
+      //read out urls from found alias
+      XMLNodeList URLs = Result.XPathLookup("//URL", Arc::NS());
+      
+      for(XMLNodeList::iterator iter = URLs.begin(); iter != URLs.end(); iter++){
+	ToBeReturned.push_back((std::string) (*iter));
+      }
+      //finally check for other aliases with existing alias
+      
+      for(XMLNode node = Result["Alias"]; node; ++node){
+	std::list<std::string> MoreURLs = ResolveAlias(node, cfg);
+	ToBeReturned.insert(ToBeReturned.end(), MoreURLs.begin(), MoreURLs.end());
+      }
+    }
+    
+    return ToBeReturned;
+    
+  }
+
 
 } // namespace Arc
