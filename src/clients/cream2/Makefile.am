@@ -4,30 +4,31 @@ bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate gliteundele
 EXTRA_DIST = openSSLFunctions.cpp
 SOURCES = cream_client.cpp cream_client.h
 LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
-
+commonCXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(OPENSSL_CFLAGS)
+commonLDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 glitesub_SOURCES  = $(SOURCES) glitesub.cpp
-glitesub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
-glitesub_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitesub_CXXFLAGS = $(commonCXXFLAGS)
+glitesub_LDFLAGS  = $(commonLDFLAGS)
 glitesub_LDADD    = $(LIBS)
 
 glitestat_SOURCES  = $(SOURCES) glitestat.cpp
-glitestat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include 
-glitestat_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitestat_CXXFLAGS = $(commonCXXFLAGS)
+glitestat_LDFLAGS  = $(commonLDFLAGS)
 glitestat_LDADD    = $(LIBS)
 
 glitekill_SOURCES  = $(SOURCES) glitekill.cpp
-glitekill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-glitekill_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitekill_CXXFLAGS = $(commonCXXFLAGS)
+glitekill_LDFLAGS  = $(commonLDFLAGS)
 glitekill_LDADD    = $(LIBS)
 
 gliteclean_SOURCES  = $(SOURCES) gliteclean.cpp
-gliteclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-gliteclean_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+gliteclean_CXXFLAGS = $(commonCXXFLAGS)
+gliteclean_LDFLAGS  = $(commonLDFLAGS)
 gliteclean_LDADD    = $(LIBS)
 
 glitedelegate_SOURCES  = $(SOURCES) glitedelegate.cpp
-glitedelegate_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-glitedelegate_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+glitedelegate_CXXFLAGS = $(commonCXXFLAGS)
+glitedelegate_LDFLAGS  = $(commonLDFLAGS)
 glitedelegate_LDADD    = $(LIBS)
 
 gliteundelegate_SOURCES  = $(SOURCES) gliteundelegate.cpp
