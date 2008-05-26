@@ -18,7 +18,9 @@ namespace Arc {
 
   class TargetGenerator {
   public:
-    TargetGenerator(Config& cfg);
+    TargetGenerator(const std::list<std::string>& clusterselect,
+		    const std::list<std::string>& clusterreject,
+		    const std::list<std::string>& giisurls);
     ~TargetGenerator();
 
     void GetTargets(int targetType, int detailLevel);
@@ -32,7 +34,7 @@ namespace Arc {
     void PrintTargetInfo(bool longlist) const;
 
   private:
-    Loader loader;
+    Loader *loader;
 
     std::list<URL> foundServices;
     std::list<URL> foundIndexServers;

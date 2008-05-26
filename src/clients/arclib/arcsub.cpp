@@ -74,68 +74,8 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     
   }
   
-  // We have now sorted and organized the JobDescriptions, 
-  // next we find available clusters
-  
-  Arc::ACCConfig acccfg;
-  Arc::NS ns;
-  Arc::Config mcfg(ns);
-  acccfg.MakeConfig(mcfg);
-  
-  bool ClustersSpecified = false;
-  bool IndexServersSpecified = false;
-  int TargetURL = 1;
-
-  //first add to config element the specified target clusters (if any)
-  for (std::list<std::string>::const_iterator it = ClusterSelect.begin(); it != ClusterSelect.end(); it++){
-    
-    std::cout<<"Submitting to targeted cluster: " << TargetURL<<std::endl;
-
-    size_t colon = (*it).find_first_of(":");
-    std::string GridFlavour = (*it).substr(0, colon);
-    std::string SomeURL = (*it).substr(colon+1);
-
-    Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-    ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-    ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
-    Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
-    ThisRetriever1.NewAttribute("ServiceType") = "computing";
-    
-    TargetURL++;
-    ClustersSpecified = true;
-  }
-
-  //if no cluster url are given next steps are index servers (giis'es in ARC0)
-  if (!ClustersSpecified){ //means that -c option takes priority over -g
-    for (std::list<std::string>::const_iterator it = IndexUrls.begin(); it != IndexUrls.end(); it++){      
-      
-      size_t colon = (*it).find_first_of(":");
-      std::string GridFlavour = (*it).substr(0, colon);
-      std::string SomeURL = (*it).substr(colon+1);
-      
-      Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-      ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-      ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
-      Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
-      ThisRetriever1.NewAttribute("ServiceType") = "index";
-      
-      TargetURL++;
-      IndexServersSpecified = true;
-    }
-  }
-  
-  //if neither clusters nor index servers are specified, read from config file
-  if(!ClustersSpecified && !IndexServersSpecified){
-    
-  }
-
-  //remove cluster that are rejected by user
-  for (std::list<std::string>::const_iterator it = ClusterReject.begin();it != ClusterReject.end(); it++){
-    
-  }
-    
-  //get cluster information end prepare execution targets to be considered by the broker
-  Arc::TargetGenerator TarGen(mcfg);
+  //prepare targets
+  Arc::TargetGenerator TarGen(ClusterSelect, ClusterReject, IndexUrls);
   TarGen.GetTargets(0, 1);  
 
   //store time of information request

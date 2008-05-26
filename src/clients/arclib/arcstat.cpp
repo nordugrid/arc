@@ -25,66 +25,11 @@ void arcstat(const std::list<std::string>& jobs,
   
   if (clusters){ //i.e we are looking for queue or cluster info, not jobs
     
-    Arc::ACCConfig acccfg;
-    Arc::NS ns;
-    Arc::Config mcfg(ns);
-    acccfg.MakeConfig(mcfg);
-    
-    bool ClustersSpecified = false;
-    bool IndexServersSpecified = false;
-    int TargetURL = 1;
-
-    //first add to config element the specified target clusters (if any)
-    for (std::list<std::string>::const_iterator it = clusterselect.begin(); it != clusterselect.end(); it++){
-      
-      size_t colon = (*it).find_first_of(":");
-      std::string GridFlavour = (*it).substr(0, colon);
-      std::string SomeURL = (*it).substr(colon+1);
-
-      Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-      ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-      ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
-      Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
-      ThisRetriever1.NewAttribute("ServiceType") = "computing";
-
-      TargetURL++;
-      ClustersSpecified = true;
-    }
-
-    //if no cluster url are given next steps are index servers (giis'es in ARC0)
-    if (!ClustersSpecified){ //means that -c option takes priority over -g
-      for (std::list<std::string>::const_iterator it = giisurls.begin(); it != giisurls.end(); it++){      
-
-	size_t colon = (*it).find_first_of(":");
-	std::string GridFlavour = (*it).substr(0, colon);
-	std::string SomeURL = (*it).substr(colon+1);
-	
-	Arc::XMLNode ThisRetriever = mcfg.NewChild("ArcClientComponent");
-	ThisRetriever.NewAttribute("name") = "TargetRetriever"+ (std::string) GridFlavour;
-	ThisRetriever.NewAttribute("id") = "retriever" + Arc::tostring(TargetURL);
-	Arc::XMLNode ThisRetriever1 = ThisRetriever.NewChild("URL") = (std::string) SomeURL;
-	ThisRetriever1.NewAttribute("ServiceType") = "index";
-	
-	TargetURL++;
-	IndexServersSpecified = true;
-      }
-    }
-    
-    //if neither clusters nor index servers are specified, read from config file
-    if(!ClustersSpecified && !IndexServersSpecified){
-      
-    }
-
-    //remove cluster that are rejected by user
-    for (std::list<std::string>::const_iterator it = clusterreject.begin();it != clusterreject.end(); it++){
-
-    }
-    
-    //get cluster information
-    Arc::TargetGenerator TarGen(mcfg);
+    //retrieve information
+    Arc::TargetGenerator TarGen(clusterselect, clusterreject, giisurls);
     TarGen.GetTargets(0, 1);
     
-    //finally print information to screen
+    //print information to screen
     TarGen.PrintTargetInfo(longlist);
     
   } //end if clusters

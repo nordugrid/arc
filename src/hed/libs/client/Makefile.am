@@ -1,4 +1,4 @@
-noinst_PROGRAMS = test submittest
+noinst_PROGRAMS = submittest
 
 lib_LTLIBRARIES = libarclibclient.la
 
@@ -14,10 +14,6 @@ libarclibclient_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la 
                               $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 		              $(top_srcdir)/src/hed/libs/misc/libarcclient.la \
                               $(LIBXML2_LIBS) $(GLIBMM_LIBS)
-
-test_SOURCES  = test.cpp
-test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = libarclibclient.la ../common/libarccommon.la ../misc/libarcclient.la ../loader/libarcloader.la
 
 submittest_SOURCES  = submittest.cpp
 submittest_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
