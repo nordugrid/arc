@@ -15,7 +15,6 @@
 Arc::Logger ArcSec::EvaluatorLoader::logger(Arc::Logger::rootLogger, "EvaluatorLoader");
 
 namespace ArcSec {
-EvaluatorLoader::EvaluatorLoader() {
   Arc::XMLNode arc_evaluator_cfg_nd("\
     <ArcConfig\
      xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -41,6 +40,7 @@ EvaluatorLoader::EvaluatorLoader() {
 
   //Arc::XMLNode xacml_evaluator_cfg_nd
 
+EvaluatorLoader::EvaluatorLoader() {
   class_config_list_.push_back(arc_evaluator_cfg_nd);
   //class_config_map_.push_back(xacml_evaluator_cfg_nd);
 }
@@ -57,7 +57,7 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
   bool found = false;
   for( it = class_config_list_.begin(); it != class_config_list_.end(); it++) {
     node = (*it);
-    if((std::string)(node["PDPConfig"]["Evaluator"].Attribute("Name")) == classname) { found = true; break; }
+    if((std::string)(node["PDPConfig"]["Evaluator"].Attribute("name")) == classname) { found = true; break; }
   }
 
   if(found) {
