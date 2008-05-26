@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
-<ArcConfig
-  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
-  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:paul="http://www.nordugrid.org/schemas/paul"
->
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:paul="http://www.nordugrid.org/schemas/paul">
   <Server>
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
@@ -11,16 +7,31 @@
   </Server>
   <ModuleManager>
         <Path>.libs/</Path>
+        <Path>../../hed/mcc/tcp/.libs/</Path>
+        <Path>../../hed/mcc/http/.libs/</Path>
+        <Path>../../hed/mcc/tls/.libs/</Path>
   </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
   <Plugins><Name>paul</Name></Plugins>
   <Chain>
+    <Component name="tcp.service" id="tcp">
+        <next id="http"/>
+        <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name="http.service" id="http">
+        <next id="plexer">GET</next>
+        <next id="plexer">POST</next>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+        <next id="paul">/paul</next>
+    </Plexer>
     <Service name="paul" id="paul">
-       <UUID>c220ccb6-fd7f-4ecb-a8ac-f7794248b83b</UUID>
        <paul:SchedulerEndpoint>http://10.211.55.9:60000/sched</paul:SchedulerEndpoint>
        <paul:JobRoot>/home/szferi/arc1/src/services/paul/jobroot</paul:JobRoot>
        <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
-       <paul:RequestPeriod>30</paul:RequestPeriod>
+       <paul:RequestPeriod>30000</paul:RequestPeriod>
        <paul:Timeout>5</paul:Timeout> 
        <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
        <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>
@@ -28,4 +39,3 @@
     </Service>
   </Chain>
 </ArcConfig>
-

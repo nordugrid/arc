@@ -15,11 +15,11 @@ namespace Paul {
 
 class PaulService: public Arc::Service {
     protected:
-        std::string service_id;
+        std::string config_file;
         std::string job_root;
         std::string db_path;
         std::string cache_path;
-        std::list<std::string> schedulers;
+        std::vector<std::string> schedulers;
         int period;
         int timeout;
         Arc::NS ns_;
@@ -39,10 +39,17 @@ class PaulService: public Arc::Service {
         bool stage_in(Job &j);
         bool run(Job &j);
         bool stage_out(Job &j);
+        // configurator
+        void set_config_params(Arc::Config *cfg);
+        void config_add_sched(const std::string &endpoint, std::string &html);
+        void config_add_sched_post(const std::string &endpoint, std::map<std::string, std::string> &post_values, std::string &html); 
+        void config_index_page(const std::string &endpoint, std::string &html);
+        void config_delete_sched(const std::string &endpoint, std::string &html);
+        
     public:
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);
-        Arc::MCC_Status process(Arc::Message &in, Arc::Message &out) { return Arc::MCC_Status(); };
+        Arc::MCC_Status process(Arc::Message &in, Arc::Message &out);
         void GetActivities(const std::string &url, std::vector<std::string> &ret);
 
 }; // class PaulService

@@ -41,14 +41,14 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     // refresh dinamic system information
     sysinfo.refresh();
     Arc::XMLNode ad = doc.NewChild("AdminDomain");
-    ad.NewChild("ID") = service_id;
+    ad.NewChild("ID") = "http://localhost/paul"; // XXX should be better
     ad.NewChild("Name") = "DesktopPC";
     ad.NewChild("Distriuted") = "no";
     ad.NewChild("Owner") = "someone"; // get user name required
     Arc::XMLNode services = ad.NewChild("Services");
     Arc::XMLNode cs = services.NewChild("ComputingService");
     cs.NewAttribute("type") = "Service";
-    cs.NewChild("ID") = service_id;
+    cs.NewChild("ID") = "http://localhost/paul";
     cs.NewChild("Type") = "org.nordugrid.paul";
     cs.NewChild("QualityLevel") = "production";
     cs.NewChild("Complexity") = "endpoint=1,share=1,resource=1";
@@ -519,18 +519,16 @@ void PaulService::report_and_action_loop(void *arg)
     }
 }
 
-// Constructor
-PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul") 
+void PaulService::set_config_params(Arc::Config *cfg)
 {
-    // Define supported namespaces
-    ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
-    ns_["glue2"] = "http://glue2";
-    ns_["sched"] = "http://www.nordugrid.org/schemas/sched";
-    ns_["wsa"] = "http://www.w3.org/2005/08/addressing";
-
-    service_id = (std::string)((*cfg)["UUID"]);
-    std::string sched_endpoint = (std::string)((*cfg)["SchedulerEndpoint"]);
-    schedulers.push_back(sched_endpoint);
+    // cleanup schedulers
+    schedulers.clear();
+    config_file = cfg->getFileName();
+    Arc::XMLNode sched_ep;
+    for (int i = 0; (sched_ep = (*cfg)["SchedulerEndpoint"][i]) != false; i++) {
+        std::string sched_endpoint = (std::string)sched_ep;
+        schedulers.push_back(sched_endpoint);
+    }
     period = Arc::stringtoi((std::string)((*cfg)["RequestPeriod"]));
     job_root = (std::string)((*cfg)["JobRoot"]);
     mkdir(job_root.c_str(), 0700);
@@ -540,6 +538,17 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     pki["CertificatePath"] = (std::string)((*cfg)["CertificatePath"]);
     pki["PrivateKey"] = (std::string)((*cfg)["PrivateKey"]);  
     pki["CACertificatePath"] = (std::string)((*cfg)["CACertificatePath"]);  
+}
+
+// Constructor
+PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul") 
+{
+    // Define supported namespaces
+    ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
+    ns_["glue2"] = "http://glue2";
+    ns_["sched"] = "http://www.nordugrid.org/schemas/sched";
+    ns_["wsa"] = "http://www.w3.org/2005/08/addressing";
+    set_config_params(cfg);
     // Start sched thread
     Arc::CreateThreadFunction(&request_loop, this);
     // Start report and action thread
@@ -550,6 +559,168 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
 PaulService::~PaulService(void) 
 {
     // NOP
+}
+
+void PaulService::config_index_page(const std::string &endpoint, std::string &html)
+{
+    html += "<h2>Basic options</h2";
+    html += "<table style=\"border-style: solid; border-color: #000000;\" border=\"1\" cellpadding=\"5px\" cellspacing=\"5px\">";
+    html += "<tr><td>Request period</td><td>" + Arc::tostring(period) +"</td></tr>";
+    html += "<tr><td>Timeout</td><td>" + Arc::tostring(timeout) +"</td></tr>";
+    
+    html += "</table>";
+    html += "<h2>Schedulers</h2> | <a href=\"" + endpoint + "add_sched/\">Add</a>";
+    for (int i = 0; i < schedulers.size(); i++) {
+        html += "<p>" + schedulers[i] + " | <a href=\"" + endpoint + "delete_sched/" + Arc::tostring(i) +"\"/>Delete</a></p>";
+    }
+}
+
+void PaulService::config_add_sched(const std::string &endpoint, std::string &html)
+{
+    html += "<h2>Add Scheduler</h2>";
+    html += "<p>Current schedulers</p>";
+    for (int i = 0; i < schedulers.size(); i++) {
+        html += "<p>" + schedulers[i] + "</p>";
+    }
+    html += "<form action=\".\" method=\"post\">";
+    html += "<p><label>URL:</label><input type=\"text\" name=\"sched_url\" id=\"sched_url\"></p>";
+    html += "<p><input type=\"submit\" value=\"ADD\"/></p></form>";
+}
+
+void PaulService::config_add_sched_post(const std::string &endpoint, std::map<std::string, std::string> &post_values, std::string &html)
+{
+    // determine root path
+    std::vector<std::string> tokens;
+    Arc::tokenize(endpoint, tokens, "/");
+    std::string sched_url = post_values["sched_url"];
+    if (!sched_url.empty()) {
+        Arc::Config cfg;
+        cfg.parse(config_file.c_str());
+        // find service tag
+        Arc::XMLNode chain = cfg["Chain"];
+        Arc::XMLNode service;
+        for (int i = 0; (service = chain["Service"][i]) != false; i++) {
+            if ("paul" == (std::string)service.Attribute("name")) {
+                break;
+            }
+        }
+        service.NewChild("paul:SchedulerEndpoint") = sched_url;
+        cfg.save(config_file.c_str());
+        Arc::Config new_cfg(service, config_file);
+        set_config_params(&new_cfg);
+        html += "<p>Scheduler url: <b>" + sched_url + "</b> has been added</p>";
+        html += "<p><a href=\"/" + tokens[0] + "/\">Back</a></p>";
+    }
+    // std::map<std::string, std::string>::iterator it;
+    // for (it = post_values.begin(); it != post_values.end(); it++) {
+    //    logger_.msg(Arc::DEBUG, "%s -> %s", it->first, it->second);
+    // }
+}
+
+void PaulService::config_delete_sched(const std::string &endpoint, std::string &html)
+{
+    std::vector<std::string> tokens;
+    Arc::tokenize(endpoint, tokens, "/");
+    if (tokens.size() >= 2) {
+        int sched_id = Arc::stringtoi(tokens[2]);
+        Arc::Config cfg;
+        cfg.parse(config_file.c_str());
+        // find service tag
+        Arc::XMLNode chain = cfg["Chain"];
+        Arc::XMLNode service;
+        for (int i = 0; (service = chain["Service"][i]) != false; i++) {
+            if ("paul" == (std::string)service.Attribute("name")) {
+                break;
+            }
+        }
+        Arc::XMLNode sched;
+        for (int i = 0; (sched = service["SchedulerEndpoint"][i]) != false; i++) {
+            if (schedulers[sched_id] == (std::string)sched) {
+               sched.Destroy();
+            }
+        }
+        cfg.save(config_file.c_str());
+        Arc::Config new_cfg(service, config_file);
+        html += "<p><b>" + schedulers[sched_id] + "</b> has been removed</p>";
+        set_config_params(&new_cfg);
+        html += "<p><a href=\"/" + tokens[0] + "/\">Back</a></p>";
+    } else {
+        html += "<p style=\"color: #ff0000;\">No such scheduler</p>";
+    }
+}
+
+Arc::MCC_Status PaulService::process(Arc::Message &in, Arc::Message &out)
+{
+    // configurator service
+    std::string http_method = in.Attributes()->get("HTTP:METHOD");
+    std::string id = in.Attributes()->get("PLEXER:EXTENSION");
+    std::string endpoint = in.Attributes()->get("HTTP:ENDPOINT");
+    std::string client_host = in.Attributes()->get("HTTP:REMOTEHOST");
+    
+#if 0
+    if (client_host != "127.0.0.1") {
+        logger_.msg(Arc::ERROR, "Permission denied from %s host", client_host);
+        return Arc::MCC_Status();
+    }
+#endif
+    std::string html;
+    html = "<html><head><title>Paul configurator</title></head><body><h1>Paul Configurator</h1>";
+    html += "<p>Id: " + id + "</p>";
+
+    if (http_method == "GET") {
+        std::vector<std::string> tokens;
+        Arc::tokenize(id, tokens, "/");
+        // generate content
+        if (id == "/") {
+            config_index_page(endpoint, html);
+        } else if (id == "/add_sched/") {
+            config_add_sched(endpoint, html);
+        } else if (tokens[0] == "delete_sched") {
+            config_delete_sched(endpoint, html);
+        } else {
+            html += "<p style=\"color: #ff0000\">Page not found!</p>";
+        }
+    } else if (http_method == "POST") {
+        logger_.msg(Arc::DEBUG, "Here comes the POST: %s", id);
+        Arc::PayloadRawInterface *in_payload = NULL;
+        try {
+            in_payload = dynamic_cast<Arc::PayloadRawInterface *>(in.Payload());
+        } catch (std::exception &e) {
+            logger_.msg(Arc::ERROR, "Invalid request: %s", e.what());
+            return Arc::MCC_Status();
+        }
+        // parse post values
+        std::string post_content = in_payload->Content();
+        std::map<std::string, std::string> post_values;
+        std::vector<std::string> lines;
+        Arc::tokenize(post_content, lines, "\n");
+        for (int i = 0; i < lines.size(); i++) {
+            std::vector<std::string> key_value;
+            Arc::tokenize(lines[i], key_value, "=");
+            if (key_value.size() >= 1) {
+                post_values[key_value[0]] = key_value[1];
+            }
+        }
+        if (id == "/add_sched/") {
+            // parse post content
+            config_add_sched_post(endpoint, post_values, html);
+        }
+    } else {
+        logger_.msg(Arc::ERROR, "Invalid method: %s", http_method);
+        return Arc::MCC_Status();
+    }
+    html += "</body></html>";
+    // generate output message
+    Arc::PayloadRaw *out_buf = new Arc::PayloadRaw;
+    if (!out_buf) {
+        logger_.msg(Arc::ERROR, "Cannot callocate output raw buffer");
+        return Arc::MCC_Status();
+    }
+    out_buf->Insert(html.c_str(), 0, html.length());
+    out.Payload(out_buf);
+    out.Attributes()->set("HTTP:content-type", "text/html");
+
+    return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 }; // namespace Paul
