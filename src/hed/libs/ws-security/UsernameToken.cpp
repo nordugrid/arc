@@ -418,7 +418,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, std::string& username, bool mac
   ns["wsse"]=WSSE_NAMESPACE;
   ns["wsse11"]=WSSE11_NAMESPACE;
   ns["wsu"]=WSU_NAMESPACE;
-  header.Namespaces(ns);
+  header_.Namespaces(ns);
 
   //Check the arguments
   if(username_.empty() || salt_.empty()) {
