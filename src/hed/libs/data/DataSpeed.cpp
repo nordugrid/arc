@@ -39,9 +39,10 @@ namespace Arc {
       /* make decision only after statistics settles */
       /* check for speed */
       if (N < (T * min_speed))
-	if (first_speed_failure != 0)
+	if (first_speed_failure != 0) {
 	  if (t > (first_speed_failure + min_speed_time))
 	    min_speed_failed = true;
+	}
 	else
 	  first_speed_failure = t;
       else

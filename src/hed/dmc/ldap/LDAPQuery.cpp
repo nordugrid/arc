@@ -422,7 +422,7 @@ namespace Arc {
 
     char *filt = (char *)filter.c_str();
 
-    char * *attrs;
+    char **attrs;
     if (attributes.empty())
       attrs = NULL;
     else {
@@ -535,7 +535,7 @@ namespace Arc {
     BerElement *ber = NULL;
     for (char *attr = ldap_first_attribute(connection, msg, &ber);
 	 attr; attr = ldap_next_attribute(connection, msg, ber)) {
-      BerValue * *bval;
+      BerValue **bval;
       if ((bval = ldap_get_values_len(connection, msg, attr))) {
 	for (int i = 0; bval[i]; i++)
 	  callback(attr, (bval[i]->bv_val ? bval[i]->bv_val : ""), ref);

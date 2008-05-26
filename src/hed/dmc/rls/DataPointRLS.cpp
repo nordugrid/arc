@@ -197,26 +197,30 @@ namespace Arc {
 	if (attr->type != globus_rls_attr_type_str)
 	  continue;
 	logger.msg(DEBUG, "Attribute: %s - %s", attr->name, attr->val.s);
-	if (strcmp(attr->name, "filechecksum") == 0)
+	if (strcmp(attr->name, "filechecksum") == 0) {
 	  if (!CheckCheckSum())
 	    SetCheckSum(attr->val.s);
-	  else if (strcmp(attr->name, "size") == 0)
-	    if (!CheckSize())
-	      SetSize(stringtoull(attr->val.s));
-	    else if (strcmp(attr->name, "modifytime") == 0)
-	      if (!CheckCreated()) {
-		Time created(attr->val.s);
-		if (created == -1)
-		  created.SetTime(stringtoull(attr->val.s));
-		SetCreated(created);
-	      }
-	      else if (strcmp(attr->name, "created") == 0)
-		if (!CheckCreated()) {
-		  Time created(attr->val.s);
-		  if (created == -1)
-		    created.SetTime(stringtoull(attr->val.s));
-		  SetCreated(created);
-		}
+	}
+	else if (strcmp(attr->name, "size") == 0) {
+	  if (!CheckSize())
+	    SetSize(stringtoull(attr->val.s));
+	}
+	else if (strcmp(attr->name, "modifytime") == 0) {
+	  if (!CheckCreated()) {
+	    Time created(attr->val.s);
+	    if (created == -1)
+	      created.SetTime(stringtoull(attr->val.s));
+	    SetCreated(created);
+	  }
+	}
+	else if (strcmp(attr->name, "created") == 0) {
+	  if (!CheckCreated()) {
+	    Time created(attr->val.s);
+	    if (created == -1)
+	      created.SetTime(stringtoull(attr->val.s));
+	    SetCreated(created);
+	  }
+	}
       }
       globus_rls_client_free_list(attr_list);
       obtained_info = true;
@@ -293,8 +297,8 @@ namespace Arc {
 		     loc->Name(), loc->str());
 	  ++loc;
 	}
-	else  // Use arbitrary lrc
-	if (lrc_p == lrcs.end()) {   // no LRC
+	// Use arbitrary lrc
+	else if (lrc_p == lrcs.end()) {   // no LRC
 	  logger.msg(DEBUG, "Removing location: %s - %s",
 		     loc->Name(), loc->str());
 	  loc = locations.erase(loc);

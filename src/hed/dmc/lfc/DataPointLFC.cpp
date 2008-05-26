@@ -32,21 +32,22 @@ namespace Arc {
   DataStatus DataPointLFC::Resolve(bool source) {
     resolved = false;
     registered = false;
-    if (source)
+    if (source) {
       if (url.Path().empty()) {
 	logger.msg(INFO, "Source must contain LFN");
 	return DataStatus::ReadResolveError;
       }
-      else {
-	if (url.Path().empty()) {
-	  logger.msg(INFO, "Destination must contain LFN");
-	  return DataStatus::WriteResolveError;
-	}
-	if (url.Locations().size() == 0) {
-	  logger.msg(INFO, "Locations are missing in destination LFC URL");
-	  return DataStatus::WriteResolveError;
-	}
+    }
+    else {
+      if (url.Path().empty()) {
+	logger.msg(INFO, "Destination must contain LFN");
+	return DataStatus::WriteResolveError;
       }
+      if (url.Locations().size() == 0) {
+	logger.msg(INFO, "Locations are missing in destination LFC URL");
+	return DataStatus::WriteResolveError;
+      }
+    }
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
 		      "ARC") != 0)
