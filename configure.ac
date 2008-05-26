@@ -399,7 +399,7 @@ then
 else
 	# pthread needed for RH9
 	SAVE_LDFLAGS=$LDFLAGS
-	LDFLAGS=-lpthread
+	LDFLAGS="$LDFLAGS -lpthread"
 
 	AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="") 
 
