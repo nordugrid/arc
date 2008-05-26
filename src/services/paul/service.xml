@@ -16,7 +16,7 @@
   <Chain>
     <Service name="paul" id="paul">
        <UUID>c220ccb6-fd7f-4ecb-a8ac-f7794248b83b</UUID>
-       <paul:SchedulerEndpoint>http://localhost:60000/sched</paul:SchedulerEndpoint>
+       <paul:SchedulerEndpoint>http://10.211.55.9:60000/sched</paul:SchedulerEndpoint>
        <paul:JobRoot>/home/szferi/arc1/src/services/paul/jobroot</paul:JobRoot>
        <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
