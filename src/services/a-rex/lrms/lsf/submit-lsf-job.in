@@ -46,13 +46,13 @@ fi
 # configuration options
 
 # Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-/tmp}
+TMP_DIR=${TMP_DIR:-@tmp_dir@}
 # Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-/usr/local/sys/nordugrid/runtimedir}
+RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
 # Where GNU time utility is located on computing nodes (empty if does not exist)
-GNU_TIME=${GNU_TIME:-/usr/bin/time}
+GNU_TIME=${GNU_TIME:-@gnu_time@}
 # Command to get name of executing node
-NODENAME=${NODENAME:-/bin/hostname -f}
+NODENAME=${NODENAME:-@nodename@}
 # Description of (cross-)mounted disc space on cluster
 RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
 RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}

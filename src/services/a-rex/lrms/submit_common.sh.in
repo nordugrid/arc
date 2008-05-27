@@ -10,11 +10,11 @@ init () {
    # Use specified memory requirement as soft limit, allow a bit more before hard limit
    memory_hardlimit_ratio='1/1'
    # Where to store temporary files on gatekeeper
-   TMP_DIR=${TMP_DIR:-/tmp}
+   TMP_DIR=${TMP_DIR:-@tmp_dir@}
    # Where GNU time utility is located on computing nodes (empty if does not exist)
-   GNU_TIME=${GNU_TIME:-/usr/bin/time}
+   GNU_TIME=${GNU_TIME:-@gnu_time@}
    # Command to get name of executing node
-   NODENAME=${NODENAME:-/bin/hostname -f}
+   NODENAME=${NODENAME:-@nodename@}
 
    RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
    RUNTIME_ARC_LOCATION="$ARC_LOCATION"

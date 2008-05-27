@@ -34,7 +34,7 @@ init
 ##############################################################
  
 # Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-/usr/local/sys/nordugrid/runtimedir}
+RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
 export RUNTIME_CONFIG_DIR
 # Description of (cross-)mounted disc space on cluster
 RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
