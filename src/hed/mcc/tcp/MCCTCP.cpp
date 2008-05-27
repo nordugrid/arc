@@ -373,7 +373,7 @@ void MCC_TCP_Service::executer(void* arg) {
         // SESSIONID
     };
     // Creating stream payload
-    PayloadStream stream(s);
+    PayloadTCPSocket stream(s, logger);
     MessageAttributes attributes_in;
     MessageAttributes attributes_out;
     MessageAuth auth_in;
