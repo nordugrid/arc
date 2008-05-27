@@ -1,1 +1,11 @@
-arclib: library to write cliens
+arclib directory is supposed to include classes which will be used as convinient 
+lib for client and service.
+Credential class covers the functionality about general processing to certificate/key files,
+including cerficate/key parsing, information extracting (such as subject name, issuer name, lifetime, etc.), chain verifying,
+extension processing about proxy certinfo, extension processing about other general certificate extension
+(such as voms attributes, it should be the extension-specific code itself (for voms, it is some code about writing and parsing
+voms-implementing Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and embeded into extension
+of X509 certificate/proxy certificate) to create, parse and verify the extension, not the Credential class.
+The voms api can still be used if need to process the voms extension).
+The Crendential class support PEM, DER PKCS12 credential.
+
