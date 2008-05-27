@@ -89,7 +89,7 @@ namespace Arc {
 	if (!jobiter->client_software.empty())
 	  std::cout<<Arc::IString(" Submitting client: %s", jobiter->client_software)<<std::endl;
 	if (jobiter->requested_cpu_time != -1)
-	  std::cout<<Arc::IString(" Reguested CPU Time: %s", (std::string) jobiter->requested_cpu_time)<<std::endl;
+	  std::cout<<Arc::IString(" Requested CPU Time: %s", (std::string) jobiter->requested_cpu_time)<<std::endl;
 	if (jobiter->used_cpu_time != -1)
 	  std::cout<<Arc::IString(" Used CPU Time: %s", (std::string) jobiter->used_cpu_time)<<std::endl;
 	if (jobiter->used_wall_time != -1)

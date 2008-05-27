@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-27 22:51+0200\n"
-"PO-Revision-Date: 2008-05-27 22:49+0200\n"
+"POT-Creation-Date: 2008-05-27 22:59+0200\n"
+"PO-Revision-Date: 2008-05-27 23:00+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -1936,7 +1936,7 @@ msgstr " Insändande klient: %s"
 
 #: ../src/hed/libs/client/JobController.cpp:92
 #, c-format
-msgid " Reguested CPU Time: %s"
+msgid " Requested CPU Time: %s"
 msgstr " Begärd CPU-tid: %s"
 
 #: ../src/hed/libs/client/JobController.cpp:94
