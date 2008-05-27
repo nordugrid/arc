@@ -19,7 +19,7 @@ $(TRANSLATIONS): Arc.pot
 	rm -f $@.old
 
 Arc.pot: $(SRC_FILES)
-	xgettext -d Arc -o Arc.pot -kmsg:2 -kIString:1 $^
+	xgettext -d Arc -o Arc.pot -kmsg:2 -kIString:1 -kistring:1 $^
 
 install-exec-hook:
 	@for lang in $(LANGUAGES) ; do \

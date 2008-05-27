@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-23 06:06+0200\n"
-"PO-Revision-Date: 2008-05-23 06:18+0200\n"
+"POT-Creation-Date: 2008-05-27 22:51+0200\n"
+"PO-Revision-Date: 2008-05-27 22:49+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,83 +16,83 @@ msgstr ""
 msgid "OpenSSL Error: %s"
 msgstr "OpenSSL-fel: %s"
 
-#: ../src/arclib/Credential.cpp:137
+#: ../src/arclib/Credential.cpp:141
 #, c-format
 msgid "Certificate format for BIO is: %d"
 msgstr "Certifikatformat för BIO är: %d"
 
-#: ../src/arclib/Credential.cpp:146
+#: ../src/arclib/Credential.cpp:150
 msgid "Can not read cert information from BIO"
 msgstr "Kan inte läsa certifikatinformation från BIO"
 
-#: ../src/arclib/Credential.cpp:162
+#: ../src/arclib/Credential.cpp:166
 #, c-format
 msgid "Can not insert cert %s into certificate's issuer chain"
 msgstr "Kan inte sätta in certifikat %s i certifikatets utfärdarkedja"
 
-#: ../src/arclib/Credential.cpp:172
+#: ../src/arclib/Credential.cpp:176
 msgid "Unable to read DER credential from BIO"
 msgstr "Kan inte läsa DER-kreditiv från BIO"
 
-#: ../src/arclib/Credential.cpp:183 ../src/arclib/Credential.cpp:233
+#: ../src/arclib/Credential.cpp:187 ../src/arclib/Credential.cpp:237
 msgid "Can not parse PKCS12 file"
 msgstr "Kan inte tolka PKCS12-fil"
 
-#: ../src/arclib/Credential.cpp:188
+#: ../src/arclib/Credential.cpp:192
 msgid "Can not read PKCS12 credential from BIO"
 msgstr "Kan inte läsa PKCS12-kreditiv från BIO"
 
-#: ../src/arclib/Credential.cpp:218
+#: ../src/arclib/Credential.cpp:222
 msgid "Can not read credential key from PEM key BIO"
 msgstr "Kan inte läsa kreditivnyckel från PEM-nyckels BIO"
 
-#: ../src/arclib/Credential.cpp:291
+#: ../src/arclib/Credential.cpp:292
 msgid "Certificate verification succeeded"
 msgstr "Certifikatverifiering lyckades"
 
-#: ../src/arclib/Credential.cpp:294
+#: ../src/arclib/Credential.cpp:295
 msgid "Certificate verification failed"
 msgstr "Certifikatverifiering misslyckades"
 
-#: ../src/arclib/Credential.cpp:475
+#: ../src/arclib/Credential.cpp:481
 #, c-format
 msgid "Can not read certificate file: %s"
 msgstr "Kan inte läsa certifikatfil: %s"
 
-#: ../src/arclib/Credential.cpp:481
+#: ../src/arclib/Credential.cpp:487
 #, c-format
 msgid "Can not read key file: %s"
 msgstr "Kan inte läsa nyckelfil: %s"
 
-#: ../src/arclib/Credential.cpp:534
+#: ../src/arclib/Credential.cpp:540
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr "Kan inte omvandla sträng till ASN1_OBJECT"
 
-#: ../src/arclib/Credential.cpp:545
+#: ../src/arclib/Credential.cpp:551
 msgid "Can not create extension for proxy certificate"
 msgstr "Kan inte skapa tillägg för proxycertifikat"
 
-#: ../src/arclib/Credential.cpp:565
+#: ../src/arclib/Credential.cpp:571
 msgid "The credential's private key has already been initialized"
 msgstr "Kreditivets privata nyckel har redan initialiserats"
 
-#: ../src/arclib/Credential.cpp:571
+#: ../src/arclib/Credential.cpp:577
 msgid "RSA_generate_key failed"
 msgstr "RSA_generate_key misslyckades"
 
-#: ../src/arclib/Credential.cpp:585
+#: ../src/arclib/Credential.cpp:591
 msgid "RSA_generate_key_ex failed"
 msgstr "RSA_generate_key_ex misslyckades"
 
-#: ../src/arclib/Credential.cpp:592
+#: ../src/arclib/Credential.cpp:598
 msgid "BN_set_word failed"
 msgstr "BN_set_word misslyckades"
 
-#: ../src/arclib/Credential.cpp:599
+#: ../src/arclib/Credential.cpp:605
 msgid "BN_new || RSA_new failed"
 msgstr "BN_new || RSA_new misslyckades"
 
-#: ../src/arclib/Credential.cpp:620
+#: ../src/arclib/Credential.cpp:626
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
@@ -100,212 +100,212 @@ msgstr ""
 "Kan inte duplicera subjektnamnet för den självsignerande "
 "proxycertifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:630
+#: ../src/arclib/Credential.cpp:636
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr "Kan inte skapa en ny X509_NAME_ENTRY för proxycertifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:656 ../src/arclib/Credential.cpp:666
-#: ../src/arclib/Credential.cpp:1050 ../src/arclib/Credential.cpp:1057
+#: ../src/arclib/Credential.cpp:662 ../src/arclib/Credential.cpp:672
+#: ../src/arclib/Credential.cpp:1071 ../src/arclib/Credential.cpp:1078
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
 "Kan inte omvandla PROXYCERTINFO struct från internt till DER-kodat format"
 
-#: ../src/arclib/Credential.cpp:685
+#: ../src/arclib/Credential.cpp:691
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr "PEM_write_bio_X509_REQ misslyckades"
 
-#: ../src/arclib/Credential.cpp:699
+#: ../src/arclib/Credential.cpp:705
 msgid "Can not generate X509 request"
-msgstr "Kan inte generara X509-begäran"
+msgstr "Kan inte generera X509-begäran"
 
-#: ../src/arclib/Credential.cpp:701
+#: ../src/arclib/Credential.cpp:707
 msgid "Can not set private key"
 msgstr "Kan inte ange privat nyckel"
 
-#: ../src/arclib/Credential.cpp:710 ../src/arclib/Credential.cpp:727
+#: ../src/arclib/Credential.cpp:716 ../src/arclib/Credential.cpp:733
 msgid "Can not create BIO for request"
 msgstr "Kan inte skapa BIO för begäran"
 
-#: ../src/arclib/Credential.cpp:729
+#: ../src/arclib/Credential.cpp:735
 msgid "Can not set writable file for request BIO"
 msgstr "Kan inte ange skrivbar fil för begärans BIO"
 
-#: ../src/arclib/Credential.cpp:733
+#: ../src/arclib/Credential.cpp:739
 msgid "Wrote request into a file"
 msgstr "Skrev begäran till en fil"
 
-#: ../src/arclib/Credential.cpp:735
+#: ../src/arclib/Credential.cpp:741
 msgid "Failed to write request into a file"
 msgstr "Misslyckades med att skriva begäran till en fil"
 
-#: ../src/arclib/Credential.cpp:791
+#: ../src/arclib/Credential.cpp:811
 msgid "NULL BIO passed to InquireRequest"
 msgstr "NULL BIO skickad till InquireRequest"
 
-#: ../src/arclib/Credential.cpp:794
+#: ../src/arclib/Credential.cpp:814
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr "PEM_read_bio_X509_REQ misslyckades"
 
-#: ../src/arclib/Credential.cpp:826
+#: ../src/arclib/Credential.cpp:846
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
 msgstr "Kan inte omvandla DER-kodat PROXYCERTINFO-tillägg till internt format"
 
-#: ../src/arclib/Credential.cpp:835
+#: ../src/arclib/Credential.cpp:855
 msgid "Can not get policy from PROXYCERTINFO extension"
 msgstr "Kan inte erhålla policy från PROXYCERTINFO-tillägg"
 
-#: ../src/arclib/Credential.cpp:839
+#: ../src/arclib/Credential.cpp:859
 msgid "Can not get policy language from PROXYCERTINFO extension"
 msgstr "Kan inte erhålla policy-språk från PROXYCERTINFO-tillägg"
 
-#: ../src/arclib/Credential.cpp:869 ../src/arclib/Credential.cpp:884
+#: ../src/arclib/Credential.cpp:890 ../src/arclib/Credential.cpp:905
 msgid "Can not create BIO for parsing request"
 msgstr "Kan inte skapa BIO för att tolka begäran"
 
-#: ../src/arclib/Credential.cpp:874
+#: ../src/arclib/Credential.cpp:895
 msgid "Read request from a string"
 msgstr "Läste begäran från en sträng"
 
-#: ../src/arclib/Credential.cpp:876
+#: ../src/arclib/Credential.cpp:897
 msgid "Failed to read request from a string"
 msgstr "Misslyckades med att läsa begäran från en sträng"
 
-#: ../src/arclib/Credential.cpp:886
+#: ../src/arclib/Credential.cpp:907
 msgid "Can not set readable file for request BIO"
 msgstr "Kunde inte ange läsbar fil för begärans BIO"
 
-#: ../src/arclib/Credential.cpp:891
+#: ../src/arclib/Credential.cpp:912
 msgid "Read request from a file"
 msgstr "Läste begäran från en fil"
 
-#: ../src/arclib/Credential.cpp:893
+#: ../src/arclib/Credential.cpp:914
 msgid "Failed to read request from a file"
 msgstr "Misslyckades med att läsa begäran från en fil"
 
-#: ../src/arclib/Credential.cpp:909 ../src/arclib/Credential.cpp:930
+#: ../src/arclib/Credential.cpp:930 ../src/arclib/Credential.cpp:951
 msgid ""
 "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 "Misslyckades med att skapa ny ASN1_UTCTIME för proxycertifikatets utgångstid"
 
-#: ../src/arclib/Credential.cpp:916 ../src/arclib/Credential.cpp:937
+#: ../src/arclib/Credential.cpp:937 ../src/arclib/Credential.cpp:958
 msgid ""
 "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 "Misslyckades med att duplicera ASN1_UTCTIME för proxycertifikatets utgångstid"
 
-#: ../src/arclib/Credential.cpp:922 ../src/arclib/Credential.cpp:943
+#: ../src/arclib/Credential.cpp:943 ../src/arclib/Credential.cpp:964
 msgid "Failed to set notBefore for proxy certificate"
 msgstr "Misslyckades med att ange notBefore för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:958
+#: ../src/arclib/Credential.cpp:979
 msgid "Private key of the credential object is NULL"
 msgstr "Kreditivobjektets privata nyckel är NULL"
 
-#: ../src/arclib/Credential.cpp:961
+#: ../src/arclib/Credential.cpp:982
 msgid "Can not convert private key to DER format"
 msgstr "Kan inte omvandla privat nyckel till DER-format"
 
-#: ../src/arclib/Credential.cpp:1020
+#: ../src/arclib/Credential.cpp:1041
 msgid "Failed to initialize X509 structure"
 msgstr "Misslyckades med att initiera X509-struktur"
 
-#: ../src/arclib/Credential.cpp:1068 ../src/arclib/Credential.cpp:1125
+#: ../src/arclib/Credential.cpp:1089 ../src/arclib/Credential.cpp:1146
 msgid "Can not add X509 extension to proxy cert"
 msgstr "Kan inte lägga till X509-tillägg till proxycertifikat"
 
-#: ../src/arclib/Credential.cpp:1090
+#: ../src/arclib/Credential.cpp:1111
 msgid "Can not get extension from issuer certificate"
 msgstr "Kan inte erhålla tillägg från utfärdarcertifikat"
 
-#: ../src/arclib/Credential.cpp:1095
+#: ../src/arclib/Credential.cpp:1116
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr "Kan inte omvandla keyUsage struct från DER-kodat format"
 
-#: ../src/arclib/Credential.cpp:1105 ../src/arclib/Credential.cpp:1113
+#: ../src/arclib/Credential.cpp:1126 ../src/arclib/Credential.cpp:1134
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr "Kan inte omvandla keyUsage struct från internt till DER-format"
 
-#: ../src/arclib/Credential.cpp:1134
+#: ../src/arclib/Credential.cpp:1155
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr "Kan inte erhålla utökad KeyUsage-tillägg från utfärdarcertifikatet"
 
-#: ../src/arclib/Credential.cpp:1139
+#: ../src/arclib/Credential.cpp:1160
 msgid "Can not copy extended KeyUsage extension"
 msgstr "Kan inte kopiera det utökade KeyUsage-tillägget"
 
-#: ../src/arclib/Credential.cpp:1143
+#: ../src/arclib/Credential.cpp:1164
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 "Kan inte lägga till X509-utökat KeyUsage-tillägg till det nya "
 "proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1151
+#: ../src/arclib/Credential.cpp:1172
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr "Kan inte kopiera subjektnamnet från utfärdaren för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1155
+#: ../src/arclib/Credential.cpp:1176
 msgid "Can not create name entry CN for proxy certificate"
 msgstr "Kan inte skapa namnpost CN för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1160
+#: ../src/arclib/Credential.cpp:1181
 msgid "Can not set CN in proxy certificate"
 msgstr "Kan inte ange CN i proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1168
+#: ../src/arclib/Credential.cpp:1189
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr "Kan inte ange utfärdarens subjekt för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1172
+#: ../src/arclib/Credential.cpp:1193
 msgid "Can not set version number for proxy certificate"
 msgstr "Kan inte ange versionsnummer för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1176
+#: ../src/arclib/Credential.cpp:1197
 msgid "Can not set serial number for proxy certificate"
 msgstr "Kan inte ange serienummer för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1180
+#: ../src/arclib/Credential.cpp:1201
 msgid "Can not set the lifetime for proxy certificate"
 msgstr "Kan inte ange livstid för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1184
+#: ../src/arclib/Credential.cpp:1205
 msgid "Can not set pubkey for proxy certificate"
 msgstr "Kan inte ange publik nyckel för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1202
+#: ../src/arclib/Credential.cpp:1223
 msgid "The credential to be signed is NULL"
 msgstr "Kreditivet som skall signeras är NULL"
 
-#: ../src/arclib/Credential.cpp:1203
+#: ../src/arclib/Credential.cpp:1224
 msgid "The BIO for output is NULL"
 msgstr "Utdata-BIO är NULL"
 
-#: ../src/arclib/Credential.cpp:1213
+#: ../src/arclib/Credential.cpp:1234
 msgid "Error when extracting public key from request"
 msgstr "Fel när publik nyckel extraheras från begäran"
 
-#: ../src/arclib/Credential.cpp:1216
+#: ../src/arclib/Credential.cpp:1237
 msgid "Failed to verify the request"
 msgstr "Misslyckades med att verifiera begäran"
 
-#: ../src/arclib/Credential.cpp:1220
+#: ../src/arclib/Credential.cpp:1241
 msgid "Failed to add issuer's extension into proxy"
 msgstr "Misslyckades med att lägga till utfärdarens tillägg till proxyn"
 
-#: ../src/arclib/Credential.cpp:1240
+#: ../src/arclib/Credential.cpp:1261
 msgid "Failed to duplicate extension"
 msgstr "Misslyckades med att duplicera tillägg"
 
-#: ../src/arclib/Credential.cpp:1244
+#: ../src/arclib/Credential.cpp:1265
 msgid "Failed to add extension into proxy"
 msgstr "Misslyckades med att lägga till tillägg till proxyn"
 
-#: ../src/arclib/Credential.cpp:1250
+#: ../src/arclib/Credential.cpp:1271
 msgid "Can not get the issuer's private key"
 msgstr "Kan inte erhålla utfärdarens privata nyckel"
 
-#: ../src/arclib/Credential.cpp:1255
+#: ../src/arclib/Credential.cpp:1276
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed, it should be MD5 to sign "
@@ -314,78 +314,78 @@ msgstr ""
 "Signeringsalgoritmen %s är ej tillåten, den skall vara MD5 för att signera "
 "certifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:1261
+#: ../src/arclib/Credential.cpp:1282
 msgid "Failed to sign the proxy certificate"
 msgstr "Misslyckades med att signera proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1263
+#: ../src/arclib/Credential.cpp:1284
 msgid "Succeeded to sign the proxy certificate"
 msgstr "Lyckades signera proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1268
+#: ../src/arclib/Credential.cpp:1289
 msgid "Failed to verify the signed certificate"
 msgstr "Misslyckades med att verifiera det signerade certifikatet"
 
-#: ../src/arclib/Credential.cpp:1270
+#: ../src/arclib/Credential.cpp:1291
 msgid "Succeeded to verify the signed certificate"
 msgstr "Lyckades verifiera det signerade certifikatet"
 
-#: ../src/arclib/Credential.cpp:1275
+#: ../src/arclib/Credential.cpp:1296
 msgid "Output the proxy certificate"
 msgstr "Skriv ut proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1277
+#: ../src/arclib/Credential.cpp:1298
 msgid "Can not convert signed proxy cert into DER format"
 msgstr "Kan inte omvandla det signerade proxycertifikatet till DER-format"
 
-#: ../src/arclib/Credential.cpp:1289 ../src/arclib/Credential.cpp:1306
+#: ../src/arclib/Credential.cpp:1310 ../src/arclib/Credential.cpp:1327
 msgid "Can not create BIO for signed proxy certificate"
 msgstr "Kan inte skapa BIO för det signerade proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1308
+#: ../src/arclib/Credential.cpp:1329
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr "Kan inte ange skrivbar fil för det signerade proxycertifikatets BIO"
 
-#: ../src/arclib/Credential.cpp:1312
+#: ../src/arclib/Credential.cpp:1333
 msgid "Wrote signed proxy certificate into a file"
 msgstr "Skrev det signerade proxycertifikatet till en fil"
 
-#: ../src/arclib/Credential.cpp:1314
+#: ../src/arclib/Credential.cpp:1335
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 "Misslyckades med att skriva det signerade proxycertifikatet till en fil"
 
-#: ../src/clients/arclib/arccli.cpp:431 ../src/clients/data/arccli.cpp:147
+#: ../src/clients/arclib/arccli.cpp:438 ../src/clients/data/arccli.cpp:150
 msgid "No program name"
 msgstr "Inget programnamn"
 
-#: ../src/clients/arclib/arccli.cpp:478 ../src/clients/data/arccli.cpp:167
+#: ../src/clients/arclib/arccli.cpp:485 ../src/clients/data/arccli.cpp:170
 #, c-format
 msgid "Unknown program name: %s"
 msgstr "Okänt programnamn: %s"
 
-#: ../src/clients/arclib/arccli.cpp:1025 ../src/clients/arclib/arccli.cpp:1121
-#: ../src/clients/data/arccli.cpp:327 ../src/clients/data/arccli.cpp:366
+#: ../src/clients/arclib/arccli.cpp:1037 ../src/clients/arclib/arccli.cpp:1133
+#: ../src/clients/data/arccli.cpp:334 ../src/clients/data/arccli.cpp:373
 msgid "Use -help option for help"
 msgstr "Använd flaggan -help för hjälp"
 
-#: ../src/clients/arclib/arccli.cpp:1172 ../src/clients/arclib/arccli.cpp:1177
+#: ../src/clients/arclib/arccli.cpp:1183 ../src/clients/arclib/arccli.cpp:1188
 msgid "Incompatible Options"
 msgstr "Inkompatibla flaggor"
 
-#: ../src/clients/arclib/arccli.cpp:1181
+#: ../src/clients/arclib/arccli.cpp:1192
 msgid "No valid jobnames/jobids given"
 msgstr "Inga giltiga jobbnamn/jobb-id angivna"
 
-#: ../src/clients/arclib/arccli.cpp:1187
+#: ../src/clients/arclib/arccli.cpp:1198
 msgid "Wrong number of parameters specified. Use -h for help"
 msgstr "Fel antal parametrar angivna. Använd -h för hjälp"
 
-#: ../src/clients/arclib/arccli.cpp:1190
+#: ../src/clients/arclib/arccli.cpp:1201
 msgid "Must give only one of -q, -c or -l options"
 msgstr "Endast en av flaggorna -q, -c eller -l kan anges"
 
-#: ../src/clients/arclib/arccli.cpp:1194
+#: ../src/clients/arclib/arccli.cpp:1205
 msgid "Must give service endpoint when using -q, -c or -l options"
 msgstr "Serviceändpunkt måste anges när flaggorna -q, -c eller -l används"
 
@@ -398,7 +398,7 @@ msgstr "Ingen jobbeskrivning angiven"
 msgid "Can not open file: %s"
 msgstr "Kan inte öpna fil: %s"
 
-#: ../src/clients/arclib/arcsub.cpp:150
+#: ../src/clients/arclib/arcsub.cpp:90
 #, c-format
 msgid ""
 "Job submission failed due to: \n"
@@ -408,16 +408,16 @@ msgstr ""
 "Jobbinsändning misslyckades p.g.a. att det angivna klustret %s inte "
 "returnerade någon information"
 
-#: ../src/clients/arclib/arcsub.cpp:268
+#: ../src/clients/arclib/arcsub.cpp:208
 msgid "Job submission summary:"
 msgstr "Jobbinsändningssammanfattning:"
 
-#: ../src/clients/arclib/arcsub.cpp:270
+#: ../src/clients/arclib/arcsub.cpp:210
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d av %d jobb sändes in"
 
-#: ../src/clients/arclib/arcsub.cpp:273
+#: ../src/clients/arclib/arcsub.cpp:213
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Följande %d sändes inte in"
@@ -608,32 +608,32 @@ msgstr "Skapar och sänder en jobbstartförfrågan."
 msgid "Creating delegation."
 msgstr "Skapar delegering."
 
-#: ../src/clients/credentials/approxy.cpp:62
+#: ../src/clients/credentials/approxy.cpp:63
 #, c-format
 msgid "OpenSSL Error -- %s"
 msgstr "OpenSSL-fel -- %s"
 
-#: ../src/clients/credentials/approxy.cpp:63
+#: ../src/clients/credentials/approxy.cpp:64
 #, c-format
 msgid "Library  : %s"
 msgstr "Bibliotek: %s"
 
-#: ../src/clients/credentials/approxy.cpp:64
+#: ../src/clients/credentials/approxy.cpp:65
 #, c-format
 msgid "Function : %s"
 msgstr "Funktion : %s"
 
-#: ../src/clients/credentials/approxy.cpp:65
+#: ../src/clients/credentials/approxy.cpp:66
 #, c-format
 msgid "Reason   : %s"
 msgstr "Anledning: %s"
 
-#: ../src/clients/data/arccli.cpp:377 ../src/clients/data/arccli.cpp:385
-#: ../src/clients/data/arccli.cpp:407
+#: ../src/clients/data/arccli.cpp:384 ../src/clients/data/arccli.cpp:392
+#: ../src/clients/data/arccli.cpp:414
 msgid "Wrong number of parameters specified"
 msgstr "Fel antal parametrar angivna"
 
-#: ../src/clients/data/arccli.cpp:389
+#: ../src/clients/data/arccli.cpp:396
 msgid "Options 'p' and 'n' can't be used simultaneously"
 msgstr "Flaggorna 'p' och 'n' kan inte användas samtidigt"
 
@@ -836,30 +836,30 @@ msgstr "Det kom inget svar på en echo-förfrågan."
 msgid "A response to an echo request was not a SOAP message."
 msgstr "Ett svar på en echo-förfrågan var inget SOAP-meddelande."
 
-#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:29
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:37
 #, c-format
 msgid "TargetRetriverARC0 initialized with %s service url: %s"
 msgstr "TargetRetriverARC0 initialiserad med %s-serviceurl: %s"
 
-#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:117
+#: ../src/hed/acc/ARC0/TargetRetrieverARC0.cpp:71
 msgid "TargetRetrieverARC0 initialized with unknown url type"
 msgstr "TargetRetrieverARC0 initialiserad med okänd url-typ"
 
-#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:24
+#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:34
 #, c-format
 msgid "TargetRetriverARC1 initialized with %s service url: %s"
 msgstr "TargetRetriverARC1 initialiserad med %s-serviceurl: %s"
 
-#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:41
+#: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:68
 msgid "TargetRetrieverARC1 initialized with unknown url type"
 msgstr "TargetRetrieverARC1 initialiserad med okänd url-typ"
 
-#: ../src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:29
+#: ../src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:38
 #, c-format
 msgid "TargetRetriverCREAM initialized with %s service url: %s"
 msgstr "TargetRetriverCREAM initialiserad med %s-serviceurl: %s"
 
-#: ../src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:107
+#: ../src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:72
 msgid "TargetRetrieverCREAM initialized with unknown url type"
 msgstr "TargetRetrieverCREAM initialiserad med okänd url-typ"
 
@@ -1471,197 +1471,211 @@ msgstr "Dataöverföring avbruten"
 msgid "Failed to transfer data"
 msgstr "Misslyckades med att överföra data"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:118
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:130
 msgid "SASL Interaction"
 msgstr "SASL växelverkan"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:166
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:178
 #, c-format
 msgid "Challenge: %s"
 msgstr "Utmaning: %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:170
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:182
 #, c-format
 msgid "Default: %s"
 msgstr "Förval: %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:237
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:249
 #, c-format
 msgid "LDAPQuery: Initializing connection to %s:%d"
 msgstr "LDAPQuery: Initierar förbindelse till %s:%d"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:241
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:253
 #, c-format
 msgid "LDAP connection already open to %s"
 msgstr "LDAP-förbindelse är redan öppen till %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:253
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:265
 #, c-format
 msgid "Could not open LDAP connection to %s"
 msgstr "Kunde inte öppna LDAP-förbindelse till %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:278
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:287
+#, c-format
+msgid "Failed to create ldap bind thread (%s)"
+msgstr "Misslyckades med att skapa tråd för ldap bind (%s)"
+
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:296
+#, c-format
+msgid "Ldap bind timeout (%s)"
+msgstr "Ldap bind timeout (%s)"
+
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:305
+#, c-format
+msgid "Failed to bind to ldap server (%s)"
+msgstr "Misslyckades med att binda till ldap-server: %s"
+
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:324
 #, c-format
 msgid "Could not set LDAP network timeout (%s)"
 msgstr "Kunde inte ange LDAP-nätverkstimeout (%s)"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:286
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:332
 #, c-format
 msgid "Could not set LDAP timelimit (%s)"
 msgstr "Kunde inte ange LDAP-tidsgräns (%s)"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:293
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:339
 #, c-format
 msgid "Could not set LDAP protocol version (%s)"
 msgstr "Kunde inte ange LDAP-protokollversion (%s)"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:337 ../src/hed/dmc/ldap/LDAPQuery.cpp:398
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:464
-#, c-format
-msgid "%s (%s)"
-msgstr "%s (%s)"
-
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:352
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:407
 #, c-format
 msgid "LDAPQuery: Querying %s"
 msgstr "LDAPQuery: Frågar %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:354
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:409
 #, c-format
 msgid "  base dn: %s"
 msgstr "  bas-dn: %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:356
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:411
 #, c-format
 msgid "  filter: %s"
 msgstr "  filter: %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:358
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:413
 msgid "  attributes:"
 msgstr "  attribut:"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:361
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:416
 #, c-format
 msgid "    %s"
 msgstr "    %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:422
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:453 ../src/hed/dmc/ldap/LDAPQuery.cpp:519
+#, c-format
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:477
 #, c-format
 msgid "LDAPQuery: Getting results from %s"
 msgstr "LDAPQuery: Erhåller resultat från %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:425
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:480
 #, c-format
 msgid "Error: no LDAP query started to %s"
 msgstr "Fel: ingen LDAP-förfrågan påbörjad till %s"
 
-#: ../src/hed/dmc/ldap/LDAPQuery.cpp:459
+#: ../src/hed/dmc/ldap/LDAPQuery.cpp:514
 #, c-format
 msgid "LDAP query timed out: %s"
 msgstr "LDAP-förfrågan timeout: %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:37
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:233
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:237
 msgid "Source must contain LFN"
 msgstr "Källa måste innehålla LFN"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:42
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:248
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:43
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:252
 msgid "Destination must contain LFN"
 msgstr "Destination måste innehålla LFN"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:46
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:47
 msgid "Locations are missing in destination LFC URL"
 msgstr "Platser saknas i destinations-LFC-URL"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:70
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:79
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:71
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:80
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:152
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:163
 #, c-format
 msgid "Adding location: %s - %s"
 msgstr "Lägger till plats: %s - %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:106
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:264
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:107
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:268
 msgid "No locations found for destination"
 msgstr "Inga platser funna för destination"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:119
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:293
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:308
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:120
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:296
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:311
 #, c-format
 msgid "Using location: %s - %s"
 msgstr "Använder plats: %s - %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:122
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:314
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:123
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:317
 #, c-format
 msgid "meta_get_data: checksum: %s"
 msgstr "meta_get_data: checksum: %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:123
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:315
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:124
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:318
 #, c-format
 msgid "meta_get_data: size: %llu"
 msgstr "meta_get_data: storlek: %llu"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:124
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:316
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:125
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:319
 #, c-format
 msgid "meta_get_data: created: %s"
 msgstr "meta_get_data: skapat: %s"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:140
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:141
 msgid "LFN is missing in LFC (needed for replication)"
 msgstr "LFN saknas i LFC (behövs för replikering)"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:147
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:148
 msgid "LFN already exists in LFC"
 msgstr "LFN finns redan i LFC"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:190
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:191
 msgid "No GUID defined for LFN - probably not preregistered"
 msgstr "Ingen GUID definierad för LFN - troligen inte förregistrerad"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:237
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:238
 msgid "Failed to remove LFN in LFC - You may need to do that by hand"
 msgstr ""
 "Misslyckades med att ta bort LFN i LFC - Du kan behöva göra det för hand"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:249
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:696
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:250
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:701
 msgid "Location is missing"
 msgstr "Plats saknas"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:253
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:655
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:700
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:795
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:254
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:660
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:705
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:800
 msgid "SE location will be unregistered automatically"
 msgstr "SE-plats kommer att avregistreras automatiskt"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:283
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:296
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:284
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:297
 msgid "Failed to remove location from LFC"
 msgstr "Misslyckades med att ta bort plats från LFC"
 
-#: ../src/hed/dmc/lfc/DataPointLFC.cpp:288
+#: ../src/hed/dmc/lfc/DataPointLFC.cpp:289
 msgid "Failed to remove LFN in LFC"
 msgstr "Misslyckades med att ta bort LFN i LFC"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:103
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:465
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:619
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:961
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:471
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:624
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:966
 #, c-format
 msgid "Failed to find GUID for specified LFN in %s: %s"
 msgstr "Misslyckades med att hitta GUID för det angivna LFN i %s: %s"
 
 #: ../src/hed/dmc/rls/DataPointRLS.cpp:108
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:471
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:624
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:966
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:477
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:629
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:971
 #, c-format
 msgid "There is no GUID for specified LFN in %s"
 msgstr "Det finns ingen GUID för det angivna LFN i %s"
@@ -1681,7 +1695,7 @@ msgstr "Varning: Misslyckades med att erhålla attribut från %s: %s"
 msgid "Attribute: %s - %s"
 msgstr "Attribut: %s - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:256
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:260
 msgid ""
 "Locations are missing in destination RLS url - will use those registered "
 "with special name"
@@ -1689,103 +1703,103 @@ msgstr ""
 "Platser saknas i destination-RLS-url - använder de som registrerats med "
 "speciellt namn"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:299
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:302
 #, c-format
 msgid "Removing location: %s - %s"
 msgstr "Tar bort plats: %s - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:332
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:335
 msgid "LFN is missing in RLS (needed for replication)"
 msgstr "LFN saknas i RLS (behövs för replikering)"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:339
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:342
 msgid "LFN already exists in replica"
 msgstr "LFN finns redan i replika"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:357
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:716
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:360
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:721
 #, c-format
 msgid "Failed to connect to RLS server: %s"
 msgstr "Misslyckades med att koppla upp mot RLS-servern: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:389
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:393
 #, c-format
 msgid "Failed to create GUID in RLS: %s"
 msgstr "Misslyckades med att skapa GUID i RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:409
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:413
 #, c-format
 msgid "Failed to check for existing LFN in %s: %s"
 msgstr "Misslyckades med att kontrollera existerande LFN i %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:417
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:421
 #, c-format
 msgid "There is same LFN in %s"
 msgstr "Samma LFN finns i %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:432
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:436
 #, c-format
 msgid "Failed to add LFN-GUID to RLS: %s"
 msgstr "Misslyckades med att lägga till LFN-GUID till RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:490
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:496
 #, c-format
 msgid "Failed to create/add LFN-PFN mapping: %s"
 msgstr "Misslyckades med att skapa/lägga till LFN-PFN-mappning"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:507
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:520
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:534
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:548
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:563
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:513
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:526
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:540
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:554
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:569
 #, c-format
 msgid "Warning: failed to add attribute to RLS: %s"
 msgstr "Varning: misslyckades med att lägga till attribut till RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:645
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:779
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:650
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:784
 #, c-format
 msgid "Warning: Failed to retrieve LFN/PFNs from %s: %s"
 msgstr "Varning: misslyckades med att hämta LFN/PFN från %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:664
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:684
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:806
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:829
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:669
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:689
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:811
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:834
 #, c-format
 msgid "Warning: Failed to delete LFN/PFN from %s: %s"
 msgstr "Varning: Misslyckades med att ta bort LFN/PFN från %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:734
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:739
 msgid "LFN must be already deleted, try LRC anyway"
 msgstr "LFN måste redan vara borttagen, försöker med LRC ändå"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:738
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:743
 #, c-format
 msgid "Failed to retrieve LFN/LRC: %s"
 msgstr "Misslyckades med att hämta LFN/LRC: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:760
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:765
 #, c-format
 msgid "Warning: Failed to connect to LRC at %s: %s"
 msgstr "Varning: Misslyckades med att koppla upp mot LRC på %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:988
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:993
 #, c-format
 msgid "No LFNs found in %s"
 msgstr "Inga LFN funna i %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:992
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:997
 #, c-format
 msgid "Failed to retrieve list of LFNs/PFNs from %s"
 msgstr "Misslyckades med att hämta LFN/PFN-lista från %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1031
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1036
 #, c-format
 msgid "lfn: %s(%s) - %s"
 msgstr "lfn: %s(%s) - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1046
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1051
 #, c-format
 msgid "lfn: %s - pfn: %s"
 msgstr "lfn: %s - pfn: %s"
@@ -1824,171 +1838,302 @@ msgstr "PDP: %s kan inte laddas"
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr "Grididentitet mappas till lokal identitet '%s'"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:45
+#: ../src/hed/libs/client/JobController.cpp:52
 #, c-format
-msgid "Number of Targets found: %ld"
-msgstr "Antal funna destinationer: %ld"
+msgid "Job: %s"
+msgstr "Jobb: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:82
+#: ../src/hed/libs/client/JobController.cpp:54
 #, c-format
-msgid "Cluster: %s"
-msgstr "Kluster: %s"
+msgid " Name: %s"
+msgstr " Namn: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:84
+#: ../src/hed/libs/client/JobController.cpp:56
 #, c-format
-msgid " Alias: %s"
-msgstr " Alias: %s"
+msgid " Status: %s"
+msgstr " Status: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:88
+#: ../src/hed/libs/client/JobController.cpp:58
+#, c-format
+msgid " Exit Code: %d"
+msgstr " Avslutningskod: %d"
+
+#: ../src/hed/libs/client/JobController.cpp:60
+#, c-format
+msgid " Errors: %s"
+msgstr " Fel: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:64
+#: ../src/hed/libs/client/TargetGenerator.cpp:173
 #, c-format
 msgid " Owner: %s"
 msgstr " Ägare: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:90
+#: ../src/hed/libs/client/JobController.cpp:66
+#, c-format
+msgid " Comment: %s"
+msgstr " Kommentar: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:68
+#, c-format
+msgid " Cluster: %s"
+msgstr " Kluster: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:70
+#, c-format
+msgid " Queue: %s"
+msgstr " Kö: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:72
+#, c-format
+msgid " Requested Number of CPUs: %d"
+msgstr " Begärt antal CPUs: %d"
+
+#: ../src/hed/libs/client/JobController.cpp:74
+#, c-format
+msgid " Rank: %d"
+msgstr " Rank: %d"
+
+#: ../src/hed/libs/client/JobController.cpp:76
+#, c-format
+msgid " stdin: %s"
+msgstr " stdin: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:78
+#, c-format
+msgid " stdout: %s"
+msgstr " stdout: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:80
+#, c-format
+msgid " stderr: %s"
+msgstr " stderr: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:82
+#, c-format
+msgid " Grid Manager Log Directory: %s"
+msgstr " Gridhanterarens loggkatalog: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:84
+#, c-format
+msgid " Submitted: %s"
+msgstr " Insändare: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:86
+#, c-format
+msgid " Completed: %s"
+msgstr " Slutfört: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:88
+#, c-format
+msgid " Submitted from: %s"
+msgstr " Insänt från %s"
+
+#: ../src/hed/libs/client/JobController.cpp:90
+#, c-format
+msgid " Submitting client: %s"
+msgstr " Insändande klient: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:92
+#, c-format
+msgid " Reguested CPU Time: %s"
+msgstr " Begärd CPU-tid: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:94
+#, c-format
+msgid " Used CPU Time: %s"
+msgstr " Använd CPU-tid: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:96
+#, c-format
+msgid " Used Wall Time: %s"
+msgstr " Använd klocktid: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:98
+#, c-format
+msgid " Used Memory: %d"
+msgstr " Använt minne: %d"
+
+#: ../src/hed/libs/client/JobController.cpp:101
+#, c-format
+msgid " Results were deleted: %s"
+msgstr " Resultaten har raderats: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:104
+#, c-format
+msgid " Proxy valid until: %s"
+msgstr " Proxy giltig till: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:106
+#, c-format
+msgid " Entry valid from: %s"
+msgstr " Post giltig från: %s"
+
+#: ../src/hed/libs/client/JobController.cpp:108
+#, c-format
+msgid " Entry valid until: %s"
+msgstr " Post giltig till: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:118
+#, c-format
+msgid "Number of Targets found: %ld"
+msgstr "Antal funna destinationer: %ld"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:167
+#, c-format
+msgid "Cluster: %s"
+msgstr "Kluster: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:169
+#, c-format
+msgid " Alias: %s"
+msgstr " Alias: %s"
+
+#: ../src/hed/libs/client/TargetGenerator.cpp:175
 #, c-format
 msgid " PostCode: %s"
 msgstr " Postnummer: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:92
+#: ../src/hed/libs/client/TargetGenerator.cpp:177
 #, c-format
 msgid " Place: %s"
 msgstr " Ort: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:94
+#: ../src/hed/libs/client/TargetGenerator.cpp:179
 #, c-format
 msgid " Latitude: %f"
 msgstr " Latitud: %f"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:96
+#: ../src/hed/libs/client/TargetGenerator.cpp:181
 #, c-format
 msgid " Longitude: %f"
 msgstr " Longitud: %f"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:98
+#: ../src/hed/libs/client/TargetGenerator.cpp:183
 msgid "Endpoint information"
 msgstr "Ändpunktsinformation"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:100
+#: ../src/hed/libs/client/TargetGenerator.cpp:185
 #, c-format
 msgid " URL: %s"
 msgstr " URL: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:102
+#: ../src/hed/libs/client/TargetGenerator.cpp:187
 #, c-format
 msgid " Interface Name: %s"
 msgstr " Gränssnittsnamn: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:104
+#: ../src/hed/libs/client/TargetGenerator.cpp:189
 #, c-format
 msgid " Interface Version: %s"
 msgstr " Gränssnittsversion: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:106
+#: ../src/hed/libs/client/TargetGenerator.cpp:191
 #, c-format
 msgid " Implementor: %s"
 msgstr " Implementerare: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:108
+#: ../src/hed/libs/client/TargetGenerator.cpp:193
 #, c-format
 msgid " Implementation Name: %s"
 msgstr " Implementeringsnamn: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:110
+#: ../src/hed/libs/client/TargetGenerator.cpp:195
 #, c-format
 msgid " Implementation Version: %s"
 msgstr " Implementeringsversion: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:112
+#: ../src/hed/libs/client/TargetGenerator.cpp:197
 #, c-format
 msgid " Health State: %s"
 msgstr " Hälsotillstånd: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:114
+#: ../src/hed/libs/client/TargetGenerator.cpp:199
 #, c-format
 msgid " Issuer CA: %s"
 msgstr " Utfärdar-CA: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:116
+#: ../src/hed/libs/client/TargetGenerator.cpp:201
 #, c-format
 msgid " Staging: %s"
 msgstr " Laddar ned/upp: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:118
+#: ../src/hed/libs/client/TargetGenerator.cpp:203
 msgid "Queue information"
 msgstr "Köinformation"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:120
+#: ../src/hed/libs/client/TargetGenerator.cpp:205
 #, c-format
 msgid " Mapping Queue: %s"
 msgstr " Mappar till kö: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:122
+#: ../src/hed/libs/client/TargetGenerator.cpp:207
 #, c-format
 msgid " Max Wall Time: %s"
 msgstr " Största klocktid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:124
+#: ../src/hed/libs/client/TargetGenerator.cpp:209
 #, c-format
 msgid " Min Wall Time: %s"
 msgstr " Minsta klocktid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:126
+#: ../src/hed/libs/client/TargetGenerator.cpp:211
 #, c-format
 msgid " Default Wall Time: %s"
 msgstr " Förvald klocktid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:128
+#: ../src/hed/libs/client/TargetGenerator.cpp:213
 #, c-format
 msgid " Max CPU Time: %s"
 msgstr " Största CPU-tid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:130
+#: ../src/hed/libs/client/TargetGenerator.cpp:215
 #, c-format
 msgid " Min CPU Time: %s"
 msgstr " Minsta CPU-tid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:132
+#: ../src/hed/libs/client/TargetGenerator.cpp:217
 #, c-format
 msgid " Default CPU Time: %s"
 msgstr " Förvald CPU-tid: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:134
+#: ../src/hed/libs/client/TargetGenerator.cpp:219
 #, c-format
 msgid " Max Total Jobs: %i"
 msgstr " Största totalt antal jobb: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:136
+#: ../src/hed/libs/client/TargetGenerator.cpp:221
 #, c-format
 msgid " Max Running Jobs: %i"
 msgstr " Största antal exekverande jobb: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:138
+#: ../src/hed/libs/client/TargetGenerator.cpp:223
 #, c-format
 msgid " Max Waiting Jobs: %i"
 msgstr " Största antal väntade jobb: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:140
+#: ../src/hed/libs/client/TargetGenerator.cpp:225
 #, c-format
 msgid " Max Pre LRMS Waiting Jobs: %i"
 msgstr " Största antal pre-LRMS-väntade jobb: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:142
+#: ../src/hed/libs/client/TargetGenerator.cpp:227
 #, c-format
 msgid " Max User Running Jobs: %i"
 msgstr " Största antal exekverande jobb för användaren: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:144
+#: ../src/hed/libs/client/TargetGenerator.cpp:229
 #, c-format
 msgid " Max Slots Per Job: %i"
 msgstr " Största antal slotar per jobb: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:146
+#: ../src/hed/libs/client/TargetGenerator.cpp:231
 #, c-format
 msgid " Max Stage In Streams: %i"
 msgstr " Största antal nedladdningsströmmar: %i"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:148
-#: ../src/hed/libs/client/TargetGenerator.cpp:150
+#: ../src/hed/libs/client/TargetGenerator.cpp:233
+#: ../src/hed/libs/client/TargetGenerator.cpp:235
 #, c-format
 msgid " Max Stage Out Streams: %i"
 msgstr " Största antal uppladdningsströmmar: %i"
@@ -2102,91 +2247,91 @@ msgstr "urllistan %s innehåller ogiltig URL: %s"
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1628
+#: ../src/hed/libs/data/Cache.cpp:1623
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1286
 #, c-format
 msgid "cache_download_url_start: cache_open_list failed: %s"
 msgstr "cache_download_url_start: cache_open_list misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1644
+#: ../src/hed/libs/data/Cache.cpp:1639
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1295
 #, c-format
 msgid "cache_download_url_start: url not found: %s"
 msgstr "cache_download_url_start: url ej funnen: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1651
+#: ../src/hed/libs/data/Cache.cpp:1646
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1299
 #, c-format
 msgid "cache_download_url_start: unknown result from cache_search_list: %s"
 msgstr "cache_download_url_start: okänt resultat från cache_search_list: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1658
+#: ../src/hed/libs/data/Cache.cpp:1653
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1304
 #, c-format
 msgid "cache_download_url_start: locking url: %s (%s)"
 msgstr "cache_download_url_start: låser url: %s (%s)"
 
-#: ../src/hed/libs/data/Cache.cpp:1677
+#: ../src/hed/libs/data/Cache.cpp:1672
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1314
 #, c-format
 msgid "cache_download_file_start: failed to lock file: %s"
 msgstr "cache_download_file_start: misslyckades med att låsa fil: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1681
+#: ../src/hed/libs/data/Cache.cpp:1676
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1317
 #, c-format
 msgid "cache_download_file_start: locked file: %s"
 msgstr "cache_download_file_start: låste fil: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1691
+#: ../src/hed/libs/data/Cache.cpp:1686
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1325
 #, c-format
 msgid "cache_download_file_start: cache_read_info failed: %s"
 msgstr "cache_download_file_start: cache_read_info misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1701
+#: ../src/hed/libs/data/Cache.cpp:1696
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1330
 #, c-format
 msgid "cache_download_file_start: state - dead: %s"
 msgstr "cache_download_file_start: tillstånd - död: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1710
+#: ../src/hed/libs/data/Cache.cpp:1705
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1336
 #, c-format
 msgid "cache_download_file_start: state - new/failed: %s"
 msgstr "cache_download_file_start: tillstånd - ny/misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1724
+#: ../src/hed/libs/data/Cache.cpp:1719
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1341
 #, c-format
 msgid "cache_download_file_start: state - ready: %s"
 msgstr "cache_download_file_start: tillstånd - färdig: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1733
+#: ../src/hed/libs/data/Cache.cpp:1728
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1345
 #, c-format
 msgid "cache_download_file_start: state - UNKNOWN: %s"
 msgstr "cache_download_file_start: tillstånd - OKÄNT: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1758
+#: ../src/hed/libs/data/Cache.cpp:1753
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1359
 #, c-format
 msgid "cache_download_url_end: cache_open_list failed: %s"
 msgstr "cache_download_url_end: cache_open_list misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1762
+#: ../src/hed/libs/data/Cache.cpp:1757
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1363
 #, c-format
 msgid "cache_download_url_end: file not found in list: %s"
 msgstr "cache_download_url_end: fil ej funnen i lista: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1875
+#: ../src/hed/libs/data/Cache.cpp:1870
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1445
 #, c-format
 msgid "Removing cache file: name = %s, url = %s"
 msgstr "Tar bort cachefil: namn = %s, url = %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1885
+#: ../src/hed/libs/data/Cache.cpp:1880
 #, c-format
 msgid "Cleaned %llu bytes in cache"
 msgstr "Rensade %llu byte i cache"
@@ -2360,93 +2505,93 @@ msgid "Permission checking failed: %s"
 msgstr "Tillträdeskontroll misslyckades: %s"
 
 #: ../src/hed/libs/data/DataMover.cpp:487
-#: ../src/hed/libs/data/DataMover.cpp:544
-#: ../src/hed/libs/data/DataMover.cpp:583
-#: ../src/hed/libs/data/DataMover.cpp:606
+#: ../src/hed/libs/data/DataMover.cpp:546
+#: ../src/hed/libs/data/DataMover.cpp:585
+#: ../src/hed/libs/data/DataMover.cpp:608
 msgid "source.next_location"
 msgstr "source.next_location"
 
 #: ../src/hed/libs/data/DataMover.cpp:491
-#: ../src/hed/libs/data/DataMover.cpp:551
+#: ../src/hed/libs/data/DataMover.cpp:553
 msgid "Permission checking passed"
 msgstr "Tillträdeskontroll OK"
 
-#: ../src/hed/libs/data/DataMover.cpp:502
+#: ../src/hed/libs/data/DataMover.cpp:504
 msgid "Cached file is outdated"
 msgstr "Cachad fil är gammal"
 
-#: ../src/hed/libs/data/DataMover.cpp:506
-#: ../src/hed/libs/data/DataMover.cpp:727
+#: ../src/hed/libs/data/DataMover.cpp:508
+#: ../src/hed/libs/data/DataMover.cpp:731
 msgid "Linking/copying cached file"
 msgstr "Länkar/kopierar cachad fil"
 
-#: ../src/hed/libs/data/DataMover.cpp:515
+#: ../src/hed/libs/data/DataMover.cpp:517
 msgid "Copying cached file"
 msgstr "Kopierar cachad fil"
 
-#: ../src/hed/libs/data/DataMover.cpp:537
+#: ../src/hed/libs/data/DataMover.cpp:539
 msgid "URL is mapped to local access - checking permissions on original URL"
 msgstr ""
 "URL är mappad till lokalt tillträde - kontrollerar tillträde på ursprunglig "
 "URL"
 
-#: ../src/hed/libs/data/DataMover.cpp:541
+#: ../src/hed/libs/data/DataMover.cpp:543
 #, c-format
 msgid "Permission checking on original URL failed: %s"
 msgstr "Tillträdeskontroll på ursprunglig URL misslyckades: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:553
+#: ../src/hed/libs/data/DataMover.cpp:555
 msgid "Linking local file"
 msgstr "Länkar lokal fil"
 
-#: ../src/hed/libs/data/DataMover.cpp:580
+#: ../src/hed/libs/data/DataMover.cpp:582
 #, c-format
 msgid "Failed to create/find directory %s : %s"
 msgstr "Misslyckades med att skapa/hitta katalog %s : %s\""
 
-#: ../src/hed/libs/data/DataMover.cpp:603
+#: ../src/hed/libs/data/DataMover.cpp:605
 #, c-format
 msgid "Failed to make symbolic link %s to %s : %s"
 msgstr "Misslyckades med att skapa symbolisk länk %s till %s : %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:626
+#: ../src/hed/libs/data/DataMover.cpp:628
 #, c-format
 msgid "cache file: %s"
 msgstr "cachefil: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:641
+#: ../src/hed/libs/data/DataMover.cpp:643
 #, c-format
 msgid "Failed to start reading from source: %s"
 msgstr "Misslyckades med att påbörja läsning från källa: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:645
-#: ../src/hed/libs/data/DataMover.cpp:753
-#: ../src/hed/libs/data/DataMover.cpp:776
-#: ../src/hed/libs/data/DataMover.cpp:783
+#: ../src/hed/libs/data/DataMover.cpp:647
+#: ../src/hed/libs/data/DataMover.cpp:757
+#: ../src/hed/libs/data/DataMover.cpp:781
+#: ../src/hed/libs/data/DataMover.cpp:789
 msgid "(Re)Trying next source"
 msgstr "Försöker med nästa källa (igen)"
 
-#: ../src/hed/libs/data/DataMover.cpp:656
+#: ../src/hed/libs/data/DataMover.cpp:658
 msgid "Metadata of source and destination are different"
 msgstr "Källans och destinationens metadata är olika"
 
-#: ../src/hed/libs/data/DataMover.cpp:669
+#: ../src/hed/libs/data/DataMover.cpp:671
 #, c-format
 msgid "Failed to preregister destination: %s"
 msgstr "Misslyckades med att förregistrera destination: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:672
-#: ../src/hed/libs/data/DataMover.cpp:809
+#: ../src/hed/libs/data/DataMover.cpp:674
+#: ../src/hed/libs/data/DataMover.cpp:817
 msgid "destination.next_location"
 msgstr "destination.next_location"
 
-#: ../src/hed/libs/data/DataMover.cpp:684
+#: ../src/hed/libs/data/DataMover.cpp:686
 #, c-format
 msgid "Failed to start writing to destination: %s"
 msgstr "Misslyckades med att påbörja skrivning till destination: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:689
-#: ../src/hed/libs/data/DataMover.cpp:805
+#: ../src/hed/libs/data/DataMover.cpp:691
+#: ../src/hed/libs/data/DataMover.cpp:813
 #, c-format
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
@@ -2455,20 +2600,20 @@ msgstr ""
 "Misslyckades med att avregistrera förregistrerad lfn. Du kan behöva "
 "avregistrera det manuellt: %s"
 
-#: ../src/hed/libs/data/DataMover.cpp:693
-#: ../src/hed/libs/data/DataMover.cpp:760
-#: ../src/hed/libs/data/DataMover.cpp:772
-#: ../src/hed/libs/data/DataMover.cpp:786
+#: ../src/hed/libs/data/DataMover.cpp:695
+#: ../src/hed/libs/data/DataMover.cpp:764
+#: ../src/hed/libs/data/DataMover.cpp:776
+#: ../src/hed/libs/data/DataMover.cpp:793
 msgid "(Re)Trying next destination"
 msgstr "Försöker med nästa destination (igen)"
 
-#: ../src/hed/libs/data/DataMover.cpp:698
+#: ../src/hed/libs/data/DataMover.cpp:701
 msgid "Failed to start writing to cache"
 msgstr "Misslyckades med att påbörja skrivning till cache"
 
-#: ../src/hed/libs/data/DataMover.cpp:704
-#: ../src/hed/libs/data/DataMover.cpp:733
-#: ../src/hed/libs/data/DataMover.cpp:746
+#: ../src/hed/libs/data/DataMover.cpp:707
+#: ../src/hed/libs/data/DataMover.cpp:737
+#: ../src/hed/libs/data/DataMover.cpp:750
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
 "manually"
@@ -2476,42 +2621,42 @@ msgstr ""
 "Misslyckades med att avregistrera förregistrerad lfn. Du kan behöva "
 "avregistrera det manuellt"
 
-#: ../src/hed/libs/data/DataMover.cpp:708
+#: ../src/hed/libs/data/DataMover.cpp:712
 msgid "Waiting for buffer"
 msgstr "Väntar på buffer"
 
-#: ../src/hed/libs/data/DataMover.cpp:711
+#: ../src/hed/libs/data/DataMover.cpp:715
 #, c-format
 msgid "buffer: read eof : %i"
 msgstr "buffer: läs filslut  : %i"
 
-#: ../src/hed/libs/data/DataMover.cpp:712
+#: ../src/hed/libs/data/DataMover.cpp:716
 #, c-format
 msgid "buffer: write eof: %i"
 msgstr "buffer: skriv filslut: %i"
 
-#: ../src/hed/libs/data/DataMover.cpp:713
+#: ../src/hed/libs/data/DataMover.cpp:717
 #, c-format
 msgid "buffer: error    : %i"
 msgstr "buffer: fel          : %i"
 
-#: ../src/hed/libs/data/DataMover.cpp:714
+#: ../src/hed/libs/data/DataMover.cpp:718
 msgid "Closing read channel"
 msgstr "Stänger läskanal"
 
-#: ../src/hed/libs/data/DataMover.cpp:718
+#: ../src/hed/libs/data/DataMover.cpp:722
 msgid "Closing write channel"
 msgstr "Stänger skrivkanal"
 
-#: ../src/hed/libs/data/DataMover.cpp:779
+#: ../src/hed/libs/data/DataMover.cpp:785
 msgid "Cause of failure unclear - choosing randomly"
 msgstr "Anledning till misslyckande oklar - väljer slumpvis"
 
-#: ../src/hed/libs/data/DataMover.cpp:797
+#: ../src/hed/libs/data/DataMover.cpp:805
 msgid "DataMover::Transfer: have valid checksum"
 msgstr "DataMover::Transfer: har giltig checksum"
 
-#: ../src/hed/libs/data/DataMover.cpp:801
+#: ../src/hed/libs/data/DataMover.cpp:809
 #, c-format
 msgid "Failed to postregister destination %s"
 msgstr "Misslyckades med att efterregistrera destination: %s"
@@ -2607,151 +2752,151 @@ msgstr "Lyckosam registrering till %s ISIS"
 msgid "Failed to register to %s ISIS - %s"
 msgstr "Misslyckades med att registrera till %s ISIS - %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:178
+#: ../src/hed/libs/loader/Loader.cpp:177
 msgid "SecHandler has no configuration"
 msgstr "Säkerhetshanterare saknar inställningar"
 
-#: ../src/hed/libs/loader/Loader.cpp:183
+#: ../src/hed/libs/loader/Loader.cpp:182
 msgid "SecHandler has no name attribute defined"
 msgstr "Säkerhetshanterare har inget namnattribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:190
+#: ../src/hed/libs/loader/Loader.cpp:189
 #, c-format
 msgid "SecHandler name: %s"
 msgstr "sechandler namn: %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:225
+#: ../src/hed/libs/loader/Loader.cpp:224
 msgid "Plugins element has no Name defined"
 msgstr "Pluginelement har inget namn definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:241
+#: ../src/hed/libs/loader/Loader.cpp:240
 msgid "Component has no name attribute defined"
 msgstr "Komponent har inget namnattribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:246
+#: ../src/hed/libs/loader/Loader.cpp:245
 msgid "Component has no id attribute defined"
 msgstr "Komponent har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:251
+#: ../src/hed/libs/loader/Loader.cpp:250
 #, c-format
 msgid "Component %s(%s) could not be created"
 msgstr "Komponent %s(%s) kunde inte skapas"
 
-#: ../src/hed/libs/loader/Loader.cpp:279
+#: ../src/hed/libs/loader/Loader.cpp:278
 #, c-format
 msgid "Component's %s(%s) next has no id attribute defined"
 msgstr "Komponentens %s(%s) nästa har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:288
+#: ../src/hed/libs/loader/Loader.cpp:287
 #, c-format
 msgid "Loaded MCC %s(%s)"
 msgstr "Laddade MCC %s(%s)"
 
-#: ../src/hed/libs/loader/Loader.cpp:304
+#: ../src/hed/libs/loader/Loader.cpp:303
 #, c-format
 msgid "Plexer's (%s) next has no id attribute defined"
 msgstr "Plexerns %s nästa har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:313
+#: ../src/hed/libs/loader/Loader.cpp:312
 #, c-format
 msgid "Loaded Plexer %s(%s)"
 msgstr "Laddade Plexer %s(%s)"
 
-#: ../src/hed/libs/loader/Loader.cpp:320
+#: ../src/hed/libs/loader/Loader.cpp:319
 msgid "Service has no name attribute defined"
 msgstr "Service har inget namnattribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:325
+#: ../src/hed/libs/loader/Loader.cpp:324
 msgid "Service has no id attribute defined"
 msgstr "Service har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:331
+#: ../src/hed/libs/loader/Loader.cpp:330
 #, c-format
 msgid "Service %s(%s) could not be created"
 msgstr "Service %s(%s) kunde inte skapas"
 
-#: ../src/hed/libs/loader/Loader.cpp:335
+#: ../src/hed/libs/loader/Loader.cpp:334
 #, c-format
 msgid "Loaded Service %s(%s)"
 msgstr "Laddade Service %s(%s)"
 
-#: ../src/hed/libs/loader/Loader.cpp:357
+#: ../src/hed/libs/loader/Loader.cpp:356
 msgid "DataManager has no name attribute defined"
 msgstr "Datahanterare har inget namnattribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:362
+#: ../src/hed/libs/loader/Loader.cpp:361
 msgid "DataManager has no id attribute defined"
 msgstr "Datahanterare har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:367
+#: ../src/hed/libs/loader/Loader.cpp:366
 #, c-format
 msgid "DataManager %s(%s) could not be created"
 msgstr "Datahanterare %s(%s) kunde inte skapas"
 
-#: ../src/hed/libs/loader/Loader.cpp:372
+#: ../src/hed/libs/loader/Loader.cpp:371
 #, c-format
 msgid "Loaded DataManager %s(%s)"
 msgstr "Laddade datahanterare %s(%s)"
 
-#: ../src/hed/libs/loader/Loader.cpp:379
+#: ../src/hed/libs/loader/Loader.cpp:378
 msgid "ArcClientComponent has no name attribute defined"
 msgstr "Arcklientkomponent har inget namnattribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:384
+#: ../src/hed/libs/loader/Loader.cpp:383
 msgid "ArcClientComponent has no id attribute defined"
 msgstr "Arcklientkomponent har inget id-attribut definierat"
 
-#: ../src/hed/libs/loader/Loader.cpp:389
+#: ../src/hed/libs/loader/Loader.cpp:388
 #, c-format
 msgid "ArcClientComponent %s(%s) could not be created"
 msgstr "Arcklientkomponent %s(%s) kunde inte skapas"
 
-#: ../src/hed/libs/loader/Loader.cpp:394
+#: ../src/hed/libs/loader/Loader.cpp:393
 #, c-format
 msgid "Loaded ArcClientComponent %s(%s)"
 msgstr "Laddade Arcklientkomponent %s(%s)"
 
-#: ../src/hed/libs/loader/Loader.cpp:398
+#: ../src/hed/libs/loader/Loader.cpp:397
 #, c-format
 msgid "Unknown element \"%s\" - ignoring"
 msgstr "Okänt element \"%s\" - ignorerar"
 
-#: ../src/hed/libs/loader/Loader.cpp:417
+#: ../src/hed/libs/loader/Loader.cpp:416
 #, c-format
 msgid "Linking MCC %s(%s) to MCC (%s) under %s"
 msgstr "Länkar MCC %s(%s) till MCC (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:426
+#: ../src/hed/libs/loader/Loader.cpp:425
 #, c-format
 msgid "Linking MCC %s(%s) to Service (%s) under %s"
 msgstr "Länkar MCC %s(%s) till Service (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:435
+#: ../src/hed/libs/loader/Loader.cpp:434
 #, c-format
 msgid "Linking MCC %s(%s) to Plexer (%s) under %s"
 msgstr "Länkar MCC %s(%s) till Plexer (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:440
+#: ../src/hed/libs/loader/Loader.cpp:439
 #, c-format
 msgid "MCC %s(%s) - next %s(%s) has no target"
 msgstr "MCC %s(%s) - nästa %s(%s) saknar mål"
 
-#: ../src/hed/libs/loader/Loader.cpp:457
+#: ../src/hed/libs/loader/Loader.cpp:456
 #, c-format
 msgid "Linking Plexer %s to MCC (%s) under %s"
 msgstr "Länkar Plexer %s till MCC (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:466
+#: ../src/hed/libs/loader/Loader.cpp:465
 #, c-format
 msgid "Linking Plexer %s to Service (%s) under %s"
 msgstr "Länkar Plexer %s till Service (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:475
+#: ../src/hed/libs/loader/Loader.cpp:474
 #, c-format
 msgid "Linking Plexer %s to Plexer (%s) under %s"
 msgstr "Länkar Plexer %s(%s) till Plexer (%s) under %s"
 
-#: ../src/hed/libs/loader/Loader.cpp:481
+#: ../src/hed/libs/loader/Loader.cpp:480
 #, c-format
 msgid "Plexer (%s) - next %s(%s) has no target"
 msgstr "Plexer (%s) - nästa %s(%s) saknar mål"
@@ -2836,6 +2981,78 @@ msgstr "Säkerhetsprocessering/kontroll misslyckades"
 msgid "Security processing/check passed"
 msgstr "Säkerhetsprocessering/kontroll OK"
 
+#: ../src/hed/libs/misc/OptionParser.cpp:101
+#, c-format
+msgid "Cannot parse integer value '%s' for -%c"
+msgstr "Kan inte tolka heltalsvärdet '%s' för -%c"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:300
+msgid "Usage:"
+msgstr "Användning:"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:303
+msgid "OPTION..."
+msgstr "FLAGGA..."
+
+#: ../src/hed/libs/misc/OptionParser.cpp:309
+msgid "Help Options:"
+msgstr "Hjälpflaggor:"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:310
+msgid "  -?, --help    Show help options"
+msgstr "  -?, --help    Visa hjälpflaggor"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:312
+msgid "Application Options:"
+msgstr "Programflaggor:"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:316
+#, c-format
+msgid "  -%c, --%s=%s    %s"
+msgstr "  -%c, --%s=%s    %s"
+
+#: ../src/hed/libs/misc/OptionParser.cpp:320
+#, c-format
+msgid "  -%c, --%s    %s"
+msgstr "  -%c, --%s    %s"
+
+#: ../src/hed/libs/misc/optiontest.cpp:14
+msgid "args..."
+msgstr "argument..."
+
+#: ../src/hed/libs/misc/optiontest.cpp:15
+msgid "This is a test of the OptionParser."
+msgstr "Detta är ett test av flaggtolken."
+
+#: ../src/hed/libs/misc/optiontest.cpp:16
+msgid "For more information see the header file."
+msgstr "För mer information se headerfilen."
+
+#: ../src/hed/libs/misc/optiontest.cpp:19
+msgid "Boolean option"
+msgstr "Boolesk flagga"
+
+#: ../src/hed/libs/misc/optiontest.cpp:22
+msgid "Integer option"
+msgstr "Heltalsflagga"
+
+#: ../src/hed/libs/misc/optiontest.cpp:23
+msgid "number"
+msgstr "nummer"
+
+#: ../src/hed/libs/misc/optiontest.cpp:26
+msgid "String option"
+msgstr "Strängflagga"
+
+#: ../src/hed/libs/misc/optiontest.cpp:27
+#: ../src/hed/libs/misc/optiontest.cpp:31
+msgid "word"
+msgstr "ord"
+
+#: ../src/hed/libs/misc/optiontest.cpp:30
+msgid "String list option"
+msgstr "Stränglistflagga"
+
 #: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:29
 #, c-format
 msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
@@ -2850,6 +3067,20 @@ msgstr "Inget attribut existerar som kan hantera typen: %s"
 #, c-format
 msgid "There is %d RequestItems"
 msgstr "Det finns %s RequestItem"
+
+#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:29
+#, c-format
+msgid "Failed to read policy file %s"
+msgstr "Misslyckades med att läsa policyfil: %s"
+
+#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:102
+#, c-format
+msgid "Failed to read policy from URL %s"
+msgstr "Misslyckades med att läsa policy från URL %s"
+
+#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:129
+msgid "Can not generate policy object"
+msgstr "Kan inte generera policyobjekt"
 
 #: ../src/hed/mcc/http/MCCHTTP.cpp:121
 #, c-format
@@ -3207,55 +3438,59 @@ msgstr "Peer-certifikatvalidering misslyckades"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:286
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:290
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:101
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:202
-#: ../src/services/a-rex/PayloadFile.cpp:35
+#: ../src/services/a-rex/PayloadFile.cpp:36
 #: ../src/services/pdp/pdpservice.cpp:88
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:57
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:56
 msgid "Can not parse classname for FunctionFactory from configuration"
 msgstr "Kan inte tolka klassnamn för FunctionFactory från konfigurationen"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:65
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:64
 msgid "Can not parse classname for AttributeFactory from configuration"
 msgstr "Kan inte tolka klassnamn för AttributeFactory från konfigurationen"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:73
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:72
 msgid ""
 "Can not parse classname for CombiningAlgorithmFactory from configuration"
 msgstr ""
 "Kan inte tolka klassnamn för CombiningAlgorithmFactory från konfigurationen"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:81
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:80
 msgid "Can not parse classname for Request from configuration"
 msgstr "Kan inte tolka klassnamn för Request från konfigurationen"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:94
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:89
+msgid "Can not parse classname for Policy from configuration"
+msgstr "Kan inte tolka klassnamn för Policy från konfigurationen"
+
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:101
 msgid "Can not dynamically produce AttributeFactory"
 msgstr "Kan inte skapa AttributeFactory dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:100
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:106
 msgid "Can not dynamically produce FnFactory"
 msgstr "Kan inte skapa FnFactory dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:106
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:111
 msgid "Can not dynamically produce AlgFacroty"
 msgstr "Kan inte skapa AlgFactory dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:161 ../src/hed/pdc/test.cpp:137
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:166 ../src/hed/pdc/test.cpp:134
 msgid "Can not dynamically produce Request"
 msgstr "Kan inte skapa Request dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:273
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:256
 #, c-format
 msgid "Result value (0 means success): %d"
 msgstr "Resultatvärde (0 betyder OK): %d"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:134
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:139
 msgid ""
 "Although there is pdp configuration for this component, no pdp context has "
 "been generated for it"
@@ -3263,79 +3498,70 @@ msgstr ""
 "Trots att det finns en pdp-inställning för denna komponent, har ingen pdp-"
 "kontext skapats för detta"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:164
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:169
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:41
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:110
-#: ../src/hed/pdc/test.cpp:43 ../src/services/pdp/pdpservice.cpp:133
+#: ../src/hed/pdc/test.cpp:47 ../src/services/pdp/pdpservice.cpp:133
 msgid "Can not dynamically produce Evaluator"
 msgstr "Kan inte skapa Evaluator dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:167
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:172
 msgid "Evaluator for ArcPDP was not loaded"
 msgstr "Utvärderare för ArcPDP laddedes inte"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:239
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:243
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:54
 msgid "Missing security object in message"
 msgstr "Säkerhetsobjekt saknas i meddelande"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:247 ../src/hed/pdc/arcpdp/ArcPDP.cpp:255
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:251 ../src/hed/pdc/arcpdp/ArcPDP.cpp:259
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:163
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:169
 msgid "Failed to convert security information to ARC request"
 msgstr "Misslyckades med att konvertera säkerhetsinformation till ARC-begäran"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:263
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:267
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:176
 #, c-format
 msgid "ARC Auth. request: %s"
 msgstr "ARC-auktoriseringsförfrågan: %s"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:266
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:270
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:179
 msgid "No requested security information was collected"
 msgstr "Ingen begärd säkerhetsinformation samlades in"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:272
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:276
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:186
 #, c-format
 msgid "There are %d requests, which satisfy at least one policy"
 msgstr "Det finns %d begärningar som uppfyller åtminstone en policy"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:292
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:296
 msgid "Authorized from arc.pdp!!!"
 msgstr "Autoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:298
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:302
 msgid "UnAuthorized from arc.pdp!!!"
 msgstr "Oautoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:17
+#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:34
+#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:40
 msgid "Policy is empty"
 msgstr "Policy är tom"
 
-#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:54 ../src/hed/pdc/XACMLPolicy.cpp:56
+#: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:82 ../src/hed/pdc/XACMLPolicy.cpp:56
 #, c-format
 msgid "PolicyId: %s  Alg inside this policy is:-- %s"
 msgstr "PolicyId: %s  Alg inuti denna policy är:-- %s"
-
-#: ../src/hed/pdc/arcpdp/PolicyParser.cpp:28
-#, c-format
-msgid "Failed to read policy file %s"
-msgstr "Misslyckades med att läsa policyfil: %s"
-
-#: ../src/hed/pdc/arcpdp/PolicyParser.cpp:101
-#, c-format
-msgid "Failed to read policy from URL %s"
-msgstr "Misslyckades med att läsa policy från URL %s"
 
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:81
 #, c-format
 msgid "Request xml structure is: %s"
 msgstr "Request xml structure är: %s"
 
-#: ../src/hed/pdc/countpdp/CountPDP.cpp:87 ../src/hed/pdc/test.cpp:54
-#: ../src/hed/pdc/test.cpp:150 ../src/services/pdp/pdpservice.cpp:72
+#: ../src/hed/pdc/countpdp/CountPDP.cpp:87 ../src/hed/pdc/test.cpp:58
+#: ../src/hed/pdc/test.cpp:147 ../src/services/pdp/pdpservice.cpp:72
 #, c-format
 msgid "There is %d subjects, which satisfy at least one policy"
 msgstr "Det finns %d subjekt som uppfyller åtminstone en policy"
@@ -3423,24 +3649,24 @@ msgstr "PDP skall ha ID"
 msgid "PDP: %s name is duplicate"
 msgstr "PDP: %s namn är duplicerat"
 
-#: ../src/hed/pdc/test.cpp:33
+#: ../src/hed/pdc/test.cpp:30
 msgid "Start test"
 msgstr "Påbörja test"
 
-#: ../src/hed/pdc/test.cpp:50
+#: ../src/hed/pdc/test.cpp:54
 msgid "Input request from a file: Request.xml"
 msgstr "Mata in begäran från en fil: Request.xml"
 
-#: ../src/hed/pdc/test.cpp:68
+#: ../src/hed/pdc/test.cpp:72
 #, c-format
 msgid "Attribute Value (1): %s"
 msgstr "Attributvärde (1): %s"
 
-#: ../src/hed/pdc/test.cpp:79
+#: ../src/hed/pdc/test.cpp:83
 msgid "Input request from code"
 msgstr "Mata in begäran från kod"
 
-#: ../src/hed/pdc/test.cpp:164
+#: ../src/hed/pdc/test.cpp:161
 #, c-format
 msgid "Attribute Value (2): %s"
 msgstr "Attributvärde (2): %s"
@@ -3466,28 +3692,28 @@ msgstr "Inget mål tillgängligt inuti regeln"
 msgid "input is not SOAP"
 msgstr "indata är inte SOAP"
 
-#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:197
+#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:202
 #: ../src/services/isis/centralisi.cpp:156
 #: ../src/services/sched/grid_sched.cpp:84 ../src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "indata definierar ej operation"
 
-#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:200
+#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:205
 #: ../src/services/isis/centralisi.cpp:162
 #: ../src/services/sched/grid_sched.cpp:87 ../src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr "process: operation: %s"
 
-#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:243
+#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:248
 #: ../src/services/isis/centralisi.cpp:201
-#: ../src/services/sched/grid_sched.cpp:144
+#: ../src/services/sched/grid_sched.cpp:145
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "SOAP-process understöds inte: %s"
 
-#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:250
-#: ../src/services/sched/grid_sched.cpp:152
+#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:255
+#: ../src/services/sched/grid_sched.cpp:153 ../src/tests/echo/echo.cpp:161
 #, c-format
 msgid "process: response=%s"
 msgstr "process: svar=%s"
@@ -3537,31 +3763,36 @@ msgstr "Misslyckades med att ladda inställningar"
 msgid "process: POST"
 msgstr "process: POST"
 
-#: ../src/services/a-rex/arex.cpp:205
+#: ../src/services/a-rex/arex.cpp:197 ../src/tests/echo/echo.cpp:145
+#, c-format
+msgid "process: request=%s"
+msgstr "process: begäran=%s"
+
+#: ../src/services/a-rex/arex.cpp:210
 msgid "process: factory endpoint"
 msgstr "process: factoryändpunkt"
 
-#: ../src/services/a-rex/arex.cpp:211
+#: ../src/services/a-rex/arex.cpp:216
 msgid "process: CreateActivity"
 msgstr "process: CreateActivity"
 
-#: ../src/services/a-rex/arex.cpp:269
+#: ../src/services/a-rex/arex.cpp:274
 msgid "process: GET"
 msgstr "process: GET"
 
-#: ../src/services/a-rex/arex.cpp:273
+#: ../src/services/a-rex/arex.cpp:278
 msgid "process: PUT"
 msgstr "process: PUT"
 
-#: ../src/services/a-rex/arex.cpp:279
+#: ../src/services/a-rex/arex.cpp:284
 msgid "PUT: input stream not implemented yet"
 msgstr "PUT: indataström ännu ej implementerad"
 
-#: ../src/services/a-rex/arex.cpp:283
+#: ../src/services/a-rex/arex.cpp:288
 msgid "PUT: input is neither stream nor buffer"
 msgstr "PUT: indata är varken ström eller buffer"
 
-#: ../src/services/a-rex/arex.cpp:289 ../src/services/pdp/pdpservice.cpp:110
+#: ../src/services/a-rex/arex.cpp:294 ../src/services/pdp/pdpservice.cpp:110
 #, c-format
 msgid "process: %s: not supported"
 msgstr "process: %s: understöds inte"
@@ -5020,8 +5251,8 @@ msgstr "Misslyckades med att initiera delegering"
 #: ../src/services/a-rex/test.cpp:112 ../src/services/a-rex/test.cpp:191
 #: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:296
 #: ../src/services/a-rex/test.cpp:344 ../src/services/a-rex/test.cpp:392
-#: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:344
-#: ../src/services/paul/paul.cpp:437 ../src/services/pdp/test.cpp:111
+#: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:346
+#: ../src/services/paul/paul.cpp:439 ../src/services/pdp/test.cpp:111
 #: ../src/services/saml/test_client.cpp:142 ../src/services/saml/test.cpp:152
 #: ../src/tests/count/test_client.cpp:83
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:74
@@ -5157,8 +5388,8 @@ msgstr "Adress saknas i service-EPR"
 msgid "Cannot collect resource information"
 msgstr "Kan inte samla in resursinformation"
 
-#: ../src/services/paul/paul.cpp:176 ../src/services/paul/paul.cpp:355
-#: ../src/services/paul/paul.cpp:448
+#: ../src/services/paul/paul.cpp:176 ../src/services/paul/paul.cpp:357
+#: ../src/services/paul/paul.cpp:450
 msgid "No response"
 msgstr "Inget svar"
 
@@ -5166,8 +5397,8 @@ msgstr "Inget svar"
 msgid "Missing job identifier"
 msgstr "Jobbidentifierare saknas"
 
-#: ../src/services/paul/paul.cpp:204 ../src/services/paul/paul.cpp:378
-#: ../src/services/paul/paul.cpp:470 ../src/services/sched/ibes.cpp:89
+#: ../src/services/paul/paul.cpp:204 ../src/services/paul/paul.cpp:380
+#: ../src/services/paul/paul.cpp:472 ../src/services/sched/ibes.cpp:84
 msgid "Cannot find job id"
 msgstr "Kan inte hitta Jobb-ID"
 
@@ -5185,57 +5416,90 @@ msgstr "Status: %s %d"
 msgid "Process job: %s"
 msgstr "Processera jobb: %s"
 
-#: ../src/services/paul/paul.cpp:242
+#: ../src/services/paul/paul.cpp:243
 #, c-format
 msgid "%s set finished"
 msgstr "%s uppsättning avslutad"
 
-#: ../src/services/paul/paul.cpp:248
+#: ../src/services/paul/paul.cpp:250
 #, c-format
 msgid "Finished job %s"
 msgstr "Avslutat jobb %s"
 
-#: ../src/services/paul/paul.cpp:256
+#: ../src/services/paul/paul.cpp:258
 #, c-format
 msgid "Do Request: %s"
 msgstr "Utför förfrågan: %s"
 
-#: ../src/services/paul/paul.cpp:270
+#: ../src/services/paul/paul.cpp:272
 msgid "No free CPU slot"
 msgstr "Ingen ledig CPU-slot"
 
-#: ../src/services/paul/paul.cpp:297
+#: ../src/services/paul/paul.cpp:299
 msgid "Report status"
 msgstr "Rapportera status"
 
-#: ../src/services/paul/paul.cpp:381
+#: ../src/services/paul/paul.cpp:383
 #, c-format
 msgid "%s reported"
 msgstr "%s rapporteras"
 
-#: ../src/services/paul/paul.cpp:384
+#: ../src/services/paul/paul.cpp:386
 #, c-format
 msgid "%s job reported finished"
 msgstr "%s job rapporterat avslutat"
 
-#: ../src/services/paul/paul.cpp:397
+#: ../src/services/paul/paul.cpp:399
 msgid "Get activity status changes"
 msgstr "Erhåll aktivitetstatusändringar"
 
-#: ../src/services/paul/paul.cpp:484
+#: ../src/services/paul/paul.cpp:486
 #, c-format
 msgid "Killing %s"
 msgstr "Dödar: %s"
 
-#: ../src/services/paul/paul.cpp:499
+#: ../src/services/paul/paul.cpp:501
 #, c-format
 msgid "cleanup %s %d"
 msgstr "uppstädning %s %d"
 
-#: ../src/services/paul/paul.cpp:503
+#: ../src/services/paul/paul.cpp:505
 #, c-format
 msgid "cleanup %s"
 msgstr "uppstädning %s"
+
+#: ../src/services/paul/paul.cpp:564
+msgid "PaulService shutdown"
+msgstr "Paul service nedstängning"
+
+#: ../src/services/paul/paul.cpp:567
+#, c-format
+msgid "Terminate job %s"
+msgstr "Avsluta jobb %s"
+
+#: ../src/services/paul/paul.cpp:671
+#, c-format
+msgid "Permission denied from %s host"
+msgstr "Tillstånd nekad från %s värd"
+
+#: ../src/services/paul/paul.cpp:693
+#, c-format
+msgid "Here comes the POST: %s"
+msgstr "Här kommer POST: %s"
+
+#: ../src/services/paul/paul.cpp:698
+#, c-format
+msgid "Invalid request: %s"
+msgstr "Ogiltig begäran: %s"
+
+#: ../src/services/paul/paul.cpp:718
+#, c-format
+msgid "Invalid method: %s"
+msgstr "Ogiltig method: %s"
+
+#: ../src/services/paul/paul.cpp:725
+msgid "Cannot callocate output raw buffer"
+msgstr "Kan inte allokera utdata-råbuffer"
 
 #: ../src/services/paul/run.cpp:23
 msgid "Start process"
@@ -5434,7 +5698,7 @@ msgstr "GetActivityDocuments: jobb %s ej funnet"
 msgid "GetActivityStatuses: job %s"
 msgstr "GetActivityStatuses: jobb %s"
 
-#: ../src/services/sched/grid_sched.cpp:163
+#: ../src/services/sched/grid_sched.cpp:164
 #, c-format
 msgid ""
 "Count of jobs: %i Count of resources: %i Scheduler period: %i Endpoint: %s "
@@ -5443,63 +5707,75 @@ msgstr ""
 "Antal jobb: %i Antal resurser: %i Schemaläggningsperiod: %i Ändpunkt: %s "
 "Databassökväg: %s"
 
-#: ../src/services/sched/grid_sched.cpp:178
+#: ../src/services/sched/grid_sched.cpp:179
 #, c-format
 msgid "NEW job: %s"
 msgstr "NYTT jobb: %s"
 
-#: ../src/services/sched/grid_sched.cpp:184
+#: ../src/services/sched/grid_sched.cpp:185
 #, c-format
 msgid "A-REX ID: %s"
 msgstr "A-REX ID: %s"
 
-#: ../src/services/sched/grid_sched.cpp:190
+#: ../src/services/sched/grid_sched.cpp:191
 #, c-format
 msgid "Sched job ID: %s NOT SUBMITTED"
 msgstr "Sched jobb-ID: %s EJ INSÄNT"
 
-#: ../src/services/sched/grid_sched.cpp:208
+#: ../src/services/sched/grid_sched.cpp:209
 #, c-format
 msgid "JobID: %s KILLED"
 msgstr "JobID: %s AVBRUTET"
 
-#: ../src/services/sched/grid_sched.cpp:229
+#: ../src/services/sched/grid_sched.cpp:230
 #, c-format
 msgid "Sched job ID: %s (A-REX job ID is empty)"
 msgstr "Sched jobb-ID: %s (A-REX jobb-ID är tomt)"
 
-#: ../src/services/sched/grid_sched.cpp:244
+#: ../src/services/sched/grid_sched.cpp:245
 #, c-format
 msgid "Job RESCHEDULE: %s"
 msgstr "Jobb OMSCHEMALAGT: %s"
 
-#: ../src/services/sched/grid_sched.cpp:251
+#: ../src/services/sched/grid_sched.cpp:252
 #, c-format
 msgid "JobID: %s state: %s"
 msgstr "JobID: %s tillstånd: %s"
 
-#: ../src/services/sched/ibes.cpp:19
+#: ../src/services/sched/ibes.cpp:15
 msgid "Cannot get resource ID"
 msgstr "Kan inte erhålla resurs-ID"
 
-#: ../src/services/sched/ibes.cpp:22
-#, c-format
-msgid "Resource: %s"
-msgstr "Resurs: %s"
-
-#: ../src/services/sched/ibes.cpp:30
+#: ../src/services/sched/ibes.cpp:24
 msgid "NO job"
 msgstr "INGET jobb"
 
-#: ../src/services/sched/ibes.cpp:64
+#: ../src/services/sched/ibes.cpp:28
+msgid "Pickup job"
+msgstr "Plocka upp ett jobb"
+
+#: ../src/services/sched/ibes.cpp:43
+msgid "Save state start"
+msgstr "Spara tillstånd start"
+
+#: ../src/services/sched/ibes.cpp:45
+msgid "Save state end"
+msgstr "Spara tillstånd slut"
+
+#: ../src/services/sched/ibes.cpp:58
 msgid "invalid job id"
 msgstr "ogiltigt jobb-ID"
 
-#: ../src/services/sched/ibes.cpp:95
+#: ../src/services/sched/ibes.cpp:68 ../src/services/sched/ibes.cpp:104
+#, c-format
+msgid "Cannot find job id: %s"
+msgstr "Kan inte hitta Jobb-id: %s"
+
+#: ../src/services/sched/ibes.cpp:90
 msgid "Invalid status report"
 msgstr "Ogiltig statusrapport"
 
-#: ../src/services/sched/ibes.cpp:100
+#: ../src/services/sched/ibes.cpp:96
 #, c-format
 msgid "%s reported state: %d"
 msgstr "%s rapporterade status: %d"
@@ -5665,7 +5941,7 @@ msgid "echo: Unauthorized"
 msgstr "echo: Oautoriserad"
 
 #: ../src/tests/count/count.cpp:98 ../src/tests/count/count.cpp:104
-#: ../src/tests/echo/echo.cpp:145
+#: ../src/tests/echo/echo.cpp:150
 #, c-format
 msgid "Request is not supported - %s"
 msgstr "Förfrågan understöds inte - %s"
