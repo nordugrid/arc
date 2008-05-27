@@ -56,6 +56,9 @@ public:
   virtual void addPolicy(const std::string& policyfile,const std::string& id = "") {
     plstore->addPolicy(policyfile, context, id);
   };
+
+  virtual void addPolicy(BasePolicy* policy,const std::string& id = "") { plstore->addPolicy(policy, context, id); };
+
   //Other way to add policy, like string
   virtual void removePolicies(void) { plstore->removePolicies(); };
 

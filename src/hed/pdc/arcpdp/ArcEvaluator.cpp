@@ -79,6 +79,15 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   }
   else { logger.msg(ERROR, "Can not parse classname for Request from configuration"); return;}
 
+  //Get the name of the "Policy" class
+  std::string policy_classname;
+  res = m_cfg->XPathLookup("//pdp:Policy", nsList);
+  if(!(res.empty())){
+    nd = *(res.begin());
+    policy_classname = (std::string)(nd.Attribute("name"));
+  }
+  else { logger.msg(ERROR, "Can not parse classname for Policy from configuration"); return;}
+
   //Get the ClassLoader object; The object which loads this ArcEvaluator should have 
   //constructed ClassLoader by using ClassLoader(cfg), and putting the configuration 
   //information into it; meanwhile ClassLoader is designed as a Singleton, so here 
@@ -107,7 +116,7 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   std::list<std::string> filelist;
   //filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
-  plstore = new PolicyStore(filelist, alg, context);
+  plstore = new PolicyStore(filelist, alg, policy_classname, context);
 
 }
 

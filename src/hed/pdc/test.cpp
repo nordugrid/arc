@@ -125,17 +125,11 @@ int main(void){
   context_attr1.value = "2007-09-10T20:30:20/P1Y1M";
   ctx.addItem(context_attr1);
 
-  //ArcSec::ArcRequest* request = NULL;
-  //It shoud not be the caller to delete the ArcRequest object?
-  //request = new ArcSec::ArcRequest;
   ArcSec::Request* request = NULL;
   std::string requestor = "arc.request";
-
-  Arc::ClassLoader* classloader1 = NULL;
-  Arc::Config modulecfg1("EvaluatorCfg.xml");
-  classloader1 = Arc::ClassLoader::getClassLoader(&modulecfg1);
-
-  request = (ArcSec::Request*)(classloader1->Instance(requestor));
+  Arc::ClassLoader* classloader = NULL;
+  classloader = Arc::ClassLoader::getClassLoader();
+  request = (ArcSec::Request*)(classloader->Instance(requestor));
   if(request == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Request");
 
