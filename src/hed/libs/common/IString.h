@@ -8,6 +8,8 @@
 #include <stdlib.h> // free
 #include <string.h> // strcpy, strdup
 
+#define istring(x) (x)
+
 namespace Arc {
 
   class PrintFBase {

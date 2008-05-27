@@ -227,6 +227,13 @@ SAVE_CPPFLAGS=$CPPFLAGS
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 CPPFLAGS="$CPPFLAGS $GLIBMM_CFLAGS"
+AC_CHECK_HEADER([glibmm/optioncontext.h], [
+  AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
+                 [Glib::OptionContext ctx; ctx.set_summary("summary")],
+		 [AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY,,
+		   [define if glibmm has Glib::OptionContext::set_summary()])
+  ])
+])
 AC_CHECK_HEADER(glibmm/optiongroup.h,[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
 if test "$glibmm_optiongroup_h" = yes; then
   AC_DEFINE(HAVE_GLIBMM_OPTIONS,,[define if glibmm have support for command line arguments])
