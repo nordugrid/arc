@@ -1,7 +1,7 @@
 #ifndef __ARC_CLIENTINTERFACE_H__
 #define __ARC_CLIENTINTERFACE_H__
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <string>
 #include <list>
 #include <arc/ArcConfig.h>

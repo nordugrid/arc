@@ -25,11 +25,8 @@
  extern "C" {
 #endif
 
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-#include <sys/types.h>
-# include <stdbool.h>
+#include <inttypes.h>
+#include <stdbool.h>
 
 struct fs_usage
 {

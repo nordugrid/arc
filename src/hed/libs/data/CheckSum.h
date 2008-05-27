@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <sys/types.h>
 
 namespace Arc {
