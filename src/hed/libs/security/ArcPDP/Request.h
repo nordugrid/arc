@@ -1,9 +1,8 @@
 #ifndef __ARC_SEC_REQUEST_H__
 #define __ARC_SEC_REQUEST_H__
 
-#include <arc/loader/LoadableClass.h>
-
 #include <list>
+#include <arc/loader/LoadableClass.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
@@ -77,11 +76,13 @@ public:
   /**Constructor: Parse request information from a xml stucture in memory*/
   Request (const Arc::XMLNode*) {};
 
-  virtual ~Request(){};
+  /**Constructor: Parse request information from a file*/
+  Request (const char* reqfile) {};
 
-protected:
-  /**Constructor: Parse request information from a input file, internal used only*/
-  Request (const char*) {};
+  /**Constructor: Parse request information from a string*/
+  Request (std::string& reqstring) {};
+
+  virtual ~Request(){};
 };
 
 } // namespace ArcSec

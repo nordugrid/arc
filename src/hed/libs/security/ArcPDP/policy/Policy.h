@@ -4,9 +4,10 @@
 #include <list>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "../Result.h"
-#include "../EvaluationCtx.h"
 
+#include "../Evaluator.h"
+#include "../EvaluationCtx.h"
+#include "./BasePolicy.h"
 
 namespace ArcSec {
 
@@ -16,13 +17,15 @@ e.g., ArcPolicySet objects includes a few ArcPolicy objects; ArcPolicy object in
 there is logical relationship between ArcRules or ArcPolicies, which is called combining algorithm. According to algorithm, 
 evaluation results from the elements are combined, and then the combined evaluation result is returned to the up-level. 
 */
-class Policy {
+class Policy : public BasePolicy {
 protected:
-  std::list<Policy*> subelements;
+  std::list<BasePolicy*> subelements;
   static Arc::Logger logger; 
  
 public:
-  Policy(Arc::XMLNode) {};  
+  Policy() {};
+  Policy(Arc::XMLNode*) {};  
+  Policy(Arc::XMLNode*, EvaluatorContext*) {};
   virtual ~Policy(){};
   
   ///Evaluate whether the two targets to be evaluated match to each other
@@ -81,7 +84,7 @@ public:
    <Subjects, Resources, Actions>)
    
   */   
-  virtual MatchResult match(EvaluationCtx* ctx) = 0;
+  virtual MatchResult match(EvaluationCtx*) {};
 
   ///Evaluate policy
   /*For the <Rule> of Arc, only get the "Effect" from rules; 
@@ -90,17 +93,22 @@ public:
     For the <Rule> of XACML, it will evaluate the <Condition> node by using information from request, and use the "Effect" attribute of <Rule>
     For the <Policy> of XACML, it will combine the evaluation result from <Rule>
   */
-  virtual Result eval(EvaluationCtx* ctx) = 0;
+  virtual Result eval(EvaluationCtx*) {};
 
-  ///Add a policy element to into "this" object
+  /**Add a policy element to into "this" object */
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
 
-  ///Get the "Effect" attribute
-  virtual std::string getEffect() = 0;
-  
-  ///Get eveluation result
-  virtual EvalResult& getEvalResult() = 0;
+  /**set Evaluator Context for the usage in creating low-level policy object*/
+  virtual void setEvaluatorContext(EvaluatorContext*) {};
 
+  /**Parse XMLNode, and construct the low-level Rule object*/
+  virtual void make_policy() {};
+
+  /**Get the "Effect" attribute*/
+  virtual std::string getEffect() {};
+  
+  /**Get eveluation result*/
+  virtual EvalResult& getEvalResult() {};
 };
 
 } // namespace ArcSec
