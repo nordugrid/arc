@@ -16,7 +16,7 @@ lrmsid=${lrmsid%%.*}.condor
 ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
 
 # Initialize environment for Condor commands!
-source $ARC_LOCATION/libexec/configure-condor-env.sh || exit 1
+. $ARC_LOCATION/libexec/configure-condor-env.sh || exit 1
 
 # Set variable "controldir" from GM config.
 controldir=$CONFIG_controldir

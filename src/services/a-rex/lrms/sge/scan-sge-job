@@ -19,7 +19,7 @@ if [ ! -f "${ARC_LOCATION}/libexec/configure-sge-env.sh" ] ; then
     echo "${ARC_LOCATION}/libexec/configure-sge-env.sh not found." >&2
     exit 1
 fi
-source ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
+. ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
 
 ##############################################################
 
@@ -30,8 +30,6 @@ if [ -z "$1" ] ; then exit 1 ; fi
 
 
 # first control_dir is used for storing own files
-
-echo `date`" : control_dir=$1" 1>&2
 
 control_dir=$1
 control_dirs=
@@ -89,7 +87,6 @@ for ctr_dir in $control_dirs ; do
     if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
-    session=${session:-/usr/local/sys/nordugrid/nordugrid/sessiondir/$gridid}
     if [  -d "$session" ] ; then
       # have chance to obtain exit code
       diagfile="${session}.diag"
@@ -112,7 +109,7 @@ for ctr_dir in $control_dirs ; do
                          $id=$1               if /^jobnumber\s+(\S+)/;
                          $exitcode=$1         if /^exit_status\s+(\S+)/;
                          $failed=$1           if /^failed\s+(.*\S)/;
-                         $UserTime=$1         if /^cpu\s+(\d+)/;
+                         $CPUTime=$1          if /^cpu\s+(\d+)/;
                          $KernelTime=$1       if /^ru_stime\s+(\d+)/;
                          $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                          $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
@@ -121,9 +118,10 @@ for ctr_dir in $control_dirs ; do
                        END {
                          exit unless $id;
                          print "nodename=${nodename}\n";
+                         print "CPUTime=${CPUTime}.0s\n";
                          print "WallTime=${WallTime}.0s\n";
                          print "KernelTime=${KernelTime}.0s\n";
-                         print "UserTime=${UserTime}.0s\n";
+                         print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
                          print "UsedMemory=".int($UsedMemory*1024)."kB\n";
                          print "failed=$failed\n";
                          print "\nexitcode=$exitcode\n";
@@ -149,6 +147,7 @@ for ctr_dir in $control_dirs ; do
                         | grep -v "^WallTime=" \
                         | grep -v "^KernelTime=" \
                         | grep -v "^UserTime=" \
+                        | grep -v "^CPUTime=" \
                         | grep -v "^MaxResidentMemory=" \
                         | grep -v "^AverageTotalMemory=" \
                         | grep -v "^exitcode=" \
@@ -162,33 +161,26 @@ for ctr_dir in $control_dirs ; do
 
           # Check for exceeded resources limits
           if [ -s $gramifile ]; then
-            eval req_memory=`grep ^joboption_memory= $gramifile | tail -n 1 | sed s/^joboption_memory=//`
-            eval req_cputime=`grep ^joboption_cputime= $gramifile | tail -n 1 | sed s/^joboption_cputime=//`
-            eval req_walltime=`grep ^joboption_walltime= $gramifile | tail -n 1 | sed s/^joboption_walltime=//`
+            req_walltime=`sed -n "s/^joboption_walltime=//p" $gramifile | tail -n 1`
+            req_cputime=`sed -n "s/^joboption_cputime=//p" $gramifile | tail -n 1`
+            req_memory=`sed -n "s/^joboption_memory=//p" $gramifile | tail -n 1`
 
-            used_cputime=
-            used_memory=
-            used_walltime=`grep '^WallTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^WallTime=\(.*\).0s/\1/'`
-            UserTime=`grep '^UserTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^UserTime=\(.*\).0s/\1/'`
-            KernelTime=`grep '^KernelTime=\(.*\).0s' $diagfile | tail -n 1 | sed 's/^KernelTime=\(.*\).0s/\1/'`
-            UsedMemory=`grep '^UsedMemory=\(.*\)kB' $diagfile | tail -n 1 | sed 's/^UsedMemory=\(.*\)kB/\1/'`
+            used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' $diagfile | tail -n 1`
+            used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' $diagfile | tail -n 1`
+            used_memory=`sed -n 's/^UsedMemory=\(.*\)kB/\1/p' $diagfile | tail -n 1`
 
-            if [ ! -z "$UserTime" ] && [ ! -z "$KernelTime" ]; then
-              used_cputime=$(( UserTime + KernelTime ))
-            fi
-            if [ ! -z "$UsedMemory" ]; then
-              used_memory="$UsedMemory"
-            fi
-
-            if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] && [ "$req_memory" -gt 0 ] \
+            if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
+            && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
             && [ $(( 100*used_memory/1024/req_memory )) -gt 95 ]; then
               overlimit="memory"
             fi
-            if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] && [ "$req_cputime" -gt 0 ] \
+            if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] \
+            && [ "$req_cputime" != "" ] && [ "$req_cputime" -gt 0 ] \
             && [ $(( 100*used_cputime/req_cputime )) -gt 95 ]; then
               overlimit="cputime"
             fi
-            if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] && [ "$req_walltime" -gt 0 ] \
+            if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] \
+            && [ "$req_walltime" != "" ] && [ "$req_walltime" -gt 0 ] \
             && [ $(( 100*used_walltime/req_walltime )) -gt 95 ]; then
               overlimit="walltime"
             fi

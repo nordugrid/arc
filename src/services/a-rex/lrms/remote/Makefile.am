@@ -11,7 +11,7 @@ expand_paths = sed \
 	-e 's,@localsysconfdir\@,$(localsysconfdir),g' \
 	-e 's,@sysconfdir\@,$(sysconfdir),g' \
 	-e 's,@tmp_dir\@,$(tmp_dir),g' \
-	-e 's,@nordugrid_location\@,$(nordugrid_location),g' \
+	-e 's,@arc_location\@,$(arc_location),g' \
 	-e 's,@prefix\@,$(prefix),g'
 
 # Create files from corresponding '.in' file

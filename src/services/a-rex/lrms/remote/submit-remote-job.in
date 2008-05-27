@@ -9,7 +9,7 @@
 # General setup #
 #################
 
-ARC_LOCATION=${ARC_LOCATION:-@nordugrid_location@}
+ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
 
 # Include remote LRMS functions
 REMOTE_LRMS_FUNCTIONS="${ARC_LOCATION}/libexec/remote-lrms-functions"

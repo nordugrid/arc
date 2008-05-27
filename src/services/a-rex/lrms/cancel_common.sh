@@ -11,7 +11,7 @@ if [ ! -f "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh" ] ; then
     echo "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh not found." 1>&2
     exit 1
 fi
-source ${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh
+. ${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh
 
 arg_file=$1
 ##############################################################

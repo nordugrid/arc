@@ -10,7 +10,7 @@ if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
 fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-source $ARC_LOCATION/libexec/config_parser.sh
+. $ARC_LOCATION/libexec/config_parser.sh
 
 config_parse_file $ARC_CONFIG >&2 || exit $?
 config_update_from_section "common"

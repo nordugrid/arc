@@ -12,26 +12,26 @@
 
 echo "----- starting submit_pbs_job -----" 1>&2
 joboption_lrms=PBS
-walltime_ratio='1'
+
+if [ -z ${ARC_LOCATION} ] ; then
+    echo "ARC_LOCATION not set." 1>&2
+    exit 1
+fi
+. ${ARC_LOCATION}/libexec/submit_common.sh
+
+init
+
 ##############################################################
 # These should be set automatically
 ##############################################################
 # Path to pbs commands
-PBS_BIN_PATH=${PBS_BIN_PATH:-@pbs_bin_path@}
-# Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-@tmp_dir@}
+PBS_BIN_PATH=${PBS_BIN_PATH:-/usr/bin}
 # Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
-# Where GNU time utility is located on computing nodes (empty if does not exist)
-GNU_TIME=${GNU_TIME:-@gnu_time@}
-# Command to get name of executing node
-NODENAME=${NODENAME:-@nodename@}
+RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
+export RUNTIME_CONFIG_DIR
 # Description of (cross-)mounted disc space on cluster
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-@runtime_local_scratch_dir@}
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_frontend_sees_node@}
-RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-@runtime_node_sees_frontend@}
-RUNTIME_ARC_LOCATION="$ARC_LOCATION"
-RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
+RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
+RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-}
 
 #default is NFS
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
@@ -42,19 +42,12 @@ if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
   RUNTIME_NODE_SEES_FRONTEND=
 fi
 
-arg_file=$1
 ##############################################################
-# Source the argument file. 
+# Parse argument file
 ##############################################################
-if [ -z "$arg_file" ] ; then
-   echo "Arguments file should be specified" 1>&2
-   exit 1
-fi
-if [ ! -f $arg_file ] ; then
-   echo "Missing arguments file" 1>&2
-   exit 1
-fi
-. $arg_file
+
+parse_arg_file $1
+
 
 ##############################################################
 # Read queue_node_string from ARC config file
@@ -66,7 +59,7 @@ if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
 fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-source $ARC_LOCATION/libexec/config_parser.sh
+. $ARC_LOCATION/libexec/config_parser.sh
 
 config_parse_file $ARC_CONFIG >&2 || exit $?
 config_update_from_section "common"
@@ -81,15 +74,6 @@ queue_node_string=$CONFIG_queue_node_string
 
 ##############################################################
 
-if [ -z "$joboption_controldir" ] ; then
-  joboption_controldir=`dirname "$arg_file"`
-  if [ "$joboption_controldir" = '.' ] ; then
-    joboption_controldir="$PWD"
-  fi
-fi
-if [ -z "$joboption_gridid" ] ; then
-  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
-fi
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
@@ -101,65 +85,19 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
 fi
 
 ##############################################################
-# combine arguments to command -  easier to use
-##############################################################
-i=0
-joboption_args=
-eval "var_is_set=\${joboption_arg_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_arg_$i}"
-  var_value=`echo "$var_value" | sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
-  joboption_args="$joboption_args \"${var_value}\""
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_arg_$i+yes}"
-done
-
-##############################################################
 # Zero stage of runtime environments
 ##############################################################
-joboption_num=0
-eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_runtime_$joboption_num}"
-  if [ -r "$RUNTIME_CONFIG_DIR/${var_value}" ] ; then
-    . "$RUNTIME_CONFIG_DIR/${var_value}" "0"
-    if [ $? -ne '0' ] ; then
-      echo "ERROR: runtime script ${var_value} failed" 1>&2
-      echo "Submission: runtime script ${var_value} failed.">>"$failures_file"
-      exit 1
-    fi
-  else
-    echo "ERROR: runtime script ${var_value} is missing" 1>&2
-    echo "Submission: runtime script ${var_value} is missing.">>"$failures_file"
-    exit 1
-  fi
-  joboption_num=$(( joboption_num + 1 ))
-  eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
-done
+RTE_stage0
+
+##############################################################
+# create job script
+##############################################################
+mktempscript
+
 
 PBS_QSUB='qsub -r n -S /bin/sh -m n '
 if [ ! -z "$PBS_BIN_PATH" ] ; then
   PBS_QSUB=${PBS_BIN_PATH}/${PBS_QSUB}
-fi
-
-tmpdir=${TMP_DIR:-/tmp}
-
-# File name to be used for temporary job script
-PBS_JOB_SCRIPT=`mktemp ${tmpdir}/pbs_job_script.XXXXXX`
-if [ -z "$PBS_JOB_SCRIPT" ] ; then 
-  echo "Creation of temporary file failed" 1>&2
-  echo "Submission: System error.">>"$failures_file"
-  exit 1
-fi
-PBS_JOB_OUT="${PBS_JOB_SCRIPT}.out"
-touch $PBS_JOB_OUT
-PBS_JOB_ERR="${PBS_JOB_SCRIPT}.err"
-touch $PBS_JOB_ERR
-if [ ! -f "$PBS_JOB_SCRIPT" ] || [ ! -f "$PBS_JOB_OUT" ] || [ ! -f "$PBS_JOB_ERR" ] ; then 
-  echo "Something is wrong. Either somebody is playing bad or can't write to ${tmpdir}" 1>&2
-  rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
-  echo "Submission: System error.">>"$failures_file"
-  exit 1
 fi
 
 is_cluster=true
@@ -167,18 +105,18 @@ is_cluster=true
 ##############################################################
 # Start job script
 ##############################################################
-echo "# PBS batch job script built by grid-manager" > $PBS_JOB_SCRIPT
+echo "# PBS batch job script built by grid-manager" > $LRMS_JOB_SCRIPT
 # write PBS output to 'comment' file
-echo "#PBS -e '${joboption_directory}.comment'">> $PBS_JOB_SCRIPT
-echo "#PBS -j eo">> $PBS_JOB_SCRIPT
-echo "" >> $PBS_JOB_SCRIPT
+echo "#PBS -e '${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
+echo "#PBS -j eo">> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
-  echo "#PBS -q $joboption_queue" >> $PBS_JOB_SCRIPT
+  echo "#PBS -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
 # project name for accounting
 if [ ! -z "${joboption_project}" ] ; then
-  echo "#PBS -A $joboption_project" >> $PBS_JOB_SCRIPT
+  echo "#PBS -A $joboption_project" >> $LRMS_JOB_SCRIPT
 fi
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then
@@ -186,7 +124,7 @@ if [ ! -z "${joboption_jobname}" ] ; then
            sed 's/^\([^[:alpha:]]\)/N\1/' | \
            sed 's/[^[:alnum:]]/_/g' | \
 	   sed 's/\(...............\).*/\1/'`
-  echo "#PBS -N '$jobname'" >> $PBS_JOB_SCRIPT
+  echo "#PBS -N '$jobname'" >> $LRMS_JOB_SCRIPT
 fi
 echo "PBS jobname: $jobname" 1>&2
 
@@ -213,7 +151,7 @@ while [ ! -z "${var_is_set}" ] ; do
   i=$(( i + 1 ))
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
-echo "$nodes_string" >> $PBS_JOB_SCRIPT
+echo "$nodes_string" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Execution times (minutes)
@@ -227,7 +165,7 @@ if [ ! -z "$joboption_cputime" ] ; then
   maxcputime="$joboption_cputime"
   cputime_min=$(( $maxcputime / 60 ))
   cputime_sec=$(( $maxcputime - $cputime_min * 60 ))
-  echo "#PBS -l cput=${cputime_min}:${cputime_sec}" >> $PBS_JOB_SCRIPT
+  echo "#PBS -l cput=${cputime_min}:${cputime_sec}" >> $LRMS_JOB_SCRIPT
 fi  
   
 if [ -z "$joboption_walltime" ] ; then
@@ -244,7 +182,7 @@ if [ ! -z "$joboption_walltime" ] ; then
   maxwalltime="$joboption_walltime"
   walltime_min=$(( $maxwalltime / 60 ))
   walltime_sec=$(( $maxwalltime - $walltime_min * 60 ))
-  echo "#PBS -l walltime=${walltime_min}:${walltime_sec}" >> $PBS_JOB_SCRIPT
+  echo "#PBS -l walltime=${walltime_min}:${walltime_sec}" >> $LRMS_JOB_SCRIPT
 fi
 
 ##############################################################
@@ -261,14 +199,14 @@ if [ "$joboption_localtransfer" = 'yes' ] ; then
   fi
 fi
 if [ ! -z "$joboption_memory" ] ; then
-  echo "#PBS -l pvmem=${joboption_memory}mb" >> $PBS_JOB_SCRIPT
-  echo "#PBS -l pmem=${joboption_memory}mb" >> $PBS_JOB_SCRIPT
+  echo "#PBS -l pvmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l pmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
 fi
 
 gate_host=`uname -n`
 if [ -z "$gate_host" ] ; then 
   echo "Can't get own hostname" 1>&2
-  rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
   echo "Submission: Configuration error.">>"$failures_file"
   exit 1
 fi
@@ -281,35 +219,25 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     cd "$joboption_directory"
     if [ $? -ne '0' ] ; then 
       echo "Can't change to session directory: $joboption_directory" 1>&2
-      rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
+      rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
       echo "Submission: Configuration error.">>"$failures_file"
       exit 1
     fi
     scratch_dir=`dirname "$joboption_directory"`
-    echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $PBS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $PBS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag" >> $PBS_JOB_SCRIPT
+    echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
+    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
+    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag" >> $LRMS_JOB_SCRIPT
   )
 fi
 
-echo "" >> $PBS_JOB_SCRIPT
-echo "# Overide umask of execution node (sometime values are really strange)" >> $PBS_JOB_SCRIPT
-echo "umask 077" >> $PBS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
+echo "umask 077" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Add environment variables
 ##############################################################
-echo "# Setting environment variables as specified by user" >> $PBS_JOB_SCRIPT
-i=0
-eval "var_is_set=\${joboption_env_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_env_$i}"
-  echo "export ${var_value}" >> $PBS_JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_env_$i+yes}"
-done
-echo "" >> $PBS_JOB_SCRIPT
-
+add_user_env 
 
 ##############################################################
 # Check for existance of executable,
@@ -318,44 +246,16 @@ echo "" >> $PBS_JOB_SCRIPT
 ##############################################################
 if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
-  rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
   echo "Submission: Job description error.">>"$failures_file"
   exit 1
 fi
+
 #######################################################################
 # copy information useful for transfering files to/from node directly
 #######################################################################
 if [ "$joboption_localtransfer" = 'yes' ] ; then
-  RUNTIME_CONTROL_DIR=`mktemp ${joboption_directory}/control.XXXXXX`
-  if [ -z "$RUNTIME_CONTROL_DIR" ] ; then
-    echo 'Failed to choose name for temporary control directory' 1>&2
-    rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
-    echo "Submission: System error.">>"$failures_file"
-    exit 1
-  fi
-  rm -f "$RUNTIME_CONTROL_DIR"
-  mkdir "$RUNTIME_CONTROL_DIR"
-  if [ $? -ne '0' ] ; then
-    echo 'Failed to create temporary control directory' 1>&2
-    rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
-    echo "Submission: System error.">>"$failures_file"
-    exit 1
-  fi
-  chmod go-rwx,u+rwx "${RUNTIME_CONTROL_DIR}"
-  echo '' >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  chmod go-rw,u+r,a-x "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.proxy" >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.input" >"${RUNTIME_CONTROL_DIR}/job.local.input"
-  cat "${joboption_controldir}/job.${joboption_gridid}.output" >"${RUNTIME_CONTROL_DIR}/job.local.output"
-  RUNTIME_CONTROL_DIR_REL=`basename "$RUNTIME_CONTROL_DIR"`
-  echo "$RUNTIME_CONTROL_DIR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${RUNTIME_CONTROL_DIR}/job.local.output"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${joboption_controldir}/job.${joboption_gridid}.output"
-  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}##"`
-  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}##"`
-  echo "$RUNTIME_STDOUT_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_STDERR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "RUNTIME_CONTROL_DIR=$RUNTIME_CONTROL_DIR" >> $PBS_JOB_SCRIPT
+  setup_local_transfer
 fi
 
 ######################################################################
@@ -363,40 +263,28 @@ fi
 # RUNTIME_GRIDAREA_DIR should be defined by external means on nodes
 ######################################################################
 if [ ! -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  echo "RUNTIME_JOB_DIR=$joboption_directory" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_JOB_DIAG=${joboption_directory}.diag" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_JOB_STDIN=$joboption_stdin" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_JOB_STDOUT=$joboption_stdout" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_JOB_STDERR=$joboption_stderr" >> $PBS_JOB_SCRIPT
-  echo "if [ ! -z \"\$RUNTIME_GRIDAREA_DIR\" ] ; then" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_JOB_DIR=\$RUNTIME_GRIDAREA_DIR/\`basename \$RUNTIME_JOB_DIR\`" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_JOB_STDIN=\`echo \"\$RUNTIME_JOB_STDIN\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_JOB_STDOUT=\`echo \"\$RUNTIME_JOB_STDOUT\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_JOB_STDERR=\`echo \"\$RUNTIME_JOB_STDERR\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_JOB_DIAG=\`echo \"\$RUNTIME_JOB_DIAG\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $PBS_JOB_SCRIPT
-  echo "  RUNTIME_CONTROL_DIR=\`echo \"\$RUNTIME_CONTROL_DIR\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $PBS_JOB_SCRIPT
-  echo "fi" >> $PBS_JOB_SCRIPT
+  setup_runtime_env
 else
-  echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> $PBS_JOB_SCRIPT
-  echo "RUNTIME_GRIDAREA_DIR=" >> $PBS_JOB_SCRIPT
+  echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> $LRMS_JOB_SCRIPT
+  echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> $LRMS_JOB_SCRIPT
+  echo "RUNTIME_GRIDAREA_DIR=" >> $LRMS_JOB_SCRIPT
   RUNTIME_STDIN_REL=`echo "${joboption_stdin}" | sed "s#^${joboption_directory}/*##"`
   RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}/*##"`
   RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}/*##"`
   if [ "$RUNTIME_STDIN_REL" = "${joboption_stdin}" ] ; then
-    echo "RUNTIME_JOB_STDIN=\"${joboption_stdin}\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDIN=\"${joboption_stdin}\"" >> $LRMS_JOB_SCRIPT
   else
-    echo "RUNTIME_JOB_STDIN=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDIN_REL\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDIN=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDIN_REL\"" >> $LRMS_JOB_SCRIPT
   fi
   if [ "$RUNTIME_STDOUT_REL" = "${joboption_stdout}" ] ; then
-    echo "RUNTIME_JOB_STDOUT=\"${joboption_stdout}\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDOUT=\"${joboption_stdout}\"" >> $LRMS_JOB_SCRIPT
   else
-    echo "RUNTIME_JOB_STDOUT=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDOUT_REL\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDOUT=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDOUT_REL\"" >> $LRMS_JOB_SCRIPT
   fi
   if [ "$RUNTIME_STDERR_REL" = "${joboption_stderr}" ] ; then
-    echo "RUNTIME_JOB_STDERR=\"${joboption_stderr}\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDERR=\"${joboption_stderr}\"" >> $LRMS_JOB_SCRIPT
   else
-    echo "RUNTIME_JOB_STDERR=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDERR_REL\"" >> $PBS_JOB_SCRIPT
+    echo "RUNTIME_JOB_STDERR=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDERR_REL\"" >> $LRMS_JOB_SCRIPT
   fi
 fi
 
@@ -421,141 +309,42 @@ fi
 #  Move files to local working directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
-echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-$RUNTIME_LOCAL_SCRATCH_DIR}" >> $PBS_JOB_SCRIPT
-echo "RUNTIME_FRONTEND_SEES_NODE=\${RUNTIME_FRONTEND_SEES_NODE:-$RUNTIME_FRONTEND_SEES_NODE}" >> $PBS_JOB_SCRIPT
-echo "RUNTIME_NODE_SEES_FRONTEND=\${RUNTIME_NODE_SEES_FRONTEND:-$RUNTIME_NODE_SEES_FRONTEND}" >> $PBS_JOB_SCRIPT
-cat >> $PBS_JOB_SCRIPT <<'EOSCR'
-if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
-  # moving (!!!!! race condition here - while there is no job directory
-  # gridftp can create the one with the same name !!!!!)
-  RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
-  rm -rf "$RUNTIME_NODE_JOB_DIR"
-  mv "$RUNTIME_JOB_DIR" "$RUNTIME_LOCAL_SCRATCH_DIR"
-  if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
-    # creating link for whole directory
-    ln -s "$RUNTIME_FRONTEND_SEES_NODE"/`basename "$RUNTIME_JOB_DIR"` "$RUNTIME_JOB_DIR"
-  else
-    # keep stdout, stderr and control directory on frontend
-    # recreate job directory
-    mkdir "$RUNTIME_JOB_DIR"
-    # make those files
-    mkdir -p `dirname "$RUNTIME_JOB_STDOUT"`
-    mkdir -p `dirname "$RUNTIME_JOB_STDERR"`
-    touch "$RUNTIME_JOB_STDOUT"
-    touch "$RUNTIME_JOB_STDERR"
-    RUNTIME_JOB_STDOUT__=`echo "$RUNTIME_JOB_STDOUT" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-    RUNTIME_JOB_STDERR__=`echo "$RUNTIME_JOB_STDERR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-    rm "$RUNTIME_JOB_STDOUT__" 2>/dev/null
-    rm "$RUNTIME_JOB_STDERR__" 2>/dev/null
-    if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
-      ln -s "$RUNTIME_JOB_STDOUT" "$RUNTIME_JOB_STDOUT__"
-    fi
-    if [ "$RUNTIME_JOB_STDOUT__" != "$RUNTIME_JOB_STDERR__" ] ; then
-      if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
-        ln -s "$RUNTIME_JOB_STDERR" "$RUNTIME_JOB_STDERR__"
-      fi
-    fi
-    if [ ! -z "$RUNTIME_CONTROL_DIR" ] ; then
-      # move control directory back to frontend
-      RUNTIME_CONTROL_DIR__=`echo "$RUNTIME_CONTROL_DIR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-      mv "$RUNTIME_CONTROL_DIR__" "$RUNTIME_CONTROL_DIR"
-    fi    
-  fi
-  # adjust stdin,stdout & stderr pointers
-  RUNTIME_JOB_STDIN=`echo "$RUNTIME_JOB_STDIN" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_JOB_STDOUT=`echo "$RUNTIME_JOB_STDOUT" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_JOB_STDERR=`echo "$RUNTIME_JOB_STDERR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_FRONTEND_JOB_DIR="$RUNTIME_JOB_DIR"
-  RUNTIME_JOB_DIR="$RUNTIME_NODE_JOB_DIR"
-fi
-if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
-  mkdir -p "$RUNTIME_JOB_DIR"
-fi
-EOSCR
-echo "" >> $PBS_JOB_SCRIPT
-echo "RESULT=0" >> $PBS_JOB_SCRIPT
-echo "" >> $PBS_JOB_SCRIPT
+move_files_to_node
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 
 
 #####################################################
 #  Download input files
 ####################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $PBS_JOB_SCRIPT
-echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $PBS_JOB_SCRIPT
-cat >> $PBS_JOB_SCRIPT <<'EOSCR'
-if [ -z "$ARC_LOCATION" ] ; then
-  echo 'Variable ARC_LOCATION is not set' 1>&2
-  exit 1
-fi
-if [ -z "$GLOBUS_LOCATION" ] ; then
-  echo 'Variable GLOBUS_LOCATION is not set' 1>&2
-  exit 1
-fi
-export GLOBUS_LOCATION
-export ARC_LOCATION
-export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
-export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
-export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-unset X509_RUN_AS_SERVER
-$ARC_LOCATION/libexec/downloader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-if [ $? -ne '0' ] ; then
-  echo 'ERROR: Downloader failed.' 1>&2
-  RESULT=1
-fi
-EOSCR
-fi
+download_input_files
+
 #####################################################
 #  Go to working dir and start job
 ####################################################
-echo "" >> $PBS_JOB_SCRIPT
-echo "# Changing to session directory" >> $PBS_JOB_SCRIPT
-echo "cd \$RUNTIME_JOB_DIR" >> $PBS_JOB_SCRIPT
-echo "export HOME=\$RUNTIME_JOB_DIR" >> $PBS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Changing to session directory" >> $LRMS_JOB_SCRIPT
+echo "cd \$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
+echo "export HOME=\$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Skip execution if something already failed
 ##############################################################
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $PBS_JOB_SCRIPT
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Runtime configuration at computing node
 ##############################################################
-echo "# Running runtime scripts" >> $PBS_JOB_SCRIPT
-echo "export RUNTIME_CONFIG_DIR=\${RUNTIME_CONFIG_DIR:-$RUNTIME_CONFIG_DIR}" >> $PBS_JOB_SCRIPT
-i=0
-eval "var_is_set=\${joboption_runtime_$i+yes}"
-echo "runtimeenvironments=" >> $PBS_JOB_SCRIPT
-while [ ! -z "${var_is_set}" ] ; do
-  if [ "$i" = '0' ] ; then
-    echo "if [ ! -z \"\$RUNTIME_CONFIG_DIR\" ] ; then" >> $PBS_JOB_SCRIPT
-  fi
-  eval "  var_value=\"\${joboption_runtime_$i}\""
-  echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $PBS_JOB_SCRIPT
-  echo "    runtimeenvironments=\"\${runtimeenvironments}${var_value};\"" >> $PBS_JOB_SCRIPT
-  echo "    source \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $PBS_JOB_SCRIPT
-  echo "    if [ \$? -ne '0' ] ; then " >> $PBS_JOB_SCRIPT
-  echo "      echo \"Runtime ${var_value} script failed \" 1>&2 " >> $PBS_JOB_SCRIPT
-  echo "      echo \"Runtime ${var_value} script failed \" 1>\"\$RUNTIME_JOB_DIAG\" " >> $PBS_JOB_SCRIPT
-  echo "      RESULT=1 " >> $PBS_JOB_SCRIPT
-  echo "    fi " >> $PBS_JOB_SCRIPT
-  echo "  fi" >> $PBS_JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_runtime_$i+yes}"
-done
-if [ ! "$i" = '0' ] ; then
-  echo "fi" >> $PBS_JOB_SCRIPT
-fi
-echo "" >> $PBS_JOB_SCRIPT
+RTE_stage1
 
 
 ##############################################################
 #  Diagnostics
 ##############################################################
-echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $PBS_JOB_SCRIPT
-cat >> $PBS_JOB_SCRIPT <<'EOSCR'
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 if [ ! "X$PBS_NODEFILE" = 'X' ] ; then
   if [ -r "$PBS_NODEFILE" ] ; then
     cat "$PBS_NODEFILE" | sed 's/\(.*\)/nodename=\1/' >> "$RUNTIME_JOB_DIAG"
@@ -565,127 +354,65 @@ if [ ! "X$PBS_NODEFILE" = 'X' ] ; then
 fi
 EOSCR
 if [ ! -z "$NODENAME" ] ; then
-  echo 'if [ "X$PBS_NODEFILE" = X ] ; then' >> $PBS_JOB_SCRIPT
-  echo "  nodename=\`$NODENAME\`" >> $PBS_JOB_SCRIPT
-  echo "  echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $PBS_JOB_SCRIPT
-  echo 'fi' >> $PBS_JOB_SCRIPT
+  echo 'if [ "X$PBS_NODEFILE" = X ] ; then' >> $LRMS_JOB_SCRIPT
+  echo "  nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
+  echo "  echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+  echo 'fi' >> $LRMS_JOB_SCRIPT
 fi
 
 ##############################################################
 #  Check intermediate result again
 ##############################################################
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $PBS_JOB_SCRIPT
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Execution
 ##############################################################
-if [ -z "$GNU_TIME" ] ; then 
-  echo "$joboption_args" >> $PBS_JOB_SCRIPT
-else
-  echo "if [ ! -x \"$GNU_TIME\" ] ; then" >> $PBS_JOB_SCRIPT
-  echo "  echo \"warning='GNU time is missing - resource usage not available'\">\"\$RUNTIME_JOB_DIAG\" " >> $PBS_JOB_SCRIPT
-  echo "  $joboption_args" >> $PBS_JOB_SCRIPT
-  echo "else" >> $PBS_JOB_SCRIPT
-  echo "  \"$GNU_TIME\" -o \"\$RUNTIME_JOB_DIAG\" -a -f '\
-WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\n\
-MaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\n\
-AverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\n\
-AverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\n\
-PageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\n\
-Swaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\n\
-Inputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\n\
-Signals=%k\n' \
-$joboption_args" >> $PBS_JOB_SCRIPT
-  echo "fi" >> $PBS_JOB_SCRIPT
-fi
-
-echo "RESULT=\$?" >> $PBS_JOB_SCRIPT
+cd_and_run
 
 ##############################################################
 #  End of RESULT checks
 ##############################################################
-echo "fi" >> $PBS_JOB_SCRIPT
-echo "fi" >> $PBS_JOB_SCRIPT
+echo "fi" >> $LRMS_JOB_SCRIPT
+echo "fi" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-i=0
-eval "var_is_set=\${joboption_runtime_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  if [ "$i" = '0' ] ; then
-    echo "if [ ! -z \"\$RUNTIME_CONFIG_DIR\" ] ; then" >> $PBS_JOB_SCRIPT
-  fi
-  eval "var_value=\"\${joboption_runtime_$i}\""
-  echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $PBS_JOB_SCRIPT
-  echo "    source \${RUNTIME_CONFIG_DIR}/${var_value} 2 " >> $PBS_JOB_SCRIPT
-  echo "  fi" >> $PBS_JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_runtime_$i+yes}"
-done
-if [ ! "$i" = '0' ] ; then
-  echo "fi" >> $PBS_JOB_SCRIPT
-fi
-echo "" >> $PBS_JOB_SCRIPT
+configure_runtime
 
 #####################################################
 #  Upload output files
 ####################################################
 if [ "$joboption_localtransfer" = 'yes' ] ; then
-cat >> $PBS_JOB_SCRIPT <<'EOSCR'
-if [ "$RESULT" = '0' ] ; then
-  $ARC_LOCATION/libexec/uploader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-  if [ $? -ne '0' ] ; then
-    echo 'ERROR: Uploader failed.' 1>&2
-    if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
-  fi
-fi
-rm -f "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-EOSCR
+  upload_output_files
 else
 # There is no sense to keep trash till GM runs uploader
-  echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $PBS_JOB_SCRIPT
+  echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
 # Delete all files except listed in job.#.output
-  echo '  find ./ -type l -exec rm -f "{}" ";"' >> $PBS_JOB_SCRIPT
-  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $PBS_JOB_SCRIPT
+  echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
   if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
     cat "$joboption_controldir/job.$joboption_gridid.output" | \
     sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' | \
     { while true ; do
       read name
       if [ $? -ne '0' ] ; then break ; fi
-      echo "  chmod -R u-w \"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$name\" 2>/dev/null" >> $PBS_JOB_SCRIPT
+      echo "  chmod -R u-w \"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$name\" 2>/dev/null" >> $LRMS_JOB_SCRIPT
     done; }
   fi
-  echo '  find ./ -type f -perm +200 -exec rm -f "{}" ";"' >> $PBS_JOB_SCRIPT
-  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $PBS_JOB_SCRIPT
-  echo 'fi' >> $PBS_JOB_SCRIPT
+  echo '  find ./ -type f -perm +200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo 'fi' >> $LRMS_JOB_SCRIPT
 fi
-echo "" >> $PBS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 # !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
 ##############################################################
-cat >> $PBS_JOB_SCRIPT <<'EOSCR'
-if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
-  if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
-    # just move it
-    rm "$RUNTIME_FRONTEND_JOB_DIR"
-    mv "$RUNTIME_NODE_JOB_DIR" `dirname "$RUNTIME_FRONTEND_JOB_DIR"`
-  else
-    # remove links
-    rm "$RUNTIME_JOB_STDOUT" 2>/dev/null
-    rm "$RUNTIME_JOB_STDERR" 2>/dev/null
-    # move whole directory
-    cp -pR "$RUNTIME_NODE_JOB_DIR" `dirname "$RUNTIME_FRONTEND_JOB_DIR"`
-    rm -rf "$RUNTIME_NODE_JOB_DIR"
-  fi
-fi
-echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
-exit $RESULT
-EOSCR
+move_files_to_frontend
 
 #######################################
 #  Submit the job
@@ -695,13 +422,13 @@ echo "PBS job script built" 1>&2
 cd "$joboption_directory"
 echo "PBS script follows:" 1>&2
 echo "-------------------------------------------------------------------" 1>&2
-cat "$PBS_JOB_SCRIPT" 1>&2
+cat "$LRMS_JOB_SCRIPT" 1>&2
 echo "-------------------------------------------------------------------" 1>&2
 echo "" 1>&2
 PBS_RESULT=1
 PBS_TRIES=0
 while [ "$PBS_TRIES" -lt '10' ] ; do
-  ${PBS_QSUB} < $PBS_JOB_SCRIPT 1>$PBS_JOB_OUT 2>$PBS_JOB_ERR
+  ${PBS_QSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   PBS_RESULT="$?"
   if [ "$PBS_RESULT" -eq '0' ] ; then break ; fi 
   if [ "$PBS_RESULT" -eq '198' ] ; then 
@@ -710,7 +437,7 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
     PBS_TRIES=0
     continue
   fi
-  grep 'maximum number of jobs' "$PBS_JOB_OUT" "$PBS_JOB_ERR"
+  grep 'maximum number of jobs' "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
   if [ $? -eq '0' ] ; then 
     echo "Waiting for queue to decrease" 1>&2
     sleep 60
@@ -721,7 +448,7 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
   sleep 2
 done
 if [ $PBS_RESULT -eq '0' ] ; then
-   job_id=`cat $PBS_JOB_OUT`
+   job_id=`cat $LRMS_JOB_OUT`
    if [ "${job_id}" = "" ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the pbs jobid for the job!" 1>&2
@@ -731,7 +458,7 @@ if [ $PBS_RESULT -eq '0' ] ; then
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary job script file
-      rm -f $PBS_JOB_SCRIPT $PBS_JOB_OUT $PBS_JOB_ERR
+      rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
       echo "----- exiting submit_pbs_job -----" 1>&2
       echo "" 1>&2
       exit 0
@@ -742,10 +469,10 @@ else
   echo "Submission: Local submission client failed.">>"$failures_file"
 fi
 echo "Output is:" 1>&2
-cat $PBS_JOB_OUT 1>&2
+cat $LRMS_JOB_OUT 1>&2
 echo "Error output is:"
-cat $PBS_JOB_ERR 1>&2
-rm -f "$PBS_JOB_SCRIPT" "$PBS_JOB_OUT" "$PBS_JOB_ERR"
+cat $LRMS_JOB_ERR 1>&2
+rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
 echo "----- exiting submit_pbs_job -----" 1>&2
 echo "" 1>&2
 exit 1

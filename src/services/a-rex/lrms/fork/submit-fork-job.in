@@ -2,114 +2,56 @@
 # set -x
 #
 #  Input: path to grami file (same as Globus).
-#
-# The temporary job script is created for the submission and then removed 
-# at the end of this script. 
+#  This script creates a temporary job script and runs it.
 
 echo "----- starting submit_fork_job -----" 1>&2
 joboption_lrms=fork
 
-walltime_ratio='1'
+if [ -z ${ARC_LOCATION} ] ; then
+    echo "ARC_LOCATION not set." 1>&2
+    exit 1
+fi
+. ${ARC_LOCATION}/libexec/submit_common.sh
+
+init
+
 ##############################################################
 # These should be set automatically
 ##############################################################
-# Where to store temporary files on gatekeeper
-TMP_DIR=${TMP_DIR:-@tmp_dir@}
 # Where runtime scripts can be found on computing nodes (empty if does not exist)
-RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@runtime_config_dir@}
-# Where GNU time utility is located on computing nodes (empty if does not exist)
-GNU_TIME=${GNU_TIME:-@gnu_time@}
-# Command to get name of executing node
-NODENAME=${NODENAME:-@nodename@}
-# Description of (cross-)mounted disc space on cluster
-RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-@runtime_local_scratch_dir@}
+RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
+export RUNTIME_CONFIG_DIR
 # For fork job only directory we need is local scratch
-RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_frontend_sees_node@}
+RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-@runtime_local_scratch@}
 RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
-RUNTIME_ARC_LOCATION="$ARC_LOCATION"
-RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 
 
-arg_file=$1
 ##############################################################
-# Source the argument file. 
+# Parse argument file
 ##############################################################
-if [ -z "$arg_file" ] ; then
-   echo "Arguments file should be specified" 1>&2
-   exit 1
-fi
-if [ ! -f $arg_file ] ; then
-   echo "Missing arguments file" 1>&2
-   exit 1
-fi
-. $arg_file
+parse_arg_file $1
 
-echo "joboption_user=`whoami`" >> $arg_file
-
-if [ -z "$joboption_controldir" ] ; then
-  joboption_controldir=`dirname "$arg_file"`
-  if [ "$joboption_controldir" = '.' ] ; then
-    joboption_controldir="$PWD"
-  fi
-fi
-if [ -z "$joboption_gridid" ] ; then
-  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
-fi
-##############################################################
-# combine arguments to command -  easier to use
-##############################################################
-i=0
-joboption_args=
-eval "var_is_set=\${joboption_arg_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_arg_$i}"
-  var_value=`echo "$var_value" | sed 's/\\\\/\\\\\\\\/' | sed 's/"/\\\"/'`
-  joboption_args="$joboption_args \"${var_value}\""
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_arg_$i+yes}"
-done
 
 ##############################################################
 # Zero stage of runtime environments
 ##############################################################
-joboption_num=0
-eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_runtime_$joboption_num}"
-  if [ -r "$RUNTIME_CONFIG_DIR/${var_value}" ] ; then
-    . "$RUNTIME_CONFIG_DIR/${var_value}" "0"
-  else
-    echo "Warning: runtime script ${var_value} is missing" 1>&2
-  fi
-  joboption_num=$(( joboption_num + 1 ))
-  eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
-done
+RTE_stage0
 
-tmpdir=${TMP_DIR:-@tmp_dir@}
 
-# File name to be used for temporary job script
-JOB_SCRIPT=`mktemp ${tmpdir}/fork_job_script.XXXXXX`
-if [ -z "$JOB_SCRIPT" ] ; then 
-  echo "Creation of temporary file failed"
-  exit 1
-fi
-chmod u+x ${JOB_SCRIPT}
-JOB_SCRIPT_OUT="${JOB_SCRIPT}.out"
-touch $JOB_SCRIPT_OUT
-JOB_SCRIPT_ERR="${JOB_SCRIPT}.err"
-touch $JOB_SCRIPT_ERR
-if [ ! -f "$JOB_SCRIPT" ] || [ ! -f "$JOB_SCRIPT_OUT" ] || [ ! -f "$JOB_SCRIPT_ERR" ] ; then 
-  echo "Something is wrong. Either somebody is playing bad or can't write to ${tmpdir}"
-  exit 1
-fi
+##############################################################
+# create job script
+##############################################################
+mktempscript
+chmod u+x ${LRMS_JOB_SCRIPT}
+
 
 ##############################################################
 # Start job script
 ##############################################################
-echo -n "#" > $JOB_SCRIPT
-echo "! /bin/sh" >> $JOB_SCRIPT
-echo "# Fork job script built by grid-manager" >> $JOB_SCRIPT
-echo "" >> $JOB_SCRIPT
+echo -n "#" > $LRMS_JOB_SCRIPT
+echo "! /bin/sh" >> $LRMS_JOB_SCRIPT
+echo "# Fork job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # non-parallel jobs
@@ -135,59 +77,21 @@ elif [ ! -z "$joboption_cputime" ] ; then
   maxwalltime="$joboption_cputime"
 fi
 if [ ! -z "$maxwalltime" ] ; then
-  echo "ulimit -t $maxwalltime" >> $JOB_SCRIPT
+  echo "ulimit -t $maxwalltime" >> $LRMS_JOB_SCRIPT
 fi
 
-echo "" >> $JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 
 
 ##############################################################
 # Add environment variables
 ##############################################################
-echo "# Setting environment variables as specified by user" >> $JOB_SCRIPT
-i=0
-eval "var_is_set=\${joboption_env_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  eval "var_value=\${joboption_env_$i}"
-  echo "export ${var_value}" >> $JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_env_$i+yes}"
-done
-
-echo "" >> $JOB_SCRIPT
+add_user_env
 
 ##############################################################
 #  Runtime configuration
 ##############################################################
-echo "# Running runtime scripts" >> $JOB_SCRIPT
-echo "export RUNTIME_CONFIG_DIR=\${RUNTIME_CONFIG_DIR:-$RUNTIME_CONFIG_DIR}" >> $JOB_SCRIPT
-i=0
-eval "var_is_set=\${joboption_runtime_$i+yes}"
-echo "runtimeenvironments=" >> $JOB_SCRIPT
-while [ ! -z "${var_is_set}" ] ; do
-  if [ "$i" = '0' ] ; then
-    echo "if [ ! -z \"\$RUNTIME_CONFIG_DIR\" ] ; then" >> $JOB_SCRIPT
-  fi
-  eval "var_value=\"\${joboption_runtime_$i}\""
-  echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $JOB_SCRIPT
-  echo "    runtimeenvironments=\"\${runtimeenvironments}${var_value};\"" >> $JOB_SCRIPT
-  echo "    source \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $JOB_SCRIPT
-  echo "  fi" >> $JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_runtime_$i+yes}"
-done
-if [ ! "$i" = '0' ] ; then
-  echo "fi" >> $JOB_SCRIPT
-fi
-
-echo "" >> $JOB_SCRIPT
-
-gate_host=`uname -n`
-if [ -z "$gate_host" ] ; then 
-  echo "Can't get own hostname" 1>&2
-  rm -f "$JOB_SCRIPT" "$JOB_SCRIPT_OUT" "$JOB_SCRIPT_ERR"
-  exit 1
-fi
+RTE_stage1 
 
 ##############################################################
 # Check for existance of executable,
@@ -196,249 +100,63 @@ if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
   exit 1
 fi
+
 #######################################################################
 # copy information useful for transfering files to/from node directly
 #######################################################################
 if [ "$joboption_localtransfer" = 'yes' ] ; then
-  RUNTIME_CONTROL_DIR=`mktemp ${joboption_directory}/control.XXXXXX`
-  if [ -z "$RUNTIME_CONTROL_DIR" ] ; then
-    echo 'Failed to choose name for temporary control directory' 1>&2
-    exit 1
-  fi
-  rm -f "$RUNTIME_CONTROL_DIR"
-  mkdir "$RUNTIME_CONTROL_DIR"
-  if [ $? -ne '0' ] ; then
-    echo 'Failed to create temporary control directory' 1>&2
-    exit 1
-  fi
-  chmod go-rwx,u+rwx "${RUNTIME_CONTROL_DIR}"
-  echo '' >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  chmod go-rw,u+r,a-x "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.proxy" >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.input" >"${RUNTIME_CONTROL_DIR}/job.local.input"
-  cat "${joboption_controldir}/job.${joboption_gridid}.output" >"${RUNTIME_CONTROL_DIR}/job.local.output"
-  RUNTIME_CONTROL_DIR_REL=`basename "$RUNTIME_CONTROL_DIR"`
-  echo "$RUNTIME_CONTROL_DIR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${RUNTIME_CONTROL_DIR}/job.local.output"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${joboption_controldir}/job.${joboption_gridid}.output"
-  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}##"`
-  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}##"`
-  echo "$RUNTIME_STDOUT_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_STDERR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "RUNTIME_CONTROL_DIR=$RUNTIME_CONTROL_DIR" >> $JOB_SCRIPT
+   setup_local_transfer
 fi
 
-######################################################################
-# Adjust working directory for tweaky nodes
-# RUNTIME_GRIDAREA_DIR should be defined by external means on nodes
-######################################################################
-echo "RUNTIME_JOB_DIR=$joboption_directory" >> $JOB_SCRIPT
-echo "RUNTIME_JOB_STDIN=$joboption_stdin" >> $JOB_SCRIPT
-echo "RUNTIME_JOB_STDOUT=$joboption_stdout" >> $JOB_SCRIPT
-echo "RUNTIME_JOB_STDERR=$joboption_stderr" >> $JOB_SCRIPT
-echo "RUNTIME_JOB_DIAG=${joboption_directory}.diag" >> $JOB_SCRIPT
-echo "if [ ! -z \"\$RUNTIME_GRIDAREA_DIR\" ] ; then" >> $JOB_SCRIPT
-echo "  RUNTIME_JOB_DIR=\$RUNTIME_GRIDAREA_DIR/\`basename \$RUNTIME_JOB_DIR\`" >> $JOB_SCRIPT
-echo "  RUNTIME_JOB_STDIN=\`echo \"\$RUNTIME_JOB_STDIN\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $JOB_SCRIPT
-echo "  RUNTIME_JOB_STDOUT=\`echo \"\$RUNTIME_JOB_STDOUT\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $JOB_SCRIPT
-echo "  RUNTIME_JOB_STDERR=\`echo \"\$RUNTIME_JOB_STDERR\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $JOB_SCRIPT
-echo "  RUNTIME_JOB_DIAG=\`echo \"\$RUNTIME_JOB_DIAG\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $JOB_SCRIPT
-echo "  RUNTIME_CONTROL_DIR=\`echo \"\$RUNTIME_CONTROL_DIR\" | sed \"s#^$joboption_directory#\$RUNTIME_JOB_DIR#\"\`" >> $JOB_SCRIPT
-echo "fi" >> $JOB_SCRIPT
+setup_runtime_env
 
 ##############################################################
 # Add std... to job arguments
 ##############################################################
-if [ ! -z "$joboption_stdin" ] ; then
-  joboption_args="$joboption_args <\$RUNTIME_JOB_STDIN"
-fi
-if [ ! -z "$joboption_stdout" ] ; then
-  joboption_args="$joboption_args 1>\$RUNTIME_JOB_STDOUT"
-fi
-if [ ! -z "$joboption_stderr" ] ; then
-  if [ X"$joboption_stderr" = X"$joboption_stdout" ] ; then
-    joboption_args="$joboption_args 2>&1"
-  else
-    joboption_args="$joboption_args 2>\$RUNTIME_JOB_STDERR"
-  fi
-fi
+include_std_streams
 
 ##############################################################
 #  Move files to local working directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
-echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-$RUNTIME_LOCAL_SCRATCH_DIR}" >> $JOB_SCRIPT
-echo "RUNTIME_FRONTEND_SEES_NODE=\${RUNTIME_FRONTEND_SEES_NODE:-$RUNTIME_FRONTEND_SEES_NODE}" >> $JOB_SCRIPT
-echo "RUNTIME_NODE_SEES_FRONTEND=\${RUNTIME_NODE_SEES_FRONTEND:-$RUNTIME_NODE_SEES_FRONTEND}" >> $JOB_SCRIPT
-cat >> $JOB_SCRIPT <<'EOSCR'
-if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
-  # moving (!!!!! race condition here - while there is no job directory
-  # gridftp can create the one with the same name !!!!!)
-  RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
-  rm -rf "$RUNTIME_NODE_JOB_DIR"
-  mv "$RUNTIME_JOB_DIR" "$RUNTIME_LOCAL_SCRATCH_DIR"
-  if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
-    # creating link for whole directory
-    ln -s "$RUNTIME_FRONTEND_SEES_NODE"/`basename "$RUNTIME_JOB_DIR"` "$RUNTIME_JOB_DIR"
-  else
-    # keep stdout, stderr and control directory on frontend
-    # recreate job directory
-    mkdir "$RUNTIME_JOB_DIR"
-    # make those files
-    mkdir -p `dirname "$RUNTIME_JOB_STDOUT"`
-    mkdir -p `dirname "$RUNTIME_JOB_STDERR"`
-    touch "$RUNTIME_JOB_STDOUT"
-    touch "$RUNTIME_JOB_STDERR"
-    RUNTIME_JOB_STDOUT__=`echo "$RUNTIME_JOB_STDOUT" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-    RUNTIME_JOB_STDERR__=`echo "$RUNTIME_JOB_STDERR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-    rm "$RUNTIME_JOB_STDOUT__" 2>/dev/null
-    rm "$RUNTIME_JOB_STDERR__" 2>/dev/null
-    if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
-      ln -s "$RUNTIME_JOB_STDOUT" "$RUNTIME_JOB_STDOUT__"
-    fi
-    if [ "$RUNTIME_JOB_STDOUT__" != "$RUNTIME_JOB_STDERR__" ] ; then
-      if [ ! -z "$RUNTIME_JOB_STDOUT__" ] ; then
-        ln -s "$RUNTIME_JOB_STDERR" "$RUNTIME_JOB_STDERR__"
-      fi
-    fi
-    if [ ! -z "$RUNTIME_CONTROL_DIR" ] ; then
-      # move control directory back to frontend
-      RUNTIME_CONTROL_DIR__=`echo "$RUNTIME_CONTROL_DIR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-      mv "$RUNTIME_CONTROL_DIR__" "$RUNTIME_CONTROL_DIR"
-    fi    
-  fi
-  # adjust stdin,stdout & stderr pointers
-  RUNTIME_JOB_STDIN=`echo "$RUNTIME_JOB_STDIN" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_JOB_STDOUT=`echo "$RUNTIME_JOB_STDOUT" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_JOB_STDERR=`echo "$RUNTIME_JOB_STDERR" | sed "s#^${RUNTIME_JOB_DIR}#${RUNTIME_NODE_JOB_DIR}#"`
-  RUNTIME_FRONTEND_JOB_DIR="$RUNTIME_JOB_DIR"
-  RUNTIME_JOB_DIR="$RUNTIME_NODE_JOB_DIR"
-fi
-EOSCR
+move_files_to_node 
 
-echo "" >> $JOB_SCRIPT
-echo "RESULT=0" >> $JOB_SCRIPT
-echo "" >> $JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
 
 
 #####################################################
 #  Download input files
-####################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $JOB_SCRIPT
-echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $JOB_SCRIPT
-cat >> $JOB_SCRIPT <<'EOSCR'
-if [ -z "$ARC_LOCATION" ] ; then
-  echo 'Variable ARC_LOCATION is not set' 1>&2
-  exit 1
-fi
-if [ -z "$GLOBUS_LOCATION" ] ; then
-  echo 'Variable GLOBUS_LOCATION is not set' 1>&2
-  exit 1
-fi
-export GLOBUS_LOCATION
-export ARC_LOCATION
-export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
-export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
-export X509_USER_KEY=fake
-export X509_USER_CERT=fake
-export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-unset X509_RUN_AS_SERVER
-$ARC_LOCATION/libexec/downloader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-if [ $? -ne '0' ] ; then
-  echo 'ERROR: Downloader failed.' 1>&2
-  RESULT=1
-fi
-EOSCR
-fi
+#####################################################
+download_input_files
+
+echo "" >> $LRMS_JOB_SCRIPT
 
 #####################################################
 #  Go to working dir and start job
-####################################################
-echo "" >> $JOB_SCRIPT
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $JOB_SCRIPT
-echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $JOB_SCRIPT
-if [ ! -z "$NODENAME" ] ; then
-  echo "nodename=\`$NODENAME\`" >> $JOB_SCRIPT
-  echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $JOB_SCRIPT
-fi
-echo "# Changing to session directory" >> $JOB_SCRIPT
-echo "cd \$RUNTIME_JOB_DIR" >> $JOB_SCRIPT
-echo "export HOME=\$RUNTIME_JOB_DIR" >> $JOB_SCRIPT
-if [ -z "$GNU_TIME" ] ; then 
-  echo "$joboption_args" >> $JOB_SCRIPT
-else
-  echo "$GNU_TIME -o \"\$RUNTIME_JOB_DIAG\" -a -f '\
-WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\n\
-MaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\n\
-AverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\n\
-AverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\n\
-PageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\n\
-Swaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\n\
-Inputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\n\
-Signals=%k\n' \
-$joboption_args" >> $JOB_SCRIPT
-fi
-echo "RESULT=\$?" >> $JOB_SCRIPT
-echo "fi" >> $JOB_SCRIPT
+#####################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+cd_and_run
+echo "fi" >> $LRMS_JOB_SCRIPT
 
 #####################################################
 #  Upload output files
-####################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-cat >> $JOB_SCRIPT <<'EOSCR'
-if [ "$RESULT" = '0' ] ; then
-  $ARC_LOCATION/libexec/uploader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-  if [ $? -ne '0' ] ; then
-    echo 'ERROR: Uploader failed.' 1>&2
-    if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
-  fi
-fi
-rm -f "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-EOSCR
-fi
+#####################################################
+upload_output_files
+echo "" >> $LRMS_JOB_SCRIPT
 
-echo "" >> $JOB_SCRIPT
-i=0
-eval "var_is_set=\${joboption_runtime_$i+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-  if [ "$i" = '0' ] ; then
-    echo "if [ ! -z \"\$RUNTIME_CONFIG_DIR\" ] ; then" >> $JOB_SCRIPT
-  fi
-  eval "var_value=\"\${joboption_runtime_$i}\""
-  echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $JOB_SCRIPT
-  echo "    source \${RUNTIME_CONFIG_DIR}/${var_value} 2 " >> $JOB_SCRIPT
-  echo "  fi" >> $JOB_SCRIPT
-  i=$(( i + 1 ))
-  eval "var_is_set=\${joboption_runtime_$i+yes}"
-done
-if [ ! "$i" = '0' ] ; then
-  echo "fi" >> $JOB_SCRIPT
-fi
-echo "" >> $JOB_SCRIPT
+##############################################################
+#  Runtime (post)configuration at computing node
+##############################################################
+configure_runtime
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
-cat >> $JOB_SCRIPT <<'EOSCR'
-if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
-  if [ ! -z "$RUNTIME_FRONTEND_SEES_NODE" ] ; then
-    # just move it
-    rm "$RUNTIME_FRONTEND_JOB_DIR"
-    mv "$RUNTIME_NODE_JOB_DIR" `dirname "$RUNTIME_FRONTEND_JOB_DIR"`
-  else
-    # remove links
-    rm "$RUNTIME_JOB_STDOUT" 2>/dev/null
-    rm "$RUNTIME_JOB_STDERR" 2>/dev/null
-    # move whole directory
-    cp -pR "$RUNTIME_NODE_JOB_DIR" `dirname "$RUNTIME_FRONTEND_JOB_DIR"`
-    rm -rf "$RUNTIME_NODE_JOB_DIR"
-  fi
-fi
-echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
-exit $RESULT
-EOSCR
+move_files_to_frontend
 
 
 #######################################
@@ -472,16 +190,16 @@ watcher() {
 #######################################
 #  Submit the job
 #######################################
-echo "job script ${JOB_SCRIPT} built" 1>&2
+echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 
 # simple queuing system: make hard reference to the queue
 cd "$joboption_directory"
-watcher "${JOB_SCRIPT}" "${JOB_SCRIPT_OUT}" "${JOB_SCRIPT_ERR}" &
+watcher "${LRMS_JOB_SCRIPT}" "${LRMS_JOB_OUT}" "${LRMS_JOB_ERR}" &
 job_id=$!
 result=
 while [ -z "$result" ]; do
     sleep 1
-    result=`cat $JOB_SCRIPT_ERR`
+    result=`cat $LRMS_JOB_ERR`
 done
 
 case "$result" in
@@ -495,12 +213,13 @@ case "$result" in
         echo "job *NOT* submitted successfully!" 1>&2
         echo "" 1>&2
         echo "Output is:" 1>&2
-        cat $JOB_SCRIPT_OUT 1>&2
-        rm -f $JOB_SCRIPT $JOB_SCRIPT_OUT $JOB_SCRIPT_ERR
+        cat $LRMS_JOB_OUT 1>&2
+        rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
         rc=1
         ;;
 esac
-rm "$JOB_SCRIPT_ERR"
+rm "$LRMS_JOB_ERR"
+
 echo "----- exiting submit_fork_job -----" 1>&2
 echo "" 1>&2
 exit $rc

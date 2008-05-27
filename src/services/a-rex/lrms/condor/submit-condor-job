@@ -315,19 +315,21 @@ sub create_condor_job_description {
         $output .= "Requirements = (" . (join ") && (", @requirements) . ")\n";
     }
 
-#   if (notnull($grami{joboption_rsl_inputfiles})) {
-#       # TODO: should I change the split pattern to / /, so that it doesn't
-#       # squeeze together multiple spaces?  If the size.checksum pair is
-#       # optional, the / / variant must be used.  If not, the ' ' variant
-#       # is better since it allows for variations in placing whitespace.
-#       my @tmp = split ' ', $grami{joboption_rsl_inputfiles};
-#       $output .= "Transfer_input_files = ";
-#       for (my $i = 0; $i < @tmp; $i += 2) {
-#           $output .= ',' if $i > 0;
-#           $output .= $tmp[$i];
-#       }
-#       $output .= "\n";
-#   }
+    # Option to force Condor to transfer of input and output files by itself
+    if ($config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_rsl_inputfiles})) {
+        chomp($grami{joboption_rsl_inputfiles});
+        my @tmp = split / /, $grami{joboption_rsl_inputfiles};
+        $output .= "Transfer_input_files = ";
+        for (my $i = 0; $i < @tmp; $i += 2) {
+            $output .= ',' if $i > 0;
+            $output .= $tmp[$i];
+        }
+        $output .= "\n";
+        $output .= "should_transfer_files = YES\n";
+        # No need to specify output files explicitly. Condor will transfer all
+        # files from the job directory that were created or modified by the job
+        $output .= "When_to_transfer_output = ON_EXIT_OR_EVICT\n";
+    }
 
     if (notnull($grami{joboption_env_0})) {
         $output .= "Environment = ";

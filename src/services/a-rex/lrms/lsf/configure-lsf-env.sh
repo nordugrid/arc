@@ -15,7 +15,7 @@ if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
     exit 1
 fi
 
-source $ARC_LOCATION/libexec/config_parser.sh
+. $ARC_LOCATION/libexec/config_parser.sh
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
