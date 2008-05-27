@@ -109,7 +109,7 @@ void getfromURL(const std::string name, std::string& xml_policy){
   } catch(std::exception&) { };
 }
 
-Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext* ctx){
+Policy* PolicyParser::parsePolicy(const std::string& sourcename, std::string policyclassname, EvaluatorContext* ctx){
   std::string xml_policy;
   int pos = sourcename.find("://");
   if(pos == std::string::npos) {
@@ -125,8 +125,11 @@ Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext
 
   Arc::ClassLoader* classloader = NULL;
   classloader=Arc::ClassLoader::getClassLoader();
-  std::string policy_class = "arc.policy";
-  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policy_class, (void**)(void*)&node));  
+  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, (void**)(void*)&node));  
+  if(policy == NULL) { logger.msg(ERROR, "Can not generate policy object"); return NULL; }
+  policy->setEvaluatorContext(ctx);
+  policy->make_policy();
+
   return policy;
 
   //return(new ArcPolicy(&node, ctx));

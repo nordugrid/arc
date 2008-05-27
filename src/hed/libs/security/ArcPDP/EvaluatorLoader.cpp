@@ -28,6 +28,7 @@ namespace ArcSec {
           <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
           <Plugin Name='__arc_evaluator_modules__'>evaluator</Plugin>\
           <Plugin Name='__arc_request_modules__'>request</Plugin>\
+          <Plugin Name='__arc_policy_modules__'>policy</Plugin>\
      </Plugins>\
      <pdp:PDPConfig>\
           <pdp:AttributeFactory name='attr.factory' />\
@@ -35,6 +36,7 @@ namespace ArcSec {
           <pdp:FunctionFactory name='fn.factory' />\
           <pdp:Evaluator name='arc.evaluator' />\
           <pdp:Request name='arc.request' />\
+          <pdp:Policy name='arc.policy' />\
      </pdp:PDPConfig>\
     </ArcConfig>");
 

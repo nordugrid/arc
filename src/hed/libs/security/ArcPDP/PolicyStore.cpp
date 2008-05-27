@@ -7,28 +7,17 @@
 #include "PolicyParser.h"
 #include "PolicyStore.h"
 
-/*
-//Should we provide different ClassLoader for different "get" function with different arguments?
-static Arc::LoadableClass* get_policy_store (const std::list<std::string>& filelist, const std::string& alg) {
-    return new ArcSec::PolicyStore(filelist, alg);
-}
-
-loader_descriptors __arc_policystore_modules__  = {
-    { "policy.store", 0, &get_policy_store },
-    { NULL, 0, NULL }
-};
-*/
-
 using namespace Arc;
 using namespace ArcSec;
 
-PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, EvaluatorContext* ctx){
+PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx){
   //combalg = alg;
-  PolicyParser plparser;
-  
+  policy_classname = policyclassname;
+
+  PolicyParser plparser;  
   //call parsePolicy to parse each policies
   for(std::list<std::string>::const_iterator it = filelist.begin(); it != filelist.end(); it++){
-    policies.push_back(PolicyElement(plparser.parsePolicy(*it, ctx)));
+    policies.push_back(PolicyElement(plparser.parsePolicy(*it,policy_classname, ctx)));
   }    
 }
 
@@ -55,7 +44,14 @@ std::list<PolicyStore::PolicyElement> PolicyStore::findPolicy(EvaluationCtx*) { 
 
 void PolicyStore::addPolicy(const std::string& policyfile, EvaluatorContext* ctx, const std::string& id) {
   PolicyParser plparser;
-  policies.push_back(PolicyElement(plparser.parsePolicy(policyfile, ctx),id));
+  policies.push_back(PolicyElement(plparser.parsePolicy(policyfile, policy_classname, ctx),id));
+}
+
+void PolicyStore::addPolicy(BasePolicy* policy, EvaluatorContext* ctx,const std::string& id) {
+  Policy* pls = dynamic_cast<Policy*>(policy);
+  if(pls!=NULL) {
+    policies.push_back(PolicyElement(pls, id));
+  }
 }
 
 void PolicyStore::removePolicies(void) {

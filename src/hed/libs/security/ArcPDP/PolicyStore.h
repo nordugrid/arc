@@ -27,7 +27,7 @@ public:
   PolicyStore();
 
   //plist is the list of policy sources, alg is the combing algorithm between these sources
-  PolicyStore(const std::list<std::string>& plist, const std::string& alg, EvaluatorContext* ctx);
+  PolicyStore(const std::list<std::string>& plist, const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx);
 
   virtual ~PolicyStore();
   
@@ -35,13 +35,16 @@ public:
 
   virtual void addPolicy(const std::string& policyfile, EvaluatorContext* ctx,const std::string& id);
 
+  virtual void addPolicy(BasePolicy* policy, EvaluatorContext* ctx,const std::string& id);
+
   virtual void removePolicies();
 
   // std::list<std::string> policysrclist;
 private:
   std::list<PolicyElement> policies;
   //std::string combalg;
- 
+  
+  std::string policy_classname;
 };
 
 } // namespace ArcSec

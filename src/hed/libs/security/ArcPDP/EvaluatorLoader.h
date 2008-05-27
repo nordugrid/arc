@@ -5,6 +5,7 @@
 
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {

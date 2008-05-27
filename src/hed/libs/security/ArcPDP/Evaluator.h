@@ -72,8 +72,11 @@ public:
   /**Get the AlgFactory object*/
   virtual AlgFactory* getAlgFactory () = 0;
 
-  /**Add policy to the evaluator*/
+  /**Add policy to the evaluator, use filename as argument*/
   virtual void addPolicy(const std::string& policyfile,const std::string& id = "") = 0;
+
+  /**Add policy to the evaluator, use Policy object as argument*/
+  virtual void addPolicy(BasePolicy* policy,const std::string& id = "") = 0;
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) = 0;
 
