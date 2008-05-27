@@ -13,12 +13,19 @@ namespace ArcSec {
 ///ArcPolicy class to parse and operate Arc specific <Policy> node
 class ArcPolicy : public Policy {
 public:
-  /**Constructor - */
-  ArcPolicy(Arc::XMLNode& node, EvaluatorContext* ctx);  
+  /**Constructor*/
+  ArcPolicy(Arc::XMLNode* node);
+
+  /**Constructor*/
+  ArcPolicy(Arc::XMLNode* node, EvaluatorContext* ctx);  
 
   virtual ~ArcPolicy();  
 
   virtual Result eval(EvaluationCtx* ctx);
+
+  virtual void setEvaluatorContext(EvaluatorContext* evaluatorcontext) { evaluatorctx = evaluatorcontext; };
+
+  virtual void make_policy();
 
   virtual MatchResult match(EvaluationCtx* ctx);
 
@@ -35,6 +42,9 @@ private:
   CombiningAlg *comalg;
   std::string description;
 
+  /**Evaluator Context which contains factory object*/
+  EvaluatorContext* evaluatorctx;
+
   /**Algorithm factory*/
   AlgFactory *algfactory;
 
@@ -45,7 +55,6 @@ private:
 
 protected:
   static Arc::Logger logger;
-
 };
 
 } // namespace ArcSec

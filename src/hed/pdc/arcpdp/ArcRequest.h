@@ -35,14 +35,16 @@ public:
   //**Parse request information from a xml stucture in memory*/
   ArcRequest (const Arc::XMLNode* node);
 
+  //**Parse request information from a file*/
+  ArcRequest (const char* reqfile);
+
+  //**Parse request information from a string*/
+  ArcRequest (std::string& reqstring);
+
   virtual ~ArcRequest();
 
   //**Create the objects included in Request according to the node attached to the Request object*/
   virtual void make_request();
-
-protected:
-  //**Parse request information from a file*/
-  ArcRequest (const char* filename);
 
 private:
   //**AttributeFactory which is in charge of producing Attribute*/

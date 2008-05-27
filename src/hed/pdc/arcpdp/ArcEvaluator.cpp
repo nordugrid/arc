@@ -2,16 +2,15 @@
 #include <config.h>
 #endif
 
-#include <arc/loader/ClassLoader.h>
-
-#include "ArcEvaluator.h"
-
-#include <arc/security/ArcPDP/Request.h>
-#include "ArcRequest.h"
-#include <arc/security/ArcPDP/Response.h>
-#include <arc/security/ArcPDP/EvaluationCtx.h>
 #include <fstream>
 #include <iostream>
+
+#include <arc/loader/ClassLoader.h>
+#include <arc/security/ArcPDP/Request.h>
+#include <arc/security/ArcPDP/Response.h>
+#include <arc/security/ArcPDP/EvaluationCtx.h>
+
+#include "ArcEvaluator.h"
 
 static Arc::LoadableClass* get_evaluator(void** arg) {
     return new ArcSec::ArcEvaluator((Arc::XMLNode*) arg);
@@ -88,26 +87,23 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   classloader=ClassLoader::getClassLoader();
 
   attrfactory=NULL;
-  //attrfactory = dynamic_cast<Arc::ArcAttributeFactory*>(classloader.Instance(attributefactory, NULL));
   attrfactory = (AttributeFactory*)(classloader->Instance(attributefactory));
   if(attrfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce AttributeFactory");
 
   fnfactory=NULL;
-  //fnfactory = dynamic_cast<Arc::ArcFnFactory*>(classloader.Instance(functionfactory, NULL));
   fnfactory = (FnFactory*)(classloader->Instance(functionfactory));
   if(fnfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce FnFactory");
 
   algfactory=NULL;
-  //algfactory = dynamic_cast<Arc::ArcAlgFactory*>(classloader.Instance(combingalgfactory, NULL));
   algfactory = (AlgFactory*)(classloader->Instance(combingalgfactory));
   if(algfactory == NULL)
     logger.msg(ERROR, "Can not dynamically produce AlgFacroty");
 
+  //Create the EvaluatorContext for the usage of creating Policy
   context = new EvaluatorContext(this);
 
-  //Temporary solution, should also make PolicyStore dynamically loadable
   std::list<std::string> filelist;
   //filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
@@ -151,8 +147,8 @@ Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
   std::string requestor;
 
   Arc::ClassLoader* classloader = NULL;
-  //Since the configuration file has been parsed before, 
-  //it is not necessary to parse once more here
+  //Since the configuration information for loader has been got before (when create ArcEvaluator), 
+  //it is not necessary to get once more here
   classloader = ClassLoader::getClassLoader();
 
   //Load the Request object
@@ -164,15 +160,6 @@ Request* ArcEvaluator::make_reqobj(XMLNode& reqnode){
 }
 
 Response* ArcEvaluator::evaluate(Request* request){
-  /*ArcRequest* req = NULL;
-  try {
-    req = dynamic_cast<ArcRequest*>(request);
-  } catch(std::exception& e) { };
-  if(!req) {
-    logger.msg(ERROR,"Request object can not be cast into ArcRequest");
-    return NULL;
-  }*/
-
   Request* req = request;
   req->setAttributeFactory(attrfactory);
   req->make_request();
@@ -187,11 +174,11 @@ Response* ArcEvaluator::evaluate(Request* request){
 }
 
 
-Response* ArcEvaluator::evaluate(const std::string& reqfile){
-  //1.Parse the request file
+Response* ArcEvaluator::evaluate(const char* reqfile){
+  //Parse the request file
   std::string str;
   std::string xml_str = "";
-  std::ifstream f(reqfile.c_str());
+  std::ifstream f(reqfile);
 
   while (f >> str) {
     xml_str.append(str);
@@ -204,25 +191,12 @@ Response* ArcEvaluator::evaluate(const std::string& reqfile){
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   node.Namespaces(ns);
 
-  //2.Create the request object according to the configuration
-  Request* request = NULL;
-  request = make_reqobj(node); 
- 
-  //3.Pre-process the Request object
-  request->setAttributeFactory(attrfactory);
-  request->make_request();
+  return (evaluate(node));
+}
 
-  EvaluationCtx * evalctx = NULL;
-  evalctx =  new EvaluationCtx(request);
- 
-  //4.evaluate the request based on policy
-  Response* resp = NULL;
-  if(evalctx)
-    resp = evaluate(evalctx);
-  if(request)
-    delete request;
-
-  return resp;
+Response* ArcEvaluator::evaluate(std::string& reqstring) {
+  XMLNode node(reqstring);
+  return (evaluate(node));
 }
 
 Response* ArcEvaluator::evaluate(XMLNode& node){
@@ -363,7 +337,7 @@ Response* ArcEvaluator::evaluate(Arc::XMLNode& node, std::string& policyfile) {
   return (evaluate(node));
 }
 
-Response* ArcEvaluator::evaluate(const std::string& reqfile, std::string& policyfile) {
+Response* ArcEvaluator::evaluate(const char* reqfile, std::string& policyfile) {
   plstore->removePolicies();
   plstore->addPolicy(policyfile, context, "");
   return (evaluate(reqfile));

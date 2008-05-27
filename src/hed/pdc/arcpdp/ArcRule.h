@@ -58,7 +58,7 @@ typedef std::list<AndList> OrList;
 class ArcRule : public Policy {
 
 public:
-  ArcRule(Arc::XMLNode& node, EvaluatorContext* ctx);  
+  ArcRule(Arc::XMLNode* node, EvaluatorContext* ctx);  
 
   virtual std::string getEffect();
 

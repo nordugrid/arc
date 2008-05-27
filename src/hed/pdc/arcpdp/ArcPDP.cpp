@@ -173,8 +173,7 @@ bool ArcPDP::isPermitted(Message *msg){
     return false;
   };
 
-  /*
-
+#if 0
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode requestxml(ns,"ra:Request");
@@ -236,7 +235,7 @@ bool ArcPDP::isPermitted(Message *msg){
       ctxattr = (*it).issuer;
     }
   }
-  */
+#endif
 
   MessageAuth* mauth = msg->Auth()->Filter(select_attrs,reject_attrs);
   MessageAuth* cauth = msg->AuthContext()->Filter(select_attrs,reject_attrs);

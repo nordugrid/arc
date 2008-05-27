@@ -2,16 +2,17 @@
 #include <config.h>
 #endif
 
-#include "PolicyParser.h"
 #include <fstream>
 #include <iostream>
-#include "ArcPolicy.h" 
 
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/ArcConfig.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/loader/ClassLoader.h>
+
+#include "PolicyParser.h"
 
 using namespace Arc;
 using namespace ArcSec;
@@ -121,7 +122,13 @@ Policy* PolicyParser::parsePolicy(const std::string sourcename, EvaluatorContext
   //std::cout<<xml_policy<<std::endl;   
 
   XMLNode node(xml_policy);
-  
-  return(new ArcPolicy(node, ctx));
+
+  Arc::ClassLoader* classloader = NULL;
+  classloader=Arc::ClassLoader::getClassLoader();
+  std::string policy_class = "arc.policy";
+  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policy_class, (void**)(void*)&node));  
+  return policy;
+
+  //return(new ArcPolicy(&node, ctx));
   
 }

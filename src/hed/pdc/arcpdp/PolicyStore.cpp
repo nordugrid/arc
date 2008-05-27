@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-//#include <arc/loader/ClassLoader.h>
-
 #include <fstream>
 #include <iostream>
 #include "PolicyParser.h"

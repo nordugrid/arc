@@ -2,25 +2,53 @@
 #include <config.h>
 #endif
 
+#include <list>
+
+#include <arc/loader/ClassLoader.h>
+
 #include "ArcPolicy.h"
 #include "ArcRule.h"
-#include <list>
 
 //Arc::Logger ArcSec::ArcPolicy::logger(ArcSec::Policy::logger, "ArcPolicy");
 Arc::Logger ArcSec::ArcPolicy::logger(Arc::Logger::rootLogger, "ArcPolicy");
 
+/** get_policy (in charge of class-loading of ArcPolicy) can only accept one type of argument XMLNode*/
+static Arc::LoadableClass* get_policy(void** arg) {
+    //std::cout<<"Argument type of ArcPolicy:"<<typeid(arg).name()<<std::endl;
+    if(arg==NULL) { std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL; }
+    else{
+    return new ArcSec::ArcPolicy((Arc::XMLNode*) arg);
+   }
+}
+
+loader_descriptors __arc_policy_modules__  = {
+    { "arc.policy", 0, &get_policy },
+    { NULL, 0, NULL }
+};
+
 using namespace Arc;
 using namespace ArcSec;
 
-ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
-  if((!node) || (node.Size() == 0)) 
+ArcPolicy::ArcPolicy(XMLNode* node) : Policy(node), comalg(NULL) {
+  if((!node) || (!(*node)) ||(node->Size() == 0))
     logger.msg(WARNING,"Policy is empty");
-  node.New(policynode);
+  node->New(policynode);
+}
+
+ArcPolicy::ArcPolicy(XMLNode* node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+  if((!node) || (!(*node)) || (node->Size() == 0)) 
+    logger.msg(WARNING,"Policy is empty");
+  node->New(policynode);
 
   std::string xml;
   policynode.GetDoc(xml);
   std::cout<<xml<<std::endl;
-  
+
+  setEvaluatorContext(ctx); 
+  make_policy();
+}
+
+void ArcPolicy::make_policy() {  
   //EvalResult.node record the policy(in XMLNode) information about evaluation result. 
   //According to the developer's requirement, EvalResult.node can include rules(in XMLNode) 
   //that "Permit" or "Deny" the request tuple. In the existing code, it include all 
@@ -30,7 +58,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
 
   ArcRule *rule;
   //Get AlgFactory from EvaluatorContext
-  algfactory = (AlgFactory*)(*ctx); 
+  algfactory = (AlgFactory*)(*evaluatorctx); 
 
   XMLNode nd, rnd;
 
@@ -56,7 +84,7 @@ ArcPolicy::ArcPolicy(XMLNode& node, EvaluatorContext* ctx) : Policy(node), comal
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];
     if(!rnd) break;
-    rule = new ArcRule(rnd, ctx);
+    rule = new ArcRule(&rnd, evaluatorctx);
     subelements.push_back(rule);
   }
 }

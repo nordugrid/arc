@@ -3,15 +3,16 @@
 
 #include <list>
 #include <fstream>
+
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/fn/FnFactory.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
+
 #include "PolicyStore.h"
 
 namespace ArcSec {
@@ -41,11 +42,12 @@ public:
   /**Evaluate the request based on the policy information inside PolicyStore*/
   virtual Response* evaluate(Request* request);
   virtual Response* evaluate(Arc::XMLNode& node);
-  virtual Response* evaluate(const std::string& reqfile);
+  virtual Response* evaluate(const char* reqfile);
+  virtual Response* evaluate(std::string& reqstring);
 
   virtual Response* evaluate(Request* request, std::string& policyfile);
   virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile);
-  virtual Response* evaluate(const std::string& reqfile, std::string& policyfile);
+  virtual Response* evaluate(const char* reqfile, std::string& policyfile);
   //Other interface to put policy string, policy object
 
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};

@@ -1,7 +1,6 @@
 #ifndef __ARC_SEC_POLICYSTORE_H__
 #define __ARC_SEC_POLICYSTORE_H__
 
-#include <arc/loader/LoadableClass.h>
 #include <list>
 #include <arc/security/ArcPDP/policy/Policy.h>
 
@@ -9,8 +8,8 @@ namespace ArcSec {
 
 class EvaluatorContext;
 
-///Storage place for policy objects, no dynamically loadable now
-class PolicyStore : public Arc::LoadableClass {
+///Storage place for policy objects
+class PolicyStore {
 
 public:
 

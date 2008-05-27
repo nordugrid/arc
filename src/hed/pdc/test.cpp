@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <signal.h>
-
 #include <string>
+
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/security/ArcPDP/Request.h>
@@ -14,9 +14,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/loader/ClassLoader.h>
 #include <arc/Logger.h>
-
-//#include <arc/security/ArcPDP/ArcRequest.h>
-//#include "ArcRequest.h"
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 #ifdef WIN32
 #include <arc/win32.h>
@@ -137,7 +134,6 @@ int main(void){
   Arc::ClassLoader* classloader1 = NULL;
   Arc::Config modulecfg1("EvaluatorCfg.xml");
   classloader1 = Arc::ClassLoader::getClassLoader(&modulecfg1);
-
 
   request = (ArcSec::Request*)(classloader1->Instance(requestor));
   if(request == NULL)

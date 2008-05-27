@@ -2,9 +2,11 @@
 #include <config.h>
 #endif
 
+#include <fstream>
+#include <iostream>
+
 #include <arc/loader/ClassLoader.h>
 
-#include <fstream>
 #include "ArcRequest.h"
 #include "ArcRequestItem.h"
 
@@ -133,10 +135,10 @@ void ArcRequest::make_request(){
     }
 }
 
-ArcRequest::ArcRequest(const char* filename) : Request(filename) {
+ArcRequest::ArcRequest(const char* reqfile) : Request(reqfile) {
   std::string str;
   std::string xml_str = "";
-  std::ifstream f(filename);
+  std::ifstream f(reqfile);
 
   while (f >> str) {
     xml_str.append(str);
@@ -153,6 +155,11 @@ ArcRequest::ArcRequest(const char* filename) : Request(filename) {
 
 ArcRequest::ArcRequest (const XMLNode* node) : Request(node) {
   node->New(reqnode);
+}
+
+ArcRequest::ArcRequest (std::string& reqstring) : Request(reqstring) {
+  XMLNode node(reqstring); 
+  node.New(reqnode);
 }
 
 ArcRequest::ArcRequest () {

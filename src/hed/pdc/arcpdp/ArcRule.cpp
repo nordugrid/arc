@@ -117,9 +117,9 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
   return;
 }
 
-ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
-  rulenode = node;
-  evalres.node = node;
+ArcRule::ArcRule(XMLNode* node, EvaluatorContext* ctx) : Policy(node) {
+  rulenode = *node;
+  evalres.node = rulenode;
   evalres.effect = "Not_applicable";
 
   attrfactory = (AttributeFactory*)(*ctx);
@@ -127,11 +127,11 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
   
   XMLNode nd, tnd;
 
-  id = (std::string)(node.Attribute("RuleId"));
-  description = (std::string)(node["Description"]);
-  if((std::string)(node.Attribute("Effect"))=="Permit")
+  id = (std::string)(rulenode.Attribute("RuleId"));
+  description = (std::string)(rulenode["Description"]);
+  if((std::string)(rulenode.Attribute("Effect"))=="Permit")
     effect="Permit";
-  else if((std::string)(node.Attribute("Effect"))=="Deny")
+  else if((std::string)(rulenode.Attribute("Effect"))=="Deny")
     effect="Deny";
   //else
     //std::cerr<< "Invalid Effect" <<std::endl; 
@@ -139,26 +139,26 @@ ArcRule::ArcRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node) {
 
   std::string type,funcname;
   //Parse the "Subjects" part of a Rule
-  nd = node["Subjects"];
+  nd = rulenode["Subjects"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, subjects, "Subject", type, funcname);  
 
   //Parse the "Resources" part of a Rule. The "Resources" does not include "Sub" item, 
   //so it is not such complicated, but we can handle it the same as "Subjects" 
-  nd = node["Resources"];
+  nd = rulenode["Resources"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, resources, "Resource", type, funcname);
 
   //Parse the "Actions" part of a Rule
-  nd = node["Actions"];
+  nd = rulenode["Actions"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, actions, "Action", type, funcname);
 
   //Parse the "Condition" part of a Rule
-  nd = node["Conditions"];
+  nd = rulenode["Conditions"];
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, conditions, "Condition", type, funcname);
