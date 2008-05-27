@@ -1,1 +1,4 @@
-Remote Policy Decision Point service
+Remote Policy Decision Point service. It will accept the formated policy 
+decision request and return positive/negative response.
+Since the request and response information is critical, TLS should be 
+switched on for securing communication.
