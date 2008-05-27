@@ -3,9 +3,7 @@
 
 #include <cstring>
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
 #include <sys/types.h>
 
 namespace Arc {
