@@ -23,7 +23,7 @@ service_descriptors ARC_SERVICE_LOADER = {
 using namespace Echo;
 
 //Arc::Logger Service_Echo::logger(Service::logger, "Echo");
-Arc::Logger Service_Echo::logger(Arc::Logger::getRootLogger(), "Echo");
+//Arc::Logger Service_Echo::logger(Arc::Logger::getRootLogger(), "Echo");
 
 ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::string& id) {
   ArcSec::PDPConfigContext* config = NULL;
@@ -66,7 +66,7 @@ ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::
   return config;
 }
 
-Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg) {
+Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="urn:echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);  
@@ -139,6 +139,11 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
     logger.msg(Arc::ERROR, "Input is not SOAP");
     return make_fault(outmsg);
   };
+  {
+      std::string str;
+      inpayload->GetXML(str);
+      logger.msg(Arc::DEBUG, "process: request=%s",str);
+  }; 
   // Analyzing request 
   Arc::XMLNode echo_op = (*inpayload)["echo"];
   if(!echo_op) {
@@ -150,6 +155,11 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
   outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
   outmsg.Payload(outpayload);
+  {
+      std::string str;
+      outpayload->GetXML(str);
+      logger.msg(Arc::DEBUG, "process: response=%s",str);
+  }; 
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
