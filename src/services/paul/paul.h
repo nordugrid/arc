@@ -15,6 +15,7 @@ namespace Paul {
 
 class PaulService: public Arc::Service {
     protected:
+        bool in_shutdown;
         std::string config_file;
         std::string job_root;
         std::string db_path;

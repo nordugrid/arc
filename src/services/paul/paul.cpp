@@ -237,10 +237,12 @@ void PaulService::process_job(void *arg)
     j.setStatus(STARTING);
     self.stage_in(j);
     self.run(j);
-    self.stage_out(j);
-    if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
-        self.logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
-        j.setStatus(FINISHED);
+    if (!self.in_shutdown) {
+        self.stage_out(j);
+        if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+            self.logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
+            j.setStatus(FINISHED);
+        }
     }
     // free memory
     delete info.job_id;
@@ -541,7 +543,7 @@ void PaulService::set_config_params(Arc::Config *cfg)
 }
 
 // Constructor
-PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul") 
+PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul"),in_shutdown(false)
 {
     // Define supported namespaces
     ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
@@ -558,7 +560,14 @@ PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
 // Destructor
 PaulService::~PaulService(void) 
 {
-    // NOP
+    in_shutdown = true;
+    logger_.msg(Arc::DEBUG, "PaulService shutdown");
+    std::map<std::string, Arc::Run *>::iterator it;
+    for (it = runq.begin(); it != runq.end(); it++) {
+        logger_.msg(Arc::DEBUG, "Terminate job %s", it->first);
+        Arc::Run *r = it->second;
+        r->Kill(1);
+    }
 }
 
 void PaulService::config_index_page(const std::string &endpoint, std::string &html)
