@@ -1,6 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 #include <ctime>
 
 #include <unistd.h>
