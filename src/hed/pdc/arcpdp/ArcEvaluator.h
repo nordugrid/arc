@@ -12,8 +12,7 @@
 #include <arc/security/ArcPDP/alg/AlgFactory.h>
 #include <arc/security/ArcPDP/Request.h>
 #include <arc/security/ArcPDP/Response.h>
-
-#include "PolicyStore.h"
+#include <arc/security/ArcPDP/PolicyStore.h>
 
 namespace ArcSec {
 
