@@ -1,5 +1,5 @@
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp simplelistsh delegationsh
-noinst_PROGRAMS = test
+noinst_PROGRAMS = test testinterface
 # classload_test 
 
 pkglib_LTLIBRARIES = libarcpdc.la
@@ -18,6 +18,12 @@ test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
+
+testinterface_SOURCES  = testinterface.cpp
+testinterface_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testinterface_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+testinterface_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
+
 
 #classload_test_SOURCES = classload_test.cpp
 #classload_test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

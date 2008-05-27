@@ -58,8 +58,8 @@ public:
   };
 
   virtual void addPolicy(BasePolicy* policy,const std::string& id = "") { plstore->addPolicy(policy, context, id); };
-
   //Other way to add policy, like string
+
   virtual void removePolicies(void) { plstore->removePolicies(); };
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg);
