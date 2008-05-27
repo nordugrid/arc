@@ -56,7 +56,7 @@ SysInfo::SysInfo(void)
             std::vector<std::string> t;
             Arc::tokenize(s, t, ":");
             std::string size = Arc::trim(t[1]);
-            mainMemorySize = Arc::stringtoui(size);
+            mainMemorySize = Arc::stringtoui(size)/1024;
         }
         if (s.find("SwapTotal:") != std::string::npos) {
             std::vector<std::string> t;
@@ -65,7 +65,7 @@ SysInfo::SysInfo(void)
             swap_size = Arc::stringtoui(size);
         }
     }
-    virtualMemorySize = mainMemorySize + swap_size;
+    virtualMemorySize = (mainMemorySize + swap_size)/1024;
     m.close();
 }
 
@@ -107,32 +107,81 @@ void SysInfo::refresh(void)
     // NOP
 }
 #else
+
+typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
+typedef BOOL (WINAPI *PGPI)(DWORD, DWORD, DWORD, PDWORD);
+
 // Win32 specific
 SysInfo::SysInfo(void)
 {
-    osName = "Win32";
-    osRelease = "x";
-    osVersion = "y";
-    platform = "intel";
-    physicalCPUs = 1;
-    logicalCPUs = 1;
-    mainMemorySize = 1;
-    virtualMemorySize = 1;
+    // get operating system version 
+    OSVERSIONINFO os_ver;
+    SYSTEM_INFO si;
+    PGNSI pGNSI;
+    PGPI pGPI;
+
+    ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
+    os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    ZeroMemory(&si, sizeof(SYSTEM_INFO));
+
+    if (GetVersionEx(&os_ver) == true) {
+        osName = "Microsoft Windows";
+        if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 0) {
+            osRelease = "2000";
+        } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 1) {
+            osRelease = "XP";
+        } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 2) {
+            osRelease = "2003";
+        } else if (os_ver.dwMajorVersion == 6) {
+            osRelease = "Vista";
+        }
+        osVersion = os_ver.szCSDVersion;
+    }
+     
+    pGNSI = (PGNSI) GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetNativeSystemInfo");
+    if(pGNSI != NULL) {
+        pGNSI(&si);
+    } else {
+        GetSystemInfo(&si);
+    }
+    if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
+        platform = "amd64";
+    } else if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL) {
+        platform = "intel32";
+    } else if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64) {
+        platform = "ia64";
+    }
+    
+    physicalCPUs = si.dwNumberOfProcessors;
+    logicalCPUs = si.dwNumberOfProcessors;
+
+    // Get Memory Information
+    MEMORYSTATUSEX memory_status;
+    memory_status.dwLength = sizeof(memory_status);
+    GlobalMemoryStatusEx(&memory_status);
+    mainMemorySize = memory_status.ullTotalPhys/(1024*1024);
+    virtualMemorySize = memory_status.ullTotalVirtual/(1024*1024);
 }
 
 unsigned int SysInfo::diskAvailable(const std::string &path)
 {
-    return 0;
+    ULARGE_INTEGER available_bytes, total_bytes, total_free_bytes;
+    GetDiskFreeSpaceEx(path.c_str(), &available_bytes, &total_bytes, &total_free_bytes);
+    return (Int64ShraMod32(available_bytes.QuadPart, 10)/1024);
 }
 
 unsigned int SysInfo::diskTotal(const std::string &path)
 {
-    return 0;
+    ULARGE_INTEGER available_bytes, total_bytes, total_free_bytes;
+    GetDiskFreeSpaceEx(path.c_str(), &available_bytes, &total_bytes, &total_free_bytes);
+    return (Int64ShraMod32(total_bytes.QuadPart, 10)/1024);
 }
 
 unsigned int SysInfo::diskFree(const std::string &path)
 {
-    return 0;
+    ULARGE_INTEGER available_bytes, total_bytes, total_free_bytes;
+    GetDiskFreeSpaceEx(path.c_str(), &available_bytes, &total_bytes, &total_free_bytes);
+    return (Int64ShraMod32(total_free_bytes.QuadPart, 10)/1024);
 }
 
 void SysInfo::refresh(void)
