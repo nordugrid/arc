@@ -199,7 +199,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     inpayload->Namespaces(ns_);
     {
         std::string str;
-        inpayload->GetXML(str);
+        inpayload->GetDoc(str, true);
         logger_.msg(Arc::DEBUG, "process: request=%s",str);
     };
     // Analyzing request
@@ -257,7 +257,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       };
       {
         std::string str;
-        outpayload->GetXML(str);
+        outpayload->GetDoc(str, true);
         logger_.msg(Arc::DEBUG, "process: response=%s",str);
       };
       outmsg.Payload(outpayload);
