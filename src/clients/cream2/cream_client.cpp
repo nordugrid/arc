@@ -310,8 +310,22 @@ namespace Arc{
             
             Arc::JobDescription jobDesc;
             try {
+                // Set the original descriptior as source to the translator
                 jobDesc.setSource( jsdl_text );
-                jobDesc.getProduct( jdl_text );
+                // Get the result after the conversion into the jdl_text variable
+                jobDesc.getProduct( jdl_text, "JDL" );
+                
+                // Get the URI's from the DataStaging/Source files
+                Arc::NS nsList;
+                nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
+                nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+                nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+                Arc::XMLNodeList sources = jobDesc.getXML().XPathLookup( (std::string) "//DataStaging/Source", nsList);
+                for (Arc::XMLNodeList::iterator xml_it = sources.begin(); xml_it != sources.end(); xml_it++) {
+                    std::cout << (std::string) (*xml_it)["URI"] << std::endl;   
+                }
+                
+                
             } catch (std::exception& ex) {
                 throw CREAMClientError(ex.what());
             }
