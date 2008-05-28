@@ -14,5 +14,3 @@ arcstat_LDADD    = $(CLILIBS)
 arcsub_SOURCES  = arcsub.cpp
 arcsub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcsub_LDADD    = $(CLILIBS)
-
-EXTRA_DIST = arccli.cpp

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -13,6 +17,9 @@
 #include <arc/client/Submitter.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/ArcLocation.h>
+#include <arc/misc/OptionParser.h>
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
 
@@ -25,8 +32,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 	    const bool dryrun,
 	    const bool dumpdescription,
 	    const bool unknownattr,
-	    const int timeout,
-	    const bool anonymous){
+	    const int timeout){
   
   if (JobDescriptionFiles.empty() && JobDescriptionStrings.empty()){
     std::cout<<Arc::IString("No job description input specified")<<std::endl;
@@ -129,77 +135,6 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     std::cout<<"Job submitted with jobid: "<< jobid.first.str() <<std::endl;
     std::cout<<"Information endpoint for this job: "<< jobid.second.str() <<std::endl;
     
-    /*
-    std::string jobid;    
-    std::string jobname;
-      
-      try {
-      jobname = it->GetRelation("jobname").GetSingleValue();
-      }
-    catch (XrslError e) {}
-    
-    try {
-      it->Eval();
-      
-      PerformXrslValidation(*it, unknownattr);
-      
-      std::list<Target> targetlist = ConstructTargets(queuelist, *it);
-      
-      PerformStandardBrokering(targetlist);
-      
-      JobSubmission submit(*it, targetlist, dryrun);
-      
-      if (dumpxrsl) {
-	if(targetlist.begin() != targetlist.end()) {
-	  notify(INFO) << _("Selected queue") << ": "
-		       << targetlist.begin()->name << "@"
-		       << targetlist.begin()->cluster.hostname << std::endl;
-	  
-	  Xrsl jobxrsl = submit.PrepareXrsl(*targetlist.begin());
-	  std::cout << jobxrsl.str() << std::endl;
-	} else {
-	  notify(WARNING) << _("No suitable target found") << std::endl;
-	};
-	continue;
-      }
-      
-      jobid = submit.Submit(timeout);
-      
-      submit.RegisterJobsubmission(queuelist);
-      
-    }
-    catch (ARCLibError e) {
-      notify(ERROR) << _("Job submission failed due to")
-		    << ": " << e.what() << std::endl;
-      notsubmitted[jobnr] = jobname;
-      continue;
-    }
-    
-    AddJobID(jobid, jobname);
-
-    if (!joblistfile.empty()) {
-      LockFile(joblistfile);
-      std::ofstream jobs(joblistfile.c_str(), std::ios::app);
-      jobs << jobid << std::endl;
-      jobs.close();
-			UnlockFile(joblistfile);
-    }
-    
-    std::string histfilename = GetEnv("HOME");
-    histfilename.append ("/.arc/history");
-    LockFile(histfilename);
-    std::ofstream nghist (histfilename.c_str(), std::ios::app);
-    nghist << TimeStamp() << "  " << jobid << std::endl;
-    nghist.close();
-    UnlockFile(histfilename);
-    
-    std::cout << _("Job submitted with jobid")
-	      << ": " << jobid << std::endl;
-    
-    jobids.push_back(jobid);
-  }
-    */  
-    
   }
    
   JobIdStorage.SaveToFile("jobs.xml");  
@@ -227,5 +162,101 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   
 }
 
-#define ARCSUB
-#include "arccli.cpp"
+int main(int argc, char **argv) {
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("[jobid]"), "",istring( 	  
+			    "Argument to -g has format:\n"
+			    "GRID:URL e.g. \n"
+			    "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+			    "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+			    "\n"
+			    "Argument to -c has format:\n"
+			    "GRID:URL e.g.\n"
+			    "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"));
+
+  std::list<std::string> clustertemp;
+  options.AddOption('c', "cluster", istring("explicity select or reject a specific cluster"), 
+		    istring("[-]name"),
+		    clustertemp);
+
+  std::list<std::string> indexurls;
+  options.AddOption('i', "indexurl", istring("url to a index server"), 
+		    istring("url"),
+		    indexurls);
+
+  std::list<std::string> jobdescriptionstrings;
+  options.AddOption('e', "jobdescrstring", istring("jobdescription string describing the job to be submitted"), 
+		    istring("string"),
+		    jobdescriptionstrings);
+
+  std::list<std::string> jobdescriptionfiles;
+  options.AddOption('f', "jobdescrfile", istring("jobdescription file describing the job to be submitted"), 
+		    istring("string"),
+		    jobdescriptionstrings);
+
+  std::string joblist;
+  options.AddOption('j', "joblist", istring("file where the jobids will be stored"), 
+		    istring("filename"),
+		    joblist);
+
+  bool dryrun = false;
+  options.AddOption('D', "dryrun", istring("add dryrun option"),
+		    dryrun);
+
+  bool dumpdescription = false;
+  options.AddOption('x', "dumpdescription", istring("do not submit - dump job description"),
+		    dumpdescription);
+
+  int timeout = 20;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+		    istring("seconds"), timeout);  
+  
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool unknownattribute = false;
+  options.AddOption('U', "unknownattr", istring("allow unknown attributes in job description"),
+		    unknownattribute);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  //sort clustertemp into clusterselect and clusterreject
+  std::list<std::string> clusterselect;
+  std::list<std::string> clusterreject;
+  for(std::list<std::string>::iterator it = clustertemp.begin(); it != clustertemp.end();it++){
+    if((*it).find_first_of('-') == 0){
+      clusterreject.push_back(*it);
+    } else{
+      clusterselect.push_back(*it);
+    }
+  }
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcstat", VERSION) << std::endl;
+    return 0;
+  }
+
+  arcsub(jobdescriptionfiles, jobdescriptionstrings, clusterselect, clusterreject,
+	 indexurls, joblist, dryrun, dumpdescription, unknownattribute, timeout);
+
+  return 0;
+
+}
+

@@ -10,8 +10,15 @@
 
 namespace Arc {
   
-  JobSupervisor::JobSupervisor(Arc::XMLNode JobIdStorage, std::list<std::string> jobids) {
-    
+  JobSupervisor::JobSupervisor(std::string joblist, std::list<std::string> jobids) {
+
+    XMLNode JobIdStorage;    
+    if(!joblist.empty()){
+      JobIdStorage.ReadFromFile(joblist);
+    } else{
+      JobIdStorage.ReadFromFile("jobs.xml");
+    }
+
     std::list<std::string> NeededControllers;
     
     Arc::XMLNodeList ActiveJobs = JobIdStorage.XPathLookup("/jobs/job", Arc::NS());  
