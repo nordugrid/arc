@@ -174,6 +174,12 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return Arc::MCC_Status();
   };
 
+  // Collect any service specific Security Attributes here
+  if(!ProcessSecHandlers(inmsg,"incoming")) {
+    logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+    return Arc::MCC_Status();
+  };
+
   // Identify which of served endpoints request is for.
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
@@ -259,6 +265,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Listing operations for session directories
       // TODO: proper failure like interface is not supported
     };
+    if(!ProcessSecHandlers(outmsg,"outgoing")) {
+      logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+      delete outmsg.Payload(NULL);
+      return Arc::MCC_Status();
+    };
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else {
     // HTTP plugin either provides buffer or stream
@@ -273,7 +284,15 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(method == "GET") {
       logger_.msg(Arc::DEBUG, "process: GET");
       // TODO: in case of error generate some content
-      return Get(inmsg,outmsg,*config,id,subpath);
+      Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
+      if(ret) {
+        if(!ProcessSecHandlers(outmsg,"outgoing")) {
+          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+          delete outmsg.Payload(NULL);
+          return Arc::MCC_Status();
+        };
+      };
+      return ret;
     } else if(method == "PUT") {
       logger_.msg(Arc::DEBUG, "process: PUT");
       if(inbufpayload) {
@@ -288,7 +307,15 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         logger_.msg(Arc::ERROR, "PUT: input is neither stream nor buffer");
         return make_fault(outmsg);
       };
-      return make_response(outmsg);
+      Arc::MCC_Status ret = make_response(outmsg);
+      if(ret) {
+        if(!ProcessSecHandlers(outmsg,"outgoing")) {
+          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+          delete outmsg.Payload(NULL);
+          return Arc::MCC_Status();
+        };
+      };
+      return ret;
     } else {
       delete inmsg.Payload();
       logger_.msg(Arc::DEBUG, "process: %s: not supported",method);
