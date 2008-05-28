@@ -10,8 +10,8 @@
 
 namespace Arc {
 
-    #define VERBOSEX 0
-    #define DEBUG 0
+    #define VERBOSEX 1
+    #define DEBUG 1
 
     // Define variables for the jobDescriptionOrderer
     #define DEFAULT_PRIORITY 0
@@ -113,8 +113,10 @@ namespace Arc {
             void resetJobTree();
         public:
             JobDescription();
+            bool isValid() {return (sourceFormat.length() != 0);};
             void setSource( const std::string source ) throw(JobDescriptionError);
             void getProduct( std::string& product, std::string format = "JSDL" ) throw(JobDescriptionError);
+            Arc::XMLNode getXML() throw(JobDescriptionError);
     };
 
 } // namespace Arc

@@ -223,7 +223,7 @@ namespace Arc {
         sourceString = "";
     }
 
-    // Set the sourceString variable of the JobDescription instance
+    // Set the sourceString variable of the JobDescription instance and parse it with the right parser
     void JobDescription::setSource( const std::string source ) throw(JobDescriptionError) {
         sourceFormat = "";
         sourceString = source;
@@ -231,15 +231,15 @@ namespace Arc {
         // Initialize the necessary variables
         resetJobTree();
 
-        // 1: Parsing the source string depending on the Orderer's decision
+        // Parsing the source string depending on the Orderer's decision
         //
-        // 1.1: Get the candidate list of formats in the proper order
+        // Get the candidate list of formats in the proper order
         if ( sourceString.empty() || sourceString.length() == 0 ) throw JobDescriptionError("There is nothing in the source. Cannot generate any product.");
 
         jdOrderer.setSource( sourceString );
         std::vector<Candidate> candidates = jdOrderer.getCandidateList();
 
-        // 1.2: Try to parse the input string in the right order until it once success
+        // Try to parse the input string in the right order until it once success
         // (If not then just reset the jobTree variable and see the next one)
         for (std::vector<Candidate>::const_iterator it = candidates.begin(); it < candidates.end(); it++) {
             if ( sm.toLowerCase( (*it).typeName ) == "xrsl" ) {
@@ -271,6 +271,7 @@ namespace Arc {
                 resetJobTree();
             }
         }
+        if (sourceFormat.length() == 0) throw JobDescriptionError("The parsing of the source string was unsuccessful.");
     }
 
     // Create a new Arc::XMLNode with a single root element and out it into the JobDescription's jobTree variable
@@ -278,15 +279,20 @@ namespace Arc {
         (Arc::XMLNode ( "<JobDefinition />" )).New( jobTree );
     }
 
-    // Parse the sourceString with the right parser then generate the output in the asked format
+    // Returns with the jobTree XMLNode or throws an error if it's emtpy
+    Arc::XMLNode JobDescription::getXML() throw(JobDescriptionError) {
+        if (!(bool)(jobTree)) throw JobDescriptionError("There is no valid job inner-representation available.");
+        return jobTree;
+    }
+    
+    // Generate the output in the requested format
     void JobDescription::getProduct( std::string& product, std::string format ) throw(JobDescriptionError) {
         // Initialize the necessary variables
         product = "";
-        resetJobTree();
 
         // Generate the output text with the right parser class
-        if ( sourceFormat == "" ) throw JobDescriptionError("There is no successfully parsed source");
-        if ( format == sourceFormat ) {
+        if ( !this->isValid() ) throw JobDescriptionError("There is no successfully parsed source");
+        if ( sm.toLowerCase( format ) == sm.toLowerCase( sourceFormat ) ) {
             product = sourceString;
             return;
         }
@@ -839,8 +845,7 @@ namespace Arc {
     bool JDLParser::handleJDLattribute(std::string attributeName, std::string attributeValue, Arc::XMLNode& jobTree) {
 
         // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
-        attributeName = sm.toLowerCase( attributeName );  
-
+        attributeName = sm.toLowerCase( attributeName );
         if ( attributeName == "type" ) {
             std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
@@ -852,7 +857,7 @@ namespace Arc {
                 if ( DEBUG ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
                 return false; // This kind of JDL decriptor is not supported yet
             }
-        if ( DEBUG ) std::cerr << "[JDLParser] Attribute name: " << attributeName << ", has unknown value: " << value << std::endl;
+            if ( DEBUG ) std::cerr << "[JDLParser] Attribute name: " << attributeName << ", has unknown value: " << value << std::endl;
             return false; // Unknown attribute value - error
         } else if ( attributeName == "jobtype") {
             return true; // Skip this attribute
@@ -931,6 +936,19 @@ namespace Arc {
                 uri = (*it);
             }
             return true;
+        } else if ( attributeName == "outputsandboxdesturi" ) {
+            std::vector< std::string > value = listJDLvalue( attributeValue );
+            Arc::NS nsList;
+            nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
+            nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
+            nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
+            Arc::XMLNodeList targets = jobTree.XPathLookup( (std::string) "//DataStaging/Target", nsList);
+            Arc::XMLNodeList::iterator xml_it = targets.begin();
+            for (std::vector< std::string >::const_iterator it = value.begin(); it != value.end(); it++ ) {
+                (*xml_it)["URI"].Set((std::string)(*it));
+                xml_it++;
+            }
+            return true;
         } else if ( attributeName == "outputsandboxbaseuri" ) {
             std::string value = simpleJDLvalue( attributeValue );
             Arc::NS nsList;
@@ -942,6 +960,11 @@ namespace Arc {
             for (std::list<Arc::XMLNode>::iterator it = targets.begin(); it != targets.end(); it++) {
                 (*it).Set( value + "/" + (std::string) (*it) );
             }
+            return true;
+        } else if ( attributeName == "batchsystem" ) {
+            if ( !bool( jobTree["JDLDescription"] ) ) jobTree.NewChild("JDLDescription");
+            if ( !bool( jobTree["JDLDescription"]["BatchSystem"] ) ) jobTree["JDLDescription"].NewChild("BatchSystem");
+            jobTree["JDLDescription"]["BatchSystem"] = simpleJDLvalue( attributeValue );
             return true;
         } else if ( attributeName == "prologue" ) {
             if ( !bool( jobTree["JDLDescription"] ) ) jobTree.NewChild("JDLDescription");
@@ -1046,7 +1069,14 @@ namespace Arc {
             // Not supported yet
             return true;
         } else if ( attributeName == "virtualorganisation" ) {
-            // Not supported yet
+            if ( !bool( jobTree["JDLDescription"] ) ) jobTree.NewChild("JDLDescription");
+            if ( !bool( jobTree["JDLDescription"]["VirtualOrganisation"] ) ) jobTree["JDLDescription"].NewChild("VirtualOrganisation");
+            jobTree["JDLDescription"]["VirtualOrganisation"] = simpleJDLvalue( attributeValue );
+            return true;
+        } else if ( attributeName == "queuename" ) {
+            if ( !bool( jobTree["JDLDescription"] ) ) jobTree.NewChild("JDLDescription");
+            if ( !bool( jobTree["JDLDescription"]["QueueName"] ) ) jobTree["JDLDescription"].NewChild("QueueName");
+            jobTree["JDLDescription"]["QueueName"] = simpleJDLvalue( attributeValue );
             return true;
         } else if ( attributeName == "retrycount" ) {
             int count = atoi( simpleJDLvalue( attributeValue ).c_str() );
