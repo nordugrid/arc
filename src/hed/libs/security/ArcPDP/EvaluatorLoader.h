@@ -7,6 +7,8 @@
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/Request.h>
+#include <arc/security/ArcPDP/policy/Policy.h>
 
 namespace ArcSec {
 //EvaluatorLoader is implemented as a helper class for loading different Evaluator objects, like ArcEvaluator
@@ -14,6 +16,8 @@ class EvaluatorLoader {
  public:
   EvaluatorLoader();
   Evaluator* getEvaluator(std::string& classname);
+  Request* getRequest(std::string& classname, Arc::XMLNode* reqnode);
+  Policy* getPolicy(std::string& classname, Arc::XMLNode* policynode);
  protected:
   static Arc::Logger logger;
  private:

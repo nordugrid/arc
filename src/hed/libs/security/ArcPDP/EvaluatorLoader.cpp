@@ -61,19 +61,97 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
     node = (*it);
     if((std::string)(node["PDPConfig"]["Evaluator"].Attribute("name")) == classname) { found = true; break; }
   }
-
   if(found) {
-    for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p)
-      node["ModuleManager"].NewChild("Path")=*p;
-    
+    bool has_covered = false;
+    for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p) {
+      for(int i=0;;i++) {
+        Arc::XMLNode cn = node["ModuleManager"]["Path"][i];
+        if(!cn) break;
+        if((std::string)(cn) == (*p)){ has_covered = true; break; }
+      }
+      if(!has_covered)
+        node["ModuleManager"].NewChild("Path")=*p;
+    }
+ 
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-
-    //Dynamically load Evaluator object according to configure information. It should be the caller to free the evaluator object
+    //Dynamically load Evaluator object according to configure information. It should be the caller to free the object
     eval = dynamic_cast<Evaluator*>(classloader->Instance(classname, (void**)(void*)&node));
   }
   
   return eval;
+}
+
+Request* EvaluatorLoader::getRequest(std::string& classname, Arc::XMLNode* reqnode) {
+  ArcSec::Request* req = NULL;
+  Arc::ClassLoader* classloader = NULL;
+
+  //Get the lib path from environment, and put it into the configuration xml node
+  std::list<std::string> plugins = Arc::ArcLocation::GetPlugins();
+
+  Arc::XMLNode node;
+  std::list<Arc::XMLNode>::iterator it;
+  bool found = false;
+  for( it = class_config_list_.begin(); it != class_config_list_.end(); it++) {
+    node = (*it);
+    if((std::string)(node["PDPConfig"]["Request"].Attribute("name")) == classname) { found = true; break; }
+  }
+
+  if(found) {
+    bool has_covered = false;
+    for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p) {
+      for(int i=0;;i++) {
+        Arc::XMLNode cn = node["ModuleManager"]["Path"][i];
+        if(!cn) break;
+        if((std::string)(cn) == (*p)){ has_covered = true; break; }
+      }
+      if(!has_covered)
+        node["ModuleManager"].NewChild("Path")=*p;
+    }
+
+    Arc::Config modulecfg(node);
+    classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
+    //Dynamically load Request object according to configure information. It should be the caller to free the object
+    req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)reqnode));
+  }
+
+  return req;
+}
+
+Policy* EvaluatorLoader::getPolicy(std::string& classname, Arc::XMLNode* policynode) {
+  ArcSec::Policy* policy = NULL;
+  Arc::ClassLoader* classloader = NULL;
+
+  //Get the lib path from environment, and put it into the configuration xml node
+  std::list<std::string> plugins = Arc::ArcLocation::GetPlugins();
+
+  Arc::XMLNode node;
+  std::list<Arc::XMLNode>::iterator it;
+  bool found = false;
+  for( it = class_config_list_.begin(); it != class_config_list_.end(); it++) {
+    node = (*it);
+    if((std::string)(node["PDPConfig"]["Policy"].Attribute("name")) == classname) { found = true; break; }
+  }
+
+  if(found) {
+    bool has_covered = false;
+    for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p) {
+      for(int i=0;;i++) {
+        Arc::XMLNode cn = node["ModuleManager"]["Path"][i];
+        if(!cn) break;
+        if((std::string)(cn) == (*p)){ has_covered = true; break; }
+      }
+      if(!has_covered)
+        node["ModuleManager"].NewChild("Path")=*p;
+    }
+
+    Arc::Config modulecfg(node);
+    classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
+    //Dynamically load Policy object according to configure information. It should be the caller to free the object
+    policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)policynode));
+  }
+
+  return policy;
 }
 
 }
