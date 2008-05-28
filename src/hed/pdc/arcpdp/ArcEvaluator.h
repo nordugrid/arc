@@ -44,21 +44,43 @@ public:
   virtual Response* evaluate(const char* reqfile);
   virtual Response* evaluate(std::string& reqstring);
 
-  virtual Response* evaluate(Request* request, std::string& policyfile);
-  virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile);
-  virtual Response* evaluate(const char* reqfile, std::string& policyfile);
-  //Other interface to put policy string, policy object
+  virtual Response* evaluate(Request* request, const char* policyfile);
+  virtual Response* evaluate(Arc::XMLNode& node, const char* policyfile);
+  virtual Response* evaluate(const char* reqfile, const char* policyfile);
+  virtual Response* evaluate(std::string& reqstr, const char* policyfile);
+
+  virtual Response* evaluate(Request* request, std::string& policystr);
+  virtual Response* evaluate(Arc::XMLNode& node, std::string& policystr);
+  virtual Response* evaluate(const char* reqfile, std::string& policystr);
+  virtual Response* evaluate(std::string& reqstr, std::string& policystr);
+
+  virtual Response* evaluate(Request* request, Arc::XMLNode& policynode);
+  virtual Response* evaluate(Arc::XMLNode& node, Arc::XMLNode& policynode);
+  virtual Response* evaluate(const char* reqfile, Arc::XMLNode& policynode);
+  virtual Response* evaluate(std::string& reqstr, Arc::XMLNode& policynode);
+
+  virtual Response* evaluate(Request* request, BasePolicy* policyobj);
+  virtual Response* evaluate(Arc::XMLNode& node, BasePolicy* policyobj);
+  virtual Response* evaluate(const char* reqfile, BasePolicy* policyobj);
+  virtual Response* evaluate(std::string& reqstr, BasePolicy* policyobj);
 
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};
   virtual FnFactory* getFnFactory () { return fnfactory; };
   virtual AlgFactory* getAlgFactory () { return algfactory; };
 
-  virtual void addPolicy(const std::string& policyfile,const std::string& id = "") {
+  virtual void addPolicy(const char* policyfile,const std::string& id = "") {
     plstore->addPolicy(policyfile, context, id);
   };
 
+  virtual void addPolicy(std::string& policystr,const std::string& id = "") { 
+    plstore->addPolicy(policystr, context, id);
+  };
+
+  virtual void addPolicy(Arc::XMLNode& policynode,const std::string& id = "") {
+    plstore->addPolicy(policynode, context, id);
+  };
+
   virtual void addPolicy(BasePolicy* policy,const std::string& id = "") { plstore->addPolicy(policy, context, id); };
-  //Other way to add policy, like string
 
   virtual void removePolicies(void) { plstore->removePolicies(); };
 

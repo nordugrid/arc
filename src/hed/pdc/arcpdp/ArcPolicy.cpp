@@ -39,11 +39,6 @@ ArcPolicy::ArcPolicy(XMLNode* node, EvaluatorContext* ctx) : Policy(node), comal
   if((!node) || (!(*node)) || (node->Size() == 0)) 
     logger.msg(WARNING,"Policy is empty");
   node->New(policynode);
-
-  std::string xml;
-  policynode.GetDoc(xml);
-  std::cout<<xml<<std::endl;
-
   setEvaluatorContext(ctx); 
   make_policy();
 }
