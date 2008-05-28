@@ -12,31 +12,30 @@
         </xsd:extension>
       </xsd:simpleContent>
     </xsd:complexType>
-    <xsd:element name="endpoint" type="endpoint_Type"/>
     <!-- Location of private key.
       Default is /etc/grid-security/hostkey.pem for service 
       and none for client. -->
-    <xsd:element name="KeyPath" type="xsd:string">
+    <xsd:element name="KeyPath" type="xsd:string"/>
     <!-- Content of private key - not supported -->
-    <xsd:element name="Key" type="xsd:string">
+    <xsd:element name="Key" type="xsd:string"/>
     <!-- Location of public certificate.
       Default is /etc/grid-security/hostcert.pem for service
       and none for client. -->
-    <xsd:element name="CertificatePath" type="xsd:string">
+    <xsd:element name="CertificatePath" type="xsd:string"/>
     <!-- Content of public certificate - not supported -->
-    <xsd:element name="Certificate" type="xsd:string">
+    <xsd:element name="Certificate" type="xsd:string"/>
     <!-- Location of proxy credentials - includes certificates, key and 
       chain of involved certificates. Overwrites elements Key, KeyPath, 
       Certificate and CertificatePath. 
       Default is none for client and none for service. -->
-    <xsd:element name="ProxyPath" type="xsd:string">
+    <xsd:element name="ProxyPath" type="xsd:string"/>
     <!-- Content of proxy credentials - not supported -->
-    <xsd:element name="Proxy" type="xsd:string">
+    <xsd:element name="Proxy" type="xsd:string"/>
     <!-- Location of certificate of CA. Default is none. -->
-    <xsd:element name="CACertificatePath" type="xsd:string">
+    <xsd:element name="CACertificatePath" type="xsd:string"/>
     <!-- Content of certificate of CA - not supported -->
-    <xsd:element name="CACertificate" type="xsd:string">
+    <xsd:element name="CACertificate" type="xsd:string"/>
     <!-- Directory containing certificates of accepted CAs.
       Default is /etc/grid-security/ . -->
-    <xsd:element name="CACertificatesDir" type="xsd:string">
+    <xsd:element name="CACertificatesDir" type="xsd:string"/>
 </xsd:schema>

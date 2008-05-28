@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  xmlns:icc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  elementFormDefault="qualified">
+
+    <xsd:complexType name="InfoRegister_Type">
+        <!-- This element defines configuration of Information Cache. -->
+        <xsd:sequence>
+            <!-- CacheRoot contains path in local file system to a
+                 directory where cache content is stored. -->
+            <xsd:element name="CacheRoot" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="InfoRegister" type="icc:InfoRegister_Type"/>
+  
+</xsd:schema>

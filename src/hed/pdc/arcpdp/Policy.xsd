@@ -149,10 +149,6 @@
        <Attribute Type="ShibName">urn:mace:shibboleth:examples</Attribute>
       </Subject>
   -->
-  <!-- Data Type of the Subject, the Type could be specified here,
-   which means all of the low-level <Attribute/> have the same DataType, 
-   otherwise it should be specified in the lower-level node <Attribute/> -->
-  <xsd:attribute name="Type" type="xsd:string" use="optional"/>
   <xsd:sequence>
    <xsd:element name="Attribute" maxOccurs="unbounded">
      <xsd:complexType>
@@ -167,6 +163,10 @@
      </xsd:complexType>
    </xsd:element>
   </xsd:sequence>
+  <!-- Data Type of the Subject, the Type could be specified here,
+   which means all of the low-level <Attribute/> have the same DataType, 
+   otherwise it should be specified in the lower-level node <Attribute/> -->
+  <xsd:attribute name="Type" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
  <!--Definition of Resources differs from the definition of Subjects.
@@ -261,11 +261,11 @@
          under the <Condition/> node are different, then Type should be 
 	 specified here -->
        <xsd:attribute name="Type" type="xsd:string" use="optional"/>
+       <!-- Function name for evaluation, if not exists, "equal" function will be supposed-->
+       <xsd:attribute name="Function" type="xsd:string" use="optional"/>
       </xsd:extension>
      </xsd:complexContent>
     </xsd:complexType>
-    <!-- Function name for evaluation, if not exists, "equal" function will be supposed-->
-    <xsd:attribute name="Function" type="xsd:string" use="optional"/>
    </xsd:element>
   </xsd:sequence>
  </xsd:complexType>

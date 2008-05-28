@@ -6,7 +6,6 @@
   targetNamespace="http://www.nordugrid.org/schemas/ArcMCCHTTP/2007"
   elementFormDefault="qualified">
   
-    <xsd:complexType name="Endpoint_Type">
     <!--
         These elements define endpoint and HTTP method for client HTTP MCC.
     -->

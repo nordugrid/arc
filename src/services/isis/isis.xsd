@@ -38,20 +38,24 @@
     <!-- Input type for RemoveRegistrations and GetRegistrationStatuses operations -->
     <xsd:complexType name="RegistrationEntryIDListType">
         <xsd:sequence>
-            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"->
+            <xsd:element name="RegEntryID" type="wsa:EndpointReferenceType" minOccurs="1" maxOccurs="unbounded"/>
             <!-- xsd:element name="ID" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/ -->
         </xsd:sequence>
     </xsd:complexType>
     <!-- xsd:element name="RegistrationEntryIDList" type="isis:RegistrationEntryIDListType"/ -->
 
-    <xsd:simpleType name="RemoveRegistrationsType">
-        <xsd:restriction base="isis:RegistrationEntryIDListType"/>
-    </xsd:simpleType>
+    <xsd:complexType name="RemoveRegistrationsType">
+        <xsd:complexContent>
+            <xsd:restriction base="isis:RegistrationEntryIDListType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
     <xsd:element name="RemoveRegistrations" type="isis:RemoveRegistrationsType"/>
 
-    <xsd:simpleType name="GetRegistrationStatusesType">
-        <xsd:restriction base="isis:RegistrationEntryIDListType"/>
-    </xsd:simpleType>
+    <xsd:complexType name="GetRegistrationStatusesType">
+        <xsd:complexContent>
+            <xsd:restriction base="isis:RegistrationEntryIDListType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
     <xsd:element name="GetRegistrationStatuses" type="isis:GetRegistrationStatusesType"/>
 
     <!-- Output type for RemoveRegistrations operation -->

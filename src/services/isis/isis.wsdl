@@ -104,7 +104,7 @@ Interface of Information Indexing Service
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <wsdl:operation name="Register">
         <soap:operation soapAction="Register"/>
-        <wsdl:input name="Register">
+        <wsdl:input name="RegisterRequest">
             <soap:body use="literal"/>
         </wsdl:input>
         <wsdl:output name="RegisterResponse">

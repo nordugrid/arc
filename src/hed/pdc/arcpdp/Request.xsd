@@ -21,7 +21,7 @@
  <xsd:element name="Request" type="request-arc:RequestType"/>
  <xsd:complexType name="RequestType">
   <xsd:sequence>
-   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded/"/>
+   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded"/>
   </xsd:sequence>
  </xsd:complexType>
 
@@ -31,7 +31,7 @@
  <xsd:element name="RequestItem" type="request-arc:RequestItemType"/>
  <xsd:complexType name="RequestItemType">
   <xsd:sequence>
-   <xsd:element ref="request-arc:Subject"  maxOccurs="unbounded/"/>
+   <xsd:element ref="request-arc:Subject"  maxOccurs="unbounded"/>
    <xsd:element ref="request-arc:Resource" minOccurs="0" maxOccurs="unbounded"/>
    <xsd:element ref="request-arc:Action" minOccurs="0" maxOccurs="unbounded"/>
    <xsd:element ref="request-arc:Context" minOccurs="0" maxOccurs="unbounded"/>

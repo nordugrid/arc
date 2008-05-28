@@ -31,15 +31,16 @@
   <xsd:element name="Process" type="ut:ProcessType"/>
 
   <!-- Username element of Token. This is a necessary element. -->
-  <xsd:element name="Username" type=xsd:string"/>
+  <xsd:element name="Username" type="xsd:string"/>
   
   <!-- Password element of Token. -->
-  <xsd:element name="Password" type=xsd:string"/>
+  <xsd:element name="Password" type="xsd:string"/>
 
   <!-- External source for password to read from. There should be a file name here. -->
-  <xsd:element name="PasswordSource" type=xsd:string"/>
+  <xsd:element name="PasswordSource" type="xsd:string"/>
 
   <!-- Password encoding to be used. -->
   <xsd:element name="PasswordEncoding" type="ut:PasswordEncodingType"/>
 
 </xsd:schema>
+
