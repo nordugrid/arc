@@ -747,11 +747,12 @@ AC_CONFIG_FILES([Makefile
                  src/hed/pdc/Makefile
                  src/hed/pdc/arcpdp/Makefile
                  src/hed/pdc/allowpdp/Makefile
-                 src/hed/pdc/delegationsh/Makefile
                  src/hed/pdc/denypdp/Makefile
                  src/hed/pdc/countpdp/Makefile
                  src/hed/pdc/simplelistpdp/Makefile
                  src/hed/pdc/simplelistsh/Makefile
+                 src/hed/pdc/delegationsh/Makefile
+                 src/hed/pdc/usernametokensh/Makefile
                  src/arclib/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
