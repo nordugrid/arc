@@ -16,8 +16,14 @@ class EvaluatorLoader {
  public:
   EvaluatorLoader();
   Evaluator* getEvaluator(std::string& classname);
+
   Request* getRequest(std::string& classname, Arc::XMLNode* reqnode);
+  Request* getRequest(std::string& classname, std::string& reqstr);
+  Request* getRequest(std::string& classname, const char* reqfile);
+
   Policy* getPolicy(std::string& classname, Arc::XMLNode* policynode);
+  Policy* getPolicy(std::string& classname, std::string& policystr);
+  Policy* getPolicy(std::string& classname, const char* policyfile);
  protected:
   static Arc::Logger logger;
  private:

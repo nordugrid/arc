@@ -82,6 +82,26 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
   return eval;
 }
 
+Request* EvaluatorLoader::getRequest(std::string& classname, std::string& reqstr) {
+  Arc::XMLNode node(reqstr);
+  return (getRequest(classname, &node));
+}
+
+Request* EvaluatorLoader::getRequest(std::string& classname, const char* reqfile) {
+  std::string str, reqstr;
+  std::ifstream f(reqfile);
+  if(!f) logger.msg(Arc::ERROR,"Failed to read request file %s", reqfile);
+
+  while (f >> str) {
+    reqstr.append(str);
+    reqstr.append(" ");
+  }
+  f.close();
+
+  Arc::XMLNode node(reqstr);
+  return (getRequest(classname, &node));
+}
+
 Request* EvaluatorLoader::getRequest(std::string& classname, Arc::XMLNode* reqnode) {
   ArcSec::Request* req = NULL;
   Arc::ClassLoader* classloader = NULL;
@@ -116,6 +136,26 @@ Request* EvaluatorLoader::getRequest(std::string& classname, Arc::XMLNode* reqno
   }
 
   return req;
+}
+
+Policy* EvaluatorLoader::getPolicy(std::string& classname, std::string& policystr) {
+  Arc::XMLNode node(policystr);
+  return (getPolicy(classname, &node));
+}
+
+Policy* EvaluatorLoader::getPolicy(std::string& classname, const char* policyfile) {
+  std::string str, policystr;
+  std::ifstream f(policyfile);
+  if(!f) logger.msg(Arc::ERROR,"Failed to read request file %s", policyfile);
+
+  while (f >> str) {
+    policystr.append(str);
+    policystr.append(" ");
+  }
+  f.close();
+
+  Arc::XMLNode node(policystr);
+  return (getPolicy(classname, &node));
 }
 
 Policy* EvaluatorLoader::getPolicy(std::string& classname, Arc::XMLNode* policynode) {

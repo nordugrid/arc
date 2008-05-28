@@ -58,10 +58,33 @@ public:
  /**Evaluates the request by using a string as input*/
   virtual Response* evaluate(std::string& reqstring) = 0;
 
-  /**The same as the above three ones, using policy file as argument*/
-  virtual Response* evaluate(Request* request, std::string& policyfile) = 0;
-  virtual Response* evaluate(Arc::XMLNode& node, std::string& policyfile) = 0;
-  virtual Response* evaluate(const char* reqfile, std::string& policyfile) =0;
+  /**Evaluate the specified request against the specified policy. Using policy file as argument
+  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+  virtual Response* evaluate(Request* request, const char* policyfile) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node, const char* policyfile) = 0;
+  virtual Response* evaluate(const char* reqfile, const char* policyfile) =0;
+  virtual Response* evaluate(std::string& reqstr, const char* policyfile) =0;
+
+  /**Evaluate the specified request against the specified policy. Using policy string as argument
+  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+  virtual Response* evaluate(Request* request, std::string& policystr) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node, std::string& policystr) = 0;
+  virtual Response* evaluate(const char* reqfile, std::string& policystr) =0;
+  virtual Response* evaluate(std::string& reqstr, std::string& policystr) =0;
+
+  /**Evaluate the specified request against the specified policy. Using policy XMLNode as argument
+  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+  virtual Response* evaluate(Request* request, Arc::XMLNode& policynode) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node, Arc::XMLNode& policynode) = 0;
+  virtual Response* evaluate(const char* reqfile, Arc::XMLNode& policynode) =0;
+  virtual Response* evaluate(std::string& reqstr, Arc::XMLNode& policynode) =0;
+
+  /**Evaluate the specified request against the specified policy. Using policy object as argument
+  *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
+  virtual Response* evaluate(Request* request, BasePolicy* policyobj) = 0;
+  virtual Response* evaluate(Arc::XMLNode& node, BasePolicy* policyobj) = 0;
+  virtual Response* evaluate(const char* reqfile, BasePolicy* policyobj) =0;
+  virtual Response* evaluate(std::string& reqstr, BasePolicy* policyobj) =0;
 
   /**Get the AttributeFactory object*/
   virtual AttributeFactory* getAttrFactory () = 0;
@@ -73,7 +96,13 @@ public:
   virtual AlgFactory* getAlgFactory () = 0;
 
   /**Add policy to the evaluator, use filename as argument*/
-  virtual void addPolicy(const std::string& policyfile,const std::string& id = "") = 0;
+  virtual void addPolicy(const char* policyfile,const std::string& id = "") = 0;
+
+  /**Add policy to the evaluator, use file string as argument*/
+  virtual void addPolicy(std::string& policystr,const std::string& id = "") = 0;
+
+  /**Add policy to the evaluator, use XMLNode as argument*/
+  virtual void addPolicy(Arc::XMLNode& policynode,const std::string& id = "") = 0;
 
   /**Add policy to the evaluator, use Policy object as argument*/
   virtual void addPolicy(BasePolicy* policy,const std::string& id = "") = 0;

@@ -33,9 +33,13 @@ public:
   
   virtual std::list<PolicyElement> findPolicy(EvaluationCtx* context);
 
-  virtual void addPolicy(const std::string& policyfile, EvaluatorContext* ctx,const std::string& id);
+  virtual void addPolicy(const char* policyfile, EvaluatorContext* ctx,const std::string& id);
 
-  virtual void addPolicy(BasePolicy* policy, EvaluatorContext* ctx,const std::string& id);
+  virtual void addPolicy(std::string& policystr, EvaluatorContext* ctx,const std::string& id);
+
+  virtual void addPolicy(Arc::XMLNode& policynode, EvaluatorContext* ctx,const std::string& id);
+
+  virtual void addPolicy(BasePolicy* policyobj, EvaluatorContext* ctx,const std::string& id);
 
   virtual void removePolicies();
 

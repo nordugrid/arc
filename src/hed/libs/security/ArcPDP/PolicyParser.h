@@ -21,7 +21,11 @@ public:
   @param sourcename   location of the policy file
   @param ctx        EvaluatorContext which include the **Factory
   */
-  virtual Policy* parsePolicy(const std::string& sourcename, std::string policyclassname, EvaluatorContext* ctx);
+  virtual Policy* parsePolicy(const char* sourcename, std::string policyclassname, EvaluatorContext* ctx);
+
+  virtual Policy* parsePolicy(std::string& sourcestr, std::string policyclassname, EvaluatorContext* ctx);
+
+  virtual Policy* parsePolicy(Arc::XMLNode& sourcenode, std::string policyclassname, EvaluatorContext* ctx);
 
   virtual ~PolicyParser(){};
 

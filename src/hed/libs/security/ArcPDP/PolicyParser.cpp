@@ -23,9 +23,9 @@ PolicyParser::PolicyParser(){
 }
 
 ///Get policy from local file
-void getfromFile(const std::string name, std::string& xml_policy){
+void getfromFile(const char* name, std::string& xml_policy){
   std::string str;
-  std::ifstream f(name.c_str());
+  std::ifstream f(name);
   if(!f) logger.msg(ERROR,"Failed to read policy file %s",name);
 
   while (f >> str) {
@@ -36,8 +36,8 @@ void getfromFile(const std::string name, std::string& xml_policy){
 }
 
 ///Get policy from remote URL
-void getfromURL(const std::string name, std::string& xml_policy){
-  Arc::URL url(name.c_str());
+void getfromURL(const char* name, std::string& xml_policy){
+  Arc::URL url(name);
 
   // TODO: IMPORTANT: Use client interface.
   Arc::NS ns;
@@ -109,29 +109,34 @@ void getfromURL(const std::string name, std::string& xml_policy){
   } catch(std::exception&) { };
 }
 
-Policy* PolicyParser::parsePolicy(const std::string& sourcename, std::string policyclassname, EvaluatorContext* ctx){
+Policy* PolicyParser::parsePolicy(std::string& sourcestr, std::string policyclassname, EvaluatorContext* ctx){
+  Arc::XMLNode node(sourcestr);
+  return (parsePolicy(node, policyclassname, ctx));
+}
+
+Policy* PolicyParser::parsePolicy(Arc::XMLNode& sourcenode, std::string policyclassname, EvaluatorContext* ctx){
+  XMLNode node(sourcenode);
+  Arc::ClassLoader* classloader = NULL;
+  classloader=Arc::ClassLoader::getClassLoader();
+  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, (void**)(void*)&node));
+  if(policy == NULL) { logger.msg(ERROR, "Can not generate policy object"); return NULL; }
+  policy->setEvaluatorContext(ctx);
+  policy->make_policy();
+
+  return policy;
+}
+
+Policy* PolicyParser::parsePolicy(const char* sourcename, std::string policyclassname, EvaluatorContext* ctx){
   std::string xml_policy;
-  int pos = sourcename.find("://");
+  std::string src_name(sourcename);
+  int pos = src_name.find("://");
   if(pos == std::string::npos) {
     getfromFile(sourcename, xml_policy);
   }   
   else{
     getfromURL(sourcename, xml_policy);
   }
-
-  //std::cout<<xml_policy<<std::endl;   
-
   XMLNode node(xml_policy);
 
-  Arc::ClassLoader* classloader = NULL;
-  classloader=Arc::ClassLoader::getClassLoader();
-  ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, (void**)(void*)&node));  
-  if(policy == NULL) { logger.msg(ERROR, "Can not generate policy object"); return NULL; }
-  policy->setEvaluatorContext(ctx);
-  policy->make_policy();
-
-  return policy;
-
-  //return(new ArcPolicy(&node, ctx));
-  
+  return (parsePolicy(node, policyclassname, ctx));
 }

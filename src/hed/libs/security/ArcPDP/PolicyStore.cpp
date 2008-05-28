@@ -17,7 +17,7 @@ PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::stri
   PolicyParser plparser;  
   //call parsePolicy to parse each policies
   for(std::list<std::string>::const_iterator it = filelist.begin(); it != filelist.end(); it++){
-    policies.push_back(PolicyElement(plparser.parsePolicy(*it,policy_classname, ctx)));
+    policies.push_back(PolicyElement(plparser.parsePolicy((*it).c_str(), policy_classname, ctx)));
   }    
 }
 
@@ -42,13 +42,25 @@ std::list<PolicyStore::PolicyElement> PolicyStore::findPolicy(EvaluationCtx*) { 
  //TODO 
 }
 
-void PolicyStore::addPolicy(const std::string& policyfile, EvaluatorContext* ctx, const std::string& id) {
+void PolicyStore::addPolicy(const char* policyfile, EvaluatorContext* ctx, const std::string& id) {
   PolicyParser plparser;
   policies.push_back(PolicyElement(plparser.parsePolicy(policyfile, policy_classname, ctx),id));
 }
 
+void PolicyStore::addPolicy(std::string& policystr, EvaluatorContext* ctx, const std::string& id) {
+  PolicyParser plparser;
+  policies.push_back(PolicyElement(plparser.parsePolicy(policystr, policy_classname, ctx),id));
+}
+
+void PolicyStore::addPolicy(Arc::XMLNode& policynode, EvaluatorContext* ctx, const std::string& id) {
+  PolicyParser plparser;
+  policies.push_back(PolicyElement(plparser.parsePolicy(policynode, policy_classname, ctx),id));
+}
+
 void PolicyStore::addPolicy(BasePolicy* policy, EvaluatorContext* ctx,const std::string& id) {
   Policy* pls = dynamic_cast<Policy*>(policy);
+  pls->setEvaluatorContext(ctx);
+  pls->make_policy();
   if(pls!=NULL) {
     policies.push_back(PolicyElement(pls, id));
   }
