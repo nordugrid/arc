@@ -57,5 +57,8 @@
     <!-- LongDescription attribute of bes-factory. -->
     <xsd:element name="longDescription" type="xsd:string"/>
 
+    <!-- Name of Local Resource Management System. -->
+    <xsd:element name="LRMSName" type="xsd:string"/>
+
 </xsd:schema>
 
