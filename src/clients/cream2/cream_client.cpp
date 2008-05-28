@@ -249,6 +249,7 @@ namespace Arc{
             delete resp;
             if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
             if (result=="") throw CREAMClientError("No job ID has been received");
+            return result;
         } // CREAMClient::registerJob()
        
         void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError) {
