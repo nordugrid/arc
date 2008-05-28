@@ -116,8 +116,8 @@ int main(int argc, char* argv[]){
     std::string jobid;
     std::ifstream jsdlfile(argv[tool.FirstOption()+1]);
     if (!jsdlfile)
-      throw std::invalid_argument(std::string("Could not open ")+
-				  std::string(argv[1]));
+      throw std::invalid_argument(std::string("Could not open job description file ")+
+				  std::string(argv[tool.FirstOption()+1]));
     std::ofstream jobidfile(argv[tool.FirstOption()+2]);
     Arc::AREXFileList files;
     // Submit job description
