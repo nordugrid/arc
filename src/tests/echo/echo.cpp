@@ -141,7 +141,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   };
   {
       std::string str;
-      inpayload->GetDoc(str, str);
+      inpayload->GetDoc(str, true);
       logger.msg(Arc::DEBUG, "process: request=%s",str);
   }; 
   // Analyzing request 
