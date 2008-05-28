@@ -5,13 +5,15 @@
 #include <string>
 #include <list>
 
+#include <arc/ArcLocation.h>
+#include <arc/Logger.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
 #include <arc/data/DataCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
-#include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/URL.h>
+#include <arc/misc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
 
@@ -415,5 +417,122 @@ void arccp(const Arc::URL& source_url_,
   return;
 }
 
-#define ARCCP
-#include "arccli.cpp"
+int main(int argc, char **argv) {
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("source destination"));
+
+  bool passive = false;
+  options.AddOption('p', "passive",
+		    istring("use passive transfer (does not work if secure "
+			    "is on, default if secure is not requested)"),
+		    passive);
+
+  bool notpassive = false;
+  options.AddOption('n', "nopassive",
+		    istring("do not try to force passive transfer"),
+		    notpassive);
+
+  bool force = false;
+  options.AddOption('f', "force",
+		    istring("if the destination is an indexing service "
+			    "and not the same as the source and the "
+			    "destination is already registered, then "
+			    "the copy is normally not done. However, if "
+			    "this option is specified the source is "
+			    "assumed to be a replica of the destination "
+			    "created in an uncontrolled way and the "
+			    "copy is done like in case of replication"),
+		    force);
+
+  bool verbose = false;
+  options.AddOption('i', "indicate", istring("show progress indicator"),
+		    verbose);
+
+  bool nocopy = false;
+  options.AddOption('T', "notransfer",
+		    istring("do not transfer file, just register it - "
+			    "destination must be non-existing meta-url"),
+		    nocopy);
+
+  bool secure = false;
+  options.AddOption('u', "secure",
+		    istring("use secure transfer (insecure by default)"),
+		    secure);
+
+  std::string cache_path;
+  options.AddOption('y', "cache",
+		    istring("path to local cache (use to put file into cache)"),
+		    istring("path"), cache_path);
+
+  std::string cache_data_path;
+  options.AddOption('Y', "cachedata",
+		    istring("path for cache data (if different from -y)"),
+		    istring("path"), cache_data_path);
+
+  int recursion = 0;
+  options.AddOption('r', "recursive",
+		    istring("operate recursively up to specified level"),
+		    istring("level"), recursion);
+
+  int retries = 0;
+  options.AddOption('R', "retries",
+		    istring("number of retries before failing file transfer"),
+		    istring("number"), retries);
+
+  int timeout = 20;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+		    istring("seconds"), timeout);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcls", VERSION) << std::endl;
+    return 0;
+  }
+
+  if (params.size() != 2) {
+    logger.msg(Arc::ERROR, "Wrong number of parameters specified");
+    return 1;
+  }
+
+  if (passive && notpassive) {
+    logger.msg(Arc::ERROR, "Options 'p' and 'n' can't be used simultaneously");
+    return 1;
+  }
+
+  if ((!secure) && (!notpassive))
+    passive = true;
+
+  std::list<std::string>::iterator it = params.begin();
+  std::string source = *it;
+  ++it;
+  std::string destination = *it;
+
+  if (nocopy)
+    arcregister(source, destination, secure, passive, force, timeout);
+  else
+    arccp(source, destination, secure, passive, force, recursion,
+	  retries + 1, verbose, timeout);
+
+  return 0;
+}

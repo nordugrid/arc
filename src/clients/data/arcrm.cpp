@@ -5,10 +5,12 @@
 #include <string>
 #include <list>
 
-#include <arc/data/DataHandle.h>
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/data/DataHandle.h>
+#include <arc/misc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
@@ -98,5 +100,54 @@ void arcrm(const Arc::URL& file_url,
   return;
 }
 
-#define ARCRM
-#include "arccli.cpp"
+int main(int argc, char **argv) {
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("url"));
+
+  bool force = false;
+  options.AddOption('f', "force",
+		    istring("remove logical file name registration even "
+			    "if not all physical instances were removed"),
+		    force);
+
+  int timeout = 20;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+		    istring("seconds"), timeout);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcls", VERSION) << std::endl;
+    return 0;
+  }
+
+  if (params.size() != 1) {
+    logger.msg(Arc::ERROR, "Wrong number of parameters specified");
+    return 1;
+  }
+
+  std::list<std::string>::iterator it = params.begin();
+  arcrm(*it, force, timeout);
+
+  return 0;
+}

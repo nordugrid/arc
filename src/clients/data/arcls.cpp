@@ -6,10 +6,12 @@
 #include <string>
 #include <list>
 
-#include <arc/data/DataHandle.h>
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/data/DataHandle.h>
+#include <arc/misc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
@@ -101,5 +103,61 @@ void arcls(const Arc::URL& dir_url,
   return;
 }
 
-#define ARCLS
-#include "arccli.cpp"
+int main(int argc, char **argv) {
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("url"));
+
+  bool longlist = false;
+  options.AddOption('l', "long", istring("long format (more information)"),
+		    longlist);
+
+  bool locations = false;
+  options.AddOption('L', "locations", istring("show URLs of file locations"),
+		    locations);
+
+  int recursion = 0;
+  options.AddOption('r', "recursive",
+		    istring("operate recursively up to specified level"),
+		    istring("level"), recursion);
+
+  int timeout = 20;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+		    istring("seconds"), timeout);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "arcls", VERSION) << std::endl;
+    return 0;
+  }
+
+  if (params.size() != 1) {
+    logger.msg(Arc::ERROR, "Wrong number of parameters specified");
+    return 1;
+  }
+
+  std::list<std::string>::iterator it = params.begin();
+  arcls(*it, longlist, locations, recursion, timeout);
+
+  return 0;
+}
