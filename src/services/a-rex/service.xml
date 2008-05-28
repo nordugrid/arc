@@ -57,6 +57,7 @@
       <arex:endpoint>https://localhost:60000/arex</arex:endpoint>
       <arex:usermap><arex:defaultLocalName>sanjak</arex:defaultLocalName></arex:usermap>
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+      <arex:LRMSName>uri:unknown</arex:LRMSName>
     </Service>
     <Service name="echo" id="echo">
       <echo:prefix>[ </echo:prefix>

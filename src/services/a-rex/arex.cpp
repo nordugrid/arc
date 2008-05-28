@@ -354,9 +354,9 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
   std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
-  std::string common_name_ = (std::string)((*cfg)["commonName"]);
-  std::string long_description_ = (std::string)((*cfg)["longDescription"]);
-  std::string lrms_name_ = (std::string)((*cfg)["LRMSName"]);
+  common_name_ = (std::string)((*cfg)["commonName"]);
+  long_description_ = (std::string)((*cfg)["longDescription"]);
+  lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
   Arc::NS ns;
