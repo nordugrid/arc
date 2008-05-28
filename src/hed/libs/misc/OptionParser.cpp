@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
 #include <iostream>
 
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
@@ -221,8 +222,10 @@ namespace Arc {
   std::list<std::string> OptionParser::Parse(int argc, char **argv) {
 
     Glib::OptionContext ctx(arguments);
-    ctx.set_summary(summary);
-    ctx.set_description(description);
+    if (!summary.empty())
+      ctx.set_summary(summary);
+    if (!description.empty())
+      ctx.set_description(description);
     ctx.set_translation_domain("Arc");
     Glib::OptionGroup grp("main", "Main Group");
     grp.set_translation_domain("Arc");
