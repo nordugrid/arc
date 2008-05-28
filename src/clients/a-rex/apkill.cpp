@@ -1,43 +1,17 @@
-// apkill.cpp
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <stdexcept>
-#include <arc/misc/ClientTool.h>
-#include <arc/XMLNode.h>
-#include "arex_client.h"
 
-class APKillTool: public Arc::ClientTool {
- public:
-  std::string proxy_path;
-  std::string key_path;
-  std::string cert_path;
-  std::string ca_dir;
-  std::string config_path;
-  APKillTool(int argc,char* argv[]):Arc::ClientTool("apkill") {
-    ProcessOptions(argc,argv,"P:K:C:A:c:");
-  };
-  virtual void PrintHelp(void) {
-    std::cout<<"apkill [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] [service_url] id_file"<<std::endl;
-    std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
-  };
-  virtual bool ProcessOption(char option,char* option_arg) {
-    switch(option) {
-      case 'P': proxy_path=option_arg;; break;
-      case 'K': key_path=option_arg; break;
-      case 'C': cert_path=option_arg; break;
-      case 'A': ca_dir=option_arg; break;
-      case 'c': config_path=option_arg; break;
-      default: {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
-      };
-    };
-    return true;
-  };
-};
+#include <arc/ArcLocation.h>
+#include <arc/XMLNode.h>
+#include <arc/misc/OptionParser.h>
+
+#include "arex_client.h"
 
 //! A prototype client for job termination.
 /*! A prototype command line tool for terminating a job of an A-REX
@@ -58,40 +32,88 @@ class APKillTool: public Arc::ClientTool {
   be "arex_client.xml" in the current working directory.
 */
 int main(int argc, char* argv[]){
-  APKillTool tool(argc,argv);
-  if(!tool) return EXIT_FAILURE;
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("[service_url] id_file"));
+
+  std::string proxy_path;
+  options.AddOption('P', "proxy", istring("path to proxy file"),
+		    istring("path"), proxy_path);
+
+  std::string cert_path;
+  options.AddOption('C', "certifcate", istring("path to certificate file"),
+		    istring("path"), cert_path);
+
+  std::string key_path;
+  options.AddOption('K', "key", istring("path to private key file"),
+		    istring("path"), key_path);
+
+  std::string ca_dir;
+  options.AddOption('A', "cadir", istring("path to CA directory"),
+		    istring("directory"), ca_dir);
+
+  std::string config_path;
+  options.AddOption('c', "config", istring("path to config file"),
+		    istring("path"), config_path);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "apkill", VERSION) << std::endl;
+    return 0;
+  }
+
   try{
-    if (((argc-tool.FirstOption())!=2) && ((argc-tool.FirstOption())!=1))
+    if ((params.size()!=2) && (params.size()!=1))
       throw std::invalid_argument("Wrong number of arguments!");
-    char* jobidarg = argv[tool.FirstOption()];
-    if((argc-tool.FirstOption()) == 2) jobidarg=argv[tool.FirstOption()+1];;
+    std::list<std::string>::reverse_iterator it = params.rbegin();
+    std::string jobidarg = *it++;
     std::string jobid;
-    std::ifstream jobidfile(jobidarg);
+    std::ifstream jobidfile(jobidarg.c_str());
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not open ")+jobidarg);
+      throw std::invalid_argument("Could not open " + jobidarg);
     std::getline<char>(jobidfile, jobid, 0);
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not read Job ID from ")+jobidarg);
+      throw std::invalid_argument("Could not read Job ID from " + jobidarg);
     std::string urlstr;
-    if((argc-tool.FirstOption()) == 1) {
+    if(params.size() == 1) {
       Arc::XMLNode jobxml(jobid);
       if(!jobxml)
-        throw std::invalid_argument(std::string("Could not process Job ID from ")+jobidarg);
+        throw std::invalid_argument("Could not process Job ID from " + jobidarg);
       urlstr=(std::string)(jobxml["Address"]); // TODO: clever service address extraction
     } else {
-      urlstr=argv[tool.FirstOption()];
+      urlstr=*it++;
     };
     if(urlstr.empty())
       throw std::invalid_argument("Missing service URL.");
     Arc::URL url(urlstr);
     if(!url)
-      throw std::invalid_argument(std::string("Can't parse service URL ")+urlstr);
+      throw std::invalid_argument("Can't parse service URL " + urlstr);
     Arc::MCCConfig cfg;
-    if(!tool.proxy_path.empty()) cfg.AddProxy(tool.proxy_path);
-    if(!tool.key_path.empty()) cfg.AddPrivateKey(tool.key_path);
-    if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
-    if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
-    cfg.GetOverlay(tool.config_path);
+    if(!proxy_path.empty()) cfg.AddProxy(proxy_path);
+    if(!key_path.empty()) cfg.AddPrivateKey(key_path);
+    if(!cert_path.empty()) cfg.AddCertificate(cert_path);
+    if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
+    cfg.GetOverlay(config_path);
     Arc::AREXClient ac(url,cfg);
     ac.kill(jobid);
     std::cout << "The job was terminated." << std::endl;

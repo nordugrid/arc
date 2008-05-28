@@ -1,4 +1,6 @@
-// apstat.cpp
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <iostream>
 #include <string>
@@ -11,47 +13,11 @@
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <arc/Logger.h>
-#include <arc/misc/ClientTool.h>
-#include <arc/delegation/DelegationInterface.h>
 
-class APProxyTool: public Arc::ClientTool {
- public:
-  std::string key_path;
-  std::string cert_path;
-  std::string proxy_path;
-  std::map<std::string,std::string> constraints;
-  APProxyTool(int argc,char* argv[]):Arc::ClientTool("apinfo") {
-    ProcessOptions(argc,argv,"P:K:C:c:");
-  };
-  virtual void PrintHelp(void) {
-    std::cout<<"approxy [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-c constraints]"<<std::endl;
-    std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
-    std::cout<<"\tSupported constraints are:"<<std::endl;
-    std::cout<<"\t\tvalidityStart=time"<<std::endl;
-    std::cout<<"\t\tvalidityEnd=time"<<std::endl;
-    std::cout<<"\t\tvalidityPeriod=time"<<std::endl;
-    std::cout<<"\t\tproxyPolicy=policy content"<<std::endl;
-  };
-  virtual bool ProcessOption(char option,char* option_arg) {
-    switch(option) {
-      case 'P': proxy_path=option_arg;; break;
-      case 'K': key_path=option_arg; break;
-      case 'C': cert_path=option_arg; break;
-      case 'c': {
-        const char* p = strchr(option_arg,'=');
-        if(!p) p=option_arg+strlen(option_arg);
-        constraints[std::string(option_arg,p-option_arg)]=p+1;
-      }; break;
-      default: {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
-      };
-    };
-    return true;
-  };
-};
+#include <arc/ArcLocation.h>
+#include <arc/Logger.h>
+#include <arc/delegation/DelegationInterface.h>
+#include <arc/misc/OptionParser.h>
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
@@ -69,60 +35,120 @@ static void tls_process_error(void) {
 }
 
 int main(int argc, char* argv[]){
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options("", "",
+			    istring("Supported constraints are:\n"
+				    "  validityStart=time\n"
+				    "  validityEnd=time\n"
+				    "  validityPeriod=time\n"
+				    "  proxyPolicy=policy content"));
+
+  std::string proxy_path;
+  options.AddOption('P', "proxy", istring("path to proxy file"),
+		    istring("path"), proxy_path);
+
+  std::string cert_path;
+  options.AddOption('C', "certifcate", istring("path to certificate file"),
+		    istring("path"), cert_path);
+
+  std::string key_path;
+  options.AddOption('K', "key", istring("path to private key file"),
+		    istring("path"), key_path);
+
+  std::list<std::string> constraintlist;
+  options.AddOption('c', "constraint", istring("proxy constraints"),
+		    istring("string"), constraintlist);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "approxy", VERSION) << std::endl;
+    return 0;
+  }
+
+  std::map<std::string, std::string> constraints;
+  for (std::list<std::string>::iterator it = constraintlist.begin();
+       it != constraintlist.end(); it++) {
+    std::string::size_type pos = it->find('=');
+    if (pos != std::string::npos)
+      constraints[it->substr(0, pos)] = it->substr(pos + 1);
+    else
+      constraints[*it] = "";
+  }
+
   SSL_load_error_strings();
   SSL_library_init();
-  APProxyTool tool(argc,argv);
-  if(!tool) return EXIT_FAILURE;
+
   try{
-    if ((argc-tool.FirstOption())!=0)
+    if (params.size()!=0)
       throw std::invalid_argument("Wrong number of arguments!");
-    if(tool.key_path.empty()) {
+    if(key_path.empty()) {
       char* s = getenv("X509_USER_KEY");
       if((s == NULL) || (s[0] == 0)) {
-        throw(std::runtime_error(std::string("Missing path to private key")));
+        throw std::runtime_error("Missing path to private key");
       };
-      tool.key_path=s;
+      key_path=s;
     };
-    if(tool.cert_path.empty()) {
+    if(cert_path.empty()) {
       char* s = getenv("X509_USER_CERT");
       if((s == NULL) || (s[0] == 0)) {
-        throw(std::runtime_error(std::string("Missing path to certificate")));
+        throw std::runtime_error("Missing path to certificate");
       };
-      tool.cert_path=s;
+      cert_path=s;
     };
-    if(tool.proxy_path.empty()) {
+    if(proxy_path.empty()) {
       char* s = getenv("X509_USER_PROXY");
       if((s == NULL) || (s[0] == 0)) {
-        throw(std::runtime_error(std::string("Missing path to proxy")));
+        throw std::runtime_error("Missing path to proxy");
       };
-      tool.proxy_path=s;
+      proxy_path=s;
     };
     struct termios to;
     tcgetattr(STDIN_FILENO,&to);
     to.c_lflag &= ~ECHO; tcsetattr(STDIN_FILENO,TCSANOW,&to);
-    Arc::DelegationProvider provider(tool.cert_path,tool.key_path,&std::cin);
+    Arc::DelegationProvider provider(cert_path,key_path,&std::cin);
     to.c_lflag |= ECHO; tcsetattr(STDIN_FILENO,TCSANOW,&to);
     if(!provider) {
-      throw(std::runtime_error(std::string("Failed to acquire credentials")));
+      throw std::runtime_error("Failed to acquire credentials");
     };
     Arc::DelegationConsumer consumer;
     if(!consumer) {
-      throw(std::runtime_error(std::string("Failed to generate new private key")));
+      throw std::runtime_error("Failed to generate new private key");
     };
     std::string request;
     if(!consumer.Request(request)) {
-      throw(std::runtime_error(std::string("Failed to generate certificate request")));
+      throw std::runtime_error("Failed to generate certificate request");
     };
-    std::string proxy = provider.Delegate(request,tool.constraints);
+    std::string proxy = provider.Delegate(request,constraints);
     if(!consumer.Acquire(proxy)) {
-      throw(std::runtime_error(std::string("Failed to generate proxy")));
+      throw std::runtime_error("Failed to generate proxy");
     };
-    int f = ::open(tool.proxy_path.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
+    int f = ::open(proxy_path.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
     if(f == -1) {
-      throw(std::runtime_error(std::string("Failed to open proxy file ")+tool.proxy_path));
+      throw std::runtime_error("Failed to open proxy file " + proxy_path);
     };
     if(::write(f,proxy.c_str(),proxy.length()) != proxy.length()) {
-      throw(std::runtime_error(std::string("Failed to write into proxy file ")+tool.proxy_path));
+      throw std::runtime_error("Failed to write into proxy file " + proxy_path);
     };
     ::close(f);
     return EXIT_SUCCESS;

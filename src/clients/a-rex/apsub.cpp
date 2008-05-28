@@ -1,10 +1,16 @@
-// apsub.cpp
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <stdexcept>
-#include <arc/misc/ClientTool.h>
+
+#include <arc/ArcLocation.h>
+#include <arc/XMLNode.h>
+#include <arc/misc/OptionParser.h>
+
 #include "arex_client.h"
 
 static std::string merge_paths(const std::string path1,const std::string& path2) {
@@ -50,41 +56,6 @@ static bool put_file(Arc::ClientHTTP& client,const Arc::URL& base,Arc::AREXFile&
   return true;
 }
 
-class APSubTool: public Arc::ClientTool {
- public:
-  std::string proxy_path;
-  std::string key_path;
-  std::string cert_path;
-  std::string ca_dir;
-  std::string config_path;
-  bool delegate;
-  APSubTool(int argc,char* argv[]):Arc::ClientTool("apsub") {
-    delegate=false;
-    ProcessOptions(argc,argv,"EP:K:C:A:c:");
-  };
-  virtual void PrintHelp(void) {
-    std::cout<<"apsub [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] [-E] service_url jsdl_file id_file"<<std::endl;
-    std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
-  };
-  virtual bool ProcessOption(char option,char* option_arg) {
-    switch(option) {
-      case 'P': proxy_path=option_arg;; break;
-      case 'K': key_path=option_arg; break;
-      case 'C': cert_path=option_arg; break;
-      case 'A': ca_dir=option_arg; break;
-      case 'c': config_path=option_arg; break;
-      case 'E': delegate=true; break;
-      default: {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
-      };
-    };
-    return true;
-  };
-};
-
-
 //! A prototype client for job submission.
 /*! A prototype command line tool for job submission to an A-REX
   service. In the name, "ap" means "Arc Prototype".
@@ -99,32 +70,85 @@ class APSubTool: public Arc::ClientTool {
 
 */
 int main(int argc, char* argv[]){
-  APSubTool tool(argc,argv);
-  if(!tool) return EXIT_FAILURE;
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("service_url jsdl_file id_file"));
+
+  std::string proxy_path;
+  options.AddOption('P', "proxy", istring("path to proxy file"),
+		    istring("path"), proxy_path);
+
+  std::string cert_path;
+  options.AddOption('C', "certifcate", istring("path to certificate file"),
+		    istring("path"), cert_path);
+
+  std::string key_path;
+  options.AddOption('K', "key", istring("path to private key file"),
+		    istring("path"), key_path);
+
+  std::string ca_dir;
+  options.AddOption('A', "cadir", istring("path to CA directory"),
+		    istring("directory"), ca_dir);
+
+  std::string config_path;
+  options.AddOption('c', "config", istring("path to config file"),
+		    istring("path"), config_path);
+
+  bool delegate = false;
+  options.AddOption('E', "delegate", istring("delegate proxy"), delegate);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "apsub", VERSION) << std::endl;
+    return 0;
+  }
+
   try{
-    if ((argc-tool.FirstOption())!=3)
+    if (params.size()!=3)
       throw std::invalid_argument("Wrong number of arguments!");
-    Arc::URL url(argv[tool.FirstOption()]);
-    if(!url) throw(std::invalid_argument(std::string("Can't parse specified URL")));
+    std::list<std::string>::iterator it = params.begin();
+    Arc::URL url(*it++);
+    std::string jsdlfilename = *it++;
+    std::string idfilename = *it++;
+    if(!url)
+      throw(std::invalid_argument(std::string("Can't parse specified URL")));
     Arc::MCCConfig cfg;
-    if(!tool.proxy_path.empty()) cfg.AddProxy(tool.proxy_path);
-    if(!tool.key_path.empty()) cfg.AddPrivateKey(tool.key_path);
-    if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
-    if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
-    cfg.GetOverlay(tool.config_path);
+    if(!proxy_path.empty()) cfg.AddProxy(proxy_path);
+    if(!key_path.empty()) cfg.AddPrivateKey(key_path);
+    if(!cert_path.empty()) cfg.AddCertificate(cert_path);
+    if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
+    cfg.GetOverlay(config_path);
     Arc::AREXClient ac(url,cfg);
     std::string jobid;
-    std::ifstream jsdlfile(argv[tool.FirstOption()+1]);
+    std::ifstream jsdlfile(jsdlfilename.c_str());
     if (!jsdlfile)
-      throw std::invalid_argument(std::string("Could not open job description file ")+
-				  std::string(argv[tool.FirstOption()+1]));
-    std::ofstream jobidfile(argv[tool.FirstOption()+2]);
+      throw std::invalid_argument("Could not open job description file " + jsdlfilename);
+    std::ofstream jobidfile(idfilename.c_str());
     Arc::AREXFileList files;
     // Submit job description
-    jobid = ac.submit(jsdlfile,files,tool.delegate);
+    jobid = ac.submit(jsdlfile,files,delegate);
     if (!jsdlfile)
-      throw std::invalid_argument(std::string("Failed when reading from ")+
-				  std::string(argv[tool.FirstOption()+1]));
+      throw std::invalid_argument("Failed when reading from " + jsdlfilename);
     // Extract session directory URL
     // TODO: use XML directly
     Arc::XMLNode jobidx(jobid);
@@ -141,10 +165,9 @@ int main(int argc, char* argv[]){
     };
     jobidfile << jobid;
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not write Job ID to ")+
-				  std::string(argv[tool.FirstOption()+2]));
+      throw std::invalid_argument("Could not write Job ID to " + idfilename);
     std::cout << "Submitted the job!" << std::endl;
-    std::cout << "Job ID stored in: " << argv[tool.FirstOption()+2] << std::endl;
+    std::cout << "Job ID stored in: " << idfilename << std::endl;
     return EXIT_SUCCESS;
   }
   catch (std::exception& e){

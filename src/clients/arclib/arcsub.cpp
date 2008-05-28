@@ -249,7 +249,7 @@ int main(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
   if (version) {
-    std::cout << Arc::IString("%s version %s", "arcstat", VERSION) << std::endl;
+    std::cout << Arc::IString("%s version %s", "arcsub", VERSION) << std::endl;
     return 0;
   }
 

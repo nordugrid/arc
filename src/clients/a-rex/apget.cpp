@@ -1,13 +1,21 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <cerrno>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <list>
 #include <fstream>
 #include <stdexcept>
+
+#include <arc/ArcLocation.h>
 #include <arc/URL.h>
 #include <arc/misc/ClientInterface.h>
-#include <arc/misc/ClientTool.h>
+#include <arc/misc/OptionParser.h>
+
 #include "arex_client.h"
+
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -158,79 +166,96 @@ static bool get_file(Arc::ClientHTTP& client,const Arc::URL& url,const std::stri
   return true;
 }
 
-class APGetTool: public Arc::ClientTool {
- public:
-  std::string proxy_path;
-  std::string key_path;
-  std::string cert_path;
-  std::string ca_dir;
-  std::string config_path;
-  std::string local_dir;
-  APGetTool(int argc,char* argv[]):Arc::ClientTool("apget") {
-    local_dir="./gridjob";
-    ProcessOptions(argc,argv,"P:K:C:A:c:D:");
-  };
-  virtual void PrintHelp(void) {
-    std::cout<<"apget [-h] [-d debug_level] [-l logfile] [-P proxy_path] [-C certificate_path] [-K private_key_path] [-A CA_directory_path] [-c config_path] [-D local_directory] [service_url] id_file"<<std::endl;
-    std::cout<<"\tPossible debug levels are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL"<<std::endl;
-  };
-  virtual bool ProcessOption(char option,char* option_arg) {
-    switch(option) {
-      case 'P': proxy_path=option_arg;; break;
-      case 'K': key_path=option_arg; break;
-      case 'C': cert_path=option_arg; break;
-      case 'A': ca_dir=option_arg; break;
-      case 'c': config_path=option_arg; break;
-      case 'D': local_dir=option_arg; break;
-      default: {
-        std::cerr<<"Error processing option: "<<(char)option<<std::endl;
-        PrintHelp();
-        return false;
-      };
-    };
-    return true;
-  };
-};
-
 int main(int argc, char* argv[]){
-  APGetTool tool(argc,argv);
-  if(!tool) return EXIT_FAILURE;
+
+  setlocale(LC_ALL, "");
+
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+
+  Arc::ArcLocation::Init(argv[0]);
+
+  Arc::OptionParser options(istring("[service_url] id_file"));
+
+  std::string proxy_path;
+  options.AddOption('P', "proxy", istring("path to proxy file"),
+		    istring("path"), proxy_path);
+
+  std::string cert_path;
+  options.AddOption('C', "certifcate", istring("path to certificate file"),
+		    istring("path"), cert_path);
+
+  std::string key_path;
+  options.AddOption('K', "key", istring("path to private key file"),
+		    istring("path"), key_path);
+
+  std::string ca_dir;
+  options.AddOption('A', "cadir", istring("path to CA directory"),
+		    istring("directory"), ca_dir);
+
+  std::string config_path;
+  options.AddOption('c', "config", istring("path to config file"),
+		    istring("path"), config_path);
+
+  std::string local_dir;
+  options.AddOption('D', "download", istring("path to download directory"),
+		    istring("directory"), local_dir);
+
+  std::string debug;
+  options.AddOption('d', "debug",
+		    istring("FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"),
+		    istring("debuglevel"), debug);
+
+  bool version = false;
+  options.AddOption('v', "version", istring("print version information"),
+		    version);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (version) {
+    std::cout << Arc::IString("%s version %s", "apget", VERSION) << std::endl;
+    return 0;
+  }
+
   try{
-    if (((argc-tool.FirstOption())!=2) && ((argc-tool.FirstOption())!=1))
+    if ((params.size()!=2) && (params.size()!=1))
       throw std::invalid_argument("Wrong number of arguments!");
-    char* jobidarg = argv[tool.FirstOption()];
-    if((argc-tool.FirstOption()) == 2) jobidarg=argv[tool.FirstOption()+1];;
+    std::list<std::string>::reverse_iterator it = params.rbegin();
+    std::string jobidarg = *it++;
     std::string jobid;
-    std::ifstream jobidfile(jobidarg);
+    std::ifstream jobidfile(jobidarg.c_str());
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not open ")+jobidarg);
+      throw std::invalid_argument("Could not open " + jobidarg);
     std::getline<char>(jobidfile, jobid, 0);
     if (!jobidfile)
-      throw std::invalid_argument(std::string("Could not read Job ID from ")+jobidarg);
+      throw std::invalid_argument("Could not read Job ID from " + jobidarg);
     std::string urlstr;
     Arc::XMLNode jobxml(jobid);
     if(!jobxml)
-      throw std::invalid_argument(std::string("Could not process Job ID from ")+jobidarg);
+      throw std::invalid_argument("Could not process Job ID from " + jobidarg);
     urlstr=(std::string)(jobxml["ReferenceParameters"]["JobSessionDir"]); // TODO: clever service address extraction
     if(urlstr.empty())
       throw std::invalid_argument("Missing service URL.");
     Arc::URL url(urlstr);
     if(!url)
-      throw std::invalid_argument(std::string("Can't parse service URL ")+urlstr);
+      throw std::invalid_argument("Can't parse service URL " + urlstr);
     Arc::MCCConfig cfg;
-    if(!tool.proxy_path.empty()) cfg.AddProxy(tool.proxy_path);
-    if(!tool.key_path.empty()) cfg.AddPrivateKey(tool.key_path);
-    if(!tool.cert_path.empty()) cfg.AddCertificate(tool.cert_path);
-    if(!tool.ca_dir.empty()) cfg.AddCADir(tool.ca_dir);
-    cfg.GetOverlay(tool.config_path);
+    if(!proxy_path.empty()) cfg.AddProxy(proxy_path);
+    if(!key_path.empty()) cfg.AddPrivateKey(key_path);
+    if(!cert_path.empty()) cfg.AddCertificate(cert_path);
+    if(!ca_dir.empty()) cfg.AddCADir(ca_dir);
+    cfg.GetOverlay(config_path);
     Arc::AREXClient ac(url,cfg);
-    bool r = get_file(*(ac.SOAP()),url,tool.local_dir);
+    bool r = get_file(*(ac.SOAP()),url,local_dir);
     if(!r) throw std::invalid_argument("Failed to download files!");
+    return EXIT_SUCCESS;
   }
   catch (std::exception& err){
     std::cerr << "ERROR: " << err.what() << std::endl;
     return EXIT_FAILURE;
   }
-  return EXIT_SUCCESS;
 }
-
