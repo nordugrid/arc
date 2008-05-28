@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-27 22:59+0200\n"
+"POT-Creation-Date: 2008-05-28 11:50+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -345,17 +345,16 @@ msgstr ""
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 
-#: ../src/clients/arclib/arccli.cpp:438 ../src/clients/data/arccli.cpp:150
+#: ../src/clients/arclib/arccli.cpp:438
 msgid "No program name"
 msgstr ""
 
-#: ../src/clients/arclib/arccli.cpp:485 ../src/clients/data/arccli.cpp:170
+#: ../src/clients/arclib/arccli.cpp:485
 #, c-format
 msgid "Unknown program name: %s"
 msgstr ""
 
 #: ../src/clients/arclib/arccli.cpp:1037 ../src/clients/arclib/arccli.cpp:1133
-#: ../src/clients/data/arccli.cpp:334 ../src/clients/data/arccli.cpp:373
 msgid "Use -help option for help"
 msgstr ""
 
@@ -436,7 +435,7 @@ msgid "Creating and sending request."
 msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:143
-#: ../src/clients/cream2/cream_client.cpp:218
+#: ../src/clients/cream2/cream_client.cpp:215
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr ""
@@ -457,11 +456,11 @@ msgstr ""
 
 #: ../src/clients/a-rex/arex_client.cpp:188
 #: ../src/clients/a-rex/arex_client.cpp:220
-#: ../src/clients/cream2/cream_client.cpp:229
-#: ../src/clients/cream2/cream_client.cpp:282
-#: ../src/clients/cream2/cream_client.cpp:352
-#: ../src/clients/cream2/cream_client.cpp:400
-#: ../src/clients/cream2/cream_client.cpp:439
+#: ../src/clients/cream2/cream_client.cpp:226
+#: ../src/clients/cream2/cream_client.cpp:279
+#: ../src/clients/cream2/cream_client.cpp:358
+#: ../src/clients/cream2/cream_client.cpp:406
+#: ../src/clients/cream2/cream_client.cpp:445
 msgid "Submission request failed."
 msgstr ""
 
@@ -473,11 +472,11 @@ msgstr ""
 #: ../src/clients/cream2/cream_client.cpp:61
 #: ../src/clients/cream2/cream_client.cpp:127
 #: ../src/clients/cream2/cream_client.cpp:173
-#: ../src/clients/cream2/cream_client.cpp:233
-#: ../src/clients/cream2/cream_client.cpp:286
-#: ../src/clients/cream2/cream_client.cpp:356
-#: ../src/clients/cream2/cream_client.cpp:404
-#: ../src/clients/cream2/cream_client.cpp:443
+#: ../src/clients/cream2/cream_client.cpp:230
+#: ../src/clients/cream2/cream_client.cpp:283
+#: ../src/clients/cream2/cream_client.cpp:362
+#: ../src/clients/cream2/cream_client.cpp:410
+#: ../src/clients/cream2/cream_client.cpp:449
 msgid "There was no SOAP response."
 msgstr ""
 
@@ -584,12 +583,12 @@ msgstr ""
 msgid "Creating and sending job register request."
 msgstr ""
 
-#: ../src/clients/cream2/cream_client.cpp:258
+#: ../src/clients/cream2/cream_client.cpp:255
 msgid "Creating and sending job start request."
 msgstr ""
 
-#: ../src/clients/cream2/cream_client.cpp:333
-#: ../src/clients/cream2/cream_client.cpp:420
+#: ../src/clients/cream2/cream_client.cpp:339
+#: ../src/clients/cream2/cream_client.cpp:426
 msgid "Creating delegation."
 msgstr ""
 
@@ -613,189 +612,303 @@ msgstr ""
 msgid "Reason   : %s"
 msgstr ""
 
-#: ../src/clients/data/arccli.cpp:384 ../src/clients/data/arccli.cpp:392
-#: ../src/clients/data/arccli.cpp:414
-msgid "Wrong number of parameters specified"
-msgstr ""
-
-#: ../src/clients/data/arccli.cpp:396
-msgid "Options 'p' and 'n' can't be used simultaneously"
-msgstr ""
-
-#: ../src/clients/data/arccp.cpp:49 ../src/clients/data/arccp.cpp:73
-#: ../src/clients/data/arccp.cpp:185 ../src/clients/data/arccp.cpp:210
+#: ../src/clients/data/arccp.cpp:58 ../src/clients/data/arccp.cpp:82
+#: ../src/clients/data/arccp.cpp:194 ../src/clients/data/arccp.cpp:219
 #, c-format
 msgid "Can't read list of sources from file %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:54 ../src/clients/data/arccp.cpp:85
-#: ../src/clients/data/arccp.cpp:190 ../src/clients/data/arccp.cpp:224
+#: ../src/clients/data/arccp.cpp:63 ../src/clients/data/arccp.cpp:95
+#: ../src/clients/data/arccp.cpp:199 ../src/clients/data/arccp.cpp:233
 #, c-format
 msgid "Can't read list of destinations from file %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:60 ../src/clients/data/arccp.cpp:196
+#: ../src/clients/data/arccp.cpp:69 ../src/clients/data/arccp.cpp:205
 msgid "Numbers of sources and destinations do not match"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:96
+#: ../src/clients/data/arccp.cpp:107
 msgid "Fileset registration is not supported yet"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:102 ../src/clients/data/arccp.cpp:268
-#: ../src/clients/data/arccp.cpp:299 ../src/clients/data/arccp.cpp:362
+#: ../src/clients/data/arccp.cpp:113 ../src/clients/data/arccp.cpp:279
+#: ../src/clients/data/arccp.cpp:312 ../src/clients/data/arccp.cpp:377
 #, c-format
 msgid "Unsupported source url: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:106 ../src/clients/data/arccp.cpp:303
-#: ../src/clients/data/arccp.cpp:366
+#: ../src/clients/data/arccp.cpp:117 ../src/clients/data/arccp.cpp:316
+#: ../src/clients/data/arccp.cpp:381
 #, c-format
 msgid "Unsupported destination url: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:111
+#: ../src/clients/data/arccp.cpp:122
 msgid ""
 "For registration source must be ordinary URL and destination must be "
 "indexing service"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:117
+#: ../src/clients/data/arccp.cpp:128
 msgid "Source probably does not exist"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:122
+#: ../src/clients/data/arccp.cpp:133
 msgid "Problems resolving destination"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:145
+#: ../src/clients/data/arccp.cpp:155
 msgid "Failed to accept new file/destination"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:150 ../src/clients/data/arccp.cpp:155
+#: ../src/clients/data/arccp.cpp:160 ../src/clients/data/arccp.cpp:165
 msgid "Failed to register new file/destination"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:238
+#: ../src/clients/data/arccp.cpp:247
 msgid "Fileset copy to single object is not supported yet"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:247
+#: ../src/clients/data/arccp.cpp:257
 msgid "Can't extract object's name from source url"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:263
+#: ../src/clients/data/arccp.cpp:274
 msgid "Fileset copy for this kind of source is not supported"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:274 ../src/clients/data/arcls.cpp:43
+#: ../src/clients/data/arccp.cpp:285 ../src/clients/data/arcls.cpp:45
 msgid "Failed listing metafiles"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:279
+#: ../src/clients/data/arccp.cpp:291
 msgid "Failed listing files"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:289
+#: ../src/clients/data/arccp.cpp:302
 #, c-format
 msgid "Name: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:294
+#: ../src/clients/data/arccp.cpp:307
 #, c-format
 msgid "Source: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:295
+#: ../src/clients/data/arccp.cpp:308
 #, c-format
 msgid "Destination: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:323
+#: ../src/clients/data/arccp.cpp:336
 #, c-format
 msgid "Current transfer FAILED: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:325
+#: ../src/clients/data/arccp.cpp:338
 msgid "Current transfer FAILED."
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:334
+#: ../src/clients/data/arccp.cpp:347
 msgid "Current transfer complete."
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:337
+#: ../src/clients/data/arccp.cpp:350
 msgid "Some transfers failed"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:347
+#: ../src/clients/data/arccp.cpp:361
 #, c-format
 msgid "Directory: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:387
+#: ../src/clients/data/arccp.cpp:403
 #, c-format
 msgid "Transfer FAILED: %s"
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:390
+#: ../src/clients/data/arccp.cpp:407
 msgid "Transfer FAILED."
 msgstr ""
 
-#: ../src/clients/data/arccp.cpp:399
+#: ../src/clients/data/arccp.cpp:416
 msgid "Transfer complete."
 msgstr ""
 
-#: ../src/clients/data/arcls.cpp:24 ../src/clients/data/arcrm.cpp:21
+#: ../src/clients/data/arccp.cpp:430
+msgid "source destination"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:434
+msgid ""
+"use passive transfer (does not work if secure is on, default if secure is "
+"not requested)"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:440
+msgid "do not try to force passive transfer"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:445
+msgid ""
+"if the destination is an indexing service and not the same as the source and "
+"the destination is already registered, then the copy is normally not done. "
+"However, if this option is specified the source is assumed to be a replica "
+"of the destination created in an uncontrolled way and the copy is done like "
+"in case of replication"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:456
+msgid "show progress indicator"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:461
+msgid ""
+"do not transfer file, just register it - destination must be non-existing "
+"meta-url"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:467
+msgid "use secure transfer (insecure by default)"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:472
+msgid "path to local cache (use to put file into cache)"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:473 ../src/clients/data/arccp.cpp:478
+msgid "path"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:477
+msgid "path for cache data (if different from -y)"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:482 ../src/clients/data/arcls.cpp:128
+msgid "operate recursively up to specified level"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:483 ../src/clients/data/arcls.cpp:129
+msgid "level"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:487
+msgid "number of retries before failing file transfer"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:488 ../src/hed/libs/misc/optiontest.cpp:23
+msgid "number"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:491 ../src/clients/data/arcls.cpp:132
+#: ../src/clients/data/arcrm.cpp:122
+msgid "timeout in seconds (default 20)"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:492 ../src/clients/data/arcls.cpp:133
+#: ../src/clients/data/arcrm.cpp:123
+msgid "seconds"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:496 ../src/clients/data/arcls.cpp:137
+#: ../src/clients/data/arcrm.cpp:127
+msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:497 ../src/clients/data/arcls.cpp:138
+#: ../src/clients/data/arcrm.cpp:128
+msgid "debuglevel"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:500 ../src/clients/data/arcls.cpp:141
+#: ../src/clients/data/arcrm.cpp:131
+msgid "print version information"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:509 ../src/clients/data/arcls.cpp:150
+#: ../src/clients/data/arcrm.cpp:140
+#, c-format
+msgid "%s version %s"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:514 ../src/clients/data/arcls.cpp:155
+#: ../src/clients/data/arcrm.cpp:145
+msgid "Wrong number of parameters specified"
+msgstr ""
+
+#: ../src/clients/data/arccp.cpp:519
+msgid "Options 'p' and 'n' can't be used simultaneously"
+msgstr ""
+
+#: ../src/clients/data/arcls.cpp:26 ../src/clients/data/arcrm.cpp:23
 #, c-format
 msgid "Can't read list of locations from file %s"
 msgstr ""
 
-#: ../src/clients/data/arcls.cpp:36 ../src/clients/data/arcrm.cpp:33
+#: ../src/clients/data/arcls.cpp:38 ../src/clients/data/arcrm.cpp:35
 msgid "Unsupported url given"
 msgstr ""
 
-#: ../src/clients/data/arcls.cpp:46
+#: ../src/clients/data/arcls.cpp:48
 msgid "Warning: Failed listing metafiles but some information is obtained"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:42 ../src/hed/libs/data/DataMover.cpp:107
+#: ../src/clients/data/arcls.cpp:116 ../src/clients/data/arcrm.cpp:113
+msgid "url"
+msgstr ""
+
+#: ../src/clients/data/arcls.cpp:119
+msgid "long format (more information)"
+msgstr ""
+
+#: ../src/clients/data/arcls.cpp:123
+msgid "show URLs of file locations"
+msgstr ""
+
+#: ../src/clients/data/arcrm.cpp:44 ../src/hed/libs/data/DataMover.cpp:107
 msgid "No locations found - probably no more physical instances"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:49 ../src/hed/libs/data/DataMover.cpp:111
+#: ../src/clients/data/arcrm.cpp:50 ../src/hed/libs/data/DataMover.cpp:111
 #, c-format
 msgid "Removing %s"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:60 ../src/hed/libs/data/DataMover.cpp:124
+#: ../src/clients/data/arcrm.cpp:63 ../src/hed/libs/data/DataMover.cpp:124
 msgid "This instance was already deleted"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:64 ../src/hed/libs/data/DataMover.cpp:128
+#: ../src/clients/data/arcrm.cpp:67 ../src/hed/libs/data/DataMover.cpp:128
 msgid "Failed to delete physical file"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:75 ../src/hed/libs/data/DataMover.cpp:138
+#: ../src/clients/data/arcrm.cpp:79 ../src/hed/libs/data/DataMover.cpp:138
 #, c-format
 msgid "Removing metadata in %s"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:78 ../src/hed/libs/data/DataMover.cpp:142
+#: ../src/clients/data/arcrm.cpp:82 ../src/hed/libs/data/DataMover.cpp:142
 msgid "Failed to delete meta-information"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:84 ../src/hed/libs/data/DataMover.cpp:150
+#: ../src/clients/data/arcrm.cpp:88 ../src/hed/libs/data/DataMover.cpp:150
 msgid "Failed to remove all physical instances"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:89 ../src/hed/libs/data/DataMover.cpp:155
+#: ../src/clients/data/arcrm.cpp:93 ../src/hed/libs/data/DataMover.cpp:155
 #, c-format
 msgid "Removing logical file from metadata %s"
 msgstr ""
 
-#: ../src/clients/data/arcrm.cpp:92 ../src/hed/libs/data/DataMover.cpp:158
+#: ../src/clients/data/arcrm.cpp:96 ../src/hed/libs/data/DataMover.cpp:158
 msgid "Failed to delete logical file"
+msgstr ""
+
+#: ../src/clients/data/arcrm.cpp:117
+msgid ""
+"remove logical file name registration even if not all physical instances "
+"were removed"
 msgstr ""
 
 #: ../src/clients/echo/echo_client.cpp:17
@@ -2950,39 +3063,29 @@ msgstr ""
 msgid "Security processing/check passed"
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:101
+#: ../src/hed/libs/misc/OptionParser.cpp:102
 #, c-format
 msgid "Cannot parse integer value '%s' for -%c"
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:300
+#: ../src/hed/libs/misc/OptionParser.cpp:303
 msgid "Usage:"
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:303
+#: ../src/hed/libs/misc/OptionParser.cpp:306
 msgid "OPTION..."
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:309
+#: ../src/hed/libs/misc/OptionParser.cpp:312
 msgid "Help Options:"
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:310
-msgid "  -?, --help    Show help options"
+#: ../src/hed/libs/misc/OptionParser.cpp:313
+msgid "Show help options"
 msgstr ""
 
-#: ../src/hed/libs/misc/OptionParser.cpp:312
+#: ../src/hed/libs/misc/OptionParser.cpp:315
 msgid "Application Options:"
-msgstr ""
-
-#: ../src/hed/libs/misc/OptionParser.cpp:316
-#, c-format
-msgid "  -%c, --%s=%s    %s"
-msgstr ""
-
-#: ../src/hed/libs/misc/OptionParser.cpp:320
-#, c-format
-msgid "  -%c, --%s    %s"
 msgstr ""
 
 #: ../src/hed/libs/misc/optiontest.cpp:14
@@ -3003,10 +3106,6 @@ msgstr ""
 
 #: ../src/hed/libs/misc/optiontest.cpp:22
 msgid "Integer option"
-msgstr ""
-
-#: ../src/hed/libs/misc/optiontest.cpp:23
-msgid "number"
 msgstr ""
 
 #: ../src/hed/libs/misc/optiontest.cpp:26
@@ -3446,6 +3545,7 @@ msgid "Can not dynamically produce AlgFacroty"
 msgstr ""
 
 #: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:166 ../src/hed/pdc/test.cpp:134
+#: ../src/hed/pdc/testinterface.cpp:70 ../src/hed/pdc/testinterface.cpp:88
 msgid "Can not dynamically produce Request"
 msgstr ""
 
@@ -3463,7 +3563,8 @@ msgstr ""
 #: ../src/hed/pdc/arcpdp/ArcPDP.cpp:169
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:41
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:110
-#: ../src/hed/pdc/test.cpp:47 ../src/services/pdp/pdpservice.cpp:133
+#: ../src/hed/pdc/test.cpp:47 ../src/hed/pdc/testinterface.cpp:38
+#: ../src/services/pdp/pdpservice.cpp:133
 msgid "Can not dynamically produce Evaluator"
 msgstr ""
 
@@ -3523,7 +3624,8 @@ msgid "Request xml structure is: %s"
 msgstr ""
 
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:87 ../src/hed/pdc/test.cpp:58
-#: ../src/hed/pdc/test.cpp:147 ../src/services/pdp/pdpservice.cpp:72
+#: ../src/hed/pdc/test.cpp:147 ../src/hed/pdc/testinterface.cpp:95
+#: ../src/services/pdp/pdpservice.cpp:72
 #, c-format
 msgid "There is %d subjects, which satisfy at least one policy"
 msgstr ""
@@ -3608,7 +3710,7 @@ msgstr ""
 msgid "PDP: %s name is duplicate"
 msgstr ""
 
-#: ../src/hed/pdc/test.cpp:30
+#: ../src/hed/pdc/test.cpp:30 ../src/hed/pdc/testinterface.cpp:29
 msgid "Start test"
 msgstr ""
 
@@ -3616,7 +3718,7 @@ msgstr ""
 msgid "Input request from a file: Request.xml"
 msgstr ""
 
-#: ../src/hed/pdc/test.cpp:72
+#: ../src/hed/pdc/test.cpp:72 ../src/hed/pdc/testinterface.cpp:109
 #, c-format
 msgid "Attribute Value (1): %s"
 msgstr ""
@@ -3628,6 +3730,37 @@ msgstr ""
 #: ../src/hed/pdc/test.cpp:161
 #, c-format
 msgid "Attribute Value (2): %s"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:31
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:61
+msgid "Username Token extraction is not supported yet"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:40
+#, c-format
+msgid "Password encoding type not supported: %s"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:45
+msgid "Missing or empty Username element"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:51
+#, c-format
+msgid "Processing type not supported: %s"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:69
+msgid "Failed to generate Username Token"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:73
+msgid "Message is not SOAP"
+msgstr ""
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:77
+msgid "Username Token handler is not configured"
 msgstr ""
 
 #: ../src/hed/pdc/XACMLPolicy.cpp:72
@@ -3642,7 +3775,7 @@ msgstr ""
 msgid "No target available inside the rule"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:189
+#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:195
 #: ../src/services/isis/centralisi.cpp:150
 #: ../src/services/pdp/pdpservice.cpp:56 ../src/services/saml/aaservice.cpp:94
 #: ../src/services/sched/grid_sched.cpp:78
@@ -3651,27 +3784,27 @@ msgstr ""
 msgid "input is not SOAP"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:202
+#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:208
 #: ../src/services/isis/centralisi.cpp:156
 #: ../src/services/sched/grid_sched.cpp:84 ../src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:205
+#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:211
 #: ../src/services/isis/centralisi.cpp:162
 #: ../src/services/sched/grid_sched.cpp:87 ../src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:248
+#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:254
 #: ../src/services/isis/centralisi.cpp:201
 #: ../src/services/sched/grid_sched.cpp:145
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr ""
 
-#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:255
+#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:261
 #: ../src/services/sched/grid_sched.cpp:153 ../src/tests/echo/echo.cpp:161
 #, c-format
 msgid "process: response=%s"
@@ -3718,40 +3851,45 @@ msgstr ""
 msgid "Can't obtain configuration"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:181 ../src/services/pdp/pdpservice.cpp:48
+#: ../src/services/a-rex/arex.cpp:179 ../src/services/a-rex/arex.cpp:269
+#: ../src/services/a-rex/arex.cpp:290 ../src/services/a-rex/arex.cpp:313
+msgid "Security Handlers processing failed"
+msgstr ""
+
+#: ../src/services/a-rex/arex.cpp:187 ../src/services/pdp/pdpservice.cpp:48
 msgid "process: POST"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:197 ../src/tests/echo/echo.cpp:145
+#: ../src/services/a-rex/arex.cpp:203 ../src/tests/echo/echo.cpp:145
 #, c-format
 msgid "process: request=%s"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:210
+#: ../src/services/a-rex/arex.cpp:216
 msgid "process: factory endpoint"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:216
+#: ../src/services/a-rex/arex.cpp:222
 msgid "process: CreateActivity"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:274
+#: ../src/services/a-rex/arex.cpp:285
 msgid "process: GET"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:278
+#: ../src/services/a-rex/arex.cpp:297
 msgid "process: PUT"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:284
+#: ../src/services/a-rex/arex.cpp:303
 msgid "PUT: input stream not implemented yet"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:288
+#: ../src/services/a-rex/arex.cpp:307
 msgid "PUT: input is neither stream nor buffer"
 msgstr ""
 
-#: ../src/services/a-rex/arex.cpp:294 ../src/services/pdp/pdpservice.cpp:110
+#: ../src/services/a-rex/arex.cpp:321 ../src/services/pdp/pdpservice.cpp:110
 #, c-format
 msgid "process: %s: not supported"
 msgstr ""

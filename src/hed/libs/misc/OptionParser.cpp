@@ -310,18 +310,16 @@ namespace Arc {
 	if (!summary.empty())
 	  std::cout << IString(summary) << std::endl << std::endl;
 	std::cout << IString("Help Options:") << std::endl;
-	std::cout << IString("  -?, --help    Show help options")
+	std::cout << "  -?, --help    " << IString("Show help options")
 		  << std::endl << std::endl;
 	std::cout << IString("Application Options:") << std::endl;
 	for (std::list<OptionBase *>::iterator it = options.begin();
-	     it != options.end(); it++)
+	     it != options.end(); it++) {
+	  std::cout << "  -" << (*it)->shortOpt << ", --" << (*it)->longOpt;
 	  if (!(*it)->argDesc.empty())
-	    std::cout << IString("  -%c, --%s=%s    %s", (*it)->shortOpt,
-				 (*it)->longOpt, (*it)->argDesc,
-				 (*it)->optDesc) << std::endl;
-	  else
-	    std::cout << IString("  -%c, --%s    %s", (*it)->shortOpt,
-				 (*it)->longOpt, (*it)->optDesc) << std::endl;
+	    std::cout << "=" << IString((*it)->argDesc);
+	  std::cout << "    " << IString((*it)->optDesc) << std::endl;
+	}
 	std::cout << std::endl;
 	if (!description.empty())
 	  std::cout << IString(description) << std::endl;
