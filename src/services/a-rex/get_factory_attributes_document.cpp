@@ -54,7 +54,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   doc.NewChild("bes-factory:BESExtension")="http://www.nordugrid.org/schemas/a-rex";
   //doc.NewChild("bes-factory:LocalResourceManagerType")="uri:unknown";
   // Temporary modification for the OGF23 tutorial
-  doc.NewChild("bes-factory:LocalResourceManagerType")="http://www.nordugrid.org/bes/2006/08/resources/queues/SGE";
+  doc.NewChild("bes-factory:LocalResourceManagerType")="sungridengine";
   {
     std::string s;
     out.GetXML(s);
