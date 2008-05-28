@@ -52,7 +52,9 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   doc.NewChild("bes-factory:TotalNumberOfContainedResources")=Arc::tostring(0);
   doc.NewChild("bes-factory:NamingProfile")="http://schemas.ggf.org/bes/2006/08/bes/naming/BasicWSAddressing";
   doc.NewChild("bes-factory:BESExtension")="http://www.nordugrid.org/schemas/a-rex";
-  doc.NewChild("bes-factory:LocalResourceManagerType")="uri:unknown";
+  //doc.NewChild("bes-factory:LocalResourceManagerType")="uri:unknown";
+  // Temporary modification for the OGF23 tutorial
+  doc.NewChild("bes-factory:LocalResourceManagerType")="http://www.nordugrid.org/bes/2006/08/resources/queues/SGE";
   {
     std::string s;
     out.GetXML(s);
