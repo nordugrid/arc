@@ -1,10 +1,10 @@
 bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate gliteundelegate
-#doc_DATA = client.xml jsdl_simple.xml jsdl_stage.xml
-#EXTRA_DIST = $(doc_DATA)
+
 SOURCES = cream_client.cpp cream_client.h openSSLFunctions.cpp openSSLFunctions.h
-LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la
+LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/misc/libarcclient.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/client/libarclibclient.la
 commonCXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(OPENSSL_CFLAGS)
 commonLDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+
 glitesub_SOURCES  = $(SOURCES) glitesub.cpp
 glitesub_CXXFLAGS = $(commonCXXFLAGS)
 glitesub_LDFLAGS  = $(commonLDFLAGS)
@@ -34,5 +34,3 @@ gliteundelegate_SOURCES  = $(SOURCES) gliteundelegate.cpp
 gliteundelegate_CXXFLAGS = $(commonCXXFLAGS)
 gliteundelegate_LDFLAGS  = $(commonLDFLAGS)
 gliteundelegate_LDADD    = $(LIBS)
-
-#man_MANS = apsub.1 apstat.1 apkill.1 apsstat.1 apclean.1

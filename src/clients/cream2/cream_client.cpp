@@ -194,11 +194,8 @@ namespace Arc{
             if (result=="") throw CREAMClientError("Job cleaning failed.");
         }  // CREAMClient::purge()
        
-        std::string CREAMClient::registerJob(std::string& jsdl_text) throw(CREAMClientError) {
+        std::string CREAMClient::registerJob(std::string& jdl_text) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating and sending job register request.");
-
-            // JSDL -> JDL conversion should be here
-            std::string jdl_text = jsdl_text;
             
             Arc::PayloadSOAP req(cream_ns);
             Arc::NS ns2;
@@ -309,10 +306,19 @@ namespace Arc{
        
         std::string CREAMClient::submit(std::string& jsdl_text) throw(CREAMClientError) {
             std::string jobid;
+            std::string jdl_text;
+            
+            Arc::JobDescription jobDesc;
+            try {
+                jobDesc.setSource( jsdl_text );
+                jobDesc.getProduct( jdl_text );
+            } catch (std::exception& ex) {
+                throw CREAMClientError(ex.what());
+            }
             
             // Register the new job
             try {
-                jobid = this->registerJob(jsdl_text);
+                jobid = this->registerJob(jdl_text);
             } catch (CREAMClientError cce) {
                 throw cce;
             }

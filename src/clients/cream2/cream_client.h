@@ -15,6 +15,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/URL.h>
+#include <arc/client/JobDescription.h>
 
 namespace Arc{
     namespace Cream{
@@ -32,7 +33,7 @@ namespace Arc{
             
                 void createDelegation(std::string& delegation_id) throw(CREAMClientError);
                 void destroyDelegation(std::string& delegation_id) throw(CREAMClientError);
-                std::string registerJob(std::string& jsdl_text) throw(CREAMClientError);
+                std::string registerJob(std::string& jdl_text) throw(CREAMClientError);
                 void startJob(const std::string& jobid) throw(CREAMClientError);
                 std::string submit(std::string& jsdl_text) throw(CREAMClientError);
                 std::string stat(const std::string& jobid) throw(CREAMClientError);
