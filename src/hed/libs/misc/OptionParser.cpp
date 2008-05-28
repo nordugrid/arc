@@ -292,7 +292,12 @@ namespace Arc {
 
     int opt = 0;
     while (opt != -1) {
+#ifdef HAVE_GETOPT_LONG_ONLY
       opt = getopt_long_only(argc, argv, optstring.c_str(), longoptions, NULL);
+#else
+      opt = getopt_long(argc, argv, optstring.c_str(), longoptions, NULL);
+#endif
+
       if (opt == -1)
 	continue;
       if (opt == '?') {
