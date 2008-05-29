@@ -78,7 +78,10 @@ int main(void){
   Arc::XMLNode reqnode("\
      <ra:Request xmlns:ra=\"http://www.nordugrid.org/schemas/request-arc\">\
       <ra:RequestItem>\
-       <ra:Subject ra:Type='string'>/O=NorduGrid/OU=UIO/CN=test</ra:Subject>\
+       <ra:Subject>\
+        <ra:Attribute ra:Type='string'>/O=NorduGrid/OU=UIO/CN=test</ra:Attribute>\
+        <ra:Attribute ra:Type='x500Name'>/O=NorduGrid/OU=UIO/CN=admin</ra:Attribute>\
+       </ra:Subject>\
        <ra:Resource ra:Type='string'>file://home/test</ra:Resource>\
        <ra:Action>\
         <ra:Attribute ra:Type='string'>read</ra:Attribute>\
@@ -133,7 +136,7 @@ int main(void){
       attr = dynamic_cast<ArcSec::RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(Arc::INFO,"Attribute Value (1): %s", attrval->encode());
+        if(attrval) logger.msg(Arc::INFO,"Attribute Value inside Subject: %s", attrval->encode());
       }
     }
     /**Return "yes" or "no"*/
