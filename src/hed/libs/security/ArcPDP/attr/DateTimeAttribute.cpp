@@ -192,8 +192,8 @@ PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) /*: 
   (value.endtime).SetTime(-1);
   (value.duration).SetPeriod(0);
 
-  Arc::Time t1, t2;
-  Arc::Period d1, d2;
+  Arc::Time t1(-1), t2(-1);
+  Arc::Period d1(0), d2(0);
 
   std::string::size_type pos = v.find("/");
   std::string s1 = v.substr(0, pos);
@@ -204,18 +204,18 @@ PeriodAttribute::PeriodAttribute(const std::string& v,const std::string& i) /*: 
   if(pos == std::string::npos) pos = s1.find("Z");
   if(pos == std::string::npos) pos = s1.find("GMT");
   if(pos != std::string::npos)
-    Arc::Time t1 = Arc::Time(s1);
+    t1 = Arc::Time(s1);
   else
-    Arc::Period d1 = Arc::Period(s1);
+    d1 = Arc::Period(s1);
 
   pos = s2.find("-");
   if(pos == std::string::npos) pos = s2.find(":");
   if(pos == std::string::npos) pos = s2.find("Z");
   if(pos == std::string::npos) pos = s2.find("GMT");
   if(pos != std::string::npos)
-    Arc::Time t2 = Arc::Time(s2);
+    t2 = Arc::Time(s2);
   else
-    Arc::Period d2 = Arc::Period(s2);
+    d2 = Arc::Period(s2);
 
   if(t1.GetTime()!=-1){
     if(t2.GetTime()!=-1){
