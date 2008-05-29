@@ -725,7 +725,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/infosys/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/ws/Makefile
-                 src/hed/libs/misc/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/mcc/Makefile
