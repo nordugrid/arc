@@ -2,7 +2,8 @@
 #include <config.h>
 #endif
 
-#include <arc/ArcConfig.h>
+#include <glibmm/fileutils.h>
+
 #include <arc/Logger.h>
 #include <arc/data/DMC.h>
 #include <arc/loader/Loader.h>
@@ -35,6 +36,29 @@ namespace Arc {
     dmcs.remove(dmc);
   }
 
+  XMLNode DMCConfig::MakeConfig(XMLNode cfg) const {
+    XMLNode mm = BaseConfig::MakeConfig(cfg);
+    std::list<std::string> dmcs;
+    for (std::list<std::string>::const_iterator path = plugin_paths.begin();
+	 path != plugin_paths.end(); path++) {
+      try {
+	Glib::Dir dir(*path);
+	for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
+	  if ((*file).substr(0, 6) == "libdmc") {
+	    std::string name = (*file).substr(6, (*file).find('.') - 6);
+	    if (std::find(dmcs.begin(), dmcs.end(), name) == dmcs.end()) {
+	      dmcs.push_back(name);
+	      cfg.NewChild("Plugins").NewChild("Name") = "dmc" + name;
+	      XMLNode dm = cfg.NewChild("DataManager");
+	      dm.NewAttribute("name") = name;
+	      dm.NewAttribute("id") = name;
+	    }
+	  }
+      }
+      catch (Glib::FileError) {}
+    }
+    return mm;
+  }
 
   static class DMCLoader {
 

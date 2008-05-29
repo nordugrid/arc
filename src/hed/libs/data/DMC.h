@@ -5,6 +5,8 @@
 
 #include <glibmm/thread.h>
 
+#include <arc/ArcConfig.h>
+
 namespace Arc {
 
   class ChainContext;
@@ -27,6 +29,15 @@ namespace Arc {
   private:
     static std::list<DMC *> dmcs;
     static Glib::Mutex mutex;
+  };
+
+  class DMCConfig
+    : public BaseConfig {
+  public:
+    DMCConfig()
+      : BaseConfig() {}
+    virtual ~DMCConfig() {}
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
 } // namespace Arc

@@ -12,6 +12,7 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/infosys/InformationInterface.h>
+#include <arc/message/MCC.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/misc/OptionParser.h>
 

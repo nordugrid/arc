@@ -1,19 +1,14 @@
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 // This define is needed to have maximal values for types with fixed size
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
-#include <fstream>
-#include <algorithm>
-#include <glibmm/fileutils.h>
-#include <arc/loader/Loader.h>
-#include <arc/StringConv.h>
-#include <arc/User.h>
-#include <arc/ArcLocation.h>
 
-#include "ClientInterface.h"
+#include <arc/StringConv.h>
+#include <arc/loader/Loader.h>
+#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 
@@ -47,85 +42,6 @@ namespace Arc {
 	break;
       xml_add_element(xml, e);
     }
-  }
-
-  BaseConfig::BaseConfig() {
-    key = "";
-    cert = "";
-    cafile = "";
-    proxy = "";
-    cadir = "";
-#ifdef WIN32
-    char separator = ';';
-#else
-    char separator = ':';
-#endif
-    if (getenv("ARC_PLUGIN_PATH")) {
-      std::string arcpluginpath = getenv("ARC_PLUGIN_PATH");
-      std::string::size_type pos = 0;
-      while (pos != std::string::npos) {
-	std::string::size_type pos2 = arcpluginpath.find(separator, pos);
-	AddPluginsPath(pos2 == std::string::npos ?
-		       arcpluginpath.substr(pos) :
-		       arcpluginpath.substr(pos, pos2 - pos));
-	pos = pos2;
-	if (pos != std::string::npos)
-	  pos++;
-      }
-    }
-    else
-      AddPluginsPath(ArcLocation::Get() + '/' + PKGLIBSUBDIR);
-  }
-
-  void BaseConfig::AddPluginsPath(const std::string& path) {
-    plugin_paths.push_back(path);
-  }
-
-  XMLNode BaseConfig::MakeConfig(XMLNode cfg) const {
-    XMLNode mm = cfg.NewChild("ModuleManager");
-    for (std::list<std::string>::const_iterator p = plugin_paths.begin();
-	 p != plugin_paths.end(); ++p)
-      mm.NewChild("Path") = *p;
-    return mm;
-  }
-
-  void BaseConfig::AddPrivateKey(const std::string& path) {
-    key = path;
-  }
-
-  void BaseConfig::AddCertificate(const std::string& path) {
-    cert = path;
-  }
-
-  void BaseConfig::AddProxy(const std::string& path) {
-    proxy = path;
-  }
-
-  void BaseConfig::AddCAFile(const std::string& path) {
-    cafile = path;
-  }
-
-  void BaseConfig::AddCADir(const std::string& path) {
-    cadir = path;
-  }
-
-  void BaseConfig::AddOverlay(XMLNode cfg) {
-    overlay.Destroy();
-    cfg.New(overlay);
-  }
-
-  void BaseConfig::GetOverlay(std::string fname) {
-    overlay.Destroy();
-    if (fname.empty()) {
-      const char *fname_str = getenv("ARC_CLIENT_CONFIG");
-      if (fname_str)
-	fname = fname_str;
-      else
-	fname = Arc::User().Home() + "/.arc/client.xml";
-    }
-    if (fname.empty())
-      return;
-    overlay.ReadFromFile(fname);
   }
 
   static XMLNode ConfigMakeComponent(XMLNode chain, const char *name,
@@ -382,72 +298,6 @@ namespace Arc {
 	delete repmsg.Payload();
       }
     return r;
-  }
-
-  XMLNode MCCConfig::MakeConfig(XMLNode cfg) const {
-    XMLNode mm = BaseConfig::MakeConfig(cfg);
-    std::list<std::string> mccs;
-    for (std::list<std::string>::const_iterator path = plugin_paths.begin();
-	 path != plugin_paths.end(); path++) {
-      try {
-	Glib::Dir dir(*path);
-	for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
-	  if ((*file).substr(0, 6) == "libmcc") {
-	    std::string name = (*file).substr(6, (*file).find('.') - 6);
-	    if (std::find(mccs.begin(), mccs.end(), name) == mccs.end()) {
-	      mccs.push_back(name);
-	      cfg.NewChild("Plugins").NewChild("Name") = "mcc" + name;
-	    }
-	  }
-      }
-      catch (Glib::FileError) {}
-    }
-    return mm;
-  }
-
-  XMLNode DMCConfig::MakeConfig(XMLNode cfg) const {
-    XMLNode mm = BaseConfig::MakeConfig(cfg);
-    std::list<std::string> dmcs;
-    for (std::list<std::string>::const_iterator path = plugin_paths.begin();
-	 path != plugin_paths.end(); path++) {
-      try {
-	Glib::Dir dir(*path);
-	for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
-	  if ((*file).substr(0, 6) == "libdmc") {
-	    std::string name = (*file).substr(6, (*file).find('.') - 6);
-	    if (std::find(dmcs.begin(), dmcs.end(), name) == dmcs.end()) {
-	      dmcs.push_back(name);
-	      cfg.NewChild("Plugins").NewChild("Name") = "dmc" + name;
-	      XMLNode dm = cfg.NewChild("DataManager");
-	      dm.NewAttribute("name") = name;
-	      dm.NewAttribute("id") = name;
-	    }
-	  }
-      }
-      catch (Glib::FileError) {}
-    }
-    return mm;
-  }
-
-  XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {
-    XMLNode mm = BaseConfig::MakeConfig(cfg);
-    std::list<std::string> accs;
-    for (std::list<std::string>::const_iterator path = plugin_paths.begin();
-	 path != plugin_paths.end(); path++) {
-      try {
-	Glib::Dir dir(*path);
-	for (Glib::DirIterator file = dir.begin(); file != dir.end(); file++)
-	  if ((*file).substr(0, 6) == "libacc") {
-	    std::string name = (*file).substr(6, (*file).find('.') - 6);
-	    if (std::find(accs.begin(), accs.end(), name) == accs.end()) {
-	      accs.push_back(name);
-	      cfg.NewChild("Plugins").NewChild("Name") = "acc" + name;
-	    }
-	  }
-      }
-      catch (Glib::FileError) {}
-    }
-    return mm;
   }
 
 } // namespace Arc

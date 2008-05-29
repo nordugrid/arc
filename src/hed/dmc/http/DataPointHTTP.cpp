@@ -10,6 +10,7 @@
 
 #include <arc/Logger.h>
 #include <arc/data/DataBufferPar.h>
+#include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/misc/ClientInterface.h>
 

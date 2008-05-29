@@ -2,6 +2,7 @@
 #define __ARC_IIC_H__
 
 #include <string>
+#include <arc/message/MCC.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>

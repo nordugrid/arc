@@ -63,6 +63,43 @@ namespace Arc {
     void save(const char *filename);
   };
 
+  /** Configuration for client interface.
+      It contains information which can't be expressed in
+      class constructor arguments. Most probably common things
+      like software installation location, identity of user, etc. */
+  class BaseConfig {
+  protected:
+    std::list<std::string> plugin_paths;
+  public:
+    std::string key;
+    std::string cert;
+    std::string proxy;
+    std::string cafile;
+    std::string cadir;
+    XMLNode overlay;
+    BaseConfig();
+    virtual ~BaseConfig() {}
+    /** Adds non-standard location of plugins */
+    void AddPluginsPath(const std::string& path);
+    /** Add private key */
+    void AddPrivateKey(const std::string& path);
+    /** Add certificate */
+    void AddCertificate(const std::string& path);
+    /** Add credentials proxy */
+    void AddProxy(const std::string& path);
+    /** Add CA file */
+    void AddCAFile(const std::string& path);
+    /** Add CA directory */
+    void AddCADir(const std::string& path);
+    /** Add configuration overlay */
+    void AddOverlay(XMLNode cfg);
+    /** Read overlay from file */
+    void GetOverlay(std::string fname);
+    /** Adds configuration part corresponding to stored information into
+       	common configuration tree supplied in 'cfg' argument. */
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
 } // namespace Arc
 
 #endif /* __ARC_CONFIG_H__ */

@@ -2,6 +2,7 @@
 #define SCHED_RESOURCE
 
 #include <string>
+#include <arc/message/MCC.h>
 #include <arc/misc/ClientInterface.h>
 #include <arc/XMLNode.h>
 

@@ -105,6 +105,15 @@ namespace Arc {
     }
   };
 
+  class MCCConfig
+    : public BaseConfig {
+  public:
+    MCCConfig()
+      : BaseConfig() {}
+    virtual ~MCCConfig() {}
+    virtual XMLNode MakeConfig(XMLNode cfg) const;
+  };
+
 } // namespace Arc
 
 #endif /* __ARC_MCC_H__ */
