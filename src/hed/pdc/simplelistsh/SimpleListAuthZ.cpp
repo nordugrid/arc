@@ -9,14 +9,16 @@
 
 #include "SimpleListAuthZ.h"
 
-static ArcSec::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
+ArcSec::SecHandler* ArcSec::SimpleListAuthZ::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
     return new ArcSec::SimpleListAuthZ(cfg,ctx);
 }
 
+/*
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "simplelist.authz", 0, &get_sechandler},
     { NULL, 0, NULL }
 };
+*/
 
 using namespace Arc;
 using namespace ArcSec;

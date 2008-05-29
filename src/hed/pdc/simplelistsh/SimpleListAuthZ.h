@@ -44,7 +44,7 @@ class SimpleListAuthZ : public SecHandler {
  public:
   SimpleListAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
   virtual ~SimpleListAuthZ(void);
-  
+  static SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx);  
   /** Get authorization decision*/
   virtual bool Handle(Arc::Message* msg);  
 };

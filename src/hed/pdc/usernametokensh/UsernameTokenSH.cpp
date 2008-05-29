@@ -12,14 +12,16 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "UsernameTokenSH");
 
-static ArcSec::SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
+ArcSec::SecHandler* ArcSec::UsernameTokenSH::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
     return new ArcSec::UsernameTokenSH(cfg,ctx);
 }
 
+/*
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "usernametoken.creator", 0, &get_sechandler},
     { NULL, 0, NULL }
 };
+*/
 
 namespace ArcSec {
 using namespace Arc;
