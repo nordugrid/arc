@@ -14,24 +14,25 @@ namespace Arc {
 
   Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
 
-  static void xml_add_element(XMLNode xml, XMLNode element) {
-    if (element.Size() > 0) {
-      std::string element_name = element.Name(); // FullName ?
-      std::string element_id = (std::string)(element.Attribute("name"));
-      for (XMLNode x = xml[element_name]; (bool)x; x = x[1]) {
-	if (!element_id.empty())
-	  if (element_id != (std::string)(x.Attribute("name")))
-	    continue;
-	for (int n = 0;; ++n) {
-	  XMLNode e = element.Child(n);
-	  if (!e)
-	    break;
-	  xml_add_element(x, e);
-	}
-      }
-      return;
+  static void xml_add_element(XMLNode xml,XMLNode element) {
+    if((std::string)(element.Attribute("overlay")) != "add") {
+      if(element.Size() > 0) {
+        std::string element_name = element.Name(); // FullName ?
+        std::string element_id = (std::string)(element.Attribute("name"));
+        for(XMLNode x = xml[element_name];(bool)x;x=x[1]) {
+          if(!element_id.empty()) {
+            if(element_id != (std::string)(x.Attribute("name"))) continue;
+          };
+          for(int n = 0;;++n) {
+            XMLNode e = element.Child(n);
+            if(!e) break;
+            xml_add_element(x,e);
+          };
+        };
+        return;
+      };
     }
-    xml.NewChild(element);
+    xml.NewChild(element,0);
     return;
   }
 
