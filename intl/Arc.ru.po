@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-29 11:09+0200\n"
+"POT-Creation-Date: 2008-05-29 12:14+0200\n"
 "PO-Revision-Date: 2007-06-29 15:37+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
@@ -345,11 +345,11 @@ msgstr ""
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:63 ../src/clients/arclib/arcsub.cpp:175
+#: ../src/clients/arclib/arcstat.cpp:63 ../src/clients/arclib/arcsub.cpp:176
 msgid "[jobid]"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:64 ../src/clients/arclib/arcsub.cpp:176
+#: ../src/clients/arclib/arcstat.cpp:64
 msgid ""
 "Argument to -g has format:\n"
 "GRID:URL e.g. \n"
@@ -366,60 +366,60 @@ msgstr ""
 msgid "all jobs"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:79
+#: ../src/clients/arclib/arcstat.cpp:80
 msgid "file containing a list of jobids"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:80 ../src/clients/arclib/arcsub.cpp:207
+#: ../src/clients/arclib/arcstat.cpp:81 ../src/clients/arclib/arcsub.cpp:208
 msgid "filename"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:84 ../src/clients/arclib/arcsub.cpp:186
+#: ../src/clients/arclib/arcstat.cpp:86 ../src/clients/arclib/arcsub.cpp:187
 msgid "explicity select or reject a specific cluster"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:85 ../src/clients/arclib/arcsub.cpp:187
+#: ../src/clients/arclib/arcstat.cpp:87 ../src/clients/arclib/arcsub.cpp:188
 msgid "[-]name"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:89
+#: ../src/clients/arclib/arcstat.cpp:92
 msgid "only select jobs whose status is statusstr"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:90
-msgid "statustr"
+#: ../src/clients/arclib/arcstat.cpp:93
+msgid "statusstr"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:94 ../src/clients/arclib/arcsub.cpp:191
+#: ../src/clients/arclib/arcstat.cpp:97 ../src/clients/arclib/arcsub.cpp:192
 msgid "url to a index server"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:95 ../src/clients/arclib/arcsub.cpp:192
+#: ../src/clients/arclib/arcstat.cpp:98 ../src/clients/arclib/arcsub.cpp:193
 #: ../src/clients/data/arcls.cpp:116 ../src/clients/data/arcrm.cpp:113
 msgid "url"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:100
+#: ../src/clients/arclib/arcstat.cpp:103
 msgid "show information about clusters and queues"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:105 ../src/clients/data/arcls.cpp:119
+#: ../src/clients/arclib/arcstat.cpp:108 ../src/clients/data/arcls.cpp:119
 msgid "long format (more information)"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:109 ../src/clients/arclib/arcsub.cpp:219
+#: ../src/clients/arclib/arcstat.cpp:112 ../src/clients/arclib/arcsub.cpp:220
 #: ../src/clients/data/arccp.cpp:491 ../src/clients/data/arcls.cpp:132
 #: ../src/clients/data/arcrm.cpp:122
 msgid "timeout in seconds (default 20)"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:110 ../src/clients/arclib/arcsub.cpp:220
+#: ../src/clients/arclib/arcstat.cpp:113 ../src/clients/arclib/arcsub.cpp:221
 #: ../src/clients/data/arccp.cpp:492 ../src/clients/data/arcls.cpp:133
 #: ../src/clients/data/arcrm.cpp:123
 msgid "seconds"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:114 ../src/clients/arclib/arcsub.cpp:224
+#: ../src/clients/arclib/arcstat.cpp:117 ../src/clients/arclib/arcsub.cpp:225
 #: ../src/clients/a-rex/apclean.cpp:69 ../src/clients/a-rex/apget.cpp:207
 #: ../src/clients/a-rex/apkill.cpp:68 ../src/clients/a-rex/apsstat.cpp:64
 #: ../src/clients/a-rex/apstat.cpp:68 ../src/clients/a-rex/apsub.cpp:109
@@ -435,7 +435,7 @@ msgstr ""
 msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:115 ../src/clients/arclib/arcsub.cpp:225
+#: ../src/clients/arclib/arcstat.cpp:118 ../src/clients/arclib/arcsub.cpp:226
 #: ../src/clients/a-rex/apclean.cpp:70 ../src/clients/a-rex/apget.cpp:208
 #: ../src/clients/a-rex/apkill.cpp:69 ../src/clients/a-rex/apsstat.cpp:65
 #: ../src/clients/a-rex/apstat.cpp:69 ../src/clients/a-rex/apsub.cpp:110
@@ -451,7 +451,7 @@ msgstr ""
 msgid "debuglevel"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:118 ../src/clients/arclib/arcsub.cpp:232
+#: ../src/clients/arclib/arcstat.cpp:121 ../src/clients/arclib/arcsub.cpp:233
 #: ../src/clients/a-rex/apclean.cpp:73 ../src/clients/a-rex/apget.cpp:211
 #: ../src/clients/a-rex/apkill.cpp:72 ../src/clients/a-rex/apsstat.cpp:68
 #: ../src/clients/a-rex/apstat.cpp:72 ../src/clients/a-rex/apsub.cpp:113
@@ -467,7 +467,7 @@ msgstr ""
 msgid "print version information"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:138 ../src/clients/arclib/arcsub.cpp:252
+#: ../src/clients/arclib/arcstat.cpp:141 ../src/clients/arclib/arcsub.cpp:253
 #: ../src/clients/a-rex/apclean.cpp:82 ../src/clients/a-rex/apget.cpp:220
 #: ../src/clients/a-rex/apkill.cpp:81 ../src/clients/a-rex/apsstat.cpp:77
 #: ../src/clients/a-rex/apstat.cpp:81 ../src/clients/a-rex/apsub.cpp:122
@@ -484,7 +484,7 @@ msgstr ""
 msgid "%s version %s"
 msgstr ""
 
-#: ../src/clients/arclib/arcstat.cpp:143
+#: ../src/clients/arclib/arcstat.cpp:146
 msgid "Option -a [-all] can not be used together with jobid"
 msgstr ""
 
@@ -500,51 +500,63 @@ msgstr ""
 #: ../src/clients/arclib/arcsub.cpp:96
 #, c-format
 msgid ""
-"Job submission failed due to: \n"
-"The specified cluster %s \n"
-"did not return any information"
+"Job submission failed because the specified cluster %s did not return any "
+"information"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:143
+#: ../src/clients/arclib/arcsub.cpp:144
 msgid "Job submission summary:"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:145
+#: ../src/clients/arclib/arcsub.cpp:146
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:148
+#: ../src/clients/arclib/arcsub.cpp:149
 #, c-format
 msgid "The following %d were not submitted"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:196
+#: ../src/clients/arclib/arcsub.cpp:177
+msgid ""
+"Argument to -g has format:\n"
+"GRID:URL e.g.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+"\n"
+"Argument to -c has format:\n"
+"GRID:URL e.g.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
+msgstr ""
+
+#: ../src/clients/arclib/arcsub.cpp:197
 msgid "jobdescription string describing the job to be submitted"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:197 ../src/clients/arclib/arcsub.cpp:202
+#: ../src/clients/arclib/arcsub.cpp:198 ../src/clients/arclib/arcsub.cpp:203
 #: ../src/clients/credentials/approxy.cpp:68
 msgid "string"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:201
+#: ../src/clients/arclib/arcsub.cpp:202
 msgid "jobdescription file describing the job to be submitted"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:206
+#: ../src/clients/arclib/arcsub.cpp:207
 msgid "file where the jobids will be stored"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:211
+#: ../src/clients/arclib/arcsub.cpp:212
 msgid "add dryrun option"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:215
+#: ../src/clients/arclib/arcsub.cpp:216
 msgid "do not submit - dump job description"
 msgstr ""
 
-#: ../src/clients/arclib/arcsub.cpp:228
+#: ../src/clients/arclib/arcsub.cpp:229
 msgid "allow unknown attributes in job description"
 msgstr ""
 

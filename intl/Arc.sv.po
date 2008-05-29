@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-29 11:09+0200\n"
-"PO-Revision-Date: 2008-05-28 12:00+0200\n"
+"POT-Creation-Date: 2008-05-29 12:14+0200\n"
+"PO-Revision-Date: 2008-05-29 12:15+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -355,11 +355,11 @@ msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 "Misslyckades med att skriva det signerade proxycertifikatet till en fil"
 
-#: ../src/clients/arclib/arcstat.cpp:63 ../src/clients/arclib/arcsub.cpp:175
+#: ../src/clients/arclib/arcstat.cpp:63 ../src/clients/arclib/arcsub.cpp:176
 msgid "[jobid]"
-msgstr ""
+msgstr "[jobb-id]"
 
-#: ../src/clients/arclib/arcstat.cpp:64 ../src/clients/arclib/arcsub.cpp:176
+#: ../src/clients/arclib/arcstat.cpp:64
 msgid ""
 "Argument to -g has format:\n"
 "GRID:URL e.g. \n"
@@ -371,66 +371,74 @@ msgid ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 msgstr ""
+"Argument till -g har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+"\n"
+"Argument till -c har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
 
 #: ../src/clients/arclib/arcstat.cpp:75
 msgid "all jobs"
-msgstr ""
+msgstr "alla jobb"
 
-#: ../src/clients/arclib/arcstat.cpp:79
-#, fuzzy
+#: ../src/clients/arclib/arcstat.cpp:80
 msgid "file containing a list of jobids"
-msgstr "Misslyckades med att läsa fillista"
+msgstr "fil som innehåller en jobb-id-lista"
 
-#: ../src/clients/arclib/arcstat.cpp:80 ../src/clients/arclib/arcsub.cpp:207
+#: ../src/clients/arclib/arcstat.cpp:81 ../src/clients/arclib/arcsub.cpp:208
 msgid "filename"
-msgstr ""
+msgstr "filnamn"
 
-#: ../src/clients/arclib/arcstat.cpp:84 ../src/clients/arclib/arcsub.cpp:186
+#: ../src/clients/arclib/arcstat.cpp:86 ../src/clients/arclib/arcsub.cpp:187
 msgid "explicity select or reject a specific cluster"
-msgstr ""
+msgstr "välj eller välj bort ett specifikt kluster"
 
-#: ../src/clients/arclib/arcstat.cpp:85 ../src/clients/arclib/arcsub.cpp:187
+#: ../src/clients/arclib/arcstat.cpp:87 ../src/clients/arclib/arcsub.cpp:188
 msgid "[-]name"
-msgstr ""
+msgstr "[-]namn"
 
-#: ../src/clients/arclib/arcstat.cpp:89
+#: ../src/clients/arclib/arcstat.cpp:92
 msgid "only select jobs whose status is statusstr"
-msgstr ""
+msgstr "välj endast jobb vars status är statusstr"
 
-#: ../src/clients/arclib/arcstat.cpp:90
-msgid "statustr"
-msgstr ""
+#: ../src/clients/arclib/arcstat.cpp:93
+msgid "statusstr"
+msgstr "statusstr"
 
-#: ../src/clients/arclib/arcstat.cpp:94 ../src/clients/arclib/arcsub.cpp:191
+#: ../src/clients/arclib/arcstat.cpp:97 ../src/clients/arclib/arcsub.cpp:192
 msgid "url to a index server"
-msgstr ""
+msgstr "url till en indexserver"
 
-#: ../src/clients/arclib/arcstat.cpp:95 ../src/clients/arclib/arcsub.cpp:192
+#: ../src/clients/arclib/arcstat.cpp:98 ../src/clients/arclib/arcsub.cpp:193
 #: ../src/clients/data/arcls.cpp:116 ../src/clients/data/arcrm.cpp:113
 msgid "url"
 msgstr "url"
 
-#: ../src/clients/arclib/arcstat.cpp:100
+#: ../src/clients/arclib/arcstat.cpp:103
 msgid "show information about clusters and queues"
-msgstr ""
+msgstr "visa information om kluster och köer"
 
-#: ../src/clients/arclib/arcstat.cpp:105 ../src/clients/data/arcls.cpp:119
+#: ../src/clients/arclib/arcstat.cpp:108 ../src/clients/data/arcls.cpp:119
 msgid "long format (more information)"
 msgstr "långt format (mer information)"
 
-#: ../src/clients/arclib/arcstat.cpp:109 ../src/clients/arclib/arcsub.cpp:219
+#: ../src/clients/arclib/arcstat.cpp:112 ../src/clients/arclib/arcsub.cpp:220
 #: ../src/clients/data/arccp.cpp:491 ../src/clients/data/arcls.cpp:132
 #: ../src/clients/data/arcrm.cpp:122
 msgid "timeout in seconds (default 20)"
 msgstr "timeout i sekunder (förval 20)"
 
-#: ../src/clients/arclib/arcstat.cpp:110 ../src/clients/arclib/arcsub.cpp:220
+#: ../src/clients/arclib/arcstat.cpp:113 ../src/clients/arclib/arcsub.cpp:221
 #: ../src/clients/data/arccp.cpp:492 ../src/clients/data/arcls.cpp:133
 #: ../src/clients/data/arcrm.cpp:123
 msgid "seconds"
 msgstr "sekunder"
 
-#: ../src/clients/arclib/arcstat.cpp:114 ../src/clients/arclib/arcsub.cpp:224
+#: ../src/clients/arclib/arcstat.cpp:117 ../src/clients/arclib/arcsub.cpp:225
 #: ../src/clients/a-rex/apclean.cpp:69 ../src/clients/a-rex/apget.cpp:207
 #: ../src/clients/a-rex/apkill.cpp:68 ../src/clients/a-rex/apsstat.cpp:64
 #: ../src/clients/a-rex/apstat.cpp:68 ../src/clients/a-rex/apsub.cpp:109
@@ -446,7 +454,7 @@ msgstr "sekunder"
 msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
 msgstr "FATAL, ERROR, WARNING, INFO, DEBUG eller VERBOSE"
 
-#: ../src/clients/arclib/arcstat.cpp:115 ../src/clients/arclib/arcsub.cpp:225
+#: ../src/clients/arclib/arcstat.cpp:118 ../src/clients/arclib/arcsub.cpp:226
 #: ../src/clients/a-rex/apclean.cpp:70 ../src/clients/a-rex/apget.cpp:208
 #: ../src/clients/a-rex/apkill.cpp:69 ../src/clients/a-rex/apsstat.cpp:65
 #: ../src/clients/a-rex/apstat.cpp:69 ../src/clients/a-rex/apsub.cpp:110
@@ -462,7 +470,7 @@ msgstr "FATAL, ERROR, WARNING, INFO, DEBUG eller VERBOSE"
 msgid "debuglevel"
 msgstr "debugnivå"
 
-#: ../src/clients/arclib/arcstat.cpp:118 ../src/clients/arclib/arcsub.cpp:232
+#: ../src/clients/arclib/arcstat.cpp:121 ../src/clients/arclib/arcsub.cpp:233
 #: ../src/clients/a-rex/apclean.cpp:73 ../src/clients/a-rex/apget.cpp:211
 #: ../src/clients/a-rex/apkill.cpp:72 ../src/clients/a-rex/apsstat.cpp:68
 #: ../src/clients/a-rex/apstat.cpp:72 ../src/clients/a-rex/apsub.cpp:113
@@ -478,7 +486,7 @@ msgstr "debugnivå"
 msgid "print version information"
 msgstr "skriv ut versionsinformation"
 
-#: ../src/clients/arclib/arcstat.cpp:138 ../src/clients/arclib/arcsub.cpp:252
+#: ../src/clients/arclib/arcstat.cpp:141 ../src/clients/arclib/arcsub.cpp:253
 #: ../src/clients/a-rex/apclean.cpp:82 ../src/clients/a-rex/apget.cpp:220
 #: ../src/clients/a-rex/apkill.cpp:81 ../src/clients/a-rex/apsstat.cpp:77
 #: ../src/clients/a-rex/apstat.cpp:81 ../src/clients/a-rex/apsub.cpp:122
@@ -495,9 +503,9 @@ msgstr "skriv ut versionsinformation"
 msgid "%s version %s"
 msgstr "%s version %s"
 
-#: ../src/clients/arclib/arcstat.cpp:143
+#: ../src/clients/arclib/arcstat.cpp:146
 msgid "Option -a [-all] can not be used together with jobid"
-msgstr ""
+msgstr "Flaggan -a [-all] kan ej användas tillsammans med jobb-id"
 
 #: ../src/clients/arclib/arcsub.cpp:38
 msgid "No job description input specified"
@@ -511,70 +519,88 @@ msgstr "Kan inte öpna fil: %s"
 #: ../src/clients/arclib/arcsub.cpp:96
 #, c-format
 msgid ""
-"Job submission failed due to: \n"
-"The specified cluster %s \n"
-"did not return any information"
+"Job submission failed because the specified cluster %s did not return any "
+"information"
 msgstr ""
 "Jobbinsändning misslyckades p.g.a. att det angivna klustret %s inte "
 "returnerade någon information"
 
-#: ../src/clients/arclib/arcsub.cpp:143
+#: ../src/clients/arclib/arcsub.cpp:144
 msgid "Job submission summary:"
 msgstr "Jobbinsändningssammanfattning:"
 
-#: ../src/clients/arclib/arcsub.cpp:145
+#: ../src/clients/arclib/arcsub.cpp:146
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d av %d jobb sändes in"
 
-#: ../src/clients/arclib/arcsub.cpp:148
+#: ../src/clients/arclib/arcsub.cpp:149
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Följande %d sändes inte in"
 
-#: ../src/clients/arclib/arcsub.cpp:196
+#: ../src/clients/arclib/arcsub.cpp:177
+msgid ""
+"Argument to -g has format:\n"
+"GRID:URL e.g.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+"\n"
+"Argument to -c has format:\n"
+"GRID:URL e.g.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
+msgstr ""
+"Argument till -g har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+"\n"
+"Argument till -c har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
+
+#: ../src/clients/arclib/arcsub.cpp:197
 msgid "jobdescription string describing the job to be submitted"
-msgstr ""
+msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:197 ../src/clients/arclib/arcsub.cpp:202
+#: ../src/clients/arclib/arcsub.cpp:198 ../src/clients/arclib/arcsub.cpp:203
 #: ../src/clients/credentials/approxy.cpp:68
-#, fuzzy
 msgid "string"
-msgstr "Tom sträng"
+msgstr "sträng"
 
-#: ../src/clients/arclib/arcsub.cpp:201
+#: ../src/clients/arclib/arcsub.cpp:202
 msgid "jobdescription file describing the job to be submitted"
-msgstr ""
+msgstr "jobbeskrivningsfil som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:206
+#: ../src/clients/arclib/arcsub.cpp:207
 msgid "file where the jobids will be stored"
-msgstr ""
+msgstr "fil där jobb-id kommer att sparas"
 
-#: ../src/clients/arclib/arcsub.cpp:211
-#, fuzzy
+#: ../src/clients/arclib/arcsub.cpp:212
 msgid "add dryrun option"
-msgstr "Strängflagga"
+msgstr "lägg till dryrun-attribut"
 
-#: ../src/clients/arclib/arcsub.cpp:215
+#: ../src/clients/arclib/arcsub.cpp:216
 msgid "do not submit - dump job description"
-msgstr ""
+msgstr "sänd inte - skriv ut jobbeskrivningen"
 
-#: ../src/clients/arclib/arcsub.cpp:228
+#: ../src/clients/arclib/arcsub.cpp:229
 msgid "allow unknown attributes in job description"
-msgstr ""
+msgstr "tillåt okända attribut i jobbeskrivningen"
 
 #: ../src/clients/a-rex/apclean.cpp:45 ../src/clients/a-rex/apget.cpp:179
 #: ../src/clients/a-rex/apkill.cpp:44 ../src/clients/a-rex/apstat.cpp:44
 msgid "[service_url] id_file"
-msgstr ""
+msgstr "[serviceurl] id-file"
 
 #: ../src/clients/a-rex/apclean.cpp:48 ../src/clients/a-rex/apget.cpp:182
 #: ../src/clients/a-rex/apkill.cpp:47 ../src/clients/a-rex/apsstat.cpp:43
 #: ../src/clients/a-rex/apstat.cpp:47 ../src/clients/a-rex/apsub.cpp:85
 #: ../src/clients/credentials/approxy.cpp:55 ../src/clients/wsrf/apinfo.cpp:43
-#, fuzzy
 msgid "path to proxy file"
-msgstr "Skriv ut proxycertifikatet"
+msgstr "sökväg till proxyfil"
 
 #: ../src/clients/a-rex/apclean.cpp:49 ../src/clients/a-rex/apclean.cpp:53
 #: ../src/clients/a-rex/apclean.cpp:57 ../src/clients/a-rex/apclean.cpp:65
@@ -607,33 +633,29 @@ msgstr "sökväg"
 #: ../src/clients/a-rex/apkill.cpp:51 ../src/clients/a-rex/apsstat.cpp:47
 #: ../src/clients/a-rex/apstat.cpp:51 ../src/clients/a-rex/apsub.cpp:89
 #: ../src/clients/credentials/approxy.cpp:59 ../src/clients/wsrf/apinfo.cpp:47
-#, fuzzy
 msgid "path to certificate file"
-msgstr "Kunde inte ladda certifikatfil - %s"
+msgstr "sökväg till certifikatfil"
 
 #: ../src/clients/a-rex/apclean.cpp:56 ../src/clients/a-rex/apget.cpp:190
 #: ../src/clients/a-rex/apkill.cpp:55 ../src/clients/a-rex/apsstat.cpp:51
 #: ../src/clients/a-rex/apstat.cpp:55 ../src/clients/a-rex/apsub.cpp:93
 #: ../src/clients/credentials/approxy.cpp:63 ../src/clients/wsrf/apinfo.cpp:51
-#, fuzzy
 msgid "path to private key file"
-msgstr "Kan inte ange privat nyckel"
+msgstr "sökväg till privat nyckelfil"
 
 #: ../src/clients/a-rex/apclean.cpp:60 ../src/clients/a-rex/apget.cpp:194
 #: ../src/clients/a-rex/apkill.cpp:59 ../src/clients/a-rex/apsstat.cpp:55
 #: ../src/clients/a-rex/apstat.cpp:59 ../src/clients/a-rex/apsub.cpp:97
 #: ../src/clients/wsrf/apinfo.cpp:55
-#, fuzzy
 msgid "path to CA directory"
-msgstr "Cachekatalog: %s"
+msgstr "sökväg till CA-katalog"
 
 #: ../src/clients/a-rex/apclean.cpp:61 ../src/clients/a-rex/apget.cpp:195
 #: ../src/clients/a-rex/apget.cpp:203 ../src/clients/a-rex/apkill.cpp:60
 #: ../src/clients/a-rex/apsstat.cpp:56 ../src/clients/a-rex/apstat.cpp:60
 #: ../src/clients/a-rex/apsub.cpp:98 ../src/clients/wsrf/apinfo.cpp:56
-#, fuzzy
 msgid "directory"
-msgstr "Katalog: %s"
+msgstr "katalog"
 
 #: ../src/clients/a-rex/apclean.cpp:64 ../src/clients/a-rex/apget.cpp:198
 #: ../src/clients/a-rex/apkill.cpp:63 ../src/clients/a-rex/apsstat.cpp:59
@@ -645,26 +667,24 @@ msgstr "Katalog: %s"
 #: ../src/clients/cream2/glitesub.cpp:35
 #: ../src/clients/cream2/gliteundelegate.cpp:30
 #: ../src/clients/wsrf/apinfo.cpp:59
-#, fuzzy
 msgid "path to config file"
-msgstr "Kan inte öppna inställningsfil."
+msgstr "sökväg till inställningsfil"
 
 #: ../src/clients/a-rex/apget.cpp:202
 msgid "path to download directory"
-msgstr ""
+msgstr "sökväg till nedladdningskatalog"
 
 #: ../src/clients/a-rex/apsstat.cpp:40 ../src/clients/wsrf/apinfo.cpp:40
 msgid "service_url"
-msgstr ""
+msgstr "serviceurl"
 
 #: ../src/clients/a-rex/apsub.cpp:82 ../src/clients/cream2/glitesub.cpp:26
 msgid "service_url jsdl_file id_file"
-msgstr ""
+msgstr "serviceurl jsdl-file id-file"
 
 #: ../src/clients/a-rex/apsub.cpp:105
-#, fuzzy
 msgid "delegate proxy"
-msgstr "radera körning"
+msgstr "delegera proxy"
 
 #: ../src/clients/a-rex/arex_client.cpp:44
 #: ../src/clients/a-rex/arex_client.cpp:72
@@ -856,21 +876,20 @@ msgstr "Skapar delegering."
 #: ../src/clients/cream2/glitekill.cpp:26
 #: ../src/clients/cream2/glitestat.cpp:26
 msgid "service_url id_file"
-msgstr ""
+msgstr "serviceurl id-file"
 
 #: ../src/clients/cream2/glitedelegate.cpp:26
 #: ../src/clients/cream2/gliteundelegate.cpp:26
 msgid "delegation_id service_url"
-msgstr ""
+msgstr "delegations-id serviceurl"
 
 #: ../src/clients/cream2/glitesub.cpp:30
-#, fuzzy
 msgid "delegation ID"
-msgstr "Skapar delegering."
+msgstr "delegerings-id"
 
 #: ../src/clients/cream2/glitesub.cpp:31
 msgid "id"
-msgstr ""
+msgstr "id"
 
 #: ../src/clients/credentials/approxy.cpp:29
 #, c-format
@@ -900,10 +919,15 @@ msgid ""
 "  validityPeriod=time\n"
 "  proxyPolicy=policy content"
 msgstr ""
+"Understödda villkor är:\n"
+"  validityStart=tid\n"
+"  validityEnd=tid\n"
+"  validityPeriod=tid\n"
+"  proxyPolicy=policy-innehåll"
 
 #: ../src/clients/credentials/approxy.cpp:67
 msgid "proxy constraints"
-msgstr ""
+msgstr "proxyvillkor"
 
 #: ../src/clients/data/arccp.cpp:58 ../src/clients/data/arccp.cpp:82
 #: ../src/clients/data/arccp.cpp:194 ../src/clients/data/arccp.cpp:219
@@ -3381,9 +3405,9 @@ msgstr "Det finns %s RequestItem"
 
 #: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:93
 #: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:149
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read request file %s"
-msgstr "Misslyckades med att läsa begäran från en fil"
+msgstr "Misslyckades med att läsa begäran från fil %s"
 
 #: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:29
 #, c-format
@@ -3993,7 +4017,7 @@ msgstr "Attributvärde (2): %s"
 
 #: ../src/hed/pdc/testinterface.cpp:147
 msgid "The request has passed the policy evaluation"
-msgstr ""
+msgstr "Begäran har passerat policyutvärderingen"
 
 #: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:33
 #: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:63
@@ -5760,7 +5784,7 @@ msgstr "Jobbidentifierare saknas"
 #: ../src/services/paul/paul.cpp:204 ../src/services/paul/paul.cpp:380
 #: ../src/services/paul/paul.cpp:472 ../src/services/sched/ibes.cpp:84
 msgid "Cannot find job id"
-msgstr "Kan inte hitta Jobb-ID"
+msgstr "Kan inte hitta jobb-id"
 
 #: ../src/services/paul/paul.cpp:209
 msgid "Cannot find scheduler endpoint"
@@ -6124,12 +6148,12 @@ msgstr "Spara tillstånd slut"
 
 #: ../src/services/sched/ibes.cpp:58
 msgid "invalid job id"
-msgstr "ogiltigt jobb-ID"
+msgstr "ogiltigt jobb-id"
 
 #: ../src/services/sched/ibes.cpp:68 ../src/services/sched/ibes.cpp:104
 #, c-format
 msgid "Cannot find job id: %s"
-msgstr "Kan inte hitta Jobb-id: %s"
+msgstr "Kan inte hitta jobb-id: %s"
 
 #: ../src/services/sched/ibes.cpp:90
 msgid "Invalid status report"
@@ -6321,48 +6345,3 @@ msgstr "Kan inte erhålla pdp-begäran och policyinformation"
 #: ../src/tests/echo/test.cpp:36
 msgid "Creating client interface"
 msgstr "Skapar klientgränssnitt"
-
-#~ msgid "No program name"
-#~ msgstr "Inget programnamn"
-
-#~ msgid "Unknown program name: %s"
-#~ msgstr "Okänt programnamn: %s"
-
-#~ msgid "Use -help option for help"
-#~ msgstr "Använd flaggan -help för hjälp"
-
-#~ msgid "Incompatible Options"
-#~ msgstr "Inkompatibla flaggor"
-
-#~ msgid "No valid jobnames/jobids given"
-#~ msgstr "Inga giltiga jobbnamn/jobb-id angivna"
-
-#~ msgid "Wrong number of parameters specified. Use -h for help"
-#~ msgstr "Fel antal parametrar angivna. Använd -h för hjälp"
-
-#~ msgid "Must give only one of -q, -c or -l options"
-#~ msgstr "Endast en av flaggorna -q, -c eller -l kan anges"
-
-#~ msgid "Must give service endpoint when using -q, -c or -l options"
-#~ msgstr "Serviceändpunkt måste anges när flaggorna -q, -c eller -l används"
-
-#~ msgid "args..."
-#~ msgstr "argument..."
-
-#~ msgid "This is a test of the OptionParser."
-#~ msgstr "Detta är ett test av flaggtolken."
-
-#~ msgid "For more information see the header file."
-#~ msgstr "För mer information se headerfilen."
-
-#~ msgid "Boolean option"
-#~ msgstr "Boolesk flagga"
-
-#~ msgid "Integer option"
-#~ msgstr "Heltalsflagga"
-
-#~ msgid "word"
-#~ msgstr "ord"
-
-#~ msgid "String list option"
-#~ msgstr "Stränglistflagga"
