@@ -16,8 +16,9 @@
    
  -->
  
- <!-- Top-level element of request is Request. Request is made
-   of multiple RequestItem elements which are evaluated separately. -->
+ <!-- Top-level element of request is <Request/>. Request is made
+   of multiple <RequestItem/> elements which are evaluated separately.
+  -->
  <xsd:element name="Request" type="request-arc:RequestType"/>
  <xsd:complexType name="RequestType">
   <xsd:sequence>
@@ -27,7 +28,47 @@
 
  <!-- RequestItem resembles Rule in ARC Policy and provides information 
    to be matched against Rule. The difference is that it provides Context 
-   instead of Condition. -->
+   instead of Condition. 
+   There could be a few elements for each type under <RequestItem/>. Those 
+   elements with the same type under a <RequestItem/> are not relevant. The 
+   reason why put them together is just for the convenience of expression.
+   For example, one <Subject/> could need to do two different <Action>s, then 
+   we can put the two <Action>s together, and don't need to specify two <RequestItem/>   
+   When policy evaluation, multiple elements with the same type under <RequestItem/>
+   will be splitted and processed sepreatedly, e.g.,
+   <RequestItem>
+    <Subject>
+    <Action>
+    <Action>
+   <RequestItem>
+   will be splitted into two:
+   <RequestItem>
+    <Subject>
+    <Action>
+   <RequestItem>
+
+  For each type of element under <RequestItem/>, there could be one or more <Attribute/>.
+  This means the request can process a few <Attribute>. Realisticly, this situation applies
+  to <Subject/> and <Context/>. For <Subject/>, it means the request can provide these 
+  <Attribute>s, e.g. X509 DN, VOMS Attribute. For <Context/>, it means the request can
+  satisfy these <Attribute>s, e.g. time, period.
+  During policy evaluation, the element under <RequestItem> will need to exactly match the 
+  policy side. If there is a few <Attribute>s for <Subject> on the policy side, like:   
+     <Subject>
+      <Attribute Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+      <Attribute Type="string">urn:mace:shibboleth:examples</Attribute>
+     </Subject>
+  Then on the request side, if and only if there are at least these above two <Attribute>s 
+  exist:
+     <Subject>
+      <Attribute Type="string">/O=Grid/OU=KnowARC/CN=XYZ</Attribute>
+      <Attribute Type="string">urn:mace:shibboleth:examples</Attribute>
+      <Attribute Type="idaddress">129.240.86.1</Attribute> 
+    </Subject>
+  we can say the <Subject> on the request side can satisfy the <Subject> on the policy side.
+  The above definition applies for the other types of element.
+  -->
+
  <xsd:element name="RequestItem" type="request-arc:RequestItemType"/>
  <xsd:complexType name="RequestItemType">
   <xsd:sequence>
