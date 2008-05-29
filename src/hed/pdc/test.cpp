@@ -142,8 +142,9 @@ int main(void){
   //resp = eval->evaluate(request);
 
   //Evalute the request with policy argument
-  std::string policyfile("Policy_Example.xml");
-  resp = eval->evaluate(request, policyfile);
+  std::ifstream f1("Policy_Example.xml");
+  ArcSec::Source source1(f1);
+  resp = eval->evaluate(request, source1);
 
   //Get the response
   logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());

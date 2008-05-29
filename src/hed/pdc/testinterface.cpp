@@ -68,9 +68,10 @@ int main(void){
   ArcSec::Policy* policy = NULL;
   std::string policyclassname = "arc.policy";
   /**Three options to create policy object*/
-  //policy = eval_loader.getPolicy(policyclassname, &policynode);
-  //policy = eval_loader.getPolicy(policyclassname, policy_str);
-  policy = eval_loader.getPolicy(policyclassname, "Policy_Example.xml");
+  ArcSec::SourceFile policy_source("Policy_Example.xml");
+  //ArcSec::Source policy_source(policy_str);
+  //ArcSec::Source policy_source(Arc::XMLNode policynode);
+  policy = eval_loader.getPolicy(policyclassname, policy_source);
   if(policy == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Request");
 
@@ -90,39 +91,32 @@ int main(void){
   ArcSec::Request* request = NULL;
   std::string requestclassname = "arc.request";
   /**Three options to create request object*/
-  request = eval_loader.getRequest(requestclassname, &reqnode);
-  //request = eval_loader.getRequest(requestclassname, request_str);
-  //request = eval_loader.getRequest(requestclassname, "Request_Example.xml");
+  ArcSec::Source request_source(reqnode);
+  //ArcSec::Source request_source(request_str);
+  //ArcSec::SourceFile request_source("Request.xml");
+  request = eval_loader.getRequest(requestclassname, request_source);
+
   if(request == NULL)
     logger.msg(Arc::ERROR, "Can not dynamically produce Request");
 
-  /**Four options to add policy into evaluator*/ 
-  //eval->addPolicy(policynode);
+  /**Two options to add policy into evaluator*/ 
+  eval->addPolicy(policy_source);
   //eval->addPolicy(policy);
-  //eval->addPolicy("Policy_Example.xml");
-  //eval->addPolicy(policy_str);
-
  
    ArcSec::Response *resp = NULL;
  
-  /**Four options to feed evaluator with request to execute evaluation*/
-  //resp = eval->evaluate(request);
-  //resp = eval->evaluate(reqnode);
-  //resp = eval->evaluate(request_str);
-  //resp = eval->evaluate("Request_Example.xml");
-
+  /**Feed evaluator with request to execute evaluation*/
+  resp = eval->evaluate(request_source);
 
   /**Evaluate request againt policy. Both request and policy are as arguments of evaluator. Pre-stored policy
   *inside evaluator will be deleted and not affect the evaluation.
-  *The request argument can be four options: object, file, string, XMLNode; 
-  *The policy argument can also be the above four options
+  *The request argument can be two options: object, Source; 
+  *The policy argument can also be the above two options
   */
+  //resp = eval->evaluate(request_source, policy);
+  //resp = eval->evaluate(request, policy_source);
+  //resp = eval->evaluate(request_source, policy_source);  
   //resp = eval->evaluate(request, policy);
-  //resp = eval->evaluate(request, policy_str);
-  //resp = eval->evaluate(request, policynode);  
-  //resp = eval->evaluate(request, "Policy_Example.xml");
-  //resp = eval->evaluate(reqnode, policy);
-  resp = eval->evaluate(request_str, policy);
 
   /**Get the response*/
   logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
@@ -143,6 +137,11 @@ int main(void){
       }
     }
     /**Return "yes" or "no"*/
+    //Scan each <RequestItem/> (since the original <RequestItem/> has been splitted, 
+    //here there is only one <Subject>, <Resource>, <Action>, <Context> under <RequestItem/>), 
+    //then scan each <Attribute/> under <Subject/>. Since we only return the <RequestItem/>
+    //which has satisfied the policy, and <Subject> is a must element for <RequestItem>, if 
+    //there is <Attribute/> exists, we can say the <RequestItem> satisfies the policy.
     if(subject.size()>0)
       logger.msg(Arc::INFO, "The request has passed the policy evaluation");
   }
