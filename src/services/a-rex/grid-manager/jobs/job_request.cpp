@@ -116,11 +116,11 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   job_local_read_file(desc.get_id(),user,job_desc);
   /* some default values */
   job_desc.lrms=user.DefaultLRMS();
-  job_desc.queue=user.DefaultQueue();
   job_desc.reruns=user.Reruns();
   std::string filename;
   filename = user.ControlDir() + "/job." + desc.get_id() + ".description";
   if(!parse_job_req(filename,job_desc)) return false;
+  if(job_desc.queue.length() == 0) job_desc.queue=user.DefaultQueue();
   if(job_desc.reruns>user.Reruns()) job_desc.reruns=user.Reruns();
   if((job_desc.diskspace>user.DiskSpace()) || (job_desc.diskspace==0)) {
     job_desc.diskspace=user.DiskSpace();
