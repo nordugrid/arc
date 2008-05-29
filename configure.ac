@@ -229,23 +229,15 @@ AC_LANG_CPLUSPLUS
 CPPFLAGS="$CPPFLAGS $GLIBMM_CFLAGS"
 AC_CHECK_HEADER([glibmm/optioncontext.h], [
   AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
-                 [Glib::OptionContext ctx; ctx.set_summary("summary")],
-		 [AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY,,
-		   [define if glibmm has Glib::OptionContext::set_summary()])
-  ])
+    [Glib::OptionContext ctx; ctx.set_summary("summary")], [
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY,,
+        [define if glibmm has Glib::OptionContext::set_summary()])
+      AC_MSG_NOTICE([using glibmm command line parsing])
+    ], [
+      AC_MSG_NOTICE([using getopt_long command line parsing])
+    ]
+  )
 ])
-AC_CHECK_HEADER(glibmm/optiongroup.h,[glibmm_optiongroup_h=yes],[glibmm_optiongroup_h=no])
-if test "$glibmm_optiongroup_h" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_OPTIONS,,[define if glibmm have support for command line arguments])
-  AC_TRY_COMPILE([#include <glibmm.h>],[Glib::OptionEntry::Flags flags = Glib::OptionEntry::FLAG_NO_ARG;],[glibmm_optionflags=yes],[glibmm_optionflags=no])
-  if test "$glibmm_optionflags" = yes; then
-    AC_DEFINE(HAVE_GLIBMM_OPTIONFLAGS,,[define if glibmm have proper support for option flags])
-  else
-    AC_MSG_NOTICE([WARNING: glibmm has no all arguments flags defined - arguments parsing may be inconsistent])
-  fi
-else
-  AC_MSG_NOTICE([WARNING: glibmm has no support for command lineparsing - using reduced functionality])
-fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then
   AC_DEFINE(HAVE_GLIBMM_CHILDWATCH,,[define if glibmm have support for controling state of children processes])
