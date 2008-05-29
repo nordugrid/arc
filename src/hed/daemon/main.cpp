@@ -77,20 +77,13 @@ int main(int argc, char **argv)
 {
     signal(SIGTTOU,SIG_IGN);
     /* Create options parser */
-#ifdef HAVE_GLIBMM_OPTIONS
-    Glib::OptionContext opt_ctx;
-    opt_ctx.set_help_enabled();
     Arc::ServerOptions options;
-    opt_ctx.set_main_group(options);
-#else
-    Arc::ServerOptions options;
-    Arc::ServerOptions& opt_ctx = options;
-#endif
+
     if((argc>0) && (argv[0])) Arc::ArcLocation::Init(argv[0]);
 
     try {
-        int status = opt_ctx.parse(argc, argv);
-        if (status == 1) {
+        std::list<std::string> params = options.Parse(argc, argv);
+        if (params.size() == 0) {
             /* Load and parse config file */
             config.parse(options.config_file.c_str());
             if(!config) {
