@@ -82,29 +82,12 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
   return eval;
 }
 
-Request* EvaluatorLoader::getRequest(std::string& classname, std::string& reqstr) {
-  Arc::XMLNode node(reqstr);
-  return (getRequest(classname, &node));
-}
-
-Request* EvaluatorLoader::getRequest(std::string& classname, const char* reqfile) {
-  std::string str, reqstr;
-  std::ifstream f(reqfile);
-  if(!f) logger.msg(Arc::ERROR,"Failed to read request file %s", reqfile);
-
-  while (f >> str) {
-    reqstr.append(str);
-    reqstr.append(" ");
-  }
-  f.close();
-
-  Arc::XMLNode node(reqstr);
-  return (getRequest(classname, &node));
-}
-
-Request* EvaluatorLoader::getRequest(std::string& classname, Arc::XMLNode* reqnode) {
+Request* EvaluatorLoader::getRequest(std::string& classname, const Source& requestsource) {
   ArcSec::Request* req = NULL;
   Arc::ClassLoader* classloader = NULL;
+  
+  //Get the request node
+  Arc::XMLNode reqnode = requestsource.Get();
 
   //Get the lib path from environment, and put it into the configuration xml node
   std::list<std::string> plugins = Arc::ArcLocation::GetPlugins();
@@ -132,35 +115,18 @@ Request* EvaluatorLoader::getRequest(std::string& classname, Arc::XMLNode* reqno
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Request object according to configure information. It should be the caller to free the object
-    req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)reqnode));
+    req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)&reqnode));
   }
 
   return req;
 }
 
-Policy* EvaluatorLoader::getPolicy(std::string& classname, std::string& policystr) {
-  Arc::XMLNode node(policystr);
-  return (getPolicy(classname, &node));
-}
-
-Policy* EvaluatorLoader::getPolicy(std::string& classname, const char* policyfile) {
-  std::string str, policystr;
-  std::ifstream f(policyfile);
-  if(!f) logger.msg(Arc::ERROR,"Failed to read request file %s", policyfile);
-
-  while (f >> str) {
-    policystr.append(str);
-    policystr.append(" ");
-  }
-  f.close();
-
-  Arc::XMLNode node(policystr);
-  return (getPolicy(classname, &node));
-}
-
-Policy* EvaluatorLoader::getPolicy(std::string& classname, Arc::XMLNode* policynode) {
+Policy* EvaluatorLoader::getPolicy(std::string& classname, const Source& policysource) {
   ArcSec::Policy* policy = NULL;
   Arc::ClassLoader* classloader = NULL;
+
+  //Get policy node
+  Arc::XMLNode policynode = policysource.Get();
 
   //Get the lib path from environment, and put it into the configuration xml node
   std::list<std::string> plugins = Arc::ArcLocation::GetPlugins();
@@ -188,7 +154,7 @@ Policy* EvaluatorLoader::getPolicy(std::string& classname, Arc::XMLNode* policyn
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Policy object according to configure information. It should be the caller to free the object
-    policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)policynode));
+    policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)&policynode));
   }
 
   return policy;
