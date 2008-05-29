@@ -26,18 +26,15 @@ public:
 
   PolicyStore();
 
-  //plist is the list of policy sources, alg is the combing algorithm between these sources
-  PolicyStore(const std::list<std::string>& plist, const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx);
+  /// Creates policy store with specified combing algorithm (alg - not used yet), policy name 
+  /// (policyclassname) and context (ctx)
+  PolicyStore(const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx);
 
   virtual ~PolicyStore();
   
   virtual std::list<PolicyElement> findPolicy(EvaluationCtx* context);
 
-  virtual void addPolicy(const char* policyfile, EvaluatorContext* ctx,const std::string& id);
-
-  virtual void addPolicy(std::string& policystr, EvaluatorContext* ctx,const std::string& id);
-
-  virtual void addPolicy(Arc::XMLNode& policynode, EvaluatorContext* ctx,const std::string& id);
+  virtual void addPolicy(const Source& policy, EvaluatorContext* ctx,const std::string& id);
 
   virtual void addPolicy(BasePolicy* policyobj, EvaluatorContext* ctx,const std::string& id);
 

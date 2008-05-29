@@ -22,6 +22,7 @@ static Arc::Logger logger(Arc::Logger::rootLogger, "PolicyParser");
 PolicyParser::PolicyParser(){
 }
 
+/*
 ///Get policy from local file
 void getfromFile(const char* name, std::string& xml_policy){
   std::string str;
@@ -108,14 +109,10 @@ void getfromURL(const char* name, std::string& xml_policy){
     xml_policy.append(" ");
   } catch(std::exception&) { };
 }
+*/
 
-Policy* PolicyParser::parsePolicy(std::string& sourcestr, std::string policyclassname, EvaluatorContext* ctx){
-  Arc::XMLNode node(sourcestr);
-  return (parsePolicy(node, policyclassname, ctx));
-}
-
-Policy* PolicyParser::parsePolicy(Arc::XMLNode& sourcenode, std::string policyclassname, EvaluatorContext* ctx){
-  XMLNode node(sourcenode);
+Policy* PolicyParser::parsePolicy(const Source& source, std::string policyclassname, EvaluatorContext* ctx){
+  Arc::XMLNode node = source.Get();  
   Arc::ClassLoader* classloader = NULL;
   classloader=Arc::ClassLoader::getClassLoader();
   ArcSec::Policy * policy = (ArcSec::Policy*)(classloader->Instance(policyclassname, (void**)(void*)&node));
@@ -126,17 +123,3 @@ Policy* PolicyParser::parsePolicy(Arc::XMLNode& sourcenode, std::string policycl
   return policy;
 }
 
-Policy* PolicyParser::parsePolicy(const char* sourcename, std::string policyclassname, EvaluatorContext* ctx){
-  std::string xml_policy;
-  std::string src_name(sourcename);
-  int pos = src_name.find("://");
-  if(pos == std::string::npos) {
-    getfromFile(sourcename, xml_policy);
-  }   
-  else{
-    getfromURL(sourcename, xml_policy);
-  }
-  XMLNode node(xml_policy);
-
-  return (parsePolicy(node, policyclassname, ctx));
-}

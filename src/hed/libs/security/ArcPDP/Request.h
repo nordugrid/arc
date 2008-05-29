@@ -7,6 +7,7 @@
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/RequestItem.h>
+#include <arc/security/ArcPDP/Source.h>
 
 namespace ArcSec {
 
@@ -74,13 +75,7 @@ public:
   Request () {};
 
   /**Constructor: Parse request information from a xml stucture in memory*/
-  Request (const Arc::XMLNode*) {};
-
-  /**Constructor: Parse request information from a file*/
-  Request (const char* reqfile) {};
-
-  /**Constructor: Parse request information from a string*/
-  Request (std::string& reqstring) {};
+  Request (const Source&) {};
 
   virtual ~Request(){};
 };
