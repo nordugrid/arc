@@ -68,7 +68,7 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     
     //Call the functionality of policy engine
     Response *resp = NULL;
-    resp = eval->evaluate(request);
+    resp = eval->evaluate(Source(request));
     logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
     ResponseList rlist = resp->getResponseItems();
     if(!(rlist.empty())) logger.msg(Arc::INFO, "Authorized from Service_PDP");

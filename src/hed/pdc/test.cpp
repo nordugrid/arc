@@ -53,7 +53,9 @@ int main(void){
   //Input request from a file: Request.xml
   logger.msg(Arc::INFO, "Input request from a file: Request.xml");  
   //Evaluate the request
-  resp = eval->evaluate("Request.xml");
+  std::ifstream f("Request.xml");
+  ArcSec::Source source(f);
+  resp = eval->evaluate(source);
   //Get the response
   logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
   ArcSec::ResponseList rlist = resp->getResponseItems();

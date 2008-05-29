@@ -12,16 +12,19 @@
 
 /** get_request (in charge of class-loading of ArcRequest) can only accept two types of argument: NULL, XMLNode*/
 static Arc::LoadableClass* get_request(void** arg) {
-    //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
-    if(arg==NULL) return new ArcSec::ArcRequest();
-    else{
-    /*std::cout<<"Inside ArcRequest"<<std::endl;
-    std::string xml;
-    Arc::XMLNode node(*((Arc::XMLNode*)arg));
-    node.GetXML(xml);
-    std::cout<<"node inside ArcRequest:"<<xml<<std::endl;*/
-    return new ArcSec::ArcRequest((Arc::XMLNode*) arg);
-   }
+  //std::cout<<"Argument type of ArcRequest:"<<typeid(arg).name()<<std::endl;
+  if(arg==NULL) { return new ArcSec::ArcRequest(); }
+  else {
+    /*
+    {
+      std::string xml;
+      ((Arc::XMLNode*)arg)->GetXML(xml);
+      std::cout<<"node inside ArcRequest:"<<xml<<std::endl;
+    };
+    */
+    ArcSec::Source source(*(Arc::XMLNode*)arg);
+    return new ArcSec::ArcRequest(source);
+  }
 }
 
 loader_descriptors __arc_request_modules__  = {
@@ -135,31 +138,11 @@ void ArcRequest::make_request(){
     }
 }
 
-ArcRequest::ArcRequest(const char* reqfile) : Request(reqfile) {
-  std::string str;
-  std::string xml_str = "";
-  std::ifstream f(reqfile);
-
-  while (f >> str) {
-    xml_str.append(str);
-    xml_str.append(" ");
-  }
-  f.close();
-
-  Arc::XMLNode node(xml_str);
+ArcRequest::ArcRequest (const Source& req) : Request(req) {
+  req.Get().New(reqnode);
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
-  node.Namespaces(ns);
-  node.New(reqnode);
-}
-
-ArcRequest::ArcRequest (const XMLNode* node) : Request(node) {
-  node->New(reqnode);
-}
-
-ArcRequest::ArcRequest (std::string& reqstring) : Request(reqstring) {
-  XMLNode node(reqstring); 
-  node.New(reqnode);
+  reqnode.Namespaces(ns);
 }
 
 ArcRequest::ArcRequest () {

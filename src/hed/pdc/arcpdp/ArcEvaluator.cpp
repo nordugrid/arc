@@ -113,10 +113,11 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   //Create the EvaluatorContext for the usage of creating Policy
   context = new EvaluatorContext(this);
 
-  std::list<std::string> filelist;
-  //filelist.push_back(policylocation);
   std::string alg("Permit-Overrides");
-  plstore = new PolicyStore(filelist, alg, policy_classname, context);
+  //std::list<std::string> filelist;
+  //filelist.push_back(policylocation);
+  //plstore = new PolicyStore(filelist, alg, policy_classname, context);
+  plstore = new PolicyStore(alg, policy_classname, context);
 
 }
 
@@ -183,32 +184,13 @@ Response* ArcEvaluator::evaluate(Request* request){
 }
 
 
-Response* ArcEvaluator::evaluate(const char* reqfile){
-  //Parse the request file
-  std::string str;
-  std::string xml_str = "";
-  std::ifstream f(reqfile);
-
-  while (f >> str) {
-    xml_str.append(str);
-    xml_str.append(" ");
-  }
-  f.close();
-
-  Arc::XMLNode node(xml_str);
+Response* ArcEvaluator::evaluate(const Source& req){
+  //0.Prepare request for evaluation
+  Arc::XMLNode node = req.Get();
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   node.Namespaces(ns);
 
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(std::string& reqstring) {
-  XMLNode node(reqstring);
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(XMLNode& node){
   //1.Create the request object according to the configuration
   Request* request = NULL;
   request = make_reqobj(node);
@@ -334,76 +316,16 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
   
 }
 
-Response* ArcEvaluator::evaluate(Request* request, const char* policyfile) {
+Response* ArcEvaluator::evaluate(Request* request, const Source& policy) {
   plstore->removePolicies();
-  plstore->addPolicy(policyfile, context, "");
+  plstore->addPolicy(policy, context, "");
   return (evaluate(request));
 }
 
-Response* ArcEvaluator::evaluate(Arc::XMLNode& node, const char* policyfile) {
+Response* ArcEvaluator::evaluate(const Source& request, const Source& policy) {
   plstore->removePolicies();
-  plstore->addPolicy(policyfile, context, "");
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(const char* reqfile, const char* policyfile) {
-  plstore->removePolicies();
-  plstore->addPolicy(policyfile, context, "");
-  return (evaluate(reqfile));
-}
-
-Response* ArcEvaluator::evaluate(std::string& reqstr, const char* policyfile) {
-  plstore->removePolicies();
-  plstore->addPolicy(policyfile, context, "");
-  return (evaluate(reqstr));
-}
-
-Response* ArcEvaluator::evaluate(Request* request, std::string& policystr) {
-  plstore->removePolicies();
-  plstore->addPolicy(policystr, context, "");
+  plstore->addPolicy(policy, context, "");
   return (evaluate(request));
-}
-
-Response* ArcEvaluator::evaluate(Arc::XMLNode& node, std::string& policystr) {
-  plstore->removePolicies();
-  plstore->addPolicy(policystr, context, "");
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(const char* reqfile, std::string& policystr) {
-  plstore->removePolicies();
-  plstore->addPolicy(policystr, context, "");
-  return (evaluate(reqfile));
-}
-
-Response* ArcEvaluator::evaluate(std::string& reqstr, std::string& policystr) {
-  plstore->removePolicies();
-  plstore->addPolicy(policystr, context, "");
-  return (evaluate(reqstr));
-}
-
-Response* ArcEvaluator::evaluate(Request* request, Arc::XMLNode& policynode) {
-  plstore->removePolicies();
-  plstore->addPolicy(policynode, context, "");
-  return (evaluate(request));
-}
-
-Response* ArcEvaluator::evaluate(Arc::XMLNode& node, Arc::XMLNode& policynode) {
-  plstore->removePolicies();
-  plstore->addPolicy(policynode, context, "");
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(const char* reqfile, Arc::XMLNode& policynode) {
-  plstore->removePolicies();
-  plstore->addPolicy(policynode, context, "");
-  return (evaluate(reqfile));
-}
-
-Response* ArcEvaluator::evaluate(std::string& reqstr, Arc::XMLNode& policynode) {
-  plstore->removePolicies();
-  plstore->addPolicy(policynode, context, "");
-  return (evaluate(reqstr));
 }
 
 Response* ArcEvaluator::evaluate(Request* request, BasePolicy* policyobj) {
@@ -412,22 +334,10 @@ Response* ArcEvaluator::evaluate(Request* request, BasePolicy* policyobj) {
   return (evaluate(request));
 }
 
-Response* ArcEvaluator::evaluate(Arc::XMLNode& node, BasePolicy* policyobj) {
+Response* ArcEvaluator::evaluate(const Source& request, BasePolicy* policyobj) {
   plstore->removePolicies();
   plstore->addPolicy(policyobj, context, "");
-  return (evaluate(node));
-}
-
-Response* ArcEvaluator::evaluate(const char* reqfile, BasePolicy* policyobj) {
-  plstore->removePolicies();
-  plstore->addPolicy(policyobj, context, "");
-  return (evaluate(reqfile));
-}
-
-Response* ArcEvaluator::evaluate(std::string& reqstr, BasePolicy* policyobj) {
-  plstore->removePolicies();
-  plstore->addPolicy(policyobj, context, "");
-  return (evaluate(reqstr));
+  return (evaluate(request));
 }
 
 ArcEvaluator::~ArcEvaluator(){
@@ -442,6 +352,5 @@ ArcEvaluator::~ArcEvaluator(){
     delete attrfactory;
   if(algfactory)
     delete algfactory;
-  
 }
 

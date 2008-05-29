@@ -72,7 +72,7 @@ namespace ArcSec {
     };
   };
 
-  /// Base class for Policy Decisoion Point plugins
+  /// Base class for Policy Decision Point plugins
   /** This virtual class defines method isPermitted() which processes
     security related information/attributes in Message and makes security 
     decision - permit (true) or deny (false). 

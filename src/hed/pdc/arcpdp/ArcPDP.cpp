@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
@@ -159,7 +160,7 @@ bool ArcPDP::isPermitted(Message *msg){
       if(eval) {
         std::list<std::string> policylocation = (config!=NULL)?config->GetPolicyLocation():policy_locations;
         for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
-          eval->addPolicy(*it);
+          eval->addPolicy(SourceFile(*it));
         }
         msg->Context()->Add(ctxid,pdpctx);
       } else {

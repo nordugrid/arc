@@ -32,14 +32,8 @@ public:
   //**Default constructor*/
   ArcRequest ();
 
-  //**Parse request information from a xml stucture in memory*/
-  ArcRequest (const Arc::XMLNode* node);
-
-  //**Parse request information from a file*/
-  ArcRequest (const char* reqfile);
-
-  //**Parse request information from a string*/
-  ArcRequest (std::string& reqstring);
+  //**Parse request information from external source*/
+  ArcRequest (const Source& source);
 
   virtual ~ArcRequest();
 
