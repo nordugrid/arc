@@ -2,20 +2,16 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <list>
 #include <string>
-#include <stdio.h>
-#include <iostream>
+
+#include <arc/ArcLocation.h>
+#include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/XMLNode.h>
-#include <arc/ArcConfig.h>
-#include <arc/StringConv.h>
-#include <arc/loader/Loader.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/ArcLocation.h>
-#include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
 

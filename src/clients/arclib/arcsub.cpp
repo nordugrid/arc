@@ -6,19 +6,15 @@
 #include <iostream>
 #include <list>
 #include <string>
-#include <sstream>
 
-#include <arc/Logger.h>
-#include <arc/XMLNode.h>
-#include <arc/IString.h>
-#include <arc/DateTime.h>
-#include <arc/ArcConfig.h>
-#include <arc/StringConv.h>
-#include <arc/client/Submitter.h>
-#include <arc/client/ClientInterface.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/ArcLocation.h>
+#include <arc/DateTime.h>
+#include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/IString.h>
+#include <arc/XMLNode.h>
+#include <arc/client/Submitter.h>
+#include <arc/client/TargetGenerator.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
