@@ -20,13 +20,13 @@ namespace Arc {
   class ClientInterface;
 
   /** Configuration for client interface.
-     It contains information which can't be expressed in
-     class constructor arguments. Most probably common things
-     like software installation location, identity of user, etc. */
+      It contains information which can't be expressed in
+      class constructor arguments. Most probably common things
+      like software installation location, identity of user, etc. */
   class BaseConfig {
-   protected:
+  protected:
     std::list<std::string> plugin_paths;
-   public:
+  public:
     std::string key;
     std::string cert;
     std::string proxy;
@@ -34,7 +34,7 @@ namespace Arc {
     std::string cadir;
     XMLNode overlay;
     BaseConfig();
-    virtual ~BaseConfig() {};
+    virtual ~BaseConfig() {}
     /** Adds non-standard location of plugins */
     void AddPluginsPath(const std::string& path);
     /** Add private key */
@@ -52,20 +52,25 @@ namespace Arc {
     /** Read overlay from file */
     void GetOverlay(std::string fname);
     /** Adds configuration part corresponding to stored information into
-       common configuration tree supplied in 'cfg' argument. */
+       	common configuration tree supplied in 'cfg' argument. */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
   class ClientInterface {
-   public:
-    ClientInterface():loader(NULL) {};
+  public:
+    ClientInterface()
+      : loader(NULL) {}
     ClientInterface(const BaseConfig& cfg);
     virtual ~ClientInterface();
     void Overlay(XMLNode cfg);
-    const Config& GetConfig(void) const { return xmlcfg; };
-    MessageContext& GetContext(void) { return context; };
-    virtual void Load(void);
-   protected:
+    const Config& GetConfig() const {
+      return xmlcfg;
+    }
+    MessageContext& GetContext() {
+      return context;
+    }
+    virtual void Load();
+  protected:
     Config xmlcfg;
     XMLNode overlay;
     Loader *loader;
@@ -74,48 +79,57 @@ namespace Arc {
   };
 
   // Also supports TLS
-  class ClientTCP : public ClientInterface {
-   public:
-    ClientTCP():tcp_entry(NULL),tls_entry(NULL) {};
+  class ClientTCP
+    : public ClientInterface {
+  public:
+    ClientTCP()
+      : tcp_entry(NULL),
+	tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
 	      bool tls);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
 		       PayloadStreamInterface **response, bool tls);
     // PayloadStreamInterface *stream();
-    MCC* GetEntry(void) { if(tls_entry) return tls_entry; return tcp_entry; };
-    virtual void Load(void);
-   protected:
+    MCC *GetEntry() {
+      return tls_entry ? tls_entry : tcp_entry;
+    }
+    virtual void Load();
+  protected:
     MCC *tcp_entry;
     MCC *tls_entry;
   };
-    
+
   struct HTTPClientInfo {
-     int code;
-     std::string reason;
-     uint64_t size;
-     Arc::Time lastModified;
-     std::string type;
+    int code;
+    std::string reason;
+    uint64_t size;
+    Arc::Time lastModified;
+    std::string type;
   };
 
-  class ClientHTTP : public ClientTCP {
-   public:
-    ClientHTTP():http_entry(NULL) {};
+  class ClientHTTP
+    : public ClientTCP {
+  public:
+    ClientHTTP()
+      : http_entry(NULL) {}
     ClientHTTP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
 		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       PayloadRawInterface *request,
+		       PayloadRawInterface *request,
 		       HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       uint64_t range_start, uint64_t range_end,
-                       PayloadRawInterface *request,
-		               HTTPClientInfo *info, PayloadRawInterface **response);
-    MCC* GetEntry(void) { return http_entry; };
-    virtual void Load(void);
-   protected:
+		       uint64_t range_start, uint64_t range_end,
+		       PayloadRawInterface *request,
+		       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC *GetEntry() {
+      return http_entry;
+    }
+    virtual void Load();
+  protected:
     MCC *http_entry;
     std::string host;
     int port;
@@ -123,54 +137,64 @@ namespace Arc {
   };
 
   /** Class with easy interface for sending/receiving SOAP messages
-     over HTTP(S).
-     It takes care of configuring MCC chain and making an entry point. */
-  class ClientSOAP : public ClientHTTP {
-   public:
+      over HTTP(S).
+      It takes care of configuring MCC chain and making an entry point. */
+  class ClientSOAP
+    : public ClientHTTP {
+  public:
     /** Constructor creates MCC chain and connects to server.
-       cfg - common configuration,
-       host - hostname of remote server,
-       port - TCP port of remote server,
-       tls - true if connection to use HTTPS, false for HTTP,
-       path - internal path of service to be contacted.
-       TODO: use URL.
+       	cfg - common configuration,
+       	host - hostname of remote server,
+       	port - TCP port of remote server,
+       	tls - true if connection to use HTTPS, false for HTTP,
+       	path - internal path of service to be contacted.
+       	TODO: use URL.
      */
-    ClientSOAP():soap_entry(NULL) {};
+    ClientSOAP()
+      : soap_entry(NULL) {}
     ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
 	       bool tls, const std::string& path);
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
-    MCC_Status process(const std::string& action,PayloadSOAP *request, PayloadSOAP **response);
-    MCC* GetEntry(void) { return soap_entry; };
-    virtual void Load(void);
-   protected:
+    MCC_Status process(const std::string& action, PayloadSOAP *request,
+		       PayloadSOAP **response);
+    MCC *GetEntry() {
+      return soap_entry;
+    }
+    virtual void Load();
+  protected:
     MCC *soap_entry;
   };
 
-  class MCCConfig : public BaseConfig {
-   public:
-    MCCConfig() : BaseConfig() {};
-    virtual ~MCCConfig() {};
+  class MCCConfig
+    : public BaseConfig {
+  public:
+    MCCConfig()
+      : BaseConfig() {}
+    virtual ~MCCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
-  class DMCConfig : public BaseConfig {
+  class DMCConfig
+    : public BaseConfig {
   public:
-  DMCConfig() : BaseConfig() {};
-    virtual ~DMCConfig() {};
+    DMCConfig()
+      : BaseConfig() {}
+    virtual ~DMCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
-  
-  class ACCConfig : public BaseConfig {
+
+  class ACCConfig
+    : public BaseConfig {
   public:
-  ACCConfig() : BaseConfig() {};
-    virtual ~ACCConfig() {};
+    ACCConfig()
+      : BaseConfig() {}
+    virtual ~ACCConfig() {}
     virtual XMLNode MakeConfig(XMLNode cfg) const;
   };
 
 } // namespace Arc
-
 
 #endif // __ARC_CLIENTINTERFACE_H__
