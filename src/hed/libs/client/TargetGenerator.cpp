@@ -8,7 +8,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 namespace Arc {
   

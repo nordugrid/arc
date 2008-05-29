@@ -10,5 +10,5 @@ libaccARC0_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
                          $(GLOBUS_FTP_CONTROL_LIBS) \
                          $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
                          $(top_srcdir)/src/hed/libs/common/libarccommon.la \
-                         $(top_srcdir)/src/hed/libs/client/libarclibclient.la
+                         $(top_srcdir)/src/hed/libs/client/libarcclient.la
 libaccARC0_la_LDFLAGS  = -no-undefined -avoid-version -module

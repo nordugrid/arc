@@ -6,7 +6,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/Logger.h>
 
 namespace Arc {

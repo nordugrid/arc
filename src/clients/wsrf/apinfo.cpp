@@ -13,8 +13,8 @@
 #include <arc/URL.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/message/MCC.h>
-#include <arc/misc/ClientInterface.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/client/ClientInterface.h>
+#include <arc/OptionParser.h>
 
 //! A prototype client for service status queries.
 /*! A prototype command line tool for service status queries to any ARC1

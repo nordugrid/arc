@@ -11,11 +11,11 @@
 #include <arc/ArcConfig.h>
 #include <arc/StringConv.h>
 #include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/ArcLocation.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
 

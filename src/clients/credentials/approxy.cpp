@@ -17,7 +17,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/delegation/DelegationInterface.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 

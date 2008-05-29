@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 #include <arc/ArcLocation.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 #include "cream_client.h"
 

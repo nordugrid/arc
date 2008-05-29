@@ -10,7 +10,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #endif

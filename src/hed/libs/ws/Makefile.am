@@ -7,4 +7,3 @@ libarcws_la_LIBADD = $(top_srcdir)/src/hed/libs/infosys/libinfosys.la \
 # libwsrf is included through libinfosys
 # libwsaddressing is included through libwsrf
 # stupid libtool
-#libarcws_la_LDFLAGS = $(top_srcdir)/src/hed/libs/misc/libarcclient.la

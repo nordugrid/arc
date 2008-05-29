@@ -3,7 +3,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
 #include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 int main() {
 

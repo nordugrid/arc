@@ -6,7 +6,7 @@
 #include <arc/StringConv.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 namespace Arc {
   

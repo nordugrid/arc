@@ -13,7 +13,7 @@
 #include <arc/StringConv.h>
 #endif
 
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 namespace Arc {
 

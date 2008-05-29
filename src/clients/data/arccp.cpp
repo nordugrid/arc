@@ -13,7 +13,7 @@
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
 

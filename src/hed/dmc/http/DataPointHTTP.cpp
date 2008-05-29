@@ -12,7 +12,7 @@
 #include <arc/data/DataBufferPar.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 #ifdef WIN32
 #include <arc/win32.h>

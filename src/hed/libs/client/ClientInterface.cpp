@@ -7,32 +7,32 @@
 #include <stdlib.h>
 
 #include <arc/StringConv.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 
   Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
 
-  static void xml_add_element(XMLNode xml,XMLNode element) {
-    if((std::string)(element.Attribute("overlay")) != "add") {
-      if(element.Size() > 0) {
-        std::string element_name = element.Name(); // FullName ?
-        std::string element_id = (std::string)(element.Attribute("name"));
-        for(XMLNode x = xml[element_name];(bool)x;x=x[1]) {
-          if(!element_id.empty()) {
-            if(element_id != (std::string)(x.Attribute("name"))) continue;
-          };
-          for(int n = 0;;++n) {
-            XMLNode e = element.Child(n);
-            if(!e) break;
-            xml_add_element(x,e);
-          };
-        };
-        return;
-      };
-    }
-    xml.NewChild(element,0);
+  static void xml_add_element(XMLNode xml, XMLNode element) {
+    if ((std::string)(element.Attribute("overlay")) != "add")
+      if (element.Size() > 0) {
+	std::string element_name = element.Name(); // FullName ?
+	std::string element_id = (std::string)(element.Attribute("name"));
+	for (XMLNode x = xml[element_name]; (bool)x; x = x[1]) {
+	  if (!element_id.empty())
+	    if (element_id != (std::string)(x.Attribute("name")))
+	      continue;
+	  for (int n = 0;; ++n) {
+	    XMLNode e = element.Child(n);
+	    if (!e)
+	      break;
+	    xml_add_element(x, e);
+	  }
+	}
+	return;
+      }
+    xml.NewChild(element, 0);
     return;
   }
 
@@ -253,7 +253,8 @@ namespace Arc {
 
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const std::string& host,
 			 int port, bool tls, const std::string& path)
-    : ClientHTTP(cfg, host, port, tls, path), soap_entry(NULL) {
+    : ClientHTTP(cfg, host, port, tls, path),
+      soap_entry(NULL) {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";

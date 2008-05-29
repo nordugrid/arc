@@ -21,7 +21,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 #ifdef WIN32
 #include <arc/win32.h>
 #endif

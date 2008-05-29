@@ -3,7 +3,7 @@
 
 #include <string>
 #include <arc/message/MCC.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/XMLNode.h>
 
 namespace GridScheduler {

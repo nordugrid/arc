@@ -3,7 +3,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 namespace Arc {
 

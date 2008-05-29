@@ -2,7 +2,7 @@
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/misc/ClientInterface.h>
+#include <arc/client/ClientInterface.h>
 
 int main() {
 

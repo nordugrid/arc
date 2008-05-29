@@ -7,7 +7,6 @@
 #include <arc/Logger.h>
 #include <arc/data/DMC.h>
 #include <arc/loader/Loader.h>
-#include <arc/misc/ClientInterface.h>
 
 namespace Arc {
 

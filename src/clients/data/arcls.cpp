@@ -11,7 +11,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/data/DataHandle.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 

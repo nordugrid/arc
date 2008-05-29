@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include <arc/ArcLocation.h>
-#include <arc/misc/OptionParser.h>
+#include <arc/OptionParser.h>
 
 #include "arex_client.h"
 

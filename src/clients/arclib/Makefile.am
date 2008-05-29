@@ -3,8 +3,7 @@ bin_PROGRAMS = arcstat arcsub
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
           ../../hed/libs/message/libarcmessage.la \
-          ../../hed/libs/client/libarclibclient.la\
-	  ../../hed/libs/misc/libarcclient.la \
+          ../../hed/libs/client/libarcclient.la\
           ../../hed/libs/common/libarccommon.la
 
 arcstat_SOURCES  = arcstat.cpp
