@@ -184,7 +184,7 @@ width "2cm"
 special "none"
 height "0pt"
 height_special "none"
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -754,6 +754,7 @@ Collectors of Security Attributes instantiate corresponding classes and
  link them to Secuirity Attributes containers - MessageAuth <arc/message/Message
 Auth.h> and MessageAuthContext <arc/message/Message.h> storing collected attribute
 s per request and per session correspondingly.
+ Each attribute is assigned a name.
  Current implementations of Security Attributes Collectors are either integrated
  into existing MCCs or implemented as separate SecHandler plugins.
  See Section 
@@ -813,10 +814,12 @@ ArcPDP makes use of Security Attributes containing identities of client,
 \end_layout
 
 \begin_layout Itemize
-(to move to Delegation section) DelegationPDP is similar to ArcPDP except
- that it takes it's Policy documents directly from Security Attributes.
- Differently from Arc PDP it is meant to be used for enforcing policies
- defined by client.
+DelegationPDP is described below in Section 
+\begin_inset LatexCommand \ref{sec:delegation_pdp}
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -828,31 +831,126 @@ Available collectors
 
 \end_layout
 
+\begin_layout Standard
+Here Security Attribute collectors distributed as part of ARC1 are described
+ except those used for Delegation Restrictions.
+ Those are described in Section 
+\begin_inset LatexCommand \ref{sec:delegation}
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Subsection
 TCP
 \end_layout
 
 \begin_layout Standard
 Information is collected inside TCP MCC.
- Security Attribute exports 
+ Security Attribute is stored under name 'TCP' and exports ARC Request with
+ following attributes:
 \end_layout
 
 \begin_layout Standard
-ARC Request with following attributes
-\end_layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="20text%">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="20text%">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Element AttributeId Content
+Element
 \end_layout
 
-\begin_layout Standard
-Resource http://www.nordugrid.org/schemas/policy-arc/types/localendpoint service_i
-p[:service_port] 
-\end_layout
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint
- client_ip[:client_port] 
+AttributeId
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Content
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Resource
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/localendpoint
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+service_ip[:service_port] 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SubjectAttribute
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+client_ip[:client_port] 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -869,11 +967,11 @@ s:
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
 <features>
+<column alignment="center" valignment="top" leftline="true" width="20text%">
 <column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="20text%">
 <row topline="true" bottomline="true">
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -1030,16 +1128,17 @@ HTTP
 
 \begin_layout Standard
 Information is collected inside TLS MCC.
- Security Attribute exports ARC Request with following attributes:
+ Security Attribute is stored under name 'HTTP' and exports ARC Request
+ with following attributes:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
 <features>
+<column alignment="center" valignment="top" leftline="true" width="20text%">
 <column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="20text%">
 <row topline="true" bottomline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
@@ -1140,16 +1239,17 @@ SOAP
 
 \begin_layout Standard
 Information is collected inside TLS MCC.
- Security Attribute exports ARC Request with following attributes
+ Security Attribute is stored under name 'SOAP' and exports ARC Request
+ with following attributes:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
 <features>
+<column alignment="center" valignment="top" leftline="true" width="20text%">
 <column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="20text%">
 <row topline="true" bottomline="true">
 <cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
@@ -1273,13 +1373,89 @@ Namespace of SOAP top level element
 
 \end_layout
 
-\begin_layout Subsection
-Delegation
+\begin_layout Chapter
+Delegation Restrictions
+\begin_inset LatexCommand \label{sec:delegation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Delegation Architecture
+\begin_inset LatexCommand \label{sec:delegation_architectire}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-(to move to Delegation section) This Security Attribute is collected by
- dedicated Security Handler plugin named 
+In current implementation delegation is achieved through Identity Delegation
+ implemented using X509 Proxy Certificates as defined in RFC 3820.
+ Client wishing to allow service to act on it's behalf provides Proxy Certificat
+e to the service using Web Service based Delegation interface described
+ in 
+\begin_inset LatexCommand \ref{sec:delegation_interface}
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+For limitinng the scope of delegated credentials along with usually used
+ time constraints it is possible to attach Policy document to Proxy Certificate.
+ According to RFC 3820 Policy is stored in 
+\emph on
+ProxyPolicy
+\emph default
+ extension.
+ In order not to introduce new type of object Policy is assigned 
+\emph on
+id-ppl-anyLanguage
+\emph default
+ identifier.
+ RFC 3820 allows any octet string associated with such object.
+ We are using textual representation of ARC Policy XML document.
+\end_layout
+
+\begin_layout Standard
+Each deployment implementing Delegation Restrictions must use dedicated
+ Security Handler plugin (see section 
+\begin_inset LatexCommand \ref{sec:delegation_collector}
+
+\end_inset
+
+) to collect all Policy documents from Proxy Certificates used for establishing
+ secure connection.
+ Then those documents must be processed by dedicated Policy Decision Point
+ plugin (see section 
+\begin_inset LatexCommand \ref{sec:delegation_pdp}
+
+\end_inset
+
+) to make a final decision based on collected Policies and various information
+ about client's identity and requested operation.
+ Service or MCC chain supporting Delegation Restrictions must accept negative
+ decision of this PDP as final and do not override it with any other decision
+ based on other policies.
+\end_layout
+
+\begin_layout Section
+Delegation Collector
+\begin_inset LatexCommand \label{sec:delegation_collector}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This Security Attribute is collected by dedicated Security Handler plugin
+ named 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1297,23 +1473,19 @@ arcpdc
 \emph default
  plugins' library.
  It extracts policy document stored inside X509 certificate proxy extension
- as defined in RFC3820.
+ as defined in RFC3820 and described in Section 
+\begin_inset LatexCommand \ref{sec:delegation_architectire}
+
+\end_inset
+
+.
  All proxy certificates in a chain provided by client are examined and all
  available policies are extracted.
  
 \end_layout
 
 \begin_layout Standard
-Policies are stored in string content of 
-\emph on
-ProxyPolicy
-\emph default
- element with 
-\emph on
-id-ppl-anyLanguage
-\emph default
-.
- Extracted content is converted into XML document.
+Extracted content is converted into XML document.
  Then document is checked to be of Arc Policy kind.
  If policy is not recognized as Arc Policy procedure fails and that causes
  failure of comunication.
@@ -1332,24 +1504,6 @@ id-ppl-independent
  are not accepted and generate immediate failure.
 \end_layout
 
-\begin_layout Chapter
-Delegation restrictions
-\begin_inset LatexCommand \label{sec:delegation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Delegation architecture
-\begin_inset LatexCommand \label{sec:delegation_architectire}
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Delegation PDP
 \begin_inset LatexCommand \label{sec:delegation_pdp}
@@ -1359,8 +1513,15 @@ Delegation PDP
 
 \end_layout
 
-\begin_layout Chapter*
-Schemas and comments
+\begin_layout Standard
+DelegationPDP is similar to ArcPDP described above except that it takes
+ it's Policy documents directly from Security Attributes.
+ Differently from Arc PDP it is meant to be used for enforcing policies
+ defined by client.
+\end_layout
+
+\begin_layout Chapter
+Schemas and descriptions
 \begin_inset LatexCommand \label{sec:schemas}
 
 \end_inset
@@ -1368,20 +1529,1343 @@ Schemas and comments
 
 \end_layout
 
-\begin_layout Section*
+\begin_layout Section
 Policy
 \end_layout
 
-\begin_layout Section*
+\begin_layout Section
 Request
 \end_layout
 
-\begin_layout Section*
+\begin_layout Section
 ArcPDP configuration
 \end_layout
 
-\begin_layout Section*
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{verbatim}
+\end_layout
+
+\begin_layout Standard
+
+<?xml version="1.0" encoding="UTF-8"?>
+\end_layout
+
+\begin_layout Standard
+
+<xsd:schema
+\end_layout
+
+\begin_layout Standard
+
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+\end_layout
+
+\begin_layout Standard
+
+  xmlns="http://www.nordugrid.org/schemas/ArcPDP"
+\end_layout
+
+\begin_layout Standard
+
+  targetNamespace="http://www.nordugrid.org/schemas/ArcPDP"
+\end_layout
+
+\begin_layout Standard
+
+  elementFormDefault="qualified">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:complexType name="FilterType">
+\end_layout
+
+\begin_layout Standard
+
+        <!-- This element defines Security Attributes to select and reject.
+\end_layout
+
+\begin_layout Standard
+
+            If there are no Select elements all Attributes are used except
+\end_layout
+
+\begin_layout Standard
+
+            those listed in Reject elements.
+  -->
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs
+="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs
+="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+    </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:element name="Filter" type="FilterType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <!--
+\end_layout
+
+\begin_layout Standard
+
+        This element specified file containing policy document.
+\end_layout
+
+\begin_layout Standard
+
+        There may be multiple such elements.
+\end_layout
+
+\begin_layout Standard
+
+    -->
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:element name="PolicyStore" type="xsd:string"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+</xsd:schema>
+\end_layout
+
+\begin_layout Standard
+
+
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 DelegationPDP configuration
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+begin{verbatim}
+\end_layout
+
+\begin_layout Standard
+
+<?xml version="1.0" encoding="UTF-8"?>
+\end_layout
+
+\begin_layout Standard
+
+<xsd:schema
+\end_layout
+
+\begin_layout Standard
+
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+\end_layout
+
+\begin_layout Standard
+
+  xmlns="http://www.nordugrid.org/schemas/DelegationPDP"
+\end_layout
+
+\begin_layout Standard
+
+  targetNamespace="http://www.nordugrid.org/schemas/DelegationPDP"
+\end_layout
+
+\begin_layout Standard
+
+  elementFormDefault="qualified">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:complexType name="FilterType">
+\end_layout
+
+\begin_layout Standard
+
+        <!-- This element defines Security Attributes to select and reject.
+\end_layout
+
+\begin_layout Standard
+
+            If there are no Select elements all Attributes are used except
+\end_layout
+
+\begin_layout Standard
+
+            those listed in Reject elements.
+  -->
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs
+="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs
+="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+    </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:element name="Filter" type="FilterType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+</xsd:schema>
+\end_layout
+
+\begin_layout Standard
+
+
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Delegation interface
+\begin_inset LatexCommand \label{sec:delegation_interface}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Web Service delegation interface.
+ Each ARC1 service wishing to accept delegated credentials implements this
+ interface.
+ Here is how delegation procedure works:
+\end_layout
+
+\begin_layout Itemize
+Step 1
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Client contacts service requesting operation DelegateCredentialsInit.
+ This operation has no arguments.
+\end_layout
+
+\begin_layout Itemize
+Service responds with 
+\emph on
+DelegateCredentialsInitResponse
+\emph default
+ message with element 
+\emph on
+TokenRequest
+\emph default
+.
+ That element contains credentials request generated by service in 
+\emph on
+Value
+\emph default
+.
+ Type of request is defined by attribute 
+\emph on
+Format
+\emph default
+.
+ Currently only supported format is 
+\emph on
+x509
+\emph default
+.
+ Along with 
+\emph on
+Value
+\emph default
+ service provides identifier 
+\emph on
+Id
+\emph default
+ which is used in second step.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Step 2
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Client requests 
+\emph on
+UpdateCredentials
+\emph default
+ operation with 
+\emph on
+DelegatedToken
+\emph default
+ argument.
+ This element contains 
+\emph on
+Value
+\emph default
+ with serialized delegated credentials and 
+\emph on
+Id
+\emph default
+ which links it to first step.
+ Delegated token element may also contain multiple 
+\emph on
+Reference
+\emph default
+ elements.
+ 
+\emph on
+Reference
+\emph default
+ refers to the object which these credentials should be applied to in a
+ way specific to the service.
+ 
+\newline
+The 
+\emph on
+DelegatedToken
+\emph default
+ element must also be used for delegating credentials when Step 2 is combined
+ with other operations on service.
+\end_layout
+
+\begin_layout Itemize
+Service responds with empty 
+\emph on
+UpdateCredentialsResponse
+\emph default
+ message.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{verbatim}<?xml version="1.0" encoding="UTF-8"?>
+\end_layout
+
+\begin_layout Standard
+
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/delegation"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:wsa="http://www.w3.org/2005/08/addressing"
+\end_layout
+
+\begin_layout Standard
+
+ xmlns:deleg="http://www.nordugrid.org/schemas/delegation">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:types>
+\end_layout
+
+\begin_layout Standard
+
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/delegation">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <!-- Common types -->
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:simpleType name="TokenFormatType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:restriction base="xsd:string">
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:enumeration value="x509"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:restriction>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:simpleType>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="ReferenceType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0"
+ maxOccurs="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="DelegatedTokenType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Id" type="xsd:string"/>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Value" type="xsd:string"/>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Reference" type="deleg:ReferenceType" minOccurs="0"
+ maxOccurs="unbounded"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"
+/>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="TokenRequestType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Id" type="xsd:string"/>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Value" type="xsd:string"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"
+/>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <!-- Types for messages -->
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="DelegateCredentialsInitRequestType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="DelegateCredentialsInit" type="deleg:DelegateCredential
+sInitRequestType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="DelegateCredentialsInitResponseType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="DelegateCredentialsInitResponse" type="deleg:DelegateCr
+edentialsInitResponseType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="UpdateCredentialsRequestType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="UpdateCredentials" type="deleg:UpdateCredentialsRequest
+Type"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="UpdateCredentialsResponseType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="UpdateCredentialsResponse" type="deleg:UpdateCredential
+sResponseType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <!-- Faults -->
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="UnsupportedFaultType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="UnsupportedFault" type="deleg:UnsupportedFaultType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="ProcessingFaultType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="ProcessingFault" type="deleg:ProcessingFaultType"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:complexType name="WrongReferenceFaultType">
+\end_layout
+
+\begin_layout Standard
+
+        <xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+\end_layout
+
+\begin_layout Standard
+
+        </xsd:sequence>
+\end_layout
+
+\begin_layout Standard
+
+      </xsd:complexType>
+\end_layout
+
+\begin_layout Standard
+
+      <xsd:element name="WrongReferenceFault" type="deleg:WrongReferenceFaultTyp
+e"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    </xsd:schema>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:types>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="DelegateCredentialsInitRequest">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="DelegateCredentialsInitRequest" element="deleg:DelegateCred
+entialsInit"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="DelegateCredentialsInitResponse">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="DelegateCredentialsInitResponse" element="deleg:DelegateCre
+dentialsInitResponse"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="UpdateCredentialsRequest">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="UpdateCredentialsRequest" element="deleg:UpdateCredentials"
+/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="UpdateCredentialsResponse">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="UpdateCredentialsResponse" element="deleg:UpdateCredentials
+Response"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="UnsupportedFault">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="Detail" element="deleg:UnsupportedFault"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="ProcessingFault">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="Detail" element="deleg:ProcessingFault"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:message name="WrongReferenceFault">
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:part name="Detail" element="deleg:WrongReferenceFault"/>
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:message>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:portType name="DelegationPortType">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+   <wsdl:operation name="DelegateCredentialsInit">
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:documentation>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:documentation>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:input name="DelegateCredentialsInitRequest"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:DelegateCredentialsInitRequest"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:output name="DelegateCredentialsInitResponse"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:DelegateCredentialsInitResponse"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:fault name="UnsupportedFault"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:UnsupportedFault"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:fault name="ProcessingFault"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:ProcessingFault"/>
+\end_layout
+
+\begin_layout Standard
+
+    </wsdl:operation>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+   <wsdl:operation name="UpdateCredentials">
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:documentation>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:documentation>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:input name="UpdateCredentialsRequest"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:UpdateCredentialsRequest"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:output name="UpdateCredentialsResponse"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:UpdateCredentialsResponse"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:fault name="UnsupportedFault"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:UnsupportedFault"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:fault name="ProcessingFault"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:ProcessingFault"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:fault name="WrongReferenceFault"
+\end_layout
+
+\begin_layout Standard
+
+        message="deleg:WrongReferenceFault"/>
+\end_layout
+
+\begin_layout Standard
+
+    </wsdl:operation>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:portType>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  <wsdl:binding name="DelegationBinding" type="deleg:DelegationPortType">
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http
+"/>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:operation name="DelegateCredentialsInit">
+\end_layout
+
+\begin_layout Standard
+
+      <soap:operation soapAction="DelegateCredentialsInit"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:input name="DelegateCredentialsInitRequest">
+\end_layout
+
+\begin_layout Standard
+
+         <soap:body use="literal"/>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:input>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:output name="DelegateCredentialsInitResponse">
+\end_layout
+
+\begin_layout Standard
+
+         <soap:body use="literal"/>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:output>
+\end_layout
+
+\begin_layout Standard
+
+    </wsdl:operation>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    <wsdl:operation name="UpdateCredentials">
+\end_layout
+
+\begin_layout Standard
+
+      <soap:operation soapAction="UpdateCredentials"/>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:input name="UpdateCredentialsRequest">
+\end_layout
+
+\begin_layout Standard
+
+        <soap:body use="literal"/>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:input>
+\end_layout
+
+\begin_layout Standard
+
+      <wsdl:output name="UpdateCredentialsResponse">
+\end_layout
+
+\begin_layout Standard
+
+        <soap:body use="literal"/>
+\end_layout
+
+\begin_layout Standard
+
+      </wsdl:output>
+\end_layout
+
+\begin_layout Standard
+
+    </wsdl:operation>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  </wsdl:binding>
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+</wsdl:definitions>
+\end_layout
+
+\begin_layout Standard
+
+
+\backslash
+end{verbatim}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter*

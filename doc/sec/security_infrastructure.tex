@@ -5,6 +5,7 @@
 \usepackage[latin1]{inputenc}
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
+\usepackage{array}
 \usepackage{calc}
 \usepackage{graphicx}
 
@@ -62,7 +63,6 @@
 \definecolor{cyan}{rgb}{0,1,1}
 %
 %----- DON'T CHANGE HEADER MATTER
-
 
 \usepackage{babel}
 \makeatother
@@ -160,10 +160,11 @@ supported format is Arc Policy/Request XML document.
 Collectors of Security Attributes instantiate corresponding classes
 and link them to Secuirity Attributes containers - MessageAuth <arc/message/MessageAuth.h>
 and MessageAuthContext <arc/message/Message.h> storing collected attributes
-per request and per session correspondingly. Current implementations
-of Security Attributes Collectors are either integrated into existing
-MCCs or implemented as separate SecHandler plugins. See Section \ref{sec:sec_attr_collectors}
-for available Collectors and corresponding Security Attributes. 
+per request and per session correspondingly. Each attribute is assigned
+a name. Current implementations of Security Attributes Collectors
+are either integrated into existing MCCs or implemented as separate
+SecHandler plugins. See Section \ref{sec:sec_attr_collectors} for
+available Collectors and corresponding Security Attributes. 
 
 \begin{framed}Note for service developers: Services may implement
 own authorization algorithms. But they may use Security Atributes
@@ -178,28 +179,37 @@ Point components. Currently there are 2 PDP components available:
 resource and requested action. It evaluates either all or selected
 set of attributes against specified Policy documents thus making it
 possible to enforce policies defined/selected by service providers. 
-\item (to move to Delegation section) DelegationPDP is similar to ArcPDP
-except that it takes it's Policy documents directly from Security
-Attributes. Differently from Arc PDP it is meant to be used for enforcing
-policies defined by client.
+\item DelegationPDP is described below in Section \ref{sec:delegation_pdp}.
 \end{itemize}
 
 \section{Available collectors\label{sec:sec_attr_collectors}}
 
+Here Security Attribute collectors distributed as part of ARC1 are
+described except those used for Delegation Restrictions. Those are
+described in Section \ref{sec:delegation}.
+
 
 \subsection{TCP}
 
-Information is collected inside TCP MCC. Security Attribute exports 
+Information is collected inside TCP MCC. Security Attribute is stored
+under name 'TCP' and exports ARC Request with following attributes:
 
-ARC Request with following attributes
-
-Element AttributeId Content
-
-Resource http://www.nordugrid.org/schemas/policy-arc/types/localendpoint
-service\_ip{[}:service\_port] 
-
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint
-client\_ip{[}:client\_port] 
+\begin{tabular}{|>{\centering}p{0.2\textwidth}|c|>{\centering}p{0.2\textwidth}|}
+\hline 
+Element&
+AttributeId&
+Content\tabularnewline
+\hline
+\hline 
+Resource&
+http://www.nordugrid.org/schemas/policy-arc/types/localendpoint&
+service\_ip{[}:service\_port] \tabularnewline
+\hline 
+SubjectAttribute&
+http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint&
+client\_ip{[}:client\_port] \tabularnewline
+\hline
+\end{tabular}
 
 
 \subsection{TLS}
@@ -207,9 +217,9 @@ client\_ip{[}:client\_port]
 Information is collected inside TLS MCC. Generated Security Attribute
 class exports ARC Request with following attributes:
 
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|>{\centering}p{0.2\textwidth}|c|>{\centering}p{0.2\textwidth}|}
 \hline 
-\multicolumn{1}{|c|}{Element}&
+Element&
 AttributeId&
 Content\tabularnewline
 \hline
@@ -235,10 +245,10 @@ Subject of last non-proxy certificate in client's chain\tabularnewline
 
 \subsection{HTTP}
 
-Information is collected inside TLS MCC. Security Attribute exports
-ARC Request with following attributes:
+Information is collected inside TLS MCC. Security Attribute is stored
+under name 'HTTP' and exports ARC Request with following attributes:
 
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|>{\centering}p{0.2\textwidth}|c|>{\centering}p{0.2\textwidth}|}
 \hline 
 Element&
 AttributeId&
@@ -258,10 +268,10 @@ HTTP method\tabularnewline
 
 \subsection{SOAP}
 
-Information is collected inside TLS MCC. Security Attribute exports
-ARC Request with following attributes
+Information is collected inside TLS MCC. Security Attribute is stored
+under name 'SOAP' and exports ARC Request with following attributes:
 
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|>{\centering}p{0.2\textwidth}|c|>{\centering}p{0.2\textwidth}|}
 \hline 
 Element&
 AttributeId&
@@ -283,20 +293,49 @@ Namespace of SOAP top level element\tabularnewline
 \end{tabular}
 
 
-\subsection{Delegation}
+\chapter{Delegation Restrictions\label{sec:delegation}}
 
-(to move to Delegation section) This Security Attribute is collected
-by dedicated Security Handler plugin named {}``\emph{delegation.pdp}''
-avaialble in \emph{arcpdc} plugins' library. It extracts policy document
-stored inside X509 certificate proxy extension as defined in RFC3820.
+
+\section{Delegation Architecture\label{sec:delegation_architectire}}
+
+In current implementation delegation is achieved through Identity
+Delegation implemented using X509 Proxy Certificates as defined in
+RFC 3820. Client wishing to allow service to act on it's behalf provides
+Proxy Certificate to the service using Web Service based Delegation
+interface described in \ref{sec:delegation_interface}. 
+
+For limitinng the scope of delegated credentials along with usually
+used time constraints it is possible to attach Policy document to
+Proxy Certificate. According to RFC 3820 Policy is stored in \emph{ProxyPolicy}
+extension. In order not to introduce new type of object Policy is
+assigned \emph{id-ppl-anyLanguage} identifier. RFC 3820 allows any
+octet string associated with such object. We are using textual representation
+of ARC Policy XML document.
+
+Each deployment implementing Delegation Restrictions must use dedicated
+Security Handler plugin (see section \ref{sec:delegation_collector})
+to collect all Policy documents from Proxy Certificates used for establishing
+secure connection. Then those documents must be processed by dedicated
+Policy Decision Point plugin (see section \ref{sec:delegation_pdp})
+to make a final decision based on collected Policies and various information
+about client's identity and requested operation. Service or MCC chain
+supporting Delegation Restrictions must accept negative decision of
+this PDP as final and do not override it with any other decision based
+on other policies.
+
+
+\section{Delegation Collector\label{sec:delegation_collector}}
+
+This Security Attribute is collected by dedicated Security Handler
+plugin named {}``\emph{delegation.pdp}'' avaialble in \emph{arcpdc}
+plugins' library. It extracts policy document stored inside X509 certificate
+proxy extension as defined in RFC3820 and described in Section \ref{sec:delegation_architectire}.
 All proxy certificates in a chain provided by client are examined
 and all available policies are extracted. 
 
-Policies are stored in string content of \emph{ProxyPolicy} element
-with \emph{id-ppl-anyLanguage}. Extracted content is converted into
-XML document. Then document is checked to be of Arc Policy kind. If
-policy is not recognized as Arc Policy procedure fails and that causes
-failure of comunication.
+Extracted content is converted into XML document. Then document is
+checked to be of Arc Policy kind. If policy is not recognized as Arc
+Policy procedure fails and that causes failure of comunication.
 
 Proxy certificates with \emph{id-ppl-inheritAll} property are passed
 through and no policy document is generated for them. Proxies with
@@ -304,28 +343,301 @@ other type of policies including \emph{id-ppl-independent} are not
 accepted and generate immediate failure.
 
 
-\chapter{Delegation restrictions\label{sec:delegation}}
-
-
-\section{Delegation architecture\label{sec:delegation_architectire}}
-
-
 \section{Delegation PDP\label{sec:delegation_pdp}}
 
-
-\chapter*{Schemas and comments\label{sec:schemas}}
-
-
-\section*{Policy}
-
-
-\section*{Request}
+DelegationPDP is similar to ArcPDP described above except that it
+takes it's Policy documents directly from Security Attributes. Differently
+from Arc PDP it is meant to be used for enforcing policies defined
+by client.
 
 
-\section*{ArcPDP configuration}
+\chapter{Schemas and descriptions\label{sec:schemas}}
 
 
-\section*{DelegationPDP configuration}
+\section{Policy}
+
+
+\section{Request}
+
+
+\section{ArcPDP configuration}
+
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcPDP"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcPDP"
+  elementFormDefault="qualified">
+
+    <xsd:complexType name="FilterType">
+        <!-- This element defines Security Attributes to select and reject.
+            If there are no Select elements all Attributes are used except
+            those listed in Reject elements.  -->
+        <xsd:sequence>
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Filter" type="FilterType"/>
+
+    <!--
+        This element specified file containing policy document.
+        There may be multiple such elements.
+    -->
+    <xsd:element name="PolicyStore" type="xsd:string"/>
+
+</xsd:schema>
+\end{verbatim}
+
+
+\section{DelegationPDP configuration}
+
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/DelegationPDP"
+  targetNamespace="http://www.nordugrid.org/schemas/DelegationPDP"
+  elementFormDefault="qualified">
+
+    <xsd:complexType name="FilterType">
+        <!-- This element defines Security Attributes to select and reject.
+            If there are no Select elements all Attributes are used except
+            those listed in Reject elements.  -->
+        <xsd:sequence>
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Filter" type="FilterType"/>
+
+</xsd:schema>
+\end{verbatim}
+
+
+\section{Delegation interface\label{sec:delegation_interface}}
+
+Web Service delegation interface. Each ARC1 service wishing to accept
+delegated credentials implements this interface. Here is how delegation
+procedure works:
+
+\begin{itemize}
+\item Step 1
+
+\begin{itemize}
+\item Client contacts service requesting operation DelegateCredentialsInit.
+This operation has no arguments.
+\item Service responds with \emph{DelegateCredentialsInitResponse} message
+with element \emph{TokenRequest}. That element contains credentials
+request generated by service in \emph{Value}. Type of request is defined
+by attribute \emph{Format}. Currently only supported format is \emph{x509}.
+Along with \emph{Value} service provides identifier \emph{Id} which
+is used in second step.
+\end{itemize}
+\item Step 2
+
+\begin{itemize}
+\item Client requests \emph{UpdateCredentials} operation with \emph{DelegatedToken}
+argument. This element contains \emph{Value} with serialized delegated
+credentials and \emph{Id} which links it to first step. Delegated
+token element may also contain multiple \emph{Reference} elements.
+\emph{Reference} refers to the object which these credentials should
+be applied to in a way specific to the service. \\
+The \emph{DelegatedToken} element must also be used for delegating
+credentials when Step 2 is combined with other operations on service.
+\item Service responds with empty \emph{UpdateCredentialsResponse} message.
+\end{itemize}
+\end{itemize}
+\begin{verbatim}<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/delegation"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:wsa="http://www.w3.org/2005/08/addressing"
+ xmlns:deleg="http://www.nordugrid.org/schemas/delegation">
+
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/delegation">
+
+      <!-- Common types -->
+
+      <xsd:simpleType name="TokenFormatType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="x509"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:complexType name="ReferenceType">
+        <xsd:sequence>
+          <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="DelegatedTokenType">
+        <xsd:sequence>
+          <xsd:element name="Id" type="xsd:string"/>
+          <xsd:element name="Value" type="xsd:string"/>
+          <xsd:element name="Reference" type="deleg:ReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
+
+      <xsd:complexType name="TokenRequestType">
+        <xsd:sequence>
+          <xsd:element name="Id" type="xsd:string"/>
+          <xsd:element name="Value" type="xsd:string"/>
+        </xsd:sequence>
+        <xsd:attribute name="Format" type="deleg:TokenFormatType" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
+
+      <!-- Types for messages -->
+
+      <xsd:complexType name="DelegateCredentialsInitRequestType">
+        <xsd:sequence>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="DelegateCredentialsInit" type="deleg:DelegateCredentialsInitRequestType"/>
+
+      <xsd:complexType name="DelegateCredentialsInitResponseType">
+        <xsd:sequence>
+          <xsd:element name="TokenRequest" type="deleg:TokenRequestType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="DelegateCredentialsInitResponse" type="deleg:DelegateCredentialsInitResponseType"/>
+
+      <xsd:complexType name="UpdateCredentialsRequestType">
+        <xsd:sequence>
+          <xsd:element name="DelegatedToken" type="deleg:DelegatedTokenType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="UpdateCredentials" type="deleg:UpdateCredentialsRequestType"/>
+
+      <xsd:complexType name="UpdateCredentialsResponseType">
+        <xsd:sequence>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="UpdateCredentialsResponse" type="deleg:UpdateCredentialsResponseType"/>
+
+      <!-- Faults -->
+
+      <xsd:complexType name="UnsupportedFaultType">
+        <xsd:sequence>
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="UnsupportedFault" type="deleg:UnsupportedFaultType"/>
+
+      <xsd:complexType name="ProcessingFaultType">
+        <xsd:sequence>
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="ProcessingFault" type="deleg:ProcessingFaultType"/>
+
+      <xsd:complexType name="WrongReferenceFaultType">
+        <xsd:sequence>
+          <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="WrongReferenceFault" type="deleg:WrongReferenceFaultType"/>
+
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="DelegateCredentialsInitRequest">
+    <wsdl:part name="DelegateCredentialsInitRequest" element="deleg:DelegateCredentialsInit"/>
+  </wsdl:message>
+
+  <wsdl:message name="DelegateCredentialsInitResponse">
+    <wsdl:part name="DelegateCredentialsInitResponse" element="deleg:DelegateCredentialsInitResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="UpdateCredentialsRequest">
+    <wsdl:part name="UpdateCredentialsRequest" element="deleg:UpdateCredentials"/>
+  </wsdl:message>
+
+  <wsdl:message name="UpdateCredentialsResponse">
+    <wsdl:part name="UpdateCredentialsResponse" element="deleg:UpdateCredentialsResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="UnsupportedFault">
+    <wsdl:part name="Detail" element="deleg:UnsupportedFault"/>
+  </wsdl:message>
+
+  <wsdl:message name="ProcessingFault">
+    <wsdl:part name="Detail" element="deleg:ProcessingFault"/>
+  </wsdl:message>
+
+  <wsdl:message name="WrongReferenceFault">
+    <wsdl:part name="Detail" element="deleg:WrongReferenceFault"/>
+  </wsdl:message>
+
+  <wsdl:portType name="DelegationPortType">
+
+   <wsdl:operation name="DelegateCredentialsInit">
+      <wsdl:documentation>
+      </wsdl:documentation>
+      <wsdl:input name="DelegateCredentialsInitRequest"
+        message="deleg:DelegateCredentialsInitRequest"/>
+      <wsdl:output name="DelegateCredentialsInitResponse"
+        message="deleg:DelegateCredentialsInitResponse"/>
+      <wsdl:fault name="UnsupportedFault"
+        message="deleg:UnsupportedFault"/>
+      <wsdl:fault name="ProcessingFault"
+        message="deleg:ProcessingFault"/>
+    </wsdl:operation>
+
+   <wsdl:operation name="UpdateCredentials">
+      <wsdl:documentation>
+      </wsdl:documentation>
+      <wsdl:input name="UpdateCredentialsRequest"
+        message="deleg:UpdateCredentialsRequest"/>
+      <wsdl:output name="UpdateCredentialsResponse"
+        message="deleg:UpdateCredentialsResponse"/>
+      <wsdl:fault name="UnsupportedFault"
+        message="deleg:UnsupportedFault"/>
+      <wsdl:fault name="ProcessingFault"
+        message="deleg:ProcessingFault"/>
+      <wsdl:fault name="WrongReferenceFault"
+        message="deleg:WrongReferenceFault"/>
+    </wsdl:operation>
+
+  </wsdl:portType>
+
+  <wsdl:binding name="DelegationBinding" type="deleg:DelegationPortType">
+
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+    <wsdl:operation name="DelegateCredentialsInit">
+      <soap:operation soapAction="DelegateCredentialsInit"/>
+      <wsdl:input name="DelegateCredentialsInitRequest">
+         <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="DelegateCredentialsInitResponse">
+         <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+
+    <wsdl:operation name="UpdateCredentials">
+      <soap:operation soapAction="UpdateCredentials"/>
+      <wsdl:input name="UpdateCredentialsRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="UpdateCredentialsResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+
+  </wsdl:binding>
+
+</wsdl:definitions>
+\end{verbatim}
 
 
 \chapter*{Examples:}
