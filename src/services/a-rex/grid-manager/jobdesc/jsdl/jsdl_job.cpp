@@ -133,6 +133,7 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   if( (bool)n ) {
     std::string str_executable = (std::string) n;
     strip_spaces(str_executable);
+    if (str_executable[0] != '/' && (str_executable[0] != '.' && str_executable[1] != '/')) str_executable = "./" + str_executable;
     arguments.push_back(str_executable);
 
     logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-hpcpa:Executable] - %s",
@@ -157,6 +158,7 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
   std::string str_executable = (std::string) n;
   strip_spaces(str_executable);
+  if (str_executable[0] != '/' && (str_executable[0] != '.' && str_executable[1] != '/')) str_executable = "./" + str_executable;
   arguments.push_back(str_executable);
 
   logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-posix:Executable] - %s",
@@ -650,7 +652,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   int n;
   std::list<std::string> arguments;
   if(!get_arguments(arguments)) return false;
-  //n=0;
+  n=0;
   for(std::list<std::string>::iterator i = arguments.begin();
                                          i!=arguments.end();++i) {
     f<<"joboption_arg_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;
