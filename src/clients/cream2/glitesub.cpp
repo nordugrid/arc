@@ -23,7 +23,7 @@ int main(int argc, char* argv[]){
 
     Arc::ArcLocation::Init(argv[0]);
 
-    Arc::OptionParser options(istring("service_url jsdl_file id_file"));
+    Arc::OptionParser options(istring("service_url jsdl_file info_file"));
 
     std::string delegation_id;
     options.AddOption('D', "delegation",
@@ -81,21 +81,35 @@ int main(int argc, char* argv[]){
         if (!jsdlfile)
             throw std::invalid_argument("Could not open " + jsdlfilestr);
         std::string s;
-        while(getline(jsdlfile, s)) jsdl_text +=  s + "\n"; // ... must add it back
+        while(getline(jsdlfile, s)) jsdl_text +=  s + "\n";
         
         // Submit the job (registerJob; startJob)
-        std::string jobid;
-        jobid = gLiteClient.submit(jsdl_text);
+        Arc::Cream::creamJobInfo jobInfo;
+        jobInfo = gLiteClient.submit(jsdl_text);
+
+        // Write the job informations into the given file
+        Arc::XMLNode jobInformation ("<JobInformation />");
+        Arc::XMLNode newNode;
+        //jobId
+        newNode = jobInformation.NewChild("JobId");
+        newNode.Set(jobInfo.jobId);
+        //CREAM URL
+        newNode = jobInformation.NewChild("CreamURL");
+        newNode.Set(jobInfo.creamURL);
+        //InputSandbox
+        newNode = jobInformation.NewChild("InputSandboxURL");
+        newNode.Set(jobInfo.ISB_URI);
+        //OutputSandbox
+        newNode = jobInformation.NewChild("OutputSandboxURL");
+        newNode.Set(jobInfo.OSB_URI);
         
-        // Write the jobid into the given file
-        std::ofstream jobidfile(jobidfilestr.c_str());
-        jobidfile << jobid;
-        if (!jobidfile)
+        if (!jobInformation.SaveToFile(jobidfilestr))
             throw std::invalid_argument("Could not write Job ID to " + jobidfilestr);
         
         // Notify the user about the success
         std::cout << "Submitted the job!" << std::endl;
-        std::cout << "Job ID stored in: " << jobidfilestr << std::endl;
+        std::cout << "Job information are stored in: " << jobidfilestr << std::endl;
+        
         return EXIT_SUCCESS;
     } catch (std::exception& e){
         

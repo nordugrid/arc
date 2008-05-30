@@ -19,6 +19,14 @@
 
 namespace Arc{
     namespace Cream{
+        
+        struct creamJobInfo {
+            std::string jobId;
+            std::string creamURL;
+            std::string ISB_URI;
+            std::string OSB_URI;
+        };
+        
         class CREAMClientError : public std::runtime_error {
             public:
                 CREAMClientError(const std::string& what="");
@@ -33,9 +41,9 @@ namespace Arc{
             
                 void createDelegation(std::string& delegation_id) throw(CREAMClientError);
                 void destroyDelegation(std::string& delegation_id) throw(CREAMClientError);
-                std::string registerJob(std::string& jdl_text) throw(CREAMClientError);
+                creamJobInfo registerJob(std::string& jdl_text) throw(CREAMClientError);
                 void startJob(const std::string& jobid) throw(CREAMClientError);
-                std::string submit(std::string& jsdl_text) throw(CREAMClientError);
+                creamJobInfo submit(std::string& jsdl_text) throw(CREAMClientError);
                 std::string stat(const std::string& jobid) throw(CREAMClientError);
                 void cancel(const std::string& jobid) throw(CREAMClientError);
                 void purge(const std::string& jobid) throw(CREAMClientError);

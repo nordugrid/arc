@@ -194,7 +194,7 @@ namespace Arc{
             if (result=="") throw CREAMClientError("Job cleaning failed.");
         }  // CREAMClient::purge()
        
-        std::string CREAMClient::registerJob(std::string& jdl_text) throw(CREAMClientError) {
+        creamJobInfo CREAMClient::registerJob(std::string& jdl_text) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating and sending job register request.");
             
             Arc::PayloadSOAP req(cream_ns);
@@ -246,10 +246,28 @@ namespace Arc{
             if ((*resp)["JobRegisterResponse"]["result"]["DateMismatchFault"]) (*resp)["JobRegisterResponse"]["result"]["DateMismatchFault"].New(fault);
             if ((*resp)["JobRegisterResponse"]["result"]["LeaseIdMismatchFault"]) (*resp)["JobRegisterResponse"]["result"]["LeaseIdMismatchFault"].New(fault);
             if ((*resp)["JobRegisterResponse"]["result"]["GenericFault"]) (*resp)["JobRegisterResponse"]["result"]["GenericFault"].New(fault);
+            
+            // Create the return value
+            creamJobInfo info;
+            Arc::XMLNode property;
+            if ((*resp)["JobRegisterResponse"]["result"]["jobId"]["creamURL"]) info.creamURL = (std::string)((*resp)["JobRegisterResponse"]["result"]["jobId"]["creamURL"]);
+            property = (*resp)["JobRegisterResponse"]["result"]["jobId"]["property"];
+            while (property != 0) {
+                if ((std::string)(property["name"]) == "CREAMInputSandboxURI") {
+                    info.ISB_URI = (std::string)(property["value"]);
+                } else if ((std::string)(property["name"]) == "CREAMOutputSandboxURI") {
+                    info.OSB_URI = (std::string)(property["value"]);
+                }
+                ++property;
+            }
+            
+            
             delete resp;
             if ((bool)fault) throw CREAMClientError((std::string)(fault["Description"]));
             if (result=="") throw CREAMClientError("No job ID has been received");
-            return result;
+            
+            info.jobId = result;
+            return info;
         } // CREAMClient::registerJob()
        
         void CREAMClient::startJob(const std::string& jobid) throw(CREAMClientError) {
@@ -305,7 +323,7 @@ namespace Arc{
             if (result=="") throw CREAMClientError("Job starting failed.");
         } // CREAMClient::startJob()
        
-        std::string CREAMClient::submit(std::string& jsdl_text) throw(CREAMClientError) {
+        creamJobInfo CREAMClient::submit(std::string& jsdl_text) throw(CREAMClientError) {
             std::string jobid;
             std::string jdl_text;
             
@@ -332,14 +350,17 @@ namespace Arc{
             }
             
             // Register the new job
+            creamJobInfo info;
             try {
-                jobid = this->registerJob(jdl_text);
+                info = this->registerJob(jdl_text);
+                jobid = info.jobId;
             } catch (CREAMClientError cce) {
                 throw cce;
             }
             
             // File submission should be here
             
+            std::cout << jobid << std::endl;
             // Start executing of the job
             try {
                 this->startJob(jobid);
@@ -347,7 +368,7 @@ namespace Arc{
                 throw cce;
             }
             
-            return jobid;
+            return info;
         }
         
         void CREAMClient::createDelegation(std::string& delegation_id) throw(CREAMClientError) {

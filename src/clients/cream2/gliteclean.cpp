@@ -7,6 +7,7 @@
 #include <string>
 #include <stdexcept>
 #include <cstdlib>
+#include <cstdio>
 
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]){
 
     Arc::ArcLocation::Init(argv[0]);
 
-    Arc::OptionParser options(istring("service_url id_file"));
+    Arc::OptionParser options(istring("info_file"));
 
     std::string config_path;
     options.AddOption('c', "config",
@@ -51,34 +52,37 @@ int main(int argc, char* argv[]){
     }
 
     try{
-        if (params.size()!=2) {
+        if (params.size()!=1) {
             throw std::invalid_argument("Wrong number of arguments!");
         }
-    
-        //Create the CREAMClient object
         std::list<std::string>::iterator it = params.begin();
-        Arc::URL url(*it++);
-        std::string jobidfilestr = *it++;
+        
+        // Read the job informations from file
+        Arc::XMLNode jobInformation;
+        if (!jobInformation.ReadFromFile(*it))
+            throw std::invalid_argument("Could not open " + *it++);
+        
+        //Create the CREAMClient object
+        Arc::URL url(jobInformation["CreamURL"]);
         if(!url)
             throw std::invalid_argument("Can't parse specified service URL");
         Arc::MCCConfig cfg;
         if(config_path != "") cfg.GetOverlay(config_path);
         Arc::Cream::CREAMClient gLiteClient(url,cfg);
         
-        // Read the jobid from the jobid file into string
-        std::string jobid;
-        std::ifstream jobidfile(jobidfilestr.c_str());
-        if (!jobidfile)
-            throw std::invalid_argument("Could not open " + jobidfilestr);
-        getline(jobidfile, jobid);
+        std::string jobid = jobInformation["JobId"];
         if (!jobid.compare(""))
-            throw std::invalid_argument("Could not read Job ID from " + jobidfilestr);
+            throw std::invalid_argument("Could not read Job ID from the specified information file.");
         
         // Kill the job
         gLiteClient.purge(jobid);
         
         // Notify user about the success (Just if succeeded, otherwise exception was threw)
         std::cout << "The job was removed." << std::endl;
+        
+        remove((*it).c_str());
+        std::cout << "The information file was removed." << std::endl;
+        
         return EXIT_SUCCESS;
     
     } catch (std::exception& e){
