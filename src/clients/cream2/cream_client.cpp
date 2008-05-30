@@ -333,18 +333,6 @@ namespace Arc{
                 jobDesc.setSource( jsdl_text );
                 // Get the result after the conversion into the jdl_text variable
                 jobDesc.getProduct( jdl_text, "JDL" );
-                
-                // Get the URI's from the DataStaging/Source files
-                Arc::NS nsList;
-                nsList.insert(std::pair<std::string, std::string>("jsdl","http://schemas.ggf.org/jsdl/2005/11/jsdl"));
-                nsList.insert(std::pair<std::string, std::string>("jsdlPOSIX","http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"));
-                nsList.insert(std::pair<std::string, std::string>("jsdlARC","http://www.nordugrid.org/ws/schemas/jsdl-arc"));
-                Arc::XMLNodeList sources = jobDesc.getXML().XPathLookup( (std::string) "//DataStaging/Source", nsList);
-                for (Arc::XMLNodeList::iterator xml_it = sources.begin(); xml_it != sources.end(); xml_it++) {
-                    std::cout << (std::string) (*xml_it)["URI"] << std::endl;   
-                }
-                
-                
             } catch (std::exception& ex) {
                 throw CREAMClientError(ex.what());
             }
@@ -358,9 +346,21 @@ namespace Arc{
                 throw cce;
             }
             
-            // File submission should be here
+            // Get the URI's from the DataStaging/Source files
+            std::vector< std::pair< std::string, std::string > > sourceFiles;
+            XMLNode xml_repr = jobDesc.getXML();
+            XMLNode sourceNode = xml_repr["JobDescription"]["DataStaging"];
+            while ((bool)sourceNode) {
+                if ((bool)sourceNode["Source"]) {
+                    std::pair< std::string, std::string > item((std::string) sourceNode["FileName"], (std::string) sourceNode["Source"]["URI"]);
+                    sourceFiles.push_back(item);
+                }
+                ++sourceNode;
+            }
             
-            std::cout << jobid << std::endl;
+            // Put the files necessary
+            putFiles(sourceFiles, info);
+            
             // Start executing of the job
             try {
                 this->startJob(jobid);
@@ -496,7 +496,61 @@ namespace Arc{
 
             if (!(bool)(*resp) || !(bool)((*resp)["destroyResponse"])) throw CREAMClientError("Delegation destroying failed.");
             delete resp;
-            
         } // CREAMClient::destroyDelegation()
+
+        void CREAMClient::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, const creamJobInfo job) throw(CREAMClientError) {
+            if (cache_path.length()==0 || cache_path=="") throw CREAMClientError("Cache path must be specified!");
+            if (job_root.length()==0 || job_root=="") throw CREAMClientError("Job root directory must be specified!");
+            Arc::DataMover *mover;
+            Arc::DataCache *cache;
+            Arc::URLMap url_map;
+            
+            // Input checking TEST
+            std::cout << "Upload these files to the InputSandbox (" << job.ISB_URI << "):" << std::endl;
+            for (std::vector< std::pair< std::string, std::string > >::const_iterator it = fileList.begin(); it != fileList.end(); it++) {
+                std::cout << "Filename: " << (*it).first << std::endl << "URI: " << (*it).second << std::endl << std::endl;
+            }
+            
+            // Create mover
+            mover = new Arc::DataMover();
+            mover->retry(true);
+            mover->secure(false); // XXX what if I download form https url? 
+            mover->passive(false);
+            mover->verbose(true);
+            mover->set_default_max_inactivity_time(300);
+            
+            // Create cache
+            Arc::User cache_user;
+            std::string cache_link_dir;
+            cache = new Arc::DataCache (cache_path, cache_path, cache_link_dir, job.jobId, cache_user);
+            
+            for (std::vector< std::pair< std::string, std::string > >::const_iterator file = fileList.begin(); file != fileList.end(); file++) {
+                // Arc::DataPoint *source; source = Arc::DMC::GetDataPoint((*file).first);
+                // Arc::DataPoint *destination; destination = Arc::DMC::GetDataPoint((*file).second);
+                //std::string src = Glib::build_filename(Glib::build_filename(job_root, job.jobId), (*file).first);
+                std::string src = Glib::build_filename(job_root, (*file).first);
+                std::string dst = Glib::build_filename(job.ISB_URI, (*file).second);
+                std::cout << src << " -> " << dst << std::endl;
+                Arc::DataPoint *source(Arc::DMC::GetDataPoint(src));
+                Arc::DataPoint *destination(Arc::DMC::GetDataPoint(dst));
+                //Arc::DataPoint *source(Arc::DMC::GetDataPoint((*file).first));
+                //Arc::DataPoint *destination(Arc::DMC::GetDataPoint((*file).second));
+                std::string failure;
+                if (!mover->Transfer( *source, *destination, *cache, url_map, failure)) {
+                    std::cerr << "File moving was not succeeded." << std::endl;
+                }
+                
+                if (source) delete source;
+                if (destination) delete destination;
+            }
+            
+            if (mover) delete mover;
+            if (cache) delete cache;
+        } // CREAMClient::putFiles()
+
+        void CREAMClient::getFiles() throw(CREAMClientError) {
+        
+        } // CREAMClient::getFiles()
+
     } // namespace cream
 } // namespace arc

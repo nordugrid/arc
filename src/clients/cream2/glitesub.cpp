@@ -85,6 +85,8 @@ int main(int argc, char* argv[]){
         
         // Submit the job (registerJob; startJob)
         Arc::Cream::creamJobInfo jobInfo;
+        gLiteClient.cache_path="/tmp/";
+        gLiteClient.job_root=Glib::get_current_dir();
         jobInfo = gLiteClient.submit(jsdl_text);
 
         // Write the job informations into the given file

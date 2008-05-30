@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <glibmm.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -16,6 +17,12 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/URL.h>
 #include <arc/client/JobDescription.h>
+
+#include <arc/data/DMC.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataPoint.h>
+#include <arc/data/DataCache.h>
+#include <arc/data/URLMap.h>
 
 namespace Arc{
     namespace Cream{
@@ -34,25 +41,32 @@ namespace Arc{
 
         class CREAMClient {
             public:
-          
                 CREAMClient(const Arc::URL& url,const Arc::MCCConfig& cfg) throw(CREAMClientError);
                 ~CREAMClient();
                 void setDelegationId(std::string delegId) { this->delegationId = delegId; };
-            
                 void createDelegation(std::string& delegation_id) throw(CREAMClientError);
                 void destroyDelegation(std::string& delegation_id) throw(CREAMClientError);
-                creamJobInfo registerJob(std::string& jdl_text) throw(CREAMClientError);
-                void startJob(const std::string& jobid) throw(CREAMClientError);
                 creamJobInfo submit(std::string& jsdl_text) throw(CREAMClientError);
                 std::string stat(const std::string& jobid) throw(CREAMClientError);
                 void cancel(const std::string& jobid) throw(CREAMClientError);
                 void purge(const std::string& jobid) throw(CREAMClientError);
-                Arc::ClientSOAP* SOAP(void) { return client; };
+                
+                // Data moving attributes
+                std::string cache_path;
+                std::string job_root;
+                
             private:
                 Arc::ClientSOAP* client;
                 Arc::NS cream_ns;
                 std::string delegationId;
                 static Arc::Logger logger;
+                
+
+                creamJobInfo registerJob(std::string& jdl_text) throw(CREAMClientError);
+                void startJob(const std::string& jobid) throw(CREAMClientError);
+                void putFiles(const std::vector< std::pair< std::string, std::string > >& fileList, const creamJobInfo job) throw(CREAMClientError);
+                void getFiles() throw(CREAMClientError);
+                
         };
     } // namespace cream
 } // namespace arc
