@@ -116,7 +116,7 @@ logger.msg(Arc::INFO, "JSDL: HPCPA: %s",s);
 
 bool JSDLJob::get_jobname(std::string& jobname) {
 
-  jobname.resize(0);
+  //jobname.resize(0);
 
   Arc::XMLNode n = jsdl_document["JobDescription"]["JobIdentification"]["JobName"];
   if ( (bool)n ) {
@@ -127,7 +127,7 @@ bool JSDLJob::get_jobname(std::string& jobname) {
 }
 
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
-  arguments.clear();
+  //arguments.clear();
 
   Arc::XMLNode n = jsdl_hpcpa["Executable"];
   if( (bool)n ) {
@@ -175,7 +175,7 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
 bool JSDLJob::get_execs(std::list<std::string>& execs) {
 
-  execs.clear();
+  //execs.clear();
 
   Arc::XMLNode n = jsdl_document["JobDescription"];
   for( int i=0; (bool)(n["DataStaging"][i]); i++ ) {
@@ -192,7 +192,7 @@ bool JSDLJob::get_execs(std::list<std::string>& execs) {
 }
 
 bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
-  rtes.clear();
+  //rtes.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
   if( !resources ) return true;
   for( int i=0; (bool)(resources["RunTimeEnvironment"][i]); i++ ) {
@@ -216,7 +216,7 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
 }
 
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
-  mws.clear();
+  //mws.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];
   if( !resources ) return true;
   for( int i=0; (bool)(resources["Middleware"][i]); i++ ) {
@@ -240,7 +240,7 @@ bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
 }
 
 bool JSDLJob::get_acl(std::string& acl) {
-  acl.resize(0);
+  //acl.resize(0);
   Arc::XMLNode aclNode = jsdl_document["JobDescription"]["AccessControl"];
   if( !aclNode ) return true;
   Arc::XMLNode typeNode = aclNode["Type"];
@@ -254,7 +254,7 @@ bool JSDLJob::get_acl(std::string& acl) {
 }
 
 bool JSDLJob::get_notification(std::string& s) {
-  s.resize(0);
+  //s.resize(0);
   for( int i=0; (bool)(jsdl_document["JobDescription"]["Notify"][i]); i++ ) {
     Arc::XMLNode notifyNode = jsdl_document["JobDescription"]["Notify"][i];
     Arc::XMLNode typeNode = notifyNode["Type"];
@@ -311,7 +311,7 @@ bool JSDLJob::get_fullaccess(bool& b) {
 }
 
 bool JSDLJob::get_gmlog(std::string& s) {
-  s.resize(0);
+  //s.resize(0);
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["LocalLogging"];
   if( !logNodes ) return true;
   s = (std::string) logNodes["Directory"];
@@ -319,7 +319,7 @@ bool JSDLJob::get_gmlog(std::string& s) {
 }
 
 bool JSDLJob::get_loggers(std::list<std::string>& urls) {
-  urls.clear();
+  //urls.clear();
   Arc::XMLNode logNodes = jsdl_document["JobDescription"]["RemoteLogging"];
   for( int i=0; (bool)(jsdl_document["JobDescription"]["RemoteLogging"][i]); i++ ) {
     urls.push_back( (std::string) jsdl_document["JobDescription"]["RemoteLogging"][i]["URL"]);
@@ -328,7 +328,7 @@ bool JSDLJob::get_loggers(std::list<std::string>& urls) {
 }
 
 bool JSDLJob::get_credentialserver(std::string& url) {
-  url.resize(0);
+  //url.resize(0);
   Arc::XMLNode credNodes = jsdl_document["jsdl:JobDescription"]["CredentialServer"];
   if( (bool)credNodes ) {
     url= (std::string) credNodes["URL"];
@@ -337,7 +337,7 @@ bool JSDLJob::get_credentialserver(std::string& url) {
 }
 
 bool JSDLJob::get_queue(std::string& s) {
-  s.resize(0);
+  //s.resize(0);
   Arc::XMLNode queuename = jsdl_document["JobDescription"]["Resource"]["CandidateTarget"]["QueueName"];
   if( !queuename ) return true;
   s = (std::string) queuename;
@@ -358,7 +358,7 @@ bool JSDLJob::get_stdin(std::string& s) {
     std::string value = (std::string) inputNode;
     strip_spaces(value);
     s = value;
-  } else { s.resize(0); };
+  } // else { s.resize(0); };
   return true;
 }
 
@@ -376,7 +376,7 @@ bool JSDLJob::get_stdout(std::string& s) {
     std::string value = (std::string) outputNode;
     strip_spaces(value);
     s = value;
-  } else { s.resize(0); };
+  } //else { s.resize(0); };
   return true;
 }
 
@@ -394,14 +394,14 @@ bool JSDLJob::get_stderr(std::string& s) {
     std::string value = (std::string) errorNode;
     strip_spaces(value);
     s = value;
-  } else { s.resize(0); };
+  } //else { s.resize(0); };
   return true;
 }
 
 bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
                        std::list<FileData>& outputdata,int& uploads) {
-  inputdata.clear(); downloads=0;
-  outputdata.clear(); uploads=0;
+  /* inputdata.clear(); downloads=0; */
+  /* outputdata.clear(); uploads=0; */
   for(int i=0; (bool)(jsdl_document["JobDescription"]["DataStaging"][i]); i++) {
     Arc::XMLNode ds = jsdl_document["JobDescription"]["DataStaging"][i];
     Arc::XMLNode fileSystemNameNode = ds["FilesystemName"];
@@ -468,7 +468,7 @@ double JSDLJob::get_limit(Arc::XMLNode range)
 } 
 
 bool JSDLJob::get_memory(int& memory) {
-  memory=0;
+  //memory=0;
   Arc::XMLNode memoryLimitNode = jsdl_posix["MemoryLimit"];
   if( (bool)memoryLimitNode ) {
     char * pEnd;
@@ -491,7 +491,7 @@ bool JSDLJob::get_memory(int& memory) {
 }
 
 bool JSDLJob::get_cputime(int& t) {
-  t=0;
+  //t=0;
   Arc::XMLNode CPUTimeLimitNode = jsdl_posix["CPUTimeLimit"];
   if( (bool)CPUTimeLimitNode ) {
     char * pEnd;
@@ -514,7 +514,7 @@ bool JSDLJob::get_cputime(int& t) {
 }
 
 bool JSDLJob::get_walltime(int& t) {
-  t=0;
+  //t=0;
   Arc::XMLNode wallTimeLimitNode = jsdl_posix["WallTimeLimit"];
   if( (bool)wallTimeLimitNode ) {
     char * pEnd;
@@ -526,7 +526,7 @@ bool JSDLJob::get_walltime(int& t) {
 
 bool JSDLJob::get_count(int& n) {
   Arc::XMLNode resourceNode = jsdl_document["JobDescription"]["Resources"];
-  n=1;
+  //n=1;
   if( !resourceNode ) return true;
   Arc::XMLNode totalCPUCountNode = resourceNode["TotalCPUCount"];
   Arc::XMLNode individualCPUCountNode = resourceNode["IndividualCPUCount"];
@@ -650,18 +650,18 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
   int n;
   std::list<std::string> arguments;
   if(!get_arguments(arguments)) return false;
-  n=0;
+  //n=0;
   for(std::list<std::string>::iterator i = arguments.begin();
                                          i!=arguments.end();++i) {
     f<<"joboption_arg_"<<n<<"="<<value_for_shell(i->c_str(),true)<<std::endl;
     n++;
   };
   std::string s;
-  if(!get_stdin(s)) return false;
-  if(s.length() == 0) s=NG_RSL_DEFAULT_STDIN;
+  s=""; if(!get_stdin(s)) return false;
+  if(s.empty()) s=NG_RSL_DEFAULT_STDIN;
   f<<"joboption_stdin="<<value_for_shell(s.c_str(),true)<<std::endl;
-  if(!get_stdout(s)) return false;
-  if(s.length() == 0) { s=NG_RSL_DEFAULT_STDOUT; }
+  s=""; if(!get_stdout(s)) return false;
+  if(s.empty()) { s=NG_RSL_DEFAULT_STDOUT; }
   else {
     if(canonical_dir(s) != 0) {
       logger.msg(Arc::WARNING, "Bad name for stdout: %s", s);
@@ -670,7 +670,7 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     s=session_dir+s;
   };
   f<<"joboption_stdout="<<value_for_shell(s.c_str(),true)<<std::endl;
-  if(!get_stderr(s)) return false;
+  s=""; if(!get_stderr(s)) return false;
   if(s.length() == 0) { s=NG_RSL_DEFAULT_STDERR; }
   else {
     if(canonical_dir(s) != 0) {
@@ -680,16 +680,16 @@ bool JSDLJob::write_grami(const JobDescription &desc,const JobUser &user,const c
     s=session_dir+s;
   };
   f<<"joboption_stderr="<<value_for_shell(s.c_str(),true)<<std::endl;
-  if(!get_walltime(n)) return false;
+  n=0; if(!get_walltime(n)) return false;
   if(n<=0) { f<<"joboption_walltime="<<std::endl; }
   else { f<<"joboption_walltime="<<numvalue_for_shell(n)<<std::endl; };
-  if(!get_cputime(n)) return false;
+  n=0; if(!get_cputime(n)) return false;
   if(n<=0) { f<<"joboption_cputime="<<std::endl; }
   else { f<<"joboption_cputime="<<numvalue_for_shell(n)<<std::endl; };
-  if(!get_memory(n)) return false;
+  n=0; if(!get_memory(n)) return false;
   if(n<=0) { f<<"joboption_memory="<<std::endl; }
   else { f<<"joboption_memory="<<numvalue_for_shell(n)<<std::endl; };
-  if(!get_count(n)) return false;
+  n=1; if(!get_count(n)) return false;
   if(n<=0) { f<<"joboption_count=1"<<std::endl; }
   else { f<<"joboption_count="<<numvalue_for_shell(n)<<std::endl; };
 
