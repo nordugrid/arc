@@ -1,0 +1,1374 @@
+#LyX 1.4.5.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass book
+\begin_preamble
+
+%\documentclass{article}                            %for shorter notes
+                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref}
+ %for \url tag
+\usepackage{color}
+                                 %for defining custom colors
+\usepackage{framed}
+                                %for shaded and framed paragraphs
+\usepackage{textcomp}
+                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}
+                              %for defining page size
+\usepackage{longtable}
+                             %for breaking tables
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {Author Name},
+  pdftitle = {Paper title},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
+\end_preamble
+\language english
+\inputencoding latin1
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 2
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+def
+\backslash
+today{
+\backslash
+number
+\backslash
+day/
+\backslash
+number
+\backslash
+month/
+\backslash
+number
+\backslash
+year}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{titlepage}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="1" columns="2">
+<features>
+<column alignment="right" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+resizebox*{3cm}{!}{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename tex/ng-logo.png
+	display none
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "b"
+use_parbox 1
+width "2cm"
+special "none"
+height "0pt"
+height_special "none"
+status open
+
+\begin_layout Standard
+
+\shape italic
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+hspace*{-1.5cm}
+\end_layout
+
+\end_inset
+
+NORDUGRID
+\begin_inset VSpace 0.5cm*
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+hrulefill
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+raggedleft
+\end_layout
+
+\end_inset
+
+ NORDUGRID-XXXXXXX-NN
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+raggedleft
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+today
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 2cm*
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%%%%---- The title ----
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+ 
+\shape smallcaps
+\size larger
+Security Infrastructure of ARC1
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset VSpace 0.5cm*
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%%%%---- A subtitle, if necessary ----
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+ 
+\shape italic
+\size large
+Paper subtitle
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 1.5cm*
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+ 
+\size large
+Weizhong Qiang
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+weizhongqiang@gmail.com
+\end_layout
+
+\end_inset
+
+, Aleksandr Konstantinov
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+aleks@fys.uio.no
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%%%%---- An abstract - if style is article ----
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%
+\backslash
+begin{abstract}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%The abstract
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%
+\backslash
+end{abstract}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{titlepage}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%Comment if use article style
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\newpage
+ 
+\end_layout
+
+\begin_layout Chapter
+Introduction
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \label{sec:intro}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This document describes Security Infractructure of ARC1 middleware.
+\end_layout
+
+\begin_layout Chapter
+Security architecture in HED: SecHandlers and PDP
+\end_layout
+
+\begin_layout Chapter
+Policy Evaluation engine
+\end_layout
+
+\begin_layout Section
+ArcPDP Policy Evaluator
+\end_layout
+
+\begin_layout Chapter
+Secuirty Attributes
+\end_layout
+
+\begin_layout Section
+Infrastructure
+\end_layout
+
+\begin_layout Standard
+Security Attributes represent security related information inside
+\end_layout
+
+\begin_layout Standard
+HED framework and store information representing various aspects 
+\end_layout
+
+\begin_layout Standard
+needed to perform authorization decison - identity of client, requested
+\end_layout
+
+\begin_layout Standard
+action, targeted resource, constraint policies.
+ Each kind of Security 
+\end_layout
+
+\begin_layout Standard
+Attribute is represented by own class inherited from parent SecAttr class.
+\end_layout
+
+\begin_layout Standard
+Each Security Attribute stores it's information in internal format and 
+\end_layout
+
+\begin_layout Standard
+provides it to external code in one of predefined formats.
+ Currently
+\end_layout
+
+\begin_layout Standard
+only supported format is Arc Policy/Request.
+\end_layout
+
+\begin_layout Standard
+Collectors of Security Attributes instantiate corresponding classes and
+\end_layout
+
+\begin_layout Standard
+link them to Secuirity Attributes containers - MessageAuth and 
+\end_layout
+
+\begin_layout Standard
+MessageAuthContext representing attributes per request and per session 
+\end_layout
+
+\begin_layout Standard
+correspondingly.
+ Current implementations of Security Attributes Collectors
+\end_layout
+
+\begin_layout Standard
+are either integratd into existing MCCs or implemented as separate SecHandler
+\end_layout
+
+\begin_layout Standard
+plugins.
+ See Appendix A for available collectors and corresponding Security
+\end_layout
+
+\begin_layout Standard
+Attributes.
+ 
+\end_layout
+
+\begin_layout Standard
+Note for service developers: Services may implement own authorization 
+\end_layout
+
+\begin_layout Standard
+algorithms.
+ But they may use Security Atributes as well by providing 
+\end_layout
+
+\begin_layout Standard
+instances of classes inherited from SecAttr and running them through
+\end_layout
+
+\begin_layout Standard
+either configured or hardcoded processors/PDPs (see below).
+\end_layout
+
+\begin_layout Standard
+Processors of Security Attributes are implemented as Policy Decision Point
+ 
+\end_layout
+
+\begin_layout Standard
+components.
+ Currently there are 2 PDP components available:
+\end_layout
+
+\begin_layout Standard
+* Arc PDP makes use of Security Attributes containing identities of client,
+\end_layout
+
+\begin_layout Standard
+resource and requested action.
+ It evaluates either all or selected set 
+\end_layout
+
+\begin_layout Standard
+of attributes against specified Policy documents thus making it possible
+\end_layout
+
+\begin_layout Standard
+to enforce policies defined/selected by service providers.
+ 
+\end_layout
+
+\begin_layout Standard
+* Delegation PDP is similar to Arc PDP except that it takes it's Policy
+\end_layout
+
+\begin_layout Standard
+documents directly from Security Attributes.
+ Differently from Arc PDP it 
+\end_layout
+
+\begin_layout Standard
+is meant to be used for enforcing policies defined by client.
+\end_layout
+
+\begin_layout Standard
+Typical service example - TODO
+\end_layout
+
+\begin_layout Section
+Available collectors
+\end_layout
+
+\begin_layout Standard
+* TCP
+\end_layout
+
+\begin_layout Standard
+Information is collected inside TCP MCC.
+ Security Attribute exports 
+\end_layout
+
+\begin_layout Standard
+ARC Request with following attributes
+\end_layout
+
+\begin_layout Standard
+Element AttributeId Content
+\end_layout
+
+\begin_layout Standard
+Resource http://www.nordugrid.org/schemas/policy-arc/types/localendpoint service_i
+p[:service_port] 
+\end_layout
+
+\begin_layout Standard
+SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint
+ client_ip[:client_port] 
+\end_layout
+
+\begin_layout Standard
+* TLS
+\end_layout
+
+\begin_layout Standard
+Information is collected inside TLS MCC.
+ Security Attribute exports 
+\end_layout
+
+\begin_layout Standard
+ARC Request with following attributes
+\end_layout
+
+\begin_layout Standard
+Element AttributeId Content
+\end_layout
+
+\begin_layout Standard
+SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/ca
+ Subject of signer of first certificate in client's chain
+\end_layout
+
+\begin_layout Standard
+SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/chain
+ Subject of certificate in client's chain - multiple items
+\end_layout
+
+\begin_layout Standard
+SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/subject
+ Subject of last certificate in client's chain
+\end_layout
+
+\begin_layout Standard
+SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/identity
+ Subject of last non-proxy certificate in client's chain
+\end_layout
+
+\begin_layout Standard
+* HTTP
+\end_layout
+
+\begin_layout Standard
+Information is collected inside TLS MCC.
+ Security Attribute exports 
+\end_layout
+
+\begin_layout Standard
+ARC Request with following attributes
+\end_layout
+
+\begin_layout Standard
+Element AttributeId Content
+\end_layout
+
+\begin_layout Standard
+Resource http://www.nordugrid.org/schemas/policy-arc/types/http/path HTTP
+ path without host and port part
+\end_layout
+
+\begin_layout Standard
+Action http://www.nordugrid.org/schemas/policy-arc/types/http/method HTTP
+ method 
+\end_layout
+
+\begin_layout Standard
+* SOAP
+\end_layout
+
+\begin_layout Standard
+Information is collected inside TLS MCC.
+ Security Attribute exports 
+\end_layout
+
+\begin_layout Standard
+ARC Request with following attributes
+\end_layout
+
+\begin_layout Standard
+Element AttributeId Content
+\end_layout
+
+\begin_layout Standard
+Resource http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint WS-Addr
+ To element
+\end_layout
+
+\begin_layout Standard
+Action http://www.nordugrid.org/schemas/policy-arc/types/soap/operation SOAP
+ top level element name without namespace prefix
+\end_layout
+
+\begin_layout Standard
+Context http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace Namespace
+ of SOAP top level element
+\end_layout
+
+\begin_layout Standard
+* Delegation
+\end_layout
+
+\begin_layout Standard
+This Security Attribute is collected by dedicated Security Handler plugin.
+\end_layout
+
+\begin_layout Standard
+It extracts policy document stored inside X509 certificate proxy extension
+\end_layout
+
+\begin_layout Standard
+as defined in RFC3820.
+ All certificates in a chain provided by client are 
+\end_layout
+
+\begin_layout Standard
+examined.
+ Proxy certificates with id-ppl-inheritAll property are passed 
+\end_layout
+
+\begin_layout Standard
+through and no policy is generated for them.
+ From those with id-ppl-anyLanguage 
+\end_layout
+
+\begin_layout Standard
+string content of ProxyPolicy element is extracted and converted into XML
+ 
+\end_layout
+
+\begin_layout Standard
+document.
+ Then document is check to be of Arc Policy kind.
+ If policy is
+\end_layout
+
+\begin_layout Standard
+not recognized as Arc Policy procedure fails and that causes failure of
+\end_layout
+
+\begin_layout Standard
+comunication.
+ Proxies with other type of policies including id-ppl-independent
+\end_layout
+
+\begin_layout Standard
+are not accepted and generate immediate failure.
+\end_layout
+
+\begin_layout Chapter
+Delegation restrictions
+\end_layout
+
+\begin_layout Section
+Delegation architecture
+\end_layout
+
+\begin_layout Section
+Delegation PDP
+\end_layout
+
+\begin_layout Chapter*
+Schemas
+\end_layout
+
+\begin_layout Section*
+Policy
+\end_layout
+
+\begin_layout Section*
+Request
+\end_layout
+
+\begin_layout Chapter*
+Examples:
+\end_layout
+
+\begin_layout Section*
+Policy
+\end_layout
+
+\begin_layout Section*
+Request
+\end_layout
+
+\begin_layout Section*
+Delegation Policy
+\end_layout
+
+\begin_layout Chapter*
+Template examples
+\end_layout
+
+\begin_layout Standard
+In expressions, the following operands are allowed: 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+begin{shaded}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#=   !=   >   <   >=   <=#
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+end{shaded}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+begin{framed}
+\end_layout
+
+\end_inset
+
+ Examples of URLs are:
+\newline
+ 
+\newline
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#http://grid.domain.org/dir/script.sh#
+\end_layout
+
+\end_inset
+
+
+\newline
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#gsiftp://grid.domain.org:2811;threads=10/dir/input_12378.dat#
+\end_layout
+
+\end_inset
+
+
+\newline
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#ldap://grid.domain.org:389/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org#
+\end_layout
+
+\end_inset
+
+
+\newline
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#rc://grid.domain.org/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org/zebra/f1.
+zebra#
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+verb#file:///home/auser/griddir/steer.cra#
+\end_layout
+
+\end_inset
+
+
+\newline
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+end{framed}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%
+\backslash
+subsection{Subsection}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+%
+\backslash
+label{sec:subsection}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement ht
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+scalebox{0.9}{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename tex/ng-logo.png
+	display none
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Caption
+\begin_inset LatexCommand \label{fig:myfigure1}
+
+\end_inset
+
+The figure shows a logo.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \bibtex{grid}
+
+\end_inset
+
+ 
+\end_layout
+
+\end_body
+\end_document
