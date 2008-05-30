@@ -47,10 +47,8 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     std::string html;
     html="<HTML>\r\n<HEAD>ARex: Jobs list</HEAD>\r\n<BODY><UL>\r\n";
     std::list<std::string> jobs = ARexJob::Jobs(config);
-    //std::cerr<<"Get: endpoint: "<<config.Endpoint()<<std::endl;
     for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
       std::string line = "<LI><I>job</I> <A HREF=\"";
-      //std::cerr<<"Get: job: "<<(*job)<<std::endl;
       line+=config.Endpoint()+"/"+(*job);
       line+="\">";
       line+=(*job);
@@ -58,7 +56,6 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
       html+=line;
     };
     html+="</UL>\r\n</BODY>\r\n</HTML>";
-    //std::cerr<<"Get: html: "<<html<<std::endl;
     Arc::PayloadRaw* buf = NULL;
     buf=new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
@@ -84,19 +81,14 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
 } 
 
 static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,const std::string& bpath,std::string hpath,size_t start,size_t end) {
-Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u", (unsigned int)start, (unsigned int)end);
+Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, bpath=%s, hpath=%", (unsigned int)start, (unsigned int)end, burl, bpath, hpath);
   std::string path=bpath;
   if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
   if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
   if(!hpath.empty()) path+="/"+hpath;
-  //std::cerr<<"http:get: burl: "<<burl<<std::endl;
-  //std::cerr<<"http:get: bpath: "<<bpath<<std::endl;
-  //std::cerr<<"http:get: hpath: "<<hpath<<std::endl;
-  //std::cerr<<"http:get: path: "<<path<<std::endl;
   struct stat st;
   if(lstat(path.c_str(),&st) == 0) {
     if(S_ISDIR(st.st_mode)) {
-      //std::cerr<<"http:get: directory"<<std::endl;
       DIR *dir=opendir(path.c_str());
       if(dir != NULL) {
         // Directory - html with file list
@@ -132,7 +124,6 @@ Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u", (unsigned 
         };
         closedir(dir);
         html+="</UL>\r\n</BODY>\r\n</HTML>";
-        //std::cerr<<"Get: html: "<<html<<std::endl;
         Arc::PayloadRaw* buf = new Arc::PayloadRaw;
         if(buf) buf->Insert(html.c_str(),0,html.length());
         outmsg.Payload(buf);
