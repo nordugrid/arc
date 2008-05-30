@@ -783,6 +783,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/scan-pbs-job
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
+                 src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/pdp/Makefile
                  src/services/httpd/Makefile
                  src/services/arex2/Makefile

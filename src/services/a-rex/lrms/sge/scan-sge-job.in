@@ -13,13 +13,13 @@
 ##############################################################
 # Set SGE specific environment.
 ##############################################################
-ARC_LOCATION=${ARC_LOCATION:-/usr/local}
+ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
 
 if [ ! -f "${ARC_LOCATION}/libexec/configure-sge-env.sh" ] ; then
     echo "${ARC_LOCATION}/libexec/configure-sge-env.sh not found." >&2
     exit 1
 fi
-. ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
+source ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
 
 ##############################################################
 
@@ -28,6 +28,7 @@ umask 022
 
 if [ -z "$1" ] ; then exit 1 ; fi
 
+TMP_DIR=${TMPDIR:-@tmp_dir@}
 
 # first control_dir is used for storing own files
 
@@ -87,9 +88,12 @@ for ctr_dir in $control_dirs ; do
     if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+    session=${session:-/usr/local/sys/nordugrid/nordugrid/sessiondir/$gridid}
     if [  -d "$session" ] ; then
-      # have chance to obtain exit code
+      # try to obtain the exit code
       diagfile="${session}.diag"
+      diagfile_tmp=`mktemp "$TMP_DIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
+      diagfile_acct=`mktemp "$TMP_DIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
       exitcode=`grep '^exitcode=' "$diagfile" | sed 's/^exitcode=//'`
 
       # qacct can take quite long. Here is a workaround.
@@ -97,7 +101,7 @@ for ctr_dir in $control_dirs ; do
       # records to a temp file.
       acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
       if [ -f  $acctfile ]; then
-        briefacct=$(mktemp /tmp/accounting.XXXXXX)
+        briefacct=`mktemp "$TMP_DIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
         tail -n 1000 $acctfile > $briefacct
         if [ $? == 0 ]; then extraargs="-f $briefacct"; fi
       fi
@@ -126,19 +130,19 @@ for ctr_dir in $control_dirs ; do
                          print "failed=$failed\n";
                          print "\nexitcode=$exitcode\n";
                        }' \
-          > $diagfile.acct
+          > $diagfile_acct
       if [ "x$briefacct" != "x" ]; then rm -f $briefacct; fi
 
       # If the last qacct record is about migration,
       # we should wait for the next qacct record to appear
       # Delete file, like there was no accounting present at all!
-      if grep -q "^failed=24 *: migrating" $diagfile.acct; then
-          rm -f $diagfile.acct
-          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct"
+      if grep -q "^failed=24 *: migrating" $diagfile_acct; then
+          rm -f $diagfile_acct
+          echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" >&2
       fi
 
       # Add accounting info to $diagfile
-      if [ -s $diagfile.acct ]; then
+      if [ -s $diagfile_acct ]; then
 
           # Accouting info is present
           accountinginfo=1
@@ -151,9 +155,9 @@ for ctr_dir in $control_dirs ; do
                         | grep -v "^MaxResidentMemory=" \
                         | grep -v "^AverageTotalMemory=" \
                         | grep -v "^exitcode=" \
-          > $diagfile.tmp
-          cat $diagfile.tmp  >  $diagfile
-          cat $diagfile.acct >> $diagfile
+          > $diagfile_tmp
+          cat $diagfile_tmp  >  $diagfile
+          cat $diagfile_acct >> $diagfile
 
           exitcode=`grep '^exitcode=' "$diagfile" | tail -n 1 | sed 's/^exitcode=//'`
           failedreason=`grep '^failed=' $diagfile | tail -n 1 | sed 's/^failed=//'`
@@ -203,10 +207,10 @@ for ctr_dir in $control_dirs ; do
 
           if [ "$failedcode" == "0" ]; then
             if [ "$exitcode" == "0" ]; then
-              echo "SGE job $id finished succesfully"
+              echo "SGE job $id finished succesfully" >&2
               echo "$exitcode" > $donefile
             else
-              echo "SGE job $id failed with exit code $exitcode"
+              echo "SGE job $id failed with exit code $exitcode" >&2
               echo "$exitcode Job finished with non-zero exit code" > $donefile
             fi
           else
@@ -238,15 +242,15 @@ for ctr_dir in $control_dirs ; do
             fi
             exitcode=$((failedcode+256))
             exitcode=271
-            echo "SGE job $id failed: $failedreason"
+            echo "SGE job $id failed: $failedreason" >&2
             echo $exitcode $failedreason > $donefile
 
             # Change exit code in the diag file
-            cp $diagfile $diagfile.tmp
+            cp $diagfile $diagfile_tmp
             if [ $? == 0 ]; then
-              cat $diagfile.tmp | grep -v "^exitcode=" > $diagfile
+              cat $diagfile_tmp | grep -v "^exitcode=" > $diagfile
               echo "exitcode=$exitcode"  >>  $diagfile
-              rm -f $diagfile.tmp
+              rm -f $diagfile_tmp
             fi
 
           fi # failedcode
@@ -255,14 +259,14 @@ for ctr_dir in $control_dirs ; do
           $ARC_LOCATION/libexec/gm-kick $statusfile >> $errorsfile
 
           rm -f $countfile
-          rm -f $diagfile.tmp $diagfile.acct
+          rm -f $diagfile_tmp $diagfile_acct
 
           # we're done, go to next job id
           continue
 
       fi # accounting info ok
 
-      rm -f $diagfile.acct
+      rm -f $diagfile_acct
 
     fi # session directory exists
 
@@ -280,10 +284,10 @@ for ctr_dir in $control_dirs ; do
     if [ "$counter" -gt 5 ]; then
       # Cannot wait more for accounting info.
       if [ -z "$exitcode" ]; then
-        echo "SGE job $id finished with unknown exit code."
+        echo "SGE job $id finished with unknown exit code." >&2
         echo "256 Job disappeared from SGE." > $donefile
       else
-        echo "SGE job $id failed with exit code $exitcode."
+        echo "SGE job $id failed with exit code $exitcode." >&2
         echo "$exitcode Job finished with non-zero exit code" > $donefile
       fi
       rm -f "$countfile"
