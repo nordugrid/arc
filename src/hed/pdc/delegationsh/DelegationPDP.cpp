@@ -3,16 +3,16 @@
 #endif
 
 #include <iostream>
+
 #include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
-
 #include <arc/security/ArcPDP/Response.h>
-
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
+#include <arc/security/ArcPDP/EvaluatorLoader.h>
 
 #include "DelegationPDP.h"
 
@@ -73,6 +73,7 @@ bool DelegationPDP::isPermitted(Message *msg){
       result=true; throw std::exception();
     };
     // Create evaluator
+#if 0
     XMLNode pdp_cfg_nd("\
       <ArcConfig\
        xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -106,6 +107,11 @@ bool DelegationPDP::isPermitted(Message *msg){
 
     //Dynamically load Evaluator object according to configure information
     eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
+#endif
+
+    std::string evaluator = "arc.evaluator";
+    EvaluatorLoader eval_loader;
+    eval = eval_loader.getEvaluator(evaluator);
     if(!eval) {
       logger.msg(ERROR, "Can not dynamically produce Evaluator");
       throw std::exception();
