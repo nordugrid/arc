@@ -111,7 +111,7 @@ static bool get_file(Arc::ClientHTTP& client,const Arc::URL& url,const std::stri
   uint64_t chunk_end = chunk_len;
   // First chunk
   Arc::MCC_Status r = client.process("GET",url.Path(),chunk_start,chunk_end,&req,&info,&resp);
-  if(!r) return false;
+  if(!r) return false;;
   if(!resp) return false;
   if((info.code != 200) && (info.code != 206)) { delete resp; return false; };
   if(strcasecmp(info.type.c_str(),"text/html") == 0) {
@@ -134,7 +134,7 @@ static bool get_file(Arc::ClientHTTP& client,const Arc::URL& url,const std::stri
     if(resp) delete resp;
     // Make directory
     if(mkdir(dir.c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) return false;
+      if(errno != EEXIST) throw std::invalid_argument("Failed to create local directory "+dir+" !");
     };
     // Fetch files
     std::list<Arc::URL> urls;
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]){
   options.AddOption('c', "config", istring("path to config file"),
 		    istring("path"), config_path);
 
-  std::string local_dir;
+  std::string local_dir = "./gridjob";
   options.AddOption('D', "download", istring("path to download directory"),
 		    istring("directory"), local_dir);
 
