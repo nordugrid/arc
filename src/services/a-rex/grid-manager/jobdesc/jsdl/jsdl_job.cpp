@@ -138,8 +138,8 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
     logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-hpcpa:Executable] - %s",
                           str_executable.c_str());
 
-    for( int i=0; (bool)(n["Argument"][i]) ; i++ ) {
-      std::string value = (std::string) n["Argument"][i];
+    for( int i=0; (bool)(jsdl_hpcpa["Argument"][i]) ; i++ ) {
+      std::string value = (std::string) jsdl_hpcpa["Argument"][i];
       strip_spaces(value);
       arguments.push_back(value);
     }
@@ -162,8 +162,8 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-posix:Executable] - %s",
                         str_executable.c_str());
 
-  for( int i=0; (bool)(n["Argument"][i]); i++ ) {
-    std::string value = (std::string) n["Argument"][i];
+  for( int i=0; (bool)(jsdl_posix["Argument"][i]); i++ ) {
+    std::string value = (std::string) jsdl_posix["Argument"][i];
     strip_spaces(value);
     arguments.push_back(value);
   }
