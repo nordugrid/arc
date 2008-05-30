@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcPDP"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcPDP"
+  elementFormDefault="qualified">
+  
+    <xsd:complexType name="FilterType">
+        <!-- This element defines Security Attributes to select and reject.
+            If there are no Select elements all Attributes are used except
+            those listed in Reject elements.  -->
+        <xsd:sequence>
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Filter" type="FilterType"/>
+
+    <!--
+        This element specified file containing policy document.
+        There may be multiple such elements.
+    -->
+    <xsd:element name="PolicyStore" type="xsd:string"/>
+
+</xsd:schema>
