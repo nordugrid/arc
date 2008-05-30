@@ -1,6 +1,12 @@
-#include <arc/client/ACC.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <algorithm>
 
 #include <glibmm/fileutils.h>
+
+#include <arc/client/ACC.h>
 
 namespace Arc {
   XMLNode ACCConfig::MakeConfig(XMLNode cfg) const {

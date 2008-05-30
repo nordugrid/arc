@@ -2,9 +2,11 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <glibmm/fileutils.h>
 
-#include "MCC.h"
+#include <arc/message/MCC.h>
 
 namespace Arc {
 

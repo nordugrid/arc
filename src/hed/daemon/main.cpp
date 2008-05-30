@@ -7,12 +7,16 @@
 #endif
 
 #include <fstream>
+
 #include <signal.h>
+#include <unistd.h>
+
 #include <arc/ArcConfig.h>
-#include <arc/loader/Loader.h>
-#include <arc/XMLNode.h>
-#include <arc/Logger.h>
 #include <arc/ArcLocation.h>
+#include <arc/Logger.h>
+#include <arc/XMLNode.h>
+#include <arc/loader/Loader.h>
+
 #include "daemon.h"
 #include "options.h"
 

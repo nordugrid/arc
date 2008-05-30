@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <glibmm/fileutils.h>
 
 #include <arc/Logger.h>
