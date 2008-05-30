@@ -303,7 +303,7 @@ raggedleft
 
 \end_inset
 
- NORDUGRID-XXXXXXX-NN
+ NORDUGRID-TECH-16
 \end_layout
 
 \begin_layout Standard
@@ -677,10 +677,7 @@ status collapsed
 
 \begin_layout Chapter
 Introduction
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand \label{sec:intro}
+\begin_inset LatexCommand \label{sec:introduction}
 
 \end_inset
 
@@ -693,157 +690,146 @@ This document describes Security Infractructure of ARC1 middleware.
 
 \begin_layout Chapter
 Security architecture in HED: SecHandlers and PDP
+\begin_inset LatexCommand \label{sec:architecture}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter
 Policy Evaluation engine
+\begin_inset LatexCommand \label{sec:policy_engine}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 ArcPDP Policy Evaluator
+\begin_inset LatexCommand \label{sec:policy_evaluator}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter
 Secuirty Attributes
+\begin_inset LatexCommand \label{sec:sec_attr}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Infrastructure
+\begin_inset LatexCommand \label{sec:sec_attr_infrastructure}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Security Attributes represent security related information inside
+Security Attributes represent security related information inside HED framework
+ and store information representing various aspects needed to perform authorizat
+ion decison - identity of client, requested action, targeted resource, constrain
+t policies.
+ 
 \end_layout
 
 \begin_layout Standard
-HED framework and store information representing various aspects 
-\end_layout
-
-\begin_layout Standard
-needed to perform authorization decison - identity of client, requested
-\end_layout
-
-\begin_layout Standard
-action, targeted resource, constraint policies.
- Each kind of Security 
-\end_layout
-
-\begin_layout Standard
-Attribute is represented by own class inherited from parent SecAttr class.
-\end_layout
-
-\begin_layout Standard
-Each Security Attribute stores it's information in internal format and 
-\end_layout
-
-\begin_layout Standard
-provides it to external code in one of predefined formats.
- Currently
-\end_layout
-
-\begin_layout Standard
-only supported format is Arc Policy/Request.
+Each kind of Security Attribute is represented by own class inherited from
+ parent SecAttr class <arc/message/SecAttr.h>.
+ Each Security Attribute stores it's information in internal format and
+ is capable to export it to one of predefined formats using Export() method.
+ Currently only supported format is Arc Policy/Request XML document.
 \end_layout
 
 \begin_layout Standard
 Collectors of Security Attributes instantiate corresponding classes and
-\end_layout
+ link them to Secuirity Attributes containers - MessageAuth <arc/message/Message
+Auth.h> and MessageAuthContext <arc/message/Message.h> storing collected attribute
+s per request and per session correspondingly.
+ Current implementations of Security Attributes Collectors are either integrated
+ into existing MCCs or implemented as separate SecHandler plugins.
+ See Section 
+\begin_inset LatexCommand \ref{sec:sec_attr_collectors}
 
-\begin_layout Standard
-link them to Secuirity Attributes containers - MessageAuth and 
-\end_layout
+\end_inset
 
-\begin_layout Standard
-MessageAuthContext representing attributes per request and per session 
-\end_layout
-
-\begin_layout Standard
-correspondingly.
- Current implementations of Security Attributes Collectors
-\end_layout
-
-\begin_layout Standard
-are either integratd into existing MCCs or implemented as separate SecHandler
-\end_layout
-
-\begin_layout Standard
-plugins.
- See Appendix A for available collectors and corresponding Security
-\end_layout
-
-\begin_layout Standard
-Attributes.
+ for available Collectors and corresponding Security Attributes.
  
 \end_layout
 
 \begin_layout Standard
-Note for service developers: Services may implement own authorization 
-\end_layout
+\begin_inset ERT
+status collapsed
 
 \begin_layout Standard
-algorithms.
- But they may use Security Atributes as well by providing 
+
+
+\backslash
+begin{framed}
 \end_layout
 
-\begin_layout Standard
-instances of classes inherited from SecAttr and running them through
-\end_layout
+\end_inset
+
+Note for service developers: Services may implement own authorization algorithms.
+ But they may use Security Atributes as well by providing instances of classes
+ inherited from SecAttr and running them through either configured or hardcoded
+ processors/PDPs.
+\begin_inset ERT
+status collapsed
 
 \begin_layout Standard
-either configured or hardcoded processors/PDPs (see below).
+
+
+\backslash
+end{framed}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 Processors of Security Attributes are implemented as Policy Decision Point
- 
-\end_layout
-
-\begin_layout Standard
-components.
+ components.
  Currently there are 2 PDP components available:
 \end_layout
 
-\begin_layout Standard
-* Arc PDP makes use of Security Attributes containing identities of client,
-\end_layout
-
-\begin_layout Standard
-resource and requested action.
- It evaluates either all or selected set 
-\end_layout
-
-\begin_layout Standard
-of attributes against specified Policy documents thus making it possible
-\end_layout
-
-\begin_layout Standard
-to enforce policies defined/selected by service providers.
+\begin_layout Itemize
+ArcPDP makes use of Security Attributes containing identities of client,
+ resource and requested action.
+ It evaluates either all or selected set of attributes against specified
+ Policy documents thus making it possible to enforce policies defined/selected
+ by service providers.
  
 \end_layout
 
-\begin_layout Standard
-* Delegation PDP is similar to Arc PDP except that it takes it's Policy
-\end_layout
-
-\begin_layout Standard
-documents directly from Security Attributes.
- Differently from Arc PDP it 
-\end_layout
-
-\begin_layout Standard
-is meant to be used for enforcing policies defined by client.
-\end_layout
-
-\begin_layout Standard
-Typical service example - TODO
+\begin_layout Itemize
+(to move to Delegation section) DelegationPDP is similar to ArcPDP except
+ that it takes it's Policy documents directly from Security Attributes.
+ Differently from Arc PDP it is meant to be used for enforcing policies
+ defined by client.
 \end_layout
 
 \begin_layout Section
 Available collectors
+\begin_inset LatexCommand \label{sec:sec_attr_collectors}
+
+\end_inset
+
+
 \end_layout
 
-\begin_layout Standard
-* TCP
+\begin_layout Subsection
+TCP
 \end_layout
 
 \begin_layout Standard
@@ -869,167 +855,517 @@ SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoin
  client_ip[:client_port] 
 \end_layout
 
-\begin_layout Standard
-* TLS
+\begin_layout Subsection
+TLS
 \end_layout
 
 \begin_layout Standard
 Information is collected inside TLS MCC.
- Security Attribute exports 
+ Generated Security Attribute class exports ARC Request with following attribute
+s:
 \end_layout
 
 \begin_layout Standard
-ARC Request with following attributes
-\end_layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Element AttributeId Content
+Element
 \end_layout
 
-\begin_layout Standard
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/ca
- Subject of signer of first certificate in client's chain
-\end_layout
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/chain
- Subject of certificate in client's chain - multiple items
+AttributeId
 \end_layout
 
-\begin_layout Standard
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/subject
- Subject of last certificate in client's chain
-\end_layout
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/identity
- Subject of last non-proxy certificate in client's chain
+Content
 \end_layout
 
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
 \begin_layout Standard
-* HTTP
+SubjectAttribute
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/tls/ca
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Subject of signer of first certificate in client's chain
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SubjectAttribute
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/tls/chain
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Subject of certificate in client's chain - multiple items
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SubjectAttribute
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/tls/subject
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Subject of last certificate in client's chain
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SubjectAttribute
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/tls/identity
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Subject of last non-proxy certificate in client's chain
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+HTTP
 \end_layout
 
 \begin_layout Standard
 Information is collected inside TLS MCC.
- Security Attribute exports 
+ Security Attribute exports ARC Request with following attributes:
 \end_layout
 
 \begin_layout Standard
-ARC Request with following attributes
-\end_layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Element AttributeId Content
+Element
 \end_layout
 
-\begin_layout Standard
-Resource http://www.nordugrid.org/schemas/policy-arc/types/http/path HTTP
- path without host and port part
-\end_layout
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Action http://www.nordugrid.org/schemas/policy-arc/types/http/method HTTP
- method 
+AttributeId
 \end_layout
 
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
 \begin_layout Standard
-* SOAP
+Content
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Resource
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/http/path
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+HTTP path without host and port part
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Action
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/http/method
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+HTTP method
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+SOAP
 \end_layout
 
 \begin_layout Standard
 Information is collected inside TLS MCC.
- Security Attribute exports 
+ Security Attribute exports ARC Request with following attributes
 \end_layout
 
 \begin_layout Standard
-ARC Request with following attributes
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Element
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+AttributeId
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Content
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Resource
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+To element of WS-Addressing structure
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Action
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/soap/operation
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+SOAP top level element name without namespace prefix
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Context
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Namespace of SOAP top level element
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Delegation
 \end_layout
 
 \begin_layout Standard
-Element AttributeId Content
-\end_layout
+(to move to Delegation section) This Security Attribute is collected by
+ dedicated Security Handler plugin named 
+\begin_inset Quotes eld
+\end_inset
 
-\begin_layout Standard
-Resource http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint WS-Addr
- To element
-\end_layout
 
-\begin_layout Standard
-Action http://www.nordugrid.org/schemas/policy-arc/types/soap/operation SOAP
- top level element name without namespace prefix
-\end_layout
+\emph on
+delegation.pdp
+\emph default
 
-\begin_layout Standard
-Context http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace Namespace
- of SOAP top level element
-\end_layout
+\begin_inset Quotes erd
+\end_inset
 
-\begin_layout Standard
-* Delegation
-\end_layout
-
-\begin_layout Standard
-This Security Attribute is collected by dedicated Security Handler plugin.
-\end_layout
-
-\begin_layout Standard
-It extracts policy document stored inside X509 certificate proxy extension
-\end_layout
-
-\begin_layout Standard
-as defined in RFC3820.
- All certificates in a chain provided by client are 
-\end_layout
-
-\begin_layout Standard
-examined.
- Proxy certificates with id-ppl-inheritAll property are passed 
-\end_layout
-
-\begin_layout Standard
-through and no policy is generated for them.
- From those with id-ppl-anyLanguage 
-\end_layout
-
-\begin_layout Standard
-string content of ProxyPolicy element is extracted and converted into XML
+ avaialble in 
+\emph on
+arcpdc
+\emph default
+ plugins' library.
+ It extracts policy document stored inside X509 certificate proxy extension
+ as defined in RFC3820.
+ All proxy certificates in a chain provided by client are examined and all
+ available policies are extracted.
  
 \end_layout
 
 \begin_layout Standard
-document.
- Then document is check to be of Arc Policy kind.
- If policy is
+Policies are stored in string content of 
+\emph on
+ProxyPolicy
+\emph default
+ element with 
+\emph on
+id-ppl-anyLanguage
+\emph default
+.
+ Extracted content is converted into XML document.
+ Then document is checked to be of Arc Policy kind.
+ If policy is not recognized as Arc Policy procedure fails and that causes
+ failure of comunication.
 \end_layout
 
 \begin_layout Standard
-not recognized as Arc Policy procedure fails and that causes failure of
-\end_layout
-
-\begin_layout Standard
-comunication.
- Proxies with other type of policies including id-ppl-independent
-\end_layout
-
-\begin_layout Standard
-are not accepted and generate immediate failure.
+Proxy certificates with 
+\emph on
+id-ppl-inheritAll
+\emph default
+ property are passed through and no policy document is generated for them.
+ Proxies with other type of policies including 
+\emph on
+id-ppl-independent
+\emph default
+ are not accepted and generate immediate failure.
 \end_layout
 
 \begin_layout Chapter
 Delegation restrictions
+\begin_inset LatexCommand \label{sec:delegation}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Delegation architecture
+\begin_inset LatexCommand \label{sec:delegation_architectire}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Delegation PDP
+\begin_inset LatexCommand \label{sec:delegation_pdp}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter*
-Schemas
+Schemas and comments
+\begin_inset LatexCommand \label{sec:schemas}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
@@ -1038,6 +1374,14 @@ Policy
 
 \begin_layout Section*
 Request
+\end_layout
+
+\begin_layout Section*
+ArcPDP configuration
+\end_layout
+
+\begin_layout Section*
+DelegationPDP configuration
 \end_layout
 
 \begin_layout Chapter*

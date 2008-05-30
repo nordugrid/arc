@@ -86,7 +86,7 @@
 %-------- Change this to NORDUGRID-XXXXXXX-NN
 
 
-{\raggedleft NORDUGRID-XXXXXXX-NN
+{\raggedleft NORDUGRID-TECH-16
 
 }
 
@@ -127,99 +127,67 @@
 \newpage{} 
 
 
-\chapter{Introduction}
-
-\label{sec:intro}
+\chapter{Introduction\label{sec:introduction}}
 
 This document describes Security Infractructure of ARC1 middleware.
 
 
-\chapter{Security architecture in HED: SecHandlers and PDP}
+\chapter{Security architecture in HED: SecHandlers and PDP\label{sec:architecture}}
 
 
-\chapter{Policy Evaluation engine}
+\chapter{Policy Evaluation engine\label{sec:policy_engine}}
 
 
-\section{ArcPDP Policy Evaluator}
+\section{ArcPDP Policy Evaluator\label{sec:policy_evaluator}}
 
 
-\chapter{Secuirty Attributes}
+\chapter{Secuirty Attributes\label{sec:sec_attr}}
 
 
-\section{Infrastructure}
+\section{Infrastructure\label{sec:sec_attr_infrastructure}}
 
 Security Attributes represent security related information inside
+HED framework and store information representing various aspects needed
+to perform authorization decison - identity of client, requested action,
+targeted resource, constraint policies. 
 
-HED framework and store information representing various aspects 
-
-needed to perform authorization decison - identity of client, requested
-
-action, targeted resource, constraint policies. Each kind of Security 
-
-Attribute is represented by own class inherited from parent SecAttr
-class.
-
-Each Security Attribute stores it's information in internal format
-and 
-
-provides it to external code in one of predefined formats. Currently
-
-only supported format is Arc Policy/Request.
+Each kind of Security Attribute is represented by own class inherited
+from parent SecAttr class <arc/message/SecAttr.h>. Each Security Attribute
+stores it's information in internal format and is capable to export
+it to one of predefined formats using Export() method. Currently only
+supported format is Arc Policy/Request XML document.
 
 Collectors of Security Attributes instantiate corresponding classes
-and
+and link them to Secuirity Attributes containers - MessageAuth <arc/message/MessageAuth.h>
+and MessageAuthContext <arc/message/Message.h> storing collected attributes
+per request and per session correspondingly. Current implementations
+of Security Attributes Collectors are either integrated into existing
+MCCs or implemented as separate SecHandler plugins. See Section \ref{sec:sec_attr_collectors}
+for available Collectors and corresponding Security Attributes. 
 
-link them to Secuirity Attributes containers - MessageAuth and 
-
-MessageAuthContext representing attributes per request and per session 
-
-correspondingly. Current implementations of Security Attributes Collectors
-
-are either integratd into existing MCCs or implemented as separate
-SecHandler
-
-plugins. See Appendix A for available collectors and corresponding
-Security
-
-Attributes. 
-
-Note for service developers: Services may implement own authorization 
-
-algorithms. But they may use Security Atributes as well by providing 
-
-instances of classes inherited from SecAttr and running them through
-
-either configured or hardcoded processors/PDPs (see below).
+\begin{framed}Note for service developers: Services may implement
+own authorization algorithms. But they may use Security Atributes
+as well by providing instances of classes inherited from SecAttr and
+running them through either configured or hardcoded processors/PDPs.\end{framed}
 
 Processors of Security Attributes are implemented as Policy Decision
-Point 
+Point components. Currently there are 2 PDP components available:
 
-components. Currently there are 2 PDP components available:
-
-{*} Arc PDP makes use of Security Attributes containing identities
-of client,
-
+\begin{itemize}
+\item ArcPDP makes use of Security Attributes containing identities of client,
 resource and requested action. It evaluates either all or selected
-set 
+set of attributes against specified Policy documents thus making it
+possible to enforce policies defined/selected by service providers. 
+\item (to move to Delegation section) DelegationPDP is similar to ArcPDP
+except that it takes it's Policy documents directly from Security
+Attributes. Differently from Arc PDP it is meant to be used for enforcing
+policies defined by client.
+\end{itemize}
 
-of attributes against specified Policy documents thus making it possible
-
-to enforce policies defined/selected by service providers. 
-
-{*} Delegation PDP is similar to Arc PDP except that it takes it's
-Policy
-
-documents directly from Security Attributes. Differently from Arc
-PDP it 
-
-is meant to be used for enforcing policies defined by client.
-
-Typical service example - TODO
+\section{Available collectors\label{sec:sec_attr_collectors}}
 
 
-\section{Available collectors}
-
-{*} TCP
+\subsection{TCP}
 
 Information is collected inside TCP MCC. Security Attribute exports 
 
@@ -233,101 +201,131 @@ service\_ip{[}:service\_port]
 SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/remoteendpoint
 client\_ip{[}:client\_port] 
 
-{*} TLS
 
-Information is collected inside TLS MCC. Security Attribute exports 
+\subsection{TLS}
 
+Information is collected inside TLS MCC. Generated Security Attribute
+class exports ARC Request with following attributes:
+
+\begin{tabular}{|c|c|c|}
+\hline 
+\multicolumn{1}{|c|}{Element}&
+AttributeId&
+Content\tabularnewline
+\hline
+\hline 
+SubjectAttribute&
+http://www.nordugrid.org/schemas/policy-arc/types/tls/ca&
+Subject of signer of first certificate in client's chain\tabularnewline
+\hline 
+SubjectAttribute&
+http://www.nordugrid.org/schemas/policy-arc/types/tls/chain&
+Subject of certificate in client's chain - multiple items\tabularnewline
+\hline 
+SubjectAttribute&
+http://www.nordugrid.org/schemas/policy-arc/types/tls/subject&
+Subject of last certificate in client's chain\tabularnewline
+\hline 
+SubjectAttribute&
+http://www.nordugrid.org/schemas/policy-arc/types/tls/identity&
+Subject of last non-proxy certificate in client's chain\tabularnewline
+\hline
+\end{tabular}
+
+
+\subsection{HTTP}
+
+Information is collected inside TLS MCC. Security Attribute exports
+ARC Request with following attributes:
+
+\begin{tabular}{|c|c|c|}
+\hline 
+Element&
+AttributeId&
+Content\tabularnewline
+\hline
+\hline 
+Resource&
+http://www.nordugrid.org/schemas/policy-arc/types/http/path&
+HTTP path without host and port part\tabularnewline
+\hline 
+Action&
+http://www.nordugrid.org/schemas/policy-arc/types/http/method&
+HTTP method\tabularnewline
+\hline
+\end{tabular}
+
+
+\subsection{SOAP}
+
+Information is collected inside TLS MCC. Security Attribute exports
 ARC Request with following attributes
 
-Element AttributeId Content
-
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/ca
-Subject of signer of first certificate in client's chain
-
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/chain
-Subject of certificate in client's chain - multiple items
-
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/subject
-Subject of last certificate in client's chain
-
-SubjectAttribute http://www.nordugrid.org/schemas/policy-arc/types/tls/identity
-Subject of last non-proxy certificate in client's chain
-
-{*} HTTP
-
-Information is collected inside TLS MCC. Security Attribute exports 
-
-ARC Request with following attributes
-
-Element AttributeId Content
-
-Resource http://www.nordugrid.org/schemas/policy-arc/types/http/path
-HTTP path without host and port part
-
-Action http://www.nordugrid.org/schemas/policy-arc/types/http/method
-HTTP method 
-
-{*} SOAP
-
-Information is collected inside TLS MCC. Security Attribute exports 
-
-ARC Request with following attributes
-
-Element AttributeId Content
-
-Resource http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint
-WS-Addr To element
-
-Action http://www.nordugrid.org/schemas/policy-arc/types/soap/operation
-SOAP top level element name without namespace prefix
-
-Context http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace
-Namespace of SOAP top level element
-
-{*} Delegation
-
-This Security Attribute is collected by dedicated Security Handler
-plugin.
-
-It extracts policy document stored inside X509 certificate proxy extension
-
-as defined in RFC3820. All certificates in a chain provided by client
-are 
-
-examined. Proxy certificates with id-ppl-inheritAll property are passed 
-
-through and no policy is generated for them. From those with id-ppl-anyLanguage 
-
-string content of ProxyPolicy element is extracted and converted into
-XML 
-
-document. Then document is check to be of Arc Policy kind. If policy
-is
-
-not recognized as Arc Policy procedure fails and that causes failure
-of
-
-comunication. Proxies with other type of policies including id-ppl-independent
-
-are not accepted and generate immediate failure.
+\begin{tabular}{|c|c|c|}
+\hline 
+Element&
+AttributeId&
+Content\tabularnewline
+\hline
+\hline 
+Resource&
+http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint&
+To element of WS-Addressing structure\tabularnewline
+\hline 
+Action&
+http://www.nordugrid.org/schemas/policy-arc/types/soap/operation&
+SOAP top level element name without namespace prefix\tabularnewline
+\hline 
+Context&
+http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace&
+Namespace of SOAP top level element\tabularnewline
+\hline
+\end{tabular}
 
 
-\chapter{Delegation restrictions}
+\subsection{Delegation}
+
+(to move to Delegation section) This Security Attribute is collected
+by dedicated Security Handler plugin named {}``\emph{delegation.pdp}''
+avaialble in \emph{arcpdc} plugins' library. It extracts policy document
+stored inside X509 certificate proxy extension as defined in RFC3820.
+All proxy certificates in a chain provided by client are examined
+and all available policies are extracted. 
+
+Policies are stored in string content of \emph{ProxyPolicy} element
+with \emph{id-ppl-anyLanguage}. Extracted content is converted into
+XML document. Then document is checked to be of Arc Policy kind. If
+policy is not recognized as Arc Policy procedure fails and that causes
+failure of comunication.
+
+Proxy certificates with \emph{id-ppl-inheritAll} property are passed
+through and no policy document is generated for them. Proxies with
+other type of policies including \emph{id-ppl-independent} are not
+accepted and generate immediate failure.
 
 
-\section{Delegation architecture}
+\chapter{Delegation restrictions\label{sec:delegation}}
 
 
-\section{Delegation PDP}
+\section{Delegation architecture\label{sec:delegation_architectire}}
 
 
-\chapter*{Schemas}
+\section{Delegation PDP\label{sec:delegation_pdp}}
+
+
+\chapter*{Schemas and comments\label{sec:schemas}}
 
 
 \section*{Policy}
 
 
 \section*{Request}
+
+
+\section*{ArcPDP configuration}
+
+
+\section*{DelegationPDP configuration}
 
 
 \chapter*{Examples:}
