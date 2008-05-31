@@ -262,6 +262,7 @@ exit 0
 %{_libexecdir}/uploader
 %{_libexecdir}/smtp-send
 %{_libexecdir}/smtp-send.sh
+%{_libexecdir}/gm-kick
 #
 %{_libexecdir}/Condor.pm
 %{_libexecdir}/Fork.pm

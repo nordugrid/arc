@@ -1,5 +1,6 @@
 usr/lib/arc/libarex.so
 
+usr/lib/arc/gm-kick
 usr/lib/arc/downloader
 usr/lib/arc/uploader
 usr/lib/arc/smtp-send
