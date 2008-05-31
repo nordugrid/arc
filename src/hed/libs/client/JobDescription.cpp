@@ -1,3 +1,5 @@
+#include <cstring>
+#include <algorithm>
 #include "JobDescription.h"
 
 namespace Arc {
