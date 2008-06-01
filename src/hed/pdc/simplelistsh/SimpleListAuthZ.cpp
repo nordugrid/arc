@@ -73,9 +73,6 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
             logger.msg(ERROR, "PDP: %s can not be loaded", name); 
             return false; 
         };
-        std::string pdp_id = can.Attribute("id");
-        if(pdp_id.empty()) { logger.msg(ERROR, "PDP should have ID"); return false; }
-        pdp->SetId(pdp_id);
         if(pdps_.insert(std::make_pair(name,PDPDesc(can.Attribute("action"),pdp))).second == false) {
             logger.msg(ERROR, "PDP: %s name is duplicate", name); 
             return false; 
