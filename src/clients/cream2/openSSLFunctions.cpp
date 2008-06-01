@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <ctime>
+#include <cstring>
 
 #include <unistd.h>
 #include <sys/types.h>
