@@ -4,13 +4,13 @@
 
 #include <iostream>
 #include <fstream>
+
 #include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
-
 #include <arc/security/ArcPDP/Response.h>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
@@ -57,44 +57,6 @@ ArcPDPContext::ArcPDPContext(Evaluator* e):eval(e) {
 }
 
 ArcPDPContext::ArcPDPContext(void):eval(NULL) {
-#if 0
-  XMLNode pdp_cfg_nd("\
-    <ArcConfig\
-     xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-     xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
-     <ModuleManager>\
-        <Path></Path>\
-     </ModuleManager>\
-     <Plugins Name='arcpdc'>\
-          <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
-          <Plugin Name='__arc_fnfactory_modules__'>fnfactory</Plugin>\
-          <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
-          <Plugin Name='__arc_evaluator_modules__'>evaluator</Plugin>\
-          <Plugin Name='__arc_request_modules__'>request</Plugin>\
-     </Plugins>\
-     <pdp:PDPConfig>\
-          <pdp:AttributeFactory name='attr.factory' />\
-          <pdp:CombingAlgorithmFactory name='alg.factory' />\
-          <pdp:FunctionFactory name='fn.factory' />\
-          <pdp:Evaluator name='arc.evaluator' />\
-          <pdp:Request name='arc.request' />\
-     </pdp:PDPConfig>\
-    </ArcConfig>");
-
-  //Get the lib path from environment, and put it into the configuration xml node
-  std::list<std::string> plugins = ArcLocation::GetPlugins();
-  for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p)
-    pdp_cfg_nd["ModuleManager"].NewChild("Path")=*p;
-
-  Config modulecfg(pdp_cfg_nd);
-
-  Arc::ClassLoader* classloader = ClassLoader::getClassLoader(&modulecfg);
-  std::string evaluator = "arc.evaluator";
-
-  //Dynamically load Evaluator object according to configure information
-  eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
-#endif
- 
   std::string evaluator = "arc.evaluator"; 
   EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);
@@ -129,22 +91,8 @@ bool ArcPDP::isPermitted(Message *msg){
   */
   Evaluator* eval = NULL;
 
-  PDPConfigContext *config = NULL;
+  std::string ctxid = "arcsec.arcpdp";
   try {
-    Arc::MessageContextElement* context = (*(msg->Context()))[id_];;
-    if(context) { 
-      config = dynamic_cast<PDPConfigContext*>(context);
-    }
-  } catch(std::exception& e) { };
-  if(config == NULL) {
-    logger.msg(INFO,"Although there is pdp configuration for this component, no pdp context has been generated for it"); 
-  };
-
-  std::string ctxid = "arcsec.arcpdp."+id_;
-  try {
-    // Using ID of PDP here to allow for multiple ArcPDP in a chain.
-    // If PDPs with same IDs are present user must understand that 
-    // they will be merged.
     Arc::MessageContextElement* mctx = (*(msg->Context()))[ctxid];
     if(mctx) {
       ArcPDPContext* pdpctx = dynamic_cast<ArcPDPContext*>(mctx);
@@ -158,11 +106,13 @@ bool ArcPDP::isPermitted(Message *msg){
     if(pdpctx) {
       eval=pdpctx->eval;
       if(eval) {
-        std::list<std::string> policylocation = (config!=NULL)?config->GetPolicyLocation():policy_locations;
-        for(std::list<std::string>::iterator it = policylocation.begin(); it!= policylocation.end(); it++) {
+        for(Arc::AttributeIterator it = (msg->Attributes())->getAll("PDP:POLICYLOCATION"); it.hasMore(); it++) {
           eval->addPolicy(SourceFile(*it));
         }
-        msg->Context()->Add(ctxid,pdpctx);
+        for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
+          eval->addPolicy(SourceFile(*it));
+        }
+        msg->Context()->Add(ctxid, pdpctx);
       } else {
         delete pdpctx;
       }
@@ -173,70 +123,6 @@ bool ArcPDP::isPermitted(Message *msg){
     logger.msg(ERROR,"Evaluator for ArcPDP was not loaded"); 
     return false;
   };
-
-#if 0
-  NS ns;
-  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
-  XMLNode requestxml(ns,"ra:Request");
-
-  for(int i = 0; i<config->RequestItemSize(); i++) {
-    XMLNode requestitem = requestxml.NewChild("ra:RequestItem");
-    XMLNode sub = requestitem.NewChild("ra:Subject");
-
-    ArcSec::AuthzRequest& request = config->GetRequestItem(i);      
-
-    std::list<ArcSec::AuthzRequestSection>& section = request.subject;
-    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
-      XMLNode subattr = sub.NewChild("ra:Attribute");
-      subattr = it->value;
-      XMLNode subattrId = subattr.NewAttribute("ra:AttributeId");
-      subattrId = it->id;
-      XMLNode subattrType = subattr.NewAttribute("ra:Type");
-      subattrType = it->type;
-      XMLNode subattrIssuer = subattr.NewAttribute("ra:Issuer");
-      subattrIssuer = it->issuer;
-    }
-
-    XMLNode res = requestitem.NewChild("ra:Resource");
-    section = request.resource;
-    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
-      XMLNode resattr = res.NewChild("ra:Attribute");
-      resattr = (*it).value;
-      XMLNode resattrId = resattr.NewAttribute("ra:AttributeId");
-      resattrId = (*it).id;
-      XMLNode resattrType = resattr.NewAttribute("ra:Type");
-      resattrType = (*it).type;
-      XMLNode resattrIssuer = resattr.NewAttribute("ra:Issuer");
-      resattrIssuer = (*it).issuer;
-    }
-
-    XMLNode act = requestitem.NewChild("ra:Action");
-    section = request.action;
-    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
-      XMLNode actattr = act.NewChild("ra:Attribute");
-      actattr = (*it).value;
-      XMLNode actattrId = actattr.NewAttribute("ra:AttributeId");
-      actattrId = (*it).id;
-      XMLNode actattrType = actattr.NewAttribute("ra:Type");
-      actattrType = (*it).type;
-      XMLNode actattrIssuer = actattr.NewAttribute("ra:Issuer");
-      actattrIssuer = (*it).issuer;
-    }
-
-    XMLNode ctx = requestitem.NewChild("ra:Context");
-    section = request.context;
-    for(std::list<ArcSec::AuthzRequestSection>::iterator it = section.begin(); it != section.end(); it++) {
-      XMLNode ctxattr = ctx.NewChild("ra:Attribute");
-      ctxattr = (*it).value;
-      XMLNode ctxattrId = ctxattr.NewAttribute("ra:AttributeId");
-      ctxattr = (*it).id;
-      XMLNode ctxattrType = ctxattr.NewAttribute("ra:Type");
-      ctxattr = (*it).type;
-      XMLNode ctxattrIssuer = ctxattr.NewAttribute("ra:Issuer");
-      ctxattr = (*it).issuer;
-    }
-  }
-#endif
 
   MessageAuth* mauth = msg->Auth()->Filter(select_attrs,reject_attrs);
   MessageAuth* cauth = msg->AuthContext()->Filter(select_attrs,reject_attrs);

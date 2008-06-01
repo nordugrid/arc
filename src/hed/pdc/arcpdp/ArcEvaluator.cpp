@@ -118,7 +118,8 @@ void ArcEvaluator::parsecfg(Arc::XMLNode& cfg){
   //filelist.push_back(policylocation);
   //plstore = new PolicyStore(filelist, alg, policy_classname, context);
   plstore = new PolicyStore(alg, policy_classname, context);
-
+  if(plstore == NULL)
+    logger.msg(ERROR, "Can not create PolicyStore object");
 }
 
 ArcEvaluator::ArcEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
