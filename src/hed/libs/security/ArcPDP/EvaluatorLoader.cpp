@@ -76,9 +76,11 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Evaluator object according to configure information. It should be the caller to free the object
-    eval = dynamic_cast<Evaluator*>(classloader->Instance(classname, (void**)(void*)&node));
+    //eval = dynamic_cast<Evaluator*>(classloader->Instance(classname, (void**)(void*)&node));
+    eval = (Evaluator*)(classloader->Instance(classname, (void**)(void*)&node));
   }
-  
+
+  if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object"); 
   return eval;
 }
 
@@ -115,9 +117,11 @@ Request* EvaluatorLoader::getRequest(std::string& classname, const Source& reque
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Request object according to configure information. It should be the caller to free the object
-    req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)&reqnode));
+    //req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)&reqnode));
+    req = (Request*)(classloader->Instance(classname, (void**)(void*)&reqnode));
   }
-
+  
+  if(!req) logger.msg(Arc::ERROR, "Can not load arc request object"); 
   return req;
 }
 
@@ -154,9 +158,11 @@ Policy* EvaluatorLoader::getPolicy(std::string& classname, const Source& policys
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
     //Dynamically load Policy object according to configure information. It should be the caller to free the object
-    policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)&policynode));
+    //policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)&policynode));
+    policy = (Policy*)(classloader->Instance(classname, (void**)(void*)&policynode));
   }
 
+  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object"); 
   return policy;
 }
 
