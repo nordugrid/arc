@@ -6,7 +6,8 @@
      </Description>
       <Subjects>
 	 <Subject>
-	    <Attribute Type="string">127.0.0.1</Attribute>
+	    <!--Attribute Type="string">127.0.0.1</Attribute-->
+            <Attribute Type="string">193.157.239.68</Attribute>
 	    <Attribute Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
    	 </Subject>
       </Subjects>

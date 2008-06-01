@@ -25,53 +25,12 @@ using namespace Echo;
 //Arc::Logger Service_Echo::logger(Service::logger, "Echo");
 //Arc::Logger Service_Echo::logger(Arc::Logger::getRootLogger(), "Echo");
 
-ArcSec::PDPConfigContext* Service_Echo::get_pdpconfig(Arc::Message& inmsg, std::string& id) {
-  ArcSec::PDPConfigContext* config = NULL;
-  Arc::MessageContextElement* mcontext = (*inmsg.Context())[id];
-  if(mcontext) {
-    try {
-      config = dynamic_cast<ArcSec::PDPConfigContext*>(mcontext);
-    } catch(std::exception& e) { };
-  }
-  if(config == NULL) {
-    config = new ArcSec::PDPConfigContext();
-    if(config) {
-      inmsg.Context()->Add(id, config);
-    } else {
-      logger.msg(Arc::ERROR, "Failed to create context for pdp request and policy");
-    }
-  }
-
-  std::string remotehost = inmsg.Attributes()->get("TCP:REMOTEHOST");
-  std::string subject = inmsg.Attributes()->get("TLS:IDENTITYDN");
-  std::string action = inmsg.Attributes()->get("HTTP:METHOD");
-
-  // See the PDP.h for detailed explaination about this internal structure
-
-  ArcSec::AuthzRequestSection section1, section2, section3;
-  section1.value = remotehost;
-  section1.type = "string";
-  section2.value = subject;
-  section2.type = "string";
-  section3.value = action;
-  section3.type = "string";
-
-  ArcSec::AuthzRequest request;
-  request.subject.push_back(section1);
-  request.subject.push_back(section2);
-  request.action.push_back(section3);
-
-  config->SetRequestItem(request);
-
-  return config;
-}
-
 Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="urn:echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);  
 
-  // Parse the pdp identifier and policy location information, and put them into a map container for later using
+  // Parse the policy location information, and put them into a map container for later using
   for(int i=0;; i++) {
     Arc::XMLNode cn = (*cfg).Child(i);
     if(!cn) break;
@@ -80,11 +39,7 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::ro
         Arc::XMLNode gn = cn.Child(j);
         if(!gn) break;
         if(MatchXMLName(gn, "PDP")) {
-          //"id" attribute of "PDP" node must be parsed here, because it will be used by ArcPDP as identifier
-          // for getting PDPConfigContext
-          std::string id = (std::string)(gn.Attribute("id"));
-          std::string policylocation = (std::string)(gn.Attribute("policylocation"));
-          pdpinfo_[id] = policylocation;
+          policylocation_  = (std::string)(gn.Attribute("policylocation"));
         }
       }
     }
@@ -106,24 +61,8 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
 }
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
-  // Parse the pdp request, and put them into msg context
-  ArcSec::PDPConfigContext* config = NULL;
-  std::map<std::string, std::string>::iterator it;
-  for(it = pdpinfo_.begin(); it != pdpinfo_.end(); it++) {       
-    config =  get_pdpconfig(inmsg, (std::string&)((*it).first));
-    if(!config) {
-      logger.msg(Arc::ERROR, "Can't get pdp request and policy information");
-      return Arc::MCC_Status();
-    }
-    config->SetPolicyLocation((*it).second);
-    // According to the requirement of some services, like Storage Service, which need to re-set
-    // the policy location each time a new incoming message comes. 
-    // Then in some place, the policylocation can be set as "PDP::POLICYLOCATION", and
-    // here the pdp location can be re-set, or add.
-    // config->SetPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::POLICYLOCATION")));
-    // config->AddPolicyLocation((std::string)(inmsg.Attributes()->get("PDP::POLICYLOCATION")));
-  }
-
+  //Store policy location into message attribute
+  inmsg.Attributes()->add("PDP:POLICYLOCATION", policylocation_);
   // Check authorization
   if(!ProcessSecHandlers(inmsg, "incoming")) {
     logger.msg(Arc::ERROR, "echo: Unauthorized");
