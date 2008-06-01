@@ -72,43 +72,8 @@ bool DelegationPDP::isPermitted(Message *msg){
       logger.msg(INFO,"No delegation policies in this context and message - passing through");
       result=true; throw std::exception();
     };
+
     // Create evaluator
-#if 0
-    XMLNode pdp_cfg_nd("\
-      <ArcConfig\
-       xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-       xmlns:pdp=\"http://www.nordugrid.org/schemas/pdp/Config\">\
-       <ModuleManager>\
-       </ModuleManager>\
-       <Plugins Name='arcpdc'>\
-            <Plugin Name='__arc_attrfactory_modules__'>attrfactory</Plugin>\
-            <Plugin Name='__arc_fnfactory_modules__'>fnfactory</Plugin>\
-            <Plugin Name='__arc_algfactory_modules__'>algfactory</Plugin>\
-            <Plugin Name='__arc_evaluator_modules__'>evaluator</Plugin>\
-            <Plugin Name='__arc_request_modules__'>request</Plugin>\
-       </Plugins>\
-       <pdp:PDPConfig>\
-            <pdp:AttributeFactory name='attr.factory' />\
-            <pdp:CombingAlgorithmFactory name='alg.factory' />\
-            <pdp:FunctionFactory name='fn.factory' />\
-            <pdp:Evaluator name='arc.evaluator' />\
-            <pdp:Request name='arc.request' />\
-       </pdp:PDPConfig>\
-      </ArcConfig>");
-    //Get the lib path from environment, and put it into the configuration xml node
-    std::list<std::string> plugins = ArcLocation::GetPlugins();
-    for(std::list<std::string>::iterator p = plugins.begin();p!=plugins.end();++p) {
-      pdp_cfg_nd["ModuleManager"].NewChild("Path")=*p;
-    };
-
-    Config modulecfg(pdp_cfg_nd);
-    Arc::ClassLoader* classloader = ClassLoader::getClassLoader(&modulecfg);
-    std::string evaluator = "arc.evaluator";
-
-    //Dynamically load Evaluator object according to configure information
-    eval = dynamic_cast<Evaluator*>(classloader->Instance(evaluator, (void**)(void*)&pdp_cfg_nd));
-#endif
-
     std::string evaluator = "arc.evaluator";
     EvaluatorLoader eval_loader;
     eval = eval_loader.getEvaluator(evaluator);
