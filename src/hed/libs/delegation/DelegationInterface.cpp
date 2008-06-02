@@ -541,7 +541,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     is.seekg (0, std::ios::end);
     int length = is.tellg();
     is.seekg (0, std::ios::beg);
-    char* buffer = new char[length];
+    char* buffer =  new char[length];
     is.read(buffer, length);
 
     obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
@@ -551,6 +551,8 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)buffer, length);
     proxy_policy.policyLanguage=obj;
     proxy_policy.policy=policy_string;
+
+    delete buffer;
   }
   else {
     obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
