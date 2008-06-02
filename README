@@ -220,6 +220,38 @@ to be kept unencrypted.
 
 
 
+Proxy certificate Generation & Usage
+====================================
+As metioned above, ARC1 comes with utility proxy generation utility
+--approxy. 
+approxy appears in ARC_LOCATION/bin. The usage of approxy is like:
+ARC_LOCATION/bin/approxy -P proxy.pem -C cert.pem -K key.pem 
+-c validityStart=2008-05-29T10:20:30Z
+-c validityEnd=2008-06-29T10:20:30Z
+-c proxyPolicyFile=delegation_policy.xml
+By using argument "-c", some constraints can be specified for proxy 
+certificate. Currently, the life time can be specified by using 
+"-c validityStart=..." and "-c validityEnd=...", or "-c validityStart=..."
+and "-c validityPeriod=..."; the proxy policy can be specified by 
+using "-c proxyPolicyFile=..." or "-c proxyPolicy=...".
+
+If proxy certificate is used, in the configuration file for service
+side or client side, the configuration for the certificate for TLS MCC 
+should look like this:
+      <KeyPath>./proxy.pem</KeyPath>
+      <CertificatePath>./proxy.pem</CertificatePath>
+      <CACertificatePath>./ca.pem</CACertificatePath>
+Because normally a proxy certificate file includes the proxy certificate
+and private key corresponding to the proxy certificate, <KeyPath/> and 
+<CertificatePath/> are configured the same.
+
+Proxy policy can be spefified as constraint. Proxy policy is for constraining 
+identity delegation. Currently, the supported policy is Arc specific policy.
+Proxy policy is inserted into proxy certificate's "proxy cert info"
+extenstion in RFC3820's policy language "NID_id_ppl_anyLanguage".
+
+
+
 ARC Server Setup & Configuration
 ================================
 
@@ -433,11 +465,18 @@ own part of security information. Currently ARC1 comes with 2 Security Handlers:
    uses PDP components to choose local isentity and/or identity mapping algorithm.
  * simplelist.authz - calls PDP components and combines obtained authorization
    decisions.
+ * delegation.collector - parses proxy policy from remote proxy certificate.
+                          this Security Handler should be configured under tls
+                          mcc component.
 
 Among available PDP components there are
  * allow - always returns positive result
  * deny - always returns negative result 
  * simplelist.pdp - compares DN of user to those stored in a file.
+ * arc.pdp - compares request information parsed from message and policy 
+             information specified in this pdp.
+ * delegation.pdp - compares request information parsed from message and policy
+             information specified in proxy certificate from remote side.
 
 Other more sophisticated PDPs are available but not yet fully integrated into
 ARC1 framework.
