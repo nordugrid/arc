@@ -13,7 +13,7 @@ int main() {
 
   Arc::ACCConfig acccfg;
   
-  std::string config_str = "<ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"> \		  		  
+  std::string config_str = "<ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"> \
 		<Chain>\
 	  	<Component name=\"tls.client\"> \
       <KeyPath>/Users/roczei/Documents/workspace/arc1/etc/grid-security/key.pem</KeyPath>\
@@ -30,7 +30,7 @@ int main() {
   SubmitterComp.NewAttribute("id") = "submitter";
   SubmitterComp.NewChild("Endpoint") = "https://knowarc1.grid.niif.hu:60000/arex"; // I am not not using it at the moment because it is defined in the SubmitterARC1.cpp staticaly
 
-  Arc::Loader loader(cfg);
+ /* Arc::Loader loader(cfg);
 
   Arc::Submitter *submitter =
     dynamic_cast<Arc::Submitter *>(loader.getACC("submitter"));
@@ -43,7 +43,7 @@ int main() {
   xmlns:posix=\"http://schemas.ggf.org/jsdl/2005/11/jsdl-posix\" \
   xmlns:jsdl-arc=\"http://www.nordugrid.org/ws/schemas/jsdl-arc\"> \
   <JobDescription>\
-    <JobIdentification>
+    <JobIdentification> \
       <JobName>foo test</JobName> \
     </JobIdentification> \
     <Application> \
@@ -70,7 +70,7 @@ int main() {
   results = submitter->Submit(jsdl_str);
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
-  std::cout << "InfoEndpoint: " << results.second.str() << std::endl;
+  std::cout << "InfoEndpoint: " << results.second.str() << std::endl; */
 
   return 0;
 }

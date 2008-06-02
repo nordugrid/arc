@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string>
 
+namespace Arc {
+
 static std::string merge_paths(const std::string path1,const std::string& path2) {
   std::string path = path1;
   if((path.empty()) || (path[path.length()-1] != '/')) path+="/";
@@ -48,6 +50,8 @@ static bool put_file(Arc::ClientHTTP& client,const Arc::URL& base,Arc::AREXFile&
   return true;
 }
 
+Arc::Logger SubmitterARC1::logger(Arc::Logger::rootLogger, "A-REX-Submitter");
+
 static void set_arex_namespaces(Arc::NS& ns) {
   ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
   ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
@@ -57,8 +61,6 @@ static void set_arex_namespaces(Arc::NS& ns) {
   ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
   ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
 }
-
-namespace Arc {
   
   SubmitterARC1::SubmitterARC1(Config *cfg)
   : Submitter(cfg) {
@@ -169,12 +171,10 @@ namespace Arc {
 	      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
 	      if(!status) {
 	        logger.msg(Arc::ERROR, "Submission request failed.");
-	        throw AREXClientError("Submission request failed.");
 	      }
 	      logger.msg(Arc::INFO, "Submission request succeed.");
 	      if(repmsg.Payload() == NULL) {
-	        logger.msg(Arc::ERROR, "There were no response to a submission request.");
-	        throw AREXClientError("There were no response to the submission request.");
+	        logger.msg(Arc::ERROR, "There were no response to a submission request.");	        
 	      }
 	      try {
 	        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
@@ -182,10 +182,9 @@ namespace Arc {
 	      if(resp == NULL) {
 	        logger.msg(Arc::ERROR,"A response to a submission request was not a SOAP message.");
 	        delete repmsg.Payload();
-	        throw AREXClientError("The response to the submission request was not a SOAP message.");
 	      };
 	    } else {
-	      throw AREXClientError("There is no connection chain configured.");
+	      
 	    }
 	    
 	    Arc::XMLNode id, fs;
@@ -219,7 +218,8 @@ namespace Arc {
 		  }
 	   }
 	    else 
-	      throw AREXClientError(faultstring);
+	      // TODO: error handling
+	    	;
 	  }  
 	  catch (std::exception& e){
 		  std::cerr << "ERROR: " << e.what() << std::endl;  
