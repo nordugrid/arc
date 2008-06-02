@@ -7,7 +7,6 @@
 #include <sstream>
 #include <cstdlib>
 #include <ctime>
-#include <cstring>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -57,6 +56,8 @@ time_t timegm (struct tm *tm) {
  */
 
 #include "cream_client.h"
+
+using namespace Arc::Cream;
 
 time_t Arc::Cream::ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   struct tm tm;
