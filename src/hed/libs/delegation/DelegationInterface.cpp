@@ -447,6 +447,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   time_t validity_end = (time_t)(-1);
   DelegationRestrictions& restrictions_ = (DelegationRestrictions&)restrictions;
   std::string proxyPolicy;
+  std::string proxyPolicyFile;
 
   if(!cert_) {
     std::cerr<<"Missing certificate chain"<<std::endl;
@@ -525,6 +526,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   proxy_policy.policyLanguage=NULL;
   proxy_policy.policy=NULL;
   proxyPolicy=restrictions_["proxyPolicy"];
+  proxyPolicyFile=restrictions_["proxyPolicyFile"];
   if(!proxyPolicy.empty()) {
     obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
     if(!obj) goto err;
@@ -533,7 +535,24 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)(proxyPolicy.c_str()),proxyPolicy.length());
     proxy_policy.policyLanguage=obj;
     proxy_policy.policy=policy_string;
-  } else {
+  } 
+  else if (!proxyPolicyFile.empty()) {
+    std::ifstream is(proxyPolicyFile.c_str(),std::ios::in);
+    is.seekg (0, std::ios::end);
+    int length = is.tellg();
+    is.seekg (0, std::ios::beg);
+    char* buffer = new char[length];
+    is.read(buffer, length);
+
+    obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
+    if(!obj) goto err;
+    policy_string=ASN1_OCTET_STRING_new();
+    if(!policy_string) goto err;
+    ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)buffer, length);
+    proxy_policy.policyLanguage=obj;
+    proxy_policy.policy=policy_string;
+  }
+  else {
     obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
     if(!obj) goto err;
     proxy_policy.policyLanguage=obj;
