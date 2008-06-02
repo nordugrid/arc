@@ -1,0 +1,11 @@
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+   <Rule Effect="Permit">
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA1</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/subject" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+         </Subject>
+      </Subjects>
+   </Rule>
+</Policy>
+
