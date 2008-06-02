@@ -415,12 +415,12 @@ namespace Arc{
             }
             delete resp;
 
-            std::string proxy = getProxy();
+            std::string proxy = Arc::Cream::getProxy();
             std::string signedcert;
             char *cert=NULL; 
-            int timeleft = getCertTimeLeft(proxy);
+            int timeleft = Arc::Cream::getCertTimeLeft(proxy);
             
-            if (makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) throw CREAMClientError("DelegateProxy failed.");
+            if (Arc::Cream::makeProxyCert(&cert,(char*) getProxyReqReturnValue.c_str(),(char*) proxy.c_str(),(char *) proxy.c_str(),timeleft)) throw CREAMClientError("DelegateProxy failed.");
             signedcert.assign(cert);
   
             Arc::PayloadSOAP req2(cream_ns);
@@ -523,20 +523,13 @@ namespace Arc{
             //if (cache_path.length()==0 || cache_path=="") throw CREAMClientError("Cache path must be specified!");
             if (job_root.length()==0 || job_root=="") throw CREAMClientError("Job root directory must be specified!");
             
-            // Input checking TEST
-            //std::cout << "Upload these files to the InputSandbox (" << job.ISB_URI << "):" << std::endl;
-            //for (std::vector< std::pair< std::string, std::string > >::const_iterator it = fileList.begin(); it != fileList.end(); it++) {
-            //    std::cout << "Filename: " << (*it).first << std::endl << "URI: " << (*it).second << std::endl << std::endl;
-            //}
-            
             // Create mover
             Arc::DataMover mover;
             mover.retry(true);
-            mover.secure(false); // XXX what if I download form https url? 
+            mover.secure(false);
             mover.passive(false);
-            //mover.verbose(true);
+            mover.verbose(true);
             mover.set_progress_indicator(&progress);
-            mover.force_to_meta(false);
             //mover->set_default_max_inactivity_time(300);
             
             // Create cache
@@ -555,8 +548,8 @@ namespace Arc{
                 Arc::DataHandle source(src);
                 Arc::DataHandle destination(dst);
                 
-                source->SetTries(5);
-                destination->SetTries(5);
+                //source->SetTries(5);
+                //destination->SetTries(5);
         
                 std::string failure;
                 int timeout = 300;

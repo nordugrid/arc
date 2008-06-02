@@ -43,13 +43,22 @@ time_t timegm (struct tm *tm) {
 }
 #endif
 
-#include <openssl/pem.h>
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/evp.h>
-#include <openssl/bio.h>
+/*namespace Arc {
+  namespace Cream {
+    time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s);
+    const long getCertTimeLeft( std::string pxfile );
+    time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len);
+    int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes);
+    std::string checkPath(std::string p);
+    std::string getProxy();
+    std::string getTrustedCerts();
+  } // namespace Cream
+} // namespace Arc
+ */
 
-time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
+#include "cream_client.h"
+
+time_t Arc::Cream::ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   struct tm tm;
   int offset;
   memset(&tm,'\0',sizeof tm);
@@ -73,7 +82,7 @@ time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   return timegm(&tm)-offset*60;
 }
 
-const long getCertTimeLeft( std::string pxfile ) {
+const long Arc::Cream::getCertTimeLeft( std::string pxfile ) {
   time_t timeleft = 0;
   BIO *in = NULL;
   X509 *x = NULL;
@@ -98,7 +107,7 @@ const long getCertTimeLeft( std::string pxfile ) {
   return timeleft;
 }
 
-time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len)
+time_t Arc::Cream::GRSTasn1TimeToTimeT(char *asn1time, size_t len)
 {
    char   zone;
    struct tm time_tm;
@@ -137,7 +146,7 @@ time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len)
 
 //modified version of gridsite makeproxy. 
 //must be cleaned up.
-int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes)
+int Arc::Cream::makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes)
 {
   char *ptr, *certchain;
   int i, ncerts;
@@ -381,7 +390,7 @@ int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int mi
 }
 
 
-std::string checkPath(std::string p){
+std::string Arc::Cream::checkPath(std::string p){
    std::ifstream inf(p.c_str());
    if (inf.good()){
       inf.close();
@@ -391,7 +400,7 @@ std::string checkPath(std::string p){
    return p.assign("");
 } 
 
-std::string getProxy(){
+std::string Arc::Cream::getProxy(){
    std::string path;
    char * res=NULL;
 
@@ -406,7 +415,7 @@ std::string getProxy(){
    return path;
 }
 
-std::string getTrustedCerts(){
+std::string Arc::Cream::getTrustedCerts(){
    std::string path;
    char * res=NULL;
 
