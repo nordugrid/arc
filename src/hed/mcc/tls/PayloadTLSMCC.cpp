@@ -103,24 +103,13 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
 
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
-   if(!master_) return;
-   if(ssl_) { 
-     if(SSL_shutdown(ssl_) == 0) {
-       //logger.msg(WARNING, "Failed to shut down SSL");
-       logger_.msg(VERBOSE, "Failed to shut down SSL");
-     };
-/*
-     while((err==0)&&(counter<60)){
-       err=SSL_shutdown(ssl_);
-       if (err==0) {
-       	 sleep(1);
-         counter++;
-       }
-    }
-    if(err<0) logger.msg(ERROR, "Failed to shut down SSL");
-*/
+  if (!master_)
+    return;
+  if (ssl_) {
+    if (SSL_shutdown(ssl_) < 0)
+      logger_.msg(ERROR, "Failed to shut down SSL");
     SSL_free(ssl_);
-    ssl_=NULL;
+    ssl_ = NULL;
   }
 }
 
