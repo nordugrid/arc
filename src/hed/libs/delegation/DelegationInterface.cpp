@@ -10,6 +10,7 @@
 #include <openssl/x509v3.h>
 
 #include <iostream>
+#include <fstream>
 
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
