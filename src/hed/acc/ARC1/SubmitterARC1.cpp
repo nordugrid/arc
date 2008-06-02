@@ -59,9 +59,9 @@ static void set_arex_namespaces(Arc::NS& ns) {
 }
 
 namespace Arc {
-
+  
   SubmitterARC1::SubmitterARC1(Config *cfg)
-  :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
+  : Submitter(cfg) {
 	  
 	  logger.msg(Arc::INFO, "Creating an A-REX client.");
 	  client_loader = new Arc::Loader(cfg);
@@ -70,13 +70,14 @@ namespace Arc {
 	  if(!client_entry) {
 		  logger.msg(Arc::ERROR, "Client chain does not have entry point.");
 	  }
-
+	  //client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
 	  set_arex_namespaces(arex_ns);
   }
   
   SubmitterARC1::~SubmitterARC1() {
 	    if(client_loader) delete client_loader;
-	    if(client_config) delete client_config;    
+	    if(client_config) delete client_config;
+	    if(client) delete client;
   }
 
   ACC *SubmitterARC1::Instance(Config *cfg, ChainContext *) {
@@ -185,6 +186,7 @@ namespace Arc {
 	      };
 	    } else {
 	      throw AREXClientError("There is no connection chain configured.");
+	    }
 	    
 	    Arc::XMLNode id, fs;
 	    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
@@ -202,7 +204,7 @@ namespace Arc {
 		    // Upload user files
 		    for(Arc::AREXFileList::iterator file = file_list.begin();file!=file_list.end();++file) {
 		      std::cout<<"Uploading file "<<file->local<<" to "<<file->remote<<std::endl;
-		      if(!put_file(*(client_entry.SOAP()),session_url,*file))
+		      if(!put_file(*(client),session_url,*file))
 		        throw std::invalid_argument(std::string("Could not upload file ") +
 		                                    file->local + " to " + file->remote);
 		    };
@@ -215,11 +217,13 @@ namespace Arc {
 		  catch (std::exception& e){
 		    std::cerr << "ERROR: " << e.what() << std::endl;
 		  }
-	  }
-	    else
+	   }
+	    else 
 	      throw AREXClientError(faultstring);
-	    } 
-	  }   
- }
-}
+	  }  
+	  catch (std::exception& e){
+		  std::cerr << "ERROR: " << e.what() << std::endl;  
+	  }
+	  
+	} // SubmitterARC1::Submit    
 } // namespace Arc
