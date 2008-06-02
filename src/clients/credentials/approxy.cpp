@@ -49,7 +49,8 @@ int main(int argc, char* argv[]){
 				    "  validityStart=time\n"
 				    "  validityEnd=time\n"
 				    "  validityPeriod=time\n"
-				    "  proxyPolicy=policy content"));
+				    "  proxyPolicy=policy content\n"
+                                    "  proxyPolicyFile=policy file"));
 
   std::string proxy_path;
   options.AddOption('P', "proxy", istring("path to proxy file"),
