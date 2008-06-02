@@ -21,6 +21,7 @@
 #include <arc/data/DMC.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
 #include <arc/data/DataCache.h>
 #include <arc/data/URLMap.h>
 

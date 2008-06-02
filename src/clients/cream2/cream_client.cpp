@@ -498,54 +498,79 @@ namespace Arc{
             delete resp;
         } // CREAMClient::destroyDelegation()
 
+        static void progress(FILE *o, const char *, unsigned int,
+            unsigned long long int all, unsigned long long int max,
+            double, double) {
+            static int rs = 0;
+            const char rs_[4] = {'|', '/', '-', '\\'};
+                if (max) {
+                fprintf(o, "\r|");
+                unsigned int l = (74 * all + 37) / max;
+                if (l > 74) l = 74;
+                unsigned int i = 0;
+                for (; i < l; i++) fprintf(o, "=");
+                fprintf(o, "%c", rs_[rs++]);
+                if (rs > 3) rs = 0;
+                for (; i < 74; i++) fprintf(o, " ");
+                fprintf(o, "|\r");
+                fflush(o);
+                return;
+            }
+            fprintf(o, "\r%llu kB                    \r", all / 1024);
+        }
+
         void CREAMClient::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, const creamJobInfo job) throw(CREAMClientError) {
-            if (cache_path.length()==0 || cache_path=="") throw CREAMClientError("Cache path must be specified!");
+            //if (cache_path.length()==0 || cache_path=="") throw CREAMClientError("Cache path must be specified!");
             if (job_root.length()==0 || job_root=="") throw CREAMClientError("Job root directory must be specified!");
-            Arc::DataMover *mover;
-            Arc::DataCache *cache;
-            Arc::URLMap url_map;
             
             // Input checking TEST
-            std::cout << "Upload these files to the InputSandbox (" << job.ISB_URI << "):" << std::endl;
-            for (std::vector< std::pair< std::string, std::string > >::const_iterator it = fileList.begin(); it != fileList.end(); it++) {
-                std::cout << "Filename: " << (*it).first << std::endl << "URI: " << (*it).second << std::endl << std::endl;
-            }
+            //std::cout << "Upload these files to the InputSandbox (" << job.ISB_URI << "):" << std::endl;
+            //for (std::vector< std::pair< std::string, std::string > >::const_iterator it = fileList.begin(); it != fileList.end(); it++) {
+            //    std::cout << "Filename: " << (*it).first << std::endl << "URI: " << (*it).second << std::endl << std::endl;
+            //}
             
             // Create mover
-            mover = new Arc::DataMover();
-            mover->retry(true);
-            mover->secure(false); // XXX what if I download form https url? 
-            mover->passive(false);
-            mover->verbose(true);
-            mover->set_default_max_inactivity_time(300);
+            Arc::DataMover mover;
+            mover.retry(true);
+            mover.secure(false); // XXX what if I download form https url? 
+            mover.passive(false);
+            //mover.verbose(true);
+            mover.set_progress_indicator(&progress);
+            mover.force_to_meta(false);
+            //mover->set_default_max_inactivity_time(300);
             
             // Create cache
             Arc::User cache_user;
-            std::string cache_link_dir;
-            cache = new Arc::DataCache (cache_path, cache_path, cache_link_dir, job.jobId, cache_user);
-            
+            std::string cache_path2;
+            std::string cache_data_path;
+            //Arc::DataCache cache(cache_path, cache_data_path, "", job.jobId, cache_user);
+            std::string id = "<ngcp>";
+            Arc::DataCache cache(cache_path2, cache_data_path, "", id, cache_user);
             for (std::vector< std::pair< std::string, std::string > >::const_iterator file = fileList.begin(); file != fileList.end(); file++) {
-                // Arc::DataPoint *source; source = Arc::DMC::GetDataPoint((*file).first);
-                // Arc::DataPoint *destination; destination = Arc::DMC::GetDataPoint((*file).second);
-                //std::string src = Glib::build_filename(Glib::build_filename(job_root, job.jobId), (*file).first);
                 std::string src = Glib::build_filename(job_root, (*file).first);
                 std::string dst = Glib::build_filename(job.ISB_URI, (*file).second);
                 std::cout << src << " -> " << dst << std::endl;
-                Arc::DataPoint *source(Arc::DMC::GetDataPoint(src));
-                Arc::DataPoint *destination(Arc::DMC::GetDataPoint(dst));
-                //Arc::DataPoint *source(Arc::DMC::GetDataPoint((*file).first));
-                //Arc::DataPoint *destination(Arc::DMC::GetDataPoint((*file).second));
+                //Arc::DataPoint *source(Arc::DMC::GetDataPoint(src));
+                //Arc::DataPoint *destination(Arc::DMC::GetDataPoint(dst));
+                Arc::DataHandle source(src);
+                Arc::DataHandle destination(dst);
+                
+                source->SetTries(5);
+                destination->SetTries(5);
+        
                 std::string failure;
-                if (!mover->Transfer( *source, *destination, *cache, url_map, failure)) {
-                    std::cerr << "File moving was not succeeded." << std::endl;
+                int timeout = 300;
+                if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
+                    if (!failure.empty()) std::cerr << "File moving was not succeeded: " << failure << std::endl;
+                    else std::cerr << "File moving was not succeeded." << std::endl;
                 }
                 
-                if (source) delete source;
-                if (destination) delete destination;
+                //if (source) delete source;
+                //if (destination) delete destination;
             }
             
-            if (mover) delete mover;
-            if (cache) delete cache;
+            //if (mover) delete mover;
+            //if (cache) delete cache;
         } // CREAMClient::putFiles()
 
         void CREAMClient::getFiles() throw(CREAMClientError) {
