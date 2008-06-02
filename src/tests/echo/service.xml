@@ -29,6 +29,10 @@
 	    <KeyPath>./key.pem</KeyPath>
 	    <CertificatePath>./cert.pem</CertificatePath>
 	    <CACertificatePath>./ca.pem</CACertificatePath>
+            <!--delegationPDP must be inside tls MCC-->
+            <!--SecHandler name="delegation.collector" id="delegation" event="incoming">
+              <PDP name="delegation.pdp"/>
+            </SecHandler-->
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
@@ -37,9 +41,9 @@
 	    <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">
-            <SecHandler name="simplelist.authz" id="authz" event="incoming">
+            <!--SecHandler name="simplelist.authz" id="authz" event="incoming">
               <PDP name="arc.pdp" policylocation="Policy_Example.xml"/>
-            </SecHandler>
+            </SecHandler-->
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>
