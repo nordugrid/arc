@@ -9,6 +9,7 @@
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
 
+#include <string>
 #include <iostream>
 #include <fstream>
 
@@ -528,6 +529,12 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   proxy_policy.policy=NULL;
   proxyPolicy=restrictions_["proxyPolicy"];
   proxyPolicyFile=restrictions_["proxyPolicyFile"];
+  if(!proxyPolicyFile.empty()) {
+    if(!proxyPolicy.empty()) goto err; // Two policies supplied
+    std::ifstream is(proxyPolicyFile.c_str());
+    std::getline(is,proxyPolicy,(char)0);
+    if(proxyPolicy.empty()) goto err;
+  };
   if(!proxyPolicy.empty()) {
     obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
     if(!obj) goto err;
@@ -536,26 +543,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)(proxyPolicy.c_str()),proxyPolicy.length());
     proxy_policy.policyLanguage=obj;
     proxy_policy.policy=policy_string;
-  } 
-  else if (!proxyPolicyFile.empty()) {
-    std::ifstream is(proxyPolicyFile.c_str(),std::ios::in);
-    is.seekg (0, std::ios::end);
-    int length = is.tellg();
-    is.seekg (0, std::ios::beg);
-    char* buffer =  new char[length];
-    is.read(buffer, length);
-
-    obj=OBJ_nid2obj(NID_id_ppl_anyLanguage);  // Proxy with policy
-    if(!obj) goto err;
-    policy_string=ASN1_OCTET_STRING_new();
-    if(!policy_string) goto err;
-    ASN1_OCTET_STRING_set(policy_string,(const unsigned char*)buffer, length);
-    proxy_policy.policyLanguage=obj;
-    proxy_policy.policy=policy_string;
-
-    delete buffer;
-  }
-  else {
+  } else {
     obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
     if(!obj) goto err;
     proxy_policy.policyLanguage=obj;
