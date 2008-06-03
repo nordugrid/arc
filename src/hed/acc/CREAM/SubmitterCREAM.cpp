@@ -27,8 +27,7 @@ namespace Arc {
     gLiteClient2.setDelegationId(delegationid);
     gLiteClient2.cache_path = "/tmp";
     gLiteClient2.job_root = Glib::get_current_dir();
-    std::string desc(jobdesc);
-    Cream::creamJobInfo jobInfo = gLiteClient2.submit(desc);
+    Cream::creamJobInfo jobInfo = gLiteClient2.submit(jobdesc);
     std::cout << "jobId: " << jobInfo.jobId << std::endl;
     std::cout << "creamURL: " << jobInfo.creamURL << std::endl;
     std::cout << "ISB:" << jobInfo.ISB_URI << std::endl;

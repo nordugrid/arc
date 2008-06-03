@@ -196,7 +196,7 @@ namespace Arc{
             if (result=="") throw CREAMClientError("Job cleaning failed.");
         }  // CREAMClient::purge()
        
-        creamJobInfo CREAMClient::registerJob(std::string& jdl_text) throw(CREAMClientError) {
+        creamJobInfo CREAMClient::registerJob(const std::string& jdl_text) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating and sending job register request.");
             
             Arc::PayloadSOAP req(cream_ns);
@@ -325,7 +325,7 @@ namespace Arc{
             if (result=="") throw CREAMClientError("Job starting failed.");
         } // CREAMClient::startJob()
        
-        creamJobInfo CREAMClient::submit(std::string& jsdl_text) throw(CREAMClientError) {
+        creamJobInfo CREAMClient::submit(const std::string& jsdl_text) throw(CREAMClientError) {
             std::string jobid;
             std::string jdl_text;
             
@@ -373,7 +373,7 @@ namespace Arc{
             return info;
         }
         
-        void CREAMClient::createDelegation(std::string& delegation_id) throw(CREAMClientError) {
+        void CREAMClient::createDelegation(const std::string& delegation_id) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating delegation.");
             
             Arc::PayloadSOAP req(cream_ns);
@@ -460,7 +460,7 @@ namespace Arc{
             
         } // CREAMClient::createDelegation()
         
-        void CREAMClient::destroyDelegation(std::string& delegation_id) throw(CREAMClientError) {
+        void CREAMClient::destroyDelegation(const std::string& delegation_id) throw(CREAMClientError) {
             logger.msg(Arc::INFO, "Creating delegation.");
             
             Arc::PayloadSOAP req(cream_ns);

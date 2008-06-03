@@ -44,10 +44,10 @@ namespace Arc{
             public:
                 CREAMClient(const Arc::URL& url,const Arc::MCCConfig& cfg) throw(CREAMClientError);
                 ~CREAMClient();
-                void setDelegationId(std::string delegId) { this->delegationId = delegId; };
-                void createDelegation(std::string& delegation_id) throw(CREAMClientError);
-                void destroyDelegation(std::string& delegation_id) throw(CREAMClientError);
-                creamJobInfo submit(std::string& jsdl_text) throw(CREAMClientError);
+                void setDelegationId(const std::string& delegId) { this->delegationId = delegId; };
+                void createDelegation(const std::string& delegation_id) throw(CREAMClientError);
+                void destroyDelegation(const std::string& delegation_id) throw(CREAMClientError);
+                creamJobInfo submit(const std::string& jsdl_text) throw(CREAMClientError);
                 std::string stat(const std::string& jobid) throw(CREAMClientError);
                 void cancel(const std::string& jobid) throw(CREAMClientError);
                 void purge(const std::string& jobid) throw(CREAMClientError);
@@ -63,7 +63,7 @@ namespace Arc{
                 static Arc::Logger logger;
                 
 
-                creamJobInfo registerJob(std::string& jdl_text) throw(CREAMClientError);
+                creamJobInfo registerJob(const std::string& jdl_text) throw(CREAMClientError);
                 void startJob(const std::string& jobid) throw(CREAMClientError);
                 void putFiles(const std::vector< std::pair< std::string, std::string > >& fileList, const creamJobInfo job) throw(CREAMClientError);
                 void getFiles() throw(CREAMClientError);
