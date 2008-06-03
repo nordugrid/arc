@@ -1,6 +1,7 @@
 #include "SubmitterARC1.h"
 
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <string>
 
@@ -22,7 +23,7 @@ static bool put_file(Arc::ClientHTTP& client,const Arc::URL& base,Arc::AREXFile&
   url.ChangePath(merge_paths(url.Path(),file.remote));
   std::string file_name = file.local; // Relative to current directory
   std::cout << file.local << std::endl;
-/*  const uint64_t chunk_len = 1024*1024; // Some reasonable size - TODO - make ir configurable
+  const uint64_t chunk_len = 1024*1024; // Some reasonable size - TODO - make ir configurable
   uint64_t chunk_start = 0;
   uint64_t chunk_end = chunk_len;
   std::ifstream f(file_name.c_str());
@@ -46,7 +47,7 @@ static bool put_file(Arc::ClientHTTP& client,const Arc::URL& base,Arc::AREXFile&
     if(!resp) return false;
     if(info.code != 200) { delete resp; return false; };
     chunk_start=chunk_end; chunk_end=chunk_start+chunk_len; 
-  }; */
+  };
   return true;
 }
 
@@ -72,7 +73,16 @@ static void set_arex_namespaces(Arc::NS& ns) {
 	  if(!client_entry) {
 		  logger.msg(Arc::ERROR, "Client chain does not have entry point.");
 	  }
-	  //client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+	  
+	  std::string url_str;
+	  url_str = (std::string)((*cfg)["ArcClientComponent"]["Endpoint"]);
+	  Arc::URL url(url_str);
+	  
+      mcc_cfg.AddPrivateKey((std::string)((*cfg)["Component"]["KeyPath"]));
+      mcc_cfg.AddCertificate((std::string)((*cfg)["Component"]["CertificatePath"]));
+      mcc_cfg.AddCADir((std::string)((*cfg)["Component"]["CACertificatesDir"]));
+	  
+	  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
 	  set_arex_namespaces(arex_ns);
   }
   

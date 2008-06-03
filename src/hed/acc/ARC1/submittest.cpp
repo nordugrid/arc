@@ -24,13 +24,14 @@ int main() {
 </ArcConfig>";
   
   Arc::Config cfg(config_str);
+  acccfg.MakeConfig(cfg);
   
   Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
   SubmitterComp.NewAttribute("name") = "SubmitterARC1";
   SubmitterComp.NewAttribute("id") = "submitter";
-  SubmitterComp.NewChild("Endpoint") = "https://knowarc1.grid.niif.hu:60000/arex"; // I am not not using it at the moment because it is defined in the SubmitterARC1.cpp staticaly
-
- /* Arc::Loader loader(cfg);
+  SubmitterComp.NewChild("Endpoint") = "https://knowarc1.grid.niif.hu:60000/arex";
+  
+  Arc::Loader loader(&cfg);
 
   Arc::Submitter *submitter =
     dynamic_cast<Arc::Submitter *>(loader.getACC("submitter"));
@@ -70,7 +71,7 @@ int main() {
   results = submitter->Submit(jsdl_str);
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
-  std::cout << "InfoEndpoint: " << results.second.str() << std::endl; */
+  std::cout << "InfoEndpoint: " << results.second.str() << std::endl;
 
   return 0;
 }

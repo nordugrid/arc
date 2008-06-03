@@ -77,6 +77,8 @@ namespace Arc {
      */
     static Arc::Logger logger;
     
+    Arc::MCCConfig mcc_cfg;
+    
     SubmitterARC1(Config *cfg);
     ~SubmitterARC1();
 
