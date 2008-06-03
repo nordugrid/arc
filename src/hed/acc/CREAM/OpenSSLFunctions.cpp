@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 
 #include <unistd.h>
