@@ -39,10 +39,10 @@
 	    <next id="echo"/>
         </Component>
         <Service name="echo" id="echo">
-            <SecHandler name="simplelist.authz" id="authz" event="incoming">
+            <!--SecHandler name="simplelist.authz" id="authz" event="incoming"-->
               <!--PDP name="arc.pdp" policylocation="delegation_policy.xml"/-->
               <!--PDP name="delegation.pdp"/-->
-            </SecHandler>
+            <!--/SecHandler-->
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>
