@@ -37,7 +37,10 @@ AttributeValue* ArcAttributeProxy<TheAttribute>::getAttribute(const Arc::XMLNode
   std::string value = (std::string)x;
   if(value.empty()) x=x.Child(0); // ???
   value = (std::string)x;
-  return new TheAttribute(value,(std::string)(x.Attribute("AttributeId")));
+  std::string attrid = (std::string)(x.Attribute("AttributeId"));
+  if(attrid.empty())
+    attrid = (std::string)(x.Attribute("Id"));
+  return new TheAttribute(value, attrid);
 }
 
 } // namespace ArcSec

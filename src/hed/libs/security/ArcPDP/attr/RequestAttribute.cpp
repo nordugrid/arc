@@ -14,6 +14,8 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 
   //Get the attribute of the node  
   id = (std::string)(node.Attribute("AttributeId")); 
+  if(id.empty())
+    id = (std::string)(node.Attribute("Id"));
 
   std::string tp = (std::string)(node.Attribute("Type"));
   if(tp.empty())
