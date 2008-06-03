@@ -1,8 +1,8 @@
 bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate gliteundelegate
 
 SOURCES = cream_client.cpp cream_client.h openSSLFunctions.cpp openSSLFunctions.h
-LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la
-commonCXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(OPENSSL_CFLAGS)
+LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/acc/CREAM/libCREAMClient.la
+commonCXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/src/hed/acc/CREAM
 commonLDFLAGS=$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 glitesub_SOURCES  = glitesub.cpp
