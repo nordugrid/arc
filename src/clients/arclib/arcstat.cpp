@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("[jobid]"), "", istring(
-			      "Argument to -g has format:\n"
+			      "Argument to -i has format:\n"
 			      "GRID:URL e.g. \n"
 			      "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
 			      "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
