@@ -15,6 +15,7 @@
 #include <arc/XMLNode.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/JobDescription.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
@@ -36,46 +37,58 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     return;
   }
 
-  std::list<std::string> JobDescriptionList;
+  std::list<Arc::JobDescription> JobDescriptionList;
 
   //Loop over input job description files
   for (std::list<std::string>::const_iterator it = JobDescriptionFiles.begin();
        it != JobDescriptionFiles.end(); it++) {
-
+    
     std::ifstream descriptionfile(it->c_str());
-
-    if (!descriptionfile)
+    
+    if(!descriptionfile)
       std::cout << Arc::IString("Can not open file: %s", *it) << std::endl;
-
+    
     descriptionfile.seekg(0, std::ios::end);
     std::streamsize length = descriptionfile.tellg();
     descriptionfile.seekg(0, std::ios::beg);
-
+    
     char *buffer = new char[length + 1];
     descriptionfile.read(buffer, length);
     descriptionfile.close();
-
+    
     buffer[length] = '\0';
-    std::string xrsl(buffer);
+    Arc::JobDescription ThisJobDescription;
+    ThisJobDescription.setSource((std::string) buffer);
+
+
+    if (ThisJobDescription.isValid()){
+      JobDescriptionList.push_back(ThisJobDescription);
+    } else{
+      std::cout << Arc::IString("Invalid JobDescription. Job removed from submission.") << std::endl;
+      std::cout << Arc::IString("Job description given:") << std::endl;
+      std::cout << (std::string) buffer << std::endl;
+    }
+
     delete[] buffer;
 
-    // Each job description file can contain several jobs, this must be split
-    // into several entries in the JobDescription list. Need to be fixed once
-    // the JobDescription class is in place
-
-    JobDescriptionList.push_back(xrsl);
   }
-
+  
   //Loop over job description input strings
-  for (std::list<std::string>::const_iterator it =
-	 JobDescriptionStrings.begin();
-       it != JobDescriptionStrings.end(); it++)
+  for(std::list<std::string>::const_iterator it =
+	JobDescriptionStrings.begin();
+      it != JobDescriptionStrings.end(); it++){
+    
+    Arc::JobDescription ThisJobDescription;
+    ThisJobDescription.setSource(*it);
 
-    // Each job description file can contain several jobs, this must be split
-    // into several entries in the JobDescription list. Need to be fixed once
-    // the JobDescription class is in place
-
-    JobDescriptionList.push_back(*it);
+    if (ThisJobDescription.isValid()){
+      JobDescriptionList.push_back(ThisJobDescription);
+    } else{
+      std::cout << Arc::IString("Invalid JobDescription. Job removed from submission.") << std::endl;
+      std::cout << Arc::IString("Job description given:") << std::endl;
+      std::cout << *it << std::endl;
+    }
+  }
 
   //prepare targets
   Arc::TargetGenerator TarGen(ClusterSelect, ClusterReject, IndexUrls);
@@ -83,12 +96,12 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 
   //store time of information request
   Arc::Time infotime;
-
+  
   std::map<int, std::string> notsubmitted;
-
+  
   int jobnr = 1;
   std::list<std::string> jobids;
-
+  
   if (ClusterSelect.size() == 1 && TarGen.FoundTargets().size() == 0) {
     std::cout << Arc::IString("Job submission failed because "
 			      "the specified cluster %s "
@@ -98,11 +111,20 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
   }
 
   Arc::XMLNode JobIdStorage;
-  JobIdStorage.ReadFromFile("jobs.xml");
+  if(JobListFile.empty()){
+    //Read default file
+    JobIdStorage.ReadFromFile("jobs.xml");
+  } else {
+    //prepare new file for storing jobid of submitted jobs
+    Arc::XMLNode empty;
+    empty.NewChild("jobs");
+    empty.SaveToFile(JobListFile);
+    JobIdStorage.ReadFromFile(JobListFile);
+  }
 
-  for (std::list<std::string>::iterator it = JobDescriptionList.begin();
+  for (std::list<Arc::JobDescription>::iterator it = JobDescriptionList.begin();
        it != JobDescriptionList.end(); it++, jobnr++) {
-
+    
     //if more than 5 minutes has passed, renew target information
     Arc::Time now;
     if (now.GetTime() - infotime.GetTime() > 300) {
@@ -110,7 +132,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
       //TarGen.GetTargets(0, 1);
       infotime = now;
     }
-
+    
     //perform brokering (not yet implemented)
     //broker needs to take JobDescription is input
 
@@ -121,7 +143,9 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 
     std::cout << "Submitting jobs ..." << std::endl;
     std::pair<Arc::URL, Arc::URL> jobid;
-    jobid = submitter->Submit(*it);
+    std::string descr;
+    it->getProduct(descr, "XRSL");
+    jobid = submitter->Submit(descr);
 
     Arc::XMLNode ThisJob = JobIdStorage.NewChild("job");
     ThisJob.NewChild("id") = jobid.first.str();
@@ -132,7 +156,8 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     std::cout << "Job submitted with jobid: " << jobid.first.str() << std::endl;
     std::cout << "Information endpoint for this job: " << jobid.second.str()
 	      << std::endl;
-  }
+
+  } //end loop over JobDescriptions
 
   JobIdStorage.SaveToFile("jobs.xml");
 
