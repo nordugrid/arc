@@ -25,24 +25,9 @@
 #include <arc/data/DataCache.h>
 #include <arc/data/URLMap.h>
 
-#include <openssl/pem.h>
-#include <openssl/asn1.h>
-#include <openssl/x509.h>
-#include <openssl/evp.h>
-#include <openssl/bio.h>
-
 namespace Arc{
     namespace Cream{
     
-        // OpenSSLFunctions    
-        time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s);
-        const long getCertTimeLeft( std::string pxfile );
-        time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len);
-        int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes);
-        std::string checkPath(std::string p);
-        std::string getProxy();
-        std::string getTrustedCerts();
-        
         struct creamJobInfo {
             std::string jobId;
             std::string creamURL;

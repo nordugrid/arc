@@ -11,6 +11,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#include <openssl/pem.h>
+#include <openssl/asn1.h>
+#include <openssl/x509.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+
 #ifndef HAVE_TIMEGM
 time_t timegm (struct tm *tm) {
   char *tz = getenv("TZ");
@@ -42,24 +48,13 @@ time_t timegm (struct tm *tm) {
 }
 #endif
 
-/*namespace Arc {
-  namespace Cream {
-    time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s);
-    const long getCertTimeLeft( std::string pxfile );
-    time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len);
-    int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes);
-    std::string checkPath(std::string p);
-    std::string getProxy();
-    std::string getTrustedCerts();
-  } // namespace Cream
-} // namespace Arc
- */
+#include "OpenSSLFunctions.h"
 
-#include "CREAMClient.h"
+namespace Arc {
 
-using namespace Arc::Cream;
+namespace Cream {
 
-time_t Arc::Cream::ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
+time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   struct tm tm;
   int offset;
   memset(&tm,'\0',sizeof tm);
@@ -83,7 +78,7 @@ time_t Arc::Cream::ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   return timegm(&tm)-offset*60;
 }
 
-const long Arc::Cream::getCertTimeLeft( std::string pxfile ) {
+const long getCertTimeLeft(const std::string& pxfile) {
   time_t timeleft = 0;
   BIO *in = NULL;
   X509 *x = NULL;
@@ -108,7 +103,7 @@ const long Arc::Cream::getCertTimeLeft( std::string pxfile ) {
   return timeleft;
 }
 
-time_t Arc::Cream::GRSTasn1TimeToTimeT(char *asn1time, size_t len)
+time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len)
 {
    char   zone;
    struct tm time_tm;
@@ -147,7 +142,7 @@ time_t Arc::Cream::GRSTasn1TimeToTimeT(char *asn1time, size_t len)
 
 //modified version of gridsite makeproxy. 
 //must be cleaned up.
-int Arc::Cream::makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes)
+int makeProxyCert(char **proxychain, char *reqtxt, char *cert, char *key, int minutes)
 {
   char *ptr, *certchain;
   int i, ncerts;
@@ -391,7 +386,7 @@ int Arc::Cream::makeProxyCert(char **proxychain, char *reqtxt, char *cert, char 
 }
 
 
-std::string Arc::Cream::checkPath(std::string p){
+std::string checkPath(std::string p){
    std::ifstream inf(p.c_str());
    if (inf.good()){
       inf.close();
@@ -401,7 +396,7 @@ std::string Arc::Cream::checkPath(std::string p){
    return p.assign("");
 } 
 
-std::string Arc::Cream::getProxy(){
+std::string getProxy(){
    std::string path;
    char * res=NULL;
 
@@ -416,7 +411,7 @@ std::string Arc::Cream::getProxy(){
    return path;
 }
 
-std::string Arc::Cream::getTrustedCerts(){
+std::string getTrustedCerts(){
    std::string path;
    char * res=NULL;
 
@@ -428,3 +423,7 @@ std::string Arc::Cream::getTrustedCerts(){
    }
    return path;
 }
+
+} // namespace Cream
+
+} // namespace Arc

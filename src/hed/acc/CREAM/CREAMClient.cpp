@@ -1,4 +1,6 @@
-// cream_client.cpp
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "CREAMClient.h"
 #include "OpenSSLFunctions.h"
