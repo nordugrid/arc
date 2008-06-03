@@ -2,7 +2,6 @@
 #define __ARC_SERVICE_PDP_H__
 
 #include <arc/message/Service.h>
-
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/PDP.h>
 

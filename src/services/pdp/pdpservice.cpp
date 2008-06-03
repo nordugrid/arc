@@ -15,6 +15,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
+#include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/Thread.h>
 
 #include "pdpservice.h"
@@ -118,21 +119,14 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   // Define supported namespaces
   ns_["ra"]="http://www.nordugrid.org/schemas/request-arc";
 
-  //Parse configuration file (service.xml) to get the PDP specific information
-  Arc::XMLNode node(*cfg);
-  Arc::XMLNode topcfg = node.GetRoot();
-  Arc::Config modulecfg(topcfg);
-
-  Arc::ClassLoader *classloader;
-  classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-  std::string evaluator = "arc.evaluator";
-
   //Load the Evaluator object
-  eval = (ArcSec::Evaluator*)(classloader->Instance(evaluator, (void**)(void*)&topcfg));
-  if(eval == NULL)
+  std::string evaluator = "arc.evaluator";
+  ArcSec::EvaluatorLoader eval_loader;
+  eval = eval_loader.getEvaluator(evaluator);
+  if(eval == NULL) {
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
-
-  //eval = new ArcEvaluator(&node);
+  }
+  else logger.msg(Arc::INFO, "Succeed to produce Evaluator");
 }
 
 Service_PDP::~Service_PDP(void) {

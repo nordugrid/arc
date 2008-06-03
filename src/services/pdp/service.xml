@@ -20,14 +20,6 @@
     <Plugins><Name>arcpdc</Name></Plugins>
     <Plugins><Name>pdp</Name></Plugins>
 
-    <Plugins Name="arcpdc">
-          <Plugin Name="__arc_attrfactory_modules__">attrfactory</Plugin>
-          <Plugin Name="__arc_fnfactory_modules__">fnfactory</Plugin>
-          <Plugin Name="__arc_algfactory_modules__">algfactory</Plugin>
-          <Plugin Name="__arc_evaluator_modules__">evaluator</Plugin>
-          <Plugin Name="__arc_request_modules__">request</Plugin>
-    </Plugins>
-
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
@@ -47,11 +39,12 @@
         </Component>
         <Service name="pdp.service" id="pdp_service">
             <pdp:PDPConfig>
-                <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
+                <pdp:PolicyStore location="Policy_Example.xml"/>
                 <pdp:AttributeFactory name="attr.factory" />
                 <pdp:CombingAlgorithmFactory name="alg.factory" />
                 <pdp:FunctionFactory name="fn.factory" />
                 <pdp:Evaluator name="arc.evaluator" />
+                <pdp:Policy name="arc.policy" />
                 <pdp:Request name="arc.request" />
             </pdp:PDPConfig>
         </Service>

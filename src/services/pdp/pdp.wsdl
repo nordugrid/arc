@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://www.nordugrid.org/schemas/pdp"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+ xmlns:request-arc="http://www.nordugrid.org/schemas/request-arc/"
+ xmlns:reponse-arc="http://www.nordugrid.org/schemas/response-arc/"
+ xmlns:pdp="http://www.nordugrid.org/schemas/pdp">
+
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/pdp">
+
+      <xsd:import namespace="http://www.nordugrid.org/schemas/request-arc/" location="./../hed/pdc/arcpdp/Request.xsd"/>
+      <xsd:import namespace="http://www.nordugrid.org/schemas/response-arc/" location="./../hed/pdc/arcpdp/Response.xsd"/>
+      <xsd:complexType name="GetPolicyDecisionRequestType">
+        <xsd:sequence>
+          <xsd:element name="Request" type="request-arc:Request"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GetPolicyDecisionRequest" type="pdp:GetPolicyDecisionRequestType"/>
+		
+      <xsd:complexType name="GetPolicyDecisionResponseType">
+        <xsd:sequence>
+          <xsd:element name="Response" type="response-arc:Response"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="GetPolicyDecisionResponse" type="pdp:GetPolicyDecisionResponseType"/>
+		
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="GetPolicyDecisionRequest">
+    <wsdl:part name="GetPolicyDecisionRequest" element="pdp:GetPolicyDecisionRequest"/>
+  </wsdl:message>
+
+  <wsdl:message name="GetPolicyDecisionResponse">
+    <wsdl:part name="GetPolicyDecisionResponse" element="pdp:GetPolicyDecisionResponse"/>
+  </wsdl:message>
+
+  <wsdl:portType name="pdp">
+    <wsdl:operation name="GetPolicyDecision">
+      <wsdl:input name="GetPolicyDecisionRequest"
+        message="pdp:GetPolicyDecisionRequest"/>
+      <wsdl:output name="GetPolicyDecisionResponse"
+        message="pdp:GetPolicyDecisionResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="pdp" type="pdp:pdp">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetPolicyDecision">
+      <soap:operation soapAction="GetPolicyDecision"/>
+      <wsdl:input name="GetPolicyDecisionRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="GetPolicyDecisionResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="pdp">
+    <wsdl:port name="pdp" binding="pdp:pdp">
+      <soap:address location="http://localhost:80"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
