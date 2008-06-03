@@ -55,7 +55,7 @@ time_t timegm (struct tm *tm) {
 } // namespace Arc
  */
 
-#include "cream_client.h"
+#include "CREAMClient.h"
 
 using namespace Arc::Cream;
 

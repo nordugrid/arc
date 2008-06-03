@@ -1,7 +1,7 @@
 // cream_client.cpp
 
-#include "cream_client.h"
-#include "openSSLFunctions.h"
+#include "CREAMClient.h"
+#include "OpenSSLFunctions.h"
 
 namespace Arc{
     namespace Cream{

@@ -12,7 +12,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
 
-#include "cream_client.h"
+#include "CREAMClient.h"
 
 int main(int argc, char* argv[]){
 

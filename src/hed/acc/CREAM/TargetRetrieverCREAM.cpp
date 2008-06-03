@@ -514,9 +514,3 @@ namespace Arc {
   }
 
 } // namespace Arc
-
-
-acc_descriptors ARC_ACC_LOADER = {
-  {"TargetRetrieverCREAM", 0, &Arc::TargetRetrieverCREAM::Instance},
-  {NULL, 0, NULL}
-};
