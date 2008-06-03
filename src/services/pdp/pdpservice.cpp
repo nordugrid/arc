@@ -16,6 +16,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/ws-addressing/WSA.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
+#include <arc/security/ArcPDP/Source.h>
 #include <arc/Thread.h>
 
 #include "pdpservice.h"
@@ -58,18 +59,26 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_soap_fault(outmsg);
     };
     // Analyzing request
-    Arc::XMLNode request = inpayload->Child(0);
+    Arc::XMLNode request = (*inpayload)["GetPolicyDecisionRequest"];
     if(!request) {
-      logger.msg(Arc::ERROR, "input does not include any request");
+      logger.msg(Arc::ERROR, "soap body does not include any request node");
       return make_soap_fault(outmsg);
     };
-    std::string req_xml;
-    request.GetXML(req_xml);
-    logger.msg(Arc::DEBUG, "Request: %s",req_xml);
-    
+    {
+      std::string req_xml;
+      request.GetXML(req_xml);
+      logger.msg(Arc::DEBUG, "Request: %s",req_xml);
+    };    
+
+    Arc::XMLNode arc_requestnd = request["Request"];
+    if(!arc_requestnd) {
+      logger.msg(Arc::ERROR, "request node is empty");
+      return make_soap_fault(outmsg);
+    };
+
     //Call the functionality of policy engine
     Response *resp = NULL;
-    resp = eval->evaluate(Source(request));
+    resp = eval->evaluate(Source(arc_requestnd));
     logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
     ResponseList rlist = resp->getResponseItems();
     if(!(rlist.empty())) logger.msg(Arc::INFO, "Authorized from Service_PDP");
@@ -94,11 +103,17 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     //Put those request items which satisfy the policies into the response SOAP message (implicitly
     //means the decision result: <ItemA, yes>, <ItemB, yes>, <ItemC, no>(ItemC is not in the 
     //response SOAP message, because ArcEvaluator will not give information for denied RequestTuple)
+    //The client of the pdpservice (normally a policy enforcement point, like job executor) is supposed
+    //to compose the policy decision request to pdpservice by parsing the information from the request 
+    //(aiming to the client itself), and permit or deny the request by using the information responded 
+    //from pdpservice. 
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);   
-    Arc::XMLNode res_body = outpayload->NewChild("Response");
+    Arc::XMLNode response = outpayload->NewChild("pdp:GetPolicyDecisionResponse");
+
+    Arc::XMLNode arc_responsend = response.NewChild("response:Response");
     for(i = 0; i<size; i++){
       ResponseItem* item = rlist[i];
-      res_body.NewChild(Arc::XMLNode(item->reqxml).Child());
+      arc_responsend.NewChild(Arc::XMLNode(item->reqxml));
     } 
     if(resp)
       delete resp;
@@ -118,15 +133,30 @@ Service_PDP::Service_PDP(Arc::Config *cfg):Service(cfg), logger_(Arc::Logger::ro
   logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_["ra"]="http://www.nordugrid.org/schemas/request-arc";
+  ns_["response"]="http://www.nordugrid.org/schemas/response-arc";
+  ns_["pdp"]="http://www.nordugrid.org/schemas/pdp";
 
   //Load the Evaluator object
-  std::string evaluator = "arc.evaluator";
+  std::string evaluator = (*cfg)["PDPConfig"]["Evaluator"].Attribute("name");
+  logger.msg(Arc::INFO, "Evaluator: %s", evaluator);
   ArcSec::EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);
   if(eval == NULL) {
     logger.msg(Arc::ERROR, "Can not dynamically produce Evaluator");
   }
   else logger.msg(Arc::INFO, "Succeed to produce Evaluator");
+
+  //Get the policy location, and put it into evaluator
+  Arc::XMLNode policyfile;
+  Arc::XMLNode policystore = (*cfg)["PDPConfig"]["PolicyStore"];
+  if(policystore) {
+    for(int i = 0; ; i++) {
+      policyfile = policystore["Location"][i];
+      if(!policyfile) break;
+      eval->addPolicy(SourceFile((std::string)policyfile));
+      logger.msg(Arc::INFO, "Policy location: %s", (std::string)policyfile);
+    }
+  }
 }
 
 Service_PDP::~Service_PDP(void) {

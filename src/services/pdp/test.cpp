@@ -56,10 +56,12 @@ int main(void) {
   //Compose request
   Arc::NS ns;
   ns["ra"] = "http://www.nordugrid.org/schemas/request-arc";
+  ns["pdp"] = "http://www.nordugrid.org/schemas/pdp";
   Arc::PayloadSOAP reqdoc(ns);
-  
-  Arc::XMLNode request = reqdoc.NewChild("ra:Request");
-  request.Namespaces(ns);
+
+  Arc::XMLNode reqbody = reqdoc.NewChild("pdp:GetPolicyDecisionRequest"); 
+ 
+  Arc::XMLNode request = reqbody.NewChild("ra:Request");
   Arc::XMLNode requestitem = request.NewChild("ra:RequestItem");
 
   Arc::XMLNode sub = requestitem.NewChild("ra:Subject");
@@ -68,16 +70,16 @@ int main(void) {
   std::string remotehost = "127.0.0.1";
   subattr1 = remotehost;
   Arc::XMLNode subattr1Id = subattr1.NewAttribute("ra:AttributeId");
-  subattr1Id = "123";
+  subattr1Id = "http://www.nordugrid.org/schemas/policy-arc/types/tcp/ipaddress";
   Arc::XMLNode subattr1Type = subattr1.NewAttribute("ra:Type");
   subattr1Type = "string";
 
   Arc::XMLNode subattr2 = sub.NewChild("ra:Attribute");
   //Fill in a fake value
-  std::string subject = "/O=Grid/O=Test/CN=CA";
+  std::string subject = "/O=Grid/O=Test/CN=test";
   subattr2 = subject;
   Arc::XMLNode subattr2Id = subattr2.NewAttribute("ra:AttributeId");
-  subattr2Id = "xyz";
+  subattr2Id = "http://www.nordugrid.org/schemas/policy-arc/types/tls/identity";
   Arc::XMLNode subattr2Type = subattr2.NewAttribute("ra:Type");
   subattr2Type = "string";
 
@@ -86,7 +88,7 @@ int main(void) {
   std::string action = "POST";
   act=action;
   Arc::XMLNode actionId = act.NewAttribute("ra:AttributeId");
-  actionId = "ijk";
+  actionId = "http://www.nordugrid.org/schemas/policy-arc/types/http/method";
   Arc::XMLNode actionType = act.NewAttribute("ra:Type");
   actionType = "string";
 
@@ -108,10 +110,10 @@ int main(void) {
 
   Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
   if(!status) {
-    logger.msg(Arc::ERROR, "Request failed");
+    logger.msg(Arc::ERROR, "Policy Decision Request failed");
     return -1;
   };
-  logger.msg(Arc::INFO, "Request succeed!!!");
+  logger.msg(Arc::INFO, "Policy Decision Request succeed!!!");
   if(repmsg.Payload() == NULL) {
     logger.msg(Arc::ERROR, "There is no response");
     return -1;

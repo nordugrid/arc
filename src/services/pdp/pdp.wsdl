@@ -17,14 +17,14 @@
       <xsd:import namespace="http://www.nordugrid.org/schemas/response-arc/" location="./../hed/pdc/arcpdp/Response.xsd"/>
       <xsd:complexType name="GetPolicyDecisionRequestType">
         <xsd:sequence>
-          <xsd:element name="Request" type="request-arc:Request"/>
+          <xsd:element name="Request" type="request-arc:Request" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="GetPolicyDecisionRequest" type="pdp:GetPolicyDecisionRequestType"/>
 		
       <xsd:complexType name="GetPolicyDecisionResponseType">
         <xsd:sequence>
-          <xsd:element name="Response" type="response-arc:Response"/>
+          <xsd:element name="Response" type="response-arc:Response" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="GetPolicyDecisionResponse" type="pdp:GetPolicyDecisionResponseType"/>

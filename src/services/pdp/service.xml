@@ -38,11 +38,14 @@
 	    <next id="pdp_service"/>
         </Component>
         <Service name="pdp.service" id="pdp_service">
+            <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
+            are supposed to be used to load object; element <PolicyStore/> is 
+            supposed to be used to get the location of policy-->
             <pdp:PDPConfig>
-                <pdp:PolicyStore location="Policy_Example.xml"/>
-                <pdp:AttributeFactory name="attr.factory" />
-                <pdp:CombingAlgorithmFactory name="alg.factory" />
-                <pdp:FunctionFactory name="fn.factory" />
+                <pdp:PolicyStore>
+                  <Location Type="file">Policy_Example.xml</Location>
+                  <!-- other policy location-->
+                </pdp:PolicyStore>
                 <pdp:Evaluator name="arc.evaluator" />
                 <pdp:Policy name="arc.policy" />
                 <pdp:Request name="arc.request" />
