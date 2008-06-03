@@ -7,7 +7,7 @@ namespace Arc {
 
 
     // Remove the whitespace characters from the begin and end of the string then return with this "naked" one
-    std::string StringManipulator::trim( const std::string original_string ) {
+    std::string StringManipulator::trim( const std::string original_string ) const {
         std::string whitespaces (" \t\f\v\n\r");
         if (original_string.length() == 0) return original_string;
         unsigned int first = original_string.find_first_not_of( whitespaces );
@@ -17,14 +17,14 @@ namespace Arc {
     }
 
     // Return the given string in lower case
-    std::string StringManipulator::toLowerCase( const std::string original_string ) {
+    std::string StringManipulator::toLowerCase( const std::string original_string ) const {
         std::string retVal = original_string;
         std::transform( original_string.begin(), original_string.end(), retVal.begin(), ::tolower );
         return retVal;
     }
 
     // Split the given string by the given delimiter and return its parts
-    std::vector<std::string> StringManipulator::split( const std::string original_string, const std::string delimiter ) {
+    std::vector<std::string> StringManipulator::split( const std::string original_string, const std::string delimiter ) const{
         std::vector<std::string> retVal;
         unsigned int start=0;
         unsigned int end;
@@ -164,7 +164,7 @@ namespace Arc {
 
         jobDescriptionFile.open( filename.c_str() );
         if ( !jobDescriptionFile ) {
-            if ( DEBUG ) std::cerr << "[JobDescriptionOrderer] Unable to open this file: " << filename << std::endl;
+            if ( DEBUGX ) std::cerr << "[JobDescriptionOrderer] Unable to open this file: " << filename << std::endl;
             return false;
         }
         std::string line;
@@ -332,7 +332,7 @@ namespace Arc {
             outputTree.GetDoc( product );
             return true;
         } else {
-            if ( DEBUG ) std::cerr << "[JSDLParser] Job inner representation's root element has not found." << std::endl;
+            if ( DEBUGX ) std::cerr << "[JSDLParser] Job inner representation's root element has not found." << std::endl;
             return false;
         }
     }
@@ -715,7 +715,7 @@ namespace Arc {
             jobTree["JobDescription"]["CredentialServer"]["URL"] = simpleXRSLvalue( attributeValue );
             return true;
         }
-        if ( DEBUG ) std::cerr << "[XRSLParser] Unknown XRSL attribute: " << attributeName << std::endl;
+        if ( DEBUGX ) std::cerr << "[XRSLParser] Unknown XRSL attribute: " << attributeName << std::endl;
         return false;
     }
 
@@ -748,7 +748,7 @@ namespace Arc {
                         //Split the bracket's content by the equal sign & trim the two half
                         unsigned int eqpos = wattr.find_first_of("=");
                         if ( eqpos == std::string::npos ) {
-                            if ( DEBUG ) std::cerr << "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)" << std::endl;
+                            if ( DEBUGX ) std::cerr << "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)" << std::endl;
                             return false;
                         }
                         if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , jobTree) ) return false;
@@ -760,7 +760,7 @@ namespace Arc {
         }
   
         if (depth != 0 ) {
-            if ( DEBUG ) std::cerr << "[XRSLParser] XRSL Syntax error (bracket mistake)" << std::endl;
+            if ( DEBUGX ) std::cerr << "[XRSLParser] XRSL Syntax error (bracket mistake)" << std::endl;
             return false;
         }
         return true;
@@ -768,7 +768,7 @@ namespace Arc {
 
     //This feature is not supported yet
     bool XRSLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
-        if ( DEBUG ) std::cerr << "[XRSLParser] Converting to XRSL - This feature is not supported yet" << std::endl;
+        if ( DEBUGX ) std::cerr << "[XRSLParser] Converting to XRSL - This feature is not supported yet" << std::endl;
         return false;
     }
 
@@ -852,14 +852,14 @@ namespace Arc {
             std::string value = sm.toLowerCase( simpleJDLvalue( attributeValue ) );
             if ( value == "job" ) return true;
             if ( value == "dag" ) {
-                if ( DEBUG ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
+                if ( DEBUGX ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
                 return false; // This kind of JDL decriptor is not supported yet
             }
             if ( value == "collection" ) {
-                if ( DEBUG ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
+                if ( DEBUGX ) std::cerr << "[JDLParser] This kind of JDL decriptor is not supported yet: " << value << std::endl;
                 return false; // This kind of JDL decriptor is not supported yet
             }
-            if ( DEBUG ) std::cerr << "[JDLParser] Attribute name: " << attributeName << ", has unknown value: " << value << std::endl;
+            if ( DEBUGX ) std::cerr << "[JDLParser] Attribute name: " << attributeName << ", has unknown value: " << value << std::endl;
             return false; // Unknown attribute value - error
         } else if ( attributeName == "jobtype") {
             return true; // Skip this attribute
@@ -1038,7 +1038,7 @@ namespace Arc {
                     attribute = (*it).substr( 0,equal_pos );
                     envir = (*it).substr( equal_pos+1, std::string::npos );
                 } else {
-                    if ( DEBUG ) std::cerr << "[JDLParser] Environment variable has been defined without any equal sign." << std::endl;
+                    if ( DEBUGX ) std::cerr << "[JDLParser] Environment variable has been defined without any equal sign." << std::endl;
                     return false;
                 }
             }
@@ -1153,7 +1153,7 @@ namespace Arc {
             // They have no standard and no meaning.
             return true;
         }
-        if ( DEBUG ) std::cerr << "[JDL Parser]: Unknown attribute name: '" << attributeName << "', with value: " << attributeValue << std::endl;
+        if ( DEBUGX ) std::cerr << "[JDL Parser]: Unknown attribute name: '" << attributeName << "', with value: " << attributeValue << std::endl;
         return false;
     }
 
@@ -1161,7 +1161,7 @@ namespace Arc {
         unsigned int first = source.find_first_of( "[" );
         unsigned int last = source.find_last_of( "]" );
         if ( first == std::string::npos || last == std::string::npos ) {
-            if ( DEBUG ) std::cerr << "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')" << std::endl;
+            if ( DEBUGX ) std::cerr << "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')" << std::endl;
             return false;
         }
         std::string input_text = source.substr( first+1, last-first-1 );
@@ -1188,11 +1188,11 @@ namespace Arc {
         }
   
         if ( !splitJDL(wcpy, lines) ) {
-            if ( DEBUG ) std::cerr << "[JDLParser] Syntax error found during the split function." << std::endl;
+            if ( DEBUGX ) std::cerr << "[JDLParser] Syntax error found during the split function." << std::endl;
             return false;
         }
         if (lines.size() <= 0) {
-            if ( DEBUG ) std::cerr << "[JDLParser] Lines count is zero or other funny error has occurred." << std::endl;
+            if ( DEBUGX ) std::cerr << "[JDLParser] Lines count is zero or other funny error has occurred." << std::endl;
             return false;
         }
         
@@ -1201,7 +1201,7 @@ namespace Arc {
             if ( equal_pos == std::string::npos ) {
                 if ( i == lines.size()-1 ) continue;
                 else {
-                    if ( DEBUG ) std::cerr << "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected." << std::endl;
+                    if ( DEBUGX ) std::cerr << "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected." << std::endl;
                     return false;
                 }
             }    
@@ -1212,7 +1212,7 @@ namespace Arc {
 
     //This feature is not supported yet
     bool JDLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
-        if ( DEBUG ) std::cerr << "[JDLParser] Converting to JDL - This feature is not supported yet" << std::endl;
+        if ( DEBUGX ) std::cerr << "[JDLParser] Converting to JDL - This feature is not supported yet" << std::endl;
         return false;
     }
 

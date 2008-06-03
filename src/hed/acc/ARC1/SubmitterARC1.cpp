@@ -96,7 +96,7 @@ static void set_arex_namespaces(Arc::NS& ns) {
     return new SubmitterARC1(cfg);
   }
 
-  std::pair<URL, URL> SubmitterARC1::Submit(const std::string& jobdesc) {
+  std::pair<URL, URL> SubmitterARC1::Submit(Arc::JobDescription& jobdesc) {
 	   
 	  try{
 		 
@@ -105,7 +105,9 @@ static void set_arex_namespaces(Arc::NS& ns) {
 	    Arc::URL InfoEndpoint("https://knowarc1.grid.niif.hu/arex");
 	    std::string jobid, faultstring;
 	    Arc::XMLNode jsdl_document;
-	    (Arc::XMLNode (jobdesc)).New(jsdl_document);
+	    std::string jobdescstring;
+	    jobdesc.getProduct(jobdescstring, "JSDL");
+	    (Arc::XMLNode (jobdescstring)).New(jsdl_document);
 	    
 	    AREXFileList file_list;
 	    file_list.resize(0);

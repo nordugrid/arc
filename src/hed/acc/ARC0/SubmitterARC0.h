@@ -14,10 +14,11 @@ namespace Arc {
   private:
     SubmitterARC0(Config *cfg);
     ~SubmitterARC0();
+    void putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, std::string jobid);
 
   public:
     static ACC *Instance(Config *cfg, ChainContext *cxt);
-    std::pair<URL, URL> Submit(const std::string& jobdesc);
+    std::pair<URL, URL> Submit(Arc::JobDescription& jobdesc);
   };
 
 } // namespace Arc

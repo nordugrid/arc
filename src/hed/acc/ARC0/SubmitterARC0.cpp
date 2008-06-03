@@ -1,6 +1,14 @@
 #include <globus_ftp_control.h>
 
+#include <glibmm.h>
+
 #include <arc/Thread.h>
+#include <arc/data/DMC.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataPoint.h>
+#include <arc/data/DataHandle.h>
+#include <arc/data/DataCache.h>
+#include <arc/data/URLMap.h>
 
 #include "SubmitterARC0.h"
 
@@ -66,7 +74,7 @@ namespace Arc {
     return new SubmitterARC0(cfg);
   }
 
-  std::pair<URL, URL> SubmitterARC0::Submit(const std::string& jobdesc) {
+  std::pair<URL, URL> SubmitterARC0::Submit(Arc::JobDescription& jobdesc) {
     cbarg cb;
 
     globus_ftp_control_handle_t control_handle;
@@ -159,9 +167,13 @@ namespace Arc {
 
     cb.data = false;
     cb.ctrl = false;
+
+    std::string jobdescstring;
+    jobdesc.getProduct(jobdescstring, "XRSL");
+
     globus_ftp_control_data_write(&control_handle,
-				  (globus_byte_t *)jobdesc.c_str(),
-				  jobdesc.size(),
+				  (globus_byte_t *)jobdescstring.c_str(),
+				  jobdescstring.size(),
 				  0,
 				  GLOBUS_TRUE,
 				  &ReadWriteCallback,
@@ -186,8 +198,66 @@ namespace Arc {
     InfoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + jobid.str() + ")");
     InfoEndpoint.ChangeLDAPScope(URL::subtree);
 
+    //Upload local input files.
+
     return std::make_pair(jobid, InfoEndpoint);
 
   }
+  
+  static void progress(FILE *o, const char *, unsigned int,
+		       unsigned long long int all, unsigned long long int max,
+		       double, double) {
+    static int rs = 0;
+    const char rs_[4] = {'|', '/', '-', '\\'};
+    if (max) {
+      fprintf(o, "\r|");
+      unsigned int l = (74 * all + 37) / max;
+      if (l > 74) l = 74;
+      unsigned int i = 0;
+      for (; i < l; i++) fprintf(o, "=");
+      fprintf(o, "%c", rs_[rs++]);
+      if (rs > 3) rs = 0;
+      for (; i < 74; i++) fprintf(o, " ");
+      fprintf(o, "|\r");
+      fflush(o);
+      return;
+    }
+    fprintf(o, "\r%llu kB                    \r", all / 1024);
+  }
+  
+  void SubmitterARC0::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, std::string jobid){
+    
+    // Create mover
+    Arc::DataMover mover;
+    mover.retry(true);
+    mover.secure(false);
+    mover.passive(false);
+    mover.verbose(true);
+    mover.set_progress_indicator(&progress);
+    
+    // Create cache
+    Arc::User cache_user;
+    std::string cache_path2;
+    std::string cache_data_path;
+    std::string id = "<ngcp>";
+    Arc::DataCache cache(cache_path2, cache_data_path, "", id, cache_user);
+    std::vector< std::pair< std::string, std::string > >::const_iterator file;
+    
+    // Loop over files and upload
+    for (file = fileList.begin(); file != fileList.end(); file++) {
+      std::string src = Glib::build_filename(Glib::get_current_dir(), (*file).first);
+      std::string dst = Glib::build_filename(jobid, (*file).second);
+      std::cout << src << " -> " << dst << std::endl;
+      Arc::DataHandle source(src);
+      Arc::DataHandle destination(dst);
+      
+      std::string failure;
+      int timeout = 300;
+      if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
+	if (!failure.empty()) std::cerr << "File moving was not succeeded: " << failure << std::endl;
+	else std::cerr << "File moving was not succeeded." << std::endl;
+      } 
+    }
+  } // putFiles()
 
 } // namespace Arc

@@ -11,7 +11,7 @@
 namespace Arc {
 
     #define VERBOSEX 1
-    #define DEBUG 1
+    #define DEBUGX 1
 
     // Define variables for the jobDescriptionOrderer
     #define DEFAULT_PRIORITY 0
@@ -52,9 +52,9 @@ namespace Arc {
 
     class StringManipulator {
         public:
-            std::string trim( const std::string original_string );
-            std::string toLowerCase( const std::string original_string );
-            std::vector<std::string> split( const std::string original_string, const std::string delimiter );
+            std::string trim( const std::string original_string ) const;
+            std::string toLowerCase( const std::string original_string ) const;
+            std::vector<std::string> split( const std::string original_string, const std::string delimiter ) const;
     };
 
     //Abstract class for the different parsers
@@ -113,7 +113,7 @@ namespace Arc {
             void resetJobTree();
         public:
             JobDescription();
-            bool isValid() {return (sourceFormat.length() != 0);};
+            bool isValid() const {return (sourceFormat.length() != 0);};
             void setSource( const std::string source ) throw(JobDescriptionError);
             void getProduct( std::string& product, std::string format = "JSDL" ) throw(JobDescriptionError);
             Arc::XMLNode getXML() throw(JobDescriptionError);

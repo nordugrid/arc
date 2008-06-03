@@ -15,7 +15,7 @@ namespace Arc {
     return new SubmitterCREAM(cfg);
   }
 
-  std::pair<URL, URL> SubmitterCREAM::Submit(const std::string& jobdesc) {
+  std::pair<URL, URL> SubmitterCREAM::Submit(Arc::JobDescription& jobdesc) {
     MCCConfig cfg;
     std::string delegationid = UUID();
     URL url(SubmissionEndpoint);
@@ -27,7 +27,9 @@ namespace Arc {
     gLiteClient2.setDelegationId(delegationid);
     gLiteClient2.cache_path = "/tmp";
     gLiteClient2.job_root = Glib::get_current_dir();
-    Cream::creamJobInfo jobInfo = gLiteClient2.submit(jobdesc);
+    std::string jobdescstring;
+    jobdesc.getProduct(jobdescstring, "JDL");
+    Cream::creamJobInfo jobInfo = gLiteClient2.submit(jobdescstring);
     std::cout << "jobId: " << jobInfo.jobId << std::endl;
     std::cout << "creamURL: " << jobInfo.creamURL << std::endl;
     std::cout << "ISB:" << jobInfo.ISB_URI << std::endl;

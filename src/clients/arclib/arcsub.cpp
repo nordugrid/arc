@@ -143,9 +143,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 
     std::cout << "Submitting jobs ..." << std::endl;
     std::pair<Arc::URL, Arc::URL> jobid;
-    std::string descr;
-    it->getProduct(descr, "XRSL");
-    jobid = submitter->Submit(descr);
+    jobid = submitter->Submit(*it);
 
     Arc::XMLNode ThisJob = JobIdStorage.NewChild("job");
     ThisJob.NewChild("id") = jobid.first.str();

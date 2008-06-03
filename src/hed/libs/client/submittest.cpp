@@ -4,9 +4,10 @@
 #include <arc/client/Submitter.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/JobDescription.h>
 
 int main() {
-
+  
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
@@ -26,9 +27,13 @@ int main() {
   Arc::Submitter *submitter =
     dynamic_cast<Arc::Submitter *>(loader.getACC("submitter"));
 
+  Arc::JobDescription jobdesc;
+  
+  jobdesc.setSource((std::string) "&(executable=echo)(arguments=\"Hello World\")"
+		    "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
+  
   std::pair<Arc::URL, Arc::URL> results;
-  results = submitter->Submit("&(executable=echo)(arguments=\"Hello World\")"
-			      "(stdout=stdout.txt)(outputfiles=(stdout.txt \"\"))");
+  results = submitter->Submit(jobdesc);
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
   std::cout << "InfoEndpoint: " << results.second.str() << std::endl;

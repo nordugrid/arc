@@ -67,8 +67,11 @@ int main() {
     </DataStaging> \
   </JobDescription> \
 </JobDefinition>";
+
+  Arc::JobDescription jobdescr;
+  jobdescr.setSource(jsdl_str);
     
-  results = submitter->Submit(jsdl_str);
+  results = submitter->Submit(jobdescr);
 
   std::cout << "Jobid: " << results.first.str() << std::endl;
   std::cout << "InfoEndpoint: " << results.second.str() << std::endl;
