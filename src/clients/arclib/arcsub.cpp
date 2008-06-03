@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
   options.AddOption('f', "jobdescrfile",
 		    istring("jobdescription file describing the job to be submitted"),
 		    istring("string"),
-		    jobdescriptionstrings);
+		    jobdescriptionfiles);
 
   std::string joblist;
   options.AddOption('j', "joblist",
