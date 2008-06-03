@@ -16,9 +16,13 @@ namespace Arc {
 
   std::list<DMC *> DMC::dmcs;
 
-  Glib::Mutex DMC::mutex;
+  Glib::StaticMutex DMC::mutex = GLIBMM_STATIC_MUTEX_INIT;
+
+  Loader *DMC::loader = NULL;
 
   DataPoint *DMC::GetDataPoint(const URL& url) {
+    if (!loader)
+      Load();
     DataPoint *dp = NULL;
     Glib::Mutex::Lock lock(mutex);
     for (std::list<DMC *>::iterator i = dmcs.begin();
@@ -35,6 +39,18 @@ namespace Arc {
   void DMC::Unregister(DMC *dmc) {
     Glib::Mutex::Lock lock(mutex);
     dmcs.remove(dmc);
+  }
+
+  void DMC::Load() {
+    static Glib::Mutex loadmutex;
+    Glib::Mutex::Lock lock(loadmutex);
+    if (loader)
+      return;
+    DMCConfig dmcconf;
+    NS ns;
+    Config cfg(ns);
+    dmcconf.MakeConfig(cfg);
+    loader = new Loader(&cfg);
   }
 
   XMLNode DMCConfig::MakeConfig(XMLNode cfg) const {
@@ -60,23 +76,5 @@ namespace Arc {
     }
     return mm;
   }
-
-  static class DMCLoader {
-
-  public:
-    DMCLoader() {
-      DMCConfig dmcconf;
-      NS ns;
-      Config cfg(ns);
-      dmcconf.MakeConfig(cfg);
-      loader = new Loader(&cfg);
-    }
-
-    ~DMCLoader() {}
-
-  private:
-    Loader *loader;
-
-  } dmcloader;
 
 } // namespace Arc

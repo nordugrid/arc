@@ -12,6 +12,7 @@ namespace Arc {
   class ChainContext;
   class Config;
   class DataPoint;
+  class Loader;
   class Logger;
   class URL;
 
@@ -27,8 +28,10 @@ namespace Arc {
     static void Register(DMC *dmc);
     static void Unregister(DMC *dmc);
   private:
+    static void Load();
     static std::list<DMC *> dmcs;
-    static Glib::Mutex mutex;
+    static Glib::StaticMutex mutex;
+    static Loader *loader;
   };
 
   class DMCConfig
