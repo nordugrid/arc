@@ -1,10 +1,14 @@
 // arex_client.cpp
 
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "arex_client.h"
 
 namespace Arc {
+
+  static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
+  static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
 
   // TODO: probably worth moving it to common library
   // Of course xpath can be used too. But such solution is probably an overkill.
@@ -37,6 +41,14 @@ namespace Arc {
     ns["jsdl-arc"]="http://www.nordugrid.org/ws/schemas/jsdl-arc";
     ns["jsdl-hpcpa"]="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa";
   }
+
+  static void set_bes_factory_action(SOAPEnvelope& soap,const char* op) {
+    WSAHeader(soap).Action(BES_FACTORY_ACTIONS_BASE_URL+op);
+  }
+
+  //static void set_bes_management_action(SOAPEnvelope& soap,const char* op) {
+  //  WSAHeader(soap).Action(BES_MANAGEMENT_ACTIONS_BASE_URL+op);
+  //}
 
   AREXClient::AREXClient(std::string configFile) throw(AREXClientError)
     :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL)
@@ -98,6 +110,7 @@ namespace Arc {
     Arc::PayloadSOAP req(arex_ns);
     Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
     Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
+    set_bes_factory_action(req,"CreateActivity");
     std::string jsdl_str; 
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
@@ -258,6 +271,7 @@ std::cerr<<s<<std::endl;
     Arc::XMLNode jobref =
       req.NewChild("bes-factory:GetActivityStatuses").
       NewChild(Arc::XMLNode(jobid));
+    set_bes_factory_action(req,"GetActivityStatuses");
     
     // Send status request
     Arc::PayloadSOAP* resp = NULL;
@@ -332,6 +346,7 @@ std::cerr<<s<<std::endl;
     Arc::PayloadSOAP req(arex_ns);
     Arc::XMLNode jobref =
       req.NewChild("bes-factory:GetFactoryAttributesDocument");
+    set_bes_factory_action(req,"GetFactoryAttributesDocument");
     
     // Send status request
     Arc::PayloadSOAP* resp = NULL;
@@ -398,6 +413,7 @@ std::cerr<<s<<std::endl;
     Arc::XMLNode jobref =
       req.NewChild("bes-factory:TerminateActivities").
       NewChild(Arc::XMLNode(jobid));
+    set_bes_factory_action(req,"TerminateActivities");
     
     // Send kill request
     Arc::PayloadSOAP* resp = NULL;
