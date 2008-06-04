@@ -67,16 +67,6 @@ protected:
   virtual Response* evaluate(EvaluationCtx* ctx);
 
 private:
-  /**Parse the configure information about PDP, then the related object can be loaded according to the configure information
-       <pdp:PDPConfig>
-          <pdp:PolicyStore name="test" location="Policy_Example.xml"/>
-          <pdp:AttributeFactory name="attr.factory" />
-          <pdp:CombingAlgorithmFactory name="alg.factory" />
-          <pdp:FunctionFactory name="fn.factory" />
-          <pdp:Evaluator name="arc.evaluator" />
-          <pdp:Request name="arc.request" />
-       </pdp:PDPConfig>
-  */
   virtual void parsecfg(Arc::XMLNode& cfg);
   virtual Request* make_reqobj(Arc::XMLNode& reqnode);
 };

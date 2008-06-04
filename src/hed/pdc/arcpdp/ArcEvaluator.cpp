@@ -223,6 +223,7 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
   std::list<RequestTuple*>::iterator it;
   
   Response* resp = new Response();
+  resp->setRequestSize(reqtuples.size());
   for(it = reqtuples.begin(); it != reqtuples.end(); it++){
     //set the current RequestTuple for evaluation
     //RequestTuple will be evaluated one by one
