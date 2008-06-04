@@ -52,9 +52,13 @@ private:
 
 ///Container for the evaluation results
 class Response {
+private:
+  int request_size;
 protected:
   ResponseList rlist;
 public:
+  void setRequestSize(int size) { request_size = size; };
+  int getRequestSize() { return request_size; };
   virtual ResponseList& getResponseItems () { return rlist; };
   virtual void setResponseItems (const ResponseList& rl) { rlist.clear(); rlist = rl; };
   virtual void addResponseItem(ResponseItem* respitem){ rlist.addItem(respitem); }; 
