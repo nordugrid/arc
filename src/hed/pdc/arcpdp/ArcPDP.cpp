@@ -72,7 +72,8 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
     for(;(bool)select_attr;++select_attr) select_attrs.push_back((std::string)select_attr);
     for(;(bool)reject_attr;++reject_attr) reject_attrs.push_back((std::string)reject_attr);
   };
-  XMLNode policy_location = (*cfg)["PolicyStore"];
+  XMLNode policy_store = (*cfg)["PolicyStore"];
+  XMLNode policy_location = policy_store["Location"];
   for(;(bool)policy_location;++policy_location) policy_locations.push_back((std::string)policy_location);
 }
 
@@ -106,9 +107,9 @@ bool ArcPDP::isPermitted(Message *msg){
     if(pdpctx) {
       eval=pdpctx->eval;
       if(eval) {
-        for(Arc::AttributeIterator it = (msg->Attributes())->getAll("PDP:POLICYLOCATION"); it.hasMore(); it++) {
-          eval->addPolicy(SourceFile(*it));
-        }
+        //for(Arc::AttributeIterator it = (msg->Attributes())->getAll("PDP:POLICYLOCATION"); it.hasMore(); it++) {
+        //  eval->addPolicy(SourceFile(*it));
+        //}
         for(std::list<std::string>::iterator it = policy_locations.begin(); it!= policy_locations.end(); it++) {
           eval->addPolicy(SourceFile(*it));
         }
