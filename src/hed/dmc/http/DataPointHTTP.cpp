@@ -599,7 +599,9 @@ namespace Arc {
 	client = new ClientHTTP(cfg, point.url.Host(), point.url.Port(), point.url.Protocol() == "https", point.url.str());
 	continue;
       }
-      if (transfer_info.code != 200) { // HTTP error - retry?
+      if( (transfer_info.code != 201) &&
+          (transfer_info.code != 200) &&
+          (transfer_info.code != 204) ) { // HTTP error - retry?
 	point.buffer->is_notwritten(transfer_handle);
 	if ((transfer_info.code == 500) ||
 	    (transfer_info.code == 503) ||
