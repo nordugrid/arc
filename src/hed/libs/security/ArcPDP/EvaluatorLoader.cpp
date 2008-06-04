@@ -47,7 +47,7 @@ EvaluatorLoader::EvaluatorLoader() {
   //class_config_map_.push_back(xacml_evaluator_cfg_nd);
 }
 
-Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
+Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
   ArcSec::Evaluator* eval = NULL;
   Arc::ClassLoader* classloader = NULL;
 
@@ -84,7 +84,7 @@ Evaluator* EvaluatorLoader::getEvaluator(std::string& classname) {
   return eval;
 }
 
-Request* EvaluatorLoader::getRequest(std::string& classname, const Source& requestsource) {
+Request* EvaluatorLoader::getRequest(const std::string& classname, const Source& requestsource) {
   ArcSec::Request* req = NULL;
   Arc::ClassLoader* classloader = NULL;
   
@@ -125,7 +125,7 @@ Request* EvaluatorLoader::getRequest(std::string& classname, const Source& reque
   return req;
 }
 
-Policy* EvaluatorLoader::getPolicy(std::string& classname, const Source& policysource) {
+Policy* EvaluatorLoader::getPolicy(const std::string& classname, const Source& policysource) {
   ArcSec::Policy* policy = NULL;
   Arc::ClassLoader* classloader = NULL;
 

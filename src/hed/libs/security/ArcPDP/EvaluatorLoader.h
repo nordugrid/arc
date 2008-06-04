@@ -16,9 +16,9 @@ namespace ArcSec {
 class EvaluatorLoader {
  public:
   EvaluatorLoader();
-  Evaluator* getEvaluator(std::string& classname);
-  Request* getRequest(std::string& classname, const Source& requestsource);
-  Policy* getPolicy(std::string& classname, const Source& policysource);
+  Evaluator* getEvaluator(const std::string& classname);
+  Request* getRequest(const std::string& classname, const Source& requestsource);
+  Policy* getPolicy(const std::string& classname, const Source& policysource);
  protected:
   static Arc::Logger logger;
  private:
