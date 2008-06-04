@@ -11,7 +11,8 @@ class GridManager {
   GridManager(void) { };
   GridManager(const GridManager&) { };
  public:
-  GridManager(Arc::XMLNode argv);
+  //GridManager(Arc::XMLNode argv);
+  GridManager(const char* config_filename);
   ~GridManager(void);
   operator bool(void) { return active_; };
 };

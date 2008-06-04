@@ -129,6 +129,7 @@ typedef struct {
 } args_st;
 
 static void grid_manager(void* arg) {
+  const char* config_filename = (const char*)arg;
   if(!arg) return;
   unsigned int clean_first_level=0;
   int n;
@@ -140,6 +141,8 @@ static void grid_manager(void* arg) {
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
   Daemon daemon;
+  // Only supported option now is -c
+  /*
   while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
     switch(n) {
       case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
@@ -165,6 +168,8 @@ static void grid_manager(void* arg) {
       default: { logger.msg(Arc::ERROR,"Option processing error"); return; };
     };
   };
+  */
+  if(config_filename) nordugrid_config_loc=config_filename;
 
   JobUsers users;
   std::string my_username("");
@@ -334,6 +339,7 @@ exit:
   return;
 }
 
+/*
 GridManager::GridManager(Arc::XMLNode argv):active_(false) {
   args_st* args = new args_st;
   if(!args) return;
@@ -350,6 +356,13 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
   };
   active_=Arc::CreateThreadFunction(&grid_manager,args);
   if(!active_) delete args;
+}
+*/
+
+GridManager::GridManager(const char* config_filename):active_(false) {
+  void* arg = config_filename?strdup(config_filename):NULL;
+  active_=Arc::CreateThreadFunction(&grid_manager,arg);
+  if(!active_) if(arg) free(arg);
 }
 
 GridManager::~GridManager(void) {

@@ -22,11 +22,28 @@
 
 namespace ARex {
 
-static const std::string BES_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
+static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
+static const std::string BES_FACTORY_NPREFIX("bes-factory");
 
-static Arc::XMLNode BESResponse(Arc::PayloadSOAP& res,const char* opname,const char* nspace = "bes-factory:") {
-  Arc::XMLNode response = res.NewChild(std::string(nspace) + opname + "Response");
-  Arc::WSAHeader(res).Action(BES_ACTIONS_BASE_URL + opname + "Response");
+static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
+static const std::string BES_MANAGEMENT_NPREFIX("bes-factory");
+
+static const std::string BES_ARC_NPREFIX("a-rex");
+
+static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(BES_FACTORY_NPREFIX + ":" + opname + "Response");
+  Arc::WSAHeader(res).Action(BES_FACTORY_ACTIONS_BASE_URL + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode BESManagementResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(BES_MANAGEMENT_NPREFIX + ":" + opname + "Response");
+  Arc::WSAHeader(res).Action(BES_MANAGEMENT_ACTIONS_BASE_URL + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode BESARCResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(BES_ARC_NPREFIX + ":" + opname + "Response");
   return response;
 }
 
@@ -227,21 +244,21 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       outpayload->Namespaces(ns_);
       if(MatchXMLName(op,"CreateActivity")) {
         logger_.msg(Arc::DEBUG, "process: CreateActivity");
-        CreateActivity(*config,op,BESResponse(res,"CreateActivity"),clientid);
+        CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
       } else if(MatchXMLName(op,"GetActivityStatuses")) {
-        GetActivityStatuses(*config,op,BESResponse(res,"GetActivityStatuses"));
+        GetActivityStatuses(*config,op,BESFactoryResponse(res,"GetActivityStatuses"));
       } else if(MatchXMLName(op,"TerminateActivities")) {
-        TerminateActivities(*config,op,BESResponse(res,"TerminateActivities"));
+        TerminateActivities(*config,op,BESFactoryResponse(res,"TerminateActivities"));
       } else if(MatchXMLName(op,"GetActivityDocuments")) {
-        GetActivityDocuments(*config,op,BESResponse(res,"GetActivityDocuments"));
+        GetActivityDocuments(*config,op,BESFactoryResponse(res,"GetActivityDocuments"));
       } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-        GetFactoryAttributesDocument(*config,op,BESResponse(res,"GetFactoryAttributesDocument"));
+        GetFactoryAttributesDocument(*config,op,BESFactoryResponse(res,"GetFactoryAttributesDocument"));
       } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-        StopAcceptingNewActivities(*config,op,BESResponse(res,"StopAcceptingNewActivities","bes-management:"));
+        StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
       } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-        StartAcceptingNewActivities(*config,op,BESResponse(res,"StartAcceptingNewActivities","bes-management:"));
+        StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
       } else if(MatchXMLName(op,"ChangeActivityStatus")) {
-        ChangeActivityStatus(*config,op,BESResponse(res,"ChangeActivityStatus"));
+        ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
           delete outpayload;
@@ -340,9 +357,9 @@ static void thread_starter(void* arg) {
 ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),gm_(NULL) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
-  ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-  ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-  ns_["bes-management"]="http://schemas.ggf.org/bes/2006/08/bes-management";
+  ns_[BES_ARC_NPREFIX]="http://www.nordugrid.org/schemas/a-rex";
+  ns_[BES_FACTORY_NPREFIX]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+  ns_[BES_MANAGEMENT_NPREFIX]="http://schemas.ggf.org/bes/2006/08/bes-management";
   ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
@@ -359,6 +376,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
+  /*
   Arc::NS ns;
   Arc::XMLNode gmargv(ns,"argv");
   for(Arc::XMLNode n = (*cfg)["gmarg"];(bool)n;n=n[1]) {
@@ -368,8 +386,10 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
     gmargv.NewChild("arg")="-c";
     gmargv.NewChild("arg")=gmconfig_;
   };
+  */
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_=new GridManager(gmargv);
+    //gm_=new GridManager(gmargv);
+    gm_=new GridManager(gmconfig_.empty()?NULL:gmconfig_.c_str());
     if(!gm_) return;
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };
