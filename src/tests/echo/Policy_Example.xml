@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Policy xmlns="http://www.nordugrid.org/ws/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
    <Rule Effect="Permit"> 
      <Description>
        example policy for echo service   
      </Description>
       <Subjects>
-	 <Subject>
-	    <!--Attribute Type="string">127.0.0.1</Attribute-->
-            <Attribute Type="string">193.157.239.68</Attribute>
-	    <Attribute Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
-   	 </Subject>
+         <Subject>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+         </Subject>
       </Subjects>
-      <!--Resources Type="string"><Resource>aaa</Resource></Resources-->
-      <Actions Type="string">
-         <Action>POST</Action>
-         <Action>GET</Action>
+      <Resources>
+         <Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/Echo</Resource>
+      </Resources>
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
+         <!--Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">echo</Action-->
       </Actions>
-      <!--Conditions Type="string"><Condition>bbb</Condition></Conditions--> 
    </Rule>
 </Policy>
 

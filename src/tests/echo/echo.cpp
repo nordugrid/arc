@@ -30,6 +30,7 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::ro
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);  
 
+#if 0
   // Parse the policy location information, and put them into a map container for later using
   for(int i=0;; i++) {
     Arc::XMLNode cn = (*cfg).Child(i);
@@ -44,6 +45,7 @@ Service_Echo::Service_Echo(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::ro
       }
     }
   }
+#endif
 }
 
 Service_Echo::~Service_Echo(void) {
@@ -62,7 +64,7 @@ Arc::MCC_Status Service_Echo::make_fault(Arc::Message& outmsg) {
 
 Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   //Store policy location into message attribute
-  inmsg.Attributes()->add("PDP:POLICYLOCATION", policylocation_);
+  //inmsg.Attributes()->add("PDP:POLICYLOCATION", policylocation_);
   // Check authorization
   if(!ProcessSecHandlers(inmsg, "incoming")) {
     logger.msg(Arc::ERROR, "echo: Unauthorized");
