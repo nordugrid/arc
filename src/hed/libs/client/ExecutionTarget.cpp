@@ -54,7 +54,7 @@ namespace Arc {
     SubmitterComp.NewAttribute("name") = "Submitter" + GridFlavour;
     SubmitterComp.NewAttribute("id") = "submitter";
     SubmitterComp.NewChild("Endpoint") = url.str();
-    SubmitterComp.NewChild("Source") = Source;
+    SubmitterComp.NewChild("Source") = Source.str();
     SubmitterComp.NewChild("MappingQueue") = MappingQueue;
 
     const_cast<ExecutionTarget *>(this)->loader = new Loader(&cfg);

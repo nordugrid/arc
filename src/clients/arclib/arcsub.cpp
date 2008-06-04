@@ -79,6 +79,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
       it != JobDescriptionStrings.end(); it++){
     
     Arc::JobDescription ThisJobDescription;
+
     ThisJobDescription.setSource(*it);
 
     if (ThisJobDescription.isValid()){
@@ -116,8 +117,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     JobIdStorage.ReadFromFile("jobs.xml");
   } else {
     //prepare new file for storing jobid of submitted jobs
-    Arc::XMLNode empty;
-    empty.NewChild("jobs");
+    Arc::XMLNode empty(Arc::NS(), "jobs");
     empty.SaveToFile(JobListFile);
     JobIdStorage.ReadFromFile(JobListFile);
   }
@@ -157,7 +157,11 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 
   } //end loop over JobDescriptions
 
-  JobIdStorage.SaveToFile("jobs.xml");
+  if(JobListFile.empty()){
+    JobIdStorage.SaveToFile("jobs.xml");
+  } else {
+    JobIdStorage.SaveToFile(JobListFile);
+  }
 
   if (JobDescriptionList.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
@@ -178,10 +182,10 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
       }
       */
     }
-
   }
 
   return;
+
 }
 
 int main(int argc, char **argv) {

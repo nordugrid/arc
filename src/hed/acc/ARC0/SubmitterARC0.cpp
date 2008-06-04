@@ -169,6 +169,10 @@ namespace Arc {
     cb.ctrl = false;
 
     std::string jobdescstring;
+
+    //client should add some stuff to the xrsl here
+    //length of files, checksum etc ...
+
     jobdesc.getProduct(jobdescstring, "XRSL");
 
     globus_ftp_control_data_write(&control_handle,
@@ -199,6 +203,8 @@ namespace Arc {
     InfoEndpoint.ChangeLDAPScope(URL::subtree);
 
     //Upload local input files.
+    
+
 
     return std::make_pair(jobid, InfoEndpoint);
 

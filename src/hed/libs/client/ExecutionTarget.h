@@ -82,7 +82,7 @@ namespace Arc {
     //Other
     Submitter *GetSubmitter() const;
     std::string GridFlavour;
-    std::string Source;
+    URL Source;
 
   private:
 

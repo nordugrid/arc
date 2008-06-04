@@ -30,12 +30,17 @@ namespace Arc {
 
     //Read acc config file (final version should read from install area)
     Arc::XMLNode ArclibConfig;
-    ArclibConfig.ReadFromFile("ACCConfig.xml");
+    bool ConfigExists = ArclibConfig.ReadFromFile("TestConfig.xml");
     
     //first add to config element the specified target clusters (if any)
     for (std::list<std::string>::const_iterator it = clusterselect.begin(); it != clusterselect.end(); it++){
       
-      std::list<std::string> aliasTO = ResolveAlias(*it, ArclibConfig);
+      std::list<std::string> aliasTO;
+      if(ConfigExists){
+	aliasTO = ResolveAlias(*it, ArclibConfig);
+      } else{
+	aliasTO.push_back(*it);
+      }
 
       for (std::list<std::string>::const_iterator iter = aliasTO.begin(); iter != aliasTO.end(); iter++){
 	
@@ -241,14 +246,16 @@ namespace Arc {
 
   std::list<std::string> TargetGenerator::ResolveAlias(std::string lookup, XMLNode cfg){
     
-
     std::list<std::string> ToBeReturned;
     
     //find alias in alias listing
-    XMLNode Result = *(cfg.XPathLookup("//Alias[@name='"+lookup+"']", Arc::NS())).begin(); 
-    
-    if(Result){
+    XMLNodeList ResultList = cfg.XPathLookup("//Alias[@name='"+lookup+"']", Arc::NS());
+    if(ResultList.empty()){
+      ToBeReturned.push_back(lookup);
+    } else{
 
+      XMLNode Result = *ResultList.begin();
+      
       //read out urls from found alias
       XMLNodeList URLs = Result.XPathLookup("//URL", Arc::NS());
       
@@ -262,10 +269,9 @@ namespace Arc {
 	ToBeReturned.insert(ToBeReturned.end(), MoreURLs.begin(), MoreURLs.end());
       }
     }
-    
-    return ToBeReturned;
-    
-  }
 
+    return ToBeReturned;
+
+  }
 
 } // namespace Arc
