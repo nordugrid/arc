@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_SIMPLELISTAUTHZ_H__
-#define __ARC_SEC_SIMPLELISTAUTHZ_H__
+#ifndef __ARC_SEC_ARCAUTHZ_H__
+#define __ARC_SEC_ARCAUTHZ_H__
 
 #include <stdlib.h>
 
@@ -14,10 +14,13 @@ namespace ArcSec {
 /// Tests message against list of PDPs
 /** This class implements SecHandler interface. It's Handle() method runs provided 
   Message instance against all PDPs specified in configuration. If any of PDPs 
-  returns positive result Handle() return true, otherwise false. */
+  returns positive result Handle() return true, otherwise false. 
+  This class is the main entry for configuring authorization, and could include 
+  different PDP configured inside.
+*/
 
 
-class SimpleListAuthZ : public SecHandler {
+class ArcAuthZ : public SecHandler {
  private:
   class PDPDesc {
    public:
@@ -42,8 +45,8 @@ class SimpleListAuthZ : public SecHandler {
   bool MakePDPs(Arc::Config* cfg);
 
  public:
-  SimpleListAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
-  virtual ~SimpleListAuthZ(void);
+  ArcAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
+  virtual ~ArcAuthZ(void);
   static SecHandler* get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx);  
   /** Get authorization decision*/
   virtual bool Handle(Arc::Message* msg);  
@@ -51,5 +54,5 @@ class SimpleListAuthZ : public SecHandler {
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_SIMPLELISTAUTHZ_H__ */
+#endif /* __ARC_SEC_ARCAUTHZ_H__ */
 

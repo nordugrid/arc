@@ -7,15 +7,15 @@
 #include <arc/loader/Loader.h>
 #include <arc/XMLNode.h>
 
-#include "SimpleListAuthZ.h"
+#include "ArcAuthZ.h"
 
-ArcSec::SecHandler* ArcSec::SimpleListAuthZ::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
-    return new ArcSec::SimpleListAuthZ(cfg,ctx);
+ArcSec::SecHandler* ArcSec::ArcAuthZ::get_sechandler(Arc::Config *cfg, Arc::ChainContext* ctx) {
+    return new ArcSec::ArcAuthZ(cfg,ctx);
 }
 
 /*
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
-    { "simplelist.authz", 0, &get_sechandler},
+    { "arc.authz", 0, &get_sechandler},
     { NULL, 0, NULL }
 };
 */
@@ -23,14 +23,14 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 using namespace Arc;
 using namespace ArcSec;
 
-SimpleListAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),action(breakOnDeny) {
+ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,PDP* pdp_):pdp(pdp_),action(breakOnDeny) {
   if(strcasecmp("breakOnAllow",action_.c_str()) == 0) { action=breakOnAllow; }
   else if(strcasecmp("breakOnDeny",action_.c_str()) == 0) { action=breakOnDeny; }
   else if(strcasecmp("breakAlways",action_.c_str()) == 0) { action=breakAlways; }
   else if(strcasecmp("breakNever",action_.c_str()) == 0) { action=breakNever; };
 }
 
-SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
+ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
   pdp_factory = (PDPFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {
@@ -45,18 +45,18 @@ SimpleListAuthZ::SimpleListAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg){
     for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
       if(p->second.pdp) delete p->second.pdp;
     };
-    logger.msg(ERROR, "SimpleListAuthZ: failed to initiate all PDPs - this instance will be non-functional"); 
+    logger.msg(ERROR, "ArcAuthZ: failed to initiate all PDPs - this instance will be non-functional"); 
   };
 }
 
-SimpleListAuthZ::~SimpleListAuthZ() {
+ArcAuthZ::~ArcAuthZ() {
   for(pdp_container_t::iterator p = pdps_.begin();p!=pdps_.end();++p) {
     if(p->second.pdp) delete p->second.pdp;
   };
 }
 
 /**Producing PDPs */
-bool SimpleListAuthZ::MakePDPs(Config* cfg) {
+bool ArcAuthZ::MakePDPs(Config* cfg) {
   /**Creating the PDP plugins*/
     XMLNode cn;
     cn=(*cfg)["PDP"]; //need some polishing
@@ -81,7 +81,7 @@ bool SimpleListAuthZ::MakePDPs(Config* cfg) {
     return true;
 }
 
-bool SimpleListAuthZ::Handle(Arc::Message* msg){
+bool ArcAuthZ::Handle(Arc::Message* msg){
   pdp_container_t::iterator it;
   bool r = false;
   for(it=pdps_.begin();it!=pdps_.end();it++){
