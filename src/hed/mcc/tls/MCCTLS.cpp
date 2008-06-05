@@ -41,6 +41,7 @@ class TLSSecAttr: public Arc::SecAttr {
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
+  std::string target_; // Subject of host certificate
   virtual bool equal(const SecAttr &b) const;
 };
 }
@@ -241,6 +242,13 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload) {
       X509_free(peercert);
    };
    if(identity_.empty()) identity_=subject;
+   X509* hostcert = payload.GetCert();
+   if (hostcert != NULL) {
+      buf[0]=0;
+      X509_NAME_oneline(X509_get_subject_name(hostcert),buf,sizeof buf);
+      target_=buf;
+      //logger.msg(DEBUG, "Host name: %s", peer_dn);
+   };
 }
 
 TLSSecAttr::~TLSSecAttr(void) {
@@ -286,6 +294,11 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
     };
     if(!identity_.empty()) {
        add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
+    };
+    if(!target_.empty()) {
+      XMLNode resource = item.NewChild("ar:Resource");
+      resource=target_; resource.NewAttribute("Type")="string";
+      resource.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
     };
     return true;
   } else {

@@ -41,11 +41,18 @@ public:
   virtual int Timeout(void) const { return timeout_; };
   virtual void Timeout(int to) { timeout_=to; };
 
-  /**Getting peer certificate from the established ssl.
+  /**Get peer certificate from the established ssl.
+    Obtained X509 object is owned by this instance and becomes invalid
+    after destruction. Still obtained has to be freed at end of usage. */
+  X509* GetPeerCert(void);
+  /** Get chain of peer certificates from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid
     after destruction. */
-  X509* GetPeerCert(void);
   STACK_OF(X509)* GetPeerChain(void);
+  /** Get local certificate from associated ssl.
+    Obtained X509 object is owned by this instance and becomes invalid
+    after destruction. */
+  X509* GetCert(void);
 };
 
 }

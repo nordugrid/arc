@@ -103,7 +103,7 @@ X509* PayloadTLSStream::GetPeerCert(void){
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peercert=SSL_get_peer_certificate (ssl_);
     if(peercert!=NULL) return peercert;
-    logger_.msg(ERROR,"Peer cert cannot be extracted");
+    logger_.msg(ERROR,"Peer certificate cannot be extracted");
     HandleError();
   }
   else{
@@ -111,6 +111,16 @@ X509* PayloadTLSStream::GetPeerCert(void){
     logger_.msg(ERROR,"%s",X509_verify_cert_error_string(err));
     HandleError(err);
   }
+  return NULL;
+}
+
+X509* PayloadTLSStream::GetCert(void){
+  X509* cert;
+  if(ssl_ == NULL) return NULL;
+  cert=SSL_get_certificate (ssl_);
+  if(cert!=NULL) return cert;
+  logger_.msg(ERROR,"Certificate cannot be extracted");
+  HandleError();
   return NULL;
 }
 
