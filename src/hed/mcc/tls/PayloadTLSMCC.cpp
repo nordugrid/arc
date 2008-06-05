@@ -11,7 +11,6 @@ namespace Arc {
 // are the same unless updated by administrator/user and there are internal
 // locks in OpenSSL.
 static bool reload_certificates(SSL_CTX* sslctx, const std::string& cert_file, const std::string& key_file, Logger& logger) {
-/* @@@@@
   if(!cert_file.empty()) {
     if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file.c_str()) != 1) &&
        (SSL_CTX_use_certificate_file(sslctx,cert_file.c_str(),SSL_FILETYPE_PEM) != 1) &&
@@ -34,7 +33,6 @@ static bool reload_certificates(SSL_CTX* sslctx, const std::string& cert_file, c
     PayloadTLSStream::HandleError(logger);
     return false;
   };
-*/
   return true;
 }
 
