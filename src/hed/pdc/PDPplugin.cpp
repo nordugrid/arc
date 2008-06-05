@@ -10,7 +10,7 @@
 #include "countpdp/CountPDP.h"
 #include "allowpdp/AllowPDP.h"
 #include "denypdp/DenyPDP.h"
-#include "simplelistsh/SimpleListAuthZ.h"
+#include "arcauthzsh/ArcAuthZ.h"
 #include "usernametokensh/UsernameTokenSH.h"
 
 using namespace ArcSec;
@@ -26,7 +26,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 };
 
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
-    { "simplelist.authz", 0, &ArcSec::SimpleListAuthZ::get_sechandler},
+    { "arc.authz", 0, &ArcSec::ArcAuthZ::get_sechandler},
     { "usernametoken.handler", 0, &ArcSec::UsernameTokenSH::get_sechandler},
     { NULL, 0, NULL }
 };
