@@ -117,7 +117,8 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     JobIdStorage.ReadFromFile("jobs.xml");
   } else {
     //prepare new file for storing jobid of submitted jobs
-    Arc::XMLNode empty(Arc::NS(), "jobs");
+    Arc::NS ns;
+    Arc::XMLNode empty(ns, "jobs");
     empty.SaveToFile(JobListFile);
     JobIdStorage.ReadFromFile(JobListFile);
   }
