@@ -29,7 +29,7 @@ DelegationSecAttr::DelegationSecAttr(const char* policy_str,int policy_size) {
 DelegationSecAttr::~DelegationSecAttr(void) {
 }
 
-DelegationSecAttr::operator bool(void) {
+DelegationSecAttr::operator bool(void) const {
   return (bool)policy_doc_;
 }
 

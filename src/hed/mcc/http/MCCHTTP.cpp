@@ -40,7 +40,7 @@ class HTTPSecAttr: public SecAttr {
  public:
   HTTPSecAttr(PayloadHTTP& payload);
   virtual ~HTTPSecAttr(void);
-  virtual operator bool(void);
+  virtual operator bool(void) const;
   virtual bool Export(Format format,XMLNode &val) const;
  protected:
   std::string action_;
@@ -66,7 +66,7 @@ HTTPSecAttr::HTTPSecAttr(PayloadHTTP& payload) {
 HTTPSecAttr::~HTTPSecAttr(void) {
 }
 
-HTTPSecAttr::operator bool(void) {
+HTTPSecAttr::operator bool(void) const {
   return true;
 }
 

@@ -36,7 +36,7 @@ class TLSSecAttr: public Arc::SecAttr {
  public:
   TLSSecAttr(PayloadTLSStream&);
   virtual ~TLSSecAttr(void);
-  virtual operator bool(void);
+  virtual operator bool(void) const;
   virtual bool Export(Format format,XMLNode &val) const;
  protected:
   std::string identity_; // Subject of last non-proxy certificate
@@ -254,7 +254,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload) {
 TLSSecAttr::~TLSSecAttr(void) {
 }
 
-TLSSecAttr::operator bool(void) {
+TLSSecAttr::operator bool(void) const {
   return true;
 }
 

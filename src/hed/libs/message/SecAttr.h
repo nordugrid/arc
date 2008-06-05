@@ -59,7 +59,7 @@ namespace Arc {
     /** This function should return false if the value is to be considered 
        null, e.g. if it hasn't been set or initialized. In other cases it 
        should return true.*/
-    virtual operator bool();
+    virtual operator bool() const;
 
     /** Convert internal structure into specified format.
       Returns false if format is not supported/suitable for 
@@ -94,7 +94,7 @@ namespace Arc {
    public:
     MultiSecAttr() {};
     virtual ~MultiSecAttr() {};
-    virtual operator bool();
+    virtual operator bool() const;
     virtual bool Export(Format format,XMLNode &val) const;
     virtual bool Import(Format format,const XMLNode &val);
    protected:

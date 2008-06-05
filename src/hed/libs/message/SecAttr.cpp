@@ -12,7 +12,7 @@ bool SecAttr::equal(const SecAttr&) const {
   return false;
 }
 
-SecAttr::operator bool() {
+SecAttr::operator bool() const {
   return false;
 }
 
@@ -37,7 +37,7 @@ bool SecAttr::Import(SecAttr::Format format,const XMLNode &val) {
   return false;
 }
 
-MultiSecAttr::operator bool() {
+MultiSecAttr::operator bool() const {
   return !attrs_.empty();
 }
 
