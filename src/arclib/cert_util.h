@@ -37,7 +37,7 @@ namespace ArcLib {
       /** A X.509 Proxy Certificate Profile RFC compliant restricted proxy */
       CERT_TYPE_RFC_RESTRICTED_PROXY,
       /** RFC anyLanguage proxy */
-      CERT_TYPE_RFC_ANYLANGUAGE_PROXY,
+      CERT_TYPE_RFC_ANYLANGUAGE_PROXY
     } certType; 
 
     #define CERT_IS_PROXY(cert_type) \

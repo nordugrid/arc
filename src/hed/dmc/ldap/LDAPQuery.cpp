@@ -45,7 +45,7 @@ namespace Arc {
     std::string usersn;
   };
 
-  static void* ldap_bind_with_timeout(void* arg);
+  static void *ldap_bind_with_timeout(void *arg);
 
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
   class sasl_defaults {
@@ -118,7 +118,7 @@ namespace Arc {
   }
 
 
-  int my_sasl_interact(ldap *ld,
+  int my_sasl_interact(ldap *,
 		       unsigned int flags,
 		       void *defaults_,
 		       void *interact_) {
@@ -282,25 +282,25 @@ namespace Arc {
 
     pthread_t thr;
     if (pthread_create(&thr, NULL, &ldap_bind_with_timeout, &arg) != 0) {
-      ldap_unbind_ext (connection, NULL, NULL);
+      ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
       logger.msg(ERROR, "Failed to create ldap bind thread (%s)", host);
       return false;
     }
 
     if (!arg.cond.wait(1000 * (timeout + 1))) {
-      pthread_cancel (thr);
-      pthread_detach (thr);
+      pthread_cancel(thr);
+      pthread_detach(thr);
       // if bind fails unbind will fail too - so don't call it
       connection = NULL;
       logger.msg(ERROR, "Ldap bind timeout (%s)", host);
       return false;
     }
 
-    pthread_join (thr, NULL);
+    pthread_join(thr, NULL);
 
     if (!arg.valid) {
-      ldap_unbind_ext (connection, NULL, NULL);
+      ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
       logger.msg(ERROR, "Failed to bind to ldap server (%s)", host);
       return false;
@@ -343,14 +343,14 @@ namespace Arc {
     return true;
   }
 
-  static void* ldap_bind_with_timeout(void* arg_) {
+  static void *ldap_bind_with_timeout(void *arg_) {
 
-    ldap_bind_arg* arg = (ldap_bind_arg* ) arg_;
+    ldap_bind_arg *arg = (ldap_bind_arg *)arg_;
 
     int ldresult = 0;
     if (arg->anonymous) {
       BerValue cred = {
-	0, ""
+	0, const_cast<char *>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
 				  &cred, NULL, NULL, NULL);
@@ -379,7 +379,7 @@ namespace Arc {
 					      &defaults);
 #else
       BerValue cred = {
-	0, ""
+	0, const_cast<char *>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
 				  &cred, NULL, NULL, NULL);

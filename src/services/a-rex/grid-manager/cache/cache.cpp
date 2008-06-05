@@ -464,13 +464,13 @@ static int cache_read_list(int h,std::string &url,std::string &fname) {
       l=read(h,&c,1);
       if(l==-1) return -1;
       if(l==0) break;
-      if(before_name) if(c == 0) { continue; } else { before_name=false;};
-      if(before_sep) if((c != 0) && (c != ' ')) { 
+      if(before_name) { if(c == 0) { continue; } else { before_name=false; }; };
+      if(before_sep) { if((c != 0) && (c != ' ')) { 
         fname+=c; continue;
       } 
-      else { if(c == 0) break; before_sep=false; };
-      if(before_url) if(c == ' ') { continue; } 
-      else { if(c == 0) break; before_url=false;};
+      else { if(c == 0) break; before_sep=false; }; };
+      if(before_url) { if(c == ' ') { continue; } 
+      else { if(c == 0) break; before_url=false; }; };
       if(c != 0) { url+=c; continue; };
       break;
     };

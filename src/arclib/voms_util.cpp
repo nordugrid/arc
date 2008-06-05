@@ -120,7 +120,6 @@ namespace ArcLib{
     AC_ATT_HOLDER *ac_att_holder = NULL;
     //char *qual = NULL, *name = NULL, *value = NULL, *tmp1 = NULL, *tmp2 = NULL;
     STACK_OF(X509) *stk = NULL;
-    int i = 0;
     int err = AC_ERR_UNKNOWN;
     time_t curtime;
 
@@ -317,7 +316,7 @@ namespace ArcLib{
     sk_X509_pop_free(stk, X509_free);
 
     /* Create extensions */
-    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), "loc");
+    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), (char*)"loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(norevavail, 0); 

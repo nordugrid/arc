@@ -99,8 +99,8 @@ namespace Arc {
     virtual void Unlink();
 
     /** Dummy Message processing method. Just a placeholder. */
-    virtual Arc::MCC_Status process(Arc::Message& request,
-				    Arc::Message& response) {
+    virtual Arc::MCC_Status process(Arc::Message& /* request */,
+				    Arc::Message& /* response */) {
       return MCC_Status();
     }
   };

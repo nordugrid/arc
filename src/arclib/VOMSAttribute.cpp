@@ -8,6 +8,9 @@
 
 namespace ArcLib {
 
+#ifdef M_ASN1_D2I_get_imp_set
+#undef M_ASN1_D2I_get_imp_set
+#endif
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
 #define M_ASN1_D2I_get_imp_set(r,func,free_func,a,b) \
@@ -999,7 +1002,7 @@ void AC_FULL_ATTRIBUTES_free(AC_FULL_ATTRIBUTES *a)
 
 static char *norep()
 {
-  static char *buffer="";
+  static char buffer[] = "";
 
 /*   buffer=malloc(1); */
 /*   if (buffer) */
@@ -1007,32 +1010,32 @@ static char *norep()
   return buffer;
 }
 
-char *acseq_i2s(struct v3_ext_method *method, void *ext)
+char *acseq_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
   
-char *targets_i2s(struct v3_ext_method *method, void *ext)
+char *targets_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-char *certs_i2s(struct v3_ext_method *method, void *ext)
+char *certs_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-char *null_i2s(struct v3_ext_method *method, void *ext)
+char *null_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-char *attributes_i2s(struct v3_ext_method *method, void *ext)
+char *attributes_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-void *acseq_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   AC **list = (AC **)data;
   AC_SEQ *a;
@@ -1047,7 +1050,7 @@ void *acseq_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data
   return (void *)a;
 }
 
-void *targets_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   char *pos;
   char *list = strdup(data);
@@ -1088,7 +1091,7 @@ void *targets_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *da
 
 }
 
-void *certs_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *certs_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   STACK_OF(X509) *certs =
     (STACK_OF(X509) *)data;
@@ -1110,7 +1113,7 @@ void *certs_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data
   return NULL;    
 }
 
-void *attributes_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *attributes_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   int i = 0;
 
@@ -1140,17 +1143,17 @@ void *attributes_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char 
   return NULL;
 }
 
-void *null_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *null_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char*)
 {
   return ASN1_NULL_new();
 }
 
-char *authkey_i2s(struct v3_ext_method *method, void *ext)
+char *authkey_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-void *authkey_s2i(struct v3_ext_method *method, struct v3_ext_ctx *ctx, char *data)
+void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   X509       *cert = (X509 *)data;
   char digest[21];

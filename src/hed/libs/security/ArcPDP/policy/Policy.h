@@ -84,7 +84,7 @@ public:
    <Subjects, Resources, Actions>)
    
   */   
-  virtual MatchResult match(EvaluationCtx*) {};
+  virtual MatchResult match(EvaluationCtx*) = 0;
 
   ///Evaluate policy
   /*For the <Rule> of Arc, only get the "Effect" from rules; 
@@ -93,7 +93,7 @@ public:
     For the <Rule> of XACML, it will evaluate the <Condition> node by using information from request, and use the "Effect" attribute of <Rule>
     For the <Policy> of XACML, it will combine the evaluation result from <Rule>
   */
-  virtual Result eval(EvaluationCtx*) {};
+  virtual Result eval(EvaluationCtx*) = 0;
 
   /**Add a policy element to into "this" object */
   virtual void addPolicy(Policy* pl){subelements.push_back(pl);};
@@ -105,10 +105,10 @@ public:
   virtual void make_policy() {};
 
   /**Get the "Effect" attribute*/
-  virtual std::string getEffect() {};
+  virtual std::string getEffect() = 0;
   
   /**Get eveluation result*/
-  virtual EvalResult& getEvalResult() {};
+  virtual EvalResult& getEvalResult() = 0;
 };
 
 } // namespace ArcSec

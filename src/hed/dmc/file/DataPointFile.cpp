@@ -8,7 +8,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/thread.h>
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -97,11 +98,12 @@ namespace Arc {
       }
       /* 3. announce */
       buffer->is_read(h, ll, p);
-      if (limit_length)
+      if (limit_length) {
 	if (ll > range_length)
 	  range_length = 0;
 	else
 	  range_length -= ll;
+      }
       offset += ll; // for non-seakable files
     }
     close(fd);

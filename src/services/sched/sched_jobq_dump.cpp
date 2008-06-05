@@ -5,7 +5,7 @@
 #include <iostream>
 #include "job_queue.h"
 
-int main(int argc, char **argv)
+int main(int /* argc */, char **argv)
 {   
     Arc::JobQueue jobq;
     jobq.init(argv[1], "jobq");

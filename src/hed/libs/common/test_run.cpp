@@ -16,7 +16,7 @@
 
 Arc::Run *executer = NULL;
 
-void start_thread(void *arg) 
+void start_thread(void *)
 {
 #if 0
 std::cout << "Start" << std::endl;
@@ -69,7 +69,7 @@ std::cout << "Wait" << std::endl;
     std::cout << "end of start_thread" << std::endl;
 }
 
-void stop_thread(void *arg)
+void stop_thread(void *)
 {
 #if 0
     sleep(10);

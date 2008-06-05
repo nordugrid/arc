@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/random.h>
 #include <string>
 #include <iostream>
 #include <fstream>

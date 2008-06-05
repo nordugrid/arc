@@ -12,7 +12,7 @@ Source::Source(std::istream& stream) {
   node.ReadFromStream(stream);
 }
 
-Source::Source(Arc::URL& url) {
+Source::Source(Arc::URL&) {
   //TODO: 
 }
 

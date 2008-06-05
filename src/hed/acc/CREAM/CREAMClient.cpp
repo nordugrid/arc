@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <glibmm/miscutils.h>
+
 #include "CREAMClient.h"
 #include "OpenSSLFunctions.h"
 

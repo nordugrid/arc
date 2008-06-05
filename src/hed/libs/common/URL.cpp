@@ -2,17 +2,20 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
-#include "Logger.h"
-#include "StringConv.h"
+#include <fstream>
+
+#include <unistd.h>
+
+#include <glibmm/miscutils.h>
+
 #ifdef WIN32
 #include "win32.h"
 #endif
 
-#include "URL.h"
+#include <arc/Logger.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
 
-#include <fstream>
-#include <unistd.h>
 
 namespace Arc {
 

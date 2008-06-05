@@ -8,7 +8,7 @@ namespace GridScheduler
 {
 
 Arc::MCC_Status 
-GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode &in,Arc::XMLNode &out) 
+GridSchedulerService::GetFactoryAttributesDocument(Arc::XMLNode & /* in */,Arc::XMLNode & /* out */) 
 {
 #if 0
     /*

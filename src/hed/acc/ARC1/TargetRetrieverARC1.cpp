@@ -70,9 +70,9 @@ namespace Arc {
 
   void TargetRetrieverARC1::QueryIndex(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    URL& url = ((ThreadArg *)arg)->url;
-    int& targetType = ((ThreadArg *)arg)->targetType;
-    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    // URL& url = ((ThreadArg *)arg)->url;
+    // int& targetType = ((ThreadArg *)arg)->targetType;
+    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
     // TODO: ISIS
 
@@ -82,9 +82,9 @@ namespace Arc {
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    URL& url = ((ThreadArg *)arg)->url;
-    int& targetType = ((ThreadArg *)arg)->targetType;
-    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    // URL& url = ((ThreadArg *)arg)->url;
+    // int& targetType = ((ThreadArg *)arg)->targetType;
+    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
     // TODO: A-REX
 

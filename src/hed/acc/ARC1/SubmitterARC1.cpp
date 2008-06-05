@@ -229,13 +229,15 @@ static void set_arex_namespaces(Arc::NS& ns) {
 		    std::cerr << "ERROR: " << e.what() << std::endl;
 		  }
 	   }
-	    else 
+	    else {
 	      // TODO: error handling
-	    	;
+	    }
 	  }  
 	  catch (std::exception& e){
 		  std::cerr << "ERROR: " << e.what() << std::endl;  
 	  }
+
+	  return std::make_pair("", "");
 	  
 	} // SubmitterARC1::Submit    
 } // namespace Arc

@@ -103,7 +103,7 @@ static int base64_decode_binary(unsigned char *bufplain,
     register int nprbytes;
 
     bufin = (const unsigned char *) bufcoded;
-    while (pr2six[*(bufin++)] <= 63);
+    while (pr2six[*(bufin++)] <= 63) {}
     nprbytes = (bufin - (const unsigned char *) bufcoded) - 1;
     nbytesdecoded = ((nprbytes + 3) / 4) * 3;
 
@@ -195,7 +195,7 @@ namespace Arc {
     register int nprbytes;
 
     bufin = (const unsigned char *) bufcoded;
-    while (pr2six[*(bufin++)] <= 63);
+    while (pr2six[*(bufin++)] <= 63) {}
 
     nprbytes = (bufin - (const unsigned char *) bufcoded) - 1;
     nbytesdecoded = ((nprbytes + 3) / 4) * 3;

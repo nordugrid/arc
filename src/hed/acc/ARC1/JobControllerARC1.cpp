@@ -145,7 +145,7 @@ namespace Arc {
 
   } //end GetJobInformation
 
-  void JobControllerARC1::PerformAction(std::string action){
+  void JobControllerARC1::PerformAction(std::string /* action */){
 
   }
 

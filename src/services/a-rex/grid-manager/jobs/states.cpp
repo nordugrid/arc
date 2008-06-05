@@ -386,7 +386,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     std::string min_average_speed_s;
     std::string max_inactivity_time_s;
     int argn=3;
-    char* args[] = {
+    const char* args[] = {
       (char*)(cmd.c_str()),
       "-U",
       (char*)(user_id_s.c_str()),

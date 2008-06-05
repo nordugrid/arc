@@ -7,7 +7,6 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
-#include <glibmm.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>

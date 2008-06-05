@@ -167,8 +167,8 @@ namespace Arc {
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
     URL& url = ((ThreadArg *)arg)->url;
-    int& targetType = ((ThreadArg *)arg)->targetType;
-    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    // int& targetType = ((ThreadArg *)arg)->targetType;
+    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
     //Query GRIS for all relevant information
     url.ChangeLDAPScope(URL::subtree);

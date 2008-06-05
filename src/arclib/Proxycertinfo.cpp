@@ -164,7 +164,7 @@ PROXYPOLICY * d2i_PROXYPOLICY(PROXYPOLICY ** a, unsigned char ** pp, long length
   M_ASN1_D2I_Finish(a, PROXYPOLICY_free, ASN1_F_D2I_PROXYPOLICY);
 }
 
-STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY( struct v3_ext_method*  method, PROXYPOLICY*  ext, STACK_OF(CONF_VALUE)* extlist) {
+STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY( struct v3_ext_method* /* method */, PROXYPOLICY*  ext, STACK_OF(CONF_VALUE)* extlist) {
   char* policy = NULL;
   char  policy_lang[128];
   char* tmp_string = NULL;
@@ -409,7 +409,7 @@ PROXYCERTINFO * d2i_PROXYCERTINFO(PROXYCERTINFO ** cert_info, unsigned char ** p
   return info;
 }
 
-STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method *method, PROXYCERTINFO* ext, STACK_OF(CONF_VALUE)* extlist) {
+STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(struct v3_ext_method* /* method */, PROXYCERTINFO* ext, STACK_OF(CONF_VALUE)* extlist) {
   int     len = 128;
   char    tmp_string[128];
   if(!ext) {

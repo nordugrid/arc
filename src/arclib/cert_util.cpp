@@ -658,7 +658,7 @@ err:
  *so we can override the key usage checks if its a proxy. 
  *We are only looking for X509_V_ERR_KEYUSAGE_NO_CERTSIGN
 */
-int check_issued( X509_STORE_CTX*  ctx, X509* x, X509* issuer) {
+int check_issued(X509_STORE_CTX*, X509* x, X509* issuer) {
   int  ret;
   int  ret_code = 1;
 

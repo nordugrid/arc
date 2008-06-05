@@ -7,7 +7,7 @@
 namespace GridScheduler {
 
 Arc::MCC_Status 
-GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const std::string &resource_id) 
+GridSchedulerService::GetActivities(Arc::XMLNode & /* in */, Arc::XMLNode &out, const std::string &resource_id) 
 {
     Arc::XMLNode activities = out.NewChild("ibes:Activities");
     // create resource

@@ -543,7 +543,7 @@ void PaulService::set_config_params(Arc::Config *cfg)
 }
 
 // Constructor
-PaulService::PaulService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "Paul"),in_shutdown(false)
+PaulService::PaulService(Arc::Config *cfg):Service(cfg),in_shutdown(false),logger_(Arc::Logger::rootLogger, "Paul")
 {
     // Define supported namespaces
     ns_["ibes"] = "http://www.nordugrid.org/schemas/ibes";
@@ -584,7 +584,7 @@ void PaulService::config_index_page(const std::string &endpoint, std::string &ht
     }
 }
 
-void PaulService::config_add_sched(const std::string &endpoint, std::string &html)
+void PaulService::config_add_sched(const std::string& /* endpoint */, std::string &html)
 {
     html += "<h2>Add Scheduler</h2>";
     html += "<p>Current schedulers</p>";
@@ -732,7 +732,7 @@ Arc::MCC_Status PaulService::process(Arc::Message &in, Arc::Message &out)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-}; // namespace Paul
+} // namespace Paul
 
 service_descriptors ARC_SERVICE_LOADER = {
     { "paul", 0, &Paul::get_service },

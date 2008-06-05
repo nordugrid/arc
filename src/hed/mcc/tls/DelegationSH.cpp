@@ -16,7 +16,7 @@ using namespace Arc;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationSH");
 
-DelegationSH::DelegationSH(Config *cfg,ChainContext* ctx):SecHandler(cfg) {
+DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg) {
 }
 
 DelegationSH::~DelegationSH(void) {

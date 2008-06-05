@@ -158,8 +158,8 @@ namespace Arc {
   void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
     URL& url = ((ThreadArg *)arg)->url;
-    int& targetType = ((ThreadArg *)arg)->targetType;
-    int& detailLevel = ((ThreadArg *)arg)->detailLevel;
+    // int& targetType = ((ThreadArg *)arg)->targetType;
+    // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
     url.ChangeLDAPScope(URL::subtree);
     DataHandle handler(url);
@@ -205,7 +205,7 @@ namespace Arc {
       target.GridFlavour = "CREAM";
 
       std::string key;
-      std::string::size_type pos;
+      std::string::size_type pos = std::string::npos;
 
       for (XMLNode node = VOView["GlueChunkKey"]; node; ++node) {
 	key = (std::string)node;

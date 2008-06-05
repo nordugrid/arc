@@ -16,7 +16,7 @@ namespace ArcLib {
     Logger Credential::credentialLogger(Logger::rootLogger, "Credential");
 
 #define PASS_MIN_LENGTH 4
-  static int passwordcb(char* pwd, int len, int rwflag, void* u) {
+  static int passwordcb(char* pwd, int len, int, void*) {
     int j, r;
     char prompt[128];
     for(;;) {
@@ -35,7 +35,7 @@ namespace ArcLib {
     }
   }
 
-  static int ssl_err_cb(const char *str, size_t len, void *u) {
+  static int ssl_err_cb(const char *str, size_t, void *u) {
     Logger& logger = *((Logger*)u);
     logger.msg(ERROR, "OpenSSL Error: %s", str);
     return 1;
@@ -215,6 +215,7 @@ namespace ArcLib {
   void Credential::loadKey(BIO* &keybio, EVP_PKEY* &pkey) {
     //Read key
     Credformat format;
+    PKCS12* pkcs12 = NULL;
     format = getFormat(keybio);
     switch(format){
       case PEM:
@@ -229,7 +230,7 @@ namespace ArcLib {
         break;
 
       case PKCS: 
-        PKCS12* pkcs12 = d2i_PKCS12_bio(keybio, NULL);
+        pkcs12 = d2i_PKCS12_bio(keybio, NULL);
         if(pkcs12) {
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
@@ -239,6 +240,9 @@ namespace ArcLib {
           }
           PKCS12_free(pkcs12);
         }
+        break;
+
+      default:
         break;
     }
   }
@@ -295,9 +299,10 @@ namespace ArcLib {
     else {credentialLogger.msg(ERROR, "Certificate verification failed"); LogError(); return false;}
   } 
 
-  Credential::Credential() : start_(Arc::Time()), lifetime_(Arc::Period(0)),
+  Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        start_(Arc::Time()), lifetime_(Arc::Period(0)),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024),
-        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL) {
+        extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -311,10 +316,11 @@ namespace ArcLib {
 
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion, std::string policylang, 
       std::string policyfile, int pathlength) : 
+         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
          start_(start), lifetime_(lifetime), 
-         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits), 
-         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), proxyversion_(proxyversion), 
-         extensions_(NULL), policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength) {
+         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(keybits),
+         proxyversion_(proxyversion), policyfile_(policyfile), policylang_(policylang), pathlength_(pathlength),
+         extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -465,9 +471,9 @@ namespace ArcLib {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile, const std::string& cadir, 
-        const std::string& cafile) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL), extensions_(NULL),
-        certfile_(certfile), keyfile_(keyfile), cacertfile_(cafile), cacertdir_(cadir),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024) {
+        const std::string& cafile) : cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
+        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_md5()), keybits_(1024), extensions_(NULL) {
 
     OpenSSL_add_all_algorithms();
     //EVP_add_digest(EVP_md5());
@@ -1013,7 +1019,7 @@ err:
     else return false;
   }
 
-  bool Credential::AddExtension(std::string name, char** binary, bool crit) {
+  bool Credential::AddExtension(std::string name, char** binary, bool) {
     X509_EXTENSION* ext = NULL;
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
@@ -1029,7 +1035,7 @@ err:
     X509_NAME_ENTRY* name_entry = NULL;
 
     *tosign = NULL;
-    char* CN_name;
+    char* CN_name = NULL;
     ASN1_INTEGER* serial_number = NULL;
     unsigned char* certinfo_data = NULL;    
     X509_EXTENSION* certinfo_ext = NULL;
@@ -1091,11 +1097,11 @@ err:
       }
     }
     else if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){ 
-      CN_name = "limited proxy"; 
+      CN_name = const_cast<char*>("limited proxy"); 
       serial_number = X509_get_serialNumber(issuer);
     }
     else {
-      CN_name = "proxy";
+      CN_name = const_cast<char*>("proxy");
       serial_number = X509_get_serialNumber(issuer);
     }
 

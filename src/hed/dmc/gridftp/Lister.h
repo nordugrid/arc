@@ -27,7 +27,7 @@ namespace Arc {
     std::list<FileInfo> fnames;
     globus_ftp_control_response_t resp[LISTER_MAX_RESPONSES];
     int resp_n;
-    typedef enum callback_status_t {
+    enum callback_status_t {
       CALLBACK_NOTREADY = 0,
       CALLBACK_DONE = 1,
       CALLBACK_ERROR = 2

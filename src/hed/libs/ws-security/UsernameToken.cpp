@@ -41,7 +41,7 @@ namespace Arc {
 static bool get_password(std::string& password, bool verify) {
   char pwd[1024];
   int len = sizeof(pwd);
-  int i, j, r;
+  int j, r;
   char prompt[128];
   for(;;) {
     snprintf(prompt, sizeof(prompt), "Enter password for Username Token: "); 
@@ -172,7 +172,6 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   EVP_MD_CTX mdctx;       
   unsigned char md_value[SHA_DIGEST_LENGTH];
   unsigned int md_len;
-  int i;
 
   char plain[1024];
   Base64::decode(plain, nonce.c_str());

@@ -347,7 +347,7 @@ namespace Arc {
     /* checksum on the fly */
     if ((checksum != NULL) && (offset == checksum_offset))
       for (int i = handle; i < bufs_n; i++)
-	if (bufs[i].used != 0)
+	if (bufs[i].used != 0) {
 	  if (bufs[i].offset == checksum_offset) {
 	    checksum->add(bufs[i].start, bufs[i].used);
 	    checksum_offset += bufs[i].used;
@@ -356,6 +356,7 @@ namespace Arc {
 	  }
 	  else if (checksum_offset < bufs[i].offset)
 	    checksum_ready = false;
+	}
     cond.broadcast();
     lock.unlock();
     return true;

@@ -1,6 +1,8 @@
 #include <arc/GUID.h>
 #include <arc/message/MCC.h>
 
+#include <glibmm/miscutils.h>
+
 #include "CREAMClient.h"
 #include "SubmitterCREAM.h"
 
@@ -9,7 +11,7 @@ namespace Arc {
   SubmitterCREAM::SubmitterCREAM(Config *cfg)
     : Submitter(cfg) {}
 
-  SubmitterCREAM::~SubmitterCREAM() { std::cout << "Delete submitter" << std::endl; }
+  SubmitterCREAM::~SubmitterCREAM() {}
 
   ACC *SubmitterCREAM::Instance(Config *cfg, ChainContext *) {
     return new SubmitterCREAM(cfg);

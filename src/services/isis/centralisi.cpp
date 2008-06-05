@@ -8,7 +8,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include <arc/URL.h>
 #include <arc/Thread.h>
-#include <glibmm.h>
+//#include <glibmm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -67,7 +67,7 @@ void CentralISIService::InformationCollector(void)
     }
 }
 
-CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),logger(Arc::Logger::rootLogger, "CentralISI"),reg(NULL)
+CentralISIService::CentralISIService(Arc::Config *cfg):Service(cfg),reg(NULL),logger(Arc::Logger::rootLogger, "CentralISI")
 {
     // Define supported namespaces
     // TODO: Remove those addedd automatically and take others from headers

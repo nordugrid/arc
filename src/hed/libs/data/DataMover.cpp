@@ -4,7 +4,7 @@
 
 #include <cerrno>
 
-#include <glibmm.h>
+#include <glibmm/random.h>
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>

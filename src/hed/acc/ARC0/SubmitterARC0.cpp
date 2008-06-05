@@ -1,6 +1,6 @@
 #include <globus_ftp_control.h>
 
-#include <glibmm.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/Thread.h>
 #include <arc/data/DMC.h>
@@ -21,8 +21,8 @@ struct cbarg {
 
 
 static void ControlCallback(void *arg,
-			    globus_ftp_control_handle_t *handle,
-			    globus_object_t *error,
+			    globus_ftp_control_handle_t*,
+			    globus_object_t*,
 			    globus_ftp_control_response_t *response) {
   cbarg *cb = (cbarg *)arg;
   if (response && response->response_buffer)
@@ -36,10 +36,10 @@ static void ControlCallback(void *arg,
 
 
 static void ConnectCallback(void *arg,
-			    globus_ftp_control_handle_t *handle,
-			    unsigned int stripe_ndx,
-			    globus_bool_t reused,
-			    globus_object_t *error) {
+			    globus_ftp_control_handle_t*,
+			    unsigned int,
+			    globus_bool_t,
+			    globus_object_t*) {
   cbarg *cb = (cbarg *)arg;
   cb->data = true;
   cb->cond.signal();
@@ -47,12 +47,12 @@ static void ConnectCallback(void *arg,
 
 
 static void ReadWriteCallback(void *arg,
-			      globus_ftp_control_handle_t *handle,
-			      globus_object_t *error,
-			      globus_byte_t *buffer,
-			      globus_size_t length,
-			      globus_off_t offset,
-			      globus_bool_t eof) {
+			      globus_ftp_control_handle_t*,
+			      globus_object_t*,
+			      globus_byte_t*,
+			      globus_size_t,
+			      globus_off_t,
+			      globus_bool_t) {
   cbarg *cb = (cbarg *)arg;
   cb->data = true;
   cb->cond.signal();
@@ -90,7 +90,9 @@ namespace Arc {
     // should do some clever thing here to integrate ARC1 security framework
     globus_ftp_control_auth_info_t auth;
     globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL, GLOBUS_TRUE,
-				      "ftp", "user@", GLOBUS_NULL, GLOBUS_NULL);
+				      const_cast<char*>("ftp"),
+				      const_cast<char*>("user@"),
+				      GLOBUS_NULL, GLOBUS_NULL);
 
     cb.ctrl = false;
     globus_ftp_control_authenticate(&control_handle, &auth, GLOBUS_TRUE,
@@ -99,7 +101,8 @@ namespace Arc {
       cb.cond.wait();
 
     cb.ctrl = false;
-    globus_ftp_control_send_command(&control_handle, "CWD jobs",
+    globus_ftp_control_send_command(&control_handle, ("CWD " +
+				    SubmissionEndpoint.Path()).c_str(),
 				    &ControlCallback, &cb);
     while (!cb.ctrl)
       cb.cond.wait();

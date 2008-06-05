@@ -26,8 +26,8 @@ class numvalue_for_shell {
 };
 std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s);
 
-#define NG_RSL_DEFAULT_STDIN      "/dev/null"
-#define NG_RSL_DEFAULT_STDOUT     "/dev/null"
-#define NG_RSL_DEFAULT_STDERR     "/dev/null"
+#define NG_RSL_DEFAULT_STDIN      const_cast<char*>("/dev/null")
+#define NG_RSL_DEFAULT_STDOUT     const_cast<char*>("/dev/null")
+#define NG_RSL_DEFAULT_STDERR     const_cast<char*>("/dev/null")
 
 #endif

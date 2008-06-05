@@ -108,4 +108,4 @@ SchedStatus SchedStatusFactory::getFromARexStatus(ARexStatusLevel al)
 }
 #endif
 
-}; // namespace Paul
+} // namespace Paul

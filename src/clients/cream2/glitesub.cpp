@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <cstdlib>
 
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
 

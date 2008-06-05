@@ -26,10 +26,10 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 	    const std::list<std::string>& ClusterReject,
 	    const std::list<std::string>& IndexUrls,
 	    const std::string& JobListFile,
-	    const bool dryrun,
-	    const bool dumpdescription,
-	    const bool unknownattr,
-	    const int timeout) {
+	    const bool /* dryrun */,
+	    const bool /* dumpdescription */,
+	    const bool /* unknownattr */,
+	    const int /* timeout */) {
 
   if (JobDescriptionFiles.empty() && JobDescriptionStrings.empty()) {
     std::cout << Arc::IString("No job description input specified")

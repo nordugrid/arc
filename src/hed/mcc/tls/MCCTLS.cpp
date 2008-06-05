@@ -260,7 +260,8 @@ TLSSecAttr::operator bool(void) const {
 
 bool TLSSecAttr::equal(const SecAttr &b) const {
   try {
-    const TLSSecAttr& a = (const TLSSecAttr&)b;
+    const TLSSecAttr& a = dynamic_cast<const TLSSecAttr&>(b);
+    if (!a) return false;
     // ...
     return false;
   } catch(std::exception&) { };

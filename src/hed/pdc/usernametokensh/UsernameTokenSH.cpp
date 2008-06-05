@@ -26,7 +26,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 namespace ArcSec {
 using namespace Arc;
 
-UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext* ctx):SecHandler(cfg){
+UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
   if(process_type == "extract") {

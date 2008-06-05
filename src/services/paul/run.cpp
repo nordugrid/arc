@@ -94,7 +94,7 @@ bool PaulService::run(Job &j)
             logger_.msg(Arc::ERROR, "Error during the application run");
             goto error;
         }
-        int r = run->Result();
+        /* int r = */ run->Result();
     } catch (std::exception &e) {
         logger_.msg(Arc::ERROR, "Exception: %s", e.what());
         goto error;

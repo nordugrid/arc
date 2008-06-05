@@ -164,11 +164,12 @@ void NGConfig::WriteOption(const Option& opt, std::ostream& os) {
 		if (it->second == "inverted")
 			os << '!';
 	it = opt.GetSubOptions().find("rule");
-	if (it != opt.GetSubOptions().end())
+	if (it != opt.GetSubOptions().end()) {
 		if (it->second == "allow")
 			os << '+';
 		else if (it->second == "deny")
 			os << '-';
+	}
 
 	os << opt.GetAttr() << '=' << '"';
 

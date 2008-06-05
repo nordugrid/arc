@@ -61,7 +61,6 @@ int main(void) {
    ArcLib::Credential::InitProxyCertInfo();
 
    X509_EXTENSION* ext = NULL;
-   ASN1_OBJECT*  extension_oid = NULL;
    int certinfo_v3_NID, certinfo_v4_NID;
 
    ArcLib::PROXYCERTINFO * cert_info = NULL;

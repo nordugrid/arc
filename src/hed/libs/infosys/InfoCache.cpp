@@ -2,7 +2,9 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <InfoCache.h>
 #include <arc/Logger.h>
 #include <arc/ArcRegex.h>

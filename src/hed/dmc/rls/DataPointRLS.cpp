@@ -55,7 +55,7 @@ namespace Arc {
     return err;
   }
 
-  typedef class meta_resolve_rls_t {
+  class meta_resolve_rls_t {
   public:
     DataPointRLS& dprls;
     bool source;
@@ -94,7 +94,8 @@ namespace Arc {
       opr.val.s = const_cast<char *>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
-      err = globus_rls_client_lrc_attr_search(h, "lfn", globus_rls_obj_lrc_lfn,
+      err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
+					      globus_rls_obj_lrc_lfn,
 					      globus_rls_attr_op_eq, &opr,
 					      NULL, &off, 1, &guids);
       if (err != GLOBUS_SUCCESS) {
@@ -124,7 +125,7 @@ namespace Arc {
 	      (h, const_cast<char *>(url.Path().c_str()), 0, 0, &pfns_list);
     else
       err = globus_rls_client_lrc_get_pfn
-	    (h, "__storage_service__", 0, 0, &pfns_list);
+	    (h, const_cast<char*>("__storage_service__"), 0, 0, &pfns_list);
     if (err != GLOBUS_SUCCESS) {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
 				   GLOBUS_FALSE);
@@ -400,7 +401,7 @@ namespace Arc {
 	opr.val.s = const_cast<char *>(url.Path().c_str());
 	int off = 0;
 	globus_list_t *guids = NULL;
-	err = globus_rls_client_lrc_attr_search(h, "lfn",
+	err = globus_rls_client_lrc_attr_search(h, const_cast<char*>("lfn"),
 						globus_rls_obj_lrc_lfn,
 						globus_rls_attr_op_eq,
 						&opr, NULL, &off, 1, &guids);
@@ -426,7 +427,7 @@ namespace Arc {
 	globus_rls_attribute_t attr;
 	attr.objtype = globus_rls_obj_lrc_lfn;
 	attr.type = globus_rls_attr_type_str;
-	attr.name = "lfn";
+	attr.name = const_cast<char *>("lfn");
 	attr.val.s = const_cast<char *>(url.Path().c_str());
 	err = globus_rls_client_lrc_attr_put
 	      (h, const_cast<char *>(rls_lfn.c_str()), &attr, 0);
@@ -461,7 +462,7 @@ namespace Arc {
 	opr.val.s = const_cast<char *>(url.Path().c_str());
 	int off = 0;
 	globus_list_t *guids = NULL;
-	err = globus_rls_client_lrc_attr_search(h, "lfn",
+	err = globus_rls_client_lrc_attr_search(h, const_cast<char *>("lfn"),
 						globus_rls_obj_lrc_lfn,
 						globus_rls_attr_op_eq,
 						&opr, NULL, &off, 1, &guids);
@@ -502,8 +503,8 @@ namespace Arc {
     std::string attr_val;
     attr.objtype = globus_rls_obj_lrc_lfn;
     attr.type = globus_rls_attr_type_str;
-    attr.name = "filetype";
-    attr.val.s = "file";
+    attr.name = const_cast<char *>("filetype");
+    attr.val.s = const_cast<char *>("file");
     err = globus_rls_client_lrc_attr_put
 	  (h, const_cast<char *>(rls_lfn.c_str()), &attr, 0);
     if (err != GLOBUS_SUCCESS) {
@@ -514,7 +515,7 @@ namespace Arc {
 		   errmsg);
     }
     if (CheckSize()) {
-      attr.name = "size";
+      attr.name = const_cast<char *>("size");
       attr_val = tostring(GetSize());
       attr.val.s = const_cast<char *>(attr_val.c_str());
       err = globus_rls_client_lrc_attr_put
@@ -528,7 +529,7 @@ namespace Arc {
       }
     }
     if (CheckCheckSum()) {
-      attr.name = "filechecksum";
+      attr.name = const_cast<char *>("filechecksum");
       attr_val = GetCheckSum();
       attr.val.s = const_cast<char *>(attr_val.c_str());
       err = globus_rls_client_lrc_attr_put
@@ -542,7 +543,7 @@ namespace Arc {
       }
     }
     if (CheckCreated()) {
-      attr.name = "modifytime";
+      attr.name = const_cast<char *>("modifytime");
       attr_val = GetCreated();
       attr.val.s = const_cast<char *>(attr_val.c_str());
       err = globus_rls_client_lrc_attr_put
@@ -578,7 +579,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  typedef class meta_unregister_rls_t {
+  class meta_unregister_rls_t {
   public:
     DataPointRLS& dprls;
     bool all;
@@ -614,7 +615,7 @@ namespace Arc {
       opr.val.s = const_cast<char *>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
-      err = globus_rls_client_lrc_attr_search(h, "lfn",
+      err = globus_rls_client_lrc_attr_search(h, const_cast<char *>("lfn"),
 					      globus_rls_obj_lrc_lfn,
 					      globus_rls_attr_op_eq,
 					      &opr, NULL, &off, 1, &guids);
@@ -917,7 +918,7 @@ namespace Arc {
     return true;
   }
 
-  typedef class list_files_rls_t {
+  class list_files_rls_t {
   public:
     DataPointRLS& dprls;
     std::list<FileInfo>& files;
@@ -957,7 +958,8 @@ namespace Arc {
       opr.val.s = const_cast<char *>(url.Path().c_str());
       int off = 0;
       globus_list_t *guids = NULL;
-      err = globus_rls_client_lrc_attr_search(h, "lfn", globus_rls_obj_lrc_lfn,
+      err = globus_rls_client_lrc_attr_search(h, const_cast<char *>("lfn"),
+					      globus_rls_obj_lrc_lfn,
 					      globus_rls_attr_op_eq,
 					      &opr, NULL, &off, 1, &guids);
       if (err != GLOBUS_SUCCESS) {
@@ -984,7 +986,8 @@ namespace Arc {
       err = globus_rls_client_lrc_get_pfn
 	    (h, const_cast<char *>(url.Path().c_str()), &lrc_offset, 1000, &pfns);
     else
-      err = globus_rls_client_lrc_get_pfn_wc(h, "*", rls_pattern_unix,
+      err = globus_rls_client_lrc_get_pfn_wc(h, const_cast<char *>("*"),
+					     rls_pattern_unix,
 					     &lrc_offset, 1000, &pfns);
     if (err != GLOBUS_SUCCESS) {
       globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
@@ -1014,7 +1017,7 @@ namespace Arc {
 	  globus_list_t *lfn_list = NULL;
 	  err = globus_rls_client_lrc_attr_value_get
 		(h, const_cast<char *>(lfn.c_str()),
-		 "lfn", globus_rls_obj_lrc_lfn, &lfn_list);
+		 const_cast<char *>("lfn"), globus_rls_obj_lrc_lfn, &lfn_list);
 	  if (err != GLOBUS_SUCCESS) {
 	    globus_rls_client_error_info(err, &errcode, errmsg,
 					 MAXERRMSG + 32, GLOBUS_FALSE);

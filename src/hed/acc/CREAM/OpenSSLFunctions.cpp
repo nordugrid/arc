@@ -79,7 +79,7 @@ time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s){
   return timegm(&tm)-offset*60;
 }
 
-const long getCertTimeLeft(const std::string& pxfile) {
+long getCertTimeLeft(const std::string& pxfile) {
   time_t timeleft = 0;
   BIO *in = NULL;
   X509 *x = NULL;

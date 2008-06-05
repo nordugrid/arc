@@ -19,10 +19,10 @@
 #include "Lister.h"
 
 
-static char *default_ftp_user = "ftp";
-static char *default_gsiftp_user = ":globus-mapping:";
-static char *default_ftp_pass = "user@";
-static char *default_gsiftp_pass = "user@";
+static char default_ftp_user[] = "ftp";
+static char default_gsiftp_user[] = ":globus-mapping:";
+static char default_ftp_pass[] = "user@";
+static char default_gsiftp_pass[] = "user@";
 
 static void dos_to_unix(char *s) {
   if (!s)
@@ -338,7 +338,7 @@ namespace Arc {
 	globus_mutex_unlock(&mutex);
 	return GLOBUS_FTP_UNKNOWN_REPLY;
       }
-      if ((sresp) && (resp_n > 0))
+      if ((sresp) && (resp_n > 0)) {
 	if (delim == 0) {
 	  (*sresp) = (char *)malloc(resp[resp_n - 1].response_length);
 	  if ((*sresp) != NULL) {
@@ -378,6 +378,7 @@ namespace Arc {
 	    }
 	  }
 	}
+      }
       globus_ftp_control_response_class_t resp_class =
 	GLOBUS_FTP_UNKNOWN_REPLY;
       if (resp_n > 0) {
@@ -396,12 +397,12 @@ namespace Arc {
   }
 
   Lister::Lister()
-    : callback_status(CALLBACK_NOTREADY),
-      inited(false),
-      connected(false),
-      port((unsigned short int)(-1)),
+    : inited(false),
+      handle(NULL),
       resp_n(0),
-      handle(NULL) {
+      callback_status(CALLBACK_NOTREADY),
+      connected(false),
+      port((unsigned short int)(-1)) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Failed initing condition");
       return;

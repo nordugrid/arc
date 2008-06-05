@@ -123,11 +123,11 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   t.tm_year-=1900;
   t.tm_mon-=1;
   /* skip time */
-  for(;(*p) && ((*p)==' ');p++); if(!(*p)) return false;
-  for(;(*p) && ((*p)!=' ');p++); if(!(*p)) return false;
-  for(;(*p) && ((*p)==' ');p++); if(!(*p)) return false;
-  for(;(*p) && ((*p)!=' ');p++); if(!(*p)) return false;
-  for(;(*p) && ((*p)==' ');p++); if(!(*p)) return false;
+  for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) return false;
+  for(;(*p) && ((*p)!=' ');p++) {} if(!(*p)) return false;
+  for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) return false;
+  for(;(*p) && ((*p)!=' ');p++) {} if(!(*p)) return false;
+  for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) return false;
   // bool jobstart;
   if(strncmp("Finished - ",p,11) == 0) {
     jobstart=false; p+=11;
@@ -141,18 +141,18 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   char* value;
   char* pp;
   for(;;) {
-    for(;(*p) && ((*p)==' ');p++); if(!(*p)) break;
+    for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) break;
     if((pp=strchr(p,':')) == NULL) break;
     name=p; (*pp)=0; pp++;
-    for(;(*pp) && ((*pp)==' ');pp++);
+    for(;(*pp) && ((*pp)==' ');pp++) {}
     value=pp;
     if((*value) == '"') {
       value++;
       pp=make_unescaped_string(value,'"');
-      for(;(*pp) && ((*pp) != ',');pp++);
+      for(;(*pp) && ((*pp) != ',');pp++) {}
       if((*pp)) pp++;
     } else {
-      for(;(*pp) && ((*pp) != ',');pp++);
+      for(;(*pp) && ((*pp) != ',');pp++) {}
       if((*pp)) { (*pp)=0; pp++; };
     };
     p=pp;
@@ -193,7 +193,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   if(time(NULL) < (last_run+3600)) return true; // once per hour
   last_run=time(NULL);
   if(users.size() <= 0) return true; // no users to report
-  char** args = (char**)malloc(sizeof(char*)*(users.size()+6)); 
+  const char** args = (const char**)malloc(sizeof(char*)*(users.size()+6)); 
   if(args == NULL) return false;
   std::string cmd = nordugrid_libexec_loc+"/logger";
   int argc=0; args[argc++]=(char*)cmd.c_str();

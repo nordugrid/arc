@@ -56,6 +56,7 @@ DBranch& DBranch::operator=(const DItem& item) {
     item_=new_item;
     if(old_item) delete old_item;
   };
+  return *this;
 }
 
 void DBranch::Assign(DItem* item) {

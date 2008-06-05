@@ -132,9 +132,9 @@ static void grid_manager(void* arg) {
   const char* config_filename = (const char*)arg;
   if(!arg) return;
   unsigned int clean_first_level=0;
-  int n;
-  int argc = ((args_st*)arg)->argc;
-  char** argv = ((args_st*)arg)->argv;
+  // int n;
+  // int argc = ((args_st*)arg)->argc;
+  // char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
   nordugrid_config_loc="";

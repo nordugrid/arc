@@ -733,6 +733,7 @@ std::list<XMLNode> XMLNodeContainer::Nodes(void) {
   std::list<XMLNode> r;
   for(std::vector<XMLNode*>::iterator n = nodes_.begin();
               n!=nodes_.end();++n) r.push_back(**n);
+  return r;
 }
 
 } // namespace Arc

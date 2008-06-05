@@ -53,12 +53,12 @@ SchedJobStatus sched_status_from_string(const std::string &s)
     return JOB_STATUS_SCHED_UNKNOWN;
 }
 
-ARexJobStatus arex_status_from_string(const std::string &s)
+ARexJobStatus arex_status_from_string(const std::string&)
 {
     return JOB_STATUS_AREX_UNKNOWN;
 }
 
-PaulJobStatus paul_status_from_string(const std::string &s)
+PaulJobStatus paul_status_from_string(const std::string&)
 {
     return JOB_STATUS_PAUL_UNKNOWN;
 }

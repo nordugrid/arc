@@ -723,12 +723,11 @@ namespace Arc {
         //First step: trim the text
         //Second step: distinguis the different attributes & convert string to C char array
         int depth = 0;
-        char xrsl_text[source.length()+1];
-        strcpy( xrsl_text, (source.substr( source.find_first_of("&")+1, source.length()-source.find_first_of("&")-1)).c_str() );
+        std::string xrsl_text = source.substr(source.find_first_of("&")+1);
         bool comment = false;
         std::string actual_argument = "";
   
-        for (unsigned int pos=0; pos < strlen(xrsl_text)-1; pos++) {
+        for (unsigned int pos=0; pos < xrsl_text.size()-1; pos++) {
             char next_char = xrsl_text[pos];
             if ( comment && next_char == ')' && xrsl_text[pos-1] == '*' ) comment = false;
             else if ( !comment ) {
@@ -767,7 +766,7 @@ namespace Arc {
     }
 
     //This feature is not supported yet
-    bool XRSLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
+    bool XRSLParser::getProduct( const Arc::XMLNode& /* jobTree */, std::string& /* product */) {
         if ( DEBUGX ) std::cerr << "[XRSLParser] Converting to XRSL - This feature is not supported yet" << std::endl;
         return false;
     }
@@ -777,15 +776,13 @@ namespace Arc {
         // Clear the return variable
         lines.clear();
       
-        char jdl_text[original_string.length()+1];
-        strcpy( jdl_text, original_string.c_str() );
+        std::string jdl_text = original_string;
       
-        unsigned int start_pos=0;
         bool quotation = false;
         std::vector<char> stack;
         std::string actual_line;
   
-        for (int i=0; i<strlen(jdl_text)-1; i++) {
+        for (int i=0; i<jdl_text.size()-1; i++) {
             // Looking for control character marks the line end
             if ( jdl_text[i] == ';' && !quotation && stack.empty() ) {
                 lines.push_back( actual_line );
@@ -1211,7 +1208,7 @@ namespace Arc {
     }
 
     //This feature is not supported yet
-    bool JDLParser::getProduct( const Arc::XMLNode& jobTree, std::string& product ) {
+    bool JDLParser::getProduct( const Arc::XMLNode& /* jobTree */, std::string& /* product */ ) {
         if ( DEBUGX ) std::cerr << "[JDLParser] Converting to JDL - This feature is not supported yet" << std::endl;
         return false;
     }

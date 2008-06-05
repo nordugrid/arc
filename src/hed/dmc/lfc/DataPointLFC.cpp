@@ -50,7 +50,7 @@ namespace Arc {
     }
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::WriteResolveError;
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
@@ -152,7 +152,7 @@ namespace Arc {
     }
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::PreRegisterError;
     guid = UUID();
     if (lfc_creatg(url.Path().c_str(), guid.c_str(),
@@ -194,7 +194,7 @@ namespace Arc {
     std::string pfn(location->str());
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::PostRegisterError;
     if (lfc_addreplica(guid.c_str(), NULL, location->Host().c_str(),
 		       pfn.c_str(), '-', 'P', NULL, NULL) != 0) {
@@ -231,7 +231,7 @@ namespace Arc {
       return DataStatus::Success;
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::UnregisterError;
     if (lfc_unlink(url.Path().c_str()) != 0)
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
@@ -260,7 +260,7 @@ namespace Arc {
     }
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::UnregisterError;
     if (all) {
       int nbentries = 0;
@@ -308,7 +308,7 @@ namespace Arc {
   DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files, bool) {
     if (lfc_startsess(const_cast<char *>((url.Host() + ':' +
 					  tostring(url.Port())).c_str()),
-		      "ARC") != 0)
+		      const_cast<char *>("ARC")) != 0)
       return DataStatus::ListError;
     struct lfc_filestatg st;
     if (lfc_statg(url.Path().c_str(), NULL, &st) != 0) {

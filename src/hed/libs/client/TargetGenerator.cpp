@@ -15,7 +15,7 @@ namespace Arc {
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
   
   TargetGenerator::TargetGenerator(const std::list<std::string>& clusterselect,
-				   const std::list<std::string>& clusterreject,
+				   const std::list<std::string>& /* clusterreject */,
 				   const std::list<std::string>& giisurls) 
     : threadCounter(0){
     
@@ -114,8 +114,8 @@ namespace Arc {
   void TargetGenerator::GetTargets(int targetType, int detailLevel) {
     TargetRetriever *TR;
     for (int i = 1;
-	 TR = dynamic_cast<TargetRetriever *>(loader->getACC("retriever" +
-							    tostring(i)));
+	 (TR = dynamic_cast<TargetRetriever *>(loader->getACC("retriever" +
+							      tostring(i))));
 	 i++)
       TR->GetTargets(*this, targetType, detailLevel);
     while (threadCounter > 0)

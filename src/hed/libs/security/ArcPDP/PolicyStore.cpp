@@ -11,7 +11,7 @@ using namespace Arc;
 using namespace ArcSec;
 
 //PolicyStore::PolicyStore(const std::list<std::string>& filelist, const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx){
-PolicyStore::PolicyStore(const std::string& alg, const std::string& policyclassname, EvaluatorContext* ctx){
+PolicyStore::PolicyStore(const std::string& /* alg */, const std::string& policyclassname, EvaluatorContext* /* ctx */){
   //combalg = alg;
   policy_classname = policyclassname;
 

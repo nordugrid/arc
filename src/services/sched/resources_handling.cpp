@@ -43,7 +43,7 @@ Resource &ResourcesHandling::random(void)
 
     std::map<std::string, Resource>::iterator it;
     it = resources.begin();
-    for (;i > 0; it++, i--);
+    for (;i > 0; it++, i--) {}
     std::cout << "Random selected resource: " << it->second.getURL() << std::endl;
     return (*it).second;
 }

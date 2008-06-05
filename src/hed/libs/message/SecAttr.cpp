@@ -23,7 +23,7 @@ bool SecAttr::Export(SecAttr::Format format,std::string &val) const {
   return true;
 }
 
-bool SecAttr::Export(SecAttr::Format format,XMLNode &val) const {
+bool SecAttr::Export(SecAttr::Format, XMLNode&) const {
   return false;
 }
 
@@ -33,7 +33,7 @@ bool SecAttr::Import(SecAttr::Format format,const std::string &val) {
   return Import(format,x);
 }
 
-bool SecAttr::Import(SecAttr::Format format,const XMLNode &val) {
+bool SecAttr::Import(SecAttr::Format, const XMLNode&) {
   return false;
 }
 
@@ -55,6 +55,7 @@ bool MultiSecAttr::Export(Format format,XMLNode &val) const {
     if(!((*a)->Export(format,x))) return false;
     val.NewChild(x);
   }
+  return true;
 }
 
 bool MultiSecAttr::Import(Format format,const XMLNode &val) {
@@ -68,7 +69,7 @@ bool MultiSecAttr::Import(Format format,const XMLNode &val) {
 // This method to be implemented in inheriting classes
 // or there must be an automatic detection of registered
 // object types implemented.
-bool MultiSecAttr::Add(Format format,XMLNode &val) {
+bool MultiSecAttr::Add(Format, XMLNode&) {
   return false;
 }
 

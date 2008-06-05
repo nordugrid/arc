@@ -63,7 +63,7 @@ globus_result_t rsl_subst_table_insert(rsl_subst_table_t* symbol_table,const cha
 globus_result_t rsl_subst(globus_rsl_t* rsl,rsl_subst_table_t* symbol_table) {
   char** tmp_param;
   if (globus_rsl_param_get(rsl,GLOBUS_RSL_PARAM_SEQUENCE,
-                           "rsl_substitution",&tmp_param) == 0) {
+                           const_cast<char*>("rsl_substitution"),&tmp_param) == 0) {
     for(int i=0;tmp_param[i];i++) {
       char* name = strdup(tmp_param[i]);
       i++; if(tmp_param[i] == NULL) { free(name); break; };

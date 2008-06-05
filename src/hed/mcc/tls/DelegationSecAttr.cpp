@@ -35,7 +35,8 @@ DelegationSecAttr::operator bool(void) const {
 
 bool DelegationSecAttr::equal(const SecAttr &b) const {
   try {
-    const DelegationSecAttr& a = (const DelegationSecAttr&)b;
+    const DelegationSecAttr& a = dynamic_cast<const DelegationSecAttr&>(b);
+    if (!a) return false;
     // ...
     return false;
   } catch(std::exception&) { };

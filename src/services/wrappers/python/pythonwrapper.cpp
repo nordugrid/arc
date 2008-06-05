@@ -386,7 +386,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     Py_DECREF(arg); delete outmsg_ptr;
     
     // Call the process method
-    py_status = PyObject_CallMethod(object, "process", "(OO)", 
+    py_status = PyObject_CallMethod(object, (char*)"process", (char*)"(OO)", 
                                     py_inmsg, py_outmsg);
     if (py_status == NULL) {
         if (PyErr_Occurred() != NULL) {

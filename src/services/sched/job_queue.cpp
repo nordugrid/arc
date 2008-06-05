@@ -179,7 +179,7 @@ Job *JobQueue::operator[](const std::string &id)
     }
 }
 
-void JobQueue::remove(Job &j)
+void JobQueue::remove(Job &)
 {
     // XXX NOP
 }

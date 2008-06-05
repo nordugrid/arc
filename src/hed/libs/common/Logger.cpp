@@ -3,7 +3,6 @@
 #endif
 
 #include <sstream>
-#include <glib.h>
 
 #include "Logger.h"
 #include "DateTime.h"
@@ -30,8 +29,7 @@ namespace Arc {
       os << "ERROR";
     else if(level == FATAL)
       os << "FATAL";
-    else  // There should be no more alternative!
-      ;
+    // There should be no more alternative!
     return os;
   }
 

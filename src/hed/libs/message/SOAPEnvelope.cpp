@@ -176,7 +176,7 @@ SOAPFault::SOAPFault(const XMLNode& body) {
 }
 
 SOAPFault::SOAPFault(const XMLNode& body,SOAPFaultCode c,const char* r) {
-  bool ver12 = (body.Namespace() == "http://www.w3.org/2003/05/soap-envelope");
+  //bool ver12 = (body.Namespace() == "http://www.w3.org/2003/05/soap-envelope");
   fault=((XMLNode&)body).NewChild("soap-env:Fault");
   if(!fault) return;
   Code(c);

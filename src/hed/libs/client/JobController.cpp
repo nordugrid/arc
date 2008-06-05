@@ -7,9 +7,11 @@
 
 namespace Arc {
   
-  JobController::JobController(Arc::Config *cfg, std::string flavour) : ACC(), 
-									mcfg(*cfg),
-									GridFlavour(flavour){}
+  JobController::JobController(Arc::Config *cfg, std::string flavour)
+    : ACC(), 
+      GridFlavour(flavour),
+      mcfg(*cfg) {}
+
   JobController::~JobController() {}
   
   void JobController::IdentifyJobs(std::list<std::string> jobids){
