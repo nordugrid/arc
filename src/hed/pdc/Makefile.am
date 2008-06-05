@@ -1,4 +1,4 @@
-SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp arcauthzsh delegationsh usernametokensh
+SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh
 noinst_PROGRAMS = test testinterface
 # classload_test 
 
@@ -6,7 +6,8 @@ pkglib_LTLIBRARIES = libarcpdc.la
 libarcpdc_la_SOURCES  = PDPplugin.cpp 
 libarcpdc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libarcpdc_la_LIBADD   = allowpdp/liballowpdp.la denypdp/libdenypdp.la countpdp/libcountpdp.la \
-                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la delegationsh/libdelegationsh.la \
+                        simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la \
+                        pdpserviceinvoker/libarcpdpserviceinvoker.la delegationsh/libdelegationsh.la \
                         arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
                         $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                         $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
