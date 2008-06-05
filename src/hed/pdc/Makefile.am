@@ -1,4 +1,4 @@
-SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp simplelistsh delegationsh usernametokensh
+SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp arcauthzsh delegationsh usernametokensh
 noinst_PROGRAMS = test testinterface
 # classload_test 
 
