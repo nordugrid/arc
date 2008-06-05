@@ -151,6 +151,8 @@ namespace Arc {
      */
     Arc::NS arex_ns;
 
+    Arc::URL rurl;
+
     //! A logger for the A-REX client.
     /*! This is a logger to which all logging messages from the A-REX
       client are sent.

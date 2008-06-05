@@ -79,7 +79,7 @@ namespace Arc {
   
   AREXClient::AREXClient(const Arc::URL& url,
                          const Arc::MCCConfig& cfg) throw(AREXClientError)
-    :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL) {
+    :client_config(NULL),client_loader(NULL),client(NULL),client_entry(NULL),rurl(url) {
 
     logger.msg(Arc::INFO, "Creating an A-REX client.");
     client = new Arc::ClientSOAP(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
@@ -111,6 +111,7 @@ namespace Arc {
     Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
     Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
     set_bes_factory_action(req,"CreateActivity");
+    WSAHeader(req).To(rurl.str());
     std::string jsdl_str; 
     std::getline<char>(jsdl_file,jsdl_str,0);
     act_doc.NewChild(Arc::XMLNode(jsdl_str));
@@ -174,9 +175,6 @@ namespace Arc {
         };
       };
       if(deleg_cert.empty() || deleg_key.empty()) {
-std::string s;
-client->GetConfig().GetXML(s);
-std::cerr<<s<<std::endl;
         logger.msg(Arc::ERROR,"Failed to find delegation credentials in client configuration.");
         throw AREXClientError("Failed to find delegation credentials in client configuration.");
       };
@@ -254,11 +252,16 @@ std::cerr<<s<<std::endl;
     (*resp)["Fault"]["faultstring"].New(fs);
     id.GetDoc(jobid);
     faultstring=(std::string)fs;
-    delete resp;
-    if (faultstring=="")
+    if (faultstring=="") {
+      delete resp;
       return jobid;
-    else
-      throw AREXClientError(faultstring);
+    } else {
+      std::string s;
+      resp->GetXML(s);
+      delete resp;
+      logger.msg(Arc::VERBOSE, "Submission returned failure : %s",s);
+      throw AREXClientError("submission failed" + faultstring);
+    }
   }
   
   std::string AREXClient::stat(const std::string& jobid)
@@ -272,6 +275,7 @@ std::cerr<<s<<std::endl;
       req.NewChild("bes-factory:GetActivityStatuses").
       NewChild(Arc::XMLNode(jobid));
     set_bes_factory_action(req,"GetActivityStatuses");
+    WSAHeader(req).To(rurl.str());
     
     // Send status request
     Arc::PayloadSOAP* resp = NULL;
@@ -347,6 +351,7 @@ std::cerr<<s<<std::endl;
     Arc::XMLNode jobref =
       req.NewChild("bes-factory:GetFactoryAttributesDocument");
     set_bes_factory_action(req,"GetFactoryAttributesDocument");
+    WSAHeader(req).To(rurl.str());
     
     // Send status request
     Arc::PayloadSOAP* resp = NULL;
@@ -414,6 +419,7 @@ std::cerr<<s<<std::endl;
       req.NewChild("bes-factory:TerminateActivities").
       NewChild(Arc::XMLNode(jobid));
     set_bes_factory_action(req,"TerminateActivities");
+    WSAHeader(req).To(rurl.str());
     
     // Send kill request
     Arc::PayloadSOAP* resp = NULL;
