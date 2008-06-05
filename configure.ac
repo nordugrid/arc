@@ -363,8 +363,8 @@ AC_SUBST(TEST_DIR)
 
 #check lasso
 LASSO_INSTALLED=no
-#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1],
-#[AC_SUBST(LASSO_CFLAGS)
+#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1], 
+#[AC_SUBST(LASSO_CFLAGS) 
 # AC_SUBST(LASSO_LIBS)
 # LASSO_INSTALLED=yes],
 #[])
@@ -716,6 +716,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/infosys/Makefile
                  src/hed/libs/delegation/Makefile
+                 src/hed/libs/policy-delegation/Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
@@ -741,7 +742,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/pdc/denypdp/Makefile
                  src/hed/pdc/countpdp/Makefile
                  src/hed/pdc/simplelistpdp/Makefile
-                 src/hed/pdc/simplelistsh/Makefile
+                 src/hed/pdc/arcauthzsh/Makefile
                  src/hed/pdc/delegationsh/Makefile
                  src/hed/pdc/usernametokensh/Makefile
                  src/arclib/Makefile
