@@ -10,8 +10,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 manager = ManagerClient('http://localhost:60000/Manager', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']:
-    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, addReplica' 
+if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica']:
+    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, delFile, addReplica' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -33,6 +33,14 @@ else:
                     print k
                     for p, v in vs:
                         print '  %s: %s' % (p, v)
+    elif command == 'delFile':
+        if len(args) < 1:
+            print 'Usage: delFile <LN> [<LN> ...]'
+        else:
+            request = dict([(i, args[i]) for i in range(len(args))])
+            print 'delFile', request
+            response = manager.delFile(request)
+            print response
     elif command == 'getFile':
         if len(args) < 2:
             print 'Usage: getFile <target filename> <source LN>'

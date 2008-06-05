@@ -437,6 +437,37 @@ class ManagerClient(Client):
         xml = arc.XMLNode(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def delFile(self, requests):
+        """ Initiate deleting a file.
+        
+        delFile(requests)
+        
+        requests is a dictionary with requestID as key, and (LN) as value, where
+        LN is the Logical Name of the file to be deleted
+        
+        returns a dictionary with requestID as key, and (success) as value,
+        where success is the state of the request 
+        (one of 'deleted', 'noSuchLN', 'denied)
+
+        Example:
+        In: {'fish': ['/cod']}
+        Out: {'fish': ['deleted']}
+        """
+        tree = XMLTree(from_tree =
+            ('man:delFile', [
+                ('man:delFileRequestList', [
+                    ('man:delFileRequestElement', [
+                        ('man:requestID', requestID),
+                        ('man:LN', LN) 
+                    ]) for requestID, LN in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'])
+
+
     def addReplica(self, requests, protocols):
         """ Add a new replica to an existing file.
         
@@ -625,6 +656,22 @@ class ElementClient(Client):
 
     def get(self, requests):
         return self._putget('get', requests)
+
+    def delete(self, requests):
+        tree = XMLTree(from_tree =
+            ('se:delete', [
+                ('se:deleteRequestList', [
+                    ('se:deleteRequestElement', [
+                        ('se:requestID', requestID),
+                        ('se:referenceID', referenceID)
+                    ]) for requestID, referenceID in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = arc.XMLNode(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'status'])
+        
 
     def stat(self, requests):
         tree = XMLTree(from_tree =

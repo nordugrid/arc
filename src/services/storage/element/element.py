@@ -13,6 +13,7 @@ from storage.client import CatalogClient, ManagerClient, ByteIOClient
 ALIVE = 'alive'
 CREATING = 'creating'
 INVALID = 'invalid'
+DELETED = 'deleted'
 
 class Element:
 
@@ -60,7 +61,13 @@ class Element:
                     while len(self.changed_states) > 0:
                         changed = self.changed_states.pop()
                         localData = self.store.get(changed)
-                        filelist.append((localData['GUID'], changed, localData['state']))
+                        if not localData.has_key('GUID'):
+                            print 'Error',changed,localData
+                        else:
+                            filelist.append((localData.get('GUID'), changed, localData.get('state')))
+                            if localData['state']==DELETED:
+                                bsuccess = self.backend.remove(localData['localID'])
+                                self.store.set(changed, None)
                     print 'reporting', self.serviceID, filelist
                     next_report = self.catalog.report(self.serviceID, filelist)
                     last_report = time.time()
@@ -82,6 +89,8 @@ class Element:
     def _checking_checksum(self, referenceID):
         #print 'Checking checksum', referenceID
         localData = self.store.get(referenceID)
+        if not localData.has_key('localID'):
+            return CREATING, None, None
         current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
         checksum = localData['checksum']
         state = localData.get('state','')
@@ -113,6 +122,18 @@ class Element:
         except:
             traceback.print_exc()
             return True
+
+
+    def _checking_guid(self, GUID):
+        try:
+            metadata = self.catalog.get([GUID]).get(GUID)
+            if not metadata.has_key(('states', 'neededReplicas')):
+                # catalog couldn't find the file; we don't need any replicas
+                return 'NotInCatalog'
+        except:
+            traceback.print_exc()
+            return 'CatalogBorken'
+        
         
     def checkingThread(self, period):
         time.sleep(10)
@@ -129,7 +150,11 @@ class Element:
                     for referenceID in referenceIDs:
                         try:
                             state, GUID, localID = self._checking_checksum(referenceID)
-                            if state == ALIVE:
+                            if state == CREATING or state == ALIVE:
+                                if self._checking_guid(GUID) == 'NotInCatalog':
+                                    # guid not in catalog, we don't need the replicas
+                                    self.changeState(referenceID,DELETED)
+                            elif state == ALIVE:
                                 if not self._checking_replicano(GUID):
                                     print '\n\nFile', GUID, 'has fewer replicas than needed.'
                                     response = self.manager.addReplica({'checkingThread' : GUID}, ['byteio'])
@@ -249,6 +274,19 @@ class Element:
                 response[requestID] = [('error', 'no supported protocol found')]
         return response
 
+    def delete(self,request):
+        response = {}
+        for requestID, referenceID in request.items():
+            localData = self.store.get(referenceID)
+            try:
+                # note that actual deletion is done in self.reportingThread
+                self.changeState(referenceID,DELETED)
+                response[requestID] = 'deleted'
+            except:
+                response[requestID] = 'nosuchfile'
+        return response
+
+
     def stat(self, request):
         properties = ['state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID']
         response = {}
@@ -265,7 +303,7 @@ class ElementService(Service):
 
     def __init__(self, cfg):
         # names of provided methods
-        request_names = ['get', 'put', 'stat', 'toggleReport']
+        request_names = ['get', 'put', 'stat', 'delete', 'toggleReport']
         # create the business-logic class
         self.element = Element(cfg)
         # get the additional request names from the backend
@@ -286,6 +324,22 @@ class ElementService(Service):
         return create_response('se:stat',
             ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.newSOAPPayload())
     
+
+    def delete(self, inpayload):
+        request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
+        response = self.element.delete(request)
+        tree = XMLTree(from_tree = 
+            ('se:deleteResponseList',[
+                ('se:deleteResponseElement',[
+                    ('se:requestID', requestID),
+                    ('se:status', status)
+                    ]) for requestID, status in response.items()
+                ])
+            )
+        out = self.newSOAPPayload()
+        response_node = out.NewChild('deleteresponse')
+        tree.add_to_node(response_node)
+        return out
 
     def _putget_in(self, putget, inpayload):
         request = dict([

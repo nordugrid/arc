@@ -42,6 +42,36 @@ class Manager:
                 response[requestID] = {}
         return response
     
+    def delFile(self, requests):
+        """ Delete a file from the storage: initiate the process.
+        
+        delFile(requests)
+        
+        requests is a dictionary with requestID as key and (Logical Name, child metadata, protocols) as value
+        """
+        import time
+        response = {}
+        # get the information from the catalog
+        #requests, traverse_response = self._traverse(requests)
+        traverse_response = self.catalog.traverseLN(requests)
+        cat_rem_requests = {}
+        cat_mod_requests = {}
+        for requestID, (metadata, GUID, _, _, wasComplete, traversedList) in traverse_response.items():
+            if wasComplete and metadata[('catalog', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
+                cat_rem_requests[requestID]=GUID
+                if len(traversedList)>1:
+                    # notify the parents
+                    parentLN, parentGUID = traversedList[-2]
+                    cat_mod_requests[requestID] = (parentGUID, 'unset', 'entries',
+                                                      traversedList[-1][0],GUID)
+                response[requestID] = 'deleted'
+            else: # if it was not complete, then we didn't find the entry, so metadata will be empty
+                response[requestID] = 'nosuchLN'
+        success = self.catalog.remove(cat_rem_requests)
+        modify_success = self.catalog.modifyMetadata(cat_mod_requests)
+        return response
+            
+
     def _traverse(self, requests):
         """ Helper method which connects the catalog, and traverses the LNs of the requests.
         
@@ -338,6 +368,7 @@ class Manager:
             response[rID] = (success, turl, protocol)
         return response
 
+
     def makeCollection(self, requests):
         """ Create a new collection.
         
@@ -484,7 +515,7 @@ class ManagerService(Service):
 
     def __init__(self, cfg):
         # names of provided methods
-        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica']
+        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile']
         # call the Service's constructor, 'Manager' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
@@ -549,6 +580,44 @@ class ManagerService(Service):
         # create the response message with the requestID and the metadata for each request
         return create_response('man:stat',
             ['man:requestID', 'man:metadataList'], response, self.newSOAPPayload(), single = True)
+
+    def delFile(self, inpayload):
+        # incoming SOAP message example:
+        #
+        #   <man:delFile>
+        #       <man:delFileRequestList>
+        #           <man:delFileRequestElement>
+        #               <man:requestID>0</man:requestID>
+        #               <man:LN>/</man:LN>
+        #           </man:delFileRequestElement>
+        #       </man:delFileRequestList>
+        #   </man:delFile>
+        #
+        # outgoing SOAP message example:
+        #
+        #   <soap-env:Envelope>
+        #       <soap-env:Body>
+        #           <man:delFileResponse>
+        #               <man:delFileResponseList>
+        #                   <man:delFileResponseElement>
+        #                       <man:requestID>0</man:requestID>
+        #                       <man:success>deleted</man:success>
+        #                   </man:delFileResponseElement>
+        #               </man:delFileResponseList>
+        #           </man:delFileResponse>
+        #       </soap-env:Body>
+        #   </soap-env:Envelope>
+
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        # get the requestID and LN of each request and create a dictionary where the requestID is the key and the LN is the value
+        requests = dict([
+            (str(request_node.Get('requestID')), str(request_node.Get('LN')))
+                for request_node in request_nodes
+        ])
+        response = self.manager.delFile(requests)
+        return create_response('man:delFile',
+            ['man:requestID', 'man:success'], response, self.newSOAPPayload(), single=True)
+
 
     def getFile(self, inpayload):
         # incoming SOAP message example:

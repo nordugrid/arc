@@ -15,7 +15,7 @@ _storage()
                 options='get traverseLN new modifyMetadata remove'
                 ;;
             manager)
-                options='stat makeCollection list move putFile getFile addReplica'
+                options='stat makeCollection list move putFile getFile delFile addReplica'
                 ;;
             element)
                 options='get put stat reporting'

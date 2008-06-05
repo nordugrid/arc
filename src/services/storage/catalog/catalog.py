@@ -95,8 +95,8 @@ class Catalog:
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
         se = self.hash.get([serviceGUID])[serviceGUID]
         print 'report se before:', se
-        change_request = dict([(referenceID, (serviceGUID, 'set', 'file', referenceID, GUID, {}))
-            for GUID, referenceID, _ in filelist])
+        change_request = dict([(referenceID, (serviceGUID, (state=='deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
+            for GUID, referenceID, state in filelist])
         print 'report change_request:', change_request
         change_response = self.hash.change(change_request)
         print 'report change_response:', change_response

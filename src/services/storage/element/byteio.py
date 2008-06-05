@@ -66,6 +66,14 @@ class ByteIOBackend:
         turl = self.turlprefix + turl_id
         return turl
 
+    def remove(self, localID):
+        try:
+            fn = os.path.join(self.datadir, localID)
+            os.remove(fn)
+        except:
+            raise Exception, 'denied'
+        return 'removed'
+
     def list(self):
         return os.listdir(os.datadir)
 
@@ -149,6 +157,7 @@ class ByteIOService(Service):
         encoded_data = base64.b64encode(data)
         transfer_node.Set(encoded_data)
         return out
+
 
     def _call_request(self, request_name, inmsg):
         # gets the last part of the request url

@@ -21,6 +21,7 @@ Sample configuration:
 """
 import arc
 import traceback
+import time
 from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata, get_child_nodes
 
 class CentralHash:
