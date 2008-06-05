@@ -62,7 +62,8 @@ class Element:
                         changed = self.changed_states.pop()
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
-                            print 'Error',changed,localData
+                            print 'Error in element.reportingThread()\n\t'+\
+                                'referenceID is in changed_states, but not in store'
                         else:
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
                             if localData['state']==DELETED:
@@ -112,9 +113,9 @@ class Element:
         self.changeState(referenceID, ALIVE, onlyIf = CREATING)
         return self._checking_checksum(referenceID)
     
-    def _checking_replicano(self, GUID):
+    def _checking_replicano(self, GUID, metadata):
         try:
-            metadata = self.catalog.get([GUID])[GUID]
+            metadata = metadata[GUID]
             needed_replicas = int(metadata.get(('states','neededReplicas'),1))
             valid_replicas = len([property for (section, property), value in metadata.items()
                               if section == 'locations' and value == ALIVE])
@@ -124,10 +125,10 @@ class Element:
             return True
 
 
-    def _checking_guid(self, GUID):
+    def _checking_guid(self, GUID, metadata):
         try:
-            metadata = self.catalog.get([GUID]).get(GUID)
-            if not metadata.has_key(('states', 'neededReplicas')):
+            metadata = metadata.get(GUID)
+            if isinstance(metadata,dict) and not metadata.has_key(('states', 'neededReplicas')):
                 # catalog couldn't find the file; we don't need any replicas
                 return 'NotInCatalog'
         except:
@@ -150,12 +151,19 @@ class Element:
                     for referenceID in referenceIDs:
                         try:
                             state, GUID, localID = self._checking_checksum(referenceID)
+                            metadata={}
                             if state == CREATING or state == ALIVE:
-                                if self._checking_guid(GUID) == 'NotInCatalog':
+                                try:
+                                    metadata = self.catalog.get([GUID])
+                                except:
+                                    pass
+                            if state == CREATING or state == ALIVE:
+                                if self._checking_guid(GUID, metadata) == 'NotInCatalog':
                                     # guid not in catalog, we don't need the replicas
-                                    self.changeState(referenceID,DELETED)
-                            elif state == ALIVE:
-                                if not self._checking_replicano(GUID):
+                                    self.changeState(referenceID, DELETED)
+                                    state = DELETED
+                            if state == ALIVE:
+                                if not self._checking_replicano(GUID, metadata):
                                     print '\n\nFile', GUID, 'has fewer replicas than needed.'
                                     response = self.manager.addReplica({'checkingThread' : GUID}, ['byteio'])
                                     success, turl, protocol = response['checkingThread']
