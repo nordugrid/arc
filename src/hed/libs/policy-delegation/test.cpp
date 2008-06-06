@@ -15,8 +15,8 @@ int main(void) {
   std::string cafile("./ca.pem");
   Arc::XMLNode policy_nd("\
     <Policy\
-      xmlns=\"http://www.nordugrid.org/ws/schemas/policy-arc\"\ 
-      PolicyId='sm-example:policy1'\ 
+      xmlns=\"http://www.nordugrid.org/ws/schemas/policy-arc\"\
+      PolicyId='sm-example:policy1'\
       CombiningAlg='Deny-Overrides'>\
      <Rule RuleId='rule1' Effect='Permit'>\
       <Description>\
