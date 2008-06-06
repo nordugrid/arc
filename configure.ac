@@ -62,8 +62,6 @@ if test "X$with_jdk" != "X"; then
     AC_CHECK_HEADERS(jni.h)
     CPPFLAGS=$SAVE_CPPFLAGS
 
-    JNIH='<jni.h>'
-
     for jvm in $with_jdk/jre/lib/i386/server \
                $with_jdk/jre/lib/x86_64/server ; do
 	if test -e $jvm/libjvm.so ; then
@@ -87,11 +85,9 @@ else
 
     if test "X$ac_cv_header_JavaVM_jni_h" == "Xyes" ; then
 	# MacOS X
-	JNIH='<JavaVM/jni.h>'
 	JDK_LIBS="-Wl,-framework -Wl,JavaVM"
     elif test "X$ac_cv_header_jni_h" == "Xyes" ; then
 	# Linux
-	JNIH='<jni.h>'
 	# gcc 4.x
 	for jvm in /usr/lib/gcj-`gcc -dumpversion` \
 	           /usr/lib/gcj-`gcc -dumpversion|sed 's/\.[[0-9]]*$//'` \
@@ -150,7 +146,6 @@ AM_CONDITIONAL([JAVA_ENABLED],[test "x$enable_java" = "xyes"])
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 AC_SUBST(JDK_LIBS)
-AC_SUBST(JNIH)
 
 # Python
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[],enable_python="yes")
