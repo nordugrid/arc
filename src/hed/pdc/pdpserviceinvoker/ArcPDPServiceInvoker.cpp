@@ -39,12 +39,15 @@ ArcPDPServiceInvoker::ArcPDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL) {
   std::string url_str;
   url_str = (std::string)((*cfg)["ServiceEndpoint"]);
   Arc::URL url(url_str);
+  
+  std::cout<<"URL: "<<url_str<<std::endl;
 
   Arc::MCCConfig mcc_cfg;
+  std::cout<<"Keypath: "<<(std::string)((*cfg)["KeyPath"])<<"CertificatePath: "<<(std::string)((*cfg)["CertificatePath"])<<"CAPath: "<<(std::string)((*cfg)["CACertificatePath"])<<std::endl;
   mcc_cfg.AddPrivateKey((std::string)((*cfg)["KeyPath"]));
   mcc_cfg.AddCertificate((std::string)((*cfg)["CertificatePath"]));
   mcc_cfg.AddProxy((std::string)((*cfg)["ProxyPath"]));
-  mcc_cfg.AddCAFile((std::string)((*cfg)["CACertificateFile"]));
+  mcc_cfg.AddCAFile((std::string)((*cfg)["CACertificatePath"]));
   mcc_cfg.AddCADir((std::string)((*cfg)["CACertificatesDir"]));
 
   client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
@@ -112,11 +115,13 @@ bool ArcPDPServiceInvoker::isPermitted(Message *msg){
   resp->GetXML(str);
   logger.msg(Arc::INFO, "Response: %s", str);
 
+  std::string authz_res = (std::string)((*resp)["pdp:GetPolicyDecisionResponse"]["response:Response"]["response:AuthZResult"]);
+
   if(resp) delete resp;
 
-  //TODO
+  if(authz_res == "PERMIT") { logger.msg(Arc::INFO,"Authorized from remote pdp service"); return true; }
+  else { logger.msg(Arc::INFO,"Unauthorized from remote pdp service"); return false; }
 
-  return true;
 }
 
 ArcPDPServiceInvoker::~ArcPDPServiceInvoker(){

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.nordugrid.org/schemas/ArcPDP"
+  targetNamespace="http://www.nordugrid.org/schemas/ArcPDPServiceInvoker"
+  elementFormDefault="qualified">
+  
+    <xsd:complexType name="FilterType">
+        <!-- This element defines Security Attributes to select and reject.
+            If there are no Select elements all Attributes are used except
+            those listed in Reject elements.  -->
+        <xsd:sequence>
+            <xsd:element name="Select" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Reject" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="Filter" type="FilterType"/>
+
+    <!--This element specified endpoint about remote pdpservice.
+     It will be configured under the <PDP name="pdpservice.invoker"/> -->
+    <xsd:element name="ServiceEndpoint" type="xsd:string"/>
+
+    <!--The following information is about credential. Since the pdpserviceinvoker is 
+    actually a client which will invoke the remote pdpservice, it should has its credential
+    configuration, but it could also use the credential of the MCCTLS which is in the same 
+    chain as this uplevel service (which is using the pdpserviceinvoker) configuration. 
+    If the latter situation applies, the following element don't not need to be configured 
+    under the <PDP name="pdpservice.invoker"/>.
+    However, the credential of the MCCTLS in the main chain and the credential of the
+    pdpservice.invoker should not be coupled, since pdpservice could use tls, but this normal
+    service (which configures the pdpservice.invoker inside) could not use tls, and vice versa.-->
+    <!-- Location of private key  -->
+    <xsd:element name="KeyPath" type="xsd:string"/>
+    <!-- Location of public certificate  -->
+    <xsd:element name="CertificatePath" type="xsd:string"/>
+    <!-- Location of proxy credentials - includes certificates, key and
+      chain of involved certificates. Overwrites elements Key, KeyPath,
+      Certificate and CertificatePath -->
+    <xsd:element name="ProxyPath" type="xsd:string"/>
+    <!-- Location of certificate of CA  -->
+    <xsd:element name="CACertificatePath" type="xsd:string"/>
+    <!-- Directory containing certificates of accepted CAs -->
+    <xsd:element name="CACertificatesDir" type="xsd:string"/>
+
+</xsd:schema>
