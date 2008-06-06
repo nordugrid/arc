@@ -23,13 +23,13 @@
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="tls"/>
-            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+            <tcp:Listen><tcp:Port>60001</tcp:Port></tcp:Listen>
         </Component>
 	<Component name="tls.service" id="tls">
             <next id="http"/>
-	    <KeyPath>./key.pem</KeyPath>
-	    <CertificatePath>./cert.pem</CertificatePath>
-	    <CACertificatePath>./ca.pem</CACertificatePath>
+	    <KeyPath>../../tests/echo/key.pem</KeyPath>
+	    <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
+	    <CACertificatePath>../../tests/echo/ca.pem</CACertificatePath>
 	</Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>

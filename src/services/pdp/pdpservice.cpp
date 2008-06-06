@@ -100,6 +100,15 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       }
     }
 
+    //Get the number of <RequestItem/> in request (after splitting), and compare it with the
+    //number <RequestItem/> number in response. If the two value does not match, it means
+    //some <RequestItem/> in the request does not satisfy the policy. Here, we simply treat it
+    //as "Unauthorization"
+
+    bool authzed;
+    if((rlist.size()) == (resp->getRequestSize())) { logger.msg(Arc::INFO, "The Request passed all the policies"); authzed = true; }
+    else { logger.msg(Arc::INFO, "Some of the RequestItem does not satisfy Policy"); authzed = false; }
+
     //Put those request items which satisfy the policies into the response SOAP message (implicitly
     //means the decision result: <ItemA, yes>, <ItemB, yes>, <ItemC, no>(ItemC is not in the 
     //response SOAP message, because ArcEvaluator will not give information for denied RequestTuple)
@@ -111,6 +120,10 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     Arc::XMLNode response = outpayload->NewChild("pdp:GetPolicyDecisionResponse");
 
     Arc::XMLNode arc_responsend = response.NewChild("response:Response");
+    Arc::XMLNode authz_res = arc_responsend.NewChild("response:AuthZResult");
+    if(authzed) authz_res = "PERMIT";
+    else authz_res = "DENY";
+
     for(i = 0; i<size; i++){
       ResponseItem* item = rlist[i];
       arc_responsend.NewChild(Arc::XMLNode(item->reqxml));
