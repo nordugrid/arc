@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 include ./$(DEPDIR)/arc_wrap.deps
 
-arc_wrap.cpp $(JAVA_PATH)/arc.java $(JAVA_PATH)/%.java: $(top_srcdir)/swig/*.i
+arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	mkdir -p $(JAVA_PATH)
@@ -31,10 +31,20 @@ arc_wrap.cpp $(JAVA_PATH)/arc.java $(JAVA_PATH)/%.java: $(top_srcdir)/swig/*.i
 	sed 's%#include <jni.h>%#include <JNI.h>%' < \
 	arc_wrap.cpp > arc_wrap.cpp.tmp
 	mv arc_wrap.cpp.tmp arc_wrap.cpp
+	for javafile in `ls $(JAVA_PATH)/*.java` ; do \
+		echo >> $(DEPDIR)/arc_wrap.deps ; \
+		echo `sed s/.java$$/.class/ <<< $${javafile}`: $${javafile} \
+		>> $(DEPDIR)/arc_wrap.deps ; \
+		echo >> $(DEPDIR)/arc_wrap.deps ; \
+		echo arc.jar: `sed s/.java$$/.class/ <<< $${javafile}` \
+		>> $(DEPDIR)/arc_wrap.deps ; \
+	done
 
-$(JAVA_PATH)/arc.class $(JAVA_PATH)/%.class: $(JAVA_PATH)/arc.java
-	$(JAVAC) $(JAVAC_FLAGS) $(JAVA_PATH)/*.java
+$(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
-arc.jar: $(JAVA_PATH)/arc.class $(patsubst %.java,%.class,$(shell ls $(JAVA_PATH)/*.java))
+.java.class:
+	$(JAVAC) $(JAVAC_FLAGS) $<
+
+arc.jar: $(JAVA_PATH)/arc.class
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class 
