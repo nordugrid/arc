@@ -115,6 +115,8 @@ bool ArcPDPServiceInvoker::isPermitted(Message *msg){
   if(resp) delete resp;
 
   //TODO
+
+  return true;
 }
 
 ArcPDPServiceInvoker::~ArcPDPServiceInvoker(){
