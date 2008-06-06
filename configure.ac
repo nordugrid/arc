@@ -716,7 +716,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/infosys/Makefile
                  src/hed/libs/delegation/Makefile
-                 src/hed/libs/policy-delegation/Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
@@ -822,6 +821,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/echo/Makefile
                  src/tests/count/Makefile
                  src/tests/xpath/Makefile
+                 src/tests/policy-delegation/Makefile
                  src/utils/Makefile
                  swig/Makefile
                  java/Makefile
