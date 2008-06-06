@@ -7,9 +7,14 @@
 #include <fstream>
 
 #include <arc/XMLNode.h>
+#include <arc/Logger.h>
 #include <arc/arclib/Credential.h>
 
 int main(void) {
+  Arc::LogStream cdest(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(cdest);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+
   std::string cert("./cert.pem");
   std::string key("./key.pem");
   std::string cafile("./ca.pem");
@@ -51,7 +56,7 @@ int main(void) {
   //Request side
   Arc::Time t;
   std::string req_string;
-  ArcLib::Credential request(t, Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
+  ArcLib::Credential request(t, Arc::Period(24*3600), 1024, "rfc");
   request.GenerateRequest(req_string);
   std::cout<<"Certificate request: "<<req_string<<std::endl;
 
@@ -76,7 +81,6 @@ int main(void) {
   out_string.append(private_key);
   out_string.append(signing_cert);
   out_string.append(signing_certchain);
-  std::cout<<"Signed proxy certificate: " <<out_string<<std::endl;
 
   //Output into a file
   std::string proxy_file("proxy.pem");
@@ -88,7 +92,7 @@ int main(void) {
   //Request side
   Arc::Time t1;
   std::string req_string1;
-  ArcLib::Credential request1(t1, Arc::Period(24*3600));//, 2048);// "rfc", "impersonation", "");
+  ArcLib::Credential request1(t1, Arc::Period(24*3600), 1024, "rfc");
   request1.GenerateRequest(req_string1);
   std::cout<<"Certificate request: "<<req_string1<<std::endl;
 
@@ -111,7 +115,6 @@ int main(void) {
   out_string1.append(private_key1);
   out_string1.append(signing_cert1);
   out_string1.append(signing_certchain1);
-  std::cout<<"Signed proxy certificate: " <<out_string1<<std::endl;
 
   //Output into a file
   std::string proxy_file1("proxy1.pem");
