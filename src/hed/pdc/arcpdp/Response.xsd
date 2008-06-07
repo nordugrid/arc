@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.nordugrid.org/schemas/response-arc"
+ xmlns:response-arc="http://www.nordugrid.org/schemas/response-arc"
+ xmlns:request-arc="http://www.nordugrid.org/schemas/request-arc"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+ <!-- Top-level element of response is <Response/>. Request is made
+   of one <AuthZResult/> and multiple <RequestItem/> elements which have 
+   passed the policy evaluation. Currently if and only if all the <RequestItem/>
+   in the <Request/> passed the policy evaluation, the pdp service returns 
+   <AuthZResult>PERMIT</AuthZResult>, otherwise, it returns <AuthZResult>
+   DENY</AuthZResult>. However, the policy execution point is able to make decision
+   according to the <ResuestItem/> inside the <Response/> despite <AuthZResult/>
+   gives "DENY" result.
+  -->
+ <xsd:simpleType name="AuthZResultType">
+  <xsd:restriction base="xsd:string"/>
+ </xsd:simpleType>
+
+ <xsd:element name="Response" type="response-arc:ResponseType"/>
+ <xsd:complexType name="ResponseType">
+  <xsd:element name="AuthZResult" type="AuthZResultType" minOccurs="1"/>  
+  <xsd:sequence>
+   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded"/>
+  </xsd:sequence>
+ </xsd:complexType>
+
+</xsd:schema>
