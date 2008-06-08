@@ -32,9 +32,9 @@
    There could be a few elements for each type under <RequestItem/>. Those 
    elements with the same type under a <RequestItem/> are not relevant. The 
    reason why put them together is just for the convenience of expression.
-   For example, one <Subject/> could need to do two different <Action>s, then 
+   For example, one <Subject/> could need to have two different <Action>s, then 
    we can put the two <Action>s together, and don't need to specify two <RequestItem/>   
-   When policy evaluation, multiple elements with the same type under <RequestItem/>
+   When doing policy evaluation, multiple elements with the same type under <RequestItem/>
    will be splitted and processed sepreatedly, e.g.,
    <RequestItem>
     <Subject>
@@ -49,9 +49,9 @@
 
   For each type of element under <RequestItem/>, there could be one or more <Attribute/>.
   This means the request can process a few <Attribute>. Realisticly, this situation applies
-  to <Subject/> and <Context/>. For <Subject/>, it means the request can provide these 
+  to <Subject/> and <Context/>. For <Subject/>, it means the request can provide all of these 
   <Attribute>s, e.g. X509 DN, VOMS Attribute. For <Context/>, it means the request can
-  satisfy these <Attribute>s, e.g. time, period.
+  satisfy all of these <Attribute>s, e.g. time, period.
   During policy evaluation, the element under <RequestItem> will need to exactly match the 
   policy side. If there is a few <Attribute>s for <Subject> on the policy side, like:   
      <Subject>
@@ -88,14 +88,14 @@
   <xsd:simpleContent>
    <xsd:extension base="xsd:string">
     <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
-    <xsd:attribute name="Type" type="xsd:string" use="optional"/>
+    <xsd:attribute name="Type" type="xsd:anyURI" use="optional"/>
     <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
    </xsd:extension>
   </xsd:simpleContent>
  </xsd:complexType>
 
- <!-- Each Subject is built of element called SibjectAttrbute.
-   The data type is specified either at this or lower level by 
+ <!-- Each Subject is built of element called SubjectAttribute.
+   The data type is specified either at this or lower level (SubjectAttribute) by 
    attribute Type. -->
  <xsd:element name="Subject" type="request-arc:SubjectType"/>
  <xsd:complexType name="SubjectType">
@@ -103,7 +103,7 @@
    <xsd:element ref="request-arc:SubjectAttribute" maxOccurs="unbounded"/>
   </xsd:sequence>
   <xsd:attribute name="AttributeId" type="xsd:anyURI" use="optional"/>
-  <xsd:attribute name="Type" type="xsd:string" use="optional"/>
+  <xsd:attribute name="Type" type="xsd:anyURI" use="optional"/>
   <xsd:attribute name="Issuer" type="xsd:string" use="optional"/>
  </xsd:complexType>
 
@@ -129,8 +129,7 @@
   </xsd:simpleContent>
  </xsd:complexType>
 
- <!-- Exact meaning of ContextAttribute and it's parent element Context
-   are not defined. -->
+ <!-- Context element will be evaluted against Condition element in Policy->
  <xsd:element name="ContextAttribute" type="request-arc:ContextAttributeType"/>
  <xsd:complexType name="ContextAttributeType">
   <xsd:simpleContent>

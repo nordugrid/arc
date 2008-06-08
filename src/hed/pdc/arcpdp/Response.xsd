@@ -9,7 +9,7 @@
    passed the policy evaluation. Currently if and only if all the <RequestItem/>
    in the <Request/> passed the policy evaluation, the pdp service returns 
    <AuthZResult>PERMIT</AuthZResult>, otherwise, it returns <AuthZResult>
-   DENY</AuthZResult>. However, the policy execution point is able to make decision
+   DENY</AuthZResult>. However, the policy enforcement point is able to make decision
    according to the <ResuestItem/> inside the <Response/> despite <AuthZResult/>
    gives "DENY" result.
   -->
@@ -21,7 +21,7 @@
  <xsd:complexType name="ResponseType">
   <xsd:element name="AuthZResult" type="AuthZResultType" minOccurs="1"/>  
   <xsd:sequence>
-   <xsd:element ref="request-arc:RequestItem"  maxOccurs="unbounded"/>
+   <xsd:element ref="request-arc:RequestItem"  minOccurs="0" maxOccurs="unbounded"/>
   </xsd:sequence>
  </xsd:complexType>
 
