@@ -214,7 +214,7 @@ class Manager:
         """
         # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
         #   the second argument of the get method specifies that we only need metadata from the 'states' section
-        data = self.catalog.get(requests.values(), [('states','')])
+        data = self.catalog.get(requests.values(), [('states',''),('locations','')])
         response = {}
         for rID, GUID in requests.items():
             # for each requested GUID
@@ -224,13 +224,16 @@ class Manager:
             size = states[('states','size')]
             checksumType = states[('states','checksumType')]
             checksum = states[('states','checksum')]
+            # list of storage elements with a replica of this file (to avoid using one element twice)
+            exceptedSEs = [deserialize_ids(location[1])[0] 
+                           for location,status in states.items() if 'locations' in location]
             # initiate replica addition of this file with the given protocols 
-            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
+            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
             # set the response of this request
             response[rID] = (success, turl, protocol)
         return response
 
-    def find_alive_se(self):
+    def find_alive_se(self, except_these=[]):
         """  Get the list of currently alive Storage Elements.
         
         find_alive_se()
@@ -241,9 +244,10 @@ class Manager:
         #   when a specific Storage Element service should report next
         #   if this timestamp is not a positive number, that means the Storage Element have not reported in time, probably it is not alive
         print 'Registered Storage Elements in Catalog', SEs
-        # get all the Storage Elements which has a positiv nextHeartbeat timestamp
-        alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0]
+        # get all the Storage Elements which has a positiv nextHeartbeat timestamp and which has not already been used
+        alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
         print 'Alive Storage Elements:', alive_SEs
+
         try:
             # choose one randomly
             se = random.choice(alive_SEs)
@@ -255,7 +259,7 @@ class Manager:
             traceback.print_exc()
             return None
 
-    def _add_replica(self, size, checksumType, checksum, GUID, protocols):
+    def _add_replica(self, size, checksumType, checksum, GUID, protocols, exceptedSEs=[]):
         """ Helper method to initiate addition of a replica to a file.
         
         _add_replica(size, checksumType, checksum, GUID, protocols)
@@ -273,7 +277,7 @@ class Manager:
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
         # find an alive Storage Element
-        element = self.find_alive_se()
+        element = self.find_alive_se(exceptedSEs)
         if not element:
             return 'no storage element found', turl, protocol
         # call the SE's put method with the prepared request
