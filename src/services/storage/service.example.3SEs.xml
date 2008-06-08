@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Foreground/>
+        <Pidfile>./arched.pid</Pidfile>
+        <Logger level="ERROR">./logfile</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>./arc1/src/services/wrappers/python/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/http/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/soap/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>./arc1/src/hed/mcc/tls/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/> 
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="hash">/Hash</next>
+            <next id="catalog">/Catalog</next>
+            <next id="manager">/Manager</next>
+            <next id="element">/Element</next>
+            <next id="element1">/Element1</next>
+            <next id="element2">/Element2</next>
+            <next id="byteio">/byteio</next>
+            <next id="byteio1">/byteio1</next>
+            <next id="byteio2">/byteio2</next>
+        </Plexer>
+        <Service name="pythonservice" id="hash">
+            <ClassName>storage.hash.hash.HashService</ClassName>
+            <HashClass>storage.hash.hash.CentralHash</HashClass>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>./hash_data</DataDir></StoreCfg>
+        </Service>
+        <Service name="pythonservice" id="catalog">
+            <ClassName>storage.catalog.catalog.CatalogService</ClassName>
+            <HashURL>http://localhost:60000/Hash</HashURL>
+            <HeartbeatTimeout>30</HeartbeatTimeout>
+            <CheckPeriod>20</CheckPeriod>
+        </Service>
+        <Service name="pythonservice" id="manager">
+            <ClassName>storage.manager.manager.ManagerService</ClassName>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+        </Service>
+        <Service name="pythonservice" id="element">
+            <ClassName>storage.element.element.ElementService</ClassName>
+            <ServiceID>http://localhost:60000/Element</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>./element_data</DataDir></StoreCfg>
+            <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>./element_store</DataDir>
+                <TransferDir>./element_transfer</TransferDir>
+                <TURLPrefix>http://localhost:60000/byteio/</TURLPrefix>
+            </BackendCfg>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+        </Service>
+         <Service name="pythonservice" id="element1">
+            <ClassName>storage.element.element.ElementService</ClassName>
+            <ServiceID>http://localhost:60000/Element1</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>./element_data1</DataDir></StoreCfg>
+            <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>./element_store1</DataDir>
+                <TransferDir>./element_transfer1</TransferDir>
+                <TURLPrefix>http://localhost:60000/byteio1/</TURLPrefix>
+            </BackendCfg>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+        </Service>
+        <Service name="pythonservice" id="element2">
+            <ClassName>storage.element.element.ElementService</ClassName>
+            <ServiceID>http://localhost:60000/Element2</ServiceID>
+            <CheckPeriod>20</CheckPeriod>
+            <MinCheckInterval>0.1</MinCheckInterval>
+            <StoreClass>storage.common.PickleStore</StoreClass>
+            <StoreCfg><DataDir>./element_data2</DataDir></StoreCfg>
+            <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
+            <BackendCfg>
+                <DataDir>./element_store2</DataDir>
+                <TransferDir>./element_transfer2</TransferDir>
+                <TURLPrefix>http://localhost:60000/byteio2/</TURLPrefix>
+            </BackendCfg>
+            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+        </Service>
+         <Service name="pythonservice" id="byteio">
+            <ClassName>storage.element.byteio.ByteIOService</ClassName>
+            <TransferDir>./element_transfer</TransferDir>
+            <NotifyURL>http://localhost:60000/Element</NotifyURL>
+        </Service>
+         <Service name="pythonservice" id="byteio1">
+            <ClassName>storage.element.byteio.ByteIOService</ClassName>
+            <TransferDir>./element_transfer1</TransferDir>
+            <NotifyURL>http://localhost:60000/Element1</NotifyURL>
+        </Service>
+         <Service name="pythonservice" id="byteio2">
+            <ClassName>storage.element.byteio.ByteIOService</ClassName>
+            <TransferDir>./element_transfer2</TransferDir>
+            <NotifyURL>http://localhost:60000/Element2</NotifyURL>
+        </Service>
+    </Chain>
+</ArcConfig>
