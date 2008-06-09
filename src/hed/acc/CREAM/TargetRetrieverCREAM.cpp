@@ -360,7 +360,7 @@ namespace Arc {
          ... now do the mapping */
 
       if (Site["GlueSiteName"])
-	target.Name = (std::string)Site["GlueSiteName"];
+	target.DomainName = (std::string)Site["GlueSiteName"];
 
       if (Site["GlueSiteLocation"])
 	target.Place = (std::string)Site["GlueSiteLocation"];
@@ -502,9 +502,11 @@ namespace Arc {
 
       for (XMLNode node =
 	     SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
-	   node; ++node)
-	target.RunTimeEnvironment.push_back((std::string)node);
-
+	   node; ++node){
+	ApplicationEnvironment RT;
+	RT.Name = (std::string) node;
+	target.ApplicationEnvironments.push_back(RT);
+      }
       //Register target in TargetGenerator list
       mom.AddTarget(target);
     }

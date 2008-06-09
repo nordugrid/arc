@@ -220,23 +220,18 @@ namespace Arc {
       target.GridFlavour = "ARC0";
       target.Source = url;
 
-      // Find and fill location information
-      // Information like address, longitude, latitude etc not available
-
+      // Domain/Location attributes
       if (cluster["nordugrid-cluster-name"])
-	target.Name = (std::string)cluster["nordugrid-cluster-name"];
-      if (cluster["nordugrid-cluster-aliasname"])
-	target.Alias = (std::string)cluster["nordugrid-cluster-aliasname"];
+	target.DomainName = (std::string)cluster["nordugrid-cluster-name"];
       if (cluster["nordugrid-cluster-owner"])
 	target.Owner = (std::string)cluster["nordugrid-cluster-owner"];
       if (cluster["nordugrid-cluster-location"])
 	target.PostCode = (std::string)cluster["nordugrid-cluster-location"];
 
-      // Find and fill endpoint information
-      // (once again some entities are missing)
+      // ComputingService/ComputingEndpoint attributes
       if (cluster["nordugrid-cluster-contactstring"])
 	target.url = (std::string)cluster["nordugrid-cluster-contactstring"];
-      target.InterfaceName = "GridFTP";
+      target.Interface = "GridFTP";
       target.Implementor = "NorduGrid";
       target.ImplementationName = "ARC0";
       if (cluster["nordugrid-cluster-middleware"])
@@ -244,12 +239,39 @@ namespace Arc {
 	  (std::string)cluster["nordugrid-cluster-middleware"];
       if (queue["nordugrid-queue-status"])
 	target.HealthState = (std::string)queue["nordugrid-queue-status"];
-      if (cluster["nordugrid-cluster-issuerca"])
+      if (cluster["nordugrid-cluster-issuerca"] && cluster["nordugrid-cluster-issuerca-hash"])
+	target.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"] + "," +
+	  (std::string)cluster["nordugrid-cluster-issuerca-hash"];
+      else if(cluster["nordugrid-cluster-issuerca"])
 	target.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"];
+      if (cluster["nordugrid-cluster-trustedca"])
+	target.TrustedCA = (std::string)cluster["nordugrid-cluster-trustedca"];
       if (cluster["nordugrid-cluster-nodeaccess"])
 	target.Staging = (std::string)cluster["nordugrid-cluster-nodeaccess"];
-
-      //Jobs, RTEs, Memory, CPU ...
+      
+      //ComputingService/ComputingShare load attributes
+      if (cluster["nordugrid-cluster-totaljobs"])
+	target.TotalJobs = stringtoi(std::string(cluster["nordugrid-cluster-totaljobs"]));
+      if (queue["nordugrid-queue-running"])
+	target.RunningJobs = stringtoi(std::string(queue["nordugrid-queue-running"]));
+      if (queue["nordugrid-queue-queued"]){
+	target.WaitingJobs = stringtoi(std::string(queue["nordugrid-queue-queued"]));
+      } else if(cluster["nordugrid-cluster-queuedjobs"]){
+	target.WaitingJobs = stringtoi(std::string(cluster["nordugrid-cluster-queuedjobs"]));	 
+      }
+      if (queue["nordugrid-queue-prelrmsqueued"])
+	target.PreLRMSWaitingJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-prelrmsqueued"]));
+      if(queue["nordugrid-queue-running"] && queue["nordugrid-queue-gridrunning"])
+	target.LocalRunningJobs = stringtoi(std::string(queue["nordugrid-queue-running"])) - 
+	  stringtoi(std::string(queue["nordugrid-queue-gridrunning"]));
+      if (queue["nordugrid-queue-queued"])
+	target.LocalWaitingJobs = stringtoi(std::string(queue["nordugrid-queue-queued"]));
+      if (cluster["nordugrid-queue-usedcpus"])
+	target.UsedSlots = stringtoi(std::string(cluster["nordugrid-queue-usedcpus"]));
+      
+      
+      //ComputingShare
       if (queue["nordugrid-queue-name"])
 	target.MappingQueue = (std::string)queue["nordugrid-queue-name"];
       if (queue["nordugrid-queue-maxwalltime"])
@@ -272,36 +294,111 @@ namespace Arc {
       if (queue["nordugrid-queue-maxqueable"])
 	target.MaxWaitingJobs =
 	  stringtoi((std::string)queue["nordugrid-queue-maxqueable"]);
-      if (queue["nordugrid-queue-maxuserrun"])
-	target.MaxUserRunningJobs =
-	  stringtoi(std::string(queue["nordugrid-queue-maxuserrun"]));
-      if (queue["nordugrid-queue-schedulingpolicy"])
-	target.SchedulingPolicy =
-	  std::string(queue["nordugrid-queue-schedulingpolicy"]);
       if (queue["nordugrid-queue-nodememory"])
 	target.NodeMemory =
 	  stringtoi(std::string(queue["nordugrid-queue-nodememory"]));
       else if (cluster["nordugrid-cluster-nodememory"])
 	target.NodeMemory =
 	  stringtoi(std::string(cluster["nordugrid-cluster-nodememory"]));
-      if (cluster["nordugrid-cluster-sessiondir-free"])
-	target.MaxDiskSpace =
-	  stringtoi(std::string(cluster["nordugrid-cluster-sessiondir-free"]));
+      if (queue["nordugrid-queue-maxuserrun"])
+	target.MaxUserRunningJobs =
+	  stringtoi(std::string(queue["nordugrid-queue-maxuserrun"]));
+      if (queue["nordugrid-queue-schedulingpolicy"])
+	target.SchedulingPolicy =
+	  std::string(queue["nordugrid-queue-schedulingpolicy"]);
       if (cluster["nordugrid-cluster-localse"])
 	target.DefaultStorageService =
 	  std::string(cluster["nordugrid-cluster-localse"]);
-      if (queue["nordugrid-queue-running"])
-	target.RunningJobs =
-	  stringtoi(std::string(queue["nordugrid-queue-running"]));
-      if (queue["nordugrid-queue-queued"])
-	target.WaitingJobs =
-	  stringtoi(std::string(queue["nordugrid-queue-queued"]));
-      if (queue["nordugrid-queue-prelrmsqueued"])
-	target.PreLRMSWaitingJobs =
-	  stringtoi(std::string(queue["nordugrid-queue-prelrmsqueued"]));
+      
+      //ComputingManager/ExecutionEnvironment
+      if (cluster["nordugrid-cluster-lrms-type"] && cluster["nordugrid-cluster-lrms-version"])
+	target.ManagerType = (std::string) cluster["nordugrid-cluster-lrms-type"] + ", " 
+	  + (std::string) cluster["nordugrid-cluster-lrms-version"];
+      else if (cluster["nordugrid-cluster-lrms-type"])
+	target.ManagerType = (std::string) cluster["nordugrid-cluster-lrms-type"];
+      if(queue["nordugrid-queue-totalcpus"]){
+	target.TotalPhysicalCPUs = stringtoi(std::string(queue["nordugrid-queue-totalcpus"]));
+	target.TotalLogicalCPUs = stringtoi(std::string(queue["nordugrid-queue-totalcpus"]));
+	target.TotalSlots = stringtoi(std::string(queue["nordugrid-queue-totalcpus"]));
+      } else if (cluster["nordugrid-cluster-totalcpus"]){
+	target.TotalPhysicalCPUs = stringtoi(std::string(cluster["nordugrid-cluster-totalcpus"]));
+	target.TotalLogicalCPUs = stringtoi(std::string(cluster["nordugrid-cluster-totalcpus"]));
+	target.TotalSlots = stringtoi(std::string(cluster["nordugrid-cluster-totalcpus"]));
+      }
+      if(queue["nordugrid-queue-homogeneity"]){
+	if((std::string) queue["nordugrid-queue-homogeneity"] == "false")
+	  target.Homogeneity = false;
+      } else if(cluster["nordugrid-cluster-homogeneity"]){
+	if((std::string) cluster["nordugrid-cluster-homogeneity"] == "false")
+	  target.Homogeneity = false;
+      }
+      if (cluster["nordugrid-cluster-sessiondir-free"])
+	target.WorkingAreaFree =
+	  stringtoi(std::string(cluster["nordugrid-cluster-sessiondir-free"]));
+      if (cluster["nordugrid-cluster-sessiondir-lifetime"])
+	target.WorkingAreaLifeTime = (std::string) cluster["nordugrid-cluster-sessiondir-lifetime"];
+      if (cluster["nordugrid-cluster-cache-free"])
+	target.CacheFree =
+	  stringtoi(std::string(cluster["nordugrid-cluster-cache-free"]));
 
+      //ExecutionEnvironment
+      if(queue["nordugrid-queue-architecture"]){
+	target.Platform = (std::string) queue["nordugrid-queue-architecture"];
+      } else if(cluster["nordugrid-cluster-architecture"]){
+	target.Platform = (std::string) cluster["nordugrid-cluster-architecture"];
+      }
+      if(queue["nordugrid-queue-nodecpu"]){
+	target.CPUVendor = (std::string) queue["nordugrid-queue-nodecpu"];
+	target.CPUModel = (std::string) queue["nordugrid-queue-nodecpu"];
+	target.CPUVersion = (std::string) queue["nordugrid-queue-nodecpu"];
+      } else if (cluster["nordugrid-cluster-totalcpus"]){
+	target.CPUVendor = (std::string) queue["nordugrid-queue-nodecpu"];
+	target.CPUModel = (std::string) queue["nordugrid-queue-nodecpu"];
+	target.CPUVersion = (std::string) queue["nordugrid-queue-nodecpu"];
+      }
+      if(queue["nordugrid-queue-opsys"]){
+	target.OSFamily = (std::string) queue["nordugrid-queue-opsys"];
+	target.OSName = (std::string) queue["nordugrid-queue-opsys"];
+      } else if(cluster["nordugrid-cluster-opsys"]){
+	target.OSFamily = (std::string) cluster["nordugrid-cluster-opsys"];
+	target.OSName = (std::string) cluster["nordugrid-cluster-opsys"];
+      }
+      
+      //Benchmark
+      if(queue["nordugrid-queue-benchmark"]){
+	for(XMLNode n = queue["nordugrid-queue-benchmark"]; n; ++n){
+	  std::string benchmark = (std::string) n;
+	  size_t alpha = benchmark.find_first_of("@");
+	  std::string benchmarkname = benchmark.substr(alpha);
+	  double performance = stringtod(benchmark.substr(alpha, benchmark.size()));
+	  Benchmark bm;
+	  bm.Type = benchmarkname;
+	  bm.Value = performance;
+	  target.Benchmarks.push_back(bm);
+	}
+      } else if(cluster["nordugrid-cluster-benchmark"]){
+	for(XMLNode n = cluster["nordugrid-cluster-benchmark"]; n; ++n){
+	  std::string benchmark = (std::string) n;
+	  size_t alpha = benchmark.find_first_of("@");
+	  std::string benchmarkname = benchmark.substr(alpha);
+	  double performance = stringtod(benchmark.substr(alpha, benchmark.size()));
+	  Benchmark bm;
+	  bm.Type = benchmarkname;
+	  bm.Value = performance;
+	  target.Benchmarks.push_back(bm);
+	}
+      }
+      
+      //ApplicationEnvironments
+      for(XMLNode n = cluster["nordugrid-cluster-runtimeenvironment"]; n; ++n){
+	ApplicationEnvironment rte;
+	rte.Name = (std::string) n;
+	target.ApplicationEnvironments.push_back(rte);
+      }
+      
       //Register target in TargetGenerator list
       mom.AddTarget(target);
+      
     }
 
     delete (ThreadArg *)arg;

@@ -169,9 +169,9 @@ namespace Arc {
     for (std::list<ExecutionTarget>::const_iterator cli = foundTargets.begin();
 	 cli != foundTargets.end(); cli++) {
 
-      std::cout << IString("Cluster: %s", cli->Name) << std::endl;
-      if (!cli->Alias.empty())
-	std::cout << IString(" Alias: %s", cli->Alias) << std::endl;
+      std::cout << IString("Cluster: %s", cli->DomainName) << std::endl;
+      if (!cli->HealthState.empty())
+	std::cout << IString(" Health State: %s", cli->HealthState) << std::endl;
 
       if (longlist) {
 	if (!cli->Owner.empty())
@@ -185,6 +185,7 @@ namespace Arc {
 	if (cli->Longitude != 0)
 	  std::cout << IString(" Longitude: %f", cli->Longitude) << std::endl;
 
+	/*
 	std::cout << IString("Endpoint information") << std::endl;
 	if (cli->url)
 	  std::cout << IString(" URL: %s", cli->url.str()) << std::endl;
@@ -238,6 +239,7 @@ namespace Arc {
 	  std::cout << IString(" Max Stage Out Streams: %i", cli->MaxStageOutStreams) << std::endl;
 	if (cli->MaxStageOutStreams != -1)
 	  std::cout << IString(" Max Stage Out Streams: %i", cli->MaxStageOutStreams) << std::endl;
+	*/
 
       } //end if long
       std::cout << std::endl;
