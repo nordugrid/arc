@@ -24,6 +24,7 @@ class UsernameTokenSH : public SecHandler {
   } password_type_;
   std::string username_;
   std::string password_;
+  std::string password_source_;
 
  public:
   UsernameTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);

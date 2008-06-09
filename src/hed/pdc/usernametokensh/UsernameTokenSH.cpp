@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <iostream>
+#include <fstream>
+
 #include <arc/loader/SecHandlerLoader.h>
 #include <arc/loader/Loader.h>
 #include <arc/message/PayloadSOAP.h>
@@ -29,8 +32,12 @@ using namespace Arc;
 UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
-  if(process_type == "extract") {
-    logger.msg(ERROR,"Username Token extraction is not supported yet");
+  if(process_type == "extract") { 
+    password_source_=(std::string)((*cfg)["PasswordSource"]);
+    if(password_source_.empty()) {
+      logger.msg(ERROR,"Missing or empty PasswordSource element");
+      return;
+    };
     return;
   } else if(process_type == "generate") {
     std::string pwd_encoding = (std::string)((*cfg)["PasswordEncoding"]);
@@ -60,19 +67,35 @@ UsernameTokenSH::~UsernameTokenSH() {
 
 bool UsernameTokenSH::Handle(Arc::Message* msg){
   if(process_type_ == process_extract) {
-    logger.msg(ERROR,"Username Token extraction is not supported yet");
-    return false;
+    try {
+      PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
+      UsernameToken ut(*soap);
+      if(!ut) {
+        logger.msg(ERROR,"Failed to parse Username Token from incoming SOAP");
+        return false;
+      };
+      std::string derived_key;
+      std::ifstream stream(password_source_.c_str());  
+      if(!ut.Authenticate(stream, derived_key)) {
+        logger.msg(ERROR, "Failed to authenticate Username Token inside the incoming SOAP");
+        stream.close(); return false;
+      };
+      stream.close();
+    } catch(std::exception) {
+      logger.msg(ERROR,"Incoming Message is not SOAP");
+      return false;
+    }  
   } else if(process_type_ == process_generate) {
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());
       UsernameToken ut(*soap,username_,password_,std::string(""),
          (password_type_==password_digest)?(UsernameToken::PasswordDigest):(UsernameToken::PasswordText));
       if(!ut) {
-        logger.msg(ERROR,"Failed to generate Username Token");
+        logger.msg(ERROR,"Failed to generate Username Token for outgoin SOAP");
         return false;
       };
     } catch(std::exception) {
-      logger.msg(ERROR,"Message is not SOAP");
+      logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
     }
   } else {
