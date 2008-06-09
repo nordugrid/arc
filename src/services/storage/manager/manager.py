@@ -225,8 +225,8 @@ class Manager:
             checksumType = states[('states','checksumType')]
             checksum = states[('states','checksum')]
             # list of storage elements with a replica of this file (to avoid using one element twice)
-            exceptedSEs = [deserialize_ids(location[1])[0] 
-                           for location,status in states.items() if 'locations' in location]
+            exceptedSEs = [deserialize_ids(location)[0] 
+                           for (section, location), status in states.items() if section == 'locations']
             # initiate replica addition of this file with the given protocols 
             success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols, exceptedSEs)
             # set the response of this request
