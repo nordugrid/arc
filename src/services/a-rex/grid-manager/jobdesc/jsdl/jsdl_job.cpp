@@ -129,11 +129,12 @@ bool JSDLJob::get_jobname(std::string& jobname) {
 bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
   //arguments.clear();
 
-  Arc::XMLNode n = jsdl_hpcpa["Executable"];
-  if( (bool)n ) {
+  Arc::XMLNode n;
+  if( (bool)(n = jsdl_hpcpa["Executable"]) ) {
     std::string str_executable = (std::string) n;
     strip_spaces(str_executable);
     if (str_executable[0] != '/' && (str_executable[0] != '.' && str_executable[1] != '/')) str_executable = "./" + str_executable;
+    arguments.clear();
     arguments.push_back(str_executable);
 
     logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-hpcpa:Executable] - %s",
@@ -147,32 +148,29 @@ bool JSDLJob::get_arguments(std::list<std::string>& arguments) {
 
     return true;
 
-  } else {
+  } else if( (bool)(n = jsdl_posix["Executable"]) ) {
+    std::string str_executable = (std::string) n;
+    strip_spaces(str_executable);
+    if (str_executable[0] != '/' && (str_executable[0] != '.' && str_executable[1] != '/')) str_executable = "./" + str_executable;
+    arguments.clear();
+    arguments.push_back(str_executable);
 
-  n = jsdl_posix["Executable"];
+    logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-posix:Executable] - %s",
+                          str_executable.c_str());
 
-  if( !n ) {
-    logger.msg(Arc::ERROR, "job description contains no recognisable executable");
-    return false;
-  };
+    for( int i=0; (bool)(jsdl_posix["Argument"][i]); i++ ) {
+      std::string value = (std::string) jsdl_posix["Argument"][i];
+      strip_spaces(value);
+      arguments.push_back(value);
+    }
 
-  std::string str_executable = (std::string) n;
-  strip_spaces(str_executable);
-  if (str_executable[0] != '/' && (str_executable[0] != '.' && str_executable[1] != '/')) str_executable = "./" + str_executable;
-  arguments.push_back(str_executable);
-
-  logger.msg(Arc::INFO, "job description executable is provided by element [jsdl-posix:Executable] - %s",
-                        str_executable.c_str());
-
-  for( int i=0; (bool)(jsdl_posix["Argument"][i]); i++ ) {
-    std::string value = (std::string) jsdl_posix["Argument"][i];
-    strip_spaces(value);
-    arguments.push_back(value);
-  }
-
-  return true;
+    return true;
 
   }
+
+  logger.msg(Arc::ERROR, "job description contains no recognisable executable");
+  return false;
+
 }
 
 bool JSDLJob::get_execs(std::list<std::string>& execs) {
@@ -402,8 +400,8 @@ bool JSDLJob::get_stderr(std::string& s) {
 
 bool JSDLJob::get_data(std::list<FileData>& inputdata,int& downloads,
                        std::list<FileData>& outputdata,int& uploads) {
-  /* inputdata.clear(); downloads=0; */
-  /* outputdata.clear(); uploads=0; */
+  inputdata.clear(); downloads=0;
+  outputdata.clear(); uploads=0;
   for(int i=0; (bool)(jsdl_document["JobDescription"]["DataStaging"][i]); i++) {
     Arc::XMLNode ds = jsdl_document["JobDescription"]["DataStaging"][i];
     Arc::XMLNode fileSystemNameNode = ds["FilesystemName"];
