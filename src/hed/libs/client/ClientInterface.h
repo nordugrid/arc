@@ -113,6 +113,14 @@ namespace Arc {
       SAMLToken,
       KerberosToken
     } WSSType;
+
+    typedef struct {
+      std::string username;
+      std::string password;
+      std::string password_encoding;
+      //other information about other types of token
+    } WSSInfo;
+
     /** Constructor creates MCC chain and connects to server.
        	cfg - common configuration,
        	host - hostname of remote server,
@@ -124,7 +132,7 @@ namespace Arc {
     ClientSOAP()
       : soap_entry(NULL) {}
     ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
-	       bool tls, const std::string& path, WSSType wsstype = NONE);
+	       bool tls, const std::string& path, const WSSType wsstype = NONE, WSSInfo* wssinfo = NULL);
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
@@ -137,7 +145,6 @@ namespace Arc {
     virtual void Load();
   protected:
     MCC *soap_entry;
-    WSSType wsstype_;
   };
 
 } // namespace Arc
