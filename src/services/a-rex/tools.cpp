@@ -25,7 +25,7 @@ void addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,bool faile
       bes_state="Running"; arex_state="Killing";
     };
     Arc::XMLNode state = pnode.NewChild("bes-factory:ActivityStatus");
-    state.NewAttribute("bes-factory:state")=bes_state;
+    state.NewAttribute("state")=bes_state;
     state.NewChild("a-rex:state")=arex_state;
 }
 
