@@ -5,7 +5,7 @@
 #include <arc/message/SOAPEnvelope.h>
 
 // WS-Security Username Token Profile v1.1
-// wsa="http://www.w3.org/2005/08/addressing"
+// wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
 
 namespace Arc {
 

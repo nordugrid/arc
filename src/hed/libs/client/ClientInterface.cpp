@@ -56,7 +56,7 @@ namespace Arc {
   }
 
   ClientInterface::ClientInterface(const BaseConfig& cfg)
-    : xmlcfg(NS()),
+    : xmlcfg(NS()),  //Need to add all of the configuration namespaces here?
       loader() {
     cfg.MakeConfig(xmlcfg);
     xmlcfg.NewChild("Chain");
@@ -252,12 +252,24 @@ namespace Arc {
   }
 
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path)
+			 int port, bool tls, const std::string& path, WSSType wsstype)
     : ClientHTTP(cfg, host, port, tls, path),
-      soap_entry(NULL) {
+      soap_entry(NULL), wsstype_(wsstype) {
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
+    //Add the ws-security configuration for the soap client. Currently only usernametoken is supported
+    if(wsstype_ == UsernameToken) {
+      XMLNode sechandler = comp.NewChild("SecHandler");
+      sechandler.NewAttribute("name") = "usernametoken.handler";
+      sechandler.NewAttribute("id") = "usernametoken";
+      sechandler.NewAttribute("event") = "outgoing";
+      sechandler.NewChild("Process") = "generate";
+      sechandler.NewChild("PasswordEncoding") = "digest";
+      sechandler.NewChild("Username") = "user";
+      sechandler.NewChild("Password") = "passwd";
+    }
+    //Process other WSSType
   }
 
   ClientSOAP::~ClientSOAP() {}

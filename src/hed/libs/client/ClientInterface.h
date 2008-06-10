@@ -106,6 +106,13 @@ namespace Arc {
   class ClientSOAP
     : public ClientHTTP {
   public:
+    typedef enum {
+      NONE,
+      UsernameToken,
+      X509Token,
+      SAMLToken,
+      KerberosToken
+    } WSSType;
     /** Constructor creates MCC chain and connects to server.
        	cfg - common configuration,
        	host - hostname of remote server,
@@ -117,7 +124,7 @@ namespace Arc {
     ClientSOAP()
       : soap_entry(NULL) {}
     ClientSOAP(const BaseConfig& cfg, const std::string& host, int port,
-	       bool tls, const std::string& path);
+	       bool tls, const std::string& path, WSSType wsstype = NONE);
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
@@ -130,6 +137,7 @@ namespace Arc {
     virtual void Load();
   protected:
     MCC *soap_entry;
+    WSSType wsstype_;
   };
 
 } // namespace Arc

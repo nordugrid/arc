@@ -98,7 +98,7 @@ void ModuleManager::setCfg (Arc::Config *cfg) {
       break;
     }
     if (MatchXMLName(path, "Path")) {
-      std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
+      //std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
       std::vector<std::string>::const_iterator it;
       for( it = plugin_dir.begin(); it != plugin_dir.end(); it++){
         //std::cout<<(std::string)path<<"*********"<<(*it)<<std::endl;
