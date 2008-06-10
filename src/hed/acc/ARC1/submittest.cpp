@@ -14,11 +14,14 @@ int main() {
   Arc::ACCConfig acccfg;
   
   std::string config_str = "<ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"> \
+   <ModuleManager> \
+    <Path>/usr/local/lib/arc/</Path>\
+    </ModuleManager>\
 		<Chain>\
-	  	<Component name=\"tls.client\"> \
-      <KeyPath>/Users/roczei/Documents/workspace/arc1/etc/grid-security/key.pem</KeyPath>\
-	  <CertificatePath>/Users/roczei/Documents/workspace/arc1/etc/grid-security/cert.pem</CertificatePath> \
-   <CACertificatesDir>/Users/roczei/Documents/workspace/arc1/etc/grid-security/certificates</CACertificatesDir> \
+	  	<Component name=\"tls.client\" id=\"tls\"> \
+      <KeyPath>/etc/grid-security/key.pem</KeyPath>\
+	  <CertificatePath>/etc/grid-security/cert.pem</CertificatePath> \
+   <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir> \
   </Component> \
  </Chain> \
 </ArcConfig>";
