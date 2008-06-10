@@ -9,32 +9,20 @@ int main() {
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
-  Arc::ACCConfig acccfg;
-  
-  std::string config_str = "<ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"> \
-   <ModuleManager> \
-    <Path>/usr/local/lib/arc/</Path>\
-    </ModuleManager>\
-		<Chain>\
-	  	<Component name=\"tls.client\" id=\"tls\"> \
-      <KeyPath>/etc/grid-security/key.pem</KeyPath>\
-	  <CertificatePath>/etc/grid-security/cert.pem</CertificatePath> \
-   <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir> \
-  </Component> \
- </Chain> \
-</ArcConfig>";
-  
-  Arc::Config cfg(config_str);
-  acccfg.MakeConfig(cfg);
-  
-  Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
-  SubmitterComp.NewAttribute("name") = "SubmitterARC1";
-  SubmitterComp.NewAttribute("id") = "submitter";
-  SubmitterComp.NewChild("Endpoint") = "https://knowarc1.grid.niif.hu:60000/arex";
-  
-  Arc::Loader loader(&cfg);
+Arc::ACCConfig acccfg;
+Arc::NS ns;
+Arc::Config cfg(ns);
+acccfg.MakeConfig(cfg);
+
+Arc::XMLNode SubmitterComp = cfg.NewChild("ArcClientComponent");
+SubmitterComp.NewAttribute("name") = "SubmitterARC1";
+SubmitterComp.NewAttribute("id") = "submitter";
+SubmitterComp.NewChild("Endpoint") = "https://knowarc1.grid.niif.hu:60000/arex";
+
+Arc::Loader loader(&cfg);
+
 
   Arc::Submitter *submitter =
     dynamic_cast<Arc::Submitter *>(loader.getACC("submitter"));

@@ -74,15 +74,11 @@ static void set_arex_namespaces(Arc::NS& ns) {
 		  logger.msg(Arc::ERROR, "Client chain does not have entry point.");
 	  }
 	  
-	  std::string url_str;
-	  url_str = (std::string)((*cfg)["ArcClientComponent"]["Endpoint"]);
-	  Arc::URL url(url_str);
+     // mcc_cfg.AddPrivateKey((std::string)((*cfg)["Component"]["KeyPath"]));
+    //  mcc_cfg.AddCertificate((std::string)((*cfg)["Component"]["CertificatePath"]));
+      //mcc_cfg.AddCADir((std::string)((*cfg)["Component"]["CACertificatesDir"]));
 	  
-      mcc_cfg.AddPrivateKey((std::string)((*cfg)["Component"]["KeyPath"]));
-      mcc_cfg.AddCertificate((std::string)((*cfg)["Component"]["CertificatePath"]));
-      mcc_cfg.AddCADir((std::string)((*cfg)["Component"]["CACertificatesDir"]));
-	  
-	  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
+	  client = new Arc::ClientSOAP(mcc_cfg, SubmissionEndpoint.Host(), SubmissionEndpoint.Port(), SubmissionEndpoint.Protocol() == "https", SubmissionEndpoint.Path());
 	  set_arex_namespaces(arex_ns);
   }
   
@@ -102,7 +98,6 @@ static void set_arex_namespaces(Arc::NS& ns) {
 		 
 		// TODO: Move the InfoEndpoint URL to the final source code place 
 		  
-	    Arc::URL InfoEndpoint("https://knowarc1.grid.niif.hu/arex");
 	    std::string jobid, faultstring;
 	    Arc::XMLNode jsdl_document;
 	    std::string jobdescstring;
@@ -196,10 +191,11 @@ static void set_arex_namespaces(Arc::NS& ns) {
 	        delete repmsg.Payload();
 	      };
 	    } else {
-	      
+        logger.msg(Arc::ERROR, "Something wrong with the client_entry");
 	    }
-	    
+
 	    Arc::XMLNode id, fs;
+
 	    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
 	    (*resp)["Fault"]["faultstring"].New(fs);
 	    id.GetDoc(jobid);
