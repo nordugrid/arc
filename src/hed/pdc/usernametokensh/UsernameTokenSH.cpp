@@ -38,7 +38,7 @@ UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*):SecHandler(cfg){
       logger.msg(ERROR,"Missing or empty PasswordSource element");
       return;
     };
-    return;
+    process_type_=process_extract;
   } else if(process_type == "generate") {
     std::string pwd_encoding = (std::string)((*cfg)["PasswordEncoding"]);
     if(pwd_encoding == "digest") {
