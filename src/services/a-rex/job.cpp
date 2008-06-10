@@ -10,6 +10,8 @@
 
 #include <glibmm/thread.h>
 #include <arc/StringConv.h>
+#include <arc/security/ArcPDP/Evaluator.h>
+#include <arc/security/ArcPDP/EvaluatorLoader.h>
 
 #include "grid-manager/conf/environment.h"
 #include "grid-manager/conf/conf_pre.h"
@@ -23,6 +25,8 @@
 #include "job.h"
 
 using namespace ARex;
+
+#define JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
 
 static bool env_initialized = false;
 Glib::StaticMutex env_lock = GLIBMM_STATIC_MUTEX_INIT;
@@ -110,7 +114,46 @@ bool ARexJob::is_allowed(void) {
   if(config_.GridName() == job_.DN) {
     allowed_to_see_=true;
     allowed_to_maintain_=true;
+    return true;
   };
+/*
+  // Using ARC Policy
+  std::string acl;
+  if(job_acl_read_file(id_,*config.User(),acl)) {
+    if(!acl.empty()) {
+      ArcSec::Evaluator* eval =
+          ArcSec::EvaluatorLoader().getEvaluator("arc.evaluator");
+      eval->addPolicy(Source(acl));
+    };
+  };
+  NS ns;
+  ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
+  XMLNode request("ar:Request",ns);
+  XMLNode item = val.NewChild("ar:RequestItem");
+  // Resource is not needed
+  // Possible operations are Modify and Read
+  XMLNode action;
+  action=item.NewChild("ar:Action");
+  action="Read"; action.NewAttribute("Type")="string";
+  action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+  action=item.NewChild("ar:Action");
+  action="Modify"; action.NewAttribute("Type")="string";
+  action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+  // Get all user identities
+
+
+
+
+  ArcSec::Response *resp = eval->evaluate(request);
+  if(resp) {
+    ResponseList rlist = resp->getResponseItems();
+    if(rlist.size() > 0)  {
+
+
+ 
+    };
+  };
+*/
   return true;
 }
 
