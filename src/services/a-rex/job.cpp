@@ -147,10 +147,16 @@ bool ARexJob::is_allowed(void) {
   ArcSec::Response *resp = eval->evaluate(request);
   if(resp) {
     ResponseList rlist = resp->getResponseItems();
-    if(rlist.size() > 0)  {
-
-
- 
+    //It is supposed all of the RequestItem needs to satisfy the policy in order to authorization
+    if((rlist.size()) == (resp->getRequestSize())){
+      olog<<"Authorized from job"<<std::endl;
+      if(resp) delete resp;
+      return true;
+    };
+    else {
+      olog<<"UnAuthorized from job; Some of the RequestItem does not satisfy Policy"<<std::endl;
+      if(resp) delete resp;
+      return false;
     };
   };
 */

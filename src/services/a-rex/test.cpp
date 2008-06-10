@@ -64,7 +64,7 @@ int main(void) {
   // -------------------------------------------------------
   std::string credentials;
   {
-    std::ifstream ic("cert.pem");
+    std::ifstream ic("./cert.pem");
     for(;!ic.eof();) {
       char buf[256];
       ic.get(buf,sizeof(buf),0);
