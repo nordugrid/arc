@@ -729,8 +729,8 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    } catch(std::exception& e) { };
    if(!inpayload) return MCC_Status();
    //Checking authentication and authorization;
-   if(!ProcessSecHandlers(inmsg,"incoming")) {
-      logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
+   if(!ProcessSecHandlers(inmsg,"outgoing")) {
+      logger.msg(ERROR, "Security check failed in TLS MCC for outgoing message");
       return MCC_Status();
    };
    // Sending payload
@@ -746,8 +746,8 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    outmsg.Payload(new PayloadTLSMCC(*stream_));
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
-   if(!ProcessSecHandlers(outmsg,"outgoing")) {
-      logger.msg(ERROR, "Security check failed in TLS MCC for outgoing message");
+   if(!ProcessSecHandlers(outmsg,"incoming")) {
+      logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
       delete outmsg.Payload(NULL); return MCC_Status();
    };
    return MCC_Status(Arc::STATUS_OK);

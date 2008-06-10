@@ -240,8 +240,8 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   } catch(std::exception& e) { };
   if(!inpayload) return make_soap_fault(outmsg);
   //Checking authentication and authorization;
-  if(!ProcessSecHandlers(inmsg,"incoming")) {
-    logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
+  if(!ProcessSecHandlers(inmsg,"outgoing")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
     return make_soap_fault(outmsg);
   };
   // Converting payload to Raw
@@ -281,8 +281,8 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   outmsg.Payload(outpayload);
   delete retpayload;
   //Checking authentication and authorization; 
-  if(!ProcessSecHandlers(outmsg,"outgoing")) {
-    logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
+  if(!ProcessSecHandlers(outmsg,"incoming")) {
+    logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
     delete outpayload; return make_soap_fault(outmsg);
   };
   return MCC_Status(Arc::STATUS_OK);

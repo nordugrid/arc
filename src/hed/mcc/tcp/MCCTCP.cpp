@@ -480,7 +480,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) return MCC_Status(Arc::GENERIC_ERROR);
-    if(!ProcessSecHandlers(inmsg,"incoming")) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
@@ -492,7 +492,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         };
     };
     outmsg.Payload(new PayloadTCPSocket(*s_));
-    if(!ProcessSecHandlers(outmsg,"outgoing")) return MCC_Status(Arc::GENERIC_ERROR);
+    if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(Arc::GENERIC_ERROR);
     return MCC_Status(Arc::STATUS_OK);
 }
 } // namespace ARC
