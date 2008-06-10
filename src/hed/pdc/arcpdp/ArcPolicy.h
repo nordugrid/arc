@@ -25,6 +25,7 @@ public:
 
   virtual void setEvaluatorContext(EvaluatorContext* evaluatorcontext) { evaluatorctx = evaluatorcontext; };
 
+  /**Parse XMLNode, and construct the low-level Rule object*/
   virtual void make_policy();
 
   virtual MatchResult match(EvaluationCtx* ctx);

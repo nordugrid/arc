@@ -330,13 +330,13 @@ Response* ArcEvaluator::evaluate(const Source& request, const Source& policy) {
   return (evaluate(request));
 }
 
-Response* ArcEvaluator::evaluate(Request* request, BasePolicy* policyobj) {
+Response* ArcEvaluator::evaluate(Request* request, Policy* policyobj) {
   plstore->removePolicies();
   plstore->addPolicy(policyobj, context, "");
   return (evaluate(request));
 }
 
-Response* ArcEvaluator::evaluate(const Source& request, BasePolicy* policyobj) {
+Response* ArcEvaluator::evaluate(const Source& request, Policy* policyobj) {
   plstore->removePolicies();
   plstore->addPolicy(policyobj, context, "");
   return (evaluate(request));

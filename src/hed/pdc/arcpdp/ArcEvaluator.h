@@ -44,8 +44,8 @@ public:
 
   virtual Response* evaluate(Request* request, const Source& policy);
   virtual Response* evaluate(const Source& request, const Source& policy);
-  virtual Response* evaluate(Request* request, BasePolicy* policyobj);
-  virtual Response* evaluate(const Source& request, BasePolicy* policyobj);
+  virtual Response* evaluate(Request* request, Policy* policyobj);
+  virtual Response* evaluate(const Source& request, Policy* policyobj);
 
   virtual AttributeFactory* getAttrFactory () { return attrfactory;};
   virtual FnFactory* getFnFactory () { return fnfactory; };
@@ -55,7 +55,7 @@ public:
     plstore->addPolicy(policy, context, id);
   };
 
-  virtual void addPolicy(BasePolicy* policy,const std::string& id = "") {
+  virtual void addPolicy(Policy* policy,const std::string& id = "") {
     plstore->addPolicy(policy, context, id);
   };
 
