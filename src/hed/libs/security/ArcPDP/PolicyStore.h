@@ -36,7 +36,7 @@ public:
 
   virtual void addPolicy(const Source& policy, EvaluatorContext* ctx,const std::string& id);
 
-  virtual void addPolicy(BasePolicy* policyobj, EvaluatorContext* ctx,const std::string& id);
+  virtual void addPolicy(Policy* policyobj, EvaluatorContext* ctx,const std::string& id);
 
   virtual void removePolicies();
 

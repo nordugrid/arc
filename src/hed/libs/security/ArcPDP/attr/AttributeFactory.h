@@ -4,7 +4,6 @@
 #include <map>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-
 #include <arc/loader/LoadableClass.h>
 
 #include "AttributeProxy.h"

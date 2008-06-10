@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 #include "../EvaluationCtx.h"
-#include "../policy/BasePolicy.h"
+#include "../policy/Policy.h"
 
 namespace ArcSec {
 ///Interface for combining algrithm
@@ -19,7 +19,7 @@ public:
   @param ctx  The information about request is included
   @param policies  The "match" and "eval" method inside policy will be called
   */
-  virtual Result combine(EvaluationCtx* ctx, std::list<BasePolicy*> policies) = 0;
+  virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies) = 0;
   virtual std::string& getalgId(void) = 0;
 };
 

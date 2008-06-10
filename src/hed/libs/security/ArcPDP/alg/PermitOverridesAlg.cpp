@@ -8,14 +8,14 @@ namespace ArcSec{
 
 std::string PermitOverridesCombiningAlg::algId = "Permit-Overrides";
 
-Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<BasePolicy*> policies){
+Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*> policies){
   bool atleast_onedeny = false;
   bool atleast_oneerror = false;
   bool potentialpermit = false;
 
-  std::list<BasePolicy*>::iterator it;
+  std::list<Policy*>::iterator it;
   for(it = policies.begin(); it != policies.end(); it++) {
-    BasePolicy* policy = *it;
+    Policy* policy = *it;
     MatchResult match = policy->match(ctx);
     
     //Evaluate the policy, if one policy evaluation return positive result, then return DECISION_PERMIT

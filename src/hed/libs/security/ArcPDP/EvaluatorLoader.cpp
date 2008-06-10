@@ -75,8 +75,8 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
  
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Evaluator object according to configure information. It should be the caller to free the object
-    //eval = dynamic_cast<Evaluator*>(classloader->Instance(classname, (void**)(void*)&node));
+    //Dynamically load Evaluator object according to configure information. 
+    //It should be the caller to free the object
     eval = (Evaluator*)(classloader->Instance(classname, (void**)(void*)&node));
   }
 
@@ -116,8 +116,8 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
 
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Request object according to configure information. It should be the caller to free the object
-    //req = dynamic_cast<Request*>(classloader->Instance(classname, (void**)(void*)&reqnode));
+    //Dynamically load Request object according to configure information. 
+    //It should be the caller to free the object
     req = (Request*)(classloader->Instance(classname, (void**)(void*)&reqnode));
   }
   
@@ -157,8 +157,8 @@ Policy* EvaluatorLoader::getPolicy(const std::string& classname, const Source& p
 
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Policy object according to configure information. It should be the caller to free the object
-    //policy = dynamic_cast<Policy*>(classloader->Instance(classname, (void**)(void*)&policynode));
+    //Dynamically load Policy object according to configure information. 
+    //It should be the caller to free the object
     policy = (Policy*)(classloader->Instance(classname, (void**)(void*)&policynode));
   }
 

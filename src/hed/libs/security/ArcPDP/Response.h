@@ -5,11 +5,11 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include "EvaluationCtx.h"
-#include "policy/BasePolicy.h"
+#include "policy/Policy.h"
 
 namespace ArcSec {
 
-typedef std::list<BasePolicy*> Policies;
+typedef std::list<Policy*> Policies;
 
 ///Evaluation result concerning one RequestTuple
 /**Include the RequestTuple, related XMLNode, the set of policy objects which give positive evaluation result, and the related XMLNode*/

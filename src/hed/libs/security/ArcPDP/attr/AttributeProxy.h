@@ -10,8 +10,10 @@
 namespace ArcSec {
 
 ///Interface for generating the AttributeValue object, it will be used by AttributeFactory
-/**the AttributeProxy object will be insert into AttributeFactoty; and the getAttribute(node) method will be called inside
-AttributeFacroty.createvalue(node) is called, in order to generate a specific AttributeValue */ 
+/**the AttributeProxy object will be insert into AttributeFactoty; and the 
+getAttribute(node) method will be called inside AttributeFacroty.createvalue(node), 
+in order to generate a specific AttributeValue 
+*/ 
 class AttributeProxy {
 public:
   AttributeProxy() {};
@@ -20,7 +22,7 @@ public:
   virtual AttributeValue* getAttribute(const Arc::XMLNode& node) = 0;
 };
 
-///Arc specific AttributeProxy class, it could be not neccessary since we have the base class
+///Arc specific AttributeProxy class
 template <class TheAttribute>
 class ArcAttributeProxy : public AttributeProxy {
 public:

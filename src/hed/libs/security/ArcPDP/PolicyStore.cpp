@@ -48,7 +48,7 @@ void PolicyStore::addPolicy(const Source& policy, EvaluatorContext* ctx, const s
   policies.push_back(PolicyElement(plparser.parsePolicy(policy, policy_classname, ctx),id));
 }
 
-void PolicyStore::addPolicy(BasePolicy* policy, EvaluatorContext* ctx,const std::string& id) {
+void PolicyStore::addPolicy(Policy* policy, EvaluatorContext* ctx,const std::string& id) {
   Policy* pls = dynamic_cast<Policy*>(policy);
   pls->setEvaluatorContext(ctx);
   pls->make_policy();

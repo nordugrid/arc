@@ -4,11 +4,11 @@
 #include <string>
 
 namespace ArcSec {
-
-///Interface for different type of <Attribute>, e.g. StringAttribute
-/**<Attribute> uses different "Type" definition; Each type of <Attribute> needs different approach to compare 
- The "Type" supported so far is: StringAttribute, DateAttribute, TimeAttribute, DurationAttribute, PeriodAttribute, AnyURIAttribute, X500NameAttribute
-*/
+///Interface for different type of <Attribute> for both policy and request
+/**<Attribute> uses different "Type" definition; Each type of <Attribute> needs 
+different approach to compare. The "Type" supported so far is: StringAttribute, 
+DateAttribute, TimeAttribute, DurationAttribute, PeriodAttribute, AnyURIAttribute, 
+X500NameAttribute */
 class AttributeValue {
 public:
   AttributeValue(){};

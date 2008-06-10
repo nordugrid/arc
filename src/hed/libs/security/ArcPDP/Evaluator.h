@@ -8,8 +8,6 @@
 #include <arc/loader/LoadableClass.h>
 #include <arc/security/ArcPDP/Source.h>
 
-///Interface for policy evaluation.  Execute the policy evaluation, based on the request and policy
-
 #include "fn/FnFactory.h"
 #include "attr/AttributeFactory.h"
 #include "alg/AlgFactory.h"
@@ -31,16 +29,10 @@ typedef enum {
   EvaluatorStopsNever
 } EvaluatorCombiningAlg;
 
+///Interface for policy evaluation.  Execute the policy evaluation, based on the request and policy
 class Evaluator : public Arc::LoadableClass {
 protected:
   static Arc::Logger logger;
-/*private:
-  PolicyStore *plstore;
-  FnFactory* fnfactory;
-  AttributeFactory* attrfactory;  
-  AlgFactory* algfactory;
-  EvaluatorContext* context;
-*/
 public:
   Evaluator (Arc::XMLNode*) {};
   Evaluator (const char *) {};
@@ -63,11 +55,11 @@ public:
 
   /**Evaluate the specified request against the specified policy.
   *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
-  virtual Response* evaluate(Request* request, BasePolicy* policyobj) = 0;
+  virtual Response* evaluate(Request* request, Policy* policyobj) = 0;
 
   /**Evaluate the request from specified source against the specified policy.
   *All of the existing policy inside the evaluator will be repalaced by the policy argument*/
-  virtual Response* evaluate(const Source& request, BasePolicy* policyobj) = 0;
+  virtual Response* evaluate(const Source& request, Policy* policyobj) = 0;
 
   /**Get the AttributeFactory object*/
   virtual AttributeFactory* getAttrFactory () = 0;
@@ -82,7 +74,7 @@ public:
   virtual void addPolicy(const Source& policy,const std::string& id = "") = 0;
 
   /**Add policy to the evaluator. Policy will be marked with id. */
-  virtual void addPolicy(BasePolicy* policy,const std::string& id = "") = 0;
+  virtual void addPolicy(Policy* policy,const std::string& id = "") = 0;
 
   virtual void setCombiningAlg(EvaluatorCombiningAlg alg) = 0;
 
@@ -110,7 +102,6 @@ class EvaluatorContext {
     /** Returns associated AlgFactory object */
     operator AlgFactory*() { return evaluator->getAlgFactory(); };
   };
-
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_EVALUATOR_H__ */

@@ -16,7 +16,7 @@ public:
 
 public:
   /**If there is one policy which return positive evaluation result, then omit the other policies and return DECISION_PERMIT */
-  virtual Result combine(EvaluationCtx* ctx, std::list<BasePolicy*> policies);
+  virtual Result combine(EvaluationCtx* ctx, std::list<Policy*> policies);
   static const std::string& Identifier(void) { return algId; };
   virtual std::string& getalgId(void){return algId;};
 };

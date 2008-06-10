@@ -8,14 +8,14 @@ namespace ArcSec{
 
 std::string DenyOverridesCombiningAlg::algId = "Deny-Overrides";
 
-Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<BasePolicy*> policies){
+Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*> policies){
   bool atleast_onepermit = false;
   bool atleast_oneerror = false;
   bool potentialdeny = false;
  
-  std::list<BasePolicy*>::iterator it;
+  std::list<Policy*>::iterator it;
   for(it = policies.begin(); it != policies.end(); it++) {
-    BasePolicy* policy = *it;
+    Policy* policy = *it;
     MatchResult match = policy->match(ctx);
     
     //evaluate the policy, if one policy evaluation return negative result, then return DECISION_DENY
