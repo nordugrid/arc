@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+>
+    <Server>
+        <Foreground/>
+        <Pidfile>./arched.pid</Pidfile>
+        <Logger level="ERROR">./logfile</Logger>
+    </Server>
+    <ModuleManager>
+        <Path>/home/sztoor/Storage_ARC1/src/services/wrappers/python/.libs/</Path>
+        <Path>/home/sztoor/Storage_ARC1/src/hed/mcc/http/.libs/</Path>
+        <Path>/home/sztoor/Storage_ARC1/src/hed/mcc/soap/.libs/</Path>
+        <Path>/home/sztoor/Storage_ARC1/src/hed/mcc/tcp/.libs/</Path>
+        <Path>/home/sztoor/Storage_ARC1/src/hed/mcc/tls/.libs/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="http"/> 
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="gateway">/Gateway</next>
+            <next id="externalStorageInformation">/ExternalStorageInformation</next>
+	    <next id="transfer">/Transfer</next>		
+	</Plexer>
+        <Service name="pythonservice" id="gateway">
+	    <ClassName>storage.gateway.gateway.gateway.GatewayService</ClassName>
+	    <ExternalStorageInformationURL>http://localhost:60000/ExternalStorageInformation</ExternalStorageInformationURL>		
+	    <TransferURL>http://localhost:60000/Transfer</TransferURL>	
+	</Service>
+	<Service name = "pythonservice" id="externalStorageInformation">
+	    <ClassName>storage.gateway.externalStorageInformation.externalStorageInformation.ExternalStorageInformationService</ClassName>
+	</Service>
+	<Service name = "pythonservice" id="transfer">
+	    <ClassName>storage.gateway.transfer.transfer.TransferService</ClassName>
+	</Service>	
+    </Chain>
+</ArcConfig>
+

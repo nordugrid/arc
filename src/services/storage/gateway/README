@@ -1,0 +1,7 @@
+	GATEWAY COMPONENT OF ARC-1
+
+GatewayService: High level service, deals with the low level service.
+
+ExternalStorageInformationSerivce: Low level service, gets the used to get information from the external storage systems.
+
+TransferService: Low level Service, initiates the data tranfer.
