@@ -626,7 +626,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
                      X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof buf);
                      std::string identity_dn = buf;
                      logger.msg(DEBUG, "Identity name: %s", identity_dn);
-                     nextinmsg.Attributes()->set("TLS:IDENTITYDN",peer_dn);
+                     nextinmsg.Attributes()->set("TLS:IDENTITYDN",identity_dn);
                      break;
                   };
                };
