@@ -1,9 +1,10 @@
-<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:delegationpolicy" CombiningAlg="Deny-Overrides">
    <Rule Effect="Permit">
       <Subjects>
          <Subject>
             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA</Attribute>
-            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
          </Subject>
       </Subjects>
    </Rule>

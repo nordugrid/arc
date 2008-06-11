@@ -26,7 +26,7 @@ int main(void) {
   //Create a SOAP client
   logger.msg(Arc::INFO, "Creating a soap client");
 
-  std::string url_str("https://127.0.0.1:60000");
+  std::string url_str("https://127.0.0.1:60000:/Echo");
   Arc::URL url(url_str);
 
   Arc::MCCConfig mcc_cfg;

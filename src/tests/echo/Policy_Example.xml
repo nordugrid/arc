@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
+<Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">
    <Rule Effect="Permit"> 
      <Description>
        example policy for echo service   
@@ -18,6 +18,7 @@
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">echo</Action>
       </Actions>
+      <Conditions/>
    </Rule>
 </Policy>
 
