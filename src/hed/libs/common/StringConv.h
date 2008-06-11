@@ -84,6 +84,9 @@ namespace Arc {
     
     /// This method removes given separators from the beginning and the end of the string
     std::string trim(const std::string &str, const char *sep = NULL);
+    
+    /// This method unescape the URI encoded string
+    std::string uri_unescape(const std::string &str);
 
 } // namespace Arc
 

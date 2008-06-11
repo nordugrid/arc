@@ -47,5 +47,56 @@ std::string trim(const std::string &str, const char *sep = NULL)
     return (first==std::string::npos) ? std::string() : str.substr(first, str.find_last_not_of(sep)-first+1);
 }
 
+#if HAVE_URI_UNESCAPE_STRING
+std::string uri_unescape(const std::string &str)
+{
+    return Glib::uri_unescape_string(str); 
+}
+#else
+#include <glib.h>
+static int
+unescape_character (const std::string &scanner, int i)
+{
+  int first_digit;
+  int second_digit;
+  
+  first_digit = g_ascii_xdigit_value (scanner[i++]);
+  if (first_digit < 0)
+    return -1;
+
+  second_digit = g_ascii_xdigit_value (scanner[i++]);
+  if (second_digit < 0)
+    return -1;
+
+  return (first_digit << 4) | second_digit;
+}
+
+std::string uri_unescape(const std::string &str)
+{
+    std::string out = str;
+    const char *i;
+    char *o, *result;
+    int character;
+
+    if (str.empty()) {
+        return str;
+    }
+    int j = 0;
+    for (int i = 0; i < str.size(); i++) {
+        character = str[i];
+        if (str[i] == '%') {
+            i++;
+            if (str.size() - i < 2) {
+                return "";
+            }
+            character = unescape_character(str, i);
+            i++; /* The other char will be eaten in the loop header */
+        }
+        out[j++] = (char)character;
+    }
+    out.resize(j);
+    return out;
+}
+#endif
 
 } // namespace Arc
