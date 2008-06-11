@@ -5,7 +5,7 @@
 #include <iostream>
 #include <glibmm/thread.h>
 
-#include <arc/IString.h>
+#include "IString.h"
 
 namespace Arc {
 
