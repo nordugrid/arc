@@ -59,6 +59,10 @@ namespace Arc {
     const std::string& getFileName(void) {
       return file_name_;
     }
+    /** Set the file name of config file */
+    void setFileName(const std::string &filename) {
+      file_name_ = filename;  
+    }
     /** Save to file */
     void save(const char *filename);
   };

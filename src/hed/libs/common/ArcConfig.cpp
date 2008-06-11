@@ -62,7 +62,7 @@ namespace Arc {
     out << str;
     out.close();
   }
-
+  
   BaseConfig::BaseConfig() {
     key = "";
     cert = "";
