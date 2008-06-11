@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArcConfig>
+  <!--Default index services-->
+  <Defaults>
+    <URL ServiceType="index">ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid</URL>
+    <URL ServiceType="index">CREAM:ldap://cream.grid.upjs.sk:2170/o=grid</URL>
+  </Defaults>
+  <!--List aliases below-->
+  <Alias name="MyFavorite">
+    <URL ServiceType="computing">ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid</URL>
+  </Alias>
+  <Alias name="MyFavorite2">
+    <Alias>MyFavorite</Alias>
+    <URL ServiceType="computing">CREAM:ldap://cream.grid.upjs.sk:2170/Mds-Vo-name=knowarc-cream,o=grid</URL>
+  </Alias>
+</ArcConfig>
