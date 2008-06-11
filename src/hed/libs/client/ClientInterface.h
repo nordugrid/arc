@@ -114,12 +114,14 @@ namespace Arc {
       KerberosToken
     } WSSType;
 
-    typedef struct {
+    struct WSSInfo;
+
+    struct WSSInfo {
       std::string username;
       std::string password;
       std::string password_encoding;
       //other information about other types of token
-    } WSSInfo;
+    };
 
     /** Constructor creates MCC chain and connects to server.
        	cfg - common configuration,
