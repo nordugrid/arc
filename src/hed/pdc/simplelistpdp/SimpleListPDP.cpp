@@ -28,7 +28,7 @@ SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
 }
 
 bool SimpleListPDP::isPermitted(Message *msg){
-  std::string subject=msg->Attributes()->get("TLS:PEERDN");
+  std::string subject=msg->Attributes()->get("TLS:IDENTITYDN");
   std::string line;
   std::ifstream fs(location.c_str());
   
@@ -46,7 +46,6 @@ bool SimpleListPDP::isPermitted(Message *msg){
       };
     };
     if(!line.empty()) {
-      logger.msg(INFO, "policy subject: %s", line);
       if(!(line.compare(subject))) {
          fs.close();
          logger.msg(INFO, "Authorized from simplelist.pdp!!!");
