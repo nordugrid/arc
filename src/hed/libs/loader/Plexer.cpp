@@ -48,6 +48,7 @@ namespace Arc {
       std::list<std::string> unmatched, matched;
       if (iter->label.match(path, unmatched, matched)) {
         request.Attributes()->set("PLEXER:PATTERN",iter->label.getPattern());
+        request.Attributes()->set("PLEXER:EXTENSION", "");
         if(unmatched.size() > 0) {
           request.Attributes()->set("PLEXER:EXTENSION",*(--unmatched.end()));
         };
