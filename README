@@ -475,6 +475,10 @@ Among available PDP components there are
  * simplelist.pdp - compares DN of user to those stored in a file.
  * arc.pdp - compares request information parsed from message and policy 
              information specified in this pdp.
+ * pdpservice.invoker -  it composes the request, puts request into soap message,
+             and invokes the remote pdp service to get the response soap which includes
+             authorization decision. the pdp service has similar functionality
+             with arc.pdp.
  * delegation.pdp - compares request information parsed from message and policy
              information specified in proxy certificate from remote side.
 

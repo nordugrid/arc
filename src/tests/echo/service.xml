@@ -46,13 +46,13 @@
             </SecHandler>
         </Component>
         <Service name="echo" id="echo">
-            <!--SecHandler name="arc.authz" id="authz" event="incoming"-->
-              <!--PDP name="arc.pdp"-->
-                <!--PolicyStore-->
-                  <!--Location type="file">Policy_Example.xml</Location-->
+            <SecHandler name="arc.authz" id="authz" event="incoming">
+              <PDP name="arc.pdp">
+                <PolicyStore>
+                  <Location type="file">Policy_Example.xml</Location>
                   <!-- other policy location-->
-                <!--/PolicyStore-->
-              <!--/PDP-->
+                </PolicyStore>
+              </PDP>
               <!--Remote pdp service invoking-->
               <!--PDP name="pdpservice.invoker">
                 <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
@@ -61,7 +61,7 @@
                 <CACertificatePath>./ca.pem</CACertificatePath>
               </PDP-->
               <!--PDP name="delegation.pdp"/-->
-            <!--/SecHandler-->
+            </SecHandler>
             <next id="echo"/>
             <echo:prefix>[ </echo:prefix>
 	    <echo:suffix> ]</echo:suffix>

@@ -9,7 +9,6 @@
 #include <arc/security/ArcPDP/alg/CombiningAlg.h>
 #include <arc/security/ArcPDP/attr/AttributeFactory.h>
 #include <arc/security/ArcPDP/fn/FnFactory.h>
-
 #include <arc/security/ArcPDP/Evaluator.h>
 
 namespace ArcSec {

@@ -18,6 +18,7 @@ public:
   virtual ~AlgFactory() {};
 
 public:
+  /**creat algorithm object based on the type algorithm type*/
   virtual CombiningAlg* createAlg(const std::string& type) = 0;
 
 protected:

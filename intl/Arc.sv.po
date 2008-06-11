@@ -3,13 +3,84 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-29 12:14+0200\n"
+"POT-Creation-Date: 2008-06-10 23:19+0200\n"
 "PO-Revision-Date: 2008-05-29 12:15+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/arclib_bak/Credential.cpp:23
+#: ../src/clients/credentials/approxy.cpp:29
+#, c-format
+msgid "OpenSSL Error -- %s"
+msgstr "OpenSSL-fel -- %s"
+
+#: ../src/arclib_bak/Credential.cpp:24
+#: ../src/clients/credentials/approxy.cpp:30
+#, c-format
+msgid "Library  : %s"
+msgstr "Bibliotek: %s"
+
+#: ../src/arclib_bak/Credential.cpp:25
+#: ../src/clients/credentials/approxy.cpp:31
+#, c-format
+msgid "Function : %s"
+msgstr "Funktion : %s"
+
+#: ../src/arclib_bak/Credential.cpp:26
+#: ../src/clients/credentials/approxy.cpp:32
+#, c-format
+msgid "Reason   : %s"
+msgstr "Anledning: %s"
+
+#: ../src/arclib_bak/Credential.cpp:86
+#, fuzzy, c-format
+msgid "Cerficate format for BIO is: %s"
+msgstr "Certifikatformat för BIO är: %d"
+
+#: ../src/arclib_bak/Credential.cpp:93 ../src/arclib/Credential.cpp:150
+msgid "Can not read cert information from BIO"
+msgstr "Kan inte läsa certifikatinformation från BIO"
+
+#: ../src/arclib_bak/Credential.cpp:110 ../src/arclib/Credential.cpp:166
+#, c-format
+msgid "Can not insert cert %s into certificate's issuer chain"
+msgstr "Kan inte sätta in certifikat %s i certifikatets utfärdarkedja"
+
+#: ../src/arclib_bak/Credential.cpp:120 ../src/arclib/Credential.cpp:176
+msgid "Unable to read DER credential from BIO"
+msgstr "Kan inte läsa DER-kreditiv från BIO"
+
+#: ../src/arclib_bak/Credential.cpp:132 ../src/arclib_bak/Credential.cpp:183
+#: ../src/arclib/Credential.cpp:187 ../src/arclib/Credential.cpp:238
+msgid "Can not parse PKCS12 file"
+msgstr "Kan inte tolka PKCS12-fil"
+
+#: ../src/arclib_bak/Credential.cpp:137
+#, fuzzy, c-format
+msgid "Can not read PKCS12 credential file: %s from BIO"
+msgstr "Kan inte läsa PKCS12-kreditiv från BIO"
+
+#: ../src/arclib_bak/Credential.cpp:168
+#, fuzzy, c-format
+msgid "Can not read credential key from PEM key BIO: %s "
+msgstr "Kan inte läsa kreditivnyckel från PEM-nyckels BIO"
+
+#: ../src/arclib_bak/Credential.cpp:287
+#, fuzzy, c-format
+msgid "Can not read certificate file: %s "
+msgstr "Kan inte läsa certifikatfil: %s"
+
+#: ../src/arclib_bak/Credential.cpp:292
+#, fuzzy, c-format
+msgid "Can not read key file: %s "
+msgstr "Kan inte läsa nyckelfil: %s"
+
+#: ../src/arclib_bak/voms_util.cpp:104
+msgid "Host name unknown to DNS"
+msgstr ""
 
 #: ../src/arclib/Credential.cpp:40
 #, c-format
@@ -21,78 +92,61 @@ msgstr "OpenSSL-fel: %s"
 msgid "Certificate format for BIO is: %d"
 msgstr "Certifikatformat för BIO är: %d"
 
-#: ../src/arclib/Credential.cpp:150
-msgid "Can not read cert information from BIO"
-msgstr "Kan inte läsa certifikatinformation från BIO"
-
-#: ../src/arclib/Credential.cpp:166
-#, c-format
-msgid "Can not insert cert %s into certificate's issuer chain"
-msgstr "Kan inte sätta in certifikat %s i certifikatets utfärdarkedja"
-
-#: ../src/arclib/Credential.cpp:176
-msgid "Unable to read DER credential from BIO"
-msgstr "Kan inte läsa DER-kreditiv från BIO"
-
-#: ../src/arclib/Credential.cpp:187 ../src/arclib/Credential.cpp:237
-msgid "Can not parse PKCS12 file"
-msgstr "Kan inte tolka PKCS12-fil"
-
 #: ../src/arclib/Credential.cpp:192
 msgid "Can not read PKCS12 credential from BIO"
 msgstr "Kan inte läsa PKCS12-kreditiv från BIO"
 
-#: ../src/arclib/Credential.cpp:222
+#: ../src/arclib/Credential.cpp:223
 msgid "Can not read credential key from PEM key BIO"
 msgstr "Kan inte läsa kreditivnyckel från PEM-nyckels BIO"
 
-#: ../src/arclib/Credential.cpp:292
+#: ../src/arclib/Credential.cpp:296
 msgid "Certificate verification succeeded"
 msgstr "Certifikatverifiering lyckades"
 
-#: ../src/arclib/Credential.cpp:295
+#: ../src/arclib/Credential.cpp:299
 msgid "Certificate verification failed"
 msgstr "Certifikatverifiering misslyckades"
 
-#: ../src/arclib/Credential.cpp:481
+#: ../src/arclib/Credential.cpp:487
 #, c-format
 msgid "Can not read certificate file: %s"
 msgstr "Kan inte läsa certifikatfil: %s"
 
-#: ../src/arclib/Credential.cpp:487
+#: ../src/arclib/Credential.cpp:493
 #, c-format
 msgid "Can not read key file: %s"
 msgstr "Kan inte läsa nyckelfil: %s"
 
-#: ../src/arclib/Credential.cpp:540
+#: ../src/arclib/Credential.cpp:546
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr "Kan inte omvandla sträng till ASN1_OBJECT"
 
-#: ../src/arclib/Credential.cpp:551
+#: ../src/arclib/Credential.cpp:557
 msgid "Can not create extension for proxy certificate"
 msgstr "Kan inte skapa tillägg för proxycertifikat"
 
-#: ../src/arclib/Credential.cpp:571
+#: ../src/arclib/Credential.cpp:577
 msgid "The credential's private key has already been initialized"
 msgstr "Kreditivets privata nyckel har redan initialiserats"
 
-#: ../src/arclib/Credential.cpp:577
+#: ../src/arclib/Credential.cpp:583
 msgid "RSA_generate_key failed"
 msgstr "RSA_generate_key misslyckades"
 
-#: ../src/arclib/Credential.cpp:591
+#: ../src/arclib/Credential.cpp:597
 msgid "RSA_generate_key_ex failed"
 msgstr "RSA_generate_key_ex misslyckades"
 
-#: ../src/arclib/Credential.cpp:598
+#: ../src/arclib/Credential.cpp:604
 msgid "BN_set_word failed"
 msgstr "BN_set_word misslyckades"
 
-#: ../src/arclib/Credential.cpp:605
+#: ../src/arclib/Credential.cpp:611
 msgid "BN_new || RSA_new failed"
 msgstr "BN_new || RSA_new misslyckades"
 
-#: ../src/arclib/Credential.cpp:626
+#: ../src/arclib/Credential.cpp:632
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
@@ -100,212 +154,212 @@ msgstr ""
 "Kan inte duplicera subjektnamnet för den självsignerande "
 "proxycertifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:636
+#: ../src/arclib/Credential.cpp:642
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr "Kan inte skapa en ny X509_NAME_ENTRY för proxycertifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:662 ../src/arclib/Credential.cpp:672
-#: ../src/arclib/Credential.cpp:1071 ../src/arclib/Credential.cpp:1078
+#: ../src/arclib/Credential.cpp:668 ../src/arclib/Credential.cpp:678
+#: ../src/arclib/Credential.cpp:1077 ../src/arclib/Credential.cpp:1084
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
 "Kan inte omvandla PROXYCERTINFO struct från internt till DER-kodat format"
 
-#: ../src/arclib/Credential.cpp:691
+#: ../src/arclib/Credential.cpp:697
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr "PEM_write_bio_X509_REQ misslyckades"
 
-#: ../src/arclib/Credential.cpp:705
+#: ../src/arclib/Credential.cpp:711
 msgid "Can not generate X509 request"
 msgstr "Kan inte generera X509-begäran"
 
-#: ../src/arclib/Credential.cpp:707
+#: ../src/arclib/Credential.cpp:713
 msgid "Can not set private key"
 msgstr "Kan inte ange privat nyckel"
 
-#: ../src/arclib/Credential.cpp:716 ../src/arclib/Credential.cpp:733
+#: ../src/arclib/Credential.cpp:722 ../src/arclib/Credential.cpp:739
 msgid "Can not create BIO for request"
 msgstr "Kan inte skapa BIO för begäran"
 
-#: ../src/arclib/Credential.cpp:735
+#: ../src/arclib/Credential.cpp:741
 msgid "Can not set writable file for request BIO"
 msgstr "Kan inte ange skrivbar fil för begärans BIO"
 
-#: ../src/arclib/Credential.cpp:739
+#: ../src/arclib/Credential.cpp:745
 msgid "Wrote request into a file"
 msgstr "Skrev begäran till en fil"
 
-#: ../src/arclib/Credential.cpp:741
+#: ../src/arclib/Credential.cpp:747
 msgid "Failed to write request into a file"
 msgstr "Misslyckades med att skriva begäran till en fil"
 
-#: ../src/arclib/Credential.cpp:811
+#: ../src/arclib/Credential.cpp:817
 msgid "NULL BIO passed to InquireRequest"
 msgstr "NULL BIO skickad till InquireRequest"
 
-#: ../src/arclib/Credential.cpp:814
+#: ../src/arclib/Credential.cpp:820
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr "PEM_read_bio_X509_REQ misslyckades"
 
-#: ../src/arclib/Credential.cpp:846
+#: ../src/arclib/Credential.cpp:852
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
 msgstr "Kan inte omvandla DER-kodat PROXYCERTINFO-tillägg till internt format"
 
-#: ../src/arclib/Credential.cpp:855
+#: ../src/arclib/Credential.cpp:861
 msgid "Can not get policy from PROXYCERTINFO extension"
 msgstr "Kan inte erhålla policy från PROXYCERTINFO-tillägg"
 
-#: ../src/arclib/Credential.cpp:859
+#: ../src/arclib/Credential.cpp:865
 msgid "Can not get policy language from PROXYCERTINFO extension"
 msgstr "Kan inte erhålla policy-språk från PROXYCERTINFO-tillägg"
 
-#: ../src/arclib/Credential.cpp:890 ../src/arclib/Credential.cpp:905
+#: ../src/arclib/Credential.cpp:896 ../src/arclib/Credential.cpp:911
 msgid "Can not create BIO for parsing request"
 msgstr "Kan inte skapa BIO för att tolka begäran"
 
-#: ../src/arclib/Credential.cpp:895
+#: ../src/arclib/Credential.cpp:901
 msgid "Read request from a string"
 msgstr "Läste begäran från en sträng"
 
-#: ../src/arclib/Credential.cpp:897
+#: ../src/arclib/Credential.cpp:903
 msgid "Failed to read request from a string"
 msgstr "Misslyckades med att läsa begäran från en sträng"
 
-#: ../src/arclib/Credential.cpp:907
+#: ../src/arclib/Credential.cpp:913
 msgid "Can not set readable file for request BIO"
 msgstr "Kunde inte ange läsbar fil för begärans BIO"
 
-#: ../src/arclib/Credential.cpp:912
+#: ../src/arclib/Credential.cpp:918
 msgid "Read request from a file"
 msgstr "Läste begäran från en fil"
 
-#: ../src/arclib/Credential.cpp:914
+#: ../src/arclib/Credential.cpp:920
 msgid "Failed to read request from a file"
 msgstr "Misslyckades med att läsa begäran från en fil"
 
-#: ../src/arclib/Credential.cpp:930 ../src/arclib/Credential.cpp:951
+#: ../src/arclib/Credential.cpp:936 ../src/arclib/Credential.cpp:957
 msgid ""
 "Failed to create new ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 "Misslyckades med att skapa ny ASN1_UTCTIME för proxycertifikatets utgångstid"
 
-#: ../src/arclib/Credential.cpp:937 ../src/arclib/Credential.cpp:958
+#: ../src/arclib/Credential.cpp:943 ../src/arclib/Credential.cpp:964
 msgid ""
 "Failed to duplicate ASN1_UTCTIME for expiration time of proxy certificate"
 msgstr ""
 "Misslyckades med att duplicera ASN1_UTCTIME för proxycertifikatets utgångstid"
 
-#: ../src/arclib/Credential.cpp:943 ../src/arclib/Credential.cpp:964
+#: ../src/arclib/Credential.cpp:949 ../src/arclib/Credential.cpp:970
 msgid "Failed to set notBefore for proxy certificate"
 msgstr "Misslyckades med att ange notBefore för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:979
+#: ../src/arclib/Credential.cpp:985
 msgid "Private key of the credential object is NULL"
 msgstr "Kreditivobjektets privata nyckel är NULL"
 
-#: ../src/arclib/Credential.cpp:982
+#: ../src/arclib/Credential.cpp:988
 msgid "Can not convert private key to DER format"
 msgstr "Kan inte omvandla privat nyckel till DER-format"
 
-#: ../src/arclib/Credential.cpp:1041
+#: ../src/arclib/Credential.cpp:1047
 msgid "Failed to initialize X509 structure"
 msgstr "Misslyckades med att initiera X509-struktur"
 
-#: ../src/arclib/Credential.cpp:1089 ../src/arclib/Credential.cpp:1146
+#: ../src/arclib/Credential.cpp:1095 ../src/arclib/Credential.cpp:1152
 msgid "Can not add X509 extension to proxy cert"
 msgstr "Kan inte lägga till X509-tillägg till proxycertifikat"
 
-#: ../src/arclib/Credential.cpp:1111
+#: ../src/arclib/Credential.cpp:1117
 msgid "Can not get extension from issuer certificate"
 msgstr "Kan inte erhålla tillägg från utfärdarcertifikat"
 
-#: ../src/arclib/Credential.cpp:1116
+#: ../src/arclib/Credential.cpp:1122
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr "Kan inte omvandla keyUsage struct från DER-kodat format"
 
-#: ../src/arclib/Credential.cpp:1126 ../src/arclib/Credential.cpp:1134
+#: ../src/arclib/Credential.cpp:1132 ../src/arclib/Credential.cpp:1140
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr "Kan inte omvandla keyUsage struct från internt till DER-format"
 
-#: ../src/arclib/Credential.cpp:1155
+#: ../src/arclib/Credential.cpp:1161
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr "Kan inte erhålla utökad KeyUsage-tillägg från utfärdarcertifikatet"
 
-#: ../src/arclib/Credential.cpp:1160
+#: ../src/arclib/Credential.cpp:1166
 msgid "Can not copy extended KeyUsage extension"
 msgstr "Kan inte kopiera det utökade KeyUsage-tillägget"
 
-#: ../src/arclib/Credential.cpp:1164
+#: ../src/arclib/Credential.cpp:1170
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 "Kan inte lägga till X509-utökat KeyUsage-tillägg till det nya "
 "proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1172
+#: ../src/arclib/Credential.cpp:1178
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr "Kan inte kopiera subjektnamnet från utfärdaren för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1176
+#: ../src/arclib/Credential.cpp:1182
 msgid "Can not create name entry CN for proxy certificate"
 msgstr "Kan inte skapa namnpost CN för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1181
+#: ../src/arclib/Credential.cpp:1187
 msgid "Can not set CN in proxy certificate"
 msgstr "Kan inte ange CN i proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1189
+#: ../src/arclib/Credential.cpp:1195
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr "Kan inte ange utfärdarens subjekt för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1193
+#: ../src/arclib/Credential.cpp:1199
 msgid "Can not set version number for proxy certificate"
 msgstr "Kan inte ange versionsnummer för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1197
+#: ../src/arclib/Credential.cpp:1203
 msgid "Can not set serial number for proxy certificate"
 msgstr "Kan inte ange serienummer för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1201
+#: ../src/arclib/Credential.cpp:1207
 msgid "Can not set the lifetime for proxy certificate"
 msgstr "Kan inte ange livstid för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1205
+#: ../src/arclib/Credential.cpp:1211
 msgid "Can not set pubkey for proxy certificate"
 msgstr "Kan inte ange publik nyckel för proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1223
+#: ../src/arclib/Credential.cpp:1229
 msgid "The credential to be signed is NULL"
 msgstr "Kreditivet som skall signeras är NULL"
 
-#: ../src/arclib/Credential.cpp:1224
+#: ../src/arclib/Credential.cpp:1230
 msgid "The BIO for output is NULL"
 msgstr "Utdata-BIO är NULL"
 
-#: ../src/arclib/Credential.cpp:1234
+#: ../src/arclib/Credential.cpp:1240
 msgid "Error when extracting public key from request"
 msgstr "Fel när publik nyckel extraheras från begäran"
 
-#: ../src/arclib/Credential.cpp:1237
+#: ../src/arclib/Credential.cpp:1243
 msgid "Failed to verify the request"
 msgstr "Misslyckades med att verifiera begäran"
 
-#: ../src/arclib/Credential.cpp:1241
+#: ../src/arclib/Credential.cpp:1247
 msgid "Failed to add issuer's extension into proxy"
 msgstr "Misslyckades med att lägga till utfärdarens tillägg till proxyn"
 
-#: ../src/arclib/Credential.cpp:1261
+#: ../src/arclib/Credential.cpp:1267
 msgid "Failed to duplicate extension"
 msgstr "Misslyckades med att duplicera tillägg"
 
-#: ../src/arclib/Credential.cpp:1265
+#: ../src/arclib/Credential.cpp:1271
 msgid "Failed to add extension into proxy"
 msgstr "Misslyckades med att lägga till tillägg till proxyn"
 
-#: ../src/arclib/Credential.cpp:1271
+#: ../src/arclib/Credential.cpp:1277
 msgid "Can not get the issuer's private key"
 msgstr "Kan inte erhålla utfärdarens privata nyckel"
 
-#: ../src/arclib/Credential.cpp:1276
+#: ../src/arclib/Credential.cpp:1282
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed, it should be MD5 to sign "
@@ -314,54 +368,203 @@ msgstr ""
 "Signeringsalgoritmen %s är ej tillåten, den skall vara MD5 för att signera "
 "certifikatbegäran"
 
-#: ../src/arclib/Credential.cpp:1282
+#: ../src/arclib/Credential.cpp:1288
 msgid "Failed to sign the proxy certificate"
 msgstr "Misslyckades med att signera proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1284
+#: ../src/arclib/Credential.cpp:1290
 msgid "Succeeded to sign the proxy certificate"
 msgstr "Lyckades signera proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1289
+#: ../src/arclib/Credential.cpp:1295
 msgid "Failed to verify the signed certificate"
 msgstr "Misslyckades med att verifiera det signerade certifikatet"
 
-#: ../src/arclib/Credential.cpp:1291
+#: ../src/arclib/Credential.cpp:1297
 msgid "Succeeded to verify the signed certificate"
 msgstr "Lyckades verifiera det signerade certifikatet"
 
-#: ../src/arclib/Credential.cpp:1296
+#: ../src/arclib/Credential.cpp:1302
 msgid "Output the proxy certificate"
 msgstr "Skriv ut proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1298
+#: ../src/arclib/Credential.cpp:1304
 msgid "Can not convert signed proxy cert into DER format"
 msgstr "Kan inte omvandla det signerade proxycertifikatet till DER-format"
 
-#: ../src/arclib/Credential.cpp:1310 ../src/arclib/Credential.cpp:1327
+#: ../src/arclib/Credential.cpp:1316 ../src/arclib/Credential.cpp:1333
 msgid "Can not create BIO for signed proxy certificate"
 msgstr "Kan inte skapa BIO för det signerade proxycertifikatet"
 
-#: ../src/arclib/Credential.cpp:1329
+#: ../src/arclib/Credential.cpp:1335
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr "Kan inte ange skrivbar fil för det signerade proxycertifikatets BIO"
 
-#: ../src/arclib/Credential.cpp:1333
+#: ../src/arclib/Credential.cpp:1339
 msgid "Wrote signed proxy certificate into a file"
 msgstr "Skrev det signerade proxycertifikatet till en fil"
 
-#: ../src/arclib/Credential.cpp:1335
+#: ../src/arclib/Credential.cpp:1341
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 "Misslyckades med att skriva det signerade proxycertifikatet till en fil"
 
-#: ../src/clients/arclib/arcstat.cpp:63 ../src/clients/arclib/arcsub.cpp:176
+#: ../src/clients/arclib/arcget.cpp:42 ../src/clients/arclib/arcstat.cpp:52
+#: ../src/clients/arclib/arcsub.cpp:202
 msgid "[jobid]"
 msgstr "[jobb-id]"
 
-#: ../src/clients/arclib/arcstat.cpp:64
+#: ../src/clients/arclib/arcget.cpp:43
+#, fuzzy
 msgid ""
-"Argument to -g has format:\n"
+"Argument to -c has format:\n"
+"GRID:URL e.g.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
+msgstr ""
+"Argument till -g har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+"\n"
+"Argument till -c har formatet:\n"
+"GRID:URL t.ex.\n"
+"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
+"name=local,o=grid"
+
+#: ../src/clients/arclib/arcget.cpp:49 ../src/clients/arclib/arcstat.cpp:64
+msgid "all jobs"
+msgstr "alla jobb"
+
+#: ../src/clients/arclib/arcget.cpp:54 ../src/clients/arclib/arcstat.cpp:69
+msgid "file containing a list of jobids"
+msgstr "fil som innehåller en jobb-id-lista"
+
+#: ../src/clients/arclib/arcget.cpp:55 ../src/clients/arclib/arcstat.cpp:70
+#: ../src/clients/arclib/arcsub.cpp:238
+msgid "filename"
+msgstr "filnamn"
+
+#: ../src/clients/arclib/arcget.cpp:60 ../src/clients/arclib/arcstat.cpp:75
+#: ../src/clients/arclib/arcsub.cpp:214
+msgid "explicity select or reject a specific cluster"
+msgstr "välj eller välj bort ett specifikt kluster"
+
+#: ../src/clients/arclib/arcget.cpp:61 ../src/clients/arclib/arcstat.cpp:76
+#: ../src/clients/arclib/arcsub.cpp:215
+msgid "[-]name"
+msgstr "[-]namn"
+
+#: ../src/clients/arclib/arcget.cpp:66 ../src/clients/arclib/arcstat.cpp:81
+msgid "only select jobs whose status is statusstr"
+msgstr "välj endast jobb vars status är statusstr"
+
+#: ../src/clients/arclib/arcget.cpp:67 ../src/clients/arclib/arcstat.cpp:82
+msgid "statusstr"
+msgstr "statusstr"
+
+#: ../src/clients/arclib/arcget.cpp:72
+msgid ""
+"download directory (the job directory will be created in this directory)"
+msgstr ""
+
+#: ../src/clients/arclib/arcget.cpp:74
+#, fuzzy
+msgid "dirname"
+msgstr "filnamn"
+
+#: ../src/clients/arclib/arcget.cpp:79
+msgid "keep files on gatekeeper (do not clean)"
+msgstr ""
+
+#: ../src/clients/arclib/arcget.cpp:83 ../src/clients/arclib/arcstat.cpp:101
+#: ../src/clients/arclib/arcsub.cpp:251 ../src/clients/data/arccp.cpp:491
+#: ../src/clients/data/arcls.cpp:132 ../src/clients/data/arcrm.cpp:122
+msgid "timeout in seconds (default 20)"
+msgstr "timeout i sekunder (förval 20)"
+
+#: ../src/clients/arclib/arcget.cpp:84 ../src/clients/arclib/arcstat.cpp:102
+#: ../src/clients/arclib/arcsub.cpp:252 ../src/clients/data/arccp.cpp:492
+#: ../src/clients/data/arcls.cpp:133 ../src/clients/data/arcrm.cpp:123
+msgid "seconds"
+msgstr "sekunder"
+
+#: ../src/clients/arclib/arcget.cpp:88 ../src/clients/arclib/arcstat.cpp:106
+#: ../src/clients/arclib/arcsub.cpp:256 ../src/clients/a-rex/apclean.cpp:69
+#: ../src/clients/a-rex/apget.cpp:207 ../src/clients/a-rex/apkill.cpp:68
+#: ../src/clients/a-rex/apsstat.cpp:64 ../src/clients/a-rex/apstat.cpp:68
+#: ../src/clients/a-rex/apsub.cpp:109 ../src/clients/cream2/gliteclean.cpp:36
+#: ../src/clients/cream2/glitecp.cpp:31
+#: ../src/clients/cream2/glitedelegate.cpp:35
+#: ../src/clients/cream2/glitekill.cpp:35
+#: ../src/clients/cream2/glitestat.cpp:35
+#: ../src/clients/cream2/glitesub.cpp:42
+#: ../src/clients/cream2/gliteundelegate.cpp:35
+#: ../src/clients/credentials/approxy.cpp:73 ../src/clients/data/arccp.cpp:496
+#: ../src/clients/data/arcls.cpp:137 ../src/clients/data/arcrm.cpp:127
+#: ../src/clients/wsrf/apinfo.cpp:64
+msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
+msgstr "FATAL, ERROR, WARNING, INFO, DEBUG eller VERBOSE"
+
+#: ../src/clients/arclib/arcget.cpp:89 ../src/clients/arclib/arcstat.cpp:107
+#: ../src/clients/arclib/arcsub.cpp:257 ../src/clients/a-rex/apclean.cpp:70
+#: ../src/clients/a-rex/apget.cpp:208 ../src/clients/a-rex/apkill.cpp:69
+#: ../src/clients/a-rex/apsstat.cpp:65 ../src/clients/a-rex/apstat.cpp:69
+#: ../src/clients/a-rex/apsub.cpp:110 ../src/clients/cream2/gliteclean.cpp:37
+#: ../src/clients/cream2/glitecp.cpp:32
+#: ../src/clients/cream2/glitedelegate.cpp:36
+#: ../src/clients/cream2/glitekill.cpp:36
+#: ../src/clients/cream2/glitestat.cpp:36
+#: ../src/clients/cream2/glitesub.cpp:43
+#: ../src/clients/cream2/gliteundelegate.cpp:36
+#: ../src/clients/credentials/approxy.cpp:74 ../src/clients/data/arccp.cpp:497
+#: ../src/clients/data/arcls.cpp:138 ../src/clients/data/arcrm.cpp:128
+#: ../src/clients/wsrf/apinfo.cpp:65
+msgid "debuglevel"
+msgstr "debugnivå"
+
+#: ../src/clients/arclib/arcget.cpp:92 ../src/clients/arclib/arcstat.cpp:110
+#: ../src/clients/arclib/arcsub.cpp:265 ../src/clients/a-rex/apclean.cpp:73
+#: ../src/clients/a-rex/apget.cpp:211 ../src/clients/a-rex/apkill.cpp:72
+#: ../src/clients/a-rex/apsstat.cpp:68 ../src/clients/a-rex/apstat.cpp:72
+#: ../src/clients/a-rex/apsub.cpp:113 ../src/clients/cream2/gliteclean.cpp:40
+#: ../src/clients/cream2/glitedelegate.cpp:39
+#: ../src/clients/cream2/glitekill.cpp:39
+#: ../src/clients/cream2/glitestat.cpp:39
+#: ../src/clients/cream2/glitesub.cpp:46
+#: ../src/clients/cream2/gliteundelegate.cpp:39
+#: ../src/clients/credentials/approxy.cpp:77 ../src/clients/data/arccp.cpp:500
+#: ../src/clients/data/arcls.cpp:141 ../src/clients/data/arcrm.cpp:131
+#: ../src/clients/wsrf/apinfo.cpp:68
+msgid "print version information"
+msgstr "skriv ut versionsinformation"
+
+#: ../src/clients/arclib/arcget.cpp:111 ../src/clients/arclib/arcstat.cpp:129
+#: ../src/clients/arclib/arcsub.cpp:284 ../src/clients/a-rex/apclean.cpp:82
+#: ../src/clients/a-rex/apget.cpp:220 ../src/clients/a-rex/apkill.cpp:81
+#: ../src/clients/a-rex/apsstat.cpp:77 ../src/clients/a-rex/apstat.cpp:81
+#: ../src/clients/a-rex/apsub.cpp:122 ../src/clients/cream2/gliteclean.cpp:49
+#: ../src/clients/cream2/glitedelegate.cpp:48
+#: ../src/clients/cream2/glitekill.cpp:48
+#: ../src/clients/cream2/glitestat.cpp:48
+#: ../src/clients/cream2/glitesub.cpp:55
+#: ../src/clients/cream2/gliteundelegate.cpp:48
+#: ../src/clients/credentials/approxy.cpp:86 ../src/clients/data/arccp.cpp:509
+#: ../src/clients/data/arcls.cpp:150 ../src/clients/data/arcrm.cpp:140
+#: ../src/clients/wsrf/apinfo.cpp:77
+#, c-format
+msgid "%s version %s"
+msgstr "%s version %s"
+
+#: ../src/clients/arclib/arcget.cpp:117
+#, fuzzy
+msgid "No valid jobids given"
+msgstr "ogiltigt jobb-id"
+
+#: ../src/clients/arclib/arcstat.cpp:53
+#, fuzzy
+msgid ""
+"Argument to -i has format:\n"
 "GRID:URL e.g. \n"
 "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
 "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
@@ -381,142 +584,46 @@ msgstr ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 
-#: ../src/clients/arclib/arcstat.cpp:75
-msgid "all jobs"
-msgstr "alla jobb"
-
-#: ../src/clients/arclib/arcstat.cpp:80
-msgid "file containing a list of jobids"
-msgstr "fil som innehåller en jobb-id-lista"
-
-#: ../src/clients/arclib/arcstat.cpp:81 ../src/clients/arclib/arcsub.cpp:208
-msgid "filename"
-msgstr "filnamn"
-
-#: ../src/clients/arclib/arcstat.cpp:86 ../src/clients/arclib/arcsub.cpp:187
-msgid "explicity select or reject a specific cluster"
-msgstr "välj eller välj bort ett specifikt kluster"
-
-#: ../src/clients/arclib/arcstat.cpp:87 ../src/clients/arclib/arcsub.cpp:188
-msgid "[-]name"
-msgstr "[-]namn"
-
-#: ../src/clients/arclib/arcstat.cpp:92
-msgid "only select jobs whose status is statusstr"
-msgstr "välj endast jobb vars status är statusstr"
-
-#: ../src/clients/arclib/arcstat.cpp:93
-msgid "statusstr"
-msgstr "statusstr"
-
-#: ../src/clients/arclib/arcstat.cpp:97 ../src/clients/arclib/arcsub.cpp:192
+#: ../src/clients/arclib/arcstat.cpp:86 ../src/clients/arclib/arcsub.cpp:219
 msgid "url to a index server"
 msgstr "url till en indexserver"
 
-#: ../src/clients/arclib/arcstat.cpp:98 ../src/clients/arclib/arcsub.cpp:193
+#: ../src/clients/arclib/arcstat.cpp:87 ../src/clients/arclib/arcsub.cpp:220
 #: ../src/clients/data/arcls.cpp:116 ../src/clients/data/arcrm.cpp:113
 msgid "url"
 msgstr "url"
 
-#: ../src/clients/arclib/arcstat.cpp:103
+#: ../src/clients/arclib/arcstat.cpp:92
 msgid "show information about clusters and queues"
 msgstr "visa information om kluster och köer"
 
-#: ../src/clients/arclib/arcstat.cpp:108 ../src/clients/data/arcls.cpp:119
+#: ../src/clients/arclib/arcstat.cpp:97 ../src/clients/data/arcls.cpp:119
 msgid "long format (more information)"
 msgstr "långt format (mer information)"
 
-#: ../src/clients/arclib/arcstat.cpp:112 ../src/clients/arclib/arcsub.cpp:220
-#: ../src/clients/data/arccp.cpp:491 ../src/clients/data/arcls.cpp:132
-#: ../src/clients/data/arcrm.cpp:122
-msgid "timeout in seconds (default 20)"
-msgstr "timeout i sekunder (förval 20)"
-
-#: ../src/clients/arclib/arcstat.cpp:113 ../src/clients/arclib/arcsub.cpp:221
-#: ../src/clients/data/arccp.cpp:492 ../src/clients/data/arcls.cpp:133
-#: ../src/clients/data/arcrm.cpp:123
-msgid "seconds"
-msgstr "sekunder"
-
-#: ../src/clients/arclib/arcstat.cpp:117 ../src/clients/arclib/arcsub.cpp:225
-#: ../src/clients/a-rex/apclean.cpp:69 ../src/clients/a-rex/apget.cpp:207
-#: ../src/clients/a-rex/apkill.cpp:68 ../src/clients/a-rex/apsstat.cpp:64
-#: ../src/clients/a-rex/apstat.cpp:68 ../src/clients/a-rex/apsub.cpp:109
-#: ../src/clients/cream2/gliteclean.cpp:35
-#: ../src/clients/cream2/glitedelegate.cpp:35
-#: ../src/clients/cream2/glitekill.cpp:35
-#: ../src/clients/cream2/glitestat.cpp:35
-#: ../src/clients/cream2/glitesub.cpp:40
-#: ../src/clients/cream2/gliteundelegate.cpp:35
-#: ../src/clients/credentials/approxy.cpp:72 ../src/clients/data/arccp.cpp:496
-#: ../src/clients/data/arcls.cpp:137 ../src/clients/data/arcrm.cpp:127
-#: ../src/clients/wsrf/apinfo.cpp:64
-msgid "FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE"
-msgstr "FATAL, ERROR, WARNING, INFO, DEBUG eller VERBOSE"
-
-#: ../src/clients/arclib/arcstat.cpp:118 ../src/clients/arclib/arcsub.cpp:226
-#: ../src/clients/a-rex/apclean.cpp:70 ../src/clients/a-rex/apget.cpp:208
-#: ../src/clients/a-rex/apkill.cpp:69 ../src/clients/a-rex/apsstat.cpp:65
-#: ../src/clients/a-rex/apstat.cpp:69 ../src/clients/a-rex/apsub.cpp:110
-#: ../src/clients/cream2/gliteclean.cpp:36
-#: ../src/clients/cream2/glitedelegate.cpp:36
-#: ../src/clients/cream2/glitekill.cpp:36
-#: ../src/clients/cream2/glitestat.cpp:36
-#: ../src/clients/cream2/glitesub.cpp:41
-#: ../src/clients/cream2/gliteundelegate.cpp:36
-#: ../src/clients/credentials/approxy.cpp:73 ../src/clients/data/arccp.cpp:497
-#: ../src/clients/data/arcls.cpp:138 ../src/clients/data/arcrm.cpp:128
-#: ../src/clients/wsrf/apinfo.cpp:65
-msgid "debuglevel"
-msgstr "debugnivå"
-
-#: ../src/clients/arclib/arcstat.cpp:121 ../src/clients/arclib/arcsub.cpp:233
-#: ../src/clients/a-rex/apclean.cpp:73 ../src/clients/a-rex/apget.cpp:211
-#: ../src/clients/a-rex/apkill.cpp:72 ../src/clients/a-rex/apsstat.cpp:68
-#: ../src/clients/a-rex/apstat.cpp:72 ../src/clients/a-rex/apsub.cpp:113
-#: ../src/clients/cream2/gliteclean.cpp:39
-#: ../src/clients/cream2/glitedelegate.cpp:39
-#: ../src/clients/cream2/glitekill.cpp:39
-#: ../src/clients/cream2/glitestat.cpp:39
-#: ../src/clients/cream2/glitesub.cpp:44
-#: ../src/clients/cream2/gliteundelegate.cpp:39
-#: ../src/clients/credentials/approxy.cpp:76 ../src/clients/data/arccp.cpp:500
-#: ../src/clients/data/arcls.cpp:141 ../src/clients/data/arcrm.cpp:131
-#: ../src/clients/wsrf/apinfo.cpp:68
-msgid "print version information"
-msgstr "skriv ut versionsinformation"
-
-#: ../src/clients/arclib/arcstat.cpp:141 ../src/clients/arclib/arcsub.cpp:253
-#: ../src/clients/a-rex/apclean.cpp:82 ../src/clients/a-rex/apget.cpp:220
-#: ../src/clients/a-rex/apkill.cpp:81 ../src/clients/a-rex/apsstat.cpp:77
-#: ../src/clients/a-rex/apstat.cpp:81 ../src/clients/a-rex/apsub.cpp:122
-#: ../src/clients/cream2/gliteclean.cpp:48
-#: ../src/clients/cream2/glitedelegate.cpp:48
-#: ../src/clients/cream2/glitekill.cpp:48
-#: ../src/clients/cream2/glitestat.cpp:48
-#: ../src/clients/cream2/glitesub.cpp:53
-#: ../src/clients/cream2/gliteundelegate.cpp:48
-#: ../src/clients/credentials/approxy.cpp:85 ../src/clients/data/arccp.cpp:509
-#: ../src/clients/data/arcls.cpp:150 ../src/clients/data/arcrm.cpp:140
-#: ../src/clients/wsrf/apinfo.cpp:77
-#, c-format
-msgid "%s version %s"
-msgstr "%s version %s"
-
-#: ../src/clients/arclib/arcstat.cpp:146
+#: ../src/clients/arclib/arcstat.cpp:135
 msgid "Option -a [-all] can not be used together with jobid"
 msgstr "Flaggan -a [-all] kan ej användas tillsammans med jobb-id"
 
-#: ../src/clients/arclib/arcsub.cpp:38
+#: ../src/clients/arclib/arcsub.cpp:35
 msgid "No job description input specified"
 msgstr "Ingen jobbeskrivning angiven"
 
-#: ../src/clients/arclib/arcsub.cpp:50
+#: ../src/clients/arclib/arcsub.cpp:49
 #, c-format
 msgid "Can not open file: %s"
 msgstr "Kan inte öpna fil: %s"
 
-#: ../src/clients/arclib/arcsub.cpp:96
+#: ../src/clients/arclib/arcsub.cpp:67 ../src/clients/arclib/arcsub.cpp:88
+msgid "Invalid JobDescription. Job removed from submission."
+msgstr ""
+
+#: ../src/clients/arclib/arcsub.cpp:68 ../src/clients/arclib/arcsub.cpp:89
+#, fuzzy
+msgid "Job description given:"
+msgstr "Jobbeskrivning som skall sändas: %s"
+
+#: ../src/clients/arclib/arcsub.cpp:107
 #, c-format
 msgid ""
 "Job submission failed because the specified cluster %s did not return any "
@@ -525,23 +632,24 @@ msgstr ""
 "Jobbinsändning misslyckades p.g.a. att det angivna klustret %s inte "
 "returnerade någon information"
 
-#: ../src/clients/arclib/arcsub.cpp:144
+#: ../src/clients/arclib/arcsub.cpp:168
 msgid "Job submission summary:"
 msgstr "Jobbinsändningssammanfattning:"
 
-#: ../src/clients/arclib/arcsub.cpp:146
+#: ../src/clients/arclib/arcsub.cpp:171
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d av %d jobb sändes in"
 
-#: ../src/clients/arclib/arcsub.cpp:149
+#: ../src/clients/arclib/arcsub.cpp:175
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Följande %d sändes inte in"
 
-#: ../src/clients/arclib/arcsub.cpp:177
+#: ../src/clients/arclib/arcsub.cpp:203
+#, fuzzy
 msgid ""
-"Argument to -g has format:\n"
+"Argument to -i has format:\n"
 "GRID:URL e.g.\n"
 "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
 "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
@@ -561,32 +669,32 @@ msgstr ""
 "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-"
 "name=local,o=grid"
 
-#: ../src/clients/arclib/arcsub.cpp:197
+#: ../src/clients/arclib/arcsub.cpp:225
 msgid "jobdescription string describing the job to be submitted"
 msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:198 ../src/clients/arclib/arcsub.cpp:203
-#: ../src/clients/credentials/approxy.cpp:68
+#: ../src/clients/arclib/arcsub.cpp:226 ../src/clients/arclib/arcsub.cpp:232
+#: ../src/clients/credentials/approxy.cpp:69
 msgid "string"
 msgstr "sträng"
 
-#: ../src/clients/arclib/arcsub.cpp:202
+#: ../src/clients/arclib/arcsub.cpp:231
 msgid "jobdescription file describing the job to be submitted"
 msgstr "jobbeskrivningsfil som beskriver jobbet som ska sändas in"
 
-#: ../src/clients/arclib/arcsub.cpp:207
+#: ../src/clients/arclib/arcsub.cpp:237
 msgid "file where the jobids will be stored"
 msgstr "fil där jobb-id kommer att sparas"
 
-#: ../src/clients/arclib/arcsub.cpp:212
+#: ../src/clients/arclib/arcsub.cpp:242
 msgid "add dryrun option"
 msgstr "lägg till dryrun-attribut"
 
-#: ../src/clients/arclib/arcsub.cpp:216
+#: ../src/clients/arclib/arcsub.cpp:247
 msgid "do not submit - dump job description"
 msgstr "sänd inte - skriv ut jobbeskrivningen"
 
-#: ../src/clients/arclib/arcsub.cpp:229
+#: ../src/clients/arclib/arcsub.cpp:261
 msgid "allow unknown attributes in job description"
 msgstr "tillåt okända attribut i jobbeskrivningen"
 
@@ -598,7 +706,7 @@ msgstr "[serviceurl] id-file"
 #: ../src/clients/a-rex/apclean.cpp:48 ../src/clients/a-rex/apget.cpp:182
 #: ../src/clients/a-rex/apkill.cpp:47 ../src/clients/a-rex/apsstat.cpp:43
 #: ../src/clients/a-rex/apstat.cpp:47 ../src/clients/a-rex/apsub.cpp:85
-#: ../src/clients/credentials/approxy.cpp:55 ../src/clients/wsrf/apinfo.cpp:43
+#: ../src/clients/credentials/approxy.cpp:56 ../src/clients/wsrf/apinfo.cpp:43
 msgid "path to proxy file"
 msgstr "sökväg till proxyfil"
 
@@ -614,15 +722,15 @@ msgstr "sökväg till proxyfil"
 #: ../src/clients/a-rex/apstat.cpp:56 ../src/clients/a-rex/apstat.cpp:64
 #: ../src/clients/a-rex/apsub.cpp:86 ../src/clients/a-rex/apsub.cpp:90
 #: ../src/clients/a-rex/apsub.cpp:94 ../src/clients/a-rex/apsub.cpp:102
-#: ../src/clients/cream2/gliteclean.cpp:31
+#: ../src/clients/cream2/gliteclean.cpp:32
 #: ../src/clients/cream2/glitedelegate.cpp:31
 #: ../src/clients/cream2/glitekill.cpp:31
 #: ../src/clients/cream2/glitestat.cpp:31
-#: ../src/clients/cream2/glitesub.cpp:36
+#: ../src/clients/cream2/glitesub.cpp:38
 #: ../src/clients/cream2/gliteundelegate.cpp:31
-#: ../src/clients/credentials/approxy.cpp:56
-#: ../src/clients/credentials/approxy.cpp:60
-#: ../src/clients/credentials/approxy.cpp:64 ../src/clients/data/arccp.cpp:473
+#: ../src/clients/credentials/approxy.cpp:57
+#: ../src/clients/credentials/approxy.cpp:61
+#: ../src/clients/credentials/approxy.cpp:65 ../src/clients/data/arccp.cpp:473
 #: ../src/clients/data/arccp.cpp:478 ../src/clients/wsrf/apinfo.cpp:44
 #: ../src/clients/wsrf/apinfo.cpp:48 ../src/clients/wsrf/apinfo.cpp:52
 #: ../src/clients/wsrf/apinfo.cpp:60
@@ -632,14 +740,14 @@ msgstr "sökväg"
 #: ../src/clients/a-rex/apclean.cpp:52 ../src/clients/a-rex/apget.cpp:186
 #: ../src/clients/a-rex/apkill.cpp:51 ../src/clients/a-rex/apsstat.cpp:47
 #: ../src/clients/a-rex/apstat.cpp:51 ../src/clients/a-rex/apsub.cpp:89
-#: ../src/clients/credentials/approxy.cpp:59 ../src/clients/wsrf/apinfo.cpp:47
+#: ../src/clients/credentials/approxy.cpp:60 ../src/clients/wsrf/apinfo.cpp:47
 msgid "path to certificate file"
 msgstr "sökväg till certifikatfil"
 
 #: ../src/clients/a-rex/apclean.cpp:56 ../src/clients/a-rex/apget.cpp:190
 #: ../src/clients/a-rex/apkill.cpp:55 ../src/clients/a-rex/apsstat.cpp:51
 #: ../src/clients/a-rex/apstat.cpp:55 ../src/clients/a-rex/apsub.cpp:93
-#: ../src/clients/credentials/approxy.cpp:63 ../src/clients/wsrf/apinfo.cpp:51
+#: ../src/clients/credentials/approxy.cpp:64 ../src/clients/wsrf/apinfo.cpp:51
 msgid "path to private key file"
 msgstr "sökväg till privat nyckelfil"
 
@@ -660,11 +768,11 @@ msgstr "katalog"
 #: ../src/clients/a-rex/apclean.cpp:64 ../src/clients/a-rex/apget.cpp:198
 #: ../src/clients/a-rex/apkill.cpp:63 ../src/clients/a-rex/apsstat.cpp:59
 #: ../src/clients/a-rex/apstat.cpp:63 ../src/clients/a-rex/apsub.cpp:101
-#: ../src/clients/cream2/gliteclean.cpp:30
+#: ../src/clients/cream2/gliteclean.cpp:31
 #: ../src/clients/cream2/glitedelegate.cpp:30
 #: ../src/clients/cream2/glitekill.cpp:30
 #: ../src/clients/cream2/glitestat.cpp:30
-#: ../src/clients/cream2/glitesub.cpp:35
+#: ../src/clients/cream2/glitesub.cpp:37
 #: ../src/clients/cream2/gliteundelegate.cpp:30
 #: ../src/clients/wsrf/apinfo.cpp:59
 msgid "path to config file"
@@ -678,7 +786,7 @@ msgstr "sökväg till nedladdningskatalog"
 msgid "service_url"
 msgstr "serviceurl"
 
-#: ../src/clients/a-rex/apsub.cpp:82 ../src/clients/cream2/glitesub.cpp:26
+#: ../src/clients/a-rex/apsub.cpp:82
 msgid "service_url jsdl_file id_file"
 msgstr "serviceurl jsdl-file id-file"
 
@@ -686,238 +794,218 @@ msgstr "serviceurl jsdl-file id-file"
 msgid "delegate proxy"
 msgstr "delegera proxy"
 
-#: ../src/clients/a-rex/arex_client.cpp:44
-#: ../src/clients/a-rex/arex_client.cpp:72
+#: ../src/clients/a-rex/arex_client.cpp:56
+#: ../src/clients/a-rex/arex_client.cpp:84
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:69
 msgid "Creating an A-REX client."
 msgstr "Skapar en A-REX-klient."
 
-#: ../src/clients/a-rex/arex_client.cpp:53
+#: ../src/clients/a-rex/arex_client.cpp:65
 #: ../src/clients/echo/echo_client.cpp:26
 msgid "Failed to load client configuration."
 msgstr "Misslyckades med att ladda klientinställningar."
 
-#: ../src/clients/a-rex/arex_client.cpp:58
+#: ../src/clients/a-rex/arex_client.cpp:70
 #: ../src/clients/echo/echo_client.cpp:31
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:71
 msgid "Client side MCCs are loaded."
 msgstr "Klientsidans MCC:er har laddats."
 
-#: ../src/clients/a-rex/arex_client.cpp:61
+#: ../src/clients/a-rex/arex_client.cpp:73
 #: ../src/clients/echo/echo_client.cpp:34
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:74
 msgid "Client chain does not have entry point."
 msgstr "Klientkedjan har ingen ingångspunkt."
 
-#: ../src/clients/a-rex/arex_client.cpp:90
+#: ../src/clients/a-rex/arex_client.cpp:102
 #: ../src/clients/echo/echo_client.cpp:51
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:110
 msgid "Creating and sending request."
 msgstr "Skapar och sänder förfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:143
-#: ../src/clients/cream2/cream_client.cpp:215
+#: ../src/clients/a-rex/arex_client.cpp:157
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:164
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:219
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr "Jobbeskrivning som skall sändas: %s"
 
-#: ../src/clients/a-rex/arex_client.cpp:167
+#: ../src/clients/a-rex/arex_client.cpp:178
 msgid "Failed to find delegation credentials in client configuration."
 msgstr "Misslyckades med att hitta delegeringskreditiv i klientinställningar."
 
-#: ../src/clients/a-rex/arex_client.cpp:176
-#: ../src/clients/a-rex/arex_client.cpp:205 ../src/services/a-rex/test.cpp:86
+#: ../src/clients/a-rex/arex_client.cpp:187
+#: ../src/clients/a-rex/arex_client.cpp:216 ../src/services/a-rex/test.cpp:86
 msgid "Initiating delegation procedure"
 msgstr "Initialiserar delegeringsprocess"
 
-#: ../src/clients/a-rex/arex_client.cpp:178
-#: ../src/clients/a-rex/arex_client.cpp:207
+#: ../src/clients/a-rex/arex_client.cpp:189
+#: ../src/clients/a-rex/arex_client.cpp:218
 msgid "Failed to initiate delegation."
 msgstr "Misslyckades med att initiera delegering."
 
-#: ../src/clients/a-rex/arex_client.cpp:188
-#: ../src/clients/a-rex/arex_client.cpp:220
-#: ../src/clients/cream2/cream_client.cpp:226
-#: ../src/clients/cream2/cream_client.cpp:280
-#: ../src/clients/cream2/cream_client.cpp:373
-#: ../src/clients/cream2/cream_client.cpp:421
-#: ../src/clients/cream2/cream_client.cpp:460
+#: ../src/clients/a-rex/arex_client.cpp:199
+#: ../src/clients/a-rex/arex_client.cpp:231
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:180
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:230
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:302
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:398
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:446
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:485
 msgid "Submission request failed."
 msgstr "Insändningsförfrågan misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:192
-#: ../src/clients/a-rex/arex_client.cpp:270
-#: ../src/clients/a-rex/arex_client.cpp:343
-#: ../src/clients/a-rex/arex_client.cpp:409
-#: ../src/clients/a-rex/arex_client.cpp:479
-#: ../src/clients/cream2/cream_client.cpp:61
-#: ../src/clients/cream2/cream_client.cpp:127
-#: ../src/clients/cream2/cream_client.cpp:173
-#: ../src/clients/cream2/cream_client.cpp:230
-#: ../src/clients/cream2/cream_client.cpp:284
-#: ../src/clients/cream2/cream_client.cpp:377
-#: ../src/clients/cream2/cream_client.cpp:425
-#: ../src/clients/cream2/cream_client.cpp:464
+#: ../src/clients/a-rex/arex_client.cpp:203
+#: ../src/clients/a-rex/arex_client.cpp:288
+#: ../src/clients/a-rex/arex_client.cpp:363
+#: ../src/clients/a-rex/arex_client.cpp:431
+#: ../src/clients/a-rex/arex_client.cpp:501
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:65
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:131
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:177
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:234
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:306
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:402
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:450
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:489
 msgid "There was no SOAP response."
 msgstr "Det fanns inget SOAP-svar."
 
-#: ../src/clients/a-rex/arex_client.cpp:223
+#: ../src/clients/a-rex/arex_client.cpp:234
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:182
 msgid "Submission request succeed."
 msgstr "Insändningsförfrågan lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:225
+#: ../src/clients/a-rex/arex_client.cpp:236
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:184
 msgid "There were no response to a submission request."
 msgstr "Det kom inget svar på en insändningsförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:232
+#: ../src/clients/a-rex/arex_client.cpp:243
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:190
 msgid "A response to a submission request was not a SOAP message."
 msgstr "Ett svar på en insändningsförfrågan var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:255
-#: ../src/clients/cream2/cream_client.cpp:36
+#: ../src/clients/a-rex/arex_client.cpp:262
+#, fuzzy, c-format
+msgid "Submission returned failure : %s"
+msgstr "Insändningsförfrågan misslyckades."
+
+#: ../src/clients/a-rex/arex_client.cpp:271
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:40
 msgid "Creating and sending a status request."
 msgstr "Skapar och sänder en statusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:287
+#: ../src/clients/a-rex/arex_client.cpp:305
 msgid "A status request failed."
 msgstr "En statusförfrågan misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:290
+#: ../src/clients/a-rex/arex_client.cpp:308
 msgid "A status request succeed."
 msgstr "En statusförfrågan lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:292
+#: ../src/clients/a-rex/arex_client.cpp:310
 msgid "There were no response to a status request."
 msgstr "Det kom inget svar på en statusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:300
+#: ../src/clients/a-rex/arex_client.cpp:318
 msgid "The response of a status request was not a SOAP message."
 msgstr "Ett svar på en statusförfrågan var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:330
+#: ../src/clients/a-rex/arex_client.cpp:348
 msgid "Creating and sending a service status request."
 msgstr "Skapar och sänder en servicestatusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:360
+#: ../src/clients/a-rex/arex_client.cpp:380
 msgid "A service status request failed."
 msgstr "En servicestatusförfrågan misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:363
+#: ../src/clients/a-rex/arex_client.cpp:383
 msgid "A service status request succeed."
 msgstr "En servicestatusförfrågan lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:365
+#: ../src/clients/a-rex/arex_client.cpp:385
 msgid "There were no response to a service status request."
 msgstr "Det kom inget svar på en servicestatusförfrågan."
 
-#: ../src/clients/a-rex/arex_client.cpp:373
+#: ../src/clients/a-rex/arex_client.cpp:393
 msgid "The response of a service status request was not a SOAP message."
 msgstr "Ett svar på en servicestatusförfrågan var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:395
-#: ../src/clients/a-rex/arex_client.cpp:466
-#: ../src/clients/cream2/cream_client.cpp:107
+#: ../src/clients/a-rex/arex_client.cpp:415
+#: ../src/clients/a-rex/arex_client.cpp:488
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:111
 msgid "Creating and sending request to terminate a job."
 msgstr "Skapar och sänder förfrågan för att avsluta ett jobb."
 
-#: ../src/clients/a-rex/arex_client.cpp:426
+#: ../src/clients/a-rex/arex_client.cpp:448
 msgid "A job termination request failed."
 msgstr "En förfrågan för att avsluta ett jobb misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:429
+#: ../src/clients/a-rex/arex_client.cpp:451
 msgid "A job termination request succeed."
 msgstr "En förfrågan för att avsluta ett jobb lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:432
+#: ../src/clients/a-rex/arex_client.cpp:454
 msgid "There was no response to a job termination request."
 msgstr "Det kom inget svar på en förfrågan för att avsluta ett jobb."
 
-#: ../src/clients/a-rex/arex_client.cpp:441
+#: ../src/clients/a-rex/arex_client.cpp:463
 msgid "The response of a job termination request was not a SOAP message"
 msgstr ""
 "Ett svar på en förfrågan för att avsluta ett jobb var inget SOAP-meddelande."
 
-#: ../src/clients/a-rex/arex_client.cpp:495
+#: ../src/clients/a-rex/arex_client.cpp:517
 msgid "A job cleaning request failed."
 msgstr "En förfrågan om uppstädning efter ett jobb misslyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:498
+#: ../src/clients/a-rex/arex_client.cpp:520
 msgid "A job cleaning request succeed."
 msgstr "En förfrågan om uppstädning efter ett jobb lyckades."
 
-#: ../src/clients/a-rex/arex_client.cpp:501
+#: ../src/clients/a-rex/arex_client.cpp:523
 msgid "There was no response to a job cleaning request."
 msgstr "Det kom inget svar på en förfrågan om uppstädning efter ett jobb."
 
-#: ../src/clients/a-rex/arex_client.cpp:510
+#: ../src/clients/a-rex/arex_client.cpp:532
 msgid "The response of a job cleaning request was not a SOAP message"
 msgstr ""
 "Ett svar på en förfrågan om uppstädning efter ett jobb var inget SOAP-"
 "meddelande."
 
-#: ../src/clients/cream2/cream_client.cpp:22
-msgid "Creating a CREAM client."
-msgstr "Skapar en CREAM-klient."
-
-#: ../src/clients/cream2/cream_client.cpp:152
-msgid "Creating and sending request to clean a job."
-msgstr "Skapar och sänder förfrågan för att städa upp ett jobb."
-
-#: ../src/clients/cream2/cream_client.cpp:198
-msgid "Creating and sending job register request."
-msgstr "Skapar och sänder en registreringsförfrågan."
-
-#: ../src/clients/cream2/cream_client.cpp:256
-msgid "Creating and sending job start request."
-msgstr "Skapar och sänder en jobbstartförfrågan."
-
-#: ../src/clients/cream2/cream_client.cpp:354
-#: ../src/clients/cream2/cream_client.cpp:441
-msgid "Creating delegation."
-msgstr "Skapar delegering."
-
-#: ../src/clients/cream2/gliteclean.cpp:26
+#: ../src/clients/cream2/gliteclean.cpp:27
 #: ../src/clients/cream2/glitekill.cpp:26
 #: ../src/clients/cream2/glitestat.cpp:26
-msgid "service_url id_file"
-msgstr "serviceurl id-file"
+msgid "info_file"
+msgstr ""
+
+#: ../src/clients/cream2/glitecp.cpp:27 ../src/clients/cream2/glitesub.cpp:28
+#, fuzzy
+msgid "service_url jsdl_file info_file"
+msgstr "serviceurl jsdl-file id-file"
 
 #: ../src/clients/cream2/glitedelegate.cpp:26
 #: ../src/clients/cream2/gliteundelegate.cpp:26
 msgid "delegation_id service_url"
 msgstr "delegations-id serviceurl"
 
-#: ../src/clients/cream2/glitesub.cpp:30
+#: ../src/clients/cream2/glitesub.cpp:32
 msgid "delegation ID"
 msgstr "delegerings-id"
 
-#: ../src/clients/cream2/glitesub.cpp:31
+#: ../src/clients/cream2/glitesub.cpp:33
 msgid "id"
 msgstr "id"
 
-#: ../src/clients/credentials/approxy.cpp:29
-#, c-format
-msgid "OpenSSL Error -- %s"
-msgstr "OpenSSL-fel -- %s"
-
-#: ../src/clients/credentials/approxy.cpp:30
-#, c-format
-msgid "Library  : %s"
-msgstr "Bibliotek: %s"
-
-#: ../src/clients/credentials/approxy.cpp:31
-#, c-format
-msgid "Function : %s"
-msgstr "Funktion : %s"
-
-#: ../src/clients/credentials/approxy.cpp:32
-#, c-format
-msgid "Reason   : %s"
-msgstr "Anledning: %s"
-
 #: ../src/clients/credentials/approxy.cpp:48
+#, fuzzy
 msgid ""
 "Supported constraints are:\n"
 "  validityStart=time\n"
 "  validityEnd=time\n"
 "  validityPeriod=time\n"
-"  proxyPolicy=policy content"
+"  proxyPolicy=policy content\n"
+"  proxyPolicyFile=policy file"
 msgstr ""
 "Understödda villkor är:\n"
 "  validityStart=tid\n"
@@ -925,7 +1013,7 @@ msgstr ""
 "  validityPeriod=tid\n"
 "  proxyPolicy=policy-innehåll"
 
-#: ../src/clients/credentials/approxy.cpp:67
+#: ../src/clients/credentials/approxy.cpp:68
 msgid "proxy constraints"
 msgstr "proxyvillkor"
 
@@ -1227,6 +1315,10 @@ msgstr "TargetRetriverARC0 initialiserad med %s-serviceurl: %s"
 msgid "TargetRetrieverARC0 initialized with unknown url type"
 msgstr "TargetRetrieverARC0 initialiserad med okänd url-typ"
 
+#: ../src/hed/acc/ARC1/SubmitterARC1.cpp:194
+msgid "Something wrong with the client_entry"
+msgstr ""
+
 #: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:34
 #, c-format
 msgid "TargetRetriverARC1 initialized with %s service url: %s"
@@ -1235,6 +1327,27 @@ msgstr "TargetRetriverARC1 initialiserad med %s-serviceurl: %s"
 #: ../src/hed/acc/ARC1/TargetRetrieverARC1.cpp:68
 msgid "TargetRetrieverARC1 initialized with unknown url type"
 msgstr "TargetRetrieverARC1 initialiserad med okänd url-typ"
+
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:26
+msgid "Creating a CREAM client."
+msgstr "Skapar en CREAM-klient."
+
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:156
+msgid "Creating and sending request to clean a job."
+msgstr "Skapar och sänder förfrågan för att städa upp ett jobb."
+
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:202
+msgid "Creating and sending job register request."
+msgstr "Skapar och sänder en registreringsförfrågan."
+
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:278
+msgid "Creating and sending job start request."
+msgstr "Skapar och sänder en jobbstartförfrågan."
+
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:379
+#: ../src/hed/acc/CREAM/CREAMClient.cpp:466
+msgid "Creating delegation."
+msgstr "Skapar delegering."
 
 #: ../src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:38
 #, c-format
@@ -1254,19 +1367,19 @@ msgstr "Demonisering av fork misslyckades: %s"
 msgid "Shutdown daemon"
 msgstr "Stänger av demon"
 
-#: ../src/hed/daemon/main.cpp:26 ../src/hed/daemon/main_win32.cpp:23
+#: ../src/hed/daemon/main.cpp:30 ../src/hed/daemon/main_win32.cpp:23
 msgid "shutdown"
 msgstr "avstängning"
 
-#: ../src/hed/daemon/main.cpp:36 ../src/hed/daemon/main_win32.cpp:32
+#: ../src/hed/daemon/main.cpp:40 ../src/hed/daemon/main_win32.cpp:32
 msgid "No server config part of config file"
 msgstr "Ingen serverinställningsdel i inställningsfilen"
 
-#: ../src/hed/daemon/main.cpp:69 ../src/hed/daemon/main_win32.cpp:65
+#: ../src/hed/daemon/main.cpp:73 ../src/hed/daemon/main_win32.cpp:65
 msgid "Start foreground"
 msgstr "Startar i förgrunden"
 
-#: ../src/hed/daemon/main.cpp:97 ../src/hed/daemon/main_win32.cpp:92
+#: ../src/hed/daemon/main.cpp:94 ../src/hed/daemon/main_win32.cpp:84
 #: ../src/services/a-rex/test.cpp:37 ../src/services/pdp/test.cpp:32
 #: ../src/services/saml/test.cpp:47 ../src/services/saml/test_service.cpp:29
 #: ../src/tests/count/test_service.cpp:24 ../src/tests/echo/test.cpp:30
@@ -1274,11 +1387,11 @@ msgstr "Startar i förgrunden"
 msgid "Failed to load service configuration"
 msgstr "Misslyckades med att ladda serviceinställningar"
 
-#: ../src/hed/daemon/main.cpp:101 ../src/hed/daemon/main_win32.cpp:96
+#: ../src/hed/daemon/main.cpp:98 ../src/hed/daemon/main_win32.cpp:88
 msgid "Configuration root element is not ArcConfig"
 msgstr "Inställningarnas rotobjekt är inte ArcConfig"
 
-#: ../src/hed/daemon/main.cpp:124 ../src/hed/daemon/main_win32.cpp:113
+#: ../src/hed/daemon/main.cpp:121 ../src/hed/daemon/main_win32.cpp:105
 #: ../src/services/a-rex/test.cpp:41 ../src/services/pdp/test.cpp:36
 #: ../src/services/saml/test.cpp:51 ../src/services/saml/test_service.cpp:33
 #: ../src/tests/count/test_service.cpp:28 ../src/tests/echo/test.cpp:34
@@ -1286,61 +1399,64 @@ msgstr "Inställningarnas rotobjekt är inte ArcConfig"
 msgid "Service side MCCs are loaded"
 msgstr "Servicesidans MCC:er har laddats"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:162
+#: ../src/hed/dmc/file/DataPointFile.cpp:164
 #, c-format
 msgid "File is not accessible: %s"
 msgstr "Filen är inte tillgänglig: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:167
+#: ../src/hed/dmc/file/DataPointFile.cpp:169
 #, c-format
 msgid "Can't stat file: %s"
 msgstr "Kan inte göra stat på filen: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:263
+#: ../src/hed/dmc/file/DataPointFile.cpp:265
 msgid "Failed to use channel stdout"
 msgstr "Misslyckades med att använda stdout-kanalen"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:276
+#: ../src/hed/dmc/file/DataPointFile.cpp:278
 #, c-format
 msgid "Invalid url: %s"
 msgstr "Ogiltig URL: %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:290
+#: ../src/hed/dmc/file/DataPointFile.cpp:292
 #: ../src/hed/libs/data/DataCache.cpp:207
 #: ../src/hed/libs/data/DataCache.cpp:238
 #, c-format
 msgid "Failed to create/find directory %s"
 msgstr "Misslyckades med att skapa/hitta katalog %s"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:308
+#: ../src/hed/dmc/file/DataPointFile.cpp:310
 #, c-format
 msgid "Failed to create/open file %s (%d)"
 msgstr "Misslyckades med att skapa/öppna fil %s (%d)"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:319
+#: ../src/hed/dmc/file/DataPointFile.cpp:321
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr "Sätter fil %s till storlek %llu"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:341
+#: ../src/hed/dmc/file/DataPointFile.cpp:343
 msgid "Failed to preallocate space"
 msgstr "Misslyckades med förallokera utrymme"
 
-#: ../src/hed/dmc/file/DataPointFile.cpp:434
+#: ../src/hed/dmc/file/DataPointFile.cpp:436
 #, c-format
 msgid "Failed to read object: %s"
 msgstr "Misslyckades med att läsa object: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:22
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:27
 msgid "ftp_complete_callback: success"
 msgstr "ftp_complete_callback: OK"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:27
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:33
 #, c-format
 msgid "ftp_complete_callback: error: %s"
 msgstr "ftp_complete_callback: fel: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:41
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:44
 msgid "ftp_check_callback"
 msgstr "ftp_check_callback"
 
@@ -1363,55 +1479,86 @@ msgstr "ftp_check_callback"
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:753
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:761
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:769
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:47
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:59
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:80
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:104
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:130
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:168
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:216
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:257
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:299
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:357
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:476
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:526
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:628
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:701
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:746
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:754
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:761
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:769
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:777
 #, c-format
 msgid "Globus error: %s"
 msgstr "Globusfel: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:56
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:58
 msgid "Registration of Globus FTP buffer failed - cancel check"
 msgstr "Registrering av Globus-FTP-buffer misslyckades - avbryter kontroll"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:80
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:79
 msgid "check_ftp: globus_ftp_client_size failed"
 msgstr "check_ftp: globus_ftp_client_size misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:84
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:84
 msgid "check_ftp: timeout waiting for size"
 msgstr "check_ftp: timeout vid väntan på storlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:89
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:90
 msgid "check_ftp: failed to get file's size"
 msgstr "check_ftp: misslyckades med att erhålla filens storlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:97
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:103
 msgid "check_ftp: globus_ftp_client_modification_time failed"
 msgstr "check_ftp: globus_ftp_client_modification_time misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:101
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:108
 msgid "check_ftp: timeout waiting for modification_time"
 msgstr "check_ftp: timeout vid väntan på ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:106
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:114
 msgid "check_ftp: failed to get file's modification time"
 msgstr "check_ftp: misslyckades med att erhålla filens ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:118
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:129
 msgid "check_ftp: globus_ftp_client_get failed"
 msgstr "check_ftp: globus_ftp_client_get misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:124
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:134
 msgid "check_ftp: globus_ftp_client_register_read"
 msgstr "check_ftp: globus_ftp_client_register_read"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:135
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:145
 msgid "check_ftp: timeout waiting for partial get"
 msgstr "check_ftp: timeout vid väntan på partiell get"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:163
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:167
 msgid "delete_ftp: globus_ftp_client_delete failed"
 msgstr "delete_ftp: globus_ftp_client_delete misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:168
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:172
 msgid "delete_ftp: globus_ftp_client_delete timeout"
 msgstr "delete_ftp: globus_ftp_client_delete timeout"
 
@@ -1421,31 +1568,38 @@ msgid "mkdir_ftp: making %s"
 msgstr "mkdir_ftp: skapar %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:222
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:220
 msgid "mkdir_ftp: timeout waiting for mkdir"
 msgstr "mkdir_ftp: timeout vid väntan på mkdir"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:252
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:244
 msgid "start_reading_ftp"
 msgstr "start_reading_ftp"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:257
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:250
 #, c-format
 msgid "start_reading_ftp: size: url: %s"
 msgstr "start_reading_ftp: size: url: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:261
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:256
 msgid "start_reading_ftp: failure"
 msgstr "start_reading_ftp: misslyckande"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:270
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:265
 msgid "start_reading_ftp: timeout waiting for file size"
 msgstr "start_reading_ftp: timeout vid väntan på filstorlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:273
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:268
 msgid "Timeout waiting for FTP file size - cancel transfer"
 msgstr "Timeout vid väntan på FTP-filstorlek - avbryt överföring"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:284
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:279
 msgid "start_reading_ftp: failed to get file's size"
 msgstr "start_reading_ftp: misslyckades med att erhålla filens storlek"
 
@@ -1455,71 +1609,87 @@ msgid "start_reading_ftp: obtained size: %llu"
 msgstr "start_reading_ftp: erhöll storlek: %llu"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:300
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:297
 msgid "start_reading_ftp: globus_ftp_client_modification_time failed"
 msgstr "start_reading_ftp: globus_ftp_client_modification_time misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:308
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:305
 msgid "start_reading_ftp: timeout waiting for modification_time"
 msgstr "start_reading_ftp: timeout vid väntan på ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:319
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:316
 msgid "start_reading_ftp: failed to get file's modification time"
 msgstr "start_reading_ftp: misslyckades med att erhålla filens ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:329
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:326
 #, c-format
 msgid "start_reading_ftp: creation time: %s"
 msgstr "start_reading_ftp: skapelsetid: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:336
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:333
 msgid "start_reading_ftp: range is out of size"
 msgstr "start_reading_ftp: intervall är utanför storlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:345
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:343
 msgid "start_reading_ftp: globus_ftp_client_get"
 msgstr "start_reading_ftp: globus_ftp_client_get"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:357
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:356
 msgid "start_reading_ftp: globus_ftp_client_get failed"
 msgstr "start_reading_ftp: globus_ftp_client_get misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:366
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:366
 msgid "start_reading_ftp: globus_thread_create failed"
 msgstr "start_reading_ftp: globus_thread_create misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:384
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:383
 msgid "stop_reading_ftp: aborting connection"
 msgstr "stop_reading_ftp: avbryter förbindelse"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:387
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:386
 msgid "stop_reading_ftp: waiting for transfer to finish"
 msgstr "stop_reading_ftp: väntar på att överföring ska avslutas"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:389
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:388
 #, c-format
 msgid "stop_reading_ftp: exiting: %s"
 msgstr "stop_reading_ftp: avslutar: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:400
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:401
 msgid "ftp_read_thread: get and register buffers"
 msgstr "ftp_read_thread: erhåll och registrerar buffrar"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:407
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:407
 #, c-format
 msgid "ftp_read_thread: for_read failed - aborting: %s"
 msgstr "ftp_read_thread: for_read misslyckades - avbryter: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:418
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:418
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
 msgstr "ftp_read_thread: Globusfel: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:425
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:426
 #, c-format
 msgid "ftp_read_thread: too many registration failures - abort: %s"
 msgstr "ftp_read_thread: för många registreringsfel - avbryter: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:430
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:431
 #, c-format
 msgid "ftp_read_thread: failed to register globus buffer - will try later: %s"
 msgstr ""
@@ -1527,42 +1697,52 @@ msgstr ""
 "prova senare: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:441
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:443
 msgid "ftp_read_thread: waiting for eof"
 msgstr "ftp_read_thread: väntar på filslut"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:443
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:445
 msgid "ftp_read_thread: exiting"
 msgstr "ftp_read_thread: avslutar"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:459
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:457
 msgid "ftp_read_callback: failure"
 msgstr "ftp_read_callback: misslyckande"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:463
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:461
 msgid "ftp_read_callback: success"
 msgstr "ftp_read_callback: OK"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:476
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:474
 msgid "Failed to get ftp file"
 msgstr "Misslyckades med att hämta ftp-fil"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:507
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:505
 msgid "start_writing_ftp: mkdir"
 msgstr "start_writing_ftp: mkdir"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:510
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:508
 msgid "start_writing_ftp: mkdir failed - still trying to write"
 msgstr "start_writing_ftp: mkdir misslyckades - försöker fortfarande skriva"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:512
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:511
 msgid "start_writing_ftp: put"
 msgstr "start_writing_ftp: put"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:524
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:524
 msgid "start_writing_ftp: put failed"
 msgstr "start_writing_ftp: put misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:533
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:535
 msgid "start_writing_ftp: globus_thread_create failed"
 msgstr "start_writing_ftp: globus_thread_create misslyckades"
 
@@ -1571,285 +1751,364 @@ msgid "StopWriting: aborting connection"
 msgstr "StopWriting: avbryter förbindelse"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:564
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:565
 msgid "ftp_write_thread: get and register buffers"
 msgstr "ftp_write_thread: eråll och registrera buffrar"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:568
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:570
 msgid "ftp_write_thread: for_write failed - aborting"
 msgstr "ftp_write_thread: for_write misslyckades - avbryter"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:609
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:610
 msgid "ftp_write_callback: failure"
 msgstr "ftp_write_callback: misslyckande"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:614
 msgid "ftp_write_callback: success"
 msgstr "ftp_write_callback: OK"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:624
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:626
 msgid "Failed to store ftp file"
 msgstr "Misslyckades med att spara ftp-fil"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:644
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:640
 #, c-format
 msgid "Failed to obtain listing from ftp: %s"
 msgstr "Misslyckades med att erhålla lista från ftp: %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:665
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:662
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
 msgstr "list_files_ftp: söker efter storlek på %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:669
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:667
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr "list_files_ftp: globus_ftp_client_size misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:674
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:672
 msgid "list_files_ftp: timeout waiting for size"
 msgstr "list_files_ftp: timeout vid väntan på storlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:680
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:678
 msgid "list_files_ftp: failed to get file's size"
 msgstr "list_files_ftp: misslyckades med att erhålla filens storlek"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:692
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
 msgstr "list_files_ftp: söker efter ändringstid för %s"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:701
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:699
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
 msgstr "list_files_ftp: globus_ftp_client_modification_time misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:707
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:705
 msgid "list_files_ftp: timeout waiting for modification_time"
 msgstr "list_files_ftp: timeout vid väntan på ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:714
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:712
 msgid "list_files_ftp: failed to get file's modification time"
 msgstr "list_files_ftp: misslyckades med att erhålla filens ändringstid"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:742
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:745
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
 msgstr "init_handle: globus_ftp_client_handleattr_init misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:751
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:752
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
 msgstr "init_handle: globus_ftp_client_handleattr_set_gridftp2 misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:760
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:760
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:768
 msgid "init_handle: globus_ftp_client_handle_init failed"
 msgstr "init_handle: globus_ftp_client_handle_init misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:767
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:775
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
 msgstr "init_handle: globus_ftp_client_operationattr_init misslyckades"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:827
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:831
 msgid "Using secure data transfer"
 msgstr "Använder säker dataöverföring"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:838
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:844
 msgid "Using insecure data transfer"
 msgstr "Använder osäker dataöverföring"
 
 #: ../src/hed/dmc/gridftp/DataPointGridFTP.cpp:853
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:859
 msgid "DataPoint::deinit_handle: destroy ftp_handle"
 msgstr "DataPoint::deinit_handle: förstör ftp_handle"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:130 ../src/hed/dmc/gridftp/Lister.cpp:170
-#: ../src/hed/dmc/gridftp/Lister.cpp:266 ../src/hed/dmc/gridftp/Lister.cpp:509
-#: ../src/hed/dmc/gridftp/Lister.cpp:561
+#: ../src/hed/dmc/gridftp/Lister.cpp:266 ../src/hed/dmc/gridftp/Lister.cpp:510
+#: ../src/hed/dmc/gridftp/Lister.cpp:562
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:130
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:172
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:270
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:518
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:572
 #, c-format
 msgid "Failure: %s"
 msgstr "Misslyckande: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:132 ../src/hed/dmc/gridftp/Lister.cpp:151
 #: ../src/hed/dmc/gridftp/Lister.cpp:348 ../src/hed/dmc/gridftp/Lister.cpp:355
-#: ../src/hed/dmc/gridftp/Lister.cpp:377 ../src/services/pdp/test.cpp:131
+#: ../src/hed/dmc/gridftp/Lister.cpp:377
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:132
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:151
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:353
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:360
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:382
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:113
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:116
+#: ../src/services/pdp/test.cpp:133
 #, c-format
 msgid "Response: %s"
 msgstr "Svar: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:168
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:170
 msgid "Error getting list of files (in list)"
 msgstr "Fel vid erhållande av fillista (i list)"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:171
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:173
 msgid "Assuming - file not found"
 msgstr "Antar - filen ej funnen"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:190
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:192
 #, c-format
 msgid "list record: %s"
 msgstr "listpost: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:242
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:245
 msgid "Failed reading list of files"
 msgstr "Misslyckades med att läsa fillista"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:279
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:283
 msgid "Failed reading data"
 msgstr "Misslyckades med att läsa data"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:305 ../src/hed/dmc/gridftp/Lister.cpp:351
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:310
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:356
 #: ../src/services/a-rex/grid-manager/jobdesc/rsl/subst_rsl.cpp:29
 msgid "Memory allocation error"
 msgstr "Minnesallokeringsfel"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:313 ../src/services/paul/run.cpp:65
-#: ../src/services/paul/run.cpp:77
+#: ../src/hed/dmc/gridftp/Lister.cpp:313
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:318
+#: ../src/services/paul/run.cpp:65 ../src/services/paul/run.cpp:77
 #, c-format
 msgid "Command: %s"
 msgstr "Kommando: %s"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:317
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:322
 #, c-format
 msgid "%s failed"
 msgstr "%s misslyckades"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:322
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:327
 msgid "Command is being sent"
 msgstr "Kommande sänds"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:327
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:332
 msgid "Waiting for response"
 msgstr "Väntar på svar"
 
 #: ../src/hed/dmc/gridftp/Lister.cpp:332
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:337
 msgid "Callback got failure"
 msgstr "Callback erhöll misslyckande"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:406
+#: ../src/hed/dmc/gridftp/Lister.cpp:407
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:413
 msgid "Failed initing condition"
 msgstr "Misslyckades med att initiera villkor"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:410
+#: ../src/hed/dmc/gridftp/Lister.cpp:411
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:417
 msgid "Failed initing mutex"
 msgstr "Misslyckades med att initiera mutex"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:417
+#: ../src/hed/dmc/gridftp/Lister.cpp:418
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:424
 msgid "Failed allocating memory for handle"
 msgstr "Misslyckades med att allokera minne för handtag"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:422
+#: ../src/hed/dmc/gridftp/Lister.cpp:423
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:429
 msgid "Failed initing handle"
 msgstr "Misslyckades med att initiera handtag"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:435
+#: ../src/hed/dmc/gridftp/Lister.cpp:436
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:442
 msgid "Closing connection"
 msgstr "Stänger förbindelse"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:440
+#: ../src/hed/dmc/gridftp/Lister.cpp:441
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:447
 msgid "Failed to close connection 1"
 msgstr "Misslyckades med att stänga förbindelse 1"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:446
+#: ../src/hed/dmc/gridftp/Lister.cpp:447
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:454
 msgid "Failed to close connection 2"
 msgstr "Misslyckades med att stänga förbindelse 2"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:450
+#: ../src/hed/dmc/gridftp/Lister.cpp:451
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:458
 msgid "Failed to close connection 3"
 msgstr "Misslyckades med att stänga förbindelse 3"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:455
+#: ../src/hed/dmc/gridftp/Lister.cpp:456
 msgid "Closed successfully"
 msgstr "Stängdes OK"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:467
+#: ../src/hed/dmc/gridftp/Lister.cpp:468
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:475
 msgid "Memory leak (globus_ftp_control_handle_t)"
 msgstr "Minnesläcka (globus_ftp_control_handle_t)"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:481
+#: ../src/hed/dmc/gridftp/Lister.cpp:482
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:489
 #, c-format
 msgid "PASV failed: %s"
 msgstr "PASV misslyckades: %s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:485
+#: ../src/hed/dmc/gridftp/Lister.cpp:486
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:493
 msgid "PASV failed"
 msgstr "PASV misslyckades"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:498
+#: ../src/hed/dmc/gridftp/Lister.cpp:499
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:507
 msgid "Can't parse host and port in response to PASV"
 msgstr "Kan inte tolka värd och port i PASV-svar"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:504
+#: ../src/hed/dmc/gridftp/Lister.cpp:505
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:513
 #, c-format
 msgid "Data channel: %d.%d.%d.%d %d"
 msgstr "Datakanal: %d.%d.%d.%d %d"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:508
+#: ../src/hed/dmc/gridftp/Lister.cpp:509
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:517
 msgid "Obtained host and address are not acceptable"
 msgstr "Erhållen värd och adress kan inte accepteras"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:523
+#: ../src/hed/dmc/gridftp/Lister.cpp:524
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:532
 #, c-format
 msgid "Unsupported protocol in url %s"
 msgstr "Icke understött protokoll i url &s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:536
+#: ../src/hed/dmc/gridftp/Lister.cpp:537
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:545
 msgid "Reusing connection"
 msgstr "Återanvänder förbindelse"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:559
+#: ../src/hed/dmc/gridftp/Lister.cpp:560
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:570
 #, c-format
 msgid "Failed connecting to server %s:%d"
 msgstr "Misslyckades med att koppla upp mot %s:%d"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:565
+#: ../src/hed/dmc/gridftp/Lister.cpp:566
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:576
 #, c-format
 msgid "Failed to connect to server %s:%d"
 msgstr "Misslyckades med att koppla upp mot %s:%d"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:584 ../src/hed/dmc/gridftp/Lister.cpp:599
+#: ../src/hed/dmc/gridftp/Lister.cpp:585 ../src/hed/dmc/gridftp/Lister.cpp:600
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:593
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:606
 msgid "Bad authentication information"
 msgstr "Felaktig autentiseringsinformation"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:607 ../src/hed/dmc/gridftp/Lister.cpp:611
+#: ../src/hed/dmc/gridftp/Lister.cpp:608 ../src/hed/dmc/gridftp/Lister.cpp:612
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:614
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:618
 msgid "Failed authenticating"
 msgstr "Misslyckades med autentisering"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:625
+#: ../src/hed/dmc/gridftp/Lister.cpp:626
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:632
 #, c-format
 msgid "DCAU failed: %s"
 msgstr "DCAU misslyckades: %s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:629
+#: ../src/hed/dmc/gridftp/Lister.cpp:630
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:636
 msgid "DCAU failed"
 msgstr "DCAU misslyckades"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:647
+#: ../src/hed/dmc/gridftp/Lister.cpp:648
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:654
 msgid "Failed to open data channel"
 msgstr "Misslyckades med att öppna datakanal"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:652
+#: ../src/hed/dmc/gridftp/Lister.cpp:653
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:659
 msgid "MLSD is not supported - trying NLST"
 msgstr "MSLD understöds inte - försöker med NLST"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:659
+#: ../src/hed/dmc/gridftp/Lister.cpp:660
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:666
 #, c-format
 msgid "Immediate completion: %s"
 msgstr "Omedelbart färdigställande: %s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:667
+#: ../src/hed/dmc/gridftp/Lister.cpp:668
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:674
 #, c-format
 msgid "NLST/MLSD failed: %s"
 msgstr "NLST/MLSD misslyckades: %s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:671
+#: ../src/hed/dmc/gridftp/Lister.cpp:672
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:678
 msgid "NLST/MLSD failed"
 msgstr "NLST/MLSD misslyckades"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:684
+#: ../src/hed/dmc/gridftp/Lister.cpp:685
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:691
 #, c-format
 msgid "Data transfer aborted: %s"
 msgstr "Dataöverföring avbruten: %s"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:688
+#: ../src/hed/dmc/gridftp/Lister.cpp:689
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:695
 msgid "Data transfer aborted"
 msgstr "Dataöverföring avbruten"
 
-#: ../src/hed/dmc/gridftp/Lister.cpp:699
+#: ../src/hed/dmc/gridftp/Lister.cpp:700
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:706
 msgid "Failed to transfer data"
 msgstr "Misslyckades med att överföra data"
 
@@ -1957,12 +2216,12 @@ msgid "LDAP query timed out: %s"
 msgstr "LDAP-förfrågan timeout: %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:37
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:237
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:238
 msgid "Source must contain LFN"
 msgstr "Källa måste innehålla LFN"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:43
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:252
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:253
 msgid "Destination must contain LFN"
 msgstr "Destination måste innehålla LFN"
 
@@ -1972,38 +2231,38 @@ msgstr "Platser saknas i destinations-LFC-URL"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:71
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:80
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:152
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:163
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:153
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:164
 #, c-format
 msgid "Adding location: %s - %s"
 msgstr "Lägger till plats: %s - %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:107
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:268
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:269
 msgid "No locations found for destination"
 msgstr "Inga platser funna för destination"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:120
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:296
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:311
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:297
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:312
 #, c-format
 msgid "Using location: %s - %s"
 msgstr "Använder plats: %s - %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:123
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:317
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:318
 #, c-format
 msgid "meta_get_data: checksum: %s"
 msgstr "meta_get_data: checksum: %s"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:124
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:318
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:319
 #, c-format
 msgid "meta_get_data: size: %llu"
 msgstr "meta_get_data: storlek: %llu"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:125
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:319
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:320
 #, c-format
 msgid "meta_get_data: created: %s"
 msgstr "meta_get_data: skapat: %s"
@@ -2026,14 +2285,14 @@ msgstr ""
 "Misslyckades med att ta bort LFN i LFC - Du kan behöva göra det för hand"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:250
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:701
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:702
 msgid "Location is missing"
 msgstr "Plats saknas"
 
 #: ../src/hed/dmc/lfc/DataPointLFC.cpp:254
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:660
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:705
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:800
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:661
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:706
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:801
 msgid "SE location will be unregistered automatically"
 msgstr "SE-plats kommer att avregistreras automatiskt"
 
@@ -2046,38 +2305,38 @@ msgstr "Misslyckades med att ta bort plats från LFC"
 msgid "Failed to remove LFN in LFC"
 msgstr "Misslyckades med att ta bort LFN i LFC"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:103
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:471
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:624
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:966
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:104
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:472
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:625
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:968
 #, c-format
 msgid "Failed to find GUID for specified LFN in %s: %s"
 msgstr "Misslyckades med att hitta GUID för det angivna LFN i %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:108
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:477
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:629
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:971
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:109
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:478
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:630
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:973
 #, c-format
 msgid "There is no GUID for specified LFN in %s"
 msgstr "Det finns ingen GUID för det angivna LFN i %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:136
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:137
 #, c-format
 msgid "Warning: can't get PFNs from server %s: %s"
 msgstr "Varning: kan inte erhålla PFN från server %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:189
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:190
 #, c-format
 msgid "Warning: Failed to obtain attributes from %s: %s"
 msgstr "Varning: Misslyckades med att erhålla attribut från %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:199
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:200
 #, c-format
 msgid "Attribute: %s - %s"
 msgstr "Attribut: %s - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:260
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:261
 msgid ""
 "Locations are missing in destination RLS url - will use those registered "
 "with special name"
@@ -2085,103 +2344,103 @@ msgstr ""
 "Platser saknas i destination-RLS-url - använder de som registrerats med "
 "speciellt namn"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:302
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:303
 #, c-format
 msgid "Removing location: %s - %s"
 msgstr "Tar bort plats: %s - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:335
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:336
 msgid "LFN is missing in RLS (needed for replication)"
 msgstr "LFN saknas i RLS (behövs för replikering)"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:342
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:343
 msgid "LFN already exists in replica"
 msgstr "LFN finns redan i replika"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:360
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:721
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:361
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:722
 #, c-format
 msgid "Failed to connect to RLS server: %s"
 msgstr "Misslyckades med att koppla upp mot RLS-servern: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:393
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:394
 #, c-format
 msgid "Failed to create GUID in RLS: %s"
 msgstr "Misslyckades med att skapa GUID i RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:413
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:414
 #, c-format
 msgid "Failed to check for existing LFN in %s: %s"
 msgstr "Misslyckades med att kontrollera existerande LFN i %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:421
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:422
 #, c-format
 msgid "There is same LFN in %s"
 msgstr "Samma LFN finns i %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:436
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:437
 #, c-format
 msgid "Failed to add LFN-GUID to RLS: %s"
 msgstr "Misslyckades med att lägga till LFN-GUID till RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:496
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:497
 #, c-format
 msgid "Failed to create/add LFN-PFN mapping: %s"
 msgstr "Misslyckades med att skapa/lägga till LFN-PFN-mappning"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:513
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:526
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:540
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:554
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:569
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:514
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:527
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:541
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:555
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:570
 #, c-format
 msgid "Warning: failed to add attribute to RLS: %s"
 msgstr "Varning: misslyckades med att lägga till attribut till RLS: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:650
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:784
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:651
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:785
 #, c-format
 msgid "Warning: Failed to retrieve LFN/PFNs from %s: %s"
 msgstr "Varning: misslyckades med att hämta LFN/PFN från %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:669
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:689
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:811
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:834
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:670
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:690
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:812
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:835
 #, c-format
 msgid "Warning: Failed to delete LFN/PFN from %s: %s"
 msgstr "Varning: Misslyckades med att ta bort LFN/PFN från %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:739
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:740
 msgid "LFN must be already deleted, try LRC anyway"
 msgstr "LFN måste redan vara borttagen, försöker med LRC ändå"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:743
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:744
 #, c-format
 msgid "Failed to retrieve LFN/LRC: %s"
 msgstr "Misslyckades med att hämta LFN/LRC: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:765
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:766
 #, c-format
 msgid "Warning: Failed to connect to LRC at %s: %s"
 msgstr "Varning: Misslyckades med att koppla upp mot LRC på %s: %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:993
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:996
 #, c-format
 msgid "No LFNs found in %s"
 msgstr "Inga LFN funna i %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:997
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1000
 #, c-format
 msgid "Failed to retrieve list of LFNs/PFNs from %s"
 msgstr "Misslyckades med att hämta LFN/PFN-lista från %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1036
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1039
 #, c-format
 msgid "lfn: %s(%s) - %s"
 msgstr "lfn: %s(%s) - %s"
 
-#: ../src/hed/dmc/rls/DataPointRLS.cpp:1051
+#: ../src/hed/dmc/rls/DataPointRLS.cpp:1054
 #, c-format
 msgid "lfn: %s - pfn: %s"
 msgstr "lfn: %s - pfn: %s"
@@ -2210,7 +2469,7 @@ msgid "Warning: can't get list of senders from server %s: %s"
 msgstr "Varning: kan inte erhålla sändarlista från server %s: %s"
 
 #: ../src/hed/identitymap/IdentityMap.cpp:101
-#: ../src/hed/pdc/simplelistsh/SimpleListAuthZ.cpp:73
+#: ../src/hed/pdc/arcauthzsh/ArcAuthZ.cpp:73
 #, c-format
 msgid "PDP: %s can not be loaded"
 msgstr "PDP: %s kan inte laddas"
@@ -2220,305 +2479,176 @@ msgstr "PDP: %s kan inte laddas"
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr "Grididentitet mappas till lokal identitet '%s'"
 
-#: ../src/hed/libs/client/JobController.cpp:52
+#: ../src/hed/libs/client/JobController.cpp:54
 #, c-format
 msgid "Job: %s"
 msgstr "Jobb: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:54
+#: ../src/hed/libs/client/JobController.cpp:56
 #, c-format
 msgid " Name: %s"
 msgstr " Namn: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:56
+#: ../src/hed/libs/client/JobController.cpp:58
 #, c-format
 msgid " Status: %s"
 msgstr " Status: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:58
+#: ../src/hed/libs/client/JobController.cpp:60
 #, c-format
 msgid " Exit Code: %d"
 msgstr " Avslutningskod: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:60
+#: ../src/hed/libs/client/JobController.cpp:62
 #, c-format
 msgid " Errors: %s"
 msgstr " Fel: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:64
-#: ../src/hed/libs/client/TargetGenerator.cpp:173
+#: ../src/hed/libs/client/JobController.cpp:66
+#: ../src/hed/libs/client/TargetGenerator.cpp:178
 #, c-format
 msgid " Owner: %s"
 msgstr " Ägare: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:66
+#: ../src/hed/libs/client/JobController.cpp:68
 #, c-format
 msgid " Comment: %s"
 msgstr " Kommentar: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:68
+#: ../src/hed/libs/client/JobController.cpp:70
 #, c-format
 msgid " Cluster: %s"
 msgstr " Kluster: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:70
+#: ../src/hed/libs/client/JobController.cpp:72
 #, c-format
 msgid " Queue: %s"
 msgstr " Kö: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:72
+#: ../src/hed/libs/client/JobController.cpp:74
 #, c-format
 msgid " Requested Number of CPUs: %d"
 msgstr " Begärt antal CPUs: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:74
+#: ../src/hed/libs/client/JobController.cpp:76
 #, c-format
 msgid " Rank: %d"
 msgstr " Rank: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:76
+#: ../src/hed/libs/client/JobController.cpp:78
 #, c-format
 msgid " stdin: %s"
 msgstr " stdin: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:78
+#: ../src/hed/libs/client/JobController.cpp:80
 #, c-format
 msgid " stdout: %s"
 msgstr " stdout: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:80
+#: ../src/hed/libs/client/JobController.cpp:82
 #, c-format
 msgid " stderr: %s"
 msgstr " stderr: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:82
+#: ../src/hed/libs/client/JobController.cpp:84
 #, c-format
 msgid " Grid Manager Log Directory: %s"
 msgstr " Gridhanterarens loggkatalog: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:84
+#: ../src/hed/libs/client/JobController.cpp:86
 #, c-format
 msgid " Submitted: %s"
 msgstr " Insändare: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:86
+#: ../src/hed/libs/client/JobController.cpp:88
 #, c-format
 msgid " Completed: %s"
 msgstr " Slutfört: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:88
+#: ../src/hed/libs/client/JobController.cpp:90
 #, c-format
 msgid " Submitted from: %s"
 msgstr " Insänt från %s"
 
-#: ../src/hed/libs/client/JobController.cpp:90
+#: ../src/hed/libs/client/JobController.cpp:92
 #, c-format
 msgid " Submitting client: %s"
 msgstr " Insändande klient: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:92
+#: ../src/hed/libs/client/JobController.cpp:94
 #, c-format
 msgid " Requested CPU Time: %s"
 msgstr " Begärd CPU-tid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:94
+#: ../src/hed/libs/client/JobController.cpp:96
 #, c-format
 msgid " Used CPU Time: %s"
 msgstr " Använd CPU-tid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:96
+#: ../src/hed/libs/client/JobController.cpp:98
 #, c-format
 msgid " Used Wall Time: %s"
 msgstr " Använd klocktid: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:98
+#: ../src/hed/libs/client/JobController.cpp:100
 #, c-format
 msgid " Used Memory: %d"
 msgstr " Använt minne: %d"
 
-#: ../src/hed/libs/client/JobController.cpp:101
+#: ../src/hed/libs/client/JobController.cpp:103
 #, c-format
 msgid " Results were deleted: %s"
 msgstr " Resultaten har raderats: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:104
+#: ../src/hed/libs/client/JobController.cpp:106
 #, c-format
 msgid " Proxy valid until: %s"
 msgstr " Proxy giltig till: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:106
+#: ../src/hed/libs/client/JobController.cpp:108
 #, c-format
 msgid " Entry valid from: %s"
 msgstr " Post giltig från: %s"
 
-#: ../src/hed/libs/client/JobController.cpp:108
+#: ../src/hed/libs/client/JobController.cpp:110
 #, c-format
 msgid " Entry valid until: %s"
 msgstr " Post giltig till: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:118
+#: ../src/hed/libs/client/TargetGenerator.cpp:123
 #, c-format
 msgid "Number of Targets found: %ld"
 msgstr "Antal funna destinationer: %ld"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:167
+#: ../src/hed/libs/client/TargetGenerator.cpp:172
 #, c-format
 msgid "Cluster: %s"
 msgstr "Kluster: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:169
-#, c-format
-msgid " Alias: %s"
-msgstr " Alias: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:175
-#, c-format
-msgid " PostCode: %s"
-msgstr " Postnummer: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:177
-#, c-format
-msgid " Place: %s"
-msgstr " Ort: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:179
-#, c-format
-msgid " Latitude: %f"
-msgstr " Latitud: %f"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:181
-#, c-format
-msgid " Longitude: %f"
-msgstr " Longitud: %f"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:183
-msgid "Endpoint information"
-msgstr "Ändpunktsinformation"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:185
-#, c-format
-msgid " URL: %s"
-msgstr " URL: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:187
-#, c-format
-msgid " Interface Name: %s"
-msgstr " Gränssnittsnamn: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:189
-#, c-format
-msgid " Interface Version: %s"
-msgstr " Gränssnittsversion: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:191
-#, c-format
-msgid " Implementor: %s"
-msgstr " Implementerare: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:193
-#, c-format
-msgid " Implementation Name: %s"
-msgstr " Implementeringsnamn: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:195
-#, c-format
-msgid " Implementation Version: %s"
-msgstr " Implementeringsversion: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:197
+#: ../src/hed/libs/client/TargetGenerator.cpp:174
 #, c-format
 msgid " Health State: %s"
 msgstr " Hälsotillstånd: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:199
+#: ../src/hed/libs/client/TargetGenerator.cpp:180
 #, c-format
-msgid " Issuer CA: %s"
-msgstr " Utfärdar-CA: %s"
+msgid " PostCode: %s"
+msgstr " Postnummer: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:201
+#: ../src/hed/libs/client/TargetGenerator.cpp:182
 #, c-format
-msgid " Staging: %s"
-msgstr " Laddar ned/upp: %s"
+msgid " Place: %s"
+msgstr " Ort: %s"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:203
-msgid "Queue information"
-msgstr "Köinformation"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:205
+#: ../src/hed/libs/client/TargetGenerator.cpp:184
 #, c-format
-msgid " Mapping Queue: %s"
-msgstr " Mappar till kö: %s"
+msgid " Latitude: %f"
+msgstr " Latitud: %f"
 
-#: ../src/hed/libs/client/TargetGenerator.cpp:207
+#: ../src/hed/libs/client/TargetGenerator.cpp:186
 #, c-format
-msgid " Max Wall Time: %s"
-msgstr " Största klocktid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:209
-#, c-format
-msgid " Min Wall Time: %s"
-msgstr " Minsta klocktid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:211
-#, c-format
-msgid " Default Wall Time: %s"
-msgstr " Förvald klocktid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:213
-#, c-format
-msgid " Max CPU Time: %s"
-msgstr " Största CPU-tid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:215
-#, c-format
-msgid " Min CPU Time: %s"
-msgstr " Minsta CPU-tid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:217
-#, c-format
-msgid " Default CPU Time: %s"
-msgstr " Förvald CPU-tid: %s"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:219
-#, c-format
-msgid " Max Total Jobs: %i"
-msgstr " Största totalt antal jobb: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:221
-#, c-format
-msgid " Max Running Jobs: %i"
-msgstr " Största antal exekverande jobb: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:223
-#, c-format
-msgid " Max Waiting Jobs: %i"
-msgstr " Största antal väntade jobb: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:225
-#, c-format
-msgid " Max Pre LRMS Waiting Jobs: %i"
-msgstr " Största antal pre-LRMS-väntade jobb: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:227
-#, c-format
-msgid " Max User Running Jobs: %i"
-msgstr " Största antal exekverande jobb för användaren: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:229
-#, c-format
-msgid " Max Slots Per Job: %i"
-msgstr " Största antal slotar per jobb: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:231
-#, c-format
-msgid " Max Stage In Streams: %i"
-msgstr " Största antal nedladdningsströmmar: %i"
-
-#: ../src/hed/libs/client/TargetGenerator.cpp:233
-#: ../src/hed/libs/client/TargetGenerator.cpp:235
-#, c-format
-msgid " Max Stage Out Streams: %i"
-msgstr " Största antal uppladdningsströmmar: %i"
+msgid " Longitude: %f"
+msgstr " Longitud: %f"
 
 #: ../src/hed/libs/common/ArcLocation.cpp:52
 #, c-format
@@ -2630,115 +2760,115 @@ msgstr "Detta INFO-meddelande borde också ses"
 msgid "Initialize thread system"
 msgstr "Initialisera trådsystemet"
 
-#: ../src/hed/libs/common/URL.cpp:118
+#: ../src/hed/libs/common/URL.cpp:121
 #, c-format
 msgid "URL is not valid: %s"
 msgstr "URL:en är inte giltig: %s"
 
-#: ../src/hed/libs/common/URL.cpp:280
+#: ../src/hed/libs/common/URL.cpp:283
 #, c-format
 msgid "Unknown LDAP scope %s - using base"
 msgstr "Okänt LDAP-scope %s - använder base"
 
-#: ../src/hed/libs/common/URL.cpp:302
+#: ../src/hed/libs/common/URL.cpp:305
 msgid "Illegal URL - no hostname given"
 msgstr "Ogiltig URL - inget värdnamn givet"
 
-#: ../src/hed/libs/common/URL.cpp:682
+#: ../src/hed/libs/common/URL.cpp:685
 #, c-format
 msgid "urllist %s contains invalid URL: %s"
 msgstr "urllistan %s innehåller ogiltig URL: %s"
 
-#: ../src/hed/libs/common/URL.cpp:687
+#: ../src/hed/libs/common/URL.cpp:690
 #, c-format
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1623
+#: ../src/hed/libs/data/Cache.cpp:1621
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1286
 #, c-format
 msgid "cache_download_url_start: cache_open_list failed: %s"
 msgstr "cache_download_url_start: cache_open_list misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1639
+#: ../src/hed/libs/data/Cache.cpp:1637
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1295
 #, c-format
 msgid "cache_download_url_start: url not found: %s"
 msgstr "cache_download_url_start: url ej funnen: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1646
+#: ../src/hed/libs/data/Cache.cpp:1644
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1299
 #, c-format
 msgid "cache_download_url_start: unknown result from cache_search_list: %s"
 msgstr "cache_download_url_start: okänt resultat från cache_search_list: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1653
+#: ../src/hed/libs/data/Cache.cpp:1651
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1304
 #, c-format
 msgid "cache_download_url_start: locking url: %s (%s)"
 msgstr "cache_download_url_start: låser url: %s (%s)"
 
-#: ../src/hed/libs/data/Cache.cpp:1672
+#: ../src/hed/libs/data/Cache.cpp:1670
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1314
 #, c-format
 msgid "cache_download_file_start: failed to lock file: %s"
 msgstr "cache_download_file_start: misslyckades med att låsa fil: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1676
+#: ../src/hed/libs/data/Cache.cpp:1674
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1317
 #, c-format
 msgid "cache_download_file_start: locked file: %s"
 msgstr "cache_download_file_start: låste fil: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1686
+#: ../src/hed/libs/data/Cache.cpp:1684
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1325
 #, c-format
 msgid "cache_download_file_start: cache_read_info failed: %s"
 msgstr "cache_download_file_start: cache_read_info misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1696
+#: ../src/hed/libs/data/Cache.cpp:1694
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1330
 #, c-format
 msgid "cache_download_file_start: state - dead: %s"
 msgstr "cache_download_file_start: tillstånd - död: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1705
+#: ../src/hed/libs/data/Cache.cpp:1703
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1336
 #, c-format
 msgid "cache_download_file_start: state - new/failed: %s"
 msgstr "cache_download_file_start: tillstånd - ny/misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1719
+#: ../src/hed/libs/data/Cache.cpp:1717
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1341
 #, c-format
 msgid "cache_download_file_start: state - ready: %s"
 msgstr "cache_download_file_start: tillstånd - färdig: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1728
+#: ../src/hed/libs/data/Cache.cpp:1726
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1345
 #, c-format
 msgid "cache_download_file_start: state - UNKNOWN: %s"
 msgstr "cache_download_file_start: tillstånd - OKÄNT: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1753
+#: ../src/hed/libs/data/Cache.cpp:1751
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1359
 #, c-format
 msgid "cache_download_url_end: cache_open_list failed: %s"
 msgstr "cache_download_url_end: cache_open_list misslyckades: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1757
+#: ../src/hed/libs/data/Cache.cpp:1755
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1363
 #, c-format
 msgid "cache_download_url_end: file not found in list: %s"
 msgstr "cache_download_url_end: fil ej funnen i lista: %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1870
+#: ../src/hed/libs/data/Cache.cpp:1868
 #: ../src/services/a-rex/grid-manager/cache/cache.cpp:1445
 #, c-format
 msgid "Removing cache file: name = %s, url = %s"
 msgstr "Tar bort cachefil: namn = %s, url = %s"
 
-#: ../src/hed/libs/data/Cache.cpp:1880
+#: ../src/hed/libs/data/Cache.cpp:1878
 #, c-format
 msgid "Cleaned %llu bytes in cache"
 msgstr "Rensade %llu byte i cache"
@@ -3078,6 +3208,41 @@ msgstr "Lägg till plats: url: %s"
 msgid "Add location: metadata: %s"
 msgstr "Lägg till plats: metadata: %s"
 
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:211
+#, fuzzy
+msgid "mkdir_ftp: making &s"
+msgstr "mkdir_ftp: skapar %s"
+
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:286
+#, fuzzy, c-format
+msgid "start_reading_ftp: obtained size: %ull"
+msgstr "start_reading_ftp: erhöll storlek: %llu"
+
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:470
+#, fuzzy
+msgid "ftp_get_complete_callback"
+msgstr "ftp_complete_callback: OK"
+
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:497
+#, fuzzy
+msgid "start_writing_ftp"
+msgstr "start_writing_ftp: put"
+
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:622
+#, fuzzy
+msgid "ftp_put_complete_callback"
+msgstr "ftp_complete_callback: OK"
+
+#: ../src/hed/libs/data/dmc/gridftp/DataPointGridFTP.cpp:668
+#, fuzzy, c-format
+msgid "Globus error %s"
+msgstr "Globusfel: %s"
+
+#: ../src/hed/libs/data/dmc/gridftp/Lister.cpp:463
+#, fuzzy
+msgid "Closed successfuly"
+msgstr "Stängdes OK"
+
 #: ../src/hed/libs/data/URLMap.cpp:32
 #, c-format
 msgid "file %s is not accessible"
@@ -3088,48 +3253,48 @@ msgstr "fil %s är inte tillgänglig"
 msgid "Mapping %s to %s"
 msgstr "Mappar %s till %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:50
+#: ../src/hed/libs/infosys/InfoCache.cpp:52
 #, c-format
 msgid "cannot create directory: %s"
 msgstr "kan inte skapa katalog: %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:63
+#: ../src/hed/libs/infosys/InfoCache.cpp:65
 #, c-format
 msgid "Cache configuration: %s"
 msgstr "Cacheinställningar: %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:66
+#: ../src/hed/libs/infosys/InfoCache.cpp:68
 msgid "Missing cache root in configuration"
 msgstr "Cacherot saknas i inställningar"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:70
+#: ../src/hed/libs/infosys/InfoCache.cpp:72
 msgid "Missing service id"
 msgstr "Service-ID saknas"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:73
+#: ../src/hed/libs/infosys/InfoCache.cpp:75
 #, c-format
 msgid "Cache root: %s"
 msgstr "cacherot: %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:79
+#: ../src/hed/libs/infosys/InfoCache.cpp:81
 #, c-format
 msgid "Cache directory: %s"
 msgstr "Cachekatalog: %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:143
-#: ../src/hed/libs/infosys/InfoCache.cpp:162
-#: ../src/hed/libs/infosys/InfoCache.cpp:181
-#: ../src/hed/libs/infosys/InfoCache.cpp:206
+#: ../src/hed/libs/infosys/InfoCache.cpp:145
+#: ../src/hed/libs/infosys/InfoCache.cpp:164
+#: ../src/hed/libs/infosys/InfoCache.cpp:183
+#: ../src/hed/libs/infosys/InfoCache.cpp:208
 msgid "InfoCache object is not set up"
 msgstr "InfoCache-objekt är inte inställt"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:147
-#: ../src/hed/libs/infosys/InfoCache.cpp:166
+#: ../src/hed/libs/infosys/InfoCache.cpp:149
+#: ../src/hed/libs/infosys/InfoCache.cpp:168
 #, c-format
 msgid "Invalid path in Set(): %s"
 msgstr "Ogiltig sökväg i Set(): %s"
 
-#: ../src/hed/libs/infosys/InfoCache.cpp:185
+#: ../src/hed/libs/infosys/InfoCache.cpp:187
 #, c-format
 msgid "Invalid path in Get(): %s"
 msgstr "Ogiltig sökväg i Get(): %s"
@@ -3375,25 +3540,25 @@ msgstr "Operation på sökväg \"%s\""
 msgid "No service at path \"%s\""
 msgstr "Ingen service på sökväg \"%s\""
 
-#: ../src/hed/libs/message/MCC.cpp:65 ../src/hed/libs/message/Service.cpp:22
+#: ../src/hed/libs/message/MCC.cpp:67 ../src/hed/libs/message/Service.cpp:22
 #, c-format
 msgid "No security processing/check requested for '%s'"
 msgstr "Ingen säkerhetsprocessering/kontroll begärd för '%s'"
 
-#: ../src/hed/libs/message/MCC.cpp:74 ../src/hed/libs/message/Service.cpp:34
+#: ../src/hed/libs/message/MCC.cpp:76 ../src/hed/libs/message/Service.cpp:34
 msgid "Security processing/check failed"
 msgstr "Säkerhetsprocessering/kontroll misslyckades"
 
-#: ../src/hed/libs/message/MCC.cpp:78 ../src/hed/libs/message/Service.cpp:30
+#: ../src/hed/libs/message/MCC.cpp:80 ../src/hed/libs/message/Service.cpp:30
 msgid "Security processing/check passed"
 msgstr "Säkerhetsprocessering/kontroll OK"
 
-#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:29
+#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:31
 #, c-format
 msgid "Id= %s,Type= %s,Issuer= %s,Value= %s"
 msgstr "Id= %s,Typ= %s,Utfärdare= %s,Värde= %s"
 
-#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:32
+#: ../src/hed/libs/security/ArcPDP/attr/RequestAttribute.cpp:34
 #, c-format
 msgid "No Attribute exists, which can deal with type: %s"
 msgstr "Inget attribut existerar som kan hantera typen: %s"
@@ -3403,23 +3568,22 @@ msgstr "Inget attribut existerar som kan hantera typen: %s"
 msgid "There is %d RequestItems"
 msgstr "Det finns %s RequestItem"
 
-#: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:93
-#: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:149
-#, c-format
-msgid "Failed to read request file %s"
-msgstr "Misslyckades med att läsa begäran från fil %s"
+#: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:83
+#, fuzzy
+msgid "Can not load arc evaluator object"
+msgstr "Kan inte generera policyobjekt"
 
-#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:29
-#, c-format
-msgid "Failed to read policy file %s"
-msgstr "Misslyckades med att läsa policyfil: %s"
+#: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:124
+#, fuzzy
+msgid "Can not load arc request object"
+msgstr "Kan inte hitta MCC-status-objekt"
 
-#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:102
-#, c-format
-msgid "Failed to read policy from URL %s"
-msgstr "Misslyckades med att läsa policy från URL %s"
+#: ../src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:165
+#, fuzzy
+msgid "Can not load policy object"
+msgstr "Kan inte generera policyobjekt"
 
-#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:122
+#: ../src/hed/libs/security/ArcPDP/PolicyParser.cpp:119
 msgid "Can not generate policy object"
 msgstr "Kan inte generera policyobjekt"
 
@@ -3460,7 +3624,7 @@ msgstr "tom indatabarlast"
 msgid "incoming message is not SOAP"
 msgstr "inkommande meddelande är inte SOAP"
 
-#: ../src/hed/mcc/soap/MCCSOAP.cpp:172 ../src/hed/mcc/soap/MCCSOAP.cpp:244
+#: ../src/hed/mcc/soap/MCCSOAP.cpp:172 ../src/hed/mcc/soap/MCCSOAP.cpp:285
 msgid "Security check failed in SOAP MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i SOAP MCC för inkommande meddelande"
 
@@ -3468,7 +3632,7 @@ msgstr "Säkerhetskontroll misslyckades i SOAP MCC för inkommande meddelande"
 msgid "empty next chain element"
 msgstr "tomt nästa kedjeelement"
 
-#: ../src/hed/mcc/soap/MCCSOAP.cpp:204 ../src/hed/mcc/soap/MCCSOAP.cpp:285
+#: ../src/hed/mcc/soap/MCCSOAP.cpp:204 ../src/hed/mcc/soap/MCCSOAP.cpp:244
 msgid "Security check failed in SOAP MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i SOAP MCC för utgående meddelande"
 
@@ -3549,7 +3713,7 @@ msgstr "Värd saknas i Connect-element"
 msgid "client process called"
 msgstr "klientprocess anropad"
 
-#: ../src/hed/mcc/tcp/MCCTCP.cpp:490 ../src/hed/mcc/tls/MCCTLS.cpp:728
+#: ../src/hed/mcc/tcp/MCCTCP.cpp:490 ../src/hed/mcc/tls/MCCTLS.cpp:742
 msgid "Failed to send content of buffer"
 msgstr "Misslyckades med att skicka innehåll till buffer"
 
@@ -3672,88 +3836,88 @@ msgstr "Saknade villkorssubjekt i Globus signeringspolicy"
 msgid "Unknown element in Globus signing policy"
 msgstr "Okänt element i Globus sugneringspolicy"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:64
+#: ../src/hed/mcc/tls/MCCTLS.cpp:65
 msgid "Failed to store application data into OpenSSL"
 msgstr "Misslyckades med att lagra tillämpningsdata i OpenSSL"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:79
+#: ../src/hed/mcc/tls/MCCTLS.cpp:80
 msgid "Failed to retrieve application data from OpenSSL"
 msgstr "Misslyckades med att hämta tillämpningsdata från OpenSSL"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:169
+#: ../src/hed/mcc/tls/MCCTLS.cpp:170
 #, c-format
 msgid "Certificate %s failed Globus signing policy"
 msgstr "Certifikat %s underkändes av Globus signeringspolicy"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:326
+#: ../src/hed/mcc/tls/MCCTLS.cpp:340
 msgid "tls_random_seed from file: could not read files"
 msgstr "tls_random_seed från fil: kunde inte läsa filer"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:380
+#: ../src/hed/mcc/tls/MCCTLS.cpp:394 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:18
 #, c-format
 msgid "Can not load certificate file - %s"
 msgstr "Kunde inte ladda certifikatfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:386
+#: ../src/hed/mcc/tls/MCCTLS.cpp:400 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:26
 #, c-format
 msgid "Can not load key file - %s"
 msgstr "Kunde inte ladda nyckelfil - %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:391
+#: ../src/hed/mcc/tls/MCCTLS.cpp:405 ../src/hed/mcc/tls/PayloadTLSMCC.cpp:32
 msgid "Private key does not match certificate"
 msgstr "Den privata nyckeln passar inte certifikatet"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:423
+#: ../src/hed/mcc/tls/MCCTLS.cpp:437
 msgid "MCC_TLS::do_ssl_init"
 msgstr "MCC_TLS::do_ssl_init"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:426
+#: ../src/hed/mcc/tls/MCCTLS.cpp:440
 msgid "SSL_library_init failed"
 msgstr "SSL_library_init misslyckades"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:438
+#: ../src/hed/mcc/tls/MCCTLS.cpp:452
 msgid "Failed to allocate SSL locks"
 msgstr "Misslyckades med att allokera SSL-lås"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:476 ../src/hed/mcc/tls/MCCTLS.cpp:668
+#: ../src/hed/mcc/tls/MCCTLS.cpp:490 ../src/hed/mcc/tls/MCCTLS.cpp:682
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:503 ../src/hed/mcc/tls/MCCTLS.cpp:686
+#: ../src/hed/mcc/tls/MCCTLS.cpp:517 ../src/hed/mcc/tls/MCCTLS.cpp:700
 msgid "Can't set OpenSSL verify flags"
 msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:520
+#: ../src/hed/mcc/tls/MCCTLS.cpp:534
 msgid "DH set error"
 msgstr "DH-fel"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:599
+#: ../src/hed/mcc/tls/MCCTLS.cpp:613
 #, c-format
 msgid "Peer name: %s"
 msgstr "Peer-namn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:603 ../src/hed/mcc/tls/MCCTLS.cpp:614
+#: ../src/hed/mcc/tls/MCCTLS.cpp:617 ../src/hed/mcc/tls/MCCTLS.cpp:628
 #, c-format
 msgid "Identity name: %s"
 msgstr "Identitetsnamn: %s"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:630 ../src/hed/mcc/tls/MCCTLS.cpp:719
+#: ../src/hed/mcc/tls/MCCTLS.cpp:644 ../src/hed/mcc/tls/MCCTLS.cpp:750
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för inkommande meddelande"
 
-#: ../src/hed/mcc/tls/MCCTLS.cpp:736
+#: ../src/hed/mcc/tls/MCCTLS.cpp:733
 msgid "Security check failed in TLS MCC for outgoing message"
 msgstr "Säkerhetskontroll misslyckades i TLS MCC för utgående meddelande"
 
-#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:59
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:57
 msgid "Failed to establish SSL connection"
 msgstr "Misslyckades med att etablera SSL-förbindelse"
 
-#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:86
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:84
 msgid "Failed to accept SSL connection"
 msgstr "Misslyckades med att acceptera SSL-förbindelse"
 
-#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:110
+#: ../src/hed/mcc/tls/PayloadTLSMCC.cpp:108
 msgid "Failed to shut down SSL"
 msgstr "Misslyckades med att stänga av SSL"
 
@@ -3768,25 +3932,52 @@ msgid "DEBUG: SSL_write error: %d %s:%s:%s"
 msgstr "DEBUG: SSL_write fel: %d %s:%s:%s"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:106
-#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:124
-msgid "Peer cert cannot be extracted"
+#, fuzzy
+msgid "Peer certificate cannot be extracted"
 msgstr "Peer-certifikat kunde inte extraheras"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:110
-#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:128
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:138
 msgid "Peer cert verification fail"
 msgstr "Peer-certifikatvalidering misslyckades"
 
 #: ../src/hed/mcc/tls/PayloadTLSStream.cpp:111
-#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:129
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:290
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:139
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:178
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:101
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:202
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:173
 #: ../src/services/a-rex/PayloadFile.cpp:36
-#: ../src/services/pdp/pdpservice.cpp:88
+#: ../src/services/pdp/pdpservice.cpp:98
 #, c-format
 msgid "%s"
 msgstr "%s"
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:122
+#, fuzzy
+msgid "Certificate cannot be extracted"
+msgstr "Peer-certifikat kunde inte extraheras"
+
+#: ../src/hed/mcc/tls/PayloadTLSStream.cpp:134
+msgid "Peer cert cannot be extracted"
+msgstr "Peer-certifikat kunde inte extraheras"
+
+#: ../src/hed/pdc/arcauthzsh/ArcAuthZ.cpp:48
+#, fuzzy
+msgid ""
+"ArcAuthZ: failed to initiate all PDPs - this instance will be non-functional"
+msgstr ""
+"SimpleListAuthZ: misslyckades med att initiera alla PDP:er - denna instans "
+"kommer inte att fungera"
+
+#: ../src/hed/pdc/arcauthzsh/ArcAuthZ.cpp:69
+#, c-format
+msgid "PDP: %s (%d)"
+msgstr "PDP: %s (%d)"
+
+#: ../src/hed/pdc/arcauthzsh/ArcAuthZ.cpp:77
+#, c-format
+msgid "PDP: %s name is duplicate"
+msgstr "PDP: %s namn är duplicerat"
 
 #: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:56
 msgid "Can not parse classname for FunctionFactory from configuration"
@@ -3822,71 +4013,79 @@ msgstr "Kan inte skapa FnFactory dynamiskt"
 msgid "Can not dynamically produce AlgFacroty"
 msgstr "Kan inte skapa AlgFactory dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:166 ../src/hed/pdc/test.cpp:134
-#: ../src/hed/pdc/testinterface.cpp:75 ../src/hed/pdc/testinterface.cpp:97
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:122
+#, fuzzy
+msgid "Can not create PolicyStore object"
+msgstr "Kan inte generera policyobjekt"
+
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:168 ../src/hed/pdc/test.cpp:136
+#: ../src/hed/pdc/testinterface.cpp:76 ../src/hed/pdc/testinterface.cpp:103
 msgid "Can not dynamically produce Request"
 msgstr "Kan inte skapa Request dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:256
+#: ../src/hed/pdc/arcpdp/ArcEvaluator.cpp:240
 #, c-format
 msgid "Result value (0 means success): %d"
 msgstr "Resultatvärde (0 betyder OK): %d"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:139
-msgid ""
-"Although there is pdp configuration for this component, no pdp context has "
-"been generated for it"
-msgstr ""
-"Trots att det finns en pdp-inställning för denna komponent, har ingen pdp-"
-"kontext skapats för detta"
-
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:169
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:121
 #: ../src/hed/pdc/countpdp/CountPDP.cpp:41
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:110
-#: ../src/hed/pdc/test.cpp:47 ../src/hed/pdc/testinterface.cpp:38
-#: ../src/services/pdp/pdpservice.cpp:133
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:81 ../src/hed/pdc/test.cpp:47
+#: ../src/hed/pdc/testinterface.cpp:38 ../src/services/pdp/pdpservice.cpp:158
 msgid "Can not dynamically produce Evaluator"
 msgstr "Kan inte skapa Evaluator dynamiskt"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:172
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:124
 msgid "Evaluator for ArcPDP was not loaded"
 msgstr "Utvärderare för ArcPDP laddedes inte"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:243
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:131
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:54
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:58
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:61
 msgid "Missing security object in message"
 msgstr "Säkerhetsobjekt saknas i meddelande"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:251 ../src/hed/pdc/arcpdp/ArcPDP.cpp:259
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:163
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:169
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:139 ../src/hed/pdc/arcpdp/ArcPDP.cpp:147
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:134
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:140
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:66
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:74
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:69
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:77
 msgid "Failed to convert security information to ARC request"
 msgstr "Misslyckades med att konvertera säkerhetsinformation till ARC-begäran"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:267
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:176
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:155
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:147
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:82
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:85
 #, c-format
 msgid "ARC Auth. request: %s"
 msgstr "ARC-auktoriseringsförfrågan: %s"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:270
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:179
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:158
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:150
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:85
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:88
 msgid "No requested security information was collected"
 msgstr "Ingen begärd säkerhetsinformation samlades in"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:276
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:186
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:164
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:157
 #, c-format
 msgid "There are %d requests, which satisfy at least one policy"
 msgstr "Det finns %d begärningar som uppfyller åtminstone en policy"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:296
-msgid "Authorized from arc.pdp!!!"
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:189
+#, fuzzy
+msgid "Authorized from arc.pdp"
 msgstr "Autoriserad från arc.pdp!!!"
 
-#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:302
-msgid "UnAuthorized from arc.pdp!!!"
-msgstr "Oautoriserad från arc.pdp!!!"
+#: ../src/hed/pdc/arcpdp/ArcPDP.cpp:195
+msgid ""
+"UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy"
+msgstr ""
 
 #: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:34
 #: ../src/hed/pdc/arcpdp/ArcPolicy.cpp:40
@@ -3903,9 +4102,9 @@ msgstr "PolicyId: %s  Alg inuti denna policy är:-- %s"
 msgid "Request xml structure is: %s"
 msgstr "Request xml structure är: %s"
 
-#: ../src/hed/pdc/countpdp/CountPDP.cpp:87 ../src/hed/pdc/test.cpp:58
-#: ../src/hed/pdc/test.cpp:147 ../src/hed/pdc/testinterface.cpp:128
-#: ../src/services/pdp/pdpservice.cpp:72
+#: ../src/hed/pdc/countpdp/CountPDP.cpp:87 ../src/hed/pdc/test.cpp:60
+#: ../src/hed/pdc/test.cpp:150 ../src/hed/pdc/testinterface.cpp:125
+#: ../src/services/pdp/pdpservice.cpp:82
 #, c-format
 msgid "There is %d subjects, which satisfy at least one policy"
 msgstr "Det finns %d subjekt som uppfyller åtminstone en policy"
@@ -3919,29 +4118,58 @@ msgid "UnAuthorized from count.pdp!!!"
 msgstr "Oautoriserad från count.pdp!!!"
 
 #: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:72
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:155
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:126
 msgid "No delegation policies in this context and message - passing through"
 msgstr ""
 "Inga delegeringspolicyer i denna kontext och meddelande - passerar igenom"
 
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:121
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:135
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:92
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:106
 msgid "Failed to convert security information to ARC policy"
 msgstr "Misslyckades med att konvertera säkerhetsinformation till ARC-policy"
 
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:142
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:149
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:113
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:120
 #, c-format
 msgid "ARC delegation policy: %s"
 msgstr "ARC delegeringspolicy: %s"
 
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:213
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:184
 msgid "Delegation authorization passed"
 msgstr "Delegeringsauktorisering lyckades"
 
-#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:215
+#: ../src/hed/pdc/delegationsh/DelegationPDP.cpp:186
 msgid "Delegation authorization failed"
 msgstr "Delegeringsauktorisering misslyckades"
+
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:37
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:37
+#, fuzzy
+msgid "Creating a pdpservice client"
+msgstr "Skapar en echo-klient."
+
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:102
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:105
+#, fuzzy
+msgid "Policy Decision Service invokation failed"
+msgstr "Insändningsförfrågan misslyckades."
+
+#: ../src/hed/pdc/pdpserviceinvoke_bak/ArcPDPServiceInvoker.cpp:106
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:109
+#: ../src/tests/echo/test_clientinterface.cpp:60
+#, fuzzy
+msgid "There was no SOAP response"
+msgstr "Det fanns inget SOAP-svar."
+
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:122
+#, fuzzy
+msgid "Authorized from remote pdp service"
+msgstr "Autoriserad från Service PDP"
+
+#: ../src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.cpp:123
+#, fuzzy
+msgid "Unauthorized from remote pdp service"
+msgstr "Oautoriserad från count.pdp!!!"
 
 #: ../src/hed/pdc/simplelistpdp/SimpleListPDP.cpp:27
 #, c-format
@@ -3971,28 +4199,6 @@ msgstr "Autoriserad från simplelist.pdp!!!"
 msgid "Not authorized from simplelist.pdp!!!"
 msgstr "Ej autoriserad från simplelist.pdp!!!"
 
-#: ../src/hed/pdc/simplelistsh/SimpleListAuthZ.cpp:48
-msgid ""
-"SimpleListAuthZ: failed to initiate all PDPs - this instance will be non-"
-"functional"
-msgstr ""
-"SimpleListAuthZ: misslyckades med att initiera alla PDP:er - denna instans "
-"kommer inte att fungera"
-
-#: ../src/hed/pdc/simplelistsh/SimpleListAuthZ.cpp:69
-#, c-format
-msgid "PDP: %s (%d)"
-msgstr "PDP: %s (%d)"
-
-#: ../src/hed/pdc/simplelistsh/SimpleListAuthZ.cpp:77
-msgid "PDP should have ID"
-msgstr "PDP skall ha ID"
-
-#: ../src/hed/pdc/simplelistsh/SimpleListAuthZ.cpp:80
-#, c-format
-msgid "PDP: %s name is duplicate"
-msgstr "PDP: %s namn är duplicerat"
-
 #: ../src/hed/pdc/test.cpp:30 ../src/hed/pdc/testinterface.cpp:29
 msgid "Start test"
 msgstr "Påbörja test"
@@ -4001,52 +4207,74 @@ msgstr "Påbörja test"
 msgid "Input request from a file: Request.xml"
 msgstr "Mata in begäran från en fil: Request.xml"
 
-#: ../src/hed/pdc/test.cpp:72 ../src/hed/pdc/testinterface.cpp:142
+#: ../src/hed/pdc/test.cpp:74
 #, c-format
 msgid "Attribute Value (1): %s"
 msgstr "Attributvärde (1): %s"
 
-#: ../src/hed/pdc/test.cpp:83
+#: ../src/hed/pdc/test.cpp:85
 msgid "Input request from code"
 msgstr "Mata in begäran från kod"
 
-#: ../src/hed/pdc/test.cpp:161
+#: ../src/hed/pdc/test.cpp:164
 #, c-format
 msgid "Attribute Value (2): %s"
 msgstr "Attributvärde (2): %s"
 
-#: ../src/hed/pdc/testinterface.cpp:147
+#: ../src/hed/pdc/testinterface.cpp:139
+#, fuzzy, c-format
+msgid "Attribute Value inside Subject: %s"
+msgstr "Attributvärde (1): %s"
+
+#: ../src/hed/pdc/testinterface.cpp:149
 msgid "The request has passed the policy evaluation"
 msgstr "Begäran har passerat policyutvärderingen"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:33
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:63
-msgid "Username Token extraction is not supported yet"
-msgstr "Användarnamnstokenextrahering stöds ännu inte"
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:38
+#, fuzzy
+msgid "Missing or empty PasswordSource element"
+msgstr "Username-element saknas eller är tomt"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:42
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:49
 #, c-format
 msgid "Password encoding type not supported: %s"
 msgstr "Lösenordskodningstyp ej understödd: %s"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:47
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:54
 msgid "Missing or empty Username element"
 msgstr "Username-element saknas eller är tomt"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:53
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:60
 #, c-format
 msgid "Processing type not supported: %s"
 msgstr "Processeringstyp understöds inte: %s"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:71
-msgid "Failed to generate Username Token"
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:74
+#, fuzzy
+msgid "Failed to parse Username Token from incoming SOAP"
 msgstr "Misslyckades med att skapa användarnamnstoken"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:75
-msgid "Message is not SOAP"
-msgstr "Meddelandet är inte SOAP"
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:80
+#, fuzzy
+msgid "Failed to authenticate Username Token inside the incoming SOAP"
+msgstr "Misslyckades med att skapa användarnamnstoken"
 
-#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:79
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:85
+#, fuzzy
+msgid "Incoming Message is not SOAP"
+msgstr "inkommande meddelande är inte SOAP"
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:94
+#, fuzzy
+msgid "Failed to generate Username Token for outgoin SOAP"
+msgstr "Misslyckades med att skapa användarnamnstoken"
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:98
+#, fuzzy
+msgid "Outgoing Message is not SOAP"
+msgstr "inkommande meddelande är inte SOAP"
+
+#: ../src/hed/pdc/usernametokensh/UsernameTokenSH.cpp:102
 msgid "Username Token handler is not configured"
 msgstr "Användarnamnstokenhanteraren har ej ställts in"
 
@@ -4062,121 +4290,121 @@ msgstr "Ogiltig effekt"
 msgid "No target available inside the rule"
 msgstr "Inget mål tillgängligt inuti regeln"
 
-#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:202
+#: ../src/services/arex2/arex2.cpp:113 ../src/services/a-rex/arex.cpp:219
 #: ../src/services/isis/centralisi.cpp:150
-#: ../src/services/pdp/pdpservice.cpp:56 ../src/services/saml/aaservice.cpp:94
+#: ../src/services/pdp/pdpservice.cpp:58 ../src/services/saml/aaservice.cpp:94
 #: ../src/services/sched/grid_sched.cpp:78
 #: ../src/services/wrappers/java/javawrapper.cpp:112
 #: ../src/services/wrappers/python/pythonwrapper.cpp:327
 msgid "input is not SOAP"
 msgstr "indata är inte SOAP"
 
-#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:215
+#: ../src/services/arex2/arex2.cpp:120 ../src/services/a-rex/arex.cpp:232
 #: ../src/services/isis/centralisi.cpp:156
 #: ../src/services/sched/grid_sched.cpp:84 ../src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "indata definierar ej operation"
 
-#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:218
+#: ../src/services/arex2/arex2.cpp:123 ../src/services/a-rex/arex.cpp:235
 #: ../src/services/isis/centralisi.cpp:162
 #: ../src/services/sched/grid_sched.cpp:87 ../src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr "process: operation: %s"
 
-#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:261
+#: ../src/services/arex2/arex2.cpp:169 ../src/services/a-rex/arex.cpp:278
 #: ../src/services/isis/centralisi.cpp:201
 #: ../src/services/sched/grid_sched.cpp:145
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "SOAP-process understöds inte: %s"
 
-#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:268
-#: ../src/services/sched/grid_sched.cpp:153 ../src/tests/echo/echo.cpp:161
+#: ../src/services/arex2/arex2.cpp:176 ../src/services/a-rex/arex.cpp:285
+#: ../src/services/sched/grid_sched.cpp:153 ../src/tests/echo/echo.cpp:102
 #, c-format
 msgid "process: response=%s"
 msgstr "process: svar=%s"
 
-#: ../src/services/a-rex/arex.cpp:104
+#: ../src/services/a-rex/arex.cpp:121
 msgid "Will not map to 'root' account by default"
 msgstr "Kommer ej att mappa 'root'-konto som förval"
 
-#: ../src/services/a-rex/arex.cpp:117
+#: ../src/services/a-rex/arex.cpp:134
 msgid "No local account name specified"
 msgstr "Inget lokalt kontonamn specificerat"
 
-#: ../src/services/a-rex/arex.cpp:120
+#: ../src/services/a-rex/arex.cpp:137
 #, c-format
 msgid "Using local account '%s'"
 msgstr "Använder lokalt konto '%s'"
 
-#: ../src/services/a-rex/arex.cpp:141
+#: ../src/services/a-rex/arex.cpp:158
 msgid "Failed to acquire grid-manager's configuration"
 msgstr "Misslyckades med att ladda grid-managerns inställningar"
 
-#: ../src/services/a-rex/arex.cpp:156
+#: ../src/services/a-rex/arex.cpp:173
 #, c-format
 msgid "process: method: %s"
 msgstr "process: metod: %s"
 
-#: ../src/services/a-rex/arex.cpp:157
+#: ../src/services/a-rex/arex.cpp:174
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "process: ändpunkt: %s"
 
-#: ../src/services/a-rex/arex.cpp:173
+#: ../src/services/a-rex/arex.cpp:190
 #, c-format
 msgid "process: id: %s"
 msgstr "process: id: %s"
 
-#: ../src/services/a-rex/arex.cpp:174
+#: ../src/services/a-rex/arex.cpp:191
 #, c-format
 msgid "process: subpath: %s"
 msgstr "process: subsökväg: %s"
 
-#: ../src/services/a-rex/arex.cpp:179
+#: ../src/services/a-rex/arex.cpp:196
 msgid "Can't obtain configuration"
 msgstr "Misslyckades med att ladda inställningar"
 
-#: ../src/services/a-rex/arex.cpp:186 ../src/services/a-rex/arex.cpp:276
-#: ../src/services/a-rex/arex.cpp:297 ../src/services/a-rex/arex.cpp:320
+#: ../src/services/a-rex/arex.cpp:203 ../src/services/a-rex/arex.cpp:293
+#: ../src/services/a-rex/arex.cpp:314 ../src/services/a-rex/arex.cpp:337
 msgid "Security Handlers processing failed"
 msgstr "Säkerhetshanterarprocessering misslyckades"
 
-#: ../src/services/a-rex/arex.cpp:194 ../src/services/pdp/pdpservice.cpp:48
+#: ../src/services/a-rex/arex.cpp:211 ../src/services/pdp/pdpservice.cpp:50
 msgid "process: POST"
 msgstr "process: POST"
 
-#: ../src/services/a-rex/arex.cpp:210 ../src/tests/echo/echo.cpp:145
+#: ../src/services/a-rex/arex.cpp:227 ../src/tests/echo/echo.cpp:86
 #, c-format
 msgid "process: request=%s"
 msgstr "process: begäran=%s"
 
-#: ../src/services/a-rex/arex.cpp:223
+#: ../src/services/a-rex/arex.cpp:240
 msgid "process: factory endpoint"
 msgstr "process: factoryändpunkt"
 
-#: ../src/services/a-rex/arex.cpp:229
+#: ../src/services/a-rex/arex.cpp:246
 msgid "process: CreateActivity"
 msgstr "process: CreateActivity"
 
-#: ../src/services/a-rex/arex.cpp:292
+#: ../src/services/a-rex/arex.cpp:309
 msgid "process: GET"
 msgstr "process: GET"
 
-#: ../src/services/a-rex/arex.cpp:304
+#: ../src/services/a-rex/arex.cpp:321
 msgid "process: PUT"
 msgstr "process: PUT"
 
-#: ../src/services/a-rex/arex.cpp:310
+#: ../src/services/a-rex/arex.cpp:327
 msgid "PUT: input stream not implemented yet"
 msgstr "PUT: indataström ännu ej implementerad"
 
-#: ../src/services/a-rex/arex.cpp:314
+#: ../src/services/a-rex/arex.cpp:331
 msgid "PUT: input is neither stream nor buffer"
 msgstr "PUT: indata är varken ström eller buffer"
 
-#: ../src/services/a-rex/arex.cpp:328 ../src/services/pdp/pdpservice.cpp:110
+#: ../src/services/a-rex/arex.cpp:345 ../src/services/pdp/pdpservice.cpp:139
 #, c-format
 msgid "process: %s: not supported"
 msgstr "process: %s: understöds inte"
@@ -4340,19 +4568,19 @@ msgstr ""
 "GetActivityStatuses: begäran = \n"
 "%s"
 
-#: ../src/services/a-rex/get.cpp:72
+#: ../src/services/a-rex/get.cpp:69
 #, c-format
 msgid "Get: there is no job %s - %s"
 msgstr "Get: det finns inget jobb %s - %s"
 
-#: ../src/services/a-rex/get.cpp:79
+#: ../src/services/a-rex/get.cpp:76
 #, c-format
 msgid "Get: can't process file %s/%s"
 msgstr "Get: kan inte processera fil %s/%s"
 
-#: ../src/services/a-rex/get.cpp:87
-#, c-format
-msgid "http_get: start=%u, end=%u"
+#: ../src/services/a-rex/get.cpp:84
+#, fuzzy
+msgid "http_get: start=%u, end=%u, burl=%s, bpath=%s, hpath=%"
 msgstr "http_get: början=%u, slut=%u"
 
 #: ../src/services/a-rex/get_factory_attributes_document.cpp:36
@@ -4701,95 +4929,72 @@ msgstr "Fel katalog i %s"
 msgid "Failed to run cache registration routine: %s"
 msgstr "Misslyckades med att exekvera registreringrutin: %s"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:141
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:142
 msgid "Starting grid-manager thread"
 msgstr "Startar grid-manager-tråd"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:145
-msgid "Missing argument"
-msgstr "Saknat argument"
-
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:146
-#, c-format
-msgid "Unrecognized option: %s"
-msgstr "Okänd flagga: %s"
-
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:158
-msgid "Wrong clean level"
-msgstr "Felaktig rensnivå"
-
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:165
-msgid "Option processing error"
-msgstr "Inställningsprocesseringsfel"
-
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:174
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:179
 msgid "Can't initialize runtime environment - EXITING."
 msgstr "Kan inte initiera runtime-miljö - AVSLUTAR."
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:186
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:191
 msgid "Can't recognize own username - EXITING."
 msgstr "Kan inte känna igen eget användarnamn - AVSLUTAR."
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:190
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:203
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:195
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:208
 #, c-format
 msgid "Used configuration file %s"
 msgstr "Använd inställningsfil %s"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:191
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:196
 msgid "Error processing configuration - EXITING."
 msgstr "Fel vid processering av inställningar -AVSLUTAR."
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:194
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:199
 msgid "No suitable users found in configuration - EXITING."
 msgstr "Inga lämpliga användare funna i inställningar - AVSLUTAR."
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:235
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:240
 msgid "Globus COMMON module activation failed - EXITING"
 msgstr "Globus COMMON modulaktivering misslyckades - AVSLUTAR"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:238
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:243
 msgid "Globus RSL module activation failed - EXITING"
 msgstr "Globus RSL modulaktivering misslyckades - AVSLUTAR"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:248
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:253
 msgid "Failed to start new thread"
 msgstr "Misslyckades med att starta ny tråd"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:272
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:277
 msgid "Not all jobs are cleaned yet"
 msgstr "Alla jobb har inte rensats ännu"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:274
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:279
 msgid "Trying again"
 msgstr "Försöker igen"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:284
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:289
 #, c-format
 msgid "Cleaning all files in directories %s and %s"
 msgstr "Rensar alla filer i katalogerna %s och %s"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:292
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:297
 msgid "Jobs cleaned."
 msgstr "Jobb rensade."
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:295
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:300
 msgid "Failed to start new thread: cache won't be cleaned"
 msgstr "Misslyckades med att starta tråd: cache kommer ej att rensas"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:302
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:307
 msgid "Starting jobs' monitoring."
 msgstr "Startar jobbmonitorering"
 
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:326
+#: ../src/services/a-rex/grid-manager/grid_manager.cpp:331
 msgid "Timer kicking"
 msgstr "Timer avfyrad"
-
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:343
-#: ../src/services/a-rex/grid-manager/grid_manager.cpp:349
-#, c-format
-msgid "ARG: %s"
-msgstr "ARG: %s"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:106
 #, c-format
@@ -4806,7 +5011,7 @@ msgstr "JSDL: POSIX: %s"
 msgid "JSDL: HPCPA: %s"
 msgstr "JSDL: HPCPA: %s"
 
-#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:138
+#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:140
 #, c-format
 msgid ""
 "job description executable is provided by element [jsdl-hpcpa:Executable] - %"
@@ -4815,11 +5020,7 @@ msgstr ""
 "jobbeskrivningens exekverbara fil tillhandahålls av element [jsdl-hpcpa:"
 "Executable] - %s"
 
-#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:154
-msgid "job description contains no recognisable executable"
-msgstr "jobbeskrivning innehåller ingen igenkänningsbar exekverbar fil"
-
-#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:162
+#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:158
 #, c-format
 msgid ""
 "job description executable is provided by element [jsdl-posix:Executable] - %"
@@ -4827,6 +5028,10 @@ msgid ""
 msgstr ""
 "jobbeskrivningens exekverbara fil tillhandahålls av element [jsdl-posix:"
 "Executable] - %s"
+
+#: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:171
+msgid "job description contains no recognisable executable"
+msgstr "jobbeskrivning innehåller ingen igenkänningsbar exekverbar fil"
 
 #: ../src/services/a-rex/grid-manager/jobdesc/jsdl/jsdl_job.cpp:409
 msgid ""
@@ -5608,7 +5813,7 @@ msgstr "Skapar klientsidokedjan"
 #: ../src/services/saml/test_client.cpp:47 ../src/services/saml/test.cpp:57
 #: ../src/tests/count/test_client.cpp:49 ../src/tests/data/test.cpp:40
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:43
-#: ../src/tests/echo/test_client.cpp:53
+#: ../src/tests/echo/test_client.cpp:54
 msgid "Failed to load client configuration"
 msgstr "Misslyckades med att ladda klientinställningar"
 
@@ -5616,7 +5821,7 @@ msgstr "Misslyckades med att ladda klientinställningar"
 #: ../src/services/saml/test_client.cpp:51 ../src/services/saml/test.cpp:61
 #: ../src/tests/count/test_client.cpp:53
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:47
-#: ../src/tests/echo/test_client.cpp:57 ../src/tests/echo/test.cpp:43
+#: ../src/tests/echo/test_client.cpp:58 ../src/tests/echo/test.cpp:43
 msgid "Client side MCCs are loaded"
 msgstr "Klientsidans MCC:er har laddats"
 
@@ -5624,7 +5829,7 @@ msgstr "Klientsidans MCC:er har laddats"
 #: ../src/services/saml/test_client.cpp:54 ../src/services/saml/test.cpp:64
 #: ../src/tests/count/test_client.cpp:56
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:50
-#: ../src/tests/echo/test_client.cpp:60
+#: ../src/tests/echo/test_client.cpp:61
 msgid "Client chain does not have entry point"
 msgstr "Klientkedjan har ingen ingångspunkt"
 
@@ -5636,39 +5841,38 @@ msgstr "Misslyckades med att initiera delegering"
 #: ../src/services/a-rex/test.cpp:248 ../src/services/a-rex/test.cpp:296
 #: ../src/services/a-rex/test.cpp:344 ../src/services/a-rex/test.cpp:392
 #: ../src/services/paul/paul.cpp:165 ../src/services/paul/paul.cpp:346
-#: ../src/services/paul/paul.cpp:439 ../src/services/pdp/test.cpp:111
-#: ../src/services/saml/test_client.cpp:142 ../src/services/saml/test.cpp:152
-#: ../src/tests/count/test_client.cpp:83
+#: ../src/services/paul/paul.cpp:439 ../src/services/saml/test_client.cpp:142
+#: ../src/services/saml/test.cpp:152 ../src/tests/count/test_client.cpp:83
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:74
-#: ../src/tests/echo/test_client.cpp:84 ../src/tests/echo/test.cpp:59
+#: ../src/tests/echo/test_client.cpp:85 ../src/tests/echo/test.cpp:59
 msgid "Request failed"
 msgstr "Förfrågan misslyckades"
 
 #: ../src/services/a-rex/test.cpp:115 ../src/services/a-rex/test.cpp:194
 #: ../src/services/a-rex/test.cpp:251 ../src/services/a-rex/test.cpp:299
 #: ../src/services/a-rex/test.cpp:347 ../src/services/a-rex/test.cpp:395
-#: ../src/services/pdp/test.cpp:114 ../src/services/saml/test_client.cpp:145
-#: ../src/services/saml/test.cpp:155 ../src/tests/echo/test.cpp:67
+#: ../src/services/saml/test_client.cpp:145 ../src/services/saml/test.cpp:155
+#: ../src/tests/echo/test.cpp:67
 msgid "Request succeed!!!"
 msgstr "Förfrågan lyckades!!!"
 
 #: ../src/services/a-rex/test.cpp:117 ../src/services/a-rex/test.cpp:196
 #: ../src/services/a-rex/test.cpp:253 ../src/services/a-rex/test.cpp:301
 #: ../src/services/a-rex/test.cpp:349 ../src/services/a-rex/test.cpp:397
-#: ../src/services/pdp/test.cpp:116 ../src/services/saml/test_client.cpp:147
+#: ../src/services/pdp/test.cpp:118 ../src/services/saml/test_client.cpp:147
 #: ../src/services/saml/test.cpp:157 ../src/tests/count/test_client.cpp:89
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:80
-#: ../src/tests/echo/test_client.cpp:90 ../src/tests/echo/test.cpp:64
+#: ../src/tests/echo/test_client.cpp:91 ../src/tests/echo/test.cpp:64
 msgid "There is no response"
 msgstr "Det finns inget svar"
 
 #: ../src/services/a-rex/test.cpp:125 ../src/services/a-rex/test.cpp:204
 #: ../src/services/a-rex/test.cpp:261 ../src/services/a-rex/test.cpp:309
 #: ../src/services/a-rex/test.cpp:357 ../src/services/a-rex/test.cpp:405
-#: ../src/services/pdp/test.cpp:124 ../src/services/saml/test_client.cpp:155
+#: ../src/services/pdp/test.cpp:126 ../src/services/saml/test_client.cpp:155
 #: ../src/services/saml/test.cpp:165 ../src/tests/count/test_client.cpp:96
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:87
-#: ../src/tests/echo/test_client.cpp:97
+#: ../src/tests/echo/test_client.cpp:98
 msgid "Response is not SOAP"
 msgstr "Svaret är inte SOAP"
 
@@ -5680,7 +5884,8 @@ msgstr "Svaret är inte förväntad WS-RP"
 #: ../src/services/a-rex/test.cpp:275 ../src/services/a-rex/test.cpp:323
 #: ../src/services/a-rex/test.cpp:371 ../src/tests/count/test_client.cpp:60
 #: ../src/tests/echo/echo_test4axis2c/test_client.cpp:56
-#: ../src/tests/echo/test_client.cpp:66 ../src/tests/echo/test.cpp:47
+#: ../src/tests/echo/test_client.cpp:67
+#: ../src/tests/echo/test_clientinterface.cpp:46 ../src/tests/echo/test.cpp:47
 msgid "Creating and sending request"
 msgstr "Skapar och skickar förfrågan"
 
@@ -5965,18 +6170,58 @@ msgstr "Nedladdning"
 msgid "Stage out"
 msgstr "Uppladdning"
 
-#: ../src/services/pdp/pdpservice.cpp:62
-msgid "input does not include any request"
+#: ../src/services/pdp/pdpservice.cpp:64
+#, fuzzy
+msgid "soap body does not include any request node"
 msgstr "indata innehåller ingen förfrågan"
 
-#: ../src/services/pdp/pdpservice.cpp:67 ../src/services/pdp/test.cpp:95
+#: ../src/services/pdp/pdpservice.cpp:70 ../src/services/pdp/test.cpp:97
 #, c-format
 msgid "Request: %s"
 msgstr "Förfrågan: %s"
 
-#: ../src/services/pdp/pdpservice.cpp:74
+#: ../src/services/pdp/pdpservice.cpp:75
+#, fuzzy
+msgid "request node is empty"
+msgstr "maxrerun är tom"
+
+#: ../src/services/pdp/pdpservice.cpp:84
 msgid "Authorized from Service_PDP"
 msgstr "Autoriserad från Service PDP"
+
+#: ../src/services/pdp/pdpservice.cpp:109
+#, fuzzy
+msgid "The Request passed all the policies"
+msgstr "Begäran har passerat policyutvärderingen"
+
+#: ../src/services/pdp/pdpservice.cpp:110
+msgid "Some of the RequestItem does not satisfy Policy"
+msgstr ""
+
+#: ../src/services/pdp/pdpservice.cpp:154
+#, fuzzy, c-format
+msgid "Evaluator: %s"
+msgstr "Misslyckande: %s"
+
+#: ../src/services/pdp/pdpservice.cpp:160
+#, fuzzy
+msgid "Succeed to produce Evaluator"
+msgstr "Kan inte skapa Evaluator dynamiskt"
+
+#: ../src/services/pdp/pdpservice.cpp:170
+#, fuzzy, c-format
+msgid "Policy location: %s"
+msgstr "policyrad: %s"
+
+#: ../src/services/pdp/test.cpp:113
+#, fuzzy
+msgid "Policy Decision Request failed"
+msgstr "Insändningsförfrågan misslyckades."
+
+#: ../src/services/pdp/test.cpp:116
+#, fuzzy
+msgid "Policy Decision Request succeed!!!"
+msgstr "Förfrågan lyckades!!!"
 
 #: ../src/services/saml/aaservice.cpp:101
 msgid "lasso_assertion_query_process_request_msg failed"
@@ -6022,6 +6267,30 @@ msgstr "assertionResponseBody skall inte vara NULL"
 #: ../src/services/saml/test_client.cpp:69 ../src/services/saml/test.cpp:79
 msgid "lasso_assertion_query_new() failed"
 msgstr "lasso_assertion_query_new() misslyckades"
+
+#: ../src/services/saml/sp.cpp:41
+msgid "Failed to create context for pdp request and policy"
+msgstr "Misslyckades med att skapa kontext för pdp-begäran och policy"
+
+#: ../src/services/saml/sp.cpp:115
+msgid "Can't get pdp request and policy information"
+msgstr "Kan inte erhålla pdp-begäran och policyinformation"
+
+#: ../src/services/saml/sp.cpp:129 ../src/tests/count/count.cpp:89
+#: ../src/tests/echo/echo.cpp:70
+msgid "echo: Unauthorized"
+msgstr "echo: Oautoriserad"
+
+#: ../src/services/saml/sp.cpp:139 ../src/tests/count/count.cpp:58
+#: ../src/tests/echo/echo.cpp:80
+msgid "Input is not SOAP"
+msgstr "Indata är inte SOAP"
+
+#: ../src/services/saml/sp.cpp:145 ../src/tests/count/count.cpp:98
+#: ../src/tests/count/count.cpp:104 ../src/tests/echo/echo.cpp:91
+#, c-format
+msgid "Request is not supported - %s"
+msgstr "Förfrågan understöds inte - %s"
 
 #: ../src/services/saml/test_client.cpp:96 ../src/services/saml/test.cpp:106
 msgid "lasso_assertion_query_init_request failed"
@@ -6316,32 +6585,144 @@ msgstr "Kan inte skapa outmsg-argument"
 msgid "Cannot convert outmsg to python object"
 msgstr "Kan inte omvandla outmsg till pythonobjekt"
 
-#: ../src/tests/count/count.cpp:58 ../src/tests/echo/echo.cpp:139
-msgid "Input is not SOAP"
-msgstr "Indata är inte SOAP"
-
-#: ../src/tests/count/count.cpp:89 ../src/tests/echo/echo.cpp:129
-msgid "echo: Unauthorized"
-msgstr "echo: Oautoriserad"
-
-#: ../src/tests/count/count.cpp:98 ../src/tests/count/count.cpp:104
-#: ../src/tests/echo/echo.cpp:150
-#, c-format
-msgid "Request is not supported - %s"
-msgstr "Förfrågan understöds inte - %s"
-
 #: ../src/tests/data/test.cpp:44
 msgid "DMCs are loaded"
 msgstr "DMC:erna har laddats"
 
-#: ../src/tests/echo/echo.cpp:41
-msgid "Failed to create context for pdp request and policy"
-msgstr "Misslyckades med att skapa kontext för pdp-begäran och policy"
+#: ../src/tests/echo/test_clientinterface.cpp:27
+#, fuzzy
+msgid "Creating a soap client"
+msgstr "Skapar en echo-klient."
 
-#: ../src/tests/echo/echo.cpp:115
-msgid "Can't get pdp request and policy information"
-msgstr "Kan inte erhålla pdp-begäran och policyinformation"
+#: ../src/tests/echo/test_clientinterface.cpp:56
+#, fuzzy
+msgid "SOAP invokation failed"
+msgstr "Insändningsförfrågan misslyckades."
 
 #: ../src/tests/echo/test.cpp:36
 msgid "Creating client interface"
 msgstr "Skapar klientgränssnitt"
+
+#~ msgid "Username Token extraction is not supported yet"
+#~ msgstr "Användarnamnstokenextrahering stöds ännu inte"
+
+#~ msgid "Message is not SOAP"
+#~ msgstr "Meddelandet är inte SOAP"
+
+#~ msgid " Alias: %s"
+#~ msgstr " Alias: %s"
+
+#~ msgid "Endpoint information"
+#~ msgstr "Ändpunktsinformation"
+
+#~ msgid " URL: %s"
+#~ msgstr " URL: %s"
+
+#~ msgid " Interface Name: %s"
+#~ msgstr " Gränssnittsnamn: %s"
+
+#~ msgid " Interface Version: %s"
+#~ msgstr " Gränssnittsversion: %s"
+
+#~ msgid " Implementor: %s"
+#~ msgstr " Implementerare: %s"
+
+#~ msgid " Implementation Name: %s"
+#~ msgstr " Implementeringsnamn: %s"
+
+#~ msgid " Implementation Version: %s"
+#~ msgstr " Implementeringsversion: %s"
+
+#~ msgid " Issuer CA: %s"
+#~ msgstr " Utfärdar-CA: %s"
+
+#~ msgid " Staging: %s"
+#~ msgstr " Laddar ned/upp: %s"
+
+#~ msgid "Queue information"
+#~ msgstr "Köinformation"
+
+#~ msgid " Mapping Queue: %s"
+#~ msgstr " Mappar till kö: %s"
+
+#~ msgid " Max Wall Time: %s"
+#~ msgstr " Största klocktid: %s"
+
+#~ msgid " Min Wall Time: %s"
+#~ msgstr " Minsta klocktid: %s"
+
+#~ msgid " Default Wall Time: %s"
+#~ msgstr " Förvald klocktid: %s"
+
+#~ msgid " Max CPU Time: %s"
+#~ msgstr " Största CPU-tid: %s"
+
+#~ msgid " Min CPU Time: %s"
+#~ msgstr " Minsta CPU-tid: %s"
+
+#~ msgid " Default CPU Time: %s"
+#~ msgstr " Förvald CPU-tid: %s"
+
+#~ msgid " Max Total Jobs: %i"
+#~ msgstr " Största totalt antal jobb: %i"
+
+#~ msgid " Max Running Jobs: %i"
+#~ msgstr " Största antal exekverande jobb: %i"
+
+#~ msgid " Max Waiting Jobs: %i"
+#~ msgstr " Största antal väntade jobb: %i"
+
+#~ msgid " Max Pre LRMS Waiting Jobs: %i"
+#~ msgstr " Största antal pre-LRMS-väntade jobb: %i"
+
+#~ msgid " Max User Running Jobs: %i"
+#~ msgstr " Största antal exekverande jobb för användaren: %i"
+
+#~ msgid " Max Slots Per Job: %i"
+#~ msgstr " Största antal slotar per jobb: %i"
+
+#~ msgid " Max Stage In Streams: %i"
+#~ msgstr " Största antal nedladdningsströmmar: %i"
+
+#~ msgid " Max Stage Out Streams: %i"
+#~ msgstr " Största antal uppladdningsströmmar: %i"
+
+#~ msgid "UnAuthorized from arc.pdp!!!"
+#~ msgstr "Oautoriserad från arc.pdp!!!"
+
+#~ msgid "Missing argument"
+#~ msgstr "Saknat argument"
+
+#~ msgid "Unrecognized option: %s"
+#~ msgstr "Okänd flagga: %s"
+
+#~ msgid "Wrong clean level"
+#~ msgstr "Felaktig rensnivå"
+
+#~ msgid "Option processing error"
+#~ msgstr "Inställningsprocesseringsfel"
+
+#~ msgid "ARG: %s"
+#~ msgstr "ARG: %s"
+
+#~ msgid "PDP should have ID"
+#~ msgstr "PDP skall ha ID"
+
+#~ msgid ""
+#~ "Although there is pdp configuration for this component, no pdp context "
+#~ "has been generated for it"
+#~ msgstr ""
+#~ "Trots att det finns en pdp-inställning för denna komponent, har ingen pdp-"
+#~ "kontext skapats för detta"
+
+#~ msgid "service_url id_file"
+#~ msgstr "serviceurl id-file"
+
+#~ msgid "Failed to read request file %s"
+#~ msgstr "Misslyckades med att läsa begäran från fil %s"
+
+#~ msgid "Failed to read policy file %s"
+#~ msgstr "Misslyckades med att läsa policyfil: %s"
+
+#~ msgid "Failed to read policy from URL %s"
+#~ msgstr "Misslyckades med att läsa policy från URL %s"

@@ -5,23 +5,22 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <arc/security/ArcPDP/attr/AttributeValue.h>
-#include "ArcRule.h"
 #include <list>
 
+#include <arc/security/ArcPDP/attr/AttributeValue.h>
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
 
-//Arc::Logger ArcSec::ArcRule::logger(ArcSec::Policy::logger, "ArcRule");
+#include "ArcRule.h"
+
 Arc::Logger ArcSec::ArcRule::logger(Arc::Logger::rootLogger, "ArcRule");
 
 using namespace Arc;
 using namespace ArcSec;
 
-void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype, const std::string& type_attr, const std::string& function_attr){
+void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtype,
+    const std::string& type_attr, const std::string& function_attr){
   XMLNode tnd;
-
   for(int i=0; i<nd.Size(); i++){
-
     for(int j=0;;j++){
       std::string type = type_attr;
       std::string funcname = function_attr;
@@ -64,7 +63,6 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
             funcname = (std::string)(snd.Attribute("Function"));
 
           if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
-          //std::cout<<"type:"<<type<<"Function:"<<funcname<<std::endl;
           item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
         }
         items.push_back(item);
@@ -74,15 +72,12 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
         //logger.msg(Arc::ERROR, "Error definition in policy"); 
         return;
       }
-      //std::cout<<type<<funcname<<std::endl; //for testing
     }
 
     for(int l=0;;l++){
       tnd = nd["GroupIdRef"][l];
       if(!tnd) break;
       std::string location = (std::string)(tnd.Attribute("Location"));
-
-      //std::cout<<location<<std::endl; // for testing
  
       //Open the reference file and parse it to get external item information
       std::string xml_str = "";
@@ -99,8 +94,6 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
 
       XMLNode snd;
       std::string itemgrouptype = itemtype + "Group";
-
-      //std::cout<<itemgrouptype<<std::endl;  //for testing
 
       for(int k=0;;k++){
         snd = subref[itemgrouptype][k];
