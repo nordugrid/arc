@@ -28,6 +28,6 @@ test_run_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
 test_run_LDADD=./libarccommon.la
 
 test_regex_SOURCES=test_regex.cpp
-test_regex_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+test_regex_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 test_regex_LDFLAGS=$(LIBXML2_LIBS) $(EXTRA_LIBS)
 test_regex_LDADD=./libarccommon.la
