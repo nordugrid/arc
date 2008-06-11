@@ -198,16 +198,16 @@ bool PaulService::stage_in(Job &j)
 {
     logger_.msg(Arc::DEBUG, "Stage in");
     
-    FileTransfer ft(cache_path);
-    ft.download(job_root, j);
+    FileTransfer ft(configurator.getCachePath());
+    ft.download(configurator.getJobRoot(), j);
     return true;
 }
 
 bool PaulService::stage_out(Job &j)
 {
     logger_.msg(Arc::DEBUG, "Stage out");
-    FileTransfer ft(cache_path);
-    ft.upload(job_root, j);
+    FileTransfer ft(configurator.getCachePath());
+    ft.upload(configurator.getJobRoot(), j);
     return true;
 }
 

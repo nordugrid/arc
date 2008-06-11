@@ -26,8 +26,12 @@ SysInfo::SysInfo(void)
 {
     struct utsname u;
     if (uname(&u) == 0) {
-        osName = u.sysname;
-        osRelease = u.release;
+        if (strcmp(u.sysname, "Linux") == 0) {
+            osFamily = "linux";
+        } else {
+            osFamily = "unknown";
+        }
+        osName = "generallinux";
         osVersion = u.version;
     }
     
@@ -42,7 +46,14 @@ SysInfo::SysInfo(void)
         if ((s.find("vendor_id", 0) != std::string::npos) && platform.empty()) {
             std::vector<std::string> t;
             Arc::tokenize(s, t, ":");
-            platform = Arc::trim(t[1]);
+            std::string p = Arc::trim(t[1]);
+            if (p == "GenuineIntel") {
+                platform = "i386";
+            } else if (p == "AMD64") { // XXX not sure
+                platform = "amd64";
+            } else {
+                platform = "unknown";
+            }
         }
     }
     p.close();
@@ -125,15 +136,15 @@ SysInfo::SysInfo(void)
     ZeroMemory(&si, sizeof(SYSTEM_INFO));
 
     if (GetVersionEx(&os_ver) == true) {
-        osName = "Microsoft Windows";
+        osFamily = "windows";
         if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 0) {
-            osRelease = "2000";
+            osName = "windows2000";
         } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 1) {
-            osRelease = "XP";
+            osRelease = "windowsxp";
         } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 2) {
-            osRelease = "2003";
+            osRelease = "windows2003";
         } else if (os_ver.dwMajorVersion == 6) {
-            osRelease = "Vista";
+            osRelease = "windowsxp";
         }
         osVersion = os_ver.szCSDVersion;
     }
@@ -147,9 +158,9 @@ SysInfo::SysInfo(void)
     if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
         platform = "amd64";
     } else if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL) {
-        platform = "intel32";
+        platform = "i386";
     } else if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64) {
-        platform = "ia64";
+        platform = "itanium";
     }
     
     physicalCPUs = si.dwNumberOfProcessors;

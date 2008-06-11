@@ -28,6 +28,10 @@ bool PaulService::run(Job &j)
     }
     if (app == false) {
         logger_.msg(Arc::ERROR, "Invalid JSDL! Missing application section");
+        if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+            logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+            j.setStatus(EXCEPTION);
+        }
         return false;
     }
     std::string exec = (std::string)app["Executable"];
@@ -35,6 +39,10 @@ bool PaulService::run(Job &j)
     // of path
     if (exec.empty()) {
         logger_.msg(Arc::ERROR, "Empty executable");
+        if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+            logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+            j.setStatus(EXCEPTION);
+        }
         return false;    
     }
     Arc::XMLNode arg;
@@ -47,8 +55,7 @@ bool PaulService::run(Job &j)
     std::string std_err = (std::string)app["Error"];
     std::string cmd;
     
-    // XXX unix specific
-    std::string wd = Glib::build_filename(job_root, j.getID());
+    std::string wd = Glib::build_filename(configurator.getJobRoot(), j.getID());
     mkdir(wd.c_str(), 0700);
     if (!Glib::path_is_absolute(exec)) {
         cmd = Glib::build_filename(wd, exec);
@@ -89,6 +96,10 @@ bool PaulService::run(Job &j)
                 delete run;
             }
             logger_.msg(Arc::DEBUG, "return from run");
+            if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+                logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
+                j.setStatus(FINISHED);
+            }
             return true;
         } else {
             logger_.msg(Arc::ERROR, "Error during the application run");
@@ -104,11 +115,14 @@ bool PaulService::run(Job &j)
     }
 
 error:
+    if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+        logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
+        j.setStatus(EXCEPTION);
+    }
     if (run != NULL) {
         delete run;
     }
     return false;
-
 }
 
 }

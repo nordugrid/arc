@@ -10,26 +10,20 @@
 #include "job.h"
 #include "job_queue.h"
 #include "sysinfo.h"
+#include "configurator.h"
 
 namespace Paul {
 
 class PaulService: public Arc::Service {
     protected:
+        Configurator configurator;
+        std::string uuid;
         bool in_shutdown;
-        std::string config_file;
-        std::string job_root;
-        std::string db_path;
-        std::string cache_path;
-        std::vector<std::string> schedulers;
-        int period;
-        int timeout;
         Arc::NS ns_;
         Arc::Logger logger_;
         JobQueue jobq;
         bool information_collector(Arc::XMLNode &doc);
-        std::map<std::string, std::string> pki;
         std::map<std::string, Arc::Run *> runq;
-        // std::map<std::string, HANDLE> runq;
         SysInfo sysinfo;
         void do_request(void);
         void do_report(void);
@@ -40,13 +34,6 @@ class PaulService: public Arc::Service {
         bool stage_in(Job &j);
         bool run(Job &j);
         bool stage_out(Job &j);
-        // configurator
-        void set_config_params(Arc::Config *cfg);
-        void config_add_sched(const std::string &endpoint, std::string &html);
-        void config_add_sched_post(const std::string &endpoint, std::map<std::string, std::string> &post_values, std::string &html); 
-        void config_index_page(const std::string &endpoint, std::string &html);
-        void config_delete_sched(const std::string &endpoint, std::string &html);
-        
     public:
         PaulService(Arc::Config *cfg);
         virtual ~PaulService(void);

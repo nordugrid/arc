@@ -11,7 +11,7 @@ libsysinfo_la_SOURCES = sysinfo.h sysinfo.cpp $(UTIL_SRC)
 libsysinfo_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libsysinfo_la_LIBADD   = $(GLIBMM_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la 
 
-libpaul_la_SOURCES  = paul.cpp paul.h job.cpp job.h job_status.h job_status.cpp job_request.h job_request.cpp job_sched_meta.cpp job_sched_meta.h job_queue.h job_queue.cpp stage.cpp run.cpp 
+libpaul_la_SOURCES  = paul.cpp paul.h job.cpp job.h job_status.h job_status.cpp job_request.h job_request.cpp job_sched_meta.cpp job_sched_meta.h job_queue.h job_queue.cpp stage.cpp run.cpp configurator.h configurator.cpp info.cpp
 libpaul_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libpaul_la_LIBADD   = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la libsysinfo.la
 libpaul_la_LDFLAGS=-no-undefined -avoid-version -module

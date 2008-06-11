@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:paul="http://www.nordugrid.org/schemas/paul">
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:paul="http://www.nordugrid.org/schemas/paul" xmlns:glue2="http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r01">
   <Server>
     <Foreground/>
     <Pidfile>./arcserver.pid</Pidfile>
@@ -36,6 +36,16 @@
        <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
        <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>
        <paul:CACertificatePath>../../tests/echo/ca.pem</paul:CACertificatePath>
+       <glue2:ApplicationEnvironments>
+        <glue2:ApplicationEnvironment>
+            <glue2:Name>PCP0</glue2:Name>
+            <glue2:Version>0.1</glue2:Version>
+        </glue2:ApplicationEnvironment>
+        <glue2:ApplicationEnvironment>
+            <glue2:Name>GAMS</glue2:Name>
+            <glue2:Version>6.x</glue2:Version>
+        </glue2:ApplicationEnvironment>
+       </glue2:ApplicationEnvironments>
     </Service>
   </Chain>
 </ArcConfig>

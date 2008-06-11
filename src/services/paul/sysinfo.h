@@ -10,8 +10,8 @@ class SysInfo
 {
     private:
         // static infos geathered by initialization
+        std::string osFamily;
         std::string osName;
-        std::string osRelease;
         std::string osVersion;
         std::string platform;
         unsigned int physicalCPUs;
@@ -22,7 +22,7 @@ class SysInfo
         SysInfo(void);
         void refresh(void);
         const std::string &getOSName(void) { return osName; };
-        const std::string &getOSRelease(void) { return osRelease; };
+        const std::string &getOSFamily(void) { return osFamily; };
         const std::string &getOSVersion(void) { return osVersion; };
         const std::string &getPlatform(void) { return platform; };
         unsigned int getPhysicalCPUs(void) { return physicalCPUs; };

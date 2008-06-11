@@ -17,6 +17,7 @@ enum SchedStatusLevel {
     FINISHED, 
     KILLED, 
     KILLING,
+    EXCEPTION,
     UNKNOWN 
 };
 
