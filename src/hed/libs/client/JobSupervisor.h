@@ -12,10 +12,28 @@ namespace Arc {
   class JobSupervisor {
   public:
     JobSupervisor(std::string joblist, std::list<std::string> jobids);
+
+    JobSupervisor(const std::list<std::string>& jobs,
+		  const std::list<std::string>& clusterselect,
+		  const std::list<std::string>& clusterreject,
+		  const std::list<std::string>& status,
+		  const std::string downloaddir,
+		  const std::string joblist,
+		  const bool keep,
+		  const int timeout);
+            
     ~JobSupervisor();
 
     void GetJobInformation();
+    void DownloadJobOutput();
     void PrintJobInformation(bool longlist);
+
+    const std::list<std::string> clusterselect;
+    const std::list<std::string> clusterreject;
+    const std::list<std::string> status;
+    const std::string downloaddir;
+    const bool keep;
+    const int timeout;
 
   private:
 

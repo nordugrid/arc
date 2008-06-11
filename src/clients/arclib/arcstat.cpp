@@ -18,12 +18,12 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
 void arcstat(const std::list<std::string>& jobs,
 	     const std::list<std::string>& clusterselect,
 	     const std::list<std::string>& clusterreject,
-	     const std::list<std::string>& /* status */,
+	     const std::list<std::string>& status,
 	     const std::list<std::string>& giisurls,
 	     const std::string joblist,
 	     const bool clusters,
 	     const bool longlist,
-	     const int /* timeout */) {
+	     const int timeout) {
 
   if (clusters) { // i.e we are looking for queue or cluster info, not jobs
     // retrieve information
@@ -33,7 +33,10 @@ void arcstat(const std::list<std::string>& jobs,
     TarGen.PrintTargetInfo(longlist);
   }
   else { // i.e we are looking for the status of jobs
-    Arc::JobSupervisor JobMaster(joblist, jobs);
+
+    Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
+				 "", joblist, false, timeout);
+
     JobMaster.GetJobInformation();
     JobMaster.PrintJobInformation(longlist);
   }

@@ -18,14 +18,17 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcget");
 void arcget(const std::list<std::string>& jobs,
 	    const std::list<std::string>& clusterselect,
 	    const std::list<std::string>& clusterreject,
-	    const std::list<std::string>& /* status */,
+	    const std::list<std::string>& status,
 	    const std::string downloaddir,
 	    const std::string joblist,
 	    const bool keep,
-	    const int /* timeout */) {
+	    const int timeout) {
   
-  Arc::JobSupervisor JobMaster(joblist, jobs);
+  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
+			       downloaddir, joblist, keep, timeout);
+
   JobMaster.GetJobInformation();
+  JobMaster.DownloadJobOutput();
 
 }
 
@@ -112,7 +115,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  if (!params.empty() && all==false) {
+  if (params.empty() && all==false) {
     logger.msg(Arc::ERROR,
 	       "No valid jobids given");
     return 1;

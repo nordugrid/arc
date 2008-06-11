@@ -18,11 +18,14 @@ namespace Arc{
   public:
     //These should be implemented by specialized class
     virtual void GetJobInformation() = 0;
+    virtual void DownloadJobOutput() = 0;
     virtual void PerformAction(std::string action) = 0;
 
     //Base class implementation
     void IdentifyJobs(std::list<std::string> jobids);
     void PrintJobInformation(bool longlist);
+    void CopyFile(URL source, URL destination);
+
   protected:
     std::list<Arc::Job> JobStore;
     std::string GridFlavour;

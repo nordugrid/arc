@@ -145,7 +145,35 @@ namespace Arc {
 
   } //end GetJobInformation
 
+  void JobControllerARC0::DownloadJobOutput(){
+    
+    //Thread these
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      DownloadThisJob(*jobiter);
+    }
+  }
+  
   void JobControllerARC0::PerformAction(std::string /* action */){
+
+  }
+
+  void JobControllerARC0::DownloadThisJob(Job ThisJob){
+    //1. Find the list of files to be downloaded 
+    //   (This part may be grid flavour specific)
+    Arc::DataHandle source(ThisJob.id);
+    if(source){
+      std::list<FileInfo> outputfiles;
+      source->ListFiles(outputfiles, true);
+      std::cout<<"Job directory contains:"<<std::endl;
+      for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin();i != outputfiles.end(); i++){
+	std::cout << i->GetName() <<std::endl;
+
+      }
+    }
+
+
+    //2. Copy the file (use JobController base class implementation)
+    
 
   }
 

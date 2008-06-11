@@ -149,4 +149,8 @@ namespace Arc {
 
   }
 
+  void JobControllerARC1::DownloadJobOutput(){
+  
+  }
+
 } // namespace Arc

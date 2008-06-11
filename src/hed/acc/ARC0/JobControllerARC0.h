@@ -13,17 +13,20 @@ namespace Arc{
   
   class JobControllerARC0 : public JobController {
     
-  private: 
+  public: 
     
     JobControllerARC0(Arc::Config *cfg);
     ~JobControllerARC0();
     
-  public:
-
     void GetJobInformation();
+    void DownloadJobOutput();
     void PerformAction(std::string action);
 
     static ACC *Instance(Config *cfg, ChainContext *cxt);
+
+  private:
+
+    void DownloadThisJob(Job ThisJob);
     
   };
   

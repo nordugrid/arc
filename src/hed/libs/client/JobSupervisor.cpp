@@ -10,8 +10,21 @@
 
 namespace Arc {
   
-  JobSupervisor::JobSupervisor(std::string joblist, std::list<std::string> jobids) {
-
+  JobSupervisor::JobSupervisor(const std::list<std::string>& jobs,
+			       const std::list<std::string>& clusterselect,
+			       const std::list<std::string>& clusterreject,
+			       const std::list<std::string>& status,
+			       const std::string downloaddir,
+			       const std::string joblist,
+			       const bool keep,
+			       const int timeout) : 
+			       clusterselect(clusterselect),
+			       clusterreject(clusterreject),
+			       status(status),
+			       downloaddir(downloaddir),
+			       keep(keep),
+			       timeout(timeout){
+ 
     XMLNode JobIdStorage;    
     if(!joblist.empty()){
       JobIdStorage.ReadFromFile(joblist);
@@ -55,7 +68,7 @@ namespace Arc {
       JobController *JC = dynamic_cast<JobController*> (ACCloader->getACC("controller"+Arc::tostring(i)));
       if(JC) {
 	JobControllers.push_back(JC);
-	(*JobControllers.rbegin())->IdentifyJobs(jobids);
+	(*JobControllers.rbegin())->IdentifyJobs(jobs);
       }
     }
     
@@ -77,7 +90,16 @@ namespace Arc {
     for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
       (*iter)->GetJobInformation();
     }
+  }
 
+  void JobSupervisor::DownloadJobOutput() {
+
+    std::list<JobController*>::iterator iter;
+    
+    //This may benefit from being threaded
+    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
+      (*iter)->DownloadJobOutput();
+    }
   }
 
 
@@ -89,7 +111,6 @@ namespace Arc {
     for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
       (*iter)->PrintJobInformation(longlist);
     }
-    
   }
 
 } // namespace Arc
