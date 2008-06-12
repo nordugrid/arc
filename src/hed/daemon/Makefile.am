@@ -1,8 +1,14 @@
-SUBDIRS = scripts
+if WIN32
+WIN32_DIR=win32
+else
+WIN32_DIR=
+endif
+
+SUBDIRS = scripts $(WIN32_DIR)
 
 sbin_PROGRAMS = arched
-SRC_UNIX = main.cpp options.cpp options.h daemon.cpp daemon.h
-SRC_WIN32 = main_win32.cpp options.cpp options.h
+SRC_UNIX = unix/main.cpp unix/daemon.cpp unix/daemon.h options.cpp options.h 
+SRC_WIN32 = win32/main.cpp options.cpp options.h
 if WIN32
 SRC = $(SRC_WIN32)
 else
