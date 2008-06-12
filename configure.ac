@@ -714,6 +714,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
+                 src/hed/daemon/unix/Makefile
+                 src/hed/daemon/win32/Makefile
                  src/hed/mcc/Makefile
                  src/hed/mcc/soap/Makefile
                  src/hed/mcc/tcp/Makefile
