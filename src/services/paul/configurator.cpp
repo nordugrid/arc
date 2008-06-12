@@ -245,11 +245,11 @@ tail(std::string file_name, int line_n)
     fin.seekg(-seek_size, std::ios::end);
     int pos = fin.tellg();
     int block_start = pos;
-/*
+    
     std::cout << "bs: " << block_start << std::endl;
     std::cout << "p: " << pos << std::endl;
     std::cout << "be: " << block_end << std::endl;
-*/
+    
     std::vector<std::string> tokens;
     char buffer[1024];
     for(;;) { 
@@ -285,11 +285,11 @@ tail(std::string file_name, int line_n)
             fin.seekg(s, std::ios::beg);
             block_start = fin.tellg();
         }
-/*
+
     std::cout << "bs: " << block_start << std::endl;
     std::cout << "p: " << pos << std::endl;
     std::cout << "be: " << block_end << std::endl;
-*/
+
     }
     fin.close();
     std::list<std::string>::iterator it;
@@ -460,6 +460,13 @@ Configurator::job_stop(Configurator *self, HTMLRequest &request, HTMLResponse &r
 {
 }
 
+void
+Configurator::icon(Configurator *self, HTMLRequest &request, HTMLResponse &response)
+{
+    // XXX read arc.ico if exist and return it
+}
+
+
 Arc::MCC_Status
 Configurator::process(Arc::Message &in, Arc::Message &out)
 {
@@ -468,6 +475,7 @@ Configurator::process(Arc::Message &in, Arc::Message &out)
     ctrl.insert(std::make_pair("^$", &index));
     ctrl.insert(std::make_pair("^/$", &index));
     ctrl.insert(std::make_pair("^/style/$", &style));
+    ctrl.insert(std::make_pair("^/icon/$", &icon));
     ctrl.insert(std::make_pair("^/conf/$", &conf));
     ctrl.insert(std::make_pair("^/sched/$", &sched));
     ctrl.insert(std::make_pair("^/sched/add/$", &sched_add));
@@ -492,7 +500,14 @@ Configurator::process(Arc::Message &in, Arc::Message &out)
         if (r.match(request.path) == true) {
             HTMLResponse response;
             // set html header
-            response.header = "<html><header><title>ARC - Paul Service Configurator</title></header><link rel=\"stylesheet\" type=\"text/css\" href=\"" + request.base_path + "style/\"/><body><div id=\"header\"><h1><a href=\"" + request.base_path + "\"/>ARC - Paul Service Configurator</a></h1></div><div id=\"content\">";
+            response.header = "<html><head>\
+                <title>ARC - Paul Service Configurator</title>\
+                <link rel=\"stylesheet\" type=\"text/css\" href=\"" + request.base_path + "style/\"/>\
+                <link rel=\"shortcut icon\" href=\"" + request.bas_path + "icon/\"/>\
+                </head>\
+                <body>\
+                <div id=\"header\"><h1><a href=\"" + request.base_path + "\"/>ARC - Paul Service Configurator</a></h1></div>\
+                <div id=\"content\">";
             // set footer
             response.footer = "</div></body></html>";
             // call viewer function
@@ -508,7 +523,7 @@ Configurator::process(Arc::Message &in, Arc::Message &out)
     out_buf->Insert(html_error.c_str(), 0, html_error.length());
     out.Payload(out_buf);
     out.Attributes()->set("HTTP:content-type", "text/html");
-    // how to set HTTP 404
+    // XXX how to set HTTP 404?
     return Arc::MCC_Status(Arc::STATUS_OK);
 
 #if 0
