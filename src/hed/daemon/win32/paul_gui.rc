@@ -1,0 +1,14 @@
+#include "paul_gui.h"
+
+IDI_PAULGUI ICON "arc.ico"
+
+IDR_TRAYMENU MENU
+BEGIN
+    POPUP "tray"
+    BEGIN
+        MENUITEM "&Setup",   ID_SETUP
+        MENUITEM "&Run",     ID_RUN
+        MENUITEM "&End",     ID_END
+        MENUITEM "&Close",   ID_CLOSE
+    END
+END    
