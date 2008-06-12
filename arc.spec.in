@@ -228,6 +228,7 @@ exit 0
 %{_bindir}/arcsub
 %{_bindir}/arcget
 %{_bindir}/perftest
+%{_bindir}/glitecp
 %{_bindir}/glitesub
 %{_bindir}/glitestat
 %{_bindir}/glitekill
