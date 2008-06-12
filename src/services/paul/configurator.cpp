@@ -236,7 +236,7 @@ Configurator::sched_del(Configurator *self, HTMLRequest &request, HTMLResponse &
 std::string 
 tail(std::string file_name, int line_n)
 {
-    std::ifstream fin(file_name.c_str());
+    std::ifstream fin(file_name.c_str(), std::ios::binary);
     int ln = 0;
     int seek_size = 1024;
     std::list<std::string> lines;
@@ -503,7 +503,7 @@ Configurator::process(Arc::Message &in, Arc::Message &out)
             response.header = "<html><head>\
                 <title>ARC - Paul Service Configurator</title>\
                 <link rel=\"stylesheet\" type=\"text/css\" href=\"" + request.base_path + "style/\"/>\
-                <link rel=\"shortcut icon\" href=\"" + request.bas_path + "icon/\"/>\
+                <link rel=\"shortcut icon\" href=\"" + request.base_path + "icon/\"/>\
                 </head>\
                 <body>\
                 <div id=\"header\"><h1><a href=\"" + request.base_path + "\"/>ARC - Paul Service Configurator</a></h1></div>\

@@ -140,11 +140,11 @@ SysInfo::SysInfo(void)
         if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 0) {
             osName = "windows2000";
         } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 1) {
-            osRelease = "windowsxp";
+            osName = "windowsxp";
         } else if (os_ver.dwMajorVersion == 5 && os_ver.dwMinorVersion == 2) {
-            osRelease = "windows2003";
+            osName = "windows2003";
         } else if (os_ver.dwMajorVersion == 6) {
-            osRelease = "windowsxp";
+            osName = "windowsxp";
         }
         osVersion = os_ver.szCSDVersion;
     }

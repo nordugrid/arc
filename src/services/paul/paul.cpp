@@ -179,7 +179,7 @@ void PaulService::do_request(void)
     if (active_job >= cpu_num) {
         logger_.msg(Arc::DEBUG, "No free CPU slot");
         return;
-    }   
+    }
     std::vector<std::string> job_ids;
     GetActivities(url, job_ids);
     for (int i = 0; i < job_ids.size(); i++) {
@@ -422,10 +422,12 @@ void PaulService::do_action(void)
             if (j->isFinishedReported()) {
                 logger_.msg(Arc::DEBUG, "cleanup %s", j->getID());
                 j->clean(configurator.getJobRoot());
+                logger_.msg(Arc::DEBUG, "cleanup 2 %s", j->getID());
                 jobq.removeJob(*j);
             }           
         } 
     }
+
 }
 
 // Main reported loop
