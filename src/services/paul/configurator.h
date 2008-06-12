@@ -83,6 +83,7 @@ class Configurator
         static void jobs(Configurator *self, HTMLRequest &request, HTMLResponse &response);
         static void job(Configurator *self, HTMLRequest &request, HTMLResponse &response);
         static void job_stop(Configurator *self, HTMLRequest &request, HTMLResponse &response);
+        static void icon(Configurator *self, HTMLRequest &request, HTMLResponse &response);
 }; // Configurator
 
 typedef void (*view_func)(Configurator *self, HTMLRequest &request, HTMLResponse &response);
