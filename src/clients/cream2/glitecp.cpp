@@ -37,8 +37,10 @@ int main(int argc, char* argv[]){
         Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
     std::vector< std::pair<std::string, std::string> > fileList;
-    std::pair<std::string, std::string> item("std.in","gsiftp://cream.grid.upjs.sk:2811/opt/glite/var/cream_sandbox/knowarc.eu/C_HU_O_NIIF_CA_OU_GRID_OU_NIIF_CN_Ivan_Marton_Email_martoni_niif.hu_knowarc.eu_Role_NULL_Capability_NULL/CREAM453612391/ISB/std.in");
-    fileList.push_back(item);
+    std::list<std::string>::iterator it = params.begin();
+    std::string& src (*it++); std::string& dst (*it++);
+
+    fileList.push_back(std::make_pair(src, dst));
     
     // Create mover
     Arc::DataMover mover;
