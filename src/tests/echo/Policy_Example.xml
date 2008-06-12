@@ -2,7 +2,7 @@
 <Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:arcpdppolicy" CombiningAlg="Deny-Overrides">
    <Rule Effect="Permit"> 
      <Description>
-       example policy for echo service   
+       example policy for http
      </Description>
       <Subjects>
          <Subject>
@@ -16,9 +16,25 @@
       <Actions>
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
-         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">echo</Action>
       </Actions>
       <Conditions/>
+   </Rule>
+   <Rule Effect="Permit">
+     <Description>
+       example policy for soap
+     </Description>
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+         </Subject>
+      </Subjects>
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">echo</Action>
+      </Actions>
+      <Conditions>
+         <Condition AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace" Type="string">http://schemas.xmlsoap.org/soap/envelope/</Condition>
+      </Conditions>
    </Rule>
 </Policy>
 
