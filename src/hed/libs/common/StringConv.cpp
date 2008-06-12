@@ -74,8 +74,6 @@ unescape_character (const std::string &scanner, int i)
 std::string uri_unescape(const std::string &str)
 {
     std::string out = str;
-    const char *i;
-    char *o, *result;
     int character;
 
     if (str.empty()) {
