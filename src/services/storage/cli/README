@@ -1,0 +1,1 @@
+this directory contains CLI clients for the main services with a 'storage' script capable of calling all of them with bash completion in 'storage_bash_completion'

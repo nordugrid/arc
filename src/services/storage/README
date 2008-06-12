@@ -1,5 +1,17 @@
-hash            - simple currently centralized metadata store for the Storage Catalog
-catalog         - the Storage Catalog service handling files and collection
-manager         - the Storage Manager service providing high-level storage namespace
-client          - client classes for the storage services
-cli             - small basic CLI clients for the storage services
+This directory contains all the services related to the ARC1 storage system.
+It has the following subdirectories:
+
+hash    - simple currently centralized metadata store for the Storage Catalog
+catalog - the Storage Catalog service handling files and collection
+manager - the Storage Manager service providing high-level storage namespace
+element - the Storage Element service and a byteio service
+gateway - the Storage Gateway service and other services related to it
+cli 	- small basic CLI clients for the storage services
+
+And has the following files:
+client.py					- collection of python classes which can be used to talk to the services
+common.py					- collection of python methods and classes used by more than one service
+service.example.xml			- an example service configuration xml for HED
+service.example.3SEs.xml	- an example service configuration xml for HED with 3 instances of the Storage Element
+service.py					- a python superclass of service classes with common features
+xmltree.py					- a python class for easy handling of simple XML structures	
