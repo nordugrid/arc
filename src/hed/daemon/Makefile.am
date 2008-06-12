@@ -1,14 +1,14 @@
 if WIN32
-WIN32_DIR=win32
+PLATFORM_DIR=win32
 else
-WIN32_DIR=
+PLATFORM_DIR=unix
 endif
 
-SUBDIRS = scripts $(WIN32_DIR)
+SUBDIRS = scripts $(PLATFORM_DIR)
 
 sbin_PROGRAMS = arched
-SRC_UNIX = unix/main.cpp unix/daemon.cpp unix/daemon.h options.cpp options.h 
-SRC_WIN32 = win32/main.cpp options.cpp options.h
+SRC_UNIX = unix/main_unix.cpp unix/daemon.cpp unix/daemon.h options.cpp options.h 
+SRC_WIN32 = win32/main_win32.cpp options.cpp options.h
 if WIN32
 SRC = $(SRC_WIN32)
 else
