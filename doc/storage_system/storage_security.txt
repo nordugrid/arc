@@ -25,7 +25,7 @@ This file has a policy like this:
  </Policy>
 
 Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read this file.
-So when this user is contacting the Storage Manager to download the file '/home/steve/results.txt', the Manager get the metadata of the file from the Catalog, and now the Manager has this Policy.
+So when this user is contacting the Storage Manager to download the file '/home/steve/results.txt', the Manager get the metadata of the file from the Catalog, and now the Manager has this policy.
 Now the Manager has to create a 'request' which is also an XML document containing the information who wants to do what.
 Something like this:
 
@@ -38,7 +38,7 @@ Something like this:
    </RequestItem>
  </Request>
 
-The subject part of this should come to the Manager as a Security Attribute which is added to the message by the TLS MCC. The action part is filled by the specific method of the Manager which was called (e.g. the 'getFile' method will put 'read' there).
+The subject part of this should come to the Manager as a Security Attribute which is added to the message by the TLS MCC extracting it from the TLS socket. The action part is filled by the specific method of the Manager which was called (e.g. the 'getFile' method will put 'read' there).
 
 Now the Storage Manager calls an Evaluator with the two XML documents (the request and the policy). The Evaluator is an object which is capable of evaluating requests and policies, it is part of the security framework of ARC1 HED. The Evaluator returns with the answer which tells the Manager to permit or deny the request.
 
@@ -74,8 +74,7 @@ If the storage manager has permission to access the storage element, then the st
 Which says that this user is allowed to read that resource.
 Now the user can connect the Storage Element with this proxy certificate, and the Storage Element knows, that that particular Storage Manager created this proxy certificate, and if the Storage Element trusts that Storage Manager then it will permit downloading the file.
 
-In this scenario all the Storage Managers and Storage Elements (and Catalog services) should trust eachother, which means that all these services should have a list of certificates of all the other services.
-A Storage Element should trust all the Storage Managers in the system because the Storage Manager will create proxy certificates to users who want to download files from the Storage Element, and a Storage Element should trust at least one Catalog service, because the Storage Elements do periodic reports to a Catalog service.
+In this scenario a Storage Element should trust all the Storage Managers in the system because the Storage Manager will create proxy certificates to users who want to download files from the Storage Element, and a Storage Element should trust at least one Catalog service, because the Storage Elements do periodic reports to a Catalog service.
 
 A Storage Manager will constantly changing the information within the Catalog through one or more Catalog service, so the Catalog services should trust all the Storage Managers to allow them to make changes.
 
@@ -83,5 +82,5 @@ This means that if we install a new Storage Manager at some machine, and we add 
 
 Is this acceptable?
 
-The main reason to have more than one Storage Manager in the system is high-avaliability. The system could perfectly work with one Storage Manager, but if we have more, than if one is down, we can use the others.
-I think that we need only three Storage Managers which we could deploy at some very secure locations.
+The main reason to have more than one Storage Manager in the system is load-balancing and high-avaliability. The system could perfectly work with one Storage Manager, but if we have more, than the clients could random choose any of them for each reqeust, and if one is down, thay can use the others.
+I think that we need only 3-5 Storage Managers which we could deploy at some very secure locations.
