@@ -9,6 +9,8 @@
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 #include <arc/security/ArcPDP/fn/EqualFunction.h>
+#include <arc/security/ArcPDP/fn/MatchFunction.h>
+#include <arc/security/ArcPDP/fn/InRangeFunction.h>
 
 #include "ArcRule.h"
 
@@ -34,8 +36,14 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
 
       if(!(type.empty())&&(tnd.Size()==0)){
         AndList item;
-        if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
-        item.push_back(Match(attrfactory->createValue(tnd, type), fnfactory->createFn(funcname)));
+        std::string function;
+        if(funcname.empty()) function = EqualFunction::getFunctionName(type);
+        else if(funcname == "Match" || funcname == "match" || funcname == "MATCH")
+          function = MatchFunction::getFunctionName(type);
+        else if(funcname == "InRange" || funcname == "inrange" || funcname == "INRANGE" || funcname == "Inrange")
+          function = InRangeFunction::getFunctionName(type);
+        else std::cout<<"Function Name is wrong"<<std::endl;
+        item.push_back(Match(attrfactory->createValue(tnd, type), fnfactory->createFn(function)));
         items.push_back(item);
       }
       else if((type.empty())&&(tnd.Size()>0)){
@@ -48,9 +56,14 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
           // > Element.Attribute("Function") > Subelement.Attribute("Type") + "equal"
           if(!((std::string)(snd.Attribute("Function"))).empty())
             funcname = (std::string)(snd.Attribute("Function"));
-          
-          if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
-          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
+          std::string function;
+          if(funcname.empty()) function = EqualFunction::getFunctionName(type);
+          else if(funcname == "Match" || funcname == "match" || funcname == "MATCH")
+            function = MatchFunction::getFunctionName(type);
+          else if(funcname == "InRange" || funcname == "inrange" || funcname == "INRANGE" || funcname == "Inrange")
+            function = InRangeFunction::getFunctionName(type);
+          else std::cout<<"Function Name is wrong"<<std::endl;
+          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(function)));
         }
         items.push_back(item);
       }
@@ -61,9 +74,14 @@ void ArcRule::getItemlist(XMLNode& nd, OrList& items, const std::string& itemtyp
           XMLNode snd = tnd.Child(k);
           if(!((std::string)(snd.Attribute("Function"))).empty())
             funcname = (std::string)(snd.Attribute("Function"));
-
-          if(funcname.empty()) funcname = EqualFunction::getFunctionName(type);
-          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(funcname)));
+          std::string function;
+          if(funcname.empty()) function = EqualFunction::getFunctionName(type);
+          else if(funcname == "Match" || funcname == "match" || funcname == "MATCH")
+            function = MatchFunction::getFunctionName(type);
+          else if(funcname == "InRange" || funcname == "inrange" || funcname == "INRANGE" || funcname == "Inrange")
+            function = InRangeFunction::getFunctionName(type);
+          else std::cout<<"Function Name is wrong"<<std::endl;
+          item.push_back(Match(attrfactory->createValue(snd, type), fnfactory->createFn(function)));
         }
         items.push_back(item);
       }

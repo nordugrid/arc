@@ -68,7 +68,7 @@ int main(void){
   ArcSec::Policy* policy = NULL;
   std::string policyclassname = "arc.policy";
   /**Three options to create policy object*/
-  ArcSec::SourceFile policy_source("Policy_Example.xml");
+  ArcSec::SourceFile policy_source("Policy_Example1.xml");
   //ArcSec::Source policy_source(policy_str);
   //ArcSec::Source policy_source(Arc::XMLNode policynode);
   policy = eval_loader.getPolicy(policyclassname, policy_source);
@@ -94,9 +94,9 @@ int main(void){
   ArcSec::Request* request = NULL;
   std::string requestclassname = "arc.request";
   /**Three options to create request object*/
-  ArcSec::Source request_source(reqnode);
+  //ArcSec::Source request_source(reqnode);
   //ArcSec::Source request_source(request_str);
-  //ArcSec::SourceFile request_source("Request.xml");
+  ArcSec::SourceFile request_source("Request.xml");
   request = eval_loader.getRequest(requestclassname, request_source);
 
   if(request == NULL)
