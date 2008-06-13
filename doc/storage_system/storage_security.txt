@@ -1,0 +1,87 @@
+Security in the ARC1 storage system
+
+The ARC1 storage system has a component called Catalog, which is storing all the metadata about files and collections in the system. One of these metadata is an XML document containing the "policy".
+I am not sure currently whether we need multiple policies per entry, or just one, but first let's try the one policy per entry (file or collection) scenario.
+These policies are in the native ARC policy language.
+
+A policy has a couple of rules, where each rule contains Subjects, Resources, Actions and Conditions parts, and each rule has an effect of permitting or denying the request when it is applied. 'Subjects' contains a list of identities, where an identity could refer to a user, or some group (e.g. a VO) usually via a DN. 'Resources' should contain _nothing_, so the Resources part is ignored and it is assumed that the policy refers to the resource which has this policy as its metadata. The 'Actions' part could contain one or more of the valid actions, e.g. 'read' for a file, or 'list' for collection. The Condition part could contain any other arbitrary condition allowed by the policy language.
+
+For example we have a file with a Logical Name of '/home/steve/results.txt'.
+This file has a policy like this:
+
+ <Policy CombiningAlg="Permit-Overrides">
+    <Rule Effect="Permit"> 
+       <Subjects>
+          <Subject>	
+             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+          </Subject>
+       </Subjects>
+       <Resources/>
+       <Actions>
+          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
+       </Actions>
+       <Conditions/>
+    </Rule>
+ </Policy>
+
+Which means that a user who has the identity '/C=HU/O=NIIF/CN=zsombor@niif.hu' is allowed to read this file.
+So when this user is contacting the Storage Manager to download the file '/home/steve/results.txt', the Manager get the metadata of the file from the Catalog, and now the Manager has this Policy.
+Now the Manager has to create a 'request' which is also an XML document containing the information who wants to do what.
+Something like this:
+
+ <Request xmlns="http://www.nordugrid.org/schemas/request-arc">
+   <RequestItem>
+    <Subject>
+       <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+    </Subject>
+    <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
+   </RequestItem>
+ </Request>
+
+The subject part of this should come to the Manager as a Security Attribute which is added to the message by the TLS MCC. The action part is filled by the specific method of the Manager which was called (e.g. the 'getFile' method will put 'read' there).
+
+Now the Storage Manager calls an Evaluator with the two XML documents (the request and the policy). The Evaluator is an object which is capable of evaluating requests and policies, it is part of the security framework of ARC1 HED. The Evaluator returns with the answer which tells the Manager to permit or deny the request.
+
+If a file has no policy attached, the Manager check the parent collection of the file, and if that collection has no policy either, then the Manager check the parent of the parent, etc.
+So if a file has no policy, the policy of its parent collection will be valid.
+But if a file has policy, it completely overrides the policy of its parent.
+Question: should we collect all the policies down the road and use them all to evaluate the request?
+
+Another question is whether we want to do fine-grained access control about modifying metadata with specifying that this user can modify the number of replicas, but not the policy? The simple case would be a single 'modify metadata' action, and if a user has right to modify metadata, then of course the user can modify the policy as well, so we could say that this user is an owner of the file.
+
+About the access control of the storage elements
+
+When a user has permission in the Catalog to download a file then the user should have permission to access at least one of the file's replica, so there should be a storage element which allows the user the get the file.
+If the storage manager has permission to access the storage element, then the storage manager could create some kind of assertion which allows the user to access the file. Maybe this could be a proxy certificate, which is created by the Storage Manager and which contains a policy like this:
+
+ <Policy CombiningAlg="Permit-Overrides">
+    <Rule Effect="Permit"> 
+       <Subjects>
+          <Subject>	
+             <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=HU/O=NIIF/CN=zsombor@niif.hu</Attribute>
+          </Subject>
+       </Subjects>
+       <Resources>
+          <Resource>storage.niif.hu/15346abcf</Resource>
+       </Resources>
+       <Actions>
+          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/storage/action" Type="string">read</Action>
+       </Actions>
+       <Conditions/>
+    </Rule>
+ </Policy>
+
+Which says that this user is allowed to read that resource.
+Now the user can connect the Storage Element with this proxy certificate, and the Storage Element knows, that that particular Storage Manager created this proxy certificate, and if the Storage Element trusts that Storage Manager then it will permit downloading the file.
+
+In this scenario all the Storage Managers and Storage Elements (and Catalog services) should trust eachother, which means that all these services should have a list of certificates of all the other services.
+A Storage Element should trust all the Storage Managers in the system because the Storage Manager will create proxy certificates to users who want to download files from the Storage Element, and a Storage Element should trust at least one Catalog service, because the Storage Elements do periodic reports to a Catalog service.
+
+A Storage Manager will constantly changing the information within the Catalog through one or more Catalog service, so the Catalog services should trust all the Storage Managers to allow them to make changes.
+
+This means that if we install a new Storage Manager at some machine, and we add the certificate of that Storage Manager to the list of trusted Storage Managers on each Catalog service and on each Storage Element, then if this Storage Manager is compromised, it could remove or change all the data in the system, because it could access the Catalog, and access the Storage Elements.
+
+Is this acceptable?
+
+The main reason to have more than one Storage Manager in the system is high-avaliability. The system could perfectly work with one Storage Manager, but if we have more, than if one is down, we can use the others.
+I think that we need only three Storage Managers which we could deploy at some very secure locations.
