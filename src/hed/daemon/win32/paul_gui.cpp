@@ -5,31 +5,61 @@
 #include <string>
 #define NOGDI
 #include <windows.h>
+#include <arc/win32.h>
 #include <stdio.h>
 
-#include <arc/Run.h>
+#include <arc/ArcConfig.h>
 #include "paul_gui.h"
 
 const char g_szClassName[] = "PaulGUI";
 HMENU popup_menu;
-Arc::Run *run = NULL;
+bool running = false;
+Arc::Config *cfg = NULL;
+PROCESS_INFORMATION processinfo;
 
 static void start_arched(void)
 {
-    std::string cmd = getenv("PAUL_GUI_CMD");
+    if (running) {
+        return;
+    }
+    cfg->parse("paul_gui.xml");
+    std::string p = (std::string)(*cfg)["ArcPluginPath"];
+    SetEnvironmentVariable("ARC_PLUGIN_PATH", p.c_str());
+    std::string path = p + ";%PATH%";
+    SetEnvironmentVariable("PATH", path.c_str()); 
+    std::string cmd = (std::string)(*cfg)["ArcHEDCmd"];
+    std::string cfg_name = (std::string)(*cfg)["ArcHEDConfig"];
+    // XXX read ArcHEDConfig and determine status URL
+    cmd += (" " + cfg_name); // + " >log1 2>log2";
     printf ("cmd: %s\n", cmd.c_str());
     fflush(stdout);
-    if (!cmd.empty()) {
-        run = new Arc::Run(cmd);
-        run->Start();
+    if (cmd.empty()) {
+        return;
     }
+    STARTUPINFO startupinfo;
+    memset(&startupinfo, 0, sizeof(startupinfo));
+    int result = CreateProcess(NULL, 
+                             (LPSTR)cmd.c_str(), 
+                               NULL, 
+                               NULL, 
+                               FALSE, 
+                               CREATE_NEW_PROCESS_GROUP|CREATE_NO_WINDOW,
+                               NULL, 
+                               (LPSTR)".",
+                               &startupinfo, 
+                               &processinfo);
+     printf("ret: %d\n", result);
+     printf("error %s\n", GetOsErrorMessage().c_str());
+     running = true;
+     fflush(stdout);
 }
 
 static void stop_arched(void)
 {
-    if (run != NULL) {
-        run->Kill(1);
+    if (!running) {
+        return;
     }
+    TerminateProcess(processinfo.hProcess, 256);
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -99,6 +129,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 		case WM_CLOSE:
         {
+            stop_arched();
 			DestroyWindow(hwnd);
         }
 		break;
@@ -122,7 +153,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
 {
-	WNDCLASSEX wc;
+    cfg = new Arc::Config();
+	
+    WNDCLASSEX wc;
 	HWND hwnd;
 	MSG Msg;
 
@@ -178,10 +211,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     tnd.uFlags = NIF_MESSAGE|NIF_ICON|NIF_TIP;
     tnd.uCallbackMessage = WM_TRAYNOTIFY;
     tnd.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_PAULGUI)); 
-    strcpy(tnd.szTip, "TIPP");
+    strcpy(tnd.szTip, "ARC - Paul Configurator");
     Shell_NotifyIcon(NIM_ADD, &tnd);
     EnableMenuItem(popup_menu, ID_CLOSE, MF_ENABLED);
-
+    
+    // start arched
+    start_arched();
 	while(GetMessage(&Msg, NULL, 0, 0) > 0)
 	{
 		TranslateMessage(&Msg);

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PaulGUI>
+    <ArcPluginPath>
+C:\Program Files\ARC2\plugins\mcc;C:\Program Files\ARC2\ARC\plugins\dmc</ArcPluginPath>
+    <ArcHEDConfig>C:\Program Files\ARC2\paul_service.xml</ArcHEDConfig>
+    <ArcHEDCmd>C:\Program Files\ARC2\arched.exe -f -c</ArcHEDCmd>
+</PaulGUI>

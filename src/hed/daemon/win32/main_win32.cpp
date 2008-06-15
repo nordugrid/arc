@@ -74,19 +74,19 @@ int main(int argc, char **argv)
     signal(SIGTTOU,SIG_IGN);
     /* Create options parser */
     Arc::ServerOptions options;
-
+      
     try {
         std::list<std::string> params = options.Parse(argc, argv);
         if (params.size() == 0) {
             /* Load and parse config file */
             config.parse(options.config_file.c_str());
             if(!config) {
-	      logger.msg(Arc::ERROR, "Failed to load service configuration");
-	      exit(1);
+                logger.msg(Arc::ERROR, "Failed to load service configuration");
+                exit(1);
             };
             if(!MatchXMLName(config,"ArcConfig")) {
               logger.msg(Arc::ERROR, "Configuration root element is not ArcConfig");
-	      exit(1);
+              exit(1);
             }
 
             /* overwrite config variables by cmdline options */
@@ -111,6 +111,6 @@ int main(int argc, char **argv)
     } catch (const Glib::Error& error) {
       logger.msg(Arc::ERROR, error.what());
     }
-
+    
     return 0;
 }
