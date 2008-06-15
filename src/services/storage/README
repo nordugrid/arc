@@ -7,6 +7,7 @@ manager - the Storage Manager service providing high-level storage namespace
 element - the Storage Element service and a byteio service
 gateway - the Storage Gateway service and other services related to it
 cli 	- small basic CLI clients for the storage services
+fuse    - FUSE interface to storage for mounting storage system
 
 And has the following files:
 client.py					- collection of python classes which can be used to talk to the services
