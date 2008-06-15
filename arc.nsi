@@ -70,22 +70,24 @@ Section "Services"
 	; Paul service
     File /oname=services\libpaul.dll "src\services\paul\.libs\libpaul.dll"
     File /oname=paul_gui.exe "src\hed\daemon\win32\.libs\paul_gui.exe"
+    File /oname=paul_gui_template.xml "src\hed\daemon\win32\paul_gui.xml"
     File /oname=arc.ico "src\hed\daemon\win32\arc.ico"
     File /oname=style.css "src\services\paul\style.css"
     File /oname=paul_service_template.xml "src\services\paul\paul_service_win32.xml"
-    ; File /oname=paul.bat "src\services\paul\paul.bat"
-    FileOpen $0 $INSTDIR\paul.bat w
-    FileWrite $0 "set ARC_PLUGIN=$INSTDIR\plugins\mcc;$INSTDIR\ARC\plugins\dmc$\r$\n"
-    FileWrite $0 "set PATH=%ARC_PLUGIN_PATH%;%PATH%$\r$\n"
-    FileWrite $0 'set PAUL_GUI_CMD="$INSTDIR\arched.exe -f -c $INSTDIR\paul_service.xml"$\r$\n'
-    FileWrite $0 "paul_gui.exe" 
-    FileClose $0
+    ; Create paul_gui.xml
+    ${xml::LoadFile} "paul_gui_template.xml" $0
+    ${xml::GotoPath} "/PaulGUI/ArcPluginPath" $0 
+    ${xml::SetText} "$INSTDIR\plugins\mcc;$INSTDIR\ARC\plugins\dmc" $0
+    ${xml::GotoPath} "/PaulGUI/ArcHEDConfig" $0
+    ${xml::SetText} '"$INSTDIR\paul_service.xml"' $0
+    ${xml::GotoPath} "/PaulGUI/ArcHEDCmd" $0
+    ${xml::SetText} '"$INSTDIR\arched.exe" -f -c' $0
+    ${xml::SaveFile} "paul_gui.xml" $0
+    ${xml::Unload}
+    ; Create paul_service.xml
     ${xml::LoadFile} "paul_service_template.xml" $0
-    ; MessageBox MB_OK "$$0=$0"
     ${xml::RootElement} $0 $1
-    ; MessageBox MB_OK "$$0=$0$\n$$1=$1"
     ${xml::XPathNode} "//Service[@id='paul']/paul:JobRoot" $0
-    ; MessageBox MB_OK "$$0=$0"
     ${xml::SetText} "$INSTDIR\jobroot" $0
     ${xml::SaveFile} "paul_service.xml" $0
     ${xml::Unload}
