@@ -242,14 +242,21 @@ tail(std::string file_name, int line_n)
     std::list<std::string> lines;
     fin.seekg(0, std::ios::end);
     int block_end = fin.tellg(); 
+    if (block_end == -1) {
+        return "";
+    }
     fin.seekg(-seek_size, std::ios::end);
     int pos = fin.tellg();
+    if (pos == -1) {
+        return "";
+    }
     int block_start = pos;
-    
+
+/*
     std::cout << "bs: " << block_start << std::endl;
     std::cout << "p: " << pos << std::endl;
     std::cout << "be: " << block_end << std::endl;
-    
+*/    
     std::vector<std::string> tokens;
     char buffer[1024];
     for(;;) { 
@@ -273,6 +280,9 @@ tail(std::string file_name, int line_n)
         }
         pos = fin.tellg();
 // std::cout << pos << std::endl;
+        if (pos == -1) {
+            pos = block_end;
+        }
         if ((fin.eof() && ln < line_n) || pos >= block_end) {
             if (block_start == 0) {
                 break;
@@ -284,12 +294,15 @@ tail(std::string file_name, int line_n)
             }
             fin.seekg(s, std::ios::beg);
             block_start = fin.tellg();
+            if (block_start == -1) {
+                break; 
+            }
         }
-
+/*
     std::cout << "bs: " << block_start << std::endl;
     std::cout << "p: " << pos << std::endl;
     std::cout << "be: " << block_end << std::endl;
-
+*/
     }
     fin.close();
     std::list<std::string>::iterator it;
