@@ -23,7 +23,7 @@ namespace Arc {
       
       for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
 	Job ThisJob;
-	ThisJob.id = (std::string) (*iter)["id"];
+	ThisJob.JobID = (std::string) (*iter)["id"];
 	ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
 	JobStore.push_back(ThisJob);
       }
@@ -36,7 +36,7 @@ namespace Arc {
 	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//job[id='"+ *it+"']", Arc::NS())).begin());
 	if(GridFlavour == (std::string) ThisXMLJob["flavour"]){
 	  Job ThisJob;
-	  ThisJob.id = (std::string) ThisXMLJob["id"];
+	  ThisJob.JobID = (std::string) ThisXMLJob["id"];
 	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["source"];
 	  JobStore.push_back(ThisJob);	  
 	}
@@ -51,63 +51,67 @@ namespace Arc {
     
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
       
-      std::cout<<Arc::IString("Job: %s", jobiter->id)<<std::endl;
-      if (!jobiter->job_name.empty())
-	std::cout<<Arc::IString(" Name: %s", jobiter->job_name)<<std::endl;
-      if (!jobiter->status.empty())
-	std::cout<<Arc::IString(" Status: %s", jobiter->status)<<std::endl;
-      if(jobiter->exitcode != -1)
-	std::cout<<Arc::IString(" Exit Code: %d", jobiter->exitcode)<<std::endl;
-      if(!jobiter->errors.empty())
-	std::cout<<Arc::IString(" Errors: %s", jobiter->errors)<<std::endl;
-      
+      std::cout<<Arc::IString("Job: %s", jobiter->JobID)<<std::endl;
+      if (!jobiter->Name.empty())
+	std::cout<<Arc::IString(" Name: %s", jobiter->Name)<<std::endl;
+      if (!jobiter->State.empty())
+	std::cout<<Arc::IString(" State: %s", jobiter->State)<<std::endl;
+      if(jobiter->ExitCode != -1)
+	std::cout<<Arc::IString(" Exit Code: %d", jobiter->ExitCode)<<std::endl;
+      if(!jobiter->Error.empty()){
+	std::list<std::string>::iterator iter;
+	for(iter = jobiter->Error.begin(); iter != jobiter->Error.end(); iter++ ){
+	  std::cout<<Arc::IString(" Error: %s", *iter)<<std::endl;
+	}
+      }
       if (longlist) {
-	if (!jobiter->owner.empty())
-	  std::cout<<Arc::IString(" Owner: %s", jobiter->owner)<<std::endl;	  
-	if (!jobiter->comment.empty())
-	  std::cout<<Arc::IString(" Comment: %s", jobiter->comment)<<std::endl;	  	    
-	if (!jobiter->cluster.empty())
-	  std::cout<<Arc::IString(" Cluster: %s", jobiter->cluster)<<std::endl;	  	      
-	if (!jobiter->queue.empty())
-	  std::cout<<Arc::IString(" Queue: %s", jobiter->queue)<<std::endl;	  	  
-	if (jobiter->cpu_count != -1)
-	  std::cout<<Arc::IString(" Requested Number of CPUs: %d", jobiter->cpu_count)<<std::endl;	  
-	if (jobiter->queue_rank != -1)
-	  std::cout<<Arc::IString(" Rank: %d", jobiter->queue_rank)<<std::endl;	                    
-	if (!jobiter->sstdin.empty())
-	  std::cout<<Arc::IString(" stdin: %s", jobiter->sstdin)<<std::endl;	                                        
-	if (!jobiter->sstdout.empty())
-	  std::cout<<Arc::IString(" stdout: %s", jobiter->sstdout)<<std::endl;	                                          
-	if (!jobiter->sstderr.empty())
-	  std::cout<<Arc::IString(" stderr: %s", jobiter->sstderr)<<std::endl;	                    			  
-	if (!jobiter->gmlog.empty())
-	  std::cout<<Arc::IString(" Grid Manager Log Directory: %s", jobiter->gmlog)<<std::endl;
-	if (jobiter->submission_time != -1)
-	  std::cout<<Arc::IString(" Submitted: %s", (std::string) jobiter->submission_time)<<std::endl;
-	if (jobiter->completion_time != -1)
-	  std::cout<<Arc::IString(" Completed: %s", (std::string) jobiter->completion_time)<<std::endl;
-	if (!jobiter->submission_ui.empty())
-	  std::cout<<Arc::IString(" Submitted from: %s", jobiter->submission_ui)<<std::endl;                                  
-	if (!jobiter->client_software.empty())
-	  std::cout<<Arc::IString(" Submitting client: %s", jobiter->client_software)<<std::endl;
-	if (jobiter->requested_cpu_time != -1)
-	  std::cout<<Arc::IString(" Requested CPU Time: %s", (std::string) jobiter->requested_cpu_time)<<std::endl;
-	if (jobiter->used_cpu_time != -1)
-	  std::cout<<Arc::IString(" Used CPU Time: %s", (std::string) jobiter->used_cpu_time)<<std::endl;
-	if (jobiter->used_wall_time != -1)
-	  std::cout<<Arc::IString(" Used Wall Time: %s", (std::string) jobiter->used_wall_time)<<std::endl;
-	if (jobiter->used_memory != -1)
-	  std::cout<<Arc::IString(" Used Memory: %d", jobiter->used_memory)<<std::endl;
-	if (jobiter->erase_time != -1)
-	  std::cout<<Arc::IString((jobiter->status == "DELETED") ? 
+	if (!jobiter->Owner.empty())
+	  std::cout<<Arc::IString(" Owner: %s", jobiter->Owner)<<std::endl;	  
+	if (!jobiter->OtherMessages.empty())
+	  std::cout<<Arc::IString(" Other Messages: %s", jobiter->OtherMessages)<<std::endl;	  	    
+	if (!jobiter->ExecutionCE.empty())
+	  std::cout<<Arc::IString(" ExecutionCE: %s", jobiter->ExecutionCE)<<std::endl;	  	      
+	if (!jobiter->Queue.empty())
+	  std::cout<<Arc::IString(" Queue: %s", jobiter->Queue)<<std::endl;	  	  
+	if (jobiter->UsedSlots != -1)
+	  std::cout<<Arc::IString(" Used Slots: %d", jobiter->UsedSlots)<<std::endl;	  
+	if (jobiter->WaitingPosition != -1)
+	  std::cout<<Arc::IString(" Waiting Position: %d", jobiter->WaitingPosition)<<std::endl;	                    
+	if (!jobiter->StdIn.empty())
+	  std::cout<<Arc::IString(" Stdin: %s", jobiter->StdIn)<<std::endl;	                                        
+	if (!jobiter->StdOut.empty())
+	  std::cout<<Arc::IString(" Stdout: %s", jobiter->StdOut)<<std::endl;	                                          
+	if (!jobiter->StdErr.empty())
+	  std::cout<<Arc::IString(" Stderr: %s", jobiter->StdErr)<<std::endl;	                    			  
+	if (!jobiter->LogDir.empty())
+	  std::cout<<Arc::IString(" Grid Manager Log Directory: %s", jobiter->LogDir)<<std::endl;
+	if (jobiter->SubmissionTime != -1)
+	  std::cout<<Arc::IString(" Submitted: %s", (std::string) jobiter->SubmissionTime)<<std::endl;
+	if (jobiter->EndTime != -1)
+	  std::cout<<Arc::IString(" End Time: %s", (std::string) jobiter->EndTime)<<std::endl;
+	if (!jobiter->SubmissionHost.empty())
+	  std::cout<<Arc::IString(" Submitted from: %s", jobiter->SubmissionHost)<<std::endl;                                  
+	if (!jobiter->SubmissionClientName.empty())
+	  std::cout<<Arc::IString(" Submitting client: %s", jobiter->SubmissionClientName)<<std::endl;
+	if (jobiter->RequestedTotalCPUTime != -1)
+	  std::cout<<Arc::IString(" Requested CPU Time: %s", (std::string) jobiter->RequestedTotalCPUTime)<<std::endl;
+	if (jobiter->UsedTotalCPUTime != -1)
+	  std::cout<<Arc::IString(" Used CPU Time: %s", (std::string) jobiter->UsedTotalCPUTime)<<std::endl;
+	if (jobiter->UsedWallTime != -1)
+	  std::cout<<Arc::IString(" Used Wall Time: %s", (std::string) jobiter->UsedWallTime)<<std::endl;
+	if (jobiter->UsedMainMemory != -1)
+	  std::cout<<Arc::IString(" Used Memory: %d", jobiter->UsedMainMemory)<<std::endl;
+	if (jobiter->WorkingAreaEraseTime != -1)
+	  std::cout<<Arc::IString((jobiter->State == "DELETED") ? 
 				  " Results were deleted: %s" : 
-				  " Results must be retrieved before: %s", (std::string) jobiter->erase_time)<<std::endl;
-	if (jobiter->proxy_expire_time != -1)
-	  std::cout<<Arc::IString(" Proxy valid until: %s", (std::string) jobiter->proxy_expire_time)<<std::endl;
-	if (jobiter->mds_validfrom != -1)
-	  std::cout<<Arc::IString(" Entry valid from: %s", (std::string) jobiter->mds_validfrom)<<std::endl;
-	if (jobiter->mds_validto != -1)
-	  std::cout<<Arc::IString(" Entry valid until: %s", (std::string) jobiter->mds_validto)<<std::endl;
+				  " Results must be retrieved before: %s", 
+				  (std::string) jobiter->WorkingAreaEraseTime)<<std::endl;
+	if (jobiter->ProxyExpirationTime != -1)
+	  std::cout<<Arc::IString(" Proxy valid until: %s", (std::string) jobiter->ProxyExpirationTime)<<std::endl;
+	if (jobiter->CreationTime != -1)
+	  std::cout<<Arc::IString(" Entry valid from: %s", (std::string) jobiter->CreationTime)<<std::endl;
+	if (jobiter->Validity != -1)
+	  std::cout<<Arc::IString(" Entry valid until: %s", (std::string) jobiter->Validity)<<std::endl;
       }//end if long
 
       std::cout<<std::endl;

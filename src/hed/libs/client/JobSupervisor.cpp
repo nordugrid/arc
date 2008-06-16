@@ -94,6 +94,8 @@ namespace Arc {
 
   void JobSupervisor::DownloadJobOutput() {
 
+    std::cout<< "Now dowloading job output" << std::endl;
+
     std::list<JobController*>::iterator iter;
     
     //This may benefit from being threaded

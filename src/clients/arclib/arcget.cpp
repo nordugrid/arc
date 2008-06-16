@@ -28,6 +28,7 @@ void arcget(const std::list<std::string>& jobs,
 			       downloaddir, joblist, keep, timeout);
 
   JobMaster.GetJobInformation();
+  JobMaster.PrintJobInformation(true);
   JobMaster.DownloadJobOutput();
 
 }

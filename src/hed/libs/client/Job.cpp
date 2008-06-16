@@ -3,20 +3,24 @@
 
 namespace Arc {
   
-  Job::Job() : requested_cpu_time(-1),
-	       requested_wall_time(-1),
-	       queue_rank(-1),
-	       submission_time(-1),
-	       completion_time(-1),
-	       used_cpu_time(-1),
-	       used_wall_time(-1),
-	       erase_time(-1),
-	       used_memory(-1),
-	       exitcode(-1),
-	       cpu_count(-1),
-	       proxy_expire_time(-1),
-	       mds_validfrom(-1),
-	       mds_validto(-1) {}
+  Job::Job() : ExitCode(-1),
+	       WaitingPosition(-1),
+	       RequestedWallTime(-1),
+	       RequestedTotalCPUTime(-1),
+	       RequestedMainMemory(-1),
+	       RequestedSlots(-1),
+	       UsedWallTime(-1),
+	       UsedTotalCPUTime(-1),
+	       UsedMainMemory(-1),
+	       UsedSlots(-1),
+	       SubmissionTime(-1),
+	       ComputingManagerSubmissionTime(-1),
+	       StartTime(-1),
+	       ComputingManagerEndTime(-1),
+	       EndTime(-1),
+	       WorkingAreaEraseTime(-1),
+	       ProxyExpirationTime(-1),
+	       VirtualMachine(false) {}
   
   Job::~Job() {}
   
