@@ -12,6 +12,7 @@
 #include <arc/StringConv.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
+#include <arc/message/SecAttr.h>
 
 #include "grid-manager/conf/environment.h"
 #include "grid-manager/conf/conf_pre.h"
@@ -106,6 +107,21 @@ ARexGMConfig::ARexGMConfig(const std::string& configfile,const std::string& unam
   */
 }
 
+template <typename T> class AutoPointer {
+ private:
+  T* object;
+  void operator=(const AutoPointer<T>&) { };
+  void operator=(T*) { };
+  AutoPointer(const AutoPointer&):object(NULL) { };
+ public:
+  AutoPointer(void):object(NULL) { };
+  AutoPointer(T* o):object(o) { }
+  ~AutoPointer(void) { if(object) delete object; };
+  T& operator*(void) const { return *object; };
+  T* operator->(void) const { return object; };
+  operator bool(void) const { return (object!=NULL); };
+  bool operator!(void) const { return (object==NULL); };
+};
 
 bool ARexJob::is_allowed(void) {
   allowed_to_see_=false;
@@ -116,50 +132,60 @@ bool ARexJob::is_allowed(void) {
     allowed_to_maintain_=true;
     return true;
   };
-/*
-  // Using ARC Policy
+  // Do fine-grained authorization requested by job's owner
+  // Currently using only ARC Policy
+  if(config_.beginAuth() == config_.endAuth()) return true;
   std::string acl;
-  if(job_acl_read_file(id_,*config.User(),acl)) {
-    if(!acl.empty()) {
-      ArcSec::Evaluator* eval =
-          ArcSec::EvaluatorLoader().getEvaluator("arc.evaluator");
-      eval->addPolicy(Source(acl));
-    };
+  if(!job_acl_read_file(id_,*config_.User(),acl)) return true; // safe to ignore
+  if(acl.empty()) return true; // No policy defiled - only owner allowed
+  AutoPointer<ArcSec::Evaluator> eval(ArcSec::EvaluatorLoader().getEvaluator("arc.evaluator"));
+  if(!eval) {
+    return true; // Ignore so far. TODO: report error
   };
-  NS ns;
-  ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
-  XMLNode request("ar:Request",ns);
-  XMLNode item = val.NewChild("ar:RequestItem");
-  // Resource is not needed
+  eval->addPolicy(ArcSec::Source(acl));
+  // Creating request - directly with XML
+  // Get all user identities
+  Arc::NS ns;
+  ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+  Arc::XMLNode request(ns,"ra:Request");
+  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+    if(*a) (*a)->Export(Arc::SecAttr::ARCAuth,request);
+  };
+  for(Arc::XMLNode item = request["RequestItem"];(bool)item;++item) {
+    for(Arc::XMLNode a = item["Action"];(bool)a;a=item["Action"]) a.Destroy();
+    for(Arc::XMLNode r = item["Resource"];(bool)r;r=item["Resource"]) r.Destroy();
+  };
+  request.Namespaces(ns);
+  Arc::XMLNode item = request["ra:RequestItem"];
+  if(!item) item=request.NewChild("ra:RequestItem");
   // Possible operations are Modify and Read
-  XMLNode action;
-  action=item.NewChild("ar:Action");
+  Arc::XMLNode action;
+  action=item.NewChild("ra:Action");
   action="Read"; action.NewAttribute("Type")="string";
   action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
-  action=item.NewChild("ar:Action");
+  action=item.NewChild("ra:Action");
   action="Modify"; action.NewAttribute("Type")="string";
   action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
-  // Get all user identities
-
-
-
-
+  // Evaluating policy
   ArcSec::Response *resp = eval->evaluate(request);
-  if(resp) {
-    ResponseList rlist = resp->getResponseItems();
-    //It is supposed all of the RequestItem needs to satisfy the policy in order to authorization
-    if((rlist.size()) == (resp->getRequestSize())){
-      olog<<"Authorized from job"<<std::endl;
-      if(resp) delete resp;
-      return true;
-    };
-    else {
-      olog<<"UnAuthorized from job; Some of the RequestItem does not satisfy Policy"<<std::endl;
-      if(resp) delete resp;
-      return false;
+  // Analyzing response in order to understand which operations are allowed
+  if(!resp) return true; // Not authorized
+  // Following should be somehow made easier
+  ArcSec::ResponseList& rlist = resp->getResponseItems();
+  for(int n = 0; n<rlist.size(); ++n) {
+    ArcSec::ResponseItem* ritem = rlist[n];
+    if(!ritem) continue;
+    if(!(ritem->reqtp)) continue;
+    for(ArcSec::Action::iterator a = ritem->reqtp->act.begin();a!=ritem->reqtp->act.end();++a) {
+      ArcSec::RequestAttribute* attr = *a;
+      if(!attr) continue;
+      ArcSec::AttributeValue* value = attr->getAttributeValue();
+      if(!value) continue;
+      std::string action = value->encode();
+      if(action == "Read") allowed_to_see_=true;
+      if(action == "Modify") allowed_to_maintain_=true;
     };
   };
-*/
   return true;
 }
 

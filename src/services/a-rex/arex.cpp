@@ -197,6 +197,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     // Service is not operational
     return Arc::MCC_Status();
   };
+  config->ClearAuths();
+  config->AddAuth(inmsg.Auth());
+  config->AddAuth(inmsg.AuthContext());
 
   // Collect any service specific Security Attributes here
   if(!ProcessSecHandlers(inmsg,"incoming")) {

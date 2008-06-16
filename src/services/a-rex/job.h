@@ -1,7 +1,11 @@
 #ifndef __ARC_AREX_JOB_H__
 #define __ARC_AREX_JOB_H__
 
+#include <string>
+#include <list>
+
 #include <arc/XMLNode.h>
+#include <arc/message/MessageAuth.h>
 #include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
 
@@ -14,6 +18,7 @@ class ARexGMConfig {
   std::list<std::string> queues_;
   std::string grid_name_; // temporary solution
   std::string service_endpoint_; // temporary solution
+  std::list<Arc::MessageAuth*> auths_;
  public:
   ARexGMConfig(const std::string& config_file,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   ~ARexGMConfig(void);
@@ -25,6 +30,10 @@ class ARexGMConfig {
   const std::string& Endpoint(void) const { return service_endpoint_; };
   const std::list<std::string>& Queues(void) const { return queues_; };
   static bool InitEnvironment(const std::string& configfile);
+  void AddAuth(Arc::MessageAuth* auth) { auths_.push_back(auth); };
+  void ClearAuths(void) { auths_.clear(); };
+  std::list<Arc::MessageAuth*>::iterator beginAuth(void) { return auths_.begin(); };
+  std::list<Arc::MessageAuth*>::iterator endAuth(void) { return auths_.end(); };
 };
 
 
