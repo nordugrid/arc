@@ -12,7 +12,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
-#include "options.h"
+#include "../options.h"
 
 Arc::Config config;
 Arc::Loader *loader;
