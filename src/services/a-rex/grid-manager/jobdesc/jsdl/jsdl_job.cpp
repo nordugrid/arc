@@ -244,8 +244,17 @@ bool JSDLJob::get_acl(std::string& acl) {
   Arc::XMLNode aclNode = jsdl_document["JobDescription"]["AccessControl"];
   if( !aclNode ) return true;
   Arc::XMLNode typeNode = aclNode["Type"];
-  std::string str_content = aclNode["Content"];
-  if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) ) {
+  Arc::XMLNode contentNode = aclNode["Content"];
+  if( !contentNode ) return false;
+  if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) || ( ( (std::string) typeNode ) == "ARC" ) ) {
+    std::string str_content;
+    if(contentNode.Size() > 0) {
+      Arc::XMLNode acl_doc;
+      contentNode.Child().New(acl_doc);
+      acl_doc.GetDoc(str_content);
+    } else {
+      str_content = (std::string)contentNode;
+    }
     if( str_content != "" ) acl=str_content;
   } else {
     return false;
