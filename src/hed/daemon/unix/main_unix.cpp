@@ -18,7 +18,7 @@
 #include <arc/loader/Loader.h>
 
 #include "daemon.h"
-#include "options.h"
+#include "../options.h"
 
 Arc::Daemon *main_daemon;
 Arc::Config config;
