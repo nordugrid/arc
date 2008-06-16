@@ -29,14 +29,14 @@ class ByteIOBackend:
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        print 'Uploading file to', turl
+        print self.turlprefix, 'Uploading file to', turl
         ByteIOClient(turl).write(f)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        print 'Downloading file from', turl
+        print self.turlprefix, 'Downloading file from', turl
         ByteIOClient(turl).read(file = f)
         f.close()
 
@@ -47,7 +47,7 @@ class ByteIOBackend:
         try:
             os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
             self.idstore[turl_id] = referenceID
-            print '++', self.idstore
+            print self.turlprefix, '++', self.idstore
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -62,7 +62,7 @@ class ByteIOBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[turl_id] = referenceID
-        print '++', self.idstore
+        print self.turlprefix, '++', self.idstore
         turl = self.turlprefix + turl_id
         return turl
 
@@ -92,7 +92,7 @@ class ByteIOBackend:
         referenceID = self.idstore.get(subject,None)
         state = str(request_node.Get('state'))
         path = os.path.join(self.transferdir, subject)
-        print 'Removing', path
+        print self.turlprefix, 'Removing', path
         os.remove(path)
         self.file_arrived(referenceID)
         out = arc.PayloadSOAP(self.ns)
