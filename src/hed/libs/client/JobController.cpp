@@ -51,7 +51,7 @@ namespace Arc {
     
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
       
-      std::cout<<Arc::IString("Job: %s", jobiter->JobID)<<std::endl;
+      std::cout<<Arc::IString("Job: %s", jobiter->JobID.str())<<std::endl;
       if (!jobiter->Name.empty())
 	std::cout<<Arc::IString(" Name: %s", jobiter->Name)<<std::endl;
       if (!jobiter->State.empty())
@@ -113,11 +113,11 @@ namespace Arc {
 	if (jobiter->Validity != -1)
 	  std::cout<<Arc::IString(" Entry valid until: %s", (std::string) jobiter->Validity)<<std::endl;
       }//end if long
-
+      
       std::cout<<std::endl;
-
+      
     } //end loop over jobs
-
+    
   }
-
+  
 } // namespace Arc
