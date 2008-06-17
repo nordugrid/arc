@@ -24,7 +24,7 @@ namespace Arc{
     //Base class implementation
     void IdentifyJobs(std::list<std::string> jobids);
     void PrintJobInformation(bool longlist);
-    void CopyFile(URL source, URL destination);
+    void CopyFile(URL src, URL dst);
 
   protected:
     std::list<Arc::Job> JobStore;

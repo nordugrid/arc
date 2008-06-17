@@ -1,6 +1,10 @@
 #include <arc/IString.h>
 #include "JobController.h"
 #include <arc/ArcConfig.h>
+#include <arc/data/DataMover.h>
+#include <arc/data/DataHandle.h>
+#include <arc/data/URLMap.h>
+#include <arc/User.h>
 
 #include <iostream>
 #include <algorithm>
@@ -120,4 +124,57 @@ namespace Arc {
     
   }
   
+  static void progress(FILE *o, const char *, unsigned int,
+		       unsigned long long int all, unsigned long long int max,
+		       double, double) {
+    static int rs = 0;
+    const char rs_[4] = {'|', '/', '-', '\\'};
+    if (max) {
+      fprintf(o, "\r|");
+      unsigned int l = (74 * all + 37) / max;
+      if (l > 74) l = 74;
+      unsigned int i = 0;
+      for (; i < l; i++) fprintf(o, "=");
+      fprintf(o, "%c", rs_[rs++]);
+      if (rs > 3) rs = 0;
+      for (; i < 74; i++) fprintf(o, " ");
+      fprintf(o, "|\r");
+      fflush(o);
+      return;
+    }
+    fprintf(o, "\r%llu kB                    \r", all / 1024);
+  }
+
+  void JobController::CopyFile(URL src, URL dst){
+
+    Arc::DataMover mover;
+    mover.retry(true);
+    mover.secure(false);
+    mover.passive(false);
+    mover.verbose(true);
+    mover.set_progress_indicator(&progress);
+            
+    std::cout<<"Now copying (from -> to):"<<std::endl;
+    std::cout << src.str() << " -> " << dst.str() << std::endl;
+
+    Arc::DataHandle source(src);
+    Arc::DataHandle destination(dst);
+
+    // Create cache
+    // This should not be needed (DataMover bug)
+    Arc::User cache_user;
+    std::string cache_path2;
+    std::string cache_data_path;
+    std::string id = "<ngcp>";
+    Arc::DataCache cache(cache_path2, cache_data_path, "", id, cache_user);
+    
+    std::string failure;
+    int timeout = 300;
+    if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
+      if (!failure.empty()) std::cerr << "File download failed: " << failure << std::endl;
+      else std::cerr << "File download failed" << std::endl;
+    }
+    
+  }
+
 } // namespace Arc

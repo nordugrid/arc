@@ -72,6 +72,10 @@ namespace Arc {
 
       //5. Fill jobs with information
       XMLNode XMLresult(result);
+
+      std::cout<<"Read job information:"<<std::endl;
+      std::cout<<result<<std::endl;
+      //XMLresult.SaveToStream(std::cout);
       
       for(it = HostIterator->second.begin(); it != HostIterator->second.end(); it++){
 	XMLNode JobXMLInfo = (*XMLresult.XPathLookup("//nordugrid-job-globalid"
@@ -102,10 +106,13 @@ namespace Arc {
 	  (*it)->UsedWallTime = (std::string) JobXMLInfo["nordugrid-job-usedwalltime"];
 	if(JobXMLInfo["nordugrid-job-exitcode"])
 	  (*it)->ExitCode = stringtoi(JobXMLInfo["nordugrid-job-exitcode"]);
-	if(JobXMLInfo["Mds-validfrom"])
+	if(JobXMLInfo["Mds-validfrom"]){
 	  (*it)->CreationTime = (std::string) (JobXMLInfo["Mds-validfrom"]);
-	if(JobXMLInfo["Mds-validto"])
-	  (*it)->Validity = (std::string) (JobXMLInfo["Mds-validto"]);
+	  if(JobXMLInfo["Mds-validto"]){
+	    Time Validto = (std::string) (JobXMLInfo["Mds-validto"]);
+	    (*it)->Validity = Validto - (*it)->CreationTime;
+	  }
+	}
 	if(JobXMLInfo["nordugrid-job-stdout"])
 	  (*it)->StdOut = (std::string) (JobXMLInfo["nordugrid-job-stdout"]);
 	if(JobXMLInfo["nordugrid-job-stderr"])
@@ -174,17 +181,19 @@ namespace Arc {
 
     Arc::DataHandle source(ThisJob.JobID);
     
-
     if(source){
       std::list<FileInfo> outputfiles;
       source->ListFiles(outputfiles, true);
       std::cout<<"Job directory contains:"<<std::endl;
       for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin();i != outputfiles.end(); i++){
 	std::cout << i->GetName() <<std::endl;
-
+	std::string src = ThisJob.JobID.str() +"/"+ i->GetName();
+	std::string path_temp = ThisJob.JobID.Path(); 
+	size_t slash = path_temp.find_first_of("/");
+	std::string dst = path_temp.substr(slash+1) + "/" + i->GetName();
+	CopyFile(src, dst);
       }
     }
-
 
     //2. Copy the file (use JobController base class implementation)
     
