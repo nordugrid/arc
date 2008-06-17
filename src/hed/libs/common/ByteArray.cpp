@@ -4,6 +4,9 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 
 #include "ByteArray.h"
 
@@ -80,6 +83,16 @@ void ByteArray::clean(void)
 {
     memset(data_, 0, length_);
     size_ = 0;
+}
+
+ByteArray::operator std::string(void) const
+{
+    std::ostringstream o;
+    for (int i = 0; i < length_; i++) {
+        o << std::hex << std::setiosflags(std::ios_base::showbase);
+        o << (int)data_[i] << " ";
+    }
+    return o.str();
 }
 
 } // namespace Arc

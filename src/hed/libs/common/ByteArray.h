@@ -33,6 +33,7 @@ class ByteArray
         void clean(void);
         char *data(void) { return data_; };
         size_t size(void) { return size_; };
+        operator std::string(void) const;
 };
 
 } // namespace Arc
