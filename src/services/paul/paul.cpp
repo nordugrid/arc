@@ -42,7 +42,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
     // and create Glue compatibile Resource description
     Arc::NS glue2_ns;
     glue2_ns["glue2"] = ns_["glue2"];
-    Arc::XMLNode glue2(glue2_ns, "Domain");
+    Arc::XMLNode glue2(glue2_ns, "Domains");
     if (information_collector(glue2) == false) {
         logger_.msg(Arc::ERROR, "Cannot collect resource information");
         return;
