@@ -1,5 +1,5 @@
 pkglib_LTLIBRARIES = libgrid_sched.la
-sbin_PROGRAMS=sched_jobq_dump
+sbin_PROGRAMS=manage_jobq
 
 JOBQ_SOURCES=job.h job.cpp job_request.cpp job_request.h job_sched_meta.cpp job_sched_meta.h job_status.h job_status.cpp job_queue.h job_queue.cpp 
 
@@ -9,6 +9,6 @@ libgrid_sched_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/i
 libgrid_sched_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 libgrid_sched_la_LDFLAGS = -no-undefined -avoid-version -module
 
-sched_jobq_dump_SOURCES=sched_jobq_dump.cpp $(JOBQ_SOURCES)
-sched_jobq_dump_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-sched_jobq_dump_LDADD=$(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
+manage_jobq_SOURCES=manage_jobq.cpp $(JOBQ_SOURCES)
+manage_jobq_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+manage_jobq_LDADD=$(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)

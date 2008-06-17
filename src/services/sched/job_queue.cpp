@@ -126,7 +126,7 @@ void JobQueue::init(const std::string &dbroot, const std::string &store_name)
     db_ = NULL;
     env_ = new DbEnv(0); // Exception will occure
     // env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL | DB_THREAD, 0644);
-    env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_LOCK, 0644);
+    env_->open(dbroot.c_str(), DB_CREATE | DB_INIT_MPOOL | DB_INIT_LOCK, 0644);
     db_ = new Db(env_, 0);
 #if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
     db_->open(store_name.c_str(), NULL, DB_BTREE, DB_CREATE, 0644);
@@ -160,6 +160,7 @@ void JobQueue::refresh(Job &j)
     ByteArray &a = j.serialize();
     Dbt data(a.data(), a.size());
     db_->put(NULL, &key, &data, 0);
+    db_->sync(0);
 }
 
 Job *JobQueue::operator[](const std::string &id)
@@ -179,9 +180,18 @@ Job *JobQueue::operator[](const std::string &id)
     }
 }
 
-void JobQueue::remove(Job &)
+void JobQueue::remove(Job &j)
 {
-    // XXX NOP
+    remove(j.getID());
+}
+
+void JobQueue::remove(const std::string &id)
+{
+    void *buf = (void *)id.c_str();
+    int size = id.size() + 1;
+    Dbt key(buf, size);
+    db_->del(NULL, &key, 0);
+    db_->sync(0);
 }
 
 JobQueueIterator JobQueue::getAll(void) 
@@ -193,7 +203,6 @@ JobQueueIterator JobQueue::getAll(void)
         db_->cursor(tid, &cursor, 0);
         return JobQueueIterator(tid, cursor);
     } catch (DbException &e) {
-std::cout << "uff" << std::endl;
         tid->abort();
         return JobQueueIterator();
     }
@@ -211,6 +220,11 @@ JobQueueIterator JobQueue::getAll(SchedJobStatus status)
         tid->abort();
         return JobQueueIterator();
     }
+}
+
+void JobQueue::sync(void)
+{
+    db_->sync(0);
 }
 
 }

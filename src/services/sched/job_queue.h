@@ -68,6 +68,7 @@ class JobQueue
         void remove(const std::string &id);
         JobQueueIterator getAll(void);
         JobQueueIterator getAll(SchedJobStatus status);
+        void sync(void);
 };
 
 } // namespace Arc

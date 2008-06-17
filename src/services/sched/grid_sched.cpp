@@ -120,10 +120,12 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
         ret = GetActivities(op, r, resource_id);
     } else if(MatchXMLName(op, "ReportActivitiesStatus")) {
         Arc::XMLNode r = res.NewChild("ibes:ReportActivitiesStatusResponse");
-        ret = ReportActivitiesStatus(op, r);
+        std::string resource_id = inmsg.Attributes()->get("TCP:REMOTEHOST");
+        ret = ReportActivitiesStatus(op, r, resource_id);
     } else if(MatchXMLName(op, "GetActivitiesStatusChanges")) {
         Arc::XMLNode r = res.NewChild("ibes:GetActivitiesStatusChangesResponse");
-        ret = GetActivitiesStatusChanges(op, r);
+        std::string resource_id = inmsg.Attributes()->get("TCP:REMOTEHOST");
+        ret = GetActivitiesStatusChanges(op, r, resource_id);
     // Delegation
     } else if(MatchXMLName(op, "DelegateCredentialsInit")) {
         if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
@@ -157,9 +159,10 @@ GridSchedulerService::process(Arc::Message& inmsg, Arc::Message& outmsg)
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-#if 0
 void GridSchedulerService::doSched(void)
 {   
+    logger_.msg(Arc::DEBUG, "doSched");
+#if 0
     // log status
     logger_.msg(Arc::DEBUG, "Count of jobs: %i"
                 " Count of resources: %i"
@@ -193,27 +196,49 @@ void GridSchedulerService::doSched(void)
         }
         j->save();
     }
-
+#endif
     // search for job which are killed by user
-    std::map<const std::string, Job *> killed_jobs = sched_queue.getJobsWithState(KILLING);
-    for (iter = killed_jobs.begin(); iter != killed_jobs.end(); iter++) {
-        Job *j = iter->second;
-        const std::string &job_id = iter->first;
-        const std::string &arex_job_id = j->getResourceJobID();
-        if (arex_job_id.empty()) {
-            j->setStatus(KILLED);
-            sched_queue.removeJob(job_id);
-        } else {
+    for (Arc::JobQueueIterator jobs = jobq.getAll(Arc::JOB_STATUS_SCHED_KILLING); jobs.hasMore(); jobs++){
+        Arc::Job *j = *jobs;
+        Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+        if (m->getResourceID().empty()) {
+            logger_.msg(Arc::DEBUG, "%s set killed", j->getID());
+            j->setStatus(Arc::JOB_STATUS_SCHED_KILLED);
+            m->setEndTime(Arc::Time());
+        } 
+        /*
+        else {
             Resource &arex = sched_resources.get(j->getResourceID());
             if (arex.TerminateActivity(arex_job_id)) {
                 logger_.msg(Arc::DEBUG, "JobID: %s KILLED", job_id);
                 j->setStatus(KILLED);
                 sched_queue.removeJob(job_id);
             }
-        }
-        j->save();
+        } */
+        jobs.write_back(*j);
     }
 
+    // cleanup jobq
+    for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++)
+    {
+        Arc::Job *j = *jobs;
+        Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+        Arc::SchedJobStatus status = j->getStatus();
+        if (status == Arc::JOB_STATUS_SCHED_FINISHED
+            || status == Arc::JOB_STATUS_SCHED_KILLED
+            || status == Arc::JOB_STATUS_SCHED_FAILED
+            || status == Arc::JOB_STATUS_SCHED_UNKNOWN)
+        {
+            Arc::Period p(lifetime_after_done);
+            Arc::Time now;
+            if (now > (m->getEndTime() + p)) {
+                logger_.msg(Arc::DEBUG, "%s remove from queue", j->getID());
+                jobq.remove(*j);
+            }
+        }
+    }
+
+#if 0
     // query a-rexes for the job statuses:
     std::map<const std::string, Job *> all_job = sched_queue.getAllJobs();
     for (iter = all_job.begin(); iter != all_job.end(); iter++) {
@@ -252,6 +277,7 @@ void GridSchedulerService::doSched(void)
             logger_.msg(Arc::DEBUG, "JobID: %s state: %s", job_id, state);
         }
     }
+#endif
 }
 
 void sched(void* arg) 
@@ -259,11 +285,48 @@ void sched(void* arg)
     GridSchedulerService *self = (GridSchedulerService*) arg;
     
     for(;;) {
-        self->doSched();
         sleep(self->getPeriod());
+        self->doSched();
     }
 }
-#endif
+
+void
+GridSchedulerService::doReschedule(void)
+{
+    logger_.msg(Arc::DEBUG, "doReschedule");
+    for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++){
+        Arc::Job *j = *jobs;
+        Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+        Arc::Time now;
+        Arc::Period p(reschedule_wait);
+        m->setLastChecked(now);
+        Arc::SchedJobStatus status = j->getStatus();
+        if (status == Arc::JOB_STATUS_SCHED_FAILED ||
+            status == Arc::JOB_STATUS_SCHED_NEW ||
+            status == Arc::JOB_STATUS_SCHED_KILLING ||
+            status == Arc::JOB_STATUS_SCHED_KILLED ||
+            status == Arc::JOB_STATUS_SCHED_FINISHED) {
+            // ignore this states
+            continue;
+        }
+        if (m->getLastChecked() > (m->getLastUpdated() + p)) {
+            logger_.msg(Arc::DEBUG, "Rescheduler job: %s", j->getID());
+            j->setStatus(Arc::JOB_STATUS_SCHED_RESCHEDULED);
+            m->setResourceID("");
+        }
+        jobs.write_back(*j);
+    }
+    jobq.sync();
+}
+
+void reschedule(void *arg)
+{
+    GridSchedulerService *self = (GridSchedulerService *)arg;
+    for (;;) {
+        sleep(self->getReschedulePeriod());
+        self->doReschedule();
+    }
+}
 
 GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "GridScheduler") 
 {
@@ -286,30 +349,28 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
     //TODO db_path test
-    jobq.init(db_path, "jobq");
+    // try {
+        jobq.init(db_path, "jobq");
+    /* } catch (std::exception &e) {
+        logger_.msg(Arc::ERROR, "Error during database open: %s", e.what());
+        return;
+    } */
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
+    reschedule_period = Arc::stringtoi((std::string)((*cfg)["ReschedulePeriod"]));
+    lifetime_after_done = Arc::stringtoi((std::string)((*cfg)["LifetimeAfterDone"]));  
+    reschedule_wait = Arc::stringtoi((std::string)((*cfg)["RescheduleWaitTime"]));  
     cli_config["CertificatePath"] = (std::string)((*cfg)["arccli:CertificatePath"]);
     cli_config["PrivateKey"] = (std::string)((*cfg)["arccli:PrivateKey"]);  
     cli_config["CACertificatePath"] = (std::string)((*cfg)["arccli:CACertificatePath"]);  
     IsAcceptingNewActivities = true;
   
-    /* 
-    Resource arex("https://knowarc1.grid.niif.hu:60000/arex", cli_config);
-    sched_resources.add(arex);
-    Resource arex0("https://localhost:40000/arex", security);
-    Resource arex1("https://localhost:40001/arex", security);
-    Resource arex2("https://localhost:40002/arex", security);
-    sched_resources.addResource(arex0);
-    sched_resources.addResource(arex1);
-    sched_resources.addResource(arex2);
-    */
-
-#if 0
-    // start scheduler thread
     if (period > 0) { 
+        // start scheduler thread
         Arc::CreateThreadFunction(&sched, this);
+        // Rescheduler thread
+        Arc::CreateThreadFunction(&reschedule, this);
     }
-#endif
+
 }
 
 // Destructor

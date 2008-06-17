@@ -163,9 +163,10 @@ GridSchedulerService::GetActivityStatuses(Arc::XMLNode& in, Arc::XMLNode& out)
             Arc::Job *j = jobq[jobid];
             // Make response
             Arc::SchedJobStatus s = j->getStatus();
-            delete j;
             Arc::XMLNode state = resp.NewChild("bes-factory:ActivityStatus");
             state.NewAttribute("bes-factory:state") = sched_status_to_string(s);
+            // XXX put times here
+            delete j;
         } catch (Arc::JobNotFoundException &e) {
             logger_.msg(Arc::ERROR, "GetActivityStatuses: job %s not found", jobid);
             Arc::SOAPEnvelope fault(ns_, true);
@@ -213,6 +214,7 @@ GridSchedulerService::ChangeActivityStatus(Arc::XMLNode& in, Arc::XMLNode& out)
             resp.NewChild(id);
             Arc::XMLNode n_status = resp.NewChild("bes-factory:NewStatus");
             n_status = new_state;
+            delete j;
         } catch (Arc::JobNotFoundException &e) {
             logger_.msg(Arc::ERROR, "ChangeActivityStatuses: job %s not found", jobid);
             Arc::SOAPEnvelope fault(ns_, true);
@@ -252,6 +254,7 @@ GridSchedulerService::GetActivityDocuments(Arc::XMLNode &in, Arc::XMLNode &out)
             Arc::Job *j = jobq[jobid];
             jsdl = j->getJSDL();
             jsdl.Name("bes-factory:JobDefinition"); // Recovering namespace of element
+            delete j;
         } catch (Arc::JobNotFoundException &e) {
             logger_.msg(Arc::ERROR, "GetActivityDocuments: job %s not found", jobid);
             Arc::SOAPEnvelope fault(ns_, true);

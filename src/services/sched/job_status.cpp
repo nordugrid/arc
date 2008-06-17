@@ -25,7 +25,9 @@ std::string sched_status_to_string(SchedJobStatus l)
         return "KILLED";
     } else if (l == JOB_STATUS_SCHED_KILLING) {
         return "KILLING";
-    } 
+    } else if (l == JOB_STATUS_SCHED_RESCHEDULED) {
+        return "RESCHEDULED";
+    }
 
     return "UNKNOWN";
 }
@@ -48,6 +50,8 @@ SchedJobStatus sched_status_from_string(const std::string &s)
         return JOB_STATUS_SCHED_KILLED;
     } else if (s == "KILLING")  {
         return JOB_STATUS_SCHED_KILLING;
+    } else if (s == "RESCHEDULED") {
+        return JOB_STATUS_SCHED_RESCHEDULED;
     }
 
     return JOB_STATUS_SCHED_UNKNOWN;
