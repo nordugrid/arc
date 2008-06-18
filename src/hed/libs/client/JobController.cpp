@@ -150,7 +150,7 @@ namespace Arc {
     Arc::DataMover mover;
     mover.retry(true);
     mover.secure(false);
-    mover.passive(false);
+    mover.passive(true);
     mover.verbose(true);
     mover.set_progress_indicator(&progress);
             
@@ -169,7 +169,7 @@ namespace Arc {
     Arc::DataCache cache(cache_path2, cache_data_path, "", id, cache_user);
     
     std::string failure;
-    int timeout = 300;
+    int timeout = 10;
     if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
       if (!failure.empty()) std::cerr << "File download failed: " << failure << std::endl;
       else std::cerr << "File download failed" << std::endl;
