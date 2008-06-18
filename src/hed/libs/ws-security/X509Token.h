@@ -30,7 +30,7 @@ public:
     @param keyfile
     @param tokentype
   */
-  X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype);
+  X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype = Signature);
 
   /** Returns true of constructor succeeded */
   operator bool(void);
@@ -38,11 +38,17 @@ public:
   /** Check signature by using the cert information in soap message
     @param ca  ca chain
   */
-  bool Authenticate(const std::string& ca);
+  //bool Authenticate(const std::string& ca);
+
+  bool Authenticate(void);
 
 private:
   /** Tells if specified SOAP header has WSSE element and X509Token inside the WSSE element */
   static bool Check(SOAPEnvelope& soap);
+
+private:
+  xmlNodePtr signature_nd;
+  std::string key_str;
 };
 
 } // namespace Arc
