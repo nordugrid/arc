@@ -113,6 +113,8 @@ class SOAPEnvelope: public XMLNode {
   void GetXML(std::string& out_xml_str,bool user_friendly = false) const;
   /** Get SOAP header as XML node */
   XMLNode Header(void) { return header; };
+  /** Get SOAP body as XML node */
+  XMLNode Body(void) { return body; };
   /** Returns true if message is Fault */
   bool IsFault(void) { return fault != NULL; };
   /** Get Fault part of message. Returns NULL if message is not Fault. */
@@ -120,12 +122,13 @@ class SOAPEnvelope: public XMLNode {
   /** Makes this object a copy of another SOAPEnvelope object. */
   SOAPEnvelope& operator=(const SOAPEnvelope& soap);
   SOAPVersion Version(void) { return ver12?Version_1_2:Version_1_1; };
- private:
+ protected:
   XMLNode envelope; /** Envelope element of SOAP and owner of XML tree */
   XMLNode header;   /** Header element of SOAP */
   XMLNode body;     /** Body element of SOAP */
-  SOAPFault* fault; //**Fault element of SOAP, NULL if message is not a fault. */
+ private:
   bool ver12;       /** Is true if SOAP version 1.2 is used */
+  SOAPFault* fault; //**Fault element of SOAP, NULL if message is not a fault. */
   /** Fill instance variables parent XMLNode class. 
     This method is called from constructors. */
   void set(void);
