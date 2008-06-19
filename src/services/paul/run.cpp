@@ -18,6 +18,19 @@
 namespace Paul
 {
 
+static std::string save_filename(const std::string &in)
+{
+    std::string out = "";
+    for (int i = 0; i < in.size(); i++) {
+        out += in[i];
+        if ((in[i] == '\\' && i < in.size() - 1 && in[i+1] != '\\') 
+            || (in[i] == '\\' && i > 0 && in[i-1] != '\\')) {
+            out += in[i];
+        }
+    }
+    return out;
+}
+
 bool PaulService::run(Job &j)
 {
     logger_.msg(Arc::DEBUG, "Start process");
@@ -30,7 +43,7 @@ bool PaulService::run(Job &j)
         logger_.msg(Arc::ERROR, "Invalid JSDL! Missing application section");
         if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
             logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
-            j.setStatus(EXCEPTION);
+            j.setStatus(FAILED);
         }
         return false;
     }
@@ -41,7 +54,7 @@ bool PaulService::run(Job &j)
         logger_.msg(Arc::ERROR, "Empty executable");
         if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
             logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
-            j.setStatus(EXCEPTION);
+            j.setStatus(FAILED);
         }
         return false;    
     }
@@ -68,8 +81,10 @@ bool PaulService::run(Job &j)
     } else {
         cmd = exec + arg_str;
     }
+#ifdef WIN32
+    cmd = save_filename(cmd);
+#endif
     // cmd += " > s.out";
-    logger_.msg(Arc::DEBUG, "Command: %s", cmd);
 
     Arc::Run *run = NULL;
     try {
@@ -93,10 +108,12 @@ bool PaulService::run(Job &j)
             logger_.msg(Arc::DEBUG, "StdErr: %s", stderr_str);
             if (run != NULL) {
                 logger_.msg(Arc::DEBUG, "delete run");
+                runq.erase(j.getID());
                 delete run;
+                run = NULL;
             }
             logger_.msg(Arc::DEBUG, "return from run");
-            if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+            if (j.getStatus() != KILLED && j.getStatus() != KILLING) {
                 logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
                 j.setStatus(FINISHED);
             }
@@ -115,12 +132,14 @@ bool PaulService::run(Job &j)
     }
 
 error:
-    if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+    if (j.getStatus() != KILLED && j.getStatus() != KILLING) {
         logger_.msg(Arc::DEBUG, "%s set exception", j.getID());
-        j.setStatus(EXCEPTION);
+        j.setStatus(FAILED);
     }
     if (run != NULL) {
+        runq.erase(j.getID());
         delete run;
+        run = NULL;
     }
     return false;
 }

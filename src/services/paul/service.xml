@@ -31,7 +31,7 @@
        <paul:JobRoot>/home/szferi/arc1/src/services/paul/jobroot</paul:JobRoot>
        <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
        <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
-       <paul:RequestPeriod>30000</paul:RequestPeriod>
+       <paul:RequestPeriod>30</paul:RequestPeriod>
        <paul:Timeout>5</paul:Timeout> 
        <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
        <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>

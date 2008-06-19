@@ -47,6 +47,11 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
         logger_.msg(Arc::ERROR, "Cannot collect resource information");
         return;
     }
+    {
+        std::string str;
+        glue2.GetDoc(str);
+std::cout << "*** " << str << std::endl;
+    }
     // Create client to url
     Arc::ClientSOAP *client;
     Arc::MCCConfig cfg;
@@ -142,7 +147,7 @@ void PaulService::process_job(void *arg)
     self.run(j);
     if (!self.in_shutdown) {
         self.stage_out(j);
-        if (j.getStatus() != KILLED || j.getStatus() != KILLING) {
+        if (j.getStatus() != KILLED && j.getStatus() != KILLING && j.getStatus() != FAILED) {
             self.logger_.msg(Arc::DEBUG, "%s set finished", j.getID());
             j.setStatus(FINISHED);
         }
@@ -296,7 +301,7 @@ void PaulService::do_report(void)
             }
             logger_.msg(Arc::DEBUG, "%s reported", job_id);
             Job &j = jobq[job_id];
-            if (j.getStatus() == FINISHED) {
+            if (j.getStatus() == FINISHED || j.getStatus() == FAILED) {
                 logger_.msg(Arc::DEBUG, "%s job reported finished", j.getID());
                 j.finishedReported();
             }
@@ -392,7 +397,6 @@ void PaulService::do_action(void)
             Job &j = jobq[job_id];
             if (j.isFinishedReported()) {
                 // skip job which was already finished
-                delete response;
                 continue;
             }
             j.setStatus(sched_status_from_string(new_status));
@@ -401,9 +405,11 @@ void PaulService::do_action(void)
                 j.setStatus(FINISHED);
             }
             if (j.getStatus() == KILLING) {
-                logger_.msg(Arc::DEBUG, "Killing %s", job_id);
                 Arc::Run *run = runq[job_id];
-                run->Kill(1);
+                if (run != NULL) {
+                    logger_.msg(Arc::DEBUG, "Killing %s", job_id);
+                    run->Kill(1);
+                }
                 j.setStatus(KILLED);
             }
         }
@@ -417,7 +423,7 @@ void PaulService::do_action(void)
     for (it = all.begin(); it != all.end(); it++) {
         Job *j = it->second;
         logger_.msg(Arc::DEBUG, "pre cleanup %s %d", j->getID(), j->getStatus());
-        if (j->getStatus() == FINISHED) {
+        if (j->getStatus() == FINISHED || j->getStatus() == FAILED) {
             // do clean if and only if the finished state already reported
             if (j->isFinishedReported()) {
                 logger_.msg(Arc::DEBUG, "cleanup %s", j->getID());
@@ -438,7 +444,6 @@ void PaulService::report_and_action_loop(void *arg)
         self->do_report();
         self->do_action();
         int p = (int)(self->configurator.getPeriod()*1.1);
-        self->logger_.msg(Arc::DEBUG, "P: %d", p);
         sleep(p);
     }
 }
@@ -465,9 +470,11 @@ PaulService::~PaulService(void)
     logger_.msg(Arc::DEBUG, "PaulService shutdown");
     std::map<std::string, Arc::Run *>::iterator it;
     for (it = runq.begin(); it != runq.end(); it++) {
-        logger_.msg(Arc::DEBUG, "Terminate job %s", it->first);
-        Arc::Run *r = it->second;
-        r->Kill(1);
+        if (it->second != NULL) {
+            logger_.msg(Arc::DEBUG, "Terminate job %s", it->first);
+            Arc::Run *r = it->second;
+            r->Kill(1);
+        }
     }
 }
 

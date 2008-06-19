@@ -78,7 +78,7 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     mg.NewChild("WorkingAreaTotal") = Arc::tostring((int)(SysInfo::diskTotal(configurator.getJobRoot())/1024)); // in GB
     mg.NewChild("WorkingAreaFree") = Arc::tostring((int)(SysInfo::diskFree(configurator.getJobRoot())/1024)); // in GB
     // Application environment
-
+#if 0
     Arc::XMLNode ae = mg.NewChild("ApplicationEnvironments");
     Arc::XMLNode appenvs = configurator.getApplicationEnvironments();
     Arc::XMLNode env;
@@ -90,12 +90,12 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
         env.NewChild("Associations").NewChild("ExecutionEnvironmentLocalID") = ee_id;
         ae.NewChild(env);
     }
-    
+ #endif   
     //  Resource part
     Arc::XMLNode exec = mg.NewChild("ExecutionEnvironment");
     exec.NewAttribute("CreationTime") = created;
     exec.NewAttribute("Validity") = validity;
-    mg.NewAttribute("BaseType") = "Resource";
+    exec.NewAttribute("BaseType") = "Resource";
     exec.NewChild("ID") = ee_id;
     //  ExecutionEnvironment part
     exec.NewChild("Platform") = sysinfo.getPlatform();
@@ -106,7 +106,6 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     exec.NewChild("OSFamily") = sysinfo.getOSFamily();
     exec.NewChild("OSName") = sysinfo.getOSName();
     exec.NewChild("OSVersion") = sysinfo.getOSVersion();
-    
     return true;
 }
 
