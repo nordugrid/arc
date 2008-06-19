@@ -38,11 +38,11 @@ Run::Run(const std::list<std::string>& argv):working_directory("."),stdout_(-1),
 
 Run::~Run(void) {
   if(!(*this)) return;
-  delete pid_;
   Kill(0);
   CloseStdout();
   CloseStderr();
   CloseStdin();
+  delete pid_;
 }
 
 bool Run::Start(void) {
@@ -72,7 +72,7 @@ bool Run::Start(void) {
                                &(pid_->processinfo));
     
     if (!result) {
-        std::cout << "Spawn Error: " << GetOsErrorMessage() << std::endl;
+;       std::cout << "Spawn Error: " << GetOsErrorMessage() << std::endl;
         return false;
     }
     started_=true;
@@ -190,8 +190,8 @@ bool Run::Running(void) {
 bool Run::Wait(int timeout) {
   if(!started_) return false;
   if(!running_) return true;
-  // XX timeouted wait
-  return (!running_);
+  // XXX timeouted wait
+  return true;
 }
 
 bool Run::Wait(void)
@@ -202,7 +202,8 @@ bool Run::Wait(void)
   WaitForSingleObject(pid_->processinfo.hThread, INFINITE);
   CloseHandle(pid_->processinfo.hThread);
   CloseHandle(pid_->processinfo.hProcess);
-  return (!running_);
+  running_ = false;
+  return true;
 }
 
 void Run::AssignStdout(std::string& str) {

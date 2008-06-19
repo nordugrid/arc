@@ -27,10 +27,10 @@ static void start_arched(void)
     SetEnvironmentVariable("ARC_PLUGIN_PATH", p.c_str());
     std::string path = p + ";%PATH%";
     SetEnvironmentVariable("PATH", path.c_str()); 
-    std::string cmd = (std::string)(*cfg)["ArcHEDCmd"];
-    std::string cfg_name = (std::string)(*cfg)["ArcHEDConfig"];
+    std::string hed = "\"" + (std::string)(*cfg)["ArcHEDCmd"] + "\"";
+    std::string cfg_name = "\"" + (std::string)(*cfg)["ArcHEDConfig"] + "\"";
     // XXX read ArcHEDConfig and determine status URL
-    cmd += (" " + cfg_name); // + " >log1 2>log2";
+    std::string cmd = hed + " -f -c " + cfg_name;
     printf ("cmd: %s\n", cmd.c_str());
     fflush(stdout);
     if (cmd.empty()) {
@@ -60,6 +60,7 @@ static void stop_arched(void)
         return;
     }
     TerminateProcess(processinfo.hProcess, 256);
+    running = false;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

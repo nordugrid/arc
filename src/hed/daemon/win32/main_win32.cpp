@@ -71,7 +71,7 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
-    signal(SIGTTOU,SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
     /* Create options parser */
     Arc::ServerOptions options;
       
@@ -94,7 +94,9 @@ int main(int argc, char **argv)
             std::string pid_file = (std::string)config["Server"]["PidFile"];
             /* initalize logger infrastucture */
             std::string root_log_file = init_logger(config);
-
+            
+            logger.msg(Arc::DEBUG, "ARC_PLUGIN_PATH=%s", getenv("ARC_PLUGIN_PATH"));
+            
             // set signal handlers 
             signal(SIGTERM, shutdown);
             signal(SIGINT, shutdown);
