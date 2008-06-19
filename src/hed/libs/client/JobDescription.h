@@ -116,6 +116,7 @@ namespace Arc {
             bool isValid() const {return (sourceFormat.length() != 0);};
             void setSource( const std::string source ) throw(JobDescriptionError);
             void getProduct( std::string& product, std::string format = "JSDL" ) throw(JobDescriptionError);
+            std::string getSourceFormat() throw(JobDescriptionError);
             Arc::XMLNode getXML() throw(JobDescriptionError);
     };
 

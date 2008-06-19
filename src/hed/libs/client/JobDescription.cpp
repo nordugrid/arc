@@ -318,6 +318,11 @@ namespace Arc {
         }
     }
 
+    std::string JobDescription::getSourceFormat() {
+        if (!isValid()) throw JobDescriptionError("There is no input defined yet or it's format can be determinized.");
+        else return sourceFormat;
+    }
+
     bool JSDLParser::parse( Arc::XMLNode& jobTree, const std::string source ) {
         //schema verification would be needed
         (Arc::XMLNode ( source )).New( jobTree );
