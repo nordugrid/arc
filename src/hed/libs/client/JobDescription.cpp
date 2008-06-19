@@ -318,7 +318,7 @@ namespace Arc {
         }
     }
 
-    std::string JobDescription::getSourceFormat() {
+    std::string JobDescription::getSourceFormat() throw(JobDescriptionError) {
         if (!isValid()) throw JobDescriptionError("There is no input defined yet or it's format can be determinized.");
         else return sourceFormat;
     }

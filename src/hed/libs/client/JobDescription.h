@@ -113,10 +113,24 @@ namespace Arc {
             void resetJobTree();
         public:
             JobDescription();
+
+            // Returns true if the source has been setted up and wasn't any syntax error in it or false otherwise
             bool isValid() const {return (sourceFormat.length() != 0);};
+
+            // Try to parse the source string and store it in an inner job description representation.
+            // If there is some syntax error then it throws an exception.
             void setSource( const std::string source ) throw(JobDescriptionError);
+            
+            // Transform the inner job description representation into a given format, if it's known as a parser (JSDL as default)
+            // If there is some error during this method, then throws an error.
             void getProduct( std::string& product, std::string format = "JSDL" ) throw(JobDescriptionError);
+
+            // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
+            // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
             std::string getSourceFormat() throw(JobDescriptionError);
+            
+            // Returns with the XML representation of the job description. This inner representation is very similar
+            // to the JSDL structure and exactly the same in cases, which are defined in the JSDL specification.
             Arc::XMLNode getXML() throw(JobDescriptionError);
     };
 
