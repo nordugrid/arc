@@ -1,2 +1,2 @@
 This catalog contains arcfs.py, an interface between ARC1 storage system and
-Filesystem in USEr land (FUSE) and a howto for using it
+Filesystem in USEr land (FUSE)
