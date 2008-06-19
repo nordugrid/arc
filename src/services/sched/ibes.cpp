@@ -28,7 +28,7 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++){
         Arc::Job *j = *jobs;
         Arc::SchedJobStatus status = j->getStatus();
-        if (status != Arc::JOB_STATUS_SCHED_NEW || status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
+        if (status != Arc::JOB_STATUS_SCHED_NEW && status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
             continue;
         }
         if (match(in, j) == true) {
