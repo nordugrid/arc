@@ -22,7 +22,7 @@ namespace Arc{
 
     void GetJobInformation();
     void PerformAction(std::string action);
-    void DownloadJobOutput();
+    void DownloadJobOutput(bool keep, std::string downloaddir);
 
     static ACC *Instance(Config *cfg, ChainContext *cxt);
     

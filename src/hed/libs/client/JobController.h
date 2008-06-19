@@ -18,7 +18,7 @@ namespace Arc{
   public:
     //These should be implemented by specialized class
     virtual void GetJobInformation() = 0;
-    virtual void DownloadJobOutput() = 0;
+    virtual void DownloadJobOutput(bool keep, std::string downloaddir) = 0;
     virtual void PerformAction(std::string action) = 0;
 
     //Base class implementation

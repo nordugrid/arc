@@ -19,14 +19,14 @@ namespace Arc{
     ~JobControllerARC0();
     
     void GetJobInformation();
-    void DownloadJobOutput();
+    void DownloadJobOutput(bool keep, std::string downloaddir);
     void PerformAction(std::string action);
 
     static ACC *Instance(Config *cfg, ChainContext *cxt);
 
   private:
 
-    void DownloadThisJob(Job ThisJob);
+    void DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir);
     
   };
   

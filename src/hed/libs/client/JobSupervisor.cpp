@@ -100,7 +100,7 @@ namespace Arc {
     
     //This may benefit from being threaded
     for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->DownloadJobOutput();
+      (*iter)->DownloadJobOutput(keep, downloaddir);
     }
   }
 

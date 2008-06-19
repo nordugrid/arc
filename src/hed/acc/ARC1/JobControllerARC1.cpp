@@ -28,7 +28,7 @@ namespace Arc {
 
   }
 
-  void JobControllerARC1::DownloadJobOutput(){
+  void JobControllerARC1::DownloadJobOutput(bool keep, std::string downloaddir){
   
   }
 
