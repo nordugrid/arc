@@ -52,7 +52,6 @@ namespace Arc{
                 void purge(const std::string& jobid) throw(CREAMClientError);
                 
                 // Data moving attributes
-                std::string cache_path;
                 std::string job_root;
                 
             private:

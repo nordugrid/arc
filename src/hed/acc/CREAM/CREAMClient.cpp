@@ -351,19 +351,20 @@ namespace Arc{
             }
             
             // Get the URI's from the DataStaging/Source files
-            std::vector< std::pair< std::string, std::string > > sourceFiles;
-            XMLNode xml_repr = jobDesc.getXML();
-            XMLNode sourceNode = xml_repr["JobDescription"]["DataStaging"];
-            while ((bool)sourceNode) {
-                if ((bool)sourceNode["Source"]) {
-                    std::pair< std::string, std::string > item((std::string) sourceNode["FileName"], (std::string) sourceNode["Source"]["URI"]);
-                    sourceFiles.push_back(item);
-                }
-                ++sourceNode;
-            }
+            //std::vector< std::pair< std::string, std::string > > sourceFiles;
+            //XMLNode xml_repr = jobDesc.getXML();
+            //XMLNode sourceNode = xml_repr["JobDescription"]["DataStaging"];
+            //while ((bool)sourceNode) {
+            //    if ((bool)sourceNode["Source"]) {
+            //        std::pair< std::string, std::string > item((std::string) sourceNode["FileName"], (std::string) sourceNode["Source"]["URI"]);
+            //        sourceFiles.push_back(item);
+            //    }
+            //    ++sourceNode;
+            //}
             
             // Put the files necessary
-            putFiles(sourceFiles, info);
+            std::vector< std::pair< std::string, std::string> > files = jobDesc.getUploadableFiles();
+            putFiles(files, info);
             
             // Start executing of the job
             try {
@@ -524,7 +525,6 @@ namespace Arc{
         }
 
         void CREAMClient::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, const creamJobInfo job) throw(CREAMClientError) {
-            //if (cache_path.length()==0 || cache_path=="") throw CREAMClientError("Cache path must be specified!");
             if (job_root.length()==0 || job_root=="") throw CREAMClientError("Job root directory must be specified!");
             
             // Create mover
@@ -534,15 +534,13 @@ namespace Arc{
             mover.passive(false);
             mover.verbose(true);
             mover.set_progress_indicator(&progress);
-            //mover->set_default_max_inactivity_time(300);
             
             // Create cache
             Arc::User cache_user;
-            std::string cache_path2;
+            std::string cache_path;
             std::string cache_data_path;
-            //Arc::DataCache cache(cache_path, cache_data_path, "", job.jobId, cache_user);
             std::string id = "<ngcp>";
-            Arc::DataCache cache(cache_path2, cache_data_path, "", id, cache_user);
+            Arc::DataCache cache(cache_path, cache_data_path, "", id, cache_user);
             for (std::vector< std::pair< std::string, std::string > >::const_iterator file = fileList.begin(); file != fileList.end(); file++) {
                 std::string src = Glib::build_filename(job_root, (*file).first);
                 std::string dst = Glib::build_filename(job.ISB_URI, (*file).second);

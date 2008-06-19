@@ -27,7 +27,6 @@ namespace Arc {
     url.ChangePath("ce-cream/services/CREAM2");
     Cream::CREAMClient gLiteClient2(url, cfg);
     gLiteClient2.setDelegationId(delegationid);
-    gLiteClient2.cache_path = "/tmp";
     gLiteClient2.job_root = Glib::get_current_dir();
     std::string jobdescstring;
     jobdesc.getProduct(jobdescstring, "JDL");

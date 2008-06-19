@@ -323,6 +323,27 @@ namespace Arc {
         else return sourceFormat;
     }
 
+    std::vector< std::pair< std::string, std::string > > JobDescription::getUploadableFiles() throw(JobDescriptionError) {
+        if (!isValid()) throw JobDescriptionError("There is no input defined yet or it's format can be determinized.");
+        // Get the URI's from the DataStaging/Source files
+        std::vector< std::pair< std::string, std::string > > sourceFiles;
+        Arc::XMLNode xml_repr = getXML();
+        Arc::XMLNode sourceNode = xml_repr["JobDescription"]["DataStaging"];
+        while ((bool)sourceNode) {
+            if ((bool)sourceNode["Source"]) {
+                std::string uri ((std::string) sourceNode["Source"]["URI"]);
+                std::string filename ((std::string) sourceNode["FileName"]);
+                Arc::URL sourceUri (uri);
+                if (sourceUri.Protocol() == "file") {
+                    std::pair< std::string, std::string > item(filename,uri);
+                    sourceFiles.push_back(item);
+                }
+            }
+            ++sourceNode;
+        }
+        return sourceFiles;
+    }
+
     bool JSDLParser::parse( Arc::XMLNode& jobTree, const std::string source ) {
         //schema verification would be needed
         (Arc::XMLNode ( source )).New( jobTree );

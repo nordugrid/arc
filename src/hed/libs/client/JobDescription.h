@@ -7,6 +7,8 @@
 #include <sstream>
 #include <time.h>
 #include <arc/XMLNode.h>
+#include <arc/URL.h>
+
 
 namespace Arc {
 
@@ -132,6 +134,9 @@ namespace Arc {
             // Returns with the XML representation of the job description. This inner representation is very similar
             // to the JSDL structure and exactly the same in cases, which are defined in the JSDL specification.
             Arc::XMLNode getXML() throw(JobDescriptionError);
+
+            // Returns the uploadable local files list, if the source has been setted up and is valid, else throws an exception
+            std::vector< std::pair< std::string, std::string > > getUploadableFiles() throw(JobDescriptionError);
     };
 
 } // namespace Arc
