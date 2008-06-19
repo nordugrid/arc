@@ -11,6 +11,7 @@ Page instfiles
 ; Modifiy these variables if you deployed GTK and MSYS elsewhere
 !define GTKPATH "C:\GTK"
 !define MSYSPATH "C:\msys"
+!define OPENSSLPATH "C:\WINDOWS\system32"
 
 UninstPage uninstConfirm
 UninstPage instfiles
@@ -47,6 +48,10 @@ Section "Main Components"
 	File /oname=libsigc-2.0-0.dll "${GTKPATH}\bin\libsigc-2.0-0.dll"
 	File /oname=libxml2.dll "${GTKPATH}\bin\libxml2.dll"
 	File /oname=zlib1.dll "${GTKPATH}\bin\zlib1.dll"
+    ; OpenSSL
+    File /oname=libeay32.dll "${OPENSSLPATH}\libeay32.dll"
+    File /oname=libssl32.dll "${OPENSSLPATH}\libssl32.dll"
+    File /oname=ssleay32.dll "${OPENSSLPATH}\ssleay32.dll"
 	WriteUninstaller "uninstall.exe"
 SectionEnd
 
@@ -77,11 +82,11 @@ Section "Services"
     ; Create paul_gui.xml
     ${xml::LoadFile} "paul_gui_template.xml" $0
     ${xml::GotoPath} "/PaulGUI/ArcPluginPath" $0 
-    ${xml::SetText} "$INSTDIR\plugins\mcc;$INSTDIR\ARC\plugins\dmc" $0
+    ${xml::SetText} "$INSTDIR\plugins\mcc;$INSTDIR\plugins\dmc" $0
     ${xml::GotoPath} "/PaulGUI/ArcHEDConfig" $0
-    ${xml::SetText} '"$INSTDIR\paul_service.xml"' $0
+    ${xml::SetText} "$INSTDIR\paul_service.xml" $0
     ${xml::GotoPath} "/PaulGUI/ArcHEDCmd" $0
-    ${xml::SetText} '"$INSTDIR\arched.exe" -f -c' $0
+    ${xml::SetText} "$INSTDIR\arched.exe" $0
     ${xml::SaveFile} "paul_gui.xml" $0
     ${xml::Unload}
     ; Create paul_service.xml
@@ -91,6 +96,10 @@ Section "Services"
     ${xml::SetText} "$INSTDIR\jobroot" $0
     ${xml::SaveFile} "paul_service.xml" $0
     ${xml::Unload}
+SectionEnd
+
+Section "Clients"
+    File /oname=arccp.exe "src\clients\data\.libs\arccp.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -106,3 +115,4 @@ Section "Uninstall"
 	Delete "$INSTDIR\*.*"
 	RMDir $INSTDIR
 SectionEnd
+
