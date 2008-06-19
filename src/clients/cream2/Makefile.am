@@ -1,4 +1,4 @@
-bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate gliteundelegate glitecp
+bin_PROGRAMS = glitesub glitestat glitekill gliteclean glitedelegate gliteundelegate
 
 LIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/acc/CREAM/libCREAMClient.la
 commonCXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/src/hed/acc/CREAM
@@ -33,8 +33,3 @@ gliteundelegate_SOURCES  = gliteundelegate.cpp
 gliteundelegate_CXXFLAGS = $(commonCXXFLAGS)
 gliteundelegate_LDFLAGS  = $(commonLDFLAGS)
 gliteundelegate_LDADD    = $(LIBS)
-
-glitecp_SOURCES  = glitecp.cpp
-glitecp_CXXFLAGS = $(commonCXXFLAGS)
-glitecp_LDFLAGS  = $(commonLDFLAGS)
-glitecp_LDADD    = $(LIBS)
