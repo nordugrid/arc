@@ -1,0 +1,132 @@
+Installing ARC1 ARC FUSE file system from source
+------------------------------------------------
+
+Install ARC1 storage system as described in
+arc1/doc/storage_system/prototype_installation_howto.txt
+
+Additional dependencies:
+fuse >= 2.7.3
+fuse-python >= 0.2
+
+Mounting ARCFS
+--------------
+
+Start up ARC1 storage server as described in
+arc1/doc/storage_system/prototype_installation_howto.txt
+
+   $ pwd
+   /home/jonkni/arc
+   $ ln -s arc1/src/services/storage/fuse/arcfs.py arcfs.py
+   $ mkdir mnt
+   $ PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs python arcfs.py ./mnt 
+   
+This mounts ARCFS in /home/jonkni/arc/mnt, creates directory
+/home/jonkni/arc/fuse_transfer and a log file
+/home/jonkni/arc/arcfsmessages.
+
+You can now make a collection
+   
+   $ mkdir -p mnt/home/jonkni
+   $ stat mnt/home/jonkni
+     File: `mnt/home/jonkni'
+     Size: 0               Blocks: 0          IO Block: 4096   directory
+   Device: 19h/25d Inode: 3           Links: 2
+   Access: (0755/drwxr-xr-x)  Uid: (  500/  jonkni)   Gid: (  100/   users)
+   Access: 1970-01-01 01:00:00.000000000 +0100
+   Modify: 1970-01-01 01:00:00.000000000 +0100
+   Change: 1970-01-01 01:00:00.000000000 +0100
+
+Note that so far there is no timestamps or security implemented, so
+that all files have mode 0644, all collections have mode 0755,
+everything is owned by the user that mounts the system and everything
+was created on January 1., 1970.
+
+Now you may want to have some entries in your collection
+   $ cd mnt/home/jonkni
+   $ emacs -nw fish
+   catfish
+   $ cat fish
+   catfish
+   $ cp fish fisk2
+   $ ls -la
+   drwxr-xr-x 5 jonkni users  0 1970-01-01 01:00 .
+   drwxr-xr-x 3 jonkni users  0 1970-01-01 01:00 ..
+   -rw-r--r-- 1 jonkni users  8 1970-01-01 01:00 fish
+   -rw-r--r-- 1 jonkni users 28 1970-01-01 01:00 fish~
+   -rw-r--r-- 1 jonkni users  8 1970-01-01 01:00 fish2
+
+You probably want to remove that anoying emacs backup file
+   
+   $ rm fish~
+   $ ls 
+   fish  fish2
+
+Maybe you want fish2 in a separate collection
+
+   $ mkdir sea_creatures
+   $ mv fish2 sea_creatures
+
+Maybe you're not happy with the collection name
+
+   $ mv sea_creatures creatures
+   $ ls creatures
+   fish2
+
+What about moving the collection out of ARC storage?
+
+   $ cd ../../..
+   $ mv mnt/home/jonkni/creatures .
+   mv: cannot remove directory `mnt/home/jonkni/creatures': Function
+   not implemented
+
+Oops. rmdir isn't implemented yet, so 'creatures' is now an empty
+collection, but not removed it self
+
+   $ find mnt/home/jonkni/
+   mnt/home/jonkni/
+   mnt/home/jonkni/creatures
+   mnt/home/jonkni/fish
+
+
+
+Unmounting ARCFS
+----------------
+
+To unmount, refer to fuse documentation. Usually you can do
+   
+   $ fusermount -u mnt
+
+If this for some reason this doesn't work, you can do
+
+   $ sudo umount -f mnt
+
+or even
+
+   $ sudo umount -l mnt
+
+Now, remounting the system, everything should still be there:
+
+   $ PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs python arcfs.py ./mnt
+
+   $ find mnt/home/jonkni/
+   mnt/home/jonkni/
+   mnt/home/jonkni/creatures
+   mnt/home/jonkni/fish
+
+   $ fusermount -u mnt
+
+
+Current issues
+------
+
+What should happen when one deletes a file which has hard links?
+ - refuse to delete the file? then maybe we should have some metadata
+ with number of links to file
+
+ARCFSFile
+ - what about file locking? Should __init__ ask catalog to lock the
+ GUID of the file and release ask to unlock it?
+
+
+vim swap file is not removed if vim hasn't started writing to the swap
+file before vim is closed.
