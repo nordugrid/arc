@@ -5,7 +5,6 @@
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/DataHandle.h>
 #include <arc/StringConv.h>
-#include <arc/client/acctools.h>
 #include <arc/Thread.h>
 
 #include <map>
