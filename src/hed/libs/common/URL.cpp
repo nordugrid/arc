@@ -671,6 +671,65 @@ namespace Arc {
   }
 
 
+  PathIterator::PathIterator(const std::string& path, bool end)
+    : path(path),
+      pos(std::string::npos),
+      end(end) {
+    if (end)
+      operator--();
+    else
+      operator++();
+  }
+
+  PathIterator::~PathIterator() {}
+
+  PathIterator& PathIterator::operator++() {
+    done = false;
+    if (pos != std::string::npos)
+      pos = path.find('/', pos + 1);
+    else if (!end && !path.empty())
+      pos = path.find('/');
+    else
+      done = true;
+    end = true;
+    return *this;
+  }
+
+  PathIterator& PathIterator::operator--() {
+    done = false;
+    if (pos != std::string::npos)
+      pos = pos ? path.rfind('/', pos - 1) : std::string::npos;
+    else if (end && !path.empty())
+      pos = path.rfind('/');
+    else
+      done = true;
+    end = false;
+    return *this;
+  }
+
+  PathIterator::operator bool() {
+    return !done;
+  }
+
+  std::string PathIterator::operator*() {
+    if (pos != std::string::npos)
+      return path.substr(0, pos);
+    else if (end)
+      return path;
+    else
+      return "";
+  }
+
+  std::string PathIterator::Rest() {
+    if (pos != std::string::npos)
+      return path.substr(pos + 1);
+    else if (!end)
+      return path;
+    else
+      return "";
+  }
+
+
   std::list<URL> ReadURLList(const URL& url) {
 
     std::list<URL> urllist;

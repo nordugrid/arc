@@ -239,6 +239,27 @@ namespace Arc {
   };
 
 
+  class PathIterator {
+  public:
+    PathIterator(const std::string& path, bool end = false);
+    ~PathIterator();
+
+    PathIterator& operator++();
+    PathIterator& operator--();
+
+    operator bool();
+
+    std::string operator*();
+    std::string Rest();
+
+  private:
+    const std::string& path;
+    std::string::size_type pos;
+    bool end;
+    bool done;
+  };
+
+
   /// Reads a list of URLs from a file
   std::list<URL> ReadURLList(const URL& urllist);
 
