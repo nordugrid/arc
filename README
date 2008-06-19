@@ -31,7 +31,7 @@ packages have different dependencies too. Below a list of the explicit
 requirements is shown:
 
   Mandatory (on client as well as server side):
-    o gnu make, autotools (autoconf>=2.56) (build)
+    o gnu make, autotools (autoconf>=2.56) (automake>=1.8) (build)
     o C++ compiler and library (build)
     o libtool (build)
     o pkg-config (build)
@@ -45,7 +45,7 @@ requirements is shown:
   Optional (mainly applicable on server side):
     o swig version 1.3.28 or later (build)
     o java sdk 1.4 or later for Java bindings (build, run)
-    o python for Python bindings (build, run)
+    o python 2.4 or higher for Python bindings (build, run)
     o Grid Packaging Tools (GPT) (http://www.gridpackagingtools.org/) (build)
     o Globus Toolkit 4 (http://www.globus.org/) which contains (build, run)
       - Globus RLS client
