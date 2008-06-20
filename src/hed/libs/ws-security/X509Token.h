@@ -35,11 +35,14 @@ public:
   /** Returns true of constructor succeeded */
   operator bool(void);
 
-  /** Check signature by using the cert information in soap message
-    @param ca  ca chain
+  /**Check signature by using the trusted certificates
+    @param cafile ca file
+    @param capath ca directory
   */
-  //bool Authenticate(const std::string& ca);
+  bool Authenticate(const std::string& cafile, const std::string& capath);
 
+  /** Check signature by using the cert information in soap message
+  */
   bool Authenticate(void);
 
 private:

@@ -41,9 +41,11 @@ int main(void) {
   Arc::X509Token xt2(soap1);
   if(!xt2) {
     std::cout<<"Failed parsing previously generated X509Token"<<std::endl<<std::endl;
-  } else if(!xt2.Authenticate()) {
+  } else if(!xt2.Authenticate() || !xt2.Authenticate("ca.pem", "")) {
     std::cout<<"Failed to authenticate to previously generated X509Token"<<std::endl<<std::endl;
   }
+
+
 
   return 0;
 }

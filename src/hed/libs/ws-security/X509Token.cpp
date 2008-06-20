@@ -23,6 +23,9 @@
 #include <xmlsec/templates.h>
 #include <xmlsec/crypto.h>
 
+#include <xmlsec/openssl/app.h>
+
+
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
@@ -116,10 +119,32 @@ static xmlSecKey* get_publickey(const std::string& value) {//, const bool usage)
   return pub_key;
 }
 
-static xmlSecKeysMngrPtr load_trusted_certs(const std::string& cacert) {
+//Could be used for many trusted certificates in one file
+static xmlSecKeysMngrPtr load_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
   xmlSecKeysMngrPtr keys_mngr;
-  //create keys manager
-  keys_mngr = xmlSecKeysMngrCreate();
+  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
+  else keys_mngr = xmlSecKeysMngrCreate();
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
+  //initialize keys manager
+  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  }
+
+  //load cert from memory
+  if(!cert_str.empty())
+    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()), 
+          (xmlSecSize)(cert_str.size()), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
+      xmlSecKeysMngrDestroy(keys_mngr);
+      return NULL;
+    }
+  return keys_mngr;
+}
+
+static xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath) {
+  xmlSecKeysMngrPtr keys_mngr;
+  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
+  else keys_mngr = xmlSecKeysMngrCreate();
   if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;} 
   //initialize keys manager
   if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
@@ -127,38 +152,20 @@ static xmlSecKeysMngrPtr load_trusted_certs(const std::string& cacert) {
     xmlSecKeysMngrDestroy(keys_mngr); return NULL;
   }
   
-  //load ca certs into keys manager 
-  size_t found; 
-  found = cacert.find(".pem");
-  //The parameter is a directory
-  if(found == std::string::npos) {
-    Glib::Dir dir(cacert);
-    std::string file;
-    while(!(file = dir.read_name()).empty()) {
-      if(file.find(".pem") == std::string::npos) continue;
-      std::string cert;
-      cert = get_cert(file);
-      int ret = xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr,
-	             (const xmlSecByte*)(cert.c_str()), (xmlSecSize)(cert.size()),
-		     xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted); 
-      if(ret < 0) { 
-        xmlSecKeysMngrDestroy(keys_mngr); 
-        return NULL;
-      }
-    }
-  }
-  else {
-    std::ifstream is(cacert.c_str());
-    std::string cert;
-    std::getline(is,cert);
-    int ret = xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr,
-                  (const xmlSecByte*)(cert.c_str()), (xmlSecSize)(cert.size()),
-                  xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted);
-    if(ret < 0) { 
-      xmlSecKeysMngrDestroy(keys_mngr); 
+  //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
+  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
+  //load a ca path
+  if(!capath)
+    if(xmlSecOpenSSLAppKeysMngrAddCertsPath(keys_mngr, capath) < 0) {
+      xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
-  }
+  //load a ca file
+  if(!cafile)  
+    if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
+      xmlSecKeysMngrDestroy(keys_mngr);
+      return NULL;
+    }
   return keys_mngr;
 } 
 
@@ -230,7 +237,29 @@ bool X509Token::Authenticate(void) {
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
 
-  //keys_manager = load_trusted_certs(ca);
+  dsigCtx = xmlSecDSigCtxCreate(keys_manager);
+  xmlSecKey* pubkey = get_publickey(key_str);
+  dsigCtx->signKey = pubkey;
+
+  if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
+    xmlSecDSigCtxDestroy(dsigCtx);
+    if (keys_manager) xmlSecKeysMngrDestroy(keys_manager);
+    std::cerr<<"Signature verification failed"<<std::endl;
+    return false;
+  }
+
+  if(dsigCtx->status == xmlSecDSigStatusSucceeded) {
+    std::cout<<"Succeed to verify the signature in SOAP message"<<std::endl;
+    xmlSecDSigCtxDestroy(dsigCtx); return true;
+  }
+  else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
+}
+
+bool X509Token::Authenticate(const std::string& cafile, const std::string& capath) {
+  xmlSecKeysMngr* keys_manager = NULL;
+  xmlSecDSigCtx *dsigCtx;
+
+  keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
   xmlSecKey* pubkey = get_publickey(key_str);
@@ -249,6 +278,7 @@ bool X509Token::Authenticate(void) {
   }
   else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
 }
+
 
 X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype) : SOAPEnvelope (soap) {
   // Apply predefined namespace prefix
