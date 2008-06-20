@@ -28,7 +28,8 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++){
         Arc::Job *j = *jobs;
         Arc::SchedJobStatus status = j->getStatus();
-        if (status != Arc::JOB_STATUS_SCHED_NEW && status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
+        if (status != Arc::JOB_STATUS_SCHED_NEW 
+            && status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
             continue;
         }
         if (match(in, j) == true) {
@@ -112,6 +113,7 @@ GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, Arc::XMLNode &/*o
                 delete j;
                 continue;
             }
+            Arc::SchedJobStatus old_status = j->getStatus();
             Arc::SchedJobStatus new_status = Arc::sched_status_from_string((std::string)state);
             logger_.msg(Arc::DEBUG, "%s try to status change: %s->%s", 
                         j->getID(),
@@ -126,7 +128,9 @@ GridSchedulerService::ReportActivitiesStatus(Arc::XMLNode &in, Arc::XMLNode &/*o
             // update times
             Arc::Time now;
             m->setLastUpdated(now);
-            if (new_status == Arc::JOB_STATUS_SCHED_RUNNING) {
+            if (new_status == Arc::JOB_STATUS_SCHED_RUNNING 
+                && (old_status == Arc::JOB_STATUS_SCHED_NEW 
+                    || old_status == Arc::JOB_STATUS_SCHED_STARTING)) {
                 m->setStartTime(now);
             }
             if (new_status == Arc::JOB_STATUS_SCHED_FINISHED 
