@@ -239,7 +239,7 @@ exit 0
 %defattr(-,root,root,-)
 /etc/init.d/arched
 %{_sbindir}/arched
-%{_sbindir}/sched_jobq_dump
+%{_sbindir}/manage_jobq
 %doc %{_mandir}/man8/arched.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
