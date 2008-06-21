@@ -53,6 +53,7 @@ void ByteArray::resize(size_t new_size)
     }
     // memmove?
     memcpy(new_data, data_, size_);
+    free(data_);
     data_ = new_data;
     length_ = new_length;
 }
