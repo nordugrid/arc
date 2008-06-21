@@ -61,7 +61,8 @@ ByteArray &Job::serialize(void)
 
 Job::~Job(void) 
 {
-    // NOP
+    delete request_;
+    delete sched_meta_;
 }
 
 Job::operator std::string(void) const
