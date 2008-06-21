@@ -229,14 +229,14 @@ class ARCFS(Fuse):
             # neither file nor collection
             return None
         if metadata.has_key(('timestamps', 'created')):
-            ctime = int(metadata[('timestamps', 'created')])
+            ctime = float(metadata[('timestamps', 'created')])
         else:
             ctime = 0
         if metadata.has_key(('timestamps', 'modified')):
-            mtime = int(metadata[('timestamps', 'modified')])
+            mtime = float(metadata[('timestamps', 'modified')])
         else:
-            mtime = 0
-        atime = 0
+            mtime = ctime
+        atime = mtime
         # no way to get uid and gid in ARC storage (yet) so we use users uid
         uid = os.getuid()
         gid = os.getgid()
@@ -463,12 +463,12 @@ class ARCFS(Fuse):
             uid = os.getuid()
             gid = os.getgid() 
             size = 0
-            mtime = 0
+            mtime = atime = ctime = time.time()
             metadata = {}
             
             debug_msg('leaving fakeinod')
             return ARCInode(mode, nlink, uid, gid, size, mtime,   
-                            metadata)
+                            metadata, atime=atime, ctime=ctime)
 
         def mkfinod(self):
             """
@@ -490,14 +490,14 @@ class ARCFS(Fuse):
             closed = 0
 
             if metadata.has_key(('timestamps', 'created')):
-                ctime = int(metadata[('timestamps', 'created')])
+                ctime = float(metadata[('timestamps', 'created')])
             else:
                 ctime = 0
             if metadata.has_key(('timestamps', 'modified')):
-                mtime = int(metadata[('timestamps', 'modified')])
+                mtime = float(metadata[('timestamps', 'modified')])
             else:
-                mtime = 0
-            atime = 0
+                mtime = ctime
+            atime = mtime
             # no way to get uid and gid in ARC storage (yet) so we use users uid
             uid = os.getuid()
             gid = os.getgid()

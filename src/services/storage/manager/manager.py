@@ -106,6 +106,8 @@ class Manager:
         If child_name and parent_GUID are both given, then this method adds a new entry to the parent collection.
         """
         try:
+            # set creation time stamp
+            child_metadata[('timestamps', 'created')] = str(time.time())
             # call the new method of the catalog with the child's metadata (reqeustID is '_new')
             new_response = self.catalog.new({'_new' : child_metadata})
             # we can access the response with the requestID, so we get the GUID of the newly created entry
