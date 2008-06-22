@@ -515,13 +515,28 @@ class Manager:
             response[requestID] = success
         return response
 
+    def modify(self, requests):
+        requests, traverse_response = self._traverse(requests)
+        catalog_requests = {}
+        not_found = []
+        for changeID, (LN, changeType, section, property, value) in requests:
+            _, GUID, _, _, wasComplete, _ = traverse_response[changeID]
+            if wasComplete:
+                catalog_requests[changeID] = (GUID, changeType, section, property, value)
+            else:
+                not_found.append(changeID)
+        response = self.catalog.modifyMetadata(catalog_requests)
+        for changeID in not_found:
+            response[changeID] = 'no such LN'
+        return response
+
 from storage.service import Service
 
 class ManagerService(Service):
 
     def __init__(self, cfg):
         # names of provided methods
-        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile']
+        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
         # call the Service's constructor, 'Manager' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
@@ -932,3 +947,9 @@ class ManagerService(Service):
         return create_response('man:move',
             ['man:requestID', 'man:status'], response, self.newSOAPPayload(), single = True)
 
+    def modify(self, inpayload):
+        requests = parse_node(inpayload.Child().Child(), ['man:changeID',
+            'man:LN', 'man:changeType', 'man:section', 'man:property', 'man:value'])
+        response = self.manager.modify(requests)
+        return create_response('man:modify', ['man:changeID', 'man:success'],
+            response, self.newSOAPPayload(), single = True)

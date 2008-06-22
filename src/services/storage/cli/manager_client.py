@@ -10,8 +10,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 manager = ManagerClient('http://localhost:60000/Manager', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica']:
-    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, delFile, addReplica' 
+if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
+    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -135,3 +135,10 @@ else:
             response = manager.move(request)
             print response
             print '\n', response['0'][0]
+    elif command == 'modify':
+        if len(args) < 5:
+            print 'Usage: modify <LN> <changeType> <section> <property> <value>'
+        else:
+            request = {'0' : args}
+            print 'modify', request
+            print manager.modify(request)

@@ -617,6 +617,25 @@ class ManagerClient(Client):
         xml = arc.XMLNode(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = False)
 
+    def modify(self, requests):
+        tree = XMLTree(from_tree =
+            ('man:modify', [
+                ('man:modifyRequestList', [
+                    ('man:modifyRequestElement', [
+                        ('man:changeID', changeID),
+                        ('man:LN', LN),
+                        ('man:changeType', changeType),
+                        ('man:section', section),
+                        ('man:property', property),
+                        ('man:value', value)
+                    ]) for changeID, (LN, changeType, section, property, value) in requests.items()
+                ])
+            ])
+        )
+        response, _, _ = self.call(tree)
+        node = arc.XMLNode(response)
+        return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
+
 class ElementClient(Client):
 
     def __init__(self, url, print_xml = False):
