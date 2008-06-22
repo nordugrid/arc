@@ -56,19 +56,43 @@ class Manager:
         traverse_response = self.catalog.traverseLN(requests)
         cat_rem_requests = {}
         cat_mod_requests = {}
-        for requestID, (metadata, GUID, _, _, wasComplete, traversedList) in traverse_response.items():
+        check_again = []
+        for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
             if wasComplete and metadata[('catalog', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
-                cat_rem_requests[requestID] = GUID
+                parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
+                if parentno < 2:
+                    # remove the file itself,  if this file has only one parent (hardlink), or has no parent at all
+                    cat_rem_requests[requestID] = GUID
+                # if this entry has a parent:
                 if len(traversedList)>1:
                     # notify the parents
                     parentLN, parentGUID = traversedList[-2]
-                    cat_mod_requests[requestID] = (parentGUID, 'unset', 'entries',
+                    cat_mod_requests[requestID + '_1'] = (parentGUID, 'unset', 'entries',
                                                       traversedList[-1][0],GUID)
+                                                    
+                    if parentno > 1:
+                        # remove the parent entry from the child, if this file has more than one parents (hardlinks)
+                        _, _, filename = splitLN(LN)
+                        cat_mod_requests[requestID + '_2'] = (GUID, 'unset', 'parents', '%s/%s' % (parentGUID, filename), '')
+                        # if the other parents of this file are removing it at the same time, all are thinking that there are more parents
+                        check_again.append(GUID)
                 response[requestID] = 'deleted'
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
         success = self.catalog.remove(cat_rem_requests)
         modify_success = self.catalog.modifyMetadata(cat_mod_requests)
+        # check the files with more parents (hardlinks) again
+        if check_again:
+            print '\n\n!!!!check_again', check_again
+            checked_again = self.catalog.get(check_again)
+            do_delete = {}
+            for GUID, metadata in checked_again.items():
+                # if a file has no parents now, remove it
+                parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
+                if parentno == 0:
+                    do_delete[GUID] = GUID
+            print '\n\n!!!!do_delete', do_delete
+            self.catalog.remove(do_delete)
         return response
             
 
