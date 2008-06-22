@@ -58,7 +58,7 @@ class Manager:
         cat_mod_requests = {}
         for requestID, (metadata, GUID, _, _, wasComplete, traversedList) in traverse_response.items():
             if wasComplete and metadata[('catalog', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
-                cat_rem_requests[requestID]=GUID
+                cat_rem_requests[requestID] = GUID
                 if len(traversedList)>1:
                     # notify the parents
                     parentLN, parentGUID = traversedList[-2]
@@ -108,7 +108,9 @@ class Manager:
         try:
             # set creation time stamp
             child_metadata[('timestamps', 'created')] = str(time.time())
-            # call the new method of the catalog with the child's metadata (reqeustID is '_new')
+            if child_name and parent_GUID:
+                child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent'
+            # call the new method of the catalog with the child's metadata (requestID is '_new')
             new_response = self.catalog.new({'_new' : child_metadata})
             # we can access the response with the requestID, so we get the GUID of the newly created entry
             (child_GUID, new_success) = new_response['_new']
@@ -492,7 +494,8 @@ class Manager:
                 print 'adding', sourceGUID, 'to parent', targetGUID
                 # adding the entry to the new parent
                 mm_resp = self.catalog.modifyMetadata(
-                    {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID)})
+                    {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
+                        'parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent')})
                 mm_succ = mm_resp['move']
                 if mm_succ != 'set':
                     success = 'failed adding child to parent'
@@ -506,7 +509,8 @@ class Manager:
                         print 'removing', sourceGUID, 'from parent', source_parent_guid
                         # delete the entry from the source parent
                         mm_resp = self.catalog.modifyMetadata(
-                            {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, '')})
+                            {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
+                                'parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), '')})
                         mm_succ = mm_resp['move']
                         if mm_succ != 'unset':
                             success = 'failed removing child from parent'
