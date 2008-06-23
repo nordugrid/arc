@@ -1,58 +1,120 @@
 package LogUtils;
 
-# Logging utilities
-#
-# Three levels: error, warning, debug
-# logging an error will kill the calling function
+use POSIX;
+use FileHandle;
 
-use File::Basename;
-use lib dirname($0);
-use Exporter;
-@ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = ( 'start_logging', 'error', 'warning', 'debug');
 use strict;
 
+our ($ERROR, $WARNING, $INFO, $DEBUG) = (0, 1, 2, 3);
+our @lnames = qw(ERROR WARNING INFO DEBUG);
 
-our ($loglevel, $logfile);
-$loglevel=2;
-$logfile="/var/log/infoprovider.log";
+our %opts = (
+    logfiles => { '' => undef },    # default logging goes to STDERR
+    levels   => { '' => $WARNING }  # default level is WARNING
+);
 
-sub start_logging($$) {
-    $loglevel = shift;
-    $logfile = shift;
+# constructor
+
+sub getLogger {
+    my $class = shift;
+    my $self = {name => (shift || '')};
+    bless $self, $class;
+    return $self;
+}
+
+# getters and setters
+
+sub level() {
+    my ($self,$level) = @_;
+    return $self->_searchopt($opts{levels}) unless defined $level;
+    return $opts{levels}{$self->{name}} = $level;
+}
+
+sub logfile() {
+    my ($self,$logfile) = @_;
+    return $self->_searchopt($opts{logfiles}) unless defined $logfile;
+    return $opts{logfiles}{$self->{name}} = $logfile;
+}
+
+# convenience functions
+
+sub error($$) {
+    my ($self, $msg) = @_;
+    $self->log($ERROR,$msg);
+}
+
+sub warning($$) {
+    my ($self, $msg) = @_;
+    $self->log($WARNING,$msg);
+}
+
+sub info($$) {
+    my ($self, $msg) = @_;
+    $self->log($INFO,$msg);
+}
+
+sub debug($$) {
+    my ($self, $msg) = @_;
+    $self->log($DEBUG,$msg);
+}
+
+# real work is done here
+
+sub log($$$) {
+    my ($self, $level, $msg) = @_;
+    return if $level > $self->_searchopt($opts{levels});
+
+    my $logfile = $self->_searchopt($opts{logfiles});
+
+    unless ($logfile) {
+        print STDERR $self->_format($level,$msg);
+    } else {
+        my $fh = new FileHandle ">>$logfile"
+            or die "Error opening $logfile: $!";
+        print $fh $self->_format($level,$msg);
+        close $fh;
+    }
+}
+
+sub _format {
+    my ($self,$level,$msg) = @_;
+    my $name = $self->{name};
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime (time);
+    my $timestamp = POSIX::strftime("%Y-%m-%d %H:%M:%S", $sec,$min,$hour,$mday,
+                                    $mon,$year,$wday,$yday,$isdst);
+    $name = $name ? "$name: " : "";
+    return "$timestamp $name$lnames[$level]: $msg\n";
+}
+
+# find settings which apply to this log object
+
+sub _searchopt {
+    my ($self, $opt) = @_;
+    my $name = $self->{name};
+    while (1) {
+        return $opt->{$name} if exists $opt->{$name};
+        $name =~ s/\.[^.]*$// or $name = '';
+    }
 }
 
 
-sub write_log {
-    use POSIX;
-    #records logging info into the $logfile read from configuration
-    my ($message) = shift;  
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
-	localtime (time);
-    my $timestamp =
-	POSIX::strftime("%b %d %T", $sec,$min,$hour,$mday,
-			$mon,$year,$wday,$yday,$isdst); 
-    my $scriptname = $0; 
-    
-    open PROVIDERLOG, ">>$logfile";
-    print PROVIDERLOG  "$timestamp [$$] $scriptname: $message\n";
-    close PROVIDERLOG; 
-#    print "$timestamp [$$] $scriptname: $message\n";
+sub test {
+    my $log = LogUtils->getLogger();
+    $log->warning("Hi");
+    $log = LogUtils->getLogger("main");
+    $log->warning("Hi");
+    $log = LogUtils->getLogger("main.sub");
+    print "LEvEl "  . $log->level()."\n";
+    print "LEvEl "  . $log->level($LogUtils::INFO)."\n";
+    print "Logfile ". $log->logfile("log.$$")."\n";
+    $log->error("Hi");
+    $log = LogUtils->getLogger("main.sub.one");
+    $log->error("Hi");
+    LogUtils->getLogger("main.sub.too")->info("Boo");
+    LogUtils->getLogger("main.sub.too")->debug("Hoo");
+    print "Contents of log.$$:\n". `cat log.$$; rm log.$$`;
 }
 
-sub error {
-    write_log(@_);
-    die(@_);
-}
-
-sub warning {
-    if ($loglevel < 1 ) {return 0}
-    write_log(@_);
-}
-
-sub debug {
-    if ($loglevel < 2 ) {return 0}
-    write_log(@_);
-}
+#test();
 
 1;

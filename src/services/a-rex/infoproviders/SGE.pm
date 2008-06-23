@@ -1,28 +1,72 @@
 package SGE;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
+
 use POSIX qw(ceil);
-use File::Basename;
-use lib dirname($0);
-@ISA = ('Exporter');
-@EXPORT_OK = ('lrms_init',
-              'cluster_info',
-	      'queue_info',
-	      'jobs_info',
-	      'users_info');
-use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
+use LogUtils;
+
 use strict;
+
+sub get_lrms_options_schema {
+    return {
+            'sge_root'         => '',
+            'sge_bin_path'     => '',
+            'sge_cell'         => '*',
+            'sge_qmaster_port' => '*',
+            'sge_execd_port'   => '*',
+            'queues' => {
+                '*' => {
+                    'users'       => [ '' ],
+                    'sge_jobopts' => '*'
+                }
+            },
+            'jobs' => [ '' ]
+        };
+}
+
 
 ##########################################
 # Saved private variables
 ##########################################
 
-our %lrms_queue;
-our $config;
+our %lrms_info;
+our $options;
 our $path;
 
-our $maxwalltime;
 our $max_u_jobs;
 our %total_user_jobs;
+
+our $log = LogUtils->getLogger(__PACKAGE__);
+
+##########################################
+# Public interface
+##########################################
+
+sub get_lrms_info($) {
+
+    $options = shift;
+
+    lrms_init();
+
+    cluster_info();
+
+    my %queues = %{$options->{queues}};
+    for my $qname ( keys %queues ) {
+        queue_info($qname);
+    }
+
+    my $jids = $options->{jobs};
+    jobs_info($jids);
+
+    for my $qname ( keys %queues ) {
+        my $users = $queues{$qname}{users};
+        users_info($qname,$users);
+    }
+
+    return \%lrms_info
+}
 
 ##########################################
 # Private subs
@@ -34,12 +78,13 @@ sub type_and_version () {
     my ($command) = "$path/qstat -help";
 
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     my ($line) = <QSTAT>;
     ($type, $version) = split " ", $line;
     close QSTAT;
     unless ( ( $type =~ /GE/ ) and ( $version =~ /^6/ ) ) {
-	warning("Unsupported LRMS type or version: $type $version.");
+	$log->warning("Unsupported LRMS type or version: $type $version.");
     }
     return $type, $version;
 }
@@ -48,7 +93,8 @@ sub queues () {
     my (@queue, $line);
     my ($command) = "$path/qconf -sql";
     unless ( open QCONF, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     while ( $line = <QCONF> ) {
 	chomp $line;
 	push @queue, $line;
@@ -82,7 +128,7 @@ sub slots () {
     my ($command) = "$path/qconf -sep";
 
     unless ( open QQ, "$command 2>/dev/null |" ) {
-	error("$command failed.");
+	$log->error("$command failed.") and die;
     }
     while ( $line = <QQ> ) {
 	if ( $line =~ /^HOST/ || $line =~ /^=+/ ) { next; }
@@ -100,7 +146,8 @@ sub slots () {
     # Used slots in all queues
     $command = "$path/qstat -g c";
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     $usedslots = 0;
     while ( $line = <QSTAT> ) {
 	if ( $line =~ /^CLUSTER QUEUE/ || $line =~ /^-+/) { next; }
@@ -115,7 +162,8 @@ sub slots () {
 
     $command = "$path/qstat -u '*' -s p";
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     $queued = 0;
     while ( $line = <QSTAT> ) {
 	if ( ! $line =~ /^\s*\d+\s+/ ) { next; }
@@ -134,7 +182,7 @@ sub global_limits() {
     my ($command) = "$path/qconf -sconf global";
 
     unless ( open QQ, "$command 2>/dev/null |" ) {
-        error("$command failed.");
+        $log->error("$command failed.") and die;
     }
     my $max_jobs = 0;
     while ( my $line = <QQ> ) {
@@ -170,36 +218,31 @@ sub req_limits ($) {
     return ($reqcputime, $reqwalltime);
 }
 
-############################################
-# Public subs
-#############################################
+sub lrms_init() {
+    $ENV{SGE_ROOT} = $options->{sge_root} || $ENV{SGE_ROOT};
+    $log->error("sge_root must be defined in arc.conf") and die unless $ENV{SGE_ROOT};
 
-sub configure_sge_env(%) {
-    my %config = @_;
-    $ENV{SGE_ROOT} = $config{sge_root} || $ENV{SGE_ROOT};
-    error("sge_root must be defined in arc.conf") unless $ENV{SGE_ROOT};
-
-    $ENV{SGE_CELL} = $config{sge_cell} || $ENV{SGE_CELL} || 'default';
-    $ENV{SGE_QMASTER_PORT} = $config{sge_qmaster_port} if $config{sge_qmaster_port};
-    $ENV{SGE_EXECD_PORT} = $config{sge_execd_port} if $config{sge_execd_port};
+    $ENV{SGE_CELL} = $options->{sge_cell} || $ENV{SGE_CELL} || 'default';
+    $ENV{SGE_QMASTER_PORT} = $options->{sge_qmaster_port} if $options->{sge_qmaster_port};
+    $ENV{SGE_EXECD_PORT} = $options->{sge_execd_port} if $options->{sge_execd_port};
 
     for (split ':', $ENV{PATH}) {
         $ENV{SGE_BIN_PATH} = $_ and last if -x "$_/qsub";
     }
-    $ENV{SGE_BIN_PATH} = $config{sge_bin_path} || $ENV{SGE_BIN_PATH};
+    $ENV{SGE_BIN_PATH} = $options->{sge_bin_path} || $ENV{SGE_BIN_PATH};
 
-    error("SGE executables not found") unless -x "$ENV{SGE_BIN_PATH}/qsub";
+    $log->error("SGE executables not found") and die unless -x "$ENV{SGE_BIN_PATH}/qsub";
 
     $path = $ENV{SGE_BIN_PATH};
 }
 
 
-sub cluster_info ($) {
-    $config = shift;
+sub cluster_info () {
 
-    configure_sge_env(%$config);
+    my %lrms_cluster;
 
-    my (%lrms_cluster);
+    # add this cluster to the info tree
+    $lrms_info{cluster} = \%lrms_cluster;
 
     # Figure out SGE type and version
 
@@ -221,14 +264,18 @@ sub cluster_info ($) {
     
     @{$lrms_cluster{queue}} = queues();
 
-    return %lrms_cluster;
 }
 
-sub queue_info ($$) {
-    $config = shift;
-    configure_sge_env(%$config);
+sub queue_info ($) {
 
-    my ($qname) = shift;
+    my $qname = shift;
+    my %queue_options = %{$options->{queues}{$qname}};
+
+    my %lrms_queue;
+
+    # add this queue to the info tree
+    $lrms_info{queues} = {} unless $lrms_info{queues};
+    $lrms_info{queues}{$qname} = \%lrms_queue;
 
     # status
     # running
@@ -236,7 +283,8 @@ sub queue_info ($$) {
 
     my ($command) = "$path/qstat -g c";
     unless ( open QSTAT, "$command 2> /dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     my ($line, $used);
     my ($sub_running, $sub_status, $sub_totalcpus);
     while ( $line = <QSTAT> ) {
@@ -251,7 +299,7 @@ sub queue_info ($$) {
     close QSTAT;
 
     # settings in the config file override
-    $lrms_queue{totalcpus} = $$config{totalcpus} if $$config{totalcpus};
+    $lrms_queue{totalcpus} = $queue_options{totalcpus} if $queue_options{totalcpus};
 
     # Number of available (free) cpus can not be larger that
     # free cpus in the whole cluster
@@ -262,7 +310,7 @@ sub queue_info ($$) {
     }
     # reserve negative numbers for error states
     if ($lrms_queue{status}<0) {
-	warning("lrms_queue{status} = $lrms_queue{status}")}
+	$log->warning("lrms_queue{status} = $lrms_queue{status}")}
 
     # Grid Engine has hard and soft limits for both CPU time and
     # wall clock time. Nordugrid schema only has CPU time.
@@ -270,7 +318,9 @@ sub queue_info ($$) {
 
     my $qlist = $qname;
     $command = "$path/qconf -sq $qlist";
-    open QCONF, "$command 2>/dev/null |" or error("$command failed.");
+    unless ( open QCONF, "$command 2>/dev/null |" ) {
+        $log->error("$command failed.") and die;
+    }
     while ( $line = <QCONF> ) {
         if ($line =~ /^[sh]_rt\s+(.*)/) {
             next if $1 eq 'INFINITY';
@@ -283,10 +333,11 @@ sub queue_info ($$) {
             } elsif (@a == 1) {
                 $timelimit = int($a[0]/60);
             } else {
-                warning("Error parsing time info in output of $command");
+                $log->warning("Error parsing time info in output of $command");
                 next;
             }
-            if (not defined $lrms_queue{maxwalltime} || $lrms_queue{maxwalltime} > $timelimit) {
+            if (not defined $lrms_queue{maxwalltime}
+                    || $lrms_queue{maxwalltime} > $timelimit) {
                 $lrms_queue{maxwalltime} = $timelimit;
             }
         }
@@ -301,7 +352,7 @@ sub queue_info ($$) {
             } elsif (@a == 1) {
                 $timelimit = int($a[0]/60);
             } else {
-                warning("Error parsing time info in output of $command");
+                $log->warning("Error parsing time info in output of $command");
                 next;
             }
             if (not defined $lrms_queue{maxcputime} || $lrms_queue{maxcputime} > $timelimit) {
@@ -311,15 +362,12 @@ sub queue_info ($$) {
     }
     close QCONF;
 
-    # Global variable; saved for later use in users_info()
-    $maxwalltime = $lrms_queue{maxwalltime};
-
-    $lrms_queue{maxwalltime} = "" unless $lrms_queue{maxwalltime};
-    $lrms_queue{maxcputime} = "" unless $lrms_queue{maxcputime};
-    $lrms_queue{minwalltime} = "";
-    $lrms_queue{mincputime} = "";
-    $lrms_queue{defaultcput} = "";
-    $lrms_queue{defaultwallt} = "";
+    #$lrms_queue{maxwalltime} = '' unless $lrms_queue{maxwalltime};
+    #$lrms_queue{maxcputime} = '' unless $lrms_queue{maxcputime};
+    #$lrms_queue{minwalltime} = '';
+    #$lrms_queue{mincputime} = '';
+    #$lrms_queue{defaultcput} = '';
+    #$lrms_queue{defaultwallt} = '';
 
     # Grid Engine puts queueing jobs in single "PENDING" state pool,
     # so here we report the total number queueing jobs in the cluster.
@@ -333,33 +381,33 @@ sub queue_info ($$) {
     # SGE has a global limit on total number of jobs, but not per-queue limit.
     # This global limit can be used as an upper bound for nordugrid-queue-maxqueuable
     my ($max_jobs,$max_u_jobs) = global_limits();
-    $max_jobs = "" unless $max_jobs;
-    $lrms_queue{maxqueuable} = $max_jobs;
+    $lrms_queue{maxqueuable} = $max_jobs if $max_jobs;
     
     # nordugrid-queue-maxrunning
 
     # The total max running jobs is the number of slots for this queue
-    $lrms_queue{maxrunning} = $$queuetotalslots{$qname} || "";
+    $lrms_queue{maxrunning} = $$queuetotalslots{$qname}
+        if $$queuetotalslots{$qname};
 
     # nordugrid-queue-maxuserrun
-    $lrms_queue{maxuserrun} = "";
-
-    return %lrms_queue;
+    #$lrms_queue{maxuserrun} = "";
 }
 
 
-sub jobs_info ($$@) {
-    $config = shift;
-    my ($qname) = shift;
-    my ($jids) = shift;
+sub jobs_info ($) {
+    my $jids = shift;
 
     my $line;
-    my (%lrms_jobs);
+    my %lrms_jobs;
+
+    # add users to the big tree
+    $lrms_info{jobs} = \%lrms_jobs;
 
     # Running jobs
     my ($command) = "$path/qstat -u '*' -s rs";
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     my ($line);
     while ( $line = <QSTAT>) {
 	# assume that all lines beginning with an integer are describing jobs
@@ -389,7 +437,8 @@ sub jobs_info ($$@) {
     # NOTE: Counting rank based on all queues.
     $command = "$path/qstat -u '*' -s p";
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	error("$command failed.");}
+	$log->error("$command failed.") and die;
+    }
     my ($rank) = 0;
     while ( $line = <QSTAT> ) {
 	# assume that all lines beginning with an integer are describing jobs
@@ -439,16 +488,16 @@ sub jobs_info ($$@) {
 
     foreach my $jid ( @{$jids} ) {
         next if exists $lrms_jobs{$jid};
-	debug("Job executed $jid");
-        $lrms_jobs{$jid}{status} = '';
-        $lrms_jobs{$jid}{mem} = '';
-        $lrms_jobs{$jid}{walltime} = '';
-        $lrms_jobs{$jid}{cputime} = '';
-        $lrms_jobs{$jid}{reqwalltime} = '';
-        $lrms_jobs{$jid}{reqcputime} = '';
-        $lrms_jobs{$jid}{rank} = '';
-        $lrms_jobs{$jid}{nodes} = [];
-        $lrms_jobs{$jid}{comment} = [];
+	$log->debug("Job executed $jid");
+        $lrms_jobs{$jid}{status} = 'EXECUTED';
+        #$lrms_jobs{$jid}{mem} = '';
+        #$lrms_jobs{$jid}{walltime} = '';
+        #$lrms_jobs{$jid}{cputime} = '';
+        #$lrms_jobs{$jid}{reqwalltime} = '';
+        #$lrms_jobs{$jid}{reqcputime} = '';
+        #$lrms_jobs{$jid}{rank} = '';
+        #$lrms_jobs{$jid}{nodes} = [];
+        #$lrms_jobs{$jid}{comment} = [];
     }
 
 
@@ -461,7 +510,7 @@ sub jobs_info ($$@) {
     $jid = "";
 
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	debug("Command $command failed.")}
+	$log->debug("Command $command failed.")}
 
     while ( $line = <QSTAT>) {
 
@@ -508,7 +557,7 @@ sub jobs_info ($$@) {
     $jid = "";
     
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	debug("Command $command failed.")}
+	$log->debug("Command $command failed.")}
 
     while ( $line = <QSTAT>) {
 
@@ -545,16 +594,16 @@ sub jobs_info ($$@) {
     $jid = "";
 
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
-	debug("Command $command failed.")}
+	$log->debug("Command $command failed.")}
     
     while ( $line = <QSTAT>) {
 	
 	if ( $line =~ /^job_number:\s+(\d+)/) {
 	    $jid=$1;
 	    $lrms_jobs{$jid}{nodes} = [];
-	    $lrms_jobs{$jid}{mem} = "";
-	    $lrms_jobs{$jid}{cputime} = "";
-	    $lrms_jobs{$jid}{walltime} = "";
+	    $lrms_jobs{$jid}{mem} = '';
+	    $lrms_jobs{$jid}{cputime} = '';
+	    $lrms_jobs{$jid}{walltime} = '';
 	    next;
 	}
 
@@ -587,16 +636,19 @@ sub jobs_info ($$@) {
 	next;
     }
 
-    return %lrms_jobs;
-
 }
 
-sub users_info($$@) {
-    $config = shift;
-    my ($qname) = shift;
-    my ($accts) = shift;
 
-    my (%lrms_users);
+sub users_info($\@) {
+    my $qname = shift;
+    my $accts = shift;
+
+    my $lrms_queue = $lrms_info{queues}{$qname};
+
+    my %lrms_users;
+
+    # add users to the big tree
+    $lrms_queue->{users} = \%lrms_users;
 
     # freecpus
     # queue length
@@ -605,27 +657,22 @@ sub users_info($$@) {
     # complex system such as grid engine. Using simple 
     # estimate.
 
-    if ( ! exists $lrms_queue{status} ) {
-	%lrms_queue = queue_info($config,$qname);
-    }
-
     foreach my $u ( @{$accts} ) {
         if ($max_u_jobs) {
             $total_user_jobs{$u} = 0 unless $total_user_jobs{$u};
             my $freecpus = $max_u_jobs - $total_user_jobs{$u};
-            if ($lrms_queue{status} < $freecpus) {
-                $freecpus = $lrms_queue{status};
+            if ($lrms_queue->{status} < $freecpus) {
+                $freecpus = $lrms_queue->{status};
             }
 	    $lrms_users{$u}{freecpus} = $freecpus;
         } else {
-	    $lrms_users{$u}{freecpus} = $lrms_queue{status};
+	    $lrms_users{$u}{freecpus} = $lrms_queue->{status};
         };
-        $lrms_users{$u}{freecpus} .= ":$maxwalltime" if $maxwalltime;
-	$lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+        $lrms_users{$u}{freecpus} .= ":$lrms_queue->{maxwalltime}" if $lrms_queue->{maxwalltime};
+	$lrms_users{$u}{queuelength} = "$lrms_queue->{queued}";
     }
-    return %lrms_users;
+
 }
-	      
 
 
 1;

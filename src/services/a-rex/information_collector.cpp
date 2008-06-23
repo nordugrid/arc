@@ -55,15 +55,15 @@ void ARexService::InformationCollector(void) {
     } catch(ConfigError& e) {
     };
     // Run information provider
-    std::string ldif_str;
+    std::string xml_str;
     {
       std::string cmd;
-      cmd=nordugrid_libexec_loc+"/cluster.pl -valid-to 120 -config "+nordugrid_config_loc+" -dn o=grid -l 0";
+      cmd=nordugrid_libexec_loc+"/cluster+qju.pl -config "+nordugrid_config_loc;
       Arc::Run run(cmd);
       std::string stdin_str;
       std::string stderr_str;
       run.AssignStdin(stdin_str);
-      run.AssignStdout(ldif_str);
+      run.AssignStdout(xml_str);
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Cluster information provider: %s",cmd);
       if(!run.Start()) {
@@ -74,36 +74,12 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Cluster information provider result: %i",r);
       logger_.msg(Arc::DEBUG,"Cluster information provider error: %s",stderr_str);
     };
-    for(std::list<std::string>::iterator q = queues.begin();q!=queues.end();++q) {
-      std::string cmd;
-      cmd=nordugrid_libexec_loc+"/qju.pl -valid-to 120 -config "+nordugrid_config_loc+" -dn nordugrid-queue-name="+(*q)+",o=grid -queue "+(*q)+" -l 0";
-      Arc::Run run(cmd);
-      std::string stdin_str;
-      std::string stderr_str;
-      run.AssignStdin(stdin_str);
-      run.AssignStdout(ldif_str);
-      run.AssignStderr(stderr_str);
-      logger_.msg(Arc::DEBUG,"Queue information provider: %s",cmd);
-      if(!run.Start()) {
-      };
-      if(!run.Wait(60)) {
-      };
-      int r = run.Result();
-      logger_.msg(Arc::DEBUG,"Queue information provider result: %i",r);
-      logger_.msg(Arc::DEBUG,"Queue information provider error: %s",stderr_str);
-    };
-    logger_.msg(Arc::DEBUG,"Obtained LDIF: %s",ldif_str);
-    // Convert result to XML
-    std::istringstream ldif(ldif_str);
-    Arc::NS ns;
-    ns["n"]="urn:nordugrid";
-    Arc::XMLNode root(ns,"n:nordugrid");
-    if(LDIFtoXML(ldif,"o=grid",root)) {
+    logger_.msg(Arc::DEBUG,"Obtained XML: %s",xml_str);
+    Arc::XMLNode root(xml_str);
+    if(root) {
       // Put result into container
       infodoc_.Assign(root,true);
       logger_.msg(Arc::INFO,"Assigned new informational document");
-      root.GetXML(ldif_str);
-      logger_.msg(Arc::DEBUG,"Obtained XML: %s",ldif_str);
     } else {
       logger_.msg(Arc::ERROR,"Failed to create informational document");
     };

@@ -1,20 +1,54 @@
 package Fork;
 
-use File::Basename;
-use lib dirname($0);
-@ISA = ('Exporter');
-@EXPORT_OK = ('cluster_info',
-	      'queue_info',
-	      'jobs_info',
-	      'users_info');
-use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
+our @ISA = ('Exporter');
+our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
+
+use LogUtils;
+
 use strict;
 
 ##########################################
 # Saved private variables
 ##########################################
 
-our (%lrms_queue);
+our %lrms_info;
+our $options;
+
+our $log = LogUtils->getLogger("LRMSInfo.fork");
+
+############################################
+# Public subs
+#############################################
+
+sub get_lrms_options_schema {
+    # no extra options needed for fork
+    return {};
+}
+
+sub get_lrms_info(\%) {
+
+    $options = shift;
+
+    cluster_info();
+
+    $lrms_info{queues} = {};
+
+    my %queues = %{$options->{queues}};
+    for my $qname ( keys %queues ) {
+        queue_info($qname);
+    }
+
+    my $jids = $options->{jobs};
+    jobs_info($jids);
+
+    for my $qname ( keys %queues ) {
+        my $users = $queues{$qname}{users};
+        users_info($qname,$users);
+    }
+
+    return \%lrms_info
+}
+
 
 ##########################################
 # Private subs
@@ -26,7 +60,7 @@ sub totalcpus {
     
     my ($cpus) = 0;
     unless (open CPUINFOFILE, "</proc/cpuinfo") {
-	error("can't read the /proc/cpuinfo");
+	$log->error("can't read the /proc/cpuinfo") and die;
     }   
     while(my $line = <CPUINFOFILE>) {
 	chomp($line);
@@ -39,14 +73,9 @@ sub totalcpus {
     return $cpus;
 }
 
-############################################
-# Public subs
-#############################################
+sub cluster_info () {
 
-sub cluster_info ($) {
-    my ($config) = shift;
-
-    my (%lrms_cluster);
+    my %lrms_cluster;
 
     $lrms_cluster{lrms_type} = "fork";
     $lrms_cluster{lrms_version} = "";
@@ -60,7 +89,7 @@ sub cluster_info ($) {
 
     my ($oneminavg, $fiveminavg, $fifteenminavg, $processnumber, $lastprocessid );
     unless (open LOADAVGFILE, "</proc/loadavg") {
-	error("can't read the /proc/loadavg");
+	$log->error("can't read the /proc/loadavg") and die;
     }
     while(my $line = <LOADAVGFILE>) {
 	chomp($line);
@@ -81,19 +110,23 @@ sub cluster_info ($) {
     # no LRMS queuing jobs on a fork machine, fork has no queueing ability
     $lrms_cluster{queuedcpus} = 0;
 
-    return %lrms_cluster;
+    # add this cluster to the info tree
+    $lrms_info{cluster} = \%lrms_cluster;
 }
 
-sub queue_info ($$) {
-    my ($config) = shift;
-    my ($qname) = shift;
+sub queue_info ($) {
+
+    my $qname = shift;
+    my %queue_options = %{$options->{queues}{$qname}};
+
+    my %lrms_queue;
 
     # $lrms_queue{running} (number of active jobs in a fork system)
     # is calculated by making use of the 'ps axr' command
 
     $lrms_queue{running}= 0;
     unless (open PSCOMMAND,  "ps axr |") {
-	error("error in executing ps axr");
+	$log->error("error in executing ps axr") and die;
     }
     while(my $line = <PSCOMMAND>) {
 	chomp($line);
@@ -111,14 +144,14 @@ sub queue_info ($$) {
     # reserve negative numbers for error states
     # Fork is not real LRMS, and cannot be in error state
     if ($lrms_queue{status}<0) {
-	debug("lrms_queue{status} = $lrms_queue{status}");
+	$log->debug("lrms_queue{status} = $lrms_queue{status}");
 	$lrms_queue{status} = 0;
     }
 
     # maxcputime
 
     unless ( $lrms_queue{maxcputime} = `/bin/sh -c "ulimit -t"` ) {
-	debug("Could not determine max cputime with ulimit -t");
+	$log->debug("Could not determine max cputime with ulimit -t");
 	$lrms_queue{maxcputime} = "";
     };
     chomp $lrms_queue{maxcputime};
@@ -135,17 +168,17 @@ sub queue_info ($$) {
     $lrms_queue{defaultwallt} = "";
     $lrms_queue{maxwalltime} = $lrms_queue{maxcputime};
 
-    return %lrms_queue;
+    # add this queue to the info tree
+    $lrms_info{queues}{$qname} = \%lrms_queue;
 }
 
 
-sub jobs_info ($$@) {
-    my ($config) = shift;
-    my ($qname) = shift;
-    my ($jids) = shift;
+sub jobs_info ($) {
 
-    my (%lrms_jobs);
-    my (@s);
+    my $jids = shift;
+
+    my %lrms_jobs;
+    my @s;
 
     foreach my $id (@$jids){
 
@@ -154,19 +187,19 @@ sub jobs_info ($$@) {
         $lrms_jobs{$id}{nodes} = [ $node ];
 
         unless ( $node ) {
-	    debug("hostname did not work?");
+	    $log->debug("hostname did not work?");
 	    $lrms_jobs{$id}{nodes} = [];
 	}
         
 	unless ( $lrms_jobs{$id}{mem} = `ps h -o vsize -p $id` ) {
-	    debug("ps -h -o vsize -p \$ID did not work?");
+	    $log->debug("ps -h -o vsize -p \$ID did not work?");
 	    $lrms_jobs{$id}{mem} = "";
 	}
         chomp($lrms_jobs{$id}{mem});
 
 
 	unless ( $lrms_jobs{$id}{walltime} = `ps h -o etime -p $id` ) {
-	    debug("ps  -o etime -p \$ID did not work?");
+	    $log->debug("ps  -o etime -p \$ID did not work?");
 	    $lrms_jobs{$id}{walltime} = 0,"\n";
 	}
 	@s = split ":|-", $lrms_jobs{$id}{walltime};
@@ -185,7 +218,7 @@ sub jobs_info ($$@) {
 
 
 	unless ( $lrms_jobs{$id}{cputime} = `ps h -o cputime -p $id` ) {
-	    debug("ps  -o cputime -p \$ID did not work?");
+	    $log->debug("ps  -o cputime -p \$ID did not work?");
 	    $lrms_jobs{$id}{cputime} = 0,"\n";
 	}
 	@s = split ":|-", $lrms_jobs{$id}{cputime};
@@ -201,7 +234,7 @@ sub jobs_info ($$@) {
         my $tid;
         my $tempstr="";
 	unless ( $tempstr = `ps hax -o ppid,pid,cputime` ) {
-       		debug("ps  hax did not work?");
+       		$log->debug("ps  hax did not work?");
 		$tempstr="";	
        	}
 	@s=split "\n",$tempstr;
@@ -222,7 +255,7 @@ sub jobs_info ($$@) {
 	      $lrms_jobs{$id}{cputime} += 1440*$k[0]+60*$k[1]+$k[2]+int($k[3]/60);
 	   } 
 	   unless ( $tempstr = `ps hax -o ppid,pid,cputime` ) {
-      	      debug("cputime calculation failed");
+      	      $log->debug("cputime calculation failed");
 	      $tempstr="";	
       	   }
 	   @s=split "\n",$tempstr;
@@ -235,45 +268,44 @@ sub jobs_info ($$@) {
        
 	$lrms_jobs{$id}{reqwalltime} = "0";
 	$lrms_jobs{$id}{reqcputime} = "0";   
-	$lrms_jobs{$id}{comment} = ["Running under fork"];
+	$lrms_jobs{$id}{comment} = ["LRMS: Running under fork"];
 	$lrms_jobs{$id}{status} = "R";
         $lrms_jobs{$id}{rank} = "0";
        
     }
 
-    return %lrms_jobs;
+    # add users to the big tree
+    $lrms_info{jobs} = \%lrms_jobs;
 }
 
 
-sub users_info($$@) {
-    my ($config) = shift;
-    my ($qname) = shift;
-    my ($accts) = shift;
+sub users_info($\@) {
+    my $qname = shift;
+    my $accts = shift;
 
-    my (%lrms_users);
+    my %lrms_users;
+
+    my $lrms_queue = $lrms_info{queues}{$qname};
 
     # freecpus
     # queue length
 
-    if ( ! exists $lrms_queue{status} ) {
-	%lrms_queue = queue_info( $config, $qname );
-    }
-    
     my $job_limit;
-    if ( ! exists $$config{fork_job_limit} ) {
+    unless ( exists $options->{fork_job_limit} ) {
        $job_limit = 1;
     }
-    elsif ($$config{fork_job_limit} eq "cpunumber") {
-        $job_limit = $lrms_queue{totalcpus};
+    elsif ($options->{fork_job_limit} eq "cpunumber") {
+        $job_limit = $lrms_queue->{totalcpus};
     }
     else {
-       $job_limit = $$config{fork_job_limit};
+       $job_limit = $options->{fork_job_limit};
     }
     foreach my $u ( @{$accts} ) {
-	$lrms_users{$u}{freecpus} = $job_limit - $lrms_queue{running};        
-	$lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+	$lrms_users{$u}{freecpus} = $job_limit - $lrms_queue->{running};        
+	$lrms_users{$u}{queuelength} = "$lrms_queue->{queued}";
     }
-    return %lrms_users;
+    # add users to the big tree
+    $lrms_queue->{users} = \%lrms_users;
 }
 	      
 1;

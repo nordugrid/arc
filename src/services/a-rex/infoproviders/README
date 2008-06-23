@@ -1,1 +1,26 @@
 Information providers for job/users information.
+
+
+InfoCollector.pm  - base class for all information collectors (all files *Info.pm)
+InfoChecker.pm  - used by InfoCollector to validate options and results against
+                  a simple 'schema' (not XML Schema)
+GMJobsInfo.pm - collects information about jobs from grid manager status files
+HostInfo.pm - collects other information that can be collected on the front end
+	      (hostname, software version, disk space for users, installed
+              certificates, Runtime environments ...)
+LRMSInfo.pm - collects information that is LRMS specific (queues, jobs, local
+              user limits ...)
+Fork.pm, PBS.pm, SGE.pm, LL.pm, LSF.pm, Condor.pm - plugins for LRMSInfo
+
+
+The following aim for generating a backwards compatible information schema
+
+ARC0ClusterInfo.pm - collects information about the whole cluster (computing element)
+ARC0ClusterSchema.pm - description of the info produced by ARC0ClusterInfo
+
+cluster+qju.pl - driver for information collection. It feeds options read from a
+                 config file to ARC0ClusterInfo and prints results in XML
+
+
+Some modules have a function called 'test' at the end tat can be used to run it
+stand alone
