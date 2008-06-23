@@ -1,5 +1,5 @@
 #include "JobControllerARC0.h"
-#include <globus_ftp_control.h>
+#include "FTPControl.h"
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/data/DataBufferPar.h>
@@ -10,27 +10,6 @@
 #include <map>
 #include <iostream>
 #include <algorithm>
-
-struct cbarg {
-  Arc::SimpleCondition cond;
-  std::string response;
-  bool data;
-  bool ctrl;
-};
-
-static void ControlCallback(void *arg,
-			    globus_ftp_control_handle_t*,
-			    globus_object_t*,
-			    globus_ftp_control_response_t *response) {
-  cbarg *cb = (cbarg *)arg;
-  if (response && response->response_buffer)
-    cb->response.assign((const char *)response->response_buffer,
-			response->response_length);
-  else
-    cb->response.clear();
-  cb->ctrl = true;
-  cb->cond.signal();
-}
 
 namespace Arc {
 
@@ -225,60 +204,38 @@ namespace Arc {
       if(!keep){
 
 	//connect
-	cbarg cb;
-	
-        std::string path = ThisJob.JobID.Path();
-        std::string::size_type pos = path.rfind('/');
-        std::string jobpath = path.substr(0, pos);
-        std::string jobidnum = path.substr(pos+1);
-	
-	globus_ftp_control_handle_t control_handle;
-	globus_ftp_control_handle_init(&control_handle);
-	
-	cb.ctrl = false;
-	globus_ftp_control_connect(&control_handle,
-				   const_cast<char *>(ThisJob.JobID.Host().c_str()),
-				   ThisJob.JobID.Port(), &ControlCallback, &cb);
-	while (!cb.ctrl)
-	  cb.cond.wait();
-	
-	// should do some clever thing here to integrate ARC1 security framework
-	globus_ftp_control_auth_info_t auth;
-	globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL, GLOBUS_TRUE,
-					  const_cast<char*>("ftp"),
-					  const_cast<char*>("user@"),
-					  GLOBUS_NULL, GLOBUS_NULL);
-	
-	cb.ctrl = false;
-	globus_ftp_control_authenticate(&control_handle, &auth, GLOBUS_TRUE,
-					&ControlCallback, &cb);
-	while (!cb.ctrl)
-	  cb.cond.wait();
 
+	FTPControl ftpCtrl;
+	bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
+	if(!gotConnected){
+	  std::cout<<"ERROR: Did not get connected" <<std::endl;	  
+	  return;
+	}
+	
+	std::string path = ThisJob.JobID.Path();
+	std::string::size_type pos = path.rfind('/');
+	std::string jobpath = path.substr(0, pos);
+	std::string jobidnum = path.substr(pos+1);
+	
 	//send commands
-	
-	cb.ctrl = false;
-	globus_ftp_control_send_command(&control_handle, ("CWD " + jobpath).c_str(),
-					&ControlCallback, &cb);
-	while (!cb.ctrl)
-	  cb.cond.wait();
-					
-	
-	cb.ctrl = false;
-	globus_ftp_control_send_command(&control_handle, ("RMD " + jobidnum).c_str(),
-					&ControlCallback, &cb);
-	while (!cb.ctrl)
-	  cb.cond.wait();
-	
+	bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
+	if(!CommandSent){
+	  std::cout<<"ERROR: failed sending command" <<std::endl;	  
+	  return;	    
+	}
+	CommandSent = ftpCtrl.sendCommand("RMD " + jobidnum, 500); 
+	if(!CommandSent){
+	  std::cout<<"ERROR: failed sending command" <<std::endl;	  
+	  return;	    
+	}
+
 	//disconnect
 	
-	cb.ctrl = false;
-	globus_ftp_control_quit(&control_handle, &ControlCallback, &cb);
-	while (!cb.ctrl)
-	  cb.cond.wait();
-	
-	globus_ftp_control_handle_destroy(&control_handle);
-	
+	bool gotDisconnected = ftpCtrl.disconnect(500);
+	if(!gotDisconnected){
+	  std::cout<<"ERROR: failed disconnecting" <<std::endl;	  
+	  return;	    
+	}
       }
     }
   }
