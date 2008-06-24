@@ -355,6 +355,8 @@ class Manager:
                 size = child_metadata[('states', 'size')]
                 checksum = child_metadata[('states', 'checksum')]
                 checksumType = child_metadata[('states', 'checksumType')]
+                # need neededReplicas to see if we should call _add_replica
+                neededReplicas = child_metadata[('states', 'neededReplicas')]
                 metadata_ok = True
             except Exception, e:
                 success = 'missing metadata ' + str(e)
@@ -394,7 +396,9 @@ class Manager:
                         success, GUID = self._new(child_metadata, child_name, GUID)
                     if success == 'done':
                         # if the file was successfully created, it still has no replica, so we initiate creating one
-                        success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
+                        # if neededReplicas is 0, we do nothing
+                        if int(neededReplicas) > 0:
+                            success, turl, protocol = self._add_replica(size, checksumType, checksum, GUID, protocols)
                 except:
                     success = 'internal error (%s)' % traceback.format_exc()
             response[rID] = (success, turl, protocol)
