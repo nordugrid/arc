@@ -188,7 +188,7 @@ class ARCFS(Fuse):
             return inod.st
         else: return -ENOENT
 
-
+        
     def mkinod(self, path):
         """
         Function to get metadata of path from Manager and parse it to ARCInode
@@ -453,15 +453,14 @@ class ARCFS(Fuse):
                            'checksum':[self.path, 'set', 'states', 'checksum', checksum],
                            'replicas':[self.path, 'set', 'states', 'neededReplicas', needed_replicas]}
                 modify_success = self.manager.modify(request)
-                if self.success == 'done' and \
-                        modify_success['size'] == 'set' and \
-                        modify_success['replicas'] == 'set' and \
-                        modify_success['checksum'] == 'set':
+                if modify_success['size'] == 'set' and \
+                   modify_success['replicas'] == 'set' and \
+                   modify_success['checksum'] == 'set':
                     f = file(self.tmp_path,'rb')
                     parent = os.path.dirname(self.path)
                     child = os.path.basename(self.path)
                     GUID = self.manager.list({'0':parent})['0'][0][child][0]
-                    response = self.manager.addReplica({'release': GUID}, [self.protocol])
+                    response = self.manager.addReplica({'release': GUID}, [PROTOCOL])
                     success, turl, protocol = response['release']
                     if success == 'done':
                         ByteIOClient(turl).write(f)
