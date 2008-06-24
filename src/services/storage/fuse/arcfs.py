@@ -286,9 +286,6 @@ class ARCFS(Fuse):
         debug_msg('unlink left:', path)
 
 
-# Hard-links doesn't work yet in storage system. need some way to know
-# if path has links pointing to it to know if it can be deleted
-# As long as we cannot deleted linked files we can't create them
     def link(self, path, path1):
         debug_msg('link called:', (path, path1))
         request = {'0' : (path, path1, True)}
