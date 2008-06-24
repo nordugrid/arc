@@ -185,6 +185,20 @@ bool ArcPDP::isPermitted(Message *msg){
   //some <RequestItem/> in the request does not satisfy the policy. Here, we simply treat it 
   //as "Unauthorization"
 
+  if(rlist.size() != 0){
+    logger.msg(INFO, "Authorized from arc.pdp");
+    if(resp)
+      delete resp;
+    return true;
+  }
+  else {
+    logger.msg(ERROR, "UnAuthorized from arc.pdp");
+    if(resp)
+      delete resp;
+    return false;
+  }  
+
+  /*
   if((rlist.size()) == (resp->getRequestSize())){
     logger.msg(INFO, "Authorized from arc.pdp");
     if(resp)
@@ -197,6 +211,7 @@ bool ArcPDP::isPermitted(Message *msg){
       delete resp;
     return false;
   }
+  */
 }
 
 ArcPDP::~ArcPDP(){
