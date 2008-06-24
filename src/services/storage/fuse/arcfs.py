@@ -23,7 +23,8 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 #fuse.feature_assert('stateful_files', 'has_init')
 
 # arc storage stuff
-from storage.client import ManagerClient, ByteIOClient
+# CatalogClient is just a hack untill ManagerClient can provide GUID
+from storage.client import ManagerClient, ByteIOClient, CatalogClient
 from storage.common import create_checksum, mkuid
 from storage.common import false, true
 
@@ -37,8 +38,11 @@ except:
     MOUNT="http://localhost:60000/Manager"
 
 manager = ManagerClient(MOUNT, False)
+#catalog = CatalogClient(MOUNT.replace('Manager','Catalog'))
 
 PROTOCOL = 'byteio'
+needed_replicas = 2
+
 FUSETRANSFER = os.path.join(os.getcwd(),'fuse_transfer')
 if not os.path.isdir(FUSETRANSFER):
     os.mkdir(FUSETRANSFER)
@@ -287,11 +291,11 @@ class ARCFS(Fuse):
 # Hard-links doesn't work yet in storage system. need some way to know
 # if path has links pointing to it to know if it can be deleted
 # As long as we cannot deleted linked files we can't create them
-#     def link(self, path, path1):
-#         debug_msg('rename called:', (path, path1))
-#         request = {'0' : (path, path1, True)}
-#         response = self.manager.move(request)
-#         debug_msg('rename left', response)
+    def link(self, path, path1):
+        debug_msg('link called:', (path, path1))
+        request = {'0' : (path, path1, True)}
+        response = self.manager.move(request)
+        debug_msg('link left', response)
 
 
     def rename(self, path, path1):
@@ -361,6 +365,15 @@ class ARCFS(Fuse):
                 self.file = os.fdopen(os.open(self.tmp_path, flags, *mode),
                                       flag2mode(flags))
                 self.fd = self.file.fileno()
+                # notify storage about file
+                # set size and neededReplicas to 0, checksum to ''
+                # correct values will be set in release
+                metadata = {('states', 'size') : 0, ('states', 'checksum') : '',
+                            ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 0}
+                request = {'0': (self.path, metadata, [PROTOCOL])}
+                response = self.manager.putFile(request)
+                success, turl, protocol = response['0']
+                debug_msg('__init__',response['0'])
             else:
                 debug_msg('success', success)
                 self.creating = False
@@ -440,17 +453,54 @@ class ARCFS(Fuse):
                 f = file(self.tmp_path,'rb')
                 checksum = create_checksum(f, 'md5')
                 f.close()
-                metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
-                            ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
-                request = {'0': (self.path, metadata, [PROTOCOL])}
-                response = self.manager.putFile(request)
-                success, turl, protocol = response['0']
-                if success == 'done':
+                # set size and checksum now that we have it
+                request = {'size':[self.path, 'set', 'states', 'size', size],
+                           'checksum':[self.path, 'set', 'states', 'checksum', checksum],
+                           'replicas':[self.path, 'set', 'states', 'neededReplicas', needed_replicas]}
+                modify_success = self.manager.modify(request)
+                if self.success == 'done' and \
+                        modify_success['size'] == 'set' and \
+                        modify_success['replicas'] == 'set' and \
+                        modify_success['checksum'] == 'set':
                     f = file(self.tmp_path,'rb')
-                    ByteIOClient(turl).write(f)
+                    parent = os.path.dirname(self.path)
+                    child = os.path.basename(self.path)
+                    GUID = self.manager.list({'0':parent})['0'][0][child][0]
+                    response = self.manager.addReplica({'release': GUID}, [self.protocol])
+                    success, turl, protocol = response['release']
+                    if success == 'done':
+                        ByteIOClient(turl).write(f)
                 f.close()
             os.remove(self.tmp_path)
             debug_msg('release left:', (flags))
+
+
+        # stolen from fuse-python xmp.py
+        def _fflush(self):
+            debug_msg('_fflush called')
+            if 'w' in self.file.mode or 'a' in self.file.mode:
+                self.file.flush()
+            debug_msg('_fflush left')
+
+
+        # stolen from fuse-python xmp.py
+        def fsync(self, isfsyncfile):
+            debug_msg('fsync called')
+            self._fflush()
+            if isfsyncfile and hasattr(os, 'fdatasync'):
+                os.fdatasync(self.fd)
+            else:
+                os.fsync(self.fd)
+            debug_msg('fsync left')
+
+
+        # stolen from fuse-python xmp.py
+        def flush(self):
+            debug_msg('flush called')
+            self._fflush()
+            # cf. xmp_flush() in fusexmp_fh.c
+            os.close(os.dup(self.fd))
+            debug_msg('flush left')
 
 
         def fakeinod(self):
