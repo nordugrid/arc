@@ -23,8 +23,7 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 #fuse.feature_assert('stateful_files', 'has_init')
 
 # arc storage stuff
-# CatalogClient is just a hack untill ManagerClient can provide GUID
-from storage.client import ManagerClient, ByteIOClient, CatalogClient
+from storage.client import ManagerClient, ByteIOClient
 from storage.common import create_checksum, mkuid
 from storage.common import false, true
 
@@ -38,7 +37,6 @@ except:
     MOUNT="http://localhost:60000/Manager"
 
 manager = ManagerClient(MOUNT, False)
-#catalog = CatalogClient(MOUNT.replace('Manager','Catalog'))
 
 PROTOCOL = 'byteio'
 needed_replicas = 2
