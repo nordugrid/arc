@@ -542,6 +542,7 @@ class Manager:
                         mm_succ = mm_resp['move']
                         if mm_succ != 'unset':
                             success = 'failed removing child from parent'
+                            # TODO: need some handling; remove the new entry or something
                         else:
                             success = 'moved'
             response[requestID] = success
