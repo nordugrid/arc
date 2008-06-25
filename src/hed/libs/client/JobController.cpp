@@ -10,6 +10,8 @@
 #include <algorithm>
 
 namespace Arc {
+
+  Logger JobController::logger(Logger::getRootLogger(), "JobController");
   
   JobController::JobController(Arc::Config *cfg, std::string flavour)
     : ACC(), 
@@ -22,6 +24,8 @@ namespace Arc {
 
     if(jobids.empty()){ //We are looking at all jobs of this grid flavour
 
+      logger.msg(DEBUG, "Identifying all jobs of flavour %s", GridFlavour);	
+
       Arc::XMLNodeList Jobs = mcfg.XPathLookup("//job[flavour='"+ GridFlavour+"']", Arc::NS());
       XMLNodeList::iterator iter;
       
@@ -33,6 +37,8 @@ namespace Arc {
       }
 
     } else {//Jobs are targeted individually. The supplied jobids list may not contain any jobs of this grid flavour
+
+      logger.msg(DEBUG, "Identifying individual jobs of flavour %s", GridFlavour);	
 
       std::list<std::string>::iterator it;
 
@@ -47,7 +53,7 @@ namespace Arc {
       }
     }
 
-    std::cout<<"JobController"+GridFlavour+" has identified " << JobStore.size() << " jobs" <<std::endl;
+    logger.msg(DEBUG, "JobController%s had identified %d jobs", GridFlavour, JobStore.size());
 
   }
 
@@ -154,8 +160,8 @@ namespace Arc {
     mover.verbose(true);
     mover.set_progress_indicator(&progress);
             
-    std::cout<<"Now copying (from -> to):"<<std::endl;
-    std::cout << src.str() << " -> " << dst.str() << std::endl;
+    logger.msg(DEBUG, "Now copying (from -> to)");
+    logger.msg(DEBUG, " %s -> %s)", src.str(), dst.str());
 
     Arc::DataHandle source(src);
     Arc::DataHandle destination(dst);
@@ -171,10 +177,12 @@ namespace Arc {
     std::string failure;
     int timeout = 10;
     if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
-      if (!failure.empty()) std::cerr << "File download failed: " << failure << std::endl;
-      else std::cerr << "File download failed" << std::endl;
+      if (!failure.empty()){
+	logger.msg(ERROR, "File download failed: %s", failure);
+      }else{
+	logger.msg(ERROR, "File download failed");
+      }
     }
-    
   }
 
 } // namespace Arc

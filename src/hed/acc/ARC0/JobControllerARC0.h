@@ -20,13 +20,15 @@ namespace Arc{
     
     void GetJobInformation();
     void DownloadJobOutput(bool keep, std::string downloaddir);
-    void PerformAction(std::string action);
+    void Clean(bool force);
+
 
     static ACC *Instance(Config *cfg, ChainContext *cxt);
 
   private:
-
+    static Logger logger;
     void DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir);
+    bool CleanThisJob(Job ThisJob, bool force);
     
   };
   

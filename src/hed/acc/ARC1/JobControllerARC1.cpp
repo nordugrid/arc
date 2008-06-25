@@ -22,14 +22,14 @@ namespace Arc {
   void JobControllerARC1::GetJobInformation(){
 
 
-  } //end GetJobInformation
-
-  void JobControllerARC1::PerformAction(std::string /* action */){
-
   }
 
   void JobControllerARC1::DownloadJobOutput(bool keep, std::string downloaddir){
   
+  }
+
+  void JobControllerARC1::Clean(bool force){
+
   }
 
 } // namespace Arc

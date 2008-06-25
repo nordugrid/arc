@@ -20,7 +20,7 @@ namespace Arc {
 
     void GetJobInformation();
     void DownloadJobOutput();
-    void PerformAction(std::string action);
+    void Clean(bool force);
 
     static ACC *Instance(Config *cfg, ChainContext *cxt);
 

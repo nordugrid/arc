@@ -8,6 +8,7 @@
 #include <string>
 #include <arc/ArcConfig.h>
 #include <arc/client/Job.h>
+#include <arc/Logger.h>
 
 namespace Arc{
   
@@ -19,7 +20,7 @@ namespace Arc{
     //These should be implemented by specialized class
     virtual void GetJobInformation() = 0;
     virtual void DownloadJobOutput(bool keep, std::string downloaddir) = 0;
-    virtual void PerformAction(std::string action) = 0;
+    virtual void Clean(bool force) = 0;
 
     //Base class implementation
     void IdentifyJobs(std::list<std::string> jobids);
@@ -31,6 +32,9 @@ namespace Arc{
     std::string GridFlavour;
     Arc::Config mcfg;
     virtual ~JobController();
+
+  private:
+    static Logger logger;
   };
 
 } //namespace ARC

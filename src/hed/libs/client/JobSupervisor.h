@@ -6,6 +6,7 @@
 
 #include <arc/client/JobController.h>
 #include <arc/loader/Loader.h>
+#include <arc/Logger.h>
 
 namespace Arc {
 
@@ -20,12 +21,14 @@ namespace Arc {
 		  const std::string downloaddir,
 		  const std::string joblist,
 		  const bool keep,
+		  const bool force,
 		  const int timeout);
             
     ~JobSupervisor();
 
     void GetJobInformation();
     void DownloadJobOutput();
+    void Clean();
     void PrintJobInformation(bool longlist);
 
     const std::list<std::string> clusterselect;
@@ -33,10 +36,11 @@ namespace Arc {
     const std::list<std::string> status;
     const std::string downloaddir;
     const bool keep;
+    const bool force;
     const int timeout;
 
   private:
-
+    static Logger logger;
     Loader *ACCloader;
     std::list<Arc::JobController*> JobControllers;
 

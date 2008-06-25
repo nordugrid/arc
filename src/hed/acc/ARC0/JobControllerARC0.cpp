@@ -13,6 +13,8 @@
 
 namespace Arc {
 
+  Logger JobControllerARC0::logger(Logger::getRootLogger(), "JobControllerARC0");
+
   JobControllerARC0::JobControllerARC0(Arc::Config *cfg) : JobController(cfg, "ARC0") {}
   
   JobControllerARC0::~JobControllerARC0() {}
@@ -75,10 +77,6 @@ namespace Arc {
       //5. Fill jobs with information
       XMLNode XMLresult(result);
 
-      std::cout<<"Read job information:"<<std::endl;
-      std::cout<<result<<std::endl;
-      //XMLresult.SaveToStream(std::cout);
-      
       for(it = HostIterator->second.begin(); it != HostIterator->second.end(); it++){
 	XMLNode JobXMLInfo = (*XMLresult.XPathLookup("//nordugrid-job-globalid"
 						     "[nordugrid-job-globalid='"+(*it)->JobID.str()+"']", NS()).begin());
@@ -163,7 +161,7 @@ namespace Arc {
 
   void JobControllerARC0::DownloadJobOutput(bool keep, std::string downloaddir){
     
-    std::cout<<"Downloading ARC0 jobs"<<std::endl;
+    logger.msg(DEBUG, "Downloading ARC0 jobs");	
     
     //Thread these
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
@@ -171,13 +169,9 @@ namespace Arc {
     }
   }
   
-  void JobControllerARC0::PerformAction(std::string /* action */){
-
-  }
-
   void JobControllerARC0::DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir){
     
-    std::cout<<"Initializing DataHandle with url: " <<ThisJob.JobID.str()<<std::endl;
+    logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
 
     Arc::DataHandle source(ThisJob.JobID);
     
@@ -203,41 +197,68 @@ namespace Arc {
       //second clean the session dir unless keep == true
       if(!keep){
 
-	//connect
-
-	FTPControl ftpCtrl;
-	bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
-	if(!gotConnected){
-	  std::cout<<"ERROR: Did not get connected" <<std::endl;	  
-	  return;
-	}
-	
-	std::string path = ThisJob.JobID.Path();
-	std::string::size_type pos = path.rfind('/');
-	std::string jobpath = path.substr(0, pos);
-	std::string jobidnum = path.substr(pos+1);
-	
-	//send commands
-	bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
-	if(!CommandSent){
-	  std::cout<<"ERROR: failed sending command" <<std::endl;	  
-	  return;	    
-	}
-	CommandSent = ftpCtrl.sendCommand("RMD " + jobidnum, 500); 
-	if(!CommandSent){
-	  std::cout<<"ERROR: failed sending command" <<std::endl;	  
-	  return;	    
-	}
-
-	//disconnect
-	
-	bool gotDisconnected = ftpCtrl.disconnect(500);
-	if(!gotDisconnected){
-	  std::cout<<"ERROR: failed disconnecting" <<std::endl;	  
-	  return;	    
+	bool cleaned = CleanThisJob(ThisJob, true);
+	if(!cleaned){
+	  logger.msg(ERROR, "Failed cleaning job: %s", ThisJob.JobID.str());	
 	}
       }
     }
+  }//end DownloadThisJob
+
+  void JobControllerARC0::Clean(bool force){
+
+    logger.msg(DEBUG, "Cleaning jobs ...");
+  
+    //thread?
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      bool cleaned = CleanThisJob(*jobiter, force);
+      if(!cleaned){
+	logger.msg(ERROR, "Failed cleaning job: %s", (*jobiter).JobID.str());	
+      }
+    }
+
   }
 
+  bool JobControllerARC0::CleanThisJob(Job ThisJob, bool force){
+
+    logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
+
+    //connect
+    FTPControl ftpCtrl;
+    bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
+    if(!gotConnected){
+      logger.msg(ERROR, "Failed to connect for job cleaning");
+      return false;
+    }
+    
+    std::string path = ThisJob.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobpath = path.substr(0, pos);
+    std::string jobidnum = path.substr(pos+1);
+    
+    //send commands
+    bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
+    if(!CommandSent){
+      logger.msg(ERROR, "Failed sending CWD command for job cleaning");
+      return false;	    
+    }
+    CommandSent = ftpCtrl.sendCommand("RMD " + jobidnum, 500); 
+    if(!CommandSent){
+      logger.msg(ERROR, "Failed sending RMD command for job cleaning");
+      return false;	    
+    }
+    
+    //disconnect
+    bool gotDisconnected = ftpCtrl.disconnect(500);
+    if(!gotDisconnected){
+      logger.msg(ERROR, "Failed to disconnect after job cleaning");
+      return false;	    
+    }
+
+    logger.msg(DEBUG, "Job cleaning succesful");
+    return true;
+
+
+  }//end CleanThisJob    
+    
 } // namespace Arc

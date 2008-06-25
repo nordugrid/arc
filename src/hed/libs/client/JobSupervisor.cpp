@@ -9,6 +9,8 @@
 #include <arc/client/ClientInterface.h>
 
 namespace Arc {
+
+  Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
   
   JobSupervisor::JobSupervisor(const std::list<std::string>& jobs,
 			       const std::list<std::string>& clusterselect,
@@ -17,12 +19,14 @@ namespace Arc {
 			       const std::string downloaddir,
 			       const std::string joblist,
 			       const bool keep,
+			       const bool force,
 			       const int timeout) : 
 			       clusterselect(clusterselect),
 			       clusterreject(clusterreject),
 			       status(status),
 			       downloaddir(downloaddir),
 			       keep(keep),
+			       force(force),
 			       timeout(timeout){
  
     XMLNode JobIdStorage;    
@@ -39,7 +43,8 @@ namespace Arc {
     
     for(JobIter = ActiveJobs.begin(); JobIter != ActiveJobs.end(); JobIter++){
       if(std::find(NeededControllers.begin(), NeededControllers.end(), (std::string) (*JobIter)["flavour"]) == NeededControllers.end()){
-	std::cout<<"Need JobController for grid flavour: "<<(std::string) (*JobIter)["flavour"] << std::endl;	
+	std::string flavour = (*JobIter)["flavour"];
+	logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
 	NeededControllers.push_back((std::string) (*JobIter)["flavour"]);
       }
     }
@@ -72,7 +77,7 @@ namespace Arc {
       }
     }
     
-    std::cout<<"Number of JobControllers: "<<JobControllers.size()<<std::endl;        
+    logger.msg(DEBUG, "Number of JobControllers: %d", JobControllers.size());	
 
   }
   
@@ -84,6 +89,7 @@ namespace Arc {
 
   void JobSupervisor::GetJobInformation() {
 
+    logger.msg(DEBUG, "Getting job information");	
     std::list<JobController*>::iterator iter;
     
     //This may benefit from being threaded
@@ -94,7 +100,7 @@ namespace Arc {
 
   void JobSupervisor::DownloadJobOutput() {
 
-    std::cout<< "Now dowloading job output" << std::endl;
+    logger.msg(DEBUG, "Downloading job output");	
 
     std::list<JobController*>::iterator iter;
     
@@ -107,11 +113,23 @@ namespace Arc {
 
   void JobSupervisor::PrintJobInformation(bool longlist) {
 
+    logger.msg(DEBUG, "Printing job information");	
+
     std::list<JobController*>::iterator iter;
     
-    //This may benefit from being threaded
     for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
       (*iter)->PrintJobInformation(longlist);
+    }
+  }
+
+  void JobSupervisor::Clean() {
+
+    logger.msg(DEBUG, "Cleaning job(s)");	
+
+    std::list<JobController*>::iterator iter;
+    
+    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
+      (*iter)->Clean(force);
     }
   }
 

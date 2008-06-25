@@ -35,7 +35,7 @@ void arcstat(const std::list<std::string>& jobs,
   else { // i.e we are looking for the status of jobs
 
     Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-				 "", joblist, false, timeout);
+				 "", joblist, false, false, timeout);
 
     JobMaster.GetJobInformation();
     JobMaster.PrintJobInformation(longlist);

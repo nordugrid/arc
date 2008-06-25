@@ -11,26 +11,24 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcget");
+static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcclean");
 
-void arcget(const std::list<std::string>& jobs,
-	    const std::list<std::string>& clusterselect,
-	    const std::list<std::string>& clusterreject,
-	    const std::list<std::string>& status,
-	    const std::string downloaddir,
-	    const std::string joblist,
-	    const bool keep,
-	    const int timeout) {
+void arcclean(const std::list<std::string>& jobs,
+	      const std::list<std::string>& clusterselect,
+	      const std::list<std::string>& clusterreject,
+	      const std::list<std::string>& status,
+	      const std::string joblist,
+	      const bool force,
+	      const int timeout) {
   
+  //ned to pass bool force as well
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       downloaddir, joblist, keep, false, timeout);
-
+			       "", joblist, false, force, timeout);
+  
   JobMaster.GetJobInformation();
-  JobMaster.PrintJobInformation(true);
-  JobMaster.DownloadJobOutput();
-
+  JobMaster.Clean();
+  
 }
 
 int main(int argc, char **argv) {
@@ -71,17 +69,10 @@ int main(int argc, char **argv) {
 		    istring("statusstr"),
 		    status);
 
-  std::string downloaddir;
-  options.AddOption('D', "dir",
-		    istring("download directory (the job directory will"
-			    " be created in this directory)"),
-		    istring("dirname"),
-		    downloaddir);
-
-  bool keep = false;
-  options.AddOption('k', "keep",
-		    istring("keep files on gatekeeper (do not clean)"),
-		    keep);
+  bool force = false;
+  options.AddOption('f', "force",
+		    istring("remove the job from the local list of jobs even if the job is not found in the MDS"),
+		    force);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -112,7 +103,7 @@ int main(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
   if (version) {
-    std::cout << Arc::IString("%s version %s", "arcget", VERSION) << std::endl;
+    std::cout << Arc::IString("%s version %s", "arcclean", VERSION) << std::endl;
     return 0;
   }
 
@@ -121,9 +112,9 @@ int main(int argc, char **argv) {
 	       "No valid jobids given");
     return 1;
   }
-
-  arcget(params, clusterselect, clusterreject, status,
-	 downloaddir, joblist, keep, timeout);
+  
+  arcclean(params, clusterselect, clusterreject, status,
+	   joblist, force, timeout);
 
   return 0;
 }

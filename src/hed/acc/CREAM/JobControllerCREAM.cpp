@@ -28,6 +28,6 @@ namespace Arc {
 
   void JobControllerCREAM::DownloadJobOutput(bool, std::string) {}
 
-  void JobControllerCREAM::PerformAction(std::string) {}
+  void JobControllerCREAM::Clean(bool force) {}
 
 } // namespace Arc
