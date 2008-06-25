@@ -12,9 +12,9 @@ our $host_options_schema = {
         x509_user_cert => '',
         x509_cert_dir => '',
         sessiondir => '',
-        cachedir => '',
+        cachedir => '*',
         ng_location => '',
-        runtimedir => '',
+        runtimedir => '*',
         processes => [ '' ],
         localusers => [ '' ]
 };

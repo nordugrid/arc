@@ -93,7 +93,7 @@ sub list_subsections($$) {
 
 
 sub test {
-    require Data::Dumper import Data::Dumper qw(Dumper);
+    require Data::Dumper; import Data::Dumper qw(Dumper);
     my $parser = ConfigParser->new('/etc/arc.conf') or die;
     print Dumper($parser);
     print "@{[$parser->list_subsections('gridftpd')]}\n";
