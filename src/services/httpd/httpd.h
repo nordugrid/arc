@@ -12,6 +12,7 @@ class HTTPD: public Arc::Service {
     protected:
         Arc::Logger logger;
         std::string doc_root;
+        std::string slave_mode;
         Arc::PayloadRawInterface* Get(const std::string &path, const std::string &base_url);
         Arc::MCC_Status Put(const std::string &path, Arc::PayloadRawInterface &buf);
     public:

@@ -26,9 +26,15 @@ HTTPD::HTTPD(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "HT
 {
     logger.msg(Arc::INFO, "HTTPD Initialized"); 
     doc_root = (std::string)((*cfg)["DocumentRoot"]);
-    if (doc_root.empty() == 0) {
+    if (doc_root.empty() == 1) {
         doc_root = "./";
     }
+    logger.msg(Arc::INFO, "HTTPD DocumentRoot is " + doc_root);
+    slave_mode = (std::string)((*cfg)["SlaveMode"]);
+    if (slave_mode.empty() == 1) {
+        slave_mode = "0";
+    }  
+    if (slave_mode == "1") logger.msg(Arc::INFO, "HTTPD SlaveMode is on!");
 }
 
 HTTPD::~HTTPD(void)
@@ -42,8 +48,10 @@ Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string 
     std::string full_path = Glib::build_filename(doc_root, path);
     if (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == true) {
         if (Glib::file_test(full_path, Glib::FILE_TEST_IS_REGULAR) == true) {
-            return new PayloadFile(full_path.c_str());
-        } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR)) {
+            PayloadFile * pf = new PayloadFile(full_path.c_str());
+            if (slave_mode == "1") unlink(full_path.c_str());
+            return pf;
+        } else if (Glib::file_test(full_path, Glib::FILE_TEST_IS_DIR) && slave_mode != "1") {
             std::string html = "<HTML>\r\n<HEAD>Directory list of '" + path + "'</HEAD>\r\n<BODY><UL>\r\n";
             Glib::Dir dir(full_path);
             std::string d;
@@ -64,6 +72,10 @@ Arc::MCC_Status HTTPD::Put(const std::string &path, Arc::PayloadRawInterface &bu
     // XXX eliminate relativ paths first
     logger.msg(Arc::DEBUG, "PUT called");
     std::string full_path = Glib::build_filename(doc_root, path);
+    if ((slave_mode == "1") && (Glib::file_test(full_path, Glib::FILE_TEST_EXISTS) == false)) {
+        logger.msg(Arc::ERROR, "HTTPD SlaveMode is active, PUT is only allowed to existing files.");        
+        return Arc::MCC_Status();
+    }
     int fd = open(full_path.c_str(), O_CREAT|O_WRONLY|O_TRUNC, 0600);
     if (fd == -1) {
         logger.msg(Arc::ERROR, strerror(errno));        
@@ -95,6 +107,7 @@ Arc::MCC_Status HTTPD::Put(const std::string &path, Arc::PayloadRawInterface &bu
         }
     }
     close(fd);
+    if (slave_mode == "1") unlink(full_path.c_str());
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
