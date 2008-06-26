@@ -69,7 +69,7 @@ class Element:
                             if localData['state']==DELETED:
                                 bsuccess = self.backend.remove(localData['localID'])
                                 self.store.set(changed, None)
-                    print 'reporting', self.serviceID, filelist
+                    #print 'reporting', self.serviceID, filelist
                     next_report = self.catalog.report(self.serviceID, filelist)
                     last_report = time.time()
                     if next_report < 0: # 'please send all'
@@ -95,8 +95,6 @@ class Element:
         current_checksum = self.backend.checksum(localData['localID'], localData['checksumType'])
         checksum = localData['checksum']
         state = localData.get('state','')
-        if state == CREATING:
-            return CREATING, None, None 
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             if state != ALIVE:
@@ -104,6 +102,9 @@ class Element:
                 self.changeState(referenceID, ALIVE)
             return ALIVE, localData['GUID'], localData['localID']
         else:
+            if state == CREATING:
+                # that's OK, the file is still being uploaded
+                return CREATING, None, None
             if state != INVALID:
                 print '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum
                 self.changeState(referenceID, INVALID)
@@ -146,7 +147,7 @@ class Element:
                     interval = period / number
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    print '\nElement is checking', number, 'files with interval', interval
+                    #print '\nElement is checking', number, 'files with interval', interval
                     random.shuffle(referenceIDs)
                     for referenceID in referenceIDs:
                         try:
@@ -167,7 +168,7 @@ class Element:
                                     print '\n\nFile', GUID, 'has fewer replicas than needed.'
                                     response = self.manager.addReplica({'checkingThread' : GUID}, ['byteio'])
                                     success, turl, protocol = response['checkingThread']
-                                    print 'addReplica response', success, turl, protocol
+                                    #print 'addReplica response', success, turl, protocol
                                     if success == 'done':
                                         self.backend.copyTo(localID, turl, protocol)
                                     else:
@@ -196,6 +197,7 @@ class Element:
         try:
             localData = self.store.get(referenceID)
             oldState = localData['state']
+            print 'changeState', referenceID, oldState, '->', newState
             if onlyIf and oldState != onlyIf:
                 self.store.unlock()
                 return False
@@ -209,14 +211,14 @@ class Element:
             return False
 
     def get(self, request):
-        print request
+        #print request
         response = {}
         for requestID, getRequestData in request.items():
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
-            print 'Element.get:', referenceID, protocols
+            #print 'Element.get:', referenceID, protocols
             localData = self.store.get(referenceID)
-            print 'localData:', localData
+            #print 'localData:', localData
             if localData.get('state', INVALID) == ALIVE:
                 if localData.has_key('localID'):
                     localID = localData['localID']
@@ -244,7 +246,7 @@ class Element:
         return response
 
     def put(self, request):
-        print request
+        #print request
         response = {}
         for requestID, putRequestData in request.items():
             protocols = [value for property, value in putRequestData if property == 'protocol']
@@ -328,7 +330,7 @@ class ElementService(Service):
     def stat(self, inpayload):
         request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
         response = self.element.stat(request)
-        print response
+        #print response
         return create_response('se:stat',
             ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.newSOAPPayload())
     
@@ -358,7 +360,7 @@ class ElementService(Service):
         return request
 
     def _putget_out(self, putget, response):
-        print response
+        #print response
         tree = XMLTree(from_tree =
             ('se:' + putget + 'ResponseList', [
                 ('se:' + putget + 'ResponseElement', [
