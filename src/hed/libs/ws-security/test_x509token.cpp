@@ -20,31 +20,37 @@ int main(void) {
   </S:Body>\
 </S:Envelope>\
 ");
-   
-  /*Generate the X509 Token*/
-  Arc::SOAPEnvelope soap(xml);
+
   std::string cert = "cert.pem";
-  std::string key = "key.pem";
-  Arc::X509Token xt1(soap, cert, key);
+  std::string key = "key.pem";  
+ 
+  /*Generate the signature X509 Token*/
+  Arc::SOAPEnvelope soap1(xml);
+  Arc::X509Token xt1(soap1, cert, key);
 
   std::string str;
   xt1.GetXML(str);
-  std::cout<<"SOAP message with X509Token:"<<std::endl<<str<<std::endl<<std::endl;
-
+  std::cout<<"SOAP message with X509Token for signature:"<<std::endl<<str<<std::endl<<std::endl;
 
   /*Parse the X509 Token*/
-  Arc::SOAPEnvelope soap1(str);
+  Arc::SOAPEnvelope soap2(str);
 
-  soap1.GetXML(str);
-  std::cout<<"SOAP message with X509Token:"<<std::endl<<str<<std::endl<<std::endl;
+  soap2.GetXML(str);
+  std::cout<<"SOAP message with X509Token for signature:"<<std::endl<<str<<std::endl<<std::endl;
 
-  Arc::X509Token xt2(soap1);
+  Arc::X509Token xt2(soap2);
   if(!xt2) {
     std::cout<<"Failed parsing previously generated X509Token"<<std::endl<<std::endl;
   } else if(!xt2.Authenticate() || !xt2.Authenticate("ca.pem", "")) {
     std::cout<<"Failed to authenticate to previously generated X509Token"<<std::endl<<std::endl;
   }
 
+  /*Generate the signature X509 Token*/
+  Arc::SOAPEnvelope soap3(xml);
+  Arc::X509Token xt3(soap3, cert, "", Arc::X509Token::Encryption);
+
+  xt3.GetXML(str);
+  std::cout<<"SOAP message with X509Token for encryption:"<<std::endl<<str<<std::endl<<std::endl;
 
 
   return 0;

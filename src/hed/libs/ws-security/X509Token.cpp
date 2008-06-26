@@ -20,6 +20,7 @@
 #include <xmlsec/errors.h>
 #include <xmlsec/xmltree.h>
 #include <xmlsec/xmldsig.h>
+#include <xmlsec/xmlenc.h>
 #include <xmlsec/templates.h>
 #include <xmlsec/crypto.h>
 
@@ -43,6 +44,7 @@ namespace Arc {
 #define WSSE_NAMESPACE   "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" 
 #define WSSE11_NAMESPACE "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd"
 #define WSU_NAMESPACE    "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+#define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
 
 #define X509TOKEN_BASE_URL "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0"
 #define BASE64BINARY "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soapmessage-security-1.0#Base64Binary"
@@ -69,6 +71,45 @@ static int passphrase_callback(char* buf, int size, int rwflag, void *) {
   return len;
 }
 
+static bool init_xmlsec(void) {
+  //Init libxml and libxslt libraries
+  xmlInitParser();
+
+  //Init xmlsec library
+  if(xmlSecInit() < 0) {
+    std::cerr<<"XMLSec initialization failed"<<std::endl;
+    return false;
+  }
+
+  /* Load default crypto engine if we are supporting dynamic
+   * loading for xmlsec-crypto libraries. Use the crypto library
+   * name ("openssl", "nss", etc.) to load corresponding
+   * xmlsec-crypto library.
+   */
+#ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
+  if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
+    std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
+                        "that you have it installed and check shared libraries path"
+                        "(LD_LIBRARY_PATH) envornment variable."<<std::endl;
+    return false;
+  }
+#endif /* XMLSEC_CRYPTO_DYNAMIC_LOADING */
+
+  // Init crypto library
+  if(xmlSecCryptoAppInit(NULL) < 0) {
+    std::cerr<<"crypto initialization failed"<<std::endl;
+    return false;
+  }
+
+    //Init xmlsec-crypto library
+  if(xmlSecCryptoInit() < 0) {
+    std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
+    return false;
+  }
+  return true;
+}
+
+//Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
 static std::string get_cert(const std::string& certfile) {
   std::ifstream is(certfile.c_str());
   std::string cert;
@@ -84,6 +125,7 @@ static std::string get_cert(const std::string& certfile) {
   return ("");
 }
 
+//Get public key from a certificate piece 
 static xmlSecKey* get_publickey(const std::string& value) {//, const bool usage) { 
   xmlSecKey *pub_key = NULL;
   xmlSecKeyDataFormat key_formats[] = {
@@ -119,8 +161,44 @@ static xmlSecKey* get_publickey(const std::string& value) {//, const bool usage)
   return pub_key;
 }
 
-//Could be used for many trusted certificates in one file
-static xmlSecKeysMngrPtr load_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
+//Load public key from a certificate into key manager
+static xmlSecKeysMngrPtr load_publickey(xmlSecKeysMngrPtr* keys_manager, const char* certfile) {
+  xmlSecKeysMngrPtr keys_mngr;
+  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
+  else keys_mngr = xmlSecKeysMngrCreate();
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
+  //initialize keys manager
+  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  }
+
+  //load rsa public key 
+  xmlSecKeyPtr pubkey = NULL;
+  if(certfile != NULL)
+    if(xmlSecCryptoAppKeyCertLoad(pubkey, certfile, xmlSecKeyDataFormatPem) < 0) {
+      std::cerr<<"Failed to load public key from file"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
+    // set key name to the file name
+    if(xmlSecKeySetName(pubkey, BAD_CAST certfile) < 0) {
+      std::cerr<<"Failed to set key name for public key from "<<certfile<<std::endl;
+      xmlSecKeyDestroy(pubkey);	
+      xmlSecKeysMngrDestroy(keys_mngr);
+      return NULL;
+    }
+    // add key to keys manager, from now on keys manager is responsible for destroying key
+    if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, pubkey) < 0) {
+      std::cerr<<"Failed to add key from " <<certfile<< " to keys manager"<<std::endl;
+      xmlSecKeyDestroy(pubkey);
+      xmlSecKeysMngrDestroy(keys_mngr);
+      return NULL;
+    }
+  return keys_mngr;
+}
+
+//Could be used for many trusted certificates in string
+static xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
   else keys_mngr = xmlSecKeysMngrCreate();
@@ -141,6 +219,7 @@ static xmlSecKeysMngrPtr load_cert(xmlSecKeysMngrPtr* keys_manager, const std::s
   return keys_mngr;
 }
 
+//Load trusted cetificates into key manager
 static xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
@@ -281,151 +360,195 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 
 
 X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype) : SOAPEnvelope (soap) {
-  // Apply predefined namespace prefix
-  Arc::NS ns;
-  ns["wsse"]=WSSE_NAMESPACE;
-  ns["wsse11"]=WSSE11_NAMESPACE;
-  ns["wsu"]=WSU_NAMESPACE;
-  header.Namespaces(ns);
 
-  xmlNodePtr signature = NULL;
-  xmlNodePtr reference = NULL;
+  if(tokentype == Signature) {
+    // Apply predefined namespace prefix
+    Arc::NS ns;
+    ns["wsse"]=WSSE_NAMESPACE;
+    ns["wsse11"]=WSSE11_NAMESPACE;
+    ns["wsu"]=WSU_NAMESPACE;
+    header.Namespaces(ns);
 
-  // Insert the wsse:Security element
-  XMLNode wsse = get_node(header,"wsse:Security");
+    xmlNodePtr signature = NULL;
+    xmlNodePtr reference = NULL;
 
-  //Here only "Reference to a Binary Security Token" is generated, see:
-  //Web service security X.509 Certificate Token Profile 1.1
-  // Insert the wsse:BinarySecurityToken
-  std::string cert;
-  cert = get_cert(certfile);
-  XMLNode token = wsse.NewChild("wsse:BinarySecurityToken");
-  token.NewAttribute("wsu:Id") = "binarytoken";
-  token.NewAttribute("ValueType") = X509V3;
-  token.NewAttribute("EncodingType") = BASE64BINARY;
-  token = cert; 
+    // Insert the wsse:Security element
+    XMLNode wsse = get_node(header,"wsse:Security");
 
-  //Init libxml and libxslt libraries
-  xmlInitParser();
+    //Here only "Reference to a Binary Security Token" is generated, see:
+    //Web service security X.509 Certificate Token Profile 1.1
+    // Insert the wsse:BinarySecurityToken
+    std::string cert;
+    cert = get_cert(certfile);
+    XMLNode token = wsse.NewChild("wsse:BinarySecurityToken");
+    token.NewAttribute("wsu:Id") = "binarytoken";
+    token.NewAttribute("ValueType") = X509V3;
+    token.NewAttribute("EncodingType") = BASE64BINARY;
+    token = cert; 
 
-  //Init xmlsec library
-  if(xmlSecInit() < 0) {
-    std::cerr<<"XMLSec initialization failed"<<std::endl;
-    return;
-  }
+    if(!init_xmlsec()) return;
 
-  /* Load default crypto engine if we are supporting dynamic
-   * loading for xmlsec-crypto libraries. Use the crypto library
-   * name ("openssl", "nss", etc.) to load corresponding 
-   * xmlsec-crypto library.
-   */
-#ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
-  if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
-    std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
-			"that you have it installed and check shared libraries path"
-			"(LD_LIBRARY_PATH) envornment variable."<<std::endl;
-    return;	
-  }
-#endif /* XMLSEC_CRYPTO_DYNAMIC_LOADING */
-
-  // Init crypto library
-  if(xmlSecCryptoAppInit(NULL) < 0) {
-    std::cerr<<"crypto initialization failed"<<std::endl;
-    return;
-  }
-
-  //Init xmlsec-crypto library
-  if(xmlSecCryptoInit() < 0) {
-    std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
-    return;
-  }
- 
-  //Add signature template 
-  signature = xmlSecTmplSignatureCreate(NULL,
+    //Add signature template 
+    signature = xmlSecTmplSignatureCreate(NULL,
 				xmlSecTransformExclC14NId,
 				xmlSecTransformRsaSha1Id, NULL);
 
-  //Add signature into wsse
-  xmlNodePtr wsse_nd = ((X509Token*)(&wsse))->node_;
-  xmlAddChild(wsse_nd, signature);
+    //Add signature into wsse
+    xmlNodePtr wsse_nd = ((X509Token*)(&wsse))->node_;
+    xmlAddChild(wsse_nd, signature);
 
+    //Add reference for signature
+    //Body reference
+    xmlNodePtr bodyPtr = ((X509Token*)(&body))->node_;
+    xmlDocPtr docPtr = bodyPtr->doc;
 
-  //Add reference for signature
-  //Body reference
-  xmlNodePtr bodyPtr = ((X509Token*)(&body))->node_;
-  xmlDocPtr docPtr = bodyPtr->doc;
+    xmlChar* id = NULL;
+    id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
+    if(!id) { std::cerr<<"There is not wsu:Id attribute in soap body"<<std::endl; return; }
 
-  xmlChar* id = NULL;
-  id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
-  if(!id) { std::cerr<<"There is not wsu:Id attribute in soap body"<<std::endl; return; }
+    std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
-  std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
+    std::cout<<"Body URI: "<<body_uri<<std::endl;  
 
-  std::cout<<"Body URI: "<<body_uri<<std::endl;  
-
-  reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
+    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
 						    NULL, (xmlChar *)(body_uri.c_str()), NULL);
-  xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
-  xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
+    xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
+    xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
   
-  xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
-  xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
-  xmlFree(id);
+    xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
+    xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
+    xmlFree(id);
 
-  //BinaryToken reference
-  xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
+    //BinaryToken reference
+    xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
  
-  std::string token_uri; token_uri.append("#").append("binarytoken");
+    std::string token_uri; token_uri.append("#").append("binarytoken");
  
-  std::cout<<"Token URI: "<<token_uri<<std::endl;
+    std::cout<<"Token URI: "<<token_uri<<std::endl;
 
-  reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
+    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
                                                     NULL, (xmlChar *)(token_uri.c_str()), NULL);
-  xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
-  xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
+    xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
+    xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
   
-  id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
-  xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
+    id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
+    xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
 
-  xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(signature, NULL);
-  //xmlSecTmplKeyInfoAddX509Data(key_info);
+    xmlNodePtr key_info = xmlSecTmplSignatureEnsureKeyInfo(signature, NULL);
+    //xmlSecTmplKeyInfoAddX509Data(key_info);
 
-  XMLNode keyinfo_nd = wsse["Signature"]["KeyInfo"];
-  XMLNode st_ref_nd = keyinfo_nd.NewChild("wsse:SecurityTokenReference");
-  XMLNode ref_nd = st_ref_nd.NewChild("wsse:Reference");
-  ref_nd.NewAttribute("URI") = token_uri;
+    XMLNode keyinfo_nd = wsse["Signature"]["KeyInfo"];
+    XMLNode st_ref_nd = keyinfo_nd.NewChild("wsse:SecurityTokenReference");
+    XMLNode ref_nd = st_ref_nd.NewChild("wsse:Reference");
+    ref_nd.NewAttribute("URI") = token_uri;
 
-
-  //Sign the SOAP message
-  xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
-  //load private key, assuming there is no need for passphrase
-  dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
-  //dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, (void*)passphrase_callback, NULL);
-  if(dsigCtx->signKey == NULL) {
+    //Sign the SOAP message
+    xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
+    //load private key, assuming there is no need for passphrase
+    dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
+    //dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, (void*)passphrase_callback, NULL);
+    if(dsigCtx->signKey == NULL) {
+      xmlSecDSigCtxDestroy(dsigCtx);
+      std::cerr<<"Can not load key"<<std::endl; return;
+    }
+    if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
+      xmlSecDSigCtxDestroy(dsigCtx);
+      std::cerr<<"Can not cert key"<<std::endl; return;	
+    }
+    if (xmlSecDSigCtxSign(dsigCtx, signature) < 0) {
+      xmlSecDSigCtxDestroy(dsigCtx);
+      std::cerr<<"Can not sign soap message"<<std::endl; return;
+    }
     xmlSecDSigCtxDestroy(dsigCtx);
-    std::cerr<<"Can not load key"<<std::endl; return;
+
+    std::string str;
+    header.GetXML(str);
+    std::cout<<"Header: "<<str<<std::endl;
+    body.GetXML(str);
+    std::cout<<"Body: "<<str<<std::endl;
+    envelope.GetXML(str);
+    std::cout<<"Envelope: "<<str<<std::endl;
   }
-  if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
-    xmlSecDSigCtxDestroy(dsigCtx);
-    std::cerr<<"Can not cert key"<<std::endl; return;	
+  else {
+    // Apply predefined namespace prefix
+    Arc::NS ns;
+    ns["wsse"]=WSSE_NAMESPACE;
+    ns["wsse11"]=WSSE11_NAMESPACE;
+    ns["wsu"]=WSU_NAMESPACE;
+    ns["xenc"]=XENC_NAMESPACE;
+    header.Namespaces(ns);
+
+    // Insert the wsse:Security element
+    XMLNode wsse = get_node(header,"wsse:Security");
+
+    //Generate a copy of body node, now all of the things will based on this node;
+    //After the encryption, the body node will be copy back to original one
+    XMLNode body_cp;
+    body.New(body_cp);
+    xmlNodePtr bodyPtr = ((X509Token*)(&body_cp))->node_;
+    xmlDocPtr docPtr = bodyPtr->doc;
+
+    xmlNodePtr encDataNode = NULL;
+    xmlNodePtr keyInfoNode = NULL;
+    xmlNodePtr encKeyNode = NULL;
+    xmlNodePtr keyInfoNode2 = NULL;
+    xmlSecEncCtxPtr encCtx = NULL;
+   
+    if(!init_xmlsec()) return;
+ 
+    //Create encryption template for a specific symetric key type
+    encDataNode = xmlSecTmplEncDataCreate(docPtr , xmlSecTransformDes3CbcId,
+				(const xmlChar*)"encrypted", xmlSecTypeEncElement, NULL, NULL);
+    if(encDataNode == NULL) std::cerr<<"Failed to create encryption template"<<std::endl;
+
+    // Put encrypted data in the <enc:CipherValue/> node
+    if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL) std::cerr<<"Failed to add CipherValue node"<<std::endl;   
+
+    // Add <dsig:KeyInfo/>
+    keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
+    if(keyInfoNode == NULL) std::cerr<<"Failed to add key info"<<std::endl;
+
+    // Add <enc:EncryptedKey/> to store the encrypted session key
+    encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, 
+				    xmlSecTransformRsaPkcs1Id, 
+				    NULL, NULL, NULL);
+    if(encKeyNode == NULL) std::cerr<<"Failed to add key info"<<std::endl;
+
+    // Put encrypted key in the <enc:CipherValue/> node
+    if(xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL) std::cerr<<"Error: failed to add CipherValue node"<<std::endl;
+
+    // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/> 
+    keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
+    if(keyInfoNode2 == NULL) std::cerr<<"Failed to add key info"<<std::endl;
+    
+    //Create encryption context
+    xmlSecKeysMngr* keys_mngr = NULL;
+    keys_mngr = load_publickey(&keys_mngr, certfile.c_str());
+
+    encCtx = xmlSecEncCtxCreate(keys_mngr);
+    if(encCtx == NULL)  std::cerr<<"Failed to create encryption context"<<std::endl;
+
+    // Generate a Triple DES key
+    encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
+    if(encCtx->encKey == NULL) std::cerr<<"Failed to generate session des key"<<std::endl;
+
+    // Encrypt the soap body
+    if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) std::cerr<<"Encryption failed"<<std::endl;
+    
+    //The template has been inserted in the doc
+    encDataNode = NULL;
+   
+    std::string str;
+    header.GetXML(str);
+    std::cout<<"Header: "<<str<<std::endl;
+    body.GetXML(str);
+    std::cout<<"Body: "<<str<<std::endl;
+    envelope.GetXML(str);
+    std::cout<<"Envelope: "<<str<<std::endl;
+ 
+    if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
   }
-  if (xmlSecDSigCtxSign(dsigCtx, signature) < 0) {
-    xmlSecDSigCtxDestroy(dsigCtx);
-    std::cerr<<"Can not sign soap message"<<std::endl; return;
-  }
-  xmlSecDSigCtxDestroy(dsigCtx);
-
-
-  std::string str;
-  header.GetXML(str);
-  std::cout<<"Header: "<<str<<std::endl;
-  body.GetXML(str);
-  std::cout<<"Body: "<<str<<std::endl;
-  envelope.GetXML(str);
-  std::cout<<"Envelope: "<<str<<std::endl;
-
-
-  //Add cert into wsse as BinarySecurityToken
   
 }
 
