@@ -274,6 +274,15 @@ exit 0
 %{_libexecdir}/PBS.pm
 %{_libexecdir}/SGE.pm
 #
+%{_libexecdir}/ARC0ClusterInfo.pm
+%{_libexecdir}/ARC0ClusterSchema.pm
+%{_libexecdir}/ConfigParser.pm
+%{_libexecdir}/GMJobsInfo.pm
+%{_libexecdir}/HostInfo.pm
+%{_libexecdir}/InfoChecker.pm
+%{_libexecdir}/InfoCollector.pm
+%{_libexecdir}/LRMSInfo.pm
+#
 %{_libexecdir}/LogUtils.pm
 ##%{_libexecdir}/Shared.pm
 #
@@ -291,6 +300,7 @@ exit 0
 %{_libexecdir}/change-lsf-mode.sh
 %{_libexecdir}/finish-condor-job
 #
+%{_libexecdir}/cluster+qju.pl
 ##%{_libexecdir}/cluster.pl
 ##%{_libexecdir}/qju.pl
 %{_bindir}/ldif2xml
