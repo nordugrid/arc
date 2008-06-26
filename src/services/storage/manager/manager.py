@@ -275,7 +275,8 @@ class Manager:
         # get all the Storage Elements which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
         print 'Alive Storage Elements:', alive_SEs
-
+        if len(alive_SEs) == 0:
+            return None
         try:
             # choose one randomly
             se = random.choice(alive_SEs)
