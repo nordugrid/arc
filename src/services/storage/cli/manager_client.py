@@ -2,7 +2,7 @@ import arc, sys, time, os
 from storage.common import false
 from storage.xmltree import XMLTree
 from storage.client import ManagerClient, ByteIOClient
-from storage.common import create_checksum
+from storage.common import create_checksum, upload_to_turl, download_from_turl
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
     args.pop(0)
@@ -48,30 +48,30 @@ else:
             LN = args[1]
             filename = args[0]
             f = file(filename, 'wb')
-            request = {'0' : (LN, ['byteio'])}
+            request = {'0' : (LN, ['byteio', 'http'])}
             print 'getFile', request
             response = manager.getFile(request)
             print response
             success, turl, protocol = response['0']
             print '\n', LN, success
             if success == 'done':
-                print 'Downloading from', turl, 'to', filename
-                ByteIOClient(turl).read(file = f)
+                print 'Downloading from', turl, 'to', filename, 'with', protocol
+                download_from_turl(turl, protocol, f)
     elif command == 'addReplica':
         if len(args) < 2:
             print 'Usage: addReplica <source filename> <GUID>'
         else:
             filename = args[0]
             requests = {'0' : args[1]}
-            protocols = ['byteio']
+            protocols = ['byteio', 'http']
             print 'addReplica', requests, protocols
             response = manager.addReplica(requests, protocols)
             print response
             success, turl, protocol = response['0']
             if success == 'done':
                 f = file(filename,'rb')
-                print 'Uploading from', filename, 'to', turl
-                ByteIOClient(turl).write(f)
+                print 'Uploading from', filename, 'to', turl, 'with', protocol
+                upload_to_turl(turl, protocol, f)
     elif command == 'putFile':
         if len(args) < 2:
             print 'Usage: putFile <source filename> <target LN>'
@@ -85,7 +85,7 @@ else:
                 LN = LN + filename.split('/')[-1]
             metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
                     ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
-            request = {'0': (LN, metadata, ['byteio'])}
+            request = {'0': (LN, metadata, ['byteio', 'http'])}
             print 'putFile', request
             response = manager.putFile(request)
             print response
@@ -93,8 +93,8 @@ else:
             print '\n', LN, success
             if success == 'done':
                 f = file(filename,'rb')
-                print 'Uploading from', filename, 'to', turl
-                ByteIOClient(turl).write(f)
+                print 'Uploading from', filename, 'to', turl, 'with', protocol
+                upload_to_turl(turl, protocol, f)
     elif command == 'makeCollection':
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
