@@ -9,13 +9,20 @@ usr/lib/arc/smtp-send.sh
 usr/lib/arc/Condor.pm
 usr/lib/arc/Fork.pm
 usr/lib/arc/LL.pm
-usr/lib/arc/LRMS.pm
 usr/lib/arc/LSF.pm
 usr/lib/arc/PBS.pm
 usr/lib/arc/SGE.pm
 
+usr/libexec/ARC0ClusterInfo.pm
+usr/libexec/ARC0ClusterSchema.pm
+usr/libexec/ConfigParser.pm
+usr/libexec/GMJobsInfo.pm
+usr/libexec/HostInfo.pm
+usr/libexec/InfoChecker.pm
+usr/libexec/InfoCollector.pm
+usr/libexec/LRMSInfo.pm
+
 usr/lib/arc/LogUtils.pm
-usr/lib/arc/Shared.pm
 
 usr/lib/arc/submit-*-job
 usr/lib/arc/cancel-*-job
@@ -24,15 +31,13 @@ usr/lib/arc/configure-*-env.sh
 
 usr/lib/arc/submit_common.sh
 usr/lib/arc/cancel_common.sh
-usr/lib/arc/config_parser.pm
 usr/lib/arc/config_parser.sh
 
 usr/lib/arc/condor_env.pm
 usr/lib/arc/change-lsf-mode.sh
 usr/lib/arc/finish-condor-job
 
-usr/lib/arc/cluster.pl
-usr/lib/arc/qju.pl
+usr/lib/arc/cluster+qju.pl
 usr/bin/ldif2xml
 usr/share/arc/nordugrid.schema
 
