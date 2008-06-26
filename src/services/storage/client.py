@@ -1,4 +1,4 @@
-from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri
+from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, parse_url
 from storage.common import parse_metadata, create_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
@@ -19,13 +19,7 @@ class Client:
         ns contains the namespaces we want to use with each message
         print_xml is for debugging, prints all the SOAP messages to the screen
         """
-        import urlparse
-        (_, host_port, path, _, _, _) = urlparse.urlparse(url)
-        if ':' in host_port:
-            host, port = host_port.split(':')
-        else:
-            host = host_port
-            port = 80
+        host, port, path = parse_url(url)
         self.host = host
         self.port = port
         self.path = path
