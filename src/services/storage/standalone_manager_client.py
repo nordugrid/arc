@@ -1158,23 +1158,31 @@ else:
             for i in request.keys():
                 print '%s: %s' % (request[i], response[i])
     elif command == 'get':
-        if len(args) < 2:
-            print 'Usage: getFile <source LN> <target filename>'
+        if len(args) < 1:
+            print 'Usage: getFile <source LN> [<target filename>]'
         else:
             LN = args[0]
-            filename = args[1]
-            f = file(filename, 'wb')
-            request = {'0' : (LN, ['byteio'])}
-            #print 'getFile', request
-            response = manager.getFile(request)
-            #print response
-            success, turl, protocol = response['0']
-            if success == 'done':
-                print 'Downloading from', turl, 'to', filename
-                ByteIOClient(turl).read(file = f)
-                print LN, 'downloaded to', filename
+            try:
+                filename = args[1]
+            except:
+                _, _, filename = splitLN(LN)
+            if os.path.exists(filename):
+                print '"%s"' % filename, 'already exists'
             else:
-                print '%s: %s' % (LN, success)
+                f = file(filename, 'wb')
+                request = {'0' : (LN, ['byteio'])}
+                #print 'getFile', request
+                response = manager.getFile(request)
+                #print response
+                success, turl, protocol = response['0']
+                if success == 'done':
+                    print 'Downloading from', turl, 'to', filename
+                    ByteIOClient(turl).read(file = f)
+                    print LN, 'downloaded to', filename
+                else:
+                    f.close()
+                    os.unlink(filename)
+                    print '%s: %s' % (LN, success)
     elif command == 'add':
         if len(args) < 2:
             print 'Usage: addReplica <source filename> <GUID>'
