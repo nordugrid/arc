@@ -2,6 +2,7 @@ package GMJobsInfo;
 
 use File::Basename;
 use lib dirname($0);
+use POSIX qw(ceil);
 
 use base InfoCollector;
 use InfoChecker;
