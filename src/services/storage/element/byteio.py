@@ -1,4 +1,4 @@
-from storage.common import rbyteio_uri, byteio_simple_uri, mkuid, create_checksum
+from storage.common import rbyteio_uri, byteio_simple_uri, mkuid, create_checksum, upload_to_turl, download_from_turl
 from storage.client import NotifyClient, ByteIOClient
 import traceback
 import arc
@@ -30,14 +30,14 @@ class ByteIOBackend:
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
         print self.turlprefix, 'Uploading file to', turl
-        ByteIOClient(turl).write(f)
+        upload_to_turl(turl, protocol, f)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
         print self.turlprefix, 'Downloading file from', turl
-        ByteIOClient(turl).read(file = f)
+        download_from_turl(turl, protocol, f)
         f.close()
 
     def prepareToGet(self, referenceID, localID, protocol):
