@@ -15,6 +15,48 @@ global_root_guid = '0'
 # a special entity where the data about Storage Elements are stored (SEStore)
 sestore_guid = '1'
 
+def parse_url(url):
+    import urlparse
+    (_, host_port, path, _, _, _) = urlparse.urlparse(url)
+    if ':' in host_port:
+        host, port = host_port.split(':')
+    else:
+        host = host_port
+        port = 80
+    return host, port, path
+
+def upload_to_turl(turl, protocol, fobj):
+    """docstring for upload_to_turl"""
+    if protocol == 'byteio':
+        from storage.client import ByteIOClient
+        return ByteIOClient(turl).write(fobj)
+    elif protocol == 'http':
+        host, port, path = parse_url(turl)
+        import httplib
+        h = httplib.HTTPConnection(host, port)
+        h.request('PUT', path, fobj.read())
+        r = h.getresponse()
+        resp = r.read()
+        return r.status
+    else:
+        raise Exception, 'Unsupported protocol'
+
+def download_from_turl(turl, protocol, fobj):
+    """docstring for download_from_turl"""
+    if protocol == 'byteio':
+        from storage.client import ByteIOClient
+        ByteIOClient(turl).read(file = f)
+    elif protocol == 'http':
+        host, port, path = parse_url(turl)
+        import httplib
+        h = httplib.HTTPConnection(host, port)
+        h.request('Get', path)
+        r = h.getresponse()
+        fobj.write(r.read())
+        return r.status
+    else:
+        raise Exception, 'Unsupported protocol'
+
 def create_checksum(file, type):
     """ Create checksum of a file.
     
