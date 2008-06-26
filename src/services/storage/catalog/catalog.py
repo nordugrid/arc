@@ -31,18 +31,18 @@ class Catalog:
         while True:
             try:
                 SEs = self.hash.get([sestore_guid])[sestore_guid]
-                print 'registered storage elements:', SEs
+                #print 'registered storage elements:', SEs
                 now = time.time()
                 late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
-                print 'late storage elements (it is %s now)' % now, late_SEs
+                #print 'late storage elements (it is %s now)' % now, late_SEs
                 if late_SEs:
                     serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
-                    print 'late storage elements serviceGUIDs', serviceGUIDs
+                    #print 'late storage elements serviceGUIDs', serviceGUIDs
                     filelists = self.hash.get(serviceGUIDs.keys())
                     changes = []
                     for serviceGUID, serviceID in serviceGUIDs.items():
                         filelist = filelists[serviceGUID]
-                        print 'filelist of late storage element', serviceID, filelist
+                        #print 'filelist of late storage element', serviceID, filelist
                         changes.extend([(GUID, serviceID, referenceID, 'offline')
                             for (_, referenceID), GUID in filelist.items()])
                     change_response = self._change_states(changes)
@@ -61,16 +61,16 @@ class Catalog:
                 {'only if file exists' : ('is', 'catalog', 'type', 'file')}))
                     for GUID, location, state in with_locations
         ])
-        print '_change_states request', change_request
+        #print '_change_states request', change_request
         change_response = self.hash.change(change_request)
-        print '_change_states response', change_response
+        #print '_change_states response', change_response
         return change_response
         
     def _set_next_heartbeat(self, serviceID, next_heartbeat):
         hash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
-        print '_set_next_heartbeat request', hash_request
+        #print '_set_next_heartbeat request', hash_request
         hash_response = self.hash.change(hash_request)
-        print '_set_next_heartbeat response', hash_response
+        #print '_set_next_heartbeat response', hash_response
         if hash_response['report'][0] != 'set':
             print 'ERROR setting next heartbeat time!'
     
@@ -79,12 +79,12 @@ class Catalog:
         serviceID = str(serviceID)
         serviceGUID = ses.get((serviceID,'serviceGUID'), None)
         if not serviceGUID:
-            print 'report se is not registered yet', serviceID
+            #print 'report se is not registered yet', serviceID
             serviceGUID = mkuid()
             hash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
-            print 'report hash_request', hash_request
+            #print 'report hash_request', hash_request
             hash_response = self.hash.change(hash_request)
-            print 'report hash_response', hash_response
+            #print 'report hash_response', hash_response
             success, unmetConditionID = hash_response['report']
             if unmetConditionID:
                 ses = self.hash.get([sestore_guid])[sestore_guid]
@@ -94,14 +94,14 @@ class Catalog:
         self._set_next_heartbeat(serviceID, next_heartbeat)
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
         se = self.hash.get([serviceGUID])[serviceGUID]
-        print 'report se before:', se
+        #print 'report se before:', se
         change_request = dict([(referenceID, (serviceGUID, (state=='deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, state in filelist])
-        print 'report change_request:', change_request
+        #print 'report change_request:', change_request
         change_response = self.hash.change(change_request)
-        print 'report change_response:', change_response
+        #print 'report change_response:', change_response
         se = self.hash.get([serviceGUID])[serviceGUID]
-        print 'report se after:', se
+        #print 'report se after:', se
         if please_send_all:
             return -1
         else:
@@ -109,9 +109,9 @@ class Catalog:
 
     def new(self, requests):
         response = {}
-        print requests
+        #print requests
         for rID, metadata in requests.items():
-            print 'Processing new request:', metadata
+            #print 'Processing new request:', metadata
             try:
                 type = metadata[('catalog','type')]
                 del metadata[('catalog', 'type')]

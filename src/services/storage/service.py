@@ -38,7 +38,7 @@ class Service:
             if request_name not in self.request_names:
                 # if the name of the request is not in the list of supported request names
                 raise Exception, 'wrong request (%s)' % request_name
-            print '     %s.%s called' % (self.service_name, request_name)
+            #print '     %s.%s called' % (self.service_name, request_name)
             # if the request name is in the supported names,
             # then this class should have a method with this name
             # the 'getattr' method returns this method

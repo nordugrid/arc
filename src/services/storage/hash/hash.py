@@ -101,7 +101,7 @@ class CentralHash:
             # for each change in the changes list
             # lock the store to avoid inconsistency
             while not self.store.lock(blocking = False):
-                print 'Hash cannot acquire lock, waiting...'
+                #print 'Hash cannot acquire lock, waiting...'
                 time.sleep(0.2)
             # prepare the 'success' of this change
             success = 'unknown'
