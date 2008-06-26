@@ -192,10 +192,8 @@ this generates an XML like this:
 </hash:getResponse>
 """
 
-from arc import XMLNode
-
 class XMLTree:
-    def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False):
+    def __init__(self, from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False, xmlnode_class = None):
         """ Constructor of the XMLTree class
 
         XMLTree(from_node = None, from_string = '', from_tree = None, rewrite = {}, forget_namespace = False)
@@ -227,7 +225,10 @@ class XMLTree:
                 x = from_node
             else:
                 # if no from_tree and from_node is given, try to parse the string
-                x = XMLNode(from_string)
+                if not xmlnode_class:
+                    from arc import XMLNode
+                    xmlnode_class = XMLNode
+                x = xmlnode_class(from_string)
             # set the internal tree structure to (<name of the root node>, <rest of the document>)
             # where <rest of the document> is a list of the child nodes of the root node
             self._data = (self._getname(x, rewrite, forget_namespace), self._dump(x, rewrite, forget_namespace))

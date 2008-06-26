@@ -8,7 +8,9 @@ import base64
 class Client:
     """ Base Client class for sending SOAP messages to services """
 
-    def __init__(self, url, ns, print_xml = False):
+    NS_class = arc.NS
+
+    def __init__(self, url, ns, print_xml = False, xmlnode_class = arc.XMLNode):
         """ The constructor of the Client class.
         
         Client(url, ns, print_xml = false)
@@ -30,6 +32,7 @@ class Client:
         self.ns = ns
         self.url = url
         self.print_xml = print_xml
+        self.xmlnode_class = xmlnode_class
 
     def call(self, tree, return_tree_only = False):
         """ Create a SOAP message from an XMLTree and send it to the service.
@@ -87,7 +90,7 @@ class Client:
 class HashClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = arc.NS({'hash': hash_uri})
+        ns = self.NS_class({'hash': hash_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def get_tree(self, IDs, neededMetadata = []):
@@ -105,7 +108,7 @@ class HashClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         hash_prefix = xml.NamespacePrefix(hash_uri)
         rewrite = {
             hash_prefix + ':objects' : 'cat:getResponseList',
@@ -134,7 +137,7 @@ class HashClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         objects = parse_node(xml.Child().Child().Child(), ['ID', 'metadataList'], single = True, string = False)
         return dict([(str(ID), parse_metadata(metadataList)) for ID, metadataList in objects.items()])
 
@@ -171,13 +174,13 @@ class HashClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['changeID', 'success', 'conditionID'])
 
 class CatalogClient(Client):
     
     def __init__(self, url, print_xml = False):
-        ns = arc.NS({'cat':catalog_uri})
+        ns = self.NS_class({'cat':catalog_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def get(self, GUIDs, neededMetadata = []):
@@ -197,7 +200,7 @@ class CatalogClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         elements = parse_node(xml.Child().Child().Child(),
             ['GUID', 'metadataList'], single = True, string = False)
         return dict([(str(GUID), parse_metadata(metadataList))
@@ -215,7 +218,7 @@ class CatalogClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         list_node = xml.Child().Child().Child()
         list_number = list_node.Size()
         elements = {}
@@ -249,7 +252,7 @@ class CatalogClient(Client):
             ])
         )
         response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
+        node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['requestID', 'GUID', 'success'])
 
     def modifyMetadata(self, requests):
@@ -268,7 +271,7 @@ class CatalogClient(Client):
             ])
         )
         response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
+        node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
 
     def remove(self, requests):
@@ -283,7 +286,7 @@ class CatalogClient(Client):
             ])
         )
         response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
+        node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['requestID', 'success'], True)
 
     def report(self, serviceID, filelist):
@@ -300,7 +303,7 @@ class CatalogClient(Client):
             ])
         )
         response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
+        node = self.xmlnode_class(response)
         return int(str(node.Child().Child().Get('nextReportTime')))
 
 class ManagerClient(Client):
@@ -315,7 +318,7 @@ class ManagerClient(Client):
         if print_xml is true this will print the SOAP messages
         """
         # sets the namespace
-        ns = arc.NS({'man':manager_uri})
+        ns = self.NS_class({'man':manager_uri})
         # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml)
 
@@ -354,7 +357,7 @@ class ManagerClient(Client):
             ])
         )
         msg, status, reason = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         elements = parse_node(xml.Child().Child().Child(),
             ['requestID', 'metadataList'], single = True, string = False)
         return dict([(str(requestID), parse_metadata(metadataList))
@@ -394,7 +397,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
     
     def putFile(self, requests):
@@ -434,7 +437,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
     def delFile(self, requests):
@@ -464,8 +467,8 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'])
+        xml = self.xmlnode_class(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
 
 
     def addReplica(self, requests, protocols):
@@ -502,7 +505,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
     def makeCollection(self, requests):
@@ -530,7 +533,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
 
     def list(self, requests, neededMetadata = []):
@@ -575,7 +578,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         elements = parse_node(xml.Child().Child().Child(),
             ['requestID', 'entries', 'status'], string = False)
         return dict([
@@ -614,7 +617,7 @@ class ManagerClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = False)
 
     def modify(self, requests):
@@ -633,13 +636,13 @@ class ManagerClient(Client):
             ])
         )
         response, _, _ = self.call(tree)
-        node = arc.XMLNode(response)
+        node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
 
 class ElementClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = arc.NS({'se':element_uri})
+        ns = self.NS_class({'se':element_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def _putget(self, putget, requests):
@@ -659,7 +662,7 @@ class ElementClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         try:
             response = dict([
                 (str(node.Get('requestID')), [
@@ -688,7 +691,7 @@ class ElementClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'status'])
         
 
@@ -704,7 +707,7 @@ class ElementClient(Client):
             ])
         )
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         return parse_to_dict(xml.Child().Child().Child(),
             ['requestID', 'referenceID', 'state', 'checksumType', 'checksum', 'acl', 'size', 'GUID', 'localID'])
 
@@ -719,7 +722,7 @@ class ElementClient(Client):
 class NotifyClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = arc.NS({'se':element_uri})
+        ns = self.NS_class({'se':element_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def notify(self, subject, state):
@@ -735,7 +738,7 @@ class NotifyClient(Client):
 class ByteIOClient(Client):
 
     def __init__(self, url):
-        ns = arc.NS({'rb':rbyteio_uri})
+        ns = self.NS_class({'rb':rbyteio_uri})
         Client.__init__(self, url, ns)
 
     def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None, file = None):
@@ -750,7 +753,7 @@ class ByteIOClient(Client):
             request.append(('rb:stride', stride))
         tree = XMLTree(from_tree = ('rb:read', request))
         msg, _, _ = self.call(tree)
-        xml = arc.XMLNode(msg)
+        xml = self.xmlnode_class(msg)
         data_encoded = str(xml.Child().Child().Get('transfer-information'))
         if file:
             file.write(base64.b64decode(data_encoded))
