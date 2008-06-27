@@ -110,8 +110,8 @@ static bool init_xmlsec(void) {
 }
 
 //Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
-static std::string get_cert(const std::string& certfile) {
-  std::ifstream is(certfile.c_str());
+static std::string get_cert_str(const char* certfile) {
+  std::ifstream is(certfile);
   std::string cert;
   std::getline(is,cert, char(0));
   std::size_t pos = cert.find("BEGIN CERTIFICATE");
@@ -125,9 +125,41 @@ static std::string get_cert(const std::string& certfile) {
   return ("");
 }
 
-//Get public key from a certificate piece 
-static xmlSecKey* get_publickey(const std::string& value) {//, const bool usage) { 
-  xmlSecKey *pub_key = NULL;
+//Get key piece (the string under BEGIN RSA PRIVATE KEY : END RSA PRIVATE KEY) from a private key file
+static std::string get_privkey_str(const char* keyfile) {
+  std::ifstream is(keyfile);
+  std::string key;
+  std::getline(is,key, char(0));
+  std::size_t pos = key.find("BEGIN RSA PRIVATE KEY");
+  if(pos != std::string::npos) {
+    std::size_t pos1 = key.find_first_of("---", pos);
+    std::size_t pos2 = key.find_first_not_of("-", pos1);
+    std::size_t pos3 = key.find_first_of("---", pos2);
+    std::string str = key.substr(pos2+1, pos3-pos2-2);
+    return str;
+  }
+  return ("");
+}
+
+//Get key piece (the string under BEGIN PUBLIC KEY : END PUBLIC KEY) from a public key file
+static std::string get_pubkey_str(const char* keyfile) {
+  std::ifstream is(keyfile);
+  std::string key;
+  std::getline(is,key, char(0));
+  std::size_t pos = key.find("BEGIN PUBLIC KEY");
+  if(pos != std::string::npos) {
+    std::size_t pos1 = key.find_first_of("---", pos);
+    std::size_t pos2 = key.find_first_not_of("-", pos1);
+    std::size_t pos3 = key.find_first_of("---", pos2);
+    std::string str = key.substr(pos2+1, pos3-pos2-2);
+    return str;
+  }
+  return ("");
+}
+
+//Get key from a binary key 
+static xmlSecKey* get_key(const std::string& value) {//, const bool usage) { 
+  xmlSecKey *key = NULL;
   xmlSecKeyDataFormat key_formats[] = {
     xmlSecKeyDataFormatDer,
     xmlSecKeyDataFormatCertDer,
@@ -153,16 +185,16 @@ static xmlSecKey* get_publickey(const std::string& value) {//, const bool usage)
   }
   delete tmp_str;
 
-  for (int i=0; key_formats[i] && pub_key == NULL; i++) {
-    pub_key = xmlSecCryptoAppKeyLoadMemory((xmlSecByte*)(v.c_str()), rc, key_formats[i], NULL, NULL, NULL);
+  for (int i=0; key_formats[i] && key == NULL; i++) {
+    key = xmlSecCryptoAppKeyLoadMemory((xmlSecByte*)(v.c_str()), rc, key_formats[i], NULL, NULL, NULL);
   }
   xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
 
-  return pub_key;
+  return key;
 }
 
-//Load public key from a certificate into key manager
-static xmlSecKeysMngrPtr load_publickey(xmlSecKeysMngrPtr* keys_manager, const char* certfile) {
+//Load private or public key from a key file into key manager
+static xmlSecKeysMngrPtr load_key(xmlSecKeysMngrPtr* keys_manager, const char* keyfile, bool pub) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
   else keys_mngr = xmlSecKeysMngrCreate();
@@ -173,29 +205,24 @@ static xmlSecKeysMngrPtr load_publickey(xmlSecKeysMngrPtr* keys_manager, const c
     xmlSecKeysMngrDestroy(keys_mngr); return NULL;
   }
 
-  //load rsa public key 
-  xmlSecKeyPtr pubkey = NULL;
-  if(certfile != NULL)
-    if(xmlSecCryptoAppKeyCertLoad(pubkey, certfile, xmlSecKeyDataFormatPem) < 0) {
-      std::cerr<<"Failed to load public key from file"<<std::endl;
-      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
-    }
-    // set key name to the file name
-    if(xmlSecKeySetName(pubkey, BAD_CAST certfile) < 0) {
-      std::cerr<<"Failed to set key name for public key from "<<certfile<<std::endl;
-      xmlSecKeyDestroy(pubkey);	
-      xmlSecKeysMngrDestroy(keys_mngr);
-      return NULL;
-    }
-    // add key to keys manager, from now on keys manager is responsible for destroying key
-    if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, pubkey) < 0) {
-      std::cerr<<"Failed to add key from " <<certfile<< " to keys manager"<<std::endl;
-      xmlSecKeyDestroy(pubkey);
-      xmlSecKeysMngrDestroy(keys_mngr);
-      return NULL;
-    }
+  std::string key_str;
+  if(pub)
+    key_str = get_pubkey_str(keyfile);
+  else
+    key_str = get_privkey_str(keyfile);
+
+  xmlSecKeyPtr key = get_key(key_str);
+
+  key = xmlSecCryptoAppKeyLoad(keyfile, xmlSecKeyDataFormatPem, NULL, NULL, NULL);  
+  if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, key) < 0) {
+    std::cerr<<"Failed to add key from "<<keyfile<<" to keys manager"<<std::endl;
+    xmlSecKeyDestroy(key);
+    xmlSecKeysMngrDestroy(keys_mngr);
+    return NULL;
+  }
   return keys_mngr;
 }
+
 
 //Could be used for many trusted certificates in string
 static xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
@@ -317,7 +344,7 @@ bool X509Token::Authenticate(void) {
   xmlSecDSigCtx *dsigCtx;
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
-  xmlSecKey* pubkey = get_publickey(key_str);
+  xmlSecKey* pubkey = get_key(key_str);
   dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
@@ -341,7 +368,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
   keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
-  xmlSecKey* pubkey = get_publickey(key_str);
+  xmlSecKey* pubkey = get_key(key_str);
   dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
@@ -379,7 +406,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Web service security X.509 Certificate Token Profile 1.1
     // Insert the wsse:BinarySecurityToken
     std::string cert;
-    cert = get_cert(certfile);
+    cert = get_cert_str(certfile.c_str());
     XMLNode token = wsse.NewChild("wsse:BinarySecurityToken");
     token.NewAttribute("wsu:Id") = "binarytoken";
     token.NewAttribute("ValueType") = X509V3;
@@ -485,6 +512,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //After the encryption, the body node will be copy back to original one
     XMLNode body_cp;
     body.New(body_cp);
+  
+    std::string str1;
+    body_cp.GetXML(str1);
+    std::cout<<str1<<std::endl;
+
     xmlNodePtr bodyPtr = ((X509Token*)(&body_cp))->node_;
     xmlDocPtr docPtr = bodyPtr->doc;
 
@@ -523,7 +555,8 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
-    keys_mngr = load_publickey(&keys_mngr, certfile.c_str());
+    //keys_mngr = load_key(&keys_mngr, keyfile.c_str(), 1);
+    keys_mngr = load_key(&keys_mngr, "publickey.pem", 1);
 
     encCtx = xmlSecEncCtxCreate(keys_mngr);
     if(encCtx == NULL)  std::cerr<<"Failed to create encryption context"<<std::endl;
@@ -536,9 +569,14 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) std::cerr<<"Encryption failed"<<std::endl;
     
     //The template has been inserted in the doc
-    encDataNode = NULL;
-   
+    //encDataNode = NULL;
+    
     std::string str;
+
+    body_cp.GetDoc(str);
+    std::cout<<"Body new : "<<str<<std::endl;
+
+ 
     header.GetXML(str);
     std::cout<<"Header: "<<str<<std::endl;
     body.GetXML(str);
@@ -546,8 +584,8 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
  
-    if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
-    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    //if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    //if(encDataNode != NULL) xmlFreeNode(encDataNode);
   }
   
 }
