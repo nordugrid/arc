@@ -27,7 +27,7 @@ from storage.common import import_class_from_string, hash_uri, node_to_data, cre
 class CentralHash:
     """ A centralized implementation of the Hash service. """
 
-    def __init__(self, storeclass, storecfg):
+    def __init__(self, storeclass, storecfg, log):
         """ The constructor of the CentralHash class.
 
         CentralHash(storeclass, storecfg)
@@ -35,9 +35,10 @@ class CentralHash:
         'storeclass' is the name of the class which will store the data
         'storecfg' is an XMLNode with the configuration of the storeclass
         """
-        print "CentralHash constructor called"
+        self.log = log
+        self.log('DEBUG', "CentralHash constructor called")
         # import the storeclass and call its constructor with the datadir
-        self.store = import_class_from_string(storeclass)(storecfg)
+        self.store = import_class_from_string(storeclass)(storecfg, log = self.log)
 
     def get(self, ids, neededMetadata = []):
         """ Gets all data of the given IDs.
@@ -169,7 +170,7 @@ class CentralHash:
             except:
                 # if there was an exception, set this to failed
                 success = 'failed'
-                print traceback.format_exc()
+                self.log()
             # we are done, release the lock
             self.store.unlock()
             # append the result of the change to the response list
@@ -192,7 +193,7 @@ class HashService(Service):
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor
-        Service.__init__(self, 'Hash', request_names, 'hash', hash_uri)
+        Service.__init__(self, 'Hash', request_names, 'hash', hash_uri, cfg)
         # the name of the class which implements the business logic of the Hash service
         hashclass = str(cfg.Get('HashClass'))
         # the name of the class which is capable of storing the object
@@ -200,7 +201,7 @@ class HashService(Service):
         # this is a directory for storing object data
         storecfg = cfg.Get('StoreCfg')
         # import and instatiate the business logic class
-        self.hash = import_class_from_string(hashclass)(storeclass, storecfg)
+        self.hash = import_class_from_string(hashclass)(storeclass, storecfg, self.log)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
@@ -218,7 +219,7 @@ class HashService(Service):
                     for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
             ]
         except:
-            print traceback.format_exc()
+            self.log()
             neededMetadata = []
         # gets the result from the business logic class
         objects = self.hash.get(ids, neededMetadata)

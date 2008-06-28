@@ -14,7 +14,8 @@ class HTTPDBackend:
     public_request_names = []
     supported_protocols = ['http']
 
-    def __init__(self, backendcfg, ns_uri, file_arrived):
+    def __init__(self, backendcfg, ns_uri, file_arrived, log):
+        self.log = log
         self.file_arrived = file_arrived
         #self.ns = arc.NS({'se' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
@@ -22,13 +23,13 @@ class HTTPDBackend:
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
-        print "HTTPDBackend datadir:", self.datadir
+        self.log('DEBUG', "HTTPDBackend datadir:", self.datadir)
         if not os.path.exists(self.transferdir):
             os.mkdir(self.transferdir)
         else:
             for filename in os.listdir(self.transferdir):
                 os.remove(os.path.join(self.transferdir, filename))
-        print "HTTPDBackend transferdir:", self.transferdir
+        self.log('DEBUG', "HTTPDBackend transferdir:", self.transferdir)
         self.idstore = {}
         threading.Thread(target = self.checkingThread, args = [5]).start()
         
@@ -40,26 +41,26 @@ class HTTPDBackend:
                 for localID, referenceID in self.idstore.items():
                     filename = os.path.join(self.datadir, localID)
                     nlink = os.stat(filename)[stat.ST_NLINK]
-                    print 'checking', localID, referenceID, nlink
+                    self.log('DEBUG', 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir
                         self.file_arrived(referenceID)
                         del self.idstore[localID]
             except:
-                print traceback.format_exc()
+                self.log()
     
         
 
     def copyTo(self, localID, turl, protocol):
         f = file(os.path.join(self.datadir, localID),'rb')
-        print self.turlprefix, 'Uploading file to', turl
+        self.log('DEBUG', self.turlprefix, 'Uploading file to', turl)
         upload_to_turl(turl, protocol, f)
         f.close()
     
     def copyFrom(self, localID, turl, protocol):
         # TODO: download to a separate file, and if checksum OK, then copy the file 
         f = file(os.path.join(self.datadir, localID), 'wb')
-        print self.turlprefix, 'Downloading file from', turl
+        self.log('DEBUG', self.turlprefix, 'Downloading file from', turl)
         download_from_turl(turl, protocol, f)
         f.close()
 
@@ -68,8 +69,11 @@ class HTTPDBackend:
             raise Exception, 'Unsupported protocol: ' + protocol
         turl_id = mkuid()
         try:
-            os.link(os.path.join(self.datadir, localID), os.path.join(self.transferdir, turl_id))
-            print self.turlprefix, '++', self.idstore
+            filepath = os.path.join(self.datadir, localID)
+            # set it to readonly
+            os.chmod(filepath, 0444)
+            os.link(filepath, os.path.join(self.transferdir, turl_id))
+            self.log('DEBUG', self.turlprefix, '++', self.idstore)
             turl = self.turlprefix + turl_id
             return turl
         except:
@@ -84,7 +88,7 @@ class HTTPDBackend:
         f.close()
         os.link(datapath, os.path.join(self.transferdir, turl_id))
         self.idstore[localID] = referenceID
-        print self.turlprefix, '++', self.idstore
+        self.log('DEBUG', self.turlprefix, '++', self.idstore)
         turl = self.turlprefix + turl_id
         return turl
 

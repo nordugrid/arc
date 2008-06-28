@@ -83,7 +83,7 @@ class Manager:
         modify_success = self.catalog.modifyMetadata(cat_mod_requests)
         # check the files with more parents (hardlinks) again
         if check_again:
-            print '\n\n!!!!check_again', check_again
+            self.log('DEBUG', '\n\n!!!!check_again', check_again)
             checked_again = self.catalog.get(check_again)
             do_delete = {}
             for GUID, metadata in checked_again.items():
@@ -91,7 +91,7 @@ class Manager:
                 parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
                 if parentno == 0:
                     do_delete[GUID] = GUID
-            print '\n\n!!!!do_delete', do_delete
+            self.log('DEBUG', '\n\n!!!!do_delete', do_delete)
             self.catalog.remove(do_delete)
         return response
             
@@ -108,7 +108,7 @@ class Manager:
         # the first item of the list is the Logical Name, we want to remove the trailing slash, and
         # leave the other items intact
         requests = [(rID, [remove_trailing_slash(data[0])] + list(data[1:])) for rID, data in requests.items()]
-        print '//// _traverse request trailing slash removed:', dict(requests)
+        self.log('DEBUG', '//// _traverse request trailing slash removed:', dict(requests))
         # then we do the traversing. a traverse request contains a requestID and the Logical Name
         # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
@@ -145,15 +145,15 @@ class Manager:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
                     # we need to add the newly created catalog-entry to the parent collection
-                    print 'adding', child_GUID, 'to parent', parent_GUID
+                    self.log('DEBUG', 'adding', child_GUID, 'to parent', parent_GUID)
                     # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
                     modify_response = self.catalog.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
-                    print 'modifyMetadata response', modify_response
+                    self.log('DEBUG', 'modifyMetadata response', modify_response)
                     # get the 'success' value
                     modify_success = modify_response['_new']
                     # if the new element was not set, we have a problem
                     if modify_success != 'set':
-                        print 'modifyMetadata failed, removing the new catalog entry', child_GUID
+                        self.log('DEBUG', 'modifyMetadata failed, removing the new catalog entry', child_GUID)
                         # remove the newly created catalog-entry
                         self.catalog.remove({'_new' : child_GUID})
                         return 'failed to add child to parent', child_GUID
@@ -162,7 +162,7 @@ class Manager:
                 else: # no parent given, skip the 'adding child to parent' part
                     return 'done', child_GUID
         except:
-            print traceback.format_exc()
+            self.log()
             return 'internal error', None
 
     def getFile(self, requests):
@@ -181,7 +181,7 @@ class Manager:
             protocol = ''
             success = 'unknown'
             try:
-                print traverse_response[rID]
+                self.log('DEBUG', traverse_response[rID])
                 # split the traverse response
                 metadata, GUID, traversedLN, restLN, wasComplete, traversedList = traverse_response[rID]
                 # wasComplete is true if the given LN was found, so it could have been fully traversed
@@ -208,17 +208,17 @@ class Manager:
                             while not ok and len(valid_locations) > 0:
                                 # if there are more valid_locations, randomly select one
                                 location = valid_locations.pop(random.choice(range(len(valid_locations))))
-                                print 'location chosen:', location
+                                self.log('DEBUG', 'location chosen:', location)
                                 # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                 url, referenceID, _ = location
                                 # create an ElementClient with this URL, then send a get request with the referenceID
                                 #   we only support byteio protocol currently. 'getFile' is the requestID of this request
                                 get_response = dict(ElementClient(url).get({'getFile' :
-                                    [('referenceID', referenceID), ('protocol', 'byteio')]})['getFile'])
+                                    [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
                                 # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                 if get_response.has_key('error'):
                                     # if there was an error
-                                    print 'ERROR', get_response['error']
+                                    self.log('DEBUG', 'ERROR', get_response['error'])
                                     success = 'error while getting TURL (%s)' % get_response['error']
                                 else:
                                     # get the TURL and the choosen protocol, these will be set as reply for this requestID
@@ -247,7 +247,7 @@ class Manager:
         for rID, GUID in requests.items():
             # for each requested GUID
             states = data[GUID]
-            print 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols
+            self.log('DEBUG', 'addReplica', 'requestID', rID, 'GUID', GUID, 'states', states, 'protocols', protocols)
             # get the size and checksum information of the file
             size = states[('states','size')]
             checksumType = states[('states','checksumType')]
@@ -271,21 +271,21 @@ class Manager:
         # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
         #   when a specific Storage Element service should report next
         #   if this timestamp is not a positive number, that means the Storage Element have not reported in time, probably it is not alive
-        print 'Registered Storage Elements in Catalog', SEs
+        self.log('DEBUG', 'Registered Storage Elements in Catalog', SEs)
         # get all the Storage Elements which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
-        print 'Alive Storage Elements:', alive_SEs
+        self.log('DEBUG', 'Alive Storage Elements:', alive_SEs)
         if len(alive_SEs) == 0:
             return None
         try:
             # choose one randomly
             se = random.choice(alive_SEs)
-            print 'Storage Element chosen:', se
+            self.log('DEBUG', 'Storage Element chosen:', se)
             # the serviceID currently is a URL 
             # create an ElementClient with this URL
             return ElementClient(se)
         except:
-            traceback.print_exc()
+            self.log()
             return None
 
     def _add_replica(self, size, checksumType, checksum, GUID, protocols, exceptedSEs=[]):
@@ -312,7 +312,7 @@ class Manager:
         # call the SE's put method with the prepared request
         put_response = dict(element.put({'putFile': put_request})['putFile'])
         if put_response.has_key('error'):
-            print 'ERROR', put_response['error']
+            self.log('DEBUG', 'ERROR', put_response['error'])
             # TODO: we should handle this, remove the new file or something
             return 'put error (%s)' % put_response['error'], turl, protocols
         else:
@@ -322,14 +322,14 @@ class Manager:
             referenceID = put_response['referenceID']
             # currently the serviceID is the URL of the storage element service
             serviceID = element.url
-            print 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol
+            self.log('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
             # the serviceID and the referenceID is the location of the replica, serialized as one string
             # put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
             modify_response = self.catalog.modifyMetadata({'putFile' :
                     (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
             modify_success = modify_response['putFile']
             if modify_success != 'set':
-                print 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID
+                self.log('DEBUG', 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
                 return 'failed to add new location to file', turl, protocol
                 # TODO: error handling
             else:
@@ -352,7 +352,7 @@ class Manager:
             metadata_ok = False
             try:
                 # get the size and checksum of the new file
-                print protocols
+                self.log('DEBUG', protocols)
                 size = child_metadata[('states', 'size')]
                 checksum = child_metadata[('states', 'checksum')]
                 checksumType = child_metadata[('states', 'checksumType')]
@@ -367,7 +367,7 @@ class Manager:
                     # split the Logical Name, rootguid will be the GUID of the root collection of this LN,
                     #   child_name is the name of the new file withing the parent collection
                     rootguid, _, child_name = splitLN(LN)
-                    print 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid
+                    self.log('DEBUG', 'LN', LN, 'rootguid', rootguid, 'child_name', child_name, 'real rootguid', rootguid or global_root_guid)
                     # get the traverse response corresponding to this request
                     #   metadata is the metadata of the last element which could been traversed, e.g. the parent of the new file
                     #   GUID is the GUID of the same
@@ -376,7 +376,7 @@ class Manager:
                     #   wasComplete indicates if the traverse was complete or not, if it was complete means that this LN exists
                     #   traversedlist contains the GUID and metadata of each element along the path of the LN
                     metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-                    print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
+                    self.log('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
                     if wasComplete: # this means the LN already exists, so we couldn't put a new file there
                         success = 'LN exists'
                     elif child_name == '': # this only can happen if the LN was a single GUID
@@ -420,7 +420,7 @@ class Manager:
             # for each request first split the Logical Name
             rootguid, _, child_name = splitLN(LN)
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
-            print 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist
+            self.log('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
             if wasComplete: # this means the LN exists
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
@@ -491,11 +491,11 @@ class Manager:
             traverse_request[requestID + 'source'] = sourceLN
             traverse_request[requestID + 'target'] = targetLN
         traverse_response = self.catalog.traverseLN(traverse_request)
-        print '\/\/', traverse_response
+        self.log('DEBUG', '\/\/', traverse_response)
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
             # for each request
-            print requestID, sourceLN, targetLN, preserveOriginal
+            self.log('DEBUG', requestID, sourceLN, targetLN, preserveOriginal)
             # get the old and the new name of the entry, these are the last elements of the Logical Names
             _, _, old_child_name = splitLN(sourceLN)
             _, _, new_child_name = splitLN(targetLN)
@@ -520,7 +520,7 @@ class Manager:
                 #   so we just put the old name after it
                 if new_child_name == '':
                     new_child_name = old_child_name
-                print 'adding', sourceGUID, 'to parent', targetGUID
+                self.log('DEBUG', 'adding', sourceGUID, 'to parent', targetGUID)
                 # adding the entry to the new parent
                 mm_resp = self.catalog.modifyMetadata(
                     {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
@@ -535,7 +535,7 @@ class Manager:
                         # then we need to remove the source LN
                         # get the parent of the source: the source traverse has a list of the GUIDs of all the element along the path
                         source_parent_guid = sourceTraversedList[-2][1]
-                        print 'removing', sourceGUID, 'from parent', source_parent_guid
+                        self.log('DEBUG', 'removing', sourceGUID, 'from parent', source_parent_guid)
                         # delete the entry from the source parent
                         mm_resp = self.catalog.modifyMetadata(
                             {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
@@ -574,12 +574,13 @@ class ManagerService(Service):
         # call the Service's constructor, 'Manager' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
-        Service.__init__(self, 'Manager', request_names, 'man', manager_uri)
+        Service.__init__(self, 'Manager', request_names, 'man', manager_uri, cfg)
         # get the URL of the Catalog from the config file
         catalog_url = str(cfg.Get('CatalogURL'))
         # create a CatalogClient from the URL
         catalog = CatalogClient(catalog_url)
         self.manager = Manager(catalog)
+        self.manager.log = self.log
 
     def stat(self, inpayload):
         # incoming SOAP message example:

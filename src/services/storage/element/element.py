@@ -7,8 +7,8 @@ import random
 
 import arc
 from storage.xmltree import XMLTree
-from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true
-from storage.client import CatalogClient, ManagerClient, ByteIOClient
+from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols
+from storage.client import CatalogClient, ManagerClient
 
 ALIVE = 'alive'
 CREATING = 'creating'
@@ -17,20 +17,21 @@ DELETED = 'deleted'
 
 class Element:
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, log):
+        self.log = log
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._file_arrived)
+            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._file_arrived, self.log)
         except:
-            print 'Cannot import backend class', backendclass
+            self.log('DEBUG', 'Cannot import backend class', backendclass)
             raise
         try:
             storeclass = str(cfg.Get('StoreClass'))
             storecfg = cfg.Get('StoreCfg')
-            self.store = import_class_from_string(storeclass)(storecfg)
+            self.store = import_class_from_string(storeclass)(storecfg, log = self.log)
         except:
-            print 'Cannot import store class', storeclass
+            self.log('DEBUG', 'Cannot import store class', storeclass)
             raise
         try:
             catalogURL = str(cfg.Get('CatalogURL'))
@@ -39,13 +40,13 @@ class Element:
             self.manager = ManagerClient(managerURL)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            print 'Cannot get CatalogURL, ManagerURL or serviceID'
+            self.log('DEBUG', 'Cannot get CatalogURL, ManagerURL or serviceID')
             raise
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
         except:
-            print 'Cannot set CheckPeriod, MinCheckInterval'
+            self.log('DEBUG', 'Cannot set CheckPeriod, MinCheckInterval')
             raise
         self.changed_states = self.store.list()
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
@@ -62,8 +63,7 @@ class Element:
                         changed = self.changed_states.pop()
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
-                            print 'Error in element.reportingThread()\n\t'+\
-                                'referenceID is in changed_states, but not in store'
+                            self.log('DEBUG', 'Error in element.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
                             if localData['state']==DELETED:
@@ -73,14 +73,14 @@ class Element:
                     next_report = self.catalog.report(self.serviceID, filelist)
                     last_report = time.time()
                     if next_report < 0: # 'please send all'
-                        print '\nreporting - asked to send all file data again'
+                        self.log('DEBUG', '\nreporting - asked to send all file data again')
                         self.changed_states = self.store.list()
                     while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
                         time.sleep(1)
                 else:
                     time.sleep(10)
             except:
-                traceback.print_exc()
+                self.log()
                 time.sleep(10)
         
     def toggleReport(self, doReporting):
@@ -98,7 +98,7 @@ class Element:
         #print '-=-', referenceID, state, checksum, current_checksum
         if checksum == current_checksum:
             if state != ALIVE:
-                print '\nCHECKSUM OK', referenceID
+                self.log('DEBUG', '\nCHECKSUM OK', referenceID)
                 self.changeState(referenceID, ALIVE)
             return ALIVE, localData['GUID'], localData['localID']
         else:
@@ -106,7 +106,7 @@ class Element:
                 # that's OK, the file is still being uploaded
                 return CREATING, None, None
             if state != INVALID:
-                print '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum
+                self.log('DEBUG', '\nCHECKSUM MISMATCH', referenceID, 'original:', checksum, 'current:', current_checksum)
                 self.changeState(referenceID, INVALID)
             return INVALID, localData['GUID'], localData['localID']
         
@@ -115,6 +115,7 @@ class Element:
         return self._checking_checksum(referenceID)
     
     def _checking_replicano(self, GUID, metadata):
+        self.log('VERBOSE','_checking_replicano', GUID, metadata)
         try:
             metadata = metadata[GUID]
             needed_replicas = int(metadata.get(('states','neededReplicas'),1))
@@ -122,19 +123,21 @@ class Element:
                               if section == 'locations' and value == ALIVE])
             return valid_replicas >= needed_replicas
         except:
-            traceback.print_exc()
+            self.log()
             return True
 
 
     def _checking_guid(self, GUID, metadata):
+        self.log('VERBOSE','_checking_guid', GUID, metadata)
         try:
-            metadata = metadata.get(GUID)
+            metadata = metadata.get(GUID)   
             if isinstance(metadata,dict) and not metadata.has_key(('states', 'neededReplicas')):
                 # catalog couldn't find the file; we don't need any replicas
                 return 'NotInCatalog'
         except:
-            traceback.print_exc()
-            return 'CatalogBorken'
+            self.log()    
+            return 'CatalogBroken'
+        self.log('VERBOSE','_checking_guid OK')
         
         
     def checkingThread(self, period):
@@ -147,7 +150,7 @@ class Element:
                     interval = period / number
                     if interval < self.min_interval:
                         interval = self.min_interval
-                    #print '\nElement is checking', number, 'files with interval', interval
+                    self.log('DEBUG','\n', self.serviceID, 'is checking', number, 'files with interval', interval)
                     random.shuffle(referenceIDs)
                     for referenceID in referenceIDs:
                         try:
@@ -165,39 +168,39 @@ class Element:
                                     state = DELETED
                             if state == ALIVE:
                                 if not self._checking_replicano(GUID, metadata):
-                                    print '\n\nFile', GUID, 'has fewer replicas than needed.'
-                                    response = self.manager.addReplica({'checkingThread' : GUID}, ['byteio'])
+                                    self.log('DEBUG', '\n\nFile', GUID, 'has fewer replicas than needed.')
+                                    response = self.manager.addReplica({'checkingThread' : GUID}, common_supported_protocols)
                                     success, turl, protocol = response['checkingThread']
                                     #print 'addReplica response', success, turl, protocol
                                     if success == 'done':
                                         self.backend.copyTo(localID, turl, protocol)
                                     else:
-                                        print 'checkingThread error, manager responded', success
+                                        self.log('DEBUG', 'checkingThread error, manager responded', success)
                             if state == INVALID:
-                                print '\n\nI have an invalid replica of file', GUID
-                                response = self.manager.getFile({'checkingThread' : (GUID, ['byteio'])})
+                                self.log('DEBUG', '\n\nI have an invalid replica of file', GUID)
+                                response = self.manager.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                 success, turl, protocol = response['checkingThread']
                                 if success == 'done':
                                     self.changeState(referenceID, CREATING)
                                     self.backend.copyFrom(localID, turl, protocol)
                                     self._file_arrived(referenceID)
                                 else:
-                                    print 'checkingThread error, manager responded', success
+                                    self.log('DEBUG', 'checkingThread error, manager responded', success)
                         except:
-                            print 'ERROR checking checksum of', referenceID
-                            print traceback.format_exc()
+                            self.log('DEBUG', 'ERROR checking checksum of', referenceID)
+                            self.log()
                         time.sleep(interval)
                 else:
                     time.sleep(period)
             except:
-                print traceback.format_exc()
+                self.log()
 
     def changeState(self, referenceID, newState, onlyIf = None):
         self.store.lock()
         try:
             localData = self.store.get(referenceID)
             oldState = localData['state']
-            print 'changeState', referenceID, oldState, '->', newState
+            self.log('DEBUG', 'changeState', referenceID, oldState, '->', newState)
             if onlyIf and oldState != onlyIf:
                 self.store.unlock()
                 return False
@@ -206,14 +209,14 @@ class Element:
             self.store.unlock()
             self.changed_states.append(referenceID)
         except:
-            print traceback.format_exc()
+            self.log()
             self.store.unlock()
             return False
 
     def get(self, request):
-        #print request
         response = {}
         for requestID, getRequestData in request.items():
+            self.log('DEBUG', '\n\n', getRequestData)
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
             #print 'Element.get:', referenceID, protocols
@@ -235,7 +238,7 @@ class Element:
                             else:
                                 response[requestID] = [('error', 'internal error (empty TURL)')]
                         except:
-                            print traceback.format_exc()
+                            self.log()
                             response[requestID] = [('error', 'internal error (prepareToGet exception)')]
                     else:
                         response[requestID] = [('error', 'no supported protocol found')]
@@ -278,7 +281,7 @@ class Element:
                         else:
                             response[requestID] = [('error', 'internal error (empty TURL)')]
                     except:
-                        print traceback.format_exc()
+                        self.log()
                         response[requestID] = [('error', 'internal error (prepareToPut exception)')]
             else:
                 response[requestID] = [('error', 'no supported protocol found')]
@@ -312,10 +315,14 @@ from storage.service import Service
 class ElementService(Service):
 
     def __init__(self, cfg):
+        try:
+            serviceID = str(cfg.Get('ServiceID')).split('/')[-1]
+        except:
+            serviceID = "Element"
         # names of provided methods
         request_names = ['get', 'put', 'stat', 'delete', 'toggleReport']
         # create the business-logic class
-        self.element = Element(cfg)
+        self.element = Element(cfg, self.log)
         # get the additional request names from the backend
         backend_request_names = self.element.backend.public_request_names
         # bring the additional request methods into the namespace of this object
@@ -324,7 +331,7 @@ class ElementService(Service):
                 setattr(self, name, getattr(self.element.backend, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, 'Element', request_names, 'se', element_uri)
+        Service.__init__(self, serviceID, request_names, 'se', element_uri, cfg)
 
 
     def stat(self, inpayload):

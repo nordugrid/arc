@@ -25,6 +25,8 @@ def parse_url(url):
         port = 80
     return host, port, path
 
+common_supported_protocols = ['http', 'byteio']
+
 def upload_to_turl(turl, protocol, fobj):
     """docstring for upload_to_turl"""
     if protocol == 'byteio':
@@ -50,7 +52,7 @@ def download_from_turl(turl, protocol, fobj):
         host, port, path = parse_url(turl)
         import httplib
         h = httplib.HTTPConnection(host, port)
-        h.request('Get', path)
+        h.request('GET', path)
         r = h.getresponse()
         fobj.write(r.read())
         return r.status
@@ -541,10 +543,16 @@ def splitLN(LN):
 
 import pickle, threading, copy, os, base64, traceback
 
+def logprint(*args):
+    if args:
+        print ' '.join([str(arg) for arg in args])
+    else:
+        traceback.print_exc()
+
 class PickleStore:
     """ Class for storing object in a serialized python format. """
 
-    def __init__(self, storecfg, non_existent_object = {}):
+    def __init__(self, storecfg, non_existent_object = {}, log = None):
         """ Constructor of PickleStore.
 
         PickleStore(storecfg)
@@ -552,7 +560,11 @@ class PickleStore:
         'storecfg' is an XMLNode with a 'DataDir'
         'non_existent_object' will be returned if an object not found
         """
-        print "PickleStore constructor called"
+        if log:
+            self.log = log
+        else:
+            self.log = logprint
+        self.log('DEBUG', "PickleStore constructor called")
         # get the datadir from the storecfg XMLNode
         self.datadir = str(storecfg.Get('DataDir'))
         # set the value which we should return if there an object does not exist
@@ -560,7 +572,7 @@ class PickleStore:
         # if the given data directory does not exist, try to create it
         if not os.path.exists(self.datadir):
             os.mkdir(self.datadir)
-        print "datadir:", self.datadir
+        self.log('DEBUG', "datadir:", self.datadir)
         # initialize a lock which can be used to avoid race conditions
         self.llock = threading.Lock()
 
@@ -602,7 +614,7 @@ class PickleStore:
                 ID = base64.b64decode(name)
                 IDs.append(ID)
             except:
-                print traceback.format_exc()
+                self.log()
         return IDs
 
     def get(self, ID):
@@ -622,7 +634,7 @@ class PickleStore:
             pass
         except:
             # print whatever exception happened
-            print traceback.format_exc()
+            self.log()
         # if there was an exception, return the given non_existent_object
         return copy.deepcopy(self.non_existent_object)
 
@@ -675,4 +687,4 @@ class PickleStore:
                 # serialize the given list into it
                 pickle.dump(object, file(self._filename(ID),'w'))
         except:
-            print traceback.format_exc()
+            self.log()

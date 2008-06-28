@@ -14,7 +14,8 @@ import copy
 
 
 class Catalog:
-    def __init__(self, cfg):
+    def __init__(self, cfg, log):
+        self.log = log
         # URL of the Hash
         hash_url = str(cfg.Get('HashURL'))
         self.hash = HashClient(hash_url)
@@ -22,7 +23,7 @@ class Catalog:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
         except:
-            print 'Cannot find CheckPeriod, HeartbeatTimeout in the config'
+            self.log('DEBUG', 'Cannot find CheckPeriod, HeartbeatTimeout in the config')
             raise
         threading.Thread(target = self.checkingThread, args = [period]).start()
         
@@ -50,7 +51,7 @@ class Catalog:
                         self._set_next_heartbeat(serviceID, -1)
                 time.sleep(period)
             except:
-                print traceback.format_exc()
+                self.log()
                 time.sleep(period)
 
     def _change_states(self, changes):
@@ -72,7 +73,7 @@ class Catalog:
         hash_response = self.hash.change(hash_request)
         #print '_set_next_heartbeat response', hash_response
         if hash_response['report'][0] != 'set':
-            print 'ERROR setting next heartbeat time!'
+            self.log('DEBUG', 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
         ses = self.hash.get([sestore_guid])[sestore_guid]
@@ -176,7 +177,7 @@ class Catalog:
             except KeyError:
                 return metadata
             except:
-                print traceback.format_exc()
+                self.log()
                 return {}
 
 
@@ -204,7 +205,7 @@ class Catalog:
                     restLN = '/'.join(path)
                     response[rID] = (traversedList, wasComplete, traversedLN, GUID, metadata, restLN)
                 except:
-                    print traceback.format_exc()
+                    self.log()
                     response[rID] = ([], False, '', guid0, None, '/'.join(path))
             #print '?\n? traversedList, wasComplete, traversedLN, GUID, metadata, restLN\n? ', response
         return response
@@ -256,8 +257,8 @@ class CatalogService(Service):
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, 'Catalog', request_names, 'cat', catalog_uri)
-        self.catalog = Catalog(cfg)
+        Service.__init__(self, 'Catalog', request_names, 'cat', catalog_uri, cfg)
+        self.catalog = Catalog(cfg, self.log)
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
