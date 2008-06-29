@@ -97,7 +97,7 @@ for my $qname ($parser->list_subsections('queue')) {
 ##################################################
 
 $log->level($LogUtils::DEBUG);
-$log->debug("From config file:\n". Dumper \%config);
+#$log->debug("From config file:\n". Dumper \%config);
 my $cluster_info = ARC0ClusterInfo->new()->get_info(\%config);
 
 my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
