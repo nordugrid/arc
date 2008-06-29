@@ -45,6 +45,7 @@ namespace Arc {
 #define WSSE11_NAMESPACE "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd"
 #define WSU_NAMESPACE    "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
 #define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
+#define DSIG_NAMESPACE   "http://www.w3.org/2000/09/xmldsig#"
 
 #define X509TOKEN_BASE_URL "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0"
 #define BASE64BINARY "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soapmessage-security-1.0#Base64Binary"
@@ -303,39 +304,102 @@ X509Token::operator bool(void) {
   return (bool)header;
 }
 
-X509Token::X509Token(SOAPEnvelope& soap) : SOAPEnvelope(soap){
-  if(!Check(soap)){
-    return;    
+X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope(soap){
+  //if(!Check(soap)){
+  //  return;    
+  //}
+  
+  if(tokentype == Signature) {
+    // Apply predefined namespace prefix
+    Arc::NS ns;
+    ns["wsse"]=WSSE_NAMESPACE;
+    ns["wsse11"]=WSSE11_NAMESPACE;
+    ns["wsu"]=WSU_NAMESPACE;
+    header.Namespaces(ns);
+
+    XMLNode xt = header["wsse:Security"];   
+    XMLNode signature = xt["Signature"];
+    XMLNode token = xt["wsse:BinarySecurityToken"];
+    key_str = (std::string)token;
+
+    //Body reference
+    xmlNodePtr bodyPtr = ((X509Token*)(&body))->node_;
+    xmlDocPtr docPtr = bodyPtr->doc;
+    xmlChar* id = xmlGetProp(bodyPtr, (xmlChar *)"Id");
+    xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
+    xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
+    xmlFree(id);
+
+    //BinaryToken reference
+    xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
+    id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
+    xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
+
+    //Signature 
+    signature_nd = ((X509Token*)(&signature))->node_; 
+    if(!signature_nd) { std::cerr<<"No Signature node in SOAP header"<<std::endl; return; }
   }
+  else{
+    //Compose the xml structure
+    Arc::NS enc_ns, ds_ns;
+    enc_ns["xenc"] = XENC_NAMESPACE;
+    ds_ns["ds"] = DSIG_NAMESPACE;
+    XMLNode encrypted_data(enc_ns,"EncryptedData");
+    encrypted_data.NewAttribute("Id") = (std::string)(body["xenc:EncryptedData"].Attribute("Id"));
+    encrypted_data.NewAttribute("Type") = (std::string)(body["xenc:EncryptedData"].Attribute("Type"));
+    XMLNode enc_method1 = get_node(encrypted_data, "EncryptionMethod");
+    enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc"; 
+    XMLNode keyinfo1 = get_node(encrypted_data, "KeyInfo");
+    keyinfo1.Namespaces(ds_ns);
+    XMLNode enc_key = get_node(keyinfo1, "EncryptedKey");
+    enc_key.Namespaces(enc_ns);
+    XMLNode enc_method2 = get_node(enc_key, "EncryptionMethod");
+    enc_method2.NewAttribute("Algorithm") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:EncryptionMethod"].Attribute("Algorithm"));
+    XMLNode keyinfo2 = get_node(enc_key, "KeyInfo");
+    keyinfo2.Namespaces(ds_ns);
+    XMLNode key_cipherdata = get_node(enc_key, "CipherData");
+    XMLNode key_ciphervalue = get_node(key_cipherdata, "CipherValue") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:CipherData"]["xenc:CipherValue"]);
 
-  // Apply predefined namespace prefix
-  Arc::NS ns;
-  ns["wsse"]=WSSE_NAMESPACE;
-  ns["wsse11"]=WSSE11_NAMESPACE;
-  ns["wsu"]=WSU_NAMESPACE;
-  header.Namespaces(ns);
+    XMLNode cipherdata = get_node(encrypted_data, "CipherData");
+    XMLNode ciphervalue = get_node(cipherdata, "CipherValue");
+    ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]); 
 
-  XMLNode xt = header["wsse:Security"];   
-  XMLNode signature = xt["Signature"];
-  XMLNode token = xt["wsse:BinarySecurityToken"];
-  key_str = (std::string)token;
+    std::string str;
+    encrypted_data.GetXML(str);
+    std::cout<<"+++++++++++++ "<<str<<std::endl;
 
-  //Body reference
-  xmlNodePtr bodyPtr = ((X509Token*)(&body))->node_;
-  xmlDocPtr docPtr = bodyPtr->doc;
-  xmlChar* id = xmlGetProp(bodyPtr, (xmlChar *)"Id");
-  xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
-  xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
-  xmlFree(id);
+    xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
 
-  //BinaryToken reference
-  xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
-  id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
-  xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
 
-  //Signature 
-  signature_nd = ((X509Token*)(&signature))->node_; 
-  if(!signature_nd) { std::cerr<<"No Signature node in SOAP header"<<std::endl; return; }
+    //Create encryption context
+    xmlSecKeysMngr* keys_mngr = NULL;
+    keys_mngr = load_key(&keys_mngr, "key.pem", 0);
+
+    xmlSecEncCtxPtr encCtx = NULL;
+    encCtx = xmlSecEncCtxCreate(keys_mngr);
+    if(encCtx == NULL) {
+      std::cerr<<"Failed to create encryption context"<<std::endl;
+      return;
+    }
+
+/*
+    // Get the Triple DES key from incoming soap message
+    ennCtx->encKey = xmlSecKeyReadMemory(xmlSecKeyDataDesId, key_data, key_size);
+
+    encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
+    if(encCtx->encKey == NULL) {
+      std::cerr<<"Failed to parse session des key"<<std::endl;
+      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+      return;
+    }
+*/
+    // Decrypt the soap body
+    if(xmlSecEncCtxDecrypt(encCtx, todecrypt_nd) < 0) {
+      std::cerr<<"Decryption failed"<<std::endl;
+      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    }
+
+  }
 
 } 
 
@@ -435,8 +499,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
-    std::cout<<"Body URI: "<<body_uri<<std::endl;  
-
     reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
 						    NULL, (xmlChar *)(body_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
@@ -450,8 +512,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
  
     std::string token_uri; token_uri.append("#").append("binarytoken");
- 
-    std::cout<<"Token URI: "<<token_uri<<std::endl;
 
     reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
                                                     NULL, (xmlChar *)(token_uri.c_str()), NULL);
@@ -498,13 +558,17 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
   }
   else {
     // Apply predefined namespace prefix
-    Arc::NS ns;
-    ns["wsse"]=WSSE_NAMESPACE;
-    ns["wsse11"]=WSSE11_NAMESPACE;
-    ns["wsu"]=WSU_NAMESPACE;
-    ns["xenc"]=XENC_NAMESPACE;
-    header.Namespaces(ns);
+    Arc::NS ns, header_ns;
+    header_ns["wsse"]=WSSE_NAMESPACE;
+    header_ns["wsse11"]=WSSE11_NAMESPACE;
+    header_ns["wsu"]=WSU_NAMESPACE;
+    header_ns["ds"]=DSIG_NAMESPACE;
+    header.Namespaces(header_ns);
 
+    ns = envelope.Namespaces();
+    ns["xenc"]=XENC_NAMESPACE;
+    envelope.Namespaces(ns);
+ 
     // Insert the wsse:Security element
     XMLNode wsse = get_node(header,"wsse:Security");
 
@@ -512,10 +576,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //After the encryption, the body node will be copy back to original one
     XMLNode body_cp;
     body.New(body_cp);
-  
-    std::string str1;
-    body_cp.GetXML(str1);
-    std::cout<<str1<<std::endl;
 
     xmlNodePtr bodyPtr = ((X509Token*)(&body_cp))->node_;
     xmlDocPtr docPtr = bodyPtr->doc;
@@ -531,63 +591,132 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Create encryption template for a specific symetric key type
     encDataNode = xmlSecTmplEncDataCreate(docPtr , xmlSecTransformDes3CbcId,
 				(const xmlChar*)"encrypted", xmlSecTypeEncElement, NULL, NULL);
-    if(encDataNode == NULL) std::cerr<<"Failed to create encryption template"<<std::endl;
+    if(encDataNode == NULL) { std::cerr<<"Failed to create encryption template"<<std::endl; return; }
 
     // Put encrypted data in the <enc:CipherValue/> node
-    if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL) std::cerr<<"Failed to add CipherValue node"<<std::endl;   
+    if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL){
+     std::cerr<<"Failed to add CipherValue node"<<std::endl;   
+     if(encDataNode != NULL) xmlFreeNode(encDataNode);
+     return;
+    }
 
     // Add <dsig:KeyInfo/>
     keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
-    if(keyInfoNode == NULL) std::cerr<<"Failed to add key info"<<std::endl;
+    if(keyInfoNode == NULL) { 
+      std::cerr<<"Failed to add key info"<<std::endl;
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+      return;
+    }
 
     // Add <enc:EncryptedKey/> to store the encrypted session key
     encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, 
 				    xmlSecTransformRsaPkcs1Id, 
 				    NULL, NULL, NULL);
-    if(encKeyNode == NULL) std::cerr<<"Failed to add key info"<<std::endl;
+    if(encKeyNode == NULL) { 
+      std::cerr<<"Failed to add key info"<<std::endl;
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+      return;
+    }
 
     // Put encrypted key in the <enc:CipherValue/> node
     if(xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL) std::cerr<<"Error: failed to add CipherValue node"<<std::endl;
 
     // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/> 
     keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
-    if(keyInfoNode2 == NULL) std::cerr<<"Failed to add key info"<<std::endl;
-    
+    if(keyInfoNode2 == NULL){
+      std::cerr<<"Failed to add key info"<<std::endl;
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+      return;
+    }
+
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
     //keys_mngr = load_key(&keys_mngr, keyfile.c_str(), 1);
     keys_mngr = load_key(&keys_mngr, "publickey.pem", 1);
 
     encCtx = xmlSecEncCtxCreate(keys_mngr);
-    if(encCtx == NULL)  std::cerr<<"Failed to create encryption context"<<std::endl;
+    if(encCtx == NULL) {
+      std::cerr<<"Failed to create encryption context"<<std::endl;
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+      return;
+    }
 
     // Generate a Triple DES key
     encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
-    if(encCtx->encKey == NULL) std::cerr<<"Failed to generate session des key"<<std::endl;
+    if(encCtx->encKey == NULL) {
+      std::cerr<<"Failed to generate session des key"<<std::endl;
+      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+      return;
+    }
+    // Encrypt the soap body, here the body node is encrypted, not only the content under body node
+    // TODO: not sure whether the body node, or the content under body node shoud be encrypted
+    if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) { 
+      std::cerr<<"Encryption failed"<<std::endl;
+      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+      if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    }
 
-    // Encrypt the soap body
-    if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) std::cerr<<"Encryption failed"<<std::endl;
-    
     //The template has been inserted in the doc
-    //encDataNode = NULL;
+    encDataNode = NULL;
+
+    //if(encCtx != NULL){ xmlSecEncCtxDestroy(encCtx); encCtx = NULL; }
     
     std::string str;
-
     body_cp.GetDoc(str);
     std::cout<<"Body new : "<<str<<std::endl;
 
+    //Put the encrypted information into soap head and soap body according to x509token specification
+
+    XMLNode encrypted_data = body_cp.GetRoot();
+    encrypted_data.GetXML(str);
+    std::cout<<"Encrypted data : "<<str<<std::endl; 
+
+    //Delete the existing element under <Body/>
+    for(int i=0;;i++) {
+      XMLNode nd = body.Child(i);
+      if(!nd) break;
+      nd.Destroy();
+    }
+
+    XMLNode body_encdata = get_node(body,"xenc:EncryptedData");
+    body_encdata.NewAttribute("wsu:Id") = (std::string)(encrypted_data.Attribute("Id"));
+    body_encdata.NewAttribute("Type") = (std::string)(encrypted_data.Attribute("Type"));
+    
+    XMLNode body_cipherdata = get_node(body_encdata,"xenc:CipherData");
+    get_node(body_cipherdata,"xenc:CipherValue") = (std::string)(encrypted_data["CipherData"]["CipherValue"]); 
+
  
+    XMLNode enc_key = get_node(wsse,"xenc:EncryptedKey");
+
+    XMLNode enc_method = get_node(enc_key,"xenc:EncryptionMethod");   
+    enc_method.NewAttribute("Algorithm") = (std::string)(encrypted_data["KeyInfo"]["EncryptedKey"]["EncryptionMethod"].Attribute("Algorithm"));  
+
+    XMLNode keyinfo = get_node(enc_key, "ds:KeyInfo");
+    XMLNode sec_token_ref = get_node(keyinfo, "wsse:SecurityTokenReference");
+    XMLNode x509_data =  get_node(sec_token_ref, "ds:X509Data");
+    XMLNode x509_issuer_serial = get_node(x509_data, "ds:X509IssuerSerial");
+    XMLNode x509_issuer_name = get_node(x509_issuer_serial, "ds:X509IssuerName");
+    x509_issuer_name = "OU=UIO, O=KNOWARC";
+    XMLNode x509_issuer_number = get_node(x509_issuer_serial, "ds:X509SerialNumber");
+    x509_issuer_number = "123456";
+    //TODO: issuer name and issuer number should be extracted from certificate
+
+    XMLNode key_cipherdata = get_node(enc_key, "xenc:CipherData");
+    key_cipherdata.NewChild("xenc:CipherValue") = (std::string)(encrypted_data["KeyInfo"]["EncryptedKey"]["CipherData"]["CipherValue"]);
+
+    XMLNode ref_list = get_node(enc_key, "xenc:ReferenceList");
+    XMLNode ref_item = get_node(ref_list,"xenc:DataReference");
+    ref_item.NewAttribute("URI") = "#" + (std::string)(encrypted_data.Attribute("Id"));
+
     header.GetXML(str);
     std::cout<<"Header: "<<str<<std::endl;
     body.GetXML(str);
     std::cout<<"Body: "<<str<<std::endl;
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
- 
-    //if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
-    //if(encDataNode != NULL) xmlFreeNode(encDataNode);
+
   }
-  
 }
 
 } // namespace Arc
