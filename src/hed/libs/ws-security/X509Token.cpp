@@ -341,38 +341,35 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
   }
   else{
     //Compose the xml structure
-    Arc::NS enc_ns, ds_ns;
-    enc_ns["xenc"] = XENC_NAMESPACE;
-    ds_ns["ds"] = DSIG_NAMESPACE;
-    XMLNode encrypted_data(enc_ns,"EncryptedData");
+    Arc::NS ns;
+    ns["xenc"] = XENC_NAMESPACE;
+    ns["ds"] = DSIG_NAMESPACE;
+    XMLNode encrypted_data(ns,"xenc:EncryptedData");
     encrypted_data.NewAttribute("Id") = (std::string)(body["xenc:EncryptedData"].Attribute("Id"));
     encrypted_data.NewAttribute("Type") = (std::string)(body["xenc:EncryptedData"].Attribute("Type"));
-    XMLNode enc_method1 = get_node(encrypted_data, "EncryptionMethod");
+    XMLNode enc_method1 = get_node(encrypted_data, "xenc:EncryptionMethod");
     enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc"; 
-    XMLNode keyinfo1 = get_node(encrypted_data, "KeyInfo");
-    keyinfo1.Namespaces(ds_ns);
-    XMLNode enc_key = get_node(keyinfo1, "EncryptedKey");
-    enc_key.Namespaces(enc_ns);
-    XMLNode enc_method2 = get_node(enc_key, "EncryptionMethod");
+    XMLNode keyinfo1 = get_node(encrypted_data, "ds:KeyInfo");
+    XMLNode enc_key = get_node(keyinfo1, "xenc:EncryptedKey");
+    XMLNode enc_method2 = get_node(enc_key, "xenc:EncryptionMethod");
     enc_method2.NewAttribute("Algorithm") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:EncryptionMethod"].Attribute("Algorithm"));
-    XMLNode keyinfo2 = get_node(enc_key, "KeyInfo");
-    keyinfo2.Namespaces(ds_ns);
-    XMLNode key_cipherdata = get_node(enc_key, "CipherData");
-    XMLNode key_ciphervalue = get_node(key_cipherdata, "CipherValue") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:CipherData"]["xenc:CipherValue"]);
+    XMLNode keyinfo2 = get_node(enc_key, "ds:KeyInfo");
+    XMLNode key_cipherdata = get_node(enc_key, "xenc:CipherData");
+    XMLNode key_ciphervalue = get_node(key_cipherdata, "xenc:CipherValue") = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["xenc:CipherData"]["xenc:CipherValue"]);
 
-    XMLNode cipherdata = get_node(encrypted_data, "CipherData");
-    XMLNode ciphervalue = get_node(cipherdata, "CipherValue");
+    XMLNode cipherdata = get_node(encrypted_data, "xenc:CipherData");
+    XMLNode ciphervalue = get_node(cipherdata, "xenc:CipherValue");
     ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]); 
 
     std::string str;
-    encrypted_data.GetXML(str);
-    std::cout<<"+++++++++++++ "<<str<<std::endl;
+    encrypted_data.GetDoc(str);
+    std::cout<<"Before Decryption: "<<str<<std::endl;
 
     xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
 
-
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
+    //TODO: which key file will be used should be got according to the information in incoming soap head
     keys_mngr = load_key(&keys_mngr, "key.pem", 0);
 
     xmlSecEncCtxPtr encCtx = NULL;
@@ -382,22 +379,15 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
       return;
     }
 
-/*
-    // Get the Triple DES key from incoming soap message
-    ennCtx->encKey = xmlSecKeyReadMemory(xmlSecKeyDataDesId, key_data, key_size);
-
-    encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);
-    if(encCtx->encKey == NULL) {
-      std::cerr<<"Failed to parse session des key"<<std::endl;
-      if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
-      return;
-    }
-*/
     // Decrypt the soap body
     if(xmlSecEncCtxDecrypt(encCtx, todecrypt_nd) < 0) {
       std::cerr<<"Decryption failed"<<std::endl;
       if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     }
+    else { std::cout<<"Decryption succeed"<<std::endl; }
+
+    encrypted_data.GetDoc(str);
+    std::cout<<"After Decryption: "<<str<<std::endl;
 
   }
 
