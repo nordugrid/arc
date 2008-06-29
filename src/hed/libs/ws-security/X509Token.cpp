@@ -102,12 +102,23 @@ static bool init_xmlsec(void) {
     return false;
   }
 
-    //Init xmlsec-crypto library
+  //Init xmlsec-crypto library
   if(xmlSecCryptoInit() < 0) {
     std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
     return false;
   }
   return true;
+}
+
+static bool final_xmlsec(void) {
+  //Shutdown xmlsec-crypto library
+  xmlSecCryptoShutdown();
+  //Shutdown crypto library 
+  xmlSecCryptoAppShutdown();  
+  //Shutdown xmlsec library
+  xmlSecShutdown();
+  //Shutdown libxml
+  xmlCleanupParser();
 }
 
 //Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
@@ -308,7 +319,9 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
   //if(!Check(soap)){
   //  return;    
   //}
-  
+
+  if(!init_xmlsec()) return; 
+ 
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
     Arc::NS ns;
@@ -389,8 +402,11 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     encrypted_data.GetDoc(str);
     std::cout<<"After Decryption: "<<str<<std::endl;
 
+    if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
+    if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
   }
 
+  final_xmlsec();
 } 
 
 bool X509Token::Authenticate(void) {
@@ -442,6 +458,8 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 
 X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype) : SOAPEnvelope (soap) {
 
+  if(!init_xmlsec()) return;
+
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
     Arc::NS ns;
@@ -466,8 +484,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     token.NewAttribute("ValueType") = X509V3;
     token.NewAttribute("EncodingType") = BASE64BINARY;
     token = cert; 
-
-    if(!init_xmlsec()) return;
 
     //Add signature template 
     signature = xmlSecTmplSignatureCreate(NULL,
@@ -575,8 +591,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlNodePtr encKeyNode = NULL;
     xmlNodePtr keyInfoNode2 = NULL;
     xmlSecEncCtxPtr encCtx = NULL;
-   
-    if(!init_xmlsec()) return;
  
     //Create encryption template for a specific symetric key type
     encDataNode = xmlSecTmplEncDataCreate(docPtr , xmlSecTransformDes3CbcId,
@@ -705,8 +719,10 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     std::cout<<"Body: "<<str<<std::endl;
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
-
   }
+
+  final_xmlsec();
+
 }
 
 } // namespace Arc

@@ -20,7 +20,7 @@ public:
   /** Link to existing SOAP header and parse X509 Token information.
     X509 Token related information is extracted from SOAP header and
     stored in class variables. */
-  X509Token(SOAPEnvelope& soap);
+  X509Token(SOAPEnvelope& soap, X509TokenType tokentype = Signature);
 
   /** Add X509 Token information into the SOAP header.
      Generated token contains elements X509 token and signature, and is
