@@ -76,6 +76,16 @@ $config{queues} = {};
 for my $qname ($parser->list_subsections('queue')) {
     my %queue_config = $parser->get_section("queue/$qname");
     $config{queues}{$qname} = \%queue_config;
+
+    # put this option in the proper place
+    if ($queue_config{maui_bin_path}) {
+        $config{maui_bin_path} = $queue_config{maui_bin_path};
+        delete $queue_config{maui_bin_path};
+    }
+    # maui should not be a per-queue option
+    if (lc($queue_config{scheduling_policy}) eq 'maui') {
+        $config{pbs_scheduler} = 'maui';
+    }
 }
 
 # throw away default queue string following lrms
@@ -86,6 +96,7 @@ for my $qname ($parser->list_subsections('queue')) {
 # Collect information & print XML
 ##################################################
 
+$log->level($LogUtils::DEBUG);
 $log->debug("From config file:\n". Dumper \%config);
 my $cluster_info = ARC0ClusterInfo->new()->get_info(\%config);
 

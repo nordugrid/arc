@@ -13,13 +13,13 @@ ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 . $ARC_LOCATION/libexec/config_parser.sh
 
 config_parse_file $ARC_CONFIG >&2 || exit $?
-config_update_from_section "common"
-config_update_from_section "infosys"
-config_update_from_section "grid-manager"
+config_import_section "common"
+config_import_section "infosys"
+config_import_section "grid-manager"
 
 # Also read queue section
 if [ ! -z "$joboption_queue" ]; then
-  config_update_from_section "queue/$joboption_queue"
+  config_import_section "queue/$joboption_queue"
 fi
 
 ##############################################################

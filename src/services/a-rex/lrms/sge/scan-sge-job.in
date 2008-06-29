@@ -45,14 +45,13 @@ my_id=`id -u`
 # GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
 
 
-# Get all running jobs
-#
-# first running jobs, grep for MASTER to avoild slave procs
-pids=`${SGE_BIN_PATH}/qstat -u '*' -s rs 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`
-
-# now add queued jobs
-pids="$pids `${SGE_BIN_PATH}/qstat -u '*' -s p 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`"
-
+# Get all jobs
+pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`
+if [ $? != 0 ]; then
+  echo "[`date`] Failed running ${SGE_BIN_PATH}/qstat" >&2
+  sleep 60
+  exit 1
+fi
 
 # Go through directories
 for ctr_dir in $control_dirs ; do
@@ -136,7 +135,8 @@ for ctr_dir in $control_dirs ; do
       # If the last qacct record is about migration,
       # we should wait for the next qacct record to appear
       # Delete file, like there was no accounting present at all!
-      if grep -q "^failed=24 *: migrating" $diagfile_acct; then
+      if grep -q "^failed=24 *: migrating"    $diagfile_acct \
+      || grep -q "^failed=25 *: rescheduling" $diagfile_acct; then
           rm -f $diagfile_acct
           echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" >&2
       fi

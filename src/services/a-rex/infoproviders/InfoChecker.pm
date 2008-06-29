@@ -49,75 +49,115 @@ sub _verify_part($$$$); # prototype it, because it's a recursive function
 sub _verify_part($$$$) {
     my ($self,$subject,$data,$schema) = @_;
 
+    unless (defined $data) {
+        push @{$self->{errors}}, "$subject is undefined";
+        return 1; # tell caller this entry can be deleted
+    }
     unless ( ref($data) eq ref($schema) ) {
         my $type = ref($schema) ? ref($schema) : "SCALAR";
-        push @{$self->{errors}}, "$subject: wrong type, $type expected";
+        push @{$self->{errors}}, "$subject has wrong type, $type expected";
+        return 1; # tell caller this entry can be deleted
     }
 
     # process a hash reference
-    elsif ( ref($schema) eq "HASH" ) {
+    if ( ref($schema) eq "HASH" ) {
 
-        # deal with keys other than '*'
+        # deal with hash keys other than '*'
         my @templkeys = grep { $_ ne "*" } keys %$schema;
         for my $key ( sort @templkeys ) {
-            my $subj = $subject."->{$key}";
-            if ( defined $data->{$key} ) {
-                $self->_verify_part($subj, $data->{$key}, $schema->{$key});
+            my $subj = $subject."{$key}";
+            if ( exists $data->{$key} ) {
+                # check that existing key value is valid
+                my $can_delete = $self->_verify_part($subj, $data->{$key},
+                                                     $schema->{$key});
+                # delete it if it's not valid
+                if ($can_delete and $self->{strict}) {
+                    push @{$self->{errors}}, "$subj deleting it";
+                    delete $data->{$key};
+                }
             } elsif ($schema->{$key} eq "*") {
-                # this key is optional
+                # do nothing:
+                # this missing key is optional
             } elsif (ref($schema->{$key}) eq "ARRAY"
                 and $schema->{$key}[0] eq "*") {
-                # this key is optional, because it points to optional array
-            #} elsif (ref($schema->{$key}) eq "HASH"
-            #    and keys(%{$schema->{$key}}) == 1
-            #    and defined $schema->{$key}{'*'} ) {
-            #    # this key is optional, because it points to optional hash
+                # do nothing:
+                # this missing key is optional, it points to optional array
+            } elsif (ref($schema->{$key}) eq "HASH"
+                and keys(%{$schema->{$key}}) == 1
+                and exists $schema->{$key}{'*'} ) {
+                # do nothing:
+                # this missing key is optional, it points to optional hash
             } else {
-                push @{$self->{errors}}, "$subj: is missing";
+                push @{$self->{errors}}, "$subj is missing";
             }
         }
 
-        # deal with '*' key in schema
+        # deal with '*' hash key in schema
         if ( grep { $_ eq "*" } keys %$schema ) {
             for my $datakey ( sort keys %$data ) {
+
                 # skip keys that have been checked already
                 next if grep { $datakey eq $_ } @templkeys;
-                my $subj = "${subject}->{$datakey}";
-                $self->_verify_part($subj, $data->{$datakey}, $schema->{"*"});
+                my $subj = "${subject}{$datakey}";
+
+                # check that the key's value is valid
+                my $can_delete = $self->_verify_part($subj, $data->{$datakey},
+                                                     $schema->{"*"});
+                # delete it if it's not valid
+                if ($can_delete and $self->{strict}) {
+                    push @{$self->{errors}}, "$subj deleting it";
+                    delete $data->{$datakey};
+                }
             }
-        }
 
         # no '*' key in schema, reverse checking may be performed
-        elsif ($self->{strict}) {
+        } elsif ($self->{strict}) {
             for my $datakey ( sort keys %$data) {
-                my $subj = "${subject}->{$datakey}";
-                push @{$self->{errors}}, "$subj: is not part of schema"
-                    unless (exists $schema->{$datakey});
+                my $subj = "${subject}{$datakey}";
+                unless (exists $schema->{$datakey}) {
+                    push @{$self->{errors}}, "$subj is not part of schema";
+                    push @{$self->{errors}}, "$subj deleting it";
+                    delete $data->{$datakey};
+                }
             }
         }
-    }
 
     # process an array reference
-    elsif ( ref($schema) eq "ARRAY" ) {
+    } elsif ( ref($schema) eq "ARRAY" ) {
         for ( my $i=0; $i < @$data; $i++ ) {
-            my $subj = "${subject}->[$i]";
-            $self->_verify_part($subj, $data->[$i], $schema->[0]);
+            my $subj = "${subject}[$i]";
+
+            # check that data element is valid
+            my $can_delete = $self->_verify_part($subj, $data->[$i],
+                                                 $schema->[0]);
+            # delete it if it's not valid
+            if ($can_delete and $self->{strict}) {
+                push @{$self->{errors}}, "$subj deleting it";
+                splice @$data, $i, 1;
+                --$i;
+            }
         }
-    }
 
     # process a scalar: nothing to do here
-    elsif ( not ref($data)) {
-    }
-    else {
+    } elsif ( not ref($data)) {
+
+    # nothing else than scalars and HASH and ARRAY references are allowed in
+    # the schema
+    } else {
         my $type = ref($schema);
-        push @{$self->{errors}}, "$subject: bad schema, $type not allowed";
+        push @{$self->{errors}},
+                     "$subject bad value in schema, ref($type) not allowed";
     }
+
+    return 0;
 }
 
 
+#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
+
 sub test() {
     my $schema = {
-        totacpus => '',
+        totalcpus => '',
         freecpus => '',
         jobs => {
             '*' => { owner => '' }
@@ -128,15 +168,18 @@ sub test() {
     };
     
     my $data = {
-        freecpus => '2',
+        freecpus => undef,
         jobs => {
             id1 => { owner => 'val' },
             id2 => 'something else'
         },
-        users => [{dn => 'joe', extra => 'dummy'}, { }, 'bad user']
+        users => [{dn => 'joe', extra => 'dummy'}, 'bad user', { }]
     };
     
-    print "Checker: lrms_info$_\n" foreach InfoChecker->new($schema)->verify($data,1);
+    require Data::Dumper; import Data::Dumper;
+    print "Before: ",Dumper($data);
+    print "Checker: options->$_\n" foreach InfoChecker->new($schema)->verify($data,1);
+    print "After: ",Dumper($data);
 }
 
 #test;

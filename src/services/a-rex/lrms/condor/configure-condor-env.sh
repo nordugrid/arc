@@ -5,9 +5,9 @@
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG || return 1
 
-config_update_from_section "common"
-config_update_from_section "infosys"
-config_update_from_section "grid-manager"
+config_import_section "common"
+config_import_section "infosys"
+config_import_section "grid-manager"
 
 
 # Initializes environment variables:  CONDOR_CONFIG, CONDOR_LOCATION
@@ -23,7 +23,7 @@ config_update_from_section "grid-manager"
 # 
 #   source config_parser.sh
 #   config_parse_file /etc/arc.conf || exit 1
-#   config_update_from_section "common"
+#   config_import_section "common"
 #   source configure-condor-env.sh || exit 1
 
 

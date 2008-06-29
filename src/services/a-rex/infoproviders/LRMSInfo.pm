@@ -92,6 +92,7 @@ my $lrms_info_schema = {
             'running'      => '',
             'queued'       => '',
             'totalcpus'    => '',
+            'acl_users'  => [ '*' ],
             'users' => {
                 '*' => {
                     'freecpus'    => '',
@@ -215,13 +216,14 @@ sub customize_info_schema($$) {
     return $new_schema;
 }
 
+#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 my $opt1 = {lrms => 'fork',
             sge_root => '/opt/n1ge6',
             sge_cell => 'cello',
             sge_bin_path => '/opt/n1ge6/bin/lx24-x86',
-            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
-            jobs => ['101','102']
+            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete'], fork_job_limit => 5}},
+            jobs => [qw(7 101 5865)]
            };
 
 my $opt2 = {lrms => 'sge',
@@ -229,18 +231,24 @@ my $opt2 = {lrms => 'sge',
             sge_cell => 'cello',
             sge_bin_path => '/opt/n1ge6/bin/lx24-x86',
             queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
-            jobs => ['101','102']
+            jobs => [63, 453]
+           };
+
+my $opt3 = {lrms => 'pbs',
+            pbs_bin_path => '/mn/tid/epf-a1/adrianta',
+            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete']}},
+            jobs => [63, 453]
            };
 
 sub test {
     my $options = shift;
     LogUtils->getLogger()->level($LogUtils::DEBUG);
     require Data::Dumper; import Data::Dumper qw(Dumper);
-    $log->debug("Options:\n" . Dumper($options));
+    $log->debug("Options: " . Dumper($options));
     my $results = LRMSInfo->new()->get_info($options);
-    $log->debug("Results:\n" . Dumper($results));
+    $log->debug("Results: " . Dumper($results));
 }
 
-#test($opt2);
+#test($opt3);
 
 1;

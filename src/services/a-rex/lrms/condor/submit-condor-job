@@ -3,7 +3,7 @@
 use File::Temp 'tempfile';
 use File::Basename;
 use lib dirname($0);
-use config_parser;
+use ConfigParser;
 use condor_env;
 
 use strict;
@@ -39,14 +39,15 @@ if (@ARGV == 2 && $ARGV[0] eq '-d') {
 parse_grami(my $gramifile = $ARGV[0]);
 
 my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
-config_parse_file($configfile) or die "Cannot parse configuration file: $configfile\n";
+my $parser = ConfigParser->new($configfile)
+    or die "Cannot parse configuration file: $configfile\n";
 
 # import some config sections
 my %config = ();
-%config = config_update_from_section("common", %config);
-%config = config_update_from_section("infosys", %config);
-%config = config_update_from_section("grid-manager", %config);
-%config = config_update_from_section("queue/$grami{joboption_queue}", %config)
+%config = (%config, $parser->get_section("common"));
+%config = (%config, $parser->get_section("infosys"));
+%config = (%config, $parser->get_section("grid-manager"));
+%config = (%config, $parser->get_section("queue/$grami{joboption_queue}"))
     if $grami{joboption_queue};
 
 # this finds location of condor executables, and sets up environment vars.

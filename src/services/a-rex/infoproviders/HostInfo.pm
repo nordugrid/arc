@@ -1,5 +1,6 @@
 package HostInfo;
 
+use Sys::Hostname;
 use File::Basename;
 use lib dirname($0);
 
@@ -24,6 +25,7 @@ our $host_info_schema = {
         architecture => '',
         cpumodel => '',
         cpufreq => '',
+        nodecpu => '',
         architecture => '',
         issuerca => '',
         issuerca_hash => '',
@@ -63,41 +65,51 @@ sub _collect($$) {
 
 # private subroutines
 
+#
+# Returns disk space (total and free) in MB on a filesystem
+#
 sub diskspace ($) {
     my $path = shift;
-    my $space;
+    my ($diskfree, $disktotal);
+
     if ( -d "$path") {
         # check if on afs
-        if ($path =~ /\/afs\//) {
-            $space =`fs listquota $path 2>/dev/null`;
+        if ($path =~ m#/afs/#) {
+            my @dfstring =`fs listquota $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed checking diskspace for $path");
+                $log->warning("Failed running: fs listquota $path");
+            } elsif ($dfstring[1] =~ /^\s*\S+\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
+                $disktotal = int $1/1024;
+                $diskfree  = int(($1 - $2)/1024);
+            } else {
+                $log->warning("Failed interpreting output of: fs listquota $path");
             }
-            if ($space) {
-                $space =~ /\n\S+\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/;
-                $space = int (($1 - $2)/1024);
-            }
-            # "ordinary" disk
+        # "ordinary" disk
         } else {
-            $space =`df -k -P $path 2>/dev/null`;
+            my @dfstring =`df -k -P $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed checking diskspace for $path");
-            }
-            if ($space) {
-                $space =~ /\n\S+\s+\d+\s+\d+\s+(\d+)\s+\d+/;
-                $space=int $1/1024;
+                $log->warning("Failed running: df -k -P $path");
+            } elsif ($dfstring[1] =~ /^\s*\S+\s+(\d+)\s+\d+\s+(\d+)\s+\d+%/) {
+    	        $disktotal = int $1/1024;
+    	        $diskfree  = int $2/1024;
+            } else {
+                $log->warning("Failed interpreting output of: df -k -P $path");
             }
         }
     } else {
-        $log->error("sessiondir $path was not found");
+        $log->warning("Not a directory: $path");
     }
-    return $space;
+
+    return undef unless defined($disktotal) and defined($diskfree);
+    return {megstotal => $disktotal, megsfree => $diskfree};
 }
 
 
 sub grid_diskspace ($$) {
     my ($sessiondir, $localids) = @_;
     my $commonspace = diskspace($sessiondir);
+    $log->error("Failed checking disk space in sessiondir $sessiondir")
+         unless $commonspace;
 
     my $users = {};
     foreach my $u (@$localids) {
@@ -108,28 +120,40 @@ sub grid_diskspace ($$) {
 
         if ($sessiondir =~ /^\s*\*\s*$/) {
             $users->{$u}{gridarea} = $home."/.jobs";
-            $users->{$u}{diskfree} = diskspace($users->{$u}{gridarea});
+            my $gridspace = diskspace($users->{$u}{gridarea}); 
+            $log->error("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
+                unless $gridspace;
+            $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
         } else {
             $users->{$u}{gridarea} = $sessiondir;
-            $users->{$u}{diskfree} = $commonspace;
+            $users->{$u}{diskfree} = $commonspace->{megsfree} || 0;
         }
     }
     return $users;
 }
 
-# return the PIDs of named processes, or zero if not running
+# Return PIDs of named commands owned by the current user
+# Only one pid is returned per command name
 
 sub process_status (@) {
-    my $ids = {};
-    foreach my $name ( @_ ) {
-        my ($id) = `pgrep $name`;
-        if ( $? != 0 ) {
-            ( my ($id) = `ps -C $name --no-heading`) =~ s/(\d+).*/$1/;
-            $log->warning("Failed checking process $name") if $?;
-        }
-        chomp( $ids->{$name} = $id ? $id : 0 );
+
+    my @procs = `ps -u $< -o pid,comm 2>/dev/null`;
+    if ( $? != 0 ) {
+        $log->info("Failed running: ps -u $< -o pid,comm");
+        $log->warning("Failed listing processes");
+        return {};
     }
-    return $ids;
+    shift @procs; # throw away header line
+
+    # make hash of comm => pid
+    my %all;
+    /\s*(\d+)\s+(.+)/ and $all{$2} = $1 for @procs;
+
+    my %pids;
+    foreach my $name ( @_ ) {
+        $pids{$name} = $all{$name} if $all{$name};
+    }
+    return \%pids;
 }
 
 
@@ -144,22 +168,25 @@ sub get_host_info {
     # Scripting, scripting, scripting, oh hay, oh hay...
     ############################################################
 
-    chomp( $host_info->{hostname} = `/bin/hostname -f`);
-    $log->warning("Failed running hostname") if $?;
+    chomp( $host_info->{hostname} = hostname());
     chomp( $host_info->{architecture} = `uname -m`);
     $log->warning("Failed running uname") if $?;
 
-     open (CPUINFO, "</proc/cpuinfo")
-         or $log->error("error in opening /proc/cpuinfo");
-     while ( my $line = <CPUINFO> ) {
-         if ($line=~/^model name\s+:\s+(.*)$/) {
-             $host_info->{cpumodel} = $1;
-         }
-         if ($line=~/^cpu MHz\s+:\s+(.*)$/) {
-             $host_info->{cpufreq} = $1;
-         }
-     }
-     close CPUINFO;
+    open (CPUINFO, "</proc/cpuinfo")
+        or $log->error("error in opening /proc/cpuinfo");
+    while ( my $line = <CPUINFO> ) {
+        if ($line=~/^model name\s+:\s+(.*)$/) {
+            $host_info->{cpumodel} = $1;
+        }
+        if ($line=~/^cpu MHz\s+:\s+(.*)$/) {
+            $host_info->{cpufreq} = int $1;
+        }
+    }
+    close CPUINFO;
+
+    if ($host_info->{cpufreq} and $host_info->{cpumodel}) {
+        $host_info->{nodecpu} = "$host_info->{cpumodel} @ $host_info->{cpufreq} Mhz";
+    }
     
     # Globus location
     my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/opt/globus/";
@@ -202,59 +229,28 @@ sub get_host_info {
     $host_info->{trustedcas} = \@trustedca;
     
     #nordugrid-cluster-sessiondirusage
-    my $session_diskfree  = 0;
-    my $session_disktotal = 0;
-    if ( -d "$options->{sessiondir}") {
-        # afs  
-        if ($options->{sessiondir} =~ /\/afs\//) {
-    	$session_diskfree =`fs listquota $options->{sessiondir} 2>/dev/null`;
-    	if ($session_diskfree) {
-    	    $session_diskfree =~ /\n\S+\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/;
-    	    $session_diskfree = int (($1 - $2)/1024);
-    	    $session_disktotal= int $1/1024;
-    	} 
-        } 
-        # "ordinary" disk 
-        else {
-    	my (@dfstring) =`df -k -P $options->{sessiondir} 2>/dev/null`;
-    	if ($dfstring[1]) {
-    	    my ( $filesystem, $onekblocks, $used, $available, $usepercentage,
-    		 $mounted ) = split " ", $dfstring[1];
-    	    $session_diskfree = int $available/1024;
-    	    $session_disktotal = int $onekblocks/1024;
-    	}
-        }
-    }
-    else {
-        $log->warning("no sessiondir found");
-    }
-    $host_info->{session_free} = $session_diskfree;
-    $host_info->{session_total} = $session_disktotal;
+    my $sessionspace = diskspace($options->{sessiondir});
+    $log->error("Failed checking disk space in sessiondir $options->{sessiondir}")
+        unless $sessionspace;
+    $host_info->{session_free} = $sessionspace->{megsfree} || 0;
+    $host_info->{session_total} = $sessionspace->{megstotal} || 0;
         
     #nordugrid-cluster-cacheusage
-    my $cache_statfile = "statistics";
-    my ($cache_disktotal, $cache_diskfree);
+    my $cachespace;
     if ( $options->{cachedir} ){
-        (my $path1, my $path2) = split /\s+/, $options->{cachedir};
-        my ($dfstring) = join '', `cat $path1/$cache_statfile 2>/dev/null`;
-        if ( $? ) {
-    	$log->warning("error in reading the cache status file $path1/$cache_statfile");
-        } 
-        $dfstring =~ /softfree=(\d+)/;
-        $cache_diskfree = int $1/1024/1024;
-        $dfstring =~ /unclaimed=(\d+)/;
-        $cache_diskfree += int $1/1024/1024;
-        $dfstring =~ /softsize=(\d+)/;
-        $cache_disktotal = int $1/1024/1024;
+        my ($cachedir) = split /\s+/, $options->{cachedir};
+        my $cachespace = diskspace($cachedir);
     }
-    $host_info->{cache_free} = $cache_diskfree;
-    $host_info->{cache_total} = $cache_disktotal;
+    #OBS: only accurate if cache is on a filesystem of it's own 
+    #TODO: find a way to get better numbers from new cache system
+    $host_info->{cache_free} = $cachespace->{megsfree} || 0;
+    $host_info->{cache_total} = $cachespace->{megstotal} || 0;
     
     #NorduGrid middleware
     #nordugridlocation/bin/grid-manager -v
     $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib:$options->{ng_location}/lib";
     my ($ngversion) = `$options->{ng_location}/sbin/grid-manager -v 2>/dev/null`;
-    if ($?) { $log->warning("Can't execute the $options->{ng_location}/sbin/grid-manager")}
+    if ($?) { $log->warning("Failed running $options->{ng_location}/sbin/grid-manager")}
     $ngversion =~ s/grid-manager: version\s*(.+)$/$1/;
     $host_info->{ngversion} = $ngversion;
     chomp $host_info->{ngversion};
@@ -264,12 +260,12 @@ sub get_host_info {
     my $globusversion;
     if (-r "$globus_location/share/doc/VERSION" ) {
        chomp ( $globusversion =  `cat $globus_location/share/doc/VERSION 2>/dev/null`);
-       if ($?) { $log->warning("error in reading the globus version file")}   
+       if ($?) { $log->warning("Failed reading the globus version file")}   
     }
     #globuslocation/bin/globus-version
     elsif (-x "$globus_location/bin/globus-version" ) {
        chomp ( $globusversion =  `$globus_location/bin/globus-version 2>/dev/null`);
-       if ($?) { $log->warning("error in executing the $globus_location/bin/globus-version command")}
+       if ($?) { $log->warning("Failed running $globus_location/bin/globus-version command")}
     }
     $host_info->{globusversion} = $globusversion;
     
@@ -297,6 +293,9 @@ sub get_host_info {
     return $host_info;
 }
 
+
+#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
+
 sub test {
     my $options = { x509_user_cert => '/etc/grid-security/hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
@@ -304,7 +303,7 @@ sub test {
                     cachedir => '/home/grid/cache',
                     ng_location => '/opt/nordugrid',
                     runtimedir => '/home/grid/runtime',
-                    processes => [ qw(bash init grid-manager bogous) ],
+                    processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils->getLogger()->level($LogUtils::DEBUG);

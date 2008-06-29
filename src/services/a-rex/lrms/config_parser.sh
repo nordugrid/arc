@@ -6,9 +6,9 @@
 #
 #   source $ARC_LOCATION/libexec/config_parser
 #   config_parse_file /etc/arc.conf || exit 1
-#   config_update_from_section common
-#   config_update_from_section grid-manager
-#   config_update_from_section infosys
+#   config_import_section common
+#   config_import_section grid-manager
+#   config_import_section infosys
 #   env | grep CONFIG_
 
 #
@@ -44,7 +44,7 @@ config_parse_file() {
 # Imports a section of the config file into shell variables.
 # Option names from will be prefixed with CONFIG_
 #
-config_update_from_section() {
+config_import_section() {
   block=$1
   i=0
   if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
@@ -65,6 +65,33 @@ config_update_from_section() {
     return 0
   done
   return 1
+}
+
+config_match_section() {
+  block=$1
+  i=0
+  if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
+  while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
+    i=$((i+1))
+    eval name="\$_CONFIG_BLOCK${i}_NAME"
+    if [ "x$block" = "x$name" ]; then return 0; fi
+  done
+  return 1
+}
+
+config_subsections() {
+  block=$1
+  i=0
+  if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
+  while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
+    i=$((i+1))
+    eval name="\$_CONFIG_BLOCK${i}_NAME"
+    # skip the parent section itself
+    if [ "x$block" = "x$name" ]; then continue; fi
+    head=${name%%/*}
+    tail=${name#*/}
+    if [ "x$block" = "x$head" ]; then echo $tail; fi
+  done
 }
 
 config_hide_all() {

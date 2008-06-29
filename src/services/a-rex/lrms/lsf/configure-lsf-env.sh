@@ -20,14 +20,14 @@ fi
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
 
-config_update_from_section "common"
-config_update_from_section "infosys"
-config_update_from_section "grid-manager"
-config_update_from_section "cluster"
+config_import_section "common"
+config_import_section "infosys"
+config_import_section "grid-manager"
+config_import_section "cluster"
 
 # Also read queue section
 if [ ! -z "$joboption_queue" ]; then
-  config_update_from_section "queue/$joboption_queue"
+  config_import_section "queue/$joboption_queue"
 fi
 
 

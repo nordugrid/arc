@@ -52,7 +52,11 @@ sub _get_results_schema {
 sub _collect($$) {
     my ($self,$config) = @_;
 
-    my @localusers = get_local_users($config->{gridmap});
+    # get all local users from grid-map. Sort unique
+    my %saw = ();
+    my $usermap = read_grid_mapfile($config->{gridmap});
+    my @localusers = grep !$saw{$_}++, values %$usermap;
+
     my $host_info = get_host_info($config,\@localusers);
 
     my $gmjobs_info = get_gmjobs_info($config);
@@ -66,7 +70,7 @@ sub _collect($$) {
     }
     my $lrms_info = get_lrms_info($config,\@localusers,\@jobids);
 
-    return get_cluster_info ($config, $host_info, $gmjobs_info, $lrms_info);
+    return get_cluster_info ($config, $usermap, $host_info, $gmjobs_info, $lrms_info);
 }
 
 ############################################################################
@@ -76,16 +80,7 @@ sub _collect($$) {
 sub get_host_info($$) {
     my ($config,$localusers) = @_;
 
-    my $host_opts = {
-        x509_user_cert => $config->{x509_user_cert},
-        x509_cert_dir => $config->{x509_cert_dir},
-        sessiondir => $config->{sessiondir},
-        cachedir => $config->{cachedir},
-        ng_location => $config->{ng_location},
-        runtimedir => $config->{runtimedir},
-        processes => $config->{processes},
-        localusers => $localusers,
-    };
+    my $host_opts = { %$config, localusers => $localusers };
 
     return HostInfo->new()->get_info($host_opts);
 }
@@ -111,14 +106,6 @@ sub get_lrms_info($$$) {
 }
 
 #### grid-mapfile hack #####
-
-sub get_local_users($) {
-    my $gridmap = shift;
-    my %saw = ();
-    # get all local users from grid-map. Sort unique
-    my $usermap = read_grid_mapfile($gridmap);
-    return grep !$saw{$_}++, values %$usermap;
-}
 
 sub read_grid_mapfile($) {
     my $gridmapfile = shift;
@@ -155,13 +142,14 @@ sub mds_valid($){
 ############################################################################
 
 sub get_cluster_info($$$$) {
-    my ($config,$host_info,$gmjobs_info,$lrms_info) = @_;
+    my ($config,$usermap,$host_info,$gmjobs_info,$lrms_info) = @_;
 
     my ($valid_from, $valid_to) = $config->{ttl} ? mds_valid($config->{ttl}) : ();
 
     # adotf means autodetect on the frontend
     $config->{architecture} = $host_info->{architecture} if $config->{architecture} eq 'adotf';
     $config->{nodecpu} = $host_info->{nodecpu} if $config->{nodecpu} eq 'adotf';
+    $config->{opsys} = $host_info->{opsys} if $config->{opsys} eq 'adotf';
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
@@ -171,15 +159,16 @@ sub get_cluster_info($$$$) {
     my %gmjobcount;
     for my $job (values %{$gmjobs_info}) {
         $gmjobcount{totaljobs}++;
-        $gmjobcount{accepted}++  and next if $job->{status} =~ /ACCEPTED/;
-        $gmjobcount{preparing}++ and next if $job->{status} =~ /PREPARING/;
-        $gmjobcount{submit}++    and next if $job->{status} =~ /SUBMIT/;
-        $gmjobcount{inlrms}++    and next if $job->{status} =~ /INLRMS/;
-        $gmjobcount{finishing}++ and next if $job->{status} =~ /FINISHING/;
-        $gmjobcount{finished}++  and next if $job->{status} =~ /FINISHED/;
-        $gmjobcount{deleted}++   and next if $job->{status} =~ /DELETED/;
-        $gmjobcount{canceling}++ and next if $job->{status} =~ /CANCELING/;
-        next if $job->{status} =~ /DELETED/;
+        if ( $job->{status} =~ /ACCEPTED/ ) { $gmjobcount{accepted}++ ; next; }
+        if ( $job->{status} =~ /PREPARING/) { $gmjobcount{preparing}++; next; }
+        if ( $job->{status} =~ /SUBMIT/   ) { $gmjobcount{submit}++   ; next; }
+        if ( $job->{status} =~ /INLRMS/   ) { $gmjobcount{inlrms}++   ; next; }
+        if ( $job->{status} =~ /CANCELING/) { $gmjobcount{canceling}++; next; }
+        if ( $job->{status} =~ /FINISHING/) { $gmjobcount{finishing}++; next; }
+        if ( $job->{status} =~ /FINISHED/ ) { $gmjobcount{finished}++ ; next; }
+        if ( $job->{status} =~ /FAILED/   ) { $gmjobcount{finished}++ ; next; }
+        if ( $job->{status} =~ /KILLED/   ) { $gmjobcount{finished}++ ; next; }
+        if ( $job->{status} =~ /DELETED/  ) { $gmjobcount{deleted}++  ; next; }
         $log->error("Unexpected job status: $job->{status}");
     }
 
@@ -207,9 +196,13 @@ sub get_cluster_info($$$$) {
 
     my %prelrmsqueued;
     my %pendingprelrms;
-    my %userqueuedcount;
+    my %gm_queued;
     my @gmqueued_states = ("ACCEPTED","PENDING:ACCEPTED","PREPARING","PENDING:PREPARING","SUBMIT");
     my @gmpendingprelrms_states =("PENDING:ACCEPTED","PENDING:PREPARING" );
+
+    for my $job_gridowner (keys %$usermap) {
+        $gm_queued{$job_gridowner} = 0;
+    }
 
     for my $ID (keys %{$gmjobs_info}) {
 
@@ -221,7 +214,7 @@ sub get_cluster_info($$$$) {
 
         # count the gm_queued jobs per grid users (SNs) and the total
         if ( grep /^$gmjobs_info->{$ID}{status}$/, @gmqueued_states ) {
-            $userqueuedcount{$job_gridowner}++;
+            $gm_queued{$job_gridowner}++;
             $prelrmsqueued{$qname}++;
         }
         # count the GM PRE-LRMS pending jobs
@@ -261,6 +254,8 @@ sub get_cluster_info($$$$) {
     }
 
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     my $c = {};
@@ -366,8 +361,8 @@ sub get_cluster_info($$$$) {
         $q->{'nq0:maxwalltime'} =  [ $qinfo->{maxwalltime} ] if defined $qinfo->{maxwalltime};
         $q->{'nq0:minwalltime'} =  [ $qinfo->{minwalltime} ] if defined $qinfo->{minwalltime};
         $q->{'nq0:defaultwalltime'} = [ $qinfo->{defaultwallt} ] if defined $qinfo->{defaultwallt};
-        $q->{'nq0:running'} = [ $qinfo->{running} ];
-        $q->{'nq0:gridrunning'} = [ $gridrunning{$qname} || 0  ];   
+        $q->{'nq0:running'} = [ $qinfo->{running} ] if defined $qinfo->{running};
+        $q->{'nq0:gridrunning'} = [ $gridrunning{$qname} || 0 ];   
         $q->{'nq0:gridqueued'} = [ $gridqueued{$qname} || 0 ];    
         $q->{'nq0:localqueued'} = [ ($qinfo->{queued} - ( $gridqueued{$qname} || 0 )) ];   
         $q->{'nq0:prelrmsqueued'} = [ $prelrmsqueued{$qname} || 0 ];
@@ -398,29 +393,24 @@ sub get_cluster_info($$$$) {
 
         for my $jobid ( keys %$gmjobs_info ) {
 
-            my $j = {};
-            push @{$jg->{'nuj0:name'}}, $j;
-
             my $gmjob = $gmjobs_info->{$jobid};
 
             # only handle jobs in this queue
             next unless $gmjob->{queue} eq $qname;
 
+            my $j = {};
+            push @{$jg->{'nuj0:name'}}, $j;
+
             $j->{'name'} = $jobid;
             $j->{'xmlns:nuj0'} = "urn:nordugrid-job";
             $j->{'nuj0:name'} = [ $jobid ];
-            $j->{'nuj0:globalid'} = [ "$c->{'nc0:contactstring'}/$jobid" ];
+            $j->{'nuj0:globalid'} = [ $c->{'nc0:contactstring'}[0]."/$jobid" ];
             $j->{'nuj0:globalowner'} = [ $gmjob->{subject} ];
             $j->{'nuj0:jobname'} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
             $j->{'nuj0:submissiontime'} = [ $gmjob->{starttime} ] if $gmjob->{starttime};
             $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ];
             $j->{'nuj0:execqueue'} = [ $qname ];
             $j->{'nuj0:cpucount'} = [ $gmjob->{count} || 1 ];
-            $j->{'nuj0:errors'} = [ $gmjob->{errors} ] if $gmjob->{errors};
-            if ($gmjob->{"exitcode"}) {
-                $gmjob->{"exitcode"} =~ s/^exitcode\s+//;
-                $j->{'nuj0:exitcode'} = [ $gmjob->{exitcode} ];
-            }
             $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ];
             $j->{'nuj0:stdin'}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};
             $j->{'nuj0:stdout'} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
@@ -434,6 +424,9 @@ sub get_cluster_info($$$$) {
                 if $gmjob->{"status"} eq "FAILED";
             $j->{'nuj0:comment'} = [ $gmjob->{comment} ] if $gmjob->{comment};
 
+            $j->{'nuj0:reqcputime'} = [ $gmjob->{reqcputime} ] if $gmjob->{reqcputime};
+            $j->{'nuj0:reqwalltime'} = [ $gmjob->{reqwalltime} ] if $gmjob->{reqwalltime};
+
             if ($gmjob->{status} eq "INLRMS") {
 
                 my $localid = $gmjob->{localid}
@@ -441,12 +434,12 @@ sub get_cluster_info($$$$) {
                 my $lrmsjob = $lrms_info->{jobs}{$localid}
                     or $log->error("No local job for $jobid") and next;
 
-                $j->{'nuj0:usedmem'}     = [ $lrmsjob->{mem} ]        if $lrmsjob->{mem};
-                $j->{'nuj0:usedwalltime'}= [ $lrmsjob->{walltime} ]   if $lrmsjob->{walltime};
-                $j->{'nuj0:usedcputime'} = [ $lrmsjob->{cputime} ]    if $lrmsjob->{cputime};
-                $j->{'nuj0:reqwalltime'} = [ $lrmsjob->{reqwalltime}] if $lrmsjob->{reqwalltime};
-                $j->{'nuj0:reqcputime'}  = [ $lrmsjob->{reqcputime} ] if $lrmsjob->{reqcputime};
-                $j->{'nuj0:executionnodes'} = $lrmsjob->{nodes} if @{$lrmsjob->{nodes}};
+                $j->{'nuj0:usedmem'}     = [ $lrmsjob->{mem} ]        if defined $lrmsjob->{mem};
+                $j->{'nuj0:usedwalltime'}= [ $lrmsjob->{walltime} ]   if defined $lrmsjob->{walltime};
+                $j->{'nuj0:usedcputime'} = [ $lrmsjob->{cputime} ]    if defined $lrmsjob->{cputime};
+                $j->{'nuj0:reqwalltime'} = [ $lrmsjob->{reqwalltime}] if defined $lrmsjob->{reqwalltime};
+                $j->{'nuj0:reqcputime'}  = [ $lrmsjob->{reqcputime} ] if defined $lrmsjob->{reqcputime};
+                $j->{'nuj0:executionnodes'} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
 
                 # LRMS-dependent attributes taken from LRMS when the job
                 # is in state 'INLRMS'
@@ -472,17 +465,64 @@ sub get_cluster_info($$$$) {
                 $j->{'nuj0:status'} = [ $gmjob->{status} ];
                 $j->{'nuj0:usedwalltime'} = [ $gmjob->{WallTime} || 0 ];
                 $j->{'nuj0:usedcputime'} = [ $gmjob->{CpuTime} || 0 ];
-                $j->{'nuj0:executionnodes'} = [ split /\+/, $gmjob->{exec_host} ] if $gmjob->{exec_host};
+                $j->{'nuj0:executionnodes'} = $gmjob->{nodenames} if $gmjob->{nodenames};
                 $j->{'nuj0:usedmem'} = [ $gmjob->{UsedMem} ] if $gmjob->{UsedMem};
-                $j->{'nuj0:reqcputime'} = [ $gmjob->{reqcputime} ] if $gmjob->{reqcputime};
-                $j->{'nuj0:reqwalltime'} = [ $gmjob->{reqwalltime} ] if $gmjob->{reqwalltime};
                 $j->{'nuj0:completiontime'} = [ $gmjob->{completiontime} ] if $gmjob->{completiontime};
+                $j->{'nuj0:errors'} = [ substr($gmjob->{errors},0,87) ] if $gmjob->{errors};
+                $j->{'nuj0:exitcode'} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
             }
 
             $j->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
             $j->{'M0:validto'} = [ $valid_to ] if $valid_to;
         }
 
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+        my $ug = {};
+        $q->{'nig0:users'} = $ug;
+
+        $ug->{'name'} = "users";
+        $ug->{'xmlns:nig0'} = "urn:nordugrid-info-group";
+        $ug->{'nig0:name'} = [ 'users' ];
+        $ug->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
+        $ug->{'M0:validto'} = [ $valid_to ] if $valid_to;
+
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+        $ug->{'na0:name'} = [];
+
+        my $usernumber = 0;
+
+        for my $sn ( keys %$usermap ) {
+
+            my $localid = $usermap->{$sn};
+            my $lrms_user = $qinfo->{users}{$localid};
+
+            # skip users that are not authorized in this queue
+            next if exists $lrms_user->{acl_users}
+                 and not grep { $_ eq $localid } @{$lrms_user->{acl_users}};
+
+            my $u = {};
+            push @{$ug->{'na0:name'}}, $u;
+
+            ++$usernumber;
+            my $space = $host_info->{localusers}{$localid};
+
+            #na0:name= CN from the SN  + unique number 
+            my $cn = ($sn =~ m#/CN=([^/]+)(/Email)?#) ? $1 : $sn;
+
+            $u->{'name'} = "${cn}...$usernumber";
+            $u->{'xmlns:na0'} = "urn:nordugrid-authuser";
+            $u->{'na0:name'} = [ "${cn}...$usernumber" ];
+            $u->{'na0:sn'} = [ $sn ];
+            $u->{'na0:diskspace'} = [ $space->{diskfree} ] if defined $space->{diskfree};
+            $u->{'na0:freecpus'} = [ 0 ];
+            $u->{'na0:freecpus'} = [ $lrms_user->{freecpus} ] if defined $lrms_user->{freecpus};
+            $u->{'na0:freecpus'} = [ 0 ] if $pendingprelrms{$qname};
+            $u->{'na0:queuelength'} = [ $gm_queued{$sn} + $lrms_user->{queuelength} ];
+            $u->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
+            $u->{'M0:validto'} = [ $valid_to ] if $valid_to;
+        }
 
     }
 
@@ -490,10 +530,11 @@ sub get_cluster_info($$$$) {
 }
 
 
-### test ###
+#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 my $config = {
-          'lrms' => 'fork',
+          'lrms' => 'sge',
+          #'lrms' => 'fork',
           'pbs_log_path' => '/var/spool/pbs/server_logs',
           'pbs_bin_path' => '/opt/pbs',
           'sge_cell' => 'cello',
@@ -510,8 +551,8 @@ my $config = {
 
           'ng_location' => '/opt/nordugrid',
           'gridmap' => '/etc/grid-security/grid-mapfile',
-          'controldir' => '/home/grid/control',
-          'sessiondir' => '/home/grid/session',
+          'controldir' => '/tmp/arc1/control',
+          'sessiondir' => '/tmp/arc1/session',
           'runtimedir' => '/home/grid/runtime',
           'cachedir' => '/home/grid/cache',
           'cachesize' => '10000000000 8000000000',
@@ -541,7 +582,7 @@ my $config = {
                                      'name' => 'all.q',
                                      'sge_jobopts' => '-r yes',
                                      'nodecpu' => 'adotf',
-                                     'opsys' => 'adotf',
+                                     'opsys' => 'Mandrake 7.0',
                                      'architecture' => 'adotf',
                                      'nodememory' => '512',
                                      'comment' => 'Dedicated queue for ATLAS users'
@@ -554,11 +595,11 @@ sub test {
     LogUtils->getLogger()->level($LogUtils::DEBUG);
 
     my $cluster_info = ARC0ClusterInfo->new()->get_info($config);
-    print Dumper($cluster_info);
+    #print Dumper($cluster_info);
 
     require XML::Simple;
     my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
-    #print $xml->XMLout($cluster_info);
+    print $xml->XMLout($cluster_info);
 }
 
 #test;
