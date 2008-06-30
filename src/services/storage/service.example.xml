@@ -14,6 +14,7 @@
         <Path>./arc1/src/hed/mcc/soap/.libs/</Path>
         <Path>./arc1/src/hed/mcc/tcp/.libs/</Path>
         <Path>./arc1/src/hed/mcc/tls/.libs/</Path>
+        <Path>./arc1/src/services/httpd/.libs/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -26,16 +27,19 @@
         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
+            <next id="plexer">GET</next>
+            <next id="plexer">PUT</next>
         </Component>
         <Component name="soap.service" id="soap">
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="hash">/Hash</next>
-            <next id="catalog">/Catalog</next>
-            <next id="manager">/Manager</next>
-            <next id="element">/Element</next>
-            <next id="byteio">/byteio</next>
+            <next id="echo">^/Echo$</next>
+            <next id="hash">^/Hash$</next>
+            <next id="catalog">^/Catalog$</next>
+            <next id="manager">^/Manager$</next>
+            <next id="element1">^/Element$</next>
+            <next id="httpd1">^/httpd/</next>
         </Plexer>
         <Service name="pythonservice" id="hash">
             <ClassName>storage.hash.hash.HashService</ClassName>
@@ -59,20 +63,21 @@
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>./element_data</DataDir></StoreCfg>
-            <BackendClass>storage.element.byteio.ByteIOBackend</BackendClass>
+            <StoreCfg>
+                <DataDir>./element_data</DataDir>
+            </StoreCfg>
+            <BackendClass>storage.element.httpdbackend.HTTPDBackend</BackendClass>
             <BackendCfg>
                 <DataDir>./element_store</DataDir>
                 <TransferDir>./element_transfer</TransferDir>
-                <TURLPrefix>http://localhost:60000/byteio/</TURLPrefix>
+                <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
             </BackendCfg>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
-        <Service name="pythonservice" id="byteio">
-            <ClassName>storage.element.byteio.ByteIOService</ClassName>
-            <TransferDir>./element_transfer</TransferDir>
-            <NotifyURL>http://localhost:60000/Element</NotifyURL>
+        <Service name="httpd" id="httpd">
+            <DocumentRoot>./element_transfer</DocumentRoot>
+            <SlaveMode>1</SlaveMode>
         </Service>
     </Chain>
 </ArcConfig>
