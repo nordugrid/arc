@@ -34,10 +34,6 @@ int main(void) {
 
   /*Parse the X509 Token*/
   Arc::SOAPEnvelope soap2(str);
-
-  soap2.GetXML(str);
-  std::cout<<"SOAP message with X509Token for signature:"<<std::endl<<str<<std::endl<<std::endl;
-
   Arc::X509Token xt2(soap2);
   if(!xt2) {
     std::cout<<"Failed parsing previously generated X509Token"<<std::endl<<std::endl;
