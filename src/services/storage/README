@@ -16,3 +16,31 @@ service.example.xml			- an example service configuration xml for HED
 service.example.3SEs.xml	- an example service configuration xml for HED with 3 instances of the Storage Element
 service.py					- a python superclass of service classes with common features
 xmltree.py					- a python class for easy handling of simple XML structures	
+
+Bit more detail about the main services:
+- Hash: it is basically a (currently centralized but later distributed)
+database service which is storing 'objects', where an 'object' is any
+number of key-value pairs, where the keys are itself 2-tuples. so if you
+have a 'dictionary' or a 'hashtable' or that kind of stuff which is
+basically a list of key-value pairs, then you can store it here with a
+unique ID and later you can retrieve or change it any time
+
+- Catalog: it is a service which stores the global filesystem, all the
+metadata of the collections and files. it does not store the actual
+replicas of the file, just the metadata which contain the location of
+the replicas. this service knows about Logical Names and GUIDs, and can
+walk the logical namespace, traversing logical names, etc. (the Catalog
+uses the Hash as database)
+
+- Element: this service lives on a storage resource which is actually
+storing the replicas of the files, and when a user wants to download or
+upload a file, the actual data transfer is going directly to these
+services. the Elements checks the health of their files, and report it
+to the Catalog. they initiate replication if needed.
+
+- Manager: this service is the main front-end service of the storage,
+the users connect to this, this provides a high-level user-friendly
+interface for file and collection operations, every transfer must be
+initiated by a Manager service. it connects to Catalogs to organize the
+global logical namespace, it connects to Elements to initiate file
+transfers.
