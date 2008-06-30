@@ -3,18 +3,12 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
 >
-    <Server>
-        <Foreground/>
-        <Pidfile>./arched.pid</Pidfile>
-        <Logger level="ERROR">./logfile</Logger>
+    <Server
+        <Pidfile>/var/run/arched.pid</Pidfile>
+        <Logger level="ERROR">/var/log/arched.log</Logger>
     </Server>
     <ModuleManager>
-        <Path>./arc1/src/services/wrappers/python/.libs/</Path>
-        <Path>./arc1/src/hed/mcc/http/.libs/</Path>
-        <Path>./arc1/src/hed/mcc/soap/.libs/</Path>
-        <Path>./arc1/src/hed/mcc/tcp/.libs/</Path>
-        <Path>./arc1/src/hed/mcc/tls/.libs/</Path>
-        <Path>./arc1/src/services/httpd/.libs/</Path>
+        <Path>/usr/local/lib/arc/</Path>
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcctls</Name></Plugins>
@@ -44,7 +38,7 @@
             <ClassName>storage.hash.hash.HashService</ClassName>
             <HashClass>storage.hash.hash.CentralHash</HashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>./hash_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>/var/spool/arc/hash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="catalog">
             <ClassName>storage.catalog.catalog.CatalogService</ClassName>
@@ -63,19 +57,20 @@
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg>
-                <DataDir>./element_data</DataDir>
+                <DataDir>/var/spool/arc/element_data</DataDir>
             </StoreCfg>
             <BackendClass>storage.element.httpdbackend.HTTPDBackend</BackendClass>
             <BackendCfg>
-                <DataDir>./element_store</DataDir>
-                <TransferDir>./element_transfer</TransferDir>
+                <DataDir>/var/spool/arc/element_store</DataDir>
+                <TransferDir>/var/spool/arc/element_transfer</TransferDir>
+                <!-- Change this prefix to the external interface of your machine -->
                 <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
             </BackendCfg>
             <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
         <Service name="httpd" id="httpd">
-            <DocumentRoot>./element_transfer</DocumentRoot>
+            <DocumentRoot>/var/spool/arc/element_transfer</DocumentRoot>
             <SlaveMode>1</SlaveMode>
         </Service>
     </Chain>
