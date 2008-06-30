@@ -22,7 +22,7 @@ namespace Arc {
       URL url(iter->JobID);
       url.ChangePath(*pi);
       Cream::CREAMClient gLiteClient(url, cfg);
-      gLiteClient.stat(pi.Rest());
+      iter->State = gLiteClient.stat(pi.Rest());
     }
   }
 
