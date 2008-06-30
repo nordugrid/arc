@@ -34,12 +34,11 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="echo">^/Echo$</next>
             <next id="hash">^/Hash$</next>
             <next id="catalog">^/Catalog$</next>
             <next id="manager">^/Manager$</next>
-            <next id="element1">^/Element$</next>
-            <next id="httpd1">^/httpd/</next>
+            <next id="element">^/Element$</next>
+            <next id="httpd">^/httpd/</next>
         </Plexer>
         <Service name="pythonservice" id="hash">
             <ClassName>storage.hash.hash.HashService</ClassName>
