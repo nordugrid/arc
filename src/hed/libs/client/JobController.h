@@ -21,6 +21,7 @@ namespace Arc{
     virtual void GetJobInformation() = 0;
     virtual void DownloadJobOutput(bool keep, std::string downloaddir) = 0;
     virtual void Clean(bool force) = 0;
+    virtual void Kill(bool keep) = 0;
 
     //Base class implementation
     void IdentifyJobs(std::list<std::string> jobids);

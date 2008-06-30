@@ -29,6 +29,7 @@ namespace Arc {
     void GetJobInformation();
     void DownloadJobOutput();
     void Clean();
+    void Kill();
     void PrintJobInformation(bool longlist);
 
     const std::list<std::string> clusterselect;

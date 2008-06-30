@@ -1,4 +1,4 @@
-bin_PROGRAMS = arcstat arcsub arcget arcclean
+bin_PROGRAMS = arcstat arcsub arcget arcclean arckill
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
@@ -22,5 +22,6 @@ arcclean_SOURCES  = arcclean.cpp
 arcclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcclean_LDADD    = $(CLILIBS)
 
-
-
+arckill_SOURCES  = arckill.cpp
+arckill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arckill_LDADD    = $(CLILIBS)

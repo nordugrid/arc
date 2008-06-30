@@ -260,5 +260,7 @@ namespace Arc {
 
 
   }//end CleanThisJob    
+
+  void JobControllerARC0::Kill(bool keep) {}
     
 } // namespace Arc

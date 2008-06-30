@@ -133,4 +133,15 @@ namespace Arc {
     }
   }
 
+  void JobSupervisor::Kill() {
+
+    logger.msg(DEBUG, "Killing job(s)");	
+
+    std::list<JobController*>::iterator iter;
+    
+    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
+      (*iter)->Kill(keep);
+    }
+  }
+
 } // namespace Arc

@@ -32,4 +32,8 @@ namespace Arc {
 
   }
 
+  void JobControllerARC1::Kill(bool keep){
+
+  }
+
 } // namespace Arc
