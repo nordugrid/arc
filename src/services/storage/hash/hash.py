@@ -1,8 +1,8 @@
 """
-Hash
+A-Hash
 ----
 
-Centralized prototype implementation of the Hash service.
+Centralized prototype implementation of the A-Hash service.
 This service is a metadata-store capable of storing object with unique IDs,
 where each object has a key-value pairs organized in sections.
 
@@ -12,31 +12,31 @@ Methods:
 
 Sample configuration:
 
-        <Service name="pythonservice" id="hash">
-            <ClassName>storage.hash.hash.HashService</ClassName>
-            <HashClass>storage.hash.hash.CentralHash</HashClass>
+        <Service name="pythonservice" id="ahash">
+            <ClassName>storage.ahash.ahash.AHashService</ClassName>
+            <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>hash_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>ahash_data</DataDir></StoreCfg>
         </Service>
 """
 import arc
 import traceback
 import time
-from storage.common import import_class_from_string, hash_uri, node_to_data, create_metadata, get_child_nodes
+from storage.common import import_class_from_string, ahash_uri, node_to_data, create_metadata, get_child_nodes
 
-class CentralHash:
-    """ A centralized implementation of the Hash service. """
+class CentralAHash:
+    """ A centralized implementation of the A-Hash service. """
 
     def __init__(self, storeclass, storecfg, log):
-        """ The constructor of the CentralHash class.
+        """ The constructor of the CentralAHash class.
 
-        CentralHash(storeclass, storecfg)
+        CentralAHash(storeclass, storecfg)
 
         'storeclass' is the name of the class which will store the data
         'storecfg' is an XMLNode with the configuration of the storeclass
         """
         self.log = log
-        self.log('DEBUG', "CentralHash constructor called")
+        self.log('DEBUG', "CentralAHash constructor called")
         # import the storeclass and call its constructor with the datadir
         self.store = import_class_from_string(storeclass)(storecfg, log = self.log)
 
@@ -102,7 +102,7 @@ class CentralHash:
             # for each change in the changes list
             # lock the store to avoid inconsistency
             while not self.store.lock(blocking = False):
-                #print 'Hash cannot acquire lock, waiting...'
+                #print 'A-Hash cannot acquire lock, waiting...'
                 time.sleep(0.2)
             # prepare the 'success' of this change
             success = 'unknown'
@@ -180,28 +180,28 @@ class CentralHash:
 from storage.xmltree import XMLTree
 from storage.service import Service
 
-class HashService(Service):
-    """ HashService class implementing the XML interface of the Hash service. """
+class AHashService(Service):
+    """ AHashService class implementing the XML interface of the A-Hash service. """
 
     def __init__(self, cfg):
-        """ Constructor of the HashService
+        """ Constructor of the AHashService
 
-        HashService(cfg)
+        AHashService(cfg)
 
         'cfg' is an XMLNode which containes the config of this service.
         """
         # names of provided methods
         request_names = ['get','change']
         # call the Service's constructor
-        Service.__init__(self, 'Hash', request_names, 'hash', hash_uri, cfg)
-        # the name of the class which implements the business logic of the Hash service
-        hashclass = str(cfg.Get('HashClass'))
+        Service.__init__(self, 'A-Hash', request_names, 'ahash', ahash_uri, cfg)
+        # the name of the class which implements the business logic of the A-Hash service
+        ahashclass = str(cfg.Get('AHashClass'))
         # the name of the class which is capable of storing the object
         storeclass = str(cfg.Get('StoreClass'))
         # this is a directory for storing object data
         storecfg = cfg.Get('StoreCfg')
         # import and instatiate the business logic class
-        self.hash = import_class_from_string(hashclass)(storeclass, storecfg, self.log)
+        self.ahash = import_class_from_string(ahashclass)(storeclass, storecfg, self.log)
 
     def get(self, inpayload):
         """ Returns the data of the requested objects.
@@ -211,7 +211,7 @@ class HashService(Service):
         'inpayload' is an XMLNode containing the IDs of the requested objects
         """
         # extract the IDs from the XMLNode using the '//ID' XPath expression
-        ids = [str(id) for id in inpayload.XPathLookup('//hash:ID', self.ns)]
+        ids = [str(id) for id in inpayload.XPathLookup('//ahash:ID', self.ns)]
         # get the neededMetadata from the XMLNode
         try:
             neededMetadata = [
@@ -222,18 +222,18 @@ class HashService(Service):
             self.log()
             neededMetadata = []
         # gets the result from the business logic class
-        objects = self.hash.get(ids, neededMetadata)
+        objects = self.ahash.get(ids, neededMetadata)
         # create the response payload
         out = self.newSOAPPayload()
         # create the 'getResponse' node
-        response_node = out.NewChild('hash:getResponse')
+        response_node = out.NewChild('ahash:getResponse')
         # create an XMLTree from the results
         tree = XMLTree(from_tree = 
-            ('hash:objects', [
-                ('hash:object', [ # for each object
-                    ('hash:ID', ID),
+            ('ahash:objects', [
+                ('ahash:object', [ # for each object
+                    ('ahash:ID', ID),
                     # create the metadata section of the response:
-                    ('hash:metadataList', create_metadata(metadata, 'hash'))
+                    ('ahash:metadataList', create_metadata(metadata, 'ahash'))
                 ]) for (ID, metadata) in objects.items()
             ])
         )
@@ -273,18 +273,18 @@ class HashService(Service):
             # put this change request into the changes dictionary
             changes[changeID] = change
         # call the business logic class
-        resp = self.hash.change(changes)
+        resp = self.ahash.change(changes)
         # prepare the response payload
         out = self.newSOAPPayload()
         # create the 'changeResponse' node
-        response_node = out.NewChild('hash:changeResponse')
+        response_node = out.NewChild('ahash:changeResponse')
         # create an XMLTree for the response
         tree = XMLTree(from_tree = 
-            ('hash:changeResponseList', [
-                ('hash:changeResponseElement', [ # for each change
-                    ('hash:changeID', changeID),
-                    ('hash:success', success),
-                    ('hash:conditionID', conditionID)
+            ('ahash:changeResponseList', [
+                ('ahash:changeResponseElement', [ # for each change
+                    ('ahash:changeID', changeID),
+                    ('ahash:success', success),
+                    ('ahash:conditionID', conditionID)
                 ]) for (changeID, (success, conditionID)) in resp.items()
             ])
         )
