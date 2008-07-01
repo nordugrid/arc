@@ -140,7 +140,7 @@ the str() method gives a string representation of an XMLTree:
   "('object', [('key1', 'value3'), ('key2', 'value4')])"]
 
 finally, you can create complex XML structures easily with XMLTree:
-(this example is from the 'get' method of the hash.HashService class,
+(this example is from the 'get' method of the ahash.AHashService class,
 the 'resp' is a list of (ID, object) pairs,
 where 'object' is a list of (section, property, value) tuples)
 

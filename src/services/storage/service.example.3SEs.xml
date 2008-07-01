@@ -31,7 +31,7 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="hash">^/Hash$</next>
+            <next id="hash">^/AHash$</next>
             <next id="catalog">^/Catalog$</next>
             <next id="manager">^/Manager$</next>
             <next id="element1">^/Element1$</next>
@@ -45,14 +45,14 @@
             <next id="byteio3">^/byteio3/</next>
         </Plexer>
         <Service name="pythonservice" id="hash">
-            <ClassName>storage.hash.hash.HashService</ClassName>
-            <HashClass>storage.hash.hash.CentralHash</HashClass>
+            <ClassName>storage.hash.hash.AHashService</ClassName>
+            <AHashClass>storage.hash.hash.CentralAHash</AHashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg><DataDir>./hash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="catalog">
             <ClassName>storage.catalog.catalog.CatalogService</ClassName>
-            <HashURL>http://localhost:60000/Hash</HashURL>
+            <AHashURL>http://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
