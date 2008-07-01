@@ -16,6 +16,7 @@ typedef std::list<Policy*> Policies;
 typedef struct{
   //Convertion method to decrease memory consumption
   RequestTuple* reqtp;
+  Result res;
   Arc::XMLNode reqxml;
   Policies pls;
   std::list<Arc::XMLNode> plsxml;
