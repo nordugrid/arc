@@ -53,9 +53,19 @@ typedef std::list<Match> AndList;
 ///OrList  - include items inside one <Subjects> (or <Resources> <Actions> <Conditions>)
 typedef std::list<AndList> OrList;
 
+
+enum Id_MatchResult {
+  //The "id" of all the <Attribute>s under a <Subject> (or other type) is matched
+  //by <Attribute>s under <Subject> in <RequestItem>
+  ID_MATCH = 0,
+  //Part "id" is matched
+  ID_PARTIAL_MATCH = 1,
+  //Any "id" of the <Attrubute>s is not matched
+  ID_NO_MATCH = 2
+};
+
 ///ArcRule class to parse Arc specific <Rule> node
 class ArcRule : public Policy {
-
 public:
   ArcRule(Arc::XMLNode* node, EvaluatorContext* ctx);  
 
@@ -93,6 +103,11 @@ private:
 
   EvalResult evalres;
   Arc::XMLNode rulenode;
+
+  Id_MatchResult sub_idmatched;
+  Id_MatchResult res_idmatched;
+  Id_MatchResult act_idmatched;
+  Id_MatchResult ctx_idmatched; 
 
 protected:
   static Arc::Logger logger;

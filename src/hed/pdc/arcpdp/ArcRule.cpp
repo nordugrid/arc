@@ -173,25 +173,35 @@ ArcRule::ArcRule(XMLNode* node, EvaluatorContext* ctx) : Policy(node) {
   type = (std::string)(nd.Attribute("Type"));
   funcname = (std::string)(nd.Attribute("Function"));
   getItemlist(nd, conditions, "Condition", type, funcname);
+
+  //Set the initial value for id matching 
+  sub_idmatched = ID_NO_MATCH;
+  res_idmatched = ID_NO_MATCH;
+  act_idmatched = ID_NO_MATCH;
+  ctx_idmatched = ID_NO_MATCH;
  
 }
 
-static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::RequestAttribute*> req){
+static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::RequestAttribute*> req, Id_MatchResult& idmatched){
 
   ArcSec::OrList::iterator orit;
   ArcSec::AndList::iterator andit;
   std::list<ArcSec::RequestAttribute*>::iterator reqit;
 
-  //Go through each <Subject>/<Resource>/<Action>/<Context>
-  //For example, go through each <Subject> element in one rule, 
+  idmatched = ID_NO_MATCH;
+
+  //Go through each <Subject> <Resource> <Action> or <Context> under 
+  //<Subjects> <Resources> <Actions> or<Contexts>
+  //For example, go through each <Subject> element under <Subjects> in a rule, 
   //once one <Subject> element is satisfied, skip out.
   for( orit = items.begin(); orit != items.end(); orit++ ){
-
     int all_fraction_matched = 0;
+    int all_id_matched = 0;
     //For example, go through each <Attribute> element in one <Subject>, 
-    //all of the <Attribute> elements should be satisfied.
+    //all of the <Attribute> elements should be satisfied 
     for(andit = (*orit).begin(); andit != (*orit).end(); andit++){
       bool one_req_matched = false;
+      bool one_id_matched = false;
 
       //go through each <Attribute> element in one <Subject> in Request.xml, 
       //all of the <Attribute> should be satisfied.
@@ -203,17 +213,35 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
         } catch(std::exception&) { };
         if(res)
           one_req_matched = true;
+
+        //distinguish whether the "id" of the two <Attribute>s (from request and policy) are matched
+        //here we distinguish three kinds of situation: 
+        //1. All the <Attribute> id under one <Subject> (or other type) in the policy side is matched by 
+        //<Attribute> id under one <Subject> in the request side;
+        //2. Part of id is matched;
+        //3. None of id is matched at all.
+        if( ((*andit).first)->getId() == ((*reqit)->getAttributeValue())->getId() )
+          one_id_matched = true;
       }
-      // if one of the Attribute in one Request's Subject does not match any of the 
-      // Rule.Subjects.SubjectA.Attributes, then skip to the next: Rule.Subjects.SubjectB
-      if(!one_req_matched) break;
-      else all_fraction_matched +=1;
+      // if any of the <Attribute> in one Request's <Subject> matches one of the 
+      // Rule.Subjects.Subject.Attribute, count the match number. Later if all of the 
+      // <Attribute>s under Rule.Subjects.Subject are matched, then the Rule.Subjects.Subject
+      // is mathed.
+      if(one_req_matched) all_fraction_matched +=1;
+
+      //Similar to above, except only "id" is considered, not including the "value" of <Attribute> 
+      if(one_id_matched) all_id_matched +=1;
     }
     //One Rule.Subjects.Subject is satisfied (all of the Attribute are satisfied) 
     //by the RequestTuple.Subject
     if(all_fraction_matched == int((*orit).size())){
+      idmatched = ID_MATCH;
       return MATCH;
     }
+    else if(all_id_matched == int((*orit).size())) { idmatched = ID_MATCH; }
+    else if(all_id_matched > 0 && (idmatched == ID_NO_MATCH || idmatched == ID_PARTIAL_MATCH)) { idmatched = ID_PARTIAL_MATCH; }
+    else if(all_id_matched > 0 && idmatched == ID_MATCH);
+    else if(all_id_matched == 0);
   }
   return NO_MATCH;
 }
@@ -221,22 +249,29 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
 MatchResult ArcRule::match(EvaluationCtx* ctx){
   ArcSec::RequestTuple* evaltuple = ctx->getEvalTuple();  
 
+  //Reset the value for id matching, since the Rule object could be 
+  //used a number of times for match-making
+  sub_idmatched = ID_NO_MATCH;
+  res_idmatched = ID_NO_MATCH;
+  act_idmatched = ID_NO_MATCH;
+  ctx_idmatched = ID_NO_MATCH;
+
   if(
       (
         subjects.empty() ||
-        (itemMatch(subjects, evaltuple->sub)==MATCH)
+        (itemMatch(subjects, evaltuple->sub, sub_idmatched)==MATCH)
       ) &&
       (
         resources.empty() ||
-        (itemMatch(resources, evaltuple->res)==MATCH)
+        (itemMatch(resources, evaltuple->res, res_idmatched)==MATCH)
       ) &&
       (
         actions.empty() || 
-        (itemMatch(actions, evaltuple->act)==MATCH)
+        (itemMatch(actions, evaltuple->act, act_idmatched)==MATCH)
       ) &&
       (
         conditions.empty() || 
-        (itemMatch(conditions, evaltuple->ctx)==MATCH)
+        (itemMatch(conditions, evaltuple->ctx, ctx_idmatched)==MATCH)
       )
     )
     return MATCH;
@@ -246,14 +281,57 @@ MatchResult ArcRule::match(EvaluationCtx* ctx){
 Result ArcRule::eval(EvaluationCtx*){// ctx){
   Result result = DECISION_NOT_APPLICABLE;
   //TODO
-  // need to evaluate the "Condition"
   if (effect == "Permit") { 
-    result = DECISION_PERMIT;
-    evalres.effect = "Permit";
-  }
+    if(
+       (sub_idmatched == ID_MATCH || subjects.empty()) && (res_idmatched == ID_MATCH || resources.empty()) && 
+       (act_idmatched == ID_MATCH || actions.empty()) && (ctx_idmatched == ID_MATCH || conditions.empty())
+      )
+    {
+      result = DECISION_PERMIT;
+      evalres.effect = "Permit";
+    }
+    //If the <Resource> or <Action> in RequestItem matches or partially matches any of the <Resources> or 
+    //<Actions> under <Rule>, we consider the <RequestItem> be rejected, because it means the request is 
+    //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or 
+    //context has not been matched)
+    else if(
+       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) ||
+       (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
+      )
+    {
+      result = DECISION_DENY;
+      evalres.effect = "Deny";
+    }
+    else {
+      result = DECISION_NOT_APPLICABLE;
+      evalres.effect = "Not_Applicable";
+    }
+  }  
   else if (effect == "Deny") {
-    result = DECISION_DENY;
-    evalres.effect = "Deny";
+    if(
+       (sub_idmatched == ID_MATCH || subjects.empty()) && (res_idmatched == ID_MATCH || resources.empty()) &&
+       (act_idmatched == ID_MATCH || actions.empty()) && (ctx_idmatched == ID_MATCH || conditions.empty())
+      )
+    {
+      result = DECISION_DENY;
+      evalres.effect = "Deny";
+    }
+    //If the <Resource> or <Action> in RequestItem matches or partially matches any of the <Resources> or
+    //<Actions> under <Rule>, we consider the <RequestItem> be rejected, because it means the request is
+    //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or
+    //context has not been matched)
+    else if(
+       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) ||
+       (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
+      )
+    {
+      result = DECISION_DENY;
+      evalres.effect = "Deny";
+    }
+    else {
+      result = DECISION_NOT_APPLICABLE;
+      evalres.effect = "Not_Applicable";
+    }
   }
   return result;
 }
