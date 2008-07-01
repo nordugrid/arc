@@ -1,4 +1,4 @@
-from storage.common import hash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, parse_url
+from storage.common import ahash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, parse_url
 from storage.common import parse_metadata, create_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
@@ -81,52 +81,52 @@ class Client:
         return resp, r.status, r.reason
 
 
-class HashClient(Client):
+class AHashClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = self.NS_class({'hash': hash_uri})
+        ns = self.NS_class({'ahash': ahash_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def get_tree(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
-            ('hash:get', [
-                ('hash:neededMetadataList', [
-                    ('hash:neededMetadataElement', [
-                        ('hash:section', section),
-                        ('hash:property', property)
+            ('ahash:get', [
+                ('ahash:neededMetadataList', [
+                    ('ahash:neededMetadataElement', [
+                        ('ahash:section', section),
+                        ('ahash:property', property)
                     ]) for section, property in neededMetadata
                 ]),
-                ('hash:IDs', [
-                    ('hash:ID', i) for i in IDs
+                ('ahash:IDs', [
+                    ('ahash:ID', i) for i in IDs
                 ])
             ])
         )
         msg, status, reason = self.call(tree)
         xml = self.xmlnode_class(msg)
-        hash_prefix = xml.NamespacePrefix(hash_uri)
+        ahash_prefix = xml.NamespacePrefix(ahash_uri)
         rewrite = {
-            hash_prefix + ':objects' : 'cat:getResponseList',
-            hash_prefix + ':object' : 'cat:getResponseElement',
-            hash_prefix + ':ID' : 'cat:GUID',
-            hash_prefix + ':metadataList' : 'cat:metadataList',
-            hash_prefix + ':metadata' : 'cat:metadata',
-            hash_prefix + ':section' : 'cat:section',
-            hash_prefix + ':property' : 'cat:property',
-            hash_prefix + ':value' : 'cat:value'
+            ahash_prefix + ':objects' : 'cat:getResponseList',
+            ahash_prefix + ':object' : 'cat:getResponseElement',
+            ahash_prefix + ':ID' : 'cat:GUID',
+            ahash_prefix + ':metadataList' : 'cat:metadataList',
+            ahash_prefix + ':metadata' : 'cat:metadata',
+            ahash_prefix + ':section' : 'cat:section',
+            ahash_prefix + ':property' : 'cat:property',
+            ahash_prefix + ':value' : 'cat:value'
         }
         return XMLTree(xml.Child().Child().Child(), rewrite = rewrite)
 
     def get(self, IDs, neededMetadata = []):
         tree = XMLTree(from_tree =
-            ('hash:get', [
-                ('hash:neededMetadataList', [
-                    ('hash:neededMetadataElement', [
-                        ('hash:section', section),
-                        ('hash:property', property)
+            ('ahash:get', [
+                ('ahash:neededMetadataList', [
+                    ('ahash:neededMetadataElement', [
+                        ('ahash:section', section),
+                        ('ahash:property', property)
                     ]) for section, property in neededMetadata
                 ]),
-                ('hash:IDs', [
-                    ('hash:ID', i) for i in IDs
+                ('ahash:IDs', [
+                    ('ahash:ID', i) for i in IDs
                 ])
             ])
         )
@@ -136,7 +136,7 @@ class HashClient(Client):
         return dict([(str(ID), parse_metadata(metadataList)) for ID, metadataList in objects.items()])
 
     def change(self, changes):
-        """ Call the change method of the Hash service.
+        """ Call the change method of the A-Hash service.
         
         change(changes)
 
@@ -144,22 +144,22 @@ class HashClient(Client):
             where 'conditions' is a dictionary of {conditionID : (conditionType, section, property, value)}
         """
         tree = XMLTree(from_tree =
-            ('hash:change', [
-                ('hash:changeRequestList', [
-                    ('hash:changeRequestElement', [
-                        ('hash:changeID', changeID),
-                        ('hash:ID', ID),
-                        ('hash:changeType', changeType),
-                        ('hash:section', section),
-                        ('hash:property', property),
-                        ('hash:value', value),
-                        ('hash:conditionList', [
-                            ('hash:condition', [
-                                ('hash:conditionID', conditionID),
-                                ('hash:conditionType',conditionType),
-                                ('hash:section',conditionSection),
-                                ('hash:property',conditionProperty),
-                                ('hash:value',conditionValue)
+            ('ahash:change', [
+                ('ahash:changeRequestList', [
+                    ('ahash:changeRequestElement', [
+                        ('ahash:changeID', changeID),
+                        ('ahash:ID', ID),
+                        ('ahash:changeType', changeType),
+                        ('ahash:section', section),
+                        ('ahash:property', property),
+                        ('ahash:value', value),
+                        ('ahash:conditionList', [
+                            ('ahash:condition', [
+                                ('ahash:conditionID', conditionID),
+                                ('ahash:conditionType',conditionType),
+                                ('ahash:section',conditionSection),
+                                ('ahash:property',conditionProperty),
+                                ('ahash:value',conditionValue)
                             ]) for conditionID, (conditionType, conditionSection,
                                         conditionProperty, conditionValue) in conditions.items()
                         ])

@@ -5,7 +5,7 @@ import random
 import threading
 import time
 from storage.xmltree import XMLTree
-from storage.client import HashClient
+from storage.client import AHashClient
 from storage.common import catalog_uri, global_root_guid, true, false, sestore_guid
 from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
     create_metadata, parse_node, serialize_ids
@@ -16,9 +16,9 @@ import copy
 class Catalog:
     def __init__(self, cfg, log):
         self.log = log
-        # URL of the Hash
-        hash_url = str(cfg.Get('HashURL'))
-        self.hash = HashClient(hash_url)
+        # URL of the A-Hash
+        ahash_url = str(cfg.Get('AHashURL'))
+        self.ahash = AHashClient(ahash_url)
         try:
             period = float(str(cfg.Get('CheckPeriod')))
             self.hbtimeout = float(str(cfg.Get('HeartbeatTimeout')))
@@ -31,7 +31,7 @@ class Catalog:
         time.sleep(10)
         while True:
             try:
-                SEs = self.hash.get([sestore_guid])[sestore_guid]
+                SEs = self.ahash.get([sestore_guid])[sestore_guid]
                 #print 'registered storage elements:', SEs
                 now = time.time()
                 late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
@@ -39,7 +39,7 @@ class Catalog:
                 if late_SEs:
                     serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
                     #print 'late storage elements serviceGUIDs', serviceGUIDs
-                    filelists = self.hash.get(serviceGUIDs.keys())
+                    filelists = self.ahash.get(serviceGUIDs.keys())
                     changes = []
                     for serviceGUID, serviceID in serviceGUIDs.items():
                         filelist = filelists[serviceGUID]
@@ -63,45 +63,45 @@ class Catalog:
                     for GUID, location, state in with_locations
         ])
         #print '_change_states request', change_request
-        change_response = self.hash.change(change_request)
+        change_response = self.ahash.change(change_request)
         #print '_change_states response', change_response
         return change_response
         
     def _set_next_heartbeat(self, serviceID, next_heartbeat):
-        hash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
-        #print '_set_next_heartbeat request', hash_request
-        hash_response = self.hash.change(hash_request)
-        #print '_set_next_heartbeat response', hash_response
-        if hash_response['report'][0] != 'set':
+        ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'nextHeartbeat', next_heartbeat, {})}
+        #print '_set_next_heartbeat request', ahash_request
+        ahash_response = self.ahash.change(ahash_request)
+        #print '_set_next_heartbeat response', ahash_response
+        if ahash_response['report'][0] != 'set':
             self.log('DEBUG', 'ERROR setting next heartbeat time!')
     
     def report(self, serviceID, filelist):
-        ses = self.hash.get([sestore_guid])[sestore_guid]
+        ses = self.ahash.get([sestore_guid])[sestore_guid]
         serviceID = str(serviceID)
         serviceGUID = ses.get((serviceID,'serviceGUID'), None)
         if not serviceGUID:
             #print 'report se is not registered yet', serviceID
             serviceGUID = mkuid()
-            hash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
-            #print 'report hash_request', hash_request
-            hash_response = self.hash.change(hash_request)
-            #print 'report hash_response', hash_response
-            success, unmetConditionID = hash_response['report']
+            ahash_request = {'report' : (sestore_guid, 'set', serviceID, 'serviceGUID', serviceGUID, {'onlyif' : ('unset', serviceID, 'serviceGUID', '')})}
+            #print 'report ahash_request', ahash_request
+            ahash_response = self.ahash.change(ahash_request)
+            #print 'report ahash_response', ahash_response
+            success, unmetConditionID = ahash_response['report']
             if unmetConditionID:
-                ses = self.hash.get([sestore_guid])[sestore_guid]
+                ses = self.ahash.get([sestore_guid])[sestore_guid]
                 serviceGUID = ses.get((serviceID, 'serviceGUID'))
         please_send_all = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
         next_heartbeat = str(int(time.time() + self.hbtimeout))
         self._set_next_heartbeat(serviceID, next_heartbeat)
         self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
-        se = self.hash.get([serviceGUID])[serviceGUID]
+        se = self.ahash.get([serviceGUID])[serviceGUID]
         #print 'report se before:', se
         change_request = dict([(referenceID, (serviceGUID, (state=='deleted') and 'unset' or 'set', 'file', referenceID, GUID, {}))
             for GUID, referenceID, state in filelist])
         #print 'report change_request:', change_request
-        change_response = self.hash.change(change_request)
+        change_response = self.ahash.change(change_request)
         #print 'report change_response:', change_response
-        se = self.hash.get([serviceGUID])[serviceGUID]
+        se = self.ahash.get([serviceGUID])[serviceGUID]
         #print 'report se after:', se
         if please_send_all:
             return -1
@@ -126,7 +126,7 @@ class Catalog:
                     del metadata[('catalog','GUID')]
                 except:
                     GUID = mkuid()
-                check = self.hash.change(
+                check = self.ahash.change(
                     {'new': (GUID, 'set', 'catalog', 'type', type, {'0' : ('unset','catalog','type','')})}
                 )
                 status, failedCondition = check['new']
@@ -137,7 +137,7 @@ class Catalog:
                     for ((section, property), value) in metadata.items():
                         changes[changeID] = (GUID, 'set', section, property, value, {})
                         changeID += 1
-                    resp = self.hash.change(changes)
+                    resp = self.ahash.change(changes)
                     for r in resp.keys():
                         if resp[r][0] != 'set':
                             success += ' (failed: %s - %s)' % (resp[r][0] + str(changes[r]))
@@ -149,7 +149,7 @@ class Catalog:
         return response
 
     def get(self, requests, neededMetadata = []):
-        return self.hash.get_tree(requests, neededMetadata)
+        return self.ahash.get_tree(requests, neededMetadata)
 
     def _parse_LN(self, LN):
         try:
@@ -168,7 +168,7 @@ class Catalog:
                         child_metadata = metadata
                     else:
                         child_guid = metadata[('entries',path[0])]
-                        child_metadata = self.hash.get([child_guid])[child_guid]
+                        child_metadata = self.ahash.get([child_guid])[child_guid]
                     traversed.append(path.pop(0))
                     GUIDs.append(child_guid)
                     return self._traverse(child_guid, child_metadata, path, traversed, GUIDs)
@@ -192,7 +192,7 @@ class Catalog:
             traversed = [guid0]
             GUIDs = [guid]
             path = copy.deepcopy(path0)
-            metadata0 = self.hash.get([guid])[guid]
+            metadata0 = self.ahash.get([guid])[guid]
             if not metadata0.has_key(('catalog','type')):
                 response[rID] = ([], False, '', guid0, None, '/'.join(path))
             else:
@@ -219,9 +219,9 @@ class Catalog:
                 changeType = 'set'
                 conditions = {'0': ('unset', section, property, '')}
             changes[changeID] = (GUID, changeType, section, property, value, conditions)
-        hash_response = self.hash.change(changes)
+        ahash_response = self.ahash.change(changes)
         response = {}
-        for changeID, (success, conditionID) in hash_response.items():
+        for changeID, (success, conditionID) in ahash_response.items():
             if success in ['set', 'unset']:
                 response[changeID] = success
             elif conditionID == '0':
@@ -231,11 +231,11 @@ class Catalog:
         return response
 
     def remove(self, requests):
-        hash_request = dict([(requestID, (GUID, 'delete', '', '', '', {}))
+        ahash_request = dict([(requestID, (GUID, 'delete', '', '', '', {}))
             for requestID, GUID in requests.items()])
-        hash_response = self.hash.change(hash_request)
+        ahash_response = self.ahash.change(ahash_request)
         response = {}
-        for requestID, (success, _) in hash_response.items():
+        for requestID, (success, _) in ahash_response.items():
             if success == 'deleted':
                 response[requestID] = 'removed'
             else:

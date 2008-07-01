@@ -17,6 +17,7 @@ service.example.3SEs.xml	- an example service configuration xml for HED with 3 i
 service.py					- a python superclass of service classes with common features
 xmltree.py					- a python class for easy handling of simple XML structures	
 
+
 Bit more detail about the main services:
 - Hash: it is basically a (currently centralized but later distributed)
 database service which is storing 'objects', where an 'object' is any
@@ -44,3 +45,21 @@ interface for file and collection operations, every transfer must be
 initiated by a Manager service. it connects to Catalogs to organize the
 global logical namespace, it connects to Elements to initiate file
 transfers.
+
+
+Installation howto
+
+After you've get the source code from the svn, you should run './autogen.sh' and './configure'.
+The output of configure should be something like this:
+
+[...]
+Python binding:     yes (2.4)
+[...]
+Included components:
+[...]
+STORAGE service:    yes
+[...]
+
+Then you can do 'make' and 'sudo make install'.
+
+TO BE CONTINUED...

@@ -1,5 +1,5 @@
 # namespace URIs of the storage services
-hash_uri = 'urn:hash'
+ahash_uri = 'urn:ahash'
 catalog_uri = 'urn:storagecatalog'
 manager_uri = 'urn:storagemanager'
 element_uri = 'urn:storageelement'
