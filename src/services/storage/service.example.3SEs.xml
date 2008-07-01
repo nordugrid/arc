@@ -32,7 +32,7 @@
         </Component>
         <Plexer name="plexer.service" id="plexer">
             <next id="hash">^/AHash$</next>
-            <next id="catalog">^/Catalog$</next>
+            <next id="librarian">^/Librarian$</next>
             <next id="manager">^/Manager$</next>
             <next id="element1">^/Element1$</next>
             <next id="byteio1">^/byteio1$</next>
@@ -50,15 +50,15 @@
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg><DataDir>./hash_data</DataDir></StoreCfg>
         </Service>
-        <Service name="pythonservice" id="catalog">
-            <ClassName>storage.catalog.catalog.CatalogService</ClassName>
+        <Service name="pythonservice" id="librarian">
+            <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
             <AHashURL>http://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
         <Service name="pythonservice" id="manager">
             <ClassName>storage.manager.manager.ManagerService</ClassName>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
          <Service name="pythonservice" id="element1">
             <ClassName>storage.element.element.ElementService</ClassName>
@@ -73,7 +73,7 @@
                 <TransferDir>./element_transfer1</TransferDir>
                 <TURLPrefix>http://localhost:60000/byteio1/</TURLPrefix>
             </BackendCfg>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
         <Service name="pythonservice" id="element2">
@@ -89,7 +89,7 @@
                 <TransferDir>./element_transfer2</TransferDir>
                 <TURLPrefix>http://localhost:60000/byteio2/</TURLPrefix>
             </BackendCfg>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
         <Service name="pythonservice" id="element3">
@@ -105,7 +105,7 @@
                 <TransferDir>./element_transfer3</TransferDir>
                 <TURLPrefix>http://localhost:60000/byteio3/</TURLPrefix>
             </BackendCfg>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
          <Service name="pythonservice" id="byteio1">

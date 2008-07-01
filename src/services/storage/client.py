@@ -1,4 +1,4 @@
-from storage.common import ahash_uri, catalog_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, parse_url
+from storage.common import ahash_uri, librarian_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, parse_url
 from storage.common import parse_metadata, create_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
@@ -105,14 +105,14 @@ class AHashClient(Client):
         xml = self.xmlnode_class(msg)
         ahash_prefix = xml.NamespacePrefix(ahash_uri)
         rewrite = {
-            ahash_prefix + ':objects' : 'cat:getResponseList',
-            ahash_prefix + ':object' : 'cat:getResponseElement',
-            ahash_prefix + ':ID' : 'cat:GUID',
-            ahash_prefix + ':metadataList' : 'cat:metadataList',
-            ahash_prefix + ':metadata' : 'cat:metadata',
-            ahash_prefix + ':section' : 'cat:section',
-            ahash_prefix + ':property' : 'cat:property',
-            ahash_prefix + ':value' : 'cat:value'
+            ahash_prefix + ':objects' : 'lbr:getResponseList',
+            ahash_prefix + ':object' : 'lbr:getResponseElement',
+            ahash_prefix + ':ID' : 'lbr:GUID',
+            ahash_prefix + ':metadataList' : 'lbr:metadataList',
+            ahash_prefix + ':metadata' : 'lbr:metadata',
+            ahash_prefix + ':section' : 'lbr:section',
+            ahash_prefix + ':property' : 'lbr:property',
+            ahash_prefix + ':value' : 'lbr:value'
         }
         return XMLTree(xml.Child().Child().Child(), rewrite = rewrite)
 
@@ -171,24 +171,24 @@ class AHashClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['changeID', 'success', 'conditionID'])
 
-class CatalogClient(Client):
+class LibrarianClient(Client):
     
     def __init__(self, url, print_xml = False):
-        ns = self.NS_class({'cat':catalog_uri})
+        ns = self.NS_class({'lbr':librarian_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def get(self, GUIDs, neededMetadata = []):
         tree = XMLTree(from_tree =
-            ('cat:get', [
-                ('cat:neededMetadataList', [
-                    ('cat:neededMetadataElement', [
-                        ('cat:section', section),
-                        ('cat:property', property)
+            ('lbr:get', [
+                ('lbr:neededMetadataList', [
+                    ('lbr:neededMetadataElement', [
+                        ('lbr:section', section),
+                        ('lbr:property', property)
                     ]) for section, property in neededMetadata
                 ]),
-                ('cat:getRequestList', [
-                    ('cat:getRequestElement', [
-                        ('cat:GUID', i)
+                ('lbr:getRequestList', [
+                    ('lbr:getRequestElement', [
+                        ('lbr:GUID', i)
                     ]) for i in GUIDs
                 ])
             ])
@@ -202,11 +202,11 @@ class CatalogClient(Client):
 
     def traverseLN(self, requests):
         tree = XMLTree(from_tree =
-            ('cat:traverseLN', [
-                ('cat:traverseLNRequestList', [
-                    ('cat:traverseLNRequestElement', [
-                        ('cat:requestID', rID),
-                        ('cat:LN', LN)
+            ('lbr:traverseLN', [
+                ('lbr:traverseLNRequestList', [
+                    ('lbr:traverseLNRequestElement', [
+                        ('lbr:requestID', rID),
+                        ('lbr:LN', LN)
                     ]) for rID, LN in requests.items()
                 ])
             ])
@@ -236,11 +236,11 @@ class CatalogClient(Client):
 
     def new(self, requests):
         tree = XMLTree(from_tree =
-            ('cat:new', [
-                ('cat:newRequestList', [
-                    ('cat:newRequestElement', [
-                        ('cat:requestID', requestID),
-                        ('cat:metadataList', create_metadata(metadata, 'cat'))
+            ('lbr:new', [
+                ('lbr:newRequestList', [
+                    ('lbr:newRequestElement', [
+                        ('lbr:requestID', requestID),
+                        ('lbr:metadataList', create_metadata(metadata, 'lbr'))
                     ]) for requestID, metadata in requests.items()
                 ])
             ])
@@ -251,15 +251,15 @@ class CatalogClient(Client):
 
     def modifyMetadata(self, requests):
         tree = XMLTree(from_tree =
-            ('cat:modifyMetadata', [
-                ('cat:modifyMetadataRequestList', [
-                    ('cat:modifyMetadataRequestElement', [
-                        ('cat:changeID', changeID),
-                        ('cat:GUID', GUID),
-                        ('cat:changeType', changeType),
-                        ('cat:section', section),
-                        ('cat:property', property),
-                        ('cat:value', value)
+            ('lbr:modifyMetadata', [
+                ('lbr:modifyMetadataRequestList', [
+                    ('lbr:modifyMetadataRequestElement', [
+                        ('lbr:changeID', changeID),
+                        ('lbr:GUID', GUID),
+                        ('lbr:changeType', changeType),
+                        ('lbr:section', section),
+                        ('lbr:property', property),
+                        ('lbr:value', value)
                     ]) for changeID, (GUID, changeType, section, property, value) in requests.items()
                 ])
             ])
@@ -270,11 +270,11 @@ class CatalogClient(Client):
 
     def remove(self, requests):
         tree = XMLTree(from_tree =
-            ('cat:remove', [
-                ('cat:removeRequestList', [
-                    ('cat:removeRequestElement', [
-                        ('cat:requestID', requestID),
-                        ('cat:GUID', GUID)
+            ('lbr:remove', [
+                ('lbr:removeRequestList', [
+                    ('lbr:removeRequestElement', [
+                        ('lbr:requestID', requestID),
+                        ('lbr:GUID', GUID)
                     ]) for requestID, GUID in requests.items()
                 ])
             ])
@@ -285,20 +285,23 @@ class CatalogClient(Client):
 
     def report(self, serviceID, filelist):
         tree = XMLTree(from_tree =
-            ('cat:report', [
-                ('cat:serviceID', serviceID),
-                ('cat:filelist', [
-                    ('cat:file', [
-                        ('cat:GUID', GUID),
-                        ('cat:referenceID', referenceID),
-                        ('cat:state', state)
+            ('lbr:report', [
+                ('lbr:serviceID', serviceID),
+                ('lbr:filelist', [
+                    ('lbr:file', [
+                        ('lbr:GUID', GUID),
+                        ('lbr:referenceID', referenceID),
+                        ('lbr:state', state)
                     ]) for GUID, referenceID, state in filelist
                 ])
             ])
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return int(str(node.Child().Child().Get('nextReportTime')))
+        try:
+            return int(str(node.Child().Child().Get('nextReportTime')))
+        except:
+            return None
 
 class ManagerClient(Client):
     """ Client for the Storage Manager service. """
@@ -328,11 +331,11 @@ class ManagerClient(Client):
         
         In: {'frodo':'/', 'sam':'/testfile'}
         Out: 
-            {'frodo': {('catalog', 'type'): 'collection',
+            {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
                        ('states', 'closed'): '0'},
-             'sam': {('catalog', 'type'): 'file',
+             'sam': {('entry', 'type'): 'file',
                      ('locations', 'http://localhost:60000/Element 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
                      ('locations', 'http://localhost:60000/Element 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
                      ('states', 'checksum'): '0927c28a393e8834aa7b838ad8a69400',
@@ -545,13 +548,13 @@ class ManagerClient(Client):
             status is the status of the request
         
         Example:
-        In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('catalog','type')]
+        In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('entry','type')]
         Out: 
-            {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('catalog', 'type'): 'collection'}),
-                      'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('catalog', 'type'): 'collection'}),
-                      'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('catalog', 'type'): 'file', ('states', 'size'): '1055'}),
-                      'testdir': ('4cabc8cb-599d-488c-a253-165f71d4e180', {('catalog', 'type'): 'collection'}),
-                      'testfile': ('cf05727b-73f3-4318-8454-16eaf10f302c', {('catalog', 'type'): 'file', ('states', 'size'): '11'})},
+            {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('entry', 'type'): 'collection'}),
+                      'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('entry', 'type'): 'collection'}),
+                      'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('entry', 'type'): 'file', ('states', 'size'): '1055'}),
+                      'testdir': ('4cabc8cb-599d-488c-a253-165f71d4e180', {('entry', 'type'): 'collection'}),
+                      'testfile': ('cf05727b-73f3-4318-8454-16eaf10f302c', {('entry', 'type'): 'file', ('states', 'size'): '11'})},
                      'found'),
              'kirk': ({}, 'is a file')}
         """

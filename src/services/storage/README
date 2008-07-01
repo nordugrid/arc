@@ -1,13 +1,13 @@
 This directory contains all the services related to the ARC1 storage system.
 It has the following subdirectories:
 
-hash    - simple currently centralized metadata store for the Storage Catalog
-catalog - the Storage Catalog service handling files and collection
-manager - the Storage Manager service providing high-level storage namespace
-element - the Storage Element service and a byteio service
-gateway - the Storage Gateway service and other services related to it
-cli 	- small basic CLI clients for the storage services
-fuse    - FUSE interface to storage for mounting storage system
+ahash     - simple currently centralized metadata store used by the Librarian
+librarian - the Librarian service handling files and collection
+manager   - the Storage Manager service providing high-level storage namespace
+element   - the Storage Element service and a byteio service
+gateway   - the Storage Gateway service and other services related to it
+cli 	  - small basic CLI clients for the storage services
+fuse      - FUSE interface to storage for mounting storage system
 
 And has the following files:
 client.py					- collection of python classes which can be used to talk to the services
@@ -26,23 +26,23 @@ have a 'dictionary' or a 'hashtable' or that kind of stuff which is
 basically a list of key-value pairs, then you can store it here with a
 unique ID and later you can retrieve or change it any time
 
-- Catalog: it is a service which stores the global filesystem, all the
+- Librarian: it is a service which stores the global filesystem, all the
 metadata of the collections and files. it does not store the actual
 replicas of the file, just the metadata which contain the location of
 the replicas. this service knows about Logical Names and GUIDs, and can
-walk the logical namespace, traversing logical names, etc. (the Catalog
+walk the logical namespace, traversing logical names, etc. (the Librarian
 uses the Hash as database)
 
 - Element: this service lives on a storage resource which is actually
 storing the replicas of the files, and when a user wants to download or
 upload a file, the actual data transfer is going directly to these
 services. the Elements checks the health of their files, and report it
-to the Catalog. they initiate replication if needed.
+to the Librarian. they initiate replication if needed.
 
 - Manager: this service is the main front-end service of the storage,
 the users connect to this, this provides a high-level user-friendly
 interface for file and collection operations, every transfer must be
-initiated by a Manager service. it connects to Catalogs to organize the
+initiated by a Manager service. it connects to Librarians to organize the
 global logical namespace, it connects to Elements to initiate file
 transfers.
 

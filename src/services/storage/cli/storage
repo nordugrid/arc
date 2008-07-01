@@ -4,10 +4,10 @@ if [ "$1" == "hash" ]
 then
     shift
     python ./arc1/src/services/storage/cli/hash_client.py $*
-elif [ "$1" == "catalog" ]
+elif [ "$1" == "librarian" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/catalog_client.py $*
+    python ./arc1/src/services/storage/cli/librarian_client.py $*
 elif [ "$1" == "manager" ]
 then
     shift
@@ -18,6 +18,6 @@ then
     python ./arc1/src/services/storage/cli/element_client.py $*
 else
     echo "USAGE:"
-    echo "  storage hash|catalog|manager|element <command> <arguments>"
+    echo "  storage hash|librarian|manager|element <command> <arguments>"
     exit 1
 fi

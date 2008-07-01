@@ -4,22 +4,22 @@ import arc
 import random
 import time
 from storage.xmltree import XMLTree
-from storage.client import CatalogClient, ElementClient
-from storage.common import parse_metadata, catalog_uri, manager_uri, create_response, create_metadata, true, \
+from storage.client import LibrarianClient, ElementClient
+from storage.common import parse_metadata, librarian_uri, manager_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
                             serialize_ids, deserialize_ids, sestore_guid
 import traceback
 
 class Manager:
 
-    def __init__(self, catalog):
+    def __init__(self, librarian):
         """ Constructor of the Manager business-logic class.
         
-        Manager(catalog)
+        Manager(librarian)
         
-        catalog is CatalogClient object which can be used to access a Catalog service
+        librarian is LibrarianClient object which can be used to access a Librarian service
         """
-        self.catalog = catalog
+        self.librarian = librarian
 
     def stat(self, requests):
         """ Returns stat information about entries.
@@ -32,8 +32,8 @@ class Manager:
         The 'metadata' is a dictionary with (section, property) pairs as keys.
         """
         response = {}
-        # get the information from the catalog
-        traverse_response = self.catalog.traverseLN(requests)
+        # get the information from the librarian
+        traverse_response = self.librarian.traverseLN(requests)
         # we are only interested in the metadata and if the traversing was complete or not
         for requestID, (metadata, _, _, _, wasComplete, _) in traverse_response.items():
             if wasComplete: # if it was complete, then we found the entry and got the metadata
@@ -51,14 +51,14 @@ class Manager:
         """
         import time
         response = {}
-        # get the information from the catalog
+        # get the information from the librarian
         #requests, traverse_response = self._traverse(requests)
-        traverse_response = self.catalog.traverseLN(requests)
+        traverse_response = self.librarian.traverseLN(requests)
         cat_rem_requests = {}
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            if wasComplete and metadata[('catalog', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
+            if wasComplete and metadata[('librarian', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
                 parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
                 if parentno < 2:
                     # remove the file itself,  if this file has only one parent (hardlink), or has no parent at all
@@ -79,12 +79,12 @@ class Manager:
                 response[requestID] = 'deleted'
             else: # if it was not complete, then we didn't find the entry, so metadata will be empty
                 response[requestID] = 'nosuchLN'
-        success = self.catalog.remove(cat_rem_requests)
-        modify_success = self.catalog.modifyMetadata(cat_mod_requests)
+        success = self.librarian.remove(cat_rem_requests)
+        modify_success = self.librarian.modifyMetadata(cat_mod_requests)
         # check the files with more parents (hardlinks) again
         if check_again:
             self.log('DEBUG', '\n\n!!!!check_again', check_again)
-            checked_again = self.catalog.get(check_again)
+            checked_again = self.librarian.get(check_again)
             do_delete = {}
             for GUID, metadata in checked_again.items():
                 # if a file has no parents now, remove it
@@ -92,12 +92,12 @@ class Manager:
                 if parentno == 0:
                     do_delete[GUID] = GUID
             self.log('DEBUG', '\n\n!!!!do_delete', do_delete)
-            self.catalog.remove(do_delete)
+            self.librarian.remove(do_delete)
         return response
             
 
     def _traverse(self, requests):
-        """ Helper method which connects the catalog, and traverses the LNs of the requests.
+        """ Helper method which connects the librarian, and traverses the LNs of the requests.
         
         _traverse(requests)
         
@@ -112,13 +112,13 @@ class Manager:
         # then we do the traversing. a traverse request contains a requestID and the Logical Name
         # so we just need the key (which is the request ID) and the first item of the value (which is the LN)
         traverse_request = dict([(rID, data[0]) for rID, data in requests])
-        # call the catalog service
-        traverse_response = self.catalog.traverseLN(traverse_request)
-        # return the requests as list (without the trailing slashes) and the traverse response from the catalog
+        # call the librarian service
+        traverse_response = self.librarian.traverseLN(traverse_request)
+        # return the requests as list (without the trailing slashes) and the traverse response from the librarian
         return requests, traverse_response
 
     def _new(self, child_metadata, child_name = None, parent_GUID = None):
-        """ Helper method which create a new entry in the catalog.
+        """ Helper method which create a new entry in the librarian.
         
         _new(child_metadata, child_name = None, parent_GUID = None)
         
@@ -126,7 +126,7 @@ class Manager:
         child_name is the name of the new entry 
         parent_GUID is the GUID of the parent of the new entry
         
-        This method creates a new catalog-entry with the given metadata.
+        This method creates a new librarian-entry with the given metadata.
         If child_name and parent_GUID are both given, then this method adds a new entry to the parent collection.
         """
         try:
@@ -134,28 +134,28 @@ class Manager:
             child_metadata[('timestamps', 'created')] = str(time.time())
             if child_name and parent_GUID:
                 child_metadata[('parents', '%s/%s' % (parent_GUID, child_name))] = 'parent'
-            # call the new method of the catalog with the child's metadata (requestID is '_new')
-            new_response = self.catalog.new({'_new' : child_metadata})
+            # call the new method of the librarian with the child's metadata (requestID is '_new')
+            new_response = self.librarian.new({'_new' : child_metadata})
             # we can access the response with the requestID, so we get the GUID of the newly created entry
             (child_GUID, new_success) = new_response['_new']
             # if the new method was not successful
             if new_success != 'success':
-                return 'failed to create new catalog entry', child_GUID
+                return 'failed to create new librarian entry', child_GUID
             else:
                 # if it was successful and we have a parent collection
                 if child_name and parent_GUID:
-                    # we need to add the newly created catalog-entry to the parent collection
+                    # we need to add the newly created librarian-entry to the parent collection
                     self.log('DEBUG', 'adding', child_GUID, 'to parent', parent_GUID)
                     # this modifyMetadata request adds a new (('entries',  child_name) : child_GUID) element to the parent collection
-                    modify_response = self.catalog.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
+                    modify_response = self.librarian.modifyMetadata({'_new' : (parent_GUID, 'add', 'entries', child_name, child_GUID)})
                     self.log('DEBUG', 'modifyMetadata response', modify_response)
                     # get the 'success' value
                     modify_success = modify_response['_new']
                     # if the new element was not set, we have a problem
                     if modify_success != 'set':
-                        self.log('DEBUG', 'modifyMetadata failed, removing the new catalog entry', child_GUID)
-                        # remove the newly created catalog-entry
-                        self.catalog.remove({'_new' : child_GUID})
+                        self.log('DEBUG', 'modifyMetadata failed, removing the new librarian entry', child_GUID)
+                        # remove the newly created librarian-entry
+                        self.librarian.remove({'_new' : child_GUID})
                         return 'failed to add child to parent', child_GUID
                     else:
                         return 'done', child_GUID
@@ -189,8 +189,8 @@ class Manager:
                     success = 'not found'
                 else:
                     # metadata contains all the metadata of the given entry
-                    # ('catalog', 'type') is the type of the entry: file, collection, etc.
-                    type = metadata[('catalog', 'type')]
+                    # ('entry', 'type') is the type of the entry: file, collection, etc.
+                    type = metadata[('entry', 'type')]
                     if type != 'file':
                         success = 'is not a file'
                     else:
@@ -242,7 +242,7 @@ class Manager:
         """
         # get the size and checksum information about all the requested GUIDs (these are in the 'states' section)
         #   the second argument of the get method specifies that we only need metadata from the 'states' section
-        data = self.catalog.get(requests.values(), [('states',''),('locations','')])
+        data = self.librarian.get(requests.values(), [('states',''),('locations','')])
         response = {}
         for rID, GUID in requests.items():
             # for each requested GUID
@@ -266,12 +266,12 @@ class Manager:
         
         find_alive_se()
         """
-        # sestore_guid is the GUID of the catalog entry which the list of Storage Elements registered by the Catalog
-        SEs = self.catalog.get([sestore_guid])[sestore_guid]
+        # sestore_guid is the GUID of the librarian entry which the list of Storage Elements registered by the Librarian
+        SEs = self.librarian.get([sestore_guid])[sestore_guid]
         # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
         #   when a specific Storage Element service should report next
         #   if this timestamp is not a positive number, that means the Storage Element have not reported in time, probably it is not alive
-        self.log('DEBUG', 'Registered Storage Elements in Catalog', SEs)
+        self.log('DEBUG', 'Registered Storage Elements in Librarian', SEs)
         # get all the Storage Elements which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
         self.log('DEBUG', 'Alive Storage Elements:', alive_SEs)
@@ -325,7 +325,7 @@ class Manager:
             self.log('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
             # the serviceID and the referenceID is the location of the replica, serialized as one string
             # put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
-            modify_response = self.catalog.modifyMetadata({'putFile' :
+            modify_response = self.librarian.modifyMetadata({'putFile' :
                     (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
             modify_success = modify_response['putFile']
             if modify_success != 'set':
@@ -342,7 +342,7 @@ class Manager:
         
         requests is a dictionary with requestID as key and (Logical Name, child metadata, protocols) as value
         """
-        # get all the information about the requested Logical Names from the catalog
+        # get all the information about the requested Logical Names from the librarian
         requests, traverse_response = self._traverse(requests)
         response = {}
         for rID, (LN, child_metadata, protocols) in requests:
@@ -382,8 +382,8 @@ class Manager:
                     elif child_name == '': # this only can happen if the LN was a single GUID
                         # this means that the new file will have no parent
                         # set the type and GUID of the new file
-                        child_metadata[('catalog','type')] = 'file'
-                        child_metadata[('catalog','GUID')] = rootguid or global_root_guid
+                        child_metadata[('entry','type')] = 'file'
+                        child_metadata[('entry','GUID')] = rootguid or global_root_guid
                         # create the new entry
                         success, GUID = self._new(child_metadata)
                     elif restLN != child_name or GUID == '':
@@ -392,7 +392,7 @@ class Manager:
                         success = 'parent does not exist'
                     else:
                         # if everything is OK, then we set the type of the new entry
-                        child_metadata[('catalog','type')] = 'file'
+                        child_metadata[('entry','type')] = 'file'
                         # then create it
                         success, GUID = self._new(child_metadata, child_name, GUID)
                     if success == 'done':
@@ -425,13 +425,13 @@ class Manager:
                 success = 'LN exists'
             elif child_name == '': # this only can happen if the LN was a single GUID
                 # this means the collection has no parent
-                child_metadata[('catalog','type')] = 'collection'
-                child_metadata[('catalog','GUID')] = rootguid or global_root_guid
+                child_metadata[('entry','type')] = 'collection'
+                child_metadata[('entry','GUID')] = rootguid or global_root_guid
                 success, _ = self._new(child_metadata)
             elif restLN != child_name or GUID == '':
                 success = 'parent does not exist'
             else:
-                child_metadata[('catalog','type')] = 'collection'
+                child_metadata[('entry','type')] = 'collection'
                 # if everything is OK, create the new collection
                 #   here GUID is of the parent collection
                 success, _ = self._new(child_metadata, child_name, GUID)
@@ -448,14 +448,14 @@ class Manager:
             if neededMetadata is empty it means we need everything
         """
         # do traverse the requested Logical Names
-        traverse_response = self.catalog.traverseLN(requests)
+        traverse_response = self.librarian.traverseLN(requests)
         response = {}
         for requestID, LN in requests.items():
             # for each LN
             metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[requestID]
             if wasComplete:
                 # this means the LN exists, get its type
-                type = metadata[('catalog', 'type')]
+                type = metadata[('entry', 'type')]
                 if type == 'file': # files have no contents, we do not list them
                     status = 'is a file'
                     entries = {}
@@ -466,7 +466,7 @@ class Manager:
                     GUIDs = dict([(name, GUID)
                         for (section, name), GUID in metadata.items() if section == 'entries'])
                     # get the needed metadata of all the entries
-                    metadata = self.catalog.get(GUIDs.values(), neededMetadata)
+                    metadata = self.librarian.get(GUIDs.values(), neededMetadata)
                     # create a dictionary with the name of the entry as key and (GUID, metadata) as value
                     entries = dict([(name, (GUID, metadata[GUID])) for name, GUID in GUIDs.items()])
             else:
@@ -490,7 +490,7 @@ class Manager:
             # from one requestID we create two: one for the source and one for the target
             traverse_request[requestID + 'source'] = sourceLN
             traverse_request[requestID + 'target'] = targetLN
-        traverse_response = self.catalog.traverseLN(traverse_request)
+        traverse_response = self.librarian.traverseLN(traverse_request)
         self.log('DEBUG', '\/\/', traverse_response)
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
@@ -522,7 +522,7 @@ class Manager:
                     new_child_name = old_child_name
                 self.log('DEBUG', 'adding', sourceGUID, 'to parent', targetGUID)
                 # adding the entry to the new parent
-                mm_resp = self.catalog.modifyMetadata(
+                mm_resp = self.librarian.modifyMetadata(
                     {'move' : (targetGUID, 'add', 'entries', new_child_name, sourceGUID),
                         'parent' : (sourceGUID, 'set', 'parents', '%s/%s' % (targetGUID, new_child_name), 'parent')})
                 mm_succ = mm_resp['move']
@@ -537,7 +537,7 @@ class Manager:
                         source_parent_guid = sourceTraversedList[-2][1]
                         self.log('DEBUG', 'removing', sourceGUID, 'from parent', source_parent_guid)
                         # delete the entry from the source parent
-                        mm_resp = self.catalog.modifyMetadata(
+                        mm_resp = self.librarian.modifyMetadata(
                             {'move' : (source_parent_guid, 'unset', 'entries', old_child_name, ''),
                                 'parent' : (sourceGUID, 'unset', 'parents', '%s/%s' % (source_parent_guid, old_child_name), '')})
                         mm_succ = mm_resp['move']
@@ -551,15 +551,15 @@ class Manager:
 
     def modify(self, requests):
         requests, traverse_response = self._traverse(requests)
-        catalog_requests = {}
+        librarian_requests = {}
         not_found = []
         for changeID, (LN, changeType, section, property, value) in requests:
             _, GUID, _, _, wasComplete, _ = traverse_response[changeID]
             if wasComplete:
-                catalog_requests[changeID] = (GUID, changeType, section, property, value)
+                librarian_requests[changeID] = (GUID, changeType, section, property, value)
             else:
                 not_found.append(changeID)
-        response = self.catalog.modifyMetadata(catalog_requests)
+        response = self.librarian.modifyMetadata(librarian_requests)
         for changeID in not_found:
             response[changeID] = 'no such LN'
         return response
@@ -575,11 +575,11 @@ class ManagerService(Service):
         # request_names is the list of the names of the provided methods
         # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
         Service.__init__(self, 'Manager', request_names, 'man', manager_uri, cfg)
-        # get the URL of the Catalog from the config file
-        catalog_url = str(cfg.Get('CatalogURL'))
-        # create a CatalogClient from the URL
-        catalog = CatalogClient(catalog_url)
-        self.manager = Manager(catalog)
+        # get the URL of the Librarian from the config file
+        librarian_url = str(cfg.Get('LibrarianURL'))
+        # create a LibrarianClient from the URL
+        librarian = LibrarianClient(librarian_url)
+        self.manager = Manager(librarian)
         self.manager.log = self.log
 
     def stat(self, inpayload):
@@ -612,7 +612,7 @@ class ManagerService(Service):
         #                       <man:value>cf05727b-73f3-4318-8454-16eaf10f302c</man:value>
         #                   </man:metadata>
         #                   <man:metadata>
-        #                       <man:section>catalog</man:section>
+        #                       <man:section>entry</man:section>
         #                       <man:property>type</man:property>
         #                       <man:value>collection</man:value>
         #                   </man:metadata>
@@ -881,7 +881,7 @@ class ManagerService(Service):
         #           </man:listRequestList>
         #           <man:neededMetadataList>
         #               <man:neededMetadataElement>
-        #                   <man:section>catalog</man:section>
+        #                   <man:section>entry</man:section>
         #                   <man:property></man:property>
         #               </man:neededMetadataElement>
         #           </man:neededMetadataList>
@@ -902,7 +902,7 @@ class ManagerService(Service):
         #                               <man:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</man:GUID>
         #                               <man:metadataList>
         #                                   <man:metadata>
-        #                                       <man:section>catalog</man:section>
+        #                                       <man:section>entry</man:section>
         #                                       <man:property>type</man:property>
         #                                       <man:value>file</man:value>
         #                                   </man:metadata>
@@ -913,7 +913,7 @@ class ManagerService(Service):
         #                               <man:GUID>4cabc8cb-599d-488c-a253-165f71d4e180</man:GUID>
         #                               <man:metadataList>
         #                                   <man:metadata>
-        #                                       <man:section>catalog</man:section>
+        #                                       <man:section>entry</man:section>
         #                                       <man:property>type</man:property>
         #                                       <man:value>collection</man:value>
         #                                   </man:metadata>

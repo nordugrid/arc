@@ -118,7 +118,7 @@ ARC Storage Manager interface
         the Storage Manager has to know which storage elements the user's VO can use
             but I don't know from where it could get this information
             
-        the Storage Manager first creates an entry in the Catalog if the logical name is available
+        the Storage Manager first creates an entry in the Librarian if the logical name is available
         then the data scheduler modul in the Storage Manager chooses a Storage Element,
         and try to initiate file transfer on behalf of the user
         the Storage Element gives back an SURL, which can be later used to access this file
@@ -133,7 +133,7 @@ ARC Storage Manager interface
     GET logical name [, list of preferred storage elements]
 
         works on files only
-        the Storage Manager gets the metadata of the file from the Catalog,
+        the Storage Manager gets the metadata of the file from the Librarian,
         which consists of the SURLs of the replicas
         the Storage Manager chooses one of these SURLs according to the list of preferred
         storage elements, then initiates file transfer at the Storage Element (gets the TURL),
@@ -143,19 +143,19 @@ ARC Storage Manager interface
     DEL logical name
 
         works on files only
-        the Storage Manager gets the metadata of the file from the Catalog,
+        the Storage Manager gets the metadata of the file from the Librarian,
         and for each SURL initiates removal of the replica at its Storage Element,
-        then removes the Catalog entry.
+        then removes the Librarian entry.
 
 
     STAT logical name
 
-        gets all the metadata of the file or collection from the Catalog, and returns it
+        gets all the metadata of the file or collection from the Librarian, and returns it
 
 
     MOD logical name, modification of metadata
 
-        modify metadata of file or collection in the Catalog
+        modify metadata of file or collection in the Librarian
 
     
     MKCOL logical name, metadata
@@ -168,7 +168,7 @@ ARC Storage Manager interface
             closed
             
         creates an empty collection
-        creates an entry of this collection ni the Catalog if this LN is available
+        creates an entry of this collection ni the Librarian if this LN is available
         after this collection is created, you can put files in it, or move files to it,
         then you can close it with MOD
 
@@ -214,7 +214,7 @@ ARC Storage Manager interface
 
     GLOB pattern
         
-        using the Catalog, returns all the logical names matching the given pattern
+        using the Librarian, returns all the logical names matching the given pattern
 
 
 There is a strong need of a Consistency Service or just a consistency modul of the Storage Manager.

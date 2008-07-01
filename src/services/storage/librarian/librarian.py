@@ -6,14 +6,14 @@ import threading
 import time
 from storage.xmltree import XMLTree
 from storage.client import AHashClient
-from storage.common import catalog_uri, global_root_guid, true, false, sestore_guid
+from storage.common import librarian_uri, global_root_guid, true, false, sestore_guid
 from storage.common import get_child_nodes, node_to_data, mkuid, parse_metadata, create_response, \
     create_metadata, parse_node, serialize_ids
 import traceback
 import copy
 
 
-class Catalog:
+class Librarian:
     def __init__(self, cfg, log):
         self.log = log
         # URL of the A-Hash
@@ -59,7 +59,7 @@ class Catalog:
             for GUID, serviceID, referenceID, state in changes]
         change_request = dict([
             (location, (GUID, 'set', 'locations', location, state,
-                {'only if file exists' : ('is', 'catalog', 'type', 'file')}))
+                {'only if file exists' : ('is', 'entry', 'type', 'file')}))
                     for GUID, location, state in with_locations
         ])
         #print '_change_states request', change_request
@@ -114,20 +114,20 @@ class Catalog:
         for rID, metadata in requests.items():
             #print 'Processing new request:', metadata
             try:
-                type = metadata[('catalog','type')]
-                del metadata[('catalog', 'type')]
+                type = metadata[('entry','type')]
+                del metadata[('entry', 'type')]
             except:
                 type = None
             if type is None:
                 success = 'failed: no type given'
             else:
                 try:
-                    GUID = metadata[('catalog','GUID')]
-                    del metadata[('catalog','GUID')]
+                    GUID = metadata[('entry','GUID')]
+                    del metadata[('entry','GUID')]
                 except:
                     GUID = mkuid()
                 check = self.ahash.change(
-                    {'new': (GUID, 'set', 'catalog', 'type', type, {'0' : ('unset','catalog','type','')})}
+                    {'new': (GUID, 'set', 'entry', 'type', type, {'0' : ('unset','entry','type','')})}
                 )
                 status, failedCondition = check['new']
                 if status == 'set':
@@ -193,7 +193,7 @@ class Catalog:
             GUIDs = [guid]
             path = copy.deepcopy(path0)
             metadata0 = self.ahash.get([guid])[guid]
-            if not metadata0.has_key(('catalog','type')):
+            if not metadata0.has_key(('entry','type')):
                 response[rID] = ([], False, '', guid0, None, '/'.join(path))
             else:
                 try:
@@ -244,30 +244,30 @@ class Catalog:
     
 from storage.service import Service
     
-class CatalogService(Service):
-    """ CatalogService class implementing the XML interface of the storage Catalog service. """
+class LibrarianService(Service):
+    """ LibrarianService class implementing the XML interface of the storage Librarian service. """
 
     def __init__(self, cfg):
-        """ Constructor of the CatalogService
+        """ Constructor of the LibrarianService
 
-        CatalogService(cfg)
+        LibrarianService(cfg)
 
         'cfg' is an XMLNode which containes the config of this service.
         """
         # names of provided methods
         request_names = ['new','get','traverseLN', 'modifyMetadata', 'remove', 'report']
         # call the Service's constructor
-        Service.__init__(self, 'Catalog', request_names, 'cat', catalog_uri, cfg)
-        self.catalog = Catalog(cfg, self.log)
+        Service.__init__(self, 'Librarian', request_names, 'lbr', librarian_uri, cfg)
+        self.librarian = Librarian(cfg, self.log)
     
     def new(self, inpayload):
         requests0 = parse_node(inpayload.Child().Child(),
             ['requestID', 'metadataList'], single = True, string = False)
         requests = dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in requests0.items()])
-        resp = self.catalog.new(requests)
-        return create_response('cat:new',
-            ['cat:requestID', 'cat:GUID', 'cat:success'], resp, self.newSOAPPayload())
+        resp = self.librarian.new(requests)
+        return create_response('lbr:new',
+            ['lbr:requestID', 'lbr:GUID', 'lbr:success'], resp, self.newSOAPPayload())
 
     def get(self, inpayload):
         requests = [str(node.Get('GUID')) for node in get_child_nodes(inpayload.Child().Get('getRequestList'))]
@@ -275,40 +275,40 @@ class CatalogService(Service):
             node_to_data(node, ['section', 'property'], single = True)
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
-        tree = self.catalog.get(requests, neededMetadata)
+        tree = self.librarian.get(requests, neededMetadata)
         out = arc.PayloadSOAP(self.newSOAPPayload())
-        response_node = out.NewChild('cat:getResponse')
+        response_node = out.NewChild('lbr:getResponse')
         tree.add_to_node(response_node)
         return out
 
     def traverseLN(self, inpayload):
         requests = parse_node(inpayload.Child().Child(), ['requestID', 'LN'], single = True)
-        response = self.catalog.traverseLN(requests)
+        response = self.librarian.traverseLN(requests)
         for rID, (traversedList, wasComplete, traversedLN, GUID, metadata, restLN) in response.items():
             traversedListTree = [
-                ('cat:traversedListElement', [
-                    ('cat:LNPart', LNpart),
-                    ('cat:GUID', partGUID)
+                ('lbr:traversedListElement', [
+                    ('lbr:LNPart', LNpart),
+                    ('lbr:GUID', partGUID)
                 ]) for (LNpart, partGUID) in traversedList
             ]
-            metadataTree = create_metadata(metadata, 'cat')
+            metadataTree = create_metadata(metadata, 'lbr')
             response[rID] = (traversedListTree, wasComplete and true or false,
                 traversedLN, GUID, metadataTree, restLN)
-        return create_response('cat:traverseLN',
-            ['cat:requestID', 'cat:traversedList', 'cat:wasComplete',
-                'cat:traversedLN', 'cat:GUID', 'cat:metadataList', 'cat:restLN'], response, self.newSOAPPayload())
+        return create_response('lbr:traverseLN',
+            ['lbr:requestID', 'lbr:traversedList', 'lbr:wasComplete',
+                'lbr:traversedLN', 'lbr:GUID', 'lbr:metadataList', 'lbr:restLN'], response, self.newSOAPPayload())
 
     def modifyMetadata(self, inpayload):
-        requests = parse_node(inpayload.Child().Child(), ['cat:changeID',
-            'cat:GUID', 'cat:changeType', 'cat:section', 'cat:property', 'cat:value'])
-        response = self.catalog.modifyMetadata(requests)
-        return create_response('cat:modifyMetadata', ['cat:changeID', 'cat:success'],
+        requests = parse_node(inpayload.Child().Child(), ['lbr:changeID',
+            'lbr:GUID', 'lbr:changeType', 'lbr:section', 'lbr:property', 'lbr:value'])
+        response = self.librarian.modifyMetadata(requests)
+        return create_response('lbr:modifyMetadata', ['lbr:changeID', 'lbr:success'],
             response, self.newSOAPPayload(), single = True)
 
     def remove(self, inpayload):
-        requests = parse_node(inpayload.Child().Child(), ['cat:requestID', 'cat:GUID'], single = True)
-        response = self.catalog.remove(requests)
-        return create_response('cat:remove', ['cat:requestID', 'cat:success'],
+        requests = parse_node(inpayload.Child().Child(), ['lbr:requestID', 'lbr:GUID'], single = True)
+        response = self.librarian.remove(requests)
+        return create_response('lbr:remove', ['lbr:requestID', 'lbr:success'],
             response, self.newSOAPPayload(), single = True)
     
     def report(self, inpayload):
@@ -317,9 +317,9 @@ class CatalogService(Service):
         filelist_node = request_node.Get('filelist')
         file_nodes = get_child_nodes(filelist_node)
         filelist = [(str(node.Get('GUID')), str(node.Get('referenceID')), str(node.Get('state'))) for node in file_nodes]
-        nextReportTime = self.catalog.report(serviceID, filelist)
+        nextReportTime = self.librarian.report(serviceID, filelist)
         out = self.newSOAPPayload()
-        response_node = out.NewChild('cat:registerResponse')
-        response_node.NewChild('cat:nextReportTime').Set(str(nextReportTime))
+        response_node = out.NewChild('lbr:registerResponse')
+        response_node.NewChild('lbr:nextReportTime').Set(str(nextReportTime))
         return out
 

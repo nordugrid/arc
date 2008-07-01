@@ -201,8 +201,8 @@ class ARCFS(Fuse):
             # no metadata
             debug_msg('mkinod left, no metadata', (path))
             return None
-        is_dir = metadata[('catalog', 'type')] == 'collection'
-        is_file = metadata[('catalog', 'type')] == 'file'
+        is_dir = metadata[('entry', 'type')] == 'collection'
+        is_file = metadata[('entry', 'type')] == 'file'
         if is_file:
             nlink = 1
             size = long(metadata[('states','size')])
@@ -525,7 +525,7 @@ class ARCFS(Fuse):
             if not isinstance(metadata,dict):
                 debug_msg('mkfinod left, no metadata')
                 return None
-            if not metadata[('catalog', 'type')] == 'file':
+            if not metadata[('entry', 'type')] == 'file':
                 debug_msg('mkfinod left, not a file')
                 return None
             nlink = 1

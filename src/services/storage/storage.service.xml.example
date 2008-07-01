@@ -29,7 +29,7 @@
         </Component>
         <Plexer name="plexer.service" id="plexer">
             <next id="hash">^/AHash$</next>
-            <next id="catalog">^/Catalog$</next>
+            <next id="librarian">^/Librarian$</next>
             <next id="manager">^/Manager$</next>
             <next id="element">^/Element$</next>
             <next id="httpd">^/httpd/</next>
@@ -40,15 +40,15 @@
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg><DataDir>/var/spool/arc/hash_data</DataDir></StoreCfg>
         </Service>
-        <Service name="pythonservice" id="catalog">
-            <ClassName>storage.catalog.catalog.CatalogService</ClassName>
+        <Service name="pythonservice" id="librarian">
+            <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
             <AHashURL>http://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
         <Service name="pythonservice" id="manager">
             <ClassName>storage.manager.manager.ManagerService</ClassName>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
         <Service name="pythonservice" id="element">
             <ClassName>storage.element.element.ElementService</ClassName>
@@ -66,7 +66,7 @@
                 <!-- Change this prefix to the external interface of your machine -->
                 <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
             </BackendCfg>
-            <CatalogURL>http://localhost:60000/Catalog</CatalogURL>
+            <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
             <ManagerURL>http://localhost:60000/Manager</ManagerURL>
         </Service>
         <Service name="httpd" id="httpd">

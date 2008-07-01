@@ -1,13 +1,13 @@
 import arc, sys, time
 from storage.xmltree import XMLTree
-from storage.client import CatalogClient
+from storage.client import LibrarianClient
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
     args.pop(0)
     print_xml = True
 else:
     print_xml = False
-catalog = CatalogClient('http://localhost:60000/Catalog', print_xml)
+librarian = LibrarianClient('http://localhost:60000/Librarian', print_xml)
 if len(args) == 0 or args[0] not in ['new', 'get', 'traverseLN', 'modifyMetadata', 'remove']:
     print 'Supported methods: new get traverseLN modifyMetadata'
 else:
@@ -18,13 +18,13 @@ else:
         else:
             type = args.pop(0)
             metadata = {}
-            metadata[('catalog','type')] = type
+            metadata[('entry','type')] = type
             metadata[('timestamps','created')] = str(time.time())
             if len(args) > 0:
-                metadata[('catalog', 'GUID')] = args[0]
+                metadata[('entry', 'GUID')] = args[0]
             request = {'0' : metadata}
             print 'new', request
-            print catalog.new(request)
+            print librarian.new(request)
     elif command == 'get':
         if len(args) < 1:
             print 'Usage: get <GUID> [<GUID> ...] neededMetadata [<section> [<property>] ...] '
@@ -43,7 +43,7 @@ else:
                     property = ''
                 neededMetadata.append((section, property))
             print 'get', IDs, neededMetadata
-            print catalog.get(IDs, neededMetadata)
+            print librarian.get(IDs, neededMetadata)
     elif command == 'traverseLN':
         if len(args) < 1:
             print 'Usage: traverseLN <LN> [<LN> ...]'
@@ -52,18 +52,18 @@ else:
             for i in range(len(args)):
                 request[str(i)] = args[i]
             print 'traverseLN', request
-            print catalog.traverseLN(request)
+            print librarian.traverseLN(request)
     elif command == 'modifyMetadata':
         if len(args) < 5:
             print 'Usage: modifyMetadata <GUID> <changeType> <section> <property> <value>'
         else:
             request = {'0' : args}
             print 'modifyMetadata', request
-            print catalog.modifyMetadata(request)
+            print librarian.modifyMetadata(request)
     elif command == 'remove':
         if len(args) < 1:
             print 'Usage: remove <GUID> [<GUID>, ...]'
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             print 'remove', request
-            print catalog.remove(request)
+            print librarian.remove(request)

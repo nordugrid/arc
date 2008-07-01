@@ -1,6 +1,6 @@
 # namespace URIs of the storage services
 ahash_uri = 'urn:ahash'
-catalog_uri = 'urn:storagecatalog'
+librarian_uri = 'urn:librarian'
 manager_uri = 'urn:storagemanager'
 element_uri = 'urn:storageelement'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
@@ -165,7 +165,7 @@ def parse_metadata(metadatalist_node):
     
         <metadataList>
             <metadata>
-                <section>catalog</section>
+                <section>entry</section>
                 <property>type</property>
                 <value>file</value>
             </metadata>
@@ -178,7 +178,7 @@ def parse_metadata(metadatalist_node):
     
     output:
     
-        {('catalog','type') : 'file', ('states', 'size') : '812314'}
+        {('entry','type') : 'file', ('states', 'size') : '812314'}
     """
     # get the number of children
     metadatalist_number = metadatalist_node.Size()
@@ -208,17 +208,17 @@ def create_metadata(metadata, prefix = ''):
     
     input:
     
-        {('catalog','type') : 'file', ('states', 'size') : '812314'}
+        {('entry','type') : 'file', ('states', 'size') : '812314'}
     
     output:
     
-        [('metadata', [('section', 'catalog'), ('property', 'type'), ('value', 'file')]),
+        [('metadata', [('section', 'entry'), ('property', 'type'), ('value', 'file')]),
          ('metadata', [('section', 'states'), ('property', 'size'), ('value', '812314')])]
          
     this output can be used as an XMLTree object, and can be put into an XMLNode, which will look like this:
     
             <metadata>
-                <section>catalog</section>
+                <section>entry</section>
                 <property>type</property>
                 <value>file</value>
             </metadata>

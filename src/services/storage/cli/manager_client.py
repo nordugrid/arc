@@ -110,14 +110,14 @@ else:
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             print 'list', request
-            response = manager.list(request,[('catalog','')])
+            response = manager.list(request,[('entry','')])
             print response
             for rID, (entries, status) in response.items():
                 print
                 if status == 'found':
                     print '%s:' % request[rID]
                     for name, (GUID, metadata) in entries.items():
-                        print '\t%s\t<%s>' % (name, metadata.get(('catalog', 'type'),'unknown'))
+                        print '\t%s\t<%s>' % (name, metadata.get(('entry', 'type'),'unknown'))
                 else:
                     print '%s: %s' % (request[rID], status)
     elif command == 'move':

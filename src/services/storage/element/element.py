@@ -8,7 +8,7 @@ import random
 import arc
 from storage.xmltree import XMLTree
 from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols
-from storage.client import CatalogClient, ManagerClient
+from storage.client import LibrarianClient, ManagerClient
 
 ALIVE = 'alive'
 CREATING = 'creating'
@@ -34,13 +34,13 @@ class Element:
             self.log('DEBUG', 'Cannot import store class', storeclass)
             raise
         try:
-            catalogURL = str(cfg.Get('CatalogURL'))
-            self.catalog = CatalogClient(catalogURL)
+            librarianURL = str(cfg.Get('LibrarianURL'))
+            self.librarian = LibrarianClient(librarianURL)
             managerURL = str(cfg.Get('ManagerURL'))
             self.manager = ManagerClient(managerURL)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            self.log('DEBUG', 'Cannot get CatalogURL, ManagerURL or serviceID')
+            self.log('DEBUG', 'Cannot get LibrarianURL, ManagerURL or serviceID')
             raise
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
@@ -70,7 +70,9 @@ class Element:
                                 bsuccess = self.backend.remove(localData['localID'])
                                 self.store.set(changed, None)
                     #print 'reporting', self.serviceID, filelist
-                    next_report = self.catalog.report(self.serviceID, filelist)
+                    next_report = self.librarian.report(self.serviceID, filelist)
+                    if not next_report:
+                        next_report = 10
                     last_report = time.time()
                     if next_report < 0: # 'please send all'
                         self.log('DEBUG', '\nreporting - asked to send all file data again')
@@ -132,11 +134,11 @@ class Element:
         try:
             metadata = metadata.get(GUID)   
             if isinstance(metadata,dict) and not metadata.has_key(('states', 'neededReplicas')):
-                # catalog couldn't find the file; we don't need any replicas
-                return 'NotInCatalog'
+                # librarian couldn't find the file; we don't need any replicas
+                return 'NotInLibrarian'
         except:
             self.log()    
-            return 'CatalogBroken'
+            return 'LibrarianBroken'
         self.log('VERBOSE','_checking_guid OK')
         
         
@@ -158,12 +160,12 @@ class Element:
                             metadata={}
                             if state == CREATING or state == ALIVE:
                                 try:
-                                    metadata = self.catalog.get([GUID])
+                                    metadata = self.librarian.get([GUID])
                                 except:
                                     pass
                             if state == CREATING or state == ALIVE:
-                                if self._checking_guid(GUID, metadata) == 'NotInCatalog':
-                                    # guid not in catalog, we don't need the replicas
+                                if self._checking_guid(GUID, metadata) == 'NotInLibrarian':
+                                    # guid not in librarian, we don't need the replicas
                                     self.changeState(referenceID, DELETED)
                                     state = DELETED
                             if state == ALIVE:
@@ -400,6 +402,6 @@ class ElementService(Service):
         doReporting = str(inpayload.Child().Get('doReporting'))
         response = self.element.toggleReport(doReporting == true)
         out = self.newSOAPPayload()
-        response_node = out.NewChild('cat:toggleReportResponse')
+        response_node = out.NewChild('lbr:toggleReportResponse')
         response_node.Set(response)
         return out

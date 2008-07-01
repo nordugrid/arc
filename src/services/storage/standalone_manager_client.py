@@ -107,17 +107,17 @@ def create_metadata(metadata, prefix = ''):
     
     input:
     
-        {('catalog','type') : 'file', ('states', 'size') : '812314'}
+        {('entry','type') : 'file', ('states', 'size') : '812314'}
     
     output:
     
-        [('metadata', [('section', 'catalog'), ('property', 'type'), ('value', 'file')]),
+        [('metadata', [('section', 'entry'), ('property', 'type'), ('value', 'file')]),
          ('metadata', [('section', 'states'), ('property', 'size'), ('value', '812314')])]
          
     this output can be used as an XMLTree object, and can be put into an XMLNode, which will look like this:
     
             <metadata>
-                <section>catalog</section>
+                <section>entry</section>
                 <property>type</property>
                 <value>file</value>
             </metadata>
@@ -293,7 +293,7 @@ def parse_metadata(metadatalist_node):
     
         <metadataList>
             <metadata>
-                <section>catalog</section>
+                <section>entry</section>
                 <property>type</property>
                 <value>file</value>
             </metadata>
@@ -306,7 +306,7 @@ def parse_metadata(metadatalist_node):
     
     output:
     
-        {('catalog','type') : 'file', ('states', 'size') : '812314'}
+        {('entry','type') : 'file', ('states', 'size') : '812314'}
     """
     # get the number of children
     metadatalist_number = metadatalist_node.Size()
@@ -755,11 +755,11 @@ class ManagerClient(Client):
         
         In: {'frodo':'/', 'sam':'/testfile'}
         Out: 
-            {'frodo': {('catalog', 'type'): 'collection',
+            {'frodo': {('entry', 'type'): 'collection',
                        ('entries', 'testdir'): '4cabc8cb-599d-488c-a253-165f71d4e180',
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
                        ('states', 'closed'): '0'},
-             'sam': {('catalog', 'type'): 'file',
+             'sam': {('entry', 'type'): 'file',
                      ('locations', 'http://localhost:60000/Element 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
                      ('locations', 'http://localhost:60000/Element 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
                      ('states', 'checksum'): '0927c28a393e8834aa7b838ad8a69400',
@@ -972,13 +972,13 @@ class ManagerClient(Client):
             status is the status of the request
         
         Example:
-        In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('catalog','type')]
+        In: requests = {'jim': '/', 'kirk' : '/testfile'}, neededMetadata = [('states','size'),('entry','type')]
         Out: 
-            {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('catalog', 'type'): 'collection'}),
-                      'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('catalog', 'type'): 'collection'}),
-                      'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('catalog', 'type'): 'file', ('states', 'size'): '1055'}),
-                      'testdir': ('4cabc8cb-599d-488c-a253-165f71d4e180', {('catalog', 'type'): 'collection'}),
-                      'testfile': ('cf05727b-73f3-4318-8454-16eaf10f302c', {('catalog', 'type'): 'file', ('states', 'size'): '11'})},
+            {'jim': ({'coloredcollection': ('cab8d235-4afa-4e33-a85f-fde47b0240d1', {('entry', 'type'): 'collection'}),
+                      'newdir': ('3b200a34-0d63-4d15-9b01-3693685928bc', {('entry', 'type'): 'collection'}),
+                      'newfile': ('c9c82371-4773-41e4-aef3-caf7c7eaf6f8', {('entry', 'type'): 'file', ('states', 'size'): '1055'}),
+                      'testdir': ('4cabc8cb-599d-488c-a253-165f71d4e180', {('entry', 'type'): 'collection'}),
+                      'testfile': ('cf05727b-73f3-4318-8454-16eaf10f302c', {('entry', 'type'): 'file', ('states', 'size'): '11'})},
                      'found'),
              'kirk': ({}, 'is a file')}
         """
@@ -1242,7 +1242,7 @@ else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             more_than_one = len(args) > 1
             #print 'list', request
-            response = manager.list(request,[('catalog','')])
+            response = manager.list(request,[('entry','')])
             #print response
             for rID, (entries, status) in response.items():
                 if status == 'found':
@@ -1251,7 +1251,7 @@ else:
                     for name, (GUID, metadata) in entries.items():
                         if more_than_one:
                             print '\t',
-                        print '%s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('catalog', 'type'),'unknown'))
+                        print '%s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('entry', 'type'),'unknown'))
                 elif status == 'is a file':
                     _, _, name = splitLN(request[rID])
                     print '%s%s<%s>' % (name, ' '*(20-len(name)), 'file')

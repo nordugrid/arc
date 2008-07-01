@@ -5,13 +5,13 @@ _storage()
     options=
     if [[ "$COMP_CWORD" == 1 ]];
     then
-        options='hash catalog manager element';
+        options='hash librarian manager element';
     else
         case $prev in
             hash)
                 options='get change changeIf'
                 ;;
-            catalog)
+            librarian)
                 options='get traverseLN new modifyMetadata remove'
                 ;;
             manager)
