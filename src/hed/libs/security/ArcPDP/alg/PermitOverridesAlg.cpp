@@ -23,7 +23,8 @@ Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy
       Result res = policy->eval(ctx);
       if(res == DECISION_PERMIT)
         return DECISION_PERMIT;
-      
+
+      //Never happen currently      
       if (res == DECISION_INDETERMINATE){
         atleast_oneerror = true;
         if((policy->getEffect()).compare("Permit")==0)
@@ -32,8 +33,16 @@ Result PermitOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy
       else if(res == DECISION_DENY)
         atleast_onedeny = true;
     }
+
+    //Never happen currently
     else if(match == INDETERMINATE)
       atleast_oneerror = true;
+
+    else if(match == NO_MATCH) {
+      Result res = policy->eval(ctx);
+      if(res == DECISION_DENY)
+        atleast_onedeny = true;
+    }
   }
   
   if(potentialpermit) return DECISION_INDETERMINATE;

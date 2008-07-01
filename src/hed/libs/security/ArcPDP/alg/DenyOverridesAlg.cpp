@@ -26,6 +26,8 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
 
       if(res == DECISION_PERMIT)
         atleast_onepermit = true;
+      
+      //Never happen currently
       else if(res == DECISION_INDETERMINATE){
         //some indeterminate caused by "Condition", will never happen in the existing situation, 
         //because we don't check condition in the Arc policy schema. But it will happen in the XACML policy schema
@@ -35,8 +37,15 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
           potentialdeny = true; 
       }
     }
+    //Never happen currently
     else if(match == INDETERMINATE)
       atleast_oneerror = true;
+
+    else if(match == NO_MATCH) {
+      Result res = policy->eval(ctx);
+      if(res == DECISION_DENY)
+        return DECISION_DENY;
+    }
   }
   
   if(potentialdeny) return DECISION_INDETERMINATE;
