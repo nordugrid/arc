@@ -4,5 +4,5 @@ python_DATA = catalog_client.py hash_client.py element_client.py manager_client.
 
 bin_SCRIPTS = storage storage_bash_completion 
 
-EXTRA_DIST = $(python_DATA)
+EXTRA_DIST = $(python_DATA) $(bin_SCRIPTS)
 
