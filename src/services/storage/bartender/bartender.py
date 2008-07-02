@@ -58,7 +58,7 @@ class Bartender:
         cat_mod_requests = {}
         check_again = []
         for requestID, (metadata, GUID, LN, _, wasComplete, traversedList) in traverse_response.items():
-            if wasComplete and metadata[('librarian', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
+            if wasComplete and metadata[('entry', 'type')]=='file': # if it was complete, then we found the entry and got the metadata
                 parentno = len([property for (section, property), value in metadata.items() if section == 'parents'])
                 if parentno < 2:
                     # remove the file itself,  if this file has only one parent (hardlink), or has no parent at all
