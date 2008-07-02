@@ -799,7 +799,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/storage/cli/Makefile 
                  src/services/storage/element/Makefile 
                  src/services/storage/ahash/Makefile 
-                 src/services/storage/manager/Makefile 
+                 src/services/storage/bartender/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/services/wrappers/Makefile
