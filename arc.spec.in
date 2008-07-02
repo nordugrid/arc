@@ -236,6 +236,9 @@ exit 0
 %{_bindir}/gliteclean
 %{_bindir}/glitedelegate
 %{_bindir}/gliteundelegate
+%{_bindir}/storage
+%{_bindir}/storage_bash_completion
+%{_bindir}/standalone_manager_client.py*
 
 %files server
 %defattr(-,root,root,-)
