@@ -795,10 +795,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/sched/Makefile
                  src/services/paul/Makefile
                  src/services/storage/Makefile 
-                 src/services/storage/catalog/Makefile 
+                 src/services/storage/librarian/Makefile 
                  src/services/storage/cli/Makefile 
                  src/services/storage/element/Makefile 
-                 src/services/storage/hash/Makefile 
+                 src/services/storage/ahash/Makefile 
                  src/services/storage/manager/Makefile 
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
