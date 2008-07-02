@@ -29,6 +29,8 @@ common_supported_protocols = ['http', 'byteio']
 
 def upload_to_turl(turl, protocol, fobj):
     """docstring for upload_to_turl"""
+    if protocol not in common_supported_protocols:
+        raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         return ByteIOClient(turl).write(fobj)
@@ -40,11 +42,11 @@ def upload_to_turl(turl, protocol, fobj):
         r = h.getresponse()
         resp = r.read()
         return r.status
-    else:
-        raise Exception, 'Unsupported protocol'
 
 def download_from_turl(turl, protocol, fobj):
     """docstring for download_from_turl"""
+    if protocol not in common_supported_protocols:
+        raise Exception, 'Unsupported protocol'
     if protocol == 'byteio':
         from storage.client import ByteIOClient
         ByteIOClient(turl).read(file = f)
@@ -56,8 +58,6 @@ def download_from_turl(turl, protocol, fobj):
         r = h.getresponse()
         fobj.write(r.read())
         return r.status
-    else:
-        raise Exception, 'Unsupported protocol'
 
 def create_checksum(file, type):
     """ Create checksum of a file.
@@ -631,6 +631,9 @@ class PickleStore:
             return pickle.load(file(self._filename(ID)))
         except IOError:
             # don't print 'file not found' if there is no such ID
+            pass
+        except EOFError:
+            # TODO: find out what causes this problem
             pass
         except:
             # print whatever exception happened
