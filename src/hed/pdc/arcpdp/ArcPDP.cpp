@@ -164,9 +164,29 @@ bool ArcPDP::isPermitted(Message *msg){
   logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
+
+  //The current ArcPDP is supposed to be used as policy decision point for Arc1 HED components, and
+  //those services which are based on HED.
+  //Each message/session comes with one unique <Subject/> (with a number of <Attribute/>s), and different 
+  //<Resource/>:<Action/> (possibly plus <Context/>).
+  //The decision algorithm is: If one <Subject/>:<Resource/>:<Action/>(:<Context/>) gets "PERMIT", and the
+  //other tuples does not get "DENY" (in current situation, "INDETERMINATE" currently never happens, so 
+  //they could get "PERMIT", or "NOTAPPLICABLE"), ArcPDP gives "PERMIT"; If any tuple gets "DENY", 
+  //ArcPDP gives "DENY"; If no tuple gets either "PERMIT" or "DENY", that means whole suit of tuples 
+  //together get "NOT_APPLICABLE" or "INDETERMINATE" ("INDETERMINATE" currently never happens), ArcPDP gives "DENY".
+
+  bool atleast_onedeny = false;
+  bool atleast_onepermit = false;
+
   for(int i = 0; i < size; i++) {
     ResponseItem* item = rlist[i];
     RequestTuple* tp = item->reqtp;
+
+    if(item->res == DECISION_DENY)
+      atleast_onedeny = true;
+    if(item->res == DECISION_PERMIT)
+      atleast_onepermit = true;
+
     Subject::iterator it;
     Subject subject = tp->sub;
     for (it = subject.begin(); it!= subject.end(); it++){
@@ -179,39 +199,18 @@ bool ArcPDP::isPermitted(Message *msg){
       }
     }
   } 
+  
+  bool result = false;
+  if(atleast_onedeny) result = false;
+  else if(!atleast_onedeny && atleast_onepermit) result = true;
+  else if(!atleast_onedeny && !atleast_onepermit) result = false;
 
-  //Get the number of <RequestItem/> in request (after splitting), and compare it with the 
-  //number <RequestItem/> number in response. If the two value does not match, it means 
-  //some <RequestItem/> in the request does not satisfy the policy. Here, we simply treat it 
-  //as "Unauthorization"
-
-  if(rlist.size() != 0){
-    logger.msg(INFO, "Authorized from arc.pdp");
-    if(resp)
-      delete resp;
-    return true;
-  }
-  else {
-    logger.msg(ERROR, "UnAuthorized from arc.pdp");
-    if(resp)
-      delete resp;
-    return false;
-  }  
-
-  /*
-  if((rlist.size()) == (resp->getRequestSize())){
-    logger.msg(INFO, "Authorized from arc.pdp");
-    if(resp)
-      delete resp;
-    return true;
-  }
-  else {
-    logger.msg(ERROR, "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy");
-    if(resp)
-      delete resp;
-    return false;
-  }
-  */
+  if(result) logger.msg(INFO, "Authorized from arc.pdp");
+  else logger.msg(ERROR, "UnAuthorized from arc.pdp; Some of the RequestItem does not satisfy Policy");
+  
+  if(resp) delete resp;
+    
+  return result;
 }
 
 ArcPDP::~ArcPDP(){

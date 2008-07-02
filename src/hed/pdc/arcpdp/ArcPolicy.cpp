@@ -100,6 +100,7 @@ Result ArcPolicy::eval(EvaluationCtx* ctx){
   if(result == DECISION_PERMIT) evalres.effect = "Permit";
   else if(result == DECISION_DENY) evalres.effect = "Deny";
   else if(result == DECISION_INDETERMINATE) evalres.effect = "Indeterminate";
+  else if(result == DECISION_NOT_APPLICABLE) evalres.effect = "Not_Applicable";
 
   return result;
 }

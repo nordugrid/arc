@@ -233,55 +233,95 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
     
     std::list<PolicyStore::PolicyElement> permitset;
     bool atleast_onepermit = false;
-    //Each policy evaluates the present RequestTuple, using default combiningalg between <Policy>s: DENY-OVERRIDES
+    bool atleast_onedeny = false;
+    bool atleast_onenotapplicable = false;
+    bool atleast_oneindeterminate = false;
+    Result result = DECISION_NOT_APPLICABLE;
+
+    //Each policy evaluates the present RequestTuple, using default combiningalg between <Policy>s: PERMIT-OVERRIDES
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Result res = ((Policy*)(*policyit))->eval(ctx);
 
-      logger.msg(INFO,"Result value (0 means success): %d", res);
+      logger.msg(INFO,"Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d", res);
 
       if(combining_alg == EvaluatorStopsOnDeny) {
         if(res == DECISION_PERMIT){
           permitset.push_back(*policyit);
           atleast_onepermit = true;
-        } else {
+        }
+       else if(res == DECISION_DENY) {
+          atleast_onedeny = true; 
           break;
-        };
+        }
+        else if(res == DECISION_INDETERMINATE)
+          atleast_oneindeterminate = true;
+        else if(res == DECISION_NOT_APPLICABLE)
+          atleast_onenotapplicable = true;
+
       } else if(combining_alg == EvaluatorStopsOnPermit) {
         if(res == DECISION_PERMIT){
           permitset.push_back(*policyit);
           atleast_onepermit = true;
           break;
-        };
+        }
+        else if(res == DECISION_DENY)
+          atleast_onedeny = true;
+        else if(res == DECISION_INDETERMINATE)
+          atleast_oneindeterminate = true;
+        else if(res == DECISION_NOT_APPLICABLE)
+          atleast_onenotapplicable = true;
+
       } else if(combining_alg == EvaluatorStopsNever) {
         if(res == DECISION_PERMIT){
           permitset.push_back(*policyit);
           atleast_onepermit = true;
-        };
+        }
+        else if(res == DECISION_DENY) 
+          atleast_onedeny = true;
+        else if(res == DECISION_INDETERMINATE)
+          atleast_oneindeterminate = true;
+        else if(res == DECISION_NOT_APPLICABLE)
+          atleast_onenotapplicable = true;
+
       } else { // EvaluatorFailsOnDeny
         //If there is one policy gives negative evaluation result, then jump out
         //For RequestTuple which is denied, we will not feedback any information so far
         if(res == DECISION_PERMIT){
           permitset.push_back(*policyit);
           atleast_onepermit = true;
-        } else {
-          //if(res == DECISION_DENY || res == DECISION_INDETERMINATE){
+        } 
+        else if (res == DECISION_DENY) {
+          atleast_onedeny = true;
           permitset.clear();
           break;
         }
+        else if(res == DECISION_INDETERMINATE)
+          atleast_oneindeterminate = true;
+        else if(res == DECISION_NOT_APPLICABLE)
+          atleast_onenotapplicable = true;
       };
     }
 
+    //The decision for this RequestTuple is recorded. Here the algorithm is Permit-Overides,
+    //if any policy gives "Permit", the result is "Permit";
+    //if no policy gives "Permit", and any policy gives "Deny", the result is "Deny"; 
+    //if no policy gives "Permit", no policy gives "Deny", 
+    if(atleast_onepermit == true) result = DECISION_PERMIT;
+    else if(atleast_onepermit == false && atleast_onedeny ==true) result = DECISION_DENY;
+    else if(atleast_onepermit == false && atleast_onedeny ==false && atleast_oneindeterminate == true) result = DECISION_INDETERMINATE;
+    else if(atleast_onepermit == false && atleast_onedeny ==false && atleast_oneindeterminate == false && 
+            atleast_onenotapplicable == true) result = DECISION_NOT_APPLICABLE;
+
+
+    ResponseItem* item = new ResponseItem;
+    RequestTuple* reqtuple = new RequestTuple;
+    reqtuple->duplicate(*(*it));
+    item->reqtp = reqtuple;
+    item->reqxml = reqtuple->getNode();
+    item->res = result;
+
     //For RequestTuple that passes the evaluation check, fill the information into ResponseItem
     if(atleast_onepermit){
-      ResponseItem* item = new ResponseItem;
-      RequestTuple* reqtuple = new RequestTuple;
-      reqtuple->duplicate(*(*it));
-
-      item->reqtp = reqtuple; 
-      //item->pls = permitset;
-
-      item->reqxml = reqtuple->getNode();
-      
       std::list<PolicyStore::PolicyElement>::iterator permit_it;
       for(permit_it = permitset.begin(); permit_it != permitset.end(); permit_it++){
         item->pls.push_back((Policy*)(*permit_it));
@@ -296,26 +336,8 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
 
   if(ctx)
     delete ctx; 
- 
-  return resp;
 
-/*
-  Arc::Response response = new Arc::Response();
-  for(Arc::MatchedItem::iterator it = matcheditem.begin(); it!=matcheditem.end(); it++){
-    Arc::RequestItem* reqitem = (*it).first;
-    Arc::Policy* policies = (*it).second;
-    ctx->setRequestItem(reqitem);
-    Arc::Response* resp = policies->eval(ctx);
-    response->merge(resp);
-  }   
-  
-  return response;
-*/
-  
-/*  Request* req = ctx->getRequest();
-  ReqItemList reqitems = req->getRequestItems();
-*/
-  
+  return resp;
 }
 
 Response* ArcEvaluator::evaluate(Request* request, const Source& policy) {
