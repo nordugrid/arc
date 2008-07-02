@@ -1,4 +1,4 @@
-from storage.common import hash_uri, librarian_uri, manager_uri, rbyteio_uri, byteio_simple_uri, element_uri, gateway_uri, transfer_uri, externalInfo_uri
+from storage.common import hash_uri, librarian_uri, bartender_uri, rbyteio_uri, byteio_simple_uri, element_uri, gateway_uri, transfer_uri, externalInfo_uri
 from storage.common import parse_metadata, create_metadata, true, false, get_child_nodes, node_to_data, parse_node, parse_to_dict
 from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
@@ -303,19 +303,19 @@ class LibrarianClient(Client):
         node = arc.XMLNode(response)
         return int(str(node.Child().Child().Get('nextReportTime')))
 
-class ManagerClient(Client):
-    """ Client for the Storage Manager service. """
+class BartenderClient(Client):
+    """ Client for the Bartender service. """
     
     def __init__(self, url, print_xml = False):
         """ Constructior of the client.
         
-        ManagerClient(url, print_xml = False)
+        BartenderClient(url, print_xml = False)
         
-        url is the URL of the Manager service
+        url is the URL of the Bartender service
         if print_xml is true this will print the SOAP messages
         """
         # sets the namespace
-        ns = arc.NS({'man':manager_uri})
+        ns = arc.NS({'man':bartender_uri})
         # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml)
 

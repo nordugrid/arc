@@ -8,7 +8,7 @@ import random
 import arc
 from storage.xmltree import XMLTree
 from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols
-from storage.client import LibrarianClient, ManagerClient
+from storage.client import LibrarianClient, BartenderClient
 
 ALIVE = 'alive'
 CREATING = 'creating'
@@ -36,11 +36,11 @@ class Element:
         try:
             librarianURL = str(cfg.Get('LibrarianURL'))
             self.librarian = LibrarianClient(librarianURL)
-            managerURL = str(cfg.Get('ManagerURL'))
-            self.manager = ManagerClient(managerURL)
+            bartenderURL = str(cfg.Get('BartenderURL'))
+            self.bartender = BartenderClient(bartenderURL)
             self.serviceID = str(cfg.Get('ServiceID'))
         except:
-            self.log('DEBUG', 'Cannot get LibrarianURL, ManagerURL or serviceID')
+            self.log('DEBUG', 'Cannot get LibrarianURL, BartenderURL or serviceID')
             raise
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
@@ -171,23 +171,23 @@ class Element:
                             if state == ALIVE:
                                 if not self._checking_replicano(GUID, metadata):
                                     self.log('DEBUG', '\n\nFile', GUID, 'has fewer replicas than needed.')
-                                    response = self.manager.addReplica({'checkingThread' : GUID}, common_supported_protocols)
+                                    response = self.bartender.addReplica({'checkingThread' : GUID}, common_supported_protocols)
                                     success, turl, protocol = response['checkingThread']
                                     #print 'addReplica response', success, turl, protocol
                                     if success == 'done':
                                         self.backend.copyTo(localID, turl, protocol)
                                     else:
-                                        self.log('DEBUG', 'checkingThread error, manager responded', success)
+                                        self.log('DEBUG', 'checkingThread error, bartender responded', success)
                             if state == INVALID:
                                 self.log('DEBUG', '\n\nI have an invalid replica of file', GUID)
-                                response = self.manager.getFile({'checkingThread' : (GUID, common_supported_protocols)})
+                                response = self.bartender.getFile({'checkingThread' : (GUID, common_supported_protocols)})
                                 success, turl, protocol = response['checkingThread']
                                 if success == 'done':
                                     self.changeState(referenceID, CREATING)
                                     self.backend.copyFrom(localID, turl, protocol)
                                     self._file_arrived(referenceID)
                                 else:
-                                    self.log('DEBUG', 'checkingThread error, manager responded', success)
+                                    self.log('DEBUG', 'checkingThread error, bartender responded', success)
                         except:
                             self.log('DEBUG', 'ERROR checking checksum of', referenceID)
                             self.log()

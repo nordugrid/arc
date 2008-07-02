@@ -3,7 +3,7 @@ It has the following subdirectories:
 
 ahash     - simple currently centralized metadata store used by the Librarian
 librarian - the Librarian service handling files and collection
-manager   - the Storage Manager service providing high-level storage namespace
+bartender   - the Bartender service providing high-level storage namespace
 element   - the Storage Element service and a byteio service
 gateway   - the Storage Gateway service and other services related to it
 cli 	  - small basic CLI clients for the storage services
@@ -39,10 +39,10 @@ upload a file, the actual data transfer is going directly to these
 services. the Elements checks the health of their files, and report it
 to the Librarian. they initiate replication if needed.
 
-- Manager: this service is the main front-end service of the storage,
+- Bartender: this service is the main front-end service of the storage,
 the users connect to this, this provides a high-level user-friendly
 interface for file and collection operations, every transfer must be
-initiated by a Manager service. it connects to Librarians to organize the
+initiated by a Bartender service. it connects to Librarians to organize the
 global logical namespace, it connects to Elements to initiate file
 transfers.
 

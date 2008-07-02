@@ -33,7 +33,7 @@
         <Plexer name="plexer.service" id="plexer">
             <next id="hash">^/AHash$</next>
             <next id="librarian">^/Librarian$</next>
-            <next id="manager">^/Manager$</next>
+            <next id="bartender">^/Bartender$</next>
             <next id="element1">^/Element1$</next>
             <next id="byteio1">^/byteio1$</next>
             <next id="byteio1">^/byteio1/</next>
@@ -56,8 +56,8 @@
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
-        <Service name="pythonservice" id="manager">
-            <ClassName>storage.manager.manager.ManagerService</ClassName>
+        <Service name="pythonservice" id="bartender">
+            <ClassName>storage.bartender.bartender.BartenderService</ClassName>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
          <Service name="pythonservice" id="element1">
@@ -74,7 +74,7 @@
                 <TURLPrefix>http://localhost:60000/byteio1/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
-            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+            <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
         <Service name="pythonservice" id="element2">
             <ClassName>storage.element.element.ElementService</ClassName>
@@ -90,7 +90,7 @@
                 <TURLPrefix>http://localhost:60000/byteio2/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
-            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+            <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
         <Service name="pythonservice" id="element3">
             <ClassName>storage.element.element.ElementService</ClassName>
@@ -106,7 +106,7 @@
                 <TURLPrefix>http://localhost:60000/byteio3/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
-            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+            <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
          <Service name="pythonservice" id="byteio1">
             <ClassName>storage.element.byteio.ByteIOService</ClassName>

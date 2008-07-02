@@ -1,7 +1,7 @@
 # namespace URIs of the storage services
 ahash_uri = 'urn:ahash'
 librarian_uri = 'urn:librarian'
-manager_uri = 'urn:storagemanager'
+bartender = 'urn:bartender'
 element_uri = 'urn:storageelement'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 # URI for the simple transfer mechanism of ByteIO

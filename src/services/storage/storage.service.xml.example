@@ -30,7 +30,7 @@
         <Plexer name="plexer.service" id="plexer">
             <next id="hash">^/AHash$</next>
             <next id="librarian">^/Librarian$</next>
-            <next id="manager">^/Manager$</next>
+            <next id="bartender">^/Bartender$</next>
             <next id="element">^/Element$</next>
             <next id="httpd">^/httpd/</next>
         </Plexer>
@@ -46,8 +46,8 @@
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
-        <Service name="pythonservice" id="manager">
-            <ClassName>storage.manager.manager.ManagerService</ClassName>
+        <Service name="pythonservice" id="bartender">
+            <ClassName>storage.bartender.bartender.BartenderService</ClassName>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
         <Service name="pythonservice" id="element">
@@ -67,7 +67,7 @@
                 <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
             </BackendCfg>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
-            <ManagerURL>http://localhost:60000/Manager</ManagerURL>
+            <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
         <Service name="httpd" id="httpd">
             <DocumentRoot>/var/spool/arc/element_transfer</DocumentRoot>

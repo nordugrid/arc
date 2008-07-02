@@ -1,7 +1,7 @@
 import arc, sys, time, os
 from storage.common import false
 from storage.xmltree import XMLTree
-from storage.client import ManagerClient, ByteIOClient
+from storage.client import BartenderClient, ByteIOClient
 from storage.common import create_checksum, upload_to_turl, download_from_turl
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
@@ -9,7 +9,7 @@ if len(args) > 0 and args[0] == '-x':
     print_xml = True
 else:
     print_xml = False
-manager = ManagerClient('http://localhost:60000/Manager', print_xml)
+bartender = BartenderClient('http://localhost:60000/Bartender', print_xml)
 if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
     print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
 else:
@@ -20,7 +20,7 @@ else:
         else:
             request = dict([(i, args[i]) for i in range(len(args))])
             print 'stat', request
-            stat = manager.stat(request)
+            stat = bartender.stat(request)
             print stat
             for i,s in stat.items():
                 print '%s:' % args[int(i)]
@@ -39,7 +39,7 @@ else:
         else:
             request = dict([(i, args[i]) for i in range(len(args))])
             print 'delFile', request
-            response = manager.delFile(request)
+            response = bartender.delFile(request)
             print response
     elif command == 'getFile':
         if len(args) < 2:
@@ -50,7 +50,7 @@ else:
             f = file(filename, 'wb')
             request = {'0' : (LN, ['byteio', 'http'])}
             print 'getFile', request
-            response = manager.getFile(request)
+            response = bartender.getFile(request)
             print response
             success, turl, protocol = response['0']
             print '\n', LN, success
@@ -65,7 +65,7 @@ else:
             requests = {'0' : args[1]}
             protocols = ['byteio', 'http']
             print 'addReplica', requests, protocols
-            response = manager.addReplica(requests, protocols)
+            response = bartender.addReplica(requests, protocols)
             print response
             success, turl, protocol = response['0']
             if success == 'done':
@@ -87,7 +87,7 @@ else:
                     ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
             request = {'0': (LN, metadata, ['byteio', 'http'])}
             print 'putFile', request
-            response = manager.putFile(request)
+            response = bartender.putFile(request)
             print response
             success, turl, protocol = response['0']
             print '\n', LN, success
@@ -101,7 +101,7 @@ else:
         else:
             request = {'0': (args[0], {('states', 'closed') : false})}
             print 'makeCollection', request
-            response = manager.makeCollection(request)
+            response = bartender.makeCollection(request)
             print response
             print '\n', response['0']
     elif command == 'list':
@@ -110,7 +110,7 @@ else:
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             print 'list', request
-            response = manager.list(request,[('entry','')])
+            response = bartender.list(request,[('entry','')])
             print response
             for rID, (entries, status) in response.items():
                 print
@@ -132,7 +132,7 @@ else:
                     preserveOriginal = True
             request = {'0' : (sourceLN, targetLN, preserveOriginal)}
             print 'move', request
-            response = manager.move(request)
+            response = bartender.move(request)
             print response
             print '\n', response['0'][0]
     elif command == 'modify':
@@ -141,4 +141,4 @@ else:
         else:
             request = {'0' : args}
             print 'modify', request
-            print manager.modify(request)
+            print bartender.modify(request)

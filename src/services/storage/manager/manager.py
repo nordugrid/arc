@@ -5,17 +5,17 @@ import random
 import time
 from storage.xmltree import XMLTree
 from storage.client import LibrarianClient, ElementClient
-from storage.common import parse_metadata, librarian_uri, manager_uri, create_response, create_metadata, true, \
+from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
                             serialize_ids, deserialize_ids, sestore_guid
 import traceback
 
-class Manager:
+class Bartender:
 
     def __init__(self, librarian):
-        """ Constructor of the Manager business-logic class.
+        """ Constructor of the Bartender business-logic class.
         
-        Manager(librarian)
+        Bartender(librarian)
         
         librarian is LibrarianClient object which can be used to access a Librarian service
         """
@@ -566,60 +566,60 @@ class Manager:
 
 from storage.service import Service
 
-class ManagerService(Service):
+class BartenderService(Service):
 
     def __init__(self, cfg):
         # names of provided methods
         request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
-        # call the Service's constructor, 'Manager' is the human-readable name of the service
+        # call the Service's constructor, 'Bartender' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
-        # manager_uri is the URI of the Manager service namespace, and 'man' is the prefix we want to use for this namespace
-        Service.__init__(self, 'Manager', request_names, 'man', manager_uri, cfg)
+        # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
+        Service.__init__(self, 'Bartender', request_names, 'bar', bartender_uri, cfg)
         # get the URL of the Librarian from the config file
         librarian_url = str(cfg.Get('LibrarianURL'))
         # create a LibrarianClient from the URL
         librarian = LibrarianClient(librarian_url)
-        self.manager = Manager(librarian)
-        self.manager.log = self.log
+        self.bartender = Bartender(librarian)
+        self.bartender.log = self.log
 
     def stat(self, inpayload):
         # incoming SOAP message example:
         #
-        #   <man:stat>
-        #       <man:statRequestList>
-        #           <man:statRequestElement>
-        #               <man:requestID>0</man:requestID>
-        #               <man:LN>/</man:LN>
-        #           </man:statRequestElement>
-        #       </man:statRequestList>
-        #   </man:stat>
+        #   <bar:stat>
+        #       <bar:statRequestList>
+        #           <bar:statRequestElement>
+        #               <bar:requestID>0</bar:requestID>
+        #               <bar:LN>/</bar:LN>
+        #           </bar:statRequestElement>
+        #       </bar:statRequestList>
+        #   </bar:stat>
         #
         # outgoing SOAP message example:
         #
-        #   <man:statResponse>
-        #       <man:statResponseList>
-        #           <man:statResponseElement>
-        #              <man:requestID>0</man:requestID>
-        #               <man:metadataList>
-        #                   <man:metadata>
-        #                       <man:section>states</man:section>
-        #                       <man:property>closed</man:property>
-        #                       <man:value>0</man:value>
-        #                   </man:metadata>
-        #                   <man:metadata>
-        #                       <man:section>entries</man:section>
-        #                       <man:property>testfile</man:property>
-        #                       <man:value>cf05727b-73f3-4318-8454-16eaf10f302c</man:value>
-        #                   </man:metadata>
-        #                   <man:metadata>
-        #                       <man:section>entry</man:section>
-        #                       <man:property>type</man:property>
-        #                       <man:value>collection</man:value>
-        #                   </man:metadata>
-        #               </man:metadataList>
-        #           </man:statResponseElement>
-        #       </man:statResponseList>
-        #   </man:statResponse>
+        #   <bar:statResponse>
+        #       <bar:statResponseList>
+        #           <bar:statResponseElement>
+        #              <bar:requestID>0</bar:requestID>
+        #               <bar:metadataList>
+        #                   <bar:metadata>
+        #                       <bar:section>states</bar:section>
+        #                       <bar:property>closed</bar:property>
+        #                       <bar:value>0</bar:value>
+        #                   </bar:metadata>
+        #                   <bar:metadata>
+        #                       <bar:section>entries</bar:section>
+        #                       <bar:property>testfile</bar:property>
+        #                       <bar:value>cf05727b-73f3-4318-8454-16eaf10f302c</bar:value>
+        #                   </bar:metadata>
+        #                   <bar:metadata>
+        #                       <bar:section>entry</bar:section>
+        #                       <bar:property>type</bar:property>
+        #                       <bar:value>collection</bar:value>
+        #                   </bar:metadata>
+        #               </bar:metadataList>
+        #           </bar:statResponseElement>
+        #       </bar:statResponseList>
+        #   </bar:statResponse>
 
         # get all the requests
         request_nodes = get_child_nodes(inpayload.Child().Child())
@@ -628,39 +628,39 @@ class ManagerService(Service):
             (str(request_node.Get('requestID')), str(request_node.Get('LN')))
                 for request_node in request_nodes
         ])
-        # call the Manager class
-        response = self.manager.stat(requests)
+        # call the Bartender class
+        response = self.bartender.stat(requests)
         # create the metadata XML structure of each request
         for requestID, metadata in response.items():
-            response[requestID] = create_metadata(metadata, 'man')
+            response[requestID] = create_metadata(metadata, 'bar')
         # create the response message with the requestID and the metadata for each request
-        return create_response('man:stat',
-            ['man:requestID', 'man:metadataList'], response, self.newSOAPPayload(), single = True)
+        return create_response('bar:stat',
+            ['bar:requestID', 'bar:metadataList'], response, self.newSOAPPayload(), single = True)
 
     def delFile(self, inpayload):
         # incoming SOAP message example:
         #
-        #   <man:delFile>
-        #       <man:delFileRequestList>
-        #           <man:delFileRequestElement>
-        #               <man:requestID>0</man:requestID>
-        #               <man:LN>/</man:LN>
-        #           </man:delFileRequestElement>
-        #       </man:delFileRequestList>
-        #   </man:delFile>
+        #   <bar:delFile>
+        #       <bar:delFileRequestList>
+        #           <bar:delFileRequestElement>
+        #               <bar:requestID>0</bar:requestID>
+        #               <bar:LN>/</bar:LN>
+        #           </bar:delFileRequestElement>
+        #       </bar:delFileRequestList>
+        #   </bar:delFile>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:delFileResponse>
-        #               <man:delFileResponseList>
-        #                   <man:delFileResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:success>deleted</man:success>
-        #                   </man:delFileResponseElement>
-        #               </man:delFileResponseList>
-        #           </man:delFileResponse>
+        #           <bar:delFileResponse>
+        #               <bar:delFileResponseList>
+        #                   <bar:delFileResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:success>deleted</bar:success>
+        #                   </bar:delFileResponseElement>
+        #               </bar:delFileResponseList>
+        #           </bar:delFileResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
@@ -670,40 +670,40 @@ class ManagerService(Service):
             (str(request_node.Get('requestID')), str(request_node.Get('LN')))
                 for request_node in request_nodes
         ])
-        response = self.manager.delFile(requests)
-        return create_response('man:delFile',
-            ['man:requestID', 'man:success'], response, self.newSOAPPayload(), single=True)
+        response = self.bartender.delFile(requests)
+        return create_response('bar:delFile',
+            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single=True)
 
 
     def getFile(self, inpayload):
         # incoming SOAP message example:
         #
         #   <soap-env:Body>
-        #       <man:getFile>
-        #           <man:getFileRequestList>
-        #               <man:getFileRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:LN>/testfile</man:LN>
-        #                   <man:protocol>byteio</man:protocol>
-        #               </man:getFileRequestElement>
-        #           </man:getFileRequestList>
-        #       </man:getFile>
+        #       <bar:getFile>
+        #           <bar:getFileRequestList>
+        #               <bar:getFileRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:LN>/testfile</bar:LN>
+        #                   <bar:protocol>byteio</bar:protocol>
+        #               </bar:getFileRequestElement>
+        #           </bar:getFileRequestList>
+        #       </bar:getFile>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:getFileResponse>
-        #               <man:getFileResponseList>
-        #                   <man:getFileResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:success>done</man:success>
-        #                       <man:TURL>http://localhost:60000/byteio/12d86ba3-99d5-408e-91d1-35f7c47774e4</man:TURL>
-        #                       <man:protocol>byteio</man:protocol>
-        #                   </man:getFileResponseElement>
-        #               </man:getFileResponseList>
-        #           </man:getFileResponse>
+        #           <bar:getFileResponse>
+        #               <bar:getFileResponseList>
+        #                   <bar:getFileResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:success>done</bar:success>
+        #                       <bar:TURL>http://localhost:60000/byteio/12d86ba3-99d5-408e-91d1-35f7c47774e4</bar:TURL>
+        #                       <bar:protocol>byteio</bar:protocol>
+        #                   </bar:getFileResponseElement>
+        #               </bar:getFileResponseList>
+        #           </bar:getFileResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
@@ -713,97 +713,97 @@ class ManagerService(Service):
                 str(request_node.Get('requestID')), 
                 ( # get the LN and all the protocols for each request and put them in a list
                     str(request_node.Get('LN')),
-                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.ns)]
+                    [str(node) for node in request_node.XPathLookup('//bar:protocol', self.ns)]
                 )
             ) for request_node in request_nodes
         ])
-        response = self.manager.getFile(requests)
-        return create_response('man:getFile',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
+        response = self.bartender.getFile(requests)
+        return create_response('bar:getFile',
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
     
     def addReplica(self, inpayload):
         # incoming SOAP message example:
         #
         #   <soap-env:Body>
-        #       <man:addReplica>
-        #           <man:addReplicaRequestList>
-        #               <man:putReplicaRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</man:GUID>
-        #               </man:putReplicaRequestElement>
-        #           </man:addReplicaRequestList>
-        #           <man:protocol>byteio</man:protocol>
-        #       </man:addReplica>
+        #       <bar:addReplica>
+        #           <bar:addReplicaRequestList>
+        #               <bar:putReplicaRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</bar:GUID>
+        #               </bar:putReplicaRequestElement>
+        #           </bar:addReplicaRequestList>
+        #           <bar:protocol>byteio</bar:protocol>
+        #       </bar:addReplica>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:addReplicaResponse>
-        #               <man:addReplicaResponseList>
-        #                   <man:addReplicaResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:success>done</man:success>
-        #                       <man:TURL>http://localhost:60000/byteio/f568be18-26ae-4925-ae0c-68fe023ef1a5</man:TURL>
-        #                       <man:protocol>byteio</man:protocol>
-        #                   </man:addReplicaResponseElement>
-        #               </man:addReplicaResponseList>
-        #           </man:addReplicaResponse>
+        #           <bar:addReplicaResponse>
+        #               <bar:addReplicaResponseList>
+        #                   <bar:addReplicaResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:success>done</bar:success>
+        #                       <bar:TURL>http://localhost:60000/byteio/f568be18-26ae-4925-ae0c-68fe023ef1a5</bar:TURL>
+        #                       <bar:protocol>byteio</bar:protocol>
+        #                   </bar:addReplicaResponseElement>
+        #               </bar:addReplicaResponseList>
+        #           </bar:addReplicaResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
         
         # get the list of supported protocols
-        protocols = [str(node) for node in inpayload.XPathLookup('//man:protocol', self.ns)]
+        protocols = [str(node) for node in inpayload.XPathLookup('//bar:protocol', self.ns)]
         # get the GUID of each request
         request_nodes = get_child_nodes(inpayload.Child().Get('addReplicaRequestList'))
         requests = dict([(str(request_node.Get('requestID')), str(request_node.Get('GUID')))
                 for request_node in request_nodes])
-        response = self.manager.addReplica(requests, protocols)
-        return create_response('man:addReplica',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
+        response = self.bartender.addReplica(requests, protocols)
+        return create_response('bar:addReplica',
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
     
     def putFile(self, inpayload):
         # incoming SOAP message example:
         #
         #   <soap-env:Body>
-        #       <man:putFile>
-        #           <man:putFileRequestList>
-        #               <man:putFileRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:LN>/testfile2</man:LN>
-        #                   <man:metadataList>
-        #                       <man:metadata>
-        #                           <man:section>states</man:section>
-        #                           <man:property>neededReplicas</man:property>
-        #                           <man:value>2</man:value>
-        #                       </man:metadata>
-        #                       <man:metadata>
-        #                           <man:section>states</man:section>
-        #                           <man:property>size</man:property>
-        #                           <man:value>11</man:value>
-        #                       </man:metadata>
-        #                   </man:metadataList>
-        #                   <man:protocol>byteio</man:protocol>
-        #               </man:putFileRequestElement>
-        #           </man:putFileRequestList>
-        #       </man:putFile>
+        #       <bar:putFile>
+        #           <bar:putFileRequestList>
+        #               <bar:putFileRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:LN>/testfile2</bar:LN>
+        #                   <bar:metadataList>
+        #                       <bar:metadata>
+        #                           <bar:section>states</bar:section>
+        #                           <bar:property>neededReplicas</bar:property>
+        #                           <bar:value>2</bar:value>
+        #                       </bar:metadata>
+        #                       <bar:metadata>
+        #                           <bar:section>states</bar:section>
+        #                           <bar:property>size</bar:property>
+        #                           <bar:value>11</bar:value>
+        #                       </bar:metadata>
+        #                   </bar:metadataList>
+        #                   <bar:protocol>byteio</bar:protocol>
+        #               </bar:putFileRequestElement>
+        #           </bar:putFileRequestList>
+        #       </bar:putFile>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:putFileResponse>
-        #               <man:putFileResponseList>
-        #                   <man:putFileResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:success>done</man:success>
-        #                       <man:TURL>http://localhost:60000/byteio/b8f2987b-a718-47b3-82bb-e838470b7e00</man:TURL>
-        #                       <man:protocol>byteio</man:protocol>
-        #                   </man:putFileResponseElement>
-        #               </man:putFileResponseList>
-        #           </man:putFileResponse>
+        #           <bar:putFileResponse>
+        #               <bar:putFileResponseList>
+        #                   <bar:putFileResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:success>done</bar:success>
+        #                       <bar:TURL>http://localhost:60000/byteio/b8f2987b-a718-47b3-82bb-e838470b7e00</bar:TURL>
+        #                       <bar:protocol>byteio</bar:protocol>
+        #                   </bar:putFileResponseElement>
+        #               </bar:putFileResponseList>
+        #           </bar:putFileResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
@@ -814,47 +814,47 @@ class ManagerService(Service):
                 (
                     str(request_node.Get('LN')),
                     parse_metadata(request_node.Get('metadataList')),
-                    [str(node) for node in request_node.XPathLookup('//man:protocol', self.ns)]
+                    [str(node) for node in request_node.XPathLookup('//bar:protocol', self.ns)]
                 )
             ) for request_node in request_nodes
         ])
-        response = self.manager.putFile(requests)
-        return create_response('man:putFile',
-            ['man:requestID', 'man:success', 'man:TURL', 'man:protocol'], response, self.newSOAPPayload())
+        response = self.bartender.putFile(requests)
+        return create_response('bar:putFile',
+            ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
 
     def makeCollection(self, inpayload):
         # incoming SOAP message example:
         # 
         #   <soap-env:Body>
-        #       <man:makeCollection>
-        #           <man:makeCollectionRequestList>
-        #               <man:makeCollectionRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:LN>/testdir</man:LN>
-        #                   <man:metadataList>
-        #                       <man:metadata>
-        #                           <man:section>states</man:section>
-        #                           <man:property>closed</man:property>
-        #                           <man:value>0</man:value>
-        #                       </man:metadata>
-        #                   </man:metadataList>
-        #               </man:makeCollectionRequestElement>
-        #           </man:makeCollectionRequestList>
-        #       </man:makeCollection>
+        #       <bar:makeCollection>
+        #           <bar:makeCollectionRequestList>
+        #               <bar:makeCollectionRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:LN>/testdir</bar:LN>
+        #                   <bar:metadataList>
+        #                       <bar:metadata>
+        #                           <bar:section>states</bar:section>
+        #                           <bar:property>closed</bar:property>
+        #                           <bar:value>0</bar:value>
+        #                       </bar:metadata>
+        #                   </bar:metadataList>
+        #               </bar:makeCollectionRequestElement>
+        #           </bar:makeCollectionRequestList>
+        #       </bar:makeCollection>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:makeCollectionResponse>
-        #               <man:makeCollectionResponseList>
-        #                   <man:makeCollectionResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:success>done</man:success>
-        #                   </man:makeCollectionResponseElement>
-        #               </man:makeCollectionResponseList>
-        #           </man:makeCollectionResponse>
+        #           <bar:makeCollectionResponse>
+        #               <bar:makeCollectionResponseList>
+        #                   <bar:makeCollectionResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:success>done</bar:success>
+        #                   </bar:makeCollectionResponseElement>
+        #               </bar:makeCollectionResponseList>
+        #           </bar:makeCollectionResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
@@ -864,66 +864,66 @@ class ManagerService(Service):
                 (str(request_node.Get('LN')), parse_metadata(request_node.Get('metadataList')))
             ) for request_node in request_nodes
         ])
-        response = self.manager.makeCollection(requests)
-        return create_response('man:makeCollection',
-            ['man:requestID', 'man:success'], response, self.newSOAPPayload(), single = True)
+        response = self.bartender.makeCollection(requests)
+        return create_response('bar:makeCollection',
+            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
 
     def list(self, inpayload):
         # incoming SOAP message example:
         #
         #   <soap-env:Body>
-        #       <man:list>
-        #           <man:listRequestList>
-        #               <man:listRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:LN>/</man:LN>
-        #               </man:listRequestElement>
-        #           </man:listRequestList>
-        #           <man:neededMetadataList>
-        #               <man:neededMetadataElement>
-        #                   <man:section>entry</man:section>
-        #                   <man:property></man:property>
-        #               </man:neededMetadataElement>
-        #           </man:neededMetadataList>
-        #       </man:list>
+        #       <bar:list>
+        #           <bar:listRequestList>
+        #               <bar:listRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:LN>/</bar:LN>
+        #               </bar:listRequestElement>
+        #           </bar:listRequestList>
+        #           <bar:neededMetadataList>
+        #               <bar:neededMetadataElement>
+        #                   <bar:section>entry</bar:section>
+        #                   <bar:property></bar:property>
+        #               </bar:neededMetadataElement>
+        #           </bar:neededMetadataList>
+        #       </bar:list>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:listResponse>
-        #               <man:listResponseList>
-        #                   <man:listResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:entries>
-        #                           <man:entry>
-        #                               <man:name>testfile</man:name>
-        #                               <man:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</man:GUID>
-        #                               <man:metadataList>
-        #                                   <man:metadata>
-        #                                       <man:section>entry</man:section>
-        #                                       <man:property>type</man:property>
-        #                                       <man:value>file</man:value>
-        #                                   </man:metadata>
-        #                               </man:metadataList>
-        #                           </man:entry>
-        #                           <man:entry>
-        #                               <man:name>testdir</man:name>
-        #                               <man:GUID>4cabc8cb-599d-488c-a253-165f71d4e180</man:GUID>
-        #                               <man:metadataList>
-        #                                   <man:metadata>
-        #                                       <man:section>entry</man:section>
-        #                                       <man:property>type</man:property>
-        #                                       <man:value>collection</man:value>
-        #                                   </man:metadata>
-        #                               </man:metadataList>
-        #                           </man:entry>
-        #                       </man:entries>
-        #                       <man:status>found</man:status>
-        #                   </man:listResponseElement>
-        #               </man:listResponseList>
-        #           </man:listResponse>
+        #           <bar:listResponse>
+        #               <bar:listResponseList>
+        #                   <bar:listResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:entries>
+        #                           <bar:entry>
+        #                               <bar:name>testfile</bar:name>
+        #                               <bar:GUID>cf05727b-73f3-4318-8454-16eaf10f302c</bar:GUID>
+        #                               <bar:metadataList>
+        #                                   <bar:metadata>
+        #                                       <bar:section>entry</bar:section>
+        #                                       <bar:property>type</bar:property>
+        #                                       <bar:value>file</bar:value>
+        #                                   </bar:metadata>
+        #                               </bar:metadataList>
+        #                           </bar:entry>
+        #                           <bar:entry>
+        #                               <bar:name>testdir</bar:name>
+        #                               <bar:GUID>4cabc8cb-599d-488c-a253-165f71d4e180</bar:GUID>
+        #                               <bar:metadataList>
+        #                                   <bar:metadata>
+        #                                       <bar:section>entry</bar:section>
+        #                                       <bar:property>type</bar:property>
+        #                                       <bar:value>collection</bar:value>
+        #                                   </bar:metadata>
+        #                               </bar:metadataList>
+        #                           </bar:entry>
+        #                       </bar:entries>
+        #                       <bar:status>found</bar:status>
+        #                   </bar:listResponseElement>
+        #               </bar:listResponseList>
+        #           </bar:listResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
@@ -933,58 +933,58 @@ class ManagerService(Service):
             node_to_data(node, ['section', 'property'], single = True)
                 for node in get_child_nodes(inpayload.Child().Get('neededMetadataList'))
         ]
-        response0 = self.manager.list(requests, neededMetadata)
+        response0 = self.bartender.list(requests, neededMetadata)
         response = dict([
             (requestID,
-            ([('man:entry', [
-                ('man:name', name),
-                ('man:GUID', GUID),
-                ('man:metadataList', create_metadata(metadata))
+            ([('bar:entry', [
+                ('bar:name', name),
+                ('bar:GUID', GUID),
+                ('bar:metadataList', create_metadata(metadata))
             ]) for name, (GUID, metadata) in entries.items()],
             status)
         ) for requestID, (entries, status) in response0.items()])
-        return create_response('man:list',
-            ['man:requestID', 'man:entries', 'man:status'], response, self.newSOAPPayload())
+        return create_response('bar:list',
+            ['bar:requestID', 'bar:entries', 'bar:status'], response, self.newSOAPPayload())
 
     def move(self, inpayload):
         # incoming SOAP message example:
         #   <soap-env:Body>
-        #       <man:move>
-        #           <man:moveRequestList>
-        #               <man:moveRequestElement>
-        #                   <man:requestID>0</man:requestID>
-        #                   <man:sourceLN>/testfile2</man:sourceLN>
-        #                   <man:targetLN>/testdir/</man:targetLN>
-        #                   <man:preserveOriginal>0</man:preserveOriginal>
-        #               </man:moveRequestElement>
-        #           </man:moveRequestList>
-        #       </man:move>
+        #       <bar:move>
+        #           <bar:moveRequestList>
+        #               <bar:moveRequestElement>
+        #                   <bar:requestID>0</bar:requestID>
+        #                   <bar:sourceLN>/testfile2</bar:sourceLN>
+        #                   <bar:targetLN>/testdir/</bar:targetLN>
+        #                   <bar:preserveOriginal>0</bar:preserveOriginal>
+        #               </bar:moveRequestElement>
+        #           </bar:moveRequestList>
+        #       </bar:move>
         #   </soap-env:Body>
         #
         # outgoing SOAP message example:
         #
         #   <soap-env:Envelope>
         #       <soap-env:Body>
-        #           <man:moveResponse>
-        #               <man:moveResponseList>
-        #                   <man:moveResponseElement>
-        #                       <man:requestID>0</man:requestID>
-        #                       <man:status>moved</man:status>
-        #                   </man:moveResponseElement>
-        #               </man:moveResponseList>
-        #           </man:moveResponse>
+        #           <bar:moveResponse>
+        #               <bar:moveResponseList>
+        #                   <bar:moveResponseElement>
+        #                       <bar:requestID>0</bar:requestID>
+        #                       <bar:status>moved</bar:status>
+        #                   </bar:moveResponseElement>
+        #               </bar:moveResponseList>
+        #           </bar:moveResponse>
         #       </soap-env:Body>
         #   </soap-env:Envelope>
 
         requests = parse_node(inpayload.Child().Child(),
             ['requestID', 'sourceLN', 'targetLN', 'preserveOriginal'])
-        response = self.manager.move(requests)
-        return create_response('man:move',
-            ['man:requestID', 'man:status'], response, self.newSOAPPayload(), single = True)
+        response = self.bartender.move(requests)
+        return create_response('bar:move',
+            ['bar:requestID', 'bar:status'], response, self.newSOAPPayload(), single = True)
 
     def modify(self, inpayload):
-        requests = parse_node(inpayload.Child().Child(), ['man:changeID',
-            'man:LN', 'man:changeType', 'man:section', 'man:property', 'man:value'])
-        response = self.manager.modify(requests)
-        return create_response('man:modify', ['man:changeID', 'man:success'],
+        requests = parse_node(inpayload.Child().Child(), ['bar:changeID',
+            'bar:LN', 'bar:changeType', 'bar:section', 'bar:property', 'bar:value'])
+        response = self.bartender.modify(requests)
+        return create_response('bar:modify', ['bar:changeID', 'bar:success'],
             response, self.newSOAPPayload(), single = True)

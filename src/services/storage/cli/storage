@@ -1,23 +1,23 @@
 #!/bin/bash
 export PYTHONPATH=./arc1/src/services:./arc1/python:./arc1/python/.libs
-if [ "$1" == "hash" ]
+if [ "$1" == "ahash" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/hash_client.py $*
+    python ./arc1/src/services/storage/cli/ahash_client.py $*
 elif [ "$1" == "librarian" ]
 then
     shift
     python ./arc1/src/services/storage/cli/librarian_client.py $*
-elif [ "$1" == "manager" ]
+elif [ "$1" == "bartender" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/manager_client.py $*
+    python ./arc1/src/services/storage/cli/bartender_client.py $*
 elif [ "$1" == "element" ]
 then
     shift
     python ./arc1/src/services/storage/cli/element_client.py $*
 else
     echo "USAGE:"
-    echo "  storage hash|librarian|manager|element <command> <arguments>"
+    echo "  storage ahash|librarian|bartender|element <command> <arguments>"
     exit 1
 fi

@@ -1,7 +1,7 @@
 Data Catalogue
 
 The data catalogue should be distributed, but in a client point of view
-it should be one consistent system (in this case a Storage Manager is a client too),
+it should be one consistent system (in this case a Bartender is a client too),
 so if there are multiple data catalogue services, it does not matter which one
 the client choose, because they all provide the same information. So we will refer to this
 whole data catalogue system as 'the catalog', which in first prototypes can be implemented as
@@ -53,19 +53,19 @@ the root collection (which has the guid '0'), then it can be refered as '0/vo1' 
 Then this VO can create some files, and put them in this '/vo1' collection, e.g. '/vo1/file1', etc.
 Or sub-collections, e.g. '/vo1/col1', '/vo1/col2/file3', etc.
 For this the VO does not need the install any service. These files and collection can be created
-using the storage management layer (using one of the Storage Managers).
+using the storage management layer (using one of the Bartenders).
 
 
-Storage Managers
+Bartenders
 
-Clients can access the storage system only through a Storage Manager.
+Clients can access the storage system only through a Bartender.
 If a client wants to create a collection, upload or download a file, the first step is to
-connect a Storage Manager. The Storage Manager then resolves Logical Names and gets metadata
+connect a Bartender. The Bartender then resolves Logical Names and gets metadata
 using the catalog, initiates file transfers on some storage elements, and gives some assertions
 (some kind of certificate) to the client, which allows the client to actually do the
 file transfer from/to a storage element. So the data transfer itself does not go through
-the Storage Manager, it is direct between a storage element and the client.
-On upload the Storage Manager is capable of choosing appropiate Storage Elements using pluggable
+the Bartender, it is direct between a storage element and the client.
+On upload the Bartender is capable of choosing appropiate Storage Elements using pluggable
 scheduling algorithms.
 
 
@@ -80,9 +80,9 @@ the Storage Element specified by the SURL itself, and the Storage Element will
 recognize the SURL as a file it actually stores. Then the Storage Element provides
 a way to download that file (it generates a Transfer URL, TURL, which can be an http(s)
 or gridftp, etc.)
-If you want to upload a new file to the storage system, then you turn to a Storage Manager,
+If you want to upload a new file to the storage system, then you turn to a Bartender,
 which chooses a Storage Element, and initiate the transfer. Then a new SURL is created, and
-the Storage Manager will provide a way to upload the file, which later can be referred using
+the Bartender will provide a way to upload the file, which later can be referred using
 this new SURL. So it does not matter which collection this file is part of, and it does
 not matter how the Storage Element internally organize the files. The file has an SURL,
 and using that, it can be downloaded.
@@ -90,7 +90,7 @@ The SURL is somehow refer to the Storage Element itself, and the file on the Sto
 e.g. https://storage.element.eu:12345/SE?ocrh6kb43d8j
 
 
-ARC Storage Manager interface
+ARC Bartender interface
 
     (maybe all of these methods should work in batch mode,
         where the client can specify more than one logical name)
@@ -115,11 +115,11 @@ ARC Storage Manager interface
         if list of preferred storage elements is not given,
             all storage elements accessible by the VO of the user will be considered
 
-        the Storage Manager has to know which storage elements the user's VO can use
+        the Bartender has to know which storage elements the user's VO can use
             but I don't know from where it could get this information
             
-        the Storage Manager first creates an entry in the Librarian if the logical name is available
-        then the data scheduler modul in the Storage Manager chooses a Storage Element,
+        the Bartender first creates an entry in the Librarian if the logical name is available
+        then the data scheduler modul in the Bartender chooses a Storage Element,
         and try to initiate file transfer on behalf of the user
         the Storage Element gives back an SURL, which can be later used to access this file
         and a TURL which refers to the initiated file transfer
@@ -133,9 +133,9 @@ ARC Storage Manager interface
     GET logical name [, list of preferred storage elements]
 
         works on files only
-        the Storage Manager gets the metadata of the file from the Librarian,
+        the Bartender gets the metadata of the file from the Librarian,
         which consists of the SURLs of the replicas
-        the Storage Manager chooses one of these SURLs according to the list of preferred
+        the Bartender chooses one of these SURLs according to the list of preferred
         storage elements, then initiates file transfer at the Storage Element (gets the TURL),
         creates assertion, and returns them
 
@@ -143,7 +143,7 @@ ARC Storage Manager interface
     DEL logical name
 
         works on files only
-        the Storage Manager gets the metadata of the file from the Librarian,
+        the Bartender gets the metadata of the file from the Librarian,
         and for each SURL initiates removal of the replica at its Storage Element,
         then removes the Librarian entry.
 
@@ -196,7 +196,7 @@ ARC Storage Manager interface
     CP source logical name, target logical name
 
         works on files only
-        it is actually a PUT to the new logical name done by the Storage Manager itself
+        it is actually a PUT to the new logical name done by the Bartender itself
         using a replica of the source logical name, or done by the a Storage Element
         if it is capable
     
@@ -217,9 +217,9 @@ ARC Storage Manager interface
         using the Librarian, returns all the logical names matching the given pattern
 
 
-There is a strong need of a Consistency Service or just a consistency modul of the Storage Manager.
+There is a strong need of a Consistency Service or just a consistency modul of the Bartender.
 These Consistency Services or moduls form a distributed net, dividing the namespace of
 the logical names, and constantly checking all replicas of all the files, and if there is trouble,
 e.g. some file has fewer replica than its replica factor, it calls the REPL method of the
-Storage Manager to create more replicas.
+Bartender to create more replicas.
 

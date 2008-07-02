@@ -23,7 +23,7 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 #fuse.feature_assert('stateful_files', 'has_init')
 
 # arc storage stuff
-from storage.client import ManagerClient, ByteIOClient
+from storage.client import BartenderClient, ByteIOClient
 from storage.common import create_checksum, mkuid
 from storage.common import false, true
 
@@ -34,9 +34,9 @@ try:
     MOUNT=sys.argv[2]
     del(sys.argv[2])
 except:
-    MOUNT="http://localhost:60000/Manager"
+    MOUNT="http://localhost:60000/Bartender"
 
-manager = ManagerClient(MOUNT, False)
+bartender = BartenderClient(MOUNT, False)
 
 PROTOCOL = 'byteio'
 needed_replicas = 2
@@ -169,11 +169,11 @@ class ARCFS(Fuse):
 
     def __init__(self, *args, **kw):
         """
-        init Fuse, manager is ManagerClient(MOUNT, False)
+        init Fuse, bartender is BartenderClient(MOUNT, False)
         """
         Fuse.__init__(self, *args, **kw)
         debug_msg('fuse initiated')
-        self.manager = manager 
+        self.bartender = bartender 
         debug_msg('left ARCFS.__init__')
 
 
@@ -191,12 +191,12 @@ class ARCFS(Fuse):
         
     def mkinod(self, path):
         """
-        Function to get metadata of path from Manager and parse it to ARCInode
+        Function to get metadata of path from Bartender and parse it to ARCInode
         Returns ARCInode
         """
         debug_msg('mkinod called:', (path))
         request = {'0':path}
-        metadata = self.manager.stat(request)['0']
+        metadata = self.bartender.stat(request)['0']
         if not isinstance(metadata,dict):
             # no metadata
             debug_msg('mkinod left, no metadata', (path))
@@ -271,7 +271,7 @@ class ARCFS(Fuse):
         debug_msg('mknod called:', (path, mode, dev))
         if not (S_ISREG(mode) | S_ISFIFO(mode) | S_ISSOCK(mode)):
             return -EINVAL
-        if self.manager.stat({'0':path})['0']:
+        if self.bartender.stat({'0':path})['0']:
             return -EEXIST
         debug_msg('mknod left', (path, mode, dev))
 
@@ -281,7 +281,7 @@ class ARCFS(Fuse):
         Function called when removing file/link
         """
         debug_msg('unlink called:', path)
-        response = self.manager.delFile({'0':path})
+        response = self.bartender.delFile({'0':path})
         debug_msg('delFile responded', response['0'])
         debug_msg('unlink left:', path)
 
@@ -289,29 +289,29 @@ class ARCFS(Fuse):
     def link(self, path, path1):
         debug_msg('link called:', (path, path1))
         request = {'0' : (path, path1, True)}
-        response = self.manager.move(request)
+        response = self.bartender.move(request)
         debug_msg('link left', response)
 
 
     def rename(self, path, path1):
         debug_msg('rename called:', (path, path1))
         request = {'0' : (path, path1, False)}
-        response = self.manager.move(request)
+        response = self.bartender.move(request)
         debug_msg('rename left', response)
 
 
     def mkdir(self, path, mode):
         debug_msg('mkdir called:', path)
         request = {'0': (path, {('states', 'closed') : false})}
-        response = self.manager.makeCollection(request)
+        response = self.bartender.makeCollection(request)
         debug_msg('mkdir left:', path)
 
 
-# rmdir requires manager.unmakeCollection which does not exist yet
+# rmdir requires bartender.unmakeCollection which does not exist yet
 #     def rmdir(self, path):
 #         debug_msg('rmdir called:', path)
 #         request = {'0': path}
-#         response = self.manager.unmakeCollection(request)['0']
+#         response = self.bartender.unmakeCollection(request)['0']
 #         if status == 'collection not empty':
 #             return -ENOTEMPTY
 #         debug_msg('rmdir left:', path)
@@ -332,7 +332,7 @@ class ARCFS(Fuse):
         """
         debug_msg('fsinit called')
         # make sure we have root collection
-        self.manager.makeCollection({'0':('/', {('states', 'closed'):false})})
+        self.bartender.makeCollection({'0':('/', {('states', 'closed'):false})})
         debug_msg('fsinit left')
 
 
@@ -345,15 +345,15 @@ class ARCFS(Fuse):
         def __init__(self, path, flags, *mode):
             """
             Initiate file type object
-            asks manager to get file, and if not found open a new file
+            asks bartender to get file, and if not found open a new file
             """
             debug_msg('Called ARCFSFile.__init__',(path,flags,mode))
-            self.manager = manager
+            self.bartender = bartender
             self.transfer = FUSETRANSFER
             self.path = path
             self.tmp_path = os.path.join(self.transfer, mkuid())
             request = {'0' : (path, [PROTOCOL])}
-            success, turl, protocol = self.manager.getFile(request)['0']
+            success, turl, protocol = self.bartender.getFile(request)['0']
             if success == 'not found':
                 self.creating = True
                 # to make sure the file is unique:
@@ -366,7 +366,7 @@ class ARCFS(Fuse):
                 metadata = {('states', 'size') : 0, ('states', 'checksum') : '',
                             ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 0}
                 request = {'0': (self.path, metadata, [PROTOCOL])}
-                response = self.manager.putFile(request)
+                response = self.bartender.putFile(request)
                 success, turl, protocol = response['0']
                 debug_msg('__init__',response['0'])
             else:
@@ -384,8 +384,8 @@ class ARCFS(Fuse):
         def read(self, size, offset):
             """
             read file
-            gets file from manager. If file has no valid replica,
-            we'll ask manager again till replica is ready
+            gets file from bartender. If file has no valid replica,
+            we'll ask bartender again till replica is ready
             read will only read file from ByteIOClient on first block,
             then write to local file, which used for the rest of the 
             life of this ARCFSFile object
@@ -404,7 +404,7 @@ class ARCFS(Fuse):
             while success == 'file has no valid replica':
                 # try again
                 time.sleep(0.1)
-                success, turl, _ = self.manager.getFile(request)['0']
+                success, turl, _ = self.bartender.getFile(request)['0']
             self.turl = turl
             self.success = success
             if success == 'is not a file':
@@ -452,15 +452,15 @@ class ARCFS(Fuse):
                 request = {'size':[self.path, 'set', 'states', 'size', size],
                            'checksum':[self.path, 'set', 'states', 'checksum', checksum],
                            'replicas':[self.path, 'set', 'states', 'neededReplicas', needed_replicas]}
-                modify_success = self.manager.modify(request)
+                modify_success = self.bartender.modify(request)
                 if modify_success['size'] == 'set' and \
                    modify_success['replicas'] == 'set' and \
                    modify_success['checksum'] == 'set':
                     f = file(self.tmp_path,'rb')
                     parent = os.path.dirname(self.path)
                     child = os.path.basename(self.path)
-                    GUID = self.manager.list({'0':parent})['0'][0][child][0]
-                    response = self.manager.addReplica({'release': GUID}, [PROTOCOL])
+                    GUID = self.bartender.list({'0':parent})['0'][0][child][0]
+                    response = self.bartender.addReplica({'release': GUID}, [PROTOCOL])
                     success, turl, protocol = response['release']
                     if success == 'done':
                         ByteIOClient(turl).write(f)
@@ -516,12 +516,12 @@ class ARCFS(Fuse):
 
         def mkfinod(self):
             """
-            Function to get metadata from Manager and parse it to ARCInode
+            Function to get metadata from Bartender and parse it to ARCInode
             Returns ARCInode
             """
             debug_msg('mkfinod called')
             request = {'0':self.path}
-            metadata = self.manager.stat(request)['0']
+            metadata = self.bartender.stat(request)['0']
             if not isinstance(metadata,dict):
                 debug_msg('mkfinod left, no metadata')
                 return None
@@ -553,7 +553,7 @@ class ARCFS(Fuse):
         def fgetinode(self):
             """
             Functio to get file inode. If self.creating is true
-            manager does not know about this file yet ('cause it's not
+            bartender does not know about this file yet ('cause it's not
             written to system yet), so we return a fake inode instead
             """
             debug_msg('fgetinode called')

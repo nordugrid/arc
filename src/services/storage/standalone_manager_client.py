@@ -5,7 +5,7 @@ import xml.dom.minidom
 
 # This part is copied from common.py
 
-manager_uri = 'urn:storagemanager'
+bartender = 'urn:bartender'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 # URI for the simple transfer mechanism of ByteIO
 byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
@@ -727,19 +727,19 @@ class Client:
 
 # This part is copied from client.py
 
-class ManagerClient(Client):
-    """ Client for the Storage Manager service. """
+class BartenderClient(Client):
+    """ Client for the Bartender service. """
     
     def __init__(self, url, print_xml = False):
         """ Constructior of the client.
         
-        ManagerClient(url, print_xml = False)
+        BartenderClient(url, print_xml = False)
         
-        url is the URL of the Manager service
+        url is the URL of the Bartender service
         if print_xml is true this will print the SOAP messages
         """
         # sets the namespace
-        ns = self.NS_class({'man':manager_uri})
+        ns = self.NS_class({'bar':bartender_uri})
         # calls the superclass' constructor
         Client.__init__(self, url, ns, print_xml)
 
@@ -768,11 +768,11 @@ class ManagerClient(Client):
                      ('states', 'size'): '11'}}
         """
         tree = XMLTree(from_tree =
-            ('man:stat', [
-                ('man:statRequestList', [
-                    ('man:statRequestElement', [
-                        ('man:requestID', requestID),
-                        ('man:LN', LN) 
+            ('bar:stat', [
+                ('bar:statRequestList', [
+                    ('bar:statRequestElement', [
+                        ('bar:requestID', requestID),
+                        ('bar:LN', LN) 
                     ]) for requestID, LN in requests.items()
                 ])
             ])
@@ -806,13 +806,13 @@ class ManagerClient(Client):
                    'byteio']}
         """
         tree = XMLTree(from_tree =
-            ('man:getFile', [
-                ('man:getFileRequestList', [
-                    ('man:getFileRequestElement', [
-                        ('man:requestID', rID),
-                        ('man:LN', LN)
+            ('bar:getFile', [
+                ('bar:getFileRequestList', [
+                    ('bar:getFileRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN)
                     ] + [
-                        ('man:protocol', protocol) for protocol in protocols
+                        ('bar:protocol', protocol) for protocol in protocols
                     ]) for rID, (LN, protocols) in requests.items()
                 ])
             ])
@@ -845,14 +845,14 @@ class ManagerClient(Client):
                      'byteio']}
         """
         tree = XMLTree(from_tree =
-            ('man:putFile', [
-                ('man:putFileRequestList', [
-                    ('man:putFileRequestElement', [
-                        ('man:requestID', rID),
-                        ('man:LN', LN),
-                        ('man:metadataList', create_metadata(metadata, 'man')),
+            ('bar:putFile', [
+                ('bar:putFileRequestList', [
+                    ('bar:putFileRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                        ('bar:metadataList', create_metadata(metadata, 'bar')),
                     ] + [
-                        ('man:protocol', protocol) for protocol in protocols
+                        ('bar:protocol', protocol) for protocol in protocols
                     ]) for rID, (LN, metadata, protocols) in requests.items()
                 ])
             ])
@@ -878,11 +878,11 @@ class ManagerClient(Client):
         Out: {'fish': ['deleted']}
         """
         tree = XMLTree(from_tree =
-            ('man:delFile', [
-                ('man:delFileRequestList', [
-                    ('man:delFileRequestElement', [
-                        ('man:requestID', requestID),
-                        ('man:LN', LN) 
+            ('bar:delFile', [
+                ('bar:delFileRequestList', [
+                    ('bar:delFileRequestElement', [
+                        ('bar:requestID', requestID),
+                        ('bar:LN', LN) 
                     ]) for requestID, LN in requests.items()
                 ])
             ])
@@ -914,15 +914,15 @@ class ManagerClient(Client):
                     'byteio']}
         """
         tree = XMLTree(from_tree =
-            ('man:addReplica', [
-                ('man:addReplicaRequestList', [
-                    ('man:putReplicaRequestElement', [
-                        ('man:requestID', rID),
-                        ('man:GUID', GUID),
+            ('bar:addReplica', [
+                ('bar:addReplicaRequestList', [
+                    ('bar:putReplicaRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:GUID', GUID),
                     ]) for rID, GUID in requests.items()
                 ])
             ] + [
-                ('man:protocol', protocol) for protocol in protocols
+                ('bar:protocol', protocol) for protocol in protocols
             ])
         )
         msg, _, _ = self.call(tree)
@@ -943,12 +943,12 @@ class ManagerClient(Client):
         Out: {'b5': 'done'}
         """
         tree = XMLTree(from_tree =
-            ('man:makeCollection', [
-                ('man:makeCollectionRequestList', [
-                    ('man:makeCollectionRequestElement', [
-                        ('man:requestID', rID),
-                        ('man:LN', LN),
-                        ('man:metadataList', create_metadata(metadata, 'man'))
+            ('bar:makeCollection', [
+                ('bar:makeCollectionRequestList', [
+                    ('bar:makeCollectionRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                        ('bar:metadataList', create_metadata(metadata, 'bar'))
                     ]) for rID, (LN, metadata) in requests.items()
                 ])
             ])
@@ -983,17 +983,17 @@ class ManagerClient(Client):
              'kirk': ({}, 'is a file')}
         """
         tree = XMLTree(from_tree =
-            ('man:list', [
-                ('man:listRequestList', [
-                    ('man:listRequestElement', [
-                        ('man:requestID', requestID),
-                        ('man:LN', LN)
+            ('bar:list', [
+                ('bar:listRequestList', [
+                    ('bar:listRequestElement', [
+                        ('bar:requestID', requestID),
+                        ('bar:LN', LN)
                     ]) for requestID, LN in requests.items()
                 ]),
-                ('man:neededMetadataList', [
-                    ('man:neededMetadataElement', [
-                        ('man:section', section),
-                        ('man:property', property)
+                ('bar:neededMetadataList', [
+                    ('bar:neededMetadataElement', [
+                        ('bar:section', section),
+                        ('bar:property', property)
                     ]) for section, property in neededMetadata
                 ])
             ])
@@ -1026,13 +1026,13 @@ class ManagerClient(Client):
         Out: {'shoo': ['moved']}
         """
         tree = XMLTree(from_tree =
-            ('man:move', [
-                ('man:moveRequestList', [
-                    ('man:moveRequestElement', [
-                        ('man:requestID', requestID),
-                        ('man:sourceLN', sourceLN),
-                        ('man:targetLN', targetLN),
-                        ('man:preserveOriginal', preserveOriginal and true or false)
+            ('bar:move', [
+                ('bar:moveRequestList', [
+                    ('bar:moveRequestElement', [
+                        ('bar:requestID', requestID),
+                        ('bar:sourceLN', sourceLN),
+                        ('bar:targetLN', targetLN),
+                        ('bar:preserveOriginal', preserveOriginal and true or false)
                     ]) for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items()
                 ])
             ])
@@ -1043,15 +1043,15 @@ class ManagerClient(Client):
 
     def modify(self, requests):
         tree = XMLTree(from_tree =
-            ('man:modify', [
-                ('man:modifyRequestList', [
-                    ('man:modifyRequestElement', [
-                        ('man:changeID', changeID),
-                        ('man:LN', LN),
-                        ('man:changeType', changeType),
-                        ('man:section', section),
-                        ('man:property', property),
-                        ('man:value', value)
+            ('bar:modify', [
+                ('bar:modifyRequestList', [
+                    ('bar:modifyRequestElement', [
+                        ('bar:changeID', changeID),
+                        ('bar:LN', LN),
+                        ('bar:changeType', changeType),
+                        ('bar:section', section),
+                        ('bar:property', property),
+                        ('bar:value', value)
                     ]) for changeID, (LN, changeType, section, property, value) in requests.items()
                 ])
             ])
@@ -1106,7 +1106,7 @@ class ByteIOClient(Client):
         resp, _, _ = self.call_raw(out)
         return resp
 
-# This part is copied from manager_client.py but then changed
+# This part is copied from bartender_client.py but then changed
 
 args = sys.argv[1:]
 if len(args) > 0 and args[0] == '-x':
@@ -1116,13 +1116,13 @@ else:
     print_xml = False
 
 try:
-    manager_url = os.environ['ARC_MANAGER_URL']
-    #print 'ARC_MANAGER_URL =', manager_url
+    bartender_url = os.environ['ARC_MANAGER_URL']
+    #print 'ARC_MANAGER_URL =', bartender_url
 except:
-    manager_url = 'http://localhost:60000/Manager'
-    print 'ARC_MANAGER_URL environment variable not found, using', manager_url
+    bartender_url = 'http://localhost:60000/Bartender'
+    print 'ARC_MANAGER_URL environment variable not found, using', bartender_url
     
-manager = ManagerClient(manager_url, print_xml)
+bartender = BartenderClient(bartender_url, print_xml)
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'lis', 'mov', 'put', 'get', 'del', 'add', 'mod']:
     print 'Supported methods: stat, make[Collection], list, move, put[File], get[File], del[File]' 
@@ -1134,7 +1134,7 @@ else:
         else:
             request = dict([(i, args[i]) for i in range(len(args))])
             #print 'stat', request
-            stat = manager.stat(request)
+            stat = bartender.stat(request)
             #print stat
             for i,s in stat.items():
                 print '%s:' % args[int(i)]
@@ -1153,7 +1153,7 @@ else:
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             #print 'delFile', request
-            response = manager.delFile(request)
+            response = bartender.delFile(request)
             #print response
             for i in request.keys():
                 print '%s: %s' % (request[i], response[i])
@@ -1172,7 +1172,7 @@ else:
                 f = file(filename, 'wb')
                 request = {'0' : (LN, ['byteio'])}
                 #print 'getFile', request
-                response = manager.getFile(request)
+                response = bartender.getFile(request)
                 #print response
                 success, turl, protocol = response['0']
                 if success == 'done':
@@ -1191,7 +1191,7 @@ else:
             requests = {'0' : args[1]}
             protocols = ['byteio']
             #print 'addReplica', requests, protocols
-            response = manager.addReplica(requests, protocols)
+            response = bartender.addReplica(requests, protocols)
             #print response
             success, turl, protocol = response['0']
             if success == 'done':
@@ -1216,7 +1216,7 @@ else:
                     ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
             request = {'0': (LN, metadata, ['byteio'])}
             #print 'putFile', request
-            response = manager.putFile(request)
+            response = bartender.putFile(request)
             #print response
             success, turl, protocol = response['0']
             if success == 'done':
@@ -1232,7 +1232,7 @@ else:
         else:
             request = {'0': (args[0], {('states', 'closed') : false})}
             #print 'makeCollection', request
-            response = manager.makeCollection(request)
+            response = bartender.makeCollection(request)
             #print response
             print response['0']
     elif command == 'lis':
@@ -1242,7 +1242,7 @@ else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             more_than_one = len(args) > 1
             #print 'list', request
-            response = manager.list(request,[('entry','')])
+            response = bartender.list(request,[('entry','')])
             #print response
             for rID, (entries, status) in response.items():
                 if status == 'found':
@@ -1269,7 +1269,7 @@ else:
                     preserveOriginal = True
             request = {'0' : (sourceLN, targetLN, preserveOriginal)}
             #print 'move', request
-            response = manager.move(request)
+            response = bartender.move(request)
             #print response
             print response['0'][0]
     elif command == 'mod':
@@ -1278,4 +1278,4 @@ else:
         else:
             request = {'0' : args}
             #print 'modify', request
-            print manager.modify(request)['0']
+            print bartender.modify(request)['0']
