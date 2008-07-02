@@ -1,17 +1,59 @@
 #!/usr/bin/env python
 
-import sys, time, os
+import sys, time, os, socket
 import xml.dom.minidom
 
 # This part is copied from common.py
 
-bartender = 'urn:bartender'
-rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
-# URI for the simple transfer mechanism of ByteIO
-byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
+bartender_uri = 'urn:bartender'
 # True and False values used in the XML representation
 true = '1'
 false = '0'
+
+def parse_url(url):
+    import urlparse
+    (_, host_port, path, _, _, _) = urlparse.urlparse(url)
+    if ':' in host_port:
+        host, port = host_port.split(':')
+    else:
+        host = host_port
+        port = 80
+    return host, port, path
+
+common_supported_protocols = ['http']
+
+def upload_to_turl(turl, protocol, fobj):
+    """docstring for upload_to_turl"""
+    if protocol not in common_supported_protocols:
+        raise Exception, 'Unsupported protocol'
+    if protocol == 'byteio':
+        from storage.client import ByteIOClient
+        return ByteIOClient(turl).write(fobj)
+    elif protocol == 'http':
+        host, port, path = parse_url(turl)
+        import httplib
+        h = httplib.HTTPConnection(host, port)
+        h.request('PUT', path, fobj.read())
+        r = h.getresponse()
+        resp = r.read()
+        return r.status
+
+def download_from_turl(turl, protocol, fobj):
+    """docstring for download_from_turl"""
+    if protocol not in common_supported_protocols:
+        raise Exception, 'Unsupported protocol'
+    if protocol == 'byteio':
+        from storage.client import ByteIOClient
+        ByteIOClient(turl).read(file = f)
+    elif protocol == 'http':
+        host, port, path = parse_url(turl)
+        import httplib
+        h = httplib.HTTPConnection(host, port)
+        h.request('GET', path)
+        r = h.getresponse()
+        fobj.write(r.read())
+        return r.status
+
 
 def splitLN(LN):
     """  Split a Logical Name to a 3-tuple: GUID, dirname, basename.
@@ -1060,51 +1102,6 @@ class BartenderClient(Client):
         node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
 
-# This part is copied from client.py and the write() method was changed
-
-class ByteIOClient(Client):
-
-    def __init__(self, url):
-        ns = self.NS_class({'rb':rbyteio_uri})
-        Client.__init__(self, url, ns)
-
-    def read(self, start_offset = None, bytes_per_block = None, num_blocks = None, stride = None, file = None):
-        request = []
-        if start_offset is not None:
-            request.append(('rb:start-offset', start_offset))
-        if bytes_per_block is not None:
-            request.append(('rb:bytes-per-block', bytes_per_block))
-        if num_blocks is not None:
-            request.append(('rb:num-blocks', num_blocks))
-        if stride is not None:
-            request.append(('rb:stride', stride))
-        tree = XMLTree(from_tree = ('rb:read', request))
-        msg, _, _ = self.call(tree)
-        xml = self.xmlnode_class(msg)
-        data_encoded = str(xml.Child().Child().Get('transfer-information'))
-        if file:
-            file.write(base64.b64decode(data_encoded))
-            file.close()
-        else:
-            return base64.b64decode(data_encoded)
-
-    def write(self, data, start_offset = None, bytes_per_block = None, stride = None):
-        if isinstance(data,file):
-            data = data.read()
-        out = self.create_soap_envelope(self.ns)
-        request_node = out.Child().NewChild('rb:write')
-        if start_offset is not None:
-            request_node.NewChild('rb:start-offset').Set(str(start_offset))
-        if bytes_per_block is not None:
-            request_node.NewChild('rb:bytes-per-block').Set(str(bytes_per_block))
-        if stride is not None:
-            request_node.NewChild('rb:stride').Set(str(stride))
-        transfer_node = request_node.NewChild('rb:transfer-information')
-        transfer_node.node.attributes['transfer-mechanism'] = byteio_simple_uri
-        encoded_data = base64.b64encode(data)
-        transfer_node.Set(encoded_data)
-        resp, _, _ = self.call_raw(out)
-        return resp
 
 # This part is copied from bartender_client.py but then changed
 
@@ -1113,51 +1110,64 @@ if len(args) > 0 and args[0] == '-x':
     args.pop(0)
     print_xml = True
 else:
-    print_xml = False
+    print_xml = False   
 
-try:
-    bartender_url = os.environ['ARC_MANAGER_URL']
-    #print 'ARC_MANAGER_URL =', bartender_url
-except:
-    bartender_url = 'http://localhost:60000/Bartender'
-    print 'ARC_MANAGER_URL environment variable not found, using', bartender_url
-    
-bartender = BartenderClient(bartender_url, print_xml)
+def call_it(method_name, *args):
+    try:
+        bartender_url = os.environ['ARC_BARTENDER_URL']
+        print '- The URL of the Bartender:', bartender_url
+    except:
+        bartender_url = 'http://localhost:60000/Bartender'
+        print '- ARC_BARTENDER_URL environment variable not found, using', bartender_url
+    bartender = BartenderClient(bartender_url, print_xml)    
+    print '- Calling the Bartender\'s %s method...' % method_name
+    start = time.time()
+    try:
+        response = getattr(bartender, method_name)(*args)
+    except socket.error, e:
+        print e.args[1]
+        sys.exit(-1)
+    print '- done in %0.2f seconds.' % (time.time()-start)
+    return response
 
-if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'lis', 'mov', 'put', 'get', 'del', 'add', 'mod']:
+if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
     print 'Supported methods: stat, make[Collection], list, move, put[File], get[File], del[File]' 
 else:
     command = args.pop(0)[0:3]
-    if command == 'sta':
+    if command in ['sta']:
         if len(args) < 1:
             print 'Usage: stat <LN> [<LN> ...]'
         else:
             request = dict([(i, args[i]) for i in range(len(args))])
             #print 'stat', request
-            stat = bartender.stat(request)
+            stat = call_it('stat', request)
             #print stat
             for i,s in stat.items():
-                print '%s:' % args[int(i)]
-                c = {}
-                for k,v in s.items():
-                    sect, prop = k
-                    c[sect] = c.get(sect,[])
-                    c[sect].append((prop, v))
-                for k, vs in c.items():
-                    print k
-                    for p, v in vs:
-                        print '  %s: %s' % (p, v)
-    elif command == 'del':
+                print "'%s':" % args[int(i)],
+                if s:
+                    print 'found'
+                    c = {}
+                    for k,v in s.items():
+                        sect, prop = k
+                        c[sect] = c.get(sect,[])
+                        c[sect].append((prop, v))
+                    for k, vs in c.items():
+                        print ' ', k
+                        for p, v in vs:
+                            print ' ', '  %s: %s' % (p, v)
+                else:
+                    print 'not found'
+    elif command in ['del']:
         if len(args) < 1:
             print 'Usage: delFile <LN> [<LN> ...]'
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
             #print 'delFile', request
-            response = bartender.delFile(request)
+            response = call_it('delFile', request)
             #print response
             for i in request.keys():
                 print '%s: %s' % (request[i], response[i])
-    elif command == 'get':
+    elif command in ['get']:
         if len(args) < 1:
             print 'Usage: getFile <source LN> [<target filename>]'
         else:
@@ -1170,96 +1180,104 @@ else:
                 print '"%s"' % filename, 'already exists'
             else:
                 f = file(filename, 'wb')
-                request = {'0' : (LN, ['byteio'])}
+                request = {'0' : (LN, ['http'])}
                 #print 'getFile', request
-                response = bartender.getFile(request)
+                response = call_it('getFile', request)
                 #print response
                 success, turl, protocol = response['0']
                 if success == 'done':
-                    print 'Downloading from', turl, 'to', filename
-                    ByteIOClient(turl).read(file = f)
-                    print LN, 'downloaded to', filename
+                    print '- Got transfer URL:', turl
+                    print "- Downloading from '%s' to '%s' with %s..." % (turl, filename, protocol)
+                    start = time.time()
+                    download_from_turl(turl, protocol, f)
+                    f.close()
+                    size = os.path.getsize(filename)
+                    print '- done in %.4f seconds.' % (time.time()-start)
+                    print "'%s' (%s bytes) downloaded as '%s'." % (LN, size, filename)
                 else:
                     f.close()
                     os.unlink(filename)
                     print '%s: %s' % (LN, success)
-    elif command == 'add':
-        if len(args) < 2:
-            print 'Usage: addReplica <source filename> <GUID>'
-        else:
-            filename = args[0]
-            requests = {'0' : args[1]}
-            protocols = ['byteio']
-            #print 'addReplica', requests, protocols
-            response = bartender.addReplica(requests, protocols)
-            #print response
-            success, turl, protocol = response['0']
-            if success == 'done':
-                f = file(filename,'rb')
-                print 'Uploading from', filename, 'to', turl
-                ByteIOClient(turl).write(f)
-                print filename, 'added to', args[1]
-            else:
-                print '%s: %s' % (filename, success)
-    elif command == 'put':
+    # elif command == 'add':
+    #     if len(args) < 2:
+    #         print 'Usage: addReplica <source filename> <GUID>'
+    #     else:
+    #         filename = args[0]
+    #         requests = {'0' : args[1]}
+    #         protocols = ['byteio']
+    #         #print 'addReplica', requests, protocols
+    #         response = call_it('addReplica', requests, protocols)
+    #         #print response
+    #         success, turl, protocol = response['0']
+    #         if success == 'done':
+    #             f = file(filename,'rb')
+    #             print "Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol),
+    #             start = time.time()
+    #             upload_to_turl(turl, protocol, f)
+    #             print 'done in %.2f seconds.' % (time.time()-start)
+    #             print "'%s' (%s bytes) added to '%s'." % (filename, size, args[1])
+    #         else:
+    #             print '%s: %s' % (filename, success)
+    elif command in ['put']:
         if len(args) < 2:
             print 'Usage: putFile <source filename> <target LN>'
         else:
             filename = args[0]
             size = os.path.getsize(filename)
+            print '- The size of the file is', size
             f = file(filename,'rb')
             checksum = create_checksum(f, 'md5')
+            print '- The md5 checksum of the file is', checksum
             LN = args[1]
             if LN.endswith('/'):
                 LN = LN + filename.split('/')[-1]
             metadata = {('states', 'size') : size, ('states', 'checksum') : checksum,
-                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 2}
-            request = {'0': (LN, metadata, ['byteio'])}
+                    ('states', 'checksumType') : 'md5', ('states', 'neededReplicas') : 1}
+            request = {'0': (LN, metadata, ['http'])}
             #print 'putFile', request
-            response = bartender.putFile(request)
+            response = call_it('putFile', request)
             #print response
             success, turl, protocol = response['0']
             if success == 'done':
+                print '- Got transfer URL:', turl
                 f = file(filename,'rb')
-                print 'Uploading from', filename, 'to', turl
-                ByteIOClient(turl).write(f)
-                print filename, 'uploaded to', LN
+                print "- Uploading from '%s' to '%s' with %s..." % (filename, turl, protocol)
+                start = time.time()
+                upload_to_turl(turl, protocol, f)
+                print '- done in %.4f seconds.' % (time.time()-start)
+                print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:
                 print '%s: %s' % (filename, success)
-    elif command == 'mak':
+    elif command in ['mak','mkd']:
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
         else:
             request = {'0': (args[0], {('states', 'closed') : false})}
             #print 'makeCollection', request
-            response = bartender.makeCollection(request)
+            response = call_it('makeCollection', request)
             #print response
-            print response['0']
-    elif command == 'lis':
+            print "Creating collection '%s': %s" % (args[0], response['0'])
+    elif command in ['lis', 'ls']:
         if len(args) < 1:
             print 'Usage: list <LN> [<LN> ...]'
         else:
             request = dict([(str(i), args[i]) for i in range(len(args))])
-            more_than_one = len(args) > 1
             #print 'list', request
-            response = bartender.list(request,[('entry','')])
+            response = call_it('list', request, [('entry','')])
             #print response
             for rID, (entries, status) in response.items():
                 if status == 'found':
-                    if more_than_one:
-                        print '%s:' % request[rID]
-                    for name, (GUID, metadata) in entries.items():
-                        if more_than_one:
-                            print '\t',
-                        print '%s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('entry', 'type'),'unknown'))
-                elif status == 'is a file':
-                    _, _, name = splitLN(request[rID])
-                    print '%s%s<%s>' % (name, ' '*(20-len(name)), 'file')
+                    print "'%s':" % request[rID], 'collection'
+                    if entries:
+                        for name, (GUID, metadata) in entries.items():
+                            print '  %s%s<%s>' % (name, ' '*(20-len(name)), metadata.get(('entry', 'type'),'unknown'))
+                    else:
+                        print '    empty.'                        
                 else:
-                    print '%s: %s' % (request[rID], status)
-    elif command == 'mov':
+                    print "'%s': %s" % (request[rID], status)
+    elif command in ['mov', 'mv']:
         if len(args) < 2:
-            print 'Usage: move <sourceLN> <targetLN> [preserve]'
+            print 'Usage: move <sourceLN> <targetLN>'
         else:
             sourceLN = args.pop(0)
             targetLN = args.pop(0)
@@ -1269,13 +1287,14 @@ else:
                     preserveOriginal = True
             request = {'0' : (sourceLN, targetLN, preserveOriginal)}
             #print 'move', request
-            response = bartender.move(request)
+            response = call_it('move', request)
             #print response
-            print response['0'][0]
+            print "Moving '%s' to '%s': %s" % (sourceLN, targetLN, response['0'][0])
     elif command == 'mod':
         if len(args) < 5:
             print 'Usage: modify <LN> <changeType> <section> <property> <value>'
         else:
             request = {'0' : args}
             #print 'modify', request
-            print bartender.modify(request)['0']
+            mod_response = call_it('modify', request)['0']
+            print mod_response
