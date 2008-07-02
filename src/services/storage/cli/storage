@@ -12,12 +12,12 @@ elif [ "$1" == "bartender" ]
 then
     shift
     python ./arc1/src/services/storage/cli/bartender_client.py $*
-elif [ "$1" == "element" ]
+elif [ "$1" == "shepherd" ]
 then
     shift
-    python ./arc1/src/services/storage/cli/element_client.py $*
+    python ./arc1/src/services/storage/cli/shepherd_client.py $*
 else
     echo "USAGE:"
-    echo "  storage ahash|librarian|bartender|element <command> <arguments>"
+    echo "  storage ahash|librarian|bartender|shepherd <command> <arguments>"
     exit 1
 fi

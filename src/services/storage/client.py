@@ -336,8 +336,8 @@ class BartenderClient(Client):
                        ('entries', 'testfile'): 'cf05727b-73f3-4318-8454-16eaf10f302c',
                        ('states', 'closed'): '0'},
              'sam': {('entry', 'type'): 'file',
-                     ('locations', 'http://localhost:60000/Element 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
-                     ('locations', 'http://localhost:60000/Element 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
+                     ('locations', 'http://localhost:60000/Shepherd 00d6388c-42df-441c-8d9f-bd78c2c51667'): 'alive',
+                     ('locations', 'http://localhost:60000/Shepherd 51c9b49a-1472-4389-90d2-0f18b960fe29'): 'alive',
                      ('states', 'checksum'): '0927c28a393e8834aa7b838ad8a69400',
                      ('states', 'checksumType'): 'md5',
                      ('states', 'neededReplicas'): '5',
@@ -636,22 +636,22 @@ class BartenderClient(Client):
         node = self.xmlnode_class(response)
         return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
 
-class ElementClient(Client):
+class ShepherdClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = self.NS_class({'se':element_uri})
+        ns = self.NS_class({'she':shepherd_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def _putget(self, putget, requests):
         tree = XMLTree(from_tree =
-            ('se:' + putget, [
-                ('se:' + putget + 'RequestList', [
-                    ('se:' + putget + 'RequestElement', [
-                        ('se:requestID', requestID),
-                        ('se:' + putget + 'RequestDataList', [
-                            ('se:' + putget + 'RequestDataElement', [
-                                ('se:property', property),
-                                ('se:value', value)
+            ('she:' + putget, [
+                ('she:' + putget + 'RequestList', [
+                    ('she:' + putget + 'RequestElement', [
+                        ('she:requestID', requestID),
+                        ('she:' + putget + 'RequestDataList', [
+                            ('she:' + putget + 'RequestDataElement', [
+                                ('she:property', property),
+                                ('she:value', value)
                             ]) for property, value in requestData
                         ])
                     ]) for requestID, requestData in requests.items()
@@ -678,11 +678,11 @@ class ElementClient(Client):
 
     def delete(self, requests):
         tree = XMLTree(from_tree =
-            ('se:delete', [
-                ('se:deleteRequestList', [
-                    ('se:deleteRequestElement', [
-                        ('se:requestID', requestID),
-                        ('se:referenceID', referenceID)
+            ('she:delete', [
+                ('she:deleteRequestList', [
+                    ('she:deleteRequestElement', [
+                        ('she:requestID', requestID),
+                        ('she:referenceID', referenceID)
                     ]) for requestID, referenceID in requests.items()
                 ])
             ])
@@ -694,11 +694,11 @@ class ElementClient(Client):
 
     def stat(self, requests):
         tree = XMLTree(from_tree =
-            ('se:stat', [
-                ('se:statRequestList', [
-                    ('se:statRequestElement', [
-                        ('se:requestID', requestID),
-                        ('se:referenceID', referenceID)
+            ('she:stat', [
+                ('she:statRequestList', [
+                    ('she:statRequestElement', [
+                        ('she:requestID', requestID),
+                        ('she:referenceID', referenceID)
                     ]) for requestID, referenceID in requests.items()
                 ])
             ])
@@ -710,8 +710,8 @@ class ElementClient(Client):
 
     def toggleReport(self, doReporting):
         tree = XMLTree(from_tree =
-            ('se:toggleReport', [
-                ('se:doReporting', doReporting and true or false)
+            ('she:toggleReport', [
+                ('she:doReporting', doReporting and true or false)
             ])
         )
         return self.call(tree, True)
@@ -719,14 +719,14 @@ class ElementClient(Client):
 class NotifyClient(Client):
 
     def __init__(self, url, print_xml = False):
-        ns = self.NS_class({'se':element_uri})
+        ns = self.NS_class({'she':shepherd_uri})
         Client.__init__(self, url, ns, print_xml)
 
     def notify(self, subject, state):
         tree = XMLTree(from_tree =
-            ('se:notify', [
-                ('se:subject', subject),
-                ('se:state', state)
+            ('she:notify', [
+                ('she:subject', subject),
+                ('she:state', state)
             ])
         )
         msg, _, _ = self.call(tree)

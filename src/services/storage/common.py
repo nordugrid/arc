@@ -1,8 +1,8 @@
 # namespace URIs of the storage services
 ahash_uri = 'urn:ahash'
 librarian_uri = 'urn:librarian'
-bartender = 'urn:bartender'
-element_uri = 'urn:storageelement'
+bartender_uri = 'urn:bartender'
+shepherd_uri = 'urn:shepherd'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 # URI for the simple transfer mechanism of ByteIO
 byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'
@@ -12,7 +12,7 @@ false = '0'
 
 # the GUID of the root collection of the global storage namespace
 global_root_guid = '0'
-# a special entity where the data about Storage Elements are stored (SEStore)
+# a special entity where the data about Shepherds are stored (SEStore)
 sestore_guid = '1'
 
 def parse_url(url):

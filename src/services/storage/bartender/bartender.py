@@ -4,7 +4,7 @@ import arc
 import random
 import time
 from storage.xmltree import XMLTree
-from storage.client import LibrarianClient, ElementClient
+from storage.client import LibrarianClient, ShepherdClient
 from storage.common import parse_metadata, librarian_uri, bartender_uri, create_response, create_metadata, true, \
                             splitLN, remove_trailing_slash, get_child_nodes, parse_node, node_to_data, global_root_guid, \
                             serialize_ids, deserialize_ids, sestore_guid
@@ -211,9 +211,9 @@ class Bartender:
                                 self.log('DEBUG', 'location chosen:', location)
                                 # split it to serviceID, referenceID - serviceID currently is just a plain URL of the service
                                 url, referenceID, _ = location
-                                # create an ElementClient with this URL, then send a get request with the referenceID
+                                # create an ShepherdClient with this URL, then send a get request with the referenceID
                                 #   we only support byteio protocol currently. 'getFile' is the requestID of this request
-                                get_response = dict(ElementClient(url).get({'getFile' :
+                                get_response = dict(ShepherdClient(url).get({'getFile' :
                                     [('referenceID', referenceID)] + [('protocol', proto) for proto in protocols]})['getFile'])
                                 # get_response is a dictionary with keys such as 'TURL', 'protocol' or 'error'
                                 if get_response.has_key('error'):
@@ -252,7 +252,7 @@ class Bartender:
             size = states[('states','size')]
             checksumType = states[('states','checksumType')]
             checksum = states[('states','checksum')]
-            # list of storage elements with a replica of this file (to avoid using one element twice)
+            # list of shepherds with a replica of this file (to avoid using one shepherd twice)
             exceptedSEs = [deserialize_ids(location)[0] 
                            for (section, location), status in states.items() if section == 'locations']
             # initiate replica addition of this file with the given protocols 
@@ -262,28 +262,28 @@ class Bartender:
         return response
 
     def find_alive_se(self, except_these=[]):
-        """  Get the list of currently alive Storage Elements.
+        """  Get the list of currently alive Shepherds.
         
         find_alive_se()
         """
-        # sestore_guid is the GUID of the librarian entry which the list of Storage Elements registered by the Librarian
+        # sestore_guid is the GUID of the librarian entry which the list of Shepherds registered by the Librarian
         SEs = self.librarian.get([sestore_guid])[sestore_guid]
         # SEs contains entries such as {(serviceID, 'nextHeartbeat') : timestamp} which indicates
-        #   when a specific Storage Element service should report next
-        #   if this timestamp is not a positive number, that means the Storage Element have not reported in time, probably it is not alive
-        self.log('DEBUG', 'Registered Storage Elements in Librarian', SEs)
-        # get all the Storage Elements which has a positiv nextHeartbeat timestamp and which has not already been used
+        #   when a specific Shepherd service should report next
+        #   if this timestamp is not a positive number, that means the Shepherd have not reported in time, probably it is not alive
+        self.log('DEBUG', 'Registered Shepherds in Librarian', SEs)
+        # get all the Shepherds which has a positiv nextHeartbeat timestamp and which has not already been used
         alive_SEs = [s for (s, p), v in SEs.items() if p == 'nextHeartbeat' and int(v) > 0 and not s in except_these]
-        self.log('DEBUG', 'Alive Storage Elements:', alive_SEs)
+        self.log('DEBUG', 'Alive Shepherds:', alive_SEs)
         if len(alive_SEs) == 0:
             return None
         try:
             # choose one randomly
             se = random.choice(alive_SEs)
-            self.log('DEBUG', 'Storage Element chosen:', se)
+            self.log('DEBUG', 'Shepherd chosen:', se)
             # the serviceID currently is a URL 
-            # create an ElementClient with this URL
-            return ElementClient(se)
+            # create an ShepherdClient with this URL
+            return ShepherdClient(se)
         except:
             self.log()
             return None
@@ -301,16 +301,16 @@ class Bartender:
         """
         turl = ''
         protocol = ''
-        # prepare the 'put' request for the storage element
+        # prepare the 'put' request for the shepherd
         put_request = [('size', size), ('checksumType', checksumType),
             ('checksum', checksum), ('GUID', GUID)] + \
             [('protocol', protocol) for protocol in protocols]
-        # find an alive Storage Element
-        element = self.find_alive_se(exceptedSEs)
-        if not element:
-            return 'no storage element found', turl, protocol
+        # find an alive Shepherd
+        shepherd = self.find_alive_se(exceptedSEs)
+        if not shepherd:
+            return 'no shepherd found', turl, protocol
         # call the SE's put method with the prepared request
-        put_response = dict(element.put({'putFile': put_request})['putFile'])
+        put_response = dict(shepherd.put({'putFile': put_request})['putFile'])
         if put_response.has_key('error'):
             self.log('DEBUG', 'ERROR', put_response['error'])
             # TODO: we should handle this, remove the new file or something
@@ -320,8 +320,8 @@ class Bartender:
             turl = put_response['TURL']
             protocol = put_response['protocol']
             referenceID = put_response['referenceID']
-            # currently the serviceID is the URL of the storage element service
-            serviceID = element.url
+            # currently the serviceID is the URL of the shepherd service
+            serviceID = shepherd.url
             self.log('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
             # the serviceID and the referenceID is the location of the replica, serialized as one string
             # put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)

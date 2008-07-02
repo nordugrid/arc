@@ -32,18 +32,18 @@ class Librarian:
         while True:
             try:
                 SEs = self.ahash.get([sestore_guid])[sestore_guid]
-                #print 'registered storage elements:', SEs
+                #print 'registered shepherds:', SEs
                 now = time.time()
                 late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
-                #print 'late storage elements (it is %s now)' % now, late_SEs
+                #print 'late shepherds (it is %s now)' % now, late_SEs
                 if late_SEs:
                     serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
-                    #print 'late storage elements serviceGUIDs', serviceGUIDs
+                    #print 'late shepherds serviceGUIDs', serviceGUIDs
                     filelists = self.ahash.get(serviceGUIDs.keys())
                     changes = []
                     for serviceGUID, serviceID in serviceGUIDs.items():
                         filelist = filelists[serviceGUID]
-                        #print 'filelist of late storage element', serviceID, filelist
+                        #print 'filelist of late shepherd', serviceID, filelist
                         changes.extend([(GUID, serviceID, referenceID, 'offline')
                             for (_, referenceID), GUID in filelist.items()])
                     change_response = self._change_states(changes)

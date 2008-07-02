@@ -1,6 +1,6 @@
 pythondir= $(PYTHON_SITE_PACKAGES)/storage/cli
 
-python_DATA = librarian_client.py ahash_client.py element_client.py bartender_client.py
+python_DATA = librarian_client.py ahash_client.py shepherd_client.py bartender_client.py
 
 noinst_bin_SCRIPTS = storage storage_bash_completion 
 

@@ -13,7 +13,7 @@ class ByteIOBackend:
     def __init__(self, backendcfg, ns_uri, file_arrived, log):
         self.log = log
         self.file_arrived = file_arrived
-        self.ns = arc.NS({'se' : ns_uri})
+        self.ns = arc.NS({'she' : ns_uri})
         self.datadir = str(backendcfg.Get('DataDir'))
         self.transferdir = str(backendcfg.Get('TransferDir'))
         self.turlprefix = str(backendcfg.Get('TURLPrefix'))
@@ -97,7 +97,7 @@ class ByteIOBackend:
         os.remove(path)
         self.file_arrived(referenceID)
         out = arc.PayloadSOAP(self.ns)
-        response_node = out.NewChild('se:notifyResponse').Set('OK')
+        response_node = out.NewChild('she:notifyResponse').Set('OK')
         return out
 
     def checksum(self, localID, checksumType):

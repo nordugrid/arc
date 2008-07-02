@@ -7,6 +7,6 @@ doc_DATA = storage.service.xml.example
 
 EXTRA_DIST = $(python_DATA) $(doc_DATA)
 
-SUBDIRS = librarian cli element ahash bartender
-DIST_SUBDIRS = librarian cli element ahash bartender
+SUBDIRS = librarian cli shepherd ahash bartender
+DIST_SUBDIRS = librarian cli shepherd ahash bartender
 

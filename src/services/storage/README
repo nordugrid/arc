@@ -4,7 +4,7 @@ It has the following subdirectories:
 ahash     - simple currently centralized metadata store used by the Librarian
 librarian - the Librarian service handling files and collection
 bartender   - the Bartender service providing high-level storage namespace
-element   - the Storage Element service and a byteio service
+element   - the Shepherd service and a byteio service
 gateway   - the Storage Gateway service and other services related to it
 cli 	  - small basic CLI clients for the storage services
 fuse      - FUSE interface to storage for mounting storage system
@@ -13,7 +13,7 @@ And has the following files:
 client.py					- collection of python classes which can be used to talk to the services
 common.py					- collection of python methods and classes used by more than one service
 service.example.xml			- an example service configuration xml for HED
-service.example.3SEs.xml	- an example service configuration xml for HED with 3 instances of the Storage Element
+service.example.3SEs.xml	- an example service configuration xml for HED with 3 instances of the Shepherd
 service.py					- a python superclass of service classes with common features
 xmltree.py					- a python class for easy handling of simple XML structures	
 
@@ -33,17 +33,17 @@ the replicas. this service knows about Logical Names and GUIDs, and can
 walk the logical namespace, traversing logical names, etc. (the Librarian
 uses the Hash as database)
 
-- Element: this service lives on a storage resource which is actually
+- Shepherd: this service lives on a storage resource which is actually
 storing the replicas of the files, and when a user wants to download or
 upload a file, the actual data transfer is going directly to these
-services. the Elements checks the health of their files, and report it
+services. the Shepherds checks the health of their files, and report it
 to the Librarian. they initiate replication if needed.
 
 - Bartender: this service is the main front-end service of the storage,
 the users connect to this, this provides a high-level user-friendly
 interface for file and collection operations, every transfer must be
 initiated by a Bartender service. it connects to Librarians to organize the
-global logical namespace, it connects to Elements to initiate file
+global logical namespace, it connects to Shepherds to initiate file
 transfers.
 
 

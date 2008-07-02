@@ -7,7 +7,7 @@ import random
 
 import arc
 from storage.xmltree import XMLTree
-from storage.common import element_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols
+from storage.common import shepherd_uri, import_class_from_string, get_child_nodes, mkuid, parse_node, create_response, true, common_supported_protocols
 from storage.client import LibrarianClient, BartenderClient
 
 ALIVE = 'alive'
@@ -15,14 +15,14 @@ CREATING = 'creating'
 INVALID = 'invalid'
 DELETED = 'deleted'
 
-class Element:
+class Shepherd:
 
     def __init__(self, cfg, log):
         self.log = log
         try:
             backendclass = str(cfg.Get('BackendClass'))
             backendcfg = cfg.Get('BackendCfg')
-            self.backend = import_class_from_string(backendclass)(backendcfg, element_uri, self._file_arrived, self.log)
+            self.backend = import_class_from_string(backendclass)(backendcfg, shepherd_uri, self._file_arrived, self.log)
         except:
             self.log('DEBUG', 'Cannot import backend class', backendclass)
             raise
@@ -63,7 +63,7 @@ class Element:
                         changed = self.changed_states.pop()
                         localData = self.store.get(changed)
                         if not localData.has_key('GUID'):
-                            self.log('DEBUG', 'Error in element.reportingThread()\n\treferenceID is in changed_states, but not in store')
+                            self.log('DEBUG', 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
                             if localData['state']==DELETED:
@@ -221,7 +221,7 @@ class Element:
             self.log('DEBUG', '\n\n', getRequestData)
             referenceID = dict(getRequestData)['referenceID']
             protocols = [value for property, value in getRequestData if property == 'protocol']
-            #print 'Element.get:', referenceID, protocols
+            #print 'Shepherd.get:', referenceID, protocols
             localData = self.store.get(referenceID)
             #print 'localData:', localData
             if localData.get('state', INVALID) == ALIVE:
@@ -314,44 +314,44 @@ class Element:
 
 from storage.service import Service
 
-class ElementService(Service):
+class ShepherdService(Service):
 
     def __init__(self, cfg):
         try:
             serviceID = str(cfg.Get('ServiceID')).split('/')[-1]
         except:
-            serviceID = "Element"
+            serviceID = "Shepherd"
         # names of provided methods
         request_names = ['get', 'put', 'stat', 'delete', 'toggleReport']
         # create the business-logic class
-        self.element = Element(cfg, self.log)
+        self.shepherd = Shepherd(cfg, self.log)
         # get the additional request names from the backend
-        backend_request_names = self.element.backend.public_request_names
+        backend_request_names = self.shepherd.backend.public_request_names
         # bring the additional request methods into the namespace of this object
         for name in backend_request_names:
             if not hasattr(self, name):
-                setattr(self, name, getattr(self.element.backend, name))
+                setattr(self, name, getattr(self.shepherd.backend, name))
                 request_names.append(name)
         # call the Service's constructor
-        Service.__init__(self, serviceID, request_names, 'se', element_uri, cfg)
+        Service.__init__(self, serviceID, request_names, 'she', shepherd_uri, cfg)
 
 
     def stat(self, inpayload):
         request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
-        response = self.element.stat(request)
+        response = self.shepherd.stat(request)
         #print response
-        return create_response('se:stat',
-            ['se:requestID', 'se:referenceID', 'se:state', 'se:checksumType', 'se:checksum', 'se:acl', 'se:size', 'se:GUID', 'se:localID'], response, self.newSOAPPayload())
+        return create_response('she:stat',
+            ['she:requestID', 'she:referenceID', 'she:state', 'she:checksumType', 'she:checksum', 'she:acl', 'she:size', 'she:GUID', 'she:localID'], response, self.newSOAPPayload())
     
 
     def delete(self, inpayload):
         request = parse_node(inpayload.Child().Child(), ['requestID', 'referenceID'], single = True)
-        response = self.element.delete(request)
+        response = self.shepherd.delete(request)
         tree = XMLTree(from_tree = 
-            ('se:deleteResponseList',[
-                ('se:deleteResponseElement',[
-                    ('se:requestID', requestID),
-                    ('se:status', status)
+            ('she:deleteResponseList',[
+                ('she:deleteResponseElement',[
+                    ('she:requestID', requestID),
+                    ('she:status', status)
                     ]) for requestID, status in response.items()
                 ])
             )
@@ -371,13 +371,13 @@ class ElementService(Service):
     def _putget_out(self, putget, response):
         #print response
         tree = XMLTree(from_tree =
-            ('se:' + putget + 'ResponseList', [
-                ('se:' + putget + 'ResponseElement', [
-                    ('se:requestID', requestID),
-                    ('se:' + putget + 'ResponseDataList', [
-                        ('se:' + putget + 'ResponseDataElement', [
-                            ('se:property', property),
-                            ('se:value', value)
+            ('she:' + putget + 'ResponseList', [
+                ('she:' + putget + 'ResponseElement', [
+                    ('she:requestID', requestID),
+                    ('she:' + putget + 'ResponseDataList', [
+                        ('she:' + putget + 'ResponseDataElement', [
+                            ('she:property', property),
+                            ('she:value', value)
                         ]) for property, value in responseData
                     ])
                 ]) for requestID, responseData in response.items()
@@ -390,17 +390,17 @@ class ElementService(Service):
 
     def get(self, inpayload):
         request = self._putget_in('get', inpayload)
-        response = self.element.get(request)
+        response = self.shepherd.get(request)
         return self._putget_out('get', response)
 
     def put(self, inpayload):
         request = self._putget_in('put', inpayload)
-        response = self.element.put(request)
+        response = self.shepherd.put(request)
         return self._putget_out('put', response)
 
     def toggleReport(self, inpayload):
         doReporting = str(inpayload.Child().Get('doReporting'))
-        response = self.element.toggleReport(doReporting == true)
+        response = self.shepherd.toggleReport(doReporting == true)
         out = self.newSOAPPayload()
         response_node = out.NewChild('lbr:toggleReportResponse')
         response_node.Set(response)

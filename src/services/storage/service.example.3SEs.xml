@@ -34,13 +34,13 @@
             <next id="hash">^/AHash$</next>
             <next id="librarian">^/Librarian$</next>
             <next id="bartender">^/Bartender$</next>
-            <next id="element1">^/Element1$</next>
+            <next id="element1">^/Shepherd1$</next>
             <next id="byteio1">^/byteio1$</next>
             <next id="byteio1">^/byteio1/</next>
-            <next id="element2">^/Element2$</next>
+            <next id="element2">^/Shepherd2$</next>
             <next id="byteio2">^/byteio2$</next>
             <next id="byteio2">^/byteio2/</next>
-            <next id="element3">^/Element3$</next>
+            <next id="element3">^/Shepherd3$</next>
             <next id="byteio3">^/byteio3$</next>
             <next id="byteio3">^/byteio3/</next>
         </Plexer>
@@ -61,8 +61,8 @@
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
          <Service name="pythonservice" id="element1">
-            <ClassName>storage.element.element.ElementService</ClassName>
-            <ServiceID>http://localhost:60000/Element1</ServiceID>
+            <ClassName>storage.element.element.ShepherdService</ClassName>
+            <ServiceID>http://localhost:60000/Shepherd1</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
@@ -77,8 +77,8 @@
             <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
         <Service name="pythonservice" id="element2">
-            <ClassName>storage.element.element.ElementService</ClassName>
-            <ServiceID>http://localhost:60000/Element2</ServiceID>
+            <ClassName>storage.element.element.ShepherdService</ClassName>
+            <ServiceID>http://localhost:60000/Shepherd2</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
@@ -93,8 +93,8 @@
             <BartenderURL>http://localhost:60000/Bartender</BartenderURL>
         </Service>
         <Service name="pythonservice" id="element3">
-            <ClassName>storage.element.element.ElementService</ClassName>
-            <ServiceID>http://localhost:60000/Element3</ServiceID>
+            <ClassName>storage.element.element.ShepherdService</ClassName>
+            <ServiceID>http://localhost:60000/Shepherd3</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>
             <StoreClass>storage.common.PickleStore</StoreClass>
@@ -111,17 +111,17 @@
          <Service name="pythonservice" id="byteio1">
             <ClassName>storage.element.byteio.ByteIOService</ClassName>
             <TransferDir>./element_transfer1</TransferDir>
-            <NotifyURL>http://localhost:60000/Element1</NotifyURL>
+            <NotifyURL>http://localhost:60000/Shepherd1</NotifyURL>
         </Service>
          <Service name="pythonservice" id="byteio2">
             <ClassName>storage.element.byteio.ByteIOService</ClassName>
             <TransferDir>./element_transfer2</TransferDir>
-            <NotifyURL>http://localhost:60000/Element2</NotifyURL>
+            <NotifyURL>http://localhost:60000/Shepherd2</NotifyURL>
         </Service>
          <Service name="pythonservice" id="byteio3">
             <ClassName>storage.element.byteio.ByteIOService</ClassName>
             <TransferDir>./element_transfer3</TransferDir>
-            <NotifyURL>http://localhost:60000/Element3</NotifyURL>
+            <NotifyURL>http://localhost:60000/Shepherd3</NotifyURL>
         </Service>
 
     </Chain>
