@@ -79,7 +79,9 @@ static std::string init_logger(Arc::Config& cfg)
 
 int main(int argc, char **argv)
 {
+    // ignore some signal
     signal(SIGTTOU,SIG_IGN);
+    signal(SIGPIPE,SIG_IGN);
     /* Create options parser */
     Arc::ServerOptions options;
 
