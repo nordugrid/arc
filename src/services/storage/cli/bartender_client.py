@@ -10,8 +10,8 @@ if len(args) > 0 and args[0] == '-x':
 else:
     print_xml = False
 bartender = BartenderClient('http://localhost:60000/Bartender', print_xml)
-if len(args) == 0 or args[0] not in ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
-    print 'Supported methods: stat, makeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
+if len(args) == 0 or args[0] not in ['stat', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'delFile', 'addReplica', 'modify']:
+    print 'Supported methods: stat, makeCollection, unmakeCollection, list, move, putFile, getFile, delFile, addReplica, modify' 
 else:
     command = args.pop(0)
     if command == 'stat':
@@ -95,6 +95,15 @@ else:
                 f = file(filename,'rb')
                 print 'Uploading from', filename, 'to', turl, 'with', protocol
                 upload_to_turl(turl, protocol, f)
+    elif command == 'unmakeCollection':
+        if len(args) < 1:
+            print 'Usage: unmakeCollection <LN>'
+        else:
+            request = {'0': (args[0])}
+            print 'unmakeCollection', request
+            response = bartender.unmakeCollection(request)
+            print response
+            print '\n', response['0']
     elif command == 'makeCollection':
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'

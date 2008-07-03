@@ -505,6 +505,22 @@ class BartenderClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def unmakeCollection(self, requests):
+        """docstring for unmakeCollection"""
+        tree = XMLTree(from_tree =
+            ('bar:unmakeCollection', [
+                ('bar:unmakeCollectionRequestList', [
+                    ('bar:unmakeCollectionRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
+
     def makeCollection(self, requests):
         """ Create a new collection.
         

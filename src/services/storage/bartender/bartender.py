@@ -405,6 +405,29 @@ class Bartender:
             response[rID] = (success, turl, protocol)
         return response
 
+    def unmakeCollection(self, requests):
+        """docstring for unmakeCollection"""
+        requests, traverse_response = self._traverse(requests)
+        response = {}
+        for rID, [LN] in requests:
+            metadata, GUID, traversedLN, restLN, wasComplete, traversedlist = traverse_response[rID]
+            self.log('DEBUG', 'metadata', metadata, 'GUID', GUID, 'traversedLN', traversedLN, 'restLN', restLN, 'wasComplete',wasComplete, 'traversedlist', traversedlist)
+            if not wasComplete:
+                success = 'no such LN'
+            else:
+                number_of_entries = len([section for (section, _), _ in metadata.items() if section == 'entries'])
+                if number_of_entries > 0:
+                    success = 'collection is not empty'
+                else:
+                    parentLN, parentGUID = traversedlist[-2]
+                    mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
+                    mod_response = self.librarian.modifyMetadata(mod_requests)
+                    success = mod_response['unmake']
+                    if success == 'unset':
+                        # TODO: handle hardlinks to collections
+                        success = self.librarian.remove({'unmake' : GUID})['unmake']
+            response[rID] = success
+        return response
 
     def makeCollection(self, requests):
         """ Create a new collection.
@@ -570,7 +593,7 @@ class BartenderService(Service):
 
     def __init__(self, cfg):
         # names of provided methods
-        request_names = ['stat', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
+        request_names = ['stat', 'unmakeCollection', 'makeCollection', 'list', 'move', 'putFile', 'getFile', 'addReplica', 'delFile', 'modify']
         # call the Service's constructor, 'Bartender' is the human-readable name of the service
         # request_names is the list of the names of the provided methods
         # bartender_uri is the URI of the Bartender service namespace, and 'bar' is the prefix we want to use for this namespace
@@ -821,6 +844,17 @@ class BartenderService(Service):
         response = self.bartender.putFile(requests)
         return create_response('bar:putFile',
             ['bar:requestID', 'bar:success', 'bar:TURL', 'bar:protocol'], response, self.newSOAPPayload())
+
+    def unmakeCollection(self, inpayload):
+        request_nodes = get_child_nodes(inpayload.Child().Child())
+        requests = dict([(
+                str(request_node.Get('requestID')),
+                [str(request_node.Get('LN'))]
+            ) for request_node in request_nodes
+        ])
+        response = self.bartender.unmakeCollection(requests)
+        return create_response('bar:unmakeCollection',
+            ['bar:requestID', 'bar:success'], response, self.newSOAPPayload(), single = True)
 
     def makeCollection(self, inpayload):
         # incoming SOAP message example:

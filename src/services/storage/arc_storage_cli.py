@@ -1005,6 +1005,22 @@ class BartenderClient(Client):
         xml = self.xmlnode_class(msg)
         return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
 
+    def unmakeCollection(self, requests):
+        """docstring for unmakeCollection"""
+        tree = XMLTree(from_tree =
+            ('bar:unmakeCollection', [
+                ('bar:unmakeCollectionRequestList', [
+                    ('bar:unmakeCollectionRequestElement', [
+                        ('bar:requestID', rID),
+                        ('bar:LN', LN),
+                    ]) for rID, LN in requests.items()
+                ])
+            ])
+        )
+        msg, _, _ = self.call(tree)
+        xml = self.xmlnode_class(msg)
+        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
+
     def makeCollection(self, requests):
         """ Create a new collection.
         
@@ -1164,8 +1180,8 @@ def call_it(method_name, *args):
     print '- done in %0.2f seconds.' % (time.time()-start)
     return response
 
-if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
-    print 'Supported methods: stat, make[Collection], list, move, put[File], get[File], del[File]' 
+if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
+    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]' 
 else:
     command = args.pop(0)[0:3]
     if command in ['sta']:
@@ -1284,6 +1300,15 @@ else:
                 print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:
                 print '%s: %s' % (LN, success)
+    elif command in ['unm', 'rmd']:
+        if len(args) < 1:
+            print 'Usage: unmakeCollection <LN>'
+        else:
+            request = {'0': (args[0])}
+            #print 'unmakeCollection', request
+            response = call_it('unmakeCollection',request)
+            #print response
+            print "Removing collection '%s': %s" % (args[0], response['0'])
     elif command in ['mak','mkd']:
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
