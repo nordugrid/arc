@@ -83,3 +83,278 @@ Then you can start the server with:
 Now you can use the arc_storage_cli.py python script which is by default installed to /usr/local/bin.
 But you can grab this script and use it on any other machine which has no ARC installed at all.
 It is a very basic command line interface, it has only one flag, the '-x', which prints the actual soap message payloads.
+
+You can specify the URL of the Bartender service with the ARC_BARTENDER_URL environment variable.
+
+First we should create a root collection:
+$ arc_storage_cli.py list /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.03 seconds.
+'/': not found
+$ arc_storage_cli.py -x list /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+Request:
+<soap-env:Envelope>
+    <soap-env:Body>
+        <list>
+            <listRequestList>
+                <listRequestElement>
+                    <requestID>0</requestID>
+                    <LN>/</LN>
+                </listRequestElement>
+            </listRequestList>
+            <neededMetadataList>
+                <neededMetadataElement>
+                    <section>entry</section>
+                    <property></property>
+                </neededMetadataElement>
+            </neededMetadataList>
+        </list>
+    </soap-env:Body>
+</soap-env:Envelope>
+
+Response:
+<soap-env:Envelope>
+    <soap-env:Body>
+        <bar:listResponse>
+            <bar:listResponseList>
+                <bar:listResponseElement>
+                    <bar:requestID>0</bar:requestID>
+                    <bar:entries></bar:entries>
+                    <bar:status>not found</bar:status>
+                </bar:listResponseElement>
+            </bar:listResponseList>
+        </bar:listResponse>
+    </soap-env:Body>
+</soap-env:Envelope>
+
+- done in 0.03 seconds.
+'/': not found
+$ arc_storage_cli.py makeCollection /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's makeCollection method...
+- done in 0.05 seconds.
+Creating collection '/': done
+
+The methods can be listed with:
+$ arc_storage_cli.py
+Usage:
+  arc_storage_cli.py <method> [<arguments>]
+Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]
+Without arguments, each method prints its own help.
+$ arc_storage_cli.py move
+Usage: move <sourceLN> <targetLN>
+
+LN means Logical Name everywhere in this system, this is the path in the global namespace.
+The LNs are always absolute, must start with a '/'. (or with a '<GUID>/'...)
+
+Actually only the first three letter do matter:
+
+$ arc_storage_cli.py list /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/': collection
+    empty.
+
+$ arc_storage_cli.py lis /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/': collection
+    empty.
+
+And you can use 'ls', 'mv', 'rmdir', 'mkdir', 'rm' as well:
+
+$ arc_storage_cli.py ls /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.03 seconds.
+'/': collection
+    empty.
+
+You can get some help with a 
+
+Let's create some sub-collections (sub-directories):
+$ arc_storage_cli.py mkdir /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's makeCollection method...
+- done in 0.06 seconds.
+Creating collection '/tmp': done
+$ arc_storage_cli.py mkdir /home
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's makeCollection method...
+- done in 0.06 seconds.
+Creating collection '/home': done
+
+Let's move them:
+
+$ arc_storage_cli.py mv /home /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's move method...
+- done in 0.05 seconds.
+Moving '/home' to '/tmp': targetexists
+$ arc_storage_cli.py mv /home /tmp/
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's move method...
+- done in 0.07 seconds.
+Moving '/home' to '/tmp/': moved
+
+Let's list them:
+
+$ arc_storage_cli.py ls /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/': collection
+  tmp                 <collection>
+$ arc_storage_cli.py ls /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/tmp': collection
+  home                <collection>
+$ arc_storage_cli.py ls /tmp/home
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.05 seconds.
+'/tmp/home': collection
+    empty.
+$ arc_storage_cli.py ls / /tmp /tmp/home
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.08 seconds.
+'/tmp': collection
+  home                <collection>
+'/': collection
+  tmp                 <collection>
+'/tmp/home': collection
+    empty.
+
+Let's upload a file:
+
+$ cat testfile 
+This is a testfile.
+$ arc_storage_cli.py put testfile /tmp
+- The size of the file is 20 bytes
+- The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's putFile method...
+- done in 0.04 seconds.
+/tmp: LN exists
+$ arc_storage_cli.py put testfile /tmp/
+- The size of the file is 20 bytes
+- The md5 checksum of the file is 9a9dffa22d227afe0f1959f936993a80
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's putFile method...
+- done in 0.08 seconds.
+- Got transfer URL: http://localhost:60000/httpd/d15900f5-34ee-4bba-bb10-73d60d1c0d75
+- Uploading from 'testfile' to 'http://localhost:60000/httpd/d15900f5-34ee-4bba-bb10-73d60d1c0d75' with http...
+Uploading 20 bytes... data sent, waiting... done.
+- done in 0.0042 seconds.
+'testfile' (20 bytes) uploaded as '/tmp/testfile'.
+
+Let's get some stats:
+
+$ arc_storage_cli.py stat /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's stat method...
+- done in 0.03 seconds.
+'/': found
+  states
+    closed: 0
+  entry
+    type: collection
+  timestamps
+    created: 1210231805.48
+  entries
+    tmp: 51e12fab-fd3d-43ec-9bc5-17041da3f0b2
+$ arc_storage_cli.py stat /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's stat method...
+- done in 0.03 seconds.
+'/tmp': found
+  states
+    closed: 0
+  timestamps
+    created: 1210231940.04
+  entry
+    type: collection
+  parents
+    0/tmp: parent
+  entries
+    testfile: e635a620-da69-48a3-80d6-b4f68f4aeaa5
+    home: e6f5d1f0-71a8-4ea6-adc4-8b36807e5562
+$ arc_storage_cli.py stat /tmp/testfile
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's stat method...
+- done in 0.05 seconds.
+'/tmp/testfile': found
+  states
+    checksumType: md5
+    neededReplicas: 1
+    size: 20
+    checksum: 9a9dffa22d227afe0f1959f936993a80
+  timestamps
+    created: 1210232135.57
+  parents
+    51e12fab-fd3d-43ec-9bc5-17041da3f0b2/testfile: parent
+  locations
+    http://localhost:60000/Shepherd fc0d3d99-6406-4c43-b2eb-c7ec6d6ab7fe: alive
+  entry
+    type: file
+
+Let's download the file:
+
+$ arc_storage_cli.py get /tmp/testfile newfile
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's getFile method...
+- done in 0.05 seconds.
+- Got transfer URL: http://localhost:60000/httpd/dab911d0-110f-468e-b0c3-627af6e3af31
+- Downloading from 'http://localhost:60000/httpd/dab911d0-110f-468e-b0c3-627af6e3af31' to 'newfile' with http...
+Downloading 20 bytes... done.
+- done in 0.0035 seconds.
+'/tmp/testfile' (20 bytes) downloaded as 'newfile'.
+$ cat newfile 
+This is a testfile.
+
+Let's remove everything:
+
+$ arc_storage_cli.py unmakeCollection /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's unmakeCollection method...
+- done in 0.03 seconds.
+Removing collection '/tmp': collection is not empty
+$ arc_storage_cli.py unmakeCollection /tmp/home
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's unmakeCollection method...
+- done in 0.06 seconds.
+Removing collection '/tmp/home': removed
+$ arc_storage_cli.py del /tmp/testfile
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's delFile method...
+- done in 0.05 seconds.
+/tmp/testfile: deleted
+$ arc_storage_cli.py rmdir /tmp
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's unmakeCollection method...
+- done in 0.05 seconds.
+Removing collection '/tmp': removed
+$ arc_storage_cli.py ls /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/': collection
+    empty.
+$ arc_storage_cli.py unmakeCollection /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's unmakeCollection method...
+- done in 0.04 seconds.
+Removing collection '/': removed
+$ arc_storage_cli.py list /
+- ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
+- Calling the Bartender's list method...
+- done in 0.04 seconds.
+'/': not found

@@ -1181,7 +1181,10 @@ def call_it(method_name, *args):
     return response
 
 if len(args) == 0 or args[0][0:3] not in ['sta', 'mak', 'mkd', 'unm', 'rmd', 'lis', 'ls', 'mov', 'mv', 'put', 'get', 'del', 'rm', 'mod']:
-    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]' 
+    print 'Usage:'
+    print '  arc_storage_cli.py <method> [<arguments>]'
+    print 'Supported methods: stat, make[Collection], unmake[Collection], list, move, put[File], get[File], del[File]'
+    print 'Without arguments, each method prints its own help.'
 else:
     command = args.pop(0)[0:3]
     if command in ['sta']:
@@ -1207,7 +1210,7 @@ else:
                             print ' ', '  %s: %s' % (p, v)
                 else:
                     print 'not found'
-    elif command in ['del']:
+    elif command in ['del', 'rm']:
         if len(args) < 1:
             print 'Usage: delFile <LN> [<LN> ...]'
         else:
