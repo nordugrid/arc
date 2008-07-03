@@ -4,5 +4,5 @@ python_DATA = librarian_client.py ahash_client.py shepherd_client.py bartender_c
 
 noinst_SCRIPTS = storage storage_bash_completion 
 
-EXTRA_DIST = $(python_DATA) $(bin_SCRIPTS)
+EXTRA_DIST = $(python_DATA) $(noinst_SCRIPTS)
 
