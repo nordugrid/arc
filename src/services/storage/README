@@ -3,23 +3,24 @@ It has the following subdirectories:
 
 ahash     - simple currently centralized metadata store used by the Librarian
 librarian - the Librarian service handling files and collection
-bartender   - the Bartender service providing high-level storage namespace
+bartender - the Bartender service providing high-level storage namespace
 element   - the Shepherd service and a byteio service
 gateway   - the Storage Gateway service and other services related to it
-cli 	  - small basic CLI clients for the storage services
+cli       - small basic CLI clients for the storage services
 fuse      - FUSE interface to storage for mounting storage system
 
 And has the following files:
-client.py					- collection of python classes which can be used to talk to the services
-common.py					- collection of python methods and classes used by more than one service
-service.example.xml			- an example service configuration xml for HED
-service.example.3SEs.xml	- an example service configuration xml for HED with 3 instances of the Shepherd
-service.py					- a python superclass of service classes with common features
-xmltree.py					- a python class for easy handling of simple XML structures	
-
+client.py                       - collection of python classes which can be used to talk to the services
+common.py                       - collection of python methods and classes used by more than one service
+storage.service.xml.example     - an example service configuration xml for HED with HTTP Shepherd backend
+storage.service.xml.3S.example  - an example service configuration xml for HED with 3 ByteIO-backed Shepherds
+service.py                      - a python superclass of service classes with common features
+xmltree.py                      - a python class for easy handling of simple XML structures
+fakexmlnode.py                  - providing the interface of an ARC XMLNode without the ARC libraries
+arc_storage_cli.py              - standalone client for the storage system (supporting HTTP transfer)
 
 Bit more detail about the main services:
-- Hash: it is basically a (currently centralized but later distributed)
+- A-Hash: it is basically a (currently centralized but later distributed)
 database service which is storing 'objects', where an 'object' is any
 number of key-value pairs, where the keys are itself 2-tuples. so if you
 have a 'dictionary' or a 'hashtable' or that kind of stuff which is
@@ -31,7 +32,7 @@ metadata of the collections and files. it does not store the actual
 replicas of the file, just the metadata which contain the location of
 the replicas. this service knows about Logical Names and GUIDs, and can
 walk the logical namespace, traversing logical names, etc. (the Librarian
-uses the Hash as database)
+uses the A-Hash as database)
 
 - Shepherd: this service lives on a storage resource which is actually
 storing the replicas of the files, and when a user wants to download or
