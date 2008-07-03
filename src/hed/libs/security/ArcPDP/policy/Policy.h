@@ -57,6 +57,9 @@ public:
   
   /**Get eveluation result*/
   virtual EvalResult& getEvalResult() = 0;
+
+  /**Set eveluation result*/
+  virtual void setEvalResult(EvalResult& res) = 0;
 };
 
 } // namespace ArcSec

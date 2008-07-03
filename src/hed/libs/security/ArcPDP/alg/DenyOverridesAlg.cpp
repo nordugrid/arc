@@ -45,6 +45,18 @@ Result DenyOverridesCombiningAlg::combine(EvaluationCtx* ctx, std::list<Policy*>
       Result res = policy->eval(ctx);
       if(res == DECISION_DENY)
         return DECISION_DENY;
+
+      //DECISION_PERMIT only means ID_MATCH; 
+      //The case here is: "id" is matched, but the "value" does not match. We can decide
+      //that the request try to access <Resource/>:<Action/> (with the same "id" in the policy),
+      //but specify different "value". We simply gives "deny".  
+      else if(res == DECISION_PERMIT) { 
+        EvalResult evalres;
+        evalres = policy->getEvalResult();
+        evalres.effect="Deny";
+        policy->setEvalResult(evalres);
+        return DECISION_DENY;
+      }
     }
   }
   
