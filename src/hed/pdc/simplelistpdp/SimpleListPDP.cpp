@@ -30,8 +30,16 @@ SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
 bool SimpleListPDP::isPermitted(Message *msg){
   std::string subject=msg->Attributes()->get("TLS:IDENTITYDN");
   std::string line;
+  if(location.empty()) {
+    logger.msg(ERROR, "No policy file setup for simplelist.pdp, please set location attribute for simplelist PDP node in service configuration");
+    return false; 
+  }
   std::ifstream fs(location.c_str());
-  
+  if(fs.fail()) {
+    logger.msg(ERROR, "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration");
+    return false;
+  }   
+
   while (!fs.eof()) {
     std::string::size_type p;
     getline (fs, line);
@@ -48,12 +56,12 @@ bool SimpleListPDP::isPermitted(Message *msg){
     if(!line.empty()) {
       if(!(line.compare(subject))) {
          fs.close();
-         logger.msg(INFO, "Authorized from simplelist.pdp!!!");
+         logger.msg(INFO, "Authorized from simplelist.pdp");
          return true;
       }
     }
   }
   fs.close();
-  logger.msg(ERROR, "Not authorized from simplelist.pdp!!!");
+  logger.msg(ERROR, "Not authorized from simplelist.pdp");
   return false;
 }
