@@ -242,7 +242,7 @@ void MCC_TCP_Service::listener(void* arg) {
 class TCPSecAttr: public SecAttr {
  friend class MCC_TCP_Service;
  public:
-  TCPSecAttr(void);
+  TCPSecAttr(const std::string& remote_ip, const std::string &remote_port, const std::string& local_ip, const std::string& local_port);
   virtual ~TCPSecAttr(void);
   virtual operator bool(void);
   virtual bool Export(Format format,XMLNode &val) const;
@@ -254,7 +254,8 @@ class TCPSecAttr: public SecAttr {
   virtual bool equal(const SecAttr &b) const;
 };
 
-TCPSecAttr::TCPSecAttr(void) {
+TCPSecAttr::TCPSecAttr(const std::string& remote_ip, const std::string &remote_port, const std::string& local_ip, const std::string& local_port) :
+ remote_ip_(remote_ip), remote_port_(remote_port), local_ip_(local_ip), local_port_(local_port) {
 }
 
 TCPSecAttr::~TCPSecAttr(void) {
@@ -286,18 +287,18 @@ bool TCPSecAttr::Export(Format format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;
-    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
-    val.Namespaces(ns); val.Name("ar:Request");
-    XMLNode item = val.NewChild("ar:RequestItem");
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ra:Request");
+    XMLNode item = val.NewChild("ra:RequestItem");
     if(!local_port_.empty()) {
-      fill_string_attribute(item.NewChild("ar:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_string_attribute(item.NewChild("ra:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
     } else if(!local_ip_.empty()) {
-      fill_string_attribute(item.NewChild("ar:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_string_attribute(item.NewChild("ra:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
     };
     if(!remote_port_.empty()) {
-      fill_string_attribute(item.NewChild("ar:Subject").NewChild("ar:SubjectAttribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
+      fill_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
     } else if(!remote_ip_.empty()) {
-      fill_string_attribute(item.NewChild("ar:Subject").NewChild("ar:SubjectAttribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
+      fill_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
     };
     return true;
   } else {
@@ -372,6 +373,7 @@ void MCC_TCP_Service::executer(void* arg) {
         }
         // SESSIONID
     };
+
     // Creating stream payload
     PayloadTCPSocket stream(s, logger);
     MessageAttributes attributes_in;
@@ -395,6 +397,8 @@ void MCC_TCP_Service::executer(void* arg) {
         nextinmsg.Context(&context);
         nextoutmsg.Attributes(&attributes_out);
         nextinmsg.Auth(&auth_in);
+        TCPSecAttr* tattr = new TCPSecAttr(remotehost_attr, remoteport_attr, host_attr, port_attr);
+        nextinmsg.Auth()->set("TCP",tattr);
         nextoutmsg.Auth(&auth_out);
         nextoutmsg.Context(&context);
         nextoutmsg.AuthContext(&auth_context);

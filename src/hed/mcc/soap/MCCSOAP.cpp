@@ -76,23 +76,23 @@ bool SOAPSecAttr::Export(Format format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;
-    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
-    val.Namespaces(ns); val.Name("ar:Request");
-    XMLNode item = val.NewChild("ar:RequestItem");
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ra:Request");
+    XMLNode item = val.NewChild("ra:RequestItem");
     if(!object_.empty()) {
-      XMLNode object = item.NewChild("ar:Resource");
+      XMLNode object = item.NewChild("ra:Resource");
       object=object_;
       object.NewAttribute("Type")="string";
       object.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/endpoint";
     };
     if(!action_.empty()) {
-      XMLNode action = item.NewChild("ar:Action");
+      XMLNode action = item.NewChild("ra:Action");
       action=action_;
       action.NewAttribute("Type")="string";
       action.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation";
     };
     if(!context_.empty()) {
-      XMLNode context = item.NewChild("ar:Context").NewChild("ar:ContextAttribute");
+      XMLNode context = item.NewChild("ra:Context").NewChild("ra:ContextAttribute");
       context=context_;
       context.NewAttribute("Type")="string";
       context.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace";

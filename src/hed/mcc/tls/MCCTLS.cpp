@@ -269,7 +269,7 @@ bool TLSSecAttr::equal(const SecAttr &b) const {
 }
 
 static void add_subject_attribute(XMLNode item,const std::string& subject,const char* id) {
-   XMLNode attr = item.NewChild("ar:SubjectAttribute");
+   XMLNode attr = item.NewChild("ra:SubjectAttribute");
    attr=subject; attr.NewAttribute("Type")="string";
    attr.NewAttribute("AttributeId")=id;
 }
@@ -278,10 +278,10 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
     NS ns;
-    ns["ar"]="http://www.nordugrid.org/schemas/request-arc";
-    val.Namespaces(ns); val.Name("ar:Request");
-    XMLNode item = val.NewChild("ar:RequestItem");
-    XMLNode subj = item.NewChild("ar:Subject");
+    ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
+    val.Namespaces(ns); val.Name("ra:Request");
+    XMLNode item = val.NewChild("ra:RequestItem");
+    XMLNode subj = item.NewChild("ra:Subject");
     std::list<std::string>::const_iterator s = subjects_.begin();
     std::string subject;
     if(s != subjects_.end()) {
@@ -297,7 +297,7 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
        add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     if(!target_.empty()) {
-      //XMLNode resource = item.NewChild("ar:Resource");
+      //XMLNode resource = item.NewChild("ra:Resource");
       //resource=target_; resource.NewAttribute("Type")="string";
       //resource.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
       //hostidentity should be SubjectAttribute, because hostidentity is be constrained to access
