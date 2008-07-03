@@ -330,8 +330,9 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* ctx){
         XMLNode policyxml = evalres.node;
         (item->plsxml).push_back(policyxml);
       }
-      resp->addResponseItem(item);
     }
+    //Store the ResponseItem
+    resp->addResponseItem(item);
   }
 
   if(ctx)

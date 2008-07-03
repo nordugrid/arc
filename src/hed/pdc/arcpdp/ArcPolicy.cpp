@@ -109,6 +109,10 @@ EvalResult& ArcPolicy::getEvalResult(){
   return evalres;
 }
 
+void ArcPolicy::setEvalResult(EvalResult& res){
+  evalres = res;
+}
+
 ArcPolicy::~ArcPolicy(){
   while(!(subelements.empty())){
       delete subelements.back();

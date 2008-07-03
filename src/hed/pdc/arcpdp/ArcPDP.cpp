@@ -153,6 +153,7 @@ bool ArcPDP::isPermitted(Message *msg){
     std::string s;
     requestxml.GetXML(s);
     logger.msg(VERBOSE,"ARC Auth. request: %s",s);
+    std::cout<<"ARC Auth. request "<<s<<std::endl;
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");
@@ -161,7 +162,6 @@ bool ArcPDP::isPermitted(Message *msg){
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = eval->evaluate(requestxml);
-  logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
   ResponseList rlist = resp->getResponseItems();
   int size = rlist.size();
 

@@ -34,6 +34,8 @@ public:
 
   virtual EvalResult& getEvalResult();
 
+  virtual void setEvalResult(EvalResult& res);
+
 private:
   //std::list<Arc::Policy*> rules;
   std::string id;

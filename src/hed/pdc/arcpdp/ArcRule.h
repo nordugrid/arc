@@ -79,6 +79,8 @@ public:
 
   virtual EvalResult& getEvalResult();
 
+  virtual void setEvalResult(EvalResult& res);
+
 private:
   /**Parse the <Subjects> <Resources> <Actions> <Conditions> inside one <Rule>
   Can also refer to the other source by using <GroupIdRef>, the <Location> attribute is the location of the refered file

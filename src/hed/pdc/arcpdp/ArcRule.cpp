@@ -287,6 +287,9 @@ Result ArcRule::eval(EvaluationCtx*){// ctx){
        (act_idmatched == ID_MATCH || actions.empty()) && (ctx_idmatched == ID_MATCH || conditions.empty())
       )
     {
+      //Two situation will go into this switch:
+      //Both "id" and "value" matchs; "id" matches, but "value" does not.
+      //For later situation, we will give "Deny" (See the DenyOverridesAlg.cpp and PermitOveridesAlg.cpp)
       result = DECISION_PERMIT;
       evalres.effect = "Permit";
     }
@@ -342,6 +345,10 @@ std::string ArcRule::getEffect(){
 
 EvalResult& ArcRule::getEvalResult(){
   return evalres;
+}
+
+void ArcRule::setEvalResult(EvalResult& res){
+  evalres = res;
 }
 
 ArcRule::~ArcRule(){
