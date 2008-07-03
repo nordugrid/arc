@@ -21,8 +21,9 @@ def parse_url(url):
     return host, port, path
 
 common_supported_protocols = ['http']
+CHUNKSIZE = 2**20
 
-def upload_to_turl(turl, protocol, fobj):
+def upload_to_turl(turl, protocol, fobj, size = None):
     """docstring for upload_to_turl"""
     if protocol not in common_supported_protocols:
         raise Exception, 'Unsupported protocol'
@@ -33,9 +34,29 @@ def upload_to_turl(turl, protocol, fobj):
         host, port, path = parse_url(turl)
         import httplib
         h = httplib.HTTPConnection(host, port)
-        h.request('PUT', path, fobj.read())
+        if not size:
+            size = os.path.getsize(fobj.name)
+        print 'Uploading %s bytes...' % size,
+        h.putrequest('PUT', path)
+        h.putheader('Content-Length', size)
+        h.endheaders()
+        chunk = fobj.read(CHUNKSIZE)
+        uploaded = 0
+        print '00%',
+        t = time.time()
+        while chunk:
+            sys.stdout.flush()    
+            h.send(chunk)
+            uploaded = uploaded + len(chunk)
+            if time.time() - t > 2:
+                t = time.time()
+                print '\b\b\b\b%02d%%' % (uploaded*100/size),
+            chunk = fobj.read(CHUNKSIZE)
+        print '\b\b\b\bdata sent, waiting...',
+        sys.stdout.flush()    
         r = h.getresponse()
-        resp = r.read()
+        print 'done.'
+        #resp = r.read()
         return r.status
 
 def download_from_turl(turl, protocol, fobj):
@@ -51,9 +72,22 @@ def download_from_turl(turl, protocol, fobj):
         h = httplib.HTTPConnection(host, port)
         h.request('GET', path)
         r = h.getresponse()
-        fobj.write(r.read())
+        size = int(r.getheader('Content-Length', CHUNKSIZE))
+        print 'Downloading %s bytes...' % size,
+        chunk = r.read(CHUNKSIZE)
+        downloaded = 0
+        print '00%',
+        t = time.time()
+        while chunk:
+            sys.stdout.flush()    
+            fobj.write(chunk)
+            downloaded = downloaded + len(chunk)
+            if time.time() - t > 2:
+                t = time.time()
+                print '\b\b\b\b%02d%%' % (downloaded*100/size),
+            chunk = r.read(CHUNKSIZE)
+        print '\b\b\b\bdone.'
         return r.status
-
 
 def splitLN(LN):
     """  Split a Logical Name to a 3-tuple: GUID, dirname, basename.
@@ -1175,6 +1209,8 @@ else:
             try:
                 filename = args[1]
             except:
+                filename = '.'
+            if filename == '.':
                 _, _, filename = splitLN(LN)
             if os.path.exists(filename):
                 print '"%s"' % filename, 'already exists'
@@ -1224,7 +1260,7 @@ else:
         else:
             filename = args[0]
             size = os.path.getsize(filename)
-            print '- The size of the file is', size
+            print '- The size of the file is', size, 'bytes'
             f = file(filename,'rb')
             checksum = create_checksum(f, 'md5')
             print '- The md5 checksum of the file is', checksum
@@ -1247,7 +1283,7 @@ else:
                 print '- done in %.4f seconds.' % (time.time()-start)
                 print "'%s' (%s bytes) uploaded as '%s'." % (filename, size, LN)
             else:
-                print '%s: %s' % (filename, success)
+                print '%s: %s' % (LN, success)
     elif command in ['mak','mkd']:
         if len(args) < 1:
             print 'Usage: makeCollection <LN>'
