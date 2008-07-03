@@ -79,3 +79,7 @@ You may replace 'localhost' with the hostname of your machine.
 
 Then you can start the server with:
 /usr/local/sbin/arched -c /usr/local/share/doc/arc/storage.service.xml.example 
+
+Now you can use the arc_storage_cli.py python script which is by default installed to /usr/local/bin.
+But you can grab this script and use it on any other machine which has no ARC installed at all.
+It is a very basic command line interface, it has only one flag, the '-x', which prints the actual soap message payloads.

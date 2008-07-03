@@ -419,10 +419,14 @@ class Bartender:
                 if number_of_entries > 0:
                     success = 'collection is not empty'
                 else:
-                    parentLN, parentGUID = traversedlist[-2]
-                    mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
-                    mod_response = self.librarian.modifyMetadata(mod_requests)
-                    success = mod_response['unmake']
+                    try:
+                        parentLN, parentGUID = traversedlist[-2]
+                        mod_requests = {'unmake' : (parentGUID, 'unset', 'entries', traversedlist[-1][0], '')}
+                        mod_response = self.librarian.modifyMetadata(mod_requests)
+                        success = mod_response['unmake']
+                    except IndexError:
+                        # it has no parent
+                        success = 'unset'
                     if success == 'unset':
                         # TODO: handle hardlinks to collections
                         success = self.librarian.remove({'unmake' : GUID})['unmake']
