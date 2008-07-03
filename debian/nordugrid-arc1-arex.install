@@ -13,14 +13,14 @@ usr/lib/arc/LSF.pm
 usr/lib/arc/PBS.pm
 usr/lib/arc/SGE.pm
 
-usr/libexec/ARC0ClusterInfo.pm
-usr/libexec/ARC0ClusterSchema.pm
-usr/libexec/ConfigParser.pm
-usr/libexec/GMJobsInfo.pm
-usr/libexec/HostInfo.pm
-usr/libexec/InfoChecker.pm
-usr/libexec/InfoCollector.pm
-usr/libexec/LRMSInfo.pm
+usr/lib/arc/ARC0ClusterInfo.pm
+usr/lib/arc/ARC0ClusterSchema.pm
+usr/lib/arc/ConfigParser.pm
+usr/lib/arc/GMJobsInfo.pm
+usr/lib/arc/HostInfo.pm
+usr/lib/arc/InfoChecker.pm
+usr/lib/arc/InfoCollector.pm
+usr/lib/arc/LRMSInfo.pm
 
 usr/lib/arc/LogUtils.pm
 
