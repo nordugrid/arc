@@ -1,25 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" PolicyId="sm-example:policy1" CombiningAlg="Deny-Overrides">
-   <Rule RuleId="rule1" Effect="Permit">
-      <Description>
-         Sample Permit rule for Storage_manager service
-      </Description>
+   <Rule Effect="Permit">
+     <Description>
+       example policy for http
+     </Description>
       <Subjects>
-	 <Subject>
-	    <SubjectAttribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/ipaddress" Type="string">127.0.0.1</SubjectAttribute>
-	    <SubjectAttribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/O=Grid/O=Test/CN=test</SubjectAttribute>
-   	 </Subject>
+         <Subject>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+         </Subject>
       </Subjects>
-      <!--Resources>
-         <Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/file/" Type="string">file://home/test</Resource>
-      </Resources-->
+      <Resources>
+         <Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/Echo</Resource>
+      </Resources>
       <Actions>
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
          <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
       </Actions>
-      <!--Conditions>
-	 <Condition Type="period">2007-09-10T20:30:20/P1Y1M</Condition>
-      </Conditions-->
+      <Conditions/>
+   </Rule>
+   <Rule Effect="Permit">
+     <Description>
+       example policy for soap
+     </Description>
+      <Subjects>
+         <Subject>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca" Type="string">/C=NO/ST=Oslo/O=UiO/CN=CA</Attribute>
+            <Attribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity" Type="string">/C=NO/ST=Oslo/O=UiO/CN=test</Attribute>
+         </Subject>
+      </Subjects>
+      <Actions>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">echo</Action>
+      </Actions>
+      <Conditions>
+         <Condition AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/namespace" Type="string">http://schemas.xmlsoap.org/soap/envelope/</Condition>
+      </Conditions>
    </Rule>
 </Policy>
 

@@ -77,16 +77,25 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
 
     //Call the functionality of policy engine
+    //Here the decision algorithm is the same as that in ArcPDP.cpp
     Response *resp = NULL;
     resp = eval->evaluate(Source(arc_requestnd));
-    logger.msg(Arc::INFO, "There is %d subjects, which satisfy at least one policy", (resp->getResponseItems()).size());
     ResponseList rlist = resp->getResponseItems();
-    if(!(rlist.empty())) logger.msg(Arc::INFO, "Authorized from Service_PDP");
     int size = rlist.size();
     int i;
+
+    bool atleast_onedeny = false;
+    bool atleast_onepermit = false;
+
     for(i = 0; i < size; i++){
       ResponseItem* item = rlist[i];
       RequestTuple* tp = item->reqtp;
+
+      if(item->res == DECISION_DENY)
+        atleast_onedeny = true;
+      if(item->res == DECISION_PERMIT)
+        atleast_onepermit = true;
+
       Subject::iterator it;
       Subject subject = tp->sub;
       for (it = subject.begin(); it!= subject.end(); it++){
@@ -100,36 +109,36 @@ Arc::MCC_Status Service_PDP::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       }
     }
 
-    //Get the number of <RequestItem/> in request (after splitting), and compare it with the
-    //number <RequestItem/> number in response. If the two value does not match, it means
-    //some <RequestItem/> in the request does not satisfy the policy. Here, we simply treat it
-    //as "Unauthorization"
+    bool result = false;
+    if(atleast_onedeny) result = false;
+    else if(!atleast_onedeny && atleast_onepermit) result = true;
+    else if(!atleast_onedeny && !atleast_onepermit) result = false;
 
-    bool authzed;
-    if((rlist.size()) == (resp->getRequestSize())) { logger.msg(Arc::INFO, "The Request passed all the policies"); authzed = true; }
-    else { logger.msg(Arc::INFO, "Some of the RequestItem does not satisfy Policy"); authzed = false; }
+    if(result) logger.msg(Arc::INFO, "Authorized from Service_PDP");
+    else logger.msg(Arc::ERROR, "UnAuthorized from Service_PDP; Some of the RequestItem does not satisfy Policy");
 
     //Put those request items which satisfy the policies into the response SOAP message (implicitly
-    //means the decision result: <ItemA, yes>, <ItemB, yes>, <ItemC, no>(ItemC is not in the 
-    //response SOAP message, because ArcEvaluator will not give information for denied RequestTuple)
+    //means the decision result: <ItemA, permit>, <ItemB, permit>, <ItemC, deny> (ItemC will not in the 
+    //response SOAP message)
     //The client of the pdpservice (normally a policy enforcement point, like job executor) is supposed
     //to compose the policy decision request to pdpservice by parsing the information from the request 
     //(aiming to the client itself), and permit or deny the request by using the information responded 
-    //from pdpservice. 
+    //from pdpservice; Here pdpservice only gives some coarse decision to pdpservice invoker.
     Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);   
     Arc::XMLNode response = outpayload->NewChild("pdp:GetPolicyDecisionResponse");
 
     Arc::XMLNode arc_responsend = response.NewChild("response:Response");
     Arc::XMLNode authz_res = arc_responsend.NewChild("response:AuthZResult");
-    if(authzed) authz_res = "PERMIT";
+    if(result) authz_res = "PERMIT";
     else authz_res = "DENY";
 
     for(i = 0; i<size; i++){
       ResponseItem* item = rlist[i];
-      arc_responsend.NewChild(Arc::XMLNode(item->reqxml));
+      if(item->res == DECISION_PERMIT)
+        arc_responsend.NewChild(Arc::XMLNode(item->reqxml));
     } 
-    if(resp)
-      delete resp;
+
+    if(resp) delete resp;
     
     outmsg.Payload(outpayload);
     return Arc::MCC_Status(Arc::STATUS_OK);
