@@ -3,7 +3,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
 >
-    <Server
+    <Server>
         <Pidfile>/var/run/arched.pid</Pidfile>
         <Logger level="ERROR">/var/log/arched.log</Logger>
     </Server>
@@ -28,17 +28,17 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="hash">^/AHash$</next>
+            <next id="ahash">^/AHash$</next>
             <next id="librarian">^/Librarian$</next>
             <next id="bartender">^/Bartender$</next>
             <next id="shepherd">^/Shepherd$</next>
             <next id="httpd">^/httpd/</next>
         </Plexer>
-        <Service name="pythonservice" id="hash">
-            <ClassName>storage.hash.hash.AHashService</ClassName>
-            <AHashClass>storage.hash.hash.CentralAHash</AHashClass>
+        <Service name="pythonservice" id="ahash">
+            <ClassName>storage.ahash.ahash.AHashService</ClassName>
+            <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
-            <StoreCfg><DataDir>/var/spool/arc/hash_data</DataDir></StoreCfg>
+            <StoreCfg><DataDir>/var/spool/arc/ahash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
