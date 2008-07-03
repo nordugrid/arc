@@ -36,22 +36,26 @@
         </Plexer>
         <Service name="pythonservice" id="ahash">
             <ClassName>storage.ahash.ahash.AHashService</ClassName>
+            <LogLevel>ERROR</LogLevel>
             <AHashClass>storage.ahash.ahash.CentralAHash</AHashClass>
             <StoreClass>storage.common.PickleStore</StoreClass>
             <StoreCfg><DataDir>/var/spool/arc/ahash_data</DataDir></StoreCfg>
         </Service>
         <Service name="pythonservice" id="librarian">
             <ClassName>storage.librarian.librarian.LibrarianService</ClassName>
+            <LogLevel>ERROR</LogLevel>
             <AHashURL>http://localhost:60000/AHash</AHashURL>
             <HeartbeatTimeout>30</HeartbeatTimeout>
             <CheckPeriod>20</CheckPeriod>
         </Service>
         <Service name="pythonservice" id="bartender">
             <ClassName>storage.bartender.bartender.BartenderService</ClassName>
+            <LogLevel>ERROR</LogLevel>
             <LibrarianURL>http://localhost:60000/Librarian</LibrarianURL>
         </Service>
         <Service name="pythonservice" id="shepherd">
             <ClassName>storage.shepherd.shepherd.ShepherdService</ClassName>
+            <LogLevel>ERROR</LogLevel>
             <ServiceID>http://localhost:60000/Shepherd</ServiceID>
             <CheckPeriod>20</CheckPeriod>
             <MinCheckInterval>0.1</MinCheckInterval>

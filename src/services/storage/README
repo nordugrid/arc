@@ -63,4 +63,19 @@ STORAGE service:    yes
 
 Then you can do 'make' and 'sudo make install'.
 
-TO BE CONTINUED...
+You can use the example configuration file which is by default installed to:
+    /usr/local/share/doc/arc/storage.service.xml.example
+
+You need some working directories and a place for a logfile, e.g.:
+    $ sudo mkdir /var/spool/arc; sudo chmod a+wrx /var/spool/arc
+    $ sudo touch /var/log/arched.log; sudo chmod a+rw /var/log/arched.log
+
+Or of course you can put them anywhere, just you need to change the paths in the configuration (service.xml) file.
+
+You may add the external interface of your machine to the section where it is indicated in the configuration file:
+    <!-- Change this prefix to the external interface of your machine -->
+    <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
+You may replace 'localhost' with the hostname of your machine.
+
+Then you can start the server with:
+/usr/local/sbin/arched -c /usr/local/share/doc/arc/storage.service.xml.example 

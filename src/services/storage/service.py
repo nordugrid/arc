@@ -52,7 +52,7 @@ class Service:
         else:
             self.log_level = None
         if not self.log_level:
-            self.log_level = 'DEBUG'
+            self.log_level = 'ERROR'
         self.service_name = service_name
         self.log('DEBUG', service_name, "constructor called")
         self.request_names = request_names
