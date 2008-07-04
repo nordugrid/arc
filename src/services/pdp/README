@@ -2,3 +2,11 @@ Remote Policy Decision Point service. It will accept the formated policy
 decision request and return positive/negative response.
 Since the request and response information is critical, TLS should be 
 switched on for securing communication.
+
+The PDP service can be invoked by two ways: 
+1. by client "arcdecision"; 
+2. by the pdpinvoker plugin which can be plugged into SecHandler,
+   and then SecHandler can be plugged into service (the plugging 
+   is based on configuration file). For how to configure pdpinvoker 
+   into service, see the configuration file for echo service.
+
