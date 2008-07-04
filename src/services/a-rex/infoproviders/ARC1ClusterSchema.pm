@@ -1,9 +1,9 @@
-package ARC0ClusterSchema;
+package ARC1ClusterSchema;
 
 use base Exporter;
-our @EXPORT_OK = qw(arc0_info_schema);
+our @EXPORT_OK = qw(arc1_info_schema);
 
-sub arc0_info_schema {
+sub arc1_info_schema {
 
     my $location_t = {
             'LocalID' => [ '' ],
@@ -302,8 +302,5 @@ my $comp_activity_t = {
 
     return $comp_serv_t;
 }
-
-use Data::Dumper;
-print Dumper arc0_info_schema;
 
 1;

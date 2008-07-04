@@ -1,4 +1,4 @@
-package ARC0ClusterInfo;
+package ARC1ClusterInfo;
 
 use File::Basename;
 use lib dirname($0);
@@ -11,7 +11,7 @@ use base InfoCollector;
 use HostInfo;
 use GMJobsInfo;
 use LRMSInfo;
-use ARC0ClusterSchema;
+use ARC1ClusterSchema;
 
 use Storable;
 use LogUtils;
@@ -35,7 +35,7 @@ my $arc0_options_schema = {
     }
 };
 
-my $arc0_info_schema = ARC0ClusterSchema::arc0_info_schema();
+my $arc0_info_schema = ARC1ClusterSchema::arc1_info_schema();
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
@@ -268,37 +268,42 @@ sub get_cluster_info($$$$) {
     my $apID = 'ap0'; # AccessPolicy
     my $mpID = 'mp0'; # MappingPolicy
 
-    my $services = {};
-
     my $cs = {};
-    $services{ComputingService} = [ $cs ];
 
     $cs->{CreationTime} = $creation_time;
     $cs->{Validity} = $validity_ttl;
     $cs->{BaseType} = 'Service';
 
-    $cs->{ID} = $csID++;
-    $cs->{Name} = $config->{cluster_alias} if $config->{cluster_alias};
-    $cs->{Capability} = 'executionmanagement.jobexecution';
-    $cs->{Type} = 'org.nordugrid.arex';
-    $cs->{QualityLevel} = 'pre-production';
+    $cs->{ID} = [ $csID++ ];
+    $cs->{Name} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
+    $cs->{Capability} = [ 'executionmanagement.jobexecution' ];
+    $cs->{Type} = [ 'org.nordugrid.arex' ];
+
+    # QualityLevel: new config option ?
+    $cs->{QualityLevel} = [ 'pre-production' ];
 
     # StatusPage: new config option ?
 
     # OBS: assuming one share per queue
-    my $nqueues = keys %{$options->{queues}};
-    $cs->{Complexity} = "endpoint=1,share=$nqueues,resource=1";
+    my $nqueues = keys %{$config->{queues}};
+    $cs->{Complexity} = [ "endpoint=1,share=$nqueues,resource=1" ];
 
     $cs->{TotalJobs} = $gmjobcount{notdeleted}; # OBS: Finished also counted
-    $cs->{RunningJobs} += $_ for values $gridrunning;
-    $cs->{WaitingJobs} += $_ for values %gridqueued;
-    $cs->{StagingJobs} = $gmjobcount{preparing} + $gmjobcount{finishing};
+
+    my $nrun = 0; $nrun += $_ for values %gridrunning;
+    my $nque = 0; $nque += $_ for values %gridqueued;
+    $cs->{RunningJobs} = [ $nrun ];
+    $cs->{WaitingJobs} = [ $nque ];
+
+    $cs->{StagingJobs} = [ $gmjobcount{preparing} + $gmjobcount{finishing} ];
 
     # Suspended not supported yet
-    $cs->{SuspendedJobs} = 0;
+    $cs->{SuspendedJobs} = [ 0 ];
 
     # should this include staging in jobs?
-    $cs->{PreLRMSWaitingJobs} += $_ for values %prelrmsqueued;
+    my $npreq = 0; $npreq += $_ for values %prelrmsqueued;
+    $cs->{PreLRMSWaitingJobs} = [ $npreq ];
+
 
     my $ce = {};
     $cs->{ComputingEndpoint} = [ $ce ];
@@ -307,11 +312,11 @@ sub get_cluster_info($$$$) {
     $ce->{Validity} = $validity_ttl;
     $ce->{BaseType} = 'Endpoint';
 
-    $ce->{ID} = $ceID++;
+    $ce->{ID} = [ $ceID++ ];
 
-    # Name ?
+    # Name not necessary
 
-    $ce->{URL} = "https://$host_info->{hostname}:$config->{gm_port}/arex";
+    $ce->{URL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex" ];
     $ce->{Technology} = [ 'webservice' ];
     $ce->{Interface} = [ 'OGSA-BES' ];
     #$ce->{InterfaceExtension} = '';
@@ -333,7 +338,7 @@ sub get_cluster_info($$$$) {
     #$ce->{HealthStateInfo} = [ "" ];
 
     # TODO: when is it 'queueing' and 'closed'?
-    $ce->{ServingState} = ($config->{allownew} eq "no") : 'draining' ? 'production';
+    $ce->{ServingState} = [ ($config->{allownew} eq "no") ? 'draining' : 'production' ];
 
     # StartTime: get it from hed
 
@@ -342,10 +347,10 @@ sub get_cluster_info($$$$) {
 
     # TODO: Downtime
 
-    $ce->{Staging} = 'staginginout';
-    $ce->{JobDescription} = 'ogf:jsdl:1.0';
+    $ce->{Staging} =  [ 'staginginout' ];
+    $ce->{JobDescription} = [ 'ogf:jsdl:1.0' ];
 
-    return $services;
+    return $cs;
 }
 
 
@@ -413,15 +418,15 @@ sub test {
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils->getLogger()->level($LogUtils::DEBUG);
 
-    my $cluster_info = ARC0ClusterInfo->new()->get_info($config);
+    my $cluster_info = ARC1ClusterInfo->new()->get_info($config);
     #print Dumper($cluster_info);
 
     require XML::Simple;
-    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
+    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'ComputingService', KeyAttr => ['name']);
     print $xml->XMLout($cluster_info);
 }
 
-#test;
+test;
 
 1;
 
