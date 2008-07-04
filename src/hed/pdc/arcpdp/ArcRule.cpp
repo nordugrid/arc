@@ -298,7 +298,7 @@ Result ArcRule::eval(EvaluationCtx*){// ctx){
     //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or 
     //context has not been matched)
     else if(
-       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) ||
+       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) &&
        (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
       )
     {
@@ -324,7 +324,7 @@ Result ArcRule::eval(EvaluationCtx*){// ctx){
     //trying to get permission (Resource, Action) which is not supposed to be granted to him (Subject or
     //context has not been matched)
     else if(
-       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) ||
+       (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) &&
        (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
       )
     {
