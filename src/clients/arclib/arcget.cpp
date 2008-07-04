@@ -31,7 +31,9 @@ void arcget(const std::list<std::string>& jobs,
     return;
 
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       downloaddir, joblist, keep, false, timeout);
+			       downloaddir,
+			       joblist.empty() ? uc.JobsFile() : joblist,
+			       keep, false, timeout);
 
   JobMaster.GetJobInformation();
   JobMaster.PrintJobInformation(true);

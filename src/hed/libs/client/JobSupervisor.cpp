@@ -1,9 +1,10 @@
 #include <algorithm>
 #include <iostream>
 
-#include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
+#include <arc/FileLock.h>
 #include <arc/StringConv.h>
+#include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
@@ -29,23 +30,24 @@ namespace Arc {
 			       force(force),
 			       timeout(timeout){
  
-    XMLNode JobIdStorage;    
+    Config JobIdStorage;
     if(!joblist.empty()){
+      FileLock lock(joblist);
       JobIdStorage.ReadFromFile(joblist);
-    } else{
-      JobIdStorage.ReadFromFile("jobs.xml");
     }
 
     std::list<std::string> NeededControllers;
     
-    Arc::XMLNodeList ActiveJobs = JobIdStorage.XPathLookup("/jobs/job", Arc::NS());  
-    Arc::XMLNodeList::iterator JobIter;
-    
-    for(JobIter = ActiveJobs.begin(); JobIter != ActiveJobs.end(); JobIter++){
-      if(std::find(NeededControllers.begin(), NeededControllers.end(), (std::string) (*JobIter)["flavour"]) == NeededControllers.end()){
+    Arc::XMLNodeList ActiveJobs =
+      JobIdStorage.XPathLookup("/ArcConfig/Job", Arc::NS());
+
+    for (Arc::XMLNodeList::iterator JobIter = ActiveJobs.begin();
+	JobIter != ActiveJobs.end(); JobIter++) {
+      if (std::find(NeededControllers.begin(), NeededControllers.end(),
+	    (std::string)(*JobIter)["flavour"]) == NeededControllers.end()){
 	std::string flavour = (*JobIter)["flavour"];
 	logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
-	NeededControllers.push_back((std::string) (*JobIter)["flavour"]);
+	NeededControllers.push_back((std::string)(*JobIter)["flavour"]);
       }
     }
     

@@ -26,7 +26,7 @@ namespace Arc {
 
       logger.msg(DEBUG, "Identifying all jobs of flavour %s", GridFlavour);	
 
-      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//job[flavour='"+ GridFlavour+"']", Arc::NS());
+      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
       XMLNodeList::iterator iter;
       
       for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
@@ -43,7 +43,7 @@ namespace Arc {
       std::list<std::string>::iterator it;
 
       for(it = jobids.begin(); it != jobids.end(); it++){
-	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//job[id='"+ *it+"']", Arc::NS())).begin());
+	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
 	if(GridFlavour == (std::string) ThisXMLJob["flavour"]){
 	  Job ThisJob;
 	  ThisJob.JobID = (std::string) ThisXMLJob["id"];

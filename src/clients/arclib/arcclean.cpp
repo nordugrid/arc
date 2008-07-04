@@ -29,7 +29,8 @@ void arcclean(const std::list<std::string>& jobs,
     return;
 
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       "", joblist, false, force, timeout);
+			       "", joblist.empty() ? uc.JobsFile() : joblist,
+			       false, force, timeout);
   
   JobMaster.GetJobInformation();
   JobMaster.Clean();

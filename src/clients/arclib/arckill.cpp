@@ -29,7 +29,8 @@ void arckill(const std::list<std::string>& jobs,
     return;
 
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       "", joblist, keep, false, timeout);
+			       "", joblist.empty() ? uc.JobsFile() : joblist,
+			       keep, false, timeout);
   
   JobMaster.GetJobInformation();
   JobMaster.Kill();
