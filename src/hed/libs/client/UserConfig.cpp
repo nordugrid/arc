@@ -110,6 +110,16 @@ namespace Arc {
   UserConfig::~UserConfig() {}
 
 
+  const std::string& UserConfig::ConfFile() {
+    return conffile;
+  }
+
+
+  const std::string& UserConfig::JobsFile() {
+    return jobsfile;
+  }
+
+
   UserConfig::operator bool() {
     return ok;
   }

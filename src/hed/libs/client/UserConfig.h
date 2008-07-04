@@ -14,6 +14,9 @@ namespace Arc {
     UserConfig();
     ~UserConfig();
 
+    const std::string& ConfFile();
+    const std::string& JobsFile();
+
     operator bool();
     bool operator!();
 

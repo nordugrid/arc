@@ -9,6 +9,7 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/DateTime.h>
+#include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
@@ -117,17 +118,8 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     return;
   }
 
-  Arc::XMLNode JobIdStorage;
-  if(JobListFile.empty()){
-    //Read default file
-    JobIdStorage.ReadFromFile("jobs.xml");
-  } else {
-    //prepare new file for storing jobid of submitted jobs
-    Arc::NS ns;
-    Arc::XMLNode empty(ns, "jobs");
-    empty.SaveToFile(JobListFile);
-    JobIdStorage.ReadFromFile(JobListFile);
-  }
+  Arc::NS ns;
+  Arc::Config JobIdStorage(ns);
 
   for (std::list<Arc::JobDescription>::iterator it = JobDescriptionList.begin();
        it != JobDescriptionList.end(); it++, jobnr++) {
@@ -152,7 +144,7 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     std::pair<Arc::URL, Arc::URL> jobid;
     jobid = submitter->Submit(*it);
 
-    Arc::XMLNode ThisJob = JobIdStorage.NewChild("job");
+    Arc::XMLNode ThisJob = JobIdStorage.NewChild("Job");
     ThisJob.NewChild("id") = jobid.first.str();
     ThisJob.NewChild("name") = "test";
     ThisJob.NewChild("flavour") = TarGen.FoundTargets().begin()->GridFlavour;
@@ -164,8 +156,14 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 
   } //end loop over JobDescriptions
 
-  if(JobListFile.empty()){
-    JobIdStorage.SaveToFile("jobs.xml");
+  if (JobListFile.empty()) {
+    Arc::FileLock(uc.JobsFile());
+    Arc::Config jobs;
+    jobs.ReadFromFile(uc.JobsFile());
+    for (Arc::XMLNode j = JobIdStorage["Job"]; j; ++j) {
+      jobs.NewChild(j);
+    }
+    jobs.SaveToFile(uc.JobsFile());
   } else {
     JobIdStorage.SaveToFile(JobListFile);
   }
