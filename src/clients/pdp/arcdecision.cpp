@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
     }
 
     try{
-        if (params.size()!=3) {
+        if (params.size()!=2) {
             throw std::invalid_argument("Wrong number of arguments!");
         }
 
@@ -67,14 +67,16 @@ int main(int argc, char* argv[]){
             throw std::invalid_argument("Can't parse specified URL");
         Arc::MCCConfig cfg;
         if(config_path != "") cfg.GetOverlay(config_path);
+
         Arc::ClientSOAP client(cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
 
         // Read the request from file to string
         std::ifstream requestfile(requestfilestr.c_str());
-        std::string request_xml;
+        std::string request_str;
         if (!requestfile)
             throw std::invalid_argument("Could not open " + requestfilestr);
-        getline(requestfile, request_xml, '0');
+        getline(requestfile, request_str, '\0');
+        Arc::XMLNode request_xml(request_str); 
 
         //Invoke the remote pdp service
         Arc::NS req_ns;
@@ -84,18 +86,22 @@ int main(int argc, char* argv[]){
         Arc::XMLNode reqnode = req.NewChild("pdp:GetPolicyDecisionRequest");
         reqnode.NewChild(request_xml);
 
+        std::string str;
+        req.GetDoc(str);
+        std::cout<<"SOAP message:"<<str<<std::endl;
+
         Arc::PayloadSOAP* resp = NULL;
         Arc::MCC_Status status = client.process(&req,&resp);
         if(!status) {
           std::cerr<<"Policy Decision Service invokation failed"<<std::endl;
           throw std::runtime_error("Policy Decision Service invokation failed");
         }
+
         if(resp == NULL) {
           std::cerr<<"There was no SOAP response"<<std::endl;
           throw std::runtime_error("There was no SOAP response");
         }
 
-        std::string str;
         resp->GetXML(str);
         std::cout<<"Response: "<<str<<std::endl;
 

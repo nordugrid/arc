@@ -1,0 +1,5 @@
+arcdecision -- client for accessing pdp service and get 
+decision result
+Firstly, make sure the ARC_LOCATION has been set.
+The usage is like this:
+./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml
