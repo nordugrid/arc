@@ -12,6 +12,8 @@
 #include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/UserConfig.h>
+
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcget");
 
@@ -23,7 +25,11 @@ void arcget(const std::list<std::string>& jobs,
 	    const std::string joblist,
 	    const bool keep,
 	    const int timeout) {
-  
+
+  Arc::UserConfig uc;
+  if (!uc)
+    return;
+
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
 			       downloaddir, joblist, keep, false, timeout);
 

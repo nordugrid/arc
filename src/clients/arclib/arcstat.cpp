@@ -12,6 +12,8 @@
 #include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/UserConfig.h>
+
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcstat");
 
@@ -24,6 +26,10 @@ void arcstat(const std::list<std::string>& jobs,
 	     const bool clusters,
 	     const bool longlist,
 	     const int timeout) {
+
+  Arc::UserConfig uc;
+  if (!uc)
+    return;
 
   if (clusters) { // i.e we are looking for queue or cluster info, not jobs
     // retrieve information

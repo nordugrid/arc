@@ -10,6 +10,7 @@
 #include <arc/Logger.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
+#include <arc/Utils.h>
 #include <arc/data/DataBufferPar.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/DataMover.h>
@@ -20,18 +21,6 @@
 
 #ifdef WIN32
 #include <arc/win32.h>
-#endif
-
-#ifndef BUFLEN
-#define BUFLEN 1024
-#endif
-
-#ifndef HAVE_STRERROR_R
-static char *strerror_r(int errnum, char *buf, size_t buflen) {
-  char *estring = strerror(errnum);
-  strncpy(buf, estring, buflen);
-  return buf;
-}
 #endif
 
 namespace Arc {
@@ -570,17 +559,8 @@ namespace Arc {
 	      if (mkdir_recursive(NULL, dirpath.c_str(), S_IRWXU, user)
 		  != 0) {
 		if (errno != EEXIST) {
-		  char *err;
-		  char errbuf[BUFLEN];
-#ifdef STRERROR_R_CHAR_P
-		  err = strerror_r(errno, errbuf, sizeof(errbuf));
-#else
-		  errbuf[0] = 0;
-		  err = errbuf;
-		  strerror_r(errno, errbuf, sizeof(errbuf));
-#endif
 		  logger.msg(ERROR, "Failed to create/find directory %s : %s",
-			     dirpath, err);
+			     dirpath, StrError());
 		  source.NextLocation(); /* try another source */
 		  logger.msg(DEBUG, "source.next_location");
 		  res = DataStatus::ReadStartError;
@@ -593,17 +573,8 @@ namespace Arc {
 	    }
 	    // make link
 	    if (symlink(file_name.c_str(), link_name.c_str()) == -1) {
-	      char *err;
-	      char errbuf[BUFLEN];
-#ifdef STRERROR_R_CHAR_P
-	      err = strerror_r(errno, errbuf, sizeof(errbuf));
-#else
-	      errbuf[0] = 0;
-	      err = errbuf;
-	      strerror_r(errno, errbuf, sizeof(errbuf));
-#endif
 	      logger.msg(ERROR, "Failed to make symbolic link %s to %s : %s",
-			 link_name, file_name, err);
+			 link_name, file_name, StrError());
 	      source.NextLocation(); /* try another source */
 	      logger.msg(DEBUG, "source.next_location");
 	      res = DataStatus::ReadStartError;

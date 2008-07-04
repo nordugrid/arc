@@ -2,28 +2,17 @@
 #include "config.h"
 #endif
 
-#include "ArcLocation.h"
-
 #include <unistd.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #ifdef HAVE_LIBINTL_H
 #include <libintl.h>
 #endif
 
-#ifdef HAVE_GLIBMM_GETENV
 #include <glibmm/miscutils.h>
-#define GetEnv(NAME) Glib::getenv(NAME)
-#else
-#define GetEnv(NAME) (getenv(NAME)?getenv(NAME):"")
-#endif
 
-#ifdef HAVE_GLIBMM_SETENV
-#include <glibmm/miscutils.h>
-#define SetEnv(NAME,VALUE) Glib::setenv(NAME,VALUE)
-#else
-#define SetEnv(NAME,VALUE) setenv(NAME,VALUE,1)
-#endif
+#include "ArcLocation.h"
 
 namespace Arc {
 

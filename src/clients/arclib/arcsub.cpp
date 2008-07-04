@@ -16,6 +16,8 @@
 #include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
+#include <arc/client/UserConfig.h>
+
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
@@ -36,6 +38,10 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
 	      << std::endl;
     return;
   }
+
+  Arc::UserConfig uc;
+  if (!uc)
+    return;
 
   std::list<Arc::JobDescription> JobDescriptionList;
 

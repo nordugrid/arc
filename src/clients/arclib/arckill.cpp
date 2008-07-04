@@ -11,6 +11,8 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
+#include <arc/client/UserConfig.h>
+
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arckill");
 
@@ -21,7 +23,11 @@ void arckill(const std::list<std::string>& jobs,
 	     const std::string joblist,
 	     const bool keep,
 	     const int timeout) {
-  
+
+  Arc::UserConfig uc;
+  if (!uc)
+    return;
+
   Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
 			       "", joblist, keep, false, timeout);
   
