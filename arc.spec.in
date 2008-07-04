@@ -237,6 +237,7 @@ exit 0
 %{_bindir}/glitedelegate
 %{_bindir}/gliteundelegate
 %{_bindir}/arc_storage_cli.py*
+%{_bindir}/arcdecision
 
 %files server
 %defattr(-,root,root,-)
