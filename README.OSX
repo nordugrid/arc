@@ -1,4 +1,11 @@
-use macports
+use macports:
+http://www.macports.org/
+
+$ sudo port install pkgconfig
+$ sudo port install glibmm
+$ sudo port install libxml2
+$ sudo port install swig
+$ sudo port install openssl
 
 To run arched from source tree you should set DYLD_LIBRARY_PATH like this:
 
