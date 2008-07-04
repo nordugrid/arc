@@ -364,6 +364,14 @@ LASSO_INSTALLED=no
 # LASSO_INSTALLED=yes],
 #[])
 
+#check xmlsec
+XMLSEC_INSTALLED=no
+#PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
+#[AC_SUBST(XMLSEC_CFLAGS)
+# AC_SUBST(XMLSEC_LIBS)
+# XMLSEC_INSTALLED=yes],
+#[])
+
 #
 # Check for Berkeley DB C++
 #
@@ -818,6 +826,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcls.1
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
+                 src/clients/pdp/Makefile
                  src/clients/isis/Makefile
                  src/clients/wsrf/Makefile
                  src/clients/wsrf/apinfo.1
