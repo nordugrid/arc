@@ -236,7 +236,7 @@ exit 0
 %{_bindir}/gliteclean
 %{_bindir}/glitedelegate
 %{_bindir}/gliteundelegate
-%{_bindir}/standalone_storage_client.py*
+%{_bindir}/arc_storage_cli.py*
 
 %files server
 %defattr(-,root,root,-)

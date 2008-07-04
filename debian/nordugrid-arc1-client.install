@@ -16,6 +16,7 @@ usr/bin/arcsub
 usr/bin/arcget
 usr/bin/arckill
 usr/bin/arcclean
+usr/bin/arc_storage_cli.py
 usr/bin/glitesub
 usr/bin/glitestat
 usr/bin/glitekill
