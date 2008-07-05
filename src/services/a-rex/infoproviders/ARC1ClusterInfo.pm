@@ -151,21 +151,58 @@ sub get_cluster_info($$$$) {
 
     # count grid-manager jobs
 
-    my %gmjobcount;
+    my %gmtotalcount;
+    my %gmqueuecount;
+
+    JOBLOOP:
     for my $job (values %{$gmjobs_info}) {
-        $gmjobcount{totaljobs}++;
-        if ( $job->{status} =~ /DELETED/  ) { $gmjobcount{deleted}++  ; next; }
-        $gmjobcount{notdeleted}++;
-        if ( $job->{status} =~ /FINISHED/ ) { $gmjobcount{finished}++ ; next; }
-        if ( $job->{status} =~ /FAILED/   ) { $gmjobcount{finished}++ ; next; }
-        if ( $job->{status} =~ /KILLED/   ) { $gmjobcount{finished}++ ; next; }
-        $gmjobcount{notfinished}++;
-        if ( $job->{status} =~ /FINISHING/) { $gmjobcount{finishing}++; next; }
-        if ( $job->{status} =~ /CANCELING/) { $gmjobcount{canceling}++; next; }
-        if ( $job->{status} =~ /INLRMS/   ) { $gmjobcount{inlrms}++   ; next; }
-        if ( $job->{status} =~ /SUBMIT/   ) { $gmjobcount{submit}++   ; next; }
-        if ( $job->{status} =~ /PREPARING/) { $gmjobcount{preparing}++; next; }
-        if ( $job->{status} =~ /ACCEPTED/ ) { $gmjobcount{accepted}++ ; next; }
+        my $qname = $job->{queue} || '';
+
+        $gmtotalcount{totaljobs}++;
+        $gmqueuecount{$qname}{totaljobs}++ if $qname;
+
+        # order matters
+        my %states = ( DELETED   => 'deleted',
+                       FINISHED  => 'finished',
+                       FAILED    => 'finished',
+                       KILLED    => 'finished',
+                       FINISHING => 'finishing',
+                       CANCELING => 'canceling',
+                       INLRMS    => 'inlrms',
+                       SUBMIT    => 'submit',
+                       PREPARING => 'preparing',
+                       ACCEPTED  => 'accepted');
+
+        # loop GM states, from later to earlier
+        for my $state_match (keys %states) {
+            my $state_name = $states{$state_match};
+
+            if ($job->{status} =~ /$state_match/) {
+                $gmtotalcount{$state_name}++;
+                $gmqueuecount{$qname}{$state_name}++ if $qname;
+                next JOBLOOP;
+            }
+
+            next JOBLOOP if $state_match eq 'DELETED';
+
+            # if we got to this point, the job was not yet deleted
+            $gmtotalcount{notdeleted}++;
+            $gmqueuecount{$qname}{notdeleted}++ if $qname;
+
+            next JOBLOOP if $state_match eq 'FINISHING';
+
+            # if we got to this point, the job has not yet finished
+            $gmtotalcount{notfinished}++;
+            $gmqueuecount{$qname}{notfinished}++ if $qname;
+
+            next JOBLOOP if $state_match eq 'INLRMS';
+
+            # if we got to this point, the job whas not yet reached the LRMS
+            $gmtotalcount{notsubmitted}++;
+            $gmqueuecount{$qname}{notsubmitted}++ if $qname;
+        }
+
+        # none of the %states matched this job
         $log->error("Unexpected job status: $job->{status}");
     }
 
@@ -256,101 +293,257 @@ sub get_cluster_info($$$$) {
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # Locally Unique IDs
-    my $csID = 'cs0'; # ComputingService
-    my $ceID = 'ce0'; # ComputingEndpoint
-    my $cmID = 'cm0'; # ComputingManager
-    my $caID = 'ca0'; # ComputingActivity
-    my $shID = 'sh0'; # ComputingShare
-    my $aeID = 'ae0'; # ApplicationEnvironment
-    my $xeID = 'xe0'; # ExecutionEnvironment
-    my $loID = 'lo0'; # Location
-    my $coID = 'co0'; # Contact
-    my $apID = 'ap0'; # AccessPolicy
-    my $mpID = 'mp0'; # MappingPolicy
+    my $csvID = 'csv0'; # ComputingService
+    my $cepID = 'cep0'; # ComputingEndpoint
+    my $cmgrID = 'cmgr0'; # ComputingManager
+    my $cactID = 'cact0'; my @cactIDs; # ComputingActivity
+    my $cshaID = 'csha0'; my @cshaIDs; # ComputingShare
+    my $aenvID = 'aenv0'; my @aenvIDs; # ApplicationEnvironment
+    my $xenvID = 'xenv0'; my @xenvIDs; # ExecutionEnvironment
+    my $locID = 'loc0';   my @locIDs;  # Location
+    my $conID = 'con0';   my @conIDs;  # Contact
+    my $apolID = 'apol0'; my @apolIDs; # AccessPolicy
+    my $mpolID = 'mpol0'; my @mpolIDs; # MappingPolicy
 
-    my $cs = {};
+    my $csv = {};
 
-    $cs->{CreationTime} = $creation_time;
-    $cs->{Validity} = $validity_ttl;
-    $cs->{BaseType} = 'Service';
+    $csv->{CreationTime} = $creation_time;
+    $csv->{Validity} = $validity_ttl;
+    $csv->{BaseType} = 'Service';
 
-    $cs->{ID} = [ $csID++ ];
-    $cs->{Name} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
-    $cs->{Capability} = [ 'executionmanagement.jobexecution' ];
-    $cs->{Type} = [ 'org.nordugrid.arex' ];
+    $csv->{ID} = [ $csvID++ ];
+
+    $csv->{Name} = [ $config->{cluster_alias} ] if $config->{cluster_alias};
+    $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
+    $csv->{Type} = [ 'org.nordugrid.arex' ];
 
     # QualityLevel: new config option ?
-    $cs->{QualityLevel} = [ 'pre-production' ];
+    $csv->{QualityLevel} = [ 'development' ];
 
     # StatusPage: new config option ?
 
     # OBS: assuming one share per queue
     my $nqueues = keys %{$config->{queues}};
-    $cs->{Complexity} = [ "endpoint=1,share=$nqueues,resource=1" ];
+    $csv->{Complexity} = [ "endpoint=1,share=$nqueues,resource=1" ];
 
-    $cs->{TotalJobs} = $gmjobcount{notdeleted}; # OBS: Finished also counted
+    # OBS: Finished/failed/deleted jobs are not counted
+    $csv->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
     my $nrun = 0; $nrun += $_ for values %gridrunning;
     my $nque = 0; $nque += $_ for values %gridqueued;
-    $cs->{RunningJobs} = [ $nrun ];
-    $cs->{WaitingJobs} = [ $nque ];
+    $csv->{RunningJobs} = [ $nrun ];
+    $csv->{WaitingJobs} = [ $nque ];
 
-    $cs->{StagingJobs} = [ $gmjobcount{preparing} + $gmjobcount{finishing} ];
+    $csv->{StagingJobs} = [ ( $gmtotalcount{perparing} || 0 )
+                         + ( $gmtotalcount{finishing} || 0 ) ];
 
     # Suspended not supported yet
-    $cs->{SuspendedJobs} = [ 0 ];
+    $csv->{SuspendedJobs} = [ 0 ];
 
     # should this include staging in jobs?
     my $npreq = 0; $npreq += $_ for values %prelrmsqueued;
-    $cs->{PreLRMSWaitingJobs} = [ $npreq ];
+    $csv->{PreLRMSWaitingJobs} = [ $npreq ];
 
 
-    my $ce = {};
-    $cs->{ComputingEndpoint} = [ $ce ];
+    my $cep = {};
+    $csv->{ComputingEndpoint} = [ $cep ];
 
-    $ce->{CreationTime} = $creation_time;
-    $ce->{Validity} = $validity_ttl;
-    $ce->{BaseType} = 'Endpoint';
+    $cep->{CreationTime} = $creation_time;
+    $cep->{Validity} = $validity_ttl;
+    $cep->{BaseType} = 'Endpoint';
 
-    $ce->{ID} = [ $ceID++ ];
+    $cep->{ID} = [ $cepID++ ];
 
     # Name not necessary
 
-    $ce->{URL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex" ];
-    $ce->{Technology} = [ 'webservice' ];
-    $ce->{Interface} = [ 'OGSA-BES' ];
-    #$ce->{InterfaceExtension} = '';
-    $ce->{WSDL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex/?wsdl" ];
+    $cep->{URL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex" ];
+    $cep->{Technology} = [ 'webservice' ];
+    $cep->{Interface} = [ 'OGSA-BES' ];
+    #$cep->{InterfaceExtension} = '';
+    $cep->{WSDL} = [ "https://$host_info->{hostname}:$config->{gm_port}/arex/?wsdl" ];
     # Wrong type, should be URI
-    $ce->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
-    $ce->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-    $ce->{Implementor} = [ "NorduGrid" ];
-    $ce->{ImplementationName} = [ "ARC1" ];
+    $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
+    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
+    $cep->{Implementor} = [ "NorduGrid" ];
+    $cep->{ImplementationName} = [ "ARC1" ];
 
     # TODO: use value from config.h
-    $ce->{ImplementationVersion} = [ "0.9" ];
+    $cep->{ImplementationVersion} = [ "0.9" ];
 
     # TODO: add config option
-    $ce->{QualityLevel} = [ "testing" ];
+    $cep->{QualityLevel} = [ "development" ];
 
     # TODO: health state moitoring
-    $ce->{HealthState} = [ "ok" ];
-    #$ce->{HealthStateInfo} = [ "" ];
+    $cep->{HealthState} = [ "ok" ];
+    #$cep->{HealthStateInfo} = [ "" ];
 
     # TODO: when is it 'queueing' and 'closed'?
-    $ce->{ServingState} = [ ($config->{allownew} eq "no") ? 'draining' : 'production' ];
+    $cep->{ServingState} = [ ($config->{allownew} eq "no") ? 'draining' : 'production' ];
 
     # StartTime: get it from hed
 
-    $ce->{IssuerCA} = [ $host_info->{issuerca} ];
-    $ce->{TrustedCA} = $host_info->{trustedcas};
+    $cep->{IssuerCA} = [ $host_info->{issuerca} ];
+    $cep->{TrustedCA} = $host_info->{trustedcas};
 
-    # TODO: Downtime
+    # TODO: Downtime, is this necessary, and how should it work?
 
-    $ce->{Staging} =  [ 'staginginout' ];
-    $ce->{JobDescription} = [ 'ogf:jsdl:1.0' ];
+    $cep->{Staging} =  [ 'staginginout' ];
+    $cep->{JobDescription} = [ 'ogf:jsdl:1.0' ];
 
-    return $cs;
+    # TODO: AccessPolicy, needs studying the security configuration
+    $cep->{AccessPolicy} = [];
+
+
+    $csv->{ComputingShares} = { ComputingShare => [] };
+
+
+    # ComputingShares: 1 share per LRMS queue
+
+    for my $qname (keys %{$config->{queues}}) {
+
+        my $qinfo = $lrms_info->{queues}{$qname};
+        my $qconfig = { %$config, %{$config->{queues}{$qname}} };
+
+        my $csha = {};
+
+        push @{$csv->{ComputingShares}{ComputingShare}}, $csha;
+
+        $csha->{CreationTime} = $creation_time;
+        $csha->{Validity} = $validity_ttl;
+        $csha->{BaseType} = 'Share';
+
+        $csha->{LocalID} = [ $cshaID ]; push @cshaIDs, $cshaID++;
+
+        $csha->{Name} = [ $qname ];
+        $csha->{Description} = [ $qconfig->{comment} ] if $qconfig->{comment};
+        $csha->{MappingQueue} = [ $qname ];
+
+        # use limits from LRMS
+        # TODO: convert backends to return values in seconds. Document new units in schema
+        $csha->{MaxCPUTime} = [ $qinfo->{maxcputime} * 60 ] if defined $qinfo->{maxcputime};
+        $csha->{MinCPUTime} = [ $qinfo->{mincputime} * 60 ] if defined $qinfo->{mincputime};
+        $csha->{DefaultCPUTime} = [ $qinfo->{defaultcput} * 60 ] if defined $qinfo->{defaultcput};
+        $csha->{MaxWallTime} =  [ $qinfo->{maxwalltime} * 60 ] if defined $qinfo->{maxwalltime};
+        $csha->{MinWallTime} =  [ $qinfo->{minwalltime} * 60 ] if defined $qinfo->{minwalltime};
+        $csha->{DefaultWallTime} = [ $qinfo->{defaultwallt} * 60 ] if defined $qinfo->{defaultwallt};
+
+        my ($maxtotal, $maxlrms) = split ' ', ($qconfig->{maxjobs} || '');
+
+        # MaxWaitingJobs: use GM's maxjobs config option
+        # OBS: GM only cares about totals, not per share limits!
+        $csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
+
+        # MaxWaitingJobs, MaxRunningJobs:
+        my ($maxrunning, $maxwaiting);
+
+        # use values from lrms if avaialble
+        if (defined $qinfo->{maxrunning}) {
+            $maxrunning = $qinfo->{maxrunning};
+            if (defined $qinfo->{maxqueuable}) {
+                $maxwaiting = $qinfo->{maxqueuable} - $maxrunning;
+            }
+        }
+
+        # maxjobs config option sets upper limits
+        if (defined $maxlrms) {
+            $maxrunning = $maxlrms
+                if not defined $maxrunning
+                    or $maxrunning > $maxlrms;
+
+            if (defined $maxrunning) {
+                $maxwaiting = $maxlrms - $maxrunning
+                    if not defined $maxwaiting
+                        or $maxwaiting > $maxlrms - $maxrunning;
+            }
+        }
+       
+        $csha->{MaxRunningJobs} = [ $maxrunning ] if defined $maxrunning;
+        $csha->{MaxWaitingJobs} = [ $maxwaiting ] if defined $maxwaiting;
+
+        # MaxPreLRMSWaitingJobs: use GM's maxjobs option
+        # OBS: GM only cares about totals, not per share limits!
+	# OBS: this formula is actually an upper limit on the sum of pre + post
+	#      lrms jobs. GM does not have separate limit for pre lrms jobs
+	$csha->{MaxPreLRMSWaitingJobs} = [ $maxtotal - $maxlrms ]
+            if defined $maxtotal and defined $maxlrms;
+
+        $csha->{MaxUserRunningJobs} = [ $qinfo->{maxuserrun} ]
+            if defined $qinfo->{maxuserrun};
+
+        # OBS: new config option. Default value is 1
+        # TODO: new return value from LRMS infocollector
+        # TODO: see how LRMSs can detect the correct value
+        $csha->{MaxSlotsPerJob} = [ $qconfig->{maxslotsperjob} || $qinfo->{maxslotsperjob}  || 1 ];
+
+        # MaxStageInStreams, MaxStageOutStreams
+        # OBS: GM does not have separate limits for up and downloads.
+        # OBS: GM only cares about totals, not per share limits!
+        my ($maxstaging) = split ' ', ($qconfig->{maxload} || '');
+        $csha->{MaxStageInStreams}  = [ $maxstaging ] if defined $maxstaging;
+        $csha->{MaxStageOutStreams} = [ $maxstaging ] if defined $maxstaging;
+
+        # OBS: 'maui' is not a valid SchedulingPolicy
+        $qconfig->{scheduling_policy} = 'fairshare'
+            if lc($qconfig->{scheduling_policy}) eq 'maui';
+
+        # TODO: new return value from LRMS infocollector.
+        $csha->{SchedulingPolicy} = [ $qinfo->{schedpolicy} ] if $qinfo->{schedpolicy};
+        $csha->{SchedulingPolicy} = [ lc $qconfig->{scheduling_policy} ] if $qconfig->{scheduling_policy};
+
+        # TODO: get it from ExecutionEnviromnets mapped to this share instead
+        $csha->{MaxMemory} = [ $qconfig->{nodememory} ] if $qconfig->{nodememory};
+
+        # OBS: new config option (space measured in GB !?)
+        # OBS: only informative, not enforced,
+        # TODO: implement check at job accept time in a-rex
+        $csha->{MaxDiskSpace} = [ $qconfig->{maxdiskperjob} ] if $qconfig->{maxdiskperjob};
+
+        # DefaultStorageService: Has no meaning for ARC
+
+        # TODO: new return value from LRMS infocollector.
+        $csha->{Preemption} = [ $qinfo->{preemption} ] if $qinfo->{preemption};
+
+        # ServingState: closed and queuing are not yet supported
+        if (defined $qconfig->{allownew} and lc($qconfig->{allownew}) eq 'no') {
+            $csha->{ServingState} = [ 'production' ];
+        } else {
+            $csha->{ServingState} = [ 'draining' ];
+        }
+
+        # OBS: Finished/failed/deleted jobs are not counted
+        $csha->{TotalJobs} = [ $gmtotalcount{notfinished} ];
+
+        $csha->{RunningJobs} = [ $gridrunning{$qname} || 0 ];
+        $csha->{WaitingJobs} = [ $gridqueued{$qname} || 0 ];
+        $csha->{LocalRunningJobs} = [ $qinfo->{running} - $csha->{RunningJobs} ]
+            if defined $qinfo->{running}; 
+        $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - $csha->{WaitingJobs} ]
+            if defined $qinfo->{queued}; 
+
+	$csha->{StagingJobs} = [ ( $gmqueuecount{$qname}{perparing} || 0 )
+                             + ( $gmqueuecount{$qname}{finishing} || 0 ) ];
+
+        # OBS: suspending jobs is not yet supported
+        $csha->{SuspendedJobs} = [ 0 ];
+
+        $csha->{PreLRMSWaitingJobs} = [ $gmqueuecount{$qname}{notsubmitted} ];
+
+        # TODO: get these estimates from maui/torque
+        $csha->{EstimatedAverageWaitingTime} = [ $qinfo->{averagewaitingtime} ] if defined $qinfo->{averagewaitingtime};
+        $csha->{EstimatedWorstWaitingTime} = [ $qinfo->{worstwaitingtime} ] if defined $qinfo->{worstwaitingtime};
+
+        # $csha->{FreeSlots} =;
+
+    }
+
+
+    # TODO: move after Shares are defined
+    $cep->{Associations}{ComputingShareID} = [ @cshaIDs ];
+
+    # TODO: add Jobs here
+    $cep->{ComputingActivities}{ComputingActivity} = [ ];
+
+    return $csv;
 }
 
 

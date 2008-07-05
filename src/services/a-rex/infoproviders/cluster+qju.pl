@@ -102,4 +102,5 @@ my $cluster_info = ARC0ClusterInfo->new()->get_info(\%config);
 
 my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
 print $xml->XMLout($cluster_info);
+#$log->debug("Cluster Info:\n". Dumper $cluster_info);
 
