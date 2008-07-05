@@ -29,7 +29,7 @@ use warnings;
 sub new($$) {
     my ($this,$arcconf) = @_;
     my $class = ref($this) || $this;
-    my $self = { data => {}, sections => [] };
+    my $self = { config => {} };
     bless $self, $class;
     return $self->_parse($arcconf);
 }
@@ -39,36 +39,57 @@ sub new($$) {
 
 sub _parse($$) {
     my ($self,$arcconf) = @_;
-    my %data;
-    my @sections;
+    my %config;
 
     return undef unless open(CONFIGFILE, $arcconf);
 
-    my $sectionname;
+    # current section name and options
+    my $sname;
+    my $sopts;
+
     while (my $line =<CONFIGFILE>) {
-       next if $line =~/^\s*#/;
-       next if $line =~/^\s*$/;
+
+        # skip comments and empy lines
+        next if $line =~/^\s*#/;
+        next if $line =~/^\s*$/;
     
-       if ($line =~/^\s*\[(.+)\]/ ) {
-          $sectionname = $1;
-          push @sections, $sectionname;
-          next;
-       }
-       # Single or double quotes can be used. Quotes are removed from the values
-       next unless $line =~ /^(\w+)\s*=\s*(["'])(.*)(\2)\s*$/;
-       my $opt=$1;
-       my $value=$3;
-       if (not defined $data{$sectionname}{$opt}) {
-          $data{$sectionname}{$opt} = $value;
-       }
-       else {
-          $data{$sectionname}{$opt} .= "[separator]".$value;
-       }
+        # new section stsrts here
+        if ( $line =~/^\s*\[(.+)\]/ ) {
+            my $newsname = $1;
+
+            # store completed section
+            $config{$sname} = $sopts if $sname;
+
+            # start fresh section
+            $sname = $newsname;
+            $sopts = {};
+            next;
+        }
+
+        # Single or double quotes can be used. Quotes are removed from the values
+        next unless $line =~ /^(\w+)\s*=\s*(["'])(.*)(\2)\s*$/;
+
+        my $opt=$1;
+        my $value=$3;
+
+        # 'name' option is special: it names a subsection
+        if ($opt eq 'name') {
+            $sname =~ s#([^/]+).*#$1/$value#;
+        }
+
+        if (not defined $sopts->{$opt}) {
+           $sopts->{$opt} = $value;
+        }
+        else {
+           $sopts->{$opt} .= "[separator]".$value;
+        }
     }
     close CONFIGFILE;
 
-    $self->{data} = \%data;
-    $self->{sections} = \@sections;
+    # store last section
+    $config{$sname} = $sopts if $sname;
+
+    $self->{config} = \%config;
     return $self;
 }
 
@@ -76,19 +97,19 @@ sub _parse($$) {
 # exist, it returns an empty hash
 
 sub get_section($$) {
-    my ($self,$sectionname) = @_;
-    return $self->{data}{$sectionname} ? %{$self->{data}{$sectionname}} : ();
+    my ($self,$sname) = @_;
+    return $self->{config}{$sname} ? %{$self->{config}{$sname}} : ();
 } 
 
 # list all subsections of a section, but not the section section itself
 
 sub list_subsections($$) {
-    my ($self,$sectionname) = @_;
-    my @subsect = ();
-    for (@{$self->{sections}}) {
-        /$sectionname\/(.*)/ and push @subsect, $1;
+    my ($self,$sname) = @_;
+    my @ssnames = ();
+    for (keys %{$self->{config}}) {
+        push @ssnames, $1 if /$sname\/(.*)/;
     }
-    return @subsect;
+    return @ssnames;
 }
 
 
@@ -97,8 +118,9 @@ sub test {
     my $parser = ConfigParser->new('/etc/arc.conf') or die;
     print Dumper($parser);
     print "@{[$parser->list_subsections('gridftpd')]}\n";
+    print "@{[$parser->list_subsections('group')]}\n";
 }
 
-#test();
+test();
 
 1;
