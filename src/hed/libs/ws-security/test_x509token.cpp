@@ -57,20 +57,27 @@ int main(void) {
 ");
 
 
-  /*Generate the signature X509 Token*/
+  /*Generate the encryption X509 Token*/
   Arc::SOAPEnvelope soap3(xml1);
   Arc::X509Token xt3(soap3, cert, key, Arc::X509Token::Encryption);
 
-//  xt3.GetXML(str);
-//  std::cout<<"SOAP message with X509Token for encryption:"<<std::endl<<str<<std::endl<<std::endl;
+  xt3.GetXML(str);
+  std::cout<<"SOAP message with X509Token for encryption:"<<std::endl<<str<<std::endl<<std::endl;
 
+/*
   std::string file("soap.xml");
   std::ifstream in(file.c_str(), std::ios::in);
   std::string xml_str;
   std::getline<char>(in,xml_str,0);
   in.close();
-
   Arc::SOAPEnvelope soap4(xml_str);
+*/
+
+  /*Parse the encryption x509 token*/
+  Arc::SOAPEnvelope soap4(str);
+  soap4.GetXML(str);
+  std::cout<<"SOAP message with encryption "<<str<<std::endl;
+
   Arc::X509Token xt4(soap4, Arc::X509Token::Encryption);
  
   return 0;

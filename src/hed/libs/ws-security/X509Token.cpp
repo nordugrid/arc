@@ -218,7 +218,7 @@ static xmlSecKey* get_key_from_certstr(const std::string& value) {
 }
 
 //Load private or public key from a key file into key manager
-static xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const char* keyfile, bool pub) {
+static xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const char* keyfile) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
   else keys_mngr = xmlSecKeysMngrCreate();
@@ -312,11 +312,11 @@ static xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, con
       return NULL;
     }
   //load a ca file
-  if(!cafile)  
+  /*if(!cafile)  
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
-    }
+    }*/
   return keys_mngr;
 } 
 
@@ -408,15 +408,15 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]); 
 
     std::string str;
-    encrypted_data.GetDoc(str);
-    std::cout<<"Before Decryption: "<<str<<std::endl;
+    encrypted_data.GetXML(str);
+    std::cout<<"Before Decryption++++: "<<str<<std::endl;
 
     xmlNodePtr todecrypt_nd = ((X509Token*)(&encrypted_data))->node_;
 
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
     //TODO: which key file will be used should be got according to the information in incoming soap head
-    keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem", 0);
+    keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem");
 
     xmlSecEncCtxPtr encCtx = NULL;
     encCtx = xmlSecEncCtxCreate(keys_mngr);
@@ -426,15 +426,20 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     }
 
     // Decrypt the soap body
-    if(xmlSecEncCtxDecrypt(encCtx, todecrypt_nd) < 0) {
+    xmlSecBufferPtr decrypted_buf;
+    decrypted_buf = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_nd);
+    if(decrypted_buf == NULL) {
       std::cerr<<"Decryption failed"<<std::endl;
       if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     }
     else { std::cout<<"Decryption succeed"<<std::endl; }
 
-    encrypted_data.GetDoc(str);
-    std::cout<<"After Decryption: "<<str<<std::endl;
+    encrypted_data.GetXML(str);
+    std::cout<<"After Decryption++++: "<<str<<std::endl;
 
+    std::cout<<"Decrypted data++++: "<<decrypted_buf->data<<std::endl;
+
+    //if(decrypted_buf != NULL)xmlSecBufferDestroy(decrypted_buf);
     if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
   }
@@ -744,10 +749,27 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode x509_data =  get_node(sec_token_ref, "ds:X509Data");
     XMLNode x509_issuer_serial = get_node(x509_data, "ds:X509IssuerSerial");
     XMLNode x509_issuer_name = get_node(x509_issuer_serial, "ds:X509IssuerName");
-    x509_issuer_name = "OU=UIO, O=KNOWARC";
-    XMLNode x509_issuer_number = get_node(x509_issuer_serial, "ds:X509SerialNumber");
-    x509_issuer_number = "123456";
+    //x509_issuer_name = "OU=UIO, O=KNOWARC";
+    XMLNode x509_serial_number = get_node(x509_issuer_serial, "ds:X509SerialNumber");
+    //x509_serial_number = "123456";
     //TODO: issuer name and issuer number should be extracted from certificate
+    //There should be some way by which the sender could get the peer certificate
+    //and use the public key inside this certificate to encrypt the message. 
+    std::string certfile = "cert.pem";
+    X509* cert = NULL;
+    BIO* certbio = NULL;
+    certbio = BIO_new_file(certfile.c_str(), "r");
+    cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
+    char* name = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
+    //char* name = X509_NAME_print_ex(X509_get_issuer_name(cert), )
+
+    std::string issuer_name(name);
+    OPENSSL_free(name);
+    int serial = (int) ASN1_INTEGER_get(X509_get_serialNumber(cert));
+    std::stringstream ss; std::string serial_number;
+    ss<<serial; ss>>serial_number;
+    x509_issuer_name = issuer_name;
+    x509_serial_number = serial_number;
 
     XMLNode key_cipherdata = get_node(enc_key, "xenc:CipherData");
     key_cipherdata.NewChild("xenc:CipherValue") = (std::string)(encrypted_data["KeyInfo"]["EncryptedKey"]["CipherData"]["CipherValue"]);
@@ -765,11 +787,19 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     std::cout<<"Body: "<<str<<std::endl;
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
+
+ /*
+    XMLNode nd(str);
+    envelope.Replace(nd);
+    header=envelope["soap-env:Header"];
+    body=envelope["soap-env:Body"];
+    envelope.GetXML(str);
+    std::cout<<"Envelope:+++=====++++++ "<<str<<std::endl;
+*/
   }
 
   //final_xmlsec();
 
 }
-
 } // namespace Arc
 
