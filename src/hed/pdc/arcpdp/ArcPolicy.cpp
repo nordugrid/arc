@@ -59,7 +59,7 @@ void ArcPolicy::make_policy() {
 
   Arc::NS nsList;
   std::list<XMLNode> res;
-  nsList.insert(std::pair<std::string, std::string>("policy","http://www.nordugrid.org/schemas/policy-arc"));
+  nsList["policy"]="http://www.nordugrid.org/schemas/policy-arc";
 
   res = policynode.XPathLookup("//policy:Policy", nsList);
   if(!(res.empty())){
