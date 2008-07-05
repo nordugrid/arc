@@ -481,11 +481,11 @@ sub jobs_info ($) {
 	    # Memory usage in kB
 	    # SGE reports mem, vmem and maxvmem
 	    # maxvmem chosen here
-	    $line =~ /maxvmem=(\d+)\.?(\d*)\s*(\w+)/;
-	    my ($mult) = 1024; 
-	    if ($3 eq "M") {$mult = 1024} 
-	    if ($3 eq "G") {$mult = 1024*1024} 
-	    $lrms_jobs->{$jid}{mem} = int($mult*$1 + $2*$mult/1000);
+	    $line =~ /maxvmem=(\d+(?:\.\d+)?)\s*(\w)/;
+	    my $mult = 1024; 
+	    if ($2 eq "M") {$mult = 1024} 
+	    if ($2 eq "G") {$mult = 1024*1024} 
+	    $lrms_jobs->{$jid}{mem} = int($mult*$1);
 	    # used cpu time
 	    $line =~ /cpu=((\d+:?)*)/;
 	    my (@a) = $1 =~ /(\d+):?/g;
@@ -575,20 +575,23 @@ sub users_info($$) {
     # This is hard to implement correctly for a complex system such as SGE.
     # Using simple estimate.
 
+    my $freecpus = 0;
     foreach my $u ( @{$accts} ) {
         if ($max_u_jobs) {
             $total_user_jobs{$u} = 0 unless $total_user_jobs{$u};
             my $freecpus = $max_u_jobs - $total_user_jobs{$u};
-            if ($lrms_queue->{status} < $freecpus) {
-                $freecpus = $lrms_queue->{status};
-            }
-	    $lrms_users->{$u}{freecpus} = $freecpus;
+            $freecpus = $lrms_queue->{status}
+                if $lrms_queue->{status} < $freecpus;
         } else {
-	    $lrms_users->{$u}{freecpus} = $lrms_queue->{status};
-        };
-        $lrms_users->{$u}{freecpus} .= ":$lrms_queue->{maxwalltime}"
-            if $lrms_queue->{maxwalltime};
+	    $freecpus = $lrms_queue->{status};
+        }
 	$lrms_users->{$u}{queuelength} = $lrms_queue->{queued};
+        $freecpus = 0 if $freecpus < 0;
+        if ($lrms_queue->{maxwalltime}) {
+            $lrms_users->{$u}{freecpus} = { $freecpus => $lrms_queue->{maxwalltime} };
+        } else {
+            $lrms_users->{$u}{freecpus} = { $freecpus => 0 }; # unlimited
+        }
     }
 }
 

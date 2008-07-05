@@ -516,9 +516,18 @@ sub get_cluster_info($$$$) {
             $u->{'na0:name'} = [ "${cn}...$usernumber" ];
             $u->{'na0:sn'} = [ $sn ];
             $u->{'na0:diskspace'} = [ $space->{diskfree} ] if defined $space->{diskfree};
-            $u->{'na0:freecpus'} = [ 0 ];
-            $u->{'na0:freecpus'} = [ $lrms_user->{freecpus} ] if defined $lrms_user->{freecpus};
+
+            my @freecpus;
+            # sort by decreasing number of cpus
+            for my $ncpu ( sort { $b <=> $a } keys %{$lrms_user->{freecpus}} ) {
+                my $minutes = $lrms_user->{freecpus}{$ncpu};
+                push @freecpus, $minutes ? "$ncpu:$minutes" : $ncpu;
+            }
+            $u->{'na0:freecpus'} = [ join(" ", @freecpus) || 0 ];
+
+            # Don't advertise free slots while busy with staging
             $u->{'na0:freecpus'} = [ 0 ] if $pendingprelrms{$qname};
+
             $u->{'na0:queuelength'} = [ $gm_queued{$sn} + $lrms_user->{queuelength} ];
             $u->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
             $u->{'M0:validto'} = [ $valid_to ] if $valid_to;

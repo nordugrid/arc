@@ -490,16 +490,16 @@ sub users_info($$) {
 		    last;
 		}
 		if ($line =~ /no procs available/) {
-		    $maui_freecpus = " 0";
+		    $maui_freecpus = { 0 => 0 };
 		    last;
 		}
 		if ($line =~ /(\d+).+available for\s+([\w:]+)/) {
 		    my @tmp= reverse split /:/, $2;
 		    my $minutes=$tmp[1] + 60*$tmp[2] + 24*60*$tmp[3];
-		    $maui_freecpus .= " $1:$minutes";
+		    $maui_freecpus = { $1 => $minutes };
 		}
 		if ($line =~ /(\d+).+available with no timelimit/) {
-		    $maui_freecpus .= " $1";
+		    $maui_freecpus = { $1 => 0 }; # 0 means unlimited time
 		    last;
 		}
 	    }
@@ -508,20 +508,20 @@ sub users_info($$) {
 	    $lrms_users->{$u}{freecpus} = $maui_freecpus;
 	}
 	else {
+            my $freecpus = 0;
             $user_jobs_running{$qname}{$u} = 0 unless $user_jobs_running{$qname}{$u};
 	    if ($lrms_queue->{maxuserrun}
             and $lrms_queue->{maxuserrun} - $user_jobs_running{$qname}{$u} < $lrms_queue->{status} ) {
-		$lrms_users->{$u}{freecpus} = $lrms_queue->{maxuserrun} - $user_jobs_running{$qname}{$u};
+		$freecpus = $lrms_queue->{maxuserrun} - $user_jobs_running{$qname}{$u};
 	    } else {
-		$lrms_users->{$u}{freecpus} = $lrms_queue->{status};
+		$freecpus = $lrms_queue->{status};
 	    }
 	    $lrms_users->{$u}{queuelength} = $lrms_queue->{queued};
-	    if ($lrms_users->{$u}{freecpus} < 0) {
-		$lrms_users->{$u}{freecpus} = 0;
-	    }
-	    if ($lrms_queue->{maxcputime}
-            and $lrms_users->{$u}{freecpus} > 0) {
-		$lrms_users->{$u}{freecpus} .= ':'.$lrms_queue->{maxcputime};
+	    $freecpus = 0 if $freecpus < 0;
+	    if ($lrms_queue->{maxcputime})
+		$lrms_users->{$u}{freecpus} = { $freecpus => $lrms_queue->{maxcputime} };
+            } else {
+		$lrms_users->{$u}{freecpus} = { $freecpus => 0 }; # unlimited
 	    }
 	}
     }

@@ -149,21 +149,59 @@ sub get_cluster_info($$$$) {
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
 
-    # count grid-manager jobs
+    # # # # # # # # # # # # # # # # # # #
+    # # # # # Job statistics  # # # # # #
+    # # # # # # # # # # # # # # # # # # #
 
+    # total jobs in each GM state
     my %gmtotalcount;
+
+    # jobs in each GM state, by queue
     my %gmqueuecount;
+
+    # grid jobs running in the lrms, by queue
+    my %lrmsgridrunning;
+
+    # grid jobs queued in the lrms, by queue
+    my %lrmsgridqueued;
+
+    # number of slots needed by all waiting jobs, per queue
+    my %requestedslots;
 
     JOBLOOP:
     for my $job (values %{$gmjobs_info}) {
         my $qname = $job->{queue} || '';
 
-        $gmtotalcount{totaljobs}++;
-        $gmqueuecount{$qname}{totaljobs}++ if $qname;
+        $log->error("queue not defined") and next JOBLOOP unless $qname;
 
-        # order matters
-        my %states = ( DELETED   => 'deleted',
-                       FINISHED  => 'finished',
+        $gmtotalcount{totaljobs}++;
+        $gmqueuecount{$qname}{totaljobs}++;
+
+        next JOBLOOP if $job->{status} eq 'DELETED';
+
+        # if we got to this point, the job was not yet deleted
+        $gmtotalcount{notdeleted}++;
+        $gmqueuecount{$qname}{notdeleted}++;
+
+        # count grid jobs running and queued in LRMS for each queue
+
+        if ($job->{status} eq 'INLRMS') {
+            my $lrmsid = $job->{localid};
+            my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+
+            if (defined $lrmsjob and $lrmsjob->{status} ne 'EXECUTED') {
+                if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
+                    $lrmsgridrunning{$qname}++;
+                } else {
+                    $lrmsgridqueued{$qname}++;
+                    $requestedslots{$qname} += $job->{count} || 1;
+                }
+            }
+        }
+
+        # count by GM state
+
+        my %states = ( FINISHED  => 'finished',
                        FAILED    => 'finished',
                        KILLED    => 'finished',
                        FINISHING => 'finishing',
@@ -179,54 +217,28 @@ sub get_cluster_info($$$$) {
 
             if ($job->{status} =~ /$state_match/) {
                 $gmtotalcount{$state_name}++;
-                $gmqueuecount{$qname}{$state_name}++ if $qname;
+                $gmqueuecount{$qname}{$state_name}++;
                 next JOBLOOP;
             }
-
-            next JOBLOOP if $state_match eq 'DELETED';
-
-            # if we got to this point, the job was not yet deleted
-            $gmtotalcount{notdeleted}++;
-            $gmqueuecount{$qname}{notdeleted}++ if $qname;
 
             next JOBLOOP if $state_match eq 'FINISHING';
 
             # if we got to this point, the job has not yet finished
             $gmtotalcount{notfinished}++;
-            $gmqueuecount{$qname}{notfinished}++ if $qname;
+            $gmqueuecount{$qname}{notfinished}++;
 
             next JOBLOOP if $state_match eq 'INLRMS';
 
             # if we got to this point, the job whas not yet reached the LRMS
             $gmtotalcount{notsubmitted}++;
-            $gmqueuecount{$qname}{notsubmitted}++ if $qname;
+            $gmqueuecount{$qname}{notsubmitted}++;
+
+            $requestedslots{$qname} += $job->{count} || 1;
         }
 
         # none of the %states matched this job
         $log->error("Unexpected job status: $job->{status}");
     }
-
-    # count grid jobs running and queued in LRMS for each queue
-
-    my %gridrunning;
-    my %gridqueued;
-    my $lrmsjobs = $lrms_info->{jobs};
-    my %local2gm;
-    $local2gm{$gmjobs_info->{$_}{localid}} = $_ for keys %$gmjobs_info;
-    foreach my $jid (keys %$lrmsjobs) {
-        my $gridid = $local2gm{$jid};
-        next unless $gridid; # not a grid job
-        my $status = $lrmsjobs->{$jid}{status};
-        next unless $status; # probably executed
-        next if $status eq 'EXECUTED';
-        my $qname = $gmjobs_info->{$gridid}{queue};
-        if ($status eq 'R' || $status eq 'S') {
-            $gridrunning{$qname}++;
-        } else {
-            $gridqueued{$qname}++;
-        }
-    }
-
 
     my %prelrmsqueued;
     my %pendingprelrms;
@@ -329,8 +341,8 @@ sub get_cluster_info($$$$) {
     # OBS: Finished/failed/deleted jobs are not counted
     $csv->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
-    my $nrun = 0; $nrun += $_ for values %gridrunning;
-    my $nque = 0; $nque += $_ for values %gridqueued;
+    my $nrun = 0; $nrun += $_ for values %lrmsgridrunning;
+    my $nque = 0; $nque += $_ for values %lrmsgridqueued;
     $csv->{RunningJobs} = [ $nrun ];
     $csv->{WaitingJobs} = [ $nque ];
 
@@ -352,7 +364,7 @@ sub get_cluster_info($$$$) {
     $cep->{Validity} = $validity_ttl;
     $cep->{BaseType} = 'Endpoint';
 
-    $cep->{ID} = [ $cepID++ ];
+    $cep->{ID} = [ $cepID ];
 
     # Name not necessary
 
@@ -513,8 +525,8 @@ sub get_cluster_info($$$$) {
         # OBS: Finished/failed/deleted jobs are not counted
         $csha->{TotalJobs} = [ $gmtotalcount{notfinished} ];
 
-        $csha->{RunningJobs} = [ $gridrunning{$qname} || 0 ];
-        $csha->{WaitingJobs} = [ $gridqueued{$qname} || 0 ];
+        $csha->{RunningJobs} = [ $lrmsgridrunning{$qname} || 0 ];
+        $csha->{WaitingJobs} = [ $lrmsgridqueued{$qname} || 0 ];
         $csha->{LocalRunningJobs} = [ $qinfo->{running} - $csha->{RunningJobs} ]
             if defined $qinfo->{running}; 
         $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - $csha->{WaitingJobs} ]
@@ -532,7 +544,82 @@ sub get_cluster_info($$$$) {
         $csha->{EstimatedAverageWaitingTime} = [ $qinfo->{averagewaitingtime} ] if defined $qinfo->{averagewaitingtime};
         $csha->{EstimatedWorstWaitingTime} = [ $qinfo->{worstwaitingtime} ] if defined $qinfo->{worstwaitingtime};
 
-        # $csha->{FreeSlots} =;
+        # TODO: implement $qinfo->{freeslots} in LRMS plugins
+
+        my $freeslots = 0;
+        if (defined $qinfo->{freeslots}) {
+            $freeslots = [ $qinfo->{freeslots} ];
+        } elsif ( defined $qinfo->{maxrunning} and defined $qinfo->{running}) {
+            $freeslots = [ $qinfo->{maxrunning} - $qinfo->{running} ];
+        }
+
+        # Local users have individual restrictions
+	# FreeSlots: find the maximum freecpus of any local user mapped in this
+	# share and use that as an upper limit for $freeslots
+	# FreeSlotsWithDuration: for each duration, find the maximum freecpus
+	# of any local user mapped in this share
+        # TODO: is this the correct way to do it?
+
+        my %timeslots;
+
+        for my $uid (keys %{$qinfo->{users}}) {
+            my $uinfo = $qinfo->{users}{$uid};
+            next unless defined $uinfo->{freecpus};
+
+            for my $nfree ( keys %{$uinfo->{freecpus}} ) {
+                my $seconds = 60 * $uinfo->{freecpus}{$nfree};
+
+                if ($timeslots{$seconds}) {
+                    $timeslots{$seconds} = $nfree > $timeslots{$seconds}
+                                         ? $nfree : $timeslots{$seconds};
+                } else {
+                    $timeslots{$seconds} = $nfree;
+                }
+            }
+        }
+
+        my @timefreeslots;
+        my $maxuserslots = 0;
+
+        # find maximum free slots regardless of duration
+        for my $seconds ( keys %timeslots ) {
+            my $nfree = $timeslots{$seconds};
+            $maxuserslots = $nfree if $nfree > $maxuserslots;
+        }
+        $freeslots = $maxuserslots < $freeslots
+                   ? $maxuserslots : $freeslots;
+
+        # sort descending by duration, keping 0 first (0 for unlimited)
+        for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
+            my $nfree = $timeslots{$seconds} < $freeslots
+                      ? $timeslots{$seconds} : $freeslots;
+            unshift @timefreeslots, $seconds ? "$nfree:$seconds" : $nfree;
+        }
+
+        $csha->{FreeSlots} = [ $freeslots ];
+
+        $csha->{FreeSlotsWithDuration} = [ join(" ", @timefreeslots) || 0 ];
+
+        # Don't advertise free slots while busy with staging
+        $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$qname};
+
+        # TODO: implement $qinfo->{usedslots} in LRMS plugins
+
+        my $usedslots = 0;
+        if (defined $qinfo->{usedslots}) {
+            $freeslots = [ $qinfo->{usedslots} ];
+        } elsif (defined $qinfo->{running}) {
+            $freeslots = [ $qinfo->{running} ];
+        }
+        $csha->{UsedSlots} = [ $usedslots ];
+
+        $csha->{RequestedSlots} = [ $requestedslots{$qname} ];
+
+        # TODO: detect reservationpolicy in the lrms
+        $csha->{ReservationPolicy} = [ $qinfo->{reservationpolicy} ]
+            if $qinfo->{reservationpolicy};
+
+        # Tag: skip it for now
 
     }
 

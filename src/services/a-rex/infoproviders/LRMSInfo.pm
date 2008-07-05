@@ -95,7 +95,9 @@ my $lrms_info_schema = {
             'acl_users'  => [ '*' ],
             'users' => {
                 '*' => {
-                    'freecpus'    => '',
+                    'freecpus'    => {
+                        '*' => ''  # key: # of cpus, value: time limit in minutes (0 for unlimited)
+                     },
                     'queuelength' => ''
                 }
             }
