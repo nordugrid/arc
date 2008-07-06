@@ -155,29 +155,26 @@ bool DelegationPDP::isPermitted(Message *msg){
     //Call the evaluation functionality inside Evaluator
     Response *resp = eval->evaluate(requestxml);
     logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
+    bool atleast_onedeny = false;
+    bool atleast_onepermit = false;
+    if(!resp) {
+      logger.msg(ERROR,"No authorization response was returned");
+      throw std::exception();
+    };
+
     ResponseList rlist = resp->getResponseItems();
     int size = rlist.size();
-    bool all_policies_matched = (size > 0);
     for(int i = 0; i < size; i++) {
       ResponseItem* item = rlist[i];
-      if(item->pls.size() != policies_num) all_policies_matched=false;
       RequestTuple* tp = item->reqtp;
-      Subject::iterator it;
-      Subject subject = tp->sub;
-      for (it = subject.begin(); it!= subject.end(); it++){
-        AttributeValue *attrval;
-        RequestAttribute *attr;
-        attr = dynamic_cast<RequestAttribute*>(*it);
-        if(attr){
-          attrval = (*it)->getAttributeValue();
-          if(attrval) logger.msg(INFO, "%s", attrval->encode());
-        }
-      }
-    } 
-
-    if(all_policies_matched) {
-      result=true;
+      if(item->res == DECISION_DENY) atleast_onedeny = true;
+      if(item->res == DECISION_PERMIT) atleast_onepermit = true;
     }
+    delete resp;
+
+    if(atleast_onepermit) result = true;
+    if(atleast_onedeny) result = false;
+
   } catch(std::exception&) {
   };
   if(result) {
