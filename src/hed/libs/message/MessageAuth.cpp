@@ -41,7 +41,6 @@ SecAttr* MessageAuth::get(const std::string& key) {
   return attr->second;
 }
 
-#if 0
 class _XMLPair {
  public:
   XMLNode element;
@@ -148,8 +147,8 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   };
   return true;
 }
-#endif
 
+#if 0
 static void add_new_elements(XMLNode item,XMLNode element) {
   for(;(bool)element;++element) item.NewChild(element);
 }
@@ -241,6 +240,7 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
 
   return true;
 }
+#endif
 
 MessageAuth* MessageAuth::Filter(const std::list<std::string> selected_keys,const std::list<std::string> rejected_keys) const {
   MessageAuth* newauth = new MessageAuth;
