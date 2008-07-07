@@ -141,8 +141,8 @@ void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
     it.header.Destroy();
-    it.header=it.envelope.NewChild("soap-env:Header",0,true);
     envelope.GetXML(out_xml_str,user_friendly);
+    it.header=it.envelope.NewChild("soap-env:Header",0,true);
     return;
   };
   envelope.GetXML(out_xml_str,user_friendly);
