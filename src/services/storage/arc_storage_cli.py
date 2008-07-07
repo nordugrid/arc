@@ -798,6 +798,10 @@ class Client:
         r = h.getresponse()
         # read the response data
         resp = r.read()
+        if not resp:
+            raise socket.error, (-1, 'Server returned empty answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
+        if 'text/xml' not in r.getheader('content-type'):
+            raise socket.error, (-1, 'Server did not return SOAP answer. Maybe wrong URL: "%s:%s/%s"?' % (self.host, self.port, self.path))
         # return the data and the status
         return resp, r.status, r.reason
 
