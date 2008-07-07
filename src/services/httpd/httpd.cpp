@@ -35,6 +35,7 @@ HTTPD::HTTPD(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "HT
         slave_mode = "0";
     }  
     if (slave_mode == "1") logger.msg(Arc::INFO, "HTTPD SlaveMode is on!");
+    path_prefix = (std::string)((*cfg)["PathPrefix"]);
 }
 
 HTTPD::~HTTPD(void)
@@ -42,7 +43,7 @@ HTTPD::~HTTPD(void)
     logger.msg(Arc::INFO, "HTTPD shutdown");
 }
 
-Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string &base_url)
+Arc::PayloadRawInterface *HTTPD::Get(const std::string &path)
 {
     // XXX eliminate relativ paths first
     std::string full_path = Glib::build_filename(doc_root, path);
@@ -56,7 +57,7 @@ Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string 
             Glib::Dir dir(full_path);
             std::string d;
             while ((d = dir.read_name()) != "") {
-                html += "<LI><a href=\"/"+base_url+"/"+d+"\">"+d+"</a></LI>\r\n";
+                html += "<LI><a href=\""+path_prefix+"/"+d+"\">"+d+"</a></LI>\r\n";
             }
             html += "</UL></BODY></HTML>";
             Arc::PayloadRaw *buf = new Arc::PayloadRaw();
@@ -117,17 +118,18 @@ Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
     std::string url = inmsg.Attributes()->get("HTTP:ENDPOINT");
     std::string path;
     
-    // cut id from the begining of url
-    while(url[0] == '/') url=url.substr(1);
-    std::string::size_type p = url.find('/');
-    if(p != std::string::npos) {
-       path = url.substr(p);
-       while(path[0] == '/') path=path.substr(1);
+    std::string::size_type p = url.find(path_prefix);
+    
+    if (p == std::string::npos) {
+        logger.msg(Arc::WARNING, "Wrong path prefix: %s", url);
+        return Arc::MCC_Status();
     }
+    
+    path = url.substr(path_prefix.length());    
 
-    logger.msg(Arc::INFO, "method=%s, path=%s", method, path);
+    logger.msg(Arc::INFO, "method=%s, path=%s, url=%s, p=%d", method, path, url, p);
     if (method == "GET") {
-        Arc::PayloadRawInterface *buf = Get(path, url);
+        Arc::PayloadRawInterface *buf = Get(path);
         if (!buf) {
             // XXX: HTTP error
             return Arc::MCC_Status();
