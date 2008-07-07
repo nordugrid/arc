@@ -11,6 +11,8 @@
 #include <glibmm/miscutils.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/ServiceLoader.h>
+#include <arc/message/MessageAttributes.h>
+
 
 #include "httpd.h"
 #include "PayloadFile.h"
@@ -35,7 +37,6 @@ HTTPD::HTTPD(Arc::Config *cfg):Service(cfg), logger(Arc::Logger::rootLogger, "HT
         slave_mode = "0";
     }  
     if (slave_mode == "1") logger.msg(Arc::INFO, "HTTPD SlaveMode is on!");
-    path_prefix = (std::string)((*cfg)["PathPrefix"]);
 }
 
 HTTPD::~HTTPD(void)
@@ -43,7 +44,7 @@ HTTPD::~HTTPD(void)
     logger.msg(Arc::INFO, "HTTPD shutdown");
 }
 
-Arc::PayloadRawInterface *HTTPD::Get(const std::string &path)
+Arc::PayloadRawInterface *HTTPD::Get(const std::string &path, const std::string &base_url)
 {
     // XXX eliminate relativ paths first
     std::string full_path = Glib::build_filename(doc_root, path);
@@ -56,8 +57,14 @@ Arc::PayloadRawInterface *HTTPD::Get(const std::string &path)
             std::string html = "<HTML>\r\n<HEAD>Directory list of '" + path + "'</HEAD>\r\n<BODY><UL>\r\n";
             Glib::Dir dir(full_path);
             std::string d;
+            std::string p;
+            if (path == "/") {
+                p = "";
+            } else {
+                p = path;
+            }
             while ((d = dir.read_name()) != "") {
-                html += "<LI><a href=\""+path_prefix+"/"+d+"\">"+d+"</a></LI>\r\n";
+                html += "<LI><a href=\""+ base_url + p + "/"+d+"\">"+d+"</a></LI>\r\n";
             }
             html += "</UL></BODY></HTML>";
             Arc::PayloadRaw *buf = new Arc::PayloadRaw();
@@ -117,19 +124,19 @@ Arc::MCC_Status HTTPD::process(Arc::Message &inmsg, Arc::Message &outmsg)
     std::string method = inmsg.Attributes()->get("HTTP:METHOD");
     std::string url = inmsg.Attributes()->get("HTTP:ENDPOINT");
     std::string path;
-    
-    std::string::size_type p = url.find(path_prefix);
-    
-    if (p == std::string::npos) {
-        logger.msg(Arc::WARNING, "Wrong path prefix: %s", url);
-        return Arc::MCC_Status();
+    std::string base_url;
+    Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
+    if (iterator.hasMore()) {
+        path = *iterator;
+        base_url = url.substr(0, url.length() - path.length());    
+    } else {
+        path = url;
+        base_url = "";
     }
-    
-    path = url.substr(path_prefix.length());    
 
-    logger.msg(Arc::INFO, "method=%s, path=%s, url=%s, p=%d", method, path, url, p);
+    logger.msg(Arc::DEBUG, "method=%s, path=%s, url=%s, base_url=%s", method, path, url, base_url);
     if (method == "GET") {
-        Arc::PayloadRawInterface *buf = Get(path);
+        Arc::PayloadRawInterface *buf = Get(path, base_url);
         if (!buf) {
             // XXX: HTTP error
             return Arc::MCC_Status();

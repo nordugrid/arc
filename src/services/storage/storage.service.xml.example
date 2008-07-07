@@ -75,7 +75,6 @@
         </Service>
         <Service name="httpd" id="httpd">
             <DocumentRoot>/var/spool/arc/shepherd_transfer</DocumentRoot>
-            <PathPrefix>/httpd</PathPrefix>
             <SlaveMode>1</SlaveMode>
         </Service>
     </Chain>
