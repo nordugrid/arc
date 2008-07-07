@@ -4,8 +4,8 @@ use File::Basename;
 use lib dirname($0);
 
 # This InfoCollector gathers full information about the cluster, queues, users
-# and jobs.  Prepares info modelled on the classic Nordugrid information schema
-# (arc0).  Returned structure is meant to be converted to XML with XML::Simple.
+# and jobs.  Prepares GLUE2 information model.
+# The returned structure is meant to be converted to XML with XML::Simple.
 
 use base InfoCollector;
 use HostInfo;
@@ -18,7 +18,7 @@ use LogUtils;
 
 use strict;
 
-my $arc0_options_schema = {
+my $arc1_options_schema = {
     lrms => '',              # name of the LRMS module
     gridmap => '',
     x509_user_cert => '',
@@ -35,7 +35,7 @@ my $arc0_options_schema = {
     }
 };
 
-my $arc0_info_schema = ARC1ClusterSchema::arc1_info_schema();
+my $arc1_info_schema = ARC1ClusterSchema::arc1_info_schema();
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
@@ -43,10 +43,10 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 # override InfoCollector base class methods
 
 sub _get_options_schema {
-    return $arc0_options_schema;
+    return $arc1_options_schema;
 }
 sub _get_results_schema {
-    return $arc0_info_schema;
+    return $arc1_info_schema;
 }
 
 sub _collect($$) {
@@ -527,9 +527,9 @@ sub get_cluster_info($$$$) {
 
         $csha->{RunningJobs} = [ $lrmsgridrunning{$qname} || 0 ];
         $csha->{WaitingJobs} = [ $lrmsgridqueued{$qname} || 0 ];
-        $csha->{LocalRunningJobs} = [ $qinfo->{running} - $csha->{RunningJobs} ]
+        $csha->{LocalRunningJobs} = [ $qinfo->{running} - ($lrmsgridrunning{$qname} || 0) ]
             if defined $qinfo->{running}; 
-        $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - $csha->{WaitingJobs} ]
+        $csha->{LocalWaitingJobs} = [ $qinfo->{queued}  - ($lrmsgridqueued{$qname} || 0) ]
             if defined $qinfo->{queued}; 
 
 	$csha->{StagingJobs} = [ ( $gmqueuecount{$qname}{perparing} || 0 )
@@ -706,7 +706,7 @@ sub test {
     print $xml->XMLout($cluster_info);
 }
 
-test;
+#test;
 
 1;
 

@@ -121,6 +121,6 @@ sub test {
     print "@{[$parser->list_subsections('group')]}\n";
 }
 
-test();
+#test();
 
 1;

@@ -3,7 +3,8 @@ libexec_SCRIPTS = SGE.pm Fork.pm PBS.pm \
 		  cluster+qju.pl LogUtils.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm \
 		  InfoChecker.pm InfoCollector.pm \
-		  ARC0ClusterSchema.pm ARC0ClusterInfo.pm
+		  ARC0ClusterSchema.pm ARC0ClusterInfo.pm \
+		  ARC1ClusterSchema.pm ARC1ClusterInfo.pm
 
 pkgdata_DATA = nordugrid.schema
 

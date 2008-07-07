@@ -282,8 +282,8 @@ sub queue_info ($) {
 	my @a = split " ", $line;
 	if ( $a[0] eq $qname ) {
 	    $lrms_queue->{status} = $a[3];
-	    $lrms_queue->{running} = $a[2];
-	    $lrms_queue->{totalcpus} = $a[4];
+	    $lrms_queue->{running} = int($a[2]);
+	    $lrms_queue->{totalcpus} = int($a[4]);
         }
     }
     close QSTAT;

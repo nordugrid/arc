@@ -237,7 +237,7 @@ sub queue_info ($) {
 
     foreach my $k (keys %keywords) {
 	if (defined $qstat{$k} ) {
-	    $lrms_queue->{$keywords{$k}} = $qstat{$k};
+	    $lrms_queue->{$keywords{$k}} = int($qstat{$k});
 	}
     }
 
@@ -251,9 +251,10 @@ sub queue_info ($) {
     foreach my $k (keys %keywords) {
 	if ( defined $qstat{$k} ) {
 	    my @time=split(":",$qstat{$k});
-	    $lrms_queue->{$keywords{$k}} = ($time[0]*60+$time[1]+($k eq 'resources_min.cput'?1:0));
+	    $lrms_queue->{$keywords{$k}} = $time[0]*60+$time[1];
 	}
     }
+    $lrms_queue->{mincputime} += 1 if defined $lrms_queue->{mincputime};
 
     # determine the queue status from the LRMS
     # Used to be set to 'active' if the queue can accept jobs

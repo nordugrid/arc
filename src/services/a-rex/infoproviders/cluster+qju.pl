@@ -13,6 +13,7 @@ use Data::Dumper;
 ########################################################
 
 use ARC0ClusterInfo;
+use ARC1ClusterInfo;
 use ConfigParser;
 use LogUtils; 
 
@@ -98,9 +99,17 @@ for my $qname ($parser->list_subsections('queue')) {
 
 $log->level($LogUtils::DEBUG);
 #$log->debug("From config file:\n". Dumper \%config);
-my $cluster_info = ARC0ClusterInfo->new()->get_info(\%config);
+my $cluster_info;
+$cluster_info->{'xmlns:arc'} = "urn:knowarc";
+$cluster_info->{'n:nordugrid'} = ARC0ClusterInfo->new()->get_info(\%config);
+$cluster_info->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+$cluster_info->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
+$cluster_info->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
+$cluster_info->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+$cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+$cluster_info->{'Domains'}->{'AdminDomain'}->{'Services'}->{'Service'} = ARC1ClusterInfo->new()->get_info(\%config);
 
-my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
+my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'arc:InfoRoot', KeyAttr => ['name']);
 print $xml->XMLout($cluster_info);
 #$log->debug("Cluster Info:\n". Dumper $cluster_info);
 
