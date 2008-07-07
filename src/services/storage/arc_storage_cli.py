@@ -279,6 +279,9 @@ def parse_node(node, names, single = False, string = True):
             for n in get_child_nodes(node)
     ])
 
+def get_data_node(node):
+    return node.Get('Body').Child().Child()
+
 def get_child_nodes(node):
     """ Get all the children nodes of an XMLNode
     
@@ -859,7 +862,7 @@ class BartenderClient(Client):
         )
         msg, status, reason = self.call(tree)
         xml = self.xmlnode_class(msg)
-        elements = parse_node(xml.Child().Child().Child(),
+        elements = parse_node(get_data_node(xml),
             ['requestID', 'metadataList'], single = True, string = False)
         return dict([(str(requestID), parse_metadata(metadataList))
             for requestID, metadataList in elements.items()])
@@ -899,7 +902,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
+        return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
     
     def putFile(self, requests):
         """ Initiate uploading a file.
@@ -939,7 +942,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
+        return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
     def delFile(self, requests):
         """ Initiate deleting a file.
@@ -969,7 +972,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
 
     def addReplica(self, requests, protocols):
@@ -1007,7 +1010,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success', 'TURL', 'protocol'])
+        return parse_node(get_data_node(xml), ['requestID', 'success', 'TURL', 'protocol'])
 
     def unmakeCollection(self, requests):
         """docstring for unmakeCollection"""
@@ -1023,7 +1026,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
     def makeCollection(self, requests):
         """ Create a new collection.
@@ -1051,7 +1054,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'success'], single = True)
+        return parse_node(get_data_node(xml), ['requestID', 'success'], single = True)
 
     def list(self, requests, neededMetadata = []):
         """ List the contents of a collection.
@@ -1096,7 +1099,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        elements = parse_node(xml.Child().Child().Child(),
+        elements = parse_node(get_data_node(xml),
             ['requestID', 'entries', 'status'], string = False)
         return dict([
             (   str(requestID), 
@@ -1135,7 +1138,7 @@ class BartenderClient(Client):
         )
         msg, _, _ = self.call(tree)
         xml = self.xmlnode_class(msg)
-        return parse_node(xml.Child().Child().Child(), ['requestID', 'status'], single = False)
+        return parse_node(get_data_node(xml), ['requestID', 'status'], single = False)
 
     def modify(self, requests):
         tree = XMLTree(from_tree =

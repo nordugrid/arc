@@ -48,6 +48,7 @@ def upload_to_turl(turl, protocol, fobj, size = None):
         chunk = fobj.read(CHUNKSIZE)
         uploaded = 0
         print '00%',
+        import time, sys
         t = time.time()
         while chunk:
             sys.stdout.flush()    
@@ -82,6 +83,7 @@ def download_from_turl(turl, protocol, fobj):
         chunk = r.read(CHUNKSIZE)
         downloaded = 0
         print '00%',
+        import time, sys
         t = time.time()
         while chunk:
             sys.stdout.flush()    
@@ -348,6 +350,9 @@ def node_to_data(node, names, single = False, string = True):
     else:
         # return the first item as a key, and all the rest items as a list
         return data[0], data[1:]
+
+def get_data_node(node):
+    return node.Get('Body').Child().Child()
 
 def get_child_nodes(node):
     """ Get all the children nodes of an XMLNode
