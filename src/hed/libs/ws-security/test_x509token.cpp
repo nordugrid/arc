@@ -43,7 +43,7 @@ int main(void) {
 
   /*Generate the encryption X509 Token*/
   Arc::SOAPEnvelope soap3(xml);
-  Arc::X509Token xt3(soap3, cert, key, Arc::X509Token::Encryption);
+  Arc::X509Token xt3(soap3, cert, "", Arc::X509Token::Encryption);
 
   xt3.GetXML(str);
   std::cout<<"SOAP message with X509Token and encrypted body:"<<std::endl<<str<<std::endl<<std::endl;

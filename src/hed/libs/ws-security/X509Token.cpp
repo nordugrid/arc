@@ -427,7 +427,11 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
 
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
-    //TODO: which key file will be used should be got according to the information in incoming soap head
+    //TODO: which key file will be used should be got according to the issuer name and 
+    //serial number information in incoming soap head
+    std::string issuer_name = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509IssuerName"]);
+    std::string serial_number = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509SerialNumber"]);
+ 
     keys_mngr = load_key_from_keyfile(&keys_mngr, "key.pem");
 
     xmlSecEncCtxPtr encCtx = NULL;
@@ -611,10 +615,12 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not load key"<<std::endl; return;
     }
+    /*
     if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not cert key"<<std::endl; return;	
     }
+    */
     if (xmlSecDSigCtxSign(dsigCtx, signature) < 0) {
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not sign soap message"<<std::endl; return;
@@ -699,7 +705,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
-    keys_mngr = load_key_from_certfile(&keys_mngr, "cert.pem"); //load_key_from_keyfile(&keys_mngr, "publickey.pem", 1);
+    keys_mngr = load_key_from_certfile(&keys_mngr, certfile.c_str());
 
     encCtx = xmlSecEncCtxCreate(keys_mngr);
     if(encCtx == NULL) {
@@ -765,19 +771,22 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode x509_data =  get_node(sec_token_ref, "ds:X509Data");
     XMLNode x509_issuer_serial = get_node(x509_data, "ds:X509IssuerSerial");
     XMLNode x509_issuer_name = get_node(x509_issuer_serial, "ds:X509IssuerName");
-    //x509_issuer_name = "OU=UIO, O=KNOWARC";
     XMLNode x509_serial_number = get_node(x509_issuer_serial, "ds:X509SerialNumber");
-    //x509_serial_number = "123456";
     //TODO: issuer name and issuer number should be extracted from certificate
     //There should be some way by which the sender could get the peer certificate
     //and use the public key inside this certificate to encrypt the message. 
-    std::string certfile = "cert.pem";
     X509* cert = NULL;
     BIO* certbio = NULL;
     certbio = BIO_new_file(certfile.c_str(), "r");
     cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
-    char* name = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
-    //char* name = X509_NAME_print_ex(X509_get_issuer_name(cert), )
+
+    //get formated issuer name from certificate
+    BIO* namebio = NULL;
+    namebio = BIO_new(BIO_s_mem());
+    X509_NAME_print_ex(namebio, X509_get_issuer_name(cert), 0, XN_FLAG_SEP_CPLUS_SPC);
+    char name[256]; 
+    int length = BIO_read(namebio, name, 256);
+    //char* name = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
 
     std::string issuer_name(name);
     OPENSSL_free(name);
