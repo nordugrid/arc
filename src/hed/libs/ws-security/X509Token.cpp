@@ -154,20 +154,18 @@ static xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool 
   int rc;
   std::string v(value.size(),'\0');
   xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
-  char* tmp_str = new char[value.size()];
-  memset(tmp_str,'\0', sizeof(tmp_str));
-  memcpy(tmp_str, value.c_str(), value.size());
-  rc = xmlSecBase64Decode((xmlChar*)(tmp_str), (xmlSecByte*)(v.c_str()), value.size());
+  xmlSecByte* tmp_str = new xmlSecByte[value.size()];
+  memset(tmp_str,0,value.size());
+  rc = xmlSecBase64Decode((const xmlChar*)(value.c_str()), tmp_str, value.size());
   if (rc < 0) {
     //bad base-64
-    v = value;
-    rc = v.size();
+    memcpy(tmp_str,value.c_str(),value.size());
+    rc = value.size();
   }
-  delete tmp_str;
-
   for (int i=0; key_formats[i] && key == NULL; i++) {
-    key = xmlSecCryptoAppKeyLoadMemory((xmlSecByte*)(v.c_str()), rc, key_formats[i], NULL, NULL, NULL);
+    key = xmlSecCryptoAppKeyLoadMemory(tmp_str, rc, key_formats[i], NULL, NULL, NULL);
   }
+  delete[] tmp_str;
   xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
 
   return key;
@@ -188,18 +186,7 @@ static xmlSecKey* get_key_from_certstr(const std::string& value) {
   };
 
   int rc;
-  std::string v(value.size(),'\0');
   xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
-  char* tmp_str = new char[value.size()];
-  memset(tmp_str,'\0', sizeof(tmp_str));
-  memcpy(tmp_str, value.c_str(), value.size());
-  rc = xmlSecBase64Decode((xmlChar*)(tmp_str), (xmlSecByte*)(v.c_str()), value.size());
-  if (rc < 0) {
-    //bad base-64
-    v = value;
-    rc = v.size();
-  }
-  delete tmp_str;
 
   BIO* certbio = NULL;
   std::string cert_value;
@@ -710,6 +697,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     }
 
     //The template has been inserted in the doc
+    ((X509Token*)(&body_cp))->node_ = (bodyPtr=encDataNode);
     encDataNode = NULL;
 
     //if(encCtx != NULL){ xmlSecEncCtxDestroy(encCtx); encCtx = NULL; }
