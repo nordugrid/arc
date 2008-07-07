@@ -15,6 +15,7 @@
 //#include <iomanip>
 
 #include <glibmm.h>
+#include <glibmm/thread.h>
 
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
@@ -72,53 +73,77 @@ static int passphrase_callback(char* buf, int size, int rwflag, void *) {
   return len;
 }
 
+static Glib::Mutex init_lock_;
+static bool has_init = false;
+
 static bool init_xmlsec(void) {
-  //Init libxml and libxslt libraries
-  xmlInitParser();
+  if(!has_init) {
+    init_lock_.lock(); 
+    has_init = true;
+    init_lock_.unlock();
 
-  //Init xmlsec library
-  if(xmlSecInit() < 0) {
-    std::cerr<<"XMLSec initialization failed"<<std::endl;
-    return false;
-  }
+    //Init libxml and libxslt libraries
+    xmlInitParser();
 
-  /* Load default crypto engine if we are supporting dynamic
-   * loading for xmlsec-crypto libraries. Use the crypto library
-   * name ("openssl", "nss", etc.) to load corresponding
-   * xmlsec-crypto library.
-   */
+    //Init xmlsec library
+    if(xmlSecInit() < 0) {
+      std::cerr<<"XMLSec initialization failed"<<std::endl;
+      goto err;
+    }
+
+    /* Load default crypto engine if we are supporting dynamic
+     * loading for xmlsec-crypto libraries. Use the crypto library
+     * name ("openssl", "nss", etc.) to load corresponding
+     * xmlsec-crypto library.
+     */
 #ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
-  if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
-    std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
+    if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
+      std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
                         "that you have it installed and check shared libraries path"
                         "(LD_LIBRARY_PATH) envornment variable."<<std::endl;
-    return false;
-  }
+      goto err;
+    }
 #endif /* XMLSEC_CRYPTO_DYNAMIC_LOADING */
 
-  // Init crypto library
-  if(xmlSecCryptoAppInit(NULL) < 0) {
-    std::cerr<<"crypto initialization failed"<<std::endl;
-    return false;
-  }
+    // Init crypto library
+    if(xmlSecCryptoAppInit(NULL) < 0) {
+      std::cerr<<"crypto initialization failed"<<std::endl;
+      goto err;
+    }
 
-  //Init xmlsec-crypto library
-  if(xmlSecCryptoInit() < 0) {
-    std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
+    //Init xmlsec-crypto library
+    if(xmlSecCryptoInit() < 0) {
+      std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
+      goto err;
+    }
+
+    return true;
+
+err:
+    init_lock_.lock();
+    has_init = false;
+    init_lock_.unlock();
     return false;
   }
   return true;
 }
 
-static bool final_xmlsec(void) {
-  //Shutdown xmlsec-crypto library
-  xmlSecCryptoShutdown();
-  //Shutdown crypto library 
-  xmlSecCryptoAppShutdown();  
-  //Shutdown xmlsec library
-  xmlSecShutdown();
-  //Shutdown libxml
-  xmlCleanupParser();
+static void final_xmlsec(void) {
+
+  if(has_init) {
+    init_lock_.lock();
+    has_init = false;
+    init_lock_.unlock();
+
+    //Shutdown xmlsec-crypto library
+    xmlSecCryptoShutdown();
+    //Shutdown crypto library 
+    xmlSecCryptoAppShutdown();  
+    //Shutdown xmlsec library
+    xmlSecShutdown();
+    //Shutdown libxml
+    xmlCleanupParser();
+  }
 }
 
 //Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
@@ -421,17 +446,24 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     }
     else { std::cout<<"Decryption succeed"<<std::endl; }
 
-    encrypted_data.GetXML(str);
-    std::cout<<"After Decryption++++: "<<str<<std::endl;
+    //encrypted_data.GetXML(str);
+    //std::cout<<"After Decryption: "<<str<<std::endl;
 
-    std::cout<<"Decrypted data++++: "<<decrypted_buf->data<<std::endl;
+    std::cout<<"Decrypted data: "<<decrypted_buf->data<<std::endl;
+
+    //Insert the decrypted data into soap body
+    std::string decrypted_str((const char*)decrypted_buf->data);
+    XMLNode decrypted_data = XMLNode(decrypted_str); 
+    body.Replace(decrypted_data);
+
+    //Destroy the wsse:Security in header
+    header["wsse:Security"].Destroy();
 
     //if(decrypted_buf != NULL)xmlSecBufferDestroy(decrypted_buf);
     if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
   }
 
-  //final_xmlsec();
 } 
 
 bool X509Token::Authenticate(void) {
@@ -591,10 +623,6 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
 
     std::string str;
-    header.GetXML(str);
-    std::cout<<"Header: "<<str<<std::endl;
-    body.GetXML(str);
-    std::cout<<"Body: "<<str<<std::endl;
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
   }
@@ -708,7 +736,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     //Put the encrypted information into soap head and soap body according to x509token specification
 
-    XMLNode encrypted_data = body_cp.GetRoot();
+    XMLNode encrypted_data = body_cp;//.GetRoot();
     encrypted_data.GetXML(str);
     std::cout<<"Encrypted data : "<<str<<std::endl; 
 
@@ -769,25 +797,13 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
 
-    header.GetXML(str);
-    std::cout<<"Header: "<<str<<std::endl;
-    body.GetXML(str);
-    std::cout<<"Body: "<<str<<std::endl;
     envelope.GetXML(str);
     std::cout<<"Envelope: "<<str<<std::endl;
-
- /*
-    XMLNode nd(str);
-    envelope.Replace(nd);
-    header=envelope["soap-env:Header"];
-    body=envelope["soap-env:Body"];
-    envelope.GetXML(str);
-    std::cout<<"Envelope:+++=====++++++ "<<str<<std::endl;
-*/
   }
+}
 
-  //final_xmlsec();
-
+X509Token::~X509Token(void) {
+  final_xmlsec();
 }
 } // namespace Arc
 

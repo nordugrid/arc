@@ -32,6 +32,8 @@ public:
   */
   X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType tokentype = Signature);
 
+  ~X509Token(void);
+
   /** Returns true of constructor succeeded */
   operator bool(void);
 
