@@ -16,7 +16,7 @@ use strict;
 our $lrms_info;
 our $options;
 
-our $running;
+our $running = 0;
 
 our $log = LogUtils->getLogger("LRMSInfo.fork");
 
@@ -240,7 +240,8 @@ sub users_info($$) {
     # queue length
 
     foreach my $u ( @{$accts} ) {
-        $lrms_users->{$u}{freecpus} = $lrms_queue->{maxuserrun} - $lrms_queue->{running};
+        my $freecpus = $lrms_queue->{maxuserrun} - $lrms_queue->{running};
+        $lrms_users->{$u}{freecpus} = { $freecpus => 0 };
         $lrms_users->{$u}{queuelength} = $lrms_queue->{queued};
     }
 }

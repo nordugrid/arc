@@ -75,7 +75,7 @@ sub _check_results($) {
     my $log = $self->{logger};
     my $schema = $self->_get_results_schema();
     my @messages = InfoChecker->new($schema)->verify($results,1);
-    $log->debug("Checker: results->$_") foreach @messages;
+    $log->warning("Checker: results->$_") foreach @messages;
 }
 
 

@@ -18,113 +18,10 @@ use LogUtils;
 
 use strict;
 
-my $arc0_options_schema = {
-    lrms => '',              # name of the LRMS module
-    gridmap => '',
-    x509_user_cert => '',
-    x509_cert_dir => '',
-    sessiondir => '',
-    cachedir => '*',
-    ng_location => '',
-    runtimedir => '*',
-    processes => [ '' ],
-    queues => {              # queue names are keys in this hash
-        '*' => {
-            name => '*'
-        }
-    }
-};
-
 my $arc0_info_schema = ARC0ClusterSchema::arc0_info_schema();
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
-
-# override InfoCollector base class methods
-
-sub _get_options_schema {
-    return $arc0_options_schema;
-}
-sub _get_results_schema {
-    return $arc0_info_schema;
-}
-
-sub _collect($$) {
-    my ($self,$config) = @_;
-
-    # get all local users from grid-map. Sort unique
-    my %saw = ();
-    my $usermap = read_grid_mapfile($config->{gridmap});
-    my @localusers = grep !$saw{$_}++, values %$usermap;
-
-    my $host_info = get_host_info($config,\@localusers);
-
-    my $gmjobs_info = get_gmjobs_info($config);
-
-    my @jobids;
-    for my $job (values %$gmjobs_info) {
-        # Uncomment later! Query all jobs for now
-        #next unless $job->{status} eq 'INLRMS';
-        next unless $job->{localid};
-        push @jobids, $job->{localid};
-    }
-    my $lrms_info = get_lrms_info($config,\@localusers,\@jobids);
-
-    return get_cluster_info ($config, $usermap, $host_info, $gmjobs_info, $lrms_info);
-}
-
-############################################################################
-# Call other InfoCollectors
-############################################################################
-
-sub get_host_info($$) {
-    my ($config,$localusers) = @_;
-
-    my $host_opts = { %$config, localusers => $localusers };
-
-    return HostInfo->new()->get_info($host_opts);
-}
-
-sub get_gmjobs_info($) {
-    my $config = shift;
-    my $gmjobs_opts = { controldir => $config->{controldir} };
-    return GMJobsInfo->new()->get_info($gmjobs_opts);
-}
-
-sub get_lrms_info($$$) {
-    my ($config,$localusers,$jobids) = @_;
-
-    # possibly any options from config are needed , so just clone it all
-    my $options = Storable::dclone($config);
-    $options->{jobs} = $jobids;
-
-    my @queues = keys %{$options->{queues}};
-    for my $queue ( @queues ) {
-        $options->{queues}{$queue}{users} = $localusers;
-    }
-    return LRMSInfo->new()->get_info($options);
-}
-
-#### grid-mapfile hack #####
-
-sub read_grid_mapfile($) {
-    my $gridmapfile = shift;
-    my $usermap = {};
-
-    unless (open MAPFILE, "<$gridmapfile") {
-        $log->warning("can't open gridmapfile at $gridmapfile");
-        return;
-    }
-    while(my $line = <MAPFILE>) {
-        chomp($line);
-        if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
-            $usermap->{$1} = $2;
-        }
-    }
-    close MAPFILE;
-
-    return $usermap;
-}
 
 sub mds_valid($){
     my $ttl = shift;
@@ -141,8 +38,22 @@ sub mds_valid($){
 # Combine info from all sources to prepare the final representation
 ############################################################################
 
-sub get_cluster_info($$$$) {
-    my ($config,$usermap,$host_info,$gmjobs_info,$lrms_info) = @_;
+# override InfoCollector base class methods
+
+sub _get_options_schema {
+    return {}; # too many inputs to name all
+}
+sub _get_results_schema {
+    return $arc0_info_schema;
+}
+
+sub _collect($$) {
+    my ($self,$options) = @_; 
+    my $config = $options->{config};
+    my $usermap = $options->{usermap};
+    my $host_info = $options->{host_info};
+    my $gmjobs_info = $options->{gmjobs_info};
+    my $lrms_info = $options->{lrms_info};
 
     my ($valid_from, $valid_to) = $config->{ttl} ? mds_valid($config->{ttl}) : ();
 
@@ -538,80 +449,6 @@ sub get_cluster_info($$$$) {
     return $c;
 }
 
-
-#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
-
-my $config = {
-          'lrms' => 'sge',
-          #'lrms' => 'fork',
-          'pbs_log_path' => '/var/spool/pbs/server_logs',
-          'pbs_bin_path' => '/opt/pbs',
-          'sge_cell' => 'cello',
-          'sge_root' => '/opt/n1ge6',
-          'sge_bin_path' => '/opt/n1ge6/bin/lx24-x86',
-          'll_bin_path' => '/opt/ibmll/LoadL/full/bin',
-          'lsf_profile_path' => '/usr/share/lsf/conf',
-
-          'hostname' => 'squark.uio.no',
-          'opsys' => 'Linux-2.4.21-mypatch[separator]glibc-2.3.1[separator]Redhat-7.2',
-          'architecture' => 'adotf',
-          'nodememory' => '512',
-          'middleware' => 'Cheese and Salad[separator]nordugrid-old-and-busted',
-
-          'ng_location' => '/opt/nordugrid',
-          'gridmap' => '/etc/grid-security/grid-mapfile',
-          'controldir' => '/tmp/arc1/control',
-          'sessiondir' => '/tmp/arc1/session',
-          'runtimedir' => '/home/grid/runtime',
-          'cachedir' => '/home/grid/cache',
-          'cachesize' => '10000000000 8000000000',
-          'authorizedvo' => 'developer.nordugrid.org',
-          'x509_user_cert' => '/etc/grid-security/hostcert.pem',
-          'x509_user_key' => '/etc/grid-security/hostkey.pem',
-          'x509_cert_dir' => '/scratch/adrianta/arc1/etc/grid-security/certificates',
-
-          'processes' => [ 'gridftpd', 'grid-manager', 'arched' ],
-          'nodeaccess' => 'inbound[separator]outbound',
-          'homogeneity' => 'TRUE',
-          'gm_mount_point' => '/jobs',
-          'gm_port' => '2811',
-          'defaultttl' => '259200',
-          'ttl' => '600',
-
-          'mail' => 'v.a.taga@fys.uio.no',
-          'cluster_alias' => 'Big Blue Cluster in Nowhere',
-          'clustersupport' => 'v.a.taga@fys.uio.no',
-          'cluster_owner' => 'University of Oslo',
-          'cluster_location' => 'NO-xxxx',
-          'comment' => 'Adrian\'s test bed cluster',
-          'benchmark' => 'SPECFP2000 333[separator]BOGOMIPS 1000',
-
-          'queues' => {
-                        'all.q' => {
-                                     'name' => 'all.q',
-                                     'sge_jobopts' => '-r yes',
-                                     'nodecpu' => 'adotf',
-                                     'opsys' => 'Mandrake 7.0',
-                                     'architecture' => 'adotf',
-                                     'nodememory' => '512',
-                                     'comment' => 'Dedicated queue for ATLAS users'
-                                   }
-                      },
-        };
-
-sub test {
-    require Data::Dumper; import Data::Dumper qw(Dumper);
-    LogUtils->getLogger()->level($LogUtils::DEBUG);
-
-    my $cluster_info = ARC0ClusterInfo->new()->get_info($config);
-    #print Dumper($cluster_info);
-
-    require XML::Simple;
-    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'n:nordugrid', KeyAttr => ['name']);
-    print $xml->XMLout($cluster_info);
-}
-
-#test;
 
 1;
 
