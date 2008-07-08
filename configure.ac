@@ -828,6 +828,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
                  src/clients/pdp/Makefile
+                 src/clients/pdp/arcdecision.1
                  src/clients/isis/Makefile
                  src/clients/wsrf/Makefile
                  src/clients/wsrf/apinfo.1

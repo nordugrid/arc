@@ -234,6 +234,8 @@ exit 0
 %doc %{_mandir}/man1/arcclean.1*
 %{_bindir}/arckill
 %doc %{_mandir}/man1/arckill.1*
+%{_bindir}/arcdecision
+%doc %{_mandir}/man1/arcdecision.1*
 %{_bindir}/perftest
 %{_bindir}/glitesub
 %{_bindir}/glitestat
