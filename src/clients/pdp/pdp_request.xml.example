@@ -1,16 +1,16 @@
-<Request xmlns:ra="http://www.nordugrid.org/schemas/request-arc">
-  <RequestItem>
-    <Resource Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">/Echo</Resource>
-    <Action Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method">POST</Action>
-    <Subject>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint">127.0.0.1:33933</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca">/C=NO/ST=Oslo/O=UiO/CN=CA</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=test</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/subject">/C=NO/ST=Oslo/O=UiO/CN=test</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity">/C=NO/ST=Oslo/O=UiO/CN=test</SubjectAttribute>
-      <SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity">/C=NO/ST=Oslo/O=UiO/CN=test</SubjectAttribute>
-    </Subject>
-  </RequestItem> 
-</Request>
+<ra:Request xmlns:ra="http://www.nordugrid.org/schemas/request-arc">
+  <ra:RequestItem>
+    <ra:Resource Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">/Echo</ra:Resource>
+    <ra:Action Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method">POST</ra:Action>
+    <ra:Subject>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint">127.0.0.1:33933</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=test</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/subject">/C=NO/ST=Oslo/O=UiO/CN=test</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity">/C=NO/ST=Oslo/O=UiO/CN=test</ra:SubjectAttribute>
+      <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity">/C=NO/ST=Oslo/O=UiO/CN=test</ra:SubjectAttribute>
+    </ra:Subject>
+  </ra:RequestItem> 
+</ra:Request>
