@@ -1,0 +1,110 @@
+.TH arckill 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+
+.SH NAME
+
+arckill \- ARC Kill
+
+.SH DESCRIPTION
+
+The
+.B arckill
+command is used to kill running jobs.
+
+.SH SYNOPSIS
+
+.B arckill [options] [job ...]
+
+.SH OPTIONS
+
+.IP "\fB-a\fR, \fB-all\fR"
+all jobs
+.IP "\fB-j\fR \fIfilename\fR, \fB-joblist\fR \fIfilename\fR"
+file containing a list of jobids
+.IP "\fB-c\fR [-]\fIname\fR, \fB-cluster\fR [-]\fIname\fR"
+explicitly select or reject a specific cluster
+.IP "\fB-s\fR \fIstatusstr\fR, \fB-status\fR \fIstatusstr\fR"
+only select jobs whose status is statusstr
+.IP "\fB-k\fR, \fB-keep\fR"
+keep files on gatekeeper (do not clean)
+.IP "\fB-t\fR \fItime\fR, \fB-timeout\fR \fItime\fR"
+timeout for network operations in seconds
+.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB-version\fR"
+print version information
+.IP "\fB-?\fR, \fB-help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBjob\fR ..."
+list of jobids and/or jobnames
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arckill
+command kills a running job on an ARC enabled resource. The job can be
+referred to either by the jobid that was returned by
+.BR arcsub (1)
+at submission time or by its jobname if the job description that was
+submitted contained a jobname attribute.
+
+More than one jobid and/or jobname can be given. If several jobs were
+submitted with the same jobname all those jobs are killed. If the
+.B -joblist
+option is used the list of jobids is read from a file with the
+specified filename. By specifying the
+.B -all
+option, all jobs can be killed.
+
+The
+.B -cluster
+option can be used to select or reject jobs at specific clusters. The
+.B -status
+option can be used to select jobs in a specific state. These options
+can be repeated several times.
+
+If the job was successfully killed the job will be removed from the
+remote cluster unless the
+.B -keep
+option was specified.
+
+.SH FILES
+
+.TP
+.B .arc/config.xml
+Some options can be given default values by specifying them in the
+ARC configuration file.
+
+.TP
+.B .arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully submitted it is added to this list and when it is removed
+from the remote cluster it is removed from this list. This list is
+used as the list of all active jobs when the user specifies the
+.B -all
+option to the various NorduGrid ARC user interface commands.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arcsub (1),
+.BR arcstat (1),
+.BR arcget (1),
+.BR arcclean (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1).

@@ -1,0 +1,151 @@
+.TH arcsub 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+
+.SH NAME
+
+arcsub \- ARC Submission
+
+.SH DESCRIPTION
+
+The
+.B arcsub
+command is used for submitting jobs to grid enabled computing
+resources.
+
+.SH SYNOPSIS
+
+.B arcsub [options] [filename ...]
+
+.SH OPTIONS
+
+.IP "\fB-c\fR [-]\fIname\fR, \fB-cluster\fR [-]\fIname\fR"
+explicitly select or reject a specific cluster
+.IP "\fB-i\fR \fIurl\fR, \fB-indexurl\fR \fIurl\fR"
+url to an information index server
+.IP "\fB-e\fR \fIstring\fR, \fB-jobdescrstring \fIstring"
+jobdescription string describing the job to be submitted
+.IP "\fB-f\fR \fIfilename\fR, \fB-jobdescrfile \fIfilename"
+jobdescription file describing the job to be submitted
+.IP "\fB-j\fR \fIfilename\fR, \fB-joblist\fR \fIfilename\fR"
+file where the jobids will be stored
+.IP "\fB-D\fR, \fB-dryrun\fR"
+add dryrun option
+.IP "\fB-x\fR, \fB-dumpdescription\fR"
+do not submit \- dump transformed job description to stdout
+.IP "\fB-U\fR, \fB-unknownattr\fR"
+allow unknown attributes in job description - pass them through
+.IP "\fB-t\fR \fItime\fR, \fB-timeout\fR \fItime\fR"
+timeout for network operations in seconds
+.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB-version\fR"
+print version information
+.IP "\fB-?\fR, \fB-help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBfilename\fR ..."
+job description files describing the jobs to be submitted
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcsub
+command is used for submitting jobs to grid enabled computing
+resources.
+
+The
+.B -cluster
+option can be used to force the job to be submitted to a particular
+cluster, or to reject submission to a particular cluster. The
+.B -cluster
+option can be repeated several times.
+
+.IR Examples :
+.IP "\fBarcsub -c ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.nbi.dk,Mds-Vo-name=local,o=grid -c ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid\fR ..."
+submit the job to either grid.nbi.dk or grid.tsl.uu.se
+.IP "\fBarcsub -c -ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.quark.lu.se,Mds-Vo-name=local,o=grid -c -ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.nbi.dk,Mds-Vo-name=local,o=grid\fR ..."
+don't submit the job to grid.quark.lu.se or grid.nbi.dk
+.LP
+
+The job description that describes the job can be given either on the
+command line using the \fB-jobdescrstring\fR option or be read from a
+file using the \fB-jobdescrfile\fR option. Several jobs can be
+requested at the same time by giving more than one
+\fB-jobdescrstring\fR or \fB-jobdescrfile\fR option. It is also
+possible to mix \fB-jobdescrstring\fR and \fB-jobdescrfile\fR options
+in the same \fBarcsub\fR command.
+
+The user interface transforms the job description into a format that
+can be understood by the grid-manager to which it is being
+submitted. By specifying the \fB-dumpdescription\fR option the
+transformed job description is written to stdout instead of being
+submitted to the remote cluster.
+
+If the job is successfully submitted a jobid is printed to
+stdout. This jobid uniquely identifies the job while it is being
+executed. If the
+.B -joblist
+option is given the jobid is also written to a file with the specified
+filename. This file can later be used with the
+.B -joblist
+option of the other user interface commands.
+
+The
+.B arcsub
+command locates the available clusters by querying information index
+servers. Which servers to query can be specified by giving the
+.B -indexurl
+option to the command. The url to the index server should be given in
+the format
+
+.B FLAVOR:protocol://hostname[:port]/path
+
+Several indices can be specified by repeating the \fB-indexurl\fR
+option:
+
+.B arcsub
+.B -indexurl
+.I url1
+.B -indexurl
+.I url2
+...
+
+.SH FILES
+
+.TP
+.B .arc/config.xml
+Some options can be given default values by specifying them in the
+ARC configuration file.
+
+.TP
+.B .arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully submitted it is added to this list and when it is removed
+from the remote cluster it is removed from this list. This list is
+used as the list of all active jobs when the user specifies the
+.B -all
+option to the various NorduGrid ARC user interface commands.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arcget (1),
+.BR arckill (1),
+.BR arcclean (1),
+.BR arcstat (1),
+.BR arccp (1),
+.BR arcls (1),
+.BR arcrm (1).

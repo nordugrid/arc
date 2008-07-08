@@ -630,7 +630,7 @@ AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
 AC_FUNC_STAT
-AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strerror_r strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv getopt_long_only])
+AC_CHECK_FUNCS([acl bzero dup2 floor ftruncate gethostbyname_r gethostname getpid gmtime_r lchown localtime_r memchr memmove memset mkdir mkfifo regcomp rmdir select sigwaitinfo setenv socket strcasecmp strchr strcspn strdup strerror strncasecmp strstr strtol strtoul strtoull timegm tzset unsetenv getopt_long_only])
 AC_CHECK_LIB([resolv], [res_query], [LIBRESOLV=-lresolv], [LIBRESOLV=])
 AC_CHECK_LIB([resolv], [__dn_skipname], [LIBRESOLV=-lresolv], [LIBRESOLV=])
 AC_CHECK_LIB([nsl], [gethostbyname], [LIBRESOLV="$LIBRESOLV -lnsl"], [])
@@ -700,7 +700,8 @@ AC_SUBST(runtime_local_scratch_dir)
 AC_SUBST(runtime_frontend_sees_node)
 AC_SUBST(runtime_node_sees_frontend)
 
-
+DATE=`date -I`
+AC_SUBST(DATE)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -833,6 +834,11 @@ AC_CONFIG_FILES([Makefile
                  src/clients/credentials/Makefile
                  src/clients/credentials/approxy.1
                  src/clients/arclib/Makefile
+                 src/clients/arclib/arcstat.1
+                 src/clients/arclib/arcsub.1
+                 src/clients/arclib/arcclean.1
+                 src/clients/arclib/arckill.1
+                 src/clients/arclib/arcget.1
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile

@@ -225,10 +225,15 @@ exit 0
 %{_bindir}/arcrm
 %doc %{_mandir}/man1/arcrm.1*
 %{_bindir}/arcstat
+%doc %{_mandir}/man1/arcstat.1*
 %{_bindir}/arcsub
+%doc %{_mandir}/man1/arcsub.1*
 %{_bindir}/arcget
+%doc %{_mandir}/man1/arcget.1*
 %{_bindir}/arcclean
+%doc %{_mandir}/man1/arcclean.1*
 %{_bindir}/arckill
+%doc %{_mandir}/man1/arckill.1*
 %{_bindir}/perftest
 %{_bindir}/glitesub
 %{_bindir}/glitestat
