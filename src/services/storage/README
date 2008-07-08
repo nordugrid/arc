@@ -72,6 +72,9 @@ You need some working directories and a place for a logfile, e.g.:
 
 Or of course you can put them anywhere, just you need to change the paths in the configuration (service.xml) file.
 
+You may put '/usr/local/lib/pythonX.X/site-packages' to the PYTHONPATH environment variable:
+    export PYTHONPATH=...
+
 You may add the external interface of your machine to the section where it is indicated in the configuration file:
     <!-- Change this prefix to the external interface of your machine -->
     <TURLPrefix>http://localhost:60000/httpd/</TURLPrefix>
