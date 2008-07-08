@@ -209,6 +209,7 @@ sub queue_info ($) {
     }
     $lrms_queue->{maxrunning} = $job_limit;
     $lrms_queue->{maxuserrun} = $job_limit;
+    $lrms_queue->{maxqueuable} = $job_limit;
 
     chomp( my $maxcputime = `ulimit "-t" 2>/dev/null` );
     if ($maxcputime =~ /^\d+$/) {
@@ -219,7 +220,6 @@ sub queue_info ($) {
     }
 
     $lrms_queue->{queued} = 0;
-    $lrms_queue->{maxqueuable} = 0;
     #$lrms_queue->{mincputime} = "";
     #$lrms_queue->{defaultcput} = "";
     #$lrms_queue->{minwalltime} = "";

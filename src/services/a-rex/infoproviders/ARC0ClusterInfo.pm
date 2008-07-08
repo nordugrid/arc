@@ -60,7 +60,6 @@ sub _collect($$) {
     # adotf means autodetect on the frontend
     $config->{architecture} = $host_info->{architecture} if $config->{architecture} eq 'adotf';
     $config->{nodecpu} = $host_info->{nodecpu} if $config->{nodecpu} eq 'adotf';
-    $config->{opsys} = $host_info->{opsys} if $config->{opsys} eq 'adotf';
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
@@ -322,7 +321,7 @@ sub _collect($$) {
             $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ];
             $j->{'nuj0:execqueue'} = [ $qname ];
             $j->{'nuj0:cpucount'} = [ $gmjob->{count} || 1 ];
-            $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ];
+            $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
             $j->{'nuj0:stdin'}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};
             $j->{'nuj0:stdout'} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
             $j->{'nuj0:stderr'} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
@@ -374,8 +373,8 @@ sub _collect($$) {
                 # the job has passed the 'INLRMS' state
 
                 $j->{'nuj0:status'} = [ $gmjob->{status} ];
-                $j->{'nuj0:usedwalltime'} = [ $gmjob->{WallTime} || 0 ];
-                $j->{'nuj0:usedcputime'} = [ $gmjob->{CpuTime} || 0 ];
+                $j->{'nuj0:usedwalltime'} = [ $gmjob->{WallTime} ] if defined $gmjob->{WallTime};
+                $j->{'nuj0:usedcputime'} = [ $gmjob->{CpuTime} ] if defined $gmjob->{CpuTime};
                 $j->{'nuj0:executionnodes'} = $gmjob->{nodenames} if $gmjob->{nodenames};
                 $j->{'nuj0:usedmem'} = [ $gmjob->{UsedMem} ] if $gmjob->{UsedMem};
                 $j->{'nuj0:completiontime'} = [ $gmjob->{completiontime} ] if $gmjob->{completiontime};

@@ -225,8 +225,7 @@ sub get_gmjobs_info($) {
             unless ( open (GMJOB_DIAG, "<$gmjob_diag") ) {
                 $log->warning("Can't open $gmjob_diag");
             } else {
-                my $kerneltime = 0;
-                my $usertime = 0;
+                my ($kerneltime, $usertime);
                 while (my $line = <GMJOB_DIAG>) {
                     $line=~m/nodename=(\S+)/ and
                         push @{$gmjobs{$ID}{nodenames}}, $1;
@@ -243,7 +242,8 @@ sub get_gmjobs_info($) {
                 }
                 close GMJOB_DIAG;
 
-                $gmjobs{$ID}{CpuTime}= ceil( ($kerneltime + $usertime)/ 60);
+                $gmjobs{$ID}{CpuTime}= ceil( ($kerneltime + $usertime)/ 60)
+                    if defined $kerneltime and defined $usertime;
             }
         }
     }

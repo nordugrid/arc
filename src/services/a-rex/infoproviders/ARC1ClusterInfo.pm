@@ -55,7 +55,6 @@ sub _collect($$) {
     # adotf means autodetect on the frontend
     $config->{architecture} = $host_info->{architecture} if $config->{architecture} eq 'adotf';
     $config->{nodecpu} = $host_info->{nodecpu} if $config->{nodecpu} eq 'adotf';
-    $config->{opsys} = $host_info->{opsys} if $config->{opsys} eq 'adotf';
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
@@ -79,20 +78,13 @@ sub _collect($$) {
     # number of slots needed by all waiting jobs, per queue
     my %requestedslots;
 
-    JOBLOOP:
     for my $job (values %{$gmjobs_info}) {
         my $qname = $job->{queue} || '';
 
-        $log->error("queue not defined") and next JOBLOOP unless $qname;
+        $log->error("queue not defined") and next unless $qname;
 
         $gmtotalcount{totaljobs}++;
         $gmqueuecount{$qname}{totaljobs}++;
-
-        next JOBLOOP if $job->{status} eq 'DELETED';
-
-        # if we got to this point, the job was not yet deleted
-        $gmtotalcount{notdeleted}++;
-        $gmqueuecount{$qname}{notdeleted}++;
 
         # count grid jobs running and queued in LRMS for each queue
 
@@ -112,43 +104,59 @@ sub _collect($$) {
 
         # count by GM state
 
-        my %states = ( FINISHED  => 'finished',
-                       FAILED    => 'finished',
-                       KILLED    => 'finished',
-                       FINISHING => 'finishing',
-                       CANCELING => 'canceling',
-                       INLRMS    => 'inlrms',
-                       SUBMIT    => 'submit',
-                       PREPARING => 'preparing',
-                       ACCEPTED  => 'accepted');
+        my @states = ( { ACCEPTED  => 'accepted'  },
+                       { PREPARING => 'preparing' },
+                       { SUBMIT    => 'submit'    },
+                       { INLRMS    => 'inlrms'    },
+                       { CANCELING => 'canceling' },
+                       { FINISHING => 'finishing' },
+                       { KILLED    => 'finished'  },
+                       { FAILED    => 'finished'  },
+                       { FINISHED  => 'finished'  },
+                       { DELETED   => 'deleted'   } );
 
-        # loop GM states, from later to earlier
-        for my $state_match (keys %states) {
-            my $state_name = $states{$state_match};
+        STATES: {
+            for my $state (@states) {
+                my ($state_match, $state_name) = %$state;
 
-            if ($job->{status} =~ /$state_match/) {
-                $gmtotalcount{$state_name}++;
-                $gmqueuecount{$qname}{$state_name}++;
-                next JOBLOOP;
+                if ($job->{status} =~ /$state_match/) {
+                    $gmtotalcount{$state_name}++;
+                    $gmqueuecount{$qname}{$state_name}++;
+                    last STATES;
+                }
             }
+            # none of the %states matched this job
+            $log->error("Unexpected job status: $job->{status}");
+        };
 
-            next JOBLOOP if $state_match eq 'FINISHING';
 
-            # if we got to this point, the job has not yet finished
-            $gmtotalcount{notfinished}++;
-            $gmqueuecount{$qname}{notfinished}++;
+        next if $job->{status} eq 'DELETED';
 
-            next JOBLOOP if $state_match eq 'INLRMS';
+        # if we got to this point, the job was not yet deleted
+        $gmtotalcount{notdeleted}++;
+        $gmqueuecount{$qname}{notdeleted}++;
 
-            # if we got to this point, the job whas not yet reached the LRMS
-            $gmtotalcount{notsubmitted}++;
-            $gmqueuecount{$qname}{notsubmitted}++;
+        next if $job->{status} =~ /FINISHED/;
+        next if $job->{status} =~ /FAILED/;
+        next if $job->{status} =~ /KILLED/;
 
-            $requestedslots{$qname} += $job->{count} || 1;
-        }
+        # if we got to this point, the job has not yet finished
+        $gmtotalcount{notfinished}++;
+        $gmqueuecount{$qname}{notfinished}++;
 
-        # none of the %states matched this job
-        $log->error("Unexpected job status: $job->{status}");
+        next if $job->{status} =~ /FINISHING/;
+        next if $job->{status} =~ /CANCELING/;
+        next if $job->{status} =~ /INLRMS/;
+
+        # if we got to this point, the job whas not yet reached the LRMS
+        $gmtotalcount{notsubmitted}++;
+        $gmqueuecount{$qname}{notsubmitted}++;
+        $requestedslots{$qname} += $job->{count} || 1;
+
+        next if $job->{status} =~ /SUBMIT/;
+        next if $job->{status} =~ /PREPARING/;
+        next if $job->{status} =~ /ACCEPTED/;
+
     }
 
     my %prelrmsqueued;
@@ -434,7 +442,7 @@ sub _collect($$) {
         }
 
         # OBS: Finished/failed/deleted jobs are not counted
-        $csha->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
+        $csha->{TotalJobs} = [ $gmqueuecount{$qname}{notfinished} || 0 ];
 
         $csha->{RunningJobs} = [ $lrmsgridrunning{$qname} || 0 ];
         $csha->{WaitingJobs} = [ $lrmsgridqueued{$qname} || 0 ];
