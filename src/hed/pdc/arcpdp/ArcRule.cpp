@@ -256,23 +256,17 @@ MatchResult ArcRule::match(EvaluationCtx* ctx){
   act_idmatched = ID_NO_MATCH;
   ctx_idmatched = ID_NO_MATCH;
 
+  MatchResult sub_matched, res_matched, act_matched, ctx_matched;
+  sub_matched = itemMatch(subjects, evaltuple->sub, sub_idmatched);
+  res_matched = itemMatch(resources, evaltuple->res, res_idmatched);
+  act_matched = itemMatch(actions, evaltuple->act, act_idmatched);
+  ctx_matched = itemMatch(conditions, evaltuple->ctx, ctx_idmatched);
+
   if(
-      (
-        subjects.empty() ||
-        (itemMatch(subjects, evaltuple->sub, sub_idmatched)==MATCH)
-      ) &&
-      (
-        resources.empty() ||
-        (itemMatch(resources, evaltuple->res, res_idmatched)==MATCH)
-      ) &&
-      (
-        actions.empty() || 
-        (itemMatch(actions, evaltuple->act, act_idmatched)==MATCH)
-      ) &&
-      (
-        conditions.empty() || 
-        (itemMatch(conditions, evaltuple->ctx, ctx_idmatched)==MATCH)
-      )
+      ( subjects.empty() || sub_matched==MATCH) &&
+      ( resources.empty() || res_matched==MATCH) &&
+      ( actions.empty() || act_matched==MATCH) &&
+      ( conditions.empty() || ctx_matched==MATCH)
     )
     return MATCH;
   else return NO_MATCH;
@@ -301,7 +295,7 @@ Result ArcRule::eval(EvaluationCtx*){// ctx){
        (res_idmatched == ID_MATCH || res_idmatched == ID_PARTIAL_MATCH) &&
        (act_idmatched == ID_MATCH || act_idmatched == ID_PARTIAL_MATCH)
       )
-    {
+    { 
       result = DECISION_DENY;
       evalres.effect = "Deny";
     }
