@@ -279,6 +279,8 @@ exit 0
 #
 %{_libexecdir}/ARC0ClusterInfo.pm
 %{_libexecdir}/ARC0ClusterSchema.pm
+%{_libexecdir}/ARC1ClusterInfo.pm
+%{_libexecdir}/ARC1ClusterSchema.pm
 %{_libexecdir}/ConfigParser.pm
 %{_libexecdir}/GMJobsInfo.pm
 %{_libexecdir}/HostInfo.pm
