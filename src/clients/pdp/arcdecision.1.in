@@ -1,0 +1,60 @@
+.TH arcdecision 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+
+.SH NAME
+
+arcdecision \- ARC client to PDP service
+
+.SH DESCRIPTION
+
+The
+.B arcdecision
+command is a prototype client which is used for sending a policy decision request to a pdp service.
+
+.SH SYNOPSIS
+
+.B arcdecision [options] [filename ...]
+
+./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml
+
+.SH OPTIONS
+
+.IP "\fB-c\fR [-]\fIconfigurefile\fR, \fB-conf\fR [-]\fIconfigurefile\fR"
+specify the configuration file of pdp client
+.IP "\fB-d\fR \fIdebuglevel\fR, \fB-debug\fR \fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE
+.IP "\fB-v\fR, \fB-version\fR"
+print version information
+.IP "\fB-?\fR, \fB-help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBserviceurl\fR ..."
+url to pdp service
+.IP "\fBrequestfile\fR ..."
+request file including the formatted pdp request
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcdecision
+command is a prototype client which is used for sending a policy decision request to a pdp service.
+
+.IR Examples :
+.IP "\fBarcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml\fR ..."
+send the request to https://127.0.0.1:60001
+.LP
+
+.SH FILES
+
+.TP
+.B .arc/config.xml
+Some options can be given default values by specifying them in the
+ARC configuration file.
+
+.SH AUTHOR
+
+Weizhong Qiang <weizhong.qiang@fys.uio.no>
+

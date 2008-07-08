@@ -1,6 +1,8 @@
 bin_PROGRAMS = arcdecision
 doc_DATA = pdp_client.xml request.xml
 
+man_MANS = arcdecision.1 
+
 CLILIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
           $(top_srcdir)/src/hed/libs/client/libarcclient.la \
           $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
