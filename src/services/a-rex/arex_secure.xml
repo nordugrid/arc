@@ -40,7 +40,7 @@
 	   PDP compares Distinguished Name of connecting client against
 	   list of allowed DNs. DNs are stored in external file one per line.
 	   They may be enclosed in '"'. -->
-      <SecHandler name="simplelist.authz" id="pdps" event="incoming">
+      <SecHandler name="arc.authz" id="pdps" event="incoming">
         <PDP name="simplelist.pdp" location="/etc/grid-security/grid-mapfile"/>
       </SecHandler>
       <!-- Evaluate requestor's identity into local identity.
