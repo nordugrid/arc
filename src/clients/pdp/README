@@ -2,4 +2,49 @@ arcdecision -- client for accessing pdp service and get
 decision result
 Firstly, make sure the ARC_LOCATION has been set.
 The usage is like this:
-./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60001 request.xml
+./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60000/PDP_Service pdp_request.xml
+
+Explaination about the arguments:
+-c pdp_client.xml   specify the configuration information about client, 
+                    see $ARC_LOCATION/share/doc/arc/pdp_client.xml.example
+-d FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE   specify debug level 
+service url   specify the url of pdp service
+request file  the request should be in specific format, 
+              see $ARC_LOCATION/share/doc/arc/pdp_request.xml.example
+
+If succeed to send the request, you can get back the policy decision information 
+like below:
+<soap-env:Envelope xmlns:pdp="http://www.nordugrid.org/schemas/pdp" xmlns:ra="http://www.nordugrid.org/schemas/request-arc" xmlns:response="http://www.nordugrid.org/schemas/response-arc" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap-env:Body>
+    <pdp:GetPolicyDecisionResponse>
+     <response:Response>
+      <response:AuthZResult>PERMIT</response:AuthZResult>
+      <ra:RequestItem xmlns:ra="http://www.nordugrid.org/schemas/request-arc">
+       <ra:Subject>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint">127.0.0.1:33933</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=test</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/subject">/C=NO/ST=Oslo/O=UiO/CN=test</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/identity">/C=NO/ST=Oslo/O=UiO/CN=test</ra:Attribute>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity">/C=NO/ST=Oslo/O=UiO/CN=test</ra:Attribute>
+       </ra:Subject>
+       <ra:Resource>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">/Echo</ra:Attribute>
+       </ra:Resource>
+       <ra:Action>
+        <ra:Attribute ra:Type="string" ra:AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method">POST</ra:Attribute>
+       </ra:Action>
+      </ra:RequestItem>
+     </response:Response>
+    </pdp:GetPolicyDecisionResponse>
+   </soap-env:Body>
+</soap-env:Envelope>
+
+The policy decision result is inside soap body. It include the decision "PERMIT" or "DENY", 
+and the <RequestItem/>s which have satisfed the policy. Because the request can include a 
+number of <RequestItem/>s, and some of them may satisfy policy but some not. It is the policy
+enforcement point to make the real decision according to the response from pdp service, especially
+those <RequestItem/>s which satisfy policy. So the decision result given by pdp_service is 
+only a suggestive decision.
