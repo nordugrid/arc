@@ -40,6 +40,8 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     subjectattr = ((*sit)->getAttributeValue())->encode();
     XMLNode subjectattr_attr = subjectattr.NewAttribute("ra:Type");
     subjectattr_attr = ((*sit)->getAttributeValue())->getType();
+    subjectattr_attr = subjectattr.NewAttribute("ra:AttributeId");
+    subjectattr_attr = ((*sit)->getAttributeValue())->getId();
 
 /*  AttributeValue *attrval;
     attrval = (*sit)->getAttributeValue();
@@ -63,6 +65,8 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     resourceattr = ((*rit)->getAttributeValue())->encode();
     XMLNode resourceattr_attr = resourceattr.NewAttribute("ra:Type");
     resourceattr_attr = ((*rit)->getAttributeValue())->getType();
+    resourceattr_attr = resourceattr.NewAttribute("ra:AttributeId");
+    resourceattr_attr = ((*rit)->getAttributeValue())->getId();
   }
 
   //Reconstruct action
@@ -81,6 +85,8 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     actionattr = ((*ait)->getAttributeValue())->encode();
     XMLNode actionattr_attr = actionattr.NewAttribute("ra:Type");
     actionattr_attr = ((*ait)->getAttributeValue())->getType();
+    actionattr_attr = actionattr.NewAttribute("ra:AttributeId");
+    actionattr_attr = ((*ait)->getAttributeValue())->getId();
   }
 
   //Reconstruct context
@@ -99,6 +105,8 @@ RequestTuple& RequestTuple::duplicate(const RequestTuple& req_tpl) {
     contextattr = ((*cit)->getAttributeValue())->encode();
     XMLNode contextattr_attr = contextattr.NewAttribute("ra:Type");
     contextattr_attr = ((*cit)->getAttributeValue())->getType();
+    contextattr_attr = contextattr.NewAttribute("ra:AttributeId");
+    contextattr_attr = ((*cit)->getAttributeValue())->getId();
   }
 
   return *this;
