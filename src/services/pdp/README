@@ -3,10 +3,106 @@ decision request and return positive/negative response.
 Since the request and response information is critical, TLS should be 
 switched on for securing communication.
 
-The PDP service can be invoked by two ways: 
-1. by client "arcdecision"; 
+Installation Howto
+==================
+
+The output of ./configure should be as follows.
+[...]
+Included components:
+[...]
+PDP service:        yes
+[...]
+
+After 'make' and 'make install', you can run the pdp service.
+
+The approach of running the pdp service is the same as other services, such
+as arex service. 
+What you need to do is two steps:
+1, Write a configuration file which specify the common configuration and 
+   pdp service specific configuration.
+2, Use "arched" command line to run pdp service.
+
+For step 1, there is an example configuration file called pdp_service.xml.example
+in $ARC_LOCATION/share/doc/arc/. Besides the common configuration, you need to specify 
+some specific configuration information as follows:
+        <Service name="pdp.service" id="pdp_service">
+            <!--The element <Evaluator/>, <Policy/> and <Request/> configuration
+            are supposed to be used to load object; element <PolicyStore/> is
+            supposed to be used to get the location of policy-->
+            <pdp:PDPConfig>
+                <pdp:PolicyStore>
+                  <pdp:Location Type="file">Policy_Example.xml</pdp:Location>
+                  <!-- other policy location-->
+                </pdp:PolicyStore>
+                <pdp:Evaluator name="arc.evaluator" />
+                <pdp:Policy name="arc.policy" />
+                <pdp:Request name="arc.request" />
+            </pdp:PDPConfig>
+        </Service>
+And you can also get the configuration schema from pdp.xsd in the same directory.
+
+Normaly you don't need to change <pdp:Evaluator/> <pdp:Policy/> and <pdp:Request/>, since
+it is only supposed to be changed when you need to use some other kinds of policy evaluation
+engine.
+What you normaly need to change is <pdp:PolicyStore/>. You can specify one or a number of policy
+here by using one or a number of <pdp:Location/>. The current supported type is "file", and some
+other types like database will probably be supported in the future.
+
+For step 2, you can use the "arched" daemon command line to run pdp service. 
+./arched -c pdp_service.xml -f
+
+Usage Howto
+============
+
+The PDP service can be invoked by two ways:
+1. by client "arcdecision";
 2. by the pdpinvoker plugin which can be plugged into SecHandler,
-   and then SecHandler can be plugged into service (the plugging 
-   is based on configuration file). For how to configure pdpinvoker 
+   and then SecHandler can be plugged into service (the plugging
+   is based on configuration file). For how to configure pdpinvoker
    into service, see the configuration file for echo service.
 
+More detail explaination:
+Since PDP service is a normal service, the client "arcdecision" is a 
+prototype client which is supposed to send policy decision request to
+PDP service and get back the policy decision result.
+On the client side, you can run arcdecision command as follows:
+./arcdecision -c pdp_client.xml -d VERBOSE https://127.0.0.1:60000/PDP_Service pdp_request.xml
+
+On the other hand, PDP service more normaly will serve for those policy 
+enforcement points which are in fact some services as well. So there is 
+a security plugin called "pdpinvoker" which can be configured and used 
+by any service. The configuration about pdpinvoker is as follows, and 
+you can get the configuration scheme from src/hed/pdc/pdpserviceinvoker/ArcPDPServiceInvoker.xsd 
+From the following piece of configuration for "echo", you can get how to
+configure pdpserviceinvoker: <PDP name="pdpservice.invoker"/>
+Notice that since the pdpserviceinvoker is actually a client to pdp service,
+it should have its own credential configuration. But surely you can use the 
+same credential as the host service ("echo" service).
+        <Service name="echo" id="echo">
+            <SecHandler name="arc.authz" id="authz" event="incoming">
+              <PDP name="simplelist.pdp" location="simplelist"/>
+              <PDP name="arc.pdp">
+                <PolicyStore>
+                  <Location type="file">Policy_Example.xml</Location>
+                  <!-- other policy location-->
+                </PolicyStore>
+              </PDP>
+              <!--Remote pdp service invoking-->
+              <PDP name="pdpservice.invoker">
+                <ServiceEndpoint>https://127.0.0.1:60000/PDP_Service</ServiceEndpoint>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+              </PDP>
+              <PDP name="delegation.pdp"/>
+            </SecHandler>
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+
+In the pdp_service.xml.example, there are two services: pdp service, and echo service.
+You run both of them (or more services) in the same container. But notice that if you 
+switch on the pdpserviceinvoker under echo service, you can not specify the <ServiceEndpoint> of
+ this pdpserviceinvoker to that pdp service in the same container. Instead you should specify 
+the <ServiceEndpoint> to the other container or node.

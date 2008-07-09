@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<ArcConfig 
+  xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
+  xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
+  xmlns:pdp="http://www.nordugrid.org/schemas/pdp/Config"
+>
+  <!-- Common configuration of the daemon -->
+  <Server>
+    <PidFile>/var/run/arched.pid</PidFile>
+    <Logger level="VERBOSE">./pdp.log</Logger>
+  </Server>
+    <ModuleManager>
+        <Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path>
+    </ModuleManager>
+    <Plugins><Name>mcctcp</Name></Plugins>
+    <Plugins><Name>mcctls</Name></Plugins>
+    <Plugins><Name>mcchttp</Name></Plugins>
+    <Plugins><Name>mccsoap</Name></Plugins>
+    <Plugins><Name>arcpdc</Name></Plugins>
+    <Plugins><Name>pdp</Name></Plugins>
+
+    <Chain>
+        <Component name="tcp.service" id="tcp">
+            <next id="tls"/>
+            <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+        </Component>
+	<Component name="tls.service" id="tls">
+            <next id="http"/>
+	    <KeyPath>../../tests/echo/key.pem</KeyPath>
+	    <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
+	    <CACertificatePath>../../tests/echo/ca.pem</CACertificatePath>
+	</Component>
+        <Component name="http.service" id="http">
+            <next id="soap">POST</next>
+        </Component>
+        <Component name="soap.service" id="soap">
+            <next id="plexer"/>
+        </Component>
+        <Plexer name="plexer.service" id="plexer">
+            <next id="pdp_service">^/PDP_Service$</next>
+            <next id="echo">^/Echo$</next>
+        </Plexer>
+        <Service name="pdp.service" id="pdp_service">
+            <!--The element <Evaluator/>, <Policy/> and <Request/> configuration 
+            are supposed to be used to load object; element <PolicyStore/> is 
+            supposed to be used to get the location of policy-->
+            <pdp:PDPConfig>
+                <pdp:PolicyStore>
+                  <pdp:Location Type="file">Policy_Example.xml</pdp:Location>
+                  <!-- other policy location-->
+                </pdp:PolicyStore>
+                <pdp:Evaluator name="arc.evaluator" />
+                <pdp:Policy name="arc.policy" />
+                <pdp:Request name="arc.request" />
+            </pdp:PDPConfig>
+        </Service>
+        <Service name="echo" id="echo">
+            <SecHandler name="arc.authz" id="authz" event="incoming">
+              <PDP name="simplelist.pdp" location="simplelist"/>
+              <PDP name="arc.pdp">
+                <PolicyStore>
+                  <Location type="file">Policy_Example.xml</Location>
+                  <!-- other policy location-->
+                </PolicyStore>
+              </PDP>
+              <!--Remote pdp service invoking-->
+              <!--PDP name="pdpservice.invoker">
+                <ServiceEndpoint>https://127.0.0.1:60000/PDP_Service</ServiceEndpoint>
+                <KeyPath>./key.pem</KeyPath>
+                <CertificatePath>./cert.pem</CertificatePath>
+                <CACertificatePath>./ca.pem</CACertificatePath>
+              </PDP-->
+              <PDP name="delegation.pdp"/>
+            </SecHandler>
+            <next id="echo"/>
+            <echo:prefix>[ </echo:prefix>
+            <echo:suffix> ]</echo:suffix>
+        </Service>
+    </Chain>
+</ArcConfig>

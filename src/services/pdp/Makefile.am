@@ -1,5 +1,6 @@
 pkglib_LTLIBRARIES = libpdp.la
 noinst_PROGRAMS = test
+doc_DATA = pdp_service.xml.example
 
 libpdp_la_SOURCES  = pdpservice.cpp pdpservice.h
 libpdp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
@@ -13,3 +14,5 @@ test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                 $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+EXTRA_DIST = $(doc_DATA)
