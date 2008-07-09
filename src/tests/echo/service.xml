@@ -55,12 +55,12 @@
                 </PolicyStore>
               </PDP>
               <!--Remote pdp service invoking-->
-              <!--PDP name="pdpservice.invoker">
+              <PDP name="pdpservice.invoker">
                 <ServiceEndpoint>https://127.0.0.1:60001/pdp.service</ServiceEndpoint>
                 <KeyPath>./key.pem</KeyPath>
                 <CertificatePath>./cert.pem</CertificatePath>
                 <CACertificatePath>./ca.pem</CACertificatePath>
-              </PDP-->
+              </PDP>
               <PDP name="delegation.pdp"/>
             </SecHandler>
             <next id="echo"/>

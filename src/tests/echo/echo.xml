@@ -35,6 +35,9 @@
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <!--delegation.collector must be inside tls MCC. It will extract delegation policy from
+      peer proxy certificate-->
+      <SecHandler name="delegation.collector" id="delegation" event="incoming"></SecHandler>  
     </Component>
     <!-- HTTP processing is done here -->
     <Component name="http.service" id="http">
@@ -43,6 +46,12 @@
     <!-- This one parses content into XML tree -->
     <Component name="soap.service" id="soap">
       <next id="plexer"/>
+      <!--usernametoken.handler is set here for consuming soap message with WS-Security UsernameToken
+      there should be a file locally including mapping between username and password-->
+      <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming">
+        <Process>extract</Process>
+        <PasswordSource>password.txt</PasswordSource>
+      </SecHandler>
     </Component>
     <!-- Directing messages to proper service -->
     <Plexer name="plexer.service" id="plexer">
@@ -50,6 +59,29 @@
     </Plexer>
     <!-- Echo service -->
     <Service name="echo" id="echo">
+      <SecHandler name="arc.authz" id="authz" event="incoming">
+        <!--simplelist.pdp will make decision according to a list which includes the permited DNs
+        there should be a file locally including the permited list-->
+        <PDP name="simplelist.pdp" location="simplelist"/>
+        <!--arc.pdp will make decision according to formatted policy, see schema from Policy.xsd, 
+        and Request.xsd-->
+        <PDP name="arc.pdp">
+          <PolicyStore>
+            <Location type="file">Policy_Example.xml</Location>
+            <!-- other policy location-->
+          </PolicyStore>
+        </PDP>
+        <!--Remote pdp service invoker.-->
+        <PDP name="pdpservice.invoker">
+          <ServiceEndpoint>https://127.0.0.1:60001/PDP_Service</ServiceEndpoint>
+          <KeyPath>./key.pem</KeyPath>
+          <CertificatePath>./cert.pem</CertificatePath>
+          <CACertificatePath>./ca.pem</CACertificatePath>
+        </PDP>
+        <!--deelegation.pdp will evaluate request against delegation policy which is extracted from
+        proxy certificate by delegation.collector-->
+        <PDP name="delegation.pdp"/>
+      </SecHandler>
       <echo:prefix>[ </echo:prefix>
       <echo:suffix> ]</echo:suffix>
     </Service>

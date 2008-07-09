@@ -68,6 +68,7 @@ int main(void) {
   std::cout << "Response: " << (std::string)((*resp)["echoResponse"]["hear"]) << std::endl;
 
   if(resp) delete resp;
+  if(client) delete client;
 
   return 0;
 }
