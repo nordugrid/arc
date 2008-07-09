@@ -1157,7 +1157,7 @@ class BartenderClient(Client):
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
+        return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
 
 # This part is copied from bartender_client.py but then changed
@@ -1362,9 +1362,21 @@ else:
             #print response
             print "Moving '%s' to '%s': %s" % (sourceLN, targetLN, response['0'][0])
     elif command == 'mod':
-        if len(args) < 5:
+        if len(args) < 4:
             print 'Usage: modify <LN> <changeType> <section> <property> <value>'
+            print "  <changeType> could be 'set', 'unset', 'add'"
+            print "    'set' : sets the property to value within the given section"
+            print "    'unset' : removes the property from the given section"
+            print "              (the 'value' does not matter)"
+            print "    'add' : sets the property to value within the given section"
+            print "            only if it does not exists yet"
         else:
+            if len(args) == 4:
+                if args[1] in ['set', 'add']:
+                    print "no 'value' given!"
+                    sys.exit(-1)
+                else:
+                    args.append('')
             request = {'0' : args}
             #print 'modify', request
             mod_response = call_it('modify', request)['0']

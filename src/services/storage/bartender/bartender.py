@@ -515,12 +515,13 @@ class Bartender:
         # create a traverse request, each move request needs two traversing: source and target
         for requestID, (sourceLN, targetLN, _) in requests.items():
             # from one requestID we create two: one for the source and one for the target
-            traverse_request[requestID + 'source'] = sourceLN
+            traverse_request[requestID + 'source'] = remove_trailing_slash(sourceLN)
             traverse_request[requestID + 'target'] = targetLN
         traverse_response = self.librarian.traverseLN(traverse_request)
         self.log('DEBUG', '\/\/', traverse_response)
         response = {}
         for requestID, (sourceLN, targetLN, preserveOriginal) in requests.items():
+            sourceLN = remove_trailing_slash(sourceLN)
             # for each request
             self.log('DEBUG', requestID, sourceLN, targetLN, preserveOriginal)
             # get the old and the new name of the entry, these are the last elements of the Logical Names

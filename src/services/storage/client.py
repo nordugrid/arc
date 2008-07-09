@@ -247,7 +247,7 @@ class LibrarianClient(Client):
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return parse_node(node.Child().Child().Child(), ['requestID', 'GUID', 'success'])
+        return parse_node(get_data_node(node), ['requestID', 'GUID', 'success'])
 
     def modifyMetadata(self, requests):
         tree = XMLTree(from_tree =
@@ -266,7 +266,7 @@ class LibrarianClient(Client):
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
+        return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
     def remove(self, requests):
         tree = XMLTree(from_tree =
@@ -281,7 +281,7 @@ class LibrarianClient(Client):
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return parse_node(node.Child().Child().Child(), ['requestID', 'success'], True)
+        return parse_node(get_data_node(node), ['requestID', 'success'], True)
 
     def report(self, serviceID, filelist):
         tree = XMLTree(from_tree =
@@ -650,7 +650,7 @@ class BartenderClient(Client):
         )
         response, _, _ = self.call(tree)
         node = self.xmlnode_class(response)
-        return parse_node(node.Child().Child().Child(), ['changeID', 'success'], True)
+        return parse_node(get_data_node(node), ['changeID', 'success'], True)
 
 class ShepherdClient(Client):
 

@@ -533,7 +533,7 @@ def remove_trailing_slash(LN):
     
     This method checks if the LN ends with a '/', and if it does, cut the trailing slash, and returns the LN.
     """
-    if LN.endswith('/'):
+    while LN.endswith('/'):
         LN = LN[:-1]
     return LN
 
