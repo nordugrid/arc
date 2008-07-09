@@ -10,7 +10,8 @@ package InfoCollector;
 # InfoChecker module. $options and $results are meant to be references to hashes
 # (of hashes, arrays ...)
 #
-# Derived classes should override at least _initialize() and _collect()
+# Derived classes should override at least _collect(), _get_options_schema()
+# and _get_results_schema().
 
 use LogUtils;
 use InfoChecker;

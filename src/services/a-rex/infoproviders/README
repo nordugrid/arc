@@ -1,5 +1,15 @@
-Information providers for job/users information.
+Information providers for A-REX.
 
+Currenly all infomration collection for A-REX is done by these scripts.
+Collected data is presented in 2 formats (classic NG schema and GLUE2 schema)
+rendered in XML. A configuration is done with an ARC 0.6-style arc.conf file.
+
+GLUE 2 support is incomplete.
+
+
+
+cluster+qju.pl - driver for information collection. It calls all other infomation
+                 collectors and prints results in XML.
 
 InfoCollector.pm  - base class for all information collectors (all files *Info.pm)
 InfoChecker.pm  - used by InfoCollector to validate options and results against
@@ -10,17 +20,14 @@ HostInfo.pm - collects other information that can be collected on the front end
               certificates, Runtime environments ...)
 LRMSInfo.pm - collects information that is LRMS specific (queues, jobs, local
               user limits ...)
-Fork.pm, PBS.pm, SGE.pm, LL.pm, LSF.pm, Condor.pm - plugins for LRMSInfo
+Fork.pm, PBS.pm, SGE.pm, LL.pm, LSF.pm, Condor.pm - plugins for LRMSInfo. Only
+                           Fork, SGE and PBS are updated to the new framework.
 
+ARC0ClusterInfo.pm - combines all information about A-REX and produces
+                     information structured according to the classic NG schema.
+ARC1ClusterInfo.pm - combines all information about A-REX and produces
+                     information structured according to the GLUE2 schema.
 
-The following aim for generating a backwards compatible information schema
-
-ARC0ClusterInfo.pm - collects information about the whole cluster (computing element)
 ARC0ClusterSchema.pm - description of the info produced by ARC0ClusterInfo
+ARC1ClusterSchema.pm - description of the info produced by ARC1ClusterInfo
 
-cluster+qju.pl - driver for information collection. It feeds options read from a
-                 config file to ARC0ClusterInfo and prints results in XML
-
-
-Some modules have a function called 'test' at the end tat can be used to run it
-stand alone

@@ -3,14 +3,11 @@ package ARC1ClusterInfo;
 use File::Basename;
 use lib dirname($0);
 
-# This InfoCollector gathers full information about the cluster, queues, users
-# and jobs.  Prepares GLUE2 information model.
-# The returned structure is meant to be converted to XML with XML::Simple.
+# This InfoCollector combines the output of the other information collectors
+# and prepares the GLUE2 information model of A-REX. The returned structure is
+# meant to be converted to XML with XML::Simple.
 
 use base InfoCollector;
-use HostInfo;
-use GMJobsInfo;
-use LRMSInfo;
 use ARC1ClusterSchema;
 
 use Storable;
@@ -53,8 +50,10 @@ sub _collect($$) {
     my $validity_ttl = $config->{ttl};
 
     # adotf means autodetect on the frontend
-    $config->{architecture} = $host_info->{architecture} if $config->{architecture} eq 'adotf';
-    $config->{nodecpu} = $host_info->{nodecpu} if $config->{nodecpu} eq 'adotf';
+    $config->{architecture} = $host_info->{architecture}
+        if defined($config->{architecture}) and $config->{architecture} eq 'adotf';
+    $config->{nodecpu} = $host_info->{nodecpu}
+        if defined($config->{nodecpu}) and $config->{nodecpu} eq 'adotf';
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
@@ -309,7 +308,11 @@ sub _collect($$) {
     #$cep->{HealthStateInfo} = [ "" ];
 
     # TODO: when is it 'queueing' and 'closed'?
-    $cep->{ServingState} = [ ($config->{allownew} eq "no") ? 'draining' : 'production' ];
+    if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
+        $cep->{ServingState} = [ 'draining' ];
+    } else {
+        $cep->{ServingState} = [ 'production' ];
+    }
 
     # StartTime: get it from hed
 
@@ -415,7 +418,8 @@ sub _collect($$) {
 
         # OBS: 'maui' is not a valid SchedulingPolicy
         $qconfig->{scheduling_policy} = 'fairshare'
-            if lc($qconfig->{scheduling_policy}) eq 'maui';
+            if defined($qconfig->{scheduling_policy})
+                and lc($qconfig->{scheduling_policy}) eq 'maui';
 
         # TODO: new return value from LRMS infocollector.
         $csha->{SchedulingPolicy} = [ $qinfo->{schedpolicy} ] if $qinfo->{schedpolicy};

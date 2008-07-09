@@ -11,37 +11,37 @@ use strict;
 
 our $host_options_schema = {
         x509_user_cert => '',
-        x509_cert_dir => '',
-        sessiondir => '',
-        cachedir => '*',
-        ng_location => '',
-        runtimedir => '*',
-        processes => [ '' ],
-        localusers => [ '' ]
+        x509_cert_dir  => '',
+        sessiondir     => '',
+        cachedir       => '*',
+        ng_location    => '',
+        runtimedir     => '*',
+        processes      => [ '' ],
+        localusers     => [ '' ]
 };
 
 our $host_info_schema = {
-        hostname => '',
-        architecture => '',
-        cpumodel => '',
-        cpufreq => '',
-        nodecpu => '',
-        architecture => '',
-        issuerca => '',
+        hostname      => '',
+        architecture  => '',
+        cpumodel      => '',
+        cpufreq       => '', # unit: MHz
+        nodecpu       => '',
+        architecture  => '',
+        issuerca      => '',
         issuerca_hash => '',
-        trustedcas => [ '' ],
-        session_free => '',
-        session_total => '',
-        cache_free => '',
-        cache_total => '',
-        ngversion => '',
+        trustedcas    => [ '' ],
+        session_free  => '', # unit: MB
+        session_total => '', # unit: MB
+        cache_free    => '', # unit: MB
+        cache_total   => '', # unit: MB
+        ngversion     => '',
         globusversion => '',
         runtimeenvironments => [ '' ],
-        processes => { '*' => '' },
+        processes  => { '*' => '' },
         localusers => {
             '*' => {
                 gridarea => '',
-                diskfree => ''
+                diskfree => '' # unit: MB
             }
         }
 };
@@ -250,10 +250,13 @@ sub get_host_info {
     #nordugridlocation/bin/grid-manager -v
     $ENV{"LD_LIBRARY_PATH"}="$globus_location/lib:$options->{ng_location}/lib";
     my ($ngversion) = `$options->{ng_location}/sbin/grid-manager -v 2>/dev/null`;
-    if ($?) { $log->warning("Failed running $options->{ng_location}/sbin/grid-manager")}
-    $ngversion =~ s/grid-manager: version\s*(.+)$/$1/;
-    $host_info->{ngversion} = $ngversion;
-    chomp $host_info->{ngversion};
+    if ($?) {
+        $log->warning("Failed running $options->{ng_location}/sbin/grid-manager");
+    } else {
+        $ngversion =~ s/grid-manager: version\s*(.+)$/$1/;
+        $host_info->{ngversion} = $ngversion;
+        chomp $host_info->{ngversion};
+    }
     
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION

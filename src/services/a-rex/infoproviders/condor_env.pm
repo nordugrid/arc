@@ -17,15 +17,7 @@ BEGIN {
 # 3. CONDOR_LOCATION environment variable
 # 4. PATH environment variable
 
-# Synopsis:
-#
-#   use config_parser;
-#   use condor_env;
-#  
-#   config_parse_file('/etc/arc.conf');
-#   my %config = config_update_from_section("common");
-#   configure_condor_env(%config) or die "Condor executables not found"; 
-
+# Returns 1 if Condor executables were NOT found, 0 otherwise.
 
 sub configure_condor_env(%) {
     my %config = @_;

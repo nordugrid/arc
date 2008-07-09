@@ -49,13 +49,13 @@ use strict;
 
 
 ##############################################################################
-# Templates
+# Schemas
 ##############################################################################
 #
 # The usage of these schemas is described in InfoChecker.pm
 #
-#    $options_schema - for checking $options hash. This is just a minimal
-#                        schema, LRMS plugins may use an extend version
+#    $lrms_options_schema - for checking $options hash. This is just a minimal
+#                           schema, LRMS plugins may use an extend version
 #    $lrms_info_schema - for checking data returned by LRMS modules
 
 my $lrms_options_schema = {

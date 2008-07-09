@@ -3,14 +3,11 @@ package ARC0ClusterInfo;
 use File::Basename;
 use lib dirname($0);
 
-# This InfoCollector gathers full information about the cluster, queues, users
-# and jobs.  Prepares info modelled on the classic Nordugrid information schema
+# This InfoCollector combines the output of the other information collectors
+# and prepares info modelled on the classic Nordugrid information schema
 # (arc0).  Returned structure is meant to be converted to XML with XML::Simple.
 
 use base InfoCollector;
-use HostInfo;
-use GMJobsInfo;
-use LRMSInfo;
 use ARC0ClusterSchema;
 
 use Storable;
@@ -58,15 +55,18 @@ sub _collect($$) {
     my ($valid_from, $valid_to) = $config->{ttl} ? mds_valid($config->{ttl}) : ();
 
     # adotf means autodetect on the frontend
-    $config->{architecture} = $host_info->{architecture} if $config->{architecture} eq 'adotf';
-    $config->{nodecpu} = $host_info->{nodecpu} if $config->{nodecpu} eq 'adotf';
+    $config->{architecture} = $host_info->{architecture}
+        if defined($config->{architecture}) and $config->{architecture} eq 'adotf';
+    $config->{nodecpu} = $host_info->{nodecpu}
+        if defined($config->{nodecpu}) and $config->{nodecpu} eq 'adotf';
 
     # config overrides
     $host_info->{hostname} = $config->{hostname} if $config->{hostname};
 
     # count grid-manager jobs
 
-    my %gmjobcount;
+    my %gmjobcount = (accepted => 0, preparing => 0, submit => 0, inlrms => 0,
+                     canceling => 0, finishing => 0, finished => 0, deleted => 0);
     for my $job (values %{$gmjobs_info}) {
         $gmjobcount{totaljobs}++;
         if ( $job->{status} =~ /ACCEPTED/ ) { $gmjobcount{accepted}++ ; next; }
@@ -86,23 +86,22 @@ sub _collect($$) {
 
     my %gridrunning;
     my %gridqueued;
-    my $lrmsjobs = $lrms_info->{jobs};
-    my %local2gm;
-    $local2gm{$gmjobs_info->{$_}{localid}} = $_ for keys %$gmjobs_info;
-    foreach my $jid (keys %$lrmsjobs) {
-        my $gridid = $local2gm{$jid};
-        next unless $gridid; # not a grid job
-        my $status = $lrmsjobs->{$jid}{status};
-        next unless $status; # probably executed
-        next if $status eq 'EXECUTED';
-        my $qname = $gmjobs_info->{$gridid}{queue};
-        if ($status eq 'R' || $status eq 'S') {
-            $gridrunning{$qname}++;
-        } else {
-            $gridqueued{$qname}++;
+    for my $job (values %{$gmjobs_info}) {
+        my $qname = $job->{queue};
+        $log->error("queue not defined") and next unless $qname;
+        if ($job->{status} eq 'INLRMS') {
+            my $lrmsid = $job->{localid};
+            my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+    
+            if (defined $lrmsjob and $lrmsjob->{status} ne 'EXECUTED') {
+                if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
+                    $gridrunning{$qname}++;
+                } else {
+                    $gridqueued{$qname}++;
+                }
+            }
         }
     }
-
 
     my %prelrmsqueued;
     my %pendingprelrms;
@@ -180,15 +179,15 @@ sub _collect($$) {
     $c->{'nc0:owner'} = [ split /\[separator\]/, $config->{cluster_owner} ] if $config->{cluster_owner};
     $c->{'nc0:acl'} = [ map "VO:$_", split /\[separator\]/, $config->{authorizedvo} ] if $config->{authorizedvo};
     $c->{'nc0:location'} = [ $config->{cluster_location} ] if $config->{cluster_location};
-    $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ];
-    $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ];
-    $c->{'nc0:trustedca'} = $host_info->{trustedcas};
+    $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ] if $host_info->{issuerca};
+    $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ] if $host_info->{issuerca_hash};
+    $c->{'nc0:trustedca'} = $host_info->{trustedcas} if $host_info->{trustedcas};
     $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ];
     $c->{'nc0:interactive-contactstring'} = [ split /\[separator\]/, $config->{interactive_contactstring} ]
         if $config->{interactive_contactstring};
     $c->{'nc0:support'} = [ split /\[separator\]/, $config->{clustersupport} ] if $config->{clustersupport};
     $c->{'nc0:lrms-type'} = [ $lrms_info->{cluster}{lrms_type} ];
-    $c->{'nc0:lrms-version'} = [ $lrms_info->{cluster}{lrms_version} ];
+    $c->{'nc0:lrms-version'} = [ $lrms_info->{cluster}{lrms_version} ] if $lrms_info->{cluster}{lrms_version};
     $c->{'nc0:lrms-config'} = [ $config->{lrmsconfig} ] if $config->{lrmsconfig};
     $c->{'nc0:architecture'} = [ $config->{architecture} ] if $config->{architecture};
     $c->{'nc0:opsys'} = [ split /\[separator\]/, $config->{opsys} ] if $config->{opsys};
@@ -208,7 +207,7 @@ sub _collect($$) {
     $c->{'nc0:localse'} = [ split /\[separator\]/, $config->{localse} ] if $config->{localse};
     $c->{'nc0:sessiondir-free'} = [ $host_info->{session_free} ];
     $c->{'nc0:sessiondir-total'} = [ $host_info->{session_total} ];
-    $c->{'nc0:sessiondir-lifetime'} = [ int $1/60 ] if $config->{defaultttl} =~ /(\d+)/;
+    $c->{'nc0:sessiondir-lifetime'} = [ int $config->{defaultttl}/60 ] if $config->{defaultttl};
     $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
     $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
     $c->{'nc0:runtimeenvironment'} = $host_info->{runtimeenvironments};
@@ -235,14 +234,16 @@ sub _collect($$) {
         my $qinfo = $lrms_info->{queues}{$qname};
 
         # adotf means autodetect on the frontend
-        $qconfig->{architecture} = $host_info->{architecture} if $qconfig->{architecture} eq 'adotf';
-        $qconfig->{nodecpu} = $host_info->{nodecpu} if $qconfig->{nodecpu} eq 'adotf';
+        $qconfig->{architecture} = $host_info->{architecture}
+            if defined($qconfig->{architecture}) and $qconfig->{architecture} eq 'adotf';
+        $qconfig->{nodecpu} = $host_info->{nodecpu}
+            if defined($qconfig->{nodecpu}) and $qconfig->{nodecpu} eq 'adotf';
 
         $q->{'xmlns:nq0'} = "urn:nordugrid-queue";
         $q->{'name'} = $qname;
         $q->{'nq0:name'} = [ $qname ];
         
-        if ($qconfig->{allownew} eq "no") {
+        if ( defined($qconfig->{allownew}) and $qconfig->{allownew} eq "no" ) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
         } elsif (not $host_info->{processes}{'grid-manager'}) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   

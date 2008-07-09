@@ -7,10 +7,11 @@ use strict;
 # Class to check that a data structure conforms to a schema. Data and schema
 # are both nested perl structures consisting of hashes and arrays nested to any
 # depth. This function will check that data and schema have the same nesting
-# structure. For hashes, all keys in the schema must also be defined in the
-# data. A "*" key in the schema matches all unmatched keys in the data (if
-# any). Arrays in the schema should have exactly one element, and this element
-# will be matched against all elements in the corresponding array in the data.
+# structure. For hashes, all required keys in the schema must also be defined
+# in the data. A "*" value in the schema marks that key optional. A "*" key in
+# the schema matches all unmatched keys in the data (if any). Arrays in the
+# schema should have exactly one element, and this element will be matched
+# against all elements in the corresponding array in the data.
 
 # Constructor
 #

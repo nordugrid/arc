@@ -1,9 +1,6 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 package ClusterInfo;
-
-use base "InfoCollector";
-
 
 use File::Basename;
 use lib dirname($0);
@@ -16,6 +13,8 @@ use Data::Dumper;
 # Driver for information collection
 # Reads old style arc.config and prints out XML
 ########################################################
+
+use base "InfoCollector";
 
 use HostInfo;
 use GMJobsInfo;
@@ -117,7 +116,7 @@ sub main {
     
 
 ##################################################
-# Unified collector information for NG and GLUE2
+# Unified information collector for NG and GLUE2
 ##################################################
 
 my $config_schema = {
