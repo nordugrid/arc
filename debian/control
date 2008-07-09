@@ -25,35 +25,35 @@ Description: ARC grid middleware
  first release, ARC-0.x, was dependent on Globus, the current release keeps
  that compatibility but can also be used independently.
 
-Package: nordugrid-arc1-libs
+Package: nordugrid-arc1-lib
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC shared libraries
- ARC shared libraries.
+ ARC libraries that are shared among the client and the server's web services.
 
 Package: nordugrid-arc1-client
 Architecture: any
-Depends: nordugrid-arc1-libs
+Depends: nordugrid-arc1-lib
 Suggests: globus
 Description: ARC prototype clients
  ARC prototype clients.
 
 Package: nordugrid-arc1-server
 Architecture: any
-Depends: nordugrid-arc1-arex, nordugrid-arc1-libs
+Depends: nordugrid-arc1-arex, nordugrid-arc1-lib
 Description: ARC Hosting Environment Daemon
  ARC Hosting Environment Daemon (HED). This daemon
  presents a site to other participants on the grid.
 
 Package: nordugrid-arc1-arex
 Architecture: any
-Depends: nordugrid-arc1-libs
+Depends: nordugrid-arc1-lib
 Description: ARC Remote EXecution service
  ARC Remote EXecution service (AREX).
 
 Package: nordugrid-arc1-plugins-base
 Architecture: any
-Depends: norugrid-arc1-libs
+Depends: norugrid-arc1-lib
 Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
@@ -76,7 +76,7 @@ Description: ARC development files
 
 Package: nordugrid-arc1-python
 Architecture: any
-Depends: norugrid-arc1-libs
+Depends: norugrid-arc1-lib
 Description: ARC Python wrapper
  Python wrapper for ARC.
 
