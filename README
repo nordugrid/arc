@@ -463,11 +463,15 @@ message processing components. Each Security Handler takes care of processing
 own part of security information. Currently ARC1 comes with 2 Security Handlers:
  * identity.map - associates client's identity with local (UNIX) identity. It 
    uses PDP components to choose local isentity and/or identity mapping algorithm.
- * simplelist.authz - calls PDP components and combines obtained authorization
+ * arc.authz - calls PDP components and combines obtained authorization
    decisions.
  * delegation.collector - parses proxy policy from remote proxy certificate.
                           this Security Handler should be configured under tls
                           mcc component.
+ * usernametoken.handler - implement the functioanlity ofws-security usernametoken 
+                          profile. It will generate usernametoken into soap header,
+                          or extract usernametoken outof soap header and do 
+                          authentication based on the extracted usernametoken.
 
 Among available PDP components there are
  * allow - always returns positive result
@@ -482,11 +486,20 @@ Among available PDP components there are
  * delegation.pdp - compares request information parsed from message and policy
              information specified in proxy certificate from remote side.
 
-Other more sophisticated PDPs are available but not yet fully integrated into
-ARC1 framework.
- 
-There is an example of A-Rex service with both Security Handlers being used.
-It may be found at $ARC_LOCATION/share/doc/arex_secure.xml .
+There are examples of A-Rex service and echo service with Security Handlers being used.
+They may be found at $ARC_LOCATION/share/doc/arc/arex_secure.xml and 
+$ARC_LOCATION/share/doc/arc/echo.xml
+
+There is also a pdp service which implements the same functionality as arc.pdp. See 
+src/service/pdp/README.
+Specifically for arc.pdp and pdpservice, a formatted policy with specific schema
+should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and 
+$ARC_LOCATION/share/doc/arc/Policy.xsd for details.
+
+For usernametoken handler, there is example about configuration on service side in 
+$ARC_LOCATION/share/doc/arc/echo.xml. For client side, there is a test program in
+src/tests/echo/test_clientinterface.cpp which can be compiled and tested against any
+service with usernametoken.handler configured.
 
 
 Finding more information
