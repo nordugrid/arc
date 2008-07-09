@@ -43,7 +43,7 @@
             supposed to be used to get the location of policy-->
             <pdp:PDPConfig>
                 <pdp:PolicyStore>
-                  <Location Type="file">Policy_Example.xml</Location>
+                  <Location Type="file">pdp_policy.xml.example</Location>
                   <!-- other policy location-->
                 </pdp:PolicyStore>
                 <pdp:Evaluator name="arc.evaluator" />

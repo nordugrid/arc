@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = libpdp.la
 noinst_PROGRAMS = test
-doc_DATA = pdp_service.xml.example
+doc_DATA = pdp_service.xml.example pdp_policy.xml.example
 
 libpdp_la_SOURCES  = pdpservice.cpp pdpservice.h
 libpdp_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
