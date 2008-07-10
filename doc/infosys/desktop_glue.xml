@@ -24,7 +24,7 @@
                 <TotalJobs></TotalJobs> <!-- int -->
                 <RunningJobs></RunningJobs> 
                 <WaitingJobs></WaitingJobs>
-                <StageingJobs></StageingJobs>
+                <StagingJobs></StagingJobs>
                 <PreLRMSWaitingJobs></preLRMSWaitingJobs>
                 <ComputingEndpoint type="Endpoint">
                     <ID></ID>
@@ -44,7 +44,7 @@
                         <DowntimeEnd></DowntimeEnd>
                     </Dowtime>
                     <!-- ComputingEndpoint specific attributes -->
-                    <StageigCapabilites>Yes</StageingCapabilites> <!-- van downloader es uploader! -->
+                    <StagingCapabilites>Yes</StagingCapabilites> <!-- van downloader es uploader! -->
                     <SuspensionCapabilities>No</SuspensionCapabilities>
                     <Policy>
                         <ID></ID>
