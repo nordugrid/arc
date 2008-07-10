@@ -33,3 +33,5 @@ gliteundelegate_SOURCES  = gliteundelegate.cpp
 gliteundelegate_CXXFLAGS = $(commonCXXFLAGS)
 gliteundelegate_LDFLAGS  = $(commonLDFLAGS)
 gliteundelegate_LDADD    = $(LIBS)
+
+man_MANS = glitedelegate.1 glitesub.1 glitestat.1 gliteclean.1 glitekill.1 gliteundelegate.1

@@ -1,0 +1,46 @@
+.\" -*- nroff -*-
+.TH GLITESUB "1" "10 July 2008" "NorduGrid ARC 0.9.0" "NorduGrid System Manager's Manual"
+.SH NAME
+glitesub \- ARC Grid Job Submitting Client via the CREAM2 interface
+.SH SYNOPSIS
+.B glitesub
+[\fIOPTION\fR] service_url job_description info_file
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+glitesub is the ARC Grid Job submitting client which provides a way to submit jobs via the CREAM2 interface. The job registration, the necessary stage-in steps (file uploading from the local host) and the job starting are done by this client tool.
+.SH OPTIONS
+.TP
+\fB\-?\fR
+print a short summary of the necessary usage informations.
+.TP
+\fB\-d\fR
+level of information printed. Possible values are VERBOSE, DEBUG, INFO, WARNING, ERROR and FATAL.
+.TP
+\fB\-D\fR
+delegation id. The delegation used to the job submission can determinized with this argument.
+.TP
+\fB\-v\fR
+print version inforamations.
+.TP
+\fB\-c\fR
+location of client configuration file. Default value is ~/.arc/client.xml unless
+overwrittten by content of ARC_CLIENT_CONFIG environment variable.
+.TP
+\fB\ service_url\fR
+endpoint URL of service to contact.
+.TP
+\fB\ job_description\fR
+path to file containing job description document in JDL format.
+.TP
+\fB\ info_file\fR
+path to file which contains the main identifiers. This XML formatted file has the informations about the job's input sandbox URL, the output sandbox's URL, the service URL and the job indentifier.
+.PP
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+We need to have this
+.SH FILES
+.BR ~/.arccfg.xml
+.SH AUTHOR
+Written by developers
