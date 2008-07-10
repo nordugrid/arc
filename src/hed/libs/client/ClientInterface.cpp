@@ -252,23 +252,23 @@ namespace Arc {
   }
 
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const std::string& host,
-			 int port, bool tls, const std::string& path, const WSSType wsstype, WSSInfo* wssinfo)
+			 int port, bool tls, const std::string& path)
     : ClientHTTP(cfg, host, port, tls, path),
       soap_entry(NULL){
     XMLNode comp =
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
     //Add the ws-security configuration for the soap client. Currently only usernametoken is supported
-    if((wsstype == UsernameToken) && wssinfo && (!(wssinfo->password_encoding).empty())
-      && (!(wssinfo->username).empty())&& (!(wssinfo->password).empty())) {
+    if((cfg.wsstype == Arc::UsernameToken) && (!(cfg.wssinfo.password_encoding).empty())
+      && (!(cfg.wssinfo.username).empty())&& (!(cfg.wssinfo.password).empty())) {
       XMLNode sechandler = comp.NewChild("SecHandler");
       sechandler.NewAttribute("name") = "usernametoken.handler";
       sechandler.NewAttribute("id") = "usernametoken";
       sechandler.NewAttribute("event") = "outgoing";
       sechandler.NewChild("Process") = "generate";
-      sechandler.NewChild("PasswordEncoding") = wssinfo->password_encoding;
-      sechandler.NewChild("Username") = wssinfo->username;
-      sechandler.NewChild("Password") = wssinfo->password;
+      sechandler.NewChild("PasswordEncoding") = cfg.wssinfo.password_encoding;
+      sechandler.NewChild("Username") = cfg.wssinfo.username;
+      sechandler.NewChild("Password") = cfg.wssinfo.password;
     }
     //Process other WSSType
   }
