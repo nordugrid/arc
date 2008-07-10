@@ -1,9 +1,19 @@
 <ra:Request xmlns:ra="http://www.nordugrid.org/schemas/request-arc">
+  <!--The pdp request here is just an example for demostrating how to construct the request to pdp. It is a 
+  snapshot copy exported by MessageAuth which is supposed to parse the attributes which is recorded by MCCs and 
+  compose the pdp request based on those attribute.
+  The policy eveluation engined (called by pdpservice and ArcPDP) itself is not limited to any specific 
+  request. It will only evaluate the request against the policy which is configured into it, based on the request and 
+  policy schema.-->
   <ra:RequestItem>
+    <!--http path recorded by MCCHTTP-->
     <ra:Resource Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path">/Echo</ra:Resource>
+    <!--http method recorded by MCCHTTP-->
     <ra:Action Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method">POST</ra:Action>
     <ra:Subject>
+      <!--remote endpoint recorded by MCCTCP -->
       <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint">127.0.0.1:33933</ra:SubjectAttribute>
+      <!--remote credential information recorded by MCCTLS -->
       <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/ca">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
       <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
       <ra:SubjectAttribute Type="string" AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/chain">/C=NO/ST=Oslo/O=UiO/CN=CA</ra:SubjectAttribute>
