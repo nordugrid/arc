@@ -123,6 +123,14 @@ namespace Arc {
     cadir = path;
   }
 
+  void BaseConfig::AddWSSType(const Arc::WSSType& type) {
+    wsstype = type;
+  }
+
+  void BaseConfig::AddWSSInfo(const Arc::WSSInfo& info) {
+    wssinfo = info;
+  }
+
   void BaseConfig::AddOverlay(XMLNode cfg) {
     overlay.Destroy();
     cfg.New(overlay);
