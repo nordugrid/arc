@@ -45,7 +45,7 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     cs.NewChild("TotalJobs") = Arc::tostring(jobq.getTotalJobs());
     cs.NewChild("RunningJobs") = Arc::tostring(jobq.getRunningJobs());
     cs.NewChild("WaitingJobs") = Arc::tostring(jobq.getWaitingJobs());
-    cs.NewChild("StageingJobs") = Arc::tostring(jobq.getStageingJobs());
+    cs.NewChild("StagingJobs") = Arc::tostring(jobq.getStageingJobs());
     Arc::XMLNode sh = cs.NewChild("ComputingShares").NewChild("ComputingShare");
     sh.NewAttribute("CreationTime") = created;
     sh.NewAttribute("Validity") = validity;
@@ -60,7 +60,7 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     sh.NewChild("TotalJobs") = Arc::tostring(jobq.getTotalJobs());
     sh.NewChild("RunningJobs") = Arc::tostring(jobq.getRunningJobs());
     sh.NewChild("WaitingJobs") = Arc::tostring(jobq.getWaitingJobs());
-    sh.NewChild("StageingJobs") = Arc::tostring(jobq.getStageingJobs());
+    sh.NewChild("StagingJobs") = Arc::tostring(jobq.getStageingJobs());
     sh.NewChild("Associations").NewChild("ExecutionEnvironmentLocalID") = ee_id;
     //      Manager part
     Arc::XMLNode mg = cs.NewChild("ComputingManager");
