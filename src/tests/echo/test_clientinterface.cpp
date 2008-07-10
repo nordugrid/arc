@@ -34,13 +34,15 @@ int main(void) {
   mcc_cfg.AddCertificate("cert.pem");
   mcc_cfg.AddCAFile("ca.pem");
 
-  Arc::ClientSOAP *client;
-  Arc::ClientSOAP::WSSInfo wssinfo;
+  Arc::WSSInfo wssinfo;
   wssinfo.username="user";
   wssinfo.password="passwd";
   wssinfo.password_encoding="digest";
+  mcc_cfg.AddWSSType(Arc::UsernameToken);
+  mcc_cfg.AddWSSInfo(wssinfo);
 
-  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path(), Arc::ClientSOAP::UsernameToken, &wssinfo);
+  Arc::ClientSOAP *client;
+  client = new Arc::ClientSOAP(mcc_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
 
   // Create and send echo request
   logger.msg(Arc::INFO, "Creating and sending request");
