@@ -1,1 +1,12 @@
 client for echo service
+
+Usage howto
+==================
+1, Change echo_client.xml. 
+  Setup the library path. 
+  Setup the endpoint of the remote service.
+  Setup the credential which will be used by tls.
+  Setup the WS-Security usernametoken information. You just need to setup the username and password which you would use
+      to access this service, if the service require usenametoken authentication.
+2, Run "apecho echo_client.xml"; IF succeed, you can get response like: [ echo_client.xml ] 
+ 
