@@ -29,7 +29,7 @@ class JobQueue {
         unsigned int getTotalJobs(void) { return 0; };
         unsigned int getRunningJobs(void) { return 0; };
         unsigned int getWaitingJobs(void) { return 0; };
-        unsigned int getStageingJobs(void) { return 0; };
+        unsigned int getStagingJobs(void) { return 0; };
         unsigned int getLocalRunningJobs(void) { return 0; };
 };
 
