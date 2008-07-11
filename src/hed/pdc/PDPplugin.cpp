@@ -30,6 +30,9 @@ pdp_descriptors ARC_PDP_LOADER = {
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "arc.authz", 0, &ArcSec::ArcAuthZ::get_sechandler},
     { "usernametoken.handler", 0, &ArcSec::UsernameTokenSH::get_sechandler},
-    { NULL, 0, NULL }
+#if XMLSEC_ENABLED
+    { "x509token.handler", 0, &ArcSec::X509TokenSH::get_sechandler},
+#endif 
+   { NULL, 0, NULL }
 };
 
