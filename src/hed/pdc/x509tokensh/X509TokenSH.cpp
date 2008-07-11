@@ -81,6 +81,7 @@ bool X509TokenSH::Handle(Arc::Message* msg){
         logger.msg(ERROR, "Failed to authenticate X509 Token inside the incoming SOAP");
         return false;
       };
+      logger.msg(INFO, "Succeed to authenticate X509Token");
     } catch(std::exception) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
@@ -93,6 +94,11 @@ bool X509TokenSH::Handle(Arc::Message* msg){
         logger.msg(ERROR,"Failed to generate X509 Token for outgoin SOAP");
         return false;
       };
+      //Reset the soap message
+      std::string soap_str;
+      xt.GetXML(soap_str);
+      SOAPEnvelope s(soap_str);
+      (*soap) = s;
     } catch(std::exception) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;

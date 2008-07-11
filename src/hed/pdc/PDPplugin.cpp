@@ -13,6 +13,7 @@
 #include "denypdp/DenyPDP.h"
 #include "arcauthzsh/ArcAuthZ.h"
 #include "usernametokensh/UsernameTokenSH.h"
+#include "x509tokensh/X509TokenSH.h"
 
 using namespace ArcSec;
 
@@ -30,9 +31,7 @@ pdp_descriptors ARC_PDP_LOADER = {
 sechandler_descriptors ARC_SECHANDLER_LOADER = {
     { "arc.authz", 0, &ArcSec::ArcAuthZ::get_sechandler},
     { "usernametoken.handler", 0, &ArcSec::UsernameTokenSH::get_sechandler},
-#if XMLSEC_ENABLED
     { "x509token.handler", 0, &ArcSec::X509TokenSH::get_sechandler},
-#endif 
-   { NULL, 0, NULL }
+    { NULL, 0, NULL }
 };
 

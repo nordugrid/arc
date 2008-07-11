@@ -80,6 +80,7 @@ bool UsernameTokenSH::Handle(Arc::Message* msg){
         logger.msg(ERROR, "Failed to authenticate Username Token inside the incoming SOAP");
         stream.close(); return false;
       };
+      logger.msg(INFO, "Succeed to authenticate UsernameToken");
       stream.close();
     } catch(std::exception) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
