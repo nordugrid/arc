@@ -2,8 +2,8 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007">
   <ModuleManager>
-    <!--Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path-->
-    <Path>/usr/local/lib/arc/</Path>
+    <Path>/mn/tid/epf-a1/weizhonq/susy_backup/new-arc-install/lib/arc/</Path>
+    <!--Path>/usr/local/lib/arc/</Path-->
   </ModuleManager>
   <Plugins><Name>mcctcp</Name></Plugins>
   <Plugins><Name>mcctls</Name></Plugins>
@@ -30,12 +30,17 @@
     </Component>
     <Component name='soap.client' id='soap' entry='soap'>
       <next id='http'/>
-      <SecHandler name="usernametoken.handler" id="usernametoken" event="outgoing">
+      <!--SecHandler name="usernametoken.handler" id="usernametoken" event="outgoing">
         <Process>generate</Process>
         <PasswordEncoding>digest</PasswordEncoding>
         <Username>user</Username>
         <Password>passwd</Password>
-      </SecHandler>
+      </SecHandler-->
+      <!--SecHandler name="x509token.handler" id="x509token" event="outgoing">
+        <Process>generate</Process>
+        <KeyPath>../../tests/echo/key.pem</KeyPath>
+        <CertificatePath>../../tests/echo/cert.pem</CertificatePath>
+      </SecHandler-->
     </Component>
   </Chain>
 </ArcConfig>

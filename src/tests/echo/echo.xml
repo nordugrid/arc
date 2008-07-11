@@ -46,11 +46,27 @@
     <!-- This one parses content into XML tree -->
     <Component name="soap.service" id="soap">
       <next id="plexer"/>
+      <!--The example configuration about usernametoken and x509token can apply to any service and client,
+      since these token only affect soap message.-->
       <!--usernametoken.handler is set here for consuming soap message with WS-Security UsernameToken
-      there should be a file locally including mapping between username and password-->
+      there should be a file locally including mapping between username and password
+      see src/pdc/usernametokensh/UsernameTokenSH.xsd for the configuration schema.
+      If the usernametoken is switched on, the corresponding configuration on the client side
+      should also be switched on, see $ARC_LOCATION/share/doc/arc/echo_client.xml -->
       <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming">
         <Process>extract</Process>
         <PasswordSource>password.txt</PasswordSource>
+      </SecHandler>
+      <!--x509token.handler is set here for consuming soap message with WS-Security X509Token.
+      Currently, only used for message signature/authentication, not used for encryption.
+      <CACertificatePath/> is used for authentication, if no <CACertificatePath/> or <CACertificatesDir>
+      set, the handler will only verify the signature of the message, will not do authentication 
+      see src/pdc/x509tokensh/X509TokenSH.xsd for the configuration schema.
+      If the x509token is switched on, the corresponding configuration on the client side
+      should also be switched on, see $ARC_LOCATION/share/doc/arc/echo_client.xml-->
+      <SecHandler name="x509token.handler" id="x509token" event="incoming">
+        <Process>extract</Process>
+        <CACertificatePath>ca.pem</CACertificatePath>
       </SecHandler>
     </Component>
     <!-- Directing messages to proper service -->
