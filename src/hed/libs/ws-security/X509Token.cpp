@@ -323,7 +323,7 @@ static xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, con
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
-  //load a ca file
+  //load a ca file. TODO: can only be used in some new version of xmlsec
   /*if(!cafile)  
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
@@ -463,6 +463,10 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     //Destroy the wsse:Security in header
     header["wsse:Security"].Destroy();
 
+    //Ajust namespaces, delete mutiple definition
+    ns = envelope.Namespaces();
+    envelope.Namespaces(ns);
+
     //if(decrypted_buf != NULL)xmlSecBufferDestroy(decrypted_buf);
     if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
     if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
@@ -533,11 +537,14 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
-    Arc::NS ns;
-    ns["wsse"]=WSSE_NAMESPACE;
-    ns["wsse11"]=WSSE11_NAMESPACE;
+    Arc::NS header_ns, ns;
+    header_ns["wsse"]=WSSE_NAMESPACE;
+    header_ns["wsse11"]=WSSE11_NAMESPACE;
+    header.Namespaces(header_ns);
+
+    ns = envelope.Namespaces();
     ns["wsu"]=WSU_NAMESPACE;
-    header.Namespaces(ns);
+    envelope.Namespaces(ns);
 
     xmlNodePtr signature = NULL;
     xmlNodePtr reference = NULL;
@@ -572,7 +579,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     xmlChar* id = NULL;
     id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
-    if(!id) { std::cerr<<"There is not wsu:Id attribute in soap body"<<std::endl; return; }
+    if(!id) { 
+      std::cout<<"There is not wsu:Id attribute in soap body, add a new one"<<std::endl;
+      body.NewAttribute("wsu:Id") = "body";
+    }
+    id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
 
     std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
@@ -615,7 +626,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not load key"<<std::endl; return;
     }
-    /*
+    /* the following code could be necessary if we need <dsig:X509Data/>
     if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not cert key"<<std::endl; return;	

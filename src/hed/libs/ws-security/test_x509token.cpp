@@ -13,7 +13,7 @@ int main(void) {
   xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">\
   <S:Header>\
   </S:Header>\
-  <S:Body wsu:Id=\"body\">\
+  <S:Body>\
     <f:Delete xmlns:f=\"http://example.com/fabrikam\">\
        <maxCount>42</maxCount>\
     </f:Delete>\
