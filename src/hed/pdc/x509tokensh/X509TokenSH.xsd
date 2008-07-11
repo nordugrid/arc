@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:xt="http://www.nordugrid.org/schemas/X509TokenSH"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/X509TokenSH"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- This schema defines elements which are accepted by X509Token
+       SecHandler. See mcc.xsd for general information about SecHandler
+       elements. X509TokenSH plugin is expected to be used to collect 
+       Security Attributes for messages comming to service and to form 
+       proper X509 Token SOAP Header for client outgoing messages. -->
+
+  <xsd:simpleType name="ProcessType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="extract"/>
+      <xsd:enumeration value="generate"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="TokenUsageType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="signature"/>
+      <xsd:enumeration value="encryption"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- This element defines either X509 Token has to extracted from SOAP
+       Header or generated using other configuration elements. -->
+  <xsd:element name="Process" type="xt:ProcessType"/>
+
+  <!-- Location of private key -->
+  <xsd:element name="KeyPath" type="xsd:string"/>
+
+  <!-- Location of public certificate. -->
+  <xsd:element name="CertificatePath" type="xsd:string"/>
+
+  <!-- Location of trusted CA certificate  -->
+  <xsd:element name="CACertificatePath" type="xsd:string"/>
+
+  <!-- Directory of trusted CA certificates  -->
+  <xsd:element name="CACertificatesDir" type="xsd:string"/>
+
+  <!-- Token usage type to be used. -->
+  <xsd:element name="TokenUsage" type="xt:TokenUsageType"/>
+
+</xsd:schema>
+
