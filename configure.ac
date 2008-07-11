@@ -757,6 +757,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/pdc/arcauthzsh/Makefile
                  src/hed/pdc/delegationsh/Makefile
                  src/hed/pdc/usernametokensh/Makefile
+                 src/hed/pdc/x509tokensh/Makefile
                  src/arclib/Makefile
                  src/hed/identitymap/Makefile
                  src/services/Makefile
