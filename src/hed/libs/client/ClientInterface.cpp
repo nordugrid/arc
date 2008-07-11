@@ -259,7 +259,7 @@ namespace Arc {
       ConfigMakeComponent(xmlcfg["Chain"], "soap.client", "soap", "http");
     comp.NewAttribute("entry") = "soap";
     //Add the ws-security configuration for the soap client. Currently only usernametoken is supported
-    if((cfg.wsstype == Arc::UsernameToken) && (!(cfg.wssinfo.password_encoding).empty())
+    if((cfg.wsstype == Arc::USERNAMETOKEN) && (!(cfg.wssinfo.password_encoding).empty())
       && (!(cfg.wssinfo.username).empty())&& (!(cfg.wssinfo.password).empty())) {
       XMLNode sechandler = comp.NewChild("SecHandler");
       sechandler.NewAttribute("name") = "usernametoken.handler";

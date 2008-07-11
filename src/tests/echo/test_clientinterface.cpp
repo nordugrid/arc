@@ -38,7 +38,7 @@ int main(void) {
   wssinfo.username="user";
   wssinfo.password="passwd";
   wssinfo.password_encoding="digest";
-  mcc_cfg.AddWSSType(Arc::UsernameToken);
+  mcc_cfg.AddWSSType(Arc::USERNAMETOKEN);
   mcc_cfg.AddWSSInfo(wssinfo);
 
   Arc::ClientSOAP *client;

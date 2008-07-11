@@ -72,10 +72,10 @@ namespace Arc {
   WS-Security profile.*/
   typedef enum {
     NONE,
-    UsernameToken,
-    X509Token,
-    SAMLToken,
-    KerberosToken
+    USERNAMETOKEN,
+    X509TOKEN,
+    SAMLTOKEN,
+    KERBEROSTOKEN
   } WSSType;
 
   struct WSSInfo;
