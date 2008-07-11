@@ -497,9 +497,12 @@ should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and
 $ARC_LOCATION/share/doc/arc/Policy.xsd for details.
 
 For usernametoken handler, there is example about configuration on service side in 
-$ARC_LOCATION/share/doc/arc/echo.xml. For client side, there is a test program in
-src/tests/echo/test_clientinterface.cpp which can be compiled and tested against any
-service with usernametoken.handler configured.
+$ARC_LOCATION/share/doc/arc/echo.xml, you can run echo service by using this configuration
+file with usernametoken sechandler configuered. For client side, the echo client 
+(src/client/echo)can use usernametoken sechandler to authenticate against echo service 
+(see README under src/client/echo); there is also a test program in 
+src/tests/echo/test_clientinterface.cpp which can be compiled and tested against echo
+service with usernametoken sechandler configured.
 
 
 Finding more information
