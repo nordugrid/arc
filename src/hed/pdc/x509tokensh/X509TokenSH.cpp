@@ -95,10 +95,7 @@ bool X509TokenSH::Handle(Arc::Message* msg){
         return false;
       };
       //Reset the soap message
-      std::string soap_str;
-      xt.GetXML(soap_str);
-      SOAPEnvelope s(soap_str);
-      (*soap) = s;
+      (*soap) = xt;
     } catch(std::exception) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
