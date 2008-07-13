@@ -8,6 +8,9 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
+m4_pattern_allow([AC_PATH_PROG])
+m4_pattern_allow([AC_MSG_WARN])
+
 AC_PROG_CXX
 AC_PROG_CC_STDC
 AC_PROG_CPP
@@ -365,7 +368,7 @@ LASSO_INSTALLED=no
 #[])
 
 #check xmlsec
-XMLSEC_INSTALLED=no
+#XMLSEC_INSTALLED=no
 #PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= 1.2.9  xmlsec1-openssl >= 1.2.9],
 #[AC_SUBST(XMLSEC_CFLAGS)
 # AC_SUBST(XMLSEC_LIBS)
@@ -528,6 +531,9 @@ if test x"$OPENSSL_X509_VERIFY_PARAM" = xyes; then
 fi
 if test x"$OPENSSL_OLDRSA" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_OLDRSA,,[define if OPENSSL has old RSA generation interface])
+fi
+if test x"$XMLSEC_INSTALLED" = xyes; then
+    AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
 fi
 
 test "x$prefix" = xNONE && xxxprefix=$ac_default_prefix || xxxprefix=$prefix
