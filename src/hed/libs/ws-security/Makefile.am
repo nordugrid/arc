@@ -8,8 +8,8 @@ endif
 
 libwssecurity_ladir = $(pkgincludedir)/ws-security
 if XMLSEC_ENABLED
-libwssecurity_la_HEADERS  = UsernameToken.h X509Token.h
-libwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp
+libwssecurity_la_HEADERS  = UsernameToken.h X509Token.h wss_util.h
+libwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp wss_util.cpp
 else
 libwssecurity_la_HEADERS  = UsernameToken.h
 libwssecurity_la_SOURCES  = UsernameToken.cpp

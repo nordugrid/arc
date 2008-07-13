@@ -53,7 +53,7 @@ private:
 
 private:
   xmlNodePtr signature_nd;
-  std::string key_str;
+  std::string cert_str;
 };
 
 } // namespace Arc

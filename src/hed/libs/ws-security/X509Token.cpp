@@ -38,6 +38,8 @@
 #include <arc/DateTime.h>
 #include <arc/Base64.h>
 #include <arc/StringConv.h>
+
+#include "wss_util.h"
 #include "X509Token.h"
 
 namespace Arc {
@@ -55,288 +57,6 @@ namespace Arc {
 #define X509V3 "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
 #define X509PKIPATHV1 "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509PKIPathv1"
 #define X509SUBJECTKEYID "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
-
-static int passphrase_callback(char* buf, int size, int rwflag, void *) {
-  int len;
-  char prompt[128];
-  snprintf(prompt, sizeof(prompt), "Enter passphrase for the key file which will be used for X509 Token: \n");
-  int r = EVP_read_pw_string(buf, size, prompt, 0);
-  if(r != 0) {
-    std::cerr<<"Failed to read passphrase from stdin"<<std::endl;
-    return -1;
-  }
-  len = strlen(buf);
-  if(buf[len-1] == '\n') {
-    buf[len-1] = '\0';
-    len--;
-  }
-  return len;
-}
-
-static Glib::Mutex init_lock_;
-static bool has_init = false;
-
-static bool init_xmlsec(void) {
-  if(!has_init) {
-    init_lock_.lock(); 
-    has_init = true;
-    init_lock_.unlock();
-
-    //Init libxml and libxslt libraries
-    xmlInitParser();
-
-    //Init xmlsec library
-    if(xmlSecInit() < 0) {
-      std::cerr<<"XMLSec initialization failed"<<std::endl;
-      goto err;
-    }
-
-    /* Load default crypto engine if we are supporting dynamic
-     * loading for xmlsec-crypto libraries. Use the crypto library
-     * name ("openssl", "nss", etc.) to load corresponding
-     * xmlsec-crypto library.
-     */
-#ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
-    if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
-      std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
-                        "that you have it installed and check shared libraries path"
-                        "(LD_LIBRARY_PATH) envornment variable."<<std::endl;
-      goto err;
-    }
-#endif /* XMLSEC_CRYPTO_DYNAMIC_LOADING */
-
-    // Init crypto library
-    if(xmlSecCryptoAppInit(NULL) < 0) {
-      std::cerr<<"crypto initialization failed"<<std::endl;
-      goto err;
-    }
-
-    //Init xmlsec-crypto library
-    if(xmlSecCryptoInit() < 0) {
-      std::cerr<<"xmlsec-crypto initialization failed"<<std::endl;
-      goto err;
-    }
-
-    return true;
-
-err:
-    init_lock_.lock();
-    has_init = false;
-    init_lock_.unlock();
-    return false;
-  }
-  return true;
-}
-
-static void final_xmlsec(void) {
-
-  if(has_init) {
-    init_lock_.lock();
-    has_init = false;
-    init_lock_.unlock();
-
-    //Shutdown xmlsec-crypto library
-    xmlSecCryptoShutdown();
-    //Shutdown crypto library 
-    xmlSecCryptoAppShutdown();  
-    //Shutdown xmlsec library
-    xmlSecShutdown();
-    //Shutdown libxml
-    xmlCleanupParser();
-  }
-}
-
-//Get certificate piece (the string under BEGIN CERTIFICATE : END CERTIFICATE) from a certificate file
-static std::string get_cert_str(const char* certfile) {
-  std::ifstream is(certfile);
-  std::string cert;
-  std::getline(is,cert, char(0));
-  std::size_t pos = cert.find("BEGIN CERTIFICATE");
-  if(pos != std::string::npos) {
-    std::size_t pos1 = cert.find_first_of("---", pos);
-    std::size_t pos2 = cert.find_first_not_of("-", pos1);
-    std::size_t pos3 = cert.find_first_of("---", pos2);
-    std::string str = cert.substr(pos2+1, pos3-pos2-2);
-    return str;
-  }
-  return ("");
-}
-
-//Get key from a binary key 
-static xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) { 
-  xmlSecKey *key = NULL;
-  xmlSecKeyDataFormat key_formats[] = {
-    xmlSecKeyDataFormatDer,
-    xmlSecKeyDataFormatCertDer,
-    xmlSecKeyDataFormatPkcs8Der,
-    xmlSecKeyDataFormatCertPem,
-    xmlSecKeyDataFormatPkcs8Pem,
-    xmlSecKeyDataFormatPem,
-    xmlSecKeyDataFormatBinary,
-    (xmlSecKeyDataFormat)0
-  };
-
-  int rc;
-  std::string v(value.size(),'\0');
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
-  xmlSecByte* tmp_str = new xmlSecByte[value.size()];
-  memset(tmp_str,0,value.size());
-  rc = xmlSecBase64Decode((const xmlChar*)(value.c_str()), tmp_str, value.size());
-  if (rc < 0) {
-    //bad base-64
-    memcpy(tmp_str,value.c_str(),value.size());
-    rc = value.size();
-  }
-  for (int i=0; key_formats[i] && key == NULL; i++) {
-    key = xmlSecCryptoAppKeyLoadMemory(tmp_str, rc, key_formats[i], NULL, NULL, NULL);
-  }
-  delete[] tmp_str;
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
-
-  return key;
-}
-
-//Get key from a cert string
-static xmlSecKey* get_key_from_certstr(const std::string& value) {
-  xmlSecKey *key = NULL;
-  xmlSecKeyDataFormat key_formats[] = {
-    xmlSecKeyDataFormatDer,
-    xmlSecKeyDataFormatCertDer,
-    xmlSecKeyDataFormatPkcs8Der,
-    xmlSecKeyDataFormatCertPem,
-    xmlSecKeyDataFormatPkcs8Pem,
-    xmlSecKeyDataFormatPem,
-    xmlSecKeyDataFormatBinary,
-    (xmlSecKeyDataFormat)0
-  };
-
-  int rc;
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
-
-  BIO* certbio = NULL;
-  std::string cert_value;
-  //Here need to compose a complete certificate
-  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(value).append("\n").append("-----END CERTIFICATE-----");
-
-  for (int i=0; key_formats[i] && key == NULL; i++) {
-    certbio = BIO_new_mem_buf((void*)(cert_value.c_str()), cert_value.size());
-    key = xmlSecOpenSSLAppKeyFromCertLoadBIO(certbio, key_formats[i]);
-    BIO_free(certbio);
-  }
-
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
-
-  return key;
-}
-
-//Load private or public key from a key file into key manager
-static xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const char* keyfile) {
-  xmlSecKeysMngrPtr keys_mngr;
-  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
-  }
-
-  std::string key_str;
-  std::ifstream is(keyfile);
-  std::getline(is,key_str, char(0));
-
-  xmlSecKeyPtr key = get_key_from_keystr(key_str);
-
-  if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, key) < 0) {
-    std::cerr<<"Failed to add key from "<<keyfile<<" to keys manager"<<std::endl;
-    xmlSecKeyDestroy(key);
-    xmlSecKeysMngrDestroy(keys_mngr);
-    return NULL;
-  }
-  return keys_mngr;
-}
-
-//Load public key from a certificate file into key manager
-static xmlSecKeysMngrPtr load_key_from_certfile(xmlSecKeysMngrPtr* keys_manager, const char* certfile) {
-  xmlSecKeysMngrPtr keys_mngr;
-  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
-  }
-
-  std::string cert_str;
-  cert_str = get_cert_str(certfile);
-  xmlSecKeyPtr key = get_key_from_certstr(cert_str);
-
-  if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, key) < 0) {
-    std::cerr<<"Failed to add key from "<<certfile<<" to keys manager"<<std::endl;
-    xmlSecKeyDestroy(key);
-    xmlSecKeysMngrDestroy(keys_mngr);
-    return NULL;
-  }
-  return keys_mngr;
-}
-
-//Could be used for many trusted certificates in string
-static xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
-  xmlSecKeysMngrPtr keys_mngr;
-  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
-  }
-
-  //load cert from memory
-  if(!cert_str.empty())
-    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()), 
-          (xmlSecSize)(cert_str.size()), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
-      xmlSecKeysMngrDestroy(keys_mngr);
-      return NULL;
-    }
-  return keys_mngr;
-}
-
-//Load trusted cetificates into key manager
-static xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath) {
-  xmlSecKeysMngrPtr keys_mngr;
-  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;} 
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl; 
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
-  }
-  
-  //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
-  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
-  //load a ca path
-  if(!capath)
-    if(xmlSecOpenSSLAppKeysMngrAddCertsPath(keys_mngr, capath) < 0) {
-      xmlSecKeysMngrDestroy(keys_mngr);
-      return NULL;
-    }
-  //load a ca file. TODO: can only be used in some new version of xmlsec
-  /*if(!cafile)  
-    if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
-      xmlSecKeysMngrDestroy(keys_mngr);
-      return NULL;
-    }*/
-  return keys_mngr;
-} 
-
-static XMLNode get_node(XMLNode& parent,const char* name) {
-  XMLNode n = parent[name];
-  if(!n) n=parent.NewChild(name);
-  return n;
-}
 
 bool X509Token::Check(SOAPEnvelope& soap) {
   XMLNode header = soap.Header();
@@ -378,7 +98,7 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
     XMLNode xt = header["wsse:Security"];   
     XMLNode signature = xt["Signature"];
     XMLNode token = xt["wsse:BinarySecurityToken"];
-    key_str = (std::string)token;
+    cert_str = (std::string)token;
 
     //Body reference
     xmlNodePtr bodyPtr = ((X509Token*)(&body))->node_;
@@ -481,7 +201,7 @@ bool X509Token::Authenticate(void) {
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
 
   //Load public key from incoming soap's security token
-  xmlSecKey* pubkey = get_key_from_certstr(key_str);
+  xmlSecKey* pubkey = get_key_from_certstr(cert_str);
   dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
@@ -509,8 +229,9 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
 
+  //TODO: need some changes here. Load the certificate from wsse:Binarytoken into keymanager, the same as other trusted certificates
   //Load public key from incoming soap's security token
-  xmlSecKey* pubkey = get_key_from_certstr(key_str);
+  xmlSecKey* pubkey = get_key_from_certstr(cert_str);
   dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
