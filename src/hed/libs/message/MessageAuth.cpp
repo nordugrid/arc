@@ -48,10 +48,20 @@ class _XMLPair {
   _XMLPair(XMLNode e,XMLNode c):element(e),context(c) { };
 };
 
+void copy_xml_elements(XMLNode item,XMLNode elements) {
+  for(;(bool)elements;++elements) {
+    item.NewChild(elements);
+  };
+}
+
 // All permutations of Subject, Resource, Action elements are generated.
-// Each is put into separate RequestItem. Condition is put into 
-// RequestItem if it was present in one from which Subject, Resource
-// or Action are taken.
+// Attribute sub-elements get collected in single Element (Subject, Condition). 
+// Each element withoit Attribute sub-elements are put into separate 
+// RequestItem. Attributes of Condition are collected inside single 
+// Condition element in every RequestItem if it comes from same source
+// as corresponding Subject, Resource or Action.
+// All generated content is merged to existing content in val variable.
+// TODO: Avoid duplicate Context attributes
 bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   // Currently only ARCAuth is supported
   if(format != SecAttr::ARCAuth) return false;
@@ -65,7 +75,7 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   std::list<_XMLPair> subjects;
   std::list<_XMLPair> resources;
   std::list<_XMLPair> actions;
-  // Collecting elements from previously collected request
+  // Collecting elements from previously generated request
   for(XMLNode item = newreq["RequestItem"];(bool)item;++item) {
     for(XMLNode subject = item["Subject"];(bool)subject;++subject) {
       subjects.push_back(_XMLPair(subject,item["Context"]));
@@ -89,9 +99,9 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
     if(!(attr->second)) return false;
     if(!(attr->second->Export(format,r))) return false;
 
-    std::string str;
-    r.GetXML(str);
-    std::cout<<"SecAttr: ++++ Name: "<<attr->first<<"XML: "<<str<<std::endl;
+    //std::string str;
+    //r.GetXML(str);
+    //std::cout<<"SecAttr: ++++ Name: "<<attr->first<<"XML: "<<str<<std::endl;
 
     for(XMLNode item = r["RequestItem"];(bool)item;++item) {
       for(XMLNode subject = item["Subject"];(bool)subject;++subject) {
@@ -106,44 +116,68 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
     };
   };
 
-  std::list<_XMLPair>::iterator subject = subjects.begin();
-  for(int subject_n = 0;;++subject_n) {
-    std::list<_XMLPair>::iterator action = actions.begin();
-    for(int action_n = 0;;++action_n) {
-      std::list<_XMLPair>::iterator resource = resources.begin();
-      for(int resource_n = 0;;++resource_n) {
-        if((subject_n < subjects_new) && 
-           (action_n < actions_new) &&
-           (resource_n < resources_new)) {
-          continue; // This compbination is already in request
-        };
-        XMLNode newitem = newreq.NewChild("ra:RequestItem");
-        if(subject != subjects.end()) {
-          newitem.NewChild(subject->element);
-          for(XMLNode context = subject->context;(bool)context;++context) {
-            newitem.NewChild(context);
-          };
-        };
-        if(action != actions.end()) {
-          newitem.NewChild(action->element);
-          for(XMLNode context = action->context;(bool)context;++context) {
-            newitem.NewChild(context);
-          };
-        };
-        if(resource != resources.end()) {
-          newitem.NewChild(resource->element);
-          for(XMLNode context = resource->context;(bool)context;++context) {
-            newitem.NewChild(context);
-          };
-        };
-        if(resources.size()) ++resource;
-        if(resource == resources.end()) break;
+  // Merge all collected elements into single request
+  // Collecting new subject attributes into one element.
+  XMLNode new_subject(ns,"ra:Subject");
+  XMLNode new_context(ns,"ra:Context");
+  {
+    std::list<_XMLPair>::iterator subject = subjects.begin();
+    for(int subject_n = 0;;++subject_n) {
+      if(subject_n < subjects_new) continue; 
+      if(subject == subjects.end()) break;
+      if(subject->element.Size() > 0) {
+        copy_xml_elements(new_subject,subject->element["SubjectAttribute"]);
+        copy_xml_elements(new_context,subject->context["ContextAttribute"]);
       };
-      if(actions.size()) ++action;
-      if(action == actions.end()) break;
+      ++subject;
     };
-    if(subjects.size()) ++subject;
-    if(subject == subjects.end()) break;
+  };
+  // Add new subject into existing ones - assuming all
+  // already existing subjests are the same.
+  {
+    std::list<_XMLPair>::iterator subject = subjects.begin();
+    for(int subject_n = 0;;++subject_n) {
+      if(subject_n >= subjects_new) break; 
+      if(subject == subjects.end()) break;
+      copy_xml_elements(subject->element,new_subject["SubjectAttribute"]);
+      copy_xml_elements(subject->context,new_subject["ContextAttribute"]);
+      ++subject;
+    };
+  };
+  // Use one of existing old subjects as template for new 
+  // elements (if present)
+  if(subjects.size() > 0) {
+    new_subject=subjects.begin()->element;
+    new_context=subjects.begin()->context;
+  };
+  // Create all permutations of Action and Resource elements
+  std::list<_XMLPair>::iterator action = actions.begin();
+  for(int action_n = 0;;++action_n) {
+    std::list<_XMLPair>::iterator resource = resources.begin();
+    for(int resource_n = 0;;++resource_n) {
+      if((action_n < actions_new) &&
+         (resource_n < resources_new)) {
+        continue; // This combination is already in request
+      };
+      XMLNode newitem = newreq.NewChild("ra:RequestItem");
+      XMLNode newctx = newitem.NewChild("ra:Context");
+      if(new_subject.Size() > 0) {
+        newitem.NewChild(new_subject);
+        copy_xml_elements(newctx,new_context["ContextAttribute"]);
+      };
+      if(action != actions.end()) {
+        newitem.NewChild(action->element);
+        copy_xml_elements(newctx,action->context["ContextAttribute"]);
+      };
+      if(resource != resources.end()) {
+        newitem.NewChild(resource->element);
+        copy_xml_elements(newitem,resource->context["ContextAttribute"]);
+      };
+      if(resources.size()) ++resource;
+      if(resource == resources.end()) break;
+    };
+    if(actions.size()) ++action;
+    if(action == actions.end()) break;
   };
   return true;
 }
