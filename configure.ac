@@ -190,7 +190,7 @@ if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     PYTHONWRAP=yes
 fi
 
-if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X"; then
+if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
 else
     enable_python=no
@@ -501,8 +501,13 @@ AC_MSG_NOTICE([SCHED Service enabled: $enable_sched_service])
 AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enable_sched_service" = "xyes"])
 
 # Storage service
-AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building STORAGE Service]),[],enable_storage_service="yes")
-AC_MSG_NOTICE([STORAGE Service enabled: $enable_storage_service])
+enable_storage_service="no"
+if test "x$enable_python" = "xyes"; then
+    AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building STORAGE Service]),[],enable_storage_service="yes")
+    AC_MSG_NOTICE([STORAGE Service enabled: $enable_storage_service])
+else
+    AC_MSG_NOTICE([STORAGE Service disabled - Python needed])
+fi
 AM_CONDITIONAL([STORAGE_SERVICE_ENABLED],[test "x$enable_storage_service" = "xyes"])
     
 
