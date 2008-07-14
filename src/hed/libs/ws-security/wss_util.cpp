@@ -365,11 +365,11 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
       return NULL;
     }
   //load a ca file  TODO: can only be used in some new version of xmlsec
-  if(!cafile)  
+  /*if(!cafile)  
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
-  }
+  }*/
   return keys_mngr;
 } 
 
