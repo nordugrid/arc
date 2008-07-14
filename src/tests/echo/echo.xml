@@ -72,7 +72,7 @@
     </Component>
     <!-- Directing messages to proper service -->
     <Plexer name="plexer.service" id="plexer">
-      <next id="echo">^/echo$</next>
+      <next id="echo">^/Echo$</next>
     </Plexer>
     <!-- Echo service -->
     <Service name="echo" id="echo">
