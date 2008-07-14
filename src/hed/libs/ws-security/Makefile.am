@@ -1,15 +1,15 @@
 lib_LTLIBRARIES = libwssecurity.la
 #noinst_LTLIBRARIES = libwssecurity.la
 if XMLSEC_ENABLED
-noinst_PROGRAMS = test test_x509token
+noinst_PROGRAMS = test test_x509token test_samltoken
 else 
 noinst_PROGRAMS = test
 endif
 
 libwssecurity_ladir = $(pkgincludedir)/ws-security
 if XMLSEC_ENABLED
-libwssecurity_la_HEADERS  = UsernameToken.h X509Token.h wss_util.h
-libwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp wss_util.cpp
+libwssecurity_la_HEADERS  = UsernameToken.h X509Token.h SAMLToken.h wss_util.h 
+libwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp SAMLToken.cpp wss_util.cpp
 else
 libwssecurity_la_HEADERS  = UsernameToken.h
 libwssecurity_la_SOURCES  = UsernameToken.cpp
@@ -29,5 +29,10 @@ test_x509token_SOURCES  = test_x509token.cpp
 test_x509token_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_x509token_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 test_x509token_LDADD    = libwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+
+test_samltoken_SOURCES  = test_samltoken.cpp
+test_samltoken_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+test_samltoken_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+test_samltoken_LDADD    = libwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
 else
 endif

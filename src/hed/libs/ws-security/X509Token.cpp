@@ -195,18 +195,19 @@ X509Token::X509Token(SOAPEnvelope& soap, X509TokenType tokentype) : SOAPEnvelope
 } 
 
 bool X509Token::Authenticate(void) {
-  xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
-
-  dsigCtx = xmlSecDSigCtxCreate(keys_manager);
+  dsigCtx = xmlSecDSigCtxCreate(NULL);
 
   //Load public key from incoming soap's security token
   xmlSecKey* pubkey = get_key_from_certstr(cert_str);
+  if (pubkey == NULL){
+    xmlSecDSigCtxDestroy(dsigCtx);
+    std::cerr<<"Can not load public key"<<std::endl; return false;
+  }
   dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);
-    if (keys_manager) xmlSecKeysMngrDestroy(keys_manager);
     std::cerr<<"Signature verification failed"<<std::endl;
     return false;
   }
@@ -216,9 +217,6 @@ bool X509Token::Authenticate(void) {
     xmlSecDSigCtxDestroy(dsigCtx); return true;
   }
   else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
-
-  if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
-  if(keys_manager != NULL)xmlSecKeysMngrDestroy(keys_manager);
 }
 
 bool X509Token::Authenticate(const std::string& cafile, const std::string& capath) {
@@ -226,13 +224,10 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
   xmlSecDSigCtx *dsigCtx;
 
   keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
+  //Load the certificate from wsse:Binarytoken into keymanager
+  keys_manager = load_key_from_certstr(&keys_manager, cert_str);
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
-
-  //TODO: need some changes here. Load the certificate from wsse:Binarytoken into keymanager, the same as other trusted certificates
-  //Load public key from incoming soap's security token
-  xmlSecKey* pubkey = get_key_from_certstr(cert_str);
-  dsigCtx->signKey = pubkey;
 
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);
@@ -240,15 +235,14 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
     std::cerr<<"Signature verification failed (with trusted ca path)"<<std::endl;
     return false;
   }
-
+  
+  if(keys_manager != NULL)xmlSecKeysMngrDestroy(keys_manager);
   if(dsigCtx->status == xmlSecDSigStatusSucceeded) {
     std::cout<<"Succeed to verify the signature in SOAP message"<<std::endl;
     xmlSecDSigCtxDestroy(dsigCtx); return true;
   }
   else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
 
-  if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
-  if(keys_manager != NULL)xmlSecKeysMngrDestroy(keys_manager);
 }
 
 

@@ -12,11 +12,15 @@ namespace Arc {
 /// Interface for manipulation of WS-Security according to SAML Token Profile. 
 class SAMLToken : public SOAPEnvelope {
 public:
+  typedef enum {
+    SAML1,
+    SAML2
+  } SAMLTokenVersion;
 
   /** Link to existing SOAP header and parse SAML Token information.
     SAML Token related information is extracted from SOAP header and
     stored in class variables. */
-  SAMLToken(SOAPEnvelope& soap);
+  SAMLToken(SOAPEnvelope& soap, SAMLTokenVersion samlversion);
 
   /** Add SAML Token information into the SOAP header.
      Generated token contains elements SAML token and signature, and is
@@ -26,7 +30,7 @@ public:
     @param keyfile
     @param tokentype
   */
-  SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile);
+  SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, SAMLTokenVersion samlversion);
 
   /** Returns true of constructor succeeded */
   operator bool(void);

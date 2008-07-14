@@ -202,6 +202,17 @@ std::string get_key_from_certfile(const char* certfile) {
   BIO_free_all(certbio);
   BIO_free_all(out);
 
+  if(!pubkey_str.empty()) {
+    std::size_t pos = pubkey_str.find("BEGIN PUBLIC KEY");
+    if(pos != std::string::npos) {
+      std::size_t pos1 = pubkey_str.find_first_of("---", pos);
+      std::size_t pos2 = pubkey_str.find_first_not_of("-", pos1);
+      std::size_t pos3 = pubkey_str.find_first_of("---", pos2);
+      std::string str = pubkey_str.substr(pos2+1, pos3-pos2-2);
+      return str;
+    }
+    return ("");
+  }
   return pubkey_str;
 }
 
@@ -290,6 +301,28 @@ xmlSecKeysMngrPtr load_key_from_certfile(xmlSecKeysMngrPtr* keys_manager, const 
   return keys_mngr;
 }
 
+//Load public key from a certificate string into key manager
+xmlSecKeysMngrPtr load_key_from_certstr(xmlSecKeysMngrPtr* keys_manager, const std::string& certstr) {
+  xmlSecKeysMngrPtr keys_mngr;
+  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
+  else keys_mngr = xmlSecKeysMngrCreate();
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
+  //initialize keys manager
+  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  }
+
+  xmlSecKeyPtr key = get_key_from_certstr(certstr);
+  if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, key) < 0) {
+    std::cerr<<"Failed to add key from "<<certstr<<" to keys manager"<<std::endl;
+    xmlSecKeyDestroy(key);
+    xmlSecKeysMngrDestroy(keys_mngr);
+    return NULL;
+  }
+  return keys_mngr;
+}
+
 //Could be used for many trusted certificates in string
 xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
   xmlSecKeysMngrPtr keys_mngr;
@@ -323,7 +356,6 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
     std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl; 
     xmlSecKeysMngrDestroy(keys_mngr); return NULL;
   }
-  
   //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
   //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
   //load a ca path
@@ -333,11 +365,11 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
       return NULL;
     }
   //load a ca file  TODO: can only be used in some new version of xmlsec
-  /*if(!cafile)  
+  if(!cafile)  
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
-    }*/
+  }
   return keys_mngr;
 } 
 
