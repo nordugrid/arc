@@ -13,8 +13,11 @@ endif
 if SWIG_ENABLED
 SWIG_SD = swig
 endif
+if DOC_ENABLED 
+DOC_SD = doc
+endif
 
-SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) intl doc
+SUBDIRS = src $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) intl $(DOC_SD)
 
 DIST_SUBDIRS = src swig java python intl doc include debian
 

@@ -373,7 +373,7 @@ LASSO_INSTALLED=no
 #[AC_SUBST(XMLSEC_CFLAGS)
 # AC_SUBST(XMLSEC_LIBS)
 # XMLSEC_INSTALLED=yes],
-#[])
+#[XMLSEC_INSTALLED=no])
 
 #
 # Check for Berkeley DB C++
@@ -465,6 +465,22 @@ AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 
 # Check for LFC
 AC_CHECK_HEADER(lfc/lfc_api.h,[LFC=yes],[LFC=no])
+
+# Check if user asks to skip documentation build
+AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[],enable_doc="yes")
+if test "x$enable_doc" = "xyes"; then
+  AC_CHECK_PROGS(PDFLATEX, pdflatex)
+  AC_CHECK_PROGS(DOXYGEN, doxygen)
+  if test "x$PDFLATEX" = "x"; then
+    enable_doc="no"
+    AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
+  elif test "x$DOXYGEN" = "x"; then
+    enable_doc="no"
+    AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
+  fi
+fi
+AC_MSG_NOTICE([Documentation enabled: $enable_doc])
+AM_CONDITIONAL([DOC_ENABLED],[test "x$enable_doc" = "xyes"])
 
 # Check for explicitely disabled services
 # A-Rex
