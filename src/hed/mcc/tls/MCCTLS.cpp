@@ -297,13 +297,14 @@ bool TLSSecAttr::Export(Format format,XMLNode &val) const {
        add_subject_attribute(subj,identity_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/identity");
     };
     if(!target_.empty()) {
-      //XMLNode resource = item.NewChild("ra:Resource");
-      //resource=target_; resource.NewAttribute("Type")="string";
-      //resource.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
+      XMLNode resource = item.NewChild("ra:Resource");
+      resource=target_; resource.NewAttribute("Type")="string";
+      resource.NewAttribute("AttributeId")="http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity";
+      // Following is agreed to not be use till all use cases are clarified (Bern agreement)
       //hostidentity should be SubjectAttribute, because hostidentity is be constrained to access
       //the peer delegation identity, or some resource which is attached to the peer delegation identity.
       //The constrant is defined in delegation policy.
-      add_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
+      //add_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
     };
     return true;
   } else {
