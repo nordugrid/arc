@@ -13,7 +13,7 @@ namespace Arc {
         unsigned int first = original_string.find_first_not_of( whitespaces );
         unsigned int last = original_string.find_last_not_of( whitespaces );
         if ( first == std::string::npos || last == std::string::npos ) return ""; 
-        return original_string.substr( first, last-first+1 );
+        return original_string.substr( first, last-first+1*(sizeof(std::string)/sizeof(int)) );
     }
 
     // Return the given string in lower case
@@ -365,15 +365,15 @@ namespace Arc {
 
     std::string XRSLParser::simpleXRSLvalue(std::string attributeValue) {
         std::string quote_mark = "";
-        std::string first_char_of_attributeValue = attributeValue.substr(0,1);
+        std::string first_char_of_attributeValue = attributeValue.substr(0,1*(sizeof(std::string)/sizeof(int)));
 
         //Ruler character examination
-        if (first_char_of_attributeValue == "^") quote_mark = attributeValue.substr(0,2);
+        if (first_char_of_attributeValue == "^") quote_mark = attributeValue.substr(0,2*(sizeof(std::string)/sizeof(int)));
         else if (first_char_of_attributeValue == "\"") quote_mark = "\"";
         else if (first_char_of_attributeValue == "'") quote_mark = "'";
   
         if (quote_mark != "") attributeValue = attributeValue.substr(attributeValue.find_first_of(quote_mark)+quote_mark.length(),
-            attributeValue.find_last_of(quote_mark.substr(0,1))-quote_mark.length()-attributeValue.find_first_of(quote_mark) );
+            attributeValue.find_last_of(quote_mark.substr(0,1*(sizeof(std::string)/sizeof(int))))-quote_mark.length()-attributeValue.find_first_of(quote_mark) );
   
         return attributeValue;
     }
@@ -385,22 +385,22 @@ namespace Arc {
         std::vector<std::string> attributes;
         unsigned int start_pointer;
         for ( unsigned int end_pointer = start_pointer = attributeValue.find_first_not_of(whitespaces); start_pointer != std::string::npos; ) {
-            std::string next_char = attributeValue.substr(start_pointer,1);
+            std::string next_char = attributeValue.substr(start_pointer,1*(sizeof(std::string)/sizeof(int)));
             //If we have a custom quotation mark
             if ( next_char == "^" ) {
-                std::string other_half = attributeValue.substr(start_pointer+1,1);
+                std::string other_half = attributeValue.substr(start_pointer+1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int)));
                 end_pointer = attributeValue.find_first_of("^", start_pointer+1);
-                while ( attributeValue.substr(end_pointer+1,1) != other_half ) {
+                while ( attributeValue.substr(end_pointer+1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int))) != other_half ) {
                     end_pointer = attributeValue.find_first_of("^", end_pointer+1);
                 }
-                attributes.push_back( attributeValue.substr(start_pointer+2, end_pointer-start_pointer-2) );
+                attributes.push_back( attributeValue.substr(start_pointer+2*(sizeof(std::string)/sizeof(int)), end_pointer-start_pointer-2*(sizeof(std::string)/sizeof(int))) );
                 start_pointer = attributeValue.find_first_not_of(whitespaces, end_pointer+2);
             } else if ( next_char == "\"" || next_char == "'" ) {
                 end_pointer = attributeValue.find_first_of( next_char, start_pointer+1 );
-                while ( attributeValue.substr(end_pointer-1,1) == "\\" ) {
+                while ( attributeValue.substr(end_pointer-1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int))) == "\\" ) {
                     end_pointer = attributeValue.find_first_of( next_char, end_pointer+1);
                 }
-                attributes.push_back( attributeValue.substr(start_pointer+1, end_pointer-start_pointer-1) );
+                attributes.push_back( attributeValue.substr(start_pointer+1*(sizeof(std::string)/sizeof(int)), end_pointer-start_pointer-1*(sizeof(std::string)/sizeof(int))) );
                 start_pointer = attributeValue.find_first_not_of(whitespaces, end_pointer+1);
             } else {
                 end_pointer = attributeValue.find_first_of(whitespaces, start_pointer+1);
@@ -423,26 +423,26 @@ namespace Arc {
         for ( outer_start_pointer = attributeValue.find_first_of("(", outer_end_pointer); outer_start_pointer != std::string::npos; outer_start_pointer = attributeValue.find_first_of("(", outer_end_pointer) ) {
             outer_end_pointer = attributeValue.find_first_of(")", outer_start_pointer);
 
-            std::string inner_attributeValue = attributeValue.substr(outer_start_pointer+1,outer_end_pointer-outer_start_pointer-1);
+            std::string inner_attributeValue = attributeValue.substr(outer_start_pointer+1*(sizeof(std::string)/sizeof(int)),outer_end_pointer-outer_start_pointer-1*(sizeof(std::string)/sizeof(int)));
             std::vector<std::string> attributes;
             unsigned int start_pointer;
             for ( unsigned int end_pointer = start_pointer = inner_attributeValue.find_first_not_of(whitespaces); start_pointer != std::string::npos; ) {
-                std::string next_char = inner_attributeValue.substr(start_pointer,1);
+                std::string next_char = inner_attributeValue.substr(start_pointer,1*(sizeof(std::string)/sizeof(int)));
                 //If we have a custom quotation mark
                 if ( next_char == "^" ) {
-                    std::string other_half = inner_attributeValue.substr(start_pointer+1,1);
+                    std::string other_half = inner_attributeValue.substr(start_pointer+1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int)));
                     end_pointer = inner_attributeValue.find_first_of("^", start_pointer+1);
-                    while ( inner_attributeValue.substr(end_pointer+1,1) != other_half ) {
+                    while ( inner_attributeValue.substr(end_pointer+1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int))) != other_half ) {
                         end_pointer = inner_attributeValue.find_first_of("^", end_pointer+1);
                     }
-                    attributes.push_back( inner_attributeValue.substr(start_pointer+2, end_pointer-start_pointer-2) );
+                    attributes.push_back( inner_attributeValue.substr(start_pointer+2*(sizeof(std::string)/sizeof(int)), end_pointer-start_pointer-2*(sizeof(std::string)/sizeof(int))) );
                     start_pointer = inner_attributeValue.find_first_not_of(whitespaces, end_pointer+2);
                 } else if ( next_char == "\"" || next_char == "'" ) {
                     end_pointer = inner_attributeValue.find_first_of( next_char, start_pointer+1 );
-                    while ( end_pointer > 0 && inner_attributeValue.substr(end_pointer-1,1) == "\\" ) {
+                    while ( end_pointer > 0 && inner_attributeValue.substr(end_pointer-1*(sizeof(std::string)/sizeof(int)),1*(sizeof(std::string)/sizeof(int))) == "\\" ) {
                         end_pointer = inner_attributeValue.find_first_of( next_char, end_pointer+1);
                     }
-                    attributes.push_back( inner_attributeValue.substr(start_pointer+1, end_pointer-start_pointer-1) );
+                    attributes.push_back( inner_attributeValue.substr(start_pointer+1*(sizeof(std::string)/sizeof(int)), end_pointer-start_pointer-1*(sizeof(std::string)/sizeof(int))) );
                     start_pointer = inner_attributeValue.find_first_not_of(whitespaces, end_pointer+1);
                 } else {
                     end_pointer = inner_attributeValue.find_first_of(whitespaces, start_pointer+1);
@@ -749,7 +749,7 @@ namespace Arc {
         //First step: trim the text
         //Second step: distinguis the different attributes & convert string to C char array
         int depth = 0;
-        std::string xrsl_text = source.substr(source.find_first_of("&")+1);
+        std::string xrsl_text = source.substr(source.find_first_of("&")+1*(sizeof(std::string)/sizeof(int)));
         bool comment = false;
         std::string actual_argument = "";
   
@@ -776,7 +776,7 @@ namespace Arc {
                             if ( DEBUGX ) std::cerr << "[XRSLParser] XRSL Syntax error (attribute declaration without equal sign)" << std::endl;
                             return false;
                         }
-                        if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1) ) , jobTree) ) return false;
+                        if ( !handleXRSLattribute( sm.trim( wattr.substr(0,eqpos) ) , sm.trim( wattr.substr(eqpos+1*(sizeof(std::string)/sizeof(int))) ) , jobTree) ) return false;
                     } else actual_argument += next_char;
                 } else {
                     actual_argument += next_char;
@@ -840,11 +840,11 @@ namespace Arc {
         std::string whitespaces (" \t\f\v\n\r");
         unsigned int last_pos = attributeValue.find_last_of( "\"" );
         // If the text is not between quotation marks, then return with the original form
-        if (attributeValue.substr( attributeValue.find_first_not_of( whitespaces ), 1 ) != "\"" || last_pos == std::string::npos )
+        if (attributeValue.substr( attributeValue.find_first_not_of( whitespaces ), 1*(sizeof(std::string)/sizeof(int)) ) != "\"" || last_pos == std::string::npos )
             return sm.trim( attributeValue );
         // Else remove the marks and return with the quotation's content
         else 
-            return attributeValue.substr( attributeValue.find_first_of( "\"" )+1,  last_pos - attributeValue.find_first_of( "\"" ) -1 );
+            return attributeValue.substr( attributeValue.find_first_of( "\"" )+1*(sizeof(std::string)/sizeof(int)),  last_pos - attributeValue.find_first_of( "\"" ) -1*(sizeof(std::string)/sizeof(int)) );
     }
 
     std::vector<std::string> JDLParser::listJDLvalue( std::string attributeValue ) {
@@ -859,7 +859,7 @@ namespace Arc {
             elements.push_back( simpleJDLvalue( attributeValue ) );
             return elements;
         }
-        attributeValue = attributeValue.substr(first_bracket+1, last_bracket - first_bracket - 1 );
+        attributeValue = attributeValue.substr(first_bracket+1*(sizeof(std::string)/sizeof(int)), last_bracket - first_bracket - 1*(sizeof(std::string)/sizeof(int)) );
         std::vector<std::string> listElements = sm.split( attributeValue, "," );
         for (std::vector<std::string>::const_iterator it=listElements.begin(); it<listElements.end(); it++) {
             elements.push_back( simpleJDLvalue( *it ) );
@@ -1059,7 +1059,7 @@ namespace Arc {
                     Arc::XMLNode envir = posix_application.NewChild("Environment");
                     Arc::XMLNode attribute = envir.NewAttribute("name");
                     attribute = (*it).substr( 0,equal_pos );
-                    envir = (*it).substr( equal_pos+1, std::string::npos );
+                    envir = (*it).substr( equal_pos+1*(sizeof(std::string)/sizeof(int)), std::string::npos );
                 } else {
                     if ( DEBUGX ) std::cerr << "[JDLParser] Environment variable has been defined without any equal sign." << std::endl;
                     return false;
@@ -1187,7 +1187,7 @@ namespace Arc {
             if ( DEBUGX ) std::cerr << "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')" << std::endl;
             return false;
         }
-        std::string input_text = source.substr( first+1, last-first-1 );
+        std::string input_text = source.substr( first+1*(sizeof(std::string)/sizeof(int)), last-first-1*(sizeof(std::string)/sizeof(int)) );
 
         //Remove multiline comments
         unsigned int comment_start = 0;
@@ -1202,9 +1202,9 @@ namespace Arc {
             std::string trimmed_line = sm.trim(lines[i]);
             if ( trimmed_line.length() == 0) lines.erase(lines.begin() +i);
             // Remove lines starts with '#' - Comments
-            else if ( trimmed_line.length() >= 1 && trimmed_line.substr(0,1) == "#") lines.erase(lines.begin() +i);
+            else if ( trimmed_line.length() >= 1 && trimmed_line.substr(0,1*(sizeof(std::string)/sizeof(int))) == "#") lines.erase(lines.begin() +i);
             // Remove lines starts with '//' - Comments
-            else if ( trimmed_line.length() >= 2 && trimmed_line.substr(0,2) == "//") lines.erase(lines.begin() +i);
+            else if ( trimmed_line.length() >= 2 && trimmed_line.substr(0,2*(sizeof(std::string)/sizeof(int))) == "//") lines.erase(lines.begin() +i);
             else {
                 wcpy += lines[i++] + "\n";
             }
@@ -1228,7 +1228,7 @@ namespace Arc {
                     return false;
                 }
             }    
-            if (!handleJDLattribute( sm.trim( lines[i].substr(0, equal_pos) ), sm.trim( lines[i].substr(equal_pos+1, std::string::npos) ), jobTree)) return false;
+            if (!handleJDLattribute( sm.trim( lines[i].substr(0, equal_pos) ), sm.trim( lines[i].substr(equal_pos+1*(sizeof(std::string)/sizeof(int)), std::string::npos) ), jobTree)) return false;
         }
         return true;
     }
