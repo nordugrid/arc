@@ -122,31 +122,29 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
   XMLNode new_context(ns,"ra:Context");
   {
     std::list<_XMLPair>::iterator subject = subjects.begin();
-    for(int subject_n = 0;;++subject_n) {
+    for(int subject_n = 0;;++subject_n,++subject) {
       if(subject_n < subjects_new) continue; 
       if(subject == subjects.end()) break;
       if(subject->element.Size() > 0) {
         copy_xml_elements(new_subject,subject->element["SubjectAttribute"]);
         copy_xml_elements(new_context,subject->context["ContextAttribute"]);
       };
-      ++subject;
     };
   };
   // Add new subject into existing ones - assuming all
   // already existing subjests are the same.
   {
     std::list<_XMLPair>::iterator subject = subjects.begin();
-    for(int subject_n = 0;;++subject_n) {
+    for(int subject_n = 0;;++subject_n,++subject) {
       if(subject_n >= subjects_new) break; 
       if(subject == subjects.end()) break;
       copy_xml_elements(subject->element,new_subject["SubjectAttribute"]);
       copy_xml_elements(subject->context,new_subject["ContextAttribute"]);
-      ++subject;
     };
   };
   // Use one of existing old subjects as template for new 
   // elements (if present)
-  if(subjects.size() > 0) {
+  if(subjects_new > 0) {
     new_subject=subjects.begin()->element;
     new_context=subjects.begin()->context;
   };
@@ -157,6 +155,8 @@ bool MessageAuth::Export(SecAttr::Format format,XMLNode &val) const {
     for(int resource_n = 0;;++resource_n) {
       if((action_n < actions_new) &&
          (resource_n < resources_new)) {
+        if(resources.size()) ++resource;
+        if(resource == resources.end()) break;
         continue; // This combination is already in request
       };
       XMLNode newitem = newreq.NewChild("ra:RequestItem");
