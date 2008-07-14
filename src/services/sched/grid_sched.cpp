@@ -348,13 +348,18 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     endpoint = (std::string)((*cfg)["Endpoint"]);
     period = Arc::stringtoi((std::string)((*cfg)["SchedulingPeriod"]));
     db_path = (std::string)((*cfg)["DataDirectoryPath"]);
-    //TODO db_path test
-    // try {
+    if (!Glib::file_test(db_path, Glib::FILE_TEST_IS_DIR)) {
+        if (mkdir(db_path.c_str(), 0700) != 0) {
+            logger.msg(Arc::ERROR, "cannot create directory: %s", db_path);
+            return;
+        }
+    }
+    try {
         jobq.init(db_path, "jobq");
-    /* } catch (std::exception &e) {
+    } catch (std::exception &e) {
         logger_.msg(Arc::ERROR, "Error during database open: %s", e.what());
         return;
-    } */
+    }
     timeout = Arc::stringtoi((std::string)((*cfg)["Timeout"]));
     reschedule_period = Arc::stringtoi((std::string)((*cfg)["ReschedulePeriod"]));
     lifetime_after_done = Arc::stringtoi((std::string)((*cfg)["LifetimeAfterDone"]));  
@@ -367,6 +372,8 @@ GridSchedulerService::GridSchedulerService(Arc::Config *cfg):Service(cfg),logger
     if (period > 0) { 
         // start scheduler thread
         Arc::CreateThreadFunction(&sched, this);
+    }
+    if (reschedule_period > 0) {
         // Rescheduler thread
         Arc::CreateThreadFunction(&reschedule, this);
     }
