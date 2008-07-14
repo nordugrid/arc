@@ -3,6 +3,7 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:arex="http://www.nordugrid.org/schemas/a-rex/Config"
+  xmlns:echo="urn:echo_config"
 >
   <!-- Common configuration of the daemon -->
   <Server>
