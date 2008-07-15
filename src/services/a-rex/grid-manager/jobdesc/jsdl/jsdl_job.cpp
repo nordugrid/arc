@@ -215,6 +215,25 @@ bool JSDLJob::get_RTEs(std::list<std::string>& rtes) {
   return true;
 }
 
+bool JSDLJob::get_environments(std::list<std::pair<std::string,std::string> >& envs) {
+  //environments.clear();
+  Arc::XMLNode app = jsdl_document["JobDescription"]["Application"]["POSIXApplication"];
+  if( !app ) return true;
+  for( int i=0; (bool)(app["Environment"][i]); i++ ) {
+      Arc::XMLNode env = app["Environment"][i];
+      Arc::XMLNode name = env.Attribute("name");
+      std::string value = (std::string)env;
+      if( !name ) {
+          logger.msg(Arc::ERROR, "JSDL: POSIX: POSIXApplication without name attribute");
+          return false;
+      }
+      envs.push_back(std::make_pair(name,value));
+      logger.msg(Arc::DEBUG, "ENV: "+(std::string)name+"="+value);
+  }
+  return true;
+}
+
+
 bool JSDLJob::get_middlewares(std::list<std::string>& mws) {
   //mws.clear();
   Arc::XMLNode resources = jsdl_document["JobDescription"]["Resources"];

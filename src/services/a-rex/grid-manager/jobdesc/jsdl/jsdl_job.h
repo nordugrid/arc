@@ -23,6 +23,7 @@ class JSDLJob {
   bool get_arguments(std::list<std::string>& arguments);
   bool get_execs(std::list<std::string>& execs);
   bool get_RTEs(std::list<std::string>& rtes);
+  bool get_environments(std::list<std::pair<std::string,std::string> >& envs);
   bool get_middlewares(std::list<std::string>& mws);
   bool get_acl(std::string& acl);
   bool get_gmlog(std::string& s);
