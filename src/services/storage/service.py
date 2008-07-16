@@ -2,6 +2,7 @@ import arc
 import traceback
 import inspect
 import time
+import sys
 
 log_levels = ['VERBOSE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL']
 
@@ -44,6 +45,7 @@ class Service:
         except:
             pass
         print msg
+        sys.stdout.flush()
         return msg
     
     def __init__(self, service_name, request_names, namespace_prefix, namespace_uri, cfg = None):

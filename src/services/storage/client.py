@@ -4,6 +4,9 @@ from storage.xmltree import XMLTree
 from xml.dom.minidom import parseString
 import arc
 import base64
+import time
+import sys
+import socket
 
 class Client:
     """ Base Client class for sending SOAP messages to services """
@@ -69,16 +72,35 @@ class Client:
         """
         # TODO: use the client-side libs of ARCHED
         import httplib
-        # create an HTTP connection
-        h = httplib.HTTPConnection(self.host, self.port)
-        # get the XML from outpayload, and send it as POST
-        h.request('POST', self.path, outpayload.GetXML())
-        # get the response object
-        r = h.getresponse()
-        # read the response data
-        resp = r.read()
-        # return the data and the status
-        return resp, r.status, r.reason
+        timeout = 60
+        start = time.time()
+        while True:
+            try:	
+                # create an HTTP connection
+                h = httplib.HTTPConnection(self.host, self.port)
+                # get the XML from outpayload, and send it as POST
+                h.request('POST', self.path, outpayload.GetXML())
+                # get the response object
+                r = h.getresponse()
+                # read the response data
+                resp = r.read()
+                # close the connection
+                h.close()
+                # return the data and the status
+                return resp, r.status, r.reason
+            except socket.error, e:
+                if e[0] != 99:
+                    raise
+                #print "error connecting to %s:%s/%s" % (self.host, self.port, self.path), e,
+                #sys.stdout.flush()
+                if time.time() < start + timeout:
+                    time.sleep(5)
+                    #print "Retrying."
+                    #sys.stdout.flush()
+                else:
+                    #print "Giving up."
+                    #sys.stdout.flush()
+                    return '<Fault>Cannot connect.</Fault>', None, None
 
 
 class AHashClient(Client):
