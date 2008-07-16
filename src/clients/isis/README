@@ -1,4 +1,5 @@
-client for ISIS (Information Indexing service)
-you can put and get registartions to the ISIS 
+Client for ISIS (Information Indexing service)
+
+Using this client one can put and get registrations to/from the ISIS.
 
 Mostly for testing.

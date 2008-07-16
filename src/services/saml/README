@@ -1,6 +1,7 @@
 Prototype implementation about attribute authority service and client.
 AttributeQuery profile (in SAML2.0) is used for assertion changing.
 
-libraries from lasso is used for generating and consuming of saml assertion.
-TODO: attribute database in service side; convininet client interface for client 
+Libraries from lasso are used for generating and consuming SAML assertion.
+
+TODO: attribute database on service side; conveninet client interface for client 
 developer.

@@ -1,10 +1,20 @@
-a-rex           - ARC REsource-coupled EXecutation Service/Executation Cap.
-eils            - External Information Link Service/Information Cap.
-iis             - Information Indexing Service/Information Cap.
-janitor         - Janitor - RTE/Resource Management Cap.
-mars            - Monitoring and Accounting Recording Service/Information cap.
-pdp             - Remote Policy Decision Point/Security Cap.
-rte-catalog     - Runtime Environment Cataloge/Resource Management Cap.
-vmms            - Virtual Machine Management Service
+ARC services
+------------
+
+a-rex           - ARC REsource-coupled EXecutation Service/Execution Capability
+arex2           - Ferenc's playground
 echo_java       - Demonstration services: how to write Java service 
-storage         - services for the ARC storage system (see service.example.xml)
+echo_python     - Simple test service to demonstrate how Python based services should work
+eils            - External Information Link Service/Information Capability
+httpd           - Simple HTTP(S) service to support GET and PUT operations.
+isis            - Information Indexing Service/Information Capability
+janitor         - Janitor - RTE/Resource Management Capability
+mars            - Monitoring and Accounting Recording Service/Information Capability
+paul            - Pull based job execution service
+pdp             - Remote Policy Decision Point/Security Capability
+rte-catalog     - Runtime Environment Cataloge/Resource Management Capability
+saml            - Prototype implementation about attribute authority service and client
+sched           - Job scheduler service
+storage         - Services for the ARC storage system (see service.example.xml)
+vmms            - Virtual Machine Management Service
+wrappers        - Collection of language bindings

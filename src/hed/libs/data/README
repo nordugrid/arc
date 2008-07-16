@@ -1,1 +1,3 @@
-libdata2 library to handle file transfers mostly. It is modular framework to handles DMC which implements the protocol specific part of the data transfer.
+libdata2 library to handle file transfers mostly. It is a modular
+framework to handle DMC which implements the protocol-specific part of
+the data transfer.

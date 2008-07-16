@@ -1,1 +1,6 @@
-mcc = Message Chain Component
+Message Chain Components (MCC)
+
+http  - handles HTTP messages
+soap  - handles SOAP messages
+tcp   - handles TCP messages
+tls   - handles TLS based channel security

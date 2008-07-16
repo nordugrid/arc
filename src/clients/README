@@ -1,1 +1,13 @@
-clients are collected here
+ARC clients
+-----------
+
+arclib      - Next generation command line interface (ARC1 arclib)
+a-rex       - Clients for a-rex service and other BES based services
+cream2      - Client library and command line interfaces to the gLite servers through the CREAM interface
+credentials - User tools for manipulating user credentials
+data        - CLI for basic data management
+echo        - Client for echo service
+isis        - Client for ISIS
+pdp         - arcdecision -- client for accessing PDP service and get decision result
+wsrf        - apinfo -- a prototype client for service status queries
+

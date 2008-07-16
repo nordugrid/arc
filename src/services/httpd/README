@@ -1,4 +1,4 @@
-Simple HTTP(S) service support GET and PUT operations.
+Simple HTTP(S) service to support GET and PUT operations.
 It can be used as a simple file transfer service.
 
 Configuration
