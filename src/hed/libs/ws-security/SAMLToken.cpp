@@ -135,18 +135,23 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
   xmlSecDSigCtx *dsigCtx;
 
   /*****************************************/
+  std::string cert_str;
+  cert_str = (std::string)(x509data["X509Certificate"]);
+  std::string cert_value;
+  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(cert_str).append("\n").append("-----END CERTIFICATE-----");
+
   //Verify the signature under saml:assertion
   if((bool)x509data && (!cafile.empty() || !capath.empty())) {
     keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
-    if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
+//    keys_manager = load_trusted_cert_file(&keys_manager, cafile.c_str());
+ //   keys_manager = load_trusted_cert_file(&keys_manager, "cert.pem");
+    if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; } 
   }
   else if((bool)x509data)
     { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
   if(keys_manager == NULL){ std::cerr<<"No <X509Data/> exists, or no trusted certificates configured"<<std::endl; return false;}
-  std::string cert_str;
-  cert_str = (std::string)(x509data["X509Certificate"]);
-  keys_manager = load_key_from_certstr(&keys_manager, cert_str);
-
+  //keys_manager = load_key_from_certstr(&keys_manager, cert_str);
+  //keys_manager = load_key_from_certfile(&keys_manager, "cert.pem");
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
   if (xmlSecDSigCtxVerify(dsigCtx, assertion_signature_nd) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);

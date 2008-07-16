@@ -253,13 +253,15 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
 xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const char* keyfile) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
   }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   std::string key_str;
   std::ifstream is(keyfile);
@@ -280,13 +282,15 @@ xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const c
 xmlSecKeysMngrPtr load_key_from_certfile(xmlSecKeysMngrPtr* keys_manager, const char* certfile) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
   }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   std::string cert_str;
   cert_str = get_cert_str(certfile);
@@ -305,13 +309,15 @@ xmlSecKeysMngrPtr load_key_from_certfile(xmlSecKeysMngrPtr* keys_manager, const 
 xmlSecKeysMngrPtr load_key_from_certstr(xmlSecKeysMngrPtr* keys_manager, const std::string& certstr) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
   }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   xmlSecKeyPtr key = get_key_from_certstr(certstr);
   if(xmlSecCryptoAppDefaultKeysMngrAdoptKey(keys_mngr, key) < 0) {
@@ -323,17 +329,43 @@ xmlSecKeysMngrPtr load_key_from_certstr(xmlSecKeysMngrPtr* keys_manager, const s
   return keys_mngr;
 }
 
+
+//Load trusted certificate from file
+xmlSecKeysMngrPtr load_trusted_cert_file(xmlSecKeysMngrPtr* keys_manager, const char* cert_file) {
+  xmlSecKeysMngrPtr keys_mngr;
+  if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
+  }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
+  //load cert from file
+  if(!cert_file)
+    if(xmlSecCryptoAppKeysMngrCertLoad(keys_mngr, cert_file, xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
+      xmlSecKeysMngrDestroy(keys_mngr);
+      return NULL;
+    }
+
+  return keys_mngr;
+}
+
 //Could be used for many trusted certificates in string
 xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
   }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   //load cert from memory
   if(!cert_str.empty())
@@ -342,6 +374,7 @@ xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
+
   return keys_mngr;
 }
 
@@ -349,27 +382,38 @@ xmlSecKeysMngrPtr load_trusted_cert(xmlSecKeysMngrPtr* keys_manager, const std::
 xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath) {
   xmlSecKeysMngrPtr keys_mngr;
   if((keys_manager != NULL) && (*keys_manager != NULL)) keys_mngr = *keys_manager;
-  else keys_mngr = xmlSecKeysMngrCreate();
-  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;} 
-  //initialize keys manager
-  if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
-    std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl; 
-    xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+  else {
+    keys_mngr = xmlSecKeysMngrCreate();
+    //initialize keys manager
+    if (xmlSecCryptoAppDefaultKeysMngrInit(keys_mngr)<0) {
+      std::cerr<<"Can not initialize xmlSecKeysMngr object"<<std::endl;
+      xmlSecKeysMngrDestroy(keys_mngr); return NULL;
+    }
   }
+  if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
+
   //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
   //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
   //load a ca path
+
   if(!capath)
     if(xmlSecOpenSSLAppKeysMngrAddCertsPath(keys_mngr, capath) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
+#if 0
   //load a ca file  TODO: can only be used in some new version of xmlsec
-  /*if(!cafile)  
+  if(!cafile)  
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
-  }*/
+  }
+#endif
+#if 0
+  std::string cert_str;
+  cert_str = get_cert_str(cafile);
+  keys_mngr = load_trusted_cert(&keys_mngr, cert_str);
+#endif
   return keys_mngr;
 } 
 
