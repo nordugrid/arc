@@ -225,7 +225,10 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 
   keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
   //Load the certificate from wsse:Binarytoken into keymanager
-  keys_manager = load_key_from_certstr(&keys_manager, cert_str);
+  std::string cert_value;
+  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(cert_str).append("\n").append("-----END CERTIFICATE-----");
+  keys_manager = load_trusted_cert_str(&keys_manager, cert_value);
+  //keys_manager = load_key_from_certstr(&keys_manager, cert_str);
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
 
