@@ -40,3 +40,9 @@ usr/share/man/man1/arccp.1
 usr/share/man/man1/arcls.1
 usr/share/man/man1/arcrm.1
 usr/share/man/man1/arcdecision.1
+usr/share/man/man1/glitesub.1
+usr/share/man/man1/glitestat.1
+usr/share/man/man1/glitekill.1
+usr/share/man/man1/gliteclean.1
+usr/share/man/man1/glitedelegate.1
+usr/share/man/man1/gliteundelegate.1

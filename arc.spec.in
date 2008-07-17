@@ -238,13 +238,18 @@ exit 0
 %doc %{_mandir}/man1/arcdecision.1*
 %{_bindir}/perftest
 %{_bindir}/glitesub
+%doc %{_mandir}/man1/glitesub.1*
 %{_bindir}/glitestat
+%doc %{_mandir}/man1/glitestat.1*
 %{_bindir}/glitekill
+%doc %{_mandir}/man1/glitekill.1*
 %{_bindir}/gliteclean
+%doc %{_mandir}/man1/gliteclean.1*
 %{_bindir}/glitedelegate
+%doc %{_mandir}/man1/glitedelegate.1*
 %{_bindir}/gliteundelegate
+%doc %{_mandir}/man1/gliteundelegate.1*
 %{_bindir}/arc_storage_cli.py*
-%{_bindir}/arcdecision
 
 %files server
 %defattr(-,root,root,-)
