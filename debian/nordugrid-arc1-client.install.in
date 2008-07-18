@@ -16,7 +16,7 @@ usr/bin/arcsub
 usr/bin/arcget
 usr/bin/arckill
 usr/bin/arcclean
-usr/bin/arc_storage_cli.py
+@STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli.py
 usr/bin/arcdecision
 usr/bin/glitesub
 usr/bin/glitestat
