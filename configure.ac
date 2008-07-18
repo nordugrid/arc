@@ -777,6 +777,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/pdc/Makefile
                  src/hed/pdc/arcpdp/Makefile
+                 src/hed/pdc/gaclpdp/Makefile
                  src/hed/pdc/pdpserviceinvoker/Makefile
                  src/hed/pdc/allowpdp/Makefile
                  src/hed/pdc/denypdp/Makefile
