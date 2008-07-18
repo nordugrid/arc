@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH GLITESUB "1" "10 July 2008" "NorduGrid ARC 0.9.0" "NorduGrid System Manager's Manual"
+.TH GLITESUB "1" "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
 .SH NAME
 glitesub \- ARC Grid Job Submitting Client via the CREAM2 interface
 .SH SYNOPSIS
