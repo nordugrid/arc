@@ -224,27 +224,32 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
   xmlSecDSigCtx *dsigCtx;
 
   keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
-  //Load the certificate from wsse:Binarytoken into keymanager
-  std::string cert_value;
-  cert_value.append("-----BEGIN CERTIFICATE-----").append("\n").append(cert_str).append("\n").append("-----END CERTIFICATE-----");
-  keys_manager = load_trusted_cert_str(&keys_manager, cert_value);
-  //keys_manager = load_key_from_certstr(&keys_manager, cert_str);
+  //Load keyInfo. Because xmlsec only accept standard <X509Data/>, here we are using some 
+  //kind of hack method by insertinga <X509Data/> into <KeyInfo/>, after verification, we 
+  //delete the node.
+  //TODO. The other option is to implement a "key data" object and some "read" "write" method as 
+  //xmlsec does, it will be more complicated but it is a more correct way. Put it as TODO
+  XMLNode keyinfo_nd = header["wsse:Security"]["Signature"]["KeyInfo"];
+  XMLNode st_ref_nd = keyinfo_nd["wsse:SecurityTokenReference"];
+  XMLNode x509data_node = get_node(keyinfo_nd, "X509Data");
+  XMLNode x509cert_node = get_node(x509data_node, "X509Certificate");
+  x509cert_node = cert_str;
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
-
   if (xmlSecDSigCtxVerify(dsigCtx, signature_nd) < 0) {
     xmlSecDSigCtxDestroy(dsigCtx);
     if (keys_manager) xmlSecKeysMngrDestroy(keys_manager);
-    std::cerr<<"Signature verification failed (with trusted ca path)"<<std::endl;
+    std::cerr<<"Signature verification failed (with trusted certificate checking)"<<std::endl;
+    x509data_node.Destroy();
     return false;
   }
   
   if(keys_manager != NULL)xmlSecKeysMngrDestroy(keys_manager);
   if(dsigCtx->status == xmlSecDSigStatusSucceeded) {
-    std::cout<<"Succeed to verify the signature in SOAP message"<<std::endl;
-    xmlSecDSigCtxDestroy(dsigCtx); return true;
+    std::cout<<"Succeed to verify the signature in SOAP message (with trusted certificate checking)"<<std::endl;
+    xmlSecDSigCtxDestroy(dsigCtx); x509data_node.Destroy(); return true;
   }
-  else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); return false; }
+  else { std::cerr<<"Invalid signature"<<std::endl; xmlSecDSigCtxDestroy(dsigCtx); x509data_node.Destroy(); return false; }
 
 }
 
