@@ -3,6 +3,7 @@ SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcau
 else
 SUBDIRS = allowpdp denypdp countpdp simplelistpdp arcpdp pdpserviceinvoker arcauthzsh delegationsh usernametokensh
 endif
+DIST_SUBDIRS = $(SUBDIRS) gaclpdp
 noinst_PROGRAMS = test testinterface
 # classload_test 
 
