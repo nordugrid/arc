@@ -3,13 +3,6 @@
 
 #include <arc/XMLNode.h>
 #include <arc/security/ArcPDP/Request.h>
-/*
-#include <list>
-#include <arc/Logger.h>
-#include <arc/security/ArcPDP/attr/AttributeFactory.h>
-
-#include "ArcEvaluator.h"
-*/
 
 
 namespace ArcSec {

@@ -19,20 +19,9 @@
 namespace ArcSec {
 
 class GACLEvaluator : public Evaluator {
-//friend class EvaluatorContext;
 private:
   static Arc::Logger logger;
   PolicyStore *plstore;
-  //FnFactory* fnfactory;
-  //AttributeFactory* attrfactory;  
-  //AlgFactory* algfactory;
-  
-  //EvaluatorContext* context;
-
-  //Arc::XMLNode* m_cfg;
-  //std::string request_classname;
-
-  //EvaluatorCombiningAlg combining_alg;
 
 public:
   GACLEvaluator (Arc::XMLNode* cfg);
@@ -62,16 +51,17 @@ public:
 
   virtual void removePolicies(void) { plstore->removePolicies(); };
 
-  virtual void setCombiningAlg(EvaluatorCombiningAlg alg) { } ;
+  virtual void setCombiningAlg(EvaluatorCombiningAlg alg) { combining_alg = alg; } ;
 
 protected:
   virtual Response* evaluate(EvaluationCtx* ctx) { };
 
 private:
   virtual void parsecfg(Arc::XMLNode& cfg) { };
-  //virtual Request* make_reqobj(Arc::XMLNode& reqnode);
+  EvaluatorCombiningAlg combining_alg;
 };
 
 } // namespace ArcSec
 
 #endif /* __ARC_SEC_GACLEVALUATOR_H__ */
+

@@ -15,7 +15,7 @@ static Arc::LoadableClass* get_policy(void** arg) {
   if(arg==NULL) {
     std::cerr<<"There should be XMLNode as argument when creating ArcPolicy"<<std::endl; return NULL;
   } else {
-    return new ArcSec::GACLPolicy((Arc::XMLNode*)arg);
+    return new ArcSec::GACLPolicy(*((Arc::XMLNode*)arg));
   }
 }
 
@@ -27,20 +27,37 @@ loader_descriptors __arc_policy_modules__  = {
 using namespace Arc;
 using namespace ArcSec;
 
-GACLPolicy::GACLPolicy(XMLNode* node) : Policy(node) {
-  if((!node) || (!(*node)) || (node->Size() == 0)) {
+GACLPolicy::GACLPolicy(XMLNode node) : Policy(&node) {
+  if((!node) || (node.Size() == 0)) {
     logger.msg(WARNING,"Policy is empty");
     NS ns;
     policynode.Replace(XMLNode(ns,"gacl"));
     return;
   };
-  if(node->Name() != "gacl") {
+  if(node.Name() != "gacl") {
     logger.msg(WARNING,"Policy is not gacl");
     NS ns;
     policynode.Replace(XMLNode(ns,"gacl"));
     return;
   };
-  node->New(policynode);
+  node.New(policynode);
+}
+
+GACLPolicy::GACLPolicy(const Source& source) : Policy(&(source.Get())) {
+  XMLNode node = source.Get();
+  if((!node) || (node.Size() == 0)) {
+    logger.msg(WARNING,"Policy is empty");
+    NS ns;
+    policynode.Replace(XMLNode(ns,"gacl"));
+    return;
+  };
+  if(node.Name() != "gacl") {
+    logger.msg(WARNING,"Policy is not gacl");
+    NS ns;
+    policynode.Replace(XMLNode(ns,"gacl"));
+    return;
+  };
+  node.New(policynode);
 }
 
 static bool CompareIdentity(XMLNode pid,XMLNode rid) {
@@ -56,6 +73,21 @@ static bool CompareIdentity(XMLNode pid,XMLNode rid) {
     return true;
   };
   return (((std::string)pid) == ((std::string)rid));
+}
+
+static void CollectActions(XMLNode actions,std::list<std::string> actions_list) {
+  for(int n = 0;;++n) {
+    XMLNode action = actions.Child(n);
+    if(!action) break;
+    actions_list.push_back(action.Name());
+  };
+}
+
+static bool FindAction(const std::string& action,const std::list<std::string> actions) {
+  for(std::list<std::string>::const_iterator act = actions.begin();act!=actions.end();++act) {
+    if((*act) == action) return true;
+  };
+  return false;
 }
 
 Result GACLPolicy::eval(EvaluationCtx* ctx){
@@ -88,22 +120,22 @@ Result GACLPolicy::eval(EvaluationCtx* ctx){
     if(matched) {
       XMLNode pallow = policyentry["allow"];
       XMLNode pdeny  = policyentry["deny"];
-      for(int n = 0;;++n) {
-        XMLNode pname = pallow.Child(n);
-        if(!pname) break;
-        allow.push_back(pname.Name());
-      };
-      for(int n = 0;;++n) {
-        XMLNode pname = pdeny.Child(n);
-        if(!pname) break;
-        deny.push_back(pname.Name());
-      };
+      CollectActions(pallow,allow);
+      CollectActions(pdeny,deny);
     };
   };
   allow.sort(); allow.unique();
   deny.sort();  deny.unique();
-  // How to make result from collected lists ?
-
+  if(allow.empty()) return DECISION_DENY;
+  std::list<std::string> rallow;
+  CollectActions(requestentry["allow"],rallow);
+  if(rallow.empty()) return DECISION_DENY; // Unlikely to happen 
+  std::list<std::string>::iterator act = rallow.begin();
+  for(;act!=rallow.end();++act) {
+    if(!FindAction(*act,allow)) break;
+    if(FindAction(*act,deny)) break;
+  };
+  if(act == rallow.end()) result=DECISION_PERMIT;
   return result;
 }
 
