@@ -891,6 +891,7 @@ AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  include/Makefile
                  debian/Makefile
+                 debian/nordugrid-arc1-client.install
                  debian/nordugrid-arc1-server.install
                  debian/nordugrid-arc1-java.install
                  debian/nordugrid-arc1-lib.install
