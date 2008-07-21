@@ -47,7 +47,7 @@ Description: ARC Hosting Environment Daemon
 
 Package: nordugrid-arc1-arex
 Architecture: any
-Depends: nordugrid-arc1-lib
+Depends: nordugrid-arc1-lib, libxml-simple-perl
 Description: ARC Remote EXecution service
  ARC Remote EXecution service (AREX).
 
