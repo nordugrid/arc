@@ -23,24 +23,7 @@ GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out)
         }
         return Arc::MCC_Status();
     }
-
-    Arc::XMLNode jsdl = in["ActivityDocument"]["JobDefinition"];
-    if (!jsdl) {
-        logger_.msg(Arc::ERROR, "CreateActivity: no job description found");
-        Arc::SOAPEnvelope fault(ns_, true);
-        if (fault) {
-            fault.Fault()->Code(Arc::SOAPFault::Sender);
-            fault.Fault()->Reason("Can't find JobDefinition element in request");
-            Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:InvalidRequestMessageFault");
-            f.NewChild("bes-factory:InvalidElement") = "jsdl:JobDefinition";
-            f.NewChild("bes-factory:Message") = "Element is missing";
-            out.Replace(fault.Child());
-        } else {
-            logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
-        }
-        return Arc::MCC_Status();
-    }
-  
+    
     std::string delegation;
     Arc::XMLNode delegated_token = in["deleg:DelegatedToken"];
     if (delegated_token) {
@@ -59,35 +42,54 @@ GridSchedulerService::CreateActivity(Arc::XMLNode& in, Arc::XMLNode& out)
         }
     }  
     
-    // Create job
-    Arc::JobRequest job_request(jsdl);
-    Arc::JobSchedMetaData sched_meta;
-    Arc::Job job(job_request, sched_meta);
-
-    if (!job) {
-        std::string failure = job.getFailure();
-        logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s", failure);
-        Arc::SOAPEnvelope fault(ns_,true);
-        if(fault) {
-            fault.Fault()->Code(Arc::SOAPFault::Receiver);
-            fault.Fault()->Reason("Can't create new activity: " + failure);
+    Arc::XMLNode jsdl;
+    for (int i = 0; (jsdl = in["ActivityDocument"][i]["JobDefinition"]) != false; i++) {
+    /* 
+    if (!jsdl) {
+        logger_.msg(Arc::ERROR, "CreateActivity: no job description found");
+        Arc::SOAPEnvelope fault(ns_, true);
+        if (fault) {
+            fault.Fault()->Code(Arc::SOAPFault::Sender);
+            fault.Fault()->Reason("Can't find JobDefinition element in request");
+            Arc::XMLNode f = fault.Fault()->Detail(true).NewChild("bes-factory:InvalidRequestMessageFault");
+            f.NewChild("bes-factory:InvalidElement") = "jsdl:JobDefinition";
+            f.NewChild("bes-factory:Message") = "Element is missing";
             out.Replace(fault.Child());
         } else {
             logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
         }
         return Arc::MCC_Status();
+    } */
+    
+        // Create job
+        Arc::JobRequest job_request(jsdl);
+        Arc::JobSchedMetaData sched_meta;
+        Arc::Job job(job_request, sched_meta);
+
+        if (!job) {
+            std::string failure = job.getFailure();
+            logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job: %s", failure);
+            Arc::SOAPEnvelope fault(ns_,true);
+            if(fault) {
+                fault.Fault()->Code(Arc::SOAPFault::Receiver);
+                fault.Fault()->Reason("Can't create new activity: " + failure);
+                out.Replace(fault.Child());
+            } else {
+                logger_.msg(Arc::ERROR, "Cannot create SOAP fault");
+            }
+            return Arc::MCC_Status();
+        }
+    
+        // Make SOAP response
+        Arc::WSAEndpointReference identifier(out.NewChild("bes-factory:ActivityIdentifier"));
+        // Make job's ERP
+        identifier.Address(endpoint); // address of service
+        identifier.ReferenceParameters().NewChild("sched:JobID") = job.getID();
+        out.NewChild(in["ActivityDocument"]);
+        // save job
+        job.setStatus(Arc::JOB_STATUS_SCHED_NEW);
+        jobq.refresh(job);
     }
-
-    // Make SOAP response
-    Arc::WSAEndpointReference identifier(out.NewChild("bes-factory:ActivityIdentifier"));
-    // Make job's ERP
-    identifier.Address(endpoint); // address of service
-    identifier.ReferenceParameters().NewChild("sched:JobID") = job.getID();
-    out.NewChild(in["ActivityDocument"]);
-    // save job
-    job.setStatus(Arc::JOB_STATUS_SCHED_NEW);
-    jobq.refresh(job);
-
     logger_.msg(Arc::DEBUG, "CreateActivity finished successfully");
     return Arc::MCC_Status(Arc::STATUS_OK);
 }
