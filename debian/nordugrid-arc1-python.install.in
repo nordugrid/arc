@@ -1,0 +1,2 @@
+@SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/lib/python?.?/site-packages/
+@SWIG_ENABLED_TRUE@@PYTHON_ENABLED_TRUE@usr/lib/arc/libpythonservice.so
