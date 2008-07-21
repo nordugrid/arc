@@ -471,9 +471,9 @@ sub _collect($$) {
 
         my $freeslots = 0;
         if (defined $qinfo->{freeslots}) {
-            $freeslots = [ $qinfo->{freeslots} ];
+            $freeslots = $qinfo->{freeslots};
         } elsif ( defined $qinfo->{maxrunning} and defined $qinfo->{running}) {
-            $freeslots = [ $qinfo->{maxrunning} - $qinfo->{running} ];
+            $freeslots = $qinfo->{maxrunning} - $qinfo->{running};
         }
 
         # Local users have individual restrictions
@@ -501,10 +501,8 @@ sub _collect($$) {
             }
         }
 
-        my @timefreeslots;
-        my $maxuserslots = 0;
-
         # find maximum free slots regardless of duration
+        my $maxuserslots = 0;
         for my $seconds ( keys %timeslots ) {
             my $nfree = $timeslots{$seconds};
             $maxuserslots = $nfree if $nfree > $maxuserslots;
@@ -512,16 +510,18 @@ sub _collect($$) {
         $freeslots = $maxuserslots < $freeslots
                    ? $maxuserslots : $freeslots;
 
+        $csha->{FreeSlots} = [ $freeslots ];
+
+        my @durations;
+
         # sort descending by duration, keping 0 first (0 for unlimited)
         for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
             my $nfree = $timeslots{$seconds} < $freeslots
                       ? $timeslots{$seconds} : $freeslots;
-            unshift @timefreeslots, $seconds ? "$nfree:$seconds" : $nfree;
+            unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
         }
 
-        $csha->{FreeSlots} = [ $freeslots ];
-
-        $csha->{FreeSlotsWithDuration} = [ join(" ", @timefreeslots) || 0 ];
+        $csha->{FreeSlotsWithDuration} = [ join(" ", @durations) || 0 ];
 
         # Don't advertise free slots while busy with staging
         $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$qname};

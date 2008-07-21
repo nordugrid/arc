@@ -65,8 +65,9 @@ sub _collect($$) {
 
     # count grid-manager jobs
 
-    my %gmjobcount = (accepted => 0, preparing => 0, submit => 0, inlrms => 0,
-                     canceling => 0, finishing => 0, finished => 0, deleted => 0);
+    my %gmjobcount = (totaljobs => 0,
+                      accepted => 0, preparing => 0, submit => 0, inlrms => 0,
+                      canceling => 0, finishing => 0, finished => 0, deleted => 0);
     for my $job (values %{$gmjobs_info}) {
         $gmjobcount{totaljobs}++;
         if ( $job->{status} =~ /ACCEPTED/ ) { $gmjobcount{accepted}++ ; next; }
@@ -260,7 +261,7 @@ sub _collect($$) {
         $q->{'nq0:nodecpu'} = [ $qconfig->{nodecpu} ] if $qconfig->{nodecpu};
         $q->{'nq0:nodememory'} = [ $qconfig->{nodememory} ] if $qconfig->{nodememory};
         $q->{'nq0:architecture'} = [ $qconfig->{architecture} ] if $qconfig->{architecture};
-        $q->{'nq0:opsys'} = [ split /\[separator\]/, $qconfig->{opsys} ];
+        $q->{'nq0:opsys'} = [ split /\[separator\]/, $qconfig->{opsys} ] if $qconfig->{opsys};
         $q->{'nq0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } split /\[separator\]/, $qconfig->{benchmark} ]
             if $qconfig->{benchmark};
         $q->{'nq0:maxrunning'} = [ $qinfo->{maxrunning} ] if defined $qinfo->{maxrunning};

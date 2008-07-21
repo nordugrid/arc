@@ -87,7 +87,7 @@ sub arc1_info_schema {
             'Name'                  => [ '*' ],
             'Description'           => [ '*' ],
             'MappingQueue'          => [ '' ],
-            'MaxWallTime'           => [ '' ],  # units: seconds
+            'MaxWallTime'           => [ '*' ], # units: seconds
             'MinWallTime'           => [ '*' ], # units: seconds
             'DefaultWallTime'       => [ '*' ], # units: seconds
             'MaxCPUTime'            => [ '*' ], # units: seconds
