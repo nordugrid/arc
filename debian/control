@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgcj6-dev|libgcj7-dev|libgcj8-dev|libgcj9-dev|libgcj-dev, libldap2-dev, libtool, uuid-dev, libcppunit-dev, pkg-config, libdb4.2++-dev|libdb4.3++-dev|libdb4.4++-dev|libdb++-dev
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, fastjar, python-dev, libltdl3-dev, libgcj6-dev|libgcj7-dev|libgcj8-dev|libgcj9-dev|libgcj-dev, libldap2-dev, libtool, uuid-dev, libcppunit-dev, pkg-config, libdb4.2++-dev|libdb4.3++-dev|libdb4.4++-dev|libdb++-dev, swig, automake, autoconf, texlive, doxygen 
 Standards-Version: 3.8.0
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
