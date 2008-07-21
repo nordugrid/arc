@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
+#include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
 #include "InfoRegister.h"
@@ -9,80 +12,121 @@
 #include <arc/win32.h>
 #endif
 
-#include <unistd.h>
-
 namespace Arc
 {
 
-InfoRegister::InfoRegister(const std::string &sid, long int period, Config &cfg):logger(Logger::rootLogger, "InfoRegister")
+static void reg_thread(void *data)
 {
-    ns["isis"] = "http://www.nordugrid.org/schemas/isis/2007/06";
-    service_id = sid;
-    reg_period = period;
-    cfg["EPR"].New(service_epr);
-    service_epr.Namespaces(ns);
-    service_epr.Name("isis:EPR");
-}
-
-void InfoRegister::AddUrl(const std::string &url)
-{
-    urls.push_back(url);
-}
-
-void InfoRegister::registration_forever(void)
-{
+    Arc::InfoRegister *self = (Arc::InfoRegister *)data;
     for (;;) {
-        registration();
-        sleep(reg_period);
+        sleep(self->getPeriod());
+        self->registration();
     }
+}
+
+InfoRegister::InfoRegister(Arc::XMLNode &cfg, Arc::Service *service):logger_(Logger::rootLogger, "InfoRegister"),reg_period_(0)
+{
+    service_ = service;
+    ns_["isis"] = ISIS_NAMESPACE;
+    ns_["glue2"] = GLUE2_D42_NAMESPACE;
+    ns_["register"] = REGISTRATION_NAMESPACE;
+
+    // parse config tree
+    std::string s_reg_period = (std::string)cfg["Period"];
+    if (!s_reg_period.empty()) { 
+        reg_period_ = strtol(s_reg_period.c_str(), NULL, 10);
+    }
+    Arc::XMLNode peers = cfg["Peers"];
+    Arc::XMLNode n;
+    for (int i = 0; (n = peers["URL"][i]) != false; i++) {
+         std::string url_str = (std::string)n;
+         Arc::URL url(url_str);
+         peers_.push_back(url);
+    }
+    
+    // Start Registartion thread
+    if (reg_period_ > 0) {
+        Arc::CreateThreadFunction(&reg_thread, this);
+    }
+}
+
+InfoRegister::~InfoRegister(void)
+{
+    // Service should not delete here!
+    // Nope
 }
 
 void InfoRegister::registration(void)
 {
-    std::list<std::string>::iterator it;
-
-    for (it = urls.begin(); it != urls.end(); it++) {
-        URL u(*it);
-        const char *isis_name = (*it).c_str();
+    logger_.msg(Arc::DEBUG, "Registartion Start");
+    if (service_ == NULL) {
+        logger_.msg(Arc::ERROR, "Invalid service");
+        return;
+    }
+    Arc::NS reg_ns;
+    reg_ns["glue2"] = ns_["glue2"];
+    reg_ns["isis"] = ns_["isis"];
+    Arc::XMLNode reg_doc(reg_ns, "isis:Advertisements");
+    Arc::XMLNode services_doc(reg_ns, "Services");
+    service_->RegistrationCollector(services_doc);
+    // Check where is service registartion
+    std::list<Arc::XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
+    if (services.size() == 0) {
+        logger_.msg(Arc::WARNING, "No service registartion entries");
+        return;
+    }
+    // create advertisement
+    std::list<Arc::XMLNode>::iterator sit;
+    for (sit = services.begin(); sit != services.end(); sit++) {
+        // filter may come here
+        Arc::XMLNode ad = reg_doc.NewChild("isis:Advertisement");
+        ad.NewChild((*sit));
+        // XXX metadata
+    }
+    
+    // send to all peer
+    std::list<Arc::URL>::iterator it;
+    for (it = peers_.begin(); it != peers_.end(); it++) {
+        std::string isis_name = (*it).fullstr();
         bool tls;
-        if (u.Protocol() == "http") {
+        if ((*it).Protocol() == "http") {
             tls = false;
-        } else if (u.Protocol() == "https") {
+        } else if ((*it).Protocol() == "https") {
             tls = true;
         } else {
-            logger.msg(WARNING, "unsupported protocol: %s", isis_name);
+            logger_.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
             continue;
         }
-        cli = new ClientSOAP(mcc_cfg, u.Host(), u.Port(), tls, u.Path());
-        logger.msg(DEBUG, "Registering to %s ISIS", isis_name);
-        PayloadSOAP request(ns);
-        XMLNode op = request.NewChild("isis:Register");
-        op.NewChild("isis:Header").NewChild("isis:RequesterID") = service_id;
-        XMLNode re = op.NewChild("isis:RegEntry");
-        re.NewChild("isis:ID") = service_id;
-        XMLNode sa = re.NewChild("isis:SrcAdv");
-        XMLNode msa = re.NewChild("isis:MetaSrcAdv");
-        sa.NewChild(service_epr);
-        // TODO: Fill other required elements
-        msa.NewChild("isis:Expiration")="3600";
-        msa.NewChild("isis:GenTime")="";
-        msa.NewChild("isis:Source")="";
-        msa.NewChild("isis:Status")="";
-        PayloadSOAP *response;
-        MCC_Status status = cli->process(&request, &response);
+        cli_ = new Arc::ClientSOAP(mcc_cfg_, (*it).Host(), (*it).Port(), tls, (*it).Path());
+        logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
+        Arc::PayloadSOAP request(ns_);
+        Arc::XMLNode op = request.NewChild("isis:Register");
+        
+        // create header
+        op.NewChild("isis:Header").NewChild("isis:SourcePath").NewChild("isis:ID") = service_->getID();
+        
+        // create body
+        op.NewChild(reg_doc);   
+        
+        // send
+        Arc::PayloadSOAP *response;
+        Arc::MCC_Status status = cli_->process(&request, &response);
         if ((!status) || (!response)) {
-            logger.msg(ERROR, "Error during registration to %s ISIS", isis_name);
+            logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
          } else {
-            XMLNode fault = (*response)["Fault"];
+            Arc::XMLNode fault = (*response)["Fault"];
             if(!fault)  {
-                logger.msg(DEBUG, "Successful registration to %s ISIS", isis_name); 
+                logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
             } else {
-                logger.msg(DEBUG, "Failed to register to %s ISIS - %s", isis_name, std::string(fault["Description"])); 
+                logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
             }
         }
         
-        delete cli;
+        delete cli_;
+        cli_ = NULL;
     }
 }
 
 } // namespace
+
+

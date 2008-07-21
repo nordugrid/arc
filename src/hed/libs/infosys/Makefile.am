@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES=libinfosys.la
-noinst_PROGRAMS=test test_cache test_register
+noinst_PROGRAMS=test test_cache # test_register
 
 libinfosys_ladir = $(pkgincludedir)/infosys
 libinfosys_la_HEADERS  = InformationInterface.h InfoCache.h InfoRegister.h
@@ -18,9 +18,9 @@ test_cache_SOURCES  = test_cache.cpp
 test_cache_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_cache_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
 test_cache_LDADD    = libinfosys.la
-
-test_register_SOURCES = test_register.cpp
-test_register_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_register_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
-test_register_LDADD    = libinfosys.la
+#
+#test_register_SOURCES = test_register.cpp
+#test_register_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+#test_register_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
+#test_register_LDADD    = libinfosys.la
 
