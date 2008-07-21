@@ -1,5 +1,6 @@
-pkglib_LTLIBRARIES = libcentralisi.la
-libcentralisi_la_SOURCES = centralisi.cpp centralisi.h
-libcentralisi_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libcentralisi_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS)
-libcentralisi_la_LDFLAGS = -no-undefined -avoid-version -module
+pkglib_LTLIBRARIES = libisis.la 
+
+libisis_la_SOURCES = isis.cpp isis.h router.h router.cpp
+libisis_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+libisis_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/dbxml/libarcdbxml.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(GLIBMM_LIBS)
+libisis_la_LDFLAGS = -no-undefined -avoid-version -module

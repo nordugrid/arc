@@ -2,9 +2,9 @@
 <ArcConfig 
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
-  xmlns:isis="http://www.nordugrid.org/schemas/ISIS/2007"
+  xmlns:isis="http://www.nordugrid.org/schemas/isis/2008/08"
+  xmlns:register="http://www.nordugrid.org/schemas/register/2008/08"
 >
-
     <Server>
         <Foreground/>
         <Pidfile>./arched.pid</Pidfile>
@@ -21,7 +21,7 @@
     <Plugins><Name>mcctls</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
     <Plugins><Name>mccsoap</Name></Plugins>
-    <Plugins><Name>centralisi</Name></Plugins>
+    <Plugins><Name>isis</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="http"/>
@@ -34,16 +34,38 @@
             <next id="plexer"/>
         </Component>
         <Plexer name="plexer.service" id="plexer">
-            <next id="centralisi">/isis</next>
+            <next id="isis">/isis</next>
+            <next id="isis2">/isis2</next>
         </Plexer>
-        <Service name="centralisi" id="centralisi">
-            <isis:DSN>./isis</isis:DSN>
-            <InformationSystem>
-                <CacheRoot>./cache</CacheRoot>
-            </InformationSystem>
-            <Register>
-                <Period>60</Period>
-            </Register>
+        <Service name="isis" id="isis">
+            <ID>74B46699-04E3-4083-BFD1-7195C9C20E99</ID>
+            <DBPath>./db</DBPath>
+            <Router>
+                <Peers>
+                    <URL>http://localhost:60000/isis2</URL>
+                </Peers>
+                <MaxThread>5</MaxThread>
+            </Router>
+            <register:Register>
+                <register:Peers>
+                    <register:URL>http://localhost:60000/isis</register:URL>
+                </register:Peers>
+                <register:Period>0</register:Period>
+            </register:Register>
+        </Service>
+        <Service name="isis" id="isis2">
+            <ID>B14A460F-9E64-4862-942D-9E2E7A95CA55</ID>
+            <DBPath>./db2</DBPath>
+            <Router>
+                <Peers><URL>http://localhost:60000/isis</URL></Peers>
+                <MaxThread>5</MaxThread>
+            </Router>
+            <register:Register>
+                <register:Peers>
+                    <register:URL>http://localhost:60000/isis2</register:URL>
+                </register:Peers>
+                <register:Period>0</register:Period>
+            </register:Register>
         </Service>
     </Chain>
 </ArcConfig>
