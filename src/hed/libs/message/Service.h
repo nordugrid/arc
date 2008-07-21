@@ -52,6 +52,13 @@ class Service: public MCCInterface
         /** Add security components/handlers to this MCC.
           For more information please see description of MCC::AddSecHandler */
         virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
+        
+        /** Service specific registartion collector, 
+            used for generate service registartions */
+        virtual bool RegistrationCollector(Arc::XMLNode &doc);
+
+        /** Service may implement own service identitifer gathering method */
+        virtual std::string getID() { return ""; };
 };
 
 } // namespace Arc
