@@ -36,7 +36,6 @@ class XmlContainer
         void put(const std::string &name, const std::string &content);
         std::string get(const std::string &name);
         void del(const std::string &name);
-        Arc::XMLNodeContainer query(const std::string &name, const std::string &query);
         std::vector<std::string> get_doc_names(void);
         void start_update(void);
         void end_update(void);

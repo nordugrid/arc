@@ -48,25 +48,24 @@ XmlDatabase::del(const std::string &name)
     container_->del(name);
 }
 
-Arc::XMLNodeContainer 
-XmlDatabase::query(const std::string &name, const std::string &query)
+Arc::XMLNodeList
+XmlDatabase::query(const std::string &name, const std::string &q)
 {
-    Arc::XMLNodeContainer ret;
-    // XXX do actual query
-    return ret;
+    Arc::XMLNode node;
+    get(name, node);
+    return node.XPathLookup(q, node.Namespaces());
 }
 
-std::map<std::string, Arc::XMLNodeContainer> 
-XmlDatabase::queryAll(const std::string &query)
+void
+XmlDatabase::queryAll(const std::string &q, 
+                      std::map<std::string, Arc::XMLNodeList> &result)
 {
-    std::map<std::string, Arc::XMLNodeContainer> ret;
     std::vector<std::string> doc_names = container_->get_doc_names();
 
     for (int i = 0; i < doc_names.size(); i++) {
-    //    Arc::XMLNodeContainer r = query(doc_names[i], query);
-    //    ret[doc_names[i]] = r;
+        Arc::XMLNodeList r = query(doc_names[i], q);
+        result[doc_names[i]] = r;
     }
-    return ret;
 }
 
 void

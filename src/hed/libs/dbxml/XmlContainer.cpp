@@ -134,8 +134,39 @@ XmlContainer::end_update(void)
 std::vector<std::string> 
 XmlContainer::get_doc_names(void)
 {
-    std::vector<std::string> ret;
-    return ret;
+    std::vector<std::string> result;
+    Dbc *cursor = NULL;
+    DbTxn *tid;
+    try {
+        env_->txn_begin(NULL, &tid, 0);
+    } catch (std::exception &e) {
+        logger_.msg(Arc::ERROR, "Error init transaction: %s", e.what());
+        return result;
+    }
+    try {
+        db_->cursor(tid, &cursor, 0);
+        Dbt key, value;
+        key.set_flags(0);
+        value.set_flags(0);
+        int ret;
+        for (;;) {
+            ret = cursor->get(&key, &value, DB_NEXT);
+            if (ret == DB_NOTFOUND) {
+                break;
+            }
+            char *k = (char *)key.get_data();
+            result.push_back(std::string(k));
+        }
+        cursor->close();
+        tid->commit(0);
+    } catch (DbException &e) {
+        logger_.msg(Arc::ERROR, "Error during the transaction: %s", e.what());
+        if (cursor != NULL) {
+            cursor->close();
+        }
+        tid->abort();
+    }
+    return result;
 }
 
 } // namespace

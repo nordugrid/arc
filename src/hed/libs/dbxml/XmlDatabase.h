@@ -15,16 +15,20 @@ class XmlDatabase
         XmlContainer *container_;
 
     public:
+        XmlDatabase():container_(NULL) { };
         XmlDatabase(const std::string &db_path, const std::string &db_name);
         ~XmlDatabase();
         void put(const std::string &name, const std::string &content);
         void put(const std::string &name, Arc::XMLNode &doc);
         void get(const std::string &name, Arc::XMLNode &doc);
         void del(const std::string &name);
-        Arc::XMLNodeContainer query(const std::string &name, 
-                                     const std::string &query);
-        std::map<std::string, Arc::XMLNodeContainer> queryAll(const std::string &query);
-        void update(const std::string &name, const std::string &query, Arc::XMLNode &new_value);
+        Arc::XMLNodeList query(const std::string &name, 
+                               const std::string &q);
+        void queryAll(const std::string &q, 
+                      std::map<std::string, Arc::XMLNodeList> &result);
+        void update(const std::string &name, 
+                    const std::string &query, 
+                    Arc::XMLNode &new_value);
 };
 
 }
