@@ -111,6 +111,9 @@ Result GACLPolicy::eval(EvaluationCtx* ctx){
       if(!pid) break;
       if(pid.Name() == "allow") continue;
       if(pid.Name() == "deny") continue;
+      if(pid.Name() == "any-user") break;
+      // TODO: somehow check if user really authenticated
+      if(pid.Name() == "auth-user") break;
       XMLNode rid = requestentry[pid.Name()];
       for(;(bool)rid;++rid) {
         if(CompareIdentity(pid,rid)) break;
