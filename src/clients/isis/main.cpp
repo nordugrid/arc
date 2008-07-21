@@ -5,6 +5,8 @@
 #include <arc/Logger.h>
 #include <fstream>
 #include <glibmm.h>
+#include <arc/infosys/InfoRegister.h>
+
 #include "iic.h"
 
 int main(int argc, char **argv)
@@ -15,35 +17,19 @@ int main(int argc, char **argv)
         std::cerr << "Invalid arguments!" << std::endl;
         return -1;
     }
-    
-    std::string op = argv[1];
-    std::string url = argv[2];
-    if (op == "reg") {
-        std::string xml_str = Glib::file_get_contents(argv[3]);
-        Arc::XMLNode req(xml_str);
+    Arc::NS ns;
+    ns["isis"] = ISIS_NAMESPACE;
+    ns["glue2"] = GLUE2_D42_NAMESPACE;
+    std::string url = argv[1];
+    std::string op = argv[2];
+    if (op == "query") {
+        Arc::XMLNode req(ns, "isis:Query");
+        std::string q = argv[3];
+        std::cout << "Query: " << q << std::endl;
+        req.NewChild("isis:XPathQuery") = argv[3];
         Arc::IIClient cli(url);
         Arc::XMLNode *resp = new Arc::XMLNode();
-        Arc::MCC_Status status = cli.Register(req, resp);
-        std::string out;
-        resp->GetXML(out);
-        std::cout << "Status: " << status << std::endl;
-        std::cout << "Response: " << out << std::endl;
-    } else if (op == "rm") {
-        std::string xml_str = Glib::file_get_contents(argv[3]);
-        Arc::XMLNode req(xml_str);
-        Arc::IIClient cli(url);
-        Arc::XMLNode *resp = new Arc::XMLNode();
-        Arc::MCC_Status status = cli.RemoveRegistrations(req, resp);
-        std::string out;
-        resp->GetXML(out);
-        std::cout << "Status: " << status << std::endl;
-        std::cout << "Response: " << out << std::endl;
-    } else if (op == "status") {
-        std::string xml_str = Glib::file_get_contents(argv[3]);
-        Arc::XMLNode req(xml_str);
-        Arc::IIClient cli(url);
-        Arc::XMLNode *resp = new Arc::XMLNode();
-        Arc::MCC_Status status = cli.GetRegistrationStatuses(req, resp);
+        Arc::MCC_Status status = cli.Query(req, resp);
         std::string out;
         resp->GetXML(out);
         std::cout << "Status: " << status << std::endl;

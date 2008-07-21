@@ -22,10 +22,7 @@ class IIClient
     public:
         IIClient(std::string &url);
         ~IIClient(void);
-        Arc::MCC_Status Register(Arc::XMLNode &req, Arc::XMLNode *resp);
-        Arc::MCC_Status RemoveRegistrations(Arc::XMLNode &req, Arc::XMLNode *resp);
-        Arc::MCC_Status GetRegistrationStatuses(Arc::XMLNode &req, Arc::XMLNode *resp);
-        Arc::MCC_Status GetIISList(Arc::XMLNode &req, Arc::XMLNode *resp);       
+        Arc::MCC_Status Query(Arc::XMLNode &req, Arc::XMLNode *resp);
 }; // class IIClient
 
 } // namespace Arc

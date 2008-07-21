@@ -1,0 +1,11 @@
+Select all service:
+//*[@BaseType='Service']
+
+Select something with a given id:
+//*[ID='<id here>']
+
+Select all service wich is not Computing nor Storage
+//glue2:Service
+
+Select all computing service:
+//glue2:ComputingService
