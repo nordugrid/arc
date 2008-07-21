@@ -82,6 +82,9 @@ Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
 Requires: globus_common
 Requires: globus_rsl
+%if %{_vendor} == "redhat"
+Requires: perl-XML-Simple
+%endif
 
 %description arex
 ARC Remote EXecution service (AREX)
@@ -284,7 +287,6 @@ exit 0
 %{_libexecdir}/Condor.pm
 %{_libexecdir}/Fork.pm
 %{_libexecdir}/LL.pm
-##%{_libexecdir}/LRMS.pm
 %{_libexecdir}/LSF.pm
 %{_libexecdir}/PBS.pm
 %{_libexecdir}/SGE.pm
@@ -301,7 +303,6 @@ exit 0
 %{_libexecdir}/LRMSInfo.pm
 #
 %{_libexecdir}/LogUtils.pm
-##%{_libexecdir}/Shared.pm
 #
 %{_libexecdir}/submit-*-job
 %{_libexecdir}/cancel-*-job
@@ -310,7 +311,6 @@ exit 0
 #
 %{_libexecdir}/submit_common.sh
 %{_libexecdir}/cancel_common.sh
-##%{_libexecdir}/config_parser.pm
 %{_libexecdir}/config_parser.sh
 #
 %{_libexecdir}/condor_env.pm
@@ -318,8 +318,6 @@ exit 0
 %{_libexecdir}/finish-condor-job
 #
 %{_libexecdir}/cluster+qju.pl
-##%{_libexecdir}/cluster.pl
-##%{_libexecdir}/qju.pl
 %{_bindir}/ldif2xml
 %{_datadir}/%{pkgdir}/nordugrid.schema
 
