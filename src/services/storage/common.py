@@ -1,8 +1,8 @@
 # namespace URIs of the storage services
-ahash_uri = 'urn:ahash'
-librarian_uri = 'urn:librarian'
-bartender_uri = 'urn:bartender'
-shepherd_uri = 'urn:shepherd'
+ahash_uri = 'http://www.nordugrid.org/schemas/ahash'
+librarian_uri = 'http://www.nordugrid.org/schemas/librarian'
+bartender_uri = 'http://www.nordugrid.org/schemas/bartender'
+shepherd_uri = 'http://www.nordugrid.org/schemas/shepherd'
 rbyteio_uri = 'http://schemas.ggf.org/byteio/2005/10/random-access'
 # URI for the simple transfer mechanism of ByteIO
 byteio_simple_uri = 'http://schemas.ggf.org/byteio/2005/10/transfer-mechanisms/simple'

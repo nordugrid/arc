@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://www.w3.org/2005/08/addressing" xmlns:wsrf-rpw="http://docs.oasis-open.org/wsrf/rpw-2" xmlns:wsrf-rw="http://docs.oasis-open.org/wsrf/rw-2" xmlns:bar="http://www.nordugrid.org/schemas/bartender" targetNamespace="http://www.nordugrid.org/schemas/bartender">
+    <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rpw-2" location="http://docs.oasis-open.org/wsrf/rpw-2.wsdl"/>
+    <wsdl:import namespace="http://docs.oasis-open.org/wsrf/rw-2" location="http://docs.oasis-open.org/wsrf/rw-2.wsdl"/>
+    <wsdl:types>
+        <xsd:schema targetNamespace="http://www.nordugrid.org/schemas/bartender">
+<!-- metadata containing (section, property, type) -->
+            <xsd:complexType name="metadataType">
+                <xsd:sequence>
+                    <xsd:element name="section" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="property" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="value" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="metadataListType">
+                <xsd:sequence>
+                    <xsd:element name="metadata" type="bar:metadataType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+<!-- stat request -->
+            <xsd:complexType name="statRequestElementType">
+                <xsd:sequence>
+                    <xsd:element name="requestID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="LN" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="statRequestListType">
+                <xsd:sequence>
+                    <xsd:element name="statRequestElement" type="bar:statRequestElementType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="statType">
+                <xsd:sequence>
+                    <xsd:element name="statRequestList" type="bar:statRequestListType" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="stat" type="bar:statType"/>
+<!-- stat response -->
+            <xsd:complexType name="statResponseElementType">
+                <xsd:sequence>
+                    <xsd:element name="requestID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="metadataList" type="bar:metadataListType" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="statResponseListType">
+                <xsd:sequence>
+                    <xsd:element name="statResponseElement" type="bar:statResponseElementType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="statResponseList" type="bar:statResponseListType"/>
+            <xsd:complexType name="statResponseType">
+                <xsd:sequence>
+                    <xsd:element name="statResponseList" type="bar:statResponseListType" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="statResponse" type="bar:statResponseType"/>
+        </xsd:schema>
+    </wsdl:types>
+<!-- Messages -->
+    <wsdl:message name="statRequestMessage">
+        <wsdl:part name="stat" element="bar:stat"/>
+    </wsdl:message>
+    <wsdl:message name="statResponseMessage">
+        <wsdl:part name="stat" element="bar:statResponse"/>
+    </wsdl:message>
+<!-- Port Type -->
+    <wsdl:portType name="bartenderInterface">
+        <wsdl:operation name="stat">
+            <wsdl:input message="bar:statRequestMessage"/>
+            <wsdl:output message="bar:statResponseMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+<!-- Bindings -->
+    <wsdl:binding name="bartenderBinding" type="bar:bartenderInterface">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="stat">
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="bartenderService">
+        <wsdl:port name="bartenderEndpoint" binding="bar:bartenderBinding">
+            <soap:address location="http://localhost:60000/Bartender"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

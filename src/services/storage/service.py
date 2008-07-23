@@ -84,7 +84,9 @@ class Service:
             #print request_name
             if not request_name.startswith(prefix + ':'):
                 # if the request is not in the service's namespace
-                raise Exception, 'wrong namespace (%s)' % request_name
+                prefix = request_node.NamespacePrefix(self.namespace_uri)
+                if not request_name.startswith(prefix + ':'):
+                    raise Exception, 'wrong namespace (%s)' % request_name
             # get the name of the request without the namespace prefix
             request_name = request_node.Name()
             if request_name not in self.request_names:
