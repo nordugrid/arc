@@ -5,7 +5,7 @@ import xml.dom.minidom
 
 # This part is copied from common.py
 
-bartender_uri = 'urn:bartender'
+bartender_uri = 'http://www.nordugrid.org/schemas/bartender'
 # True and False values used in the XML representation
 true = '1'
 false = '0'
@@ -280,7 +280,14 @@ def parse_node(node, names, single = False, string = True):
     ])
 
 def get_data_node(node):
-    return node.Get('Body').Child().Child()
+    try:
+        return node.Get('Body').Child().Child()
+    except:
+        try:
+            fault = str(node.Get('Body').Get('Fault'))
+        except:
+            raise Exception, 'Not valid SOAP message (%s)' % node.GetXML() 
+        raise Exception, 'Fault in SOAP message (%s)' % fault
 
 def get_child_nodes(node):
     """ Get all the children nodes of an XMLNode
