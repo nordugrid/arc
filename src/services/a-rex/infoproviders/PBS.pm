@@ -519,7 +519,7 @@ sub users_info($$) {
 	    }
 	    $lrms_users->{$u}{queuelength} = $lrms_queue->{queued};
 	    $freecpus = 0 if $freecpus < 0;
-	    if ($lrms_queue->{maxcputime})
+	    if ($lrms_queue->{maxcputime}) {
 		$lrms_users->{$u}{freecpus} = { $freecpus => $lrms_queue->{maxcputime} };
             } else {
 		$lrms_users->{$u}{freecpus} = { $freecpus => 0 }; # unlimited
