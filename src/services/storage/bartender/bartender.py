@@ -317,23 +317,25 @@ class Bartender:
             return 'put error (%s)' % put_response['error'], turl, protocols
         else:
             # if the put request was successful then we have a transfer URL, a choosen protocol and the referenceID of the file
+            # TODO: check if this is working this way
             turl = put_response['TURL']
             protocol = put_response['protocol']
-            referenceID = put_response['referenceID']
-            # currently the serviceID is the URL of the shepherd service
-            serviceID = shepherd.url
-            self.log('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
-            # the serviceID and the referenceID is the location of the replica, serialized as one string
-            # put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
-            modify_response = self.librarian.modifyMetadata({'putFile' :
-                    (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
-            modify_success = modify_response['putFile']
-            if modify_success != 'set':
-                self.log('DEBUG', 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
-                return 'failed to add new location to file', turl, protocol
-                # TODO: error handling
-            else:
-                return 'done', turl, protocol
+            return 'done', turl, protocol
+            #referenceID = put_response['referenceID']
+            ## currently the serviceID is the URL of the shepherd service
+            #serviceID = shepherd.url
+            #self.log('DEBUG', 'serviceID', serviceID, 'referenceID:', referenceID, 'turl', turl, 'protocol', protocol)
+            ## the serviceID and the referenceID is the location of the replica, serialized as one string
+            ## put the new location with the 'creating' state into the file entry ('putFile' is the requestID here)
+            #modify_response = self.librarian.modifyMetadata({'putFile' :
+            #        (GUID, 'set', 'locations', serialize_ids([serviceID, referenceID]), 'creating')})
+            #modify_success = modify_response['putFile']
+            #if modify_success != 'set':
+            #    self.log('DEBUG', 'failed to add location to file', 'GUID', GUID, 'serviceID', serviceID, 'referenceID', referenceID)
+            #    return 'failed to add new location to file', turl, protocol
+            #    # TODO: error handling
+            #else:
+            #    return 'done', turl, protocol
             
     def putFile(self, requests):
         """ Put a new file to the storage: initiate the process.

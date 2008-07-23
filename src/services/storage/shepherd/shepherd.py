@@ -66,6 +66,7 @@ class Shepherd:
                             self.log('DEBUG', 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
                         else:
                             filelist.append((localData.get('GUID'), changed, localData.get('state')))
+                            # TODO: not sure this is the right place to remove the file
                             if localData['state']==DELETED:
                                 bsuccess = self.backend.remove(localData['localID'])
                                 self.store.set(changed, None)
