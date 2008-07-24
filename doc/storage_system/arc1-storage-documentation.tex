@@ -35,6 +35,7 @@
 \definecolor{cyan}{rgb}{0,1,1}
 %
 %----- DON'T CHANGE HEADER MATTER
+\hyphenation{preserve-Original}
 \begin{document}
 \def\today{\number\day/\number\month/\number\year}
 
@@ -78,7 +79,7 @@
 \label{sec:overview}
 
 
-The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace. The files can be grouped into \emph{collection}s, and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node should have one or more data transfer service running (e.g. HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), https://forge.gridforum.org/projects/byteio-wg/}, etc.), and one of the services of the ARC1 storage system is needed to manage each storage node and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services are shown on Figure~\ref{fig:services}.
+The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace. The files can be grouped into \emph{collection}s, and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node should have one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), https://forge.gridforum.org/projects/byteio-wg/}, etc.), and one of the services of the ARC1 storage system is needed to manage each storage node and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services are shown on Figure~\ref{fig:services}.
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.9}{\includegraphics{arc1-storage-services.pdf}}}
@@ -118,11 +119,11 @@ In a collection each entry has a name, and this entry can be a sub-collection, i
 \caption{\label{fig:namespace}Example of the hierarchy of the global namespace} }
 \end{figure}
 
-Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file as \verb#/green/orange/huge# if we know the GUID of the starting collection, so let's prefix the path with it: \verb#1234/green/orange/huge#. This is the Logical Name of that file. If there is a well-known system-wide root collection (its GUID could be e.g. \verb#0#), then if a LN starts with no GUID prefix, it is implicitly prefixed with the GUID of this well-known root collection, e.g. \verb#/why/blue# means \verb#0/why/blue#.
+Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1234#, and there is a collection called \verb#green# in it, and in \verb#green# there is another collection called \verb#orange#, and in \verb#orange# there is a file called \verb#huge#, then we can refer to this file as \verb#/green/orange/huge# if we know the GUID of the starting collection, so let's prefix the path with it: \verb#1234/green/orange/huge#. This is the Logical Name of that file. If there is a well-known system-wide root collection (its GUID could be e.g.~\verb#0#), then if a LN starts with no GUID prefix, it is implicitly prefixed with the GUID of this well-known root collection, e.g.~\verb#/why/blue# means \verb#0/why/blue#.
 
 If a client wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, so it's a hard link. To count the references (the number of hard links) of a file or collection, the GUID of the parent collection(s) is stored as a metadata for each file and collection.
 
-Each VO\footnote{Virtual Organization, http://www.globus.org/grid\_software/security/voms.php} should create a VO-wide root collection, and put it in the generic root collection, e.g. if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g. \verb#/vo1/file1#, etc. Or sub-collections, e.g. \verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
+Each VO\footnote{Virtual Organization, http://www.globus.org/grid\_software/security/voms.php} should create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
 
 % section GUIDsLNs (end)
 
@@ -178,14 +179,14 @@ The Shepherds periodically ask the Librarian whether the files they store have e
 \caption{\label{fig:downloading}Downloading a file} }
 \end{figure}
 
-We want to download a file about which we know that it is somewhere in our home collection on the storage (see Figure~\ref{fig:downloading}). The LN of our home collection is e.g. \verb#/ourvo/users/we# (here a `home collection' could be just a collection which is given to us by our VO). We can get a list of entries in this collection from any Bartender.
+We want to download a file about which we know that it is somewhere in our home collection on the storage (see Figure~\ref{fig:downloading}). The LN of our home collection is e.g.~\verb#/ourvo/users/we# (here a `home collection' could be just a collection which is given to us by our VO). We can get a list of entries in this collection from any Bartender.
 
 \begin{enumerate}
 \item We need to find a Bartender. Maybe we have a cached list of recently used Bartenders or we can get one from the information system. When we have an endpoint reference of a Bartender, we could call its list method with the LN \verb#/ourvo/users/we#.
 \item The Bartender has to find a Librarian service, again using its cache of recently used Librarian services or get a new one from the information system. When the Bartender has an endpoint reference of a Librarian service, it could ask the Librarian to traverse the LN \verb#/ourvo/users/we#.
 \item The Librarian needs the A-Hash service to access the stored data, when it has the endpoint reference of the A-Hash service, it could get the information about the root collection, which contains the GUID of the \verb#ourvo# sub-collection. Then the Librarian gets the entries of this \verb#ourvo# collection, and in it it can find the GUID of \verb#users#, and in the entries of \verb#users# there is the GUID of \verb#we#, which the Librarian returns to the Bartender with all the metadata.
 \item The Bartender now has the GUID and the metadata of the collection \verb#/ourvo/users/we#, including the list of its entries. This is returned to us.
-\item So we get the list of our \verb#/ourvo/users/we# collection, and now we realize that the file we want has the LN \verb#/ourvo/users/we/thefilewewant# and we know the GUID of it as well: e.g. \verb#a4b2e#. (Of course we know the GUID of the \verb#/ourvo/users/we# collection too, which is e.g. \verb#13245# and using this we could refer to our file as \verb#13245/thefilewewant# which means the entry called \verb#thefilewewant# in the collection with a GUID \verb#13245#.) We connect a Bartender again (the same one or maybe another one) to get the file with any of these LNs, the \verb#a4b2e# is the fastest solution because the Bartender need not to look up the whole LN again in the Librarian, a well-written client API should use this. With the get request we give the Bartender the list of transfer protocols we are able to use.
+\item So we get the list of our \verb#/ourvo/users/we# collection, and now we realize that the file we want has the LN \verb#/ourvo/users/we/thefilewewant# and we know the GUID of it as well: e.g.~\verb#a4b2e#. (Of course we know the GUID of the \verb#/ourvo/users/we# collection too, which is e.g.~\verb#13245# and using this we could refer to our file as \verb#13245/thefilewewant# which means the entry called \verb#thefilewewant# in the collection with a GUID \verb#13245#.) We connect a Bartender again (the same one or maybe another one) to get the file with any of these LNs, the \verb#a4b2e# is the fastest solution because the Bartender need not to look up the whole LN again in the Librarian, a well-written client API should use this. With the get request we give the Bartender the list of transfer protocols we are able to use.
 \item The Bartender contacts the Librarian to get the locations of the replicas of this file.
 \item The Librarian returns all the metadata of the requested LN.
 \item The Bartender chooses a `location' which consists of the ID of a Shepherd, and the referenceID of the file within the Shepherd. Using the information system or its local cache it could get the endpoint reference of the Shepherd. The Bartender initiates a transfer by the Shepherd, if the Shepherd supports one of the transfer protocols we give, it can create a transfer URL (TURL) with a protocol we can download.
@@ -252,7 +253,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \chapter{Technical description and implementation status} % (fold)
 \label{cha:technical_description_and_implementation_status}
 
-The services are written in Python and running in the HED\footnote{The ARC container - https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g. in Python or Java. The source tree of the storage services are in the NorduGrid Subversion repository\footnote{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}.
+The services are written in Python and running in the HED\footnote{The ARC container - https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}.
 
 The current version of the prototype has no information system and no security, these are soon to be integrated to the system.
 
@@ -271,15 +272,15 @@ Further prototype statuses and plans can be found below within each section abou
 
 \subsection{Functionality} % (fold)
 
-The A-Hash is a distributed service capable of storing objects containing property-value pairs grouped in sections in a scalable manner. Each object has an arbitrary string ID, and contains any number of property-value pairs grouped in sections, where property, value and section are arbitrary strings. There could only be one value for a property in a section.
+The A-Hash will be a distributed service capable of storing tuples of strings in a scalable manner. Currently it only has a centralized implementation. It stores \emph{objects}, where each object has an arbitrary string \emph{ID}, and contains any number of \emph{property}-\emph{value} pairs grouped in \emph{section}s, where \emph{property}, \emph{value} and \emph{section} are arbitrary strings. There could only be a single \emph{value} for a \emph{property} in a \emph{section}.
 
-If you have an ID, you can get all property-value pairs of the corresponding object with the \emph{get} method, or you could specify only which sections or properties you need. You can add or remove property-value pairs of an object or delete all occurrences of a property or create a new object with the \emph{change} method, and you can specify conditions, which means the change is only applied if the given conditions are met.
+If you have an ID, you can get all property-value pairs of the corresponding object with the \emph{get} method, or you could specify only which sections or properties do you need. You can add or remove property-value pairs of an object or delete all occurrences of a property or create a new object with the \emph{change} method, and you can specify conditions, which means the change is only applied if the given conditions are met.
 
 % subsection functionality (end)
 
 \subsection{Prototype status and plans} % (fold)
 
-The A-Hash service currently implemented as a single central service, which stores the data on disk in separate files per object. In the fall of 2008 it will be reimplemented on a distributed hash table (DHT) algorithm, for example the Chord algorithm with a consistency solution called Etna on top of it. This reimplementation hopefully won’t change the interface of the service.
+The A-Hash service currently implemented as a single central service, which stores the data on disk in separate files per \emph{object}. Fall of 2008 it will be reimplemented using a distributed hash table (DHT) algorithm, one possible candidate is the Chord\footnote{The Chord project - http://pdos.csail.mit.edu/chord/} algorithm with a consistency solution called Etna\footnote{Etna: a Fault-tolerant Algorithm for Atomic Mutable DHT Data - http://pdos.csail.mit.edu/\~athicha/papers/etna.ps} on top of it. This reimplementation hopefully won’t change the interface of the service.
 
 % subsection prototype_status_and_plans (end)
 
@@ -287,7 +288,7 @@ The A-Hash service currently implemented as a single central service, which stor
 
 \begin{itemize}
     \item \emph{ID} is an arbitrary string
-    \item \emph{object} contains property-value pairs in sections, technically it is a list of key-value pairs where the key is a (section, property) tuple
+    \item \emph{object} contains property-value pairs in sections, technically it is a list of key-\emph{value} pairs where the key is a (\emph{section}, \emph{property}) tuple
 \end{itemize}
 
 % subsection data_model (end)
@@ -321,7 +322,7 @@ The Librarian manages a tree-hierarchy of files, grouping them into collections.
 
 \subsection{Prototype status and plans} % (fold)
 
-The Librarian service currently implements all the methods below, but doesn’t do very much error checking. This should be changed, the Librarian should check the validity of metadata, and forbid some cases, e.g. reopen a closed collection.
+The Librarian service currently implements all the methods below, but doesn't do very much error checking. This should be changed, the Librarian should check the validity of metadata, and forbid some cases, e.g.~reopen a closed collection.
 
 % subsection prototype_status_and_plans (end)
 
@@ -329,7 +330,7 @@ The Librarian service currently implements all the methods below, but doesn’t 
 \label{sub:data_model}
 Each librarian entry has a unique ID called \emph{GUID}.
 
-The Librarian uses the A-Hash to store all the data about the files and collections. The A-Hash is capable of storing property-value pairs organized in sections, which actually means that it stores (\emph{section}, \emph{property}, \emph{value}) tuples where each member is simply a string, e.g. (`entry', `type', `collection') or (`ACL', `johnsmith', `owner') or (`timestamps', `created', `1196265901') or (`locations', `64CDF45F-DDFA-4C1D-8D08-BCF7810CB2AB 9A293F27DC86', `sentenced'). There could be only one \emph{value} for a (\emph{section}, \emph{property}) pair.
+The Librarian uses the A-Hash to store all the data about files and collections. The A-Hash is capable of storing property-value pairs organized in sections, which actually means that it stores (\emph{section}, \emph{property}, \emph{value}) tuples where each member is simply a string, e.g.~(`entry', `type', `collection') or (`ACL', `johnsmith', `owner') or (`timestamps', `created', `1196265901') or (`locations', `64CDF45F-DDFA-4C1D-8D08-BCF7810CB2AB:9A293F27DC86', `sentenced'). There could be only one \emph{value} for a (\emph{section}, \emph{property}) pair.
 
 \begin{itemize}
     \item A \textbf{collection} is a list of files and other collections, which are in parent-children relationships forming a tree-hierarchy. Each entry has a name which is only valid within this collection, and it is unique within the collection. Each entry is referenced by its GUID. So the metadata sections of a collection are as follows: 
@@ -349,7 +350,7 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
         \end{itemize}
         \item [states] section 
         \begin{itemize}
-            \item closed: if the collection is closed, then nothing can be added to its contents 
+            \item \emph{closed}: if the collection is closed, then nothing can be added to its contents 
         \end{itemize}
         \item [policies] section 
         \begin{itemize}
@@ -368,12 +369,12 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
         \end{itemize}
         \item [locations] section 
         \begin{itemize}
-            \item \emph{(location, state) pairs}, where a location is a (\emph{serviceID}, \emph{referenceID}) pair serialized as a  string, where \emph{serviceID} is the ID of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service, and state could be `\textbf{alive}' (if the replica passed the checksum test, and the storage element storing it is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the storage element claims it has no such file), `\textbf{offline}' (if the storage element is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{sentenced}' (if the replica is marked for deletion) 
+            \item \emph{(location, state) pairs}, where a location is a (\emph{serviceID}, \emph{referenceID}) pair serialized as a  string, where \emph{serviceID} is the ID of the Shepherd service storing this replica, \emph{referenceID} is the ID of the file within that Shepherd service, and state could be `\textbf{alive}' (if the replica passed the checksum test, and the Shepherd reports that the storage node is healthy), `\textbf{invalid}' (if the replica has wrong checksum, or the Shepherd claims it has no such file), `\textbf{offline}' (if the Shepherd is not reachable, but may have a valid replica), `\textbf{creating}' (if the replica is in the state of uploading), `\textbf{sentenced}' (if the replica is marked for deletion) 
         \end{itemize}
         \item [timestamps] section 
         \begin{itemize}
             \item \emph{created}: timestamp of creation 
-            \item \emph{modified}: timestamp of last modification (e.g. modification of metadata)
+            \item \emph{modified}: timestamp of last modification (e.g.~modification of metadata)
         \end{itemize}
         \item [states] section 
         \begin{itemize}
@@ -405,7 +406,7 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
         \item [timestamps] section 
         \begin{itemize}
             \item \emph{created}: timestamp of creation 
-            \item \emph{modified}: timestamp of last modification (e.g. modification of metadata)
+            \item \emph{modified}: timestamp of last modification (e.g.~modification of metadata)
         \end{itemize}
         \item [policies] section 
         \begin{itemize}
@@ -435,7 +436,7 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
         \begin{itemize}
             \item \emph{type}: `shepherd'
         \end{itemize}
-    	\item [file] section
+    	\item [files] section
     	\begin{itemize}
     	    \item \emph{(referenceID, GUID) pairs} for each replica stored on the Shepherd
     	\end{itemize}
@@ -450,15 +451,15 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
     \item[new(newRequestList)] returns a list of (\emph{requestID}, \emph{GUID}, \emph{success})
     
     \emph{newRequestList} is a list of (\emph{requestID}, \emph{metadata}) where \emph{requestID} is an arbitrary ID used to identify this request in the list of responses; \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
-    This method generates a \emph{GUID} for each request, and inserts the new entry into the A-Hash, then returns the GUIDs of the newly created entries.
+    This method generates a \emph{GUID} for each request, and inserts the new entry (with the given metadata) into the A-Hash, then returns the GUIDs of the newly created entries. The (`entry', `type') property of the metadata contains whether it is a file or a collection.
     
     \item[modifyMetadata(modifyMetadataRequestList)] returns a list of (\emph{changeID}, \emph{success})
 
-    \emph{modifyMetadataRequestList} is a list of (\emph{changeID}, \emph{GUID}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}’ (set the property in the section to the value), `\textbf{unset}’ (remove the property-value pair from a section), `\textbf{add}’ (set the property in the section to the value only if it is not exists already).
+    \emph{modifyMetadataRequestList} is a list of (\emph{changeID}, \emph{GUID}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the property in the section to value), `\textbf{unset}' (remove the property-value pair from the section), `\textbf{add}' (set the property in the section to value only if it is not exists already).
     
     \item [get(GUIDs, neededMetadata)] returns \emph{getResponse}
     
-    \emph{GUIDs} is a list of GUIDs, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs indicating only which properties we need, \emph{getResponse} is a list of (\emph{GUID}, \emph{metadata}) where metadata is a list of (\emph{section}, \emph{property}, \emph{value}) tuples.
+    \emph{GUIDs} is a list of GUIDs, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs indicating only which properties we need, \emph{getResponse} is a list of (\emph{GUID}, \emph{metadata}) where metadata is a list of (\emph{section}, \emph{property}, \emph{value}) tuples. This method returns the metadata of all the \emph{GUID}s filtered with \emph{neededMetadata}.
     
     \item [remove(removeRequestList)] returns a list of (\emph{requestID}, \emph{success}) pairs
     
@@ -495,19 +496,19 @@ The Librarian uses the A-Hash to store all the data about the files and collecti
 
 \subsection{Functionality} % (fold)
 
-The Shepherd service is capable of managing a storage node. It keeps track all the files it stores with their GUIDs and checksums. The Shepherds periodically send reports to a Librarian indicating that the Shepherd is up and running, and whether some file's state has been changed. The Shepherd periodically checks each file to detect corruption. If a file goes missing or has a bad checksum the Shepherd notify the Librarian about the error referring the file with its GUID. The Shepherd periodically asks the Librarian how many replicas its files have, and if a file has fewer replicas than needed, the Shepherd offers its copy for replication by calling the Bartender.
+A Shepherd service is capable of managing a storage node. It keeps track all the files it stores with their GUIDs and checksums. It periodically checks each file to detect corruption, and send reports to a Librarian indicating that the storage node is up and running, and whether some file's state has been changed. If a file goes missing or has a bad checksum then the Librarian is notified about the error (here the Shepherd refers to the file with its GUID, that's why it needs to store the GUIDs of its files). It periodically asks the Librarian how many replicas its files have, and if a file has fewer replicas than needed, the Shepherd offers its copy for replication by calling the Bartender.
 
-A Shepherd service is always connected to a file transfer service (e.g. `HTTP(S)', `FTP(S)', `ByteIO', `GridFTP', etc.). For each supported file transfer service we need a backend module which makes the Shepherd able to communicate with the file transfer service to initiate file transfers, to detect whether a transfer was successful or not, to generate local IDs and checksum, etc.
+A Shepherd service is always connected to a file transfer service (e.g.~`HTTP(S)', `FTP(S)', `ByteIO', `GridFTP', etc.). For each supported file transfer service we need a backend module which makes the Shepherd capable of communicating with the file transfer service to initiate file transfers, to detect whether a transfer was successful or not, to generate local IDs and checksums, etc.
 
-A file in a Shepherd could be identified with a \emph{referenceID} which is unique within that Shepherd. If we know the \emph{location} of a file, which is the ID of the Shepherd service (\emph{serviceID}) and the \emph{referenceID}, we could get the endpoint reference (URL) of the Shepherd from the information system, then we could call its \emph{get} method with the \emph{referenceID} and a list of transfer protocols we are able to handle (e.g. `HTTP', `FTP'), the Shepherd chooses a protocol from this list which it can provide, and create a transfer URL (\emph{TURL}) and returns it along with the \emph{checksum} of the file. We could download the file from this \emph{TURL}, and verify it with the \emph{checksum}. An end user of the storage system does not need to call this \emph{get} method, because the Bartender service will do it, the user just ask the Bartender and get the TURL.
+A file in a storage node could be identified with a \emph{referenceID} which is unique within that node. If we know the \emph{location} of a file, which is the ID of the Shepherd service (\emph{serviceID}) and the \emph{referenceID}, we could get the endpoint reference (URL) of the Shepherd from the information system, then we could call its \emph{get} method with the \emph{referenceID} and a list of transfer protocols we can use (e.g.~`HTTP', `FTP'), the Shepherd chooses a protocol from this list which it can provide, and create a transfer URL (\emph{TURL}) and returns it along with the \emph{checksum} of the file. We could download the file from this \emph{TURL}, and verify it with the \emph{checksum}. An end user of the storage system does not need to call this \emph{get} method, because the Bartender service will do it, the user just asks the Bartender and gets the TURL.
 
-Storing a file starts with initiating the transfer with the \emph{put} method of the Shepherd, we should give the \emph{size} and \emph{checksum} of the file and its \emph{GUID} as well. We also specify a list of transfer protocols we are able to use, and the Shepherd chooses a \emph{protocol}, creates a \emph{TURL} for uploading and generates a \emph{referenceID}, then we can upload the file to the TURL. Again, the end user just asks the Bartender, and get the TURL, the user does not need to call the \emph{put} method of the Shepherd directly.
+Storing a file starts with initiating the transfer with the \emph{put} method of the Shepherd, we should give the \emph{size} and \emph{checksum} of the file and its \emph{GUID} as well. We also specify a list of transfer protocols we are able to use, and the Shepherd chooses a \emph{protocol}, creates a \emph{TURL} for uploading and generates a \emph{referenceID}, then we can upload the file to the TURL. Again, the end user just asks the Bartender, and gets the TURL, the user does not need to call the \emph{put} method of the Shepherd directly.
 
 These \emph{TURL}s are one-time URLs which means that after the client uploads or downloads the file these \emph{TURL}s cannot be used again to do the same. If we want to download the same file twice, we have to initiate the transfer twice, and will get two different \emph{TURL}s.
 
-With the \emph{stat} method we can get some information about a replica, e.g. checksum, GUID, state (`creating', `alive' or `invalid'), etc. The \emph{delete} method removes the file.
+With the \emph{stat} method we can get some information about a replica, e.g.~checksum, GUID, state (`creating', `alive' or `invalid'), etc. The \emph{delete} method removes the file.
 
-In normal operation the \emph{put} and \emph{get} calls is made by a Bartender but the actual uploading and downloading is done by the user’s client. In case of replication a Shepherd with a valid replica initiates the replication, this Shepherd asks the Bartender to choose a new Shepherd, the Bartender initiates putting the new replica on a chosen Shepherd and receives the TURL, then the Bartender returns the TURL to the initiator Shepherd, which uploads its replica to the given TURL.
+In normal operation the \emph{put} and \emph{get} calls is made by a Bartender but the actual uploading and downloading is done by the user's client. In the case of replication a Shepherd with a valid replica initiates the replication, this Shepherd asks the Bartender to choose a new Shepherd, the Bartender initiates putting the new replica on a chosen Shepherd and receives the TURL, then the Bartender returns the TURL to the initiator Shepherd, which uploads its replica to the given TURL.
 
 % subsection functionality (end)
 
@@ -521,7 +522,7 @@ Further plans include better file transfer services and backend modules for thir
 
 \subsection{Data model} % (fold)
 
-A file of a Shepherd service is referenced by its \emph{referenceID}. Each file has a \emph{state} which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, or `\textbf{invalid}' if it does not exists anymore or has a bad checksum. Each file has a \emph{localID} which is used in the backend modules..
+A file of a Shepherd service is referenced by its \emph{referenceID}. Each file has a \emph{state} which could be `\textbf{creating}' when the transfer is initiated but the file is not uploaded yet, `\textbf{alive}' if the file is uploaded and has a proper checksum, or `\textbf{invalid}' if it does not exists anymore or has a bad checksum. Each file has a \emph{localID} which is used in the backend modules.
 
 % subsection data_model (end)
 
@@ -534,7 +535,7 @@ A file of a Shepherd service is referenced by its \emph{referenceID}. Each file 
     
     \emph{getRequestList} is a list of (\emph{requestID}, \emph{getRequestData}) where \emph{requestID} is an arbitrary ID used in the reply
     
-    \emph{getRequestData} is a list of (\emph{property}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client is able to use, there could be multiple protocols in getRequestData.
+    \emph{getRequestData} is a list of (\emph{property}, \emph{value}) pairs, where mandatory properties are: `\textbf{referenceID}' which refers to the file to get and `\textbf{protocol}' indicates a protocol the client can use (there could be multiple protocols in getRequestData).
     
     \emph{getResponseData} is a list of (\emph{property}, \emph{value}) pairs, such as: `\textbf{TURL}' is a transfer URL which can be used by the client to download the file; `\textbf{protocol}' is the protocol of the TURL; `\textbf{checksum}' is the checksum of the replica; `\textbf{checksumType}' is the name of the checksum method and `\textbf{error}' could contain an error message if there is one.
      
@@ -561,13 +562,13 @@ A file of a Shepherd service is referenced by its \emph{referenceID}. Each file 
 \subsection{Backend modules} % (fold)
 \label{sub:backend_modules}
 
-The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the byteio service (which is a simple implementation of a subset of the ByteIO interface) and one for the httpd service (which is a simple HED-based HTTP server).
+The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the \emph{byteio} service (which is a simple implementation of a subset of the ByteIO interface) and one for the \emph{httpd} service (which is a simple HED-based HTTP server).
 
-In both cases the Shepherd service uses two separate directories: one for storing all the files (e.g. \verb!./store!) and one for the file transfers (e.g. \verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
+In both cases the Shepherd service uses two separate directories: one for storing all the files (e.g.~\verb!./store!) and one for the file transfers (e.g.~\verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
 
-Let's see the scenario for the httpd service which should be in a special `slave' mode for this kind of operation: if a client asks for a file called \verb!file1!, and this file is in the store directory (\verb!./store/file!), then the Shepherd service creates a hardlink into the transfer directory (e.g. \verb!./transfer/abc!) and sets this file read-only. If the httpd service is configured that way that it handles the HTTP path \verb!/prb! and it is serving files from the directory \verb!./transfer! then after the hardlink is created, we have this URL for this file: \verb!http://localhost:60000/prb/abc!. Now we can give this URL to the client. Then the client \verb!GET!s this URL and gets the file. The httpd service removes (unlinks) this file immediately after the \verb!GET! request arrived, which makes this \verb!http://localhost:60000/prb/abc! URL invalid (so this is a one-time URL), but because of the hardlink the file is still there in the store directory, it is just removed from the transfer directory. Now if some other user wants this file, the Shepherd creates an other hardlink, e.g. \verb!./transfer/qwe! and now we have an URL \verb!http://localhost:60000/prb/qwe!.
+Let's see the scenario for the httpd service which should be in a special `slave' mode for this kind of operation: if a client asks for a file called \verb!file1!, and this file is in the store directory (\verb!./store/file!), then the Shepherd service creates a hardlink into the transfer directory (e.g.~\verb!./transfer/abc!) and sets this file read-only. If the httpd service is configured that way that it handles the HTTP path \verb!/prb! and it is serving files from the directory \verb!./transfer! then after the hardlink is created, we have this URL for this file: \verb!http://localhost:60000/prb/abc!. Now we can give this URL to the client. Then the client \verb!GET!s this URL and gets the file. The httpd service removes (unlinks) this file immediately after the \verb!GET! request arrived, which makes this \verb!http://localhost:60000/prb/abc! URL invalid (so this is a one-time URL), but because of the hardlink the file is still there in the store directory, it is just removed from the transfer directory. Now if some other user wants this file, the Shepherd creates an other hardlink, e.g.~\verb!./transfer/qwe! and now we have an URL \verb!http://localhost:60000/prb/qwe!.
 
-If a client wants to upload a new file, then the Shepherd creates an empty file in the store directory, e.g. \verb!./store/file2! and creates a hardlink into the transfer directory, e.g. \verb!./transfer/oiu! and makes it writable, and now we have a URL \verb!http://localhost:60000/prb/oiu!, and the client is able to do a \verb!PUT! to this URL. When the client \verb!PUT!s the file there, the httpd service immediately removes the uploaded file from the transfer directory, but because it has a hardlink in the store directory, the file is stored there as \verb!./store/file2!. The backend module for the httpd service periodically checks whether a new file has two or just one hard links. If it has only one that means that a file is uploaded, so it could notify the Shepherd that the file is arrived. In order to do that, all the backend modules get a callback method `file\_arrived' from the Shepherd.
+If a client wants to upload a new file, then the Shepherd creates an empty file in the store directory, e.g.~\verb!./store/file2! and creates a hardlink into the transfer directory, e.g.~\verb!./transfer/oiu! and makes it writable, and now we have a URL \verb!http://localhost:60000/prb/oiu!, and the client is able to do a \verb!PUT! to this URL. When the client \verb!PUT!s the file there, the httpd service immediately removes the uploaded file from the transfer directory, but because it has a hardlink in the store directory, the file is stored there as \verb!./store/file2!. The backend module for the httpd service periodically checks whether a new file has two or just one hard links. If it has only one that means that a file is uploaded, so it could notify the Shepherd that the file is arrived. In order to do that, all the backend modules get a callback method `file\_arrived' from the Shepherd.
 
 In case of the byteio service, there is some small differences. The byteio service does not removes the files from the transfer directory, but it calls the backend module via SOAP to notify it that something is happened. The byteio backend has one SOAP method called `\textbf{notify}':
 \begin{description}
@@ -579,7 +580,7 @@ All the backend modules should have this common interface which the Shepherd can
 \begin{description}
     \item[prepareToGet(referenceID, localID, protocol)] returns the \emph{TURL}.
     
-    Initiate transfer with \emph{protocol} for the file which has these IDs: \emph{localID} and \emph{referenceID}. The reason for including here the referenceID as well is that this information could be used by the backend module later, e.g. when the transfer finished and the state of the file needs to be changed.
+    Initiate transfer with \emph{protocol} for the file which has these IDs: \emph{localID} and \emph{referenceID}. The reason for including here the referenceID as well is that this information could be used by the backend module later, e.g.~when the transfer finished and the state of the file needs to be changed.
     
     \item[prepareToPut(referenceID, localID, protocol)] returns the \emph{TURL}.
     
@@ -611,19 +612,19 @@ All the backend modules should have this common interface which the Shepherd can
 
 \subsection{Functionality} % (fold)
 
-The Bartender provides an easy to use interface of the ARC1 storage system to the users. You can put, get and delete files using their logical names (\emph{LN}s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. The metadata of a file or collection (e.g. whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or hardlink) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g. if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}.
+The Bartender provides an easy to use interface of the ARC1 storage system to the users. You can put, get and delete files using their logical names (\emph{LN}s) with the \emph{putFile}, \emph{getFile} and \emph{delFile} methods, create, remove and list collections with \emph{makeCollection}, \emph{unmakeCollection} and \emph{list}. The metadata of a file or collection (e.g.~whether the collection is closed, number of needed replicas, access policies) can be changed with \emph{modify}. A \emph{stat} call gives all the information about a file or collection, and you can move (or hardlink) collections and files within the namespace with \emph{move}. You can upload an entirely new replica to a file (e.g.~if the file lost all its replicas, or when a Shepherd service offers its replica for replications) with \emph{addReplica}.
 
 % subsection functionality (end)
 
 \subsection{Prototype status and plans} % (fold)
 
-The methods mentioned in the above section are all implemented, but need more error-checking and metadata-checking. There are plans of adding new methods, e.g. a \emph{copy} method or a \emph{glob} method for file pattern matching. The current version does not support closed (unmodifiable) collections yet.
+The methods mentioned in the above section are all implemented, but need more error-checking and metadata-checking. There are plans of adding new methods, e.g.~a \emph{copy} method or a \emph{glob} method for file pattern matching. The current version does not support closed (unmodifiable) collections yet.
 
 % subsection protoype_status_and_plans (end)
 
 \subsection{Data model} % (fold)
 
-The Bartender interface uses mostly Logical Names (\emph{LN}s), which have the syntax of: \verb!<GUID>/<path>! where both sides can be omitted (and in the case of a sole GUID we don't need the slash either), e.g. \verb!afg342/foo! is an entry called \verb!foo! in the collection with GUID \verb!afg342!; the LN `\verb!f36a7481!' refers to the a file or collection with GUID \verb!f36a7481!; \verb!/vo/dir/stg! points to the entry which is reachable from the root collection using the given path; and \verb!/! simply refers to the root collection.
+The Bartender interface uses mostly Logical Names (\emph{LN}s), which have the syntax of: \verb!<GUID>/<path>! where both sides can be omitted (and in the case of a sole GUID we don't need the slash either), e.g.~\verb!afg342/foo! is an entry called \verb!foo! in the collection with GUID \verb!afg342!; the LN \verb!f36a7481! refers to the a file or collection with GUID \verb!f36a7481!; \verb!/vo/dir/stg! points to the entry which is reachable from the root collection using the given path; and \verb!/! simply refers to the root collection.
 The term `\emph{metadata}' here refers to a list of property-value pairs organized in sections, see the data model description in Section~\ref{sub:data_model}.
 
 % subsection data_model (end)
@@ -631,42 +632,43 @@ The term `\emph{metadata}' here refers to a list of property-value pairs organiz
 \subsection{Interface} % (fold)
 
 \begin{description}
-    \item[putFile(putFileRequest)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
+    \item[putFile(putFileRequestList)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
     
-    \emph{putFileRequest} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}, \emph{protocols}), where \emph{requestID} is an arbitrary ID which will be used in the response; \emph{LN} is the chosen Logical Name of the new file, \emph{protocols} is a list of protocols we can use for uploading, \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where properties could be in the `\textbf{states}' section: `\textbf{size}', `\textbf{checksum}', `\textbf{checksumType}', and  `\textbf{neededReplicas}', policy documents in the `\textbf{policies}' section and any other property-value pairs in the `\textbf{metadata}' section. The returned \emph{TURL} is a URL with a chosen \emph{protocol} to upload the file itself, the \emph{success} string could be `\textbf{done}', `\textbf{missing metadata}', `\textbf{parent does not exists}', `\textbf{internal error:} reason', etc.
+    \emph{putFileRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}, \emph{protocols}), where \emph{requestID} is an arbitrary ID which will be used in the response; \emph{LN} is the chosen Logical Name of the new file, \emph{protocols} is a list of protocols we can use for uploading, \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where properties could be in the `\textbf{states}' section: `\textbf{size}', `\textbf{checksum}', `\textbf{checksumType}', and  `\textbf{neededReplicas}', policy documents in the `\textbf{policies}' section and any other property-value pairs in the `\textbf{metadata}' section. The returned \emph{TURL} is a URL with a chosen \emph{protocol} to upload the file itself, the \emph{success} string could be `\textbf{done}', `\textbf{missing metadata}', `\textbf{parent does not exists}', `\textbf{internal error:} reason', etc.
 
-    \item[getFile(getFileRequest)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
+    \item[getFile(getFileRequestList)] returns a list of (\emph{requestID}, \emph{success}, \emph{TURL}, \emph{protocol})
 
-    \emph{getFileRequest} is a list of (\emph{requestID}, \emph{LN}, \emph{protocols}) where \emph{requestID} is used in the response, \emph{LN} is the Logical Name referring to the file we want to get, \emph{protocols} is a list of transfer protocols the client supports.
+    \emph{getFileRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{protocols}) where \emph{requestID} is used in the response, \emph{LN} is the Logical Name referring to the file we want to get, \emph{protocols} is a list of transfer protocols the client supports.
     In the response \emph{TURL} is the transfer URL using \emph{protocol}, with which we can download the file, \emph{success} could be `\textbf{done}', `\textbf{not found}', `\textbf{is not a file}', `\textbf{file has no valid replica}', `\textbf{error while getting TURL:} reason', etc.
 
-    \item[delFile(delFileRequest)] returns a list of (\emph{requestID}, \emph{status})
+    \item[delFile(delFileRequestList)] returns a list of (\emph{requestID}, \emph{status})
     
-    \emph{delFileRequest} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file we want to delete. The status in response could be `\textbf{deleted}' or `\textbf{nosuchLN}'.
+    \emph{delFileRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file we want to delete. The status in response could be `\textbf{deleted}' or `\textbf{nosuchLN}'.
     
-    \item[stat(statRequest)] returns a list of (\emph{requestID}, \emph{metadata})
+    \item[stat(statRequestList)] returns a list of (\emph{requestID}, \emph{metadata})
     
-    \emph{statRequest} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file or collection we want to get information about, and it returns \emph{metadata} which is a list of (\emph{section}, \emph{property}, \emph{value}) tuples according to the data model of the Librarian (see Section~\ref{sub:data_model})
+    \emph{statRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Name of the file or collection we want to get information about, and it returns \emph{metadata} which is a list of (\emph{section}, \emph{property}, \emph{value}) tuples according to the data model of the Librarian (see Section~\ref{sub:data_model})
     
-    \item[makeCollection(makeCollectionRequest)] returns a list of (\emph{requestID}, \emph{success})
+    \item[makeCollection(makeCollectionRequestList)] returns a list of (\emph{requestID}, \emph{success})
     
-    \emph{makeCollectionRequest} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name), in the `\textbf{states}' section there is the `\textbf{closed}' property (if it is true then no more files can be added or removed later), in the `\textbf{policies}' section there could be some access policies, and in the `\textbf{metadata}' section there could be any other metadata in key-value pairs. The \emph{success} in the response could be `\textbf{done}', `\textbf{LN exists}', `\textbf{parent does not exist}', `\textbf{failed to create new catalog entry}', `\textbf{failed to add child to parent}', `\textbf{internal error}', etc.
-    \emph[list(listRequest, neededMetadata)] returns \emph{listResponse}.
+    \emph{makeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples where in the `\textbf{entries}' section there could be the initial content of the catalog in the form of name-GUID pairs (these entries will be hard links to the given GUIDs with the given name), in the `\textbf{states}' section there is the `\textbf{closed}' property (if it is true then no more files can be added or removed later), in the `\textbf{policies}' section there could be some access policies, and in the `\textbf{metadata}' section there could be any other metadata in key-value pairs. The \emph{success} in the response could be `\textbf{done}', `\textbf{LN exists}', `\textbf{parent does not exist}', `\textbf{failed to create new catalog entry}', `\textbf{failed to add child to parent}', `\textbf{internal error}', etc.
+    \item[unmakeCollection(unmakeCollectionRequestList)] returns a list of (\emph{requestID}, \emph{success}).
     
-    \emph{listRequest} is a list of (\emph{requestID}, \emph{LN}) where \emph{LN} is the Logical Name of the collection (or file) we want to list, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs which filters the returned metadata.
+    \emph{unmakeCollectionRequestList} is a list of (\emph{requestID}, \emph{LN}) with the Logical Names of the collections we want to remove. \emph{success} could be `\textbf{removed}', `\textbf{no such LN}', `\textbf{collection is not empty}', `\textbf{failed}: reason'.
+    
+    \item[list(listRequestList, neededMetadata)] returns \emph{listResponse}.
+    
+    \emph{listRequestList} is a list of (\emph{requestID}, \emph{LN}) where \emph{LN} is the Logical Name of the collection (or file) we want to list, \emph{neededMetadata} is a list of (\emph{section}, \emph{property}) pairs which filters the returned metadata.
     
     \emph{listResponse} is a list of (\emph{requestID}, \emph{entries}, \emph{status}) where entries is a list of (\emph{name}, \emph{GUID}, \emph{metadata}) where \emph{metadata} is a list of (\emph{section}, \emph{property}, \emph{value}) tuples according to the data model of the Librarian (Section~\ref{sub:data_model}), the \emph{status} could be `\textbf{found}', `\textbf{not found}', `\textbf{is a file}' (because only collections can be listed).
     
-    \item[move(moveRequest)] returns a list of (\emph{requestID}, \emph{status}).
+    \item[move(moveRequestList)] returns a list of (\emph{requestID}, \emph{status}).
     
-    \emph{moveRequest} is a list of (\emph{requestID}, \emph{sourceLN}, \emph{targetLN}, \emph{preserveOriginal}) where \emph{sourceLN} is the Logical Name referring to the file or collection we want to move (or just rename) and \emph{targetLN} is the new path, and if \emph{preserveOriginal} is true the \emph{sourceLN} would not be removed, so with \emph{preserveOriginal} we actually creating a hard link. The status could be `\textbf{moved}', `\textbf{nosuchLN}', `\textbf{targetexists}', `\textbf{invalidtarget}', `\textbf{failed adding child to parent}', `\textbf{failed removing child from parent}'
+    \emph{moveRequestList} is a list of (\emph{requestID}, \emph{sourceLN}, \emph{targetLN}, \emph{preserveOriginal}) where \emph{sourceLN} is the Logical Name referring to the file or collection we want to move (or just rename) and \emph{targetLN} is the new path, and if \emph{preserveOriginal} is true the \emph{sourceLN} would not be removed, so with \emph{preserveOriginal} we actually creating a hard link. The status could be `\textbf{moved}', `\textbf{nosuchLN}', `\textbf{targetexists}', `\textbf{invalidtarget}', `\textbf{failed adding child to parent}', `\textbf{failed removing child from parent}'
     
-    \item[unmakeCollection(unmakeRequest)] returns a list of (\emph{requestID}, \emph{success}).
-    
-    \emph{unmakeRequest} is a list of (\emph{requestID}, \emph{LN}) with the Logical Names of the collections we want to remove. \emph{success} could be `\textbf{removed}', `\textbf{no such LN}', `\textbf{collection is not empty}', `\textbf{failed: reason}'.
-    
-    \item[modify(modifyRequest)] returns a list of (\emph{changeID}, \emph{success})
-    \emph{modifyRequest} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}’ (set the \emph{property} in the \emph{section} to \emph{value}), `\textbf{unset}’ (remove the \emph{property}-\emph{value} pair from the \emph{section}), `\textbf{add}’ (set the \emph{property} in the \emph{section} to \emph{value} only if it is not exists already). \emph{success} could be `\textbf{no such LN}', `\textbf{set}', `\textbf{unset}', `\textbf{entry exists}', `\textbf{failed}: reason'.
+    \item[modify(modifyRequestList)] returns a list of (\emph{changeID}, \emph{success})
+
+    \emph{modifyRequestList} is a list of (\emph{changeID}, \emph{LN}, \emph{changeType}, \emph{section}, \emph{property}, \emph{value}) where \emph{changeType} can be `\textbf{set}' (set the \emph{property} in the \emph{section} to \emph{value}), `\textbf{unset}' (remove the \emph{property}-\emph{value} pair from the \emph{section}), `\textbf{add}' (set the \emph{property} in the \emph{section} to \emph{value} only if it is not exists already). \emph{success} could be `\textbf{no such LN}', `\textbf{set}', `\textbf{unset}', `\textbf{entry exists}', `\textbf{failed}: reason'.
     
 \end{description}
 
@@ -754,20 +756,32 @@ There are plans to create more sophisticated CLI and GUI tools and to create a F
 \subsection{Integrating third-party storage solutions} % (fold)
 \label{sub:integrating_third_party_storage_solutions}
 
-To intagrate existing files on a third-party storage to our namespace thus make them accessable through the interface of the ARC1 storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC1 storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
+To intagrate existing files on a third-party storage to our namespace thus make them accessible through the interface of the ARC1 storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC1 storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
 \begin{description}
     \item[get(getRequest)] returns list of (\emph{requestID}, \emph{getResponseData})
+
     very similar to the \emph{get} method of the Shepherd
+
     \item[put(putRequest)] returns a list of (\emph{requestID}, \emph{putResponseData})
+
     very similar to the \emph{put} method of the Shepherd
+
     \item[delete(deleteRequest)] returns a list of (\emph{requestID}, \emph{success})
+
     very similar to the \emph{delete} method of the Shepherd
+
     \item[stat(statRequest)] returns a list of (\emph{requestID}, \emph{statResponse})
+
     very similar to the \emph{stat} method of the Shepherd
+
     \item[list(listRequest)] returns \emph{listResponse}
+
     very similar to the \emph{list} method of the Bartender
+
     \item[move(moveRequest)] returns a list of (\emph{requestID}, \emph{status})
+
     very similar to the \emph{move} method of the Bartender
+
 \end{description}
 This interface has some methods similar to the Shepherd and some other methods similar to the Bartender.
 % subsection integrating_third_party_storage_solutions (end)
