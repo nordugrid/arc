@@ -63,7 +63,9 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
     if (thisAttr == NULL) {
         return NULL;
     }
-    return (((PySwigObject *)thisAttr)->ptr);
+    void* ptr = ((PySwigObject *)thisAttr)->ptr;
+    Py_DECREF(thisAttr);
+    return ptr;
 }
 
 // Thread state of main python interpreter thread
@@ -303,121 +305,159 @@ Arc::MCC_Status Service_PythonWrapper::python_error(const char *str) {
     return Arc::MCC_Status(Arc::GENERIC_ERROR);
 }*/
 
+class PythonLock {
+  private:
+    PyGILState_STATE gstate_;
+    Arc::Logger& logger_;
+  public:
+    PythonLock(Arc::Logger& logger):logger_(logger) {
+        gstate_ = PyGILState_Ensure();
+        logger_.msg(Arc::DEBUG, "Python interpreter locked");
+    };
+    ~PythonLock(void) {
+        PyGILState_Release(gstate_);
+        logger_.msg(Arc::DEBUG, "Python interpreter released");
+    };
+};
+
+class SOAPMessageP {
+  private:
+    Arc::SOAPMessage* obj_;
+  public:
+    SOAPMessageP(Arc::Message& msg):obj_(NULL) {
+        try {
+            obj_ = new Arc::SOAPMessage(msg);
+        } catch(std::exception& e) { };
+    };
+    ~SOAPMessageP(void) {
+        if(obj_) delete obj_;
+    };
+    SOAPMessage& operator*(void) const { return *obj_; };
+    SOAPMessage* operator->(void) const { return obj_; };
+    operator bool(void) { return (obj_ != NULL); };
+    bool operator!(void) { return (obj_ == NULL); };
+    operator long int(void) { return (long int)obj_; };
+};
+
+class PyObjectP {
+  private:
+    PyObject* obj_;
+  public:
+    PyObjectP(PyObject* obj):obj_(obj) { };
+    ~PyObjectP(void) { if(obj_) Py_DECREF(obj_); };
+    operator bool(void) { return (obj_ != NULL); };
+    bool operator!(void) { return (obj_ == NULL); };
+    operator PyObject*(void) { return obj_; };
+};
+
 Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 {
-    PyObject *py_status = NULL;
-    PyObject *py_inmsg = NULL;
-    PyObject *py_outmsg = NULL;
+    //PyObject *py_status = NULL;
+    //PyObject *py_inmsg = NULL;
+    //PyObject *py_outmsg = NULL;
     PyObject *arg = NULL;
    
     logger.msg(Arc::DEBUG, "Python wrapper process called");
     
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
+    PythonLock plock(logger);
     logger.msg(Arc::DEBUG, "Python interpreter locked");
-    
-    // Convert in and out messages to SOAP messages
-    Arc::SOAPMessage *inmsg_ptr = NULL;
-    Arc::SOAPMessage *outmsg_ptr = NULL;
-    try {
-        inmsg_ptr = new Arc::SOAPMessage(inmsg);
-        outmsg_ptr = new Arc::SOAPMessage(outmsg);
-    } catch(std::exception& e) { };
-    if(!inmsg_ptr) {
-        logger.msg(Arc::ERROR, "input is not SOAP");
-        
-        PyGILState_Release(gstate);
-        return make_fault(outmsg);
+   
+    { 
+        // Convert in message to SOAP message
+        Arc::SOAPMessageP inmsg_ptr(inmsg);
+        if(!inmsg_ptr) {
+            logger.msg(Arc::ERROR, "failed to create input SOAP container");
+            return make_fault(outmsg);
+        }
+        if(!inmsg_ptr->Payload()) {
+            logger.msg(Arc::ERROR, "input is not SOAP");
+            return make_fault(outmsg);
+        }
+        // Convert incomming outcoming message to python object
+        arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     };
-    if(!outmsg_ptr) {
-        logger.msg(Arc::ERROR, "output is not SOAP");
-        
-        PyGILState_Release(gstate);
-        return make_fault(outmsg);
-    };
-
-    // Convert incomming and outcoming messages to python objects
-    arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        
-        PyGILState_Release(gstate);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+        return make_fault(outmsg);
     }
-
-    py_inmsg = PyObject_CallObject(arc_msg_klass, arg);
-    if (py_inmsg == NULL) {
+    PyObjectP py_inmsg(PyObject_CallObject(arc_msg_klass, arg));
+    if (!py_inmsg) {
         logger.msg(Arc::ERROR, "Cannot convert inmsg to python object");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
         Py_DECREF(arg);
-        
-        PyGILState_Release(gstate);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+        return make_fault(outmsg);
     }
-    Py_DECREF(arg); delete inmsg_ptr;
+    Py_DECREF(arg);
 
-    arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
+    {
+        Arc::SOAPMessageP outmsg_ptr(outmsg);
+        if(!outmsg_ptr) {
+            logger.msg(Arc::ERROR, "failed to create SOAP containers");
+            return make_fault(outmsg);
+        }
+        // Convert incomming and outcoming messages to python objects
+        arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
+    };
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create outmsg argument");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
-        
-        PyGILState_Release(gstate);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+        return make_fault(outmsg);
     }
-
-    py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
-    if (py_outmsg == NULL) {
+    PyObjectP py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
+    if (!py_outmsg) {
         logger.msg(Arc::ERROR, "Cannot convert outmsg to python object");
         if (PyErr_Occurred() != NULL) {
             PyErr_Print();
         }
         Py_DECREF(arg);
-        
-        PyGILState_Release(gstate);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+        return make_fault(outmsg);
     }
-    Py_DECREF(arg); delete outmsg_ptr;
-    
+    Py_DECREF(arg);
+
     // Call the process method
-    py_status = PyObject_CallMethod(object, (char*)"process", (char*)"(OO)", 
-                                    py_inmsg, py_outmsg);
-    if (py_status == NULL) {
+    PyObjectP py_status(PyObject_CallMethod(object, (char*)"process", (char*)"(OO)", 
+                                    (PyObject*)py_inmsg, (PyObject*)py_outmsg));
+    if (!py_status) {
         if (PyErr_Occurred() != NULL) {
                 PyErr_Print();
         }
-        Py_DECREF(py_inmsg);
-        Py_DECREF(py_outmsg);
-        
-        PyGILState_Release(gstate);
-        return Arc::MCC_Status(Arc::GENERIC_ERROR);
+        return make_fault(outmsg);
     }
     
     MCC_Status *status_ptr2 = (MCC_Status *)extract_swig_wrappered_pointer(py_status);
-    Arc::MCC_Status status(*status_ptr2);
-    std::string str = (std::string)status;
-    // std::cout << "status: " << str << std::endl;   
+    Arc::MCC_Status status;
+    if(status_ptr2) status=(*status_ptr2);
+    {
+        // std::string str = (std::string)status;
+        // std::cout << "status: " << str << std::endl;   
+    };
     SOAPMessage *outmsg_ptr2 = (SOAPMessage *)extract_swig_wrappered_pointer(py_outmsg);
-    std::string xml;
+    if(outmsg_ptr2 == NULL) return make_fault(outmsg);
     SOAPEnvelope *p = outmsg_ptr2->Payload();
-    p->GetXML(xml);
-    // std::cout << "XML: " << xml << std::endl; 
+    if(p == NULL) return make_fault(outmsg);
+    {
+        // std::string xml;
+        // if(p) p->GetXML(xml);
+        // std::cout << "XML: " << xml << std::endl; 
+    };
 
-    Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*(outmsg_ptr2->Payload()));
-    // pl->GetXML(xml);   
-    Py_DECREF(py_outmsg);
-    Py_DECREF(py_inmsg);
+    Arc::PayloadSOAP *pl = new Arc::PayloadSOAP(*p);
+    {
+        // std::string xml;
+        // pl->GetXML(xml); 
+        // std::cout << "XML: " << xml << std::endl; 
+    };
     
     outmsg.Payload(pl);
-    
-    PyGILState_Release(gstate);
     return status;
 }
 
 } // namespace Arc
+
