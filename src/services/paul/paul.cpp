@@ -50,7 +50,7 @@ void PaulService::GetActivities(const std::string &url_str, std::vector<std::str
     {
         std::string str;
         glue2.GetDoc(str);
-std::cout << "*** " << str << std::endl;
+        logger_.msg(Arc::DEBUG, str);
     }
     // Create client to url
     Arc::ClientSOAP *client;

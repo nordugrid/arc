@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<ArcConfig xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007" xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007" xmlns:paul="http://www.nordugrid.org/schemas/paul" xmlns:glue2="http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r01">
+  <Server>
+    <Foreground/>
+    <Pidfile>./arcserver.pid</Pidfile>
+    <Logger level="VERBOSE">./logfile</Logger>
+  </Server>
+  <ModuleManager>
+        <Path>services\</Path>
+        <Path>plugins\mcc\</Path>
+        <Path>plugins\dmc\</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>paul</Name></Plugins>
+  <Chain>
+    <Component name="tcp.service" id="tcp">
+        <next id="http"/>
+        <tcp:Listen><tcp:Port>60000</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name="http.service" id="http">
+        <next id="plexer">GET</next>
+        <next id="plexer">POST</next>
+    </Component>
+    <Plexer name="plexer.service" id="plexer">
+        <next id="paul">/paul</next>
+    </Plexer>
+    <Service name="paul" id="paul">
+       <paul:SchedulerEndpoint>http://62.37.245.186:60000/sched</paul:SchedulerEndpoint>
+       <paul:JobRoot>c:\Program Files\ARC</paul:JobRoot>
+       <paul:DataDirectoryPath>./db</paul:DataDirectoryPath>
+       <paul:CacheDirectoryPath>./cache</paul:CacheDirectoryPath>
+       <paul:RequestPeriod>40</paul:RequestPeriod>
+       <paul:Timeout>5</paul:Timeout> 
+       <paul:CertificatePath>../../tests/echo/cert.pem</paul:CertificatePath>
+       <paul:PrivateKey>../../tests/echo/key.pem</paul:PrivateKey>
+       <paul:CACertificatePath>../../tests/echo/ca.pem</paul:CACertificatePath>
+    </Service>
+  </Chain>
+</ArcConfig>

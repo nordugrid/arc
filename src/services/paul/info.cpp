@@ -78,19 +78,32 @@ bool PaulService::information_collector(Arc::XMLNode &doc)
     mg.NewChild("WorkingAreaTotal") = Arc::tostring((int)(SysInfo::diskTotal(configurator.getJobRoot())/1024)); // in GB
     mg.NewChild("WorkingAreaFree") = Arc::tostring((int)(SysInfo::diskFree(configurator.getJobRoot())/1024)); // in GB
     // Application environment
-#if 0
-    Arc::XMLNode ae = mg.NewChild("ApplicationEnvironments");
     Arc::XMLNode appenvs = configurator.getApplicationEnvironments();
     Arc::XMLNode env;
-
-    for (int i = 0; (env = appenvs["ApplicationEnvironment"]) != false; i++) {
-        env.NewAttribute("CreationTime") = created;
-        env.NewAttribute("Validity") = validity;
-        env.NewChild("LocalID") = ("applicationenvironment:" + Arc::tostring(i));
-        env.NewChild("Associations").NewChild("ExecutionEnvironmentLocalID") = ee_id;
-        ae.NewChild(env);
+    if (appenvs) {
+        Arc::XMLNode ae = mg.NewChild("ApplicationEnvironments");
+        for (int i = 0; (env = appenvs["ApplicationEnvironment"][i]) != false; i++) {
+            Arc::XMLNode cr_time = env.Attribute("CreationTime");
+            if (!cr_time) { 
+                cr_time = env.NewAttribute("CreationTime");
+            }
+            cr_time = created;
+            Arc::XMLNode v_time = env.Attribute("Validity");
+            if (!v_time) {
+                v_time = env.NewAttribute("Validity");
+            }
+            v_time = validity;
+            Arc::XMLNode local_id = env["LocalID"];
+            if (!local_id) {
+                env.NewChild("LocalID") = ("applicationenvironment:" + Arc::tostring(i));
+            }
+            Arc::XMLNode eid = env["Associations"]["ExecutionEnvironmentLocalID"];
+            if (!eid) {
+                env.NewChild("Associations").NewChild("ExecutionEnvironmentLocalID") = ee_id;
+            }
+            ae.NewChild(env);
+        }
     }
- #endif   
     //  Resource part
     Arc::XMLNode exec = mg.NewChild("ExecutionEnvironment");
     exec.NewAttribute("CreationTime") = created;

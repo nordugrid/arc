@@ -1,1 +1,26 @@
 Paul: pull based job execution service. It can be used to run on desktops (MS Windows as well) to form 'desktop' grid. It speaks iBES interface.
+
+The Paul is a pull-based execution service for computing resources. In these case the computing resource can be single SMP computer. The Paul uses the iBES protocol to communicate with Scheduler services or any other service which implements iBES. The Paul can interact with multiple Scheduler and can controll multiple job in one time.
+Since Paul is a service running on Arc HED it can be configured in the service.xml as well. In the simple cases Paul does not act as a server so you only need to define <Service> part in the <Chain>. If you want to configure Paul with its internal web based configuration interface you should define the chain with HTTP message channel component and the Paul service after it. 
+The Paul service also have configuration options all of them should defined under the http://www.nordugrid.org/schemas/paul XML namespace:
+The configuration can include multiple <SchedulerEndpoint> element which are defines the URLs of iBES services.
+The <JobRoot> defines the path where the jobs executables, input, output and temporaly files will be stored. Every job have an own directory (named by using the gobally unique id of the job) under the jobroot. The path should be absolute.
+The <RequiestPeriod> parameter defines in secounds how often request the Paul service for new jobs and report status of the currently managed jobs.
+The <Timeout> parameter defines the socket timeout in seconds.
+Paul currenlty support simple static application environments. You can define these environments under the <ApplicationEnvironments> element of the http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r01 XML namespace (simply called GLUE2). Every ApplicationEnvironment element should define a <Name> and a <Version>
+
+The Paul service have internal web based configuration optionaly. Usually you should define a message chain listening on localhost and port 60000 (it can be configure in service.xml) and end with Paul service. In this case the confguration interface can be availabe at the
+
+http://localhost:60000/paul
+
+URL. You get a menu if you point to these URL using your web browser. The menu consist of the following items:
+Jobs: you can list of current jobs controlled by Paul service
+Basic Configuration: you can list and modify the basic configuration options of the service like <ResuestPeriod>, <Timeout> etc.
+Schedulers: You can list modify and add new Scheduler Endpont to the configuration.
+Application Evironment: you can manage your application environments
+Log Messages: you can list the last 100 items from the log file of Paul service.
+Clicking on the header of the pages are always redirect you to the main menu.
+
+On the Windows environment the Paul service can be installed using arcsetup.exe graphical installer.
+
+The deployed system also includes paul_gui.exe application. It is a windows specific application which can used to simple manage the arched application. The paul_gui is sitting on the system tray menu and using the right click on the big A icon you can start web based configurator, start and stop arched application or leave the paul_gui itself.
