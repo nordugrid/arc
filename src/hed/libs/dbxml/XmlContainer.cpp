@@ -30,7 +30,11 @@ XmlContainer::XmlContainer(const std::string &db_path, const std::string &db_nam
     env_ = new DbEnv(0);
     env_->open(db_path.c_str(), DB_CREATE | DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_RECOVER | DB_THREAD, 0644);
     db_ = new Db(env_, 0);
+#if (DB_VERSION_MAJOR < 4) || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR == 0)
+    db_->open(db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+#else
     db_->open(NULL, db_name.c_str(), NULL, DB_BTREE, DB_CREATE | DB_AUTO_COMMIT | DB_THREAD, 0644);
+#endif
 }
 
 XmlContainer::~XmlContainer(void)
