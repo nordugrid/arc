@@ -237,7 +237,10 @@ void PaulService::do_report(void)
         identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
 
         Arc::XMLNode state = activity.NewChild("ibes:ActivityStatus");
-        state.NewAttribute("ibes:state") = sched_status_to_string(j->getStatus());
+        std::string s = sched_status_to_string(j->getStatus());
+        logger.msg(Arc::DEBUG, "%s reported %s", j->getID(), s);
+        state.NewAttribute("ibes:state") = s;
+        
     }
     
     Arc::MCCConfig cfg;
@@ -399,6 +402,7 @@ void PaulService::do_action(void)
                 // skip job which was already finished
                 continue;
             }
+            logger.msg(Arc::DEBUG, "%s new status: %s", j.getID(), new_status);
             j.setStatus(sched_status_from_string(new_status));
             // do actions
             if (j.getStatus() == KILLED) { 
