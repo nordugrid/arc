@@ -263,7 +263,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libhttpd.so
-%{_libdir}/%{pkgdir}/libcentralisi.so
+%{_libdir}/%{pkgdir}/libisis.so
 %{_libdir}/%{pkgdir}/libgrid_sched.so
 %{_libdir}/%{pkgdir}/libaccARC0.so
 %{_libdir}/%{pkgdir}/libaccARC1.so
