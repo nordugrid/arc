@@ -14,7 +14,7 @@ class PayloadSOAP: public Arc::SOAPEnvelope, public Arc::MessagePayload {
   /** Constructor - creates new Message payload */
   PayloadSOAP(const Arc::NS& ns,bool fault = false);
   /** Constructor - creates Message payload from SOAP document. 
-    Provided SOAP document must exist as long as created object exists. */
+    Provided SOAP document is copied to new object. */
   PayloadSOAP(const Arc::SOAPEnvelope& soap);
   /** Constructor - creates SOAP message from payload.
     PayloadRawInterface and derived classes are supported. */
