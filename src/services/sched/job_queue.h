@@ -27,6 +27,14 @@ class JobNotFoundException: public std::exception
     }
 };
 
+class JobSelector
+{
+    public:
+        JobSelector() {};
+        virtual ~JobSelector() {};
+        virtual bool match(Job *job) { return true; };
+};
+
 class JobQueueIterator
 {
     friend class JobQueue;
@@ -36,10 +44,10 @@ class JobQueueIterator
         bool has_more_;
         Job *job_;
         bool have_status_;
-        SchedJobStatus status_;
+        JobSelector *selector_;
     protected:
         JobQueueIterator(DbTxn *tid_, Dbc *cursor);
-        JobQueueIterator(DbTxn *tid_, Dbc *cursor, SchedJobStatus status);
+        JobQueueIterator(DbTxn *tid_, Dbc *cursor, JobSelector *selector_);
         void next(void);
     public:
         JobQueueIterator();
@@ -48,7 +56,8 @@ class JobQueueIterator
         Job *operator*() const { return job_; };
         const JobQueueIterator &operator++();
         const JobQueueIterator &operator++(int);
-        void write_back(Job &);
+        void refresh(void);
+        void remove(void);
         void finish(void);
 };
 
@@ -57,9 +66,8 @@ class JobQueue
     private:
         DbEnv *env_;
         Db *db_;
-        DbTxn *tid_;
     public:
-        JobQueue() { env_ = NULL; db_ = NULL; tid_ = NULL; };
+        JobQueue() { env_ = NULL; db_ = NULL; };
         ~JobQueue();
         void init(const std::string &dbroot, const std::string &store_name);
         void refresh(Job &j);
@@ -67,7 +75,7 @@ class JobQueue
         void remove(Job &job);
         void remove(const std::string &id);
         JobQueueIterator getAll(void);
-        JobQueueIterator getAll(SchedJobStatus status);
+        JobQueueIterator getAll(JobSelector *selector_);
         void sync(void);
 };
 

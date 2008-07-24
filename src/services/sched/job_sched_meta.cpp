@@ -36,11 +36,11 @@ JobSchedMetaData::JobSchedMetaData(ByteArray &buffer)
     
     t = *(time_t *)(buf + buf_len);
     buf_len += sizeof(t);
-    last_checked_.SetTime(t);
+    last_updated_.SetTime(t);
     
     t = *(time_t *)(buf + buf_len);
     buf_len += sizeof(t);
-    last_updated_.SetTime(t);
+    last_checked_.SetTime(t);
     
     t = *(time_t *)(buf + buf_len);
     buf_len += sizeof(t);

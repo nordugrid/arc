@@ -6,16 +6,78 @@
 
 namespace GridScheduler {
 
-bool 
-GridSchedulerService::match(Arc::XMLNode &in, Arc::Job *j)
+class MatchSelector: public Arc::JobSelector
 {
-    // match against application environment
-    return true;
+    private:
+        Arc::XMLNode resource_desc_;
+        Arc::Logger logger_;
+    public:
+        MatchSelector(Arc::XMLNode &rd):logger_(Arc::Logger::rootLogger, "MatchSelector") { resource_desc_ = rd; };
+        bool match_application_environment(Arc::Job *j);
+        virtual bool match(Arc::Job *j);
+};
+
+bool
+MatchSelector::match_application_environment(Arc::Job *j)
+{
+    // match runtime environment
+    Arc::XMLNode job_resources = j->getJSDL()["JobDescription"]["Resources"];
+    Arc::XMLNode job_rt;
+    Arc::XMLNode app_envs = resource_desc_["AdminDomain"]["Services"]["ComputingService"]["ComputingManager"]["ApplicationEnvironments"];
+    {
+        std::string s;
+        resource_desc_.GetXML(s);
+        logger_.msg(Arc::DEBUG, s);
+        s = "";
+        job_resources.GetXML(s);
+        logger_.msg(Arc::DEBUG, s);
+        s = "";
+        app_envs.GetXML(s);
+        logger_.msg(Arc::DEBUG, s);
+    }
+    int match_req = job_resources["RunTimeEnvironment"].Size() - 1;
+    int matched = 0;
+    Arc::XMLNode ae;
+    for (int i = 0; (job_rt = job_resources["RunTimeEnvironment"][i]) != false; i++)
+    {
+        std::string name = (std::string)job_rt["Name"];
+        std::string version = (std::string)job_rt["Version"];
+        for (int j = 0; (ae = app_envs["ApplicationEnvironment"][j]) != false; j++) {
+            std::string ae_name = (std::string)ae["Name"];
+            std::string ae_version = (std::string)ae["Version"];
+            if (ae_name == name && ae_version == version) {
+                matched++;
+            }
+        }
+    }
+
+    logger_.msg(Arc::DEBUG, "%d <> %d", match_req, matched);
+    if (match_req == matched) {
+        return true;
+    }
+
+    return false;
+}
+
+bool
+MatchSelector::match(Arc::Job *j)
+{
+    Arc::SchedJobStatus status = j->getStatus();
+    if (status != Arc::JOB_STATUS_SCHED_NEW 
+        && status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
+        return false;
+    }
+    return match_application_environment(j);
 }
 
 Arc::MCC_Status 
 GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const std::string &resource_id) 
 {
+    {
+        std::string s;
+        in.GetXML(s);
+        logger_.msg(Arc::DEBUG, s);
+    }
     Arc::XMLNode activities = out.NewChild("ibes:Activities");
     // create resource
     if (resource_id.empty()) {
@@ -25,36 +87,30 @@ GridSchedulerService::GetActivities(Arc::XMLNode &in, Arc::XMLNode &out, const s
     
     // XXX concurent locking ?
     Arc::Job *job = NULL;
-    for (Arc::JobQueueIterator jobs = jobq.getAll(); jobs.hasMore(); jobs++){
+    Arc::XMLNode domain = in.Child(0);
+    MatchSelector *selector = new MatchSelector(domain);
+    for (Arc::JobQueueIterator jobs = jobq.getAll((Arc::JobSelector *)selector); 
+         jobs.hasMore(); jobs++){
         Arc::Job *j = *jobs;
-        Arc::SchedJobStatus status = j->getStatus();
-        if (status != Arc::JOB_STATUS_SCHED_NEW 
-            && status != Arc::JOB_STATUS_SCHED_RESCHEDULED) {
-            continue;
-        }
-        if (match(in, j) == true) {
-            Arc::XMLNode a = activities.NewChild("ibes:Activity");
+        Arc::XMLNode a = activities.NewChild("ibes:Activity");
     
-            // Make job's ID
-            Arc::WSAEndpointReference identifier(a.NewChild("ibes:ActivityIdentifier"));
-            identifier.Address(endpoint); // address of this service
-            identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
-            Arc::XMLNode activity_doc = a.NewChild("ibes:ActivityDocument");
-            activity_doc.NewChild(j->getJSDL());
-            j->setStatus(Arc::JOB_STATUS_SCHED_STARTING);
-            // set job scheduling meta data
-            Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
-            m->setResourceID(resource_id);
-            Arc::Time now;
-            m->setLastUpdated(now);
-            m->setLastChecked(now);
-            // save job state
-            logger_.msg(Arc::DEBUG, "Save state start");
-            jobs.write_back(*j);
-            logger_.msg(Arc::DEBUG, "Save state end");
-            jobq.sync();
-            return Arc::MCC_Status(Arc::STATUS_OK);
-        }
+        // Make job's ID
+        Arc::WSAEndpointReference identifier(a.NewChild("ibes:ActivityIdentifier"));
+        identifier.Address(endpoint); // address of this service
+        identifier.ReferenceParameters().NewChild("sched:JobID") = j->getID();
+        Arc::XMLNode activity_doc = a.NewChild("ibes:ActivityDocument");
+        activity_doc.NewChild(j->getJSDL());
+        j->setStatus(Arc::JOB_STATUS_SCHED_STARTING);
+        // set job scheduling meta data
+        Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
+        m->setResourceID(resource_id);
+        Arc::Time now;
+        m->setLastUpdated(now);
+        m->setLastChecked(now);
+        // save job state
+        jobs.refresh();
+        // XXX only one job 
+        return Arc::MCC_Status(Arc::STATUS_OK);
     }
     logger_.msg(Arc::DEBUG, "NO job");
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -77,7 +133,12 @@ GridSchedulerService::GetActivitiesStatusChanges(Arc::XMLNode &in, Arc::XMLNode 
         Arc::XMLNode new_state = activity.NewChild("ibes:NewState");
         try {
             Arc::Job *j = jobq[job_id];
-            new_state = Arc::sched_status_to_string(j->getStatus());
+            Arc::SchedJobStatus status = j->getStatus();
+            if (status == Arc::JOB_STATUS_SCHED_RESCHEDULED) {
+                new_state = Arc::sched_status_to_string(Arc::JOB_STATUS_SCHED_KILLING);
+            } else {
+                new_state = Arc::sched_status_to_string(j->getStatus());
+            }
             delete j;
         } catch (Arc::JobNotFoundException &e) {
             logger_.msg(Arc::ERROR, "Cannot find job id: %s", job_id);

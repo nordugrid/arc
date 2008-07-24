@@ -25,6 +25,14 @@
 
 namespace GridScheduler {
 
+class StatusJobSelector: public Arc::JobSelector
+{
+    private:
+        Arc::SchedJobStatus status_;
+    public:
+        StatusJobSelector(Arc::SchedJobStatus status) { status_ = status; };
+        virtual bool match(Arc::Job *j) { if (j->getStatus() == status_) { return true; }; return false; };
+};
 
 #if 0
 Arc::MCC_Status 
@@ -198,7 +206,8 @@ void GridSchedulerService::doSched(void)
     }
 #endif
     // search for job which are killed by user
-    for (Arc::JobQueueIterator jobs = jobq.getAll(Arc::JOB_STATUS_SCHED_KILLING); jobs.hasMore(); jobs++){
+    StatusJobSelector sel(Arc::JOB_STATUS_SCHED_KILLING);
+    for (Arc::JobQueueIterator jobs = jobq.getAll((Arc::JobSelector *)&sel); jobs.hasMore(); jobs++){
         Arc::Job *j = *jobs;
         Arc::JobSchedMetaData *m = j->getJobSchedMetaData();
         if (m->getResourceID().empty()) {
@@ -215,7 +224,7 @@ void GridSchedulerService::doSched(void)
                 sched_queue.removeJob(job_id);
             }
         } */
-        jobs.write_back(*j);
+        jobs.refresh();
     }
 
     // cleanup jobq
@@ -233,7 +242,7 @@ void GridSchedulerService::doSched(void)
             Arc::Time now;
             if (now > (m->getEndTime() + p)) {
                 logger_.msg(Arc::DEBUG, "%s remove from queue", j->getID());
-                jobq.remove(*j);
+                jobs.remove();
             }
         }
     }
@@ -307,16 +316,17 @@ GridSchedulerService::doReschedule(void)
             status == Arc::JOB_STATUS_SCHED_KILLED ||
             status == Arc::JOB_STATUS_SCHED_FINISHED) {
             // ignore this states
+            jobs.refresh();
             continue;
         }
+        logger_.msg(Arc::DEBUG, "check: %s (%s - %s > %s (%s))", j->getID(), (std::string)now, (std::string)m->getLastChecked(), (std::string)(m->getLastUpdated() + p), (std::string)m->getLastUpdated());
         if (m->getLastChecked() > (m->getLastUpdated() + p)) {
             logger_.msg(Arc::DEBUG, "Rescheduler job: %s", j->getID());
             j->setStatus(Arc::JOB_STATUS_SCHED_RESCHEDULED);
             m->setResourceID("");
         }
-        jobs.write_back(*j);
+        jobs.refresh();
     }
-    jobq.sync();
 }
 
 void reschedule(void *arg)
