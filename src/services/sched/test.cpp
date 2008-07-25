@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <unistd.h>
 #include <glibmm.h>
 #include <db_cxx.h>
 #include <arc/Thread.h>
