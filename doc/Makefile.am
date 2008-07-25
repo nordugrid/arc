@@ -18,7 +18,7 @@ KnowARC-ChainComponents.pdf: Doxyfile.chain
 	rm -rf latex
 
 
-EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain hed KnowARC-API.pdf
+EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain hed KnowARC-API.pdf KnowARC-Services.pdf KnowARC-ChainComponents.pdf
 
 CLEANFILES = latex
 
