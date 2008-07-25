@@ -82,9 +82,7 @@ Requires: %{name} = %{version}
 Requires: %{name}-server = %{version}
 Requires: globus_common
 Requires: globus_rsl
-%if %{_vendor} == "redhat"
 Requires: perl-XML-Simple
-%endif
 
 %description arex
 ARC Remote EXecution service (AREX)
