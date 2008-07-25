@@ -50,7 +50,18 @@ transfers.
 
 Installation howto
 
-After you've get the source code from the svn, you should run './autogen.sh' and './configure'.
+The up-to-date version of this file can be found in the NorduGrid subversion repository:
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage
+
+In order to install these storage services, you need the HED hosting environment which can also be found in the repository:
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk
+For dependencies and installation instructions of HED you can read this README file:
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/README
+or for more detail, this documentation:
+http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/ws-quick-guide/ws-quick-guide.pdf
+
+After you've get the source code from the svn, and you have all the dependecies needed, 
+you should run './autogen.sh' and './configure --prefix=PLACE_TO_INSTALL_ARC'.
 The output of configure should be something like this:
 
 [...]
@@ -61,7 +72,11 @@ Included components:
 STORAGE service:    yes
 [...]
 
-Then you can do 'make' and 'sudo make install'.
+Then you can compile it with 'make'.
+After that you can install it with 'sudo make install'.
+
+If you are using a virtual machine, you can use the default location to install.
+The following instructions are for the default installation directory.
 
 You can use the example configuration file which is by default installed to:
     /usr/local/share/doc/arc/storage.service.xml.example
@@ -72,7 +87,7 @@ You need some working directories and a place for a logfile, e.g.:
 
 Or of course you can put them anywhere, just you need to change the paths in the configuration (service.xml) file.
 
-You may put '/usr/local/lib/pythonX.X/site-packages' to the PYTHONPATH environment variable:
+You need to put the path of the installed python services (e.g. '/usr/local/lib/pythonX.X/site-packages') to the PYTHONPATH environment variable:
     export PYTHONPATH=...
 
 You may add the external interface of your machine to the section where it is indicated in the configuration file:
@@ -153,14 +168,14 @@ Usage: move <sourceLN> <targetLN>
 LN means Logical Name everywhere in this system, this is the path in the global namespace.
 The LNs are always absolute, must start with a '/'. (or with a '<GUID>/'...)
 
-Actually only the first three letter do matter:
-
 $ arc_storage_cli.py list /
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
 '/': collection
     empty.
+
+Actually you only need to type the first three character of the command:
 
 $ arc_storage_cli.py lis /
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
@@ -177,8 +192,6 @@ $ arc_storage_cli.py ls /
 - done in 0.03 seconds.
 '/': collection
     empty.
-
-You can get some help with a 
 
 Let's create some sub-collections (sub-directories):
 $ arc_storage_cli.py mkdir /tmp
