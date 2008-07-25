@@ -103,19 +103,19 @@ enabling production quality computational and data grids.
 Since the first release (May 2002) the middleware has been deployed and
 been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
-number of grid projects, like NDGF, Swegrid or Swiss National Grid has
-chosen ARC as their middleware.
+number of grid projects, like NDGF~\cite{ndgf}, Swegrid~\cite{swegrid} or Swiss
+National Grid Association~\cite{swing} has chosen ARC as their middleware.
 
 This document provides a quick usage guide to the new Web Service (WS)
 components of ARC, often referred to as ARC1 components. WS design of ARC is
-based on a service container -- the Hosting Environment Daemon (HED), and
-different grid capabilities are implemented as Web Services residing in HED.
+based on a service container -- the \textit{Hosting Environment Daemon (HED)},
+and different grid capabilities are implemented as Web Services residing in HED.
 
 Currently included components are:
 \begin{itemize}
-\item an OGSA BES~\cite{ogsa-bes} compliant execution service -- \em{ARC
-Resource-coupled EXecution service (A-REX)}
-\item an echo service (for testing purposes)
+\item an OGSA BES~\cite{ogsa-bes} compliant execution service --
+\textit{ARC Resource-coupled EXecution service (A-REX)}~\cite{arex}
+\item an \textit{Echo} service (for testing purposes)
 \end{itemize}
 
 \section{Dependencies}
@@ -173,8 +173,10 @@ repository at \ngdl (``arc1'' repository).
 The software is released under the GNU General Public License (GPL) (see the
 COPYING file distributed with the software).
 
-You can get the latest source code for ARC1 from the Subversion repository. See
-\url{http://svn.nordugrid.org} for more details.
+You can get the latest source code for ARC1 from the Subversion repository.
+For details, see:
+
+\url{http://svn.nordugrid.org}
 
 The NorduGrid software repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
@@ -182,11 +184,9 @@ distribution.
 
 There are also nightly code snapshots available at:
 
-\begin{shaded}
 \url{http://download.nordugrid.org/software/nordugrid-arc1/nightly/}
-\end{shaded}
 
-Choose the latest date available and download snapshot tarball -- for example
+Choose the latest date available and download snapshot tarball -- for example\\
 \verb|nordugrid-arc1-200802201038-snapshot.tar.gz|.
 
 \section{Building and Installation}
@@ -283,7 +283,7 @@ do authentication based on the extracted Usernametoken.
 Among available PDP components there are:
 \begin{itemize}
 \item \texttt{allow} -- always returns positive result
-\item \texttt{deny} -- always returns negative result 
+\item \texttt{deny} -- always returns negative result
 \item  \texttt{simplelist.pdp} -- compares DN of user to those stored in a file.
 \item  \texttt{arc.pdp} -- compares request information parsed from message and
 policy information specified in this PDP.
@@ -296,17 +296,19 @@ message and policy information specified in proxy certificate from remote side.
 \end{itemize}
 
 There are examples of A-REX service and Echo service with Security Handlers
-being used. They may be found in
-\verb|$ARC_LOCATION/share/doc/arc/arex_secure.xml| and
+being used. They may be found in:
+
+\verb|$ARC_LOCATION/share/doc/arc/arex_secure.xml| \\and\\
 \verb|$ARC_LOCATION/share/doc/arc/echo.xml|.
 
 There is also a PDP service which implements the same functionality as
 \texttt{arc.pdp}. See \texttt{src/service/pdp/README}.
 
 Specifically for \texttt{arc.pdp} and \texttt{pdpservice}, a formatted policy
-with specific schema should be managed, see
-\verb|$ARC_LOCATION/share/doc/arc/pdp_policy.xml.example| and 
-\verb|$ARC_LOCATION/share/doc/arc/Policy.xsd| for details.
+with specific schema should be managed, for details see:
+
+\verb|$ARC_LOCATION/share/doc/arc/pdp_policy.xml.example| \\and\\
+\verb|$ARC_LOCATION/share/doc/arc/Policy.xsd|
 
 For usernametoken handler, there is example about configuration on service side
 in \verb|$ARC_LOCATION/share/doc/arc/echo.xml|, you can run Echo service by
@@ -336,23 +338,17 @@ services (unless of course clients use the same CA as the server).
 More information about X509 certificates and their usage in Grid environement
 can be found in:
 
-\begin{shaded}
 \url{http://www.nordugrid.org/documents/certificate_howto.html}\\
-\url{http://www.nordugrid.org/documents/ng-server-install.html#security}.
-\end{shaded}
+\url{http://www.nordugrid.org/documents/ng-server-install.html#security}
 
 For testing purposes you can use the pre-generated certificates and keys
 available in the code repository:
 
-\begin{shaded}
 \url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA}
-\end{shaded}
 
 Alternatively you may choose to use KnowARC Instant CA service available at:
 
-\begin{shaded}
 \url{https://vls.grid.upjs.sk/CA/instantCA}
-\end{shaded}
 
 The latter is especially usefull if you want to test installation consisting of
 multiple hosts.
@@ -364,8 +360,8 @@ making your services available to the outside world.
 You can put host certificates and private keys anywhere, their location is
 configurable. Common locations for servers running from root account are:
 
-\texttt{/etc/grid-security/hostcert.pem} \\and\\
-\texttt{/etc/grid-security/hostkey.pem}
+\verb|/etc/grid-security/hostcert.pem| \\and\\
+\verb|/etc/grid-security/hostkey.pem|
 
 respectively.
 
@@ -422,7 +418,7 @@ for testing purposes only.
 \begin{framed}
 \textbf{IMPORTANT}: If during configuration stage you see a message
 
- \textit{``OpenSSL contains no support for proxy credentials''} 
+ \textit{``OpenSSL contains no support for proxy credentials''}
 
 then you won't be able to use proxy credentials generated by utilities
 like \texttt{grid-proxy-init}, \texttt{voms-proxy-init} or \texttt{approxy}.
@@ -443,7 +439,7 @@ As metioned above, ARC comes with proxy generation utility
 of \texttt{approxy} is like:
 
 \begin{lstlisting}
-$ARC_LOCATION/bin/approxy -P proxy.pem -C cert.pem -K key.pem 
+$ARC_LOCATION/bin/approxy -P proxy.pem -C cert.pem -K key.pem
   -c validityStart=2008-05-29T10:20:30Z
   -c validityEnd=2008-06-29T10:20:30Z
   -c proxyPolicyFile=delegation_policy.xml
@@ -573,7 +569,7 @@ description. Make sure user key and certificate and CA certificate(s) are
 readable from account you use, and run something like:
 
 \begin{lstlisting}
-./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem 
+./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem
  -A /etc/grid-security/certificates https://localhost:60000/arex 2>error.log
 \end{lstlisting}
 
@@ -635,7 +631,7 @@ MHz</nq0:nodecpu>
       <nj0:globalid xmlns:nj0="urn:nordugrid-job"
 name="gsiftp://mobile2.home.net:2811/jobs/636312034687631804
 289383">
-       
+
 <nj0:globalid>gsiftp://mobile2.home.net:2811/jobs/636312034687631804289383</nj0:
 globalid>
         <nj0:globalowner>/O=Grid/O=Test/CN=user</nj0:globalowner>
@@ -711,21 +707,28 @@ There are several API documents available as well.
 \label{sec:contributing}
 
 The open source development of the ARC middleware is coordinated by the
-NorduGrid Collaboration. Currently, the main contributor is the KnowARC project
-(\url{www.knowarc.eu}), but the Collaboration is open to new members.
+NorduGrid Collaboration. Currently, the main contributor is the KnowARC
+project~\cite{knowarc}, but the Collaboration is open to new members.
 Contributions from the community to the software and the documentation is
-welcomed. Sources can be downloaded from the software repository at
-\url{download.nordugrid.org} or the Subversion code repository at
-\url{svn.nordugrid.org}.
+welcomed. Sources can be downloaded from the software repository at:
+
+\url{http://download.nordugrid.org}
+
+or the Subversion code repository at
+
+\url{http://svn.nordugrid.org}.
 
 The technical coordination group defines outstanding issues that have
 to be addressed in the framework of the ARC development. Feature
-requests and enhancement proposals are recorded in the Bugzilla bug
-tracking system at \url{bugzilla.nordugrid.org}. For a more detailed
-description, write access to the code repository and further
-questions, write to the \texttt{nordugrid-discuss} mailing list (see
-\url{www.nordugrid.org} for details). Ongoing and completed Grid Research
-projects and student assignments related to the middleware are listed
+requests and enhancement proposals are recorded in the Bugzilla problem
+tracking system at:
+
+ \url{http://bugzilla.nordugrid.org}
+
+For a more detailed description, write access to the code repository and
+further questions, write to the \texttt{nordugrid-discuss} mailing list (see
+NorduGrid Web site~\cite{nordugrid} for details). Ongoing and completed Grid
+Research projects and student assignments related to the middleware are listed
 on the NorduGrid Web site as well.
 
 
@@ -733,21 +736,23 @@ on the NorduGrid Web site as well.
 \label{sec:support}
 
 User support and site installation assistance is provided via the
-request tracking system available at \texttt{nordugrid-support@nordugrid.org}.
+request tracking system available by e-mail to
+\texttt{nordugrid-support@nordugrid.org}.
 In addition, NorduGrid runs a couple of mailing lists, among which the
 nordugrid-discuss mailing list is a general forum for all kind of
 issues related to the ARC middleware.
 
 Feature and enhancement requests, as well as discovered problems, should be
-reported in the Bugzilla problem tracking system \url{bugzilla.nordugrid.org}.
+reported in the Bugzilla problem tracking system
+(\url{http://bugzilla.nordugrid.org}).
 
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
-tutorial materials can be fetched from the documentation section of
-\url{www.nordugrid.org}.
+tutorial materials can be fetched from the documentation section of the
+NorduGrid Web site.
 
-Contact information is kept updated on the \url{www.nordugrid.org} Web site.
+Contact information is kept updated on the NorduGrid Web site.
 
-\bibliography{ws-quick-guide}
+\bibliography{grid}
 \end{document}
 
