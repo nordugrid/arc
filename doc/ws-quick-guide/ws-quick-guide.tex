@@ -1,0 +1,753 @@
+%\documentclass{book}
+\documentclass{article}                            %for shorter notes
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+\usepackage{listings}                                %for code listings
+\lstloadlanguages{bash,XML}
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {NorduGrid},
+  pdftitle = {ARC Web Services Quick Usage Guide},
+  pdfsubject = {ARC Grid middleware},
+  pdfkeywords = {Grid,middleware,ARC,KnowARC,NorduGrid},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~4~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://download.nordugrid.org/}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+\definecolor{lightblue}{cmyk}{0.05,0,0,0.05}
+\lstset{
+frame=single,
+backgroundcolor=\color{shadecolor},
+fillcolor=\color{shadecolor},
+rulecolor=\color{lightblue},
+basicstyle=\ttfamily,
+xleftmargin=0.05\linewidth,
+aboveskip=2\medskipamount
+}
+%
+%----- DON'T CHANGE HEADER MATTER
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+{\raggedleft NORDUGRID-XXXXXXX-NN\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large ARC Web Services Quick Usage Guide}\Large \par}
+\vspace*{0.5cm}
+
+%%%%---- A subtitle, if necessary ----
+%{\centering \textit{\large Paper subtitle}\large \par}
+
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+%    {\centering \large A. Konstantinov\footnote{const@takas.lt} \large \par}
+
+%%%%---- An abstract - if style is article ----
+%\begin{abstract}
+%The abstract
+%\end{abstract}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+%\chapter{Preface}
+
+
+\section{ARC Middleware}                    %Use Sections for articles
+\label{sec:arc-intro}
+
+The Advanced Resource Connector (ARC) middleware~\cite{arc}, introduced by
+NorduGrid~\cite{nordugrid}, is an open source software solution
+enabling production quality computational and data grids.
+
+Since the first release (May 2002) the middleware has been deployed and
+been used in production environments. Emphasis is put on scalability,
+stability, reliability and performance of the middleware. A growing
+number of grid projects, like NDGF, Swegrid or Swiss National Grid has
+chosen ARC as their middleware.
+
+This document provides a quick usage guide to the new Web Service (WS)
+components of ARC, often referred to as ARC1 components. WS design of ARC is
+based on a service container -- the Hosting Environment Daemon (HED), and
+different grid capabilities are implemented as Web Services residing in HED.
+
+Currently included components are:
+\begin{itemize}
+\item an OGSA BES~\cite{ogsa-bes} compliant execution service -- \em{ARC
+Resource-coupled EXecution service (A-REX)}
+\item an echo service (for testing purposes)
+\end{itemize}
+
+\section{Dependencies}
+\label{sec:deps}
+
+The core part of middleware is written in C/C++. Building the software
+from source or installing a precompiled binary requires different external
+packages, furthermore the client and server packages have different dependencies
+too. Below a list of the explicit requirements is shown:
+
+\begin{itemize}
+\item Mandatory (on client as well as server side):
+\begin{itemize}
+\item gnu make, autotools (autoconf $\geq$ 2.56, automake $\geq$ 1.8) (build)
+\item C++ compiler and library (build)
+\item libtool (build)
+\item pkg-config (build)
+\item gthread-2.0 $\geq$2 .4.7 (build, run)
+\item glibmm-2.4 $\geq$ 2.4.7 (build, run)
+\item libxml-2.0 $\geq$ 2.4.0 (build, run)
+\item openssl $\geq$ 0.9.7a (build, run)
+\item e2fsprogs (build, run)
+\item doxygen (build)
+\end{itemize}
+\item Optional (mainly applicable on server side):
+\begin{itemize}
+\item Swig $\geq$ 1.3.28 (build)
+\item Java SDK $\geq$ 1.4 for Java bindings (build, run)
+\item Python for Python bindings (build, run)
+\item Grid Packaging Tools (GPT)~\cite{gpt} (build)
+\item \globus~\cite{globus} which contains (build, run):
+\begin{itemize}
+\item Globus RLS client
+\item Globus FTP client
+\item Globus RSL
+\end{itemize}
+\item LHC File Catalog (LFC)~\cite{lfc} (build, run)
+\item CppUnit for unit testing (build)
+\item Berkeley DB C++ interface (build, run)
+\end{itemize}
+\end{itemize}
+
+\begin{framed}
+Please note that depending on operating system distribution in order to build
+ARC1 you may need to install development versions of mentioned packages.
+\end{framed}
+
+\section{Getting the software}
+\label{sec:download}
+
+The software is free to deploy anywhere by anybody. Pre-built binaries for a
+dozen of Linux platforms can be downloaded from the NorduGrid software
+repository at \ngdl (``arc1'' repository).
+
+The software is released under the GNU General Public License (GPL) (see the
+COPYING file distributed with the software).
+
+You can get the latest source code for ARC1 from the Subversion repository. See
+\url{http://svn.nordugrid.org} for more details.
+
+The NorduGrid software repository hosts the source code, and provides most of
+the required external software which are not part of a standard Linux
+distribution.
+
+There are also nightly code snapshots available at:
+
+\begin{shaded}
+\url{http://download.nordugrid.org/software/nordugrid-arc1/nightly/}
+\end{shaded}
+
+Choose the latest date available and download snapshot tarball -- for example
+\verb|nordugrid-arc1-200802201038-snapshot.tar.gz|.
+
+\section{Building and Installation}
+\label{sec:build}
+
+Building from source is currently the recommended way to install ARC Web
+Services. If you downloaded the tarball, unpack it and traverse into the created
+directory:
+
+\begin{lstlisting}
+tar -zxvf nordugrid-arc1-200802201038-snapshot.tar.gz
+cd nordugrid-arc1-200802201038
+\end{lstlisting}
+
+If you obtained the code from the Subversion repository, use the ``trunk''
+directory:
+
+\begin{lstlisting}
+cd trunk
+\end{lstlisting}
+
+Now configure the obtained code with:
+
+\begin{lstlisting}
+./autogen.sh
+./configure --prefix=PLACE_TO_INSTALL_ARC
+\end{lstlisting}
+
+Choose installation prefix wisely and according to the requirements of your OS
+and personal preferences. ARC1 services should function properly from any
+location. By default installation goes into \texttt{/usr/local} if you omit the
+``\texttt{--prefix}'' option. For some modules of ARC1 to work properly you may
+need to set up the environment variable after installation:
+
+\begin{lstlisting}
+export ARC_LOCATION=PLACE_TO_INSTALL_ARC
+\end{lstlisting}
+
+On some systems ``\texttt{autogen.sh}'' may produce few warnings. Ignore them as
+long as ``\texttt{configure}'' passes without errors. But in case of problems
+during configure or compilation, collect them and present while reporting
+problems.
+
+If the previous commands finish without errors, compile and install ARC1
+services:
+
+\begin{lstlisting}
+make
+make install
+\end{lstlisting}
+
+Depending on chosen installation location you may need to run the last command
+from \texttt{root} account. That should install the following components:
+
+\begin{itemize}
+\item \texttt{sbin/arched} - server executable
+\item \texttt{bin/} - user tools and command line clients
+\item \texttt{lib/} - common libraries used by clients, server and plugins
+\item \texttt{lib/arc/} - plugins implementing Message Chain, Service and
+Security components
+\item \texttt{include/arc/} - C++ headers for application development
+\item \texttt{libexec/} - additional modules used by ARC1 services - currently
+only A-REX
+\item \texttt{share/doc/arc} - configuration examples/templates and
+documentation
+\item \texttt{share/locale} - internationalization files - curently very limited
+support
+\item \texttt{share/man} - manual pages for various utilities
+\end{itemize}
+
+\section{Security and Authorization}
+\label{sec:security}
+
+ARC1 sevices implement security related features through set of Security Handler
+and Policy Decision Point components. Security Handler components are attached
+to message processing components. Each Security Handler takes care of processing
+own part of security information. Currently ARC comes with the following
+Security Handlers:
+
+\begin{itemize}
+ \item \texttt{identity.map} -- associates client's identity with local (UNIX)
+identity. It uses PDP components to choose local isentity and/or identity
+mapping algorithm.
+\item \texttt{arc.authz} -- calls PDP components and combines
+obtained authorization decisions.
+\item \texttt{delegation.collector} -- parses proxy policy from remote proxy
+certificate. This Security Handler should be configured under TLS MCC component.
+\item \texttt{usernametoken.handler} -- implement the functioanlity
+of WS-Security Usernametoken profile. It will generate Usernametoken
+into SOAP header, or extract Usernametoken out of SOAP header and
+do authentication based on the extracted Usernametoken.
+\end{itemize}
+
+Among available PDP components there are:
+\begin{itemize}
+\item \texttt{allow} -- always returns positive result
+\item \texttt{deny} -- always returns negative result 
+\item  \texttt{simplelist.pdp} -- compares DN of user to those stored in a file.
+\item  \texttt{arc.pdp} -- compares request information parsed from message and
+policy information specified in this PDP.
+\item  \texttt{pdpservice.invoker} -- composes the request, puts request into
+SOAP message, and invokes the remote PDP service to get the response SOAP
+which includes authorization decision. The PDP service has similar
+functionality with \texttt{arc.pdp}.
+ \item \texttt{delegation.pdp} -- compares request information parsed from
+message and policy information specified in proxy certificate from remote side.
+\end{itemize}
+
+There are examples of A-REX service and Echo service with Security Handlers
+being used. They may be found in
+\verb|$ARC_LOCATION/share/doc/arc/arex_secure.xml| and
+\verb|$ARC_LOCATION/share/doc/arc/echo.xml|.
+
+There is also a PDP service which implements the same functionality as
+\texttt{arc.pdp}. See \texttt{src/service/pdp/README}.
+
+Specifically for \texttt{arc.pdp} and \texttt{pdpservice}, a formatted policy
+with specific schema should be managed, see
+\verb|$ARC_LOCATION/share/doc/arc/pdp_policy.xml.example| and 
+\verb|$ARC_LOCATION/share/doc/arc/Policy.xsd| for details.
+
+For usernametoken handler, there is example about configuration on service side
+in \verb|$ARC_LOCATION/share/doc/arc/echo.xml|, you can run Echo service by
+using this configuration file with usernametoken sechandler configuered. For
+client side, the echo client (\texttt{src/client/echo})can use usernametoken
+sechandler to authenticate against echo service (see README under
+\verb|src/client/echo|); there is also a test program in
+\verb|src/tests/echo/test_clientinterface.cpp| which can be compiled and
+tested against Echo service with usernametoken sechandler configured.
+
+\subsection{X509 Certificates}
+\label{sec:x509}
+
+Most of  planned and existing ARC1 services use HTTPS as transport protocol so
+they require proper setup of X509 security infrastructure~\cite{x509}. Minimal
+requirements are:
+
+\begin{itemize}
+\item Host certificate aka public key in PEM format
+\item Corresponding private key
+\item Certificate of the Certification Authority (CA) which was used to sign
+the host certificate
+\item Certificates of CAs of clients which are going to send requests to
+services (unless of course clients use the same CA as the server).
+\end{itemize}
+
+More information about X509 certificates and their usage in Grid environement
+can be found in:
+
+\begin{shaded}
+\url{http://www.nordugrid.org/documents/certificate_howto.html}\\
+\url{http://www.nordugrid.org/documents/ng-server-install.html#security}.
+\end{shaded}
+
+For testing purposes you can use the pre-generated certificates and keys
+available in the code repository:
+
+\begin{shaded}
+\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA}
+\end{shaded}
+
+Alternatively you may choose to use KnowARC Instant CA service available at:
+
+\begin{shaded}
+\url{https://vls.grid.upjs.sk/CA/instantCA}
+\end{shaded}
+
+The latter is especially usefull if you want to test installation consisting of
+multiple hosts.
+
+Please remember that it is not safe to use these keys in publicly accessible
+insallations of ARC. Make sure that even the CA certificate is removed before
+making your services available to the outside world.
+
+You can put host certificates and private keys anywhere, their location is
+configurable. Common locations for servers running from root account are:
+
+\texttt{/etc/grid-security/hostcert.pem} \\and\\
+\texttt{/etc/grid-security/hostkey.pem}
+
+respectively.
+
+\begin{framed}
+Since services have no way to ask for passwords, the content of private key
+must not be encrypted, neither it should be protected by password. So make sure
+it is properly protected by means of the file system.
+\end{framed}
+
+It is possible to configure ARC1 server to accept either a single CA certificate
+or multiple CA certificates located in the specified directory. The latter
+option is recommended. The common location is
+\texttt{/etc/grid-security/certificates/} . In that case names of certificate
+files have to follow hash values of the certificates. These are obtainable by
+running the command:
+
+\begin{lstlisting}
+openssl x509 -hash -noout -in path_to_certificate
+\end{lstlisting}
+
+The corresponding file name for the certificate should be
+\texttt{<hash\_value>.0}. The hash value for the pre-generated CA certificate is
+\texttt{4457e417}.
+
+Please make sure the chosen location of certificates is correctly configured in
+the service configuration file. The configuration for the certificate for TLS
+MCC should look like this:
+
+\begin{lstlisting}
+<KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
+<CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
+<CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+\end{lstlisting}
+
+or
+
+\begin{lstlisting}
+<CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
+\end{lstlisting}
+
+The same requirements are valid for the client tools for ARC1. You may use the
+pre-generated user certificate and key located at the same place. Locations of
+the credentials are configurable, or can be provided to the client tools from
+the command line.
+
+The set of pre-generated keys and certificates also includes a user certificate
+in PKCS12 format which you can import into your browser for accessing ARC1
+services capable of producing HTML output.
+
+ARC comes with utility \texttt{approxy} which generates proxy credentials from
+certificate/private key pair. It provides only basic functionality and is meant
+for testing purposes only.
+
+\begin{framed}
+\textbf{IMPORTANT}: If during configuration stage you see a message
+
+ \textit{``OpenSSL contains no support for proxy credentials''} 
+
+then you won't be able to use proxy credentials generated by utilities
+like \texttt{grid-proxy-init}, \texttt{voms-proxy-init} or \texttt{approxy}.
+Because of that all user private keys will have to be kept unencrypted.
+\end{framed}
+
+To avoid providing credential information on command line it is possible to have
+user configuration file with predefined values. Default location for this file
+is \texttt{~/.arc/client.xml}. There is an example installed in
+\verb|$ARC_LOCATION/share/doc/arc/client.xml|. Please edit before copying it
+into your home directory.
+
+\subsection{Proxy Certificate Generation and Usage}
+\label{sec:proxy}
+
+As metioned above, ARC comes with proxy generation utility
+-- \texttt{approxy}, installed in \verb|$ARC_LOCATION/bin|. The usage
+of \texttt{approxy} is like:
+
+\begin{lstlisting}
+$ARC_LOCATION/bin/approxy -P proxy.pem -C cert.pem -K key.pem 
+  -c validityStart=2008-05-29T10:20:30Z
+  -c validityEnd=2008-06-29T10:20:30Z
+  -c proxyPolicyFile=delegation_policy.xml
+\end{lstlisting}
+
+By using argument ``-c'', some constraints can be specified for proxy
+certificate. Currently, the life-time can be specified by using ``\texttt{-c
+validityStart=...}'' and ``\texttt{-c validityEnd=...}'', or ``\texttt{-c
+validityStart=...}'' and ``\texttt{-c validityPeriod=...}''; the proxy policy
+can be specified by using ``\texttt{-c proxyPolicyFile=...}'' or ``\texttt{-c
+proxyPolicy=...}''.
+
+If proxy certificate is used, in the configuration file for service side or
+client side, the configuration for the certificate for TLS MCC should look like
+this:
+
+\begin{lstlisting}
+<KeyPath>./proxy.pem</KeyPath>
+<CertificatePath>./proxy.pem</CertificatePath>
+<CACertificatePath>./ca.pem</CACertificatePath>
+\end{lstlisting}
+
+Because normally a proxy certificate file includes the proxy certificate and
+private key corresponding to the proxy certificate, \texttt{<KeyPath/>} and
+\texttt{<CertificatePath/>} are configured to be the same.
+
+Proxy policy can be spefified as constraint. Proxy policy is for constraining
+identity delegation. Currently, the supported policy is ARC specific policy.
+Proxy policy is inserted into proxy certificate's ``proxy cert info'' extenstion
+in RFC3820's policy language ``\verb|NID_id_ppl_anyLanguage|''.
+
+
+\section{ARC Server Setup and Configuration}
+\label{sec:server-setup}
+
+The configuration of the ARC server is specified in an XML file, the location of
+which is specified as a command line argument with the -c option of
+``\texttt{arched}'' daemon. Examples of configuration files with comments
+describing various elements are available in directory
+\texttt{/usr/share/doc/nordugrid-arc<version>} corresponding to the ARC1
+installation.
+
+
+\section{The Echo Service}
+\label{sec:echo-service}
+
+The \textit{Echo} service is offered purely for testing purposes. It is
+``atomic'' and has no additional dependencies other than what is provided by the
+Hosting Environment Daemon (HED). An example of an Echo service configuration
+can be found in \texttt{/usr/share/doc/nordugrid-arc<version>/echo.xml}.
+
+
+\subsection{The Echo Client}
+\label{sec:echo-client}
+
+The configuration of the ARC Echo client is specified in an XML
+file. The location of the configuration file is specified by the
+environment variable \verb|$ARC_ECHO_CONFIG|. If there is no such
+environment
+variable, the configuration file is assumed to be \verb|echo_client.xml| in
+the current working directory.
+
+To use the Echo client, type
+
+\begin{lstlisting}
+$ARC_LOCATION/bin/apecho <message>
+\end{lstlisting}
+
+where \verb|<message>| is the message which the Echo service should return.
+
+
+\section{The A-REX Service}
+\label{sec:a-rex}
+
+ARC1 comes with OGSA BES compliant Grid job management service called A-REX.
+To deploy A-REX use example configuration files available in
+\verb|/usr/share/doc/nordugrid-arc<version>|:
+
+\begin{itemize}
+ \item \texttt{arex.xml} -- configuration for arched server. Read comments
+inside this file.
+ \item \texttt{arc-arex.conf} -- legacy configuration for Grid Manager part of
+A-REX. This
+file defines how jobs are managed by A-REX locally. Read and edit it.
+and edit it to fit your installation. This file defines WS interface of A-REX.
+\end{itemize}
+
+For more detailed information please read Grid Manager
+documentation~\cite{arex}. Grid Manager runs as part of A-REX service. There is
+no need to run any additional executable. But you still need to setup its
+infrastructure as long as you are going to have anything more sophisticated than
+described in the example configuration. For more information read the previously
+mentioned document.
+
+Currently, a proper functioning A-REX requires environment variable
+\verb|$ARC_LOCATION| to be set to the installation prefix of ARC.
+
+A-REX uses HTTPS as transport protocol (although one can reconfigure it to use
+plain HTTP) so it requires proper setup of X509 security infrastructure. See
+Section~\ref{sec:x509} for instructions.
+
+Copy example configuration files to some location and edit them. Make sure all
+paths to X509 certificates and Grid Manager configuration are set correctly.
+Start server with command:
+
+\begin{lstlisting}
+$ARC_LOCATION/sbin/arched -c path_to_edited_arex.xml
+\end{lstlisting}
+
+Look into log file specified in \texttt{arex.xml} for possible errors. You can
+safely ignore messages like \textit{``Not a '...' type plugin''} and
+\textit{``Unknown element ... - ignoring''}.
+
+If you compiled ARC1 services with Globus support and you see complaints about
+``libglobus...'' and that it cannot open a shared object file, try to add
+\texttt{/opt/globus/lib} to your \verb|$LD_LIBRARY_PATH|:
+
+\begin{lstlisting}
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
+\end{lstlisting}
+
+\subsection{Testing and Using A-REX (clients)}
+\label{sec:testing}
+
+Now you may use the command line utility ``\texttt{apinfo}'' to obtain a service
+description. Make sure user key and certificate and CA certificate(s) are
+readable from account you use, and run something like:
+
+\begin{lstlisting}
+./apinfo -d VERBOSE -C $HOME/usercert.pem -K $HOME/userkey.pem 
+ -A /etc/grid-security/certificates https://localhost:60000/arex 2>error.log
+\end{lstlisting}
+
+This should produce XML output describing resource A-REX represents.
+Listing~\ref{lst:apinfo} shows an example of proper output. In case of error see
+\texttt{error.log} file and report problems to ARC development team. Include
+content of \texttt{error.log} and server log.
+
+\begin{lstlisting}[caption={Example of a good apinfo output},label=lst:apinfo]
+<n:nordugrid xmlns:n="urn:nordugrid" xmlns:M0="urn:Mds"
+xmlns:nc0="urn:nordugrid-cluster">
+  <nc0:name>mobile2.home.net</nc0:name>
+  <nc0:aliasname>MINIMAL Computing Element</nc0:aliasname>
+  <nc0:comment>This is a minimal out-of-box CE setup</nc0:comment>
+  <nc0:issuerca>/O=Grid/O=Test/CN=CA</nc0:issuerca>
+  <nc0:issuerca-hash>4457e417</nc0:issuerca-hash>
+  <nc0:trustedca>/O=Grid/O=NorduGrid/CN=NorduGrid Certification
+Authority</nc0:trustedca>
+  <nc0:trustedca>/O=Grid/O=Test/CN=CA</nc0:trustedca>
+  <nc0:contactstring>gsiftp://mobile2.home.net:2811/jobs</nc0:contactstring>
+  <nc0:lrms-type>fork</nc0:lrms-type>
+  <nc0:architecture>i686</nc0:architecture>
+  <nc0:homogeneity>TRUE</nc0:homogeneity>
+  <nc0:nodeaccess>inbound</nc0:nodeaccess>
+  <nc0:nodeaccess>outbound</nc0:nodeaccess>
+  <nc0:totalcpus>1</nc0:totalcpus>
+  <nc0:usedcpus>0</nc0:usedcpus>
+  <nc0:cpudistribution>1cpu:1</nc0:cpudistribution>
+  <nc0:prelrmsqueued>0</nc0:prelrmsqueued>
+  <nc0:totaljobs>0</nc0:totaljobs>
+  <nc0:sessiondir-free>8469</nc0:sessiondir-free>
+  <nc0:sessiondir-total>43865</nc0:sessiondir-total>
+  <nc0:sessiondir-lifetime>10080</nc0:sessiondir-lifetime>
+  <M0:validfrom>20080220142836Z</M0:validfrom>
+  <M0:validto>20080220143036Z</M0:validto>
+  <nq0:name xmlns:nq0="urn:nordugrid-queue" name="fork">
+    <nq0:name>fork</nq0:name>
+    <nq0:status>inactive, grid-manager is down</nq0:status>
+    <nq0:comment>This queue is nothing more than a fork host</nq0:comment>
+    <nq0:schedulingpolicy>FIFO</nq0:schedulingpolicy>
+    <nq0:homogeneity>TRUE</nq0:homogeneity>
+    <nq0:nodecpu>Intel(R) Celeron(R) M CPU        420  @ 1.60GHz @ 1596.048
+MHz</nq0:nodecpu>
+    <nq0:architecture>i686</nq0:architecture>
+    <nq0:maxcputime>unlimited</nq0:maxcputime>
+    <nq0:maxwalltime>unlimited</nq0:maxwalltime>
+    <nq0:running>0</nq0:running>
+    <nq0:gridrunning>0</nq0:gridrunning>
+    <nq0:localqueued>0</nq0:localqueued>
+    <nq0:gridqueued>0</nq0:gridqueued>
+    <nq0:prelrmsqueued>0</nq0:prelrmsqueued>
+    <nq0:totalcpus>1</nq0:totalcpus>
+    <IM0:validfrom>20080220142836Z</M0:validfrom>
+    <M0:validto>20080220143036Z</M0:validto>
+    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="jobs">
+      <nig0:name>jobs</nig0:name>
+      <M0:validfrom>20080220142836Z</M0:validfrom>
+      <M0:validto>20080220143036Z</M0:validto>
+      <nj0:globalid xmlns:nj0="urn:nordugrid-job"
+name="gsiftp://mobile2.home.net:2811/jobs/636312034687631804
+289383">
+       
+<nj0:globalid>gsiftp://mobile2.home.net:2811/jobs/636312034687631804289383</nj0:
+globalid>
+        <nj0:globalowner>/O=Grid/O=Test/CN=user</nj0:globalowner>
+        <nj0:jobname>TEST</nj0:jobname>
+        <nj0:execcluster>mobile2.home.net</nj0:execcluster>
+        <nj0:execqueue>fork</nj0:execqueue>
+        <nj0:submissionui>127.0.0.1:59790</nj0:submissionui>
+        <nj0:submissiontime>20080220005243Z</nj0:submissiontime>
+        <nj0:sessiondirerasetime>20080227005843Z</nj0:sessiondirerasetime>
+        <nj0:completiontime>20080220005843Z</nj0:completiontime>
+        <nj0:cpucount>1</nj0:cpucount>
+        <nj0:comment>GM: The grid-manager is down</nj0:comment>
+        <nj0:usedcputime>0</nj0:usedcputime>
+        <nj0:usedwalltime>0</nj0:usedwalltime>
+        <nj0:errors>Job submission to LRMS failed</nj0:errors>
+        <nj0:status>FAILED</nj0:status>
+        <nj0:rerunable>SUBMIT</nj0:rerunable>
+        <M0:validfrom>20080220142836Z</M0:validfrom>
+        <M0:validto>20080220143036Z</M0:validto>
+      </nj0:globalid>
+    </nig0:name>
+    <nig0:name xmlns:nig0="urn:nordugrid-info-group" name="users">
+      <nig0:name>users</nig0:name>
+      <M0:validfrom>20080220142836Z</M0:validfrom>
+      <M0:validto>20080220143036Z</M0:validto>
+    </nig0:name>
+  </nq0:name>
+</n:nordugrid>
+\end{lstlisting}
+
+Please note that you can run similar \texttt{apinfo} request against any ARC1
+service except Echo service. Output should always be XML description of service.
+
+A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided in
+\verb|$ARC_LOCATION/share/doc/| in files \verb|jsdl_simple.xml| and
+\verb|jsdl_stage.xml|. To submit job to A-REX service one may use
+\texttt{apsub} command:
+
+\begin{lstlisting}
+$ARC_LOCATION/bin/apsub https://localhost:60000/arex
+ /usr/local/share/doc/arc/jsdl_simple.xml id.xml
+\end{lstlisting}
+
+If everything goes properly somewhere in it's output there should be a message
+``Submitted the job!''. Obtained job identifier is an XML document and is stored
+in id.xml file. It may then be used to query job state with \texttt{apstat}
+utility:
+
+\begin{lstlisting}
+$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+Job status: Running/Submiting
+
+$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+Job status: Running/Finishing
+
+$ARC_LOCATION/bin/apstat id.xml 2>/dev/null
+Job status: Finished/Finished
+\end{lstlisting}
+
+Full set of A-REX client tools consists of \texttt{apsub}, \texttt{apstat},
+\texttt{apkill}, \texttt{asstat}, \texttt{apget} and \texttt{apclean} commands.
+For more information please see man pages ot those utilities.
+
+\section{Finding more information}
+\label{sec:more-info}
+
+Many information about functionality and configuration of various components
+may be found inside corresponding configuratrion XML schemas.
+
+There are several API documents available as well.
+
+\section{Contributing}
+\label{sec:contributing}
+
+The open source development of the ARC middleware is coordinated by the
+NorduGrid Collaboration. Currently, the main contributor is the KnowARC project
+(\url{www.knowarc.eu}), but the Collaboration is open to new members.
+Contributions from the community to the software and the documentation is
+welcomed. Sources can be downloaded from the software repository at
+\url{download.nordugrid.org} or the Subversion code repository at
+\url{svn.nordugrid.org}.
+
+The technical coordination group defines outstanding issues that have
+to be addressed in the framework of the ARC development. Feature
+requests and enhancement proposals are recorded in the Bugzilla bug
+tracking system at \url{bugzilla.nordugrid.org}. For a more detailed
+description, write access to the code repository and further
+questions, write to the \texttt{nordugrid-discuss} mailing list (see
+\url{www.nordugrid.org} for details). Ongoing and completed Grid Research
+projects and student assignments related to the middleware are listed
+on the NorduGrid Web site as well.
+
+
+\section{Support, documentation, mailing lists, contact}
+\label{sec:support}
+
+User support and site installation assistance is provided via the
+request tracking system available at \texttt{nordugrid-support@nordugrid.org}.
+In addition, NorduGrid runs a couple of mailing lists, among which the
+nordugrid-discuss mailing list is a general forum for all kind of
+issues related to the ARC middleware.
+
+Feature and enhancement requests, as well as discovered problems, should be
+reported in the Bugzilla problem tracking system \url{bugzilla.nordugrid.org}.
+
+Research papers, overview talks, reference manuals, user guides,
+installation instructions, conference presentations, FAQ and even
+tutorial materials can be fetched from the documentation section of
+\url{www.nordugrid.org}.
+
+Contact information is kept updated on the \url{www.nordugrid.org} Web site.
+
+\bibliography{ws-quick-guide}
+\end{document}
+
