@@ -1,5 +1,5 @@
-@sbindir@/arched
-@SCHED_SERVICE_ENABLED_TRUE@@sbindir@/manage_jobq
+/usr/sbin/arched
+@SCHED_SERVICE_ENABLED_TRUE@/usr/sbin/manage_jobq
 usr/lib/arc/libecho.so
 usr/lib/arc/libpdp.so
 usr/lib/arc/libhttpd.so
