@@ -76,20 +76,23 @@
 
 
 \chapter{Design Overview}
-\label{sec:overview}
+\label{cha:overview}
 
 
-The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace. The files can be grouped into \emph{collection}s, and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node should have one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), https://forge.gridforum.org/projects/byteio-wg/}, etc.), and one of the services of the ARC1 storage system is needed to manage each storage node and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services are shown on Figure~\ref{fig:services}.
+The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), https://forge.gridforum.org/projects/byteio-wg/}, etc.). For each storage node one of the services of the ARC1 storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
+\begin{itemize}
+    \item the \textbf{A-Hash} service, which is a currently centralized, later distributed database;
+    \item the \textbf{Librarian} service, which stores the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
+    \item the \textbf{Bartender} service, which provides a high-level interface for the users and for other services;
+    \item the \textbf{Shepherd} service, which provides a simple interface for storing files on storage nodes.
+\end{itemize}
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.9}{\includegraphics{arc1-storage-services.pdf}}}
-\caption{\label{fig:services}The components of the ARC1 storage;
-\emph{A-H}: the \textbf{A-Hash}, which is a currently centralized, later distributed database;
-\emph{L}: the \textbf{Librarian}, which stores the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
-\emph{B}: the \textbf{Bartender}, which provides a high-level interface for the users and for other services;
-\emph{S}: the \textbf{Shepherd}, which provides a simple interface for storing files on storage nodes.
-} }
+\caption{\label{fig:services}The components of the ARC1 storage: the \textbf{A-H}ash service, the \textbf{L}ibrarian service, the \textbf{B}artender service and the \textbf{S}hepherd service.}}
 \end{figure}
+
+The descriptions in Chapter~\ref{cha:overview} and Chapter~\ref{cha:use_cases} are containing some elements which are not implemented yet in the first prototype. See Chapter~\ref{cha:technical_description_and_implementation_status} for the details about what is implemented and what is missing.
 
 \section{IDs used in the system}
 \label{sec:IDs}
@@ -112,7 +115,7 @@ The syntax of Logical Names is \verb#/[path]# or \verb#<GUID>[/<path>]# where [.
 
 Each file and collection has a GUID which is globally unique, so they can be unambiguously referred using this GUID, that's why a single GUID is a Logical Name itself.
 
-In a collection each entry has a name, and this entry can be a sub-collection, in which there are files and sub-sub-collections, etc.
+A collection is basically just a list of entries, where each entry has a name unique within this collection, and an entry can be a file or a sub-collection, in which there are files and sub-sub-collections, etc.
 
 \begin{figure}[ht]
 \centering{{\scalebox{0.7}{\includegraphics{arc1-storage-namespace.pdf}}}
@@ -123,15 +126,14 @@ Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1
 
 If a client wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, so it's a hard link. To count the references (the number of hard links) of a file or collection, the GUID of the parent collection(s) is stored as a metadata for each file and collection.
 
-Each VO\footnote{Virtual Organization, http://www.globus.org/grid\_software/security/voms.php} should create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
+One possible usage scenario would be if each VO (Virtual Organization)\footnote{Virtual Organization, http://www.globus.org/grid\_software/security/voms.php} would create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
 
 % section GUIDsLNs (end)
 
 \section{The Bartenders} % (fold)
 \label{sec:the_bartenders}
-Clients can access the storage system through a Bartender service. If a client wants to create a collection, upload or download a file, the first step is to connect to a Bartender. The Bartender then asks a Librarian to resolve Logical Names and return metadata, then initiates file transfers on some storage node by asking the Shepherd service of that node, then returns the transfer URL (\emph{TURL}) to the client, which allows the client to directly transfer from/to the storage node. So the data transfer itself is not going through the Bartender, it is performed over a direct link between a storage node and the client.
 
-There could be any number of independent Bartender services in the system which provides high-availability and load-balancing.
+The Bartender service provides a high-level interface for the storage system to the clients. You can create and remove collections, create, get and remove files, move files and collections within the namespace using Logical Names. The Bartender communicates with the Librarian and Shepherd services to accomplish the client’s requests. The actual file data does not go through the Bartender; file transfers are directly performed between the storage nodes and the clients. There could be any number of independent Bartender services in the system which provides high-availability and load-balancing.
 
 % section the_bartenders (end)
 
@@ -225,7 +227,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \item The Bartender chooses another Shepherd, initiates the transfer then returns the TURL to the  first Shepherd which uploads the file to the new Shepherd.
 \item All the Shepherds check periodically whether their files have enough replica, and if any of them find that there is more replica needed, it initiates creating a new. If more than one Shepherd of course could cause that there will be more replicas than needed. If a Shepherd finds out that a file has more replicas than needed it notifies a Bartender about it.
 \item The Bartender ask the Librarian about all Shepherds this file has replicas on, flags this file as `removing a replica' which prevents other Bartenders to remove an other replica accidentally, then make a decision of which one is to be removed, then contacts the chosen Shepherd and asks it to remove the replica. The Shepherd then notify the Librarian, and the Librarian removes the replica, and removes the flag `removing a replica' as well.
-\item If we cannot upload the file to the given TURL for some reason, we should remove the file entry from the collection, or we should call \verb#addReplica# to get a new TURL without removing and recreating the file.
+\item If we cannot upload the file to the given TURL for some reason, we could call \verb#addReplica# to get a new TURL without removing and recreating the file.
 \end{itemize}
 
 % section uploading_a_file (end)
@@ -260,7 +262,6 @@ The current version of the prototype has no information system and no security, 
 The information system is needed to discover services, and to translate \emph{serviceID}s to endpoint references (URLs). Currently the URLs are written in the configuration files, and the Shepherd services are reporting their URLs to the Librarian, so the Bartender could ask for all alive Shepherds.
 
 The security is needed to do proper authorization of the users, and to manage access policies of files and collections. ARC has its own policy language, for each file and collection there will be a policy XML document stored as a metadata. The storage services will use the properties extracted from the communication channel and these policies to make authorization decisions. If the properties and the policies are present, the decision is actually made by the security framework of HED.
-
 
 Further prototype statuses and plans can be found below within each section about the services.
 
@@ -564,7 +565,7 @@ A file of a Shepherd service is referenced by its \emph{referenceID}. Each file 
 
 The Shepherd could communicate with the file transfer services via backend modules. Currently there are two kinds of backend modules, one for the \emph{byteio} service (which is a simple implementation of a subset of the ByteIO interface) and one for the \emph{httpd} service (which is a simple HED-based HTTP server).
 
-In both cases the Shepherd service uses two separate directories: one for storing all the files (e.g.~\verb!./store!) and one for the file transfers (e.g.~\verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
+In both cases the Shepherd and the transfer services should have access to the same local filesystem where the Shepherd creates two separate directories: one for storing all the files (e.g.~\verb!./store!) and one for the file transfers (e.g.~\verb!./transfer!). The store directory always contains all the files the Shepherd manages, the transfer directory is empty at the beginning.
 
 Let's see the scenario for the httpd service which should be in a special `slave' mode for this kind of operation: if a client asks for a file called \verb!file1!, and this file is in the store directory (\verb!./store/file!), then the Shepherd service creates a hardlink into the transfer directory (e.g.~\verb!./transfer/abc!) and sets this file read-only. If the httpd service is configured that way that it handles the HTTP path \verb!/prb! and it is serving files from the directory \verb!./transfer! then after the hardlink is created, we have this URL for this file: \verb!http://localhost:60000/prb/abc!. Now we can give this URL to the client. Then the client \verb!GET!s this URL and gets the file. The httpd service removes (unlinks) this file immediately after the \verb!GET! request arrived, which makes this \verb!http://localhost:60000/prb/abc! URL invalid (so this is a one-time URL), but because of the hardlink the file is still there in the store directory, it is just removed from the transfer directory. Now if some other user wants this file, the Shepherd creates an other hardlink, e.g.~\verb!./transfer/qwe! and now we have an URL \verb!http://localhost:60000/prb/qwe!.
 
