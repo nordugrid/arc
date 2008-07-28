@@ -2,6 +2,8 @@ pkglib_LTLIBRARIES = libgrid_sched.la
 sbin_PROGRAMS=manage_jobq
 noinst_PROGRAMS=test
 
+AM_CPPFLAGS=@DBCXX_CPPFLAGS@
+
 JOBQ_SOURCES=job.h job.cpp job_request.cpp job_request.h job_sched_meta.cpp job_sched_meta.h job_status.h job_status.cpp job_queue.h job_queue.cpp 
 
 libgrid_sched_la_SOURCES = grid_sched.cpp grid_sched.h resource.h resource.cpp resources_handling.h resources_handling.cpp bes.cpp ibes.cpp get_factory_document.cpp $(JOBQ_SOURCES)

@@ -375,28 +375,73 @@ LASSO_INSTALLED=no
 # XMLSEC_INSTALLED=yes],
 #[XMLSEC_INSTALLED=no])
 
+###############################################
 #
 # Check for Berkeley DB C++
 #
+###############################################
+
+DBCXX_CPPFLAGS=
+
+#
+# Allow the user to specify db_cxx.h location (we will still check though)
+#
+
+dbcxx_include_paths=
+AC_ARG_WITH(dbcxx-include,
+   [  --with-dbcxx-include=PATH   Specify path to db_cxx.h],
+   [
+	if test "x$withval" = "xyes" ; then
+		AC_MSG_ERROR([--with-dbcxx-include requires PATH argument])
+	fi
+	if test "x$withval" != "xno" ; then
+		dbcxx_include_paths=$withval
+	fi
+   ]
+)
 
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 
-AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+#
+# If user did not specify location we start by searching at the standard locations
+#
+
+if test x$dbcxx_include_paths = x
+then
+	AC_MSG_NOTICE([Looking for db_cxx.h in standard locations]) 
+	AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+	# If the user did not provide a location we have some good suggestions
+	dbcxx_include_paths="/usr/include/db4 /usr/include/db44"
+else
+	HAVE_DBCXX=no
+fi
+
+#
+# Now Look for db_cxx.h in non-standard locations
+#
+
 if test "$HAVE_DBCXX" = no
 then
-        AC_MSG_WARN([db_cxx.h not found, Checking db4 subdir])
-        AC_CHECK_HEADERS(db4/db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+  for dbcxx_dir in $dbcxx_include_paths
+  do
+    SAVE_CPPFLAGS=$CPPFLAGS
+    DBCXX_CPPFLAGS=-I$dbcxx_dir
+    CPPFLAGS="$CPPFLAGS $DBCXX_CPPFLAGS"
+    # Disable Autoconf caching
+    unset ac_cv_header_db_cxx_h
+    AC_MSG_NOTICE([Looking for db_cxx.h in $dbcxx_dir]) 
+    AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
+    CPPFLAGS=$SAVE_CPPFLAGS
+    # If a db_cxx.h was found we break and keep the current value of DBCXX_CPPFLAGS
+    if test "$HAVE_DBCXX" = yes
+    then
+      break   
+    fi
+    DBCXX_CPPFLAGS=
+  done
 fi
-if test "$HAVE_DBCXX" = no
-then
-        AC_MSG_WARN([db4/db_cxx.h not found, Checking db44 subdir])
-        AC_CHECK_HEADERS(db44/db_cxx.h,[HAVE_DBCXX=yes],[HAVE_DBCXX=no])
-fi
-if test "$HAVE_DBCXX" = no
-then
-	AC_MSG_WARN([db44/db_cxx.h not found])
-fi
+AC_SUBST(DBCXX_CPPFLAGS)
 
 if test "$HAVE_DBCXX" = no
 then

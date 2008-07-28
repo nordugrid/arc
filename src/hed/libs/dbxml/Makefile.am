@@ -1,6 +1,8 @@
 lib_LTLIBRARIES=libarcdbxml.la
 noinst_PROGRAMS=test
 
+AM_CPPFLAGS=@DBCXX_CPPFLAGS@
+
 libarcdbxml_ladir = $(pkgincludedir)/dbxml
 libarcdbxml_la_HEADERS  = XmlDatabase.h XmlContainer.h
 libarcdbxml_la_SOURCES  = XmlDatabase.cpp XmlContainer.cpp
