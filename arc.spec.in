@@ -357,7 +357,7 @@ exit 0
 
 %files doc
 %defattr(-,root,root,-)
-%doc doc/KnowARC-API.pdf
+%doc doc/ARC1-*.pdf
 
 %changelog
 
