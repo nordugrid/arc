@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/echo
+pythondir= $(PYTHON_SITE_PACKAGES)/echo_python
 docdir = @docdir@
 
 python_DATA = EchoService.py __init__.py
