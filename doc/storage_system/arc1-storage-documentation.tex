@@ -227,7 +227,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \item The Bartender chooses another Shepherd, initiates the transfer then returns the TURL to the  first Shepherd which uploads the file to the new Shepherd.
 \item All the Shepherds check periodically whether their files have enough replica, and if any of them find that there is more replica needed, it initiates creating a new. If more than one Shepherd of course could cause that there will be more replicas than needed. If a Shepherd finds out that a file has more replicas than needed it notifies a Bartender about it.
 \item The Bartender ask the Librarian about all Shepherds this file has replicas on, flags this file as `removing a replica' which prevents other Bartenders to remove an other replica accidentally, then make a decision of which one is to be removed, then contacts the chosen Shepherd and asks it to remove the replica. The Shepherd then notify the Librarian, and the Librarian removes the replica, and removes the flag `removing a replica' as well.
-\item If we cannot upload the file to the given TURL for some reason, we could call \verb#addReplica# to get a new TURL without removing and recreating the file.
+\item If the client cannot upload the file to the given TURL for some reason, it is possible to call \verb#addReplica# to get a new TURL without removing and recreating the file.
 \end{itemize}
 
 % section uploading_a_file (end)
@@ -262,6 +262,8 @@ The current version of the prototype has no information system and no security, 
 The information system is needed to discover services, and to translate \emph{serviceID}s to endpoint references (URLs). Currently the URLs are written in the configuration files, and the Shepherd services are reporting their URLs to the Librarian, so the Bartender could ask for all alive Shepherds.
 
 The security is needed to do proper authorization of the users, and to manage access policies of files and collections. ARC has its own policy language, for each file and collection there will be a policy XML document stored as a metadata. The storage services will use the properties extracted from the communication channel and these policies to make authorization decisions. If the properties and the policies are present, the decision is actually made by the security framework of HED.
+
+Some self-healing mechanisms are not implemented yet, e.g. the files and collections contains their parent-collections as their metadata, and of course a collection contains a list of its files and sub-collections, and if somehow this information became inconsistent, the system should detect and repair it. This is not implemented yet.
 
 Further prototype statuses and plans can be found below within each section about the services.
 
