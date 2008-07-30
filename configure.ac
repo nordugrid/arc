@@ -132,6 +132,8 @@ fi
 JAVAWRAP=no
 if test -f java/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     JAVAWRAP=yes
+else
+    AC_MSG_NOTICE([Missing java wrapper or swig - skipping java bindings])
 fi
 
 if test "X$jni_h" = "Xyes" && test "X$JAVAWRAP" = "Xyes" &&
@@ -188,6 +190,8 @@ fi
 PYTHONWRAP=no
 if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
     PYTHONWRAP=yes
+else
+    AC_MSG_NOTICE([Missing python wrapper or swig - skipping python bindings])
 fi
 
 if test "X$PYTHONWRAP" = "Xyes" && test "X$PYTHON" != "X" && test "X$enable_python" = "Xyes"; then
