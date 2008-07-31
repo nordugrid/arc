@@ -1,5 +1,5 @@
 .\" -*- nroff -*- 
-.TH GLITEUNDELEGATE "1" "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.TH GLITEUNDELEGATE 1 "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
 gliteundelegate \- ARC CREAM2 Delegation Destroying Client
 .SH SYNOPSIS

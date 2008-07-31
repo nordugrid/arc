@@ -1,4 +1,5 @@
-.TH "arc_storage_cli.py" "1" "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.\" -*- nroff -*- 
+.TH ARC_STORAGE_CLI.PY 1 "10 July 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
 arc_storage_cli.py - Client for the ARC1 storage system
 .SH SYNOPSIS

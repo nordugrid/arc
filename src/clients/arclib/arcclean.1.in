@@ -1,4 +1,5 @@
-.TH arcclean 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.\" -*- nroff -*- 
+.TH ARCCLEAN 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 

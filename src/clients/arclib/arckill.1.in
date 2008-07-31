@@ -1,4 +1,5 @@
-.TH arckill 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.\" -*- nroff -*- 
+.TH ARCKILL 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 

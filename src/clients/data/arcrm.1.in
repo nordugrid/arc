@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH ARCRM "1" "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid System Manager's Manual"
+.TH ARCRM 1 "24 February 2008" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
 arcrm - remove file at given URL
 .SH SYNOPSIS
