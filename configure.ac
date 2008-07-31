@@ -882,6 +882,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/isis/Makefile
                  src/services/saml/Makefile
                  src/services/sched/Makefile
+                 src/services/sched/manage_jobq.1
                  src/services/paul/Makefile
                  src/services/storage/Makefile 
                  src/services/storage/librarian/Makefile 
@@ -913,6 +914,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcls.1
                  src/clients/data/arcrm.1
                  src/clients/echo/Makefile
+                 src/clients/echo/apecho.1
                  src/clients/pdp/Makefile
                  src/clients/pdp/arcdecision.1
                  src/clients/isis/Makefile
@@ -929,9 +931,11 @@ AC_CONFIG_FILES([Makefile
                  src/tests/Makefile
                  src/tests/data/Makefile
                  src/tests/echo/Makefile
+                 src/tests/echo/perftest.1
                  src/tests/count/Makefile
                  src/tests/xpath/Makefile
                  src/tests/policy-delegation/Makefile
+                 src/utils/wsdl2hed.1
                  src/utils/Makefile
                  swig/Makefile
                  java/Makefile
