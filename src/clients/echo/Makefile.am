@@ -8,3 +8,5 @@ apecho_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir
                   $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 EXTRA_DIST = $(doc_DATA)
+
+man_MANS = apecho.1

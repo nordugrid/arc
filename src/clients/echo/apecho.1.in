@@ -1,0 +1,28 @@
+.\" -*- nroff -*-
+.TH APECHO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.SH NAME
+apecho \- ARC echo client
+.SH SYNOPSIS
+.B apecho message
+.SH DESCRIPTION
+.PP
+apecho is a simple service test tool, we can send a message to the echo service and it will response this message a bit else
+.SH OPTIONS
+.TP
+\fB\ message\fR
+This message will come back from the echo service by this form: [ message ]
+.TP
+.SH "CONFIGURATION
+Which echo service to use is specified in a configuration file. The
+configuration file also specifies how to set up the communication
+chain for the client. The location of the configuration file is
+specified by the environment variable ARC_ECHO_CONFIG. If there is
+no such environment variable, the configuration file is assumed to
+be "echo_client.xml" in the current working directory.
+.PP
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org/
+.SH COPYRIGHT
+We need to have this
+.SH AUTHOR
+Written by developers
