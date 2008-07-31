@@ -360,22 +360,19 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     logger.msg(Arc::DEBUG, "Python wrapper process called");
     
     PythonLock plock(logger);
-    logger.msg(Arc::DEBUG, "Python interpreter locked");
    
-    { 
-        // Convert in message to SOAP message
-        Arc::SOAPMessageP inmsg_ptr(inmsg);
-        if(!inmsg_ptr) {
-            logger.msg(Arc::ERROR, "failed to create input SOAP container");
-            return make_fault(outmsg);
-        }
-        if(!inmsg_ptr->Payload()) {
-            logger.msg(Arc::ERROR, "input is not SOAP");
-            return make_fault(outmsg);
-        }
-        // Convert incomming outcoming message to python object
-        arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
-    };
+    // Convert in message to SOAP message
+    Arc::SOAPMessageP inmsg_ptr(inmsg);
+    if(!inmsg_ptr) {
+        logger.msg(Arc::ERROR, "failed to create input SOAP container");
+        return make_fault(outmsg);
+    }
+    if(!inmsg_ptr->Payload()) {
+        logger.msg(Arc::ERROR, "input is not SOAP");
+        return make_fault(outmsg);
+    }
+    // Convert incomming message to python object
+    arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
         if (PyErr_Occurred() != NULL) {
@@ -394,15 +391,13 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
     }
     Py_DECREF(arg);
 
-    {
-        Arc::SOAPMessageP outmsg_ptr(outmsg);
-        if(!outmsg_ptr) {
-            logger.msg(Arc::ERROR, "failed to create SOAP containers");
-            return make_fault(outmsg);
-        }
-        // Convert incomming and outcoming messages to python objects
-        arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
-    };
+    Arc::SOAPMessageP outmsg_ptr(outmsg);
+    if(!outmsg_ptr) {
+        logger.msg(Arc::ERROR, "failed to create SOAP containers");
+        return make_fault(outmsg);
+    }
+    // Convert incomming and outcoming messages to python objects
+    arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create outmsg argument");
         if (PyErr_Occurred() != NULL) {
