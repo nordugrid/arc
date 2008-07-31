@@ -1,0 +1,30 @@
+.\" -*- nroff -*- 
+.TH WSDL2HED 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+wsdl2hed \- ARC1 skeleton generator
+
+.SH DESCRIPTION
+
+The
+.B wsdl2hed
+command create the C++ skeleton from a WSDL file
+
+.SH SYNOPSIS
+
+.B wsdl2hed WSDL_file service_name
+
+.SH OPTIONS
+
+.IP "\fB\ WSDL_file \fR"
+The WSDL file describe a webservice interface by standard way.  
+.IP "\fB\ service_name\fR"
+ARC1 service name (C++ class and header name come from this)
+.PP
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org
+.SH "COPYRIGHT"
+We need to have this
+.SH AUTHOR
+Written by developers

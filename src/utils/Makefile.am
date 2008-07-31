@@ -1,6 +1,8 @@
 bin_PROGRAMS = wsdl2hed
 SOURCES = wsdl2hed.cpp
 
+man_MANS = wsdl2hed.1
+
 wsdl2hed_SOURCES  = $(SOURCES)
 wsdl2hed_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 wsdl2hed_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
