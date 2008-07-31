@@ -1,0 +1,32 @@
+.\" -*- nroff -*- 
+.TH MANAGE_JOBQ 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+manage_jobq \- Sched job queue manager
+
+.SH DESCRIPTION
+
+The
+.B manage_jobq
+command can manipulate the queue of the Sched
+
+.SH SYNOPSIS
+
+.B manage_jobq dump job_queue_id 
+
+.B manage_jobq remove job_queue_id job_id
+
+.SH OPTIONS
+
+.IP "\fB\ dump \fR"
+We can dump a specific queue whole content.  
+.TP
+.IP "\fB\ remove \fR"
+Job removing from an identified queue.
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org
+.SH "COPYRIGHT"
+We need to have this
+.SH AUTHOR
+Written by developers

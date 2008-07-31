@@ -19,3 +19,5 @@ manage_jobq_LDADD=$(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir
 test_SOURCES=test.cpp $(JOBQ_SOURCES)
 test_CXXFLAGS=$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_LDADD=$(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
+
+man_MANS = manage_jobq.1
