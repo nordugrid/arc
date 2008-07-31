@@ -1,4 +1,4 @@
-#!/local/bin/python
+#!/usr/bin/env python
 
 # fuse stuff
 from fuse import Fuse
@@ -6,6 +6,7 @@ import stat, os, sys, pwd
 from errno import *
 from stat import *
 import fuse
+
 
 if not hasattr(fuse, '__version__'):
     raise RuntimeError, \
@@ -26,6 +27,7 @@ if os.environ.has_key('LD_LIBRARY_PATH'):
 from storage.client import BartenderClient, ByteIOClient
 from storage.common import create_checksum, mkuid
 from storage.common import false, true
+from storage.common import upload_to_turl, download_from_turl
 
 import time
 
@@ -38,7 +40,9 @@ except:
 
 bartender = BartenderClient(MOUNT, False)
 
-PROTOCOL = 'byteio'
+#PROTOCOL = 'byteio'
+PROTOCOL = 'http'
+
 needed_replicas = 2
 
 FUSETRANSFER = os.path.join(os.getcwd(),'fuse_transfer')
@@ -386,14 +390,14 @@ class ARCFS(Fuse):
             read file
             gets file from bartender. If file has no valid replica,
             we'll ask bartender again till replica is ready
-            read will only read file from ByteIOClient on first block,
-            then write to local file, which used for the rest of the 
+            read will read entire file on first block,
+            then write to local file, which is used for the rest of the 
             life of this ARCFSFile object
             """
             debug_msg('read called:', (size, offset))
             
             if self.file.tell() > 0:
-                # file is already read
+                # file is already downloaded
                 self.file.seek(offset)
                 debug_msg('read left fancy:', (size, offset))
                 return self.file.read(size)
@@ -411,24 +415,15 @@ class ARCFS(Fuse):
                 return -EISDIR
             if success != 'done':
                 return -ENOENT
-            rbuf = ByteIOClient(turl).read()
-            self.file.write(rbuf)
-            self.file.seek(offset+size)
-            slen = len(rbuf)
-            if offset < slen:
-                if offset + size > slen:
-                    size = slen - offset
-                buf = rbuf[offset:offset+size]
-            else:
-                buf = ''
-            debug_msg('read left:', (size, offset))
-            return buf
+            download_from_turl(turl, PROTOCOL, self.file)
+            self.file.seek(offset)
 
+            return self.file.read(size)
 
         def write(self, buf, offset):
             """
             write to self.file
-            note that write to ByteIOClient is done only on call to release
+            note that write to storage is done only on call to release
             """
             debug_msg('write called:', (len(buf), offset))
             self.file.seek(offset)
@@ -439,7 +434,7 @@ class ARCFS(Fuse):
 
         def release(self, flags):
             """
-            release file and write to ByteIOClient
+            release file and write to storage
             """
             debug_msg('release called:', (flags))
             size = self.file.tell()
@@ -463,7 +458,8 @@ class ARCFS(Fuse):
                     response = self.bartender.addReplica({'release': GUID}, [PROTOCOL])
                     success, turl, protocol = response['release']
                     if success == 'done':
-                        ByteIOClient(turl).write(f)
+                        upload_to_turl(turl, PROTOCOL, f)
+
                 f.close()
             os.remove(self.tmp_path)
             debug_msg('release left:', (flags))
