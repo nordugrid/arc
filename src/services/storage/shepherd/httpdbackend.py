@@ -45,6 +45,7 @@ class HTTPDBackend:
                     except:
                         # if the file does not exist, maybe it's already removed
                         del self.idstore[localID]
+                        nlink = 0
                     self.log('DEBUG', 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir

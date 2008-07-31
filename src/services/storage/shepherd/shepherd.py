@@ -202,6 +202,9 @@ class Shepherd:
         self.store.lock()
         try:
             localData = self.store.get(referenceID)
+            if not localData: # this file is already removed
+                self.store.unlock()
+                return False
             oldState = localData['state']
             self.log('DEBUG', 'changeState', referenceID, oldState, '->', newState)
             if onlyIf and oldState != onlyIf:
