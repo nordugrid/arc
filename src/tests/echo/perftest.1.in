@@ -1,0 +1,46 @@
+.\" -*- nroff -*- 
+.TH PERFTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+perftest \- ARC1 service performance tester
+
+.SH DESCRIPTION
+
+With the
+.B perftest
+command we can test an ARC1 service performance
+
+.SH SYNOPSIS
+
+.B perftest [-c config] [-d debug] host port threads duration
+
+.SH OPTIONS
+
+.IP "\fB\ -c config \fR"
+The file containing client chain XML configuration with
+soap entry point and HOSTNAME, PORTNUMBER and PATH
+keyword for hostname, port and HTTP path of 'echo' service
+.TP
+.IP "\fB\ -d debug\fR"
+The textual representation of desired debug level. Available
+levels: VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL
+.TP
+.IP "\fB\ host \fR"
+The name of the host of the service
+.TP
+.IP "\fB\ port \fR"
+The port to use on the host
+.TP
+.IP "\fB\ threads \fR"
+The number of concurrent requests
+.TP
+.IP "\fB\ duration \fR"
+The duration of the test in seconds
+
+.SH "REPORTING BUGS"
+Report bugs to http://bugzilla.nordugrid.org
+.SH "COPYRIGHT"
+We need to have this
+.SH AUTHOR
+Written by developers

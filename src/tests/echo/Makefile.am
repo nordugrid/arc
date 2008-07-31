@@ -36,3 +36,4 @@ perftest_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcd
 
 EXTRA_DIST = $(doc_DATA)
 
+man_MANS = perftest.1
