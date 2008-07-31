@@ -40,7 +40,11 @@ class HTTPDBackend:
                 time.sleep(period)
                 for localID, referenceID in self.idstore.items():
                     filename = os.path.join(self.datadir, localID)
-                    nlink = os.stat(filename)[stat.ST_NLINK]
+                    try:
+                        nlink = os.stat(filename)[stat.ST_NLINK]
+                    except:
+                        # if the file does not exist, maybe it's already removed
+                        del self.idstore[localID]
                     self.log('DEBUG', 'checking', localID, referenceID, nlink)
                     if nlink == 1:
                         # if there is just one link for this file, it is already removed from the transfer dir
