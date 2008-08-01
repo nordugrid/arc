@@ -54,10 +54,12 @@ class Service: public MCCInterface
         virtual void AddSecHandler(Arc::Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
         
         /** Service specific registartion collector, 
-            used for generate service registartions */
+            used for generate service registartions.
+           TODO: Describe it's purpose and arguments. */
         virtual bool RegistrationCollector(Arc::XMLNode &doc);
 
-        /** Service may implement own service identitifer gathering method */
+        /** Service may implement own service identitifer gathering method.
+           TODO: Describe it's purpose and arguments. */
         virtual std::string getID() { return ""; };
 };
 
