@@ -882,7 +882,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/isis/Makefile
                  src/services/saml/Makefile
                  src/services/sched/Makefile
-                 src/services/sched/manage_jobq.1
+                 src/services/sched/manage_jobq.8
                  src/services/paul/Makefile
                  src/services/storage/Makefile 
                  src/services/storage/arc_storage_cli.py.1
