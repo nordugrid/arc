@@ -46,3 +46,4 @@ usr/share/man/man1/glitekill.1
 usr/share/man/man1/gliteclean.1
 usr/share/man/man1/glitedelegate.1
 usr/share/man/man1/gliteundelegate.1
+@STORAGE_SERVICE_ENABLED_TRUE@usr/bin/arc_storage_cli.py.1

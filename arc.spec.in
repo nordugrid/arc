@@ -215,6 +215,7 @@ exit 0
 %doc %{_mandir}/man1/apsstat.1*
 %{_bindir}/apget
 %{_bindir}/apecho
+%doc %{_mandir}/man1/apecho.1*
 %{_bindir}/apinfo
 %doc %{_mandir}/man1/apinfo.1*
 %{_bindir}/approxy
@@ -238,6 +239,7 @@ exit 0
 %{_bindir}/arcdecision
 %doc %{_mandir}/man1/arcdecision.1*
 %{_bindir}/perftest
+%doc %{_mandir}/man1/perftest.1.gz
 %{_bindir}/glitesub
 %doc %{_mandir}/man1/glitesub.1*
 %{_bindir}/glitestat
@@ -251,13 +253,15 @@ exit 0
 %{_bindir}/gliteundelegate
 %doc %{_mandir}/man1/gliteundelegate.1*
 %{_bindir}/arc_storage_cli.py*
+%doc %{_mandir}/man1/arc_storage_cli.py.1*
 
 %files server
 %defattr(-,root,root,-)
 /etc/init.d/arched
 %{_sbindir}/arched
-%{_sbindir}/manage_jobq
 %doc %{_mandir}/man8/arched.8*
+%{_sbindir}/manage_jobq
+%doc %{_mandir}/man8/manage_jobq.8*
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libpdp.so
 %{_libdir}/%{pkgdir}/libhttpd.so

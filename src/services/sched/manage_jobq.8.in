@@ -1,5 +1,5 @@
 .\" -*- nroff -*- 
-.TH MANAGE_JOBQ 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH MANAGE_JOBQ 8 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid System Managers Manual"
 
 .SH NAME
 

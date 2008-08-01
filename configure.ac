@@ -885,6 +885,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/sched/manage_jobq.1
                  src/services/paul/Makefile
                  src/services/storage/Makefile 
+                 src/services/storage/arc_storage_cli.py.1
                  src/services/storage/librarian/Makefile 
                  src/services/storage/cli/Makefile 
                  src/services/storage/shepherd/Makefile 
