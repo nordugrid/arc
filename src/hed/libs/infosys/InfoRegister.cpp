@@ -7,6 +7,7 @@
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/client/ClientInterface.h>
 #include "InfoRegister.h"
 #ifdef WIN32
 #include <arc/win32.h>
@@ -52,7 +53,7 @@ InfoRegister::InfoRegister(Arc::XMLNode &cfg, Arc::Service *service):logger_(Log
 
 InfoRegister::~InfoRegister(void)
 {
-    // Service should not delete here!
+    // Service should not be deleted here!
     // Nope
 }
 
@@ -69,10 +70,11 @@ void InfoRegister::registration(void)
     Arc::XMLNode reg_doc(reg_ns, "isis:Advertisements");
     Arc::XMLNode services_doc(reg_ns, "Services");
     service_->RegistrationCollector(services_doc);
-    // Check where is service registartion
+    // Look for service registartion information
+    // TODO: use more efficient way to find <Service> entries than XPath. 
     std::list<Arc::XMLNode> services = services_doc.XPathLookup("//*[normalize-space(@BaseType)='Service']", reg_ns);
     if (services.size() == 0) {
-        logger_.msg(Arc::WARNING, "No service registartion entries");
+        logger_.msg(Arc::WARNING, "Service provided no registartion entries");
         return;
     }
     // create advertisement
@@ -84,7 +86,7 @@ void InfoRegister::registration(void)
         // XXX metadata
     }
     
-    // send to all peer
+    // send to all peers
     std::list<Arc::URL>::iterator it;
     for (it = peers_.begin(); it != peers_.end(); it++) {
         std::string isis_name = (*it).fullstr();
@@ -97,7 +99,6 @@ void InfoRegister::registration(void)
             logger_.msg(Arc::WARNING, "unsupported protocol: %s", isis_name);
             continue;
         }
-        cli_ = new Arc::ClientSOAP(mcc_cfg_, (*it).Host(), (*it).Port(), tls, (*it).Path());
         logger_.msg(DEBUG, "Registering to %s ISIS", isis_name);
         Arc::PayloadSOAP request(ns_);
         Arc::XMLNode op = request.NewChild("isis:Register");
@@ -110,20 +111,18 @@ void InfoRegister::registration(void)
         
         // send
         Arc::PayloadSOAP *response;
-        Arc::MCC_Status status = cli_->process(&request, &response);
+        Arc::ClientSOAP cli(mcc_cfg_, (*it).Host(), (*it).Port(), tls, (*it).Path());
+        Arc::MCC_Status status = cli.process(&request, &response);
         if ((!status) || (!response)) {
             logger_.msg(ERROR, "Error during registration to %s ISIS", isis_name);
-         } else {
-            Arc::XMLNode fault = (*response)["Fault"];
-            if(!fault)  {
-                logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
-            } else {
-                logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
-            }
+            continue;
+        } 
+        Arc::XMLNode fault = (*response)["Fault"];
+        if(!fault)  {
+            logger_.msg(DEBUG, "Successful registration to ISIS (%s)", isis_name); 
+        } else {
+            logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
         }
-        
-        delete cli_;
-        cli_ = NULL;
     }
 }
 

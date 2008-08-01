@@ -7,7 +7,6 @@
 #include <arc/XMLNode.h>
 #include <arc/message/MCC.h>
 #include <arc/message/Service.h>
-#include <arc/client/ClientInterface.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
 
@@ -27,7 +26,6 @@ class InfoRegister
         std::list<Arc::URL> peers_;
         Arc::NS ns_;
         Arc::MCCConfig mcc_cfg_;
-        Arc::ClientSOAP *cli_;
         Arc::Logger logger_;
         Arc::Service *service_;
         long int reg_period_;
