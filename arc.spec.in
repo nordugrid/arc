@@ -329,6 +329,7 @@ exit 0
 #%{_libdir}/lib*.la
 %{_libdir}/lib*.so
 %{_bindir}/wsdl2hed
+%doc %{_mandir}/man1/wsdl2hed.1*
 
 %files plugins-base
 %defattr(-,root,root,-)
