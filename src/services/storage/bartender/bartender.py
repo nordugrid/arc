@@ -533,7 +533,7 @@ class Bartender:
             _, sourceGUID, _, _, sourceWasComplete, sourceTraversedList \
                 = traverse_response[requestID + 'source']
             # get the GUID form the target's traverse response, this should be the parent of the target LN
-            _, targetGUID, _, targetRestLN, targetWasComplete, _ \
+            _, targetGUID, _, targetRestLN, targetWasComplete, targetTraversedList \
                 = traverse_response[requestID + 'target']
             # if the source traverse was not complete: the source LN does not exist
             if not sourceWasComplete:
@@ -542,10 +542,16 @@ class Bartender:
             #   but if the new_child_name was empty, then the target is considered to be a collection, so it is OK
             elif targetWasComplete and new_child_name != '':
                 success = 'targetexists'
-            # if the target traverse was not complete, and the non-traversed part is not just the new name, we have a problem
-            elif not targetWasComplete and targetRestLN != new_child_name:
+            # if the target traverse was not complete, and the non-traversed part is not just the new name
+            # (which means that the parent collection does not exist)
+            # or the target's traversed list is empty (which means that it has no parent: it's just a single GUID)
+            elif not targetWasComplete and (targetRestLN != new_child_name or len(targetTraversedList) == 0):
+                success = 'invalidtarget'
+            elif sourceGUID in [guid for (_, guid) in sourceTraversedList]:
+                # if the the target is within the source's subtree, we cannot move it
                 success = 'invalidtarget'
             else:
+                self.log('ERROR', sourceGUID, [guid for (_, guid) in sourceTraversedList])
                 # if the new child name is empty that means that the target LN has a trailing slash
                 #   so we just put the old name after it
                 if new_child_name == '':
