@@ -40,6 +40,5 @@ usr/lib/arc/change-lsf-mode.sh
 usr/lib/arc/finish-condor-job
 
 usr/lib/arc/cluster+qju.pl
-usr/bin/ldif2xml
 usr/share/arc/nordugrid.schema
 
