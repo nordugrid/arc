@@ -551,7 +551,6 @@ class Bartender:
                 # if the the target is within the source's subtree, we cannot move it
                 success = 'invalidtarget'
             else:
-                self.log('ERROR', sourceGUID, [guid for (_, guid) in sourceTraversedList])
                 # if the new child name is empty that means that the target LN has a trailing slash
                 #   so we just put the old name after it
                 if new_child_name == '':
