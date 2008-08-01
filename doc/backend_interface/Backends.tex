@@ -113,7 +113,7 @@ $ $
 \section{Introduction\label{sec:intro}}
 
 This document describes the Advanced Resource Connector~\cite{arc1}
-batch system back-end infrastrucure. It aims to describe the infrastructure
+batch system back-end infrastructure. It aims to describe the infrastructure
 in enough detail that a developer can add a new local resource management
 system (LRMS) to the ARC middleware. It also intends to serve as a
 reference manual describing existing batch system interfaces. Note
@@ -121,7 +121,7 @@ that the current solution described in this manual is not a real interface,
 it is too diffuse to be that.
 
 The batch system back-ends are what tie the ARC grid middleware (through
-(ARC Resource-coupled EXecution servcie, A-REX~\cite{arex}) to the underlying
+(ARC Resource-coupled EXecution service, A-REX~\cite{arex}) to the underlying
 cluster management system or LRMS. The back-ends consist of set of shell and
 Perl scripts whose role are twofold: 
 
@@ -239,7 +239,7 @@ for easy maintenance and extendability.
 \begin{quote}
 Parses a config file. It returns exit status 1 if the file cannot
 be read, or 0 otherwise. Badly formed lines are silently ignored.
-Option values can be surrounded by sigle quotes or double quotes.
+Option values can be surrounded by single quotes or double quotes.
 Values without quotes are also accepted. Multi-valued options are
 not supported currently. Only the last defined value is retained. 
 \end{quote}
@@ -285,9 +285,9 @@ should be written that implements the interface presented in the next
 subsections. Furthermore hooks should be added to the \texttt{LRMS.pm} module,
 so that it uses the correct Perl module depending on the LRMS type.
 
-The information collector scripts are divided between several seperate scripts:
+The information collector scripts are divided between several separate scripts:
 \begin{itemize}
-\item \texttt{cluster+qju.pl} - driver for information collection. It calls all other infomation collectors and prints results in XML. The information collection is done by one single invocation of this script
+\item \texttt{cluster+qju.pl} - driver for information collection. It calls all other information collectors and prints results in XML. The information collection is done by one single invocation of this script
 \item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm})
 \item \texttt{InfoChecker.pm} - used by InfoCollector to validate options and results against a simple 'schema' (not XML Schema)
 \item \texttt{GMJobsInfo.pm} - collects information about jobs from grid manager status files
@@ -300,7 +300,7 @@ The information collector scripts are divided between several seperate scripts:
 \item \texttt{ARC1ClusterSchema.pm} - description of the info produced by ARC1ClusterInfo
 \end{itemize}
 
-All information about the hosting environment and queues is collected by one invocation of the perl script named
+All information about the hosting environment and queues is collected by one invocation of the Perl script named
 \texttt{cluster+qju.pl}. The XML output is printed to \texttt{STDOUT} and it includes
 two representations of the output data, namely the classic NorduGrid information schema and an incomplete GLUE2 schema representation.
 
@@ -694,14 +694,14 @@ not support parallel jobs.
 
 \subsection{SGE}
 
-Sun Grid Engine, formely known as Codine, is an open source batch
+Sun Grid Engine, formerly known as Codine, is an open source batch
 system maintained by Sun. Runs on Linux, Solaris.
 
 
 \subsubsection{Recommended batch system configuration}
 
 Set up one or more SGE queues for access by grid users. Queues can
-be shared by normal and grid users. In case you want to set up nore
+be shared by normal and grid users. In case you want to set up more
 than one ARC queue, make sure that the corresponding SGE queues have
 no shared nodes among them. Otherwise the counts of free and occupied
 CPUs might be wrong. Only SGE versions 6 and above are supported.
