@@ -357,7 +357,7 @@ static void thread_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
  
-ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),gm_(NULL) {
+ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::rootLogger, "A-REX"),inforeg_(*cfg,this),gm_(NULL) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]="http://www.nordugrid.org/schemas/a-rex";

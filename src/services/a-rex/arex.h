@@ -5,6 +5,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
+#include <arc/infosys/InfoRegister.h>
 
 #include "grid-manager/grid_manager.h"
 
@@ -19,6 +20,7 @@ class ARexService: public Arc::Service {
   Arc::Logger logger_;
   Arc::DelegationContainerSOAP delegations_;
   Arc::InformationContainer infodoc_;
+  Arc::InfoRegisters inforeg_;
   std::string endpoint_;
   std::string uname_;
   std::string gmconfig_;
