@@ -130,9 +130,9 @@ void InfoRegister::registration(void)
 InfoRegisters::InfoRegisters(Arc::XMLNode &cfg, Arc::Service *service) {
     if(!service) return;
     NS ns;
-    ns["regcfg"]=REGISTRATION_CONFIG_NAMESPACE;
+    ns["iregc"]=REGISTRATION_CONFIG_NAMESPACE;
     cfg.Namespaces(ns);
-    for(XMLNode node = cfg["regcfg"];(bool)node;++node) {
+    for(XMLNode node = cfg["iregc:InfoRegister"];(bool)node;++node) {
         registers_.push_back(new InfoRegister(node,service));
     }
 }

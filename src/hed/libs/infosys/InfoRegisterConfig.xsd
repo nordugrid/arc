@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:icc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
+  xmlns:iregc="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
   targetNamespace="http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
   elementFormDefault="qualified">
 
     <xsd:complexType name="InfoRegister_Type">
-        <!-- This element defines configuration of Information Cache. -->
+        <!-- This element defines configuration of Information Registration interface. -->
         <xsd:sequence>
-            <!-- CacheRoot contains path in local file system to a
-                 directory where cache content is stored. -->
-            <xsd:element name="CacheRoot" type="xsd:string"/>
+            <!-- Period specifies how often registration to be done in seconds. -->
+            <xsd:element name="Period" type="xsd:string"/>
+            <xsd:element name="Peers">
+                <xsd:sequence>
+                    <!-- URL specifies contact endpoint of Information Registration service. -->
+                    xsd:element name="URL" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:elememnt>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="InfoRegister" type="icc:InfoRegister_Type"/>
