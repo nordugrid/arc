@@ -13,6 +13,7 @@
 #define GLUE2_D42_NAMESPACE "http://schemas.ogf.org/glue/2008/05/spec_2.0_d42_r1"
 #define REGISTRATION_NAMESPACE "http://www.nordugrid.org/schemas/registartion/2008/08"
 #define ISIS_NAMESPACE "http://www.nordugrid.org/schemas/isis/2008/08"
+#define REGISTRATION_CONFIG_NAMESPACE "http://www.nordugrid.org/schemas/InfoRegisterConfig/2008"
 
 namespace Arc
 {
@@ -34,7 +35,20 @@ class InfoRegister
         ~InfoRegister();
         long int getPeriod(void) { return reg_period_; };
         void registration(void);
+};
 
+/// Hadling multiple registrations to ISISes
+class InfoRegisters
+{
+    private:
+        std::list<Arc::InfoRegister*> registers_;
+    public:
+        /// Constructor creates InfoRegister objects according to configuration
+        /** Inside cfg elements isis:InfoRegister are found and for each
+           corresponding InfoRegister object is created. Those objects 
+           are destroyed in destructor of this class. */
+        InfoRegisters(Arc::XMLNode &cfg, Arc::Service *service_);
+        ~InfoRegisters(void);
 };
 
 }

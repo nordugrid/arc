@@ -55,6 +55,7 @@ InfoRegister::~InfoRegister(void)
 {
     // Service should not be deleted here!
     // Nope
+    // TODO: stop registration threads created by this object
 }
 
 void InfoRegister::registration(void)
@@ -123,6 +124,22 @@ void InfoRegister::registration(void)
         } else {
             logger_.msg(DEBUG, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"])); 
         }
+    }
+}
+
+InfoRegisters::InfoRegisters(Arc::XMLNode &cfg, Arc::Service *service) {
+    if(!service) return;
+    NS ns;
+    ns["regcfg"]=REGISTRATION_CONFIG_NAMESPACE;
+    cfg.Namespaces(ns);
+    for(XMLNode node = cfg["regcfg"];(bool)node;++node) {
+        registers_.push_back(new InfoRegister(node,service));
+    }
+}
+
+InfoRegisters::~InfoRegisters(void) {
+    for(std::list<Arc::InfoRegister*>::iterator i = registers_.begin();i!=registers_.end();++i) {
+        if(*i) delete (*i);
     }
 }
 
