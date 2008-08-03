@@ -243,7 +243,7 @@ Option values can be surrounded by single quotes or double quotes.
 Values without quotes are also accepted. Multi-valued options are
 not supported currently. Only the last defined value is retained. 
 \end{quote}
-\texttt{config\_update\_from\_section <section\_name>}
+\texttt{config\_import\_section <section\_name>}
 
 \begin{quote}
 Imports options from section <section\_name> of the config file into
@@ -256,11 +256,11 @@ Example:
 
 \texttt{config\_parse\_file /etc/arc.conf || exit 1}
 
-\texttt{config\_update\_from\_section common}
+\texttt{config\_import\_section common}
 
-\texttt{config\_update\_from\_section grid-manager}
+\texttt{config\_import\_section grid-manager}
 
-\texttt{config\_update\_from\_section infosys}
+\texttt{config\_import\_section infosys}
 
 \texttt{echo \$CONFIG\_pbs\_bin\_path }
 
@@ -288,16 +288,16 @@ so that it uses the correct Perl module depending on the LRMS type.
 The information collector scripts are divided between several separate scripts:
 \begin{itemize}
 \item \texttt{cluster+qju.pl} - driver for information collection. It calls all other information collectors and prints results in XML. The information collection is done by one single invocation of this script
-\item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm})
-\item \texttt{InfoChecker.pm} - used by InfoCollector to validate options and results against a simple 'schema' (not XML Schema)
+\item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm}).
+\item \texttt{InfoChecker.pm} - used by InfoCollector to validate options and results against a sort of ``schema'', as implemented by \texttt{InfoChecker.pm}.
 \item \texttt{GMJobsInfo.pm} - collects information about jobs from grid manager status files
 \item \texttt{HostInfo.pm} - collects other information that can be collected on the front end (hostname, software version, disk space for users, installed certificates, Runtime environments ...)
-\item \texttt{LRMSInfo.pm} - collects information that is LRMS specific (queues, jobs, local user limits ...)
+\item \texttt{LRMSInfo.pm} - collects information that is LRMS specific (queues, jobs, local user limits ...) by calling the appropriate LRMS plugin. It also does validation of input options to the plugin and of the data returned by the plugin. 
 \item \texttt{BATCH\_SYSTEM\_NAME.pm} - plugins for LRMSInfo. Only Fork, SGE and PBS are updated to the new framework
 \item \texttt{ARC0ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the classic NG schema
 \item \texttt{ARC1ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the GLUE2 schema
-\item \texttt{ARC0ClusterSchema.pm} - description of the info produced by ARC0ClusterInfo
-\item \texttt{ARC1ClusterSchema.pm} - description of the info produced by ARC1ClusterInfo
+\item \texttt{ARC0ClusterSchema.pm} - ``schema'' of the info produced by ARC0ClusterInfo
+\item \texttt{ARC1ClusterSchema.pm} - ``schema'' of the info produced by ARC1ClusterInfo
 \end{itemize}
 
 All information about the hosting environment and queues is collected by one invocation of the Perl script named
@@ -307,173 +307,152 @@ two representations of the output data, namely the classic NorduGrid information
 
 \subsection{The LRMS Perl module interface}
 
-The LRMS module should implement four functions as defined by the
-\texttt{LRMS.pm}: \texttt{Cluster\_info}, that provides general information
-about the local cluster, \texttt{Queue\_info}, that provides information
-about a specified queue, \texttt{Jobs\_info} that gives information
-about a list of specified jobs, and finally \texttt{user\_info} that
-gives information about a grid user mapped to a local UNIX account.
-All the functions are called with a hash containing the contents of
-arc.conf.
+Each LRMS module should implement two functions: \texttt{lrms\_info} and
+\texttt{get\_lrms\_options\_schema}.
 
 
-\subsubsection{cluster\_info}
+\subsubsection{get\_lrms\_options\_schema}
 
-\texttt{Cluster\_info} is called only with the config hash. It should
-then return an associative array with the following keys and the appropriate
-value.
+This function is called without arguments and should return a ``schema'' hash
+declaring the configuration options specific for this LRMS plugin. This
+``schema'' conforms to the format understood by \texttt{InfoChecker.pm} and is
+used to validate input options by \texttt{LRMSInfo.pm}.
 
+
+\subsubsection{lrms\_info}
+
+\texttt{lrms\_info} returns all LRMS specific information. This
+includes information about the cluster, queues, jobs and local users. The
+function is called with an options hash of hashes. It should then return an
+hash of hashes with the following keys and the appropriate value.
+
+\begin{table}
+\caption{The \texttt{lrms\_info} hash} \label{t:lrms_info}
+\begin{center}
 \begin{tabular}{|c|c|}
-\hline 
-key&
-value\tabularnewline
 \hline
-\hline 
-lrms\_type&
-the type of LRMS e.g PBS\tabularnewline
-\hline 
-lrms\_version&
-the version of the LRMS\tabularnewline
-\hline 
-totalcpus&
-total number of CPUs in the cluster\tabularnewline
-\hline 
-queuedcpus&
-total number of CPUs requested by LRMS queuing jobs (both grid and
-non-grid)\tabularnewline
-\hline 
-usedcpus&
-CPUs in the LRMS that are currently in use either by grid or non-grid
-jobs\tabularnewline
-\hline 
-cpudistribution&
-number of CPUs in a node and number of each type e.g. {}``8cpu:5
-2cpu:100''\tabularnewline
+key & value\\
+\hline \hline
+lrms\_type & the type of LRMS e.g PBS\\
+\hline
+lrms\_version & the version of the LRMS\\
+\hline
+totalcpus & total number of CPUs in the cluster\\
+\hline
+queuedcpus & total number of CPUs requested by LRMS queuing jobs (both grid and
+non-grid)\\
+\hline
+usedcpus & CPUs in the LRMS that are currently in use either by grid or
+non-grid jobs\\
+\hline
+cpudistribution & number of CPUs in a node and number of each type e.g.
+{}``8cpu:5 2cpu:100''\\
+\hline
+queues & a hash with keys being queue names and values being
+\texttt{queue\_info} hashes as described in table \ref{t:queue_info} \\
+\hline
+jobs & a hash with keys being LRMS job IDs and values being
+\texttt{jobs\_info} hashes as described in table \ref{t:jobs_info} \\
 \hline
 \end{tabular}
+\end{center}
+\end{table}
 
 
-\subsubsection{queue\_info}
-
-In addition to the config \texttt{queue\_info} is called with the
-name of the queue to get information on. The result should take the
-following form.
-
+\begin{table}
+\caption{The \texttt{queue\_info} hash}
+\label{t:queue_info}
+\begin{center}
 \begin{tabular}{|c|c|}
-\hline 
-key&
-value\tabularnewline
 \hline
-\hline 
-status&
-available slots in queue, negative number signals error\tabularnewline
-\hline 
-maxrunning&
-limit on number of running jobs\tabularnewline
-\hline 
-maxqueuable&
-limit on number of jobs queued on this queue\tabularnewline
-\hline 
-maxuserrun&
-limit on number of running jobs per user\tabularnewline
-\hline 
-maxcputime&
-limit on maximum CPU time for a job in this queue\tabularnewline
-\hline 
-mincputime&
-limit on minimum CPU time for a job in this queue\tabularnewline
-\hline 
-defaultcput&
-default CPU time limit for a job in this queue\tabularnewline
-\hline 
-maxwalltime&
-limit on maximum wall time for a job in this queue\tabularnewline
-\hline 
-minwalltime&
-limit on minimum wall time for a job in this queue\tabularnewline
-\hline 
-defaultwallt&
-default wall time limit for a job in this queue\tabularnewline
-\hline 
-running&
-number of CPUs used by running jobs (both grid and non-grid) in the
-queue\tabularnewline
-\hline 
-queued&
-CPUs requested by queuing jobs in the queue\tabularnewline
-\hline 
-totalcpus&
-number of CPUs available to the queue\tabularnewline
+key & value\\
+\hline \hline
+status & available slots in queue, negative number signals error\\
+\hline
+maxrunning & limit on number of running jobs\\
+\hline
+maxqueuable & limit on number of jobs queued on this queue\\
+\hline
+maxuserrun & limit on number of running jobs per user\\
+\hline
+maxcputime & limit on maximum CPU time for a job in this queue in minutes\\
+\hline
+mincputime & limit on minimum CPU time for a job in this queue in minutes\\
+\hline
+efaultcput & default CPU time limit for a job in this queue in minutes\\
+\hline
+maxwalltime & limit on maximum wall time for a job in this queue in minutes\\
+\hline
+minwalltime & limit on minimum wall time for a job in this queue in minutes\\
+\hline
+defaultwallt & default wall time limit for a job in this queue in minutes\\
+\hline
+running & number of CPUs used by running jobs (both grid and non-grid) in the
+queue\\
+\hline
+queued & number of CPUs requested by queuing jobs in the queue\\
+\hline
+totalcpus & number of CPUs available to the queue\\
+\hline
+users & a hash with keys being local UNIX user names and values being
+\texttt{users\_info} hashes as described in table \ref{t:users_info} \\
 \hline
 \end{tabular}
+\end{center}
+\end{table}
 
 
-\subsubsection{jobs\_info}
-
-Like the rest the first argument is the config hash, then comes the
-queue name and finally a list of job ids. Once again an associative
-mapping should be made for each job. The key value pairs are:
-
+\begin{table}
+\caption{The \texttt{users\_info} hash}
+\label{t:users_info}
+\begin{center}
 \begin{tabular}{|c|c|}
-\hline 
-key&
-value\tabularnewline
 \hline
-\hline 
-status&
-LRMS jobstatus mapping%
-\footnote{LRMS job states mapping is described in~\cite{is} %
-}:Running->'R', Queued->'Q', Suspended->'S', Exiting->'E', Other->'O'\tabularnewline
-\hline 
-rank&
-the job's position in the LRMS queue\tabularnewline
-\hline 
-mem&
-the memory usage of the job in kBs\tabularnewline
-\hline 
-walltime&
-consumed wall-time in minutes\tabularnewline
-\hline 
-cputime&
-consumed CPU-time in minutes\tabularnewline
-\hline 
-reqwalltime&
-wall-time requested by job in minutes\tabularnewline
-\hline 
-reqcputime&
-CPU-time requested by job in minutes\tabularnewline
-\hline 
-nodes&
-list of execution hosts\tabularnewline
-\hline 
-comment&
-array of string comments about the job in LRMS, can be an empty array\tabularnewline
+key & value\\
+\hline \hline
+freecpus & number of freely available CPUs with their time limits in minutes
+(see ComputingService.FreeSlotsWithDuration in\cite{glue2})\\
+\hline
+queuelength & estimated queue length for the specified user\\
 \hline
 \end{tabular}
+\end{center}
+\end{table}
 
 
-\subsubsection{user\_info}
-
-\texttt{Users\_info} is given the config hash, a queue name and a
-list of local UNIX accounts (UIDs). It should then return an associative
-array containing for each UID the number of free CPUs available for
-that local account on the given queue and the number of queued jobs
-on that queue.
-
+\begin{table}
+\caption{The \texttt{jobs\_info} hash}
+\label{t:jobs_info}
+\begin{center}
 \begin{tabular}{|c|c|}
-\hline 
-key&
-value\tabularnewline
 \hline
-\hline 
-freecpus&
-number of freely available CPUs with their time limits in minutes
-(see nordugrid-authuser-freecpus in~\cite{is})\tabularnewline
-\hline 
-queuelength&
-estimated queue length for the specified user\tabularnewline
+key & value\\
+\hline \hline
+status & LRMS jobstatus mapping\footnotemark[1]:
+Running->'R', Queued->'Q', Suspended->'S', Exiting->'E', Other->'O'\\
+\hline
+rank & the job's position in the LRMS queue\\
+\hline
+mem & the memory usage of the job in kBs\\
+\hline
+walltime & consumed wall-time in minutes\\
+\hline
+cputime & consumed CPU-time in minutes\\
+\hline
+reqwalltime & wall-time requested by job in minutes\\
+\hline
+reqcputime & CPU-time requested by job in minutes\\
+\hline
+nodes & list of execution hosts\\
+\hline
+comment & array of string comments about the job in LRMS, can be an empty
+array\\
 \hline
 \end{tabular}
+\footnotetext[1]{LRMS job states mapping is described in\cite{is}}
+\end{center}
+\end{table}
+
 
 
 \section{Batch system specifics}
