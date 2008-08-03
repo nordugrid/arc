@@ -1,7 +1,7 @@
 namespace ArcSec {
 
   ///Evaluation result  
-  enum Result {
+  typedef enum {
     /**Permit*/
     DECISION_PERMIT = 0,
     /**Deny*/
@@ -10,6 +10,16 @@ namespace ArcSec {
     DECISION_INDETERMINATE = 2,
     /**Not_Applicable, means the the request tuple <Subject, Resource, Action, Context> does not match the rule. So there is no way to get to the "Permit"/"Deny" effect. */
     DECISION_NOT_APPLICABLE = 3
+  } Result;
+
+  inline std::ostream& operator<<(std::ostream& o,Result r) {
+    switch(r) {
+      case DECISION_PERMIT: return o<<"Permit";
+      case DECISION_DENY: return o<<"Deny";
+      case DECISION_INDETERMINATE: return o<<"Indeterminate";
+      case DECISION_NOT_APPLICABLE: return o<<"Not Applicable";
+    };
+    return o<<"Undefined";
   };
 
   ///Match result
