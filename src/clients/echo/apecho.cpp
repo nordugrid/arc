@@ -25,6 +25,9 @@
   be "echo_client.xml" in the current working directory.
 */
 int main(int argc, char* argv[]){
+  Arc::LogStream logcerr(std::cerr);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::rootLogger.setThreshold(Arc::VERBOSE);
   try{
     if (argc!=2)
       throw std::invalid_argument("Wrong number of arguments!");
