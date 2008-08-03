@@ -37,7 +37,6 @@ usr/share/man/man1/arcsub.1
 usr/share/man/man1/arckill.1
 usr/share/man/man1/arcclean.1
 usr/share/man/man1/arcget.1
-usr/share/man/man1/arcecho.1
 usr/share/man/man1/perftest.1
 usr/share/man/man1/arccp.1
 usr/share/man/man1/arcls.1
