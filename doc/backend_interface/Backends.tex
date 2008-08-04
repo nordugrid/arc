@@ -276,7 +276,7 @@ the front-end machine and from the \texttt{arc.conf} configuration
 file are also needed and used to populate the nordugrid information
 model~\cite{is} and the GLUE2 schema~\cite{glue2}.
 
-The information system interface consists of set of Perl scripts which
+The information system interface consists of a set of Perl scripts which
 generates an XML output to \texttt{STDOUT}.
 
 The following subsection describes the LRMS interface part of the
@@ -289,15 +289,13 @@ The information collector scripts are divided between several separate scripts:
 \begin{itemize}
 \item \texttt{cluster+qju.pl} - driver for information collection. It calls all other information collectors and prints results in XML. The information collection is done by one single invocation of this script
 \item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm}).
-\item \texttt{InfoChecker.pm} - used by InfoCollector to validate options and results against a sort of ``schema'', as implemented by \texttt{InfoChecker.pm}.
+\item \texttt{InfoChecker.pm} - used by \texttt{InfoCollector} to validate options and results against a ``schema''.
 \item \texttt{GMJobsInfo.pm} - collects information about jobs from grid manager status files
 \item \texttt{HostInfo.pm} - collects other information that can be collected on the front end (hostname, software version, disk space for users, installed certificates, Runtime environments ...)
 \item \texttt{LRMSInfo.pm} - collects information that is LRMS specific (queues, jobs, local user limits ...) by calling the appropriate LRMS plugin. It also does validation of input options to the plugin and of the data returned by the plugin. 
 \item \texttt{BATCH\_SYSTEM\_NAME.pm} - plugins for LRMSInfo. Only Fork, SGE and PBS are updated to the new framework
 \item \texttt{ARC0ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the classic NG schema
 \item \texttt{ARC1ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the GLUE2 schema
-\item \texttt{ARC0ClusterSchema.pm} - ``schema'' of the info produced by ARC0ClusterInfo
-\item \texttt{ARC1ClusterSchema.pm} - ``schema'' of the info produced by ARC1ClusterInfo
 \end{itemize}
 
 All information about the hosting environment and queues is collected by one invocation of the Perl script named
@@ -316,20 +314,54 @@ Each LRMS module should implement two functions: \texttt{lrms\_info} and
 This function is called without arguments and should return a ``schema'' hash
 declaring the configuration options specific for this LRMS plugin. This
 ``schema'' conforms to the format understood by \texttt{InfoChecker.pm} and is
-used to validate input options by \texttt{LRMSInfo.pm}.
+used to validate input options to the plugin.
 
 
 \subsubsection{lrms\_info}
 
-\texttt{lrms\_info} returns all LRMS specific information. This
-includes information about the cluster, queues, jobs and local users. The
-function is called with an options hash of hashes. It should then return an
-hash of hashes with the following keys and the appropriate value.
+The \texttt{lrms\_info} function returns all LRMS specific information. This
+includes information about the cluster, queues, jobs and local user limits. The
+function is called with a hash of hashes containing all options required by the
+LRMS plugin. Some options are common to all plugins, and are described in table
+\ref{t:lrms_opts}.
 
 \begin{table}
-\caption{The \texttt{lrms\_info} hash} \label{t:lrms_info}
+\caption{The \texttt{lrms\_options} hash used as input for the \texttt{lrms\_info} function} \label{t:lrms_opts}
 \begin{center}
-\begin{tabular}{|c|c|}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+jobs & array with local job IDs \\
+\hline
+queues & hash with queue names as keys and values being
+\texttt{queue\_options} hashes (table \ref{t:queue_opts}) \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}
+\caption{The \texttt{queue\_options} hash} \label{t:queue_opts}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+users & array with local UNIX user names \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+The \texttt{lrms\_info} function should then return a
+hash of hashes with the sctructure described in table \ref{t:lrms_info}.
+
+\begin{table}
+\caption{The \texttt{lrms\_info} hash returned by the \texttt{lrms\_info} function} \label{t:lrms_info}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
 \hline
 key & value\\
 \hline \hline
@@ -363,7 +395,7 @@ jobs & a hash with keys being LRMS job IDs and values being
 \caption{The \texttt{queue\_info} hash}
 \label{t:queue_info}
 \begin{center}
-\begin{tabular}{|c|c|}
+\begin{tabular}{|c|p{12cm}|}
 \hline
 key & value\\
 \hline \hline
@@ -406,7 +438,7 @@ users & a hash with keys being local UNIX user names and values being
 \caption{The \texttt{users\_info} hash}
 \label{t:users_info}
 \begin{center}
-\begin{tabular}{|c|c|}
+\begin{tabular}{|c|p{12cm}|}
 \hline
 key & value\\
 \hline \hline
@@ -424,12 +456,16 @@ queuelength & estimated queue length for the specified user\\
 \caption{The \texttt{jobs\_info} hash}
 \label{t:jobs_info}
 \begin{center}
-\begin{tabular}{|c|c|}
+\begin{tabular}{|c|p{12cm}|}
 \hline
 key & value\\
 \hline \hline
 status & LRMS jobstatus mapping\footnotemark[1]:
-Running->'R', Queued->'Q', Suspended->'S', Exiting->'E', Other->'O'\\
+Running $\Rightarrow$ 'R',
+Queued $\Rightarrow$ 'Q',
+Suspended $\Rightarrow$ 'S',
+Exiting $\Rightarrow$ 'E',
+Other $\Rightarrow$ 'O'\\
 \hline
 rank & the job's position in the LRMS queue\\
 \hline
@@ -525,7 +561,7 @@ Checking your PBS configuration:
 \item The node definition can be checked by \texttt{<PBS installation path>/bin/pbsnodes
 -a.} All the nodes MUST have ntype=cluster. 
 \item The required queue attributes can be checked as \texttt{<PBS installation
-path>/bin/qstat -f -Q queuename.} There MUST be a max\_user\_run or
+path>/bin/qstat -f -Q queuename}. There MUST be a max\_user\_run or
 a max\_running attribute listed with a REASONABLE value. 
 \end{itemize}
 
@@ -797,21 +833,131 @@ The different entities with their attributes are described in their respective s
 
 \subsection{ComputingService}
 
-\phantomsection
-%\addcontentsline{toc}{subsubsection}{LocalID}
-\hspace*{0.5cm}
-\begin{shaded}
-\textbf{LocalID}
-\end{shaded}
-\begin{tabular}{lp{10cm}}  
-Attribute value:& LocalID\_t\\
-Example:&  \verb#TODO#\\
-Related xRSL:& \verb#NA#\\
-UI role:& TODO \\
+Hardcoded Properties:
 
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Value \\
+\hline \hline
+Capability & \texttt{executionmanagement.jobexecution} \\
+\hline
+Type & \texttt{org.nordugrid.arex} \\
+\hline
+QualityLevel & \texttt{development} \\
+\hline
+Complexity & \texttt{endpoint=1,share=N,resource=1}, where N is the number of queues in the configuration file\\
+\hline
 \end{tabular}
 
-Description: An opaque identifier local to the Computing Service.
+\vspace*{3mm}
+The following properties referring to job counts are obtained from GridManager's status files:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Meaning \\
+\hline \hline
+TotalJobs & Number of grid jobs which are not yet finished \\
+\hline
+RunningJobs & Number of grid jobs running \\
+\hline
+WaitingJobs & Number of grid jobs queued in the LRMS and waiting to be submitted to the LRMS \\
+\hline
+\end{tabular}
+
+
+\subsection{ComputingEndpoint}
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Value\\
+\hline \hline
+URL & \texttt{https://\emph{hostname}:\emph{port}/arex} \\
+\hline
+Technology & \texttt{webservice} \\
+\hline
+Interface & \texttt{OGSA-BES} \\
+\hline
+WSDL & \texttt{https://\emph{hostname}:\emph{port}/arex/?wsdl} \\
+\hline
+Semantics & \texttt{http://www.nordugrid.org/documents/arex.pdf} \\
+\hline
+SupportedProfile & \texttt{WS-I 1.0} and \texttt{HPC-BP} \\
+\hline
+Implementor & \texttt{NorduGrid} \\
+\hline
+ImplementationName & \texttt{ARC1} \\
+\hline
+ImplementationVersion & \texttt{0.9} \\
+\hline
+QualityLevel & \texttt{development} \\
+\hline
+HealthState & \texttt{ok} -- no detection of problems yet\\
+\hline
+ServingState & \texttt{draining} if the configuration has allownew=no, \texttt{production} otherwise \\
+\hline
+IssuerCA & from the \emph{hostcert.pem} file \\
+\hline
+TrustedCA & from scanning the \emph{certificates} directory \\
+\hline
+Staging & \texttt{staginginout} \\
+\hline
+JobDescription & \texttt{ogf:jsdl:1.0}\\
+\hline
+\end{tabular}
+
+
+\subsection{ComputingShare}
+
+A ComputingShare element is generated for each 'queue' section in the configuration.
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Value\\
+\hline \hline
+BaseType & \texttt{Share} \\
+\hline
+Name & from the configuration \\
+\hline
+Description & ``comment'' configuration option \\
+\hline
+MappingQueue & from the configuration \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are taken from the corresponding values returned by
+the LRMS plugin. Units are converted as necessary.
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & LRMS plugin property \\
+\hline \hline
+MaxCPUTime & maxcputime \\
+\hline
+MinCPUTime & mincputime \\
+\hline
+DefaultCPUTime & defaultcput \\
+\hline
+MaxWallTime & maxwalltime \\
+\hline
+MinWallTime & minwalltime \\
+\hline
+DefaultWallTime & defaultwallt \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Value\\
+\hline \hline
+MaxTotalJobs & maxjobs from configuration\\
+MaxRunningJobs & \\
+MaxWaitingJobs & \\
+\hline
+\end{tabular}
+
 
 \phantomsection
 %\addcontentsline{toc}{subsubsection}{Name}
@@ -824,9 +970,9 @@ Attribute value:& String\\
 Example:& \verb#Name: TODO#\\
 Related xRSL:& TODO\\
 UI role:& ?\\
+Description:& Name of the application environment\\
 \end{tabular}
 
-Description: Name of the application environment.
 
 \phantomsection
 %\addcontentsline{toc}{subsubsection}{Version}
@@ -839,13 +985,9 @@ Attribute value:& String\\
 Example:& \verb#Version: TODO#\\
 Related xRSL:& TODO\\
 UI role:& TODO\\
+Description:& Name of the application environment\\
 \end{tabular}
 
-Description: Version of the application environment.
-
-\subsection{ComputingEndpoint}
-
-\subsection{ComputingShare}
 
 \bibliography{grid}
 
