@@ -18,6 +18,14 @@
 
 The Hosting Environment Daemon (HED) is the container of all the functional components of the new generation of the Advanced Resource Connector (ARC) middleware on the server side. It is the central part in a new very lightweight incarnation of ARC that is aimed at - but not limited to - providing Web Service.
 
+Whole design of the HED is built around idea of flexibility and modularity. Inside HED developer or deployer is supposed to use only as much as needed. This is why the HED mostly consists of pluggable modules with some glue between them.
+
+Because in it's current state it mostly provides modules for building SOAP based Web Services there is common misunderstanding that HED is just yet another implementation of Web Services development framework like Axis, gSOAP, XFire or any other of numerous implementations. But instead the idea of HED is to provide framework for gluing functionalities and not a re-implementation of various standards. Effectively that means if Apache 2 web server is considered by developers as necessary for serving as frontend to services there could be plugin written which puts Apache 2 into a chain of other plugins of the HED.
+
+In current implementation you will not find Apache or Axis plugins. That is because developers of HED were concerned very much about lightweigtness of solution and needed rather simple and light despite simplified implementation of supported protocols. As result some basic things like SOAP and HTTP are implemented inside HED. While external software is used whenever that is found to be appropriate - like in case of TLS, (Grid)FTP, LDAP and some other features. That does not exclude possibility to have plugins using entirely external solutions either developed or accepted from third parties.
+
+The HED is relatively young framework and there are quite many rough corners and non-flexible solutions. The situation will hopefully improve with time. We would be grateful for any suggestions how to improve architecture and code of the HED. Statements like "you are doing crap, i'll better use Axis" are understood but not welcome and are usually reacted adequately.
+
 \section{Architecture}
 
 \subsection{Requirements}
@@ -84,6 +92,10 @@ In general case multiple service living in the HED so the incomming message shou
 The services are dynamically loaded on start up just like the MCCs. They can even be regarded as special cases of MCCs in that they constitute the last link in the so called Message Chain and are attached in much the same manner as other MCCs. After being loaded, instanciated and configured by the HED, services are provided with a range of 
 
 The services are typically expected to receive parsed SOAP messages which they service - possibly by invoking or communicating with external processes.
+
+\subsubsection{PDC}
+
+\subsubsection{Security Handlers}
 
 \subsubsection{Alternative implementation languages}
 
