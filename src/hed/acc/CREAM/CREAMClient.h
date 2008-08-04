@@ -57,6 +57,7 @@ namespace Arc{
             private:
                 Arc::ClientSOAP* client;
                 Arc::NS cream_ns;
+                std::string proxyPath;
                 std::string delegationId;
                 static Arc::Logger logger;
                 

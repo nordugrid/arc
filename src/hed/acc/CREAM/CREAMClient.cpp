@@ -25,9 +25,18 @@ namespace Arc{
         CREAMClient::CREAMClient(const Arc::URL& url, const Arc::MCCConfig& cfg) throw(CREAMClientError):client(NULL) {
             logger.msg(Arc::INFO, "Creating a CREAM client.");
             Arc::MCCConfig modified_cfg = cfg;
-            std::stringstream uid;
-            uid << "/tmp/x509up_u" << getuid() ;
-            modified_cfg.AddProxy(uid.str());
+            // Check wether there is an environment variable setted for this purpose
+            char * res=NULL;
+            res = getenv ("X509_USER_PROXY");
+            if ( res!=NULL ){
+                proxyPath = res;
+            } else {
+                // If no, then use the default value
+                std::stringstream uid;
+                uid << "/tmp/x509up_u" << getuid() ;
+                proxyPath = uid.str();
+            }
+            modified_cfg.AddProxy(proxyPath);
             client = new Arc::ClientSOAP(modified_cfg,url.Host(),url.Port(),url.Protocol() == "https",url.Path());
             set_cream_namespaces(cream_ns);
         }
