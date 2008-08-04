@@ -212,10 +212,9 @@ sub get_gmjobs_info($) {
                 $gmjobs{$ID}{"reqwalltime"}= int $reqwalltime_sec/60;
             }
 
-            my $rsl_tail = $rsl_string;
-            while ($rsl_tail =~ m/\("runtimeenvironment"\s+=\s+"([^\)]+)"/i) {
-                push @{$gmjobs{$ID}{runtimeenvironments}}, $1;
-                $rsl_tail = $'; # what's left after the match
+            while ($rsl_string =~ m/\("runtimeenvironment"\s+=\s+([^\)]+)/ig) {
+                my $tmp_string = $1;
+                push(@runtimes, $1) while ($tmp_string =~ m/"(\S+)"/g);
             }
         }
 
