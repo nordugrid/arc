@@ -18,13 +18,13 @@
 
 The Hosting Environment Daemon (HED) is the container of all the functional components of the new generation of the Advanced Resource Connector (ARC) middleware on the server side. It is the central part in a new very lightweight incarnation of ARC that is aimed at - but not limited to - providing Web Service.
 
-Whole design of the HED is built around idea of flexibility and modularity. Inside HED developer or deployer is supposed to use only as much as needed. This is why the HED mostly consists of pluggable modules with some glue between them.
+The whole design of the HED is built around the idea of flexibility and modularity. Inside HED the developer or deployer is supposed to use only as much as needed. This is why the HED mostly consists of pluggable modules with some glue between them.
 
-Because in it's current state it mostly provides modules for building SOAP based Web Services there is common misunderstanding that HED is just yet another implementation of Web Services development framework like Axis, gSOAP, XFire or any other of numerous implementations. But instead the idea of HED is to provide framework for gluing functionalities and not a re-implementation of various standards. Effectively that means if Apache 2 web server is considered by developers as necessary for serving as frontend to services there could be plugin written which puts Apache 2 into a chain of other plugins of the HED.
+Because in it's current state it mostly provides modules for building SOAP based Web Services, it is easy to think that HED is just another Web Services development framework like Axis, gSOAP, XFire or any other of numerous implementations. But instead the idea of HED is to provide framework for gluing functionalities and not a re-implementation of various standards. Effectively that means if Apache 2 web server is considered by developers as necessary for serving as frontend to services there could be plugin written which puts Apache 2 into a chain of other plugins of the HED.
 
-In current implementation you will not find Apache or Axis plugins. That is because developers of HED were concerned very much about lightweigtness of solution and needed rather simple and light despite simplified implementation of supported protocols. As result some basic things like SOAP and HTTP are implemented inside HED. While external software is used whenever that is found to be appropriate - like in case of TLS, (Grid)FTP, LDAP and some other features. That does not exclude possibility to have plugins using entirely external solutions either developed or accepted from third parties.
+In the current implementation there are no Apache or Axis plugins. That is because the developers of HED were very much concerned about making the solution lightweight and needed an implementation of the supported protocols that was both simple and lightweight. As a result essentials like SOAP and HTTP are implemented inside HED, while external software is used whenever that is found to be appropriate - as in the case of TLS, (Grid)FTP, LDAP and some other cases. ?That does not exclude possibility to have plugins using entirely external solutions either developed or accepted from third parties.?
 
-The HED is relatively young framework and there are quite many rough corners and non-flexible solutions. The situation will hopefully improve with time. We would be grateful for any suggestions how to improve architecture and code of the HED. Statements like "you are doing crap, i'll better use Axis" are understood but not welcome and are usually reacted adequately.
+The HED is a relatively young framework and there are quite a few rough edges and non-flexible solutions. The situation will hopefully improve with time. We would be grateful for any suggestions how to improve architecture and code of the HED. Statements like "you are doing crap, I'll better use Axis" are understood but not welcome and are usually reacted to adequately.
 
 \section{Architecture}
 
@@ -34,7 +34,7 @@ In the design of the HED, several goals and requirements were considered. These 
 
 The implementation language needed to be object oriented, efficient and provide easy access to system functionality. This eventually lead to the adoption of C++. but languages such as Java and Python were also considered at an early stage.
 
-External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity and license related concerns. Software of this level of complexity must of course depend on many external libraries and components but each such dependenscy has been introduced only after due consideration.
+External dependencies needed to be kept to a minimum while also taking into consideration their ubiquity or relative rarity as well as license related concerns. Software of this level of complexity must of course depend on many external libraries and components but each such dependenscy has been introduced only after due consideration.
 
 Conservation of resources was an important goal. The present design enables many services sharing both the same process and the same network ports or even port while at the same time exhibiting a remarkably low memory footprint.
 
