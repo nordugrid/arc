@@ -119,7 +119,8 @@ CREAM2 service URLs can directly be downloaded from any BDII database of gLite u
 \end{shaded}
 or
 \begin{shaded}
-\verb#$ ldapsearch -x -h lxbra2305.cern.ch -p 2170 -b mds-vo-name=local,o=grid '(GlueCEUniqueID=*cream*)'#
+\verb#$ ldapsearch -x -h lxbra2305.cern.ch -p 2170 -b mds-vo-name=local,o=grid //#\\*
+\verb#        '(GlueCEUniqueID=*cream*)'#
 \end{shaded}
 
 \subsection{glitedelegate}
@@ -138,21 +139,23 @@ The glitesub command syntax is the following:
 Here the delegation ID is the previously registered identification. The service URL will be different than in the delegation example above, because this is not the URL of the delegation, but the execution service. The job description must be in JDL format like in the example below. The info file stores information about job submitted. It should either be a non-existing file or it is overwritten. This file contains the job ID, the input sandbox URL, the output sandbox URL and the service URL. The submission command will take care of uploading the necessary input files up to the execution node.\par
 It is important that the \textit{VirtualOrganisation} and \textit{QueueName} attributes should be the same as your virtual organisation name and the corresponding queue name on the server side.\par
 
-An examle JDL description:
+An example JDL description:\\
+\begin{minipage}{\textwidth}
 \begin{framed}
-\verb#[#\\*
-\verb#Executable = "/bin/hostname";#\\*
-\verb#StdInput = "std.in";#\\*
-\verb#StdOutput = "std.out";#\\*
-\verb#StdError = "std.err";#\\*
-\verb#BatchSystem = "pbs";#\\*
-\verb#VirtualOrganisation = "knowarc.eu";#\\*
-\verb#InputSandbox = {"std.in"};#\\*
-\verb#OutputSandbox = {"std.out","std.err"};#\\*
-\verb#QueueName = "knowarc.eu";#\\*
-\verb#OutputSandboxDestURI = { "gsiftp://localhost/std.out", "gsiftp://localhost/std.err" };#\\*
+\verb#[#\\
+\verb#Executable = "/bin/hostname";#\\
+\verb#StdInput = "std.in";#\\
+\verb#StdOutput = "std.out";#\\
+\verb#StdError = "std.err";#\\
+\verb#BatchSystem = "pbs";#\\
+\verb#VirtualOrganisation = "knowarc.eu";#\\
+\verb#InputSandbox = {"std.in"};#\\
+\verb#OutputSandbox = {"std.out","std.err"};#\\
+\verb#QueueName = "knowarc.eu";#\\
+\verb#OutputSandboxDestURI = { "gsiftp://localhost/std.out", "gsiftp://localhost/std.err" };#\\
 \verb#]#
 \end{framed}
+\end{minipage}
 An example how to use this command:
 \begin{shaded}\verb#$ glitesub -D test_delegation //#\\*
 \verb#        https://cream.grid.upjs.sk:8443/ce-cream/services/CREAM2 description.jdl job.info#\end{shaded}
@@ -259,7 +262,7 @@ It is possible to express jobs in XRSL which have no equivalent in JDL. Speciﬁ
 \end{shaded}
 That is not possible to express in JDL. It only allows the file to be downloaded as datafile1.txt. This could be solved by a wrapper script that renames files according to the XRSL speciﬁcation. This does not solve our problem completely however. For example if a user wants to concatenate the stdout from two jobs, he would write something like the following in XRSL:
 \begin{shaded}
-\verb#(inputfiles=(gsiftp://interop.dcgc.dk/storage/job1/output.txtinput1.txt)#\\
+\verb#(inputfiles=(gsiftp://interop.dcgc.dk/storage/job1/output.txtinput1.txt)#\\*
 \verb#            (gsiftp://interop.dcgc.dk/storage/job2/output.txtinput2.txt))#
 \end{shaded}
 This cannot be solved just using the renaming method, because both input files would be retrieved before renaming is done and they would therefore overwrite each other.\par
