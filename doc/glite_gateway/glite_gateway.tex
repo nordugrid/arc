@@ -114,7 +114,14 @@ In the different grid systems the most widespread authentication method is the c
 For example:
 \begin{shaded}\verb#$ voms-proxy-init -voms knowarc.eu#\end{shaded}
 CREAM2 service URLs can directly be downloaded from any BDII database of gLite using the following LDAP command:
-\begin{shaded}\verb#$ ldapsearch -x -h lcg-bdii.cern.ch -p 2170 -b o=grid '(GlueCEUniqueID=*blah*)'#\end{shaded}
+\begin{shaded}
+\verb#$ ldapsearch -x -h lcg-bdii.cern.ch -p 2170 -b o=grid '(GlueCEUniqueID=*blah*)'#
+\end{shaded}
+or
+\begin{shaded}
+\verb#$ ldapsearch -x -h lxbra2305.cern.ch -p 2170 -b mds-vo-name=local,o=grid '(GlueCEUniqueID=*cream*)'#
+\end{shaded}
+
 \subsection{glitedelegate}
 \label{glitedelegate}
 If you want to submit a job to a gLite server, first you have to own a valid delegation on the remote site. You can either use an old, but still valid delegation identifier, or register a new one. There is a command line tool to register a delegation on the resource to be used.\par
