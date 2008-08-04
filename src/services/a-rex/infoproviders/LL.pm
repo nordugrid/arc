@@ -24,6 +24,70 @@ our(%lrms_queue);
 # Private subs
 ##########################################
 
+sub consumable_distribution ($$) {
+
+    my ( $path ) = shift;
+    my ( $consumable_type ) = shift;
+    my $used = 0;
+    my $max  = 0;
+    
+    unless (open LLSTATUSOUT,  "$path/llstatus -R|") {
+	error("Error in executing llstatus");
+    }
+
+    my @cons_dist = ();
+    while (<LLSTATUSOUT>) {
+	if (/^.*$consumable_type.*/) {
+	    /[^# ]*(#*) *.*$consumable_type.([0-9]*),([0-9]*).*/;
+	    # Check if node is down
+	    if ( $1 ne "#" ) {
+		my @a = ($3 - $2,$3);
+		push @cons_dist, [ @a ];
+	    }
+	}
+    }
+    return @cons_dist;
+}
+
+sub consumable_total (@) {
+
+    my @dist = @_;
+    my ($cpus, $used, $max);
+    foreach $cpus (@{dist}) {
+	$used += ${$cpus}[0];
+        $max  += ${$cpus}[1];
+    }
+    return ($used,$max)	
+}
+
+sub cpudist2str (@) {
+
+    my @dist = @_;
+    my @total_dist = ();
+    my $str = '';
+
+    # Collect number of available cores
+    my ($used,$max,$cpus);
+    foreach $cpus (@dist) {
+	($used, $max) = @{$cpus};
+	$total_dist[$max]++;
+    }
+
+    # Turn it into a string
+    my $n;
+    $n = 0;
+    foreach $cpus (@total_dist) {
+	if ($cpus ne "") {
+	    if ( $str ne '') {
+		$str .= ' ';
+	    }
+	    $str .= $n . "cpu:" . $cpus;
+	}
+	$n++;
+    }
+    return $str;
+}
+
 sub get_cpu_distribution($) { 
 
 	my ( $path ) = shift;
@@ -64,7 +128,7 @@ sub get_cpu_distribution($) {
 		}
 
 		# Only count those machines which have startd running
-		if ($startd != "0") {
+		if ($startd ne "0") {
 		    $cpudist{$cpus}++;
 		}
 	}
@@ -339,21 +403,36 @@ sub cluster_info ($) {
     $status_string =~ /^\S+\s+(\S+)/;
     $lrms_cluster{lrms_version} = $1;
 
-    # totalcpus
-    $lrms_cluster{totalcpus} = 0;
-    $lrms_cluster{cpudistribution} = "";
-    my %cpudist = get_cpu_distribution($path);
-    my $sep = "";
-    foreach my $key (keys %cpudist) {
-		$lrms_cluster{cpudistribution} .= $sep.$key."cpu:".$cpudist{$key};
-	    if ($sep == "") {
-			$sep = " ";
-		}
-		$lrms_cluster{totalcpus} += $key * $cpudist{$key};
-    }
+    my ($ll_consumable_resources) = $$config{ll_consumable_resources};
 
-    # Simple way to find used cpus (slots/cores) by reading the output of llstatus
-    $lrms_cluster{usedcpus} = get_used_cpus($path);
+    if ($ll_consumable_resources ne "yes") {
+
+	# totalcpus
+	$lrms_cluster{totalcpus} = 0;
+	$lrms_cluster{cpudistribution} = "";
+	my %cpudist = get_cpu_distribution($path);
+	my $sep = "";
+	foreach my $key (keys %cpudist) {
+	    $lrms_cluster{cpudistribution} .= $sep.$key."cpu:".$cpudist{$key};
+	    if ($sep == "") {
+		$sep = " ";
+	    }
+	    $lrms_cluster{totalcpus} += $key * $cpudist{$key};
+	}
+
+	# Simple way to find used cpus (slots/cores) by reading the output of llstatus
+	$lrms_cluster{usedcpus} = get_used_cpus($path);
+
+    } else {
+
+	# Find used / max CPUs from cconsumable resources
+	my @dist = consumable_distribution($path,"ConsumableCpus");
+	my @cpu_total = consumable_total(@dist);
+
+	$lrms_cluster{cpudistribution} = cpudist2str(@dist);
+	$lrms_cluster{totalcpus} = $cpu_total[1];
+	$lrms_cluster{usedcpus} = $cpu_total[0];
+    }
 
     my %jobstatus = get_short_job_info($path,"");
 
@@ -380,7 +459,9 @@ sub queue_info ($$) {
     $lrms_queue{status} = $long_queue_info{$queue}{'Free_slots'};
 
     # Max_total_tasks seems to give the right queue limit
-    $lrms_queue{maxrunning} = $long_queue_info{$queue}{'Max_total_tasks'};
+    #$lrms_queue{maxrunning} = $long_queue_info{$queue}{'Max_total_tasks'};
+    # Maximum_slots is really the right parameter to use for queue limit
+    $lrms_queue{maxrunning} = $long_queue_info{$queue}{'Maximum_slots'};
 
     $lrms_queue{maxqueuable} = "";
     $lrms_queue{maxuserrun} = $lrms_queue{maxrunning};
@@ -403,7 +484,8 @@ sub queue_info ($$) {
     $lrms_queue{defaultwallt}= $lrms_queue{defaultcput};
     $lrms_queue{running} = $jobstatus{running}; # + $jobstatus{held} + $jobstatus{preempted};
     $lrms_queue{queued}  = $jobstatus{waiting};
-    $lrms_queue{totalcpus} =  $long_queue_info{$queue}{'Max_processors'};
+#    $lrms_queue{totalcpus} =  $long_queue_info{$queue}{'Max_processors'};
+    $lrms_queue{totalcpus} =  $long_queue_info{$queue}{'Maximum_slots'};
     
     return %lrms_queue;
 }
@@ -468,6 +550,7 @@ sub jobs_info ($$$) {
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
         $lrms_jobs{$id}{nodes} = ["$jobinfo{$id}{Allocated_Host}"];
+        $lrms_jobs{$id}{rank} = -1;
     }
 
     return %lrms_jobs;
