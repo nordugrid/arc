@@ -214,7 +214,7 @@ sub get_gmjobs_info($) {
 
             while ($rsl_string =~ m/\("runtimeenvironment"\s+=\s+([^\)]+)/ig) {
                 my $tmp_string = $1;
-                push(@runtimes, $1) while ($tmp_string =~ m/"(\S+)"/g);
+                push(@{$gmjobs{$ID}{runtimeenvironments}}, $1) while ($tmp_string =~ m/"(\S+)"/g);
             }
         }
 
