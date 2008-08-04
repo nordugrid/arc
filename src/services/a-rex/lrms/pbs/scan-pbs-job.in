@@ -69,7 +69,7 @@ process_log_file () {
 eval "set -- $control_dirs"
 egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | \
 {
-  lines_processed='-1'
+  lines_processed='0'
   # skip already processed lines
   while [ $lines_skip -gt '0' ] ; do
     read rest_line
@@ -117,6 +117,9 @@ sort -u | \
         if [ -z "${base_name}" ] ; then continue ; fi
 	# check if job already reported
         if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
+        # more protection - check if grid-manager thinks job is still running
+        grep INLRMS "${base_name}.status" 2>/dev/null 1>/dev/null
+        if [ ! $? = '0' ] ; then continue ; fi
 	# So far only PBS exit code is available
 	# It would be nice to have exit code of main executable
 	exitcode=''
@@ -162,7 +165,7 @@ sort -u | \
         if [ -z "$exitcode" ] ; then
           # No exit code of job means job was most probably killed
           if [ -z "$exit_code" ] ; then exit_code='-1'; fi
-	  if [ "$exit_code" == '0' ] ; then 
+	  if [ "$exit_code" = '0' ] ; then 
             echo "Job $job_id failed but PBS have not noticed that" 1>&2
             echo "-1 Job failed but PBS reported 0 exit code." > "${base_name}.lrms_done"
 	  elif [ -z "$pbs_comment" ] ; then
@@ -175,11 +178,11 @@ sort -u | \
 	else
           if [ -z "$exit_code" ] ; then exit_code='-1'; fi
           if [ ! "$exitcode" = 0 ] ; then
-  	    if [ "$exit_code" == '0' ] ; then exit_code='-1'; fi
+  	    if [ "$exit_code" = '0' ] ; then exit_code='-1'; fi
             echo "Job $job_id failed with exit code $exitcode, PBS reported $exit_code." 1>&2
 	    echo "$exit_code Job failed with exit code $exitcode." > "${base_name}.lrms_done"
 	  else
-  	    if [ ! "$exit_code" == '0' ] ; then
+  	    if [ ! "$exit_code" = '0' ] ; then
               echo "Job finished properly but PBS reported $exit_code." 1>&2
 	      if [ -z "$pbs_comment" ] ; then
                 echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
