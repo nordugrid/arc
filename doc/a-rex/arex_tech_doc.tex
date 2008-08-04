@@ -1,4 +1,4 @@
-%% LyX 1.4.5 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 1.4.5.1 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[twoside,english]{article}
 \usepackage{pslatex}
@@ -140,20 +140,21 @@
 \section{Introduction\label{sec:intro}}
 
 A-Rex is one of ARC middleware componets implementing functions of
-so called \emph{Computing Element} (CE). It's made of few components
-- A-Rex Web Service (WS) Interface and Grid Manager (GM). Alternative
-and currently only stable interface to A-Rex is GridFTP Server (GFS).
+so called \emph{Computing Element} (CE).     
+          
+          
 
-The aim of the Grid Manager (GM) is to take care of job pre- and post-processing.
-It provides functionality to stage-in files containing input data
-and program modules from wide range of sources and transfer or store
-output results.
+The aim of the   A-Rex is to take care of job pre-
+and post-processing. It provides functionality to stage-in files containing
+input data and program modules from wide range of sources and transfer
+or store output results.
 
-Both WS Interface and GridFTP Interface components provide a way to
-submit and control computational tasks (jobs) to be executed by the
-GM and undelying Local Resource Management System. While WS interface
-is currently being developed the GridFTP is considered to be stable
-and prefered one.
+The A-Rex implements Web Service (WS) interface which   
+    provides a way to submit and control
+computational tasks (jobs) to be executed by the A-Rex and undelying
+Local Resource Management System.     
+          
+
 
 \textbf{You should use this document for advanced configuration purposes
 and understanding of internals of the aforementioned tools. For general
@@ -170,24 +171,24 @@ is called a \emph{session}.
 
 Each job gets a directory on the CE called the \emph{session directory}
 (SD). Input files are gathered in the SD. The job is supposed to produce
-new data files  in the  SD as well. GM does not guarantee the
-availability of any other places accessible by the job other than
+new data files  in the SD as well. The A-Rex does not guarantee
+the availability of any other places accessible by the job other than
 SD (unless such a place is part of a requested Runtime Environement).
-The SD is also the only place which is controlled by the GM. It is
-is accessible by the user from outside through HTTPS and GridFTP protocols.
-Any file created outside the SD is not controlled by the GM. Any exchange
-of data between client and GM (including also program modules) is
-done through GridFTP \cite{gridftp} or HTTPS protocols depending
-on the selected interface. A URL for accessing input/output files
-is obtained through the Information System or the WS Information Interface
-of A-Rex.
+The SD is also the only place which is controlled by the A-Rex.
+It is  accessible by the user from outside through HTTP(S)  
+protocol. Any file created outside the SD is not controlled by the
+A-Rex. Any exchange of data between client and A-Rex (including
+also program modules) is done through    HTTP(S) protocol
+   . A URL for accessing input/output
+files is       obtained through
+the WS Local Information Description Interface (LIDI) of A-Rex.
 
 Each job gets an identifier (\textit{jobid}). This is a handle which
-identifies the job in the GM and the Information System \cite{is}.
+identifies the job in the A-Rex and the Information  Interface.
 
-  Jobs are initiated and controlled through GFS or WS. Complete
-job descriptions   (JD)   are passed to the GM either
-through GFS in RSL \cite{rsl} or through WS in JSDL \cite{jsdl}
+  Jobs are initiated and controlled through   WS interface.
+Complete job descriptions   (JD)   are passed to the
+A-Rex  through       WS in JSDL \cite{jsdl}
 coded description     . Input data files
 and job executables are transferred separately through the same interface,
 as described in the next section.
@@ -195,41 +196,45 @@ as described in the next section.
 
 \section{Input/output data\label{sec:input/output data}}
 
-The main task of the GM is to take care of processing input and output
-data (files) of the job. Input files are gathered in the SD. There
-are two ways to put a file into the SD:
+One of the most important tasks   of the A-Rex is to
+take care of processing input and output data (files) of the job.
+Input files are gathered in the SD. There are two ways to put a file
+into the SD:
 
 \begin{itemize}
-\item Download is initiated by the GM --  This is the case for
-files     defined in the JD (with name and source).
-      The GM alone is responsible to make
-sure that all required files will be available in the SD.\\
+\item Download is initiated by the A-Rex --  This is the case
+for files     defined in the JD (with name and source).
+      The A-Rex alone is responsible to
+make sure that all required files will be available in the SD.\\
 The supported protocols for sources  at the moment are: GridFTP,
 FTP, HTTP, HTTPS (HTTP over SSLv3) and HTTPg (HTTP over GSI). Also
 some nonstandard sources are supported. Those are described below.
+The A-Rex fully relies on HED framework \cite{hed} for data transfering
+capabilities. Hence actual set of supported protocols depends on installed
+Data Management Components of the HED.
 \item Upload is initiated by the user directly or through the User Interface
 (UI). Because the SD becomes available immediately at the time of
 submission of JD, UI can (and should) use that to upload data files
-which are not otherwise accessible by the GM.  Examples of such
-files  are the main executable of the job,   the
-job's input files, etc. These files can (and should)
-also be specified in the JD.
+which are not otherwise accessible by the A-Rex.  Examples of
+such files  are the main executable of the job,  
+the job's input files, etc. These files can (and
+should) also be specified in the JD.
 \end{itemize}
 \textbf{There is no} other reliable way for a job to obtain input
-data on the CE belonging to NorduGrid. Access to AFS, NFS, FTP, HTTP
-and any other remote data transport during execution of a job is
-not guaranteed (at least not by GM).
+data on the CE based on the A-Rex  . Access to
+AFS, NFS, FTP, HTTP and any other remote data transport during execution
+of a job is not guaranteed (at least not by A-Rex).
 
-Jobs should store output files in thir SD. Like input files,
+Jobs should store output files in their SD. Like input files,
 output files  belong into two groups:
 
 \begin{itemize}
 \item Files which are supposed to be moved to a \emph{Storage Element} (SE)
 and optionally registered in some \emph{Indexing Service} like the
 Globus \emph{Replica Location Service } (RLS)  --
-The GM takes care of these files. They have to be specified in the
-JD. If the job fails during any stage of processing, no attept is
-made to transfer those files to their final destination, unless
+The A-Rex takes care of these files. They have to be specified
+in the JD. If the job fails during any stage of processing, no attept
+is made to transfer those files to their final destination, unless
 the  option \emph{preserve=yes} is specified in their URLs.
 \item Files which are supposed to be fetched by the user -- The user has
 to use a tool like the UI to obtain these files. They \textbf{must}
@@ -238,9 +243,9 @@ also be specified in the JD.
 
 \section{\label{Section: Job Flow}Job flow}
 
-From the point of view of the GM a job passes through various states.
-Picture \ref{job states diagram} presents a diagram of the possible
-states of a job.%
+From the point of view of the A-Rex a job passes through various
+states. Picture \ref{job states diagram} presents a diagram of the
+possible states of a job.%
 \begin{figure}[tbh]
 \begin{centering}
 \includegraphics{pic1}
@@ -249,12 +254,13 @@ states of a job.%
 
 \caption{\label{job states diagram}Job states}
 \end{figure}
-A user can examine the state of a job by querying the NorduGrid Information
-System (IS) using the UI or any other suitable tool. Please remember
-that the IS can manipulate  state names to make them more user
-friendly and to combine them with states introduced by other parts
-of the whole setup. Another way is to access virtual informational
-files through GridFTP interface or to use query method of WS interface. 
+A user can examine the state of a job by querying the dedicated Local
+Information Description Interface of A-Rex  
+ using the UI or any other suitable tool   
+           
+           
+         
+     or through query method of WS interface. 
 
 Configuration can put limits on the amout of simultaneous jobs in
 some states. If such a limit is reached, a job ready to enter into
@@ -263,15 +269,16 @@ a free slot. This situation is presented by prepending the prefix
 \textbf{PENDING:} to the current state name  \textbf{}
 in the job's status mark. 
 
-Below is the description of all actions taken by the GM at every state:
+Below is the description of all actions taken by the A-Rex at every
+state:
 
 \begin{itemize}
 \item \textbf{Accepted} - In this state the job has been submitted to
-a CE but is not processed yet. The GM will analyze the JD and move
-to the next stage. If the JD can not be processed the job will be
-canceled and moved to the state \textbf{Finishing}.
+a CE but is not processed yet. The A-Rex will analyze the JD and
+move to the next stage. If the JD can not be processed the job will
+be canceled and moved to the state \textbf{Finishing}.
 \item \textbf{Preparing} - The input data is being gathered in the SD (stage-in).
-The GM is downloading the files specified in the JD and is waiting
+The A-Rex is downloading the files specified in the JD and is waiting
 for files which are supposed to be uploaded by the UI. If
 all files are successfully gathered the job moves to the next state.
 If \textbf{any} file can't be downloaded or it takes the UI too long
@@ -283,15 +290,14 @@ state, but prefixed with the PENDING: mark. Exceptions are jobs which
 have no files to be downloaded. These are processed out of limits.
 \item \textbf{Submitting} -      The job is being
 passed for execution to the \emph{Local Resource Management System}
-(LRMS). At the moment PBS is supported best but correspoding backends
-for many other LRMSs are provided with the default installation. 
-      If the local job submission
-is successful the job moves to the \textbf{InLRMS} state. Otherwise
-it moves to \textbf{Finishing}. It is possible to limit the agregate
-number of jobs in \textbf{Submitting} and  \textbf{InLRMS}
-states.
+(LRMS).         The correspoding backends
+for many LRMSs are provided with the default installation.  
+     If the local job submission is successful
+the job moves to the \textbf{InLRMS} state. Otherwise it moves
+to \textbf{Finishing}. It is possible to limit the agregate number
+of jobs in \textbf{Submitting} and  \textbf{InLRMS} states.
 \item \textbf{InLRMS} - The job is queued or being executed in the LRMS.
-The GM takes no actions except waiting until the job finishes.
+The A-Rex takes no actions except waiting until the job finishes.
 \item \textbf{Cancelling} - Necessary action to cancel the job in the LRMS
 is being taken.
 \item \textbf{Finishing} - The output data is being processed (stage-out).
@@ -301,17 +307,16 @@ from the SD by using the UI or  other adequate tool. All the files
 not specified as output files are removed from the SD at very beginning
 of this state. It is possible to limit number of simultaneous jobs
 in this state.
-\item \textbf{Finished} - No more processing is performed by the GM. The
-user can continue to download data files from the SD. The SD is kept
-available for some time (default is 1 week). After that the job
-is moved to the state \textbf{Deleted}. The 'deletion' time can be
-obtained by querying the NorduGrid Information System  attribute
-\texttt{nordugrid-pbs-job-sessiondirerasetime} of a \texttt{nordugrid-pbs-job}
-entry. If a job was moved to \textbf{Finished} because of failure,
-it may be restarted on request of a client. When restarted, a job
-is moved to the state previous to the one in which it failed and
-is assigned mark PENDING. This is needed in order to not break the
-configuration limits. Exception is a job failed in \textbf{InLRMS}
+\item \textbf{Finished} - No more processing is performed by the A-Rex.
+The user can continue to download data files from the SD. The SD is
+kept available for some time (default is 1 week). After that the
+job is moved to the state \textbf{Deleted}. The 'deletion' time can
+be obtained by querying the Informatrion Interface of the A-Rex
+      . If a job was moved to \textbf{Finished}
+because of failure, it may be restarted on request of a client. When
+restarted, a job is moved to the state previous to the one in which
+it failed and is assigned mark PENDING. This is needed in order to
+not break the configuration limits. Exception is a job failed in \textbf{InLRMS}
 state and lacking input files specified in JD. Such a job is treated
 like failed in \textbf{Preparing} state.
 \item \textbf{Deleted} - The job is moved to this state if the user have
@@ -326,25 +331,27 @@ by the user}. No files will be moved to their destination SE.
 
 \section{URLs}
 
-The GM and it's components support the following data transfer protocols
-and corresponding URLs: \emph{ftp, gsiftp, http, httpg, https, se,
-rc} and \emph{rls.} For more information please see {}``Protocols,
-Uniform Resource Locators (URL) and extensions supported in ARC''
-document \cite{urls}.
+In full installation the A-Rex and it's components support the
+following data transfer protocols and corresponding URLs: \emph{ftp,
+gsiftp, http, httpg, https, se, rc} and \emph{rls.} For more information
+please see {}``The Hosting Environment of the Advanced Resource Connector
+middleware      
+  '' document \cite{hed}.
 
 
 \section{\label{section: internals}Internals}
 
 
-\subsection{Internal Files of the Grid Manager}
+\subsection{Internal Files of the A-Rex }
 
-For each local UNIX user listed in the GM configuration a \textit{control
-directory} exists. In this directory the GM stores information about
-jobs belonging to that user. Multiple users can share the same \textit{control
-directory}. To make it easier to recover in  case of failure, the
-GM stores most information in files rather than in memory. All files
-belonging to same the job have names starting with \textbf{job.ID.,}
-where ID is the job identifier.
+For each local UNIX user listed in the A-Rex configuration - including
+a generic one which covers all local user identities - a \textit{control
+directory} exists. In this directory the A-Rex stores information
+about jobs belonging to that user. Multiple users can share the same
+\textit{control directory}. To make it easier to recover in  case
+of failure, the A-Rex stores most information in files rather than
+in memory. All files belonging to the same job have names starting
+with \textbf{job.ID.,} where ID is the job identifier.
 
 The files in the control directory and their formats are described
 below:
@@ -374,9 +381,9 @@ because otherwise some limits set in the configuration would be
 exceeded.
 
 \begin{itemize}
-\item \textit{job.ID.description} - contains the RSL description of the
-job.
-\item \textit{job.ID.local} - information about the job used by the GM.
+\item \textit{job.ID.description} - contains the  description of the
+job (JD).
+\item \textit{job.ID.local} - information about the job used by the A-Rex.
 It consists of lines of format \textit{{}``name = value''} . Not
 all of them are always available. The following names are defined:
 
@@ -421,7 +428,8 @@ if it is possible to restart the job)
 \item \textit{jobreport} - URL of a user requested \emph{logger service}.
 The GM will also send job records to this service in addition to the
 default logger service configured in the configuration  
-       
+        (This feature does
+not work in current implementation).
 \end{itemize}
 \end{itemize}
 This file is filled partially during job submission and fully when
@@ -508,39 +516,39 @@ and other information provided by GNU \emph{time} utility. Note that
 some implementation of \emph{time} insert unrequested information
 in their output. Hence some lines can have broken format.
 
-\item \textit{job.ID.proxy} -delegated GSI proxy.
-\item \textit{job.ID.proxy.tmp} - temporary GSI proxy with different unx
-ownership used by processes run with effective \emph{user id} different
-form job owner's \emph{id}.
+\item \textit{job.ID.proxy} -delegated X509 credentials .
+\item \textit{job.ID.proxy.tmp} - temporary X509 credentials  with
+different UNIX ownership used by processes run with effective \emph{user
+id} different form job owner's \emph{id}.
 \end{itemize}
 There are other files with names like job.ID.{*} which are created
-and used by different parts of the GM. Their presence in the \textit{control
-directory} can not be guaranteed and can change depending on changes
-in the GM code.
+and used by different parts of the A-Rex. Their presence in the
+\textit{control directory} can not be guaranteed and can change depending
+on changes in the A-Rex code.
 
 
-\subsection{GridFTP Interface}
+\subsection{ }
 
-The GridFTP Interface to job management is implemented through GridFTP
-server. The GFS is made of layer implementing GridFTP protocol and
-plugins for accessing actual data. Local file access in the GFS is
-implemented through plugins (shared libraries). There are 3 plugins
-provided with the GFS: \textit{fileplugin.so, gaclplugin.so} and \textit{jobplugin.so}
-. 
+         
+          
+           
+        
+    \textit{ }  \textit{}
+ 
 
-The \textit{fileplugin.so} is intended to be uses for plain file access
-with the configuration senitive to user subject and is not needed
-for job management interface. 
+ \textit{}         
+          
+    
 
-The \textit{gaclplugin.so} uses GACL (\url{http://www.gridpp.ac.uk/authz/gacl/})
-to control access to local file system instead of Unix user identity.
-It's also not needed for job management.
+ \textit{}        
+           
+ 
 
-The \textit{jobplugin.so} is using information about jobs being controlled
-by GM and provides access to session directories of the jobs owned
-by user. It also provides an interface (virtual directory and virtual
-operations) to submit, cancel, clean, renew credentials and obtain
-information about the job.
+ \textit{}       
+           
+          
+        
+   
 
 
 \subsection{Web Service Interface}
@@ -549,37 +557,37 @@ A-REX Web Service Interface provides means to submit a description
 of a computational job to a computing resource, to stage-in additional
 data, to monitor and control processing of jobs, and obtain data produced
 during the execution of a job. The WS Interface is built and deployed
-inside Hosting Envirnoment Daemon {[}HED] infrastructure\cite{hed}.
+inside Hosting Envirnoment Daemon (HED) infrastructure\cite{hed}.
 
 
 \subsubsection{Basic Execution Service Interface}
 
 The job submission and control interface is based on document produced
 by the OGF OGSA Basic Execution Services (BES) Working Group\cite{bes}.
-The exchange of SOAP messages is performed over the HTTPS protocol.
+The exchange of SOAP messages is performed over the HTTP(S) protocol.
 The BES interface is represented by two port-types - BES-Management
 and BES-Factory. The former is made to control the A-REX service itself
 and thus defines operations to start and stop the functionality of
-the BES service. A-REX does not implement remote control of service
-functionality. Hence the BES-Management port-type is not implemented.
+the BES service. The A-Rex does not implement remote control of
+service functionality. Hence the BES-Management port-type is not functional.
 The BES-Factory port-type provides operations to submit new jobs (to
 create an activity in terms of BES) and to monitor its state. It also
-has an ability to provide information about the service. A-REX fully
+has an ability to provide information about the service. A-Rex fully
 implements the functionality of this port-type.
 
-For job descriptions A-REX accepts the Job Submission Description
-Language (JSDL)\cite{jsdl} as defined by the OGF Job Submission Description
-Language Working Group. Supported elements and extensions are described
-below.
+For job descriptions A-Rex accepts the Job Submission Description
+Language (JSDL)\cite{jsdl} documents as defined by the OGF Job Submission
+Description Language Working Group. Supported elements and extensions
+are described below.
 
 
 \subsubsection{Extensions to OGSA BES interface}
 
-A-REX introduces a new operation in addition to those provided by
-BES. It does that by defining its own port-type A-REX with the single
+A-R introduces a new operation in addition to those provided by
+BES. It does that by defining its own port-type  with the single
 operation \emph{ChangeActivityStatus} (see Appendix D). This operation
 provides a way to request simple transfers between states of jobs
-being processed and corresponding actions.
+  and corresponding actions.
 
 \begin{itemize}
 \item \emph{ChangeActivityStatus}
@@ -619,9 +627,9 @@ corresponding sequence is initiated and fault OperationWillBeAppliedEventuallyFa
 will be returned.
 
 Since BES allows implementators to extend their initial activity states
-with additional sub-states, A-REX defines a set of sub-states of activity
-processing in addition to those defined by the BES, as listed in Table
-\ref{tab:Job-states-definitions}.
+with additional sub-states, A-Rex defines a set of sub-states of
+activity processing in addition to those defined by the BES, as listed
+in Table \ref{tab:Job-states-definitions}.
 
 %
 \begin{table}
@@ -697,12 +705,12 @@ in parallel with other sub-states\tabularnewline
 
 \subsubsection{Delegation Interface}
 
-ARC service interfaces optionally offer a sub-interface, called the
-Delegation Interface (see Appendix E). This is a common purpose interface
-to be used by ARC services which accept delegated credentials from
-clients. The Delegation Interface implements two operations: initiatialization
-of credentials delegation (DelegateCredentialsInit) and update/renewal
-of credentials (UpdateCredentials).
+       The A-Rex
+also supportd  the Delegation Interface (see Appendix E). This
+is a common purpose interface to be used by ARC services which accepts
+delegated credentials from clients. The Delegation Interface implements
+two operations: initiatialization of credentials delegation (DelegateCredentialsInit)
+and update/renewal of credentials (UpdateCredentials).
 
 \begin{itemize}
 \item \emph{DelegateCredentialsInit} operation - this operation performs
@@ -775,7 +783,7 @@ response to the previous \emph{DelegateCredentialsInit} operation.
 \subsubsection{Local Information Description Interface}
 
 The A-REX implements the Local Information Description Interface (LIDI)
-interface being common for all ARC services. This interface is based
+interface  common for all ARC services. This interface is based
 on OASIS Web Services Resource Properties specification\cite{wsrf-rp}.
 Information about resources and maintained activities/jobs are represented
 in a \emph{WS-Resource Properties} informational XML document. The
@@ -1444,208 +1452,195 @@ value in configuration file),\\
 \hspace*{0.5cm}\emph{-c} - name od configuration file,\\
 \hspace*{0.5cm}\emph{-C} - remove old information before starting:
 1- remove finished jobs, 2 - remove active jobs too, 3- also remove
-everything that looks like junk.\\
+everything that looks like junk.
 
 
+\subsection{    }
 
-\subsection{\label{subsec: configfile of the gfs}Configuration of the GridFTP
-Server}
-
-Default location of the GFS configuration file is \textit{/etc/arc.conf}
-or \textit{\$NORDUGRID\_LOCATION/etc/gridftpd.conf}. Format of these
-configuration files is similar to that of the GM. It also supports
-generic commands described at the beginning of previous section \ref{SubSection: ConfigFile}.
-In the new format sections {[}common] and {[}gridftpd] are used. Commands
-specific to the GFS are described below.
+        \textit{}
+ \textit{}   
+           
+         
+          
+      
 
 \begin{itemize}
-\item \textbf{\textit{port}}\textit{=number} - specifies TCP/IP port number.
-Default is 2811.
-\item \textbf{\textit{include}}\textit{=path} - include contents of another
-file. Generic commands can't be specified there.
-\item \textbf{\textit{encryption}}\textit{=yes|no} - specifies if server
-will allow data transfer to be encrypted. Default is yes.
-\item \textbf{\textit{pluginpath}}\textit{=path} - specifies the path where
-plugin libraries are installed
-\item \textbf{\textit{allowunknown}}\textit{=yes|no} - if set to \emph{yes}
-clients are not checked agains grid-mapfile. Hence only access rules
-specified in this configuration file will be applied.
-\item \textbf{\textit{firewall}}\textit{=hostname} - use IP address of the
-\textit{hostname} in response to PASV command instead of IP address
-of a network interface of computer. You can write IP address directly
-instead of \textit{hostname}. This command may be if server is situated
-behind NAT.
-\item \textbf{\textit{unixgroup}}\textit{=group rule} - define local UNIX
-user and optionally UNIX group to which user belonging to specified
-authorization \textit{group} is mapped (see Section \ref{sub:Authorization}
-for definition of group). Local names are obtained from specified
-\textit{rule}. If specified rule could not produce any mapping, next
-command is used. Mapping stops at first matched rule. Following rules
-are supported:
+\item \textbf{\textit{}}\textit{}     
+  
+\item \textbf{\textit{}}\textit{}     
+      
+\item \textbf{\textit{}}\textit{}    
+         
+\item \textbf{\textit{}}\textit{}     
+   
+\item \textbf{\textit{}}\textit{}     \emph{}
+         
+       
+\item \textbf{\textit{}}\textit{}      
+\textit{}         
+           
+  \textit{}        
+ 
+\item \textbf{\textit{}}\textit{ }    
+          
+ \textit{}       
+        \textit{}
+           
+         
 
 \begin{itemize}
-\item \textbf{\textit{mapfile}} \textit{file} - user's subject is matched
-against list of subjects stored inspecified file, one per line followed
-by local UNIX name.
-\item \textbf{\textit{simplepool}} \textit{directory} - user is assigned
-one of local UNIX names stored in a file \textit{directory/pool},
-one per line. Used names are stored in other files placed in the same
-\textit{directory}. If UNIX name was not used for 10 days, it may
-be reassigned to another user.
-\item \textbf{\textit{lcmaps}} \textit{library directory database} - call
-LCMAPS functions to do mapping. Here \textit{library} is path to shared
-library of LCMAPS, either absolute or relative to \textit{directory};
-\textit{directory} is path to LCMAPS installation directory, equivalent
-of LCMAPS\_DIR variable; \textit{database} is path to LCMAPS database,
-equivalent to LCMAPS\_DB\_FILE variable. Each arguments except \textit{library}
-is optional and may be either skiped or replaced with '{*}'.
-\item \textbf{\textit{mapplugin}} \textit{timeout plugin} {[}\textit{arg1}
-{[}\textit{arg2} {[}...]]] - run external \emph{plugin} executable
-with specified arguments. Execution of \emph{plugin} may not last
-longer than \emph{timeout} seconds. Rule matches if exit code is 0
-and there is UNIX name printed on \emph{stdout}. Name may be optionaly
-followed by UNIX group separated by ':'. In arguments following substitions
-are applied before plugin is started:
+\item \textbf{\textit{}} \textit{}     
+          
+   
+\item \textbf{\textit{}} \textit{}    
+         \textit{}
+             
+\textit{}           
+    
+\item \textbf{\textit{}} \textit{  }  
+      \textit{}    
+        \textit{}
+\textit{}       
+   \textit{}     
+       \textit{}
+          
+\item \textbf{\textit{}} \textit{ } \textit{}
+\textit{}     \emph{}  
+    \emph{}    
+ \emph{}          
+     \emph{}     
+         
+     
 
 \begin{itemize}
-\item \%D - subject of users's cerificate,
-\item \%P - name of credentials' proxy file.
+\item      
+\item       
 \end{itemize}
 \end{itemize}
-\item \textbf{\textit{unixvo}}\textit{=vo rule} - same as \textbf{\textit{unixgroup}}
-for users belonging to Virtual Organization (VO) \textit{vo}.
-\item \textbf{\textit{unixmap}}\textit{={[}unixname]{[}:unixgroup] rule}
-- define local UNIX user and optionally group used to represent connected
-client. \textit{rule} is one of those allowed for \textbf{\textit{authorization
-groups}} (see Section \ref{sub:Authorization}) and for \textbf{\textit{unixgroup}}/\textbf{\textit{unixvo}}.
-In case of mapping rule username is one, provided by rule. Otherwise
-specified \textit{unixname:unixgroup} is taken. Both \textit{unixname}
-and \textit{unixgroup} may be either omited or set to '{*}' to specify
-missing value.
-\item \textbf{\textit{groupcfg}}\textit{=name} - is put into subsections
-representnig plugin or {[}group] section and defines if that section
-is effective. In old format it selects the group to which all following
-lines apply. Only unaffected option is \textbf{\textit{groupcfg}}.
-If name is empty (or no groupcfg is used at all) following lines apply
-to all users.
+\item \textbf{\textit{}}\textit{ }    \textbf{\textit{}}
+       \textit{}
+\item \textbf{\textit{}}\textit{ }  
+          
+\textit{}       \textbf{\textit{
+}}      \textbf{\textit{}}\textbf{\textit{}}
+           
+ \textit{}    \textit{}
+ \textit{}          
+ 
+\item \textbf{\textit{}}\textit{}     
+         
+            
+      \textbf{\textit{}}
+             
+  
 \end{itemize}
-Subsections of \emph{gridftpd} section specifies plugins which serve
-virtual FTP path (similar to mount command of UNIX). Name of subsection
-is irrelevant. In old format this section starts with command \textbf{\textit{plugin}}
-\textit{path library\_name} and ends with keyword \textbf{\textit{end}}.
-Inside subsection following commands are supported
+  \emph{}     
+           
+          \textbf{\textit{}}
+\textit{ }     \textbf{\textit{}}
+     
 
 \begin{itemize}
-\item \textbf{\textit{plugin}}\textit{=library\_name} - use plugin \textit{library\_name}
-to serve virtual path.
-\item \textbf{\textit{path}}\textit{=path} - virtual path to serve.
+\item \textbf{\textit{}}\textit{}    \textit{}
+   
+\item \textbf{\textit{}}\textit{}     
 
 
-GFS comes with 3 plugins: \textit{filepligin.so, gaclplugin.so} and
-\textit{jobplugin.so}.
-
-\begin{itemize}
-\item \textit{jobplugin.so} does not require any specific options in case
-of old configuration format. It reads the configuration file of the
-GM located at the standard place as specified in the section \ref{SubSection: ConfigFile}.
-Following options are supported:
+     \textit{ } 
+\textit{}
 
 \begin{itemize}
-\item \textbf{\textit{configfile}}\textit{=path} - defines non-standard
-place for GM's configuration file,
-\item \textbf{\textit{allownew}}\textit{=yes|no} - specifies if new jobs
-can be submitted. Default is \emph{yes}.
-\item \textbf{\textit{unixgroup}}/\textbf{\textit{unixvo}}/\textbf{\textit{unixmap}}
-- same options like in top-level GFS configuration. If mapping succeeds
-obtained local user will be used to run submitted job.
+\item \textit{}        
+          
+            
+  
+
+\begin{itemize}
+\item \textbf{\textit{}}\textit{}   
+    
+\item \textbf{\textit{}}\textit{}     
+     \emph{}
+\item \textbf{\textit{}}\textbf{\textit{}}\textbf{\textit{}}
+          
+         
 \end{itemize}
-\item \textit{filepligin.so} supports following options:
+\item \textit{}   
 
 \begin{itemize}
-\item \textbf{\textit{mount}}\textit{=path} - defines the place on local
-filesystem to which file access operations apply
-\item \textbf{\textit{dir}}\textit{=path options} - specifies access rules
-for accessing files in \textit{path} (relative to virtual and real
-path) and all the files below. \\
-\textit{options} is the list of the following keywords:
+\item \textbf{\textit{}}\textit{}      
+      
+\item \textbf{\textit{}}\textit{ }    
+    \textit{}     
+      \textit{}     
+ 
 
 \begin{itemize}
-\item \textbf{\textit{nouser}} - do not use local file system rights, only
-use those specifies in this line
-\item \textbf{\textit{owner}} - check only file owner access rights
-\item \textbf{\textit{group}} - check only group access rights
-\item \textbf{\textit{other}} - check only \char`\"{}others\char`\"{} access
-rights
+\item \textbf{\textit{}}         
+     
+\item \textbf{\textit{}}       
+\item \textbf{\textit{}}      
+\item \textbf{\textit{}}      
 \end{itemize}
-The options above are exclusive. If none of the above specified usual
-Unix access rights are applied.
+           
+    
 
 \begin{itemize}
-\item \textbf{\textit{read}} - allow reading files
-\item \textbf{\textit{delete}} - allow deleting files
-\item \textbf{\textit{append}} - allow appending files (does not allow creation)
-\item \textbf{\textit{overwrite}} - allow overwriting already existing files
-(does not allow creation, file attributes are not changed)
-\item \textbf{\textit{dirlist}} - allow obtaining list of the files
-\item \textbf{\textit{cd}} - allow to make this directory current
-\item \textbf{\textit{create}} \textit{owner:group permissions\_or:permissions\_and}
-- allow creating new files. File will be owned by \textit{owner} and
-owning group will be \textit{group}. If '{*}' is used, the user/group
-to which connected user is mapped will be used. The permissions will
-be set to \textit{permissions\_or} \& \textit{permissions\_and} (second
-number is reserved for the future usage). 
-\item \textbf{\textit{mkdir}} \textit{owner:group permissions\_or:permissions\_and}
-- allow creating new directories.
+\item \textbf{\textit{}}    
+\item \textbf{\textit{}}    
+\item \textbf{\textit{}}        
+\item \textbf{\textit{}}      
+        
+\item \textbf{\textit{}}       
+\item \textbf{\textit{}}       
+\item \textbf{\textit{}} \textit{ }
+          \textit{} 
+    \textit{}      
+           
+   \textit{}  \textit{} 
+       
+\item \textbf{\textit{}} \textit{ }
+    
 \end{itemize}
 \end{itemize}
-\item \textit{gaclpligin.so} does not have options in case of the old configuration.
-First line of it's configuration contains local path (root directory)
-served by it. Rest till keyword \textbf{\textit{end}} contains GACL
-\cite{gacl} XML used to setup initial access rules for every newly
-created file and directory. If GACL XML is empty then there will be
-no default ACLs created for new files and directories. That means
-ACL of parent directory will be used. \\
-For the new configuration format following options are supported:
-\textbf{\textit{gacl=}}\textit{gacl} - GACL XML, \textbf{\textit{mount}}\textit{=path}
-- local path server by plugin. \\
-XML may contain variables which are replaced with values taken from
-client's credentials. Following variables are supported:
+\item \textit{}          
+         
+      \textbf{\textit{}}  
+            
+            
+           
+         
+   \textbf{\textit{}}\textit{}  
+ \textbf{\textit{}}\textit{}     
+         
+       
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{\$subject}}] - subject of user's certificate (DN),
-\item [{\emph{\$voms}}] - subject of VOMS\cite{voms} server (DN),
-\item [{\emph{\$vo}}] - name of VO (from VOMS certificate),
-\item [{\emph{\$role}}] - role (from VOMS certificate),
-\item [{\emph{\$capability}}] - capabilities (from VOMS certificate),
-\item [{\emph{\$group}}] - name of group (from VOMS certificate) .
+\item [{\emph{}}]      
+\item [{\emph{}}]      
+\item [{\emph{}}]       
+\item [{\emph{}}]     
+\item [{\emph{}}]     
+\item [{\emph{}}]        
 \end{lyxlist}
-Additionally root directory must contain \emph{.gacl} file with initial
-ACL. Otherwise rule will be {}``deny all for everyone''.
+     \emph{}   
+        
 
 \end{itemize}
 \end{itemize}
-Some configuration parameters can be specified from command line while
-starting the GFS:
+         
+  
 
-\emph{gridftpd {[}-h] {[}-p number] {[}-n number] {[}-b number] {[}-B
-number] {[}-d level] {[}-c path] {[}-F] {[}-U uid{[}:gid]] {[}-L path]
-{[}-P path]}\\
-\hspace*{0.5cm}\emph{-h} - short help,\\
-\hspace*{0.5cm}\emph{-d} - debug level,\\
-\hspace*{0.5cm}\emph{-L} - name log file (overwrites value in configuration
-file),\\
-\hspace*{0.5cm}\emph{-P} - name for file containing process id (overwrites
-value in configuration file),\\
-\hspace*{0.5cm}\emph{-U} - user and gropu id to use for running daemon,\\
-\hspace*{0.5cm}\emph{-F} - do not make process daemon,\\
-\hspace*{0.5cm}\emph{-c} - name od configuration file,\\
-\hspace*{0.5cm}\emph{-p} - TCP/IP port number,\\
-\hspace*{0.5cm}\emph{-n} - maximal number of simultaneously served
-connection,\\
-\hspace*{0.5cm}\emph{-b} - default size of buffer used for data transfer
-(default is 64kB),\\
-\hspace*{0.5cm}\emph{-B} - maximal size of buffer used for data transfer
-(default is 640kB).
+\emph{         
+          }\emph{}
+  \emph{}   \emph{}    
+    \emph{}    
+       \emph{}
+         \emph{}   
+  \emph{}     \emph{}
+   \emph{}     
+ \emph{}        
+   \emph{}      
+     
 
 
 \subsection{Authorization\label{sub:Authorization}}
