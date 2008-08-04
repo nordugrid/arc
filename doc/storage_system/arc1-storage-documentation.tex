@@ -171,6 +171,16 @@ The Shepherds periodically ask the Librarian whether the files they store have e
 
 % section heartbeats_and_replication (end)
 
+\section{Security} % (fold)
+\label{sec:security}
+
+The current version of the ARC1 storage system has no implemented solution for security issues. Designing and implementing a powerful, flexible, fine-grained solution for authentication and authorization is very important. Currently we have plans how to do that, and the design of the storage services makes it easy to integrate the chosen solution into the system.
+
+For additional details, see Section~\ref{sec:plans_for_security}.
+
+% section security (end)
+
+
 \chapter{Use cases} % (fold)
 \label{cha:use_cases}
 
@@ -261,9 +271,26 @@ The current version of the prototype has no information system and no security, 
 
 The information system is needed to discover services, and to translate \emph{serviceID}s to endpoint references (URLs). Currently the URLs are written in the configuration files, and the Shepherd services are reporting their URLs to the Librarian, so the Bartender could ask for all alive Shepherds.
 
-The security is needed to do proper authorization of the users, and to manage access policies of files and collections. ARC has its own policy language, for each file and collection there will be a policy XML document stored as a metadata. The storage services will use the properties extracted from the communication channel and these policies to make authorization decisions. If the properties and the policies are present, the decision is actually made by the security framework of HED.
-
 Some self-healing mechanisms are not implemented yet, e.g. the files and collections contains their parent-collections as their metadata, and of course a collection contains a list of its files and sub-collections, and if somehow this information became inconsistent, the system should detect and repair it. This is not implemented yet.
+
+\section{Plans for security} % (fold)
+\label{sec:plans_for_security}
+
+Security is needed to do proper authorization of the users, and to manage access policies of files and collections. ARC has its own policy language, for each file and collection there will be a policy XML document stored as a metadata. The storage services will use these policies and the properties extracted from the communication channel to make authorization decisions. If the properties and the policies are present, the decision will be actually made by the security framework of HED.
+
+These are the planned actions which can be used for access control:
+\begin{itemize}
+    \item \emph{read}: user can get the list of entries in the collection; user can download the file
+    \item \emph{addEntry}: user can add a new entry to the collection;
+    \item \emph{removeEntry}: user can remove any entry from the collection 
+    \item \emph{delete}: user can delete the collection if it is empty; user can delete a file (if you want to remove a file/collection, then the Bartender needs to remove the entry from the parent collection, and then delete the file/collection itself, so you need to have both permissions)
+    \item \emph{modifyPolicy}: user can modify the policy of the file/collection
+    \item \emph{modifyStates}: user can modify some special metadata of the file/collection (close the collection, change the number of needed replica of the file)
+    \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
+\end{itemize}
+When a user has the permission in the Librarian to download a file then the user should have permission to access at least one of the file's replica, so there should be a Shepherd which allows the user the get the file. If the Bartender has permission to access the Shepherd, then the Bartender should create an assertion which allows the user to access the file. This could be a signed token which contain a policy defining access to particular file. But all these are currently just plans.
+
+% section plans_for_security (end)
 
 Further prototype statuses and plans can be found below within each section about the services.
 
@@ -754,12 +781,11 @@ There are plans to create more sophisticated CLI and GUI tools and to create a F
 
 % section client_tools (end)
 
-\section{Other plans} % (fold)
 
-\subsection{Integrating third-party storage solutions} % (fold)
-\label{sub:integrating_third_party_storage_solutions}
+\section{Integrating third-party storage solutions} % (fold)
+\label{sec:integrating_third_party_storage_solutions}
 
-To intagrate existing files on a third-party storage to our namespace thus make them accessible through the interface of the ARC1 storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC1 storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
+To integrate existing files on a third-party storage system to our namespace thus make them accessible through the interface of the ARC1 storage, we need a service which provides a common interface to the Bartender services, and hides the details of accessing the different third-party storages. It should translate the method calls, the \emph{get}s, \emph{put}s and \emph{remove}s and the \emph{ACL}\footnote{Access Control Lists, policies} modifications, and try to create transform metadata according to the data model of the ARC1 storage (Section~\ref{sub:data_model}). The files here would be referenced by a path which is local in the namespace of the third-party storage. The interface could be something like this:
 \begin{description}
     \item[get(getRequest)] returns list of (\emph{requestID}, \emph{getResponseData})
 
@@ -787,27 +813,8 @@ To intagrate existing files on a third-party storage to our namespace thus make 
 
 \end{description}
 This interface has some methods similar to the Shepherd and some other methods similar to the Bartender.
-% subsection integrating_third_party_storage_solutions (end)
+% section integrating_third_party_storage_solutions (end)
 
-\subsection{Security} % (fold)
-\label{sub:security}
-
-These are the planned actions which can be used for access control:
-\begin{itemize}
-    \item \emph{read}: user can get the list of entries in the collection; user can download the file
-    \item \emph{addEntry}: user can add a new entry to the collection;
-    \item \emph{removeEntry}: user can remove any entry from the collection 
-    \item \emph{delete}: user can delete the collection if it is empty; user can delete a file (if you want to remove a file/collection, then the Bartender needs to remove the entry from the parent collection, and then delete the file/collection itself, so you need to have both permissions)
-    \item \emph{modifyPolicy}: user can modify the policy of the file/collection
-    \item \emph{modifyStates}: user can modify some special metadata of the file/collection (close the collection, change the number of needed replica of the file)
-    \item \emph{modifyMetadata}: user can modify the arbitrary metadata section of the file/collection (these are key-value pairs)
-\end{itemize}
-When a user has the permission in the Librarian to download a file then the user should have permission to access at least one of the file's replica, so there should be a Shepherd which allows the user the get the file. If the Bartender has permission to access the Shepherd, then the Bartender should create an assertion which allows the user to access the file. This could be a signed token which contain a policy defining access to particular file. But all these are currently just plans.
-
-% subsection security (end)
-
-
-% section other_plans (end)
 
 % \bibliography{grid}
 \end{document}
