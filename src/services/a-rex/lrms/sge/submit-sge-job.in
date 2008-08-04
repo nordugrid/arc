@@ -10,6 +10,14 @@
 
 echo "----- starting submit_sge_job -----" 1>&2
 
+# Use specified CPU time as soft limit, allow to run a bit longer before hard limit
+# (e.g. 11/10 allows 10% extra, or use 1/1 to use to have soft limit = hard limit)
+time_hardlimit_ratio='1/1'
+# Use specified memory requirement as soft limit, allow a bit more before hard limit
+# (e.g. 11/10 allows 10% extra, or use 1/1 to use to have soft limit = hard limit)
+memory_hardlimit_ratio='1/1'
+
+
 joboption_lrms=SGE
 
 if [ -z ${ARC_LOCATION} ] ; then
