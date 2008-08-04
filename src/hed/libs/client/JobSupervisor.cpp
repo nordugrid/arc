@@ -37,20 +37,44 @@ namespace Arc {
     }
 
     std::list<std::string> NeededControllers;
-    
-    Arc::XMLNodeList ActiveJobs =
-      JobIdStorage.XPathLookup("/ArcConfig/Job", Arc::NS());
 
-    for (Arc::XMLNodeList::iterator JobIter = ActiveJobs.begin();
-	JobIter != ActiveJobs.end(); JobIter++) {
-      if (std::find(NeededControllers.begin(), NeededControllers.end(),
-	    (std::string)(*JobIter)["flavour"]) == NeededControllers.end()){
-	std::string flavour = (*JobIter)["flavour"];
-	logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
-	NeededControllers.push_back((std::string)(*JobIter)["flavour"]);
+    //First, if jobids are specified, only load JobControllers needed by those jobs
+    if(!jobs.empty()){
+      logger.msg(DEBUG, "Identifying needed JobControllers according to specified job ids");
+      std::list<std::string>::const_iterator it;
+      
+      for(it = jobs.begin(); it != jobs.end(); it++){
+	Arc::XMLNode ThisXMLJob = (*(JobIdStorage.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
+	if(ThisXMLJob){
+	  if (std::find(NeededControllers.begin(), NeededControllers.end(),
+			(std::string) ThisXMLJob["flavour"]) == NeededControllers.end()){
+	    std::string flavour = (std::string) ThisXMLJob["flavour"];
+	    logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
+	    NeededControllers.push_back(flavour);
+	  }  
+	} else{
+	  std::cout<<Arc::IString(" Job Id = %s not found", (*it))<<std::endl;
+	}
       }
-    }
+    } else{ //load controllers for all grid flavours present in joblist
+
+      logger.msg(DEBUG, "Identifying needed JobControllers according to all jobs present in joblist");
+
+      Arc::XMLNodeList ActiveJobs =
+	JobIdStorage.XPathLookup("/ArcConfig/Job", Arc::NS());
+      
+      for (Arc::XMLNodeList::iterator JobIter = ActiveJobs.begin();
+	   JobIter != ActiveJobs.end(); JobIter++) {
+	if (std::find(NeededControllers.begin(), NeededControllers.end(),
+		      (std::string)(*JobIter)["flavour"]) == NeededControllers.end()){
+	  std::string flavour = (*JobIter)["flavour"];
+	  logger.msg(DEBUG, "Need jobController for grid flavour %s", flavour);	
+	  NeededControllers.push_back((std::string)(*JobIter)["flavour"]);
+	}
+      }
     
+    }
+
     Arc::ACCConfig acccfg;
     Arc::NS ns;
     Arc::Config mcfg(ns);
@@ -60,13 +84,11 @@ namespace Arc {
     int JobControllerNumber = 1;
     
     for(iter = NeededControllers.begin(); iter != NeededControllers.end(); iter++){
-      
       Arc::XMLNode ThisJobController = mcfg.NewChild("ArcClientComponent");
       ThisJobController.NewAttribute("name") = "JobController"+ (*iter);
       ThisJobController.NewAttribute("id") = "controller" + Arc::tostring(JobControllerNumber);
-      ThisJobController.NewChild(JobIdStorage);
+      ThisJobController.NewChild("joblist") = joblist;      
       JobControllerNumber++;
-      
     }
     
     ACCloader = new Loader(&mcfg);
@@ -79,8 +101,6 @@ namespace Arc {
       }
     }
     
-    logger.msg(DEBUG, "Number of JobControllers: %d", JobControllers.size());	
-
   }
   
   JobSupervisor::~JobSupervisor() {
@@ -91,7 +111,10 @@ namespace Arc {
 
   void JobSupervisor::GetJobInformation() {
 
+    if(JobControllers.empty())
+      return;
     logger.msg(DEBUG, "Getting job information");	
+
     std::list<JobController*>::iterator iter;
     
     //This may benefit from being threaded
@@ -102,6 +125,8 @@ namespace Arc {
 
   void JobSupervisor::DownloadJobOutput() {
 
+    if(JobControllers.empty())
+      return;
     logger.msg(DEBUG, "Downloading job output");	
 
     std::list<JobController*>::iterator iter;
@@ -115,6 +140,8 @@ namespace Arc {
 
   void JobSupervisor::PrintJobInformation(bool longlist) {
 
+    if(JobControllers.empty())
+      return;
     logger.msg(DEBUG, "Printing job information");	
 
     std::list<JobController*>::iterator iter;
@@ -126,6 +153,8 @@ namespace Arc {
 
   void JobSupervisor::Clean() {
 
+    if(JobControllers.empty())
+      return;
     logger.msg(DEBUG, "Cleaning job(s)");	
 
     std::list<JobController*>::iterator iter;
@@ -137,6 +166,8 @@ namespace Arc {
 
   void JobSupervisor::Kill() {
 
+    if(JobControllers.empty())
+      return;
     logger.msg(DEBUG, "Killing job(s)");	
 
     std::list<JobController*>::iterator iter;

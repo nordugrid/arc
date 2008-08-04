@@ -27,7 +27,7 @@ namespace Arc{
 
   private:
     static Logger logger;
-    void DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir);
+    bool DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir);
     bool CleanThisJob(Job ThisJob, bool force);
     
   };

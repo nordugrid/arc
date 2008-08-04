@@ -26,13 +26,15 @@ namespace Arc{
     //Base class implementation
     void IdentifyJobs(std::list<std::string> jobids);
     void PrintJobInformation(bool longlist);
-    void CopyFile(URL src, URL dst);
+    void RemoveJobs(std::list<std::string> jobs);
+    bool CopyFile(URL src, URL dst);
 
   protected:
     std::list<Arc::Job> JobStore;
     std::string GridFlavour;
     Arc::Config mcfg;
     virtual ~JobController();
+    std::string joblist;
 
   private:
     static Logger logger;

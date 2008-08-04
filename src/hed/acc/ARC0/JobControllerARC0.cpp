@@ -50,8 +50,6 @@ namespace Arc {
       //3b. Change filter of the final url      
       FinalURL.ChangeLDAPFilter(filter);
       
-      std::cout<<"Final URL = " << FinalURL.str() << std::endl;
-
       //4. Read from information source
       
       DataHandle handler(FinalURL);
@@ -162,20 +160,30 @@ namespace Arc {
   void JobControllerARC0::DownloadJobOutput(bool keep, std::string downloaddir){
     
     logger.msg(DEBUG, "Downloading ARC0 jobs");	
-    
-    //Thread these
+    std::list<std::string> JobsToBeRemoved;
+
+    //Download jobs
+    bool Downloaded;
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
-      DownloadThisJob(*jobiter, keep, downloaddir);
+      Downloaded = DownloadThisJob(*jobiter, keep, downloaddir);
+      if(Downloaded && !keep){
+	JobsToBeRemoved.push_back(jobiter->JobID.str());
+      }
     }
+
+    //Remove succesfully downloaded jobs
+    RemoveJobs(JobsToBeRemoved);
+
   }
   
-  void JobControllerARC0::DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir){
+  bool JobControllerARC0::DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir){
     
     logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
 
     Arc::DataHandle source(ThisJob.JobID);
     
     //first copy files
+    bool SuccesfulDownload = true;
     if(source){
       std::list<FileInfo> outputfiles;
       source->ListFiles(outputfiles, true);
@@ -191,18 +199,28 @@ namespace Arc {
 	} else {
 	  dst = downloaddir + "/" + i->GetName();
 	}
-	CopyFile(src, dst);
+	bool GotThisFile = CopyFile(src, dst);
+	if(!GotThisFile)
+	  SuccesfulDownload = false;
+      }
+
+      if(!SuccesfulDownload){
+	std::cout<<Arc::IString("Failed dowloading job: %s. Job will not be cleaned or removed.", ThisJob.JobID.str())<<std::endl;
       }
 
       //second clean the session dir unless keep == true
-      if(!keep){
-
+      if(!keep && SuccesfulDownload){
 	bool cleaned = CleanThisJob(ThisJob, true);
 	if(!cleaned){
 	  logger.msg(ERROR, "Failed cleaning job: %s", ThisJob.JobID.str());	
 	}
       }
+    } else {
+      std::cout<<Arc::IString("Failed dowloading job: %s. Could not get data handle.", ThisJob.JobID.str())<<std::endl;
     }
+
+    return SuccesfulDownload;
+
   }//end DownloadThisJob
 
   void JobControllerARC0::Clean(bool force){

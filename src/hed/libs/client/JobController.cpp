@@ -4,6 +4,8 @@
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
+#include <arc/FileLock.h>
+#include <arc/XMLNode.h>
 #include <arc/User.h>
 
 #include <iostream>
@@ -15,16 +17,20 @@ namespace Arc {
   
   JobController::JobController(Arc::Config *cfg, std::string flavour)
     : ACC(), 
-      GridFlavour(flavour),
-      mcfg(*cfg) {}
+      GridFlavour(flavour){
+    joblist = (std::string)(*cfg)["joblist"];
+  }
 
   JobController::~JobController() {}
   
   void JobController::IdentifyJobs(std::list<std::string> jobids){
+    
+    mcfg.ReadFromFile(joblist);
 
     if(jobids.empty()){ //We are looking at all jobs of this grid flavour
 
       logger.msg(DEBUG, "Identifying all jobs of flavour %s", GridFlavour);	
+      logger.msg(DEBUG, "Using joblist file %s", joblist);	
 
       Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
       XMLNodeList::iterator iter;
@@ -39,6 +45,7 @@ namespace Arc {
     } else {//Jobs are targeted individually. The supplied jobids list may not contain any jobs of this grid flavour
 
       logger.msg(DEBUG, "Identifying individual jobs of flavour %s", GridFlavour);	
+      logger.msg(DEBUG, "Using joblist file %s", joblist);	
 
       std::list<std::string>::iterator it;
 
@@ -53,7 +60,7 @@ namespace Arc {
       }
     }
 
-    logger.msg(DEBUG, "JobController%s had identified %d jobs", GridFlavour, JobStore.size());
+    logger.msg(DEBUG, "JobController%s has identified %d jobs", GridFlavour, JobStore.size());
 
   }
 
@@ -151,7 +158,7 @@ namespace Arc {
     fprintf(o, "\r%llu kB                    \r", all / 1024);
   }
 
-  void JobController::CopyFile(URL src, URL dst){
+  bool JobController::CopyFile(URL src, URL dst){
 
     Arc::DataMover mover;
     mover.retry(true);
@@ -178,11 +185,51 @@ namespace Arc {
     int timeout = 10;
     if (!mover.Transfer(*source, *destination, cache, Arc::URLMap(), 0, 0, 0, timeout, failure)) {
       if (!failure.empty()){
-	logger.msg(ERROR, "File download failed: %s", failure);
+	std::cout<<Arc::IString("File download failed: %s", failure)<<std::endl;
       }else{
-	logger.msg(ERROR, "File download failed");
+	std::cout<<Arc::IString("File download failed")<<std::endl;
+      }
+      return false;
+    }
+
+    return true;
+
+  } //end CopyFile
+
+  //Delete jobs from both joblist file and local JobStore
+  void JobController::RemoveJobs(std::list<std::string> jobids){
+
+    //lock Joblist file
+    Arc::FileLock lock(joblist);
+    mcfg.ReadFromFile(joblist);
+    
+    std::list<std::string>::iterator it;
+    
+    //Identify jobs in joblist and remove from list
+    for(it = jobids.begin(); it != jobids.end(); it++){
+      Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ (*it)+"']", Arc::NS())).begin());
+      if(ThisXMLJob){
+	logger.msg(DEBUG, "Removing job %s from joblist file", (*it));	
+	ThisXMLJob.Destroy();
+      }else {
+	logger.msg(ERROR, "Job %s has been deleted, but is not listed in joblist", (*it));	
+      }
+      //Remove job from JobStore
+      std::list<Job>::iterator jobiter = JobStore.begin();
+      while(jobiter != JobStore.end()){
+	if(jobiter->JobID.str() == (*it)){
+	  JobStore.erase(jobiter);
+	  break;
+	}
+	jobiter++;
       }
     }
-  }
+
+    //write new joblist to file
+    mcfg.SaveToFile(joblist);
+
+    logger.msg(DEBUG, "JobStore%s now contains %d jobs", GridFlavour, JobStore.size());	    
+    
+  }//end RemoveJobs
 
 } // namespace Arc
