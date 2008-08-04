@@ -120,7 +120,8 @@ CREAM2 service URLs can directly be downloaded from any BDII database of gLite u
 or
 \begin{shaded}
 \verb#$ ldapsearch -x -h lxbra2305.cern.ch -p 2170 -b mds-vo-name=local,o=grid //#\\*
-\verb#        '(GlueCEUniqueID=*cream*)'#
+\verb#        '(GlueCEUniqueID=*cream*)' | grep GlueCEInfoContactString | //#\\*
+\verb#        awk '{print $2}' | sort | uniq#
 \end{shaded}
 
 \subsection{glitedelegate}
