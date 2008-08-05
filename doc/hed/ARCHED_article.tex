@@ -5,8 +5,8 @@
 \usepackage{ifthen}
 \newboolean{brieftechdesc}
 \newboolean{verbtechdesc}
-\setboolean{brieftechdesc}{true}
-\setboolean{verbtechdesc}{false}
+\setboolean{brieftechdesc}{false}
+\setboolean{verbtechdesc}{true}
 
 
 
@@ -91,10 +91,20 @@ This MCC can be configured as to what port to listen to.
 }{}
 
 \ifthenelse{\boolean{verbtechdesc}}{
-This is a verbose test text. It might not seem verbose but it is.
+This MCC can be configuered with one or more \texttt{<tcp:Listen>} elements which in turn contain the elements \texttt{<tcp:Port>}, \texttt{<tcp:Interface>} and \texttt{<tcp:Version>}. The \texttt{<tcp:Port>} element is mandatory and should contain an integer corresponding to the TCP port to listen to. The \texttt{<tcp:Interface>} element is optional and is meant to identify the network interface to bind to. It is currently not used. The \texttt{<tcp:Version>} element is used to specify IP version. It is optional and should if present contain the single digit 4 or 6.
 }{}
 
 \paragraph{TLS MCC}
+The server TLS MCC enables ...
+
+\ifthenelse{\boolean{brieftechdesc}}{
+This MCC needs to be configured with a host certificate as well as trusted CA certificates.
+}{}
+
+\ifthenelse{\boolean{verbtechdesc}}{
+The
+}{}
+
 
 \paragraph{HTTP MCC}
 
