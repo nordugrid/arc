@@ -1,6 +1,9 @@
 #!/bin/sh 
 # arguments: job_status job_id control_directory local_mail job_name failure_reason list of addresses
 
+basedir=`dirname $0`
+basedir=`cd $basedir`
+
 if [ -z "$ARC_LOCATION" ] ; then
   echo "ARC_LOCATION is not defined" 1>&2
   exit 1
@@ -101,6 +104,6 @@ while true ; do
     fi
   fi
   ) | \
-  $ARC_LOCATION/libexec/smtp-send "$local_mail" "$mail_addr"
+  $basedir/smtp-send "$local_mail" "$mail_addr"
   shift
 done

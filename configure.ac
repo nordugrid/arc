@@ -610,10 +610,15 @@ test "x$prefix" = xNONE && xxxprefix=$ac_default_prefix || xxxprefix=$prefix
 test "x$exec_prefix" = xNONE && xxxexec_prefix=$xxxprefix || xxxexec_prefix=$exec_prefix
 pkglibsubdir=`echo ${libdir}/${PACKAGE} | \
 		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
+libexecsubdir=`echo ${libexecdir} | \
+		   sed -e s#^${xxxexec_prefix}/## -e s#^\$\{exec_prefix\}/##`
 instprefix=${xxxexec_prefix}
 
 AC_DEFINE_UNQUOTED(PKGLIBSUBDIR, ["${pkglibsubdir}"], [plugin installation subpath])
+AC_DEFINE_UNQUOTED(LIBEXECSUBDIR, ["${libexecsubdir}"], ["libexec" subpath])
 AC_DEFINE_UNQUOTED(INSTPREFIX, ["${instprefix}"], [installation prefix])
+
+AC_SUBST(libexecsubdir)
 
 # Setup messages for reporting
 enable_rls=no

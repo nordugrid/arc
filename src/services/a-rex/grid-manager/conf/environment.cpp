@@ -98,10 +98,10 @@ bool read_env_vars(bool guess) {
   };
   nordugrid_bin_loc=nordugrid_loc+"/bin";
   // Try /usr installation first
-  nordugrid_libexec_loc=nordugrid_loc+"/libexec/nordugrid";
-  nordugrid_lib_loc=nordugrid_loc+"/libexec/nordugrid";
+  nordugrid_libexec_loc=nordugrid_loc+"/"+LIBEXECSUBDIR+"/nordugrid";
+  nordugrid_lib_loc=nordugrid_loc+"/"+LIBEXECSUBDIR+"/nordugrid";
   if(!dir_exists(nordugrid_libexec_loc.c_str())) {
-    nordugrid_libexec_loc=nordugrid_loc+"/libexec";
+    nordugrid_libexec_loc=nordugrid_loc+"/"+LIBEXECSUBDIR;
     nordugrid_lib_loc=nordugrid_loc+"/lib";
   };
   if(nordugrid_config_loc.empty()) {
