@@ -8,18 +8,24 @@
 # Set variables:
 #   LSF_BIN_PATH
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${basename}/gm-kick
+
 # "Checking NORDUGRID... "
 if [ -z ${ARC_LOCATION} ] ; then
     echo "ARC_LOCATION not set." 1>&2
     exit 1
 fi
 # "Sourcing ${ARC_LOCATION} config... " 1>&2
-if [ ! -f "${ARC_LOCATION}/libexec/configure-lsf-env.sh" ] ; then
-    echo "${ARC_LOCATION}/libexec/configure-lsf-env.sh not found." 1>&2
+if [ ! -f "${basedir}/configure-lsf-env.sh" ] ; then
+    echo "${basedir}/configure-lsf-env.sh not found." 1>&2
     exit 1
 fi
 
-. ${ARC_LOCATION}/libexec/configure-lsf-env.sh
+. ${basedir}/configure-lsf-env.sh
 umask 022
 
 STAT_USERNAME='stat -c %U'
@@ -146,7 +152,7 @@ for ctr_dir in $control_dir ; do
 	    if [ ! -z "$exitcode" ] ; then
 		# job finished and exit code is known
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+		${GMKICK} "$statusfile"
 		continue
 	    fi
 	fi
@@ -163,7 +169,7 @@ for ctr_dir in $control_dir ; do
 	if [ "$counter" -gt 5 ] ; then
 	    rm -f "$countfile"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+	    ${GMKICK} "$statusfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi

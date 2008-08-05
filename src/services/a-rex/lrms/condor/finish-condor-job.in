@@ -2,6 +2,9 @@
 
 progname=$(basename "$0")
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
 # This program assumes the role of /bin/mail, so it's called like this:
 # /bin/mail -s '[Condor] Condor Job <job-ID>' <email-address>
 # We extract the job-ID from the second argument.
@@ -16,7 +19,7 @@ lrmsid=${lrmsid%%.*}.condor
 ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
 
 # Initialize environment for Condor commands!
-. $ARC_LOCATION/libexec/configure-condor-env.sh || exit 1
+. $basedir/configure-condor-env.sh || exit 1
 
 # Set variable "controldir" from GM config.
 controldir=$CONFIG_controldir
@@ -347,6 +350,6 @@ merge_diag $tmpdiag $sessiondir.diag
 echo $exitcode $message > $lrms_done
 # wake up GM
 status=$controldir/$(basename "$grami" .grami).status
-$ARC_LOCATION/libexec/gm-kick $status >> $gmlog
+$basedir/gm-kick $status >> $gmlog
 
 exit 0

@@ -8,7 +8,7 @@ echo "----- starting cancel_pbs_job -----" 1>&2
 
 joboption_lrms=pbs
 
-. ${ARC_LOCATION}/libexec/cancel_common.sh $1
+. ${basedir}/cancel_common.sh $1
 
 ##############################################################
 # These should be set automatically

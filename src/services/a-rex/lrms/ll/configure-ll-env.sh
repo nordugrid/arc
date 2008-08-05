@@ -8,12 +8,15 @@
 # Reading configuration from $ARC_CONFIG
 ##############################################################
 
-if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
-    echo "$ARC_LOCATION/libexec/config_parser.sh not found." 1>&2
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+if [ ! -f "$basedir/config_parser.sh" ] ; then
+    echo "$basedir/config_parser.sh not found." 1>&2
     exit 1
 fi
 
-. $ARC_LOCATION/libexec/config_parser.sh
+. "$basedir/config_parser.sh"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
@@ -21,7 +24,6 @@ config_parse_file $ARC_CONFIG 1>&2 || exit $?
 config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
-
 
 # Path to ll commands
 LL_BIN_PATH=${LL_BIN_PATH:-$CONFIG_ll_bin_path}

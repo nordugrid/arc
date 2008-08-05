@@ -9,6 +9,8 @@
 
 echo "----- starting submit_lsf_job -----" 1>&2
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
 
 arg_file=$1
 
@@ -35,12 +37,12 @@ if [ -z ${ARC_LOCATION} ] ; then
     exit 1
 fi
 
-if [ ! -f "${ARC_LOCATION}/libexec/configure-lsf-env.sh" ] ; then
-    echo "${ARC_LOCATION}/libexec/configure-lsf-env.sh not found." 1>&2
+if [ ! -f "${basedir}/configure-lsf-env.sh" ] ; then
+    echo "${basedir}/configure-lsf-env.sh not found." 1>&2
     exit 1
 fi
 
-. ${ARC_LOCATION}/libexec/configure-lsf-env.sh
+. ${basedir}/configure-lsf-env.sh
 
 
 # configuration options
@@ -419,6 +421,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 if [ "$joboption_localtransfer" = 'yes' ] ; then
 echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
 echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
+echo "DOWNLOADER=\${DOWNLOADER:-$basedir/downloader}" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 if [ -z "$ARC_LOCATION" ] ; then
   echo 'Variable ARC_LOCATION is not set' 1>&2
@@ -436,7 +439,7 @@ export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
 export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
 export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
 unset X509_RUN_AS_SERVER
-$ARC_LOCATION/libexec/downloader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
+$DOWNLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
 if [ $? -ne '0' ] ; then
   echo 'ERROR: Downloader failed.' 1>&2
   RESULT=1
@@ -478,7 +481,7 @@ while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\"\${joboption_runtime_$i}\""
   echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $LRMS_JOB_SCRIPT
   echo "    runtimeenvironments=\"\${runtimeenvironments}${var_value};\"" >> $LRMS_JOB_SCRIPT
-  echo "    source \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $LRMS_JOB_SCRIPT
+  echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $LRMS_JOB_SCRIPT
   echo "  fi" >> $LRMS_JOB_SCRIPT
   i=$(( i + 1 ))
   eval "var_is_set=\${joboption_runtime_$i+yes}"
@@ -539,9 +542,10 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 #  Upload output files
 ####################################################
 if [ "$joboption_localtransfer" = 'yes' ] ; then
+echo "UPLOADER=\${UPLOADER:-$basedir/uploader}" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 if [ "$RESULT" = '0' ] ; then
-  $ARC_LOCATION/libexec/uploader -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
+  $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
   if [ $? -ne '0' ] ; then
     echo 'ERROR: Uploader failed.' 1>&2
     if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
@@ -584,8 +588,8 @@ cd "$joboption_directory"
 #chmod 0755 $LRMS_JOB_SCRIPT
 
 # We make the assumption that $joboption_directory is locally available according to the requirements of any arc installation
-echo "copying  ${ARC_LOCATION}/libexec/change-lsf-mode.sh to ${joboption_directory}/change-lsf-mode.sh"  1>&2
-cp -pR $ARC_LOCATION/libexec/change-lsf-mode.sh $joboption_directory/change-lsf-mode.sh
+echo "copying  ${basedir}/change-lsf-mode.sh to ${joboption_directory}/change-lsf-mode.sh"  1>&2
+cp -pR $basedir/change-lsf-mode.sh $joboption_directory/change-lsf-mode.sh
 
 echo "----------------- BEGIN job script -----" 1>&2
 cat $LRMS_JOB_SCRIPT 1>&2

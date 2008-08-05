@@ -1,18 +1,30 @@
 #!/bin/bash
+#
+# set environment variables:
+#   SGE_BIN_PATH
+#   SGE_ROOT
+#   SGE_CELL
+#   SGE_QMASTER_PORT
+#   SGE_EXECD_PORT
+#
 
 ##############################################################
 # Read ARC config file
 ##############################################################
 
-if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
-    echo "$ARC_LOCATION/libexec/config_parser.sh not found." 1>&2
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+if [ ! -f "$basedir/config_parser.sh" ] ; then
+    echo "$basedir/config_parser.sh not found." 1>&2
     exit 1
 fi
 
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-. $ARC_LOCATION/libexec/config_parser.sh
+. "$basedir/config_parser.sh"
 
-config_parse_file $ARC_CONFIG >&2 || exit $?
+ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+config_parse_file $ARC_CONFIG 1>&2 || exit $?
+
 config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
@@ -67,4 +79,3 @@ if [ ! -x "$SGE_BIN_PATH/qsub" ]; then
 fi
 
 export SGE_BIN_PATH
-

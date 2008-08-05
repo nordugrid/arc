@@ -8,7 +8,10 @@ echo "----- starting cancel_fork_job -----" 1>&2
 
 joboption_lrms=fork
 
-. ${ARC_LOCATION}/libexec/cancel_common.sh $1
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+. ${basedir}/cancel_common.sh $1
 
 if [ -z "$joboption_controldir" ] ; then
   joboption_controldir=`dirname "$arg_file"`

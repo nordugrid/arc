@@ -4,6 +4,12 @@
 # The script is called periodically by the grid-manager.
 #
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${basename}/gm-kick
+
 # Does the control directory exist?
 control_dir="$1"
 test -d "$control_dir" || exit 1
@@ -17,14 +23,14 @@ then
 fi
 
 # Get LoadLeveler environment
-if test -f "${ARC_LOCATION}/libexec/configure-ll-env.sh"
+if test -f "${basedir}/configure-ll-env.sh"
 then
   :
 else
-  echo "${ARC_LOCATION}/libexec/configure-ll-env.sh not found." 1>&2
+  echo "${basedir}/configure-ll-env.sh not found." 1>&2
   exit 1
 fi
-. ${ARC_LOCATION}/libexec/configure-ll-env.sh
+. "${basedir}/configure-ll-env.sh
 
 #for i in "$control_dir"/job.*.local
 find $control_dir -maxdepth 1 -type f -name job\*.local | while read i
@@ -76,17 +82,17 @@ do
     if [ "$exitcode" = "152" -o $exitcode = "24" ] ; then
 	exitcode="24"     
     	echo "$exitcode Job exceeded time limit." > "$donefile"
-        ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+        ${GMKICK} "$statusfile"
         continue  
     fi
     # job finished and exit code is known
     echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"               
-    ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+    ${GMKICK} "$statusfile"
     continue
   fi
   exitcode=-1
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
-  ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+  ${GMKICK} "$statusfile"
 done
 
 sleep 60

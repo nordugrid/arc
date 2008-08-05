@@ -9,17 +9,22 @@
 #
 # usage: scan_sge_job control_dir ...
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${basename}/gm-kick
 
 ##############################################################
 # Set SGE specific environment.
 ##############################################################
 ARC_LOCATION=${ARC_LOCATION:-@arc_location@}
 
-if [ ! -f "${ARC_LOCATION}/libexec/configure-sge-env.sh" ] ; then
-    echo "${ARC_LOCATION}/libexec/configure-sge-env.sh not found." >&2
+if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
+    echo "${basedir}/configure-sge-env.sh not found." >&2
     exit 1
 fi
-source ${ARC_LOCATION}/libexec/configure-sge-env.sh >&2 || exit $?
+. ${basedir}/configure-sge-env.sh >&2 || exit $?
 
 ##############################################################
 
@@ -256,7 +261,7 @@ for ctr_dir in $control_dirs ; do
           fi # failedcode
 
           # wake up GM
-          $ARC_LOCATION/libexec/gm-kick $statusfile >> $errorsfile
+          $GMKICK $statusfile >> $errorsfile
 
           rm -f $countfile
           rm -f $diagfile_tmp $diagfile_acct
@@ -293,7 +298,7 @@ for ctr_dir in $control_dirs ; do
       rm -f "$countfile"
 
       # wake up GM
-      $ARC_LOCATION/libexec/gm-kick $statusfile >> $errorsfile
+      $GMKICK $statusfile >> $errorsfile
 
     else
       # test again for job existence, only count if not known

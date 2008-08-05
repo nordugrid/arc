@@ -9,6 +9,11 @@
 
 if [ -z "$1" ] ; then exit 1 ; fi
 
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${basename}/gm-kick
 
 # These should be set automatically
 # Paths to pbs commands and logs
@@ -196,7 +201,7 @@ sort -u | \
 	  fi	    
 	fi
 	# wake up GM
-	${ARC_LOCATION}/libexec/gm-kick "${base_name}.status"
+	${GMKICK} "${base_name}.status"
         break 	  
       done
     }
@@ -307,7 +312,7 @@ for ctr_dir in "$@" ; do
       if [ ! -z "$exitcode" ] ; then
         # job finished and exit code is known
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-	${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+	${GMKICK} "$statusfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
@@ -323,7 +328,7 @@ for ctr_dir in "$@" ; do
     if [ "$counter" -gt 5 ] ; then
       rm -f "$countfile"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${ARC_LOCATION}/libexec/gm-kick "$statusfile"
+      ${GMKICK "$statusfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"

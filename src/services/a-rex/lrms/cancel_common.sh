@@ -7,11 +7,15 @@ if [ -z ${ARC_LOCATION} ] ; then
     echo "ARC_LOCATION not set."  1>&2
     exit 1
 fi
-if [ ! -f "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh" ] ; then
-    echo "${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh not found." 1>&2
+if [ -z ${basedir} ] ; then
+    echo "basedir not set."  1>&2
     exit 1
 fi
-. ${ARC_LOCATION}/libexec/configure-${joboption_lrms}-env.sh
+if [ ! -f "${basedir}/configure-${joboption_lrms}-env.sh" ] ; then
+    echo "${basedir}/configure-${joboption_lrms}-env.sh not found." 1>&2
+    exit 1
+fi
+. ${basedir}/configure-${joboption_lrms}-env.sh
 
 arg_file=$1
 ##############################################################

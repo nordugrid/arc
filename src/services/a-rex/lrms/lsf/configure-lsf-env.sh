@@ -2,7 +2,6 @@
 #
 # set environment variables:
 #   LSF_BIN_PATH
-# and 
 #   CONFIG_architecture
 #
 
@@ -10,12 +9,15 @@
 # Reading configuration from $ARC_CONFIG
 ##############################################################
 
-if [ ! -f "$ARC_LOCATION/libexec/config_parser.sh" ] ; then
-    echo "$ARC_LOCATION/libexec/config_parser.sh not found." 1>&2
+basedir=`dirname $0`
+basedir=`cd $basedir; pwd`
+
+if [ ! -f "$basedir/config_parser.sh" ] ; then
+    echo "$basedir/config_parser.sh not found." 1>&2
     exit 1
 fi
 
-. $ARC_LOCATION/libexec/config_parser.sh
+. "$basedir/config_parser.sh"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
@@ -29,7 +31,6 @@ config_import_section "cluster"
 if [ ! -z "$joboption_queue" ]; then
   config_import_section "queue/$joboption_queue"
 fi
-
 
 # Path to LSF commands
 LSF_BIN_PATH=${LSF_BIN_PATH:-$CONFIG_lsf_bin_path}
