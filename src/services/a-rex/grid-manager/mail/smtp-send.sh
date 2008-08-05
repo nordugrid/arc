@@ -1,8 +1,8 @@
-#!/bin/sh 
+#!/bin/sh -f
 # arguments: job_status job_id control_directory local_mail job_name failure_reason list of addresses
 
 basedir=`dirname $0`
-basedir=`cd $basedir`
+basedir=`cd $basedir; pwd`
 
 if [ -z "$ARC_LOCATION" ] ; then
   echo "ARC_LOCATION is not defined" 1>&2
