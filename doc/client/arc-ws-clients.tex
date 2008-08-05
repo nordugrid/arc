@@ -1,0 +1,246 @@
+%\documentclass{book}
+\documentclass{article}                            %for shorter notes
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+%\usepackage{bibtex}
+\usepackage{moreverb}
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {A.U. Thors},
+  pdftitle = {WS-Based ARC Clients},
+  pdfsubject = {Paper subject},
+  pdfkeywords = {Paper,keyword,comma-separated},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\newcommand{\uicommand}[1]{\textbf{\sffamily #1}}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+%----- DON'T CHANGE HEADER MATTER
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+
+\begin{tabular}{rl}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+\end{tabular}
+
+\hrulefill
+
+%-------- Change this to NORDUGRID-XXXXXXX-NN
+
+{\raggedleft NORDUGRID-TECH-20\par}
+
+{\raggedleft \today\par}
+
+\vspace*{2cm}
+
+%%%%---- The title ----
+{\centering \textsc{\Large WS-Based ARC Clients}\Large \par}
+\vspace*{0.5cm}
+    
+%%%%---- A subtitle, if necessary ----
+%{\centering \textit{\large Subtitile}\large \par}
+    
+\vspace*{1.5cm}
+%%%%---- A list of authors ----
+{\centering \large A.U. Thors\footnote{authors@gmail.com} \large \par}
+    
+%%%%---- An abstract - if style is article ----
+\begin{abstract}
+This NorduGrid Technical document gives an introduction on how to use
+the client tools developed for WS-based ARC solution.
+\end{abstract}
+\end{titlepage}
+
+\tableofcontents                          %Comment if use article style
+\newpage
+%\chapter{Preface}
+\section{Introduction}                    %Use Sections for articles
+\label{sec:intro}
+
+This document describes a set of simple client tools for the new Web
+Service~\cite{ws} (WS) based Advanced Resource Connector~\cite{arc}
+(ARC) middleware. These tools are prototypes and are intended to be a
+proof-of-concept for the new ARC.
+
+So far, the only service that is available for the new ARC is the ARC
+Resource-Coupled Execution Service~\cite{arex} (A-REX). Therefore,
+this prototype release of WS clients consists of job handling tools
+with the following functionality:
+\begin{itemize}
+\item submission of jobs;
+\item querying the status of jobs; and
+\item termination of jobs.
+\end{itemize}
+
+The names of the command line tools begin with ``ap'', which shall be
+interpreted as ``ARC Prototype'' to distinguish them from the
+full-fledged production tools.
+
+Support for staging of data would also have been desirable, but this
+is not yet fully implemented on the server side. Therefore it could
+not be included in this client prototype either. Thus, it is not
+possible to run any jobs that depend on local files on the computer on
+which the submitting client runs. Neither is it possible to retrieve
+any form of output (not even stdout/stderr) by using the new client.
+
+Behind the command line tools, there is a minimalistic library which
+is documented in Appendix~\ref{app:library}. The library will serve as
+a basis for the development of a generalized ARClib. This will be used
+by the new client tools of the production releases of the next
+generation of ARC.
+
+
+\section{Configuration}
+\label{sec:config}
+
+The tools described here do not perform any brokering, but submit jobs
+to a specific A-REX service. Which A-REX service to use is specified
+in a configuration file. The configuration file also specifies how to
+set up the communication chain for the client. The location of the
+configuration file is specified by the environment variable
+\verb:ARC_AREX_CONFIG:. If there is no such environment variable, the
+configuration file is assumed to be \verb:arex_client.xml: in the
+current working directory. An example configuration file is shown in
+Appendix~\ref{app:config}.
+
+
+\section{Job Submission}
+\label{sec:apsub}
+
+The \verb#apsub# command is used to submit jobs to an A-REX service.
+
+\begin{shaded}
+\paragraph{Usage} \verb:apsub <JSDL-file> <JobID-file>:
+\end{shaded}
+
+\paragraph{Arguments}
+\begin{description}
+\item[\texttt{<JSDL-file>}] The name of a file that contains
+the job specification in JSDL format.
+\item[\texttt{<JobID-file>}] The name of a file in which the
+Job ID will be stored. This file is created when the command is
+used. The reason for storing the Job ID in a file is its length
+(approximately 500 characters) which makes it unsuitable to use as a
+command line argument for the other tools.
+\end{description}
+
+\paragraph{Output} A message that the job was submitted and in which
+file the Job ID is stored if the submission succeded. If the
+submission failed for some reason, an error message is displayed.
+
+
+\section{Job Status Query}
+\label{sec:apstat}
+
+The \verb#apstat# command is used to query the status of a job that
+has been submitted to an A-REX service.
+
+\begin{shaded}
+\paragraph{Usage} \verb:apstat <JobID-file>:
+\end{shaded}
+
+\paragraph{Arguments}
+\begin{description}
+\item[\texttt{<JobID-file>}] The name of a file in which the
+Job ID is stored. This file was created by \verb:apsub: when the job
+was submitted.
+\end{description}
+
+\paragraph{Output} The status of the job, e.g. ``Pending/Accepted'',
+or an error message if the status request failed for some reason.
+
+
+\section{Job Termination}
+\label{sec:apkill}
+
+The \verb#apkill# command is used to terminate a job that has been
+submitted to an A-REX service.
+
+\begin{shaded}
+\paragraph{Usage} \verb:apkill <JobID-file>:
+\end{shaded}
+
+\paragraph{Arguments}
+\begin{description}
+\item[\texttt{<JobID-file>}] The name of a file in which the
+Job ID is stored. This file was created by \verb:apsub: when the job
+was submitted.
+\end{description}
+
+\paragraph{Output} A message that the job was terminated, or an error
+message if the termination failed for some reason.
+
+
+\appendix
+
+
+\include{ws_client_lib}
+
+
+\section{Configuration Example}
+\label{app:config}
+Figure~\ref{fig:config} shows an example configuration file, which is
+an XML file. All configuration information is enclosed within an
+\verb:ArcConfig: element. That element also specifies which XML
+manespaces to use.
+
+The \verb:ModuleManager: element contains paths to directories where
+loadable plugins can be found. In this case, there is only one path --
+\verb:/usr/lib/arc/: -- but there may be many.
+
+The \verb:Plugins: elements specify which plugins to load -- in this
+case message chain components (MCCs) for TCP, TLS, HTTP and SOAP.
+
+The \verb:Chain: element, finally, defines how to combine the MCCs
+that have been loaded into a communication chain. In this case, a TCP
+MCC that connects to port 6000 on the local host is connected to a TLS
+MCC, which is connected to a HTTP that uses the POST method, and
+finally a SOAP MCC is connected to the HTTP MCC.
+
+The client tools will use the SOAP MCC as an entry point when sending
+messages. The messages will then propagate through the MCCs in the
+chain as specified in the configuration file.
+
+\begin{figure}
+\begin{shaded}
+\verbatiminput{arex_client.xml}
+\end{shaded}
+\caption{An examle of an \texttt{arex\_client.xml} configuration file.}
+\label{fig:config}
+\end{figure}
+
+
+\clearpage
+\bibliography{grid}
+
+
+\end{document}
