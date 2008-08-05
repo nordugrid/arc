@@ -850,24 +850,24 @@ Complexity & \texttt{endpoint=1,share=N,resource=1}, where N is the number of qu
 \end{tabular}
 
 \vspace*{3mm}
-The following properties referring to job counts are obtained from GridManager's status files:
+The following properties referring to job counts are calculated based on information in GridManager's status files:
 
 \begin{tabular}{|l|p{12cm}|}
 \hline
 Property & Meaning \\
 \hline \hline
-TotalJobs & Number of grid jobs which are not yet finished \\
+TotalJobs & number of grid jobs in states other than FINISHED \\
 \hline
-RunningJobs & Number of grid jobs running \\
+RunningJobs & number of grid jobs in INLRMS:R state \\
 \hline
-WaitingJobs & Number of grid jobs queued in the LRMS and waiting to be submitted to the LRMS \\
+WaitingJobs & number of grid jobs in INLRMS:Q, ACCEPTED, PREPARING and SUBMIT* states \\
 \hline
 \end{tabular}
 
 
 \subsection{ComputingEndpoint}
 
-\begin{tabular}{|l|p{12cm}|}
+\begin{tabular}{|l|p{11cm}|}
 \hline
 Property & Value\\
 \hline \hline
@@ -895,9 +895,9 @@ HealthState & \texttt{ok} -- no detection of problems yet\\
 \hline
 ServingState & \texttt{draining} if the configuration has allownew=no, \texttt{production} otherwise \\
 \hline
-IssuerCA & from the \emph{hostcert.pem} file \\
+IssuerCA & obtained from the \emph{hostcert.pem} file \\
 \hline
-TrustedCA & from scanning the \emph{certificates} directory \\
+TrustedCA & obtained by scanning the \emph{certificates} directory \\
 \hline
 Staging & \texttt{staginginout} \\
 \hline
@@ -912,7 +912,7 @@ A ComputingShare element is generated for each 'queue' section in the configurat
 
 \begin{tabular}{|l|p{12cm}|}
 \hline
-Property & Value\\
+Property & Comments \\
 \hline \hline
 BaseType & \texttt{Share} \\
 \hline
@@ -922,15 +922,19 @@ Description & ``comment'' configuration option \\
 \hline
 MappingQueue & from the configuration \\
 \hline
+SchedulingPolicy & if maui is used, set to \texttt{fairshare} \\
+\hline
+ServingState & has the same value as Computingendpoint.ServingState \\
+\hline
 \end{tabular}
 
 \vspace*{3mm}
-The following properties are taken from the corresponding values returned by
+The following properties are taken from the corresponding attributes returned by
 the LRMS plugin. Units are converted as necessary.
 
 \begin{tabular}{|l|p{12cm}|}
 \hline
-Property & LRMS plugin property \\
+Property & LRMS plugin attribute \\
 \hline \hline
 MaxCPUTime & maxcputime \\
 \hline
@@ -948,45 +952,111 @@ DefaultWallTime & defaultwallt \\
 
 \vspace*{3mm}
 
+The following properties are directly taken from configuration options.
+
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+Property & Configuration option  & Comments \\
+\hline \hline
+MaxTotalJobs & maxjobs & maxjobs is a per cluster limit, grid-manager has no equivalent limit per share \\
+\hline
+MaxPreLRMSWaitingJobs & maxjobs & \\
+\hline
+MaxStageInStreams & maxload & maxload is a per cluster limit, grid-manager has no equivalent limit per share \\
+\hline
+MaxStageOutStreams & maxload & \\
+\hline
+MaxMemory & nodememory & \\
+\hline
+MaxDiskSpace & maxdiskperjob & \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are taken from the corresponding LRMS plugin attributes when available:
+
 \begin{tabular}{|l|p{12cm}|}
 \hline
-Property & Value\\
+Property & LRMS plugin attribute \\
 \hline \hline
-MaxTotalJobs & maxjobs from configuration\\
-MaxRunningJobs & \\
-MaxWaitingJobs & \\
+MaxRunningJobs & maxrunning \\
+\hline
+MaxWaitingJobs & maxqueuable - maxrunning \\
+\hline
+MaxUserRunningJobs & maxuserrun \\
+\hline
+MaxSlotsPerJob & maxslotsperjob \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties referring to job counts are calculated based on information in GridManager's status files:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Meaning \\
+\hline \hline
+TotalJobs &  number of grid jobs in this share in states other than FINISHED \\
+\hline
+RunningJobs & number of grid jobs in this share in INLRMS:R state \\
+\hline
+SuspendedJobs & number of grid jobs in this share in INLRMS:S state \\
+\hline
+WaitingJobs & number of grid jobs in this share in INLRMS:Q and INLRMS:O states \\
+\hline
+LocalRunningJobs & The total number of jobs running in the associated LRMS queue  minus the number of grid-running grid jobs (RunningJobs) \\
+\hline
+LocalWaitingJobs & The total number of jobs queued in the associated LRMS queue minus the number of grid-queued grid jobs (WaitingJobs) \\
+\hline
+StagingJobs & number of grid jobs in this share in PREPARING and FINISHING states \\
+\hline
+PreLRMSWaitingJobs & number of grid jobs in this share in ACCEPTED, PREPARING and SUBMIT* states\\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are derived from the corresponding LRMS plugin attributes:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Related LRMS properly \\
+\hline \hline
+UsedSlots & running \\
+\hline
+RequestedSlots & queued \\
+\hline
+FreeSlots & totalcpus - running \\
+\hline
+FreeSlotsWithDuration & freecpus \\
 \hline
 \end{tabular}
 
 
-\phantomsection
-%\addcontentsline{toc}{subsubsection}{Name}
-\hspace*{0.5cm}
-\begin{shaded}
-\textbf{Name}
-\end{shaded}
-\begin{tabular}{lp{10cm}}  
-Attribute value:& String\\
-Example:& \verb#Name: TODO#\\
-Related xRSL:& TODO\\
-UI role:& ?\\
-Description:& Name of the application environment\\
-\end{tabular}
+\subsection{ExecutionEnvironment}
 
 
-\phantomsection
-%\addcontentsline{toc}{subsubsection}{Version}
-\hspace*{0.5cm}
-\begin{shaded}
-\textbf{Version}
-\end{shaded}
-\begin{tabular}{lp{10cm}}  
-Attribute value:& String\\
-Example:& \verb#Version: TODO#\\
-Related xRSL:& TODO\\
-UI role:& TODO\\
-Description:& Name of the application environment\\
-\end{tabular}
+\subsection{ApplicationEnvironment}
+
+
+\subsection{ComputingActivity}
+
+
+\subsection{MappingPolicy and AccessPolicy}
+
+%\phantomsection
+%%\addcontentsline{toc}{subsubsection}{Name}
+%\hspace*{0.5cm}
+%\begin{shaded}
+%\textbf{Name}
+%\end{shaded}
+%\begin{tabular}{lp{10cm}}  
+%Attribute value:& String\\
+%Example:& \verb#Name: TODO#\\
+%Related xRSL:& TODO\\
+%UI role:& ?\\
+%Description:& Name of the application environment\\
+%\end{tabular}
+
 
 
 \bibliography{grid}
