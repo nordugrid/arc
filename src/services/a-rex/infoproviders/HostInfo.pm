@@ -26,7 +26,6 @@ our $host_info_schema = {
         cpumodel      => '',
         cpufreq       => '', # unit: MHz
         nodecpu       => '',
-        architecture  => '',
         issuerca      => '',
         issuerca_hash => '',
         trustedcas    => [ '' ],

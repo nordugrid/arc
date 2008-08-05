@@ -24,7 +24,7 @@ use strict;
 # 3. Provide subroutine get_lrms_options_schema. The return value must be a
 #    schema describing the options that are recognized by the plugin.
 #
-# 2. References to subroutines defined in new LRMS modules are added
+# 2. References to subroutines defined in new LRMS modules should be added
 #    to the load_lrms subroutine in this module.
 
 

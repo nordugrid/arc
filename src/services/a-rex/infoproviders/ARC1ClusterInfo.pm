@@ -303,7 +303,7 @@ sub _collect($$) {
     # TODO: add config option
     $cep->{QualityLevel} = [ "development" ];
 
-    # TODO: health state moitoring
+    # TODO: a way to detect if LRMS is up
     $cep->{HealthState} = [ "ok" ];
     #$cep->{HealthStateInfo} = [ "" ];
 
@@ -472,8 +472,8 @@ sub _collect($$) {
         my $freeslots = 0;
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
-        } elsif ( defined $qinfo->{maxrunning} and defined $qinfo->{running}) {
-            $freeslots = $qinfo->{maxrunning} - $qinfo->{running};
+        } else {
+            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
         }
 
         # Local users have individual restrictions
@@ -526,15 +526,7 @@ sub _collect($$) {
         # Don't advertise free slots while busy with staging
         $csha->{FreeSlotsWithDuration} = [ 0 ] if $pendingprelrms{$qname};
 
-        # TODO: implement $qinfo->{usedslots} in LRMS plugins
-
-        my $usedslots = 0;
-        if (defined $qinfo->{usedslots}) {
-            $freeslots = [ $qinfo->{usedslots} ];
-        } elsif (defined $qinfo->{running}) {
-            $freeslots = [ $qinfo->{running} ];
-        }
-        $csha->{UsedSlots} = [ $usedslots ];
+        $csha->{UsedSlots} = [ $qinfo->{running} ];
 
         $csha->{RequestedSlots} = [ $requestedslots{$qname} || 0 ];
 
