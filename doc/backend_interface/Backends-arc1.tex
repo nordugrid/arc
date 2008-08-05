@@ -1,0 +1,1052 @@
+%% LyX 1.4.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[twoside,english]{article}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{graphicx}                              %for PNG images (pdflatex)
+%\usepackage{graphics}                              %for EPS images (latex)
+\usepackage[linkbordercolor={1.0 1.0 0.0}]{hyperref} %for \url tag
+\usepackage{color}                                 %for defining custom colors
+\usepackage{framed}                                %for shaded and framed paragraphs
+\usepackage{textcomp}                              %for various symbols, e.g. Registered Mark
+\usepackage{geometry}                              %for defining page size
+\usepackage{longtable}                             %for breaking tables
+%
+\geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
+\hypersetup{
+  pdfauthor = {T.Frågåt},
+  pdftitle ={Arc batch system back-end interface guide with support for GLUE 2},
+  pdfsubject = {Description and developer's guide for ARC1},
+  pdfkeywords = {ARC,ARC1,NorduGrid,manual,Back-end,LRMS,Infosystem,GLUE2},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+%
+\bibliographystyle{IEEEtran}                       %a nice bibliography style
+%
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\globus}{Globus Toolkit\textsuperscript{\textregistered}~2~}
+\newcommand{\GT}{Globus Toolkit\textsuperscript{\textregistered}}
+\newcommand{\ngdl}{\url{http://ftp.nordugrid.org/download}~}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{bordeaux}{rgb}{0.75,0.,0.}
+\definecolor{cyan}{rgb}{0,1,1}
+%
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+
+
+\begin{titlepage}
+
+
+
+\begin{tabular}{rl}\resizebox*{3cm}{!}{\includegraphics[width=3cm,height=2cm]{ng-logo.png}} &\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}} \end{tabular}
+
+
+
+\hrulefill
+
+{\raggedleft NORDUGRID-TECH-18\par}
+
+
+
+{\raggedleft \today\par}
+
+
+
+\vspace*{2cm}
+
+\begin{center}
+\textsc{\Large Arc batch system back-end interface guide with support for Glue 2}
+\par\end{center}{\Large \par}
+
+\vspace*{0.5cm}
+
+\begin{center}
+\textit{\large Description and developer's guide for ARC1}
+\par\end{center}{\large \par}
+
+\vspace*{1.5cm}
+
+{\centering \large Adrian Taga\footnote{v.a.taga@fys.uio.no}, Thomas Frågåt\footnote{thomas.fragat@fys.uio.no} \par}
+
+\end{titlepage}
+
+\thispagestyle{empty}
+
+$ $
+
+\newpage
+
+\tableofcontents{}
+
+\newpage
+
+
+\section{Introduction\label{sec:intro}}
+
+This document describes the next generation Advanced Resource Connector~\cite{arc1} (ARC)
+batch system back-end infrastructure. It aims to describe the infrastructure
+in enough detail that a developer can add a new local resource management
+system (LRMS) to the ARC middleware. It also intends to serve as a
+reference manual describing existing batch system interfaces. Note
+that the current solution described in this manual is not a real interface,
+it is too diffuse to be that.
+
+The batch system back-ends are what tie the ARC grid middleware (through the
+ARC Resource-coupled EXecution service, A-REX~\cite{arex}) to the underlying
+cluster management system or LRMS. The back-ends consist of set of a shell and
+Perl scripts whose role are twofold: 
+
+\begin{enumerate}
+\item to allow the GridManager (GM), which is resided in A-REX, to manipulate
+jobs in the LRMS including job submit, cancel operations etc.
+\item to collect information about jobs, users, the batch system and the cluster
+itself for the Information System. 
+\end{enumerate}
+The former will be referred to as the job control back-end interface
+while the latter is the information system interface of the batch
+system back-ends. These two will be treated separately in the following
+sections.
+
+\subsection{ARC Classic}
+The ARC Classic has its own solution, please refer to ~\cite{backends-arc0}.
+
+\subsection{ARC1}
+As of ARC version 0.9, which is to be the next generation ARC, the scripts are located in different directories
+within the NorduGrid subversion tree~\cite{svn}. 
+The job control interface scripts can be found under 
+\begin{quote}
+\texttt{arc1/trunk/src/services/a-rex/lrms/}
+\end{quote}
+while the information collectors are located in
+\begin{quote}
+\texttt{arc1/trunk/src/services/a-rex/infoproviders/}.
+\end{quote}
+The next generation of ARC supports both the classic NorduGrid information schema~\cite{is} and
+currently a minimal set of the GLUE specification version 2.0 schema~\cite{glue2}.
+
+\section{Job control interface}
+
+The job control part of the LRMS interface is handled by the Grid Manager~\cite{gm}.
+It takes care of preparing a native batch system submission script,
+managing the actual submission of the batch system job, cancellation
+of job on request and scanning for completed batch jobs. Besides the
+LRMS job control interface it is also the GM which provides e.g. the
+data staging and communication with the grid client, provides RTE
+environments, arranges file staging (to the node via LRMS capability),
+dealing with stdout/stderr, etc. The job control batch system interface
+of the GM requires three programs. These programs can be implemented
+any way the designer sees it fits, but all the existing back-end interfaces
+use shell scripting for portability and ease of tailoring to a specific
+site. The GM will call the following programs: cancel-LRMS-job, submit-LRMS-job,
+and scan-LRMS-job where LRMS is replaced with the short hand name for the
+LRMS; e.g. cancel-pbs-job. The scripts are described one by one in
+the following subsections. Useful information can also be found in
+the Section \char`\"{}8.6 LRMS Support\char`\"{} and Section \char`\"{}8.7
+Runtime Environment\char`\"{} of the Grid-Manager guide~\cite{gm}. 
+
+
+\subsection{Cancel-LRMS-job}
+
+If a grid user cancels his job, the message will reach the grid-manager.
+The manager will then call the cancel-LRMS-job for the suitable back-end.
+The cancel script is called with a text file containing information
+about the job. It is called the GRAMi file. It contains such information
+as the original xRSL option and the job id in the local LRMS. Cancel-LRMS-job
+must then use that information to find the job and remove it from
+the queue or actually cancel it if it is running in the LRMS.
+
+
+\subsection{Submit-LRMS-job}
+
+The submit program is the most involved. It is called by the GM once
+a new job arrives and needs to be submitted to the LRMS. Like cancel-LRMS-job
+it is given the GRAMi file as argument on execution. Submit-LRMS-job
+then has to set up the session directories, run-time environment and
+anything else needed. Then it submits the job to the local LRMS.
+This is normally done by generating a native job script for the LRMS
+and then running the local submit command, but it can also be done
+through an API if the LRMS supports it.
+
+
+\subsection{Scan-LRMS-job}
+
+Scan-LRMS-job is run periodically. Its job is to scan the LRMS for
+jobs that have finished. Once it has found a finished job it will
+write the exit-code of that job to the file job.\{gridid\}.lrms\_done
+in the ARC jobstatus directory. Then it will call the gm-kick program
+to notify GM about the finished job. Subsequently, the GM starts finalizing
+the job.
+
+Generally, two approaches are taken to find jobs that are done. One
+is to ask the LRMS. First all started grid jobs are found in the jobstatus
+directory%
+\footnote{normally /var/spool/nordugrid/jobstatus/, but can be set via the controldir
+variable of arc.conf%
+}. This can be done by checking if the status is "INLRMS" in the jobs
+status file%
+\footnote{job.\{gridid\}.status%
+}. Then the LRMS is asked for the status of those jobs. If they are
+done they are marked as such and the GM is activated. The problem
+with this approach is that for most LRMSs the information about finished
+jobs are only available for a short period after the job finished.
+Therefore appropriate steps have to be taken if the job is known to
+have been started but is no longer present in the LRMS. The normal
+approach is to analyze the jobs status output in the session directory.
+
+The second approach is to parse the LRMSs log files. This method has
+some drawbacks, e.g. the GM has to be allowed read access to the logs.
+The back-end will then have to remember where in the log it was last
+time it ran. This information will have to be stored in a file somewhere
+on the front-end.
+
+
+\subsection{Configuration parser}
+
+Some of the back-ends will need information from the configuration
+file. Since this functionality can be shared  among the back-ends,
+a configuration file parser written in bash has been provided separately
+for easy maintenance and extendability. 
+
+
+\subsubsection{Functions}
+
+\texttt{config\_parse\_file <config\_file>}
+
+\begin{quote}
+Parses a config file. It returns exit status 1 if the file cannot
+be read, or 0 otherwise. Badly formed lines are silently ignored.
+Option values can be surrounded by single quotes or double quotes.
+Values without quotes are also accepted. Currently, multi-valued options are
+not supported. Only the last defined value is retained. 
+\end{quote}
+\texttt{config\_import\_section <section\_name>}
+
+\begin{quote}
+Imports options from section <section\_name> of the config file into
+environment variables of the form 'CONFIG\_optionname'. Already existing
+environment variables are overwritten.
+\end{quote}
+Example:
+
+\texttt{source \$ARC\_LOCATION/libexec/config\_parser.sh}
+
+\texttt{config\_parse\_file /etc/arc.conf || exit 1}
+
+\texttt{config\_import\_section common}
+
+\texttt{config\_import\_section grid-manager}
+
+\texttt{config\_import\_section infosys}
+
+\texttt{echo \$CONFIG\_pbs\_bin\_path }
+
+
+\section{Information System interface}
+
+The main purpose of the information system batch interface is to populate
+the NorduGrid information model and the GLUE2 model with locally collected
+information obtained from the batch system. It is important to recall that the
+locally collected information is broader than what the batch-system can
+offer, information taken from the grid-layer (mostly A-REX), from
+the front-end machine, and from the \texttt{arc.conf} configuration
+file are also needed and used to populate the NorduGrid information
+model~\cite{is} and the GLUE2 schema~\cite{glue2}.
+
+The information system interface consists of a set of Perl scripts which
+generates an XML output to \texttt{STDOUT} by one invocation of the Perl script named
+\texttt{cluster+qju.pl}. The XML output includes two representations of the output data,
+namely the classic NorduGrid information schema and an incomplete GLUE2 schema representation.
+
+The information collector scripts are divided between several separate scripts:
+\begin{itemize}
+\item \texttt{cluster+qju.pl} - driver for information collection. It calls all other information collectors and prints the results in XML. The information collection is done by one single invocation of this script.
+\item \texttt{InfoCollector.pm} - base class for all information collectors (i.e.: all files \texttt{*Info.pm}).
+\item \texttt{InfoChecker.pm} - used by \texttt{InfoCollector} to validate options and results against a ``schema''.
+\item \texttt{GMJobsInfo.pm} - collects information about jobs from GM status files.
+\item \texttt{HostInfo.pm} - collects other information that can be collected on the front end (hostname, software version, disk space for users, installed certificates, Runtime environments, etc.)
+\item \texttt{LRMSInfo.pm} - collects information that is LRMS specific (queues, jobs, local user limits, etc.) by calling the appropriate LRMS plugin. It also does validation of input options to the plugin and of the data returned by the plugin. 
+\item \texttt{<BATCH\_SYSTEM\_NAME>.pm} - plugins for LRMSInfo. Only Fork, SGE and PBS are updated to the new framework.
+\item \texttt{ARC0ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the classic NorduGrid schema.
+\item \texttt{ARC1ClusterInfo.pm} - combines all information about A-REX and produces information structured according to the GLUE2 schema.
+\end{itemize}
+
+The following subsection describes the LRMS interface part of the
+information system. To support a particular LRMS a dedicated Perl module
+should be written that implements the interface presented in the next
+subsections. Furthermore, hooks should be added to the \texttt{<BATCH\_SYSTEM\_NAME>.pm} module,
+so that it uses the correct Perl module depending on the LRMS type.
+
+\subsection{The LRMS Perl module interface}
+
+Each LRMS module should implement two functions: \texttt{lrms\_info} and
+\texttt{get\_lrms\_options\_schema}.
+
+
+\subsubsection{get\_lrms\_options\_schema}
+
+This function is called without arguments and should return a ``schema'' hash
+declaring the configuration options specific for this LRMS plugin. This
+``schema'' conforms to the format understood by \texttt{InfoChecker.pm} and is
+used to validate input options to the plugin.
+
+
+\subsubsection{lrms\_info}
+
+The \texttt{lrms\_info} function returns all LRMS specific information. This
+includes information about the cluster, queues, jobs and local user limits. The
+function is called with a hash of hashes containing all options required by the
+LRMS plugin. Some options are common to all plugins, and are described in table
+\ref{t:lrms_opts}.
+
+\begin{table}
+\caption{The \texttt{lrms\_options} hash used as input for the \texttt{lrms\_info} function} \label{t:lrms_opts}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+jobs & array with local job IDs \\
+\hline
+queues & hash with queue names as keys and values being
+\texttt{queue\_options} hashes (table \ref{t:queue_opts}) \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}
+\caption{The \texttt{queue\_options} hash} \label{t:queue_opts}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+users & array with local UNIX user names \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+The \texttt{lrms\_info} function should then return a
+hash of hashes with the structure described in table \ref{t:lrms_info}.
+
+\begin{table}
+\caption{The \texttt{lrms\_info} hash returned by the \texttt{lrms\_info} function} \label{t:lrms_info}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+lrms\_type & the type of LRMS e.g PBS\\
+\hline
+lrms\_version & the version of the LRMS\\
+\hline
+totalcpus & total number of CPUs in the cluster\\
+\hline
+queuedcpus & total number of CPUs requested by LRMS queuing jobs (both grid and
+non-grid)\\
+\hline
+usedcpus & CPUs in the LRMS that are currently in use either by grid or
+non-grid jobs\\
+\hline
+cpudistribution & number of CPUs in a node and number of each type e.g.
+{}``8cpu:5 2cpu:100''\\
+\hline
+queues & a hash with keys being queue names and values being
+\texttt{queue\_info} hashes as described in table \ref{t:queue_info} \\
+\hline
+jobs & a hash with keys being LRMS job IDs and values being
+\texttt{jobs\_info} hashes as described in table \ref{t:jobs_info} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}
+\caption{The \texttt{queue\_info} hash}
+\label{t:queue_info}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+status & available slots in queue, negative number signals error\\
+\hline
+maxrunning & limit on number of running jobs\\
+\hline
+maxqueuable & limit on number of jobs queued on this queue\\
+\hline
+maxuserrun & limit on number of running jobs per user\\
+\hline
+maxcputime & limit on maximum CPU time for a job in this queue in minutes\\
+\hline
+mincputime & limit on minimum CPU time for a job in this queue in minutes\\
+\hline
+efaultcput & default CPU time limit for a job in this queue in minutes\\
+\hline
+maxwalltime & limit on maximum wall time for a job in this queue in minutes\\
+\hline
+minwalltime & limit on minimum wall time for a job in this queue in minutes\\
+\hline
+defaultwallt & default wall time limit for a job in this queue in minutes\\
+\hline
+running & number of CPUs used by running jobs (both grid and non-grid) in the
+queue\\
+\hline
+queued & number of CPUs requested by queuing jobs in the queue\\
+\hline
+totalcpus & number of CPUs available to the queue\\
+\hline
+users & a hash with keys being local UNIX user names and values being
+\texttt{users\_info} hashes as described in table \ref{t:users_info} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}
+\caption{The \texttt{users\_info} hash}
+\label{t:users_info}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+freecpus & number of freely available CPUs with their time limits in minutes
+(see ComputingService.FreeSlotsWithDuration in~\cite{glue2})\\
+\hline
+queuelength & estimated queue length for the specified user\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}
+\caption{The \texttt{jobs\_info} hash}
+\label{t:jobs_info}
+\begin{center}
+\begin{tabular}{|c|p{12cm}|}
+\hline
+key & value\\
+\hline \hline
+status & LRMS jobstatus mapping\footnotemark[1]:
+Running $\Rightarrow$ 'R',
+Queued $\Rightarrow$ 'Q',
+Suspended $\Rightarrow$ 'S',
+Exiting $\Rightarrow$ 'E',
+Other $\Rightarrow$ 'O'\\
+\hline
+rank & the job's position in the LRMS queue\\
+\hline
+mem & the memory usage of the job in kBs\\
+\hline
+walltime & consumed wall-time in minutes\\
+\hline
+cputime & consumed CPU-time in minutes\\
+\hline
+reqwalltime & wall-time requested by job in minutes\\
+\hline
+reqcputime & CPU-time requested by job in minutes\\
+\hline
+nodes & list of execution hosts\\
+\hline
+comment & array of string comments about the job in LRMS, can be an empty
+array\\
+\hline
+\end{tabular}
+\footnotetext[1]{LRMS job states mapping is described in\cite{is}}
+\end{center}
+\end{table}
+
+
+
+\section{Batch system specifics}
+
+This section presents the batch system specific implementation details
+including information on supported versions, constraints on batch
+system configuration, known limitations, \texttt{arc.conf} parameters,
+and a list of batch system features being utilized within the interface
+are described.
+
+
+\subsection{PBS}
+
+The Portable Batch System (PBS) is one of the most popular batch systems.
+PBS comes in many flavours such as OpenPBS (unsupported), Terascale
+Open-Source Resource and QUEue Manager (TORQUE) and PBSPro (currently
+owned by Altair Engineering). ARC supports all the flavours and versions
+of PBS.
+
+
+\subsubsection{Recommended batch system configuration}
+
+PBS is a very powerful LRMS with dozens of
+configurable options. Server, queue and node attributes can be used
+to configure the cluster's behaviour. In order to correctly interface
+PBS to ARC (mainly the information provider scripts) there are a couple
+of configuration REQUIREMENTS asked to be implemented by the local
+system administrator:
+
+\begin{enumerate}
+\item The computing nodes MUST be declared as cluster nodes (job-exclusive),
+at the moment time-shared nodes are not supported by the ARC setup.
+If you intend to run more than one job on a single processor then
+you can use the virtual processor feature of PBS. 
+\item For each queue, you MUST set one of the max\_user\_run or max\_running
+attributes and its value SHOULD BE IN AGREEMENT with the number of
+available resources (i.e. don't set the max\_running = 10 if you have
+only six (virtual) processors in your system). If you set both max\_running
+and max\_user\_run then obviously max\_user\_run has to be less or equal
+to max\_running.
+\item For the time being, do NOT set server limits like max\_running, please
+use queue-based limits instead. 
+\item Avoid using the max\_load and the ideal\_load directives. The node's
+mom configuration file (<PBS home on the node>/mom\_priv/config) should not
+contain any max\_load or ideal\_load directives. PBS closes down a
+node (no jobs are allocated to it) when the load on the node reaches
+the max\_load value. The max\_load value is meant for controlling
+time-shared nodes. In case of job-exclusive nodes there is no need
+for setting these directives, moreover incorrectly set values can
+close down your node. 
+\item Routing queues are not supported, those cannot be used within ARC.
+\end{enumerate}
+Additional useful configuration hints:
+
+\begin{itemize}
+\item If possible, please use queue-based attributes instead of server level
+ones (for the time being, do not use server level attributes at all). 
+\item You may use the \char`\"{}acl\_user\_enable = True\char`\"{} with
+\char`\"{}acl\_users = user1,user2\char`\"{} attribute to enable user
+access control for the queue. 
+\item It is advisory to set the max\_queuable attribute in order to avoid
+a painfully long dead queue. 
+\item You can use node properties from the \texttt{<PBS home on the server>/server\_priv/nodes}
+file together with the \texttt{resources\_default.neednodes} to assign
+a queue to a certain type of node.
+\end{itemize}
+Checking your PBS configuration:
+
+\begin{itemize}
+\item The node definition can be checked by \texttt{<PBS installation path>/bin/pbsnodes
+-a.} All the nodes MUST have ntype=cluster. 
+\item The required queue attributes can be checked as \texttt{<PBS installation
+path>/bin/qstat -f -Q queuename}. There MUST be a max\_user\_run or
+a max\_running attribute listed with a REASONABLE value. 
+\end{itemize}
+
+\subsubsection{Relevant \texttt{arc.conf} options}
+
+Below the PBS specific configuration variables are collected.
+
+\begin{itemize}
+\item The PBS batch system back-end is enabled via setting the \texttt{lrms=\char`\"{}pbs\char`\"{}}
+in the \texttt{{[}common]} configuration block. No need to specify
+the flavour or the version number of the PBS, simply use the \texttt{{}``pbs''}
+keyword as LRMS configuration value.
+\item \texttt{pbs\_bin\_path} configuration variable of the \texttt{{[}common]}
+block should be set to the path to the qstat,pbsnodes,qmgr etc PBS
+binaries.
+\item \texttt{pbs\_log\_path} configuration variable of the \texttt{{[}common]}
+block should be set to the path of the PBS server logfiles which are
+used by the GM to determine whether a PBS job is completed.
+If not specified, the GM will use the \texttt{qstat} command
+to find completed jobs. 
+\item \texttt{lrmsconfig} from the \texttt{{[}cluster]} block can be used
+as an optional free text field to describe further details about the
+PBS configuration (e.g. \texttt{lrmsconfig=\char`\"{}single job per
+processor\char`\"{}}).
+\item \texttt{dedicated\_node\_string} from the \texttt{{[}cluster]} block
+specifies the string which is used in the PBS node config to distinguish
+the grid nodes from the rest. Suppose only a subset of nodes are available
+for grid jobs, and these nodes have a common \texttt{node property}
+string, this case the \texttt{dedicated\_node\_string} should be set
+to this value and only the nodes with the corresponding PBS \texttt{node
+property} are counted as grid enabled nodes. Setting the \texttt{dedicated\_node\_string}
+to the value of the PBS \texttt{node property} of the grid-enabled
+nodes will influence how the totalcpus, user freecpus is calculated.
+No need to set this attribute if the cluster is fully available for
+the grid and the PBS configuration does not use the \texttt{node property}
+method to assign certain nodes to grid queues.
+\item \texttt{{[}queue/queuename]} block. For each grid-enabled (or grid
+visible) PBS queue a corresponding \texttt{{[}queue]} block must be
+defined. \texttt{queuename} should be the PBS queue name.
+\item \texttt{scheduling\_policy} from the \texttt{{[}queue/queuename]}
+block describes the scheduling policy of the queue. PBS by default
+offers the FIFO scheduler, many sites run the MAUI. At the moment
+\texttt{FIFO} \& \texttt{MAUI} are supported values. If you have a
+MAUI scheduler you should specify the \char`\"{}MAUI\char`\"{} value
+since it modifies the way the queue resources are calculated. By default
+the \char`\"{}FIFO\char`\"{} scheduler type is assumed.
+\item \texttt{maui\_bin\_path} from the \texttt{{[}queue/queuename]} block
+sets the path of the maui commands like \texttt{showbf} when \char`\"{}MAUI\char`\"{}
+is specified as \texttt{scheduling\_policy} value. This parameter
+can be set in the \texttt{{[}common]} block as well. 
+\item \texttt{queue\_node\_string} of the \texttt{{[}queue/queuename]} block
+can be used similar to the \texttt{dedicated\_node\_string}. In PBS
+you can assign nodes to a queue (or a queue to nodes) by using the
+\texttt{node property} PBS node configuration method and assigning
+the marked nodes to the queue (setting the \texttt{resources\_default.neednodes}
+= \texttt{queue\_node\_string} for that queue). This parameter should
+contain the \texttt{node property} string of the queue-assigned nodes.
+Setting the \texttt{queue\_node\_string} changes how the queue-totalcpus,
+user freecpus are determined for this queue. 
+\end{itemize}
+
+\subsubsection{Implementation details}
+
+The job control batch interface makes use of the \texttt{qsub} command
+to submit native PBS job scripts to the batch system. The following
+options are used: 
+
+-l nodes, cput, walltime, pvmem, pmem, 
+
+-W stagein, stageout
+
+-e, -j eo
+
+-q
+
+-A 
+
+-N 
+
+For job cancellation the \texttt{qdel} command is used. To find completed
+jobs, i.e. to scan for finished jobs the \texttt{qstat} command or
+the \texttt{PBS server log file} is used.
+
+The information system interface utilizes the \texttt{qstat -f -Q
+queuename} and \texttt{qstat -f queuename} commands to obtain detailed
+job and queue information. \texttt{qmgr -c \char`\"{}list server\char`\"{}}
+is used to determine PBS flavour and version. The \texttt{pbsnodes}
+command is used to calculate total/used/free cpus within the cluster.
+In case of a MAUI scheduler the \texttt{showbf} command is used to
+determine user freecpu values. All these external PBS commands are
+interfaced via parsing the commands' output.
+
+
+\subsubsection{Known limitations}
+
+Some of the limitations are already mentioned under the PBS deployment
+requirements. No support for routing queues, difficulty of treating
+overlapping queues, the complexity of node string specifications for
+parallel jobs are the main shortcomings.
+
+
+\subsection{Fork}
+
+The Fork back-end is a simple back-end that interfaces to the local
+machine, i.e.: there is no batch system underneath. It simply forks
+the job, hence the name. The back-end then uses standard posix commands
+(e.g. ps or kill) to manage the job.
+
+
+\subsubsection{Recommended batch system configuration}
+
+Since fork is a simple back-end and does not use any batch system,
+there is no specific configuration needed for the underlying system.
+
+
+\subsubsection{Relevant arc.conf options}
+
+\begin{itemize}
+\item The Fork back-end is enabled by setting \texttt{lrms=\char`\"{}fork\char`\"{}}
+in the \texttt{{[}common]} configuration block. 
+\item The queue must be named {}``fork'' in the queue section.
+\item fork\_job\_limit=\char`\"{}cpunumber\char`\"{}, this option is used
+to set the number of running grid jobs on the fork machine, allowing
+a multi-core machine to use some or all of its cores for Grid jobs.
+The default value is 1. 
+\end{itemize}
+
+\subsubsection{Implementation details and known limitations}
+
+The Fork back-end implements an interface to the {}``fork'' UNIX
+command which is not a batch system. Therefore the back-end should
+rather be seen as an interface to the operating system itself. Most
+of the {}``batch system values'' are determined from the operating
+system (e.g. cpu load) or manually set in the configuration file. 
+
+Since Fork is not a batch system, many of the queue specific attributes
+or detailed job information is not available. The support for the
+{}``Fork batch system'' was introduced so that quick deployments
+and testing of the middleware can be possible without dealing with
+deployment of a real batch system since fork is available on every
+UNIX box. The "Fork back-end" is not recommended to be used in production.
+The back-end by its nature, has lots of limitations, for example it does
+not support parallel jobs. 
+
+
+\subsection{SGE}
+
+Sun Grid Engine, formerly known as Codine, is an open source batch
+system maintained by Sun. It runs on Linux, and Solaris.
+
+
+\subsubsection{Recommended batch system configuration}
+
+Set up one or more SGE queues for access by grid users. Queues can
+be shared by normal and grid users. In case you want to set up more
+than one ARC queue, make sure that the corresponding SGE queues have
+no shared nodes among them. Otherwise the counts of free and occupied
+CPUs might be wrong. Only SGE versions 6 and above are supported.
+
+
+\subsubsection{Relevant arc.conf options}
+
+The SGE back-end requires that the following options are specified:
+
+\begin{itemize}
+\item The SGE batch system back-end is enabled by setting \texttt{lrms=\char`\"{}sge\char`\"{}}
+in the \texttt{{[}common]} configuration block. 
+\item \texttt{sge\_root} must be set to SGE's install root.
+\item \texttt{sge\_bin\_path} configuration variable of the \texttt{{[}common]}
+block must be set to the path of the SGE binaries.
+\item \texttt{sge\_cell}, \texttt{sge\_qmaster\_port} and \texttt{sge\_execd\_port}
+options might be necessary to set in special cases. See the \texttt{arc.conf(5)}
+man page for more details.
+\item \texttt{sge\_jobopts} configuration variable of the \texttt{{[}queue]}
+block can be used to add custom SGE options to job scripts submitted
+to SGE. Consult SGE documentation for possible options.
+\end{itemize}
+Example:
+
+\texttt{lrms=\char`\"{}sge\char`\"{}}
+
+\texttt{sge\_root=\char`\"{}/opt/n1ge6\char`\"{}}
+
+\texttt{sge\_bin\_path=\char`\"{}/opt/n1ge6/bin/lx24-x86\char`\"{}}
+
+\texttt{...}
+
+\texttt{{[}queue/long]}
+
+\texttt{sge\_jobopts=\char`\"{}-P atlas -r yes\char`\"{}}
+
+
+\subsubsection{Implementation details}
+
+The SGE back-end's commands are similar to the PBS commands. These
+commands are used in the code:
+
+Submit job: 
+
+\begin{itemize}
+\item qsub -S /bin/sh (specifies the interpreting shell for the job)
+\end{itemize}
+Get jobs status: 
+
+If the job state is not suspended, running or pending then its state
+is failed.
+
+\begin{itemize}
+\item qstat -u '{*}' -s rs (show the running and suspended jobs status)
+\item qstat -u '{*}' -s p (show the pending jobs status)
+\item qstat -j job\_id (long job information)
+\item qacct -j job\_id (finished job report)
+\end{itemize}
+Job terminating:
+
+\begin{itemize}
+\item qdel job\_id (delete Sun Grid Engine job from the queue)
+\end{itemize}
+Queue commands:
+
+\begin{itemize}
+\item qconf -spl (show a list of all currently defined parallel environments)
+\item qconf -sql (show a list of all queues)
+\item qconf -sep (show a list of all licensed processors/slots)
+\item qstat -g c (display cluster queue summary)
+\item qconf -sconf global (show global configuration)
+\item qconf -sq queue\_name (show the given queue configuration)
+\end{itemize}
+Other:
+
+\begin{itemize}
+\item qstat -help (show Sun Grid Engine's version and type)
+\end{itemize}
+
+\subsubsection{Known limitations}
+
+Multi-CPU support is not well tested. All users are shown with the
+same quotas in the information system, even if they are mapped to different local
+users. The requirement that one ARC queue maps to one SGE queue is
+too restrictive, as the SGE's notion of a queue differs widely from
+ARC's definition. The flexibility available in SGE for defining policies
+is difficult to accurately translate into NorduGrid's information
+schema. The closest equivalent of nordugrid-queue-maxqueuable is a
+per-cluster limit in SGE, and the value of nordugrid-queue-localqueued
+is not well defined if pending jobs can have multiple destination
+queues. 
+
+\section{The ARC GLUE2 implementation}
+ARC1 provides support for both the classic NorduGrid information
+schema~\cite{is} as well as an early minimal GLUE 2 implementation.
+The output is rendered in XML format.
+
+Currently, the the following GLUE2 entities are included in ARC1:
+\begin{itemize}
+\item ComputingService
+\item ComputingEndpoint
+\item ComputingShare
+\end{itemize}
+
+While the following entities are still missing:
+\begin{itemize}
+\item ApplicationEnvironment
+\item ExecutionEnvironment
+\item ComputingActivity
+\item Policy including MappingPolicy / AccessPolicy
+\end{itemize}
+
+The different entities with their attributes are described in their respective sections below.
+
+\subsection{ComputingService}
+
+Hardcoded Properties:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Value \\
+\hline \hline
+Capability & \texttt{executionmanagement.jobexecution} \\
+\hline
+Type & \texttt{org.nordugrid.arex} \\
+\hline
+QualityLevel & \texttt{development} \\
+\hline
+Complexity & \texttt{endpoint=1,share=N,resource=1}, where N is the number of queues in the configuration file\\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties referring to job counts are calculated based on information in GM's status files:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Meaning \\
+\hline \hline
+TotalJobs & number of grid jobs in states other than FINISHED \\
+\hline
+RunningJobs & number of grid jobs in INLRMS:R state \\
+\hline
+WaitingJobs & number of grid jobs in INLRMS:Q, ACCEPTED, PREPARING and SUBMIT* states \\
+\hline
+\end{tabular}
+
+
+\subsection{ComputingEndpoint}
+
+\begin{tabular}{|l|p{11cm}|}
+\hline
+Property & Value\\
+\hline \hline
+URL & \texttt{https://\emph{hostname}:\emph{port}/arex} \\
+\hline
+Technology & \texttt{webservice} \\
+\hline
+Interface & \texttt{OGSA-BES} \\
+\hline
+WSDL & \texttt{https://\emph{hostname}:\emph{port}/arex/?wsdl} \\
+\hline
+Semantics & \texttt{http://www.nordugrid.org/documents/arex.pdf} \\
+\hline
+SupportedProfile & \texttt{WS-I 1.0} and \texttt{HPC-BP} \\
+\hline
+Implementor & \texttt{NorduGrid} \\
+\hline
+ImplementationName & \texttt{ARC1} \\
+\hline
+ImplementationVersion & \texttt{0.9} \\
+\hline
+QualityLevel & \texttt{development} \\
+\hline
+HealthState & \texttt{ok} -- no detection of problems yet\\
+\hline
+ServingState & \texttt{draining} if the configuration has allownew=no, \texttt{production} otherwise \\
+\hline
+IssuerCA & obtained from the \emph{hostcert.pem} file \\
+\hline
+TrustedCA & obtained by scanning the \emph{certificates} directory \\
+\hline
+Staging & \texttt{staginginout} \\
+\hline
+JobDescription & \texttt{ogf:jsdl:1.0}\\
+\hline
+\end{tabular}
+
+
+\subsection{ComputingShare}
+
+A ComputingShare element is generated for each 'queue' section in the configuration.
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Comments \\
+\hline \hline
+BaseType & \texttt{Share} \\
+\hline
+Name & from the configuration \\
+\hline
+Description & ``comment'' configuration option \\
+\hline
+MappingQueue & from the configuration \\
+\hline
+SchedulingPolicy & if maui is used, set to \texttt{fairshare} \\
+\hline
+ServingState & has the same value as ComputingEndpoint.ServingState \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are taken from the corresponding attributes returned by
+the LRMS plugin. Units are converted as necessary.
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & LRMS plugin attribute \\
+\hline \hline
+MaxCPUTime & maxcputime \\
+\hline
+MinCPUTime & mincputime \\
+\hline
+DefaultCPUTime & defaultcput \\
+\hline
+MaxWallTime & maxwalltime \\
+\hline
+MinWallTime & minwalltime \\
+\hline
+DefaultWallTime & defaultwallt \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+
+The following properties are directly taken from configuration options.
+
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+Property & Configuration option  & Comments \\
+\hline \hline
+MaxTotalJobs & maxjobs & maxjobs is a per cluster limit, grid-manager has no equivalent limit per share \\
+\hline
+MaxPreLRMSWaitingJobs & maxjobs & \\
+\hline
+MaxStageInStreams & maxload & maxload is a per cluster limit, grid-manager has no equivalent limit per share \\
+\hline
+MaxStageOutStreams & maxload & \\
+\hline
+MaxMemory & nodememory & \\
+\hline
+MaxDiskSpace & maxdiskperjob & \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are taken from the corresponding LRMS plugin attributes when available:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & LRMS plugin attribute \\
+\hline \hline
+MaxRunningJobs & maxrunning \\
+\hline
+MaxWaitingJobs & maxqueuable - maxrunning \\
+\hline
+MaxUserRunningJobs & maxuserrun \\
+\hline
+MaxSlotsPerJob & maxslotsperjob \\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties referring to job counts are calculated based on information in GM's status files:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Meaning \\
+\hline \hline
+TotalJobs &  number of grid jobs in this share in states other than FINISHED \\
+\hline
+RunningJobs & number of grid jobs in this share in INLRMS:R state \\
+\hline
+SuspendedJobs & number of grid jobs in this share in INLRMS:S state \\
+\hline
+WaitingJobs & number of grid jobs in this share in INLRMS:Q and INLRMS:O states \\
+\hline
+LocalRunningJobs & The total number of jobs running in the associated LRMS queue  minus the number of grid-running grid jobs (RunningJobs) \\
+\hline
+LocalWaitingJobs & The total number of jobs queued in the associated LRMS queue minus the number of grid-queued grid jobs (WaitingJobs) \\
+\hline
+StagingJobs & number of grid jobs in this share in PREPARING and FINISHING states \\
+\hline
+PreLRMSWaitingJobs & number of grid jobs in this share in ACCEPTED, PREPARING and SUBMIT* states\\
+\hline
+\end{tabular}
+
+\vspace*{3mm}
+The following properties are derived from the corresponding LRMS plugin attributes:
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+Property & Related LRMS properly \\
+\hline \hline
+UsedSlots & running \\
+\hline
+RequestedSlots & queued \\
+\hline
+FreeSlots & totalcpus - running \\
+\hline
+FreeSlotsWithDuration & freecpus \\
+\hline
+\end{tabular}
+
+
+\subsection{ExecutionEnvironment}
+Not yet implemented.
+
+\subsection{ApplicationEnvironment}
+Not yet implemented.
+
+\subsection{ComputingActivity}
+Not yet implemented.
+
+\subsection{MappingPolicy and AccessPolicy}
+Not yet implemented.
+
+
+\bibliography{grid}
+
+\end{document}
