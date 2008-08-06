@@ -171,17 +171,40 @@ sub get_host_info {
     chomp( $host_info->{architecture} = `uname -m`);
     $log->warning("Failed running uname") if $?;
 
-    open (CPUINFO, "</proc/cpuinfo")
-        or $log->error("error in opening /proc/cpuinfo");
-    while ( my $line = <CPUINFO> ) {
-        if ($line=~/^model name\s+:\s+(.*)$/) {
-            $host_info->{cpumodel} = $1;
+    if (-f "/proc/cpuinfo") {
+        # Linux variant
+
+        open (CPUINFO, "</proc/cpuinfo")
+            or $log->warning("Failed opening /proc/cpuinfo: $!");
+        while ( my $line = <CPUINFO> ) {
+            if ($line=~/^model name\s*:\s+(.*)$/) {
+                $host_info->{cpumodel} = $1;
+            } elsif ($line=~/^cpu MHz\s+:\s+(.*)$/) {
+                $host_info->{cpufreq} = int $1;
+            }
         }
-        if ($line=~/^cpu MHz\s+:\s+(.*)$/) {
-            $host_info->{cpufreq} = int $1;
+        close CPUINFO;
+
+    } elsif (-x "/usr/sbin/system_profiler") {
+        # OS X
+
+        my @lines = `system_profiler SPHardwareDataType`;
+        $log->warning("Failed running system_profiler: $!") if $?;
+        for my $line ( @lines ) {
+            if ($line =~ /Processor Name:\s*(.*)/) {
+                $host_info->{cpumodel} = $1;
+            } elsif ($line =~ /Processor Speed:\s*([.\d]+) (\w+)/) {
+                if ($2 eq "MHz") {
+                    $host_info->{cpufreq} = int $1;
+                } elsif ($2 eq "GHz") {
+                    $host_info->{cpufreq} = int 1000*$1;
+                }
+            }
         }
+    } else {
+        $log->warning("Cannot query CPU info: unsupported operating system");
     }
-    close CPUINFO;
+
 
     if ($host_info->{cpufreq} and $host_info->{cpumodel}) {
         $host_info->{nodecpu} = "$host_info->{cpumodel} @ $host_info->{cpufreq} Mhz";
