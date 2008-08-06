@@ -63,6 +63,7 @@ ARC
 Summary: ARC prototype clients
 Group: Applications/Internet
 Requires: %{name} = %{version}
+Requires: %{name}-plugins-base = %{version}
 
 %description client
 ARC prototype clients.
