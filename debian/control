@@ -53,7 +53,7 @@ Description: ARC Remote EXecution service
 
 Package: nordugrid-arc1-plugins-base
 Architecture: any
-Depends: norugrid-arc1-lib
+Depends: nordugrid-arc1-lib
 Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
