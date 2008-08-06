@@ -26,12 +26,12 @@ Description: ARC grid middleware
  that compatibility but can also be used independently.
  .
  With ARC-1, the user gains flexibility with additional services and
- more services. The service developer notices that even for persistent
- functionality across the two major versions, what has been a script
- on the server side once, that was repeatedly started and ran through,
- this has now become a service. Those are only started once and can then
- be queried, which is far more efficient, far more responsive, and
- is no longer stateless but can observe changes of values over time.
+ more supported platforms. The service developer notices that even for
+ persistent functionality across the two major versions, what has been
+ a script on the server side once, that was repeatedly started and ran
+ through, this has now become a service. Those are only started once and
+ can then be queried, which is far more efficient, far more responsive,
+ and is no longer stateless but can observe changes of values over time.
 
 
 Package: nordugrid-arc1-lib
