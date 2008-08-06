@@ -16,14 +16,23 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc1-server, nordugrid-ar
 Description: ARC grid middleware
  The Advanced Resource Connector (ARC) brings computing resources together
  across institutional boundaries. This concept is commonly referred to as 
- a "computational grid". Historically grids address the organisation of
+ a "computational grid". Historically, grids address the organisation of
  distributed storage of data and parallel computation, but arbitrary services
  are thinkable.
  .
  Just like the web, ARC has its roots in the IT infrastructure that was
- erected for analysis the experiments for high energy physics at CERN. The
+ erected to analyse the experiments for high energy physics at CERN. The
  first release, ARC-0.x, was dependent on Globus, the current release keeps
  that compatibility but can also be used independently.
+ .
+ With ARC-1, the user gains flexibility with additional services and
+ more services. The service developer notices that even for persistent
+ functionality across the two major versions, what has been a script
+ on the server side once, that was repeatedly started and ran through,
+ this has now become a service. Those are only started once and can then
+ be queried, which is far more efficient, far more responsive, and
+ is no longer stateless but can observe changes of values over time.
+
 
 Package: nordugrid-arc1-lib
 Architecture: any
@@ -33,7 +42,7 @@ Description: ARC shared libraries
 
 Package: nordugrid-arc1-client
 Architecture: any
-Depends: nordugrid-arc1-lib
+Depends: nordugrid-arc1-lib, nordugrid-arc1-plugins-base
 Suggests: globus
 Description: ARC prototype clients
  ARC prototype clients.
