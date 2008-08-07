@@ -80,7 +80,7 @@
 \label{cha:overview}
 
 
-The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), https://forge.gridforum.org/projects/byteio-wg/}, etc.). For each storage node one of the services of the ARC1 storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
+The ARC1 storage system is a distributed system for storing replicated \emph{file}s on several file storage nodes and manage them in a global namespace.  The files can be grouped into \emph{collection}s (a concept very similar to directories in the common file systems), and a collection can contain sub-collections and sub-sub-collections in any depth. There is a dedicated \emph{root collection} to gather all collections to the global namespace. This hierarchy of collections and files can be referenced using \emph{Logical Name}s (\emph{LN}s). The users can use this global namespace  as they were using a local filesystem. Files can be transfered by multiple transfer protocols, and the client side tools hide this from the user. The replicas of the files are stored on different storage nodes. A storage node here is a network-accessible computer having storage space to share, and one or more data transfer service running (e.g.~HTTP(S), FTP(S), GridFTP, ByteIO\footnote{OGSA ByteIO Working Group (BYTEIO-WG), \url{https://forge.gridforum.org/projects/byteio-wg/}}, etc.). For each storage node one of the services of the ARC1 storage system is needed to manage it and to integrate it into the system. And there are plans to provide a way to integrate third-party storage solutions into the namespace of the ARC1 storage system. The main services of the storage system are the following (see Figure~\ref{fig:services}):
 \begin{itemize}
     \item the \textbf{A-Hash} service, which is a currently centralized, later distributed database;
     \item the \textbf{Librarian} service, which stores the metadata and hierarchy of collections and files, the location of replicas, and health data of the Shepherd services, using the A-Hash as database;
@@ -127,7 +127,7 @@ Example on Figure~\ref{fig:namespace}: if we have a collection with GUID \verb#1
 
 If a client wants to find the file called \verb#/why/blue#, the system knows where to start the search: the GUID of the root collection. The root collection knows the GUID of \verb#why#, and the (sub-)collection \verb#why# knows the GUID of \verb#blue#. If the GUID of this file is \verb#5678#, and somebody makes another entry in collection \verb#/why# (= \verb#0/why#) with name \verb#red# and GUID \verb#5678#, then the \verb#/why/red# LN points to the same file as \verb#/why/blue#, so it's a hard link. To count the references (the number of hard links) of a file or collection, the GUID of the parent collection(s) is stored as a metadata for each file and collection.
 
-One possible usage scenario would be if each VO (Virtual Organization)\footnote{Virtual Organization, http://www.globus.org/grid\_software/security/voms.php} would create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
+One possible usage scenario would be if each VO (Virtual Organization)\footnote{Virtual Organization, \url{http://www.globus.org/grid\_software/security/voms.php}} would create a VO-wide root collection, and put it in the generic root collection, e.g.~if a VO called \verb#vo1# creates a collection called \verb#vo1# as a sub-collection of the root collection (which has the GUID \verb#0#), then it can be referred as \verb#0/vo1# or just \verb#/vo1#. Then this VO can create some files, and put them in this \verb#/vo1# collection, e.g.~\verb#/vo1/file1#, etc. Or sub-collections, e.g.~\verb#/vo1/col1#, \verb#/vo1/col2/file3#, etc. For this the VO does not need the install any service. These files and collections can be created using a Bartender service.
 
 % section GUIDsLNs (end)
 
@@ -266,7 +266,7 @@ We have a file on our local disk we want to upload to a collection called \verb#
 \chapter{Technical description and implementation status} % (fold)
 \label{cha:technical_description_and_implementation_status}
 
-The services are written in Python and running in the HED\footnote{The ARC container - https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}.
+The services are written in Python and running in the HED\footnote{The ARC container - \url{https://www.knowarc.eu/documents/Knowarc\_D1.2-2\_07.pdf}} hosting environment. The HED itself is written in C++, but there are language bindings which allow us to write services in other languages, e.g.~in Python or Java. The source code of the storage services are in the NorduGrid Subversion repository\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage}}.
 
 The current version of the prototype has no information system and no security, these are soon to be integrated to the system.
 
@@ -311,7 +311,7 @@ If you have an ID, you can get all property-value pairs of the corresponding obj
 
 \subsection{Prototype status and plans} % (fold)
 
-The A-Hash service currently implemented as a single central service, which stores the data on disk in separate files per \emph{object}. Fall of 2008 it will be reimplemented using a distributed hash table (DHT) algorithm, one possible candidate is the Chord\footnote{The Chord project - http://pdos.csail.mit.edu/chord/} algorithm with a consistency solution called Etna\footnote{Etna: a Fault-tolerant Algorithm for Atomic Mutable DHT Data - http://pdos.csail.mit.edu/\~athicha/papers/etna.ps} on top of it. This reimplementation hopefully won’t change the interface of the service.
+The A-Hash service currently implemented as a single central service, which stores the data on disk in separate files per \emph{object}. Fall of 2008 it will be reimplemented using a distributed hash table (DHT) algorithm, one possible candidate is the Chord\footnote{The Chord project - \url{http://pdos.csail.mit.edu/chord/}} algorithm with a consistency solution called Etna\footnote{Etna: a Fault-tolerant Algorithm for Atomic Mutable DHT Data - \url{http://pdos.csail.mit.edu/\~athicha/papers/etna.ps}} on top of it. This reimplementation hopefully won’t change the interface of the service.
 
 % subsection prototype_status_and_plans (end)
 
@@ -776,9 +776,9 @@ $ cat newfile
 This is a testfile.
 \end{verbatim}
 
-You can find more examples in the SVN\footnote{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage/README}.
+You can find more examples in the SVN\footnote{\url{http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/src/services/storage/README}}.
 
-There are plans to create more sophisticated CLI and GUI tools and to create a FUSE\footnote{Filesystem in Userspace, http://fuse.sourceforge.net/} module and Windows Shell Extensions\footnote{http://msdn.microsoft.com/en-us/magazine/cc188741.aspx} to be able to mount the ARC1 storage namespace into the local filesystem namespace, and use it with the commands of the operating system.
+There are plans to create more sophisticated CLI and GUI tools and to create a FUSE\footnote{Filesystem in Userspace, \url{http://fuse.sourceforge.net/}} module and Windows Shell Extensions\footnote{\url{http://msdn.microsoft.com/en-us/magazine/cc188741.aspx}} to be able to mount the ARC1 storage namespace into the local filesystem namespace, and use it with the commands of the operating system.
 
 % section client_tools (end)
 
