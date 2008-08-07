@@ -150,6 +150,9 @@ while the information collectors are located in
 \begin{quote}
 \texttt{arc1/trunk/src/services/a-rex/infoproviders/}.
 \end{quote}
+
+The backend scripts install along with the ARC1 code.
+
 The next generation of ARC supports both the classic NorduGrid information schema~\cite{is} and
 currently a minimal set of the GLUE specification version 2.0 schema~\cite{glue2}.
 
@@ -174,56 +177,54 @@ the Section \char`\"{}8.6 LRMS Support\char`\"{} and Section \char`\"{}8.7
 Runtime Environment\char`\"{} of the Grid-Manager guide~\cite{gm}. 
 
 
+\subsection{Submit-LRMS-job}
+
+The submit program is the most involved. It is called by the GM once
+a new job arrives and needs to be submitted to the LRMS. It is given
+the GRAMi file as argument on execution. The GRAMi file is a file in
+the job control directory containing the job description in a flat list
+of key-value pairs. This file is created by GM and is based on the JSDL
+job description. Submit-LRMS-job then has to set up the session
+directories, run-time environment and anything else needed. Then it
+submits the job to the local LRMS. This is normally done by generating
+a native job script for the LRMS and then running the local submit
+command, but it can also be done through an API if the LRMS supports it.
+
+
 \subsection{Cancel-LRMS-job}
 
 If a grid user cancels his job, the message will reach the grid-manager.
 The manager will then call the cancel-LRMS-job for the suitable back-end.
-The cancel script is called with a text file containing information
-about the job. It is called the GRAMi file. It contains such information
-as the original xRSL option and the job id in the local LRMS. Cancel-LRMS-job
-must then use that information to find the job and remove it from
-the queue or actually cancel it if it is running in the LRMS.
-
-
-\subsection{Submit-LRMS-job}
-
-The submit program is the most involved. It is called by the GM once
-a new job arrives and needs to be submitted to the LRMS. Like cancel-LRMS-job
-it is given the GRAMi file as argument on execution. Submit-LRMS-job
-then has to set up the session directories, run-time environment and
-anything else needed. Then it submits the job to the local LRMS.
-This is normally done by generating a native job script for the LRMS
-and then running the local submit command, but it can also be done
-through an API if the LRMS supports it.
+The cancel script is called with the GRAMi file containing information
+about the job such as the job id in the LRMS. Cancel-LRMS-job must then
+use that information to find the job and remove it from the queue or
+actually cancel it if it is running in the LRMS.
 
 
 \subsection{Scan-LRMS-job}
 
-Scan-LRMS-job is run periodically. Its job is to scan the LRMS for
+The scan-LRMS-job is run periodically. Its job is to scan the LRMS for
 jobs that have finished. Once it has found a finished job it will
 write the exit-code of that job to the file job.\{gridid\}.lrms\_done
-in the ARC jobstatus directory. Then it will call the gm-kick program
-to notify GM about the finished job. Subsequently, the GM starts finalizing
-the job.
+in the ARC job status directory\footnote{normally /var/spool/nordugrid/jobstatus/,
+but can be set via the controldir variable of arc.conf}. Then it will call the
+gm-kick program to notify GM about the finished job. Subsequently, the GM starts
+finalizing the job.
 
-Generally, two approaches are taken to find jobs that are done. One
-is to ask the LRMS. First all started grid jobs are found in the jobstatus
-directory%
-\footnote{normally /var/spool/nordugrid/jobstatus/, but can be set via the controldir
-variable of arc.conf%
-}. This can be done by checking if the status is "INLRMS" in the jobs
-status file%
-\footnote{job.\{gridid\}.status%
-}. Then the LRMS is asked for the status of those jobs. If they are
-done they are marked as such and the GM is activated. The problem
-with this approach is that for most LRMSs the information about finished
-jobs are only available for a short period after the job finished.
-Therefore appropriate steps have to be taken if the job is known to
-have been started but is no longer present in the LRMS. The normal
-approach is to analyze the jobs status output in the session directory.
+Generally, two approaches are taken to find jobs which are finished in LRMS. One
+is to directly ask the LRMS. Since all started grid jobs have its own status
+file\footnote{job.\{gridid\}.status} found in the job status directory,
+this can be done by checking if the status is "INLRMS" in this file. If so, a
+call to the LRMS is made asking for the status of the job (or jobs if several
+jobs have status "INLRMS"). If it is finished, it is marked as such in the
+job status directory, and the gm-kick program is activated. For most LRMSs the
+information about finished jobs are only available for a short period of time after
+the job finished. Therefore appropriate steps have to be taken if the job has the
+status "INLRMS" in the job status directory, but is no longer present in the LRMS.
+The normal approach is to analyze the job's status output in the session directory.
 
 The second approach is to parse the LRMSs log files. This method has
-some drawbacks, e.g. the GM has to be allowed read access to the logs.
+some drawbacks like e.g.: the GM has to be allowed read access to the logs.
 The back-end will then have to remember where in the log it was last
 time it ran. This information will have to be stored in a file somewhere
 on the front-end.
@@ -396,6 +397,7 @@ jobs & a hash with keys being LRMS job IDs and values being
 \begin{table}
 \caption{The \texttt{queue\_info} hash}
 \label{t:queue_info}
+\begin{minipage}{\textwidth}
 \begin{center}
 \begin{tabular}{|c|p{12cm}|}
 \hline
@@ -415,7 +417,8 @@ mincputime & limit on minimum CPU time for a job in this queue in minutes\\
 \hline
 efaultcput & default CPU time limit for a job in this queue in minutes\\
 \hline
-maxwalltime & limit on maximum wall time for a job in this queue in minutes\\
+maxwalltime & limit on maximum wall time\footnote{Also known as Wall clock
+time, \url{http://en.wikipedia.org/wiki/Wall_clock_time}} for a job in this queue in minutes\\
 \hline
 minwalltime & limit on minimum wall time for a job in this queue in minutes\\
 \hline
@@ -433,6 +436,7 @@ users & a hash with keys being local UNIX user names and values being
 \hline
 \end{tabular}
 \end{center}
+\end{minipage}
 \end{table}
 
 
@@ -457,12 +461,13 @@ queuelength & estimated queue length for the specified user\\
 \begin{table}
 \caption{The \texttt{jobs\_info} hash}
 \label{t:jobs_info}
+\begin{minipage}{\textwidth}
 \begin{center}
 \begin{tabular}{|c|p{12cm}|}
 \hline
 key & value\\
 \hline \hline
-status & LRMS jobstatus mapping\footnotemark[1]:
+status & LRMS jobstatus mapping\footnote{LRMS job states mapping is described in\cite{is}}:
 Running $\Rightarrow$ 'R',
 Queued $\Rightarrow$ 'Q',
 Suspended $\Rightarrow$ 'S',
@@ -473,11 +478,11 @@ rank & the job's position in the LRMS queue\\
 \hline
 mem & the memory usage of the job in kBs\\
 \hline
-walltime & consumed wall-time in minutes\\
+walltime & consumed wall time in minutes\\
 \hline
 cputime & consumed CPU-time in minutes\\
 \hline
-reqwalltime & wall-time requested by job in minutes\\
+reqwalltime & wall time requested by job in minutes\\
 \hline
 reqcputime & CPU-time requested by job in minutes\\
 \hline
@@ -487,8 +492,8 @@ comment & array of string comments about the job in LRMS, can be an empty
 array\\
 \hline
 \end{tabular}
-\footnotetext[1]{LRMS job states mapping is described in\cite{is}}
 \end{center}
+\end{minipage}
 \end{table}
 
 
@@ -533,8 +538,8 @@ and max\_user\_run then obviously max\_user\_run has to be less or equal
 to max\_running.
 \item For the time being, do NOT set server limits like max\_running, please
 use queue-based limits instead. 
-\item Avoid using the max\_load and the ideal\_load directives. The node's
-mom configuration file (<PBS home on the node>/mom\_priv/config) should not
+\item Avoid using the max\_load and the ideal\_load directives. The Node Manager
+(MOM) configuration file (<PBS home on the node>/mom\_priv/config) should not
 contain any max\_load or ideal\_load directives. PBS closes down a
 node (no jobs are allocated to it) when the load on the node reaches
 the max\_load value. The max\_load value is meant for controlling
@@ -611,7 +616,7 @@ MAUI scheduler you should specify the \char`\"{}MAUI\char`\"{} value
 since it modifies the way the queue resources are calculated. By default
 the \char`\"{}FIFO\char`\"{} scheduler type is assumed.
 \item \texttt{maui\_bin\_path} from the \texttt{{[}queue/queuename]} block
-sets the path of the maui commands like \texttt{showbf} when \char`\"{}MAUI\char`\"{}
+sets the path of the MAUI commands like \texttt{showbf} when \char`\"{}MAUI\char`\"{}
 is specified as \texttt{scheduling\_policy} value. This parameter
 can be set in the \texttt{{[}common]} block as well. 
 \item \texttt{queue\_node\_string} of the \texttt{{[}queue/queuename]} block
@@ -712,7 +717,8 @@ not support parallel jobs.
 \subsection{SGE}
 
 Sun Grid Engine, formerly known as Codine, is an open source batch
-system maintained by Sun. It runs on Linux, and Solaris.
+system maintained by Sun. It is supported on Linux, and Solaris in
+addition to a numerous other systems.
 
 
 \subsubsection{Recommended batch system configuration}
@@ -924,7 +930,7 @@ Description & ``comment'' configuration option \\
 \hline
 MappingQueue & from the configuration \\
 \hline
-SchedulingPolicy & if maui is used, set to \texttt{fairshare} \\
+SchedulingPolicy & if MAUI is used, set to \texttt{fairshare} \\
 \hline
 ServingState & has the same value as ComputingEndpoint.ServingState \\
 \hline
