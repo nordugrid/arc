@@ -116,7 +116,7 @@ else
 fi
 
 AC_CHECK_PROGS(JAVA, java gij)
-AC_CHECK_PROGS(JAVAC, javac gcj ecj)
+AC_CHECK_PROGS(JAVAC, gcj javac ecj)
 AC_CHECK_PROGS(JAR, fastjar jar)
 
 if test "X$JAVAC" != "X" && test "X`basename $JAVAC`" = "Xgcj"; then
