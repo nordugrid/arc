@@ -28,12 +28,26 @@ void arcclean(const std::list<std::string>& jobs,
   if (!uc)
     return;
 
-  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       "", joblist.empty() ? uc.JobsFile() : joblist,
-			       false, force, timeout);
+  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject,
+			       joblist.empty() ? uc.JobsFile() : joblist);
+
+  std::list<Arc::JobController*> TheJobControllers = JobMaster.GetJobControllers();
   
-  JobMaster.GetJobInformation();
-  JobMaster.Clean();
+  if(TheJobControllers.empty())
+    return;
+  std::cout<<"Number of JobControllers: "<<TheJobControllers.size() <<std::endl; 
+  
+  std::list<Arc::JobController*>::iterator iter;
+  
+  //This may benefit from being threaded
+  for(iter = TheJobControllers.begin(); iter != TheJobControllers.end(); iter++){
+    (*iter)->Clean(jobs,
+		   clusterselect,
+		   clusterreject,
+		   status,
+		   force,
+		   timeout);
+  }
   
 }
 

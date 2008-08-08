@@ -13,33 +13,16 @@ namespace Arc {
   class JobSupervisor {
   public:
     JobSupervisor(std::string joblist, std::list<std::string> jobids);
-
+    
     JobSupervisor(const std::list<std::string>& jobs,
 		  const std::list<std::string>& clusterselect,
 		  const std::list<std::string>& clusterreject,
-		  const std::list<std::string>& status,
-		  const std::string downloaddir,
-		  const std::string joblist,
-		  const bool keep,
-		  const bool force,
-		  const int timeout);
-            
+		  const std::string joblist);
+    
     ~JobSupervisor();
-
-    void GetJobInformation();
-    void DownloadJobOutput();
-    void Clean();
-    void Kill();
-    void PrintJobInformation(bool longlist);
-
-    const std::list<std::string> clusterselect;
-    const std::list<std::string> clusterreject;
-    const std::list<std::string> status;
-    const std::string downloaddir;
-    const bool keep;
-    const bool force;
-    const int timeout;
-
+    
+    std::list<Arc::JobController*> GetJobControllers(){return JobControllers;}
+    
   private:
     static Logger logger;
     Loader *ACCloader;

@@ -1,16 +1,12 @@
-bin_PROGRAMS = arcstat arcsub arcget arcclean arckill
+bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat
 
-man_MANS = arcstat.1 arcsub.1 arcget.1 arcclean.1 arckill.1
+man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
           ../../hed/libs/message/libarcmessage.la \
           ../../hed/libs/client/libarcclient.la\
           ../../hed/libs/common/libarccommon.la
-
-arcstat_SOURCES  = arcstat.cpp
-arcstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-arcstat_LDADD    = $(CLILIBS)
 
 arcsub_SOURCES  = arcsub.cpp
 arcsub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
@@ -20,10 +16,18 @@ arcget_SOURCES  = arcget.cpp
 arcget_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcget_LDADD    = $(CLILIBS)
 
-arcclean_SOURCES  = arcclean.cpp
-arcclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-arcclean_LDADD    = $(CLILIBS)
+arcstat_SOURCES  = arcstat.cpp
+arcstat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcstat_LDADD    = $(CLILIBS)
 
 arckill_SOURCES  = arckill.cpp
 arckill_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arckill_LDADD    = $(CLILIBS)
+
+arcclean_SOURCES  = arcclean.cpp
+arcclean_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcclean_LDADD    = $(CLILIBS)
+
+arccat_SOURCES  = arccat.cpp
+arccat_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arccat_LDADD    = $(CLILIBS)

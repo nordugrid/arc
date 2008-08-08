@@ -11,7 +11,6 @@
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/UserConfig.h>
 
 
@@ -30,15 +29,28 @@ void arcget(const std::list<std::string>& jobs,
   if (!uc)
     return;
 
-  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject, status, 
-			       downloaddir,
-			       joblist.empty() ? uc.JobsFile() : joblist,
-			       keep, false, timeout);
+  Arc::JobSupervisor JobMaster(jobs, clusterselect, clusterreject,
+			       joblist.empty() ? uc.JobsFile() : joblist);
 
-  JobMaster.GetJobInformation();
-  JobMaster.PrintJobInformation(true);
-  JobMaster.DownloadJobOutput();
-
+  std::list<Arc::JobController*> TheJobControllers = JobMaster.GetJobControllers();
+  
+  if(TheJobControllers.empty())
+    return;
+  std::cout<<"Number of JobControllers: "<<TheJobControllers.size() <<std::endl; 
+  
+  std::list<Arc::JobController*>::iterator iter;
+  
+  //This may benefit from being threaded
+  for(iter = TheJobControllers.begin(); iter != TheJobControllers.end(); iter++){
+    (*iter)->Get(jobs,
+		 clusterselect,
+		 clusterreject,
+		 status,
+		 downloaddir,
+		 keep,
+		 timeout);
+  }
+  
 }
 
 int main(int argc, char **argv) {

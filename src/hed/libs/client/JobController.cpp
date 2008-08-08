@@ -8,6 +8,7 @@
 #include <arc/XMLNode.h>
 #include <arc/User.h>
 
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 
@@ -23,11 +24,13 @@ namespace Arc {
 
   JobController::~JobController() {}
   
-  void JobController::IdentifyJobs(std::list<std::string> jobids){
+  void JobController::FillJobStore(std::list<std::string> jobs,
+				   std::list<std::string> clusterselect,
+				   std::list<std::string> clusterreject){
     
     mcfg.ReadFromFile(joblist);
 
-    if(jobids.empty()){ //We are looking at all jobs of this grid flavour
+    if(jobs.empty()){ //We are looking at all jobs of this grid flavour
 
       logger.msg(DEBUG, "Identifying all jobs of flavour %s", GridFlavour);	
       logger.msg(DEBUG, "Using joblist file %s", joblist);	
@@ -42,14 +45,14 @@ namespace Arc {
 	JobStore.push_back(ThisJob);
       }
 
-    } else {//Jobs are targeted individually. The supplied jobids list may not contain any jobs of this grid flavour
+    } else {//Jobs are targeted individually. The supplied jobs list may not contain any jobs of this grid flavour
 
       logger.msg(DEBUG, "Identifying individual jobs of flavour %s", GridFlavour);	
       logger.msg(DEBUG, "Using joblist file %s", joblist);	
 
       std::list<std::string>::iterator it;
 
-      for(it = jobids.begin(); it != jobids.end(); it++){
+      for(it = jobs.begin(); it != jobs.end(); it++){
 	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
 	if(GridFlavour == (std::string) ThisXMLJob["flavour"]){
 	  Job ThisJob;
@@ -64,7 +67,178 @@ namespace Arc {
 
   }
 
-  void JobController::PrintJobInformation(bool longlist){
+  void JobController::Get(const std::list<std::string>& jobs,
+			  const std::list<std::string>& clusterselect,
+			  const std::list<std::string>& clusterreject,
+			  const std::list<std::string>& status,
+			  const std::string downloaddir,
+			  const bool keep,
+			  const int timeout){
+
+    logger.msg(DEBUG, "Getting %s jobs", GridFlavour);	
+    std::list<std::string> JobsToBeRemoved;
+
+    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+
+
+    //loop over jobs
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      //first download job output
+      bool downloaded = GetThisJob(*jobiter, downloaddir);
+      if(!downloaded){
+	std::cout<<Arc::IString("Failed downloading job %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      //second clean job (unless keep)
+      if(!keep){
+	JobsToBeRemoved.push_back(jobiter->JobID.str());
+	bool cleaned = CleanThisJob(*jobiter, true);
+	if(!cleaned){
+	  std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
+	  //continue ?
+	}
+      }
+    } //end loop over jobs
+
+    //Remove succesfully downloaded jobs
+    RemoveJobs(JobsToBeRemoved);
+    
+  }
+
+  void JobController::Kill(const std::list<std::string>& jobs,
+			   const std::list<std::string>& clusterselect,
+			   const std::list<std::string>& clusterreject,
+			   const std::list<std::string>& status,
+			   const bool keep,
+			   const int timeout){
+    
+    logger.msg(DEBUG, "Killing %s jobs", GridFlavour);
+    std::list<std::string> JobsToBeRemoved;
+
+    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+
+    //loop over jobs
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      //first cancel job (i.e. stop execution)
+      bool cancelled = CancelThisJob(*jobiter);
+      if(!cancelled){
+	std::cout<<Arc::IString("Failed cancelling (stop) job %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      //second clean job (unless keep)
+      if(!keep){
+	JobsToBeRemoved.push_back(jobiter->JobID.str());
+	bool cleaned = CleanThisJob(*jobiter, true);
+	if(!cleaned){
+	  std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
+	  //continue ?
+	}
+      }
+    } //end loop over jobs
+    
+    //Remove succesfully killed and cleaned jobs
+    RemoveJobs(JobsToBeRemoved);
+
+  }
+
+  void JobController::Clean(const std::list<std::string>& jobs,
+			    const std::list<std::string>& clusterselect,
+			    const std::list<std::string>& clusterreject,
+			    const std::list<std::string>& status,
+			    const bool force,
+			    const int timeout){
+    
+    logger.msg(DEBUG, "Cleaning %s jobs", GridFlavour);
+    std::list<std::string> JobsToBeRemoved;
+    
+    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    
+    //loop over jobs
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      bool cleaned = CleanThisJob(*jobiter, force);
+      if(!cleaned){
+	if(force)
+	  JobsToBeRemoved.push_back(jobiter->JobID.str()); 
+	std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      JobsToBeRemoved.push_back(jobiter->JobID.str());       
+    } //end loop over jobs
+
+    //Remove succesfully killed and cleaned jobs
+    RemoveJobs(JobsToBeRemoved);
+    
+  }
+
+  void JobController::Cat(const std::list<std::string>& jobs,
+			  const std::list<std::string>& clusterselect,
+			  const std::list<std::string>& clusterreject,
+			  const std::list<std::string>& status,
+			  const std::string whichfile,
+			  const int timeout){
+
+    logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", GridFlavour);
+    
+    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    
+    //loop over jobs
+    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
+      if(jobiter->State.empty()){
+	std::cout<<Arc::IString("Job state information not found: %s", jobiter->JobID.str())<<std::endl;
+	continue;
+      }
+      if(whichfile == "stdout" || whichfile == "stderr"){
+	if(jobiter->State == "DELETED"){
+	std::cout<<Arc::IString("Job has already been deleted: %s", jobiter->JobID.str())<<std::endl;	  
+	continue;
+	}
+	if(jobiter->State == "ACCEPTING" || jobiter->State == "ACCEPTED" ||
+	   jobiter->State == "PREPARING" || jobiter->State == "PREPARED" ||
+	   jobiter->State == "INLRMS:Q") {
+	  std::cout<<Arc::IString("Job has not started yet: %s", jobiter->JobID.str())<<std::endl;	  
+	  continue;
+	}
+      }
+      if(whichfile == "stdout" && jobiter->StdOut.empty()){
+	std::cout<<Arc::IString("Can not determine the stdout location: %s", jobiter->JobID.str())<<std::endl;	  
+	continue;
+      }
+      if(whichfile == "stderr" && jobiter->StdErr.empty()){
+	std::cout<<Arc::IString("Can not determine the stderr location: %s", jobiter->JobID.str())<<std::endl;	  
+	continue;
+      }
+      
+      //get the file (stdout, stderr or gmlog)
+      URL src = GetFileUrlThisJob((*jobiter), whichfile);
+      URL dst("/tmp/arccat.XXXXXX");
+      bool copied = CopyFile(src, dst);
+
+      //output to screen
+      if(copied){
+	std::cout<<Arc::IString("%s from job %s", whichfile, jobiter->JobID.str())<<std::endl;
+	char str[2000];
+        
+	std::fstream file("/tmp/arccat.XXXXXX", std::fstream::in);
+        while(!file.eof()) {
+	  file.getline(str,2000);
+	  std::cout << str;
+        }         
+	file.close();
+	std::cout <<std::endl;
+      }
+
+    } //end loop over jobs
+
+  }
+
+  void JobController::Stat(const std::list<std::string>& jobs,
+			   const std::list<std::string>& clusterselect,
+			   const std::list<std::string>& clusterreject,
+			   const std::list<std::string>& status,
+			   const bool longlist,
+			   const int timeout){
+    
+    //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
     
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
       
@@ -171,8 +345,16 @@ namespace Arc {
     logger.msg(DEBUG, " %s -> %s)", src.str(), dst.str());
 
     Arc::DataHandle source(src);
+    if(!source){
+      std::cout<<Arc::IString("Failed to get DataHandle on source: %s", src)<<std::endl;
+      return false;
+    }
     Arc::DataHandle destination(dst);
-
+    if(!destination){
+      std::cout<<Arc::IString("Failed to get DataHandle on destination: %s", destination)<<std::endl;
+      return false;
+    }
+    
     // Create cache
     // This should not be needed (DataMover bug)
     Arc::User cache_user;
@@ -197,7 +379,9 @@ namespace Arc {
   } //end CopyFile
 
   //Delete jobs from both joblist file and local JobStore
-  void JobController::RemoveJobs(std::list<std::string> jobids){
+  void JobController::RemoveJobs(std::list<std::string> jobs){
+
+    logger.msg(DEBUG, "Removing jobs from joblist and jobstore");	    
 
     //lock Joblist file
     Arc::FileLock lock(joblist);
@@ -206,13 +390,13 @@ namespace Arc {
     std::list<std::string>::iterator it;
     
     //Identify jobs in joblist and remove from list
-    for(it = jobids.begin(); it != jobids.end(); it++){
+    for(it = jobs.begin(); it != jobs.end(); it++){
       Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ (*it)+"']", Arc::NS())).begin());
       if(ThisXMLJob){
 	logger.msg(DEBUG, "Removing job %s from joblist file", (*it));	
 	ThisXMLJob.Destroy();
       }else {
-	logger.msg(ERROR, "Job %s has been deleted, but is not listed in joblist", (*it));	
+	logger.msg(ERROR, "Job %s has been delete (i.e. was in JobStore), but is not listed in joblist", (*it));	
       }
       //Remove job from JobStore
       std::list<Job>::iterator jobiter = JobStore.begin();
@@ -229,6 +413,7 @@ namespace Arc {
     mcfg.SaveToFile(joblist);
 
     logger.msg(DEBUG, "JobStore%s now contains %d jobs", GridFlavour, JobStore.size());	    
+    logger.msg(DEBUG, "Finished removing jobs from joblist and jobstore");	    
     
   }//end RemoveJobs
 

@@ -25,33 +25,38 @@ namespace Arc {
       iter->State = gLiteClient.stat(pi.Rest());
     }
   }
-
-  void JobControllerCREAM::DownloadJobOutput(bool, std::string) {}
-
-  void JobControllerCREAM::Clean(bool force) {
-    for (std::list<Job>::iterator iter = JobStore.begin(); iter != JobStore.end(); iter++) {
-      MCCConfig cfg;
-      PathIterator pi(iter->JobID.Path(), true);
-      URL url(iter->JobID);
-      url.ChangePath(*pi);
-      Cream::CREAMClient gLiteClient(url, cfg);
-      gLiteClient.purge(pi.Rest());
-    }
+  
+  bool JobControllerCREAM::GetThisJob(Job ThisJob, std::string downloaddir){};
+  
+  bool JobControllerCREAM::CleanThisJob(Job ThisJob, bool force){
+    bool cleaned = true;
+    
+    MCCConfig cfg;
+    PathIterator pi(ThisJob.JobID.Path(), true);
+    URL url(ThisJob.JobID);
+    url.ChangePath(*pi);
+    Cream::CREAMClient gLiteClient(url, cfg);
+    gLiteClient.purge(pi.Rest());
+    
+    return cleaned;
+    
   }
 
-  void JobControllerCREAM::Kill(bool keep) {
-    for (std::list<Job>::iterator iter = JobStore.begin(); iter != JobStore.end(); iter++) {
-      MCCConfig cfg;
-      PathIterator pi(iter->JobID.Path(), true);
-      URL url(iter->JobID);
-      url.ChangePath(*pi);
-      Cream::CREAMClient gLiteClient(url, cfg);
-      gLiteClient.cancel(pi.Rest());
-      // Need to figure out how to handle this. The following fails because
-      // "the job has a status not compatible with the JOB_PURGE command"
-      // if (!keep)
-      //   gLiteClient.purge(pi.Rest());
-    }
+  bool JobControllerCREAM::CancelThisJob(Job ThisJob){
+
+    bool cancelled = true;
+    
+    MCCConfig cfg;
+    PathIterator pi(ThisJob.JobID.Path(), true);
+    URL url(ThisJob.JobID);
+    url.ChangePath(*pi);
+    Cream::CREAMClient gLiteClient(url, cfg);
+    gLiteClient.cancel(pi.Rest());
+    
+    return cancelled;
+    
   }
+
+  URL JobControllerCREAM::GetFileUrlThisJob(Job ThisJob, std::string whichfile){};
 
 } // namespace Arc

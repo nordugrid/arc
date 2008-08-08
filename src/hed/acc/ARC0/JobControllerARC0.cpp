@@ -157,37 +157,18 @@ namespace Arc {
 
   } //end GetJobInformation
 
-  void JobControllerARC0::DownloadJobOutput(bool keep, std::string downloaddir){
-    
-    logger.msg(DEBUG, "Downloading ARC0 jobs");	
-    std::list<std::string> JobsToBeRemoved;
-
-    //Download jobs
-    bool Downloaded;
-    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
-      Downloaded = DownloadThisJob(*jobiter, keep, downloaddir);
-      if(Downloaded && !keep){
-	JobsToBeRemoved.push_back(jobiter->JobID.str());
-      }
-    }
-
-    //Remove succesfully downloaded jobs
-    RemoveJobs(JobsToBeRemoved);
-
-  }
-  
-  bool JobControllerARC0::DownloadThisJob(Job ThisJob, bool keep, std::string downloaddir){
+  bool JobControllerARC0::GetThisJob(Job ThisJob, std::string downloaddir){
     
     logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
+    bool SuccesfulDownload = true;
 
     Arc::DataHandle source(ThisJob.JobID);
     
-    //first copy files
-    bool SuccesfulDownload = true;
     if(source){
       std::list<FileInfo> outputfiles;
       source->ListFiles(outputfiles, true);
       std::cout<<"Job directory contains:"<<std::endl;
+      //loop over files
       for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin();i != outputfiles.end(); i++){
 	std::cout << i->GetName() <<std::endl;
 	std::string src = ThisJob.JobID.str() +"/"+ i->GetName();
@@ -203,39 +184,13 @@ namespace Arc {
 	if(!GotThisFile)
 	  SuccesfulDownload = false;
       }
-
-      if(!SuccesfulDownload){
-	std::cout<<Arc::IString("Failed dowloading job: %s. Job will not be cleaned or removed.", ThisJob.JobID.str())<<std::endl;
-      }
-
-      //second clean the session dir unless keep == true
-      if(!keep && SuccesfulDownload){
-	bool cleaned = CleanThisJob(ThisJob, true);
-	if(!cleaned){
-	  logger.msg(ERROR, "Failed cleaning job: %s", ThisJob.JobID.str());	
-	}
-      }
     } else {
-      std::cout<<Arc::IString("Failed dowloading job: %s. Could not get data handle.", ThisJob.JobID.str())<<std::endl;
+      logger.msg(ERROR, "Failed dowloading job: %s. Could not get data handle.", ThisJob.JobID.str());
     }
 
     return SuccesfulDownload;
 
-  }//end DownloadThisJob
-
-  void JobControllerARC0::Clean(bool force){
-
-    logger.msg(DEBUG, "Cleaning jobs ...");
-  
-    //thread?
-    for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
-      bool cleaned = CleanThisJob(*jobiter, force);
-      if(!cleaned){
-	logger.msg(ERROR, "Failed cleaning job: %s", (*jobiter).JobID.str());	
-      }
-    }
-
-  }
+  }//end GetThisJob
 
   bool JobControllerARC0::CleanThisJob(Job ThisJob, bool force){
 
@@ -279,6 +234,64 @@ namespace Arc {
 
   }//end CleanThisJob    
 
-  void JobControllerARC0::Kill(bool keep) {}
+  bool JobControllerARC0::CancelThisJob(Job ThisJob){
+    
+    logger.msg(DEBUG, "Cleaning job: %s", ThisJob.JobID.str());
+    
+    //connect
+    FTPControl ftpCtrl;
+    bool gotConnected = ftpCtrl.connect(ThisJob.JobID, 500);
+    if(!gotConnected){
+      logger.msg(ERROR, "Failed to connect for job cleaning");
+      return false;
+    }
+    
+    std::string path = ThisJob.JobID.Path();
+    std::string::size_type pos = path.rfind('/');
+    std::string jobpath = path.substr(0, pos);
+    std::string jobidnum = path.substr(pos+1);
+    
+    //send commands
+    bool CommandSent = ftpCtrl.sendCommand("CWD " + jobpath, 500); 
+    if(!CommandSent){
+      logger.msg(ERROR, "Failed sending CWD command for job cancelling");
+      return false;	    
+    }
+    CommandSent = ftpCtrl.sendCommand("DELE " + jobidnum, 500); 
+    if(!CommandSent){
+      logger.msg(ERROR, "Failed sending DELE command for job cancelling");
+      return false;	    
+    }
+    
+    //disconnect
+    bool gotDisconnected = ftpCtrl.disconnect(500);
+    if(!gotDisconnected){
+      logger.msg(ERROR, "Failed to disconnect after job cancelling");
+      return false;	    
+    }
+
+    logger.msg(DEBUG, "Job cancel succesful");
+    return true;
+
+  }
+
+  URL JobControllerARC0::GetFileUrlThisJob(Job ThisJob, std::string whichfile){
+
+    std::string urlstring;
+
+    if (whichfile == "stdout")
+      urlstring = ThisJob.JobID.str() + '/' + ThisJob.StdOut;
+    else if (whichfile == "stderr")
+      urlstring = ThisJob.JobID.str() + '/' + ThisJob.StdErr;
+    else if (whichfile == "gmlog"){
+      urlstring = ThisJob.JobID.str();
+      urlstring.insert(urlstring.rfind('/'), "/info");
+      urlstring += "/errors";
+    }
+    
+    return URL(urlstring);
+
+  }
+
     
 } // namespace Arc

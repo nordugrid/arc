@@ -19,21 +19,12 @@ namespace Arc {
     return new JobControllerARC1(cfg);
   }
   
-  void JobControllerARC1::GetJobInformation(){
+  void JobControllerARC1::GetJobInformation(){}
 
+  bool JobControllerARC1::GetThisJob(Job ThisJob, std::string downloaddir){};
+  bool JobControllerARC1::CleanThisJob(Job ThisJob, bool force){};
+  bool JobControllerARC1::CancelThisJob(Job ThisJob){};
+  URL JobControllerARC1::GetFileUrlThisJob(Job ThisJob, std::string whichfile){};
 
-  }
-
-  void JobControllerARC1::DownloadJobOutput(bool keep, std::string downloaddir){
-  
-  }
-
-  void JobControllerARC1::Clean(bool force){
-
-  }
-
-  void JobControllerARC1::Kill(bool keep){
-
-  }
 
 } // namespace Arc

@@ -16,20 +16,8 @@ namespace Arc {
   JobSupervisor::JobSupervisor(const std::list<std::string>& jobs,
 			       const std::list<std::string>& clusterselect,
 			       const std::list<std::string>& clusterreject,
-			       const std::list<std::string>& status,
-			       const std::string downloaddir,
-			       const std::string joblist,
-			       const bool keep,
-			       const bool force,
-			       const int timeout) : 
-			       clusterselect(clusterselect),
-			       clusterreject(clusterreject),
-			       status(status),
-			       downloaddir(downloaddir),
-			       keep(keep),
-			       force(force),
-			       timeout(timeout){
- 
+			       const std::string joblist){
+
     Config JobIdStorage;
     if(!joblist.empty()){
       FileLock lock(joblist);
@@ -37,6 +25,8 @@ namespace Arc {
     }
 
     std::list<std::string> NeededControllers;
+
+    //Need to fix below sorting on clusterselect and clusterreject
 
     //First, if jobids are specified, only load JobControllers needed by those jobs
     if(!jobs.empty()){
@@ -97,7 +87,7 @@ namespace Arc {
       JobController *JC = dynamic_cast<JobController*> (ACCloader->getACC("controller"+Arc::tostring(i)));
       if(JC) {
 	JobControllers.push_back(JC);
-	(*JobControllers.rbegin())->IdentifyJobs(jobs);
+	(*JobControllers.rbegin())->FillJobStore(jobs, clusterselect, clusterreject);
       }
     }
     
@@ -107,74 +97,6 @@ namespace Arc {
     
     if (ACCloader)
       delete ACCloader;
-  }
-
-  void JobSupervisor::GetJobInformation() {
-
-    if(JobControllers.empty())
-      return;
-    logger.msg(DEBUG, "Getting job information");	
-
-    std::list<JobController*>::iterator iter;
-    
-    //This may benefit from being threaded
-    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->GetJobInformation();
-    }
-  }
-
-  void JobSupervisor::DownloadJobOutput() {
-
-    if(JobControllers.empty())
-      return;
-    logger.msg(DEBUG, "Downloading job output");	
-
-    std::list<JobController*>::iterator iter;
-    
-    //This may benefit from being threaded
-    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->DownloadJobOutput(keep, downloaddir);
-    }
-  }
-
-
-  void JobSupervisor::PrintJobInformation(bool longlist) {
-
-    if(JobControllers.empty())
-      return;
-    logger.msg(DEBUG, "Printing job information");	
-
-    std::list<JobController*>::iterator iter;
-    
-    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->PrintJobInformation(longlist);
-    }
-  }
-
-  void JobSupervisor::Clean() {
-
-    if(JobControllers.empty())
-      return;
-    logger.msg(DEBUG, "Cleaning job(s)");	
-
-    std::list<JobController*>::iterator iter;
-    
-    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->Clean(force);
-    }
-  }
-
-  void JobSupervisor::Kill() {
-
-    if(JobControllers.empty())
-      return;
-    logger.msg(DEBUG, "Killing job(s)");	
-
-    std::list<JobController*>::iterator iter;
-    
-    for(iter = JobControllers.begin(); iter != JobControllers.end(); iter++){
-      (*iter)->Kill(keep);
-    }
   }
 
 } // namespace Arc

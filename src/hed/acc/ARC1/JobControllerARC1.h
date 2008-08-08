@@ -13,20 +13,21 @@ namespace Arc{
   
   class JobControllerARC1 : public JobController {
     
-  private: 
+  public: 
     
     JobControllerARC1(Arc::Config *cfg);
     ~JobControllerARC1();
     
-  public:
-
     void GetJobInformation();
-    void DownloadJobOutput(bool keep, std::string downloaddir);
-    void Clean(bool force);
-    void Kill(bool keep);
-
     static ACC *Instance(Config *cfg, ChainContext *cxt);
     
+  private:
+    static Logger logger;
+    bool GetThisJob(Job ThisJob, std::string downloaddir);
+    bool CleanThisJob(Job ThisJob, bool force);
+    bool CancelThisJob(Job ThisJob);
+    URL GetFileUrlThisJob(Job ThisJob, std::string whichfile);
+
   };
   
 } //namespace ARC
