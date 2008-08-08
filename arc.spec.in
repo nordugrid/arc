@@ -221,6 +221,8 @@ exit 0
 %doc %{_mandir}/man1/apinfo.1*
 %{_bindir}/approxy
 %doc %{_mandir}/man1/approxy.1*
+%{_bindir}/arccat
+%doc %{_mandir}/man1/arccat.1*
 %{_bindir}/arccp
 %doc %{_mandir}/man1/arccp.1*
 %{_bindir}/arcls

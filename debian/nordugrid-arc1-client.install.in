@@ -8,6 +8,7 @@ usr/bin/apclean
 usr/bin/apget
 usr/bin/apecho
 usr/bin/perftest
+usr/bin/arccat
 usr/bin/arccp
 usr/bin/arcls
 usr/bin/arcrm
@@ -32,6 +33,7 @@ usr/share/man/man1/apstat.1
 usr/share/man/man1/apsstat.1
 usr/share/man/man1/apkill.1
 usr/share/man/man1/apclean.1
+usr/share/man/man1/arccat.1
 usr/share/man/man1/arcstat.1
 usr/share/man/man1/arcsub.1
 usr/share/man/man1/arckill.1
