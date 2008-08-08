@@ -1,6 +1,6 @@
 bin_PROGRAMS = arcsub arcget arcstat arckill arcclean arccat
 
-man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1
+man_MANS = arcsub.1 arcget.1 arcstat.1 arckill.1 arcclean.1 arccat.1
 
 CLILIBS = ../../hed/libs/data/libarcdata2.la \
           ../../hed/libs/loader/libarcloader.la \
