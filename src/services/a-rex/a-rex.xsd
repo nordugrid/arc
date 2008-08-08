@@ -60,5 +60,12 @@
     <!-- Name of Local Resource Management System. -->
     <xsd:element name="LRMSName" type="xsd:string"/>
 
+    <!-- 
+         Name of Operating System.
+         The values are based on the OSType field of the CIM_OperatingSystem model:
+         http://www.dmtf.org/standards/cim/cim_schema_v29
+     -->
+    <xsd:element name="OperatingSystem" type="xsd:string"/>
+
 </xsd:schema>
 

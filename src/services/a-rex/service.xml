@@ -58,6 +58,7 @@
       <arex:usermap><arex:defaultLocalName>sanjak</arex:defaultLocalName></arex:usermap>
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
       <arex:LRMSName>uri:unknown</arex:LRMSName>
+      <arex:OperatingSystem>Unknown</arex:OperatingSystem>
     </Service>
     <Service name="echo" id="echo">
       <echo:prefix>[ </echo:prefix>

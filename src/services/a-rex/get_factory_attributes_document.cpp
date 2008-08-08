@@ -29,6 +29,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
       NamingProfile (anyURI,unbounded)
       BESExtension (anyURI,unbounded)
       LocalResourceManagerType (anyURI)
+      OperatingSystem (optional,string)
   */
   {
     std::string s;
@@ -53,6 +54,7 @@ Arc::MCC_Status ARexService::GetFactoryAttributesDocument(ARexGMConfig& config,A
   doc.NewChild("bes-factory:NamingProfile")="http://schemas.ggf.org/bes/2006/08/bes/naming/BasicWSAddressing";
   doc.NewChild("bes-factory:BESExtension")="http://www.nordugrid.org/schemas/a-rex";
   doc.NewChild("bes-factory:LocalResourceManagerType")=lrms_name_;
+  doc.NewChild("bes-factory:OperatingSystem")=os_name_;
   {
     std::string s;
     out.GetXML(s);

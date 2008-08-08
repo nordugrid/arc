@@ -37,7 +37,7 @@ BES-Factory attributes
   BESExtension - supported - http://www.nordugrid.org/schemas/a-rex
   LocalResourceManagerType - supported. Always "uri:unknown"
   ResourceName - not supported
-  OperatingSystem - not supported
+  OperatingSystem - supported 
   CPUArchitecture - not supported
   CPUCount - not supported
   CPUSpeed - not supported

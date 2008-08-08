@@ -377,6 +377,7 @@ ARexService::ARexService(Arc::Config *cfg):Service(cfg),logger_(Arc::Logger::roo
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
+  os_name_ = (std::string)((*cfg)["OperatingSystem"]);
   CreateThreadFunction(&thread_starter,this);
   // Run grid-manager in thread
   /*
