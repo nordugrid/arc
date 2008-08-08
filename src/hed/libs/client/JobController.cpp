@@ -79,7 +79,8 @@ namespace Arc {
     std::list<std::string> JobsToBeRemoved;
 
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
-
+    GetJobInformation();
+    
 
     //loop over jobs
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
@@ -116,6 +117,7 @@ namespace Arc {
     std::list<std::string> JobsToBeRemoved;
 
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    GetJobInformation();
 
     //loop over jobs
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
@@ -152,7 +154,8 @@ namespace Arc {
     std::list<std::string> JobsToBeRemoved;
     
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
-    
+    GetJobInformation();
+
     //loop over jobs
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
       bool cleaned = CleanThisJob(*jobiter, force);
@@ -178,8 +181,9 @@ namespace Arc {
 			  const int timeout){
 
     logger.msg(DEBUG, "Performing the 'cat' command on %s jobs", GridFlavour);
-    
+
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
+    GetJobInformation();
     
     //loop over jobs
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
@@ -239,7 +243,8 @@ namespace Arc {
 			   const int timeout){
     
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
-    
+    GetJobInformation();
+
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
       
       std::cout<<Arc::IString("Job: %s", jobiter->JobID.str())<<std::endl;
