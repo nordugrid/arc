@@ -53,6 +53,8 @@ Compilation:
 * Please check out the latest possible code! We have compiled SVN version!
 * Install Globus Toolkit. Be sure that the postinstall sctipt properly configures the software.
 
+Globus Solaris 9 Binary Installer (without NorduGrid patches):
+
 http://www.globus.org/toolkit/downloads/4.2.0/#sun4u
 
 You need to add these missing files:
