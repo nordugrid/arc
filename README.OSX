@@ -32,7 +32,7 @@ $ ln -s /opt/globus/lib
 
 Recommended os environment:
 
-export PATH="${PATH}:/opt/local/bin:/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:/usr/local/sbin"
+export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
 export ARC_LOCATION="/usr/local"
 export ARC_CONFIG="/etc/arc.conf"
 export SVN_EDITOR="vim"
