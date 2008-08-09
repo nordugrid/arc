@@ -14,6 +14,8 @@ $ sudo port install python24
 $ sudo port install openssl
 $ sudo port install xmlsec
 $ sudo port install cppunit
+$ sudo port install gtime
+$ sudo port install p5-xml-simple
 
 Globus X86 Mac OS X Binary Installer (without NorduGrid patches):
 
