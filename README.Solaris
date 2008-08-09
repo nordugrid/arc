@@ -1,0 +1,89 @@
++----------
++ Solaris |
++----------
+
+We have tested the Solaris compilation capability on Sparc Solaris 9.
+
+The following dependency packages were installed:
+* Java_SDK-1.6: http://download.java.net/jdk6/; installed from package
+* GNU_tar-1.2: http://www.sunfreeware.com/; installed from package
+* ant-1.7.1: http://ant.apache.org/; built from source
+* autoconf-2.60: http://www.sunfreeware.com/; installed from package
+* automake-1.10: http://www.sunfreeware.com/; installed from package
+* gcc-3.4.6: http://www.sunfreeware.com/; installed from package
+* gettext-0.14.1: http://www.sunfreeware.com/; installed from package
+* glib-2.14.1: ftp://ftp.gtk.org/pub/glib; built from source
+* glibmm-2.14.1: http://www.gtkmm.org; built from source
+* junit-4.4: http://sourceforge.net/projects/junit/; built from source
+* libgcc-3.4.6: http://www.sunfreeware.com/; installed from package
+* libiconv-1.11: http://www.sunfreeware.com/; installed from package
+* libsigc++-2.0.17: http://www.sunfreeware.com/; installed from package
+* libtool-1.5.24: http://www.sunfreeware.com/; installed from package
+* libxml2-2.6.31: http://www.sunfreeware.com/; installed from package
+* libxslt-1.1.22: http://www.sunfreeware.com/; installed from package
+* m4-1.4.7: http://www.sunfreeware.com/; installed from package
+* neon-0.25.5: http://www.sunfreeware.com/; installed from package
+* openssl-0.9.8e: http://www.sunfreeware.com/; installed from package
+* python-2.5.1: http://www.sunfreeware.com/; installed from package
+* swig-1.3.29: http://www.sunfreeware.com/; installed from package
+
+Berkeley DB install
+
+Source code: http://www.oracle.com/technology/software/products/berkeley-db/index.html
+
+Configure:
+
+$ cd build_unix/
+$ ./dist/configure --enable-cxx  --enable-debug --prefix=/home/roczei/db47
+$ make
+$ make install
+
+xmlsec1 install
+
+Source code: http://www.aleksey.com/xmlsec/download.html
+
+$ ./configure --prefix=/home/roczei/xmlsec1
+$ make
+$ make install
+
+export PKG_CONFIG_PATH="/home/roczei/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
+
+Compilation:
+
+* Please check out the latest possible code! We have compiled SVN version!
+* Install Globus Toolkit. Be sure that the postinstall sctipt properly configures the software.
+
+http://www.globus.org/toolkit/downloads/4.2.0/#sun4u
+
+You need to add these missing files:
+
+http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
+
+Small hachs:
+
+$ cd /opt/globus/lib
+$ find ./ -name '*.la' | xargs /usr/bin/perl -p -i.bak -e 's:/home/condor/execute/dir_14399/userdir/install:/opt/globus:g;'
+$ mkdir -p /home/condor/execute/dir_14399/userdir/install
+$ cd /home/condor/execute/dir_14399/userdir/install
+$ ln -s /opt/globus/lib
+
+You need to create comment in this file: /opt/globus/include/gcc32dbgpthr/globus_common_include.h
+
+     50 // #ifdef HAVE_STDINT_H
+     51 // #   include <stdint.h>
+     52 // #endif
+
+./configure --with-dbcxx-include="/home/roczei/db47/include" LDFLAGS="-L/home/roczei/db47/lib -lintl"
+
+Recommended os environment:
+
+export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
+export ARC_LOCATION="/usr/local"
+export ARC_CONFIG="/etc/arc.conf"
+export SVN_EDITOR="vim"
+export CXXFLAGS="-g3 -O0 -Wall"
+export GLOBUS_LOCATION="/opt/globus"
+export GPT_LOCATION="/opt/globus"
+export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
+export PKG_CONFIG_PATH="/home/roczei/xmlsec1/lib/pkgconfig:${PKG_CONFIG_PATH}"
+
