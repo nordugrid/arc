@@ -2,48 +2,70 @@
 Mac OS X |
 ----------
 
-We have tested the Mac OS X compilation capability on Mac OS X 10.5.4 (Leopard).
+This README contains instructions and workarounds to compile the code on
+MacOS X platform. The compilation capability have been tested on Mac OS X 
+10.5.4 (Leopard) operating system.
+
+
+1. Installing third party dependency packages:
 
 Use macports: http://www.macports.org/
 
-$ sudo port install pkgconfig
-$ sudo port install glibmm
-$ sudo port install libxml2
-$ sudo port install swig 
-$ sudo port install python24
-$ sudo port install openssl
-$ sudo port install xmlsec
-$ sudo port install cppunit
-$ sudo port install gtime
-$ sudo port install p5-xml-simple
-
-Globus X86 Mac OS X Binary Installer (without NorduGrid patches):
-
-http://www.globus.org/toolkit/downloads/4.2.0/#x86_mac_osx
-
-You need to add these missing files:
-
-http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
-
-Small hachs:
-
-$ cd /opt/globus/lib
-$ find ./ -name '*.la' | xargs /usr/bin/perl -p -i.bak -e 's:/Users/condor/execute/dir_2043/userdir/install:/opt/globus:g;'
-$ mkdir -p /Users/condor/execute/dir_2043/userdir/install
-$ cd /Users/condor/execute/dir_2043/userdir/install
-$ ln -s /opt/globus/lib
+  sudo port install pkgconfig
+  sudo port install glibmm
+  sudo port install libxml2
+  sudo port install swig 
+  sudo port install python24
+  sudo port install openssl
+  sudo port install xmlsec
+  sudo port install cppunit
+  sudo port install gtime
+  sudo port install p5-xml-simple
 
 
-Recommended os environment:
+2. Installing Globus Toolkit:
 
-export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
-export ARC_LOCATION="/usr/local"
-export ARC_CONFIG="/etc/arc.conf"
-export SVN_EDITOR="vim"
-export CXXFLAGS="-g3 -O0 -Wall"
-export GLOBUS_LOCATION="/opt/globus"
-export GPT_LOCATION="/opt/globus"
-export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
+Globus X86 Mac OS X Binary Installer (without NorduGrid patches) can be
+downloaded from:
+  http://www.globus.org/toolkit/downloads/4.2.0/#x86_mac_osx
 
-./configure --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
+The following missing must be created:
+  http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
+
+The following Globus Toolkit related workarounds should be performed to
+guarantee the proper operation:
+
+  cd /opt/globus/lib
+  find ./ -name '*.la' | xargs /usr/bin/perl -p -i.bak -e \
+    's:/Users/condor/execute/dir_2043/userdir/install:/opt/globus:g;'
+  mkdir -p /Users/condor/execute/dir_2043/userdir/install
+  cd /Users/condor/execute/dir_2043/userdir/install
+  ln -s /opt/globus/lib
+
+It is recommended to compile Globus Toolkit from source. Using Globus
+Toolkit including NorduGrid patches prevents the user from malfunctioning
+of Globus-related functions. In this case the workarounds above are not
+needed either. 
+
+
+3. Recommended environment variable settings and configuration options
+before the compilation:
+
+  export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:\
+    /usr/local/sbin:${PATH}"
+  export ARC_LOCATION="/usr/local"
+  export ARC_CONFIG="/etc/arc.conf"
+  export SVN_EDITOR="vim"
+  export CXXFLAGS="-g3 -O0 -Wall"
+  export GLOBUS_LOCATION="/opt/globus"
+  export GPT_LOCATION="/opt/globus"
+  export ARC_BARTENDER_URL="http://localhost:50000/Bartender"
+
+  ./configure --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
+
+
+4. Building the software:
+
+To complete building and installation follow the instructions in the generic
+README file.
 
