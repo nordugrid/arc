@@ -415,7 +415,8 @@ setup_runtime_env () {
 cd_and_run () {
   echo "# Changing to session directory" >> $LRMS_JOB_SCRIPT
   echo "cd \$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
-  echo "export HOME=\$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
+  echo "HOME=\$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
+  echo "export HOME" >> $LRMS_JOB_SCRIPT
 
   if [ ! -z "$NODENAME" ] ; then
     echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
