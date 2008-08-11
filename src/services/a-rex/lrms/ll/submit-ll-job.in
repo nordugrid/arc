@@ -1,4 +1,4 @@
-#!/bin/sh -f 
+#!/bin/bash -f 
 # set -xv
 #
 #  Submits job to loadleveler.
@@ -156,7 +156,7 @@ if [ -z "${joboption_arg_0}" ] ; then
 fi
 
 if [ ! "$joboption_localtransfer" = 'yes' ] ; then
-  program_start=`echo ${joboption_arg_0} | head -c 1 2>&1`
+  program_start=${joboption_arg_0:0:1}
   if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
     if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
       echo 'Executable does not exist, or permission denied.' 1>&2
