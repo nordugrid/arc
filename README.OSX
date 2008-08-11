@@ -53,13 +53,13 @@ b)
 
 Building the Globus Toolkit from a source distribution:
 
-http://wiki.nordugrid.org/index.php/Globus_Libraries
+  http://wiki.nordugrid.org/index.php/Globus_Libraries
 
 3. Recommended environment variable settings and configuration options
 before the compilation:
 
-  export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:\
-    /usr/local/sbin:${PATH}"
+  export PATH="/opt/globus/bin:/opt/globus/sbin:/usr/local/bin:"\
+    "/usr/local/sbin:${PATH}"
   export ARC_LOCATION="/usr/local"
   export ARC_CONFIG="/etc/arc.conf"
   export SVN_EDITOR="vim"
