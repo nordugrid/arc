@@ -342,13 +342,13 @@ move_files_to_frontend
   # Execute qsub command
   ${SGE_QSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
 
-  # expected SGE output is like: 'your job 77 ("perftest") has been
+  # expected SGE output is like: 'Your job 77 ("perftest") has been
   # submitted', the line below uses only the job number as job id.
   job_id=$(cat $LRMS_JOB_OUT $LRMS_JOB_ERR \
-           | awk '/^Your job .* has been submitted/ {split($0,field," ");print field[3]}')
+           | awk '/^.our job .* has been submitted/ {split($0,field," ");print field[3]}')
   # anything else is a sign of problems, which should be logged
   warnings=$(cat $LRMS_JOB_OUT $LRMS_JOB_ERR \
-             | grep -v '^Your job .* has been submitted' | grep -v '^Exit')
+             | grep -v '^.our job .* has been submitted' | grep -v '^Exit')
   if [ ! -z "$warnings" ]; then echo -e "WARNING: $warnings\n"; fi
 
   exitcode=0
