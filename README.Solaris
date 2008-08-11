@@ -32,7 +32,9 @@ sources highlighted:
   openssl-0.9.8e: http://www.sunfreeware.com/; installed from package
   python-2.5.1: http://www.sunfreeware.com/; installed from package
   swig-1.3.29: http://www.sunfreeware.com/; installed from package
-
+  GNU time 1.7: http://prep.ai.mit.edu/pub/gnu/time/time-1.7.tar.gz; built from source
+  XML-Simple: http://search.cpan.org/dist/XML-Simple/; built from source
+  Storable-1.0.14: http://www.cpan.org/modules/by-module/Storable/; built from source
 
 2. Installing Berkeley DB:
 
@@ -61,6 +63,8 @@ Performing configuration and installation:
 
 4. Installing Globus Toolkit:
 
+a)
+
 Please check out the latest possible code! We have compiled SVN version!
 Install Globus Toolkit! Be sure that the post-install sctipt properly 
 configures the software.
@@ -71,6 +75,11 @@ Globus Solaris 9 Binary Installer (without NorduGrid patches):
 Add these missing files:
   http://wiki.nordugrid.org/images/5/58/Globus-missing-files.tgz
 
+b)
+
+Building the Globus Toolkit from a source distribution:
+
+http://wiki.nordugrid.org/index.php/Globus_Libraries
 
 5. Globus Toolkit related workarounds:
 

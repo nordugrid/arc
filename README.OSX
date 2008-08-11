@@ -25,6 +25,8 @@ Use macports: http://www.macports.org/
 
 2. Installing Globus Toolkit:
 
+a)
+
 Globus X86 Mac OS X Binary Installer (without NorduGrid patches) can be
 downloaded from:
   http://www.globus.org/toolkit/downloads/4.2.0/#x86_mac_osx
@@ -47,6 +49,11 @@ Toolkit including NorduGrid patches prevents the user from malfunctioning
 of Globus-related functions. In this case the workarounds above are not
 needed either. 
 
+b)
+
+Building the Globus Toolkit from a source distribution:
+
+http://wiki.nordugrid.org/index.php/Globus_Libraries
 
 3. Recommended environment variable settings and configuration options
 before the compilation:
