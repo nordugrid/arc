@@ -166,13 +166,6 @@ RTE_stage1 () {
    fi
 
    echo "" >> $LRMS_JOB_SCRIPT
-
-   gate_host=`uname -n`
-   if [ -z "$gate_host" ] ; then
-     echo "Can't get own hostname" 1>&2
-     rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-     exit 1
-   fi
 }
 
 
