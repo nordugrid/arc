@@ -2,18 +2,20 @@
 #include <config.h>
 #endif
 
-#include "daemon.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
 #include <assert.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <iostream>
-#include <errno.h>
-#include <string.h>
-#include <fstream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -21,6 +23,8 @@
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif /* HAVE_SYS_FILE_H */
+
+#include "daemon.h"
 
 namespace Arc {
 

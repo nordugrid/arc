@@ -2,11 +2,14 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
 
 #include <glibmm/thread.h>
 #include <arc/StringConv.h>

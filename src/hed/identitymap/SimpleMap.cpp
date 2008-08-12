@@ -6,15 +6,19 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+
+#include <cstdlib>
+#include <cstring>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
 #include <utime.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <dirent.h>
-#include <errno.h>
 #include <unistd.h>
-#include <cstring>
 
 #define odlog(LEVEL) std::cerr
 

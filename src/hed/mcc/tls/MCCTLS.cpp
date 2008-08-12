@@ -9,7 +9,6 @@
 #else
 #define NOGDI
 #endif
-#include <errno.h>
 
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>

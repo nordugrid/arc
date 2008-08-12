@@ -2,13 +2,18 @@
 #include <config.h>
 #endif
 
+#include <iostream>
+
+#include <cstdlib>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/mman.h>
-#include <iostream>
+
 #include <arc/Logger.h>
 #include "PayloadFile.h"
 

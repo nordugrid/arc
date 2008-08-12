@@ -2,10 +2,12 @@
 #include <config.h>
 #endif
 
-#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
 #include <iostream>
 
 #include <sys/stat.h>

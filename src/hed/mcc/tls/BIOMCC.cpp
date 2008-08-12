@@ -3,7 +3,7 @@
 #endif
 
 #include <openssl/ssl.h>
-#include <errno.h>
+
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/message/MCC.h>

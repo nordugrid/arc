@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 
 #include <dirent.h>

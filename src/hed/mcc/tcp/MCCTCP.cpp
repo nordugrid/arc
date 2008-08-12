@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 
 #ifdef WIN32
@@ -35,12 +35,13 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 }
 
 #else // UNIX
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <errno.h>
 #define ErrNo errno
 #endif
 

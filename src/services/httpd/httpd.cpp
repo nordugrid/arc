@@ -2,11 +2,11 @@
 #include <config.h>
 #endif
 
-#include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 #include <arc/loader/Loader.h>

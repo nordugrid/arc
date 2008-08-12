@@ -2,12 +2,15 @@
 #include <config.h>
 #endif
 
-#include <cerrno>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include <cstdlib>
 #include <list>
 #include <fstream>
 #include <stdexcept>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/URL.h>
