@@ -257,6 +257,7 @@ It is of course mandatory to define \textit{SERVICE\_URL} and \textit{JOBID} str
 \section{Open issues}
 In order to achieve the full scale transparent interoperability width the gLite computing element transparently offered through the NorduGrid client a couple of issues still need to be resolved. Most of these are related to the incomplete integration of the glite gateway library into the ARCLIB framework, even though the gateway library code is ready for production use. There are also some conceptual chanlenges due to the incompatible nature of the two systems which require development of some workarounds.
 \subsection{Current limitations}
+\label{Current limitations}
 Full ARC1 client integration would mean that the temporary commands developed on top of the CREAMClient\ref{CREAMClient} presented in the previous section will be obsoleted by the ordinary ARC commands built on top of the ARCLIB. To achieve this the Wrapper class integration of the gLite gateway plugins library should finalized and exposed to extended testing.\par
 Some of the Wrapper class methods and data structures should be extracted from the information available in the CREAMClient class. In particular, the detailed job representation needed for job monitoring is an open area.\par
 The CREAMClient class will be extended to support operations such as SUSPEND available both in the CREAM2 interface and the ARCLIB's jobcontrol component.\par
