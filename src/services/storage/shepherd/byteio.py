@@ -88,7 +88,7 @@ class ByteIOBackend:
         return [protocol for protocol in protocols if protocol in self.supported_protocols]
 
     def notify(self, inpayload):
-        request_node = inpayload.Child()
+        request_node = inpayload.Get('Body')
         subject = str(request_node.Get('subject'))
         referenceID = self.idstore.get(subject,None)
         state = str(request_node.Get('state'))
