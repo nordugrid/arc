@@ -238,7 +238,7 @@ if [ -z "${joboption_arg_0}" ] ; then
 fi
 
 if [ ! "$joboption_localtransfer" = 'yes' ] ; then
-  program_start=${joboption_arg_0:0:1}
+  program_start=`echo ${joboption_arg_0} | cut -c 1 2>&1`
   if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
     if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
       echo 'Executable does not exist, or permission denied.' 1>&2
