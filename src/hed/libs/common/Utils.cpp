@@ -46,7 +46,7 @@ namespace Arc {
   }
 
   std::string StrError(int errnum) {
-#ifdef HAVE_DECL_STRERROR_R
+#ifdef HAVE_STRERROR_R
     char errbuf[BUFLEN];
 #ifdef STRERROR_R_CHAR_P
     return strerror_r(errnum, errbuf, sizeof(errbuf));
