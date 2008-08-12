@@ -59,7 +59,7 @@
 {\centering \textsc{\Large \documenttitle}\Large \par}
 %\vspace*{0.5cm}
 %%%%---- A subtitle, if necessary ----
-%{\centering \textit{\large Paper subtitle}\large \par}
+{\centering \textit{\large Technical description and user manual}\large \par}
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
 {\centering \large Mattias Ellert\footnote{mattias.ellert@fysast.uu.se} \large \par}
@@ -74,7 +74,7 @@
 \newpage
 \section{Introduction}
 \label{Introduction}
-The purpose of this document is to describe this gLite specific plugin of the ARCLIB (Hivatkozni: jövőbeli Deliverable) to present the related command line utilities built on top of these libraries. The gateway library together with the tools enables seemless interoparability with gLite computing elements. It is possible, that relevant sections of this document will be moved into ARC1 userguide and into ARCLIB technical documentation. Interoperability with gLite storage element is provided by an other set of ARC library. This data library provides native interfaces to GridFTP SRM which is the main bulding blocks of a gLite storage element. A storage interopability is out of scope of this library.
+The purpose of this document is to describe this gLite\cite{glite} specific plugin of the ARCLIB (...Hivatkozni: jövőbeli Deliverable) to present the related command line utilities built on top of these libraries. The gateway library together with the tools enables seemless interoparability with gLite computing elements. It is possible, that relevant sections of this document will be moved into ARC1 userguide and into ARCLIB technical documentation. Interoperability with gLite storage element is provided by an other set of ARC library. This data library provides native interfaces to GridFTP\cite{gridftp} SRM which is the main bulding blocks of a gLite storage element. A storage interopability is out of scope of this library.
 \section{Overview}
 \label{Overview}
 Interoperability has been one of the most important disciplines in recent grid middleware development. This term is often used in the sense of accessing resources operated by one kind of grid middleware (e.g. gLite) from a user interface operated by another kind (e.g. ARC1). There are two main possibilities to achieve this result:
@@ -82,14 +82,14 @@ Interoperability has been one of the most important disciplines in recent grid m
 \item either to use a special infrastructure element, the gateway, which performs a full data structure and protocol translation between the two inter-operating grid middleware solutions,
 \item or to explicitly implement the interface of the other side in the client.
 \end{itemize}
-The latter solution was preferred by ARC1 developers, the gLite gateway library module has been implemented in the ARCLIB and the gateway functionality will be transparently offered via the usual Nordugrid command line tools. An overview of the preferred soulution is presented in figure \ref{fig:Chart 1}.\par
+The latter solution was preferred by ARC1 developers, the gLite gateway library module has been implemented in the ARCLIB and the gateway functionality will be transparently offered via the usual NorduGrid command line tools. An overview of the preferred soulution is presented in figure \ref{fig:Chart 1}.\par
 \begin{figure}[ht]
 \centering{\resizebox{\textwidth}{!}{\includegraphics{D3-2-1-figure.png}}
-\caption{\label{fig:Chart 1}This chart illustrates how the ARC1$\rightarrow$gLite gateway library module based approach works. The user will be able to express his requirements in the job description document using any of the xRSL, JDL or JSDL languages. The ARC client library will perform an automatic transformation. The gLite gateway functionality integrated into the ARCLIB, thus into the ARC client enables the user to transparently access gLite computing resources via the usual ARC command line tools. The gLite modules perform authentication, credential delagation and job submission to the CREAM2 CE. The CREAM2 CE may perform the necessary input file download from the different storage element. The library module gets job information through CREAM2 and sends management commands, like kill a job or undelegate credentials. Note, that not all the functionality described on the overview figure is implemented yet, for the current limitations see section \ref{Current limitations}!}}
+\caption{\label{fig:Chart 1}This chart illustrates how the ARC1$\rightarrow$gLite gateway library module based approach works. The user will be able to express his requirements in the job description document using any of the xRSL\cite{xrsl}, JDL or JSDL\cite{jsdl} languages. The ARC client library will perform an automatic transformation. The gLite gateway functionality integrated into the ARCLIB, thus into the ARC client enables the user to transparently access gLite computing resources via the usual ARC command line tools. The gLite modules perform authentication, credential delagation and job submission to the CREAM2 CE. The CREAM2 CE may perform the necessary input file download from the different storage element. The library module gets job information through CREAM2 and sends management commands, like kill a job or undelegate credentials. Note, that not all the functionality described on the overview figure is implemented yet, for the current limitations see section \ref{Current limitations}!}}
 \end{figure}
 \subsection{The supported gLite CE interface: CREAM2}
 The gLite computing element (CE) offers several interfaces. Some of them are only suitabe for the WMS (glite resource broker) and was not meant to be used by 3rd party clients. Fortunately gLite comes with a webservice based computing element interface, known as the CREAM CE. The CREAM has undergone several major revisions. We can only hope that some stability will soon arise. The current CREAM version has entered the EGEE certification process newertheless it is a full scale deplomeyment on the EGEE worldwide grid has not taken place yet. CREAM2 is available on several preproduction and testing grid sites.\par
-Nevertheless the KnowARC project chose the CREAM version 2\cite{cream} as the gLite computing element interface.\par ... Hivatkozás a cikkre, mint CREAM-re...
+Nevertheless the KnowARC project chose the CREAM version 2\cite{cream} as the gLite computing element interface.\par
 In particular, the gateway library was developed against version glite-ce-cream\_R\_1\_8\_3\_0\footnote{\url{http://grid.pd.infn.it/cream/field.php?n=Main.ReleaseNotes}}.\par
 CREAM2 was chosen for the following reasons:
 \begin{itemize}
@@ -103,8 +103,8 @@ CREAM2 was chosen for the following reasons:
 In the near future CREAM will offer yet another interface which will be based on the BES/JSDL/GLUE OGF standards. This CREAM BES interface will coexists with the CREAM2 too.\par
 \section{External dependencies and installation instructions}
 \label{External dependencies and installation instructions}
-The ARCLIB gLite plugin have only one dependency. GridFTP components of the Globus Toolkit are needed to enable data staging functionality to those CREAM2 computing elements which offer input and output sandbox over a GridFTP enabled storage. Unfortunately the gateway library only works together with a strongly patched Globus verion. The Nordugrid patched Globus can be dowloaded from the Nordugrid download area\footnote{\url{http://download.nordugrid.org/software/globus/}}. Further information about the Nordugrid Globus patches can be read on the Nordugrid page\footnote{\url{http://wiki.nordugrid.org/index.php/Globus\_Libraries}}. It is worth to mention that the user will need a VOMS proxy certificate in order to use the command line tools against a CREAM2 service. This VOMS proxy can be generated by using the VOMS client tools. It is only the VOMS enabled proxy certificate that is needed here, appart from this no VOMS component needed.\par
-The ARC gLite gateway plugin library and the temporary command line utilities are incorporated into ARC1 releases. The source code is available from the ARC1 SVN repository\footnote{\url{http://svn.nordugrid.org/repos/nordugrid/arc1/}} and binary packages are provided at the Nordugrid download area. The build and installation instructions are given in the README file distributed together with the software. A step-by-step guide for Debian binary installation can be found in the appendix \ref{Debian install} Installation from Debian binary packages.
+The ARCLIB gLite plugin have only one dependency. GridFTP components of the Globus Toolkit\cite{globus} are needed to enable data staging functionality to those CREAM2 computing elements which offer input and output sandbox over a GridFTP enabled storage. Unfortunately the gateway library only works together with a strongly patched Globus verion. The NorduGrid patched Globus can be dowloaded from the NorduGrid download area\footnote{\url{http://download.nordugrid.org/software/globus/}}. Further information about the NorduGrid Globus patches can be read on the NorduGrid page\footnote{\url{http://wiki.nordugrid.org/index.php/Globus\_Libraries}}. It is worth to mention that the user will need a VOMS\cite{voms} proxy certificate in order to use the command line tools against a CREAM2 service. This VOMS proxy can be generated by using the VOMS client tools. It is only the VOMS enabled proxy certificate that is needed here, appart from this no VOMS component needed.\par
+The ARC gLite gateway plugin library and the temporary command line utilities are incorporated into ARC1 releases. The source code is available from the ARC1 SVN repository\footnote{\url{http://svn.nordugrid.org/repos/nordugrid/arc1/}} and binary packages are provided at the NorduGrid download area. The build and installation instructions are given in the README file distributed together with the software. A step-by-step guide for Debian binary installation can be found in the appendix \ref{Debian install} Installation from Debian binary packages.
 \section{ARCLIB gLite gateway plugin}
 \label{ARCLIB gLite gateway plugin}
 The ARCLIB gLite gateway plugin constist of the wrapper classes, the job description handling facility and the gLite specific CREAMClient base class. The wrapper classes coveys the function provided by the CREAMClient to ARCLIB. The job description handling framework makes a general job request representation available for the other classes. CREAMClient base class implements the interface towards CREAM2 computing elements.
@@ -118,7 +118,7 @@ The following sections present the set of functions provided by the library.\par
 \subsection{CREAMClient base class}
 \label{CREAMClient}
 The client object uses the VOMS proxy certificate to build the secure channel to the server and to sign that of the server's.\par
-... 1 bekezdés arról, hogy SOAP a hed(Hivatkozni!!!) SOAP framework-jét használja 'fully integrated'... az előző deliverable-ben a kommunikáció gsoap-ot használt, ez az egyik nagy előrelépés, hogy ezt lecseréltük...
+... 1 bekezdés arról, hogy SOAP a hed(Hivatkozni!!!) SOAP framework-jét használja 'fully integrated'... az előző deliverable-ben a kommunikáció gSOAP-ot használt, ez az egyik nagy előrelépés, hogy ezt lecseréltük...\cite{gsoap}... 
 \subsubsection*{CREAMClient(Arc::URL, Arc::MCCConfig)}
 The constructor of the class performs the necessary initialization work. It receives two arguments: the service URL and the ARC message chain component configuration file to establish the communication channel to the server. These pieces of information are indispensable to create your client and to communicate with the remote site.
 \subsubsection*{setDelegationId(std::string)}
@@ -138,8 +138,8 @@ The \textbf{cancel} function sends a \textit{JobCancelRequest} SOAP message to t
 The \textbf{purge} function sends a \textit{JobPurgeRequest} message to server and throws an exception in case of any emerging problems.
 \section{ARC command line tools for gLite CE}
 \label{Users guide}
-The well known ARC commands (ngsub, ngget, ... See: The Nordugrid/ARC User Guide\cite{userguide}!) will provide seemless access and integration with gLite computing elements. Full transparency will be achieved through the gLite gateway ARCLIB plugin. An ordinary user will use the same set of commands regardless of what type of CE to access. The user will be able to specify grid jobs described both in the gLite (JDL) and the Nordugrid (JSDL, XRSL) job description languages. ... +++Kipofozni. Hivatkozások... The client will perform automatic conversion between the different job description languages.\par
-Unfortunately the interoperability features offered by the gLite gateway library are not yet integrated into the Nordugrid commands. Also the current version of ARCLIB does not offer the full spectrum of language transformations.
+The well known ARC commands (ngsub, ngget, See: The NorduGrid/ARC User Guide\cite{userguide}!) will provide seemless access and integration with gLite computing elements. Full transparency will be achieved through the gLite gateway ARCLIB plugin. An ordinary user will use the same set of commands regardless of what type of CE to access. The user will be able to specify grid jobs described both in the gLite (JDL) and the NorduGrid (JSDL, xRSL) job description languages. The client will perform automatic conversion between the different job description languages.\par
+Unfortunately the interoperability features offered by the gLite gateway library are not yet integrated into the NorduGrid commands. Also the current version of ARCLIB does not offer the full spectrum of language transformations.
 However only a set of temporary command line tools exposing the available features of library are provided. These temporary commands make the already existing interoparabilily features usable for ordinary users.
 There are seven different command line tools for using the gLite gateway functions. In this section these tools will be presented in detail through examples. The job descriptions and services shown are just simple examples, they might be different in real-life usage.\par
 Every tool has a short manual page being accessible by using the \textbf{man} on-line manual reader command or some more help can be achieved by using the $<$command$>$ -? command line option.\par
@@ -157,7 +157,11 @@ For example:
 \subsection{glitesub}
 \label{glitesub}
 The current command only supports direct job submission that is the user must know service endpoints. These kind of endpoints usually stored in LDAP databases. Ordinary ldapsearch can be used to find such an endpoint. Below an example:\par
-... ldap parancs jön ide ...\par
+\begin{shaded}
+\verb#$ ldapsearch -x -h lxbra2305.cern.ch -p 2170 -b mds-vo-name=local,o=grid \#\\*
+\verb#        '(GlueCEUniqueID=*cream*)' | grep GlueCEInfoContactString | \#\\*
+\verb#        awk '{print $2}' | sort | uniq#
+\end{shaded}
 The \textbf{glitesub} command implements the actual job submission in three phases: registration of a job, uploading the local files to the input sandbox URL received during the registration and starting the job.\par
 The \textbf{glitesub} command requires a valid delegation. See Section \ref{glitedelegate} how to create one. By the way this is the only command which needs the delegation ID.\par The next step is to prepare the necessary input files and the job description!\par
 The glitesub command syntax is the following (please note that the service URL, job description, info file are mandatory and can only be given in the specified order):
@@ -261,11 +265,11 @@ Full ARC1 client integration basically means that the previously presented comma
 \end{itemize}
 The latter issue was revealed when the VOMS proxy certificate delegation method was implemented in the gateway library. Since in the ARC1 client-side library there is a built-in Message Chaining Component (MCC) which already uses Globus Toolkit OpenSSL functions to enable establishing secure communication. Linking glite* tools directly against the standard OpenSSL libs caused congesting SSL functions which led to the breakdown of the whole library. The solution had been not linking the standard OpenSSL libs, just the patched OpenSSL in the Globus Toolkit.
 \subsection{xRSL${\rightarrow}$JDL translation and related problems}
-It is possible to express jobs in XRSL which have no equivalent in JDL. Speciﬁcally, in XRSL it is possible for input files downloaded from storage servers to have their names changed. This is not possible in JDL. So a user might in XRSL ask for this:
+It is possible to express jobs in xRSL which have no equivalent in JDL. Speciﬁcally, in xRSL it is possible for input files downloaded from storage servers to have their names changed. This is not possible in JDL. So a user might in xRSL ask for this:
 \begin{shaded}
 \verb#(inputfiles=(gsiftp://interop.dcgc.dk/storage/datafile1.txtinput.txt))#
 \end{shaded}
-That is not possible to express in JDL. It only allows the file to be downloaded as datafile1.txt. This could be solved by a wrapper script that renames files according to the XRSL speciﬁcation. This does not solve our problem completely however. For example if a user wants to concatenate the stdout from two jobs, he would write something like the following in XRSL:
+That is not possible to express in JDL. It only allows the file to be downloaded as datafile1.txt. This could be solved by a wrapper script that renames files according to the xRSL speciﬁcation. This does not solve our problem completely however. For example if a user wants to concatenate the stdout from two jobs, he would write something like the following in xRSL:
 \begin{shaded}
 \verb#(inputfiles=(gsiftp://interop.dcgc.dk/storage/job1/output.txtinput1.txt)#\\*
 \verb#            (gsiftp://interop.dcgc.dk/storage/job2/output.txtinput2.txt))#
