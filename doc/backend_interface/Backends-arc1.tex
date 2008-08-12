@@ -116,9 +116,9 @@ This document describes the next generation Advanced Resource Connector~\cite{ar
 batch system back-end infrastructure. It aims to describe the infrastructure
 in enough detail that a developer can add a new local resource management
 system (LRMS) to the ARC middleware. It also intends to serve as a
-reference manual describing existing batch system interfaces. Note
-that the current solution described in this manual is not a real interface,
-it is too diffuse to be that.
+reference manual describing existing batch system interfaces.  Note that
+certain details of the interface which are not yet finalized are not described,
+but will be included in a future revision of this document.
 
 The batch system back-ends are what tie the ARC grid middleware (through the
 ARC Resource-coupled EXecution service, A-REX~\cite{arex}) to the underlying
@@ -126,7 +126,7 @@ cluster management system or LRMS. The back-ends consist of set of a shell and
 Perl scripts whose role are twofold: 
 
 \begin{enumerate}
-\item to allow the GridManager (GM), which is resided in A-REX, to manipulate
+\item to allow the GridManager (GM), which is resided in A-REX, to control
 jobs in the LRMS including job submit, cancel operations etc.
 \item to collect information about jobs, users, the batch system and the cluster
 itself for the Information System. 
@@ -924,13 +924,13 @@ Property & Comments \\
 \hline \hline
 BaseType & \texttt{Share} \\
 \hline
-Name & from the configuration \\
+Name & `name'' configuration option \\
 \hline
 Description & ``comment'' configuration option \\
 \hline
-MappingQueue & from the configuration \\
+MappingQueue & ``lrms\_queue'' configuration option \\
 \hline
-SchedulingPolicy & if MAUI is used, set to \texttt{fairshare} \\
+SchedulingPolicy & if MAUI is used, it is set to \texttt{fairshare} \\
 \hline
 ServingState & has the same value as ComputingEndpoint.ServingState \\
 \hline
