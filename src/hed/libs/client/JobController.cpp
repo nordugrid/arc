@@ -30,42 +30,91 @@ namespace Arc {
     
     mcfg.ReadFromFile(joblist);
 
-    if(jobs.empty()){ //We are looking at all jobs of this grid flavour
+    if(!jobs.empty()){
 
-      logger.msg(DEBUG, "Identifying all jobs of flavour %s", GridFlavour);	
+      logger.msg(DEBUG, "Filling JobStore with jobs according to specified jobids");	
       logger.msg(DEBUG, "Using joblist file %s", joblist);	
-
-      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
-      XMLNodeList::iterator iter;
       
-      for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
-	Job ThisJob;
-	ThisJob.JobID = (std::string) (*iter)["id"];
-	ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
-	JobStore.push_back(ThisJob);
-      }
-
-    } else {//Jobs are targeted individually. The supplied jobs list may not contain any jobs of this grid flavour
-
-      logger.msg(DEBUG, "Identifying individual jobs of flavour %s", GridFlavour);	
-      logger.msg(DEBUG, "Using joblist file %s", joblist);	
-
       std::list<std::string>::iterator it;
-
+      
       for(it = jobs.begin(); it != jobs.end(); it++){
 	Arc::XMLNode ThisXMLJob = (*(mcfg.XPathLookup("//Job[id='"+ *it+"']", Arc::NS())).begin());
 	if(GridFlavour == (std::string) ThisXMLJob["flavour"]){
 	  Job ThisJob;
 	  ThisJob.JobID = (std::string) ThisXMLJob["id"];
 	  ThisJob.InfoEndpoint = (std::string) ThisXMLJob["source"];
+	  ThisJob.Cluster = (std::string) ThisXMLJob["cluster"];
 	  JobStore.push_back(ThisJob);	  
 	}
       }
-    }
+    } // end if jobids are given
 
-    logger.msg(DEBUG, "JobController%s has identified %d jobs", GridFlavour, JobStore.size());
+    if(!clusterselect.empty()){
+      
+      logger.msg(DEBUG, "Filling JobStore with jobs according to selected clusters");	
+      logger.msg(DEBUG, "Using joblist file %s", joblist);	
+     
+      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
+      XMLNodeList::iterator iter;
+      
+      for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
 
-  }
+	URL ThisJobRunsOn = (std::string) (*iter)["cluster"];
+
+	if(PresentInList(ThisJobRunsOn, clusterselect)){
+	  Job ThisJob;
+	  ThisJob.JobID = (std::string) (*iter)["id"];
+	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
+	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
+	  JobStore.push_back(ThisJob);
+	}
+      }
+    } //end if clusters are selected
+
+    if(!clusterreject.empty()){
+      if(!JobStore.empty()){
+	
+	logger.msg(DEBUG, "Removing from JobStore jobs according to cluster reject list");	
+	logger.msg(DEBUG, "Using joblist file %s", joblist);	
+	
+	std::list<Job>::iterator iter = JobStore.begin();
+	while(iter!= JobStore.end()){
+	  if(PresentInList(iter->Cluster, clusterreject)){
+	    logger.msg(DEBUG, "Removing Job %s from JobStore as it runs on a rejected cluster", iter->JobID.str());
+	    JobStore.erase(iter);
+	    continue;
+	  }
+	  iter++;
+	}
+      }
+    } // end if cluster reject is given
+
+    if(jobs.empty() && clusterselect.empty()){ // add all
+      
+      logger.msg(DEBUG, "Filling JobStore with all jobs, except those running on rejected clusters");	
+      logger.msg(DEBUG, "Using joblist file %s", joblist);	
+      
+      Arc::XMLNodeList Jobs = mcfg.XPathLookup("//Job[flavour='"+ GridFlavour+"']", Arc::NS());
+      XMLNodeList::iterator iter;
+      
+      for(iter = Jobs.begin(); iter!= Jobs.end(); iter++){
+
+	URL ThisJobRunsOn = (std::string) (*iter)["cluster"];
+
+	if(!PresentInList(ThisJobRunsOn, clusterreject)){
+	  Job ThisJob;
+	  ThisJob.JobID = (std::string) (*iter)["id"];
+	  ThisJob.InfoEndpoint = (std::string) (*iter)["source"];
+	  ThisJob.Cluster = (std::string) (*iter)["cluster"];
+	  JobStore.push_back(ThisJob);
+	}
+      }
+    } // end adding all jobs except those running on rejected clusters
+    
+    logger.msg(DEBUG, "FillJobStore has finished succesfully");
+    logger.msg(DEBUG, "JobStore%s contains %d jobs", GridFlavour, JobStore.size());
+    
+  } // end FillJobStore
 
   void JobController::Get(const std::list<std::string>& jobs,
 			  const std::list<std::string>& clusterselect,
@@ -80,7 +129,7 @@ namespace Arc {
 
     //Somewhere here add functionality for identifying jobs subject to the action (options -c -s etc)
     GetJobInformation();
-    
+    //std::list<Job*> GetTheseJobs = IdentifyJobs(jobs, clusterselect, clusterreject, status);
 
     //loop over jobs
     for(std::list<Arc::Job>::iterator jobiter = JobStore.begin(); jobiter!= JobStore.end(); jobiter++){
@@ -421,5 +470,31 @@ namespace Arc {
     logger.msg(DEBUG, "Finished removing jobs from joblist and jobstore");	    
     
   }//end RemoveJobs
+
+
+  //Present implementation not ideal for later GUI usage, i.e. does not make use of jobs, clusterselect, clusterreject 
+  //(we know that the JobStore is only filled with jobs according to these criteria)
+  //(note for later: GetJobInformation should be modified to take jobs, clusterselect, clusterreject, status as input)
+  /*
+  std::list<Job*> JobController::IdentifyJobs(jobs, clusterselect, clusterreject, status){
+    GetJobInformation();    
+  }
+  */
+
+  bool JobController::PresentInList(URL url, std::list<std::string> searchurl_strings){
+    bool answer(true);
+    std::list<URL> SearchUrls;
+    
+    //First, resolve aliases and prepare list of URLs to search within
+    for(std::list<std::string>::iterator iter  = searchurl_strings.begin(); iter != searchurl_strings.end(); iter++){
+      //check if alias (not yet implemented)
+      SearchUrls.push_back(*iter);
+    }
+
+    if(std::find(SearchUrls.begin(),SearchUrls.end(), url) == SearchUrls.end())
+      answer = false;
+
+    return answer;
+ }
 
 } // namespace Arc

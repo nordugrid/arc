@@ -142,6 +142,7 @@ namespace Arc {
     Submitter *GetSubmitter() const;
     std::string GridFlavour;
     URL Source;
+    URL Cluster;
 
   private:
 

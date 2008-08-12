@@ -67,6 +67,7 @@ namespace Arc {
     std::string	UsedCPUType;
     std::string	UsedOSFamily;
     std::string	UsedPlatform;
+    URL Cluster;
 
   };
   

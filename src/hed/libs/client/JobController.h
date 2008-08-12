@@ -61,6 +61,7 @@ namespace Arc{
     
     void RemoveJobs(std::list<std::string> jobs);
     bool CopyFile(URL src, URL dst);
+    bool PresentInList(URL url, std::list<std::string> clusterselect);
 
     //Implemented by specialized class
     virtual void GetJobInformation() = 0;

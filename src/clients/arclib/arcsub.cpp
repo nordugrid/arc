@@ -147,8 +147,11 @@ void arcsub(const std::list<std::string>& JobDescriptionFiles,
     Arc::XMLNode ThisJob = JobIdStorage.NewChild("Job");
     ThisJob.NewChild("id") = jobid.first.str();
     ThisJob.NewChild("name") = "test";
+    ThisJob.NewChild("submissiontime") = now.str();
     ThisJob.NewChild("flavour") = TarGen.FoundTargets().begin()->GridFlavour;
     ThisJob.NewChild("source") = jobid.second.str();
+    ThisJob.NewChild("cluster") = TarGen.FoundTargets().begin()->Cluster.str();;
+
 
     std::cout << "Job submitted with jobid: " << jobid.first.str() << std::endl;
     std::cout << "Information endpoint for this job: " << jobid.second.str()

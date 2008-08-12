@@ -167,6 +167,7 @@ namespace Arc {
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
     URL& url = ((ThreadArg *)arg)->url;
+    URL ClusterURL = ((ThreadArg *)arg)->url;
     // int& targetType = ((ThreadArg *)arg)->targetType;
     // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
@@ -219,6 +220,7 @@ namespace Arc {
 
       target.GridFlavour = "ARC0";
       target.Source = url;
+      target.Cluster = ClusterURL;
 
       // Domain/Location attributes
       if (cluster["nordugrid-cluster-name"])
