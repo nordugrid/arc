@@ -143,6 +143,7 @@ namespace Arc {
     std::string GridFlavour;
     URL Source;
     URL Cluster;
+    void Print(bool longlist) const;
 
   private:
 

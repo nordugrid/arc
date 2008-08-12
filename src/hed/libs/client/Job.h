@@ -69,6 +69,8 @@ namespace Arc {
     std::string	UsedPlatform;
     URL Cluster;
 
+    void Print(bool longlist) const;
+
   };
   
 } // namespace Arc
