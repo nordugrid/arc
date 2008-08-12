@@ -782,7 +782,7 @@ AC_SUBST(runtime_local_scratch_dir)
 AC_SUBST(runtime_frontend_sees_node)
 AC_SUBST(runtime_node_sees_frontend)
 
-DATE=`date -I`
+DATE=`date +%Y-%m-%d`
 AC_SUBST(DATE)
 
 AC_CONFIG_FILES([Makefile
