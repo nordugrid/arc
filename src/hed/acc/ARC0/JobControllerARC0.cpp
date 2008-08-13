@@ -76,8 +76,11 @@ namespace Arc {
       XMLNode XMLresult(result);
 
       for(it = HostIterator->second.begin(); it != HostIterator->second.end(); it++){
-	XMLNode JobXMLInfo = (*XMLresult.XPathLookup("//nordugrid-job-globalid"
-						     "[nordugrid-job-globalid='"+(*it)->JobID.str()+"']", NS()).begin());
+	XMLNodeList JobXMLInfoList = XMLresult.XPathLookup("//nordugrid-job-globalid"
+							   "[nordugrid-job-globalid='"+(*it)->JobID.str()+"']", NS());
+	if (JobXMLInfoList.empty())
+	  continue;
+	XMLNode& JobXMLInfo = *JobXMLInfoList.begin();
 	if(JobXMLInfo["nordugrid-job-status"])
 	  (*it)->State = (std::string) JobXMLInfo["nordugrid-job-status"];
 	if(JobXMLInfo["nordugrid-job-globalowner"])
