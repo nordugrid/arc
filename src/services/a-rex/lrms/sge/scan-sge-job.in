@@ -24,7 +24,7 @@ if [ ! -f "${basedir}/configure-sge-env.sh" ] ; then
     echo "${basedir}/configure-sge-env.sh not found." >&2
     exit 1
 fi
-. ${basedir}/configure-sge-env.sh >&2 || exit $?
+. "${basedir}/configure-sge-env.sh" >&2 || exit $?
 
 ##############################################################
 
@@ -43,8 +43,6 @@ while [ $# -gt 0 ] ; do
   control_dirs="${control_dirs} $1"
   shift
 done
-
-my_id=`id -u`
 
 
 # GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
@@ -103,7 +101,6 @@ for ctr_dir in $control_dirs ; do
     if [ ! "$status" = "INLRMS" ] ; then continue ; fi
     # get session directory of this job
     session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
-    session=${session:-/usr/local/sys/nordugrid/nordugrid/sessiondir/$gridid}
     if [  -d "$session" ] ; then
       # try to obtain the exit code
       diagfile="${session}.diag"
@@ -115,10 +112,10 @@ for ctr_dir in $control_dirs ; do
       # Find the accounting file, and copy the last 10000
       # records to a temp file.
       acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
-      if [ -f  $acctfile ]; then
+      if [ -f  "$acctfile" ]; then
         briefacct=`mktemp "$TMP_DIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
-        tail -n 1000 $acctfile > $briefacct
-        if [ $? == 0 ]; then extraargs="-f $briefacct"; fi
+        tail -n 1000 "$acctfile" > "$briefacct"
+        if [ $? == 0 ]; then extraargs="-f '$briefacct'"; fi
       fi
 
       # get accounting info. write diag file
@@ -145,24 +142,24 @@ for ctr_dir in $control_dirs ; do
                          print "failed=$failed\n";
                          print "\nexitcode=$exitcode\n";
                        }' \
-          > $diagfile_acct
-      if [ "x$briefacct" != "x" ]; then rm -f $briefacct; fi
+          > "$diagfile_acct"
+      if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
 
       # If the last qacct record is about migration,
       # we should wait for the next qacct record to appear
       # Delete file, like there was no accounting present at all!
-      if grep -q "^failed=24 *: migrating"    $diagfile_acct \
-      || grep -q "^failed=25 *: rescheduling" $diagfile_acct; then
-          rm -f $diagfile_acct
+      if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
+      || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
+          rm -f "$diagfile_acct"
           echo "Last qacct entry reports that job $id was migrated. Waiting for more info to appear in qacct" >&2
       fi
 
       # Add accounting info to $diagfile
-      if [ -s $diagfile_acct ]; then
+      if [ -s "$diagfile_acct" ]; then
 
           # Accouting info is present
           accountinginfo=1
-          cat $diagfile \
+          cat "$diagfile" \
                         | grep -v "^nodename=" \
                         | grep -v "^WallTime=" \
                         | grep -v "^KernelTime=" \
@@ -171,23 +168,23 @@ for ctr_dir in $control_dirs ; do
                         | grep -v "^MaxResidentMemory=" \
                         | grep -v "^AverageTotalMemory=" \
                         | grep -v "^exitcode=" \
-          > $diagfile_tmp
-          cat $diagfile_tmp  >  $diagfile
-          cat $diagfile_acct >> $diagfile
+          > "$diagfile_tmp"
+          cat "$diagfile_tmp"  >  "$diagfile"
+          cat "$diagfile_acct" >> "$diagfile"
 
           exitcode=`grep '^exitcode=' "$diagfile" | tail -n 1 | sed 's/^exitcode=//'`
-          failedreason=`grep '^failed=' $diagfile | tail -n 1 | sed 's/^failed=//'`
+          failedreason=`grep '^failed=' "$diagfile" | tail -n 1 | sed 's/^failed=//'`
           failedcode=`echo $failedreason | awk '{print $1}'`
 
           # Check for exceeded resources limits
-          if [ -s $gramifile ]; then
-            req_walltime=`sed -n "s/^joboption_walltime=//p" $gramifile | tail -n 1`
-            req_cputime=`sed -n "s/^joboption_cputime=//p" $gramifile | tail -n 1`
-            req_memory=`sed -n "s/^joboption_memory=//p" $gramifile | tail -n 1`
+          if [ -s "$gramifile" ]; then
+            req_walltime=`sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1`
+            req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
+            req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
 
-            used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' $diagfile | tail -n 1`
-            used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' $diagfile | tail -n 1`
-            used_memory=`sed -n 's/^UsedMemory=\(.*\)kB/\1/p' $diagfile | tail -n 1`
+            used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile" | tail -n 1`
+            used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile" | tail -n 1`
+            used_memory=`sed -n 's/^UsedMemory=\(.*\)kB/\1/p' "$diagfile" | tail -n 1`
 
             if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
             && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
@@ -205,29 +202,29 @@ for ctr_dir in $control_dirs ; do
               overlimit="walltime"
             fi
 
-            echo ++++++++++++++++++++++++++   >> $errorsfile
-            echo Resources:                   >> $errorsfile
-            echo ++++++++++++++++++++++++++   >> $errorsfile
-            echo req_memory=$req_memory Mb    >> $errorsfile
-            echo req_cputime=$req_cputime     >> $errorsfile
-            echo req_walltime=$req_walltime   >> $errorsfile
-            echo used_memory=$used_memory kB  >> $errorsfile
-            echo used_cputime=$used_cputime   >> $errorsfile
-            echo used_walltime=$used_walltime >> $errorsfile
+            echo ++++++++++++++++++++++++++   >> "$errorsfile"
+            echo Resources:                   >> "$errorsfile"
+            echo ++++++++++++++++++++++++++   >> "$errorsfile"
+            echo req_memory=$req_memory Mb    >> "$errorsfile"
+            echo req_cputime=$req_cputime     >> "$errorsfile"
+            echo req_walltime=$req_walltime   >> "$errorsfile"
+            echo used_memory=$used_memory kB  >> "$errorsfile"
+            echo used_cputime=$used_cputime   >> "$errorsfile"
+            echo used_walltime=$used_walltime >> "$errorsfile"
             if [ ! -z "$overlimit" ]; then
-              echo overlimit=$overlimit       >> $errorsfile
+              echo overlimit=$overlimit       >> "$errorsfile"
             fi
-            echo ++++++++++++++++++++++++++   >> $errorsfile
+            echo ++++++++++++++++++++++++++   >> "$errorsfile"
 
           fi # grami file
 
           if [ "$failedcode" == "0" ]; then
             if [ "$exitcode" == "0" ]; then
               echo "SGE job $id finished succesfully" >&2
-              echo "$exitcode" > $donefile
+              echo "$exitcode" > "$donefile"
             else
               echo "SGE job $id failed with exit code $exitcode" >&2
-              echo "$exitcode Job finished with non-zero exit code" > $donefile
+              echo "$exitcode Job finished with non-zero exit code" > "$donefile"
             fi
           else
             # SGE reports a problem
@@ -259,30 +256,30 @@ for ctr_dir in $control_dirs ; do
             exitcode=$((failedcode+256))
             exitcode=271
             echo "SGE job $id failed: $failedreason" >&2
-            echo $exitcode $failedreason > $donefile
+            echo $exitcode $failedreason > "$donefile"
 
             # Change exit code in the diag file
-            cp $diagfile $diagfile_tmp
+            cp "$diagfile" "$diagfile_tmp"
             if [ $? == 0 ]; then
-              cat $diagfile_tmp | grep -v "^exitcode=" > $diagfile
-              echo "exitcode=$exitcode"  >>  $diagfile
-              rm -f $diagfile_tmp
+              cat "$diagfile_tmp" | grep -v "^exitcode=" > "$diagfile"
+              echo "exitcode=$exitcode"  >>  "$diagfile"
+              rm -f "$diagfile_tmp"
             fi
 
           fi # failedcode
 
           # wake up GM
-          $GMKICK $statusfile >> $errorsfile
+          $GMKICK "$statusfile" >> "$errorsfile"
 
-          rm -f $countfile
-          rm -f $diagfile_tmp $diagfile_acct
+          rm -f "$countfile"
+          rm -f "$diagfile_tmp" "$diagfile_acct"
 
           # we're done, go to next job id
           continue
 
       fi # accounting info ok
 
-      rm -f $diagfile_acct
+      rm -f "$diagfile_acct"
 
     fi # session directory exists
 
@@ -301,15 +298,15 @@ for ctr_dir in $control_dirs ; do
       # Cannot wait more for accounting info.
       if [ -z "$exitcode" ]; then
         echo "SGE job $id finished with unknown exit code." >&2
-        echo "256 Job disappeared from SGE." > $donefile
+        echo "256 Job disappeared from SGE." > "$donefile"
       else
         echo "SGE job $id failed with exit code $exitcode." >&2
-        echo "$exitcode Job finished with non-zero exit code" > $donefile
+        echo "$exitcode Job finished with non-zero exit code" > "$donefile"
       fi
       rm -f "$countfile"
 
       # wake up GM
-      $GMKICK $statusfile >> $errorsfile
+      $GMKICK "$statusfile" >> "$errorsfile"
 
     else
       # test again for job existence, only count if not known
