@@ -7,7 +7,7 @@
 set -x 
 
 cleanup() {
-    find . -type d -name autom4te.cache -print0 | xargs -0 rm -rf \;
+    find . -type d -name autom4te.cache -print | xargs rm -rf \;
     find . -type f \( -name missing -o -name install-sh \
         -o -name mkinstalldirs \
         -o -name depcomp -o -name ltmain.sh -o -name configure \
@@ -16,7 +16,7 @@ cleanup() {
         -o -name autoscan.log -o -name configure.scan -o -name config.log \
         -o -name config.status -o -name config.h -o -name stamp-h1 \
         -o -name Makefile -o -name libtool \) \
-        -print0 | xargs -0 rm -f
+        -print | xargs rm -f
 }
 
 if [ "x$1" = "xclean" ]; then
