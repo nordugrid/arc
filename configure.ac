@@ -722,7 +722,7 @@ AC_CHECK_LIB([nsl], [gethostbyname], [LIBRESOLV="$LIBRESOLV -lnsl"], [])
 AC_SUBST(LIBRESOLV)
 
 
-# check for platfom specific extra libraries
+# check for platfom specific extra libraries and flags
 
 EXTRA_LIBS=""
 REGEX_LIBS=""
@@ -739,6 +739,8 @@ case "${host}" in
     ;;
   *solaris*)
     SOCKET_LIBS="-lsocket"
+    CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
+    CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
     ;;
 esac
 AC_SUBST(EXTRA_LIBS)
