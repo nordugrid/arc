@@ -21,6 +21,8 @@ namespace Arc {
 	       EndTime(-1),
 	       WorkingAreaEraseTime(-1),
 	       ProxyExpirationTime(-1),
+	       CreationTime(-1),
+	       Validity(-1),
 	       VirtualMachine(false) {}
   
   Job::~Job() {}
@@ -87,7 +89,7 @@ namespace Arc {
       if (CreationTime != -1)
 	std::cout<<Arc::IString(" Entry valid from: %s", (std::string) CreationTime)<<std::endl;
       if (Validity != -1)
-	std::cout<<Arc::IString(" Entry valid until: %s", (std::string) Validity)<<std::endl;
+	std::cout<<Arc::IString(" Entry valid for: %s", (std::string) Validity)<<std::endl;
     }//end if long
     
     std::cout<<std::endl;
