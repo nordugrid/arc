@@ -57,6 +57,9 @@ if test "X$with_jdk" != "X"; then
 	*linux*)
 	    SUN_EXTRA_INCLUDE="linux"
 	    ;;
+	*solaris*)
+	    SUN_EXTRA_INCLUDE="solaris"
+	    ;;
     esac
     JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$SUN_EXTRA_INCLUDE"
 
