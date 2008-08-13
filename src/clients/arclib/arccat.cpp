@@ -21,9 +21,9 @@ void arccat(const std::list<std::string>& jobs,
 	    const std::list<std::string>& clusterreject,
 	    const std::list<std::string>& status,
 	    const std::string joblist,
-	    const bool stdout,
-	    const bool stderr,
-	    const bool gmlog,
+	    const bool show_stdout,
+	    const bool show_stderr,
+	    const bool show_gmlog,
 	    const int timeout){
 
   Arc::UserConfig uc;
@@ -42,9 +42,9 @@ void arccat(const std::list<std::string>& jobs,
   std::list<Arc::JobController*>::iterator iter;
   
   std::string whichfile;
-  if(gmlog)
+  if(show_gmlog)
     whichfile = "gmlog";
-  else if(stderr)
+  else if(show_stderr)
     whichfile = "stderr";
   else
     whichfile = "stdout";
@@ -98,24 +98,24 @@ int main(int argc, char **argv) {
 		    istring("only select jobs whose status is statusstr"),
 		    istring("statusstr"),
 		    status);
-  bool stdout = true;
+  bool show_stdout = true;
   options.AddOption('o', "stdout",
 		    istring("show stdout of the job (default)"),
-		    stdout);
-  bool stderr = false;
+		    show_stdout);
+  bool show_stderr = false;
   options.AddOption('e', "stderr",
 		    istring("show stderr of the job"),
-		    stderr);
+		    show_stderr);
   /*
   bool follow = false;
   options.AddOption('f', "follow",
 		    istring("show tail of requested file and follow it's changes"),
 		    follow);
   */
-  bool gmlog = false;
+  bool show_gmlog = false;
   options.AddOption('l', "gmlog",
 		    istring("show the grid manager's error log of the job"),
-		    gmlog); 
+		    show_gmlog); 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
 		    istring("seconds"), timeout);
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
   }
 
   arccat(params, clusterselect, clusterreject, status,
-	 joblist, stdout, stderr, gmlog, timeout);
+	 joblist, show_stdout, show_stderr, show_gmlog, timeout);
 
   return 0;
 }
