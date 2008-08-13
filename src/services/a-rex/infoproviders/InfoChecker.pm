@@ -99,7 +99,7 @@ sub _verify_part($$$$) {
 
                 # skip keys that have been checked already
                 next if grep { $datakey eq $_ } @templkeys;
-                my $subj = "${subject}{$datakey}";
+                my $subj = $subject."{$datakey}";
 
                 # check that the key's value is valid
                 my $can_delete = $self->_verify_part($subj, $data->{$datakey},
@@ -114,7 +114,7 @@ sub _verify_part($$$$) {
         # no '*' key in schema, reverse checking may be performed
         } elsif ($self->{strict}) {
             for my $datakey ( sort keys %$data) {
-                my $subj = "${subject}{$datakey}";
+                my $subj = $subject."{$datakey}";
                 unless (exists $schema->{$datakey}) {
                     push @{$self->{errors}}, "$subj is not part of schema";
                     push @{$self->{errors}}, "$subj deleting it";
@@ -126,7 +126,7 @@ sub _verify_part($$$$) {
     # process an array reference
     } elsif ( ref($schema) eq "ARRAY" ) {
         for ( my $i=0; $i < @$data; $i++ ) {
-            my $subj = "${subject}[$i]";
+            my $subj = $subject."[$i]";
 
             # check that data element is valid
             my $can_delete = $self->_verify_part($subj, $data->[$i],
