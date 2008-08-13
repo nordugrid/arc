@@ -478,7 +478,7 @@ else
 	LDFLAGS=$SAVE_LDFLAGS
 fi
 
-
+AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 AC_SUBST(DBCXX_LIBS)
 AC_LANG_RESTORE
 
@@ -541,6 +541,12 @@ AC_MSG_NOTICE([A-Rex service enabled: $enable_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enable_a_rex_service" = "xyes"])
 # ISI(S)
 AC_ARG_ENABLE(isi_service, AC_HELP_STRING([--disable-isi-service], [disable building ISI Service]),[],enable_isi_service="yes")
+if test "$enable_isi_service" = "yes"; then
+  if test "$DBCXX_LIBS" = ""; then
+    enable_isi_service="no"
+    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling ISI Service])
+  fi
+fi
 AC_MSG_NOTICE([ISI Service enabled: $enable_isi_service])
 AM_CONDITIONAL([ISI_SERVICE_ENABLED],[test "x$enable_isi_service" = "xyes"])
 
