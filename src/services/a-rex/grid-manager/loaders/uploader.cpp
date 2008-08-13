@@ -10,7 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
-#include <dirent.h>
+
+#include <glibmm.h>
 
 #include <arc/data/DMC.h>
 #include <arc/data/CheckSum.h>
@@ -139,28 +140,27 @@ void expand_files(std::list<FileData> &job_files,char* session_dir) {
     if(url[url.length()-1] != '/') { ++i; continue; };
     std::string path(session_dir); path+="/"; path+=i->pfn;
     int l = strlen(session_dir) + 1;
-    DIR *dir = opendir(path.c_str());
-    if(dir) {
-      struct dirent file_;
-      struct dirent *file;
+    try {
+      Glib::Dir dir(path);
+      std::string file;
       for(;;) {
-        readdir_r(dir,&file_,&file);
-        if(file == NULL) break;
-        if(!strcmp(file->d_name,".")) continue;
-        if(!strcmp(file->d_name,"..")) continue;
-        std::string path_ = path; path_+="/"; path+=file->d_name;
+        file=dir.read_name();
+        if(file.empty()) break;
+        if(file == ".") continue;
+        if(file == "..") continue;
+        std::string path_ = path; path_+="/"; path+=file;
         struct stat st;
         if(lstat(path_.c_str(),&st) != 0) continue; // do not follow symlinks
         if(S_ISREG(st.st_mode)) {
-          std::string lfn = url+file->d_name;
+          std::string lfn = url+file;
           job_files.push_back(FileData(path_.c_str()+l,lfn.c_str()));
         } else if(S_ISDIR(st.st_mode)) {
-          std::string lfn = url+file->d_name+"/"; // cause recursive search
+          std::string lfn = url+file+"/"; // cause recursive search
           job_files.push_back(FileData(path_.c_str()+l,lfn.c_str()));
         };
       };
       i=job_files.erase(i);
-    } else {
+    } catch(Glib::FileError& e) {
       ++i;
     }; 
   };

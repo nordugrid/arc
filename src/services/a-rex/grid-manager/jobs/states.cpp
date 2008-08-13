@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
+#include <glibmm.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 
@@ -1225,45 +1225,44 @@ class JobFDesc {
   uid_t uid;
   gid_t gid;
   time_t t;
-  JobFDesc(char* s,unsigned int n):id(s,n),uid(0),gid(0),t(-1) { };
+  JobFDesc(const char* s,unsigned int n):id(s,n),uid(0),gid(0),t(-1) { };
   bool operator<(JobFDesc &right) { return (t < right.t); };
 };
 
 /* find new jobs - sort by date to implement FIFO */
 bool JobsList::ScanNewJobs(bool /*hard_job*/) {
-  struct dirent file_;
-  struct dirent *file;
+  std::string file;
   std::string cdir=user->ControlDir();
-  DIR *dir=opendir(cdir.c_str());
-  if(dir == NULL) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
-    return false;
-  };
   std::list<JobFDesc> ids;
-  for(;;) {
-    readdir_r(dir,&file_,&file);
-    if(file == NULL) break;
-    int l=strlen(file->d_name);
-    if(l>(4+7)) {  /* job id contains at least 1 character */
-      if(!strncmp(file->d_name,"job.",4)) {
-        if(!strncmp((file->d_name)+(l-7),".status",7)) {
-          JobFDesc id((file->d_name)+4,l-7-4);
-          if(FindJob(id.id) == jobs.end()) {
-            std::string fname=cdir+'/'+file->d_name;
-            uid_t uid;
-            gid_t gid;
-            time_t t;
-            if(check_file_owner(fname,*user,uid,gid,t)) {
-              /* add it to the list */
-              id.uid=uid; id.gid=gid; id.t=t;
-              ids.push_back(id);
+  try {
+    Glib::Dir dir(cdir);
+    for(;;) {
+      file=dir.read_name();
+      if(file.empty()) break;
+      int l=file.length();
+      if(l>(4+7)) {  /* job id contains at least 1 character */
+        if(!strncmp(file.c_str(),"job.",4)) {
+          if(!strncmp((file.c_str())+(l-7),".status",7)) {
+            JobFDesc id((file.c_str())+4,l-7-4);
+            if(FindJob(id.id) == jobs.end()) {
+              std::string fname=cdir+'/'+file.c_str();
+              uid_t uid;
+              gid_t gid;
+              time_t t;
+              if(check_file_owner(fname,*user,uid,gid,t)) {
+                /* add it to the list */
+                id.uid=uid; id.gid=gid; id.t=t;
+                ids.push_back(id);
+              };
             };
           };
         };
       };
     };
+  } catch(Glib::FileError& e) {
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
+    return false;
   };
-  closedir(dir);
   /* sorting by date */
   ids.sort();
   for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {

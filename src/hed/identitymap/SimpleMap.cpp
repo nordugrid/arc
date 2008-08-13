@@ -17,8 +17,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <dirent.h>
 #include <unistd.h>
+
+#include <glibmm.h>
 
 #define odlog(LEVEL) std::cerr
 
@@ -113,24 +114,22 @@ std::string SimpleMap::map(const std::string& subject) {
   time_t oldmap_time = 0;
   std::string oldmap_name;
   std::string oldmap_subject;
-  {
-    struct dirent file_;
-    struct dirent *file;
-    DIR *dir=opendir(dir_.c_str());
-    if(dir == NULL) failure("can't list pool directory");
+  try {
+    std::string file;
+    Glib::Dir dir(dir_);
     for(;;) {
-      readdir_r(dir,&file_,&file);
-      if(file == NULL) break;
-      if(!strcmp(file->d_name,".")) continue;
-      if(!strcmp(file->d_name,"..")) continue;
-      if(!strcmp(file->d_name,"pool")) continue;
-      std::string filename = dir_+file->d_name;
+      file=dir.read_name();
+      if(file.empty()) break;
+      if(file == ".") continue;
+      if(file == "..") continue;
+      if(file == "pool") continue;
+      std::string filename = dir_+file;
       struct stat st;
       if(stat(filename.c_str(),&st) != 0) continue;
       if(!S_ISREG(st.st_mode)) continue;
       std::ifstream f(filename.c_str());
       if(!f.is_open()) { // trash in directory
-        closedir(dir); failure("can't open one of mapping files"); 
+        failure("can't open one of mapping files"); 
       };
       std::string name;
       std::getline(f,name);
@@ -148,12 +147,13 @@ std::string SimpleMap::map(const std::string& subject) {
         if( (oldmap_name.length() == 0) ||
             (((int)(oldmap_time - st.st_mtime)) > 0) ) {
           oldmap_name=name;
-          oldmap_subject=file->d_name;
+          oldmap_subject=file;
           oldmap_time=st.st_mtime;
         };
       };
     };
-    closedir(dir);
+  } catch(Glib::FileError& e) {
+    failure("can't list pool directory");
   };
   if(names.size()) {
     // Claim one of unused names

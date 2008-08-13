@@ -10,8 +10,9 @@
 #include <sys/statvfs.h>
 
 #include <unistd.h>
-#include <dirent.h>
 #include <iostream>
+
+#include <glibmm.h>
 
 #include <arc/Logger.h>
 #include "../jobs/users.h"
@@ -222,25 +223,18 @@ int cache_cleaner(const JobUsers &users) {
           for(JobUsers::const_iterator user_ = users.begin();
                                        user_ != users.end();++user_) {
             if(cache_dir == user_->CacheDir()) {
-              struct dirent file_;
-              struct dirent *file;
+              std::string file;
               std::string cdir=user_->ControlDir();
-              DIR *dir=opendir(cdir.c_str());
-              if(dir == NULL) {
-                logger.msg(Arc::WARNING,"Cache: Warning: Failed reading control directory: %s",cdir);
-                logger.msg(Arc::WARNING,"Cache: Warning: Stale locks won't be removed");
-                ids.clear();
-                break;
-              }
-              else {
+              try {
+                Glib::Dir dir(cdir);
                 for(;;) {
-                  readdir_r(dir,&file_,&file);
-                  if(file == NULL) break;
-                  int l=strlen(file->d_name);
+                  file=dir.read_name();
+                  if(file.empty()) break;
+                  int l=file.length();
                   if(l>(4+7)) {
-                    if(!strncmp(file->d_name,"job.",4)) {
-                      if(!strncmp((file->d_name)+(l-7),".status",7)) {
-                        std::string id((file->d_name)+4,l-7-4);
+                    if(!strncmp(file.c_str(),"job.",4)) {
+                      if(!strncmp((file.c_str())+(l-7),".status",7)) {
+                        std::string id((file.c_str())+4,l-7-4);
                         job_state_t state=job_state_read_file(id,*user_);
                         if(state != JOB_STATE_FINISHED) {
                           for(std::list<JobId>::iterator i=ids.begin();
@@ -252,8 +246,12 @@ int cache_cleaner(const JobUsers &users) {
                     };
                   };
                 };
+              } catch (Glib::FileError& e) {
+                logger.msg(Arc::WARNING,"Cache: Warning: Failed reading control directory: %s",cdir);
+                logger.msg(Arc::WARNING,"Cache: Warning: Stale locks won't be removed");
+                ids.clear();
+                break;
               };
-              closedir(dir);
             };
           };
           for(std::list<JobId>::iterator i=ids.begin();i!=ids.end();++i) {

@@ -5,10 +5,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <fcntl.h>
 
 #include <string>
+
+#include <glibmm.h>
 
 #include <arc/StringConv.h>
 #include <arc/message/PayloadRaw.h>
@@ -89,46 +90,45 @@ Arc::Logger::rootLogger.msg(Arc::DEBUG, "http_get: start=%u, end=%u, burl=%s, bp
   struct stat st;
   if(lstat(path.c_str(),&st) == 0) {
     if(S_ISDIR(st.st_mode)) {
-      DIR *dir=opendir(path.c_str());
-      if(dir != NULL) {
+      try {
+        Glib::Dir dir(path);
         // Directory - html with file list
-        struct dirent file_;
-        struct dirent *file;
+        std::string file;
         std::string html;
         html="<HTML>\r\n<HEAD>ARex: Job</HEAD>\r\n<BODY><UL>\r\n";
 	std::string furl = burl;
 	if(!hpath.empty()) furl+="/"+hpath;
         for(;;) {
-          readdir_r(dir,&file_,&file);
-          if(file == NULL) break;
-          if(strcmp(file->d_name,".") == 0) continue;
-          if(strcmp(file->d_name,"..") == 0) continue;
-          std::string fpath = path+"/"+file->d_name;
+          file=dir.read_name();
+          if(file.empty()) break;
+          if(file == ".") continue;
+          if(file == "..") continue;
+          std::string fpath = path+"/"+file;
           if(lstat(fpath.c_str(),&st) == 0) {
             if(S_ISREG(st.st_mode)) {
               std::string line = "<LI><I>file</I> <A HREF=\"";
-              line+=furl+"/"+file->d_name;
+              line+=furl+"/"+file;
               line+="\">";
-              line+=file->d_name;
+              line+=file;
               line+="</A> - "+Arc::tostring(st.st_size)+" bytes"+"\r\n";
               html+=line;
             } else if(S_ISDIR(st.st_mode)) {
               std::string line = "<LI><I>dir</I> <A HREF=\"";
-              line+=furl+"/"+file->d_name+"/";
+              line+=furl+"/"+file+"/";
               line+="\">";
-              line+=file->d_name;
+              line+=file;
               line+="</A>\r\n";
               html+=line;
             };
           };
         };
-        closedir(dir);
         html+="</UL>\r\n</BODY>\r\n</HTML>";
         Arc::PayloadRaw* buf = new Arc::PayloadRaw;
         if(buf) buf->Insert(html.c_str(),0,html.length());
         outmsg.Payload(buf);
         outmsg.Attributes()->set("HTTP:content-type","text/html");
         return Arc::MCC_Status(Arc::STATUS_OK);
+      } catch(Glib::FileError& e) {
       };
     } else if(S_ISREG(st.st_mode)) {
       // File 

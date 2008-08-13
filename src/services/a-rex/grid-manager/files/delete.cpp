@@ -5,10 +5,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <cstring>
 #include <cstdlib>
  
+#include <string>
+
+#include <glibmm.h>
+
 #include "../files/info_types.h"
 #include "delete.h"
 
@@ -46,109 +49,107 @@ static int delete_all_recur(const std::string &dir_base,
     fl_cur=tmp;
   };
   /* go through directory and remove files */
-  struct dirent file_;
-  struct dirent *file;
+  std::string file;
   std::string dir_s = dir_base+dir_cur;
-  DIR *dir=opendir(dir_s.c_str());
-  if(dir == NULL) { return 2; };
   int files = 0;
-  for(;;) {
-    readdir_r(dir,&file_,&file);
-    if(file == NULL) break;
-    if(!strcmp(file->d_name,".")) continue;
-    if(!strcmp(file->d_name,"..")) continue;
-    fl_cur = fl_new;
+  try {
+    Glib::Dir dir(dir_s);
     for(;;) {
-      if(fl_cur == NULL) break;
-      if(!strcmp(file->d_name,(fl_cur->s)+(l+1))) {
-        /* do not delete or delete */
-        break;
+      file=dir.read_name();
+      if(file.empty()) break;
+      if(file == ".") continue;
+      if(file == "..") continue;
+      fl_cur = fl_new;
+      for(;;) {
+        if(fl_cur == NULL) break;
+        if(!strcmp(file.c_str(),(fl_cur->s)+(l+1))) {
+          /* do not delete or delete */
+          break;
+        };
+        fl_cur=fl_cur->next;
       };
-      fl_cur=fl_cur->next;
-    };
-    if(excl) {
-      if(fl_cur == NULL) {
-        /* delete */
-        struct stat f_st;
-        std::string fname=dir_s+'/'+file->d_name;
-        if(lstat(fname.c_str(),&f_st) != 0) { files++; }
-        else if(S_ISDIR(f_st.st_mode)) {
-          if(delete_all_recur(dir_base,
-                        dir_cur+'/'+file->d_name,&fl_new,excl) != 0) {
-            files++;
+      if(excl) {
+        if(fl_cur == NULL) {
+          /* delete */
+          struct stat f_st;
+          std::string fname=dir_s+'/'+file;
+          if(lstat(fname.c_str(),&f_st) != 0) { files++; }
+          else if(S_ISDIR(f_st.st_mode)) {
+            if(delete_all_recur(dir_base,
+                          dir_cur+'/'+file,&fl_new,excl) != 0) {
+              files++;
+            }
+            else {
+              if(remove(fname.c_str()) != 0) { files++; };
+            };
           }
           else {
             if(remove(fname.c_str()) != 0) { files++; };
+          };
+        }
+        else { files++; };
+      }
+      else {
+        struct stat f_st;
+        std::string fname=dir_s+'/'+file;
+        if(lstat(fname.c_str(),&f_st) != 0) { files++; }
+        else if(S_ISDIR(f_st.st_mode)) {
+          if(fl_cur != NULL) { /* MUST delete it */
+            FL_p* e = NULL;
+            if(delete_all_recur(dir_base,
+                          dir_cur+'/'+file,&e,true) != 0) {
+              files++;
+            }
+            else { 
+              if(remove(fname.c_str()) != 0) { files++; }; 
+            };
+          }
+          else { /* CAN delete if empty, and maybe files inside */
+            if(delete_all_recur(dir_base,
+                          dir_cur+'/'+file,&fl_new,excl) != 0) {
+              files++;
+            }
+            else {
+              if(remove(fname.c_str()) != 0) { files++; };
+            };
           };
         }
         else {
-          if(remove(fname.c_str()) != 0) { files++; };
-        };
-      }
-      else { files++; };
-    }
-    else {
-      struct stat f_st;
-      std::string fname=dir_s+'/'+file->d_name;
-      if(lstat(fname.c_str(),&f_st) != 0) { files++; }
-      else if(S_ISDIR(f_st.st_mode)) {
-        if(fl_cur != NULL) { /* MUST delete it */
-          FL_p* e = NULL;
-          if(delete_all_recur(dir_base,
-                        dir_cur+'/'+file->d_name,&e,true) != 0) {
-            files++;
-          }
-          else { 
-            if(remove(fname.c_str()) != 0) { files++; }; 
-          };
-        }
-        else { /* CAN delete if empty, and maybe files inside */
-          if(delete_all_recur(dir_base,
-                        dir_cur+'/'+file->d_name,&fl_new,excl) != 0) {
-            files++;
-          }
-          else {
+          if(fl_cur != NULL) { /* MUST delete this file */
             if(remove(fname.c_str()) != 0) { files++; };
-          };
+          }
+          else { files++; };
         };
-      }
-      else {
-        if(fl_cur != NULL) { /* MUST delete this file */
-          if(remove(fname.c_str()) != 0) { files++; };
-        }
-        else { files++; };
       };
     };
-  };
-  closedir(dir);
+  } catch(Glib::FileError& e) { return 2; };
   if(files) return 1;
   return 0;
 }
 
 
 static int delete_links_recur(const std::string &dir_base,const std::string &dir_cur) {
-  struct dirent file_;
-  struct dirent *file;
+  std::string file;
   std::string dir_s = dir_base+dir_cur;
-  DIR *dir=opendir(dir_s.c_str());
-  if(dir == NULL) { return 2; };
   int res = 0;
-  for(;;) {
-    readdir_r(dir,&file_,&file);
-    if(file == NULL) break;
-    if(!strcmp(file->d_name,".")) continue;
-    if(!strcmp(file->d_name,"..")) continue;
-    struct stat f_st;
-    std::string fname=dir_s+'/'+file->d_name;
-    if(lstat(fname.c_str(),&f_st) != 0) { res|=1; }
-    else if(S_ISDIR(f_st.st_mode)) {
-      res|=delete_links_recur(dir_base,dir_cur+'/'+file->d_name);
-    }
-    else {
-      if(remove(fname.c_str()) != 0) { res|=1; };
+  try {
+    Glib::Dir dir(dir_s);
+    for(;;) {
+      file=dir.read_name();
+      if(file.empty()) break;
+      if(file == ".") continue;
+      if(file == "..") continue;
+      struct stat f_st;
+      std::string fname=dir_s+'/'+file;
+      if(lstat(fname.c_str(),&f_st) != 0) { res|=1; }
+      else if(S_ISDIR(f_st.st_mode)) {
+        res|=delete_links_recur(dir_base,dir_cur+'/'+file);
+      }
+      else {
+        if(remove(fname.c_str()) != 0) { res|=1; };
+      };
     };
-  };
-  closedir(dir);
+  } catch(Glib::FileError& e) { return 2; };
   return res;
 }
 
