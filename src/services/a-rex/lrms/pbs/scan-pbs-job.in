@@ -328,7 +328,7 @@ for ctr_dir in "$@" ; do
     if [ "$counter" -gt 5 ] ; then
       rm -f "$countfile"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${GMKICK "$statusfile"
+      ${GMKICK} "$statusfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"
