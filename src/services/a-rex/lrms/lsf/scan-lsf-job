@@ -135,7 +135,7 @@ for ctr_dir in $control_dir ; do
 	    # have chance to obtain exit code
 	    diagfile="${session}.diag"
 	    if [ "$my_id" = '0' ] ; then
-		username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed 's/[^(]*(\([^(]*\))/\1/;t leave;s/.*//;:leave'`
+		username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
 	    else
 		username=
 	    fi

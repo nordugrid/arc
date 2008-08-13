@@ -397,7 +397,11 @@ else
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
   if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
     cat "$joboption_controldir/job.$joboption_gridid.output" | \
-    sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' | \
+    # Ignore space at the beginning of lines; Extract the first quoted string
+    # if the line starts with a quote, otherwise extract the string from the
+    # beginning of the line up to the first unescaped space character; Remove
+    # unescaped backslashes before printing the extracted string
+    sed -e 's/^ *"\([^"]*\)".*/\1/g;t suc' -e 's/^ *//;s/\([^\\]\) .*/\1/;:suc' -e 's/\\\(.\)/\1/g' \
     { while true ; do
       read name
       if [ $? -ne '0' ] ; then break ; fi

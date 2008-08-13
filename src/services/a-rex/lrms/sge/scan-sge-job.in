@@ -49,7 +49,7 @@ done
 
 
 # Get all jobs
-pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | grep '^  *[0-9]* ' | sed 's/^  *\([^ ]*\).*/\1/'`
+pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | sed -n 's/^  *\([0-9][0-9]*\) .*/\1/p'`
 if [ $? != 0 ]; then
   echo "[`date`] Failed running ${SGE_BIN_PATH}/qstat" >&2
   sleep 60

@@ -104,7 +104,7 @@ sort -u | \
       break
     fi
     # Try to extract exit code of PBS (note: if executable fails it's code goes to PBS)
-    exit_code=`echo "$job_message" | sed 's/^.*Exit_status=\([-0-9]*\).*/\1/;t leave;s/.*//;:leave'`
+    exit_code=`echo "$job_message" | sed -n 's/^.*Exit_status=\([-0-9]*\).*/\1/p'`
     job_id=`echo "$job_id" | awk '{split($0,field,".");print field[1]"."field[2]}'`
     # look for this id in job.ID.local
     {
@@ -118,7 +118,7 @@ sort -u | \
         if [ "$my_id" != '0' ] ; then
           if [ ! -O "$name" ] ; then continue ; fi
         fi
-        base_name=`echo "$name" 2>/dev/null | sed 's/\.local$//;t leave;s/.*//;:leave'`
+        base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
         if [ -z "${base_name}" ] ; then continue ; fi
 	# check if job already reported
         if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
@@ -133,7 +133,7 @@ sort -u | \
         diagfile="${session}.diag"
         commentfile="${session}.comment"
 	if [ "$my_id" = '0' ] ; then
-          username=`eval $STAT_USERNAME "${name}" | grep 'uid' | sed 's/[^(]*(\([^(]*\))/\1/;t leave;s/.*//;:leave'`
+          username=`eval $STAT_USERNAME "${name}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
 	else
 	  username=
 	fi
@@ -263,7 +263,7 @@ if [ ! "$?" = '0' ] ; then
   sleep 60
   exit 1
 fi
-pids=`cat "$pidslist" | grep '^[0-9]*\.' | sed 's/^\([0-9]*\).*/\1/'`
+pids=`cat "$pidslist" | sed -n 's/^\([0-9][0-9]*\)\..*/\1/p'`
 rm -f "$pidslist"
 # Go through directories
 for ctr_dir in "$@" ; do
@@ -297,7 +297,7 @@ for ctr_dir in "$@" ; do
       # have chance to obtain exit code
       diagfile="${session}.diag"
       if [ "$my_id" = '0' ] ; then
-        username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed 's/[^(]*(\([^(]*\))/\1/;t leave;s/.*//;:leave'`
+        username=`eval $STAT_USERNAME "${jobfile}" | grep 'uid' | sed -n 's/[^(]*(\([^(]*\))/\1/p'`
       else
         username=
       fi

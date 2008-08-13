@@ -107,7 +107,7 @@ function seconds {
     '
 }
 function find_in_file { file=$1; regex=$2;
-    grep "$regex" "$file" | tail -n 1 | sed -n "s/\(.*\)$regex\(.*\)/\2/ip";
+    grep "$regex" "$file" | tail -n 1 | sed -n "s/\(.*\)$regex\(.*\)/\2/p";
 }
 
 # Parse mail body. Look for lines like:
