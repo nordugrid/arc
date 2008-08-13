@@ -141,12 +141,12 @@ namespace Arc {
       }
       //second clean job (unless keep)
       if(!keep){
-	JobsToBeRemoved.push_back(jobiter->JobID.str());
 	bool cleaned = CleanThisJob(*jobiter, true);
 	if(!cleaned){
 	  std::cout<<Arc::IString("Failed cleaning job %s", jobiter->JobID.str())<<std::endl;
-	  //continue ?
+	  continue;
 	}
+	JobsToBeRemoved.push_back(jobiter->JobID.str());
       }
     } //end loop over jobs
 

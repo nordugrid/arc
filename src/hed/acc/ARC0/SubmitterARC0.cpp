@@ -19,7 +19,6 @@ struct cbarg {
   bool ctrl;
 };
 
-
 static void ControlCallback(void *arg,
 			    globus_ftp_control_handle_t*,
 			    globus_object_t*,
@@ -60,6 +59,8 @@ static void ReadWriteCallback(void *arg,
 
 
 namespace Arc {
+
+  Logger SubmitterARC0::logger(Logger::getRootLogger(), "SubmitterARC0");
 
   SubmitterARC0::SubmitterARC0(Config *cfg)
     : Submitter(cfg) {
@@ -206,7 +207,8 @@ namespace Arc {
     InfoEndpoint.ChangeLDAPScope(URL::subtree);
 
     //Upload local input files.
-    
+    std::vector< std::pair< std::string, std::string > > SourceDestination = jobdesc.getUploadableFiles();
+    putFiles(SourceDestination,jobid.str());
 
 
     return std::make_pair(jobid, InfoEndpoint);
@@ -235,6 +237,8 @@ namespace Arc {
   }
   
   void SubmitterARC0::putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, std::string jobid){
+    
+    logger.msg(DEBUG, "Uploading %d job input files to cluster", fileList.size());
     
     // Create mover
     Arc::DataMover mover;
