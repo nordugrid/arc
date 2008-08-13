@@ -1,0 +1,209 @@
+\subsection{arcls}\label{sec:arcls}
+The \texttt{arcls} \index{arcls}\index{commands:arcls} is a simple
+utility that allows to list contents and view some attributes of
+objects of a specified (by an URL) remote directory.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcls [options] $<$URL$>$}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+    Options:&&\\
+    \texttt{-h} && short help\\
+    \texttt{-v} && print version information\\
+    \texttt{-d} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
+    \texttt{-l} &  & detailed listing\\
+    \texttt{-L} &  & detailed listing including URLs from which file can 
+    be downloaded and\\ & & temporary cached locations\\
+    Arguments:&&\\
+    \texttt{URL} && file or directory URL\\
+\end{longtable}
+
+This tool is very convenient not only because it allows to list files
+at a Storage Element or records in an indexing service, but also
+because it can give a quick overview of a job's working directory,
+which is explicitly given by job ID.
+
+Usage examples can be as follows:
+
+\begin{verbatim}
+    ngls rls://rc.host:38203/logical_file_name
+    ngls -l gsiftp://lscf.nbi.dk:2811/jobs/1323842831451666535
+    ngls -L srm://grid.uio.no:58000/srm/managerv1/johndoe/log2
+\end{verbatim}
+
+Examples of URLs accepted by this tool can be found in
+Section~\ref{sec:urls}, though \texttt{arcls} won't be able to list a
+directory at an HTTP server, as they normally do not return directory
+listings.
+
+\subsection{arccp}\label{sec:arccp}
+
+The \texttt{arccp}\footnote{In ARC $\leq$ 0.5.28 was called
+  \texttt{ngcopy}} \index{arccp}\index{commands:arccp} is a powerful
+tool to copy files over the Grid. It is a part of the Grid Manager,
+but can be used by the User Interface as well.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arccp [options] $<$source$>$ $<$destination$>$}
+\end{shaded}
+\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+\begin{longtable}{llp{8cm}}
+    Options:&&\\
+    \texttt{-h} && short help\\
+    \texttt{-v} && print version information\\
+    \texttt{-d} & \textit{debuglevel} &debug level: from -3 = quiet to 3 = verbose\\
+    \texttt{-y} & \textit{cache\_path} & path to local cache (use to put file into cache)\\
+    \texttt{-Y} & \textit{cache\_data\_path} & path for cache data (if different from -y)\\
+    \texttt{-p} && use passive transfer (does not work if secure is on, default if secure is not requested)\\
+    \texttt{-n} && do not try to force passive transfer\\
+    \texttt{-i} && show progress indicator\\
+    \texttt{-u} && use secure transfer (insecure by default)\\
+    \texttt{-r} & \textit{recursion\_level} & operate recursively (if possible) up to specified level (0 - no recursion)\\
+    \texttt{-R} & \textit{number} & how many times to retry transfer of every file before failing\\
+    \texttt{-t} & \textit{time} & timeout in seconds (default 20)\\
+    \texttt{-f} && if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication\\
+    \texttt{-T} && do not transfer file, just register it - destination must be non-existing meta-url\\
+    Arguments:&&\\
+    \texttt{source} && source URL\\
+    \texttt{destination} && destination URL\\
+\end{longtable}
+
+This command transfers contents of a file between 2 end-points.
+End-points are represented by URLs or meta-URLs. For supported
+endpoints please refer to Section~\ref{sec:urls}.
+
+\texttt{ngcp} can perform multi-stream transfers if \texttt{threads}
+URL option is specified and server supports it.
+
+Source URL can end with \verb#"/"#. In that case, the whole fileset
+(directory) will be copied. Also, if the destination ends with
+\verb#"/"#, it is extended with part of source URL after last
+\verb#"/"#, thus allowing users to skip the destination file or
+directory name if it is meant to be identical to the source.
+
+\begin{framed}
+   Since the job ID is in fact a \verb#gsiftp://# URL of the job
+   top directory, you can use \texttt{ngcp} to copy files from the
+   job directory at any time.
+\end{framed}
+
+Usage examples of \texttt{ngcp} are:
+
+\begin{verbatim}
+    ngcp gsiftp://lscf.nbi.dk:2811/jobs/1323842831451666535/job.out \
+              file:///home/myname/job2.out
+    ngcp gsiftp://aftpexp.bnl.gov;threads=10/rep/my.file \
+              rc://;threads=4@grid.uio.no/lc=Collection,rc=Catalog/zebra4.f
+    ngcp http://www.nordugrid.org/data/somefile gsiftp://hathi.hep.lu.se/data/
+\end{verbatim}
+
+\subsection{ngrm}\label{sec:ngrm}
+
+The \texttt{ngrm}\footnote{In ARC $\leq$ 0.5.28 was called
+  \texttt{ngremove}} \index{ngrm}\index{commands:ngrm}
+command allows users to erase files at any location specified by a
+valid URL.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{ngrm [options] $<$source$>$}
+\end{shaded}
+\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+\begin{longtable}{llp{8cm}}
+    Options:&&\\
+    \texttt{-h} && short help\\
+    \texttt{-v} && print version information\\
+    \texttt{-d} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
+    \texttt{-c} & &continue with meta-data even if it failed to delete real file\\
+    \texttt{-C} & \textit{cache\_data\_path} & store cached data\\
+    Arguments:&&\\
+    \texttt{source} && source URL\\
+\end{longtable}
+
+\begin{framed}
+   A convenient use for \texttt{ngrm} is to erase the files in a data
+   indexing catalog (RC, RLS or such), as it will not only remove the
+   physical instance, but also will clean up the database record.
+\end{framed}
+
+Here is an \texttt{ngrm} example:
+
+\begin{verbatim}
+    ngrm rc://grid.uio.no/lc=Collection,rc=Catalog/badfile#\\
+\end{verbatim}
+
+\subsection{ngacl}\label{sec:ngacl}
+
+\index{ngacl}\index{commands:ngacl}This command retrieves or modifies
+access control information associated with a stored object if service
+supports GridSite GACL language~\cite{gacl} for access control.
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{ngacl [options] get$|$put $<$URL$>$}
+\end{shaded}
+\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+    \texttt{-d, -debug} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
+    \texttt{-v} && print version information\\
+    \texttt{-h} && short help\\
+   Arguments:&&\\
+    \texttt{get} &\textit{URL}& get Grid ACL for the object\\
+    \texttt{put} &\textit{URL}& set Grid ACL for the object\\
+    \texttt{URL} && object URL; curently only gsiftp and sse URLs are supported\\
+\end{longtable}
+
+ACL document (an XML file) is printed to standard output when
+\texttt{get} is requested, and is acquired from standard input when
+\texttt{set} is specified\footnote{In ARC $\leq$ 0.5.28, \texttt{set}
+  shoud be used instead of \texttt{put}}. Usage examples are:
+\begin{verbatim}
+    ngacl get gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename
+    ngacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename $<$ myacl
+\end{verbatim}
+
+\subsection{ngtransfer}\label{sec:ngtransfer}
+\index{ngtransfer}\index{commands:ngtransfer}The \texttt{ngtransfer}
+command\footnote{In ARC $\leq$ 0.5.28, was called \texttt{ngrequest}}
+initiates direct transfer of data between 2 servers (known as
+\textit{third-party transfer}).  
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{ngtransfer [options] $<$destination$>$}
+\end{shaded}
+\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+    \texttt{-s, -source} & \textit{URL} & source file URL\\
+    \texttt{-d, -debug} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
+    \texttt{-v} && print version information\\
+    \texttt{-h} && short help\\
+   Arguments:&&\\
+    \texttt{destination} && destination URL; currently only se:// and
+    (gsi)ftp:// are supported\\
+\end{longtable}
+
+This command initiates file copy from multiple source instances to a
+destination URL. Destination of \texttt{(gsi)ftp} type accepts only
+similar kinds of sources.  Destination can also be URL of an Indexing
+Service. In such a case, real destinations with suitable protocols are
+chosen, when available. Requests are sent to the corresponding
+services/servers to initiate file transfer from one of the sources.
+
+\begin{framed}
+   Absence of \verb#-s# option is treated as a file replication
+   request. In this case, destination must be an Indexing service or
+   an SRM.
+\end{framed}
+
+Following source URL types are supported: \texttt{http},
+\texttt{https}, \texttt{httpg}, \texttt{ftp}, \texttt{gsiftp},
+\texttt{rc}, \texttt{rls}, \texttt{se}, \texttt{srm}, \texttt{fireman}
+(see Section~\ref{sec:urls} for URL details).
+
+Example:
+\begin{verbatim}
+    ngtransfer -s http://www.host1.org/dat1  -s gsiftp://host2.org/dir/dat1 \
+               se://se.host.org/se_service?new_file_lfn
+\end{verbatim}

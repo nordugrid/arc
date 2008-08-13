@@ -1,0 +1,130 @@
+\documentclass{book}
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=2cm,bmargin=3cm,lmargin=2cm,rmargin=3cm}
+\usepackage{makeidx}
+\makeindex
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color,framed}
+\usepackage{longtable}                             %for breaking tables
+
+%%%%---- Use EPS figures and graphics with LaTeX ----
+%\usepackage{graphics}
+%%%%---- USE PNG or JPG figures and graphicx with PDFLaTeX ----
+\usepackage{graphicx}
+\usepackage[linkbordercolor={0 0.8 0.8}]{hyperref}
+\hypersetup{
+  pdfauthor = {},
+  pdftitle = {ARC Clients},
+  pdfsubject = {User's manual},
+  pdfkeywords = {Grid,KnowARC,ARC,client},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+
+\bibliographystyle{IEEEtran}
+
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}[1]{\colorbox{shadecolor}{\texttt #1}}
+\newcommand{\xrsl}[1]{\textbf{\sffamily #1}}
+\newcommand{\uicommand}[1]{\textbf{\sffamily #1}}
+\newcommand{\versions}[1]{\vspace{-0.3cm}(#1)\par}
+\newcommand{\GT}{Globus Toolkit$\mathrm{^{TM}}$}
+\newcommand{\globus}{Globus\textsuperscript{\textregistered}}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{cyan}{rgb}{0,1,1}
+
+\begin{document}
+\def\today{\number\day/\number\month/\number\year}
+
+\begin{titlepage}
+   
+   \begin{tabular}{rl}
+      \resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+      &\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+   \end{tabular}
+   
+   \hrulefill
+   
+   {\raggedleft NORDUGRID-MANUAL-?\par}
+   
+   {\raggedleft \today\par}
+   
+   \vspace*{2cm}
+   
+   %%%% ---- The title ----
+   
+   \begin{center}
+      
+      \textsc{\Large ARC Clients}
+      \Large \par \textit{User's Manual}
+      
+      \vspace*{2cm}
+      
+      % {\centering \large Refers to ARC release series 0.4 and up \large \par}
+      
+   \end{center}
+   
+   \vspace*{2cm}
+   
+   % \abstract{
+   %   This is the user's  manual to ARC User Interface.
+   % }
+   
+\end{titlepage}
+% \thispagestyle{empty} $ $
+% \newpage
+% $\ $
+\tableofcontents
+\newpage
+
+\chapter{Introduction} \label{sec:intro} 
+
+The command line user interface of ARC consists of a set of commands
+necessary for job submission and manipulation and data management. A
+special utility also exists for test purposes.
+
+\chapter{Commands} \label{sec:cli} 
+
+\section{Job submission and management} \label{sec:ui} 
+\index{job management}
+The following commands are used for job submission and management,
+such as status check, results retrieval, cancellation, re-submission
+and such. The jobs must be described using a job description language. ARC supports the languages JSDL, xRSL and JDL~\cite{xrsl}.
+
+\input{arcjob}
+
+\section{Data manipulation} \label{sec:dm} 
+\index{data management} ARC provides basic data management tools,
+which are simple commands for file copy and removal, with eventual use
+of data indexing services.
+
+\input{arcdata}
+
+\section{Test suite} \label{sec:testsuite}
+\input{arctest}
+
+\section{Third-party commands} \label{sec:ui-other}
+%\input{ui-other}
+
+
+\chapter{URLs}\label{sec:urls}
+%\index{URLs}
+%\input{xrsl-urls}
+
+\chapter{Configuration} \label{sec:client.conf} 
+\section{ARC Client Configuration}
+%\input{ui-conf}
+
+\bibliography{grid}
+\printindex
+
+\end{document}

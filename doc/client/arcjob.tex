@@ -1,0 +1,392 @@
+\subsection{arcsub}\label{sec:arcsub}
+The \texttt{arcsub}\index{arcsub}\index{commands:arcsub} command is the
+most essential one, as it is used for submitting jobs to the Grid
+resources. \index{submit job}. \texttt{arcsub} matches user's job
+description to the information collected from the Grid, and the
+optimal site is being selected for job submission. The job description
+is then being forwarded to that site, in order to be submitted to the
+Local Resource Management System (LRMS), which can be, e.g., PBS or
+Condor or SGE etc.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcsub [options] $<$task ...$>$}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{ -c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{ -C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{ -g, -giisurl}&\textit{url}&URL of a central Information System server (GIIS)\\
+   \texttt{ -G, -giislist}&\textit{filename}&list of GIIS URLs\\
+   \texttt{ -e, -xrsl}&\textit{filename}&string describing the job to be submitted\\
+   \texttt{ -f, -file}&\textit{filename}&file describing the job to be submitted\\
+   \texttt{ -o, -joblist}&\textit{filename}&file where the job IDs will be stored\\
+   \texttt{ ~~~~-dryrun}&&add dryrun option to the job description\\
+   \texttt{ ~~~~-dumpxrsl}&&do not submit -- dump transformed job description to stdout\\
+   \texttt{ -t, -timeout}&\textit{time}&timeout for queries (default 40 sec)\\
+   \texttt{ -d, -debug}&\textit{debuglevel}&debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{ -x, -anonymous}&&use anonymous bind for queries (default)\\
+   \texttt{ -X, -gsi}&&use GSI-GSSAPI bind for queries\\
+   \texttt{ -v, -version}&&print version information\\
+   \texttt{ -h, -help}&&print help page\\
+   Arguments:&&\\
+   \texttt{ task ...}&&strings or files describing the jobs to be submitted\\
+\end{longtable}
+
+\begin{framed}
+Some text can be in frames
+\end{framed}
+
+A simple \textit{"Hello World"} job would look like
+
+\begin{shaded}
+   \uicommand{arcstat [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename}& file containing a list of jobIDs\\
+   \texttt{-c, -clusters}& & show information about sites (clusters)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{-g, -giisurl}& \textit{url} &URL of a central Information System server\\
+   \texttt{-G, -giislist}&\textit{filename}&list of GIIS URLs\\
+   \texttt{-q, -queues}&&show information about clusters and queues\\
+   \texttt{-l, -long}& & long format (extended information)\\
+   \texttt{-t, -timeout}& \textit{time}& timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel}&debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& &use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+The arcstat command returns the status of jobs submitted to the Grid.
+A job can be referred to either by the
+
+Diferent sites may report slightly diferent job states, depending on
+the installed software version. A summary of essential job
+states\index{job:states} is:
+
+\begin{longtable}{l|l|p{8cm}}
+ARC 0.3, ARC 0.4 & ARC 0.5, ARC0.6 & Description\\ \hline
+                   &\texttt{ACCEPTING} &job has reached the site\\
+\texttt{ACCEPTED}  &\texttt{ACCEPTED}  &job submitted but not yet processed\\
+\texttt{PREPARING} &\texttt{PREPARING} &input files are being retreived\\
+                   &\texttt{PREPARED}  &input files are retreived\\
+\texttt{SUBMITTING}&\texttt{SUBMITTING}&interaction with LRMS ongoing\\
+\texttt{INLRMS: Q} &\texttt{INLRMS:Q}  &job is queued by LRMS\\
+\texttt{INLRMS: R} &\texttt{INLRMS:R}  &job is running\\
+                   &\texttt{INLRMS:S}  &job is suspended\\
+                   &\texttt{INLRMS:E}  &job is finishing in LRMS\\
+                   &\texttt{INLRMS:O}  &job is in any other LRMS state\\
+\texttt{CANCELING} &\texttt{KILLING}   &job is being cancelled by user request\\
+                   &\texttt{EXECUTED}  &job is completed in LRMS\\
+\texttt{FINISHING} &\texttt{FINISHING} &output files are being transferred\\
+\texttt{FINISHED}  &\texttt{FINISHED}  &job is finished\\
+                   &\texttt{FAILED}    &job is finished with an error\\
+                   &\texttt{KILLED}    &job is cancelled by user request\\
+\texttt{DELETED}   &\texttt{DELETED}   &job is removed due to expiration time\\
+\end{longtable}
+
+\subsection{arccat}
+\label{sec:arccat}
+
+It is often useful to monitor the job progress by checking what it
+prints on the standard output or error. The command \texttt{arccat}
+\index{arccat}\index{commands:arccat} assists here, extracting the
+corresponding information from the execution cluster and pasting it
+on the user's screen. It works both for running tasks and for the
+finished ones. This allows a user to check the output of the
+finished task without actually retreiving it.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arccat [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of job IDs\\
+   \texttt{-c, -clusters}& & show information about clusters\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{-o, -stdout}& & show the stdout of the job (default)\\
+   \texttt{-e, -stderr}& & show the stderr of the job\\
+   \texttt{-f, -follow}& & show tail of the requested file and follow its changes\\
+   \texttt{-l, -gridlog}& & show the grid error log of the job\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+The \texttt{arccat} command can return the standard output of a job
+(\texttt{-o} option), the standard error (\texttt{-e} option) and the
+errors reported by the Grid Manager (\texttt{-l} option).
+
+\begin{framed}
+
+\end{framed}
+
+
+\subsection{arcget}
+\label{sec:arcget}
+
+To retrieve the results of a finished job, the \texttt{arcget}
+\index{arcget}\index{commands:arcget} command should be used. It
+will download the files specified by the \texttt{outputfiles}
+attribute of job description to the user's computer.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcget [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of jobIDs\\
+   \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{~~~~-dir} & \textit{dirname} & download directory (the job directory will be created in this directory)\\
+   \texttt{-j, -usejobname}& & use the jobname instead of the digital ID as the job directory name\\
+   \texttt{~~~~-keep}& & keep files on gatekeeper (do not clean)\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+Only the results of jobs that have finished can be downloaded. The job
+can be referred to either by the \texttt{jobID} that was returned by
+\texttt{arcsub} at submission time, or by its name, if the job
+description contained a job name attribute.
+
+\subsection{arckill}
+\label{sec:arckill}
+
+It happens that a user may wish to cancel a job. This is done by using
+the \texttt{arckill} \index{arckill}\index{commands:arckill} command. A
+job can be killed amost on any stage of processing through the Grid.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arckill [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of jobIDs\\
+   \texttt{-c, -clusters}& & show information about clusters\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{~~~~-keep}& & keep files on gatekeeper (do not clean)\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+When option \verb#-j# is used, and several jobs have the same name,
+\textbf{ALL such jobs will be cancelled!}.
+
+\begin{framed}
+   Job cancellation is an asynchronous process, such that it
+   may take a few minutes before the job is actually cancelled.
+\end{framed}
+
+\subsection{arcresub}
+\label{sec:arcresub}
+
+Quite often it happens that a user would like to re-submit a job, but
+has difficulties recovering the original job description xRSL file.
+This happens when xRSL files are created by scripts on-fly, and
+matching of xRSL to the job ID is not straightforward. The utility
+called \texttt{arcresub}\index{arcresub}\index{commands:arcresub} helps
+in such situations, allowing users to resubmit jobs known only by
+their job IDs.
+
+\begin{framed}
+   Only jobs where the \verb#gmlog#\index{gmlog} attribute was
+   specified in the job description can be resubmitted.
+\end{framed}
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcresub [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of jobIDs\\
+   \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{-k, -kluster}&\verb#[-]#textem{name}&explicitly select or
+   reject a specific site (cluster) as re-submission target\\
+   \texttt{-K, -Klustlist}&\verb#[-]#textem{filename}&list of
+   clusters to select or reject as re-submission target\\
+   \texttt{-g, -giisurl}& \textit{url} &URL of a central Information System server\\
+   \texttt{-G, -giislist}&\textit{filename}&list of GIIS URLs\\
+   \texttt{-o, -joblist}&\textit{filename}&file where the job IDs will be stored\\
+   \texttt{~~~~-dryrun}&&add dryrun option to the xRSL\\
+   \texttt{~~~~-dumpxrsl}&&do not submit -- dump transformed xRSL to stdout\\
+   \texttt{~~~~-keep}& & keep files on gatekeeper (do not clean)\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+
+\subsection{arcclean}
+\label{sec:arcclean}
+
+If a job fails, or you are not willing to retrieve the results for
+some reasons, a good practice for users is not to wait for the Grid
+Manager to clean up the job leftovers, but to use \texttt{arcclean}
+\index{arcclean}\index{commands:arcclean} to release the disk space
+and to remove the job ID from the list of submitted jobs and from
+the Information System.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcclean [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of jobIDs\\
+   \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{-f, -force} & & removes the job ID from the local list\\
+   & &~~~even if the job is not found on the Grid\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+Only jobs that have finished can be cleaned.
+
+\subsection{arcrenew}
+\label{sec:arcrenew}
+
+Quite often, the user proxy expires while the job is still running (or
+waiting in a queue). In case such job has to upload output files to a
+Grid location (Storage Element), it will fail. By using the \texttt{arcrenew}
+\index{arcrenew}\index{commands:arcrenew} command, users can upload
+a new proxy to the job. This can be done while a job is still running,
+thus preventing it from failing, or whithin 24 hours (or whatever is
+the expiration time set by the site) after the job
+end. In the latter case, the Grid Manager will attempt to finalize
+the job by uploading the output files to the desired location.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcrenew [options] [job ...]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-a, -all}& & all jobs\\
+   \texttt{-i, -joblist}& \textit{filename} & file containing a list of jobIDs\\
+   \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-s, -status}& \textit{statusstr} &only select jobs whose status is \textit{statusstr}\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+   Arguments:&&\\
+   \texttt{job ...} && list of job IDs and/or jobnames\\
+\end{longtable}
+
+Prior to using \texttt{arcrenew}, be sure to actually create the
+new proxy:
+
+\subsection{arcsync}
+\label{sec:arcsync}
+
+If you are using User Interface installations on different machines,
+your local lists of submitted jobs will be different. To synchronise
+these lists with the information in the Information System, use the
+\texttt{arcsync} \index{arcsync}\index{commands:arcsync} command.
+
+\hspace*{0.5cm}
+\begin{shaded}
+   \uicommand{arcsync [options]}
+\end{shaded}
+\versions{ARC 0.9}
+\begin{longtable}{llp{8cm}}
+   Options:&&\\
+   \texttt{-c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
+   \texttt{-C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
+   \texttt{-g, -giisurl}& \textit{url} &URL of a central Information System server\\
+   \texttt{-G, -giislist}&\textit{filename}&list of GIIS URLs\\
+   \texttt{-f, -force}&&don't ask for confirmation\\
+   \texttt{-t, -timeout}& \textit{time} & timeout for queries (default 40 sec)\\
+   \texttt{-d, -debug}& \textit{debuglevel} &debug level, from -3 (quiet) to 3 (verbose) - default 0\\
+   \texttt{-x, -anonymous}& & use anonymous bind for queries (default)\\
+   \texttt{-X, -gsi}& & use GSI-GSSAPI bind for queries\\
+   \texttt{-v, -version}& & print version information\\
+   \texttt{-h, -help}& & print help page\\
+\end{longtable}
+
+The ARC User Interface keeps a local list of jobs in the user's home
+directory (see section~\ref{sec:joblists}). If this file is lost,
+corrupt, or the user wants to recreate the file on a different
+workstation, the \texttt{arcsync} command will recreate this file from
+the information available in the Information System.
+
+\subsection{Auxilliary files}\label{sec:joblists}
+
+User Interface keeps local job lists in two files:
+{\$}\verb#HOME/.ngjobs# and {\$}\verb#HOME/.arc/history#\footnote{In
+  ARC $\leq$ 0.5.48, {\$}\texttt{HOME/.nghistory}}.
+
+\textbf{{\$}\texttt{HOME/.ngjobs}} is a local list of the user's active
+jobs. When a job is successfully submitted, it is added to this list,
+and when it is removed from the remote site, it is removed from this
+list. This list is used as the list of all active jobs when the user
+specifies \verb#-a# option to the various ARC user interface commands.
+For information about how to reconstruct this file in case it is
+damaged or you relocate to a different workstation, see
+section~\ref{sec:arcsync} about the \texttt{arcsync} command.
+
+\textbf{{\$}\texttt{HOME/.arc/history}} contains the \texttt{jobID}s of
+the jobs the user has submitted together with the time of
+submission. This file is purely informational.
