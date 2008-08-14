@@ -12,32 +12,6 @@
 
 namespace Arc { 
 
-  //! An exception class for the AREXClientclass.
-  /*! This is an exception class that is used to handle runtime errors
-    discovered in the AREXClient class.
-   */
-  class AREXClientError : public std::runtime_error {
-  public:
-
-    //! Constructor
-    /*! This is the constructor of the AREXClientError class.
-      @param what An explanation of the error.
-     */
-    AREXClientError(const std::string& what="");
-  };
-
-
-  class AREXFile {
-  public:
-    std::string remote;
-    std::string local;
-    AREXFile(void) { };
-    AREXFile(const std::string& remote_,const std::string& local_):
-             remote(remote_),local(local_) { };
-  };
-
-  typedef std::list<AREXFile> AREXFileList; 
-  
   class ChainContext;
   class Config;
 

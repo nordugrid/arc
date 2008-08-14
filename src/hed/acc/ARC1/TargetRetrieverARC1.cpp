@@ -1,11 +1,13 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TargetGenerator.h>
 
+#include "arex_client.h"
 #include "TargetRetrieverARC1.h"
 
 namespace Arc {
@@ -82,11 +84,42 @@ namespace Arc {
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
     TargetGenerator& mom = *((ThreadArg *)arg)->mom;
-    // URL& url = ((ThreadArg *)arg)->url;
+    URL& url = ((ThreadArg *)arg)->url;
     // int& targetType = ((ThreadArg *)arg)->targetType;
     // int& detailLevel = ((ThreadArg *)arg)->detailLevel;
 
-    // TODO: A-REX
+    Arc::MCCConfig cfg;
+    Arc::AREXClient ac(url, cfg);
+    XMLNode ServerStatus(ac.sstat());
+
+    ExecutionTarget target;
+
+    target.GridFlavour = "ARC1";
+    target.Source = url;
+    target.Cluster = url;
+    target.url = url;
+    target.Interface = "BES";
+    target.Implementor = "NorduGrid";
+    target.ImplementationName = "A-REX";
+
+    target.DomainName = url.Host();
+
+    if (ServerStatus["IsAcceptingNewActivities"]) {
+      if ((std::string) ServerStatus["IsAcceptingNewActivities"] == "true")
+	target.HealthState = "active";
+      else
+	target.HealthState = "inactive";
+    }
+
+    if (ServerStatus["TotalNumberOfActivities"])
+      target.TotalJobs =
+	stringtoi((std::string) ServerStatus["TotalNumberOfActivities"]);
+
+    if (ServerStatus["LocalResourceManagerType"])
+      target.ManagerType =
+	(std::string) ServerStatus["LocalResourceManagerType"];
+
+    mom.AddTarget(target);
 
     delete (ThreadArg *)arg;
     mom.RetrieverDone();

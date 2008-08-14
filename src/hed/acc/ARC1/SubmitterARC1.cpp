@@ -1,9 +1,10 @@
-#include "SubmitterARC1.h"
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <string>
+
+#include "SubmitterARC1.h"
+#include "arex_client.h"
 
 namespace Arc {
 
@@ -64,29 +65,9 @@ static void set_arex_namespaces(Arc::NS& ns) {
 }
   
   SubmitterARC1::SubmitterARC1(Config *cfg)
-  : Submitter(cfg) {
-	  
-	  logger.msg(Arc::INFO, "Creating an A-REX client.");
-	  client_loader = new Arc::Loader(cfg);
-	  logger.msg(Arc::INFO, "Client side MCCs are loaded.");
-	  client_entry = (*client_loader)["soap"];
-	  if(!client_entry) {
-		  logger.msg(Arc::ERROR, "Client chain does not have entry point.");
-	  }
-	  
-     // mcc_cfg.AddPrivateKey((std::string)((*cfg)["Component"]["KeyPath"]));
-    //  mcc_cfg.AddCertificate((std::string)((*cfg)["Component"]["CertificatePath"]));
-      //mcc_cfg.AddCADir((std::string)((*cfg)["Component"]["CACertificatesDir"]));
-	  
-	  client = new Arc::ClientSOAP(mcc_cfg, SubmissionEndpoint.Host(), SubmissionEndpoint.Port(), SubmissionEndpoint.Protocol() == "https", SubmissionEndpoint.Path());
-	  set_arex_namespaces(arex_ns);
-  }
+    : Submitter(cfg) {}
   
-  SubmitterARC1::~SubmitterARC1() {
-	    if(client_loader) delete client_loader;
-	    if(client_config) delete client_config;
-	    if(client) delete client;
-  }
+  SubmitterARC1::~SubmitterARC1() {}
 
   ACC *SubmitterARC1::Instance(Config *cfg, ChainContext *) {
     return new SubmitterARC1(cfg);
@@ -94,146 +75,31 @@ static void set_arex_namespaces(Arc::NS& ns) {
 
   std::pair<URL, URL> SubmitterARC1::Submit(Arc::JobDescription& jobdesc) {
 	   
-	  try{
-		 
-		// TODO: Move the InfoEndpoint URL to the final source code place 
-		  
-	    std::string jobid, faultstring;
-	    Arc::XMLNode jsdl_document;
-	    std::string jobdescstring;
-	    jobdesc.getProduct(jobdescstring, "JSDL");
-	    (Arc::XMLNode (jobdescstring)).New(jsdl_document);
-	    
-	    AREXFileList file_list;
-	    file_list.resize(0);
+    MCCConfig cfg;
+    AREXClient ac(SubmissionEndpoint, cfg);
 
-	    logger.msg(Arc::INFO, "Creating and sending request.");
+    std::string jobdescstring;
+    jobdesc.getProduct(jobdescstring, "JSDL");
+    std::istringstream jsdlfile(jobdescstring);
 
-	    // Create job request
-	    /*
-	      bes-factory:CreateActivity
-	        bes-factory:ActivityDocument
-	          jsdl:JobDefinition
-	    */
-	    Arc::PayloadSOAP req(arex_ns);
-	    Arc::XMLNode op = req.NewChild("bes-factory:CreateActivity");
-	    Arc::XMLNode act_doc = op.NewChild("bes-factory:ActivityDocument");
-	    act_doc.NewChild(jsdl_document);
-	    act_doc.Child(0).Namespaces(arex_ns); // Unify namespaces
-	    Arc::PayloadSOAP* resp = NULL;
+    AREXFileList files;
+    std::string jobid = ac.submit(jsdlfile, files, false);
 
-	    XMLNode ds = act_doc["jsdl:JobDefinition"]["jsdl:JobDescription"]["jsdl:DataStaging"];
-	    for(;(bool)ds;ds=ds[1]) {
-	      // FilesystemName - ignore
-	      // CreationFlag - ignore
-	      // DeleteOnTermination - ignore
-	      XMLNode source = ds["jsdl:Source"];
-	      XMLNode target = ds["jsdl:Target"];
-	      if((bool)source) {
-	        std::string s_name = ds["jsdl:FileName"];
-	        if(!s_name.empty()) {
-	          XMLNode x_url = source["jsdl:URI"];
-	          std::string s_url = x_url;
-	          if(s_url.empty()) {
-	            s_url="./"+s_name;
-	          } else {
-	            URL u_url(s_url);
-	            if(!u_url) {
-	              if(s_url[0] != '/') s_url="./"+s_url;
-	            } else {
-	              if(u_url.Protocol() == "file") {
-	                s_url=u_url.Path();
-	                if(s_url[0] != '/') s_url="./"+s_url;
-	              } else {
-	                s_url.resize(0);
-	              };
-	            };
-	          };
-	          if(!s_url.empty()) {
-	            x_url.Destroy();
-	            AREXFile file(s_name,s_url);
-	            file_list.push_back(file);
-	          };
-	        };
-	      };
-	    };
-	    
-	    std::string jsdl_str;
-	    
-	    act_doc.GetXML(jsdl_str);
-	    logger.msg(Arc::VERBOSE, "Job description to be sent: %s",jsdl_str);
+    XMLNode jobidx(jobid);
+    URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
 
-	    if (client_entry) {
-	      Arc::Message reqmsg;
-	      Arc::Message repmsg;
-	      Arc::MessageAttributes attributes_req;
-	      attributes_req.set("SOAP:ACTION","http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/CreateActivity");
-	      Arc::MessageAttributes attributes_rep;
-	      Arc::MessageContext context;
-	      reqmsg.Payload(&req);
-	      reqmsg.Attributes(&attributes_req);
-	      reqmsg.Context(&context);
-	      repmsg.Attributes(&attributes_rep);
-	      repmsg.Context(&context);
-	      Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-	      if(!status) {
-	        logger.msg(Arc::ERROR, "Submission request failed.");
-	      }
-	      logger.msg(Arc::INFO, "Submission request succeed.");
-	      if(repmsg.Payload() == NULL) {
-	        logger.msg(Arc::ERROR, "There were no response to a submission request.");	        
-	      }
-	      try {
-	        resp = dynamic_cast<Arc::PayloadSOAP*>(repmsg.Payload());
-	      } catch(std::exception&) { };
-	      if(resp == NULL) {
-	        logger.msg(Arc::ERROR,"A response to a submission request was not a SOAP message.");
-	        delete repmsg.Payload();
-	      };
-	    } else {
-        logger.msg(Arc::ERROR, "Something wrong with the client_entry");
-	    }
+    // Upload user files
+    for (AREXFileList::iterator file = files.begin();
+	 file != files.end(); ++file) {
+      if(!put_file(*(client), session_url, *file))
+	throw std::invalid_argument(std::string("Could not upload file ") +
+				    file->local + " to " + file->remote);
+    };
 
-	    Arc::XMLNode id, fs;
+    std::cout << "Submitted the job!" << std::endl;
 
-	    (*resp)["CreateActivityResponse"]["ActivityIdentifier"].New(id);
-	    (*resp)["Fault"]["faultstring"].New(fs);
-	    id.GetDoc(jobid);
-	    faultstring=(std::string)fs;
-	    delete resp;
-	    if (faultstring=="") {
-	      try {
-		    Arc::XMLNode jobidx(jobid);
-		    Arc::URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
-		    if(!session_url)
-		      throw std::invalid_argument(std::string("Could not extract session URL from job id: ") +
-		                                    jobid);
-		    // Upload user files
-		    for(Arc::AREXFileList::iterator file = file_list.begin();file!=file_list.end();++file) {
-		      std::cout<<"Uploading file "<<file->local<<" to "<<file->remote<<std::endl;
-		      if(!put_file(*(client),session_url,*file))
-		        throw std::invalid_argument(std::string("Could not upload file ") +
-		                                    file->local + " to " + file->remote);
-		    };
+    return std::make_pair(session_url, SubmissionEndpoint);
 
-		    std::cout << "Submitted the job!" << std::endl;
+  } // SubmitterARC1::Submit    
 
-		    return std::make_pair(session_url, InfoEndpoint);
-
-		  }
-		  catch (std::exception& e){
-		    std::cerr << "ERROR: " << e.what() << std::endl;
-		  }
-	   }
-	    else {
-	      // TODO: error handling
-	    }
-	  }  
-	  catch (std::exception& e){
-		  std::cerr << "ERROR: " << e.what() << std::endl;  
-	  }
-
-	  return std::make_pair("", "");
-	  
-	} // SubmitterARC1::Submit    
 } // namespace Arc
