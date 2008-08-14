@@ -12,7 +12,7 @@ debug=:
 $debug "run at `date`"
 $debug "options = $@"
 
-if [ -z "$1" ] ; then exit 1 ; fi
+if [ -z "$1" ] ; then echo "Argument missing" >&2 ; exit 1 ; fi
 
 # Where to store temporary files on gatekeeper
 TMP_DIR=${TMP_DIR:-@tmp_dir@}
@@ -73,5 +73,5 @@ done
 
 $debug "done, going to sleep"
 
-sleep 120
+sleep 10
 exit 0
