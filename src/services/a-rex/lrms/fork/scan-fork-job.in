@@ -24,7 +24,7 @@ for control_dir in "$@" ; do
         continue
     fi
 
-    for job in `grep -H INLRMS ${control_dir}/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
+    for job in `grep -l INLRMS ${control_dir}/job.*.status 2>/dev/null | sed -e 's/.*job.//' -e 's/.status.*$//'` ; do
         $debug "scanning job = $job"
         unset joboption_jobid
 	unset joboption_user
@@ -40,7 +40,7 @@ for control_dir in "$@" ; do
         $debug "local jobid = $joboption_jobid"
         $debug "local user  = $joboption_user"
     
-        ps u $joboption_jobid | grep "^${joboption_user}"
+        ps -ouser= -p$joboption_jobid > /dev/null
         rc=$?
 	$debug "ps returned $rc"
         [ $rc -eq 0 ] && continue
