@@ -68,11 +68,8 @@
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
-\tracking_changes true
+\tracking_changes false
 \output_changes true
-\author "Aleksandr Konstantinov" 
-\author "Vasile Adrian Taga" 
-\author "Adi" 
 \end_header
 
 \begin_body
@@ -235,13 +232,7 @@ vspace*{2cm}
 
 \shape smallcaps
 \size large
-The ARC Computational Job Management 
-\change_inserted 0 1189601894
-Component
-\change_deleted 0 1189601894
-Module
-\change_unchanged
- - A-Rex
+The ARC Computational Job Management Component - A-Rex
 \end_layout
 
 \begin_layout Standard
@@ -355,52 +346,18 @@ Computing Element
 \emph default
  (CE).
  
-\change_deleted 0 1217888592
-It's made of few components - A-Rex Web Service (WS) Interface and Grid
- Manager (GM).
- Alternative and currently only stable interface to A-Rex is GridFTP Server
- (GFS).
-\change_unchanged
-
 \end_layout
 
 \begin_layout Standard
-The aim of the 
-\change_deleted 0 1217888592
-Grid Manager (GM)
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
- is to take care of job pre- and post-processing.
+The aim of the A-Rex is to take care of job pre- and post-processing.
  It provides functionality to stage-in files containing input data and program
  modules from wide range of sources and transfer or store output results.
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 0 1217888592
-The A-Rex implements Web Service (WS) interface which 
-\change_deleted 0 1217888592
-Both WS Interface and GridFTP Interface components 
-\change_unchanged
-provide
-\change_inserted 0 1217888592
-s
-\change_unchanged
- a way to submit and control computational tasks (jobs) to be executed by
- the 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
+The A-Rex implements Web Service (WS) interface which provides a way to
+ submit and control computational tasks (jobs) to be executed by the A-Rex
  and undelying Local Resource Management System.
-
-\change_deleted 0 1217888592
- While WS interface is currently being developed the GridFTP is considered
- to be stable and prefered one.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Standard
@@ -408,8 +365,8 @@ A-Rex
 \series bold
 You should use this document for advanced configuration purposes and understandi
 ng of internals of the aforementioned tools.
- For general instalaltion and configuration refer to other documents avaialble
- at 
+ For general instalaltion and configuration of whole system refer to other
+ documents avaialble at 
 \begin_inset LatexCommand \url{http://www.nordugrid.org/papers.html}
 
 \end_inset
@@ -428,8 +385,8 @@ Main concepts
 \end_layout
 
 \begin_layout Standard
-A job is a set of input files (which may or may not include executables),
- a main executable and a set of output files.
+A job is a set of input files (which may include executables), a main executable
+ and a set of output files.
  The process of gathering input files, executing a job, and transferring/storing
  output files is called a 
 \emph on
@@ -445,115 +402,17 @@ session directory
 \emph default
  (SD).
  Input files are gathered in the SD.
- The job is supposed to produce new data files 
-\change_deleted 1 1189191965
-also 
-\change_unchanged
-in the SD
-\change_inserted 0 1189553468
- as well
-\change_unchanged
-.
- 
-\change_inserted 0 1217888592
-The A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- does not guarantee the availability of any other places accessible by the
- job other than SD (unless such 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-place is part of 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-requested Runtime Environement).
- The SD is also the only place which is controlled by the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
-.
- It is 
-\change_deleted 0 1217888592
-is 
-\change_unchanged
-accessible by the user from outside through HTTP
-\change_inserted 0 1217888592
-(
-\change_unchanged
-S
-\change_inserted 0 1217888592
-)
-\change_deleted 0 1217888592
- and GridFTP
-\change_unchanged
- protocol
-\change_deleted 0 1217888592
-s
-\change_unchanged
-.
- Any file created outside the SD is not controlled by the 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
-.
- Any exchange of data between client and 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- (including also program modules) is done through 
-\change_deleted 0 1217888592
-GridFTP 
-\begin_inset LatexCommand \cite{gridftp}
-
-\end_inset
-
- or 
-\change_unchanged
-HTTP
-\change_inserted 0 1217888592
-(
-\change_unchanged
-S
-\change_inserted 0 1217888592
-)
-\change_unchanged
- protocol
-\change_deleted 0 1217888592
-s depending on selected interface
-\change_unchanged
-.
- A URL for accessing input/output files is 
-\change_deleted 0 1217888592
-obtained through the Information System or
-\change_unchanged
- 
-\change_inserted 0 1217888592
-obtained through 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-WS 
-\change_inserted 0 1217888592
-Local 
-\change_unchanged
-Information 
-\change_inserted 0 1217888592
-Description 
-\change_unchanged
-Interface
-\change_inserted 0 1217888592
- (LIDI)
-\change_unchanged
- of A-Rex.
+ The job is supposed to produce new data files in the SD as well.
+ The A-Rex does not guarantee the availability of any other places accessible
+ by the job other than SD (unless such a place is part of a requested Runtime
+ Environement).
+ The SD is also the only place which is controlled by the A-Rex.
+ It is accessible by the user from outside through HTTP(S) protocol.
+ Any file created outside the SD is not controlled by the A-Rex.
+ Any exchange of data between client and A-Rex (including also program modules)
+ is done through HTTP(S) protocol.
+ A URL for accessing input/output files is  obtained through the WS Local
+ Information Description Interface (LIDI) of A-Rex.
 \end_layout
 
 \begin_layout Standard
@@ -562,97 +421,25 @@ Each job gets an identifier (
 jobid
 \shape default
 ).
- This is a handle which identifies the job in the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- and the Information 
-\change_deleted 0 1217888592
-System 
-\begin_inset LatexCommand \cite{is}
-
-\end_inset
-
-
-\change_inserted 0 1217888592
-Interface
-\change_unchanged
-.
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 1 1189191965
-Each job is
-\change_inserted 1 1189191965
-Jobs are
-\change_unchanged
- initiated and controlled through 
-\change_deleted 0 1217888592
-GFS or 
-\change_unchanged
-WS
-\change_inserted 0 1217888592
- interface
-\change_unchanged
-.
- Complete
-\change_inserted 1 1189191965
- job
-\change_unchanged
- description
-\change_inserted 1 1189191965
-s
-\change_deleted 1 1189191965
- of job
-\change_inserted 1 1189191965
- (JD)
-\change_deleted 1 1189191965
- (not data) is
-\change_inserted 1 1189191965
-are
-\change_unchanged
- passed to the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM 
-\change_inserted 1 1189191965
- 
-\change_unchanged
-through 
-\change_deleted 0 1217888592
-GFS in RSL 
-\begin_inset LatexCommand \cite{rsl}
-
-\end_inset
-
- or through 
-\change_unchanged
-WS in JSDL
-\change_deleted 1 1189191965
--coded 
-\change_unchanged
-
+ This is a handle - WS-Addressing 
 \begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
+ XML document - which identifies the job in the A-Rex and the Information
+ Interface.
+\end_layout
 
-\change_inserted 0 1189553468
- coded description
-\change_deleted 1 1189191965
- description (job description - JD)
-\change_unchanged
-.
+\begin_layout Standard
+Jobs are initiated and controlled through WS interface.
+ Complete job descriptions (JD)are passed to the A-Rex through WS in JSDL
+\begin_inset LatexCommand \cite{jsdl}
 
-\change_inserted 0 1189553468
+\end_inset
+
+ coded description.
  Input data files and job executables are transferred separately through
  the same interface, as described in the next section.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Section
@@ -665,109 +452,23 @@ Input/output data
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 0 1217888592
-One of the most important tasks
-\change_deleted 0 1217888592
-The main task
-\change_unchanged
- of the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- is to take care of processing input and output data (files) of the job.
- Input files are gathered in 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-SD.
- There are 
-\change_deleted 1 1189191965
-2
-\change_inserted 1 1189191965
-two
-\change_unchanged
- ways to put 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-file into the SD:
+One of the most important tasks of the A-Rex is to take care of processing
+ input and output data (files) of the job.
+ Input files are gathered in the SD or associated cache area.
+ There are two ways to put a file into the SD:
 \end_layout
 
 \begin_layout Itemize
-Download
-\change_deleted 1 1189191965
-s
-\change_inserted 1 1189191965
- is
-\change_unchanged
- initiated by the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_deleted 1 1189191965
-.
-
-\change_inserted 1 1189191965
- --
-\change_unchanged
- 
-\change_deleted 1 1189191965
-Such files
-\change_inserted 1 1189191965
-This is the case for files
-\change_deleted 1 1189191965
- (name and source) are 
-\change_unchanged
-defined in the JD
-\change_inserted 1 1189191965
- (with name and source)
-\change_unchanged
-.
- 
-\change_deleted 1 1189191965
-It is a sole responsibility of t
-\change_inserted 1 1189191965
-T
-\change_unchanged
-he 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_inserted 1 1189191965
- alone is responsible
-\change_unchanged
- to make sure that a
-\change_inserted 1 1189191965
-ll required
-\change_unchanged
- file
-\change_inserted 1 1189191965
-s
-\change_unchanged
- will be available in the SD.
+Download is initiated by the A-Rex -- This is the case for files defined
+ in the JD (with name and source).
+ The A-Rex alone is responsible to make sure that all required files will
+ be available in the SD.
 \newline
-The supported 
-\change_inserted 1 1189191965
-protocols for 
-\change_unchanged
-sources 
-\change_deleted 1 1189191965
-are 
-\change_unchanged
-at the moment
-\change_inserted 1 1189191965
- are
-\change_unchanged
-: GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3) and HTTPg (HTTP over GSI).
- Also some nonstandard sources are supported.
+The supported protocols for sources at the moment
+ are (in case of full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over
+ SSLv3).
+ Also some less standard sources are supported.
  Those are described below.
-
-\change_inserted 0 1217888592
  The A-Rex fully relies on HED framework 
 \begin_inset LatexCommand \cite{hed}
 
@@ -776,54 +477,15 @@ at the moment
  for data transfering capabilities.
  Hence actual set of supported protocols depends on installed Data Management
  Components of the HED.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Itemize
-Upload 
-\change_inserted 1 1189191965
-is 
-\change_unchanged
-initiated by the user directly or through the User Interface (UI).
+Upload is initiated by the user directly or through the User Interface (UI).
  Because the SD becomes available immediately at the time of submission
  of JD, UI can (and should) use that to upload data files which are not
- otherwise accessible by the 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
-.
- 
-\change_deleted 1 1189191965
-An e
-\change_inserted 1 1189191965
-E
-\change_unchanged
-xample
-\change_inserted 1 1189191965
-s
-\change_unchanged
- of such files 
-\change_deleted 1 1189191965
-can be
-\change_inserted 1 1189191965
-are
-\change_unchanged
- the main executable of the job, 
-\change_deleted 1 1189191965
-files containing 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job's 
-\change_deleted 1 1189191965
-options/parameters
-\change_inserted 1 1189191965
-input files
-\change_unchanged
-, etc.
+ otherwise accessible by the A-Rex.
+ Examples of such files are the main executable of the job, the job's input
+ files, etc.
  These files can (and should) also be specified in the JD.
 \end_layout
 
@@ -832,72 +494,15 @@ input files
 \series bold
 There is no
 \series default
- other reliable way for a job to obtain input data on the CE 
-\change_inserted 0 1217888592
-based on the A-Rex
-\change_deleted 0 1217888592
-belonging to NorduGrid
-\change_unchanged
-.
+ other reliable way for a job to obtain input data on the CE based on the
+ A-Rex.
  Access to AFS, NFS, FTP, HTTP and any other remote data transport during
- execution of 
-\change_deleted 1 1189191965
-the
-\change_inserted 1 1189191965
-a
-\change_unchanged
- job is not guaranteed (at least not by 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
-).
+ execution of a job is not guaranteed (at least not by A-Rex).
 \end_layout
 
 \begin_layout Standard
-Job
-\change_inserted 1 1189191965
-s
-\change_unchanged
- 
-\change_inserted 1 1189191965
-should 
-\change_unchanged
-store
-\change_deleted 1 1189191965
-s
-\change_unchanged
- output files in th
-\change_inserted 0 1217888592
-e
-\change_deleted 1 1189191965
-e
-\change_inserted 1 1189191965
-ir
-\change_unchanged
- SD.
- 
-\change_deleted 1 1189191965
-Those
-\change_inserted 1 1189191965
-Like input files, output
-\change_unchanged
- files 
-\change_deleted 1 1189191965
-also 
-\change_unchanged
-belong 
-\change_inserted 1 1189191965
-in
-\change_unchanged
-to 
-\change_deleted 1 1189191965
-2
-\change_inserted 1 1189191965
-two
-\change_unchanged
- groups:
+Jobs should store output files in their SD.
+ Like input files, output files belong into two groups:
 \end_layout
 
 \begin_layout Itemize
@@ -909,104 +514,34 @@ Storage Element
 \emph on
 Indexing Service
 \emph default
- like 
-\change_inserted 1 1189191965
-the Globus 
+ like the Globus 
 \emph on
 Replica Location Service
-\change_deleted 1 1189191965
-Replica Catalog
-\change_unchanged
-
 \emph default
- (
-\change_deleted 1 1189191965
-RC
-\change_inserted 1 1189191965
-RLS
-\change_unchanged
-)
-\change_deleted 1 1189191965
-.
- 
-\change_inserted 1 1189191965
- -- 
-\change_unchanged
-The 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- takes care of th
-\change_deleted 1 1189191965
-o
-\change_inserted 1 1189191965
-e
-\change_unchanged
-se files.
+ (RLS) -- The A-Rex takes care of these files.
  They have to be specified in the JD.
- If 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job fails during any stage of processing
-\change_inserted 1 1189191965
-,
-\change_unchanged
- no attept is 
-\change_deleted 1 1189191965
-taken
-\change_inserted 1 1189191965
-made
-\change_unchanged
- to transfer those files to their final destination, unless the
-\change_deleted 1 1189191965
-re is
-\change_unchanged
- option 
+ If the job fails during any stage of processing, no attept is made to transfer
+ those files to their final destination, unless the option 
 \emph on
 preserve=yes
 \emph default
- 
-\change_inserted 1 1189191965
-is 
-\change_unchanged
-specified in their URLs.
+ is specified in their URLs.
 \end_layout
 
 \begin_layout Itemize
-Files which are supposed to be fetched by the user
-\change_deleted 1 1189191965
-.
-
-\change_inserted 1 1189191965
- --
-\change_unchanged
- The user 
-\change_inserted 1 1189191965
-has to 
-\change_deleted 1 1189191965
-runs
-\change_inserted 1 1189191965
-use
-\change_unchanged
- 
-\change_inserted 1 1189191965
-a tool like the 
-\change_unchanged
-UI to obtain th
-\change_deleted 1 1189191965
-o
-\change_inserted 1 1189191965
-e
-\change_unchanged
-se files.
+Files which are supposed to be fetched by the user -- The user has to use
+ a tool like the UI to obtain these files.
  They 
 \series bold
 must
 \series default
  also be specified in the JD.
+\end_layout
+
+\begin_layout Standard
+All files not specified in the JD are deleted after job execution finished.
+ If job execution fails for any reason (if exit code of main executable
+ is not 0) all files from furst group are transfered to second one.
 \end_layout
 
 \begin_layout Section
@@ -1018,13 +553,7 @@ Job flow
 \end_layout
 
 \begin_layout Standard
-From the point of view of the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- a job passes through various states.
+From the point of view of the A-Rex a job passes through various states.
  Picture 
 \begin_inset LatexCommand \ref{job states diagram}
 
@@ -1064,122 +593,25 @@ Job states
 
 \end_inset
 
-A user can examine the state of a job by querying the 
-\change_inserted 0 1217888592
-dedicated Local Information Description Interface of A-Rex
-\change_deleted 0 1217888592
-NorduGrid Information System (IS)
-\change_unchanged
- using the UI or any other 
-\change_inserted 0 1189553468
-suitable 
-\change_unchanged
-tool
-\change_deleted 0 1217888592
-.
- Please remember that IS can manipulate with state names to make them more
- user friendly and to combine them with states introduced by other parts
- of whole setup.
- Another way is to access virtual informational files through GridFTP interface
- or to use
-\change_inserted 0 1217888592
- or through
-\change_unchanged
- query met
-\change_inserted 0 1189553468
-h
-\change_unchanged
-od of 
-\change_inserted 0 1189553468
-W
-\change_deleted 0 1189553468
-JC
-\change_unchanged
-S
-\change_inserted 0 1189553468
- interface
-\change_unchanged
-.
+A user can examine the state of a job by querying the dedicated Local Informatio
+n Description Interface of A-Rex using the UI or any other suitable tool
+ or through query method of WS interface.
  
 \end_layout
 
 \begin_layout Standard
-Configuration can put limits on 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-amout of simultaneous jobs 
-\change_deleted 1 1189191965
-at
-\change_inserted 1 1189191965
-in
-\change_unchanged
- some states.
- If such 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-limit is reached
-\change_inserted 1 1189191965
-,
-\change_unchanged
- 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-job
-\change_inserted 1 1189191965
- ready to enter into the state in question will
-\change_unchanged
- stay
-\change_deleted 1 1189191965
-s
-\change_unchanged
- in it's current state waiting for 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-free slot.
- This situation is presented by prepending 
-\change_inserted 1 1189191965
-the prefix 
+Configuration can put limits on the amout of simultaneous jobs in some states.
+ If such a limit is reached, a job ready to enter into the state in question
+ will stay in it's current state waiting for a free slot.
+ This situation is presented by additional state mark 
 \series bold
-PENDING:
+PENDING
 \series default
- to the 
-\change_unchanged
-current state name
-\change_deleted 1 1189191965
- with 
-\series bold
-PENDING:
-\change_unchanged
-
-\series default
- 
-\change_inserted 1 1189191965
-in the job's 
-\change_unchanged
-status mark.
-
-\change_deleted 0 1217888592
- 
-\change_unchanged
-
+ to the current state name in the job's status desription.
 \end_layout
 
 \begin_layout Standard
-Below is 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-description of all actions taken by the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- at every state:
+Below is the description of all actions taken by the A-Rex at every state:
 \end_layout
 
 \begin_layout Itemize
@@ -1187,30 +619,11 @@ GM
 \series bold
 Accepted
 \series default
- - 
-\change_deleted 1 1189191965
-At
-\change_inserted 1 1189191965
-In
-\change_unchanged
- this state the job has been submitted to a CE but
-\change_inserted 1 1189191965
- is
-\change_unchanged
- not processed yet.
- The 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- will analyze the JD and move to the next stage.
- If
-\change_inserted 1 1189191965
- the
-\change_unchanged
- JD can not be processed the job will be canceled and moved to the state
- 
+ - In this state the job has been submitted to a CE but is not processed
+ yet.
+ The A-Rex will analyze the JD and move to the next stage.
+ If the JD can not be processed the job will be canceled and moved to the
+ state 
 \series bold
 Finishing
 \series default
@@ -1222,169 +635,53 @@ Finishing
 \series bold
 Preparing
 \series default
- - The input data is being gathered in the SD
-\change_inserted 1 1189191965
- (stage-in)
-\change_unchanged
-.
- The 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- is downloading 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-files specified in the JD and 
-\change_inserted 1 1189191965
-is 
-\change_unchanged
-waiting for files which are supposed to be 
-\change_deleted 1 1189191965
-downloaded
-\change_inserted 1 1189191965
-uploaded
-\change_unchanged
- by the UI.
+ - The input data is being gathered in the SD (stage-in).
+ The A-Rex is downloading the files specified in the JD and is waiting for
+ files which are supposed to be uploaded by the UI.
  If all files are successfully gathered the job moves to the next state.
  If 
 \series bold
 any
 \series default
- file can't be downloaded or it takes 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-UI too long to upload a file
-\change_inserted 1 1189191965
-,
-\change_deleted 1 1189191965
- -
-\change_unchanged
+ file can't be downloaded or it takes the UI too long to upload a file,
  the job moves to 
 \series bold
 Finishing
 \series default
  state.
- It is possible to put
-\change_inserted 1 1189191965
- a
-\change_unchanged
- limit on 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-number of simultaneous 
+ It is possible to put a limit on the number of simultaneous 
 \series bold
 Preparing
 \series default
  jobs.
- 
-\change_inserted 1 1189191965
-If this limit is exceeded, jobs ready to enter the 
+ If this limit is exceeded, jobs ready to enter the 
 \series bold
 Preparing
 \series default
- state 
-\change_deleted 1 1189191965
-Those jobs out of limit
-\change_unchanged
- will stay in 
-\change_inserted 1 1189191965
-the
-\change_deleted 1 1189191965
-previous
-\change_unchanged
- 
+ state  will stay in the 
 \series bold
 Accepted
 \series default
- state
-\change_inserted 1 1189191965
-, but
-\change_unchanged
- 
-\change_inserted 1 1189191965
-prefixed 
-\change_unchanged
-with 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-PENDING
-\change_inserted 1 1189191965
-:
-\change_unchanged
- mark.
- Exceptions are jobs which ha
-\change_deleted 1 1189191965
-s
-\change_inserted 1 1189191965
-ve
-\change_unchanged
- no files to be downloaded.
- Th
-\change_deleted 1 1189191965
-o
-\change_inserted 1 1189191965
-e
-\change_unchanged
-se are processed out of limits.
+ state, but prefixed with the PENDING: mark.
+ Exceptions are jobs which have no files to be downloaded.
+ These are processed out of limits.
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-Submitting
+Submiting
 \series default
- - 
-\change_deleted 1 1189191965
-This is a point of interaction
-\change_inserted 0 1189553468
-The job is being passed for execution
-\change_unchanged
- 
-\change_deleted 1 1189191965
-with
-\change_inserted 1 1189191965
-to the
-\change_unchanged
- 
+ - The job is being passed for execution to the 
 \emph on
 Local Resource Management System
 \emph default
  (LRMS).
- 
-\change_deleted 0 1217888592
-At the moment PBS is supported best and 
-\change_inserted 0 1217888592
-The 
-\change_unchanged
-correspoding backends 
-\change_inserted 0 1189553468
-for many LRMSs 
-\change_unchanged
-are provided with 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-default installation.
- 
-\change_deleted 1 1189191965
-The job is being submitted for execution.
- 
-\change_unchanged
-If the local job submission is successful the job moves to the 
-\change_deleted 0 1189553468
-next
-\change_inserted 0 1189553468
-
+ The correspoding backends for many LRMSs are provided with the default
+ installation.
+ If the local job submission is successful the job moves to the 
 \series bold
-InLRMS
-\change_unchanged
-
+Executing
 \series default
  state.
  Otherwise it moves to 
@@ -1392,21 +689,13 @@ InLRMS
 Finishing
 \series default
 .
- It is possible to limit 
-\change_inserted 0 1189553468
-the agregate 
-\change_unchanged
-number of jobs in 
+ It is possible to limit the agregate number of jobs in 
 \series bold
-Submitting
+Submiting
 \series default
  and 
-\change_deleted 0 1189553468
-following 
-\change_unchanged
-
 \series bold
-InLRMS
+Executing
 \series default
  states.
 \end_layout
@@ -1414,32 +703,18 @@ InLRMS
 \begin_layout Itemize
 
 \series bold
-InLRMS
+Executing
 \series default
  - The job is queued or being executed in the LRMS.
- The 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- takes no actions except waiting until 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job finishes.
+ The A-Rex takes no actions except waiting until the job finishes.
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-Cancelling
+Killing
 \series default
- - Necessary action to cancel 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job in the LRMS is being taken.
+ - Necessary action to cancel the job in the LRMS is being taken.
 \end_layout
 
 \begin_layout Itemize
@@ -1447,32 +722,11 @@ job in the LRMS is being taken.
 \series bold
 Finishing
 \series default
- - The output data is being processed
-\change_inserted 1 1189191965
- (stage-out)
-\change_unchanged
-.
+ - The output data is being processed (stage-out).
  Specified data files are moved to the specified SEs and are optionally
- registered at
-\change_deleted 1 1189191965
- RC
-\change_inserted 0 1189553468
- an Indexing Service
-\change_unchanged
-.
- The user can download data files from the SD by using 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-UI or 
-\change_deleted 1 1189191965
-any 
-\change_unchanged
-other 
-\change_inserted 1 1189191965
-adequate 
-\change_unchanged
-tool.
+ registered at an Indexing Service.
+ The user can download data files from the SD by using the UI or other adequate
+ tool.
  All the files not specified as output files are removed from the SD at
  very beginning of this state.
  It is possible to limit number of simultaneous jobs in this state.
@@ -1483,134 +737,30 @@ tool.
 \series bold
 Finished
 \series default
- - No more processing is performed by the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
-.
+ - No more processing is performed by the A-Rex.
  The user can continue to download data files from the SD.
  The SD is kept available for some time (default is 1 week).
- After that 
-\change_deleted 1 1189191965
-it
-\change_inserted 1 1189191965
-the job
-\change_unchanged
- is moved to the state 
+ After that the job is moved to the state 
 \series bold
 Deleted
 \series default
 .
- The 'deletion' time can be 
-\change_inserted 1 1189191965
-obtained by 
-\change_unchanged
-quer
-\change_deleted 1 1189191965
-ied
-\change_inserted 1 1189191965
-ying
-\change_unchanged
- 
-\change_deleted 1 1189191965
-at
-\change_inserted 1 1189191965
-the
-\change_unchanged
- 
-\change_inserted 0 1217888592
-Informatrion Interface of the A-Rex
-\change_deleted 0 1217888592
-NorduGrid Information System as attribute 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-texttt{nordugrid-pbs-job-sessiondirerasetime}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
- of 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-texttt{nordugrid-pbs-job}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\change_unchanged
-.
- If 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-job was moved to 
+ The 'deletion' time can be obtained by querying the Informatrion Interface
+ of the A-Rex.
+ If a job was moved to 
 \series bold
 Finished
 \series default
- because of failure, it may be restarted on request of 
-\change_inserted 1 1189191965
-a 
-\change_unchanged
-client.
- 
-\change_inserted 1 1189191965
-When restarted, a 
-\change_deleted 1 1189191965
-J
-\change_inserted 1 1189191965
-j
-\change_unchanged
-ob is moved to 
-\change_deleted 1 1189191965
-a
-\change_inserted 1 1189191965
-the
-\change_unchanged
- state previous to 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-one
-\change_inserted 1 1189191965
- in
-\change_unchanged
- which 
-\change_inserted 1 1189191965
-it 
-\change_unchanged
-failed and is assigned mark PENDING.
+ because of failure, it may be restarted on request of a client.
+ When restarted, a job is moved to the state previous to the one in which
+ it failed and is assigned mark PENDING.
  This is needed in order to not break the configuration limits.
  Exception is a job failed in 
 \series bold
-InLRMS
+Executing
 \series default
  state and lacking input files specified in JD.
- Such
-\change_inserted 1 1189191965
- a
-\change_unchanged
- job is treated like failed in 
+ Such a job is treated like failed in 
 \series bold
 Preparing
 \series default
@@ -1622,65 +772,20 @@ Preparing
 \series bold
 Deleted
 \series default
- - 
-\change_deleted 1 1189191965
-J
-\change_inserted 1 1189191965
-The j
-\change_unchanged
-ob is moved to this state if 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-user 
-\change_deleted 1 1189191965
-does
-\change_inserted 1 1189191965
-have
-\change_unchanged
- not request
-\change_inserted 1 1189191965
-ed
-\change_unchanged
- job to be cleaned
-\change_inserted 1 1189191965
- before the SD's lifetime expires
-\change_unchanged
-.
+ - The job is moved to this state if the user have not requested job to
+ be cleaned before the SD's lifetime expires.
  Only minimal subset of information about such job is kept.
-
-\change_inserted 0 1189553468
  The SD is not available anymore.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Standard
-In 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-case of 
-\change_deleted 1 1189191965
-the
-\change_inserted 1 1189191965
-a
-\change_unchanged
- failure special processing is applied to output files.
+In case of a failure special processing is applied to output files.
  All specified output files are treated as 
 \series bold
-downloadable by 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-user
+downloadable by the user
 \series default
 .
- No files will be moved to the
-\change_inserted 1 1189191965
-ir destination
-\change_unchanged
- SE.
+ No files will be moved to their destination SE.
 \end_layout
 
 \begin_layout Section
@@ -1688,27 +793,10 @@ URLs
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 0 1217888592
-In full installation 
-\change_deleted 0 1217888592
-T
-\change_inserted 0 1217888592
-t
-\change_unchanged
-he 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
- and it's components support
-\change_inserted 1 1189191965
- the
-\change_unchanged
- following data transfer protocols and corresponding URLs: 
+In full installation the A-Rex and it's components support the following
+ data transfer protocols and corresponding URLs: 
 \emph on
-ftp, gsiftp, http, httpg, https, se, rc
+ftp, gsiftp, http, https, lfc
 \emph default
  and 
 \emph on
@@ -1719,32 +807,15 @@ rls.
 \begin_inset Quotes eld
 \end_inset
 
-
-\change_inserted 0 1217888592
 The Hosting Environment of the Advanced Resource Connector middleware
-\change_deleted 0 1217888592
-Protocols, Uniform Resource Locators (URL) and extensions supported in ARC
-\change_unchanged
-
 \begin_inset Quotes erd
 \end_inset
 
  document 
-\change_inserted 0 1217888592
-
 \begin_inset LatexCommand \cite{hed}
 
 \end_inset
 
-
-\change_deleted 0 1217888592
-
-\begin_inset LatexCommand \cite{urls}
-
-\end_inset
-
-
-\change_unchanged
 .
 \end_layout
 
@@ -1757,71 +828,32 @@ Internals
 \end_layout
 
 \begin_layout Subsection
-Internal Files of the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-Grid Manager
-\change_unchanged
-
+Internal Files of the A-Rex
 \end_layout
 
 \begin_layout Standard
-For each local UNIX user listed in the 
-\change_deleted 0 1217888592
-GM
-\change_inserted 0 1217888592
-A-Rex
-\change_unchanged
- configuration
-\change_inserted 0 1217888592
- - including a generic one which covers all local user identities -
-\change_unchanged
- a 
+For each local UNIX user listed in the A-Rex configuration - including a
+ generic one which covers all local user identities - a 
 \shape italic
 control directory
 \shape default
  exists.
- In this directory the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- stores information about jobs belonging to that user.
+ In this directory the A-Rex stores information about jobs belonging to
+ that user.
  Multiple users can share the same 
 \shape italic
 control directory
 \shape default
 .
- To make it easier to recover in 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-case of failure, the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
- stores most information in files rather than in memory.
- All files belonging to 
-\change_inserted 0 1217888592
-the 
-\change_unchanged
-same job have names starting with 
+ In most common configuration case A-Rex serves all users defined by Operating
+ System and stores their control file in same directory.
+ To make it easier to recover in case of failure, the A-Rex stores most
+ information in files rather than in memory.
+ All files belonging to the same job have names starting with 
 \series bold
-job.ID.
-\change_inserted 1 1189191965
-,
-\change_unchanged
-
+job.ID.,
 \series default
- 
-\change_inserted 1 1189191965
-w
-\change_unchanged
-here ID is the job identifier.
+ where ID is the job identifier.
 \end_layout
 
 \begin_layout Standard
@@ -1834,63 +866,58 @@ The files in the control directory and their formats are described below:
 job.ID.status
 \shape default
  - current state of the job.
- 
-\change_deleted 1 1189191965
-It
-\change_inserted 1 1189191965
-This is a plain text file
-\change_unchanged
- contain
-\change_deleted 1 1189191965
-s
-\change_inserted 1 1189191965
-ing
-\change_unchanged
- 
-\change_deleted 1 1189191965
-one
-\change_inserted 1 1189191965
-a single
-\change_unchanged
- word 
-\change_deleted 1 1189191965
-of text 
-\change_unchanged
-representing the current state of the job.
- Possible values are :
+ This is a plain text file containing a single word representing the internal
+ name of current state of the job.
+ Possible values and corrsponding external job states are :
 \end_layout
 
 \begin_deeper
 \begin_layout Itemize
-ACCEPTED
+ACCEPTED/
+\series bold
+Accepted
 \end_layout
 
 \begin_layout Itemize
-PREPARING
+PREPARING/
+\series bold
+Preparing
 \end_layout
 
 \begin_layout Itemize
-SUBMITTING
+SUBMITTING/
+\series bold
+Submiting
 \end_layout
 
 \begin_layout Itemize
-INLRMS
+INLRMS/
+\series bold
+Executing
 \end_layout
 
 \begin_layout Itemize
-FINISHING
+FINISHING/
+\series bold
+Finishing
 \end_layout
 
 \begin_layout Itemize
-FINISHED
+FINISHED/
+\series bold
+Finished
 \end_layout
 
 \begin_layout Itemize
-CANCELING
+CANCELING/
+\series bold
+Killing
 \end_layout
 
 \begin_layout Itemize
-DELETED
+DELETED/
+\series bold
+Deleted
 \end_layout
 
 \end_deeper
@@ -1901,13 +928,7 @@ See section
 \end_inset
 
  for a description of the various states.
- Additionally each value can be prepended 
-\change_deleted 1 1189191965
-with a
-\change_inserted 1 1189191965
-the
-\change_unchanged
- prefix 
+ Additionally each value can be prepended the prefix 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1921,73 +942,16 @@ PENDING:
 \end_inset
 
 ).
- Th
-\change_deleted 1 1189191965
-at
-\change_inserted 1 1189191965
-is
-\change_unchanged
- is used to show that 
-\change_deleted 1 1189191965
-the
-\change_inserted 1 1189191965
-a
-\change_unchanged
- job
-\change_deleted 1 1189191965
- 
-\change_inserted 1 1189191965
- 
-\change_unchanged
-is 
+ This is used to show that a job is 
 \emph on
 ready
 \emph default
- to be moved to 
-\change_deleted 1 1189191965
-a
-\change_inserted 1 1189191965
-the
-\change_unchanged
- next state 
-\change_deleted 1 1189191965
-and
-\change_inserted 1 1189191965
-but
-\change_unchanged
- it
-\change_inserted 1 1189191965
- has to
-\change_unchanged
- stay
-\change_deleted 1 1189191965
-s
-\change_unchanged
- in 
-\change_deleted 1 1189191965
-a
-\change_inserted 1 1189191965
-it's
-\change_unchanged
- current state 
+ to be moved to the next state but it has to stay in it's current state
+ 
 \emph on
 only
 \emph default
- because
-\change_inserted 1 1189191965
- otherwise
-\change_unchanged
- some limits set in
-\change_inserted 1 1189191965
- the
-\change_unchanged
- configuration 
-\change_deleted 1 1189191965
-are
-\change_inserted 1 1189191965
-would be
-\change_unchanged
- exceeded.
+ because otherwise some limits set in the configuration would be exceeded.
 \end_layout
 
 \begin_layout Itemize
@@ -1995,15 +959,7 @@ would be
 \shape italic
 job.ID.description
 \shape default
- - contains the 
-\change_deleted 0 1217888592
-RSL 
-\change_unchanged
-description of the job
-\change_inserted 0 1217888592
- (JD)
-\change_unchanged
-.
+ - contains the description of the job (JD).
 \end_layout
 
 \begin_layout Itemize
@@ -2011,17 +967,7 @@ description of the job
 \shape italic
 job.ID.local
 \shape default
- - information about
-\change_inserted 1 1189191965
- the
-\change_unchanged
- job used by the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
-.
+ - information about the job used by the A-Rex.
  It consists of lines of format 
 \shape italic
 
@@ -2033,11 +979,7 @@ name = value
 \end_inset
 
 
-\change_deleted 1 1189191965
-
 \shape default
- 
-\change_unchanged
 .
  Not all of them are always available.
  The following names are defined:
@@ -2049,15 +991,7 @@ name = value
 \shape italic
 subject
 \shape default
- - user 
-\change_inserted 1 1189191965
-certificate's 
-\change_unchanged
-subject
-\change_inserted 1 1189191965
-,
-\change_unchanged
- also known as the distinguished name (DN)
+ - user certificate's subject, also known as the distinguished name (DN)
 \end_layout
 
 \begin_layout Itemize
@@ -2065,15 +999,8 @@ subject
 \shape italic
 starttime
 \shape default
- - 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-GMT time when the job was accepted represented in 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-Generalized Time format of LDAP 
+ - GMT time when the job was accepted represented in the Generalized Time
+ format of LDAP 
 \end_layout
 
 \begin_layout Itemize
@@ -2081,21 +1008,7 @@ Generalized Time format of LDAP
 \shape italic
 lifetime
 \shape default
- - time period to 
-\change_deleted 1 1189191965
-live for
-\change_inserted 1 1189191965
-preserve
-\change_unchanged
- the SD after 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job 
-\change_inserted 1 1189191965
-has 
-\change_unchanged
-finished in seconds
+ - time period to preserve the SD after the job has finished in seconds
 \end_layout
 
 \begin_layout Itemize
@@ -2103,29 +1016,8 @@ finished in seconds
 \shape italic
 cleanuptime
 \shape default
- - 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-GMT time when 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job 
-\change_deleted 1 1189191965
-to
-\change_inserted 1 1189191965
-should
-\change_unchanged
- be removed from
-\change_inserted 1 1189191965
- the
-\change_unchanged
- cluster and 
-\change_inserted 1 1189191965
-it's 
-\change_unchanged
-SD deleted in Generalized Time format
+ - GMT time when the job should be removed from the cluster and it's SD
+ deleted in Generalized Time format
 \end_layout
 
 \begin_layout Itemize
@@ -2133,11 +1025,8 @@ SD deleted in Generalized Time format
 \shape italic
 notify
 \shape default
- - email addresses and flags to send mail to about 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job specified status changes
+ - email addresses and flags to send mail to about the job specified status
+ changes
 \end_layout
 
 \begin_layout Itemize
@@ -2145,11 +1034,7 @@ job specified status changes
 \shape italic
 processtime
 \shape default
- - 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-GMT time when to start processing the job in Generalized Time format
+ - GMT time when to start processing the job in Generalized Time format
 \end_layout
 
 \begin_layout Itemize
@@ -2157,11 +1042,7 @@ GMT time when to start processing the job in Generalized Time format
 \shape italic
 exectime
 \shape default
- - 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-GMT time when to start job execution in Generalized Time format
+ - GMT time when to start job execution in Generalized Time format
 \end_layout
 
 \begin_layout Itemize
@@ -2169,19 +1050,8 @@ GMT time when to start job execution in Generalized Time format
 \shape italic
 expiretime
 \shape default
- - 
-\change_deleted 1 1189191965
-the 
-\change_unchanged
-GMT time when 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-credentials delegated to
-\change_inserted 1 1189191965
- the
-\change_unchanged
- job expire in Generalized Time format
+ - GMT time when the credentials delegated to the job expire in Generalized
+ Time format
 \end_layout
 
 \begin_layout Itemize
@@ -2189,11 +1059,7 @@ credentials delegated to
 \shape italic
 rerun
 \shape default
- - number of retries left to 
-\change_inserted 1 1189191965
-re
-\change_unchanged
-run the job
+ - number of retries left to rerun the job
 \end_layout
 
 \begin_layout Itemize
@@ -2209,19 +1075,7 @@ jobname
 \shape italic
 lrms
 \shape default
- - name of 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-LRMS 
-\change_inserted 1 1189191965
-backend 
-\change_deleted 1 1189191965
-to run the job at
-\change_inserted 1 1189191965
-to be used for local submission
-\change_unchanged
-
+ - name of the LRMS backend to be used for local submission
 \end_layout
 
 \begin_layout Itemize
@@ -2229,11 +1083,7 @@ to be used for local submission
 \shape italic
 queue
 \shape default
- - name of the
-\change_inserted 1 1189191965
- 
-\change_unchanged
-queue to run the job at
+ - name of the queue to run the job at
 \end_layout
 
 \begin_layout Itemize
@@ -2241,19 +1091,7 @@ queue to run the job at
 \shape italic
 localid
 \shape default
- - job id in LRMS (appears only 
-\change_deleted 1 1189191965
-then
-\change_inserted 1 1189191965
-after
-\change_unchanged
- the job 
-\change_deleted 1 1189191965
-is at
-\change_inserted 1 1189191965
-has reached
-\change_unchanged
- state 
+ - job id in LRMS (appears only after the job has reached state 
 \series bold
 InLRMS
 \series default
@@ -2265,15 +1103,7 @@ InLRMS
 \shape italic
 args
 \shape default
- - 
-\change_inserted 1 1189191965
-executable name followed by a 
-\change_unchanged
-list of command-line arguments
-\change_deleted 1 1189191965
- including the executable
-\change_unchanged
-
+ - executable name followed by a list of command-line arguments
 \end_layout
 
 \begin_layout Itemize
@@ -2281,11 +1111,7 @@ list of command-line arguments
 \shape italic
 downloads
 \shape default
- - number of files to download into 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-SD before execution
+ - number of files to download into the SD before execution
 \end_layout
 
 \begin_layout Itemize
@@ -2293,11 +1119,7 @@ SD before execution
 \shape italic
 uploads
 \shape default
- - number of files to upload from 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-SD after execution
+ - number of files to upload from the SD after execution
 \end_layout
 
 \begin_layout Itemize
@@ -2305,11 +1127,8 @@ SD after execution
 \shape italic
 gmlog
 \shape default
- - directory name which holds files containing information about 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job when accessed through GridFTP interface
+ - directory name which holds files containing information about the job
+ when accessed through GridFTP interface
 \end_layout
 
 \begin_layout Itemize
@@ -2317,19 +1136,8 @@ job when accessed through GridFTP interface
 \shape italic
 clientname
 \shape default
- - name
-\change_inserted 1 1189191965
- (as provided by the user interface)
-\change_unchanged
- and ip address:port of 
-\change_inserted 1 1189191965
-the submitting 
-\change_unchanged
-client machine
-\change_deleted 1 1189191965
- (name is provided by user interface)
-\change_unchanged
-
+ - name (as provided by the user interface) and ip address:port of the submittin
+g client machine
 \end_layout
 
 \begin_layout Itemize
@@ -2337,11 +1145,7 @@ client machine
 \shape italic
 clientsoftware
 \shape default
- - version of software used to submit 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job
+ - version of software used to submit the job
 \end_layout
 
 \begin_layout Itemize
@@ -2349,15 +1153,7 @@ job
 \shape italic
 sessiondir
 \shape default
- - 
-\change_inserted 1 1189191965
-the job's 
-\change_unchanged
-SD
-\change_deleted 1 1189191965
- of job
-\change_unchanged
-
+ - the job's SD
 \end_layout
 
 \begin_layout Itemize
@@ -2365,17 +1161,8 @@ SD
 \shape italic
 failedstate
 \shape default
- - state 
-\change_deleted 1 1189191965
-at
-\change_inserted 1 1189191965
-in
-\change_unchanged
- which job failed (available only if it is possible to restart 
-\change_inserted 1 1189191965
-the 
-\change_unchanged
-job)
+ - state in which job failed (available only if it is possible to restart
+ the job)
 \end_layout
 
 \begin_layout Itemize
@@ -2383,29 +1170,14 @@ job)
 \shape italic
 jobreport
 \shape default
- - URL of
-\change_inserted 1 1189191965
- a user requested
-\change_unchanged
- 
+ - URL of a user requested 
 \emph on
 logger service
-\change_inserted 1 1189191965
-
 \emph default
 .
- The GM will also send job records
-\change_unchanged
- 
-\change_inserted 1 1189191965
-to this service in addition to the default logger service configured in
- the configuration
-\change_deleted 1 1189191965
-used to keep track of executed jobs (one requested by user)
-\change_inserted 0 1217888592
- (This feature does not work in current implementation).
-\change_unchanged
-
+ The GM will also send job records to this service in addition to the default
+ logger service configured in the configuration (This feature does not work
+ in current implementation).
 \end_layout
 
 \end_deeper
@@ -2458,12 +1230,8 @@ input.dat gsiftp://grid.domain.org/dir/input_12378.dat
 \shape italic
 url
 \shape default
- - ordinary URL for gsiftp, ftp, http, https or httpg protocols with the
- addition of '
-\series bold
-replica catalog url
-\series default
-' (RC URL) and '
+ - ordinary URL for gsiftp, ftp, http, https protocols with the addition
+ of '
 \series bold
 replica location service url
 \series default
@@ -2726,13 +1494,7 @@ time
 \shape italic
 job.ID.proxy
 \shape default
- -delegated 
-\change_inserted 0 1217888592
-X509 credentials
-\change_deleted 0 1217888592
-GSI proxy
-\change_unchanged
-.
+ -delegated X509 credentials.
 \end_layout
 
 \begin_layout Itemize
@@ -2740,19 +1502,8 @@ GSI proxy
 \shape italic
 job.ID.proxy.tmp
 \shape default
- - temporary 
-\change_inserted 0 1217888592
-X509 credentials
-\change_deleted 0 1217888592
-GSI proxy
-\change_unchanged
- with different 
-\change_inserted 0 1217888592
-UNIX
-\change_deleted 0 1217888592
-unx
-\change_unchanged
- ownership used by processes run with effective 
+ - temporary X509 credentials with different UNIX ownership used by processes
+ run with effective 
 \emph on
 user id
 \emph default
@@ -2765,103 +1516,13 @@ id
 
 \begin_layout Standard
 There are other files with names like job.ID.* which are created and used
- by different parts of the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
-.
+ by different parts of the A-Rex.
  Their presence in the 
 \shape italic
 control directory
 \shape default
- can not be guaranteed and can change depending on changes in the 
-\change_inserted 0 1217888592
-A-Rex
-\change_deleted 0 1217888592
-GM
-\change_unchanged
+ can not be guaranteed and can change depending on changes in the A-Rex
  code.
-\change_deleted 0 1217888592
-
-\end_layout
-
-\begin_layout Subsection
-
-\change_deleted 0 1217888592
-GridFTP Interface
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-The GridFTP Interface to job management is implemented through GridFTP server.
- The GFS is made of layer implementing GridFTP protocol and plugins for
- accessing actual data.
- Local file access in the GFS is implemented through plugins (shared libraries).
- There are 3 plugins provided with the GFS: 
-\shape italic
-fileplugin.so, gaclplugin.so
-\shape default
- and 
-\shape italic
-jobplugin.so
-\shape default
- .
- 
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-The 
-\shape italic
-fileplugin.so
-\shape default
- is intended to be uses for plain file access with the configuration senitive
- to user subject and is not needed for job management interface.
- 
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-The 
-\shape italic
-gaclplugin.so
-\shape default
- uses GACL (
-\begin_inset LatexCommand \url{http://www.gridpp.ac.uk/authz/gacl/}
-
-\end_inset
-
-) to control access to local file system instead of Unix user identity.
- It's also not needed for job management.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-The 
-\shape italic
-jobplugin.so
-\shape default
- is using information about jobs being controlled by GM and provides access
- to session directories of the jobs owned by user.
- It also provides an interface (virtual directory and virtual operations)
- to submit, cancel, clean, renew credentials and obtain information about
- the job.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Subsection
@@ -2874,19 +1535,7 @@ A-REX Web Service Interface provides means to submit a description of a
  to monitor and control processing of jobs, and obtain data produced during
  the execution of a job.
  The WS Interface is built and deployed inside Hosting Envirnoment Daemon
- 
-\change_inserted 0 1217888592
-(
-\change_deleted 0 1217888592
-[
-\change_unchanged
-HED
-\change_inserted 0 1217888592
-)
-\change_deleted 0 1217888592
-]
-\change_unchanged
- infrastructure
+ (HED) infrastructure
 \begin_inset LatexCommand \cite{hed}
 
 \end_inset
@@ -2900,80 +1549,34 @@ Basic Execution Service Interface
 
 \begin_layout Standard
 The job submission and control interface is based on document produced by
- 
-\change_inserted 2 1189199003
-the 
-\change_unchanged
-OGF OGSA Basic Execution Services (BES) Working Group
+ the OGF OGSA Basic Execution Services (BES) Working Group
 \begin_inset LatexCommand \cite{bes}
 
 \end_inset
 
 .
- The exchange of SOAP messages is performed over 
-\change_inserted 2 1189199016
-the 
-\change_unchanged
-HTTP
-\change_inserted 0 1217888592
-(
-\change_unchanged
-S
-\change_inserted 0 1217888592
-)
-\change_unchanged
- protocol.
+ The exchange of SOAP messages is performed over the HTTP(S) protocol.
  The BES interface is represented by two port-types - BES-Management and
  BES-Factory.
  The former is made to control the A-REX service itself and thus defines
  operations to start and stop the functionality of the BES service.
- 
-\change_inserted 0 1217888592
-The 
-\change_unchanged
-A-R
-\change_inserted 0 1217888592
-ex
-\change_deleted 0 1217888592
-EX
-\change_unchanged
- does not implement remote control of service functionality.
- Hence the BES-Management port-type is not 
-\change_inserted 0 1217888592
-functional
-\change_deleted 0 1217888592
-implemented
-\change_unchanged
-.
+ The A-Rex does not implement remote control of service functionality.
+ Hence the BES-Management port-type is not functional.
  The BES-Factory port-type provides operations to submit new jobs (to create
  an activity in terms of BES) and to monitor its state.
  It also has an ability to provide information about the service.
- A-R
-\change_inserted 0 1217888592
-ex
-\change_deleted 0 1217888592
-EX
-\change_unchanged
- fully implements the functionality of this port-type.
+ A-Rex fully implements the functionality of this port-type.
 \end_layout
 
 \begin_layout Standard
-For job descriptions A-R
-\change_inserted 0 1217888592
-ex
-\change_deleted 0 1217888592
-EX
-\change_unchanged
- accepts the Job Submission Description Language (JSDL)
+For job descriptions A-Rex accepts the Job Submission Description Language
+ (JSDL)
 \begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
 
- 
-\change_inserted 0 1217888592
-documents 
-\change_unchanged
-as defined by the OGF Job Submission Description Language Working Group.
+ documents as defined by the OGF Job Submission Description Language Working
+ Group.
  Supported elements and extensions are described below.
 \end_layout
 
@@ -2982,26 +1585,14 @@ Extensions to OGSA BES interface
 \end_layout
 
 \begin_layout Standard
-A-R
-\change_deleted 0 1217888592
-EX
-\change_unchanged
- introduces a new operation in addition to those provided by BES.
- It does that by defining its own port-type 
-\change_deleted 0 1217888592
-A-REX 
-\change_unchanged
-with the single operation 
+A-Rex introduces a new operation in addition to those provided by BES.
+ It does that by defining its own port-type with the single operation 
 \emph on
 ChangeActivityStatus
 \emph default
  (see Appendix D).
  This operation provides a way to request simple transfers between states
- of jobs 
-\change_deleted 0 1217888592
-being processed 
-\change_unchanged
-and corresponding actions.
+ of jobs and corresponding actions.
 \end_layout
 
 \begin_layout Itemize
@@ -3061,11 +1652,7 @@ Fault(s)
 \emph on
 NotAuthorizedFault
 \emph default
-: Indicates that 
-\change_inserted 2 1189199242
-the 
-\change_unchanged
-client is not allowed to do this operation.
+: Indicates that the client is not allowed to do this operation.
 \end_layout
 
 \begin_layout Itemize
@@ -3081,15 +1668,7 @@ InvalidActivityIdentifierFault
 \emph on
 CantApplyOperationToCurrentStateFault
 \emph default
-: 
-\change_inserted 2 1189199285
-The 
-\change_deleted 2 1189199265
-R
-\change_inserted 2 1189199286
-r
-\change_unchanged
-equested transition is not possible.
+: The requested transition is not possible.
 \end_layout
 
 \end_deeper
@@ -3103,15 +1682,16 @@ On result of this command, the job should be put into the requested state.
 
 \begin_layout Standard
 Since BES allows implementators to extend their initial activity states
- with additional sub-states, A-R
-\change_deleted 0 1217888592
-EX
-\change_inserted 0 1217888592
-ex
-\change_unchanged
- defines a set of sub-states of activity processing in addition to those
- defined by the BES, as listed in Table 
+ with additional sub-states, A-Rex defines a set of sub-states of activity
+ processing in addition to those defined by the BES, as listed in Table
+ 
 \begin_inset LatexCommand \ref{tab:Job-states-definitions}
+
+\end_inset
+
+.
+ Their meaning is described in section 
+\begin_inset LatexCommand \ref{Section: Job Flow}
 
 \end_inset
 
@@ -3378,7 +1958,7 @@ Stage-in process has finished
 \begin_inset Text
 
 \begin_layout Standard
-Submitting
+Submiting
 \end_layout
 
 \end_inset
@@ -3621,7 +2201,8 @@ Held
 
 \begin_layout Standard
 Job processing is suspended on client request; this sub-state appears in
- parallel with other sub-states
+ parallel with other sub-states.
+ This state is reserved for future and i snot implemented yet.
 \end_layout
 
 \end_inset
@@ -3644,19 +2225,8 @@ Delegation Interface
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 0 1217888592
-ARC service interfaces optionally offer a sub-interface, 
-\change_inserted 0 1217888592
-The A-Rex also supportd 
-\change_deleted 0 1217888592
-called 
-\change_unchanged
-the Delegation Interface (see Appendix E).
- This is a common purpose interface to be used by ARC services which accept
-\change_inserted 0 1217888592
-s
-\change_unchanged
+The A-Rex also supportd the Delegation Interface (see Appendix E).
+ This is a common purpose interface to be used by ARC services which accepts
  delegated credentials from clients.
  The Delegation Interface implements two operations: initiatialization of
  credentials delegation (DelegateCredentialsInit) and update/renewal of
@@ -3754,15 +2324,8 @@ DelegatedTokenType DelegatedToken
 edentialsInit signed by the user's proxy certificate.
  Also includes the Id element which identifies the private key stored at
  the service side associated with these credentials.
- The reference element refers to the object 
-\change_inserted 2 1189199733
-to 
-\change_unchanged
-which these credentials should be applied
-\change_deleted 2 1189199728
- to
-\change_unchanged
- in a way specific to the service.
+ The reference element refers to the object to which these credentials should
+ be applied in a way specific to the service.
  The same element must also be used for delegating credentials as part of
  other operations on service.
 \end_layout
@@ -3831,21 +2394,22 @@ DelegatedCredentials
 DelegateCredentialsInit
 \emph default
  operation.
+ For more information about delegations and delegation interface refer to
+ 
+\begin_inset LatexCommand \cite{wsrf-rp}
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsubsection
 Local Information Description Interface
-\change_inserted 0 1217888592
-
 \end_layout
 
 \begin_layout Standard
 The A-REX implements the Local Information Description Interface (LIDI)
- interface 
-\change_deleted 0 1217888592
-being 
-\change_unchanged
-common for all ARC services.
+ interface common for all ARC services.
  This interface is based on OASIS Web Services Resource Properties specification
 \begin_inset LatexCommand \cite{wsrf-rp}
 
@@ -3870,42 +2434,19 @@ ResourceInformationDocumentType
 \labelwidthstring 00.00.0000
 
 \emph on
-BESFactory
+nordugrid
 \emph default
- - collection of BES Factory attributes as defined in the BES specifications.
+ - desription of computing resource that uses NorudGrid LDAP schema [] converted
+ to XML document.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 
 \emph on
-Glue2Resource -
+Domains -
 \emph default
  description of a computation resource that uses Glue2 schema.
- This one is going to be specified after the Glue2 XML bindings will be
- available.
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\emph on
-Activities -
-\emph default
- list of maintained activities.
- Each activity contains an identifier (
-\emph on
-ActivityIdentifier
-\emph default
-), BES (
-\emph on
-ActivityDocument
-\emph default
-) and Glue2 (
-\emph on
-Glue2Job
-\emph default
-) descriptions of the activity.
 \end_layout
 
 \begin_layout Standard
@@ -3992,12 +2533,7 @@ Target -
 
 \emph on
 Input
-\change_deleted 0 1189553468
-
 \emph default
-\InsetSpace \thinspace{}
-
-\change_unchanged
 \InsetSpace \space{}
 (POSIX) - file to be used as standard input for the executable.
 \end_layout
@@ -4333,11 +2869,7 @@ statistics
 \emph on
 name=value
 \emph default
- 
-\change_inserted 2 1189226930
-pairs
-\change_unchanged
-.
+ pairs.
  Following names are defined:
 \end_layout
 
@@ -4465,374 +2997,66 @@ How it works
 \end_layout
 
 \begin_layout Standard
-If 
-\change_inserted 2 1189227548
-a 
-\change_unchanged
-job requests 
-\change_inserted 1 1189503051
-an 
-\change_unchanged
-input
-\change_inserted 2 1189227311
- 
-\change_unchanged
-file
-\change_deleted 2 1189227308
-,
-\change_unchanged
- which 
-\change_deleted 2 1189228204
-can/allowed
-\change_inserted 2 1189228207
-is subject
-\change_unchanged
- 
-\change_deleted 2 1189228212
-to be
-\change_inserted 2 1189228212
-for
-\change_unchanged
- cache
-\change_deleted 2 1189228216
-d
-\change_inserted 2 1189228216
-ing
-\change_unchanged
-, it is stored in 
-\change_inserted 2 1189227567
-the 
-\change_unchanged
-cache directory instead
-\change_inserted 2 1189227849
- of the SD.
-
-\change_unchanged
- 
-\change_inserted 2 1189227956
-The file is made available to the job by either 
-\change_deleted 2 1189227966
-and 
-\change_unchanged
-soft-link
-\change_inserted 2 1189227973
-ing it
-\change_unchanged
- 
-\change_deleted 2 1189228087
-is created 
-\change_unchanged
-in the SD
-\change_deleted 2 1189228102
-, pointing to that file.
- Or file can be stored in cache and then
-\change_inserted 2 1189228104
- or
-\change_unchanged
- cop
-\change_inserted 2 1189228139
-ying
-\change_deleted 2 1189228134
-ied
-\change_unchanged
- 
-\change_inserted 2 1189228143
-it 
-\change_unchanged
-to the SD.
- 
-\change_inserted 2 1189227675
-The 
-\change_deleted 2 1189227684
-Last
-\change_inserted 2 1189227687
-latter
-\change_unchanged
- option is more secure and hence advised.
+If a job requests an input file which is subject for cacheing, it is stored
+ in the cache directory instead of the SD.
+ The file is made available to the job by either soft-linking it in the
+ SD or copying it to the SD.
+ The latter option is more secure and hence advised.
 \end_layout
 
 \begin_layout Standard
-Before downloading 
-\change_inserted 2 1189227709
-a 
-\change_unchanged
-file the GM tries to determine it's size and
-\change_inserted 2 1189228388
- then
-\change_unchanged
- 
-\change_inserted 2 1189228383
-tries 
-\change_unchanged
-to preallocate space in 
-\change_inserted 2 1189227728
-the 
-\change_unchanged
-cache directory
-\change_deleted 2 1189227820
-,
-\change_unchanged
- by writing 
-\change_inserted 2 1189228436
-a 
-\change_unchanged
-file of 
-\change_inserted 2 1189227754
-the 
-\change_unchanged
-same size.
- If th
-\change_deleted 2 1189228323
-at
-\change_inserted 2 1189228323
-is
-\change_unchanged
- fails (
-\change_inserted 2 1189228477
-possibly because the 
-\change_unchanged
-file system has no more space), it tries to 
-\change_inserted 2 1189228868
-the 
-\change_unchanged
-remove oldest cache
-\change_inserted 2 1189228871
-d
-\change_unchanged
- files
-\change_deleted 2 1189228892
-,
-\change_unchanged
- which are not being used by any job.
- Th
-\change_deleted 2 1189228932
-at
-\change_inserted 2 1189228934
-is
-\change_unchanged
- means
-\change_inserted 2 1189228940
- that
-\change_unchanged
- 
-\change_inserted 2 1189229025
-
+Before downloading a file the GM tries to determine it's size and then tries
+ to preallocate space in the cache directory by writing a file of the same
+ size.
+ If this fails (possibly because the file system has no more space), it
+ tries to the remove oldest cached files which are not being used by any
+ job.
+ This means that 
 \series bold
-the 
-\change_unchanged
-hard limit of cache size is 
-\change_inserted 2 1189229052
-the 
-\change_unchanged
-space available 
-\change_deleted 2 1189228963
-at
-\change_inserted 2 1189228965
-in the
-\change_unchanged
- file-system
+the hard limit of cache size is the space available in the file-system
 \series default
 .
- In case cache gets full and it is impossible to free 
-\change_deleted 2 1189229188
-any
-\change_inserted 2 1189229189
-enough
-\change_unchanged
- space, 
-\change_inserted 2 1189229096
-the 
-\change_unchanged
-download fails and 
-\change_inserted 2 1189229152
-then 
-\change_unchanged
-is retried without using cache.
+ In case cache gets full and it is impossible to free enough space, the
+ download fails and then is retried without using cache.
 \end_layout
 
 \begin_layout Standard
-Before giving access to
-\change_inserted 2 1189229356
- an
-\change_unchanged
- already cached file
-\change_inserted 2 1189229439
-,
-\change_unchanged
- the GM contacts 
-\change_deleted 2 1189229385
-initial
-\change_inserted 2 1189229389
-the original
-\change_unchanged
- file source to check if 
-\change_inserted 2 1189229655
-the 
-\change_unchanged
-user 
-\change_deleted 2 1189229502
-is allowed to do that
-\change_inserted 2 1189230213
-has suficient access rights to the file.
-
-\change_unchanged
- 
-\change_inserted 2 1189230210
-Not all
-\change_deleted 2 1189230177
-if
-\change_unchanged
- protocols 
-\change_deleted 2 1189230459
-allows to do that
-\change_inserted 2 1189230475
-make this check possible
-\change_unchanged
-.
-
-\change_inserted 2 1189230425
- 
-\change_deleted 2 1189230423
-
+Before giving access to an already cached file, the GM contacts the original
+ file source to check if the user has suficient access rights to the file.
+ Not all protocols make this check possible.
+ Also, file creation or validity times are checked to make sure the cached
+ file is fresh.
+ If it is impossible to obtain creation and invalidation times, the file
+ is invalidated 24 hours after it was downloaded.
 \end_layout
 
 \begin_layout Standard
-Also
-\change_inserted 2 1189230418
-,
-\change_unchanged
- file creation or validity times are checked to make sure
-\change_inserted 2 1189230644
- the
-\change_unchanged
- cached file is fresh
-\change_deleted 2 1189230636
- enough
-\change_unchanged
-.
- If it is impossible to obtain creation and invalidation times
-\change_deleted 2 1189230698
- for file
-\change_inserted 2 1189230580
-,
-\change_unchanged
- 
-\change_deleted 2 1189230703
-it
-\change_inserted 2 1189230704
-the file
-\change_unchanged
- is invalidated 24 hours after 
-\change_inserted 2 1189230894
-it was 
-\change_unchanged
-downloaded.
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 2 1189231101
-Also t
-\change_inserted 2 1189231101
-T
-\change_unchanged
-he GM checks 
-\change_inserted 2 1189231752
-the 
-\change_unchanged
-cache periodically.
- If 
-\change_deleted 2 1189231264
-used 
-\change_inserted 2 1189231316
-the 
-\change_unchanged
-space 
-\change_inserted 2 1189231270
-used by cache 
-\change_unchanged
-exceeds 
-\change_inserted 2 1189231188
-the 
-\change_unchanged
-high water-mark given in 
-\change_inserted 2 1189231196
-the 
-\change_unchanged
-configuration file (
+The GM checks the cache periodically.
+ If the space used by cache exceeds the high water-mark given in the configurati
+on file (
 \emph on
 softsize
 \emph default
-)
-\change_inserted 2 1189231203
-,
-\change_unchanged
- it tries to remove 
-\change_inserted 2 1189231347
-the 
-\change_unchanged
-oldest unused files 
-\change_deleted 2 1189231366
-to
-\change_inserted 2 1189231367
-until
-\change_unchanged
- 
-\change_deleted 2 1189231377
-reduce
-\change_inserted 2 1189231379
-cache
-\change_unchanged
- size 
-\change_inserted 2 1189231397
-drops below the 
-\change_deleted 2 1189231394
-to 
-\change_unchanged
-low water-mark.
- This sets
-\change_inserted 2 1189231793
- the
-\change_unchanged
- soft limit of cache size.
+), it tries to remove the oldest unused files until cache size drops below
+ the low water-mark.
+ This sets the soft limit of cache size.
 \end_layout
 
 \begin_layout Standard
-There are 
-\change_deleted 0 1189553468
-2
-\change_inserted 0 1189553468
-two
-\change_unchanged
- kinds of caches supported.
+There are two kinds of caches supported.
  Files in 
 \shape italic
 private
 \shape default
- cache are owned by 
-\change_inserted 2 1189402075
-the 
-\change_unchanged
-Unix user to which 
-\change_inserted 2 1189402129
-a 
-\change_unchanged
-grid user is mapped.
+ cache are owned by the Unix user to which a grid user is mapped.
  Those files are readable only by that particular Unix user.
  Another kind of cache is 
 \shape italic
 shared
 \shape default
 .
- Files 
-\change_inserted 2 1189420679
-in the shared cache 
-\change_unchanged
-are owned by 
-\change_inserted 2 1189402179
-the 
-\change_unchanged
-Unix user who started GM and are readable by everyone.
+ Files in the shared cache are owned by the Unix user who started GM and
+ are readable by everyone.
 \end_layout
 
 \begin_layout Section
@@ -4849,20 +3073,8 @@ Modules
 \end_layout
 
 \begin_layout Standard
-The GM consists of 
-\change_deleted 2 1189402512
-few
-\change_inserted 2 1189402513
-several
-\change_unchanged
- separate executable modules.
- Th
-\change_deleted 2 1189402522
-o
-\change_inserted 2 1189402522
-e
-\change_unchanged
-se are:
+The GM consists of several separate executable modules.
+ These are:
 \end_layout
 
 \begin_layout Itemize
@@ -4870,38 +3082,9 @@ se are:
 \shape italic
 grid-manager
 \shape default
- - 
-\change_inserted 2 1189402532
-The 
-\change_deleted 2 1189402532
-M
-\change_inserted 2 1189402534
-m
-\change_unchanged
-ain module.
- It is responsible for processing 
-\change_deleted 2 1189421434
-the 
-\change_unchanged
-job
-\change_inserted 2 1189421437
-s
-\change_unchanged
-, moving 
-\change_inserted 2 1189421443
-them
-\change_deleted 2 1189421442
-it
-\change_unchanged
- through states
-\change_deleted 2 1189421448
-,
-\change_unchanged
- 
-\change_inserted 2 1189421450
-and 
-\change_unchanged
-running other modules.
+ - The main module.
+ It is responsible for processing jobs, moving them through states and running
+ other modules.
 \end_layout
 
 \begin_layout Itemize
@@ -4923,13 +3106,7 @@ job.ID.input
 uploader
 \shape default
  - This module is responsible for delivering output files to the specified
- SEs and registration at 
-\change_deleted 2 1189402604
-the RC
-\change_inserted 0 1189553468
-an Indexding Service (like RLS) as needed
-\change_unchanged
-.
+ SEs and registration at an Indexding Service (like RLS) as needed.
  It processes and updates the 
 \shape italic
 job.ID.output
@@ -4942,15 +3119,7 @@ job.ID.output
 \emph on
 cache-register
 \emph default
- - Utility to register cached data into 
-\change_inserted 2 1189402773
-an 
-\change_unchanged
-Indexing Service
-\change_deleted 2 1189402805
-s like RC and RLS
-\change_unchanged
-.
+ - Utility to register cached data into an Indexing Service.
  It reads and modifies cache informational files 
 \emph on
 old
@@ -4959,34 +3128,19 @@ old
 \emph on
 new
 \emph default
- 
-\change_inserted 2 1189402909
-(as described in section 
-\change_unchanged
-
+ (as described in section 
 \begin_inset LatexCommand \ref{sec:cache}
 
 \end_inset
 
-
-\change_inserted 2 1189402892
-)
-\change_unchanged
-.
- Configuration is read directly from the GM's configuration file 
-\change_inserted 2 1189402947
-(see section 
-\change_unchanged
-
+).
+ Configuration is read directly from the GM's configuration file (see section
+ 
 \begin_inset LatexCommand \ref{SubSection: ConfigFile}
 
 \end_inset
 
-
-\change_inserted 2 1189402940
-)
-\change_unchanged
-.
+).
  It is run by the GM every 5 minutes.
 \end_layout
 
@@ -4995,32 +3149,8 @@ new
 \emph on
 frontend-info-collector
 \emph default
- - Utility to gather information about 
-\change_inserted 2 1189402972
-the 
-\change_unchanged
-frontend
-\change_deleted 2 1189403150
- and to
-\change_inserted 2 1189403153
-.
- It
-\change_unchanged
- put
-\change_inserted 2 1189403156
-s
-\change_deleted 2 1189403158
- it
-\change_unchanged
- 
-\change_inserted 2 1189403163
-collected information 
-\change_unchanged
-into
-\change_inserted 2 1189403169
- the
-\change_unchanged
- 
+ - Utility to gather information about the frontend.
+ It puts collected information into the 
 \emph on
 job.ID.diag
 \emph default
@@ -5032,36 +3162,13 @@ job.ID.diag
 \emph on
 gm-kick
 \emph default
- - Sends 
-\change_inserted 2 1189403302
-a 
-\change_unchanged
-signal to the GM though
-\change_inserted 2 1189403308
- a
-\change_unchanged
- FIFO file to wake it up.
+ - Sends a signal to the GM though a FIFO file to wake it up.
  It's used to increase responsiveness of GM.
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189420720
-The 
-\change_deleted 2 1189420719
-F
-\change_inserted 2 1189420721
-f
-\change_unchanged
-ollowing modules are always run under
-\change_inserted 2 1189420726
- the
-\change_unchanged
- Unix account to which 
-\change_inserted 2 1189420737
-a grid 
-\change_unchanged
-user is mapped.
+The following modules are always run under the Unix account to which a grid
+ user is mapped.
 \end_layout
 
 \begin_layout Itemize
@@ -5096,11 +3203,7 @@ submit-*-job
 fork
 \emph default
  pseudo-LRMS is supported for testing purposes.
- This module is responsible for 
-\change_deleted 2 1189420932
-the 
-\change_unchanged
-job submission to the LRMS.
+ This module is responsible for job submission to the LRMS.
 \end_layout
 
 \begin_layout Itemize
@@ -5108,33 +3211,8 @@ job submission to the LRMS.
 \shape italic
 cancel-*-job
 \shape default
- - This 
-\change_deleted 2 1189421017
-one
-\change_inserted 2 1189421018
-script
-\change_unchanged
- is for canceling
-\change_deleted 2 1189420881
- the
-\change_unchanged
- job
-\change_inserted 2 1189420884
-s
-\change_deleted 2 1189420885
-,
-\change_unchanged
- which 
-\change_deleted 2 1189420891
-was
-\change_inserted 2 1189421096
-have been already
-\change_unchanged
- submitted to 
-\change_inserted 2 1189420915
-the 
-\change_unchanged
-LRMS.
+ - This script is for canceling jobs which have been already submitted to
+ the LRMS.
 \end_layout
 
 \begin_layout Itemize
@@ -5143,56 +3221,19 @@ LRMS.
 scan-*-job
 \shape default
  -This shell script is responsible for notifying the GM about completion
- of 
-\change_deleted 2 1189421269
-the 
-\change_unchanged
-job
-\change_inserted 2 1189421271
-s
-\change_unchanged
-.
- It's implementation for PBS 
-\change_deleted 2 1189421291
-system 
-\change_unchanged
-uses server logs to extract information about jobs.
- If logs are not available it uses 
-\change_inserted 2 1189421532
-the 
-\change_unchanged
-less reliable 
+ of jobs.
+ It's implementation for PBS uses server logs to extract information about
+ jobs.
+ If logs are not available it uses the less reliable 
 \emph on
 qstat
 \emph default
  command for that.
- 
-\change_deleted 2 1189421542
-o
-\change_inserted 2 1189421542
-O
-\change_unchanged
-ther backends use different techniques.
+ Other backends use different techniques.
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 2 1189421583
-Also t
-\change_inserted 2 1189421588
-In addition, t
-\change_unchanged
-here is 
-\change_inserted 2 1189421596
-also an 
-\change_unchanged
-administrat
-\change_inserted 2 1189421619
-ion
-\change_deleted 2 1189421618
-or
-\change_unchanged
- utility:
+In addition, there is also an administration utility:
 \end_layout
 
 \begin_layout Itemize
@@ -5200,27 +3241,8 @@ or
 \shape italic
 gm-jobs
 \shape default
- - prints 
-\change_inserted 2 1189421789
-a 
-\change_unchanged
-list of jobs available on 
-\change_inserted 2 1189421792
-the 
-\change_unchanged
-cluster and 
-\change_deleted 2 1189421797
-amount
-\change_inserted 2 1189421798
-the number
-\change_unchanged
- of jobs in 
-\change_deleted 2 1189421808
-every
-\change_inserted 2 1189421809
-each
-\change_unchanged
- state.
+ - prints a list of jobs available on the cluster and the number of jobs
+ in each state.
 \newline
 
 \begin_inset ERT
@@ -5246,19 +3268,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189421724
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
--l -
-\change_inserted 2 1189434758
--
-\change_unchanged
- print more information about each job,
+-l -- print more information about each job,
 \newline
 
 \begin_inset ERT
@@ -5269,19 +3283,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189421730
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
--u -
-\change_inserted 2 1189434757
--
-\change_unchanged
- pretend utility is run by user with id 
+-u -- pretend utility is run by user with id 
 \emph on
 uid
 \emph default
@@ -5296,25 +3302,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189421735
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
--
-\change_deleted 2 1189424624
-l
-\change_inserted 2 1189424624
-U
-\change_unchanged
- 
-\change_inserted 2 1189434756
--
-\change_unchanged
-- pretend utility is run by user with name 
+-U -- pretend utility is run by user with name 
 \emph on
 name
 \emph default
@@ -5323,11 +3315,7 @@ name
 
 \begin_layout Standard
 GM comes with plugins useable for various authorization purposes (see for
- example 
-\change_inserted 2 1189424528
-the 
-\change_unchanged
-description of 
+ example the description of 
 \emph on
 authplugin
 \emph default
@@ -5365,23 +3353,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424537
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424671
-- 
-\change_unchanged
-RSL_file -
-\change_inserted 2 1189434781
-- 
-\change_unchanged
-file with job description,
+- RSL_file -- file with job description,
 \newline
 
 \begin_inset ERT
@@ -5392,23 +3368,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424546
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424683
-- 
-\change_unchanged
-proxy_file -
-\change_inserted 2 1189434783
--
-\change_unchanged
- credentials proxy.
+- proxy_file -- credentials proxy.
 \end_layout
 
 \begin_layout Itemize
@@ -5442,23 +3406,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424735
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424768
-- 
-\change_unchanged
-credentials -
-\change_inserted 2 1189434814
--
-\change_unchanged
- path to file with credentials to authorize,
+- credentials -- path to file with credentials to authorize,
 \newline
 
 \begin_inset ERT
@@ -5469,23 +3421,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424739
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424765
-- 
-\change_unchanged
-description -
-\change_inserted 2 1189434812
--
-\change_unchanged
- path to file with job description,
+- description -- path to file with job description,
 \newline
 
 \begin_inset ERT
@@ -5496,23 +3436,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424743
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424764
-- 
-\change_unchanged
-library -
-\change_inserted 2 1189434808
--
-\change_unchanged
- path to LCAS library (full or relative to LCAS directory),
+- library -- path to LCAS library (full or relative to LCAS directory),
 \newline
 
 \begin_inset ERT
@@ -5523,23 +3451,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424747
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424759
-- 
-\change_unchanged
-db -
-\change_inserted 2 1189434809
--
-\change_unchanged
- path to LCAS DB file (full or relative to LCAS directory),
+- db -- path to LCAS DB file (full or relative to LCAS directory),
 \newline
 
 \begin_inset ERT
@@ -5550,23 +3466,11 @@ status open
 
 \backslash
 hspace*{0.5cm}
-\change_deleted 2 1189424754
--l
-\change_unchanged
-
 \end_layout
 
 \end_inset
 
-
-\change_inserted 2 1189424757
-- 
-\change_unchanged
-directory -
-\change_inserted 2 1189434806
--
-\change_unchanged
- LCAS directory.
+- directory -- LCAS directory.
 \end_layout
 
 \begin_layout Subsection
@@ -5575,61 +3479,33 @@ Directories
 
 \begin_layout Standard
 The GM is installed into a single installation point referred as $NORDUGRID_LOCA
-TION and 
-\change_inserted 2 1189424828
-the 
-\change_unchanged
-following sub-directories are used:
+TION and the following sub-directories are used:
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/bin -
-\change_inserted 2 1189434827
--
-\change_unchanged
- tools
+$NORDUGRID_LOCATION/bin -- tools
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/libexec -
-\change_inserted 2 1189434829
--
-\change_unchanged
- program modules used by GM
+$NORDUGRID_LOCATION/libexec -- program modules used by GM
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/etc -
-\change_inserted 2 1189434830
--
-\change_unchanged
- configuration files, deprecated, central configuration file is used by
- de
-\change_inserted 2 1189424891
-f
-\change_unchanged
-ault
+$NORDUGRID_LOCATION/etc -- configuration files, deprecated, central configuratio
+n file is used by default
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/sbin -
-\change_inserted 2 1189434831
--
-\change_unchanged
- daemons
+$NORDUGRID_LOCATION/sbin -- daemons
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/lib -
-\change_inserted 2 1189434831
--
-\change_unchanged
- gridftp server's plugins and API libraries
+$NORDUGRID_LOCATION/lib -- gridftp server's plugins and API libraries
 \end_layout
 
 \begin_layout Standard
@@ -5641,316 +3517,80 @@ The GM also uses following directories:
 \shape italic
 session root directory
 \shape default
- - 
-\change_deleted 2 1189426930
-In 
-\change_inserted 2 1189426930
-T
-\change_unchanged
-this 
-\change_inserted 2 1189426935
-is the 
-\change_unchanged
-directory 
-\change_inserted 2 1189426957
-under which 
-\change_deleted 2 1189426424
-the
-\change_inserted 2 1189426428
-a user's
-\change_unchanged
- SD
-\change_inserted 2 1189426518
-s
-\change_unchanged
- 
-\change_inserted 2 1189426521
-are
-\change_deleted 2 1189426520
-is
-\change_unchanged
- created.
- 
-\change_inserted 0 1189601894
-It's location is configurable per UNIX user.
- Several (or even all) users may share the same session root directory.
-\change_deleted 2 1189427140
-It can be multiple directories for the various users specified in the configurat
-ion file
-\change_unchanged
-.
+ - Tthis is the directory under which a user's SDs are created.
+ It's location is configurable per UNIX user.
+ Several (or even all) users may share the same session root directory..
 \newline
-There are 2 processes which need to have
-\change_deleted 2 1189427622
- a
-\change_unchanged
- permissions to create new files and directories in it
-\change_deleted 2 1189427433
-.
- Those are
-\change_inserted 2 1189427433
-:
-\change_unchanged
- GM and GFS.
+There
+ are 2 processes which need to have permissions to create new files and
+ directories in it: GM and GFS.
  
 \newline
-If any of th
-\change_deleted 2 1189427442
-o
-\change_inserted 2 1189427661
-e
-\change_unchanged
-se processes 
-\change_deleted 2 1189427458
-processes 
-\change_unchanged
-are run under 
-\change_inserted 2 1189427464
-a 
-\change_unchanged
-dedicated user account, that account need
-\change_inserted 2 1189427475
-s
-\change_unchanged
- full permissions in the 
+If any of these processes are run under a dedicated user account, that
+ account needs full permissions in the 
 \shape italic
 session root directory
 \shape default
 .
 \newline
-If th
-\change_deleted 2 1189427656
-o
-\change_inserted 2 1189427656
-e
-\change_unchanged
-se processes are run under
-\change_inserted 2 1189427673
- the
-\change_unchanged
- 
+If these processes are run under the 
 \emph on
 root
 \emph default
- account
-\change_inserted 2 1189427679
-,
-\change_unchanged
- make sure 
+ account, make sure 
 \shape italic
 session root directory
 \shape default
- 
-\change_deleted 2 1189428330
-is not
-\change_inserted 2 1189428334
-resides
-\change_unchanged
- on 
-\change_inserted 2 1189427697
-a 
-\change_unchanged
-filesystem which 
-\change_inserted 2 1189428345
-does not 
-\change_unchanged
-limit
-\change_deleted 2 1189428348
-s
-\change_inserted 2 1189427707
- the
-\change_unchanged
- capabilities of
-\change_inserted 2 1189427714
- the
-\change_unchanged
- 
+ resides on a filesystem which does not limit the capabilities of the 
 \emph on
 root
 \emph default
- user
-\change_deleted 2 1189427811
-.
- F
-\change_inserted 2 1189430066
- (as does f
-\change_unchanged
-or example NFS with 
+ user (as does for example NFS with 
 \emph on
 root_squash
 \emph default
- option
-\change_inserted 2 1189427821
-)
-\change_unchanged
-.
+ option).
 \newline
-If there is 
-\change_inserted 0 1189601894
-a 
-\change_unchanged
-need to run processes under
-\change_inserted 0 1189601894
- the
-\change_unchanged
- 
+If there is a need to run processes under the 
 \emph on
 root
 \emph default
- account (to 
-\change_inserted 0 1189601894
-be able to 
-\change_unchanged
-run jobs in LRMS under different users' accounts
-\change_inserted 0 1189601894
-, for example
-\change_unchanged
-) but there is no way to provide 
-\change_inserted 0 1189601894
-a 
-\change_unchanged
-suitable 
+ account (to be able to run jobs in LRMS under different users' accounts,
+ for example) but there is no way to provide a suitable 
 \shape italic
-session root directory
-\change_inserted 0 1189601894
-,
-\change_unchanged
-
+session root directory,
 \shape default
- use
-\change_inserted 0 1189601894
- the
-\change_unchanged
- 
+ use the 
 \emph on
 norootpower
 \emph default
- command in 
-\change_inserted 0 1189601894
-GM's 
-\change_unchanged
-configuration 
-\change_deleted 0 1189601894
-of the GM
-\change_inserted 0 1189601894
-file
-\change_unchanged
-.
- In that case GM and GFS will use
-\change_inserted 0 1189601894
- the
-\change_unchanged
- identity of
-\change_inserted 0 1189601894
- the
-\change_unchanged
- local user to which 
-\change_inserted 0 1189601894
-a 
-\change_unchanged
-Grid identity is mapped to access
-\change_inserted 0 1189601894
- the
-\change_unchanged
- 
+ command in GM's configuration file.
+ In that case GM and GFS will use the identity of the local user to which
+ a Grid identity is mapped to access the 
 \shape italic
 session root directory
 \shape default
 .
  Hence those users will need full access there.
 \newline
-The GM creates SD
-\change_inserted 0 1189601894
-s
-\change_unchanged
- with proper ownership and permissions for
-\change_inserted 0 1189601894
- the
-\change_unchanged
- local identity used to run 
-\change_inserted 0 1189601894
-a 
-\change_unchanged
-job.
- Some filesystems require
-\change_inserted 0 1189601894
- users to have
-\change_unchanged
- 
+The GM creates SDs with proper
+ ownership and permissions for the local identity used to run a job.
+ Some filesystems require users to have 
 \emph on
-execut
-\change_deleted 0 1189601894
-abl
-\change_unchanged
-e
+execute
 \emph default
- permission
-\change_deleted 0 1189601894
-s
-\change_unchanged
- on
-\change_inserted 0 1189601894
- the
-\change_unchanged
- 
+ permission on the 
 \shape italic
 session root directory
 \shape default
- 
-\change_deleted 0 1189601894
-to be set for local identity 
-\change_unchanged
-in order to access any file or subdirectory there.
+ in order to access any file or subdirectory there.
 \newline
-
-\change_deleted 0 1189601894
-This directory should also be shared among cluster nodes i
-\change_inserted 0 1189601894
-I
-\change_unchanged
-n order for job
-\change_inserted 0 1189601894
-s
-\change_unchanged
- to access
-\change_inserted 0 1189601894
- their
-\change_unchanged
- input files
-\change_inserted 0 1189601894
-, session root directories should be shared across cluster nodes
-\change_unchanged
-.
- 
-\change_deleted 0 1189601894
-Or
-\change_inserted 0 1189601894
-Otherwise,
-\change_unchanged
- 
-\change_deleted 0 1189601894
-internal means of 
-\change_unchanged
-LRMS
-\change_inserted 0 1189601894
--specific methods
-\change_unchanged
- must be used to transfer files to executi
-\change_inserted 0 1189601894
-on
-\change_deleted 0 1189601894
-ng
-\change_unchanged
- node
-\change_inserted 0 1189601894
-s
-\change_unchanged
-.
- For more 
-\change_inserted 0 1189601894
-information 
-\change_unchanged
-see section 
+In order for jobs to access
+ their input files, session root directories should be shared across cluster
+ nodes.
+ Otherwise, LRMS-specific methods must be used to transfer files to execution
+ nodes.
+ For more information see section 
 \begin_inset LatexCommand \ref{sub:LRMS}
 
 \end_inset
@@ -5963,57 +3603,23 @@ see section
 \shape italic
 control directory
 \shape default
- - In this directory
-\change_deleted 2 1189431562
- the SD
-\change_inserted 2 1189431613
-GM and GFS
-\change_unchanged
- store
-\change_deleted 2 1189431617
-s
-\change_unchanged
- an information about 
-\change_deleted 2 1189431599
-the 
-\change_unchanged
-accepted jobs.
- Both 
-\change_deleted 2 1189431627
-GM and GFS 
-\change_unchanged
-processes must have full permissions there.
+ - In this directoryGM and GFS store an information about accepted jobs.
+ Both processes must have full permissions there.
 \newline
-A
-\change_deleted 2 1189431845
-lso
-\change_unchanged
- subdirectory called 
+A subdirectory called 
 \shape italic
 log
 \shape default
  is created there.
  It is used to accumulate information about started and finished jobs.
- This information is periodically sent to the
-\change_inserted 2 1189432870
- desired
-\change_unchanged
- 
+ This information is periodically sent to the desired 
 \emph on
 logger service
-\change_inserted 2 1189433188
-
 \emph default
-(s)
-\change_unchanged
-.
-
-\change_inserted 2 1189433164
+(s).
  For each job start and stop event, and for each logger service where that
  event must be sent, a separate file is written.
  Once an event is sent, the corresponding file is deleted.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Section
@@ -6029,17 +3635,9 @@ Configuration of the Grid Manager
 \end_layout
 
 \begin_layout Standard
-The GM configuration is done through 
-\change_inserted 2 1189433256
-a 
-\change_unchanged
-single configuration file.
+The GM configuration is done through a single configuration file.
  Historically GM supports 2 kinds of configuration files.
- For old one
-\change_inserted 0 1189601894
- (deprecated)
-\change_unchanged
- it looks at following places:
+ For old one (deprecated) it looks at following places:
 \end_layout
 
 \begin_layout Itemize
@@ -7466,1325 +5064,19 @@ hspace*{0.5cm}
 \emph on
 -C
 \emph default
- - remove old information before starting: 1- remove finished jobs, 2 -
- remove active jobs too, 3- also remove everything that looks like junk.
-\change_deleted 0 1217888592
-
-\newline
-
-\end_layout
-
-\begin_layout Subsection
-
-\change_deleted 0 1217888592
-\begin_inset LatexCommand \label{subsec: configfile of the gfs}
-
-\end_inset
-
-Configuration of the GridFTP Server
-\change_unchanged
-
+ - remove 
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 0 1217888592
-Default location of the GFS configuration file is 
-\shape italic
-/etc/arc.conf
-\shape default
- or 
-\shape italic
-$NORDUGRID_LOCATION/etc/gridftpd.conf
-\shape default
-.
- Format of these configuration files is similar to that of the GM.
- It also supports generic commands described at the beginning of previous
- section 
-\begin_inset LatexCommand \ref{SubSection: ConfigFile}
-
-\end_inset
-
-.
- In the new format sections [common] and [gridftpd] are used.
- Commands specific to the GFS are described below.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-port
-\series default
-=number
-\shape default
- - specifies TCP/IP port number.
- Default is 2811.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-include
-\series default
-=path
-\shape default
- - include contents of another file.
- Generic commands can't be specified there.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-encryption
-\series default
-=yes|no
-\shape default
- - specifies if server will allow data transfer to be encrypted.
- Default is yes.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-pluginpath
-\series default
-=path
-\shape default
- - specifies the path where plugin libraries are installed
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-allowunknown
-\series default
-=yes|no
-\shape default
- - if set to 
-\emph on
-yes
-\emph default
- clients are not checked agains grid-mapfile.
- Hence only access rules specified in this configuration file will be applied.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-firewall
-\series default
-=hostname
-\shape default
- - use IP address of the 
-\shape italic
-hostname
-\shape default
- in response to PASV command instead of IP address of a network interface
- of computer.
- You can write IP address directly instead of 
-\shape italic
-hostname
-\shape default
-.
- This command may be if server is situated behind NAT.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-unixgroup
-\series default
-=group rule
-\shape default
- - define local UNIX user and optionally UNIX group to which user belonging
- to specified authorization 
-\shape italic
-group
-\shape default
- is mapped (see Section 
-\begin_inset LatexCommand \ref{sub:Authorization}
-
-\end_inset
-
- for definition of group).
- Local names are obtained from specified 
-\shape italic
-rule
-\shape default
-.
- If specified rule could not produce any mapping, next command is used.
- Mapping stops at first matched rule.
- Following rules are supported:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-mapfile
-\series default
-\shape default
- 
-\shape italic
-file
-\shape default
- - user's subject is matched against list of subjects stored inspecified
- file, one per line followed by local UNIX name.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-simplepool
-\series default
-\shape default
- 
-\shape italic
-directory
-\shape default
- - user is assigned one of local UNIX names stored in a file 
-\shape italic
-directory/pool
-\shape default
-, one per line.
- Used names are stored in other files placed in the same 
-\shape italic
-directory
-\shape default
-.
- If UNIX name was not used for 10 days, it may be reassigned to another
- user.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-lcmaps
-\series default
-\shape default
- 
-\shape italic
-library directory database
-\shape default
- - call LCMAPS functions to do mapping.
- Here 
-\shape italic
-library
-\shape default
- is path to shared library of LCMAPS, either absolute or relative to 
-\shape italic
-directory
-\shape default
-; 
-\shape italic
-directory
-\shape default
- is path to LCMAPS installation directory, equivalent of LCMAPS_DIR variable;
- 
-\shape italic
-database
-\shape default
- is path to LCMAPS database, equivalent to LCMAPS_DB_FILE variable.
- Each arguments except 
-\shape italic
-library
-\shape default
- is optional and may be either skiped or replaced with '*'.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-mapplugin
-\series default
-\shape default
- 
-\shape italic
-timeout plugin
-\shape default
- [
-\shape italic
-arg1
-\shape default
- [
-\shape italic
-arg2
-\shape default
- [...]]] - run external 
-\emph on
-plugin
-\emph default
- executable with specified arguments.
- Execution of 
-\emph on
-plugin
-\emph default
- may not last longer than 
-\emph on
-timeout
-\emph default
- seconds.
- Rule matches if exit code is 0 and there is UNIX name printed on 
-\emph on
-stdout
-\emph default
-.
- Name may be optionaly followed by UNIX group separated by ':'.
- In arguments following substitions are applied before plugin is started:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-%D - subject of users's cerificate,
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-%P - name of credentials' proxy file.
-\change_unchanged
-
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-unixvo
-\series default
-=vo rule
-\shape default
- - same as 
-\series bold
-\shape italic
-unixgroup
-\series default
-\shape default
- for users belonging to Virtual Organization (VO) 
-\shape italic
-vo
-\shape default
-.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-unixmap
-\series default
-=[unixname][:unixgroup] rule
-\shape default
- - define local UNIX user and optionally group used to represent connected
- client.
- 
-\shape italic
-rule
-\shape default
- is one of those allowed for 
-\series bold
-\shape italic
-authorization groups
-\series default
-\shape default
- (see Section 
-\begin_inset LatexCommand \ref{sub:Authorization}
-
-\end_inset
-
-) and for 
-\series bold
-\shape italic
-unixgroup
-\series default
-\shape default
-/
-\series bold
-\shape italic
-unixvo
-\series default
-\shape default
-.
- In case of mapping rule username is one, provided by rule.
- Otherwise specified 
-\shape italic
-unixname:unixgroup
-\shape default
- is taken.
- Both 
-\shape italic
-unixname
-\shape default
- and 
-\shape italic
-unixgroup
-\shape default
- may be either omited or set to '*' to specify missing value.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-groupcfg
-\series default
-=name
-\shape default
- - is put into subsections representnig plugin or [group] section and defines
- if that section is effective.
- In old format it selects the group to which all following lines apply.
- Only unaffected option is 
-\series bold
-\shape italic
-groupcfg
-\series default
-\shape default
-.
- If name is empty (or no groupcfg is used at all) following lines apply
- to all users.
-\change_unchanged
-
+old information before starting: 
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 0 1217888592
-Subsections of 
-\emph on
-gridftpd
-\emph default
- section specifies plugins which serve virtual FTP path (similar to mount
- command of UNIX).
- Name of subsection is irrelevant.
- In old format this section starts with command 
-\series bold
-\shape italic
-plugin
-\series default
-\shape default
- 
-\shape italic
-path library_name
-\shape default
- and ends with keyword 
-\series bold
-\shape italic
-end
-\series default
-\shape default
-.
- Inside subsection following commands are supported
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-plugin
-\series default
-=library_name
-\shape default
- - use plugin 
-\shape italic
-library_name
-\shape default
- to serve virtual path.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-path
-\series default
-=path
-\shape default
- - virtual path to serve.
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-GFS comes with 3 plugins: 
-\shape italic
-filepligin.so, gaclplugin.so
-\shape default
- and 
-\shape italic
-jobplugin.so
-\shape default
-.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\shape italic
-jobplugin.so
-\shape default
- does not require any specific options in case of old configuration format.
- It reads the configuration file of the GM located at the standard place
- as specified in the section 
-\begin_inset LatexCommand \ref{SubSection: ConfigFile}
-
-\end_inset
-
-.
- Following options are supported:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-configfile
-\series default
-=path
-\shape default
- - defines non-standard place for GM's configuration file,
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-allownew
-\series default
-=yes|no
-\shape default
- - specifies if new jobs can be submitted.
- Default is 
-\emph on
-yes
-\emph default
-.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-unixgroup
-\series default
-\shape default
-/
-\series bold
-\shape italic
-unixvo
-\series default
-\shape default
-/
-\series bold
-\shape italic
-unixmap
-\series default
-\shape default
- - same options like in top-level GFS configuration.
- If mapping succeeds obtained local user will be used to run submitted job.
-\change_unchanged
-
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\shape italic
-filepligin.so
-\shape default
- supports following options:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-mount
-\series default
-=path
-\shape default
- - defines the place on local filesystem to which file access operations
- apply
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-dir
-\series default
-=path options
-\shape default
- - specifies access rules for accessing files in 
-\shape italic
-path
-\shape default
- (relative to virtual and real path) and all the files below.
- 
-\newline
-
-\shape italic
-options
-\shape default
- is the list of the following keywords:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-nouser
-\series default
-\shape default
- - do not use local file system rights, only use those specifies in this
- line
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-owner
-\series default
-\shape default
- - check only file owner access rights
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-group
-\series default
-\shape default
- - check only group access rights
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-other
-\series default
-\shape default
- - check only "others" access rights
-\change_unchanged
-
+1- remove finished jobs, 2 - 
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 0 1217888592
-The options above are exclusive.
- If none of the above specified usual Unix access rights are applied.
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-read
-\series default
-\shape default
- - allow reading files
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-delete
-\series default
-\shape default
- - allow deleting files
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-append
-\series default
-\shape default
- - allow appending files (does not allow creation)
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-overwrite
-\series default
-\shape default
- - allow overwriting already existing files (does not allow creation, file
- attributes are not changed)
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-dirlist
-\series default
-\shape default
- - allow obtaining list of the files
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-cd
-\series default
-\shape default
- - allow to make this directory current
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-create
-\series default
-\shape default
- 
-\shape italic
-owner:group permissions_or:permissions_and
-\shape default
- - allow creating new files.
- File will be owned by 
-\shape italic
-owner
-\shape default
- and owning group will be 
-\shape italic
-group
-\shape default
-.
- If '*' is used, the user/group to which connected user is mapped will be
- used.
- The permissions will be set to 
-\shape italic
-permissions_or
-\shape default
- & 
-\shape italic
-permissions_and
-\shape default
- (second number is reserved for the future usage).
- 
-\change_unchanged
-
-\end_layout
-
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\series bold
-\shape italic
-mkdir
-\series default
-\shape default
- 
-\shape italic
-owner:group permissions_or:permissions_and
-\shape default
- - allow creating new directories.
-\change_unchanged
-
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout Itemize
-
-\change_deleted 0 1217888592
-
-\shape italic
-gaclpligin.so
-\shape default
- does not have options in case of the old configuration.
- First line of it's configuration contains local path (root directory) served
- by it.
- Rest till keyword 
-\series bold
-\shape italic
-end
-\series default
-\shape default
- contains GACL 
-\begin_inset LatexCommand \cite{gacl}
-
-\end_inset
-
- XML used to setup initial access rules for every newly created file and
- directory.
- If GACL XML is empty then there will be no default ACLs created for new
- files and directories.
- That means ACL of parent directory will be used.
- 
-\newline
-For the new configuration format following options are supported: 
-\series bold
-\shape italic
-gacl=
-\series default
-gacl
-\shape default
- - GACL XML, 
-\series bold
-\shape italic
-mount
-\series default
-=path
-\shape default
- - local path server by plugin.
- 
-\newline
-XML may contain variables which are replaced with values taken from client's
- credentials.
- Following variables are supported:
-\change_unchanged
-
-\end_layout
-
-\begin_deeper
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$subject
-\emph default
- - subject of user's certificate (DN),
-\change_unchanged
-
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$voms
-\emph default
- - subject of VOMS
-\begin_inset LatexCommand \cite{voms}
-
-\end_inset
-
- server (DN),
-\change_unchanged
-
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$vo
-\emph default
- - name of VO (from VOMS certificate),
-\change_unchanged
-
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$role
-\emph default
- - role (from VOMS certificate),
-\change_unchanged
-
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$capability
-\emph default
- - capabilities (from VOMS certificate),
-\change_unchanged
-
-\end_layout
-
-\begin_layout List
-\labelwidthstring 00.00.0000
-
-\change_deleted 0 1217888592
-
-\emph on
-$group
-\emph default
- - name of group (from VOMS certificate) .
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-Additionally root directory must contain 
-\emph on
-.gacl
-\emph default
- file with initial ACL.
- Otherwise rule will be 
-\begin_inset Quotes eld
-\end_inset
-
-deny all for everyone
-\begin_inset Quotes erd
-\end_inset
-
-.
-\change_unchanged
-
-\end_layout
-
-\end_deeper
-\end_deeper
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-Some configuration parameters can be specified from command line while starting
- the GFS:
-\change_unchanged
-
-\end_layout
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-\emph on
-gridftpd [-h] [-p number] [-n number] [-b number] [-B number] [-d level]
- [-c path] [-F] [-U uid[:gid]] [-L path] [-P path]
-\emph default
-
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--h
-\emph default
- - short help,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--d
-\emph default
- - debug level,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--L
-\emph default
- - name log file (overwrites value in configuration file),
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--P
-\emph default
- - name for file containing process id (overwrites value in configuration
- file),
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--U
-\emph default
- - user and gropu id to use for running daemon,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--F
-\emph default
- - do not make process daemon,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--c
-\emph default
- - name od configuration file,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--p
-\emph default
- - TCP/IP port number,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--n
-\emph default
- - maximal number of simultaneously served connection,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--b
-\emph default
- - default size of buffer used for data transfer (default is 64kB),
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-\change_deleted 0 1217888592
-
-
-\backslash
-hspace*{0.5cm}
-\change_unchanged
-
-\end_layout
-
-\end_inset
-
-
-\emph on
--B
-\emph default
- - maximal size of buffer used for data transfer (default is 640kB).
-\change_unchanged
-
+remove active jobs too, 3- also remove everything that looks like junk.
 \end_layout
 
 \begin_layout Subsection
@@ -9075,79 +5367,14 @@ Figures
 
  present some possible combinations for RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FR
 ONTEND_SEES_NODE and explain how data movement is performed.
- Pictures a) correspond
-\change_inserted 0 1189601894
-s
-\change_unchanged
- to 
-\change_inserted 2 1189438886
-the 
-\change_unchanged
-situation right after all input files 
-\change_deleted 2 1189439002
-are
-\change_inserted 2 1189439003
-have been
-\change_unchanged
- gathered in 
-\change_inserted 2 1189438895
-the 
-\change_unchanged
-session directory and 
-\change_inserted 2 1189439114
-show the 
-\change_unchanged
-actions taken right after 
-\change_inserted 2 1189439135
-the 
-\change_unchanged
-job's script starts.
- Pictures b) show
-\change_inserted 0 1189601894
-s
-\change_unchanged
- 
-\change_deleted 2 1189439413
-how it looks
-\change_inserted 2 1189439416
-the situation
-\change_unchanged
- while 
-\change_inserted 2 1189439425
-the 
-\change_unchanged
-job is running and 
-\change_inserted 2 1189439449
-the 
-\change_unchanged
-actions which are taken right after it 
-\change_inserted 2 1189439457
-has 
-\change_unchanged
-finished.
- Pictures c) 
-\change_deleted 2 1189439573
-stand for
-\change_inserted 0 1189601894
-illustrates the
-\change_unchanged
- final situation, when
-\change_inserted 2 1189439725
- the
-\change_unchanged
- job
-\change_inserted 2 1189439628
-'s output
-\change_unchanged
- files are ready to be uploaded to 
-\change_inserted 2 1189439637
-an 
-\change_unchanged
-external storage element or be downloaded by 
-\change_inserted 2 1189439661
-the 
-\change_unchanged
-user.
+ Pictures a) corresponds to the situation right after all input files have
+ been gathered in the session directory and show the actions taken right
+ after the job's script starts.
+ Pictures b) shows the situation while the job is running and the actions
+ which are taken right after it has finished.
+ Pictures c) illustrates the final situation, when the job's output files
+ are ready to be uploaded to an external storage element or be downloaded
+ by the user.
 \end_layout
 
 \begin_layout Standard
@@ -9179,39 +5406,10 @@ includegraphics{pic2}
 
 \end_inset
 
-Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE 
-\change_inserted 2 1189440482
-are 
-\change_unchanged
-undefined.
- 
-\change_inserted 2 1189440432
-It is assumed that session directories are visible from computing nodes.
- The 
-\change_deleted 2 1189440003
-J
-\change_inserted 2 1189440003
-j
-\change_unchanged
-ob is executed 
-\change_inserted 2 1189440305
-directly 
-\change_unchanged
-in 
-\change_inserted 2 1189439973
-the 
-\change_unchanged
-session directory 
-\change_inserted 2 1189440094
-prepared by GM
-\change_deleted 2 1189440091
-placed
-\change_unchanged
- on 
-\change_inserted 2 1189440052
-the 
-\change_unchanged
-frontend.
+Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are undefined.
+ It is assumed that session directories are visible from computing nodes.
+ The job is executed directly in the session directory prepared by GM on
+ the frontend.
 \end_layout
 
 \end_inset
@@ -9245,68 +5443,20 @@ includegraphics{pic3}
 
 \end_inset
 
-RUNTIME_LOCAL_SCRATCH_DIR is set to 
-\change_deleted 2 1189440392
-value representing
-\change_inserted 2 1189440396
-the location of
-\change_unchanged
- 
-\change_inserted 2 1189440381
-the 
-\change_unchanged
-s
-\change_inserted 2 1189440375
-c
-\change_unchanged
-ratch directory on 
-\change_inserted 2 1189440403
-the 
-\change_unchanged
-computing node, RUNTIME_FRONTEND_SEES_NODE 
-\change_inserted 2 1189440476
-is 
-\change_unchanged
-undefined.
+RUNTIME_LOCAL_SCRATCH_DIR is set to the location of the scratch directory
+ on the computing node, RUNTIME_FRONTEND_SEES_NODE is undefined.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-a) After 
-\change_inserted 2 1189440505
-the 
-\change_unchanged
-job script starts all input files are moved to 'scratch directory' on 
-\change_inserted 2 1189440685
-the 
-\change_unchanged
-computing node.
+a) After the job script starts all input files are moved to 'scratch directory'
+ on the computing node.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-b) 
-\change_inserted 2 1189440916
-The 
-\change_deleted 2 1189440910
-J
-\change_inserted 2 1189440913
-j
-\change_unchanged
-ob runs in 
-\change_inserted 2 1189440908
-a 
-\change_unchanged
-separate directory in 'scratch directory'.
- Only 
-\change_inserted 2 1189440989
-the 
-\change_unchanged
-files representing 
-\change_inserted 2 1189440994
-the 
-\change_unchanged
-job's 
+b) The job runs in a separate directory in 'scratch directory'.
+ Only the files representing the job's 
 \shape italic
 stdout
 \shape default
@@ -9314,16 +5464,9 @@ stdout
 \shape italic
 stderr
 \shape default
- are placed in 
-\change_inserted 2 1189440896
-the 
-\change_unchanged
-original 'session directory' and soft-linked in 'scratch'.
- After execution all files from 'scratch' are moved back to 
-\change_inserted 2 1189440898
-the 
-\change_unchanged
-original 'session directory'.
+ are placed in the original 'session directory' and soft-linked in 'scratch'.
+ After execution all files from 'scratch' are moved back to the original
+ 'session directory'.
 \end_layout
 
 \begin_layout List
@@ -9364,112 +5507,24 @@ includegraphics{pic4}
 \end_inset
 
 Both RUNTIME_LOCAL_SCRATCH_DIR and RUNTIME_FRONTEND_SEES_NODE are set to
- 
-\change_inserted 2 1189441049
-the 
-\change_deleted 2 1189441227
-valuea representing
-\change_inserted 2 1189441234
-location of the
-\change_unchanged
- s
-\change_inserted 2 1189441053
-c
-\change_unchanged
-ratch directory on 
-\change_inserted 2 1189441240
-the 
-\change_unchanged
-computing node and 
-\change_deleted 2 1189441430
-way to access that
-\change_inserted 2 1189441439
-the location where this
-\change_unchanged
- scratch 
-\change_inserted 2 1189441462
-directory is accessible 
-\change_unchanged
-from 
-\change_inserted 2 1189441466
-the 
-\change_unchanged
-frontend
-\change_inserted 2 1189441484
-, respectively
-\change_deleted 2 1189441477
- correspondingly
-\change_unchanged
-.
+ the location of the scratch directory on the computing node and the location
+ where this scratch directory is accessible from the frontend, respectively.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-a) After 
-\change_inserted 2 1189441512
-the 
-\change_unchanged
-job script starts all input files are moved to 'scratch directory' on 
-\change_inserted 2 1189441523
-the 
-\change_unchanged
-computing node.
- 
-\change_inserted 2 1189441535
-The 
-\change_deleted 2 1189441534
-O
-\change_inserted 2 1189441537
-o
-\change_unchanged
-riginal 'session directory' is removed and replaced with 
-\change_inserted 2 1189441758
-a 
-\change_unchanged
-soft-link to copy of session directory in 'scratch
-\change_inserted 2 1189441689
- directory
-\change_unchanged
-' as seen on 
-\change_inserted 2 1189441586
-the 
-\change_unchanged
-frontend.
+a) After the job script starts all input files are moved to 'scratch directory'
+ on the computing node.
+ The original 'session directory' is removed and replaced with a soft-link
+ to copy of session directory in 'scratch directory' as seen on the frontend.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
-b) 
-\change_inserted 2 1189441827
-The 
-\change_deleted 2 1189441823
-J
-\change_inserted 2 1189441825
-j
-\change_unchanged
-ob runs in 
-\change_inserted 2 1189441839
-a 
-\change_unchanged
-separate directory in 'scratch directory'.
- All files are also available on frontend through 
-\change_inserted 2 1189441853
-the 
-\change_unchanged
-soft-link.
- After execution 
-\change_inserted 2 1189441868
-the 
-\change_unchanged
-soft-link is replaced with 
-\change_inserted 2 1189441923
-a 
-\change_unchanged
-directory and all files from 'scratch' are moved back to 
-\change_inserted 2 1189441957
-the 
-\change_unchanged
-original 'session directory'.
+b) The job runs in a separate directory in 'scratch directory'.
+ All files are also available on frontend through the soft-link.
+ After execution the soft-link is replaced with a directory and all files
+ from 'scratch' are moved back to the original 'session directory'.
 \end_layout
 
 \begin_layout List
@@ -9811,75 +5866,26 @@ User Interface
 \end_layout
 
 \begin_layout Subsection
-
-\change_deleted 2 1189455630
-Unix accounts
-\change_inserted 2 1189455644
 Running as non-root
-\change_unchanged
-
 \end_layout
 
 \begin_layout Standard
-Bot GM and GFS are
-\change_inserted 2 1189455718
- primarily
-\change_unchanged
- designed to be run by
-\change_inserted 2 1189455903
- the
-\change_unchanged
- 
+Bot GM and GFS are primarily designed to be run by the 
 \emph on
 root
 \emph default
- UNIX account and serve multiple 
-\change_deleted 2 1189455788
-local UNIX and 
-\change_unchanged
-global Grid identities
-\change_inserted 2 1189455819
- mapped to several UNIX accounts
-\change_unchanged
-.
+ UNIX account and serve multiple global Grid identities mapped to several
+ UNIX accounts.
  Nevertheless it is possible to use 
 \emph on
 non-root
 \emph default
- accounts to run th
-\change_deleted 2 1189455852
-o
-\change_inserted 2 1189455852
-e
-\change_unchanged
-se services
-\change_deleted 2 1189456018
-.
- Although this means
-\change_inserted 2 1189456021
- at the cost of
-\change_unchanged
- some functionality loss 
-\change_inserted 2 1189456027
-as 
-\change_unchanged
-described below.
+ accounts to run these services at the cost of some functionality loss as
+ described below.
 \end_layout
 
 \begin_layout Standard
-There are no 
-\change_deleted 2 1189456061
-implication
-\change_inserted 2 1189456064
-drawbacks
-\change_unchanged
- o
-\change_inserted 2 1189456067
-f
-\change_deleted 2 1189456067
-n
-\change_unchanged
- running GFS with 
+There are no drawbacks of running GFS with 
 \emph on
 gaclplugin
 \emph default
@@ -9887,103 +5893,33 @@ gaclplugin
 \emph on
 fileplugin
 \emph default
- under
-\change_inserted 2 1189456076
- a
-\change_unchanged
- 
+ under a 
 \emph on
 non-root
 \emph default
- account as long as 
-\change_inserted 2 1189456085
-the 
-\change_unchanged
-only Grid identity 
-\change_inserted 2 1189456106
-used is that 
-\change_unchanged
-of 
-\change_inserted 2 1189456181
-the 
-\change_unchanged
-user
-\change_deleted 2 1189456120
- is used
-\change_inserted 2 1189456223
- who runs the services
-\change_unchanged
- and all served files and directories are owned by 
-\change_inserted 2 1189456722
-the 
-\change_unchanged
-server's account.
+ account as long as the only Grid identity used is that of the user who
+ runs the services and all served files and directories are owned by the
+ server's account.
  
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 2 1189456306
-For combination of
-\change_inserted 2 1189456310
-In order for
-\change_unchanged
- GM and GFS with 
+In order for GM and GFS with 
 \emph on
 jobplugin
 \emph default
- 
-\change_inserted 2 1189456397
-to be able to cooperate, 
-\change_unchanged
-both services must be run either by
-\change_inserted 2 1189456419
- the
-\change_unchanged
- same 
-\change_inserted 2 1189456424
-non-root 
-\change_unchanged
-account or one of 
-\change_inserted 2 1189456432
-the 
-\change_unchanged
-services must be run under
-\change_inserted 2 1189456438
- the
-\change_unchanged
- 
+ to be able to cooperate, both services must be run either by the same non-root
+ account or one of the services must be run under the 
 \emph on
 root
 \emph default
  account.
- Th
-\change_deleted 2 1189456529
-at
-\change_inserted 2 1189456529
-is
-\change_unchanged
- is needed because 
-\change_inserted 2 1189456489
-the two 
-\change_unchanged
-services communicate over 
-\change_inserted 2 1189456453
-a 
-\change_unchanged
-local filesystem, hence 
-\change_inserted 2 1189456494
-they 
-\change_unchanged
-must have 
+ This is needed because the two services communicate over a local filesystem,
+ hence they must have 
 \emph on
 full
 \emph default
- access to 
-\change_inserted 2 1189456500
-the 
-\change_unchanged
-same set of files.
+ access to the same set of files.
 \end_layout
 
 \begin_layout Standard
@@ -9991,118 +5927,28 @@ As long as GFS with
 \emph on
 jobplugin
 \emph default
- is run under 
-\change_inserted 2 1189456733
-a 
-\change_unchanged
-non-root account
-\change_deleted 2 1189456674
- there is
-\change_inserted 2 1189456674
-,
-\change_unchanged
- no mapping from Grid identity to local UNIX account tak
-\change_deleted 2 1189456682
-ing
-\change_inserted 2 1189456683
-es
-\change_unchanged
- place.
- All alowed Grid users are assigned 
-\change_inserted 2 1189456695
-the 
-\change_unchanged
-server's account and are then processes by GM using same account.
- 
-\change_inserted 2 1189456749
-The 
-\change_deleted 2 1189456748
-O
-\change_inserted 2 1189456750
-o
-\change_unchanged
-nly way to overcome this limitation is to run one GFS per local account
+ is run under a non-root account, no mapping from Grid identity to local
+ UNIX account takes place.
+ All alowed Grid users are assigned the server's account and are then processes
+ by GM using same account.
+ The only way to overcome this limitation is to run one GFS per local account
  with proper access control configured.
 \end_layout
 
 \begin_layout Standard
-Because GM has to 
-\change_deleted 2 1189456904
-represent
-\change_inserted 2 1189456907
-impersonate
-\change_unchanged
- 
-\change_inserted 2 1189456791
-a 
-\change_unchanged
-user's local account while communicati
-\change_deleted 2 1189456913
-o
-\change_unchanged
-n
-\change_inserted 2 1189456913
-g
-\change_unchanged
- with 
-\change_inserted 2 1189456918
-the 
-\change_unchanged
-LRMS, it can serve only 
-\change_inserted 2 1189456837
-the 
-\change_unchanged
-account it is run under (unless it is run under
-\change_inserted 2 1189456845
- the
-\change_unchanged
- 
+Because GM has to impersonate a user's local account while communicating
+ with the LRMS, it can serve only the account it is run under (unless it
+ is run under the 
 \emph on
 root
 \emph default
  account, of course).
- 
-\change_deleted 2 1189457347
-Like
-\change_inserted 2 1189457347
-As
-\change_unchanged
- in 
-\change_inserted 2 1189457027
-the 
-\change_unchanged
-case of GFS, multiple instances of GM may be run, one per local account.
- Th
-\change_deleted 2 1189457059
-at
-\change_inserted 2 1189457059
-is
-\change_unchanged
- solution 
-\change_deleted 2 1189457101
-causes another implications
-\change_inserted 2 1189457207
-has some drawbacks
-\change_unchanged
-.
+ As in the case of GFS, multiple instances of GM may be run, one per local
+ account.
+ This solution has some drawbacks.
  The GM looses possibility to share cached files among serviced users.
- I
-\change_inserted 2 1189457162
-n addition, i
-\change_unchanged
-t is not 
-\change_deleted 2 1189457170
-also 
-\change_unchanged
-possible to control 
-\change_inserted 2 1189457178
-the 
-\change_unchanged
-load on a frontend by limiting 
-\change_inserted 2 1189457183
-the 
-\change_unchanged
-number of simultatenuosly running 
+ In addition, it is not possible to control the load on a frontend by limiting
+ the number of simultatenuosly running 
 \emph on
 downloader
 \emph default
@@ -10114,24 +5960,9 @@ uploader
 \end_layout
 
 \begin_layout Standard
-One 
-\change_deleted 2 1189457248
-has 
-\change_unchanged
-also 
-\change_inserted 2 1189457253
-has to 
-\change_unchanged
-take into account that 
-\change_inserted 2 1189457287
-the 
-\change_unchanged
-private part of
-\change_inserted 2 1189457307
- the
-\change_unchanged
- GSI infrastructure (private key of a host at least) has to be duplicated
- for every account used to run GFS.
+One also has to take into account that the private part of the GSI infrastructur
+e (private key of a host at least) has to be duplicated for every account
+ used to run GFS.
 \end_layout
 
 \begin_layout Section*
@@ -10144,262 +5975,44 @@ Virtual tree
 \end_layout
 
 \begin_layout Standard
-Under
-\change_inserted 2 1189457706
- the
-\change_unchanged
- mount point of 
-\change_inserted 2 1189457554
-the 
-\change_unchanged
-jobplugin
-\change_inserted 2 1189457559
-, a
-\change_unchanged
- 
-\change_inserted 2 1189457613
-user connecting with a 
-\change_unchanged
-gridftp client 
-\change_deleted 2 1189457617
-can
-\change_inserted 2 1189457618
-will
-\change_unchanged
- see 
-\change_inserted 2 1189459053
-virtual 
-\change_unchanged
-directories representing 
-\change_inserted 2 1189457580
-the 
-\change_unchanged
-job
-\change_inserted 2 1189457666
-s
-\change_unchanged
- belonging to 
-\change_deleted 2 1189457654
-user, who started client
-\change_inserted 0 1189601894
-him/her
-\change_unchanged
-.
- 
-\change_inserted 2 1189458357
-Directory names are job identifiers, each representing one job
-\change_deleted 2 1189458391
-Directory per job.
- Directory names are same as jobs' identifiers
-\change_unchanged
-.
- Th
-\change_deleted 2 1189458010
-o
-\change_inserted 2 1189458010
-e
-\change_unchanged
-se directories are directly connected to session directories of jobs and
- contain
-\change_inserted 2 1189459649
- the
-\change_unchanged
- 
-\change_deleted 2 1189460778
-same 
-\change_unchanged
-files and subdirectories
-\change_inserted 2 1189459122
- that are visible on the frontend
-\change_unchanged
-.
-
-\change_deleted 2 1189459573
- Except if jobs session directory is moved to computing node.
- In that case directories only contain files with redirected stdout and
- strderr as specified in xRSL.
-\change_unchanged
-
+Under the mount point of the jobplugin, a user connecting with a gridftp
+ client will see virtual directories representing the jobs belonging to
+ him/her.
+ Directory names are job identifiers, each representing one job.
+ These directories are directly connected to session directories of jobs
+ and contain the files and subdirectories that are visible on the frontend.
 \end_layout
 
 \begin_layout Standard
-If
-\change_inserted 2 1189459671
- a
-\change_unchanged
- job's xRSL has 
+If a job's xRSL has 
 \emph on
 gmlog
 \emph default
- specified
-\change_inserted 2 1189460864
-, then the
-\change_unchanged
- job's directory also contains 
-\change_inserted 2 1189459819
-a 
-\change_unchanged
-virtual subdirectory 
-\change_deleted 2 1189459994
-with same
-\change_inserted 2 1189460548
-of that
-\change_unchanged
- name
-\change_deleted 2 1189461230
-, which contains
-\change_inserted 2 1189461232
- holding
-\change_unchanged
- files with information about 
-\change_inserted 2 1189460040
-the 
-\change_unchanged
-job as created by GM.
- The 
-\change_deleted 2 1189460313
-most important are 
-\change_unchanged
-'errors' and 'status'
-\change_inserted 2 1189460961
- files are especially usefull for troubleshooting
-\change_unchanged
-.
- 'errors' contains 
-\change_inserted 2 1189460983
-the 
-\change_unchanged
-stderr 
-\change_inserted 2 1189460988
-output 
-\change_unchanged
-of 
-\change_deleted 2 1189460411
-separate
-\change_inserted 2 1189460995
-the various
-\change_unchanged
- modules run by GM 
-\change_deleted 2 1189460392
-in order to
-\change_inserted 2 1189460396
-during job
-\change_unchanged
- process
-\change_inserted 2 1189460399
-ing
-\change_unchanged
- 
-\change_deleted 2 1189460401
-job
-\change_inserted 2 1189460402
-stages
-\change_unchanged
- (downloader, uploader, job's submission to LRMS).
- 'status' contains one word representing
-\change_inserted 2 1189461119
- the job's
-\change_unchanged
- state
-\change_deleted 2 1189461124
- of job
-\change_unchanged
-.
+ specified, then the job's directory also contains a virtual subdirectory
+ of that name holding files with information about the job as created by
+ GM.
+ The 'errors' and 'status' files are especially usefull for troubleshooting.
+ 'errors' contains the stderr output of the various modules run by GM during
+ job processing stages (downloader, uploader, job's submission to LRMS).
+ 'status' contains one word representing the job's state.
  
 \end_layout
 
 \begin_layout Standard
-Also under
-\change_inserted 2 1189461350
- the jobplugin's
-\change_unchanged
- mount point there is 
-\change_inserted 2 1189461375
-an 
-\change_unchanged
-additional directory named "new"
-\change_inserted 2 1189461414
- --
-\change_unchanged
- used to submit new jobs
-\change_inserted 2 1189461439
- --
-\change_deleted 2 1189461436
-.
-
-\change_unchanged
- 
-\change_deleted 2 1189461441
-A
-\change_inserted 2 1189461442
-a
-\change_unchanged
-nd another directory 
-\change_inserted 2 1189461536
-named 
-\change_deleted 2 1189461525
-
-\begin_inset Quotes eld
-\end_inset
-
-
-\change_inserted 2 1189461525
-
+Also under the jobplugin's mount point there is an additional directory
+ named "new" -- used to submit new jobs -- and another directory named 
 \begin_inset Quotes erd
 \end_inset
 
-
-\change_unchanged
 info
 \begin_inset Quotes erd
 \end_inset
 
-
-\change_inserted 2 1189462125
 .
- The latter
-\change_unchanged
- 
-\change_inserted 2 1189462146
-has
-\change_deleted 2 1189462144
-with
-\change_unchanged
- subdirectories named after job ids
-\change_deleted 2 1189461661
-.
- Those subdirectories
-\change_inserted 2 1189461664
-, each
-\change_unchanged
- 
-\change_inserted 2 1189461696
-of which 
-\change_unchanged
-contain
-\change_inserted 2 1189461703
-s
-\change_unchanged
- files with information about 
-\change_inserted 2 1189461711
-a 
-\change_unchanged
-job
-\change_inserted 2 1189462162
-.
- These are the same files
-\change_unchanged
- 
-\change_deleted 2 1189461840
-identical to those
-\change_inserted 2 1189462195
-that can be accessed
-\change_unchanged
- in 
-\change_inserted 2 1189461860
-the 
-\change_unchanged
-subdirectory specified through 
+ The latter has subdirectories named after job ids, each of which contains
+ files with information about a job.
+ These are the same files that can be accessed in the subdirectory specified
+ through 
 \emph on
 gmlog
 \emph default
@@ -10411,9 +6024,7 @@ Submission
 \end_layout
 
 \begin_layout Standard
-Each xRSL put into 
-\change_inserted 2 1189462405
-the 
+Each xRSL put into the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -10421,108 +6032,20 @@ new
 \begin_inset Quotes erd
 \end_inset
 
- 
-\change_unchanged
-directory 
-\change_deleted 2 1189462412
-"new"
-\change_inserted 2 1189462362
-by a gridftp client
-\change_unchanged
- is 
-\change_deleted 2 1189462372
-accepted
-\change_inserted 2 1189462374
-treated
-\change_unchanged
- as 
-\change_inserted 2 1189462380
-a new 
-\change_unchanged
-job's description.
- 
-\change_inserted 2 1189462431
-GFS's 
-\change_unchanged
-jobplugin parses 
-\change_deleted 2 1189462548
-it
-\change_inserted 2 1189462551
-the xRSL
-\change_unchanged
- and 
-\change_inserted 2 1189462474
-returns the 
-\change_unchanged
-client 
-\change_deleted 2 1189462478
-gets
-\change_inserted 2 1189462478
-a
-\change_unchanged
- positive response if there 
-\change_deleted 2 1189462497
-are
-\change_inserted 2 1189462497
-were
-\change_unchanged
- no errors in 
-\change_inserted 2 1189462502
-the 
-\change_unchanged
-request.
+ directory by a gridftp client is treated as a new job's description.
+ GFS's jobplugin parses the xRSL and returns the client a positive response
+ if there were no errors in the request.
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189462679
-The new 
-\change_deleted 2 1189462679
-J
-\change_inserted 2 1189462681
-j
-\change_unchanged
-ob gets 
-\change_inserted 2 1189462685
-an 
-\change_unchanged
-identifier and 
-\change_inserted 2 1189462691
-a 
-\change_unchanged
-directory with 
-\change_inserted 2 1189462697
-the 
-\change_unchanged
-corresponding name appears.
- If 
-\change_inserted 2 1189462706
-the 
-\change_unchanged
-job's description contains input files which should be 
-\change_deleted 2 1189462717
-delivered
-\change_inserted 2 1189462721
-transferred
-\change_unchanged
- from 
-\change_inserted 2 1189462729
-the 
-\change_unchanged
-client's machine, 
-\change_inserted 2 1189462740
-the 
-\change_unchanged
-client must upload them to that directory under specified names.
+The new job gets an identifier and a directory with the corresponding name
+ appears.
+ If the job's description contains input files which should be transferred
+ from the client's machine, the client must upload them to that directory
+ under specified names.
 \end_layout
 
 \begin_layout Standard
-
-\change_deleted 2 1189463320
-Because each job gets identifier there should be a way for client to obtain
- it.
- 
-\change_inserted 2 1189465207
 The job identifier reserved by GFS to a new job must be somehow communicated
  back to the client.
  Within the bounds of the FTP protocol, this is achieved in the following
@@ -10541,15 +6064,6 @@ new
  named after the reserved identifier.
  The client has now found out the job's id, and proceeds with uploading
  the xRLS.
-\change_deleted 2 1189463946
-For that prior to providing xRSL client sends command CWD to change current
- directory to "new".
- In this way job's identifier is reserved, new directory corresponding to
- that identifier is created and client is redirected to it (as specified
- in FTP protocol).
- Job's description put into "new" will get reserved identifier.
-\change_unchanged
-
 \end_layout
 
 \begin_layout Subsection*
@@ -10557,21 +6071,8 @@ Actions
 \end_layout
 
 \begin_layout Standard
-Various actions to affect processing of 
-\change_inserted 2 1189465268
-an 
-\change_unchanged
-existing job are 
-\change_deleted 2 1189465306
-performed
-\change_inserted 2 1189465421
-requested
-\change_unchanged
- by uploading 
-\change_inserted 2 1189465428
-special 
-\change_unchanged
-xRSL files into directory 
+Various actions to affect processing of an existing job are requested by
+ uploading special xRSL files into directory 
 \begin_inset Quotes eld
 \end_inset
 
@@ -10580,13 +6081,7 @@ new
 \end_inset
 
 .
- 
-\change_inserted 2 1189465838
-Such an 
-\change_deleted 2 1189465458
-Content of 
-\change_unchanged
-xRSL may consist of only 2 parameters - 
+ Such an xRSL may consist of only 2 parameters - 
 \emph on
 action
 \emph default
@@ -10594,30 +6089,12 @@ action
 \emph on
 jobid
 \emph default
- to identify
-\change_inserted 2 1189465744
- the
-\change_unchanged
- job to be affected.
- 
-\change_deleted 2 1189465810
-Rest of
-\change_inserted 2 1189465814
-All other
-\change_unchanged
- parameters are ignored.
+ to identify the job to be affected.
+ All other parameters are ignored.
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189465827
-The 
-\change_deleted 2 1189465828
-C
-\change_inserted 2 1189465828
-c
-\change_unchanged
-urrently supported actions are:
+The currently supported actions are:
 \end_layout
 
 \begin_layout List
@@ -10626,11 +6103,7 @@ urrently supported actions are:
 \emph on
 cancel
 \emph default
- to cancel
-\change_inserted 2 1189465943
- a
-\change_unchanged
- job
+ to cancel a job
 \end_layout
 
 \begin_layout List
@@ -10639,11 +6112,7 @@ cancel
 \emph on
 clean
 \emph default
- to remove
-\change_inserted 2 1189465945
- a
-\change_unchanged
- job from computing resource
+ to remove a job from computing resource
 \end_layout
 
 \begin_layout List
@@ -10652,11 +6121,7 @@ clean
 \emph on
 renew
 \emph default
- to renew credentials delegated to
-\change_inserted 2 1189465950
- a
-\change_unchanged
- job
+ to renew credentials delegated to a job
 \end_layout
 
 \begin_layout List
@@ -10665,31 +6130,12 @@ renew
 \emph on
 restart
 \emph default
- to restart
-\change_inserted 2 1189465954
- a
-\change_unchanged
- job after failure at some phases
+ to restart a job after failure at some phases
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189466034
-Alternatively, 
-\change_deleted 2 1189466035
-I
-\change_inserted 2 1189466036
-i
-\change_unchanged
-t is also possible to perform some 
-\change_inserted 2 1189466061
-of these 
-\change_unchanged
-actions by using 
-\change_inserted 2 1189466024
-the 
-\change_unchanged
-shortcut FTP operations described below.
+Alternatively, it is also possible to perform some of these actions by using
+ the shortcut FTP operations described below.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -10697,49 +6143,10 @@ Cancel
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189466132
-A 
-\change_deleted 2 1189466133
-J
-\change_inserted 2 1189466134
-j
-\change_unchanged
-ob is canceled by performing 
-\change_inserted 2 1189467719
-a 
-\change_unchanged
-DELE (delete file) command on 
-\change_inserted 2 1189466151
-the 
-\change_unchanged
-directory representing
-\change_inserted 2 1189466158
- the
-\change_unchanged
- job.
- It can take some time (
-\change_inserted 2 1189466166
-a 
-\change_unchanged
-few minutes) before 
-\change_inserted 2 1189466176
-the 
-\change_unchanged
-job is actually canceled.
- Nevertheless
-\change_inserted 2 1189466188
-,
-\change_unchanged
- 
-\change_inserted 2 1189466186
-the 
-\change_unchanged
-client gets 
-\change_inserted 2 1189466206
-a 
-\change_unchanged
-response immediately.
+A job is canceled by performing a DELE (delete file) command on the directory
+ representing the job.
+ It can take some time (a few minutes) before the job is actually canceled.
+ Nevertheless, the client gets a response immediately.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -10747,32 +6154,9 @@ Clean
 \end_layout
 
 \begin_layout Standard
-
-\change_inserted 2 1189466220
-A 
-\change_deleted 2 1189466221
-J
-\change_inserted 2 1189466222
-j
-\change_unchanged
-ob's content is cleaned by performing 
-\change_inserted 2 1189466232
-a 
-\change_unchanged
-RMD (remove directory) command on 
-\change_inserted 2 1189466239
-the 
-\change_unchanged
-directory representing 
-\change_inserted 2 1189466242
-the 
-\change_unchanged
-job.
- If 
-\change_inserted 2 1189466254
-the 
-\change_unchanged
-job is in "FINISHED" state it will be cleaned immediately.
+A job's content is cleaned by performing a RMD (remove directory) command
+ on the directory representing the job.
+ If the job is in "FINISHED" state it will be cleaned immediately.
  Otherwise it will be cleaned after it reaches state "FINISHED".
 \end_layout
 
@@ -10781,44 +6165,10 @@ Renew
 \end_layout
 
 \begin_layout Standard
-If 
-\change_inserted 2 1189466626
-a 
-\change_unchanged
-client requests CWD to 
-\change_inserted 2 1189466641
-a job's 
-\change_unchanged
-session directory
-\change_inserted 2 1189466649
-,
-\change_unchanged
- credentials passed during authentication are compared to
-\change_inserted 2 1189466665
- the
-\change_unchanged
- current credentials of the job.
- If 
-\change_inserted 2 1189466799
-the 
-\change_unchanged
-validity time of the new credentials is longer
-\change_inserted 2 1189466708
-, the
-\change_unchanged
- job's 
-\change_inserted 2 1189466714
-current 
-\change_unchanged
-credentials are replaced with 
-\change_inserted 2 1189466718
-the 
-\change_unchanged
-new
-\change_inserted 2 1189466754
- ones
-\change_unchanged
-.
+If a client requests CWD to a job's session directory, credentials passed
+ during authentication are compared to the current credentials of the job.
+ If the validity time of the new credentials is longer, the job's current
+ credentials are replaced with the new ones.
 \end_layout
 
 \begin_layout Section*

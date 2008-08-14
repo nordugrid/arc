@@ -116,8 +116,7 @@
 
 
 \begin{center}
-\textsc{\large The ARC Computational Job Management Component
-- A-Rex}
+\textsc{\large The ARC Computational Job Management Component - A-Rex}
 \par\end{center}{\large \par}
 
 \vspace*{0.5cm}
@@ -140,112 +139,108 @@
 \section{Introduction\label{sec:intro}}
 
 A-Rex is one of ARC middleware componets implementing functions of
-so called \emph{Computing Element} (CE).     
-          
-          
+so called \emph{Computing Element} (CE). 
 
-The aim of the   A-Rex is to take care of job pre-
-and post-processing. It provides functionality to stage-in files containing
-input data and program modules from wide range of sources and transfer
-or store output results.
+The aim of the A-Rex is to take care of job pre- and post-processing.
+It provides functionality to stage-in files containing input data
+and program modules from wide range of sources and transfer or store
+output results.
 
-The A-Rex implements Web Service (WS) interface which   
-    provides a way to submit and control
-computational tasks (jobs) to be executed by the A-Rex and undelying
-Local Resource Management System.     
-          
-
+The A-Rex implements Web Service (WS) interface which provides a way
+to submit and control computational tasks (jobs) to be executed by
+the A-Rex and undelying Local Resource Management System.
 
 \textbf{You should use this document for advanced configuration purposes
 and understanding of internals of the aforementioned tools. For general
-instalaltion and configuration refer to other documents avaialble
-at \url{http://www.nordugrid.org/papers.html}. }
+instalaltion and configuration of whole system refer to other documents
+avaialble at \url{http://www.nordugrid.org/papers.html}. }
 
 
 \section{Main concepts\label{sec:main concepts}}
 
-A job is a set of input files (which may or may not include executables),
-a main executable and a set of output files. The process of gathering
-input files, executing a job, and transferring/storing output files
-is called a \emph{session}.
+A job is a set of input files (which may include executables), a main
+executable and a set of output files. The process of gathering input
+files, executing a job, and transferring/storing output files is called
+a \emph{session}.
 
 Each job gets a directory on the CE called the \emph{session directory}
 (SD). Input files are gathered in the SD. The job is supposed to produce
-new data files  in the SD as well. The A-Rex does not guarantee
-the availability of any other places accessible by the job other than
+new data files in the SD as well. The A-Rex does not guarantee the
+availability of any other places accessible by the job other than
 SD (unless such a place is part of a requested Runtime Environement).
-The SD is also the only place which is controlled by the A-Rex.
-It is  accessible by the user from outside through HTTP(S)  
-protocol. Any file created outside the SD is not controlled by the
-A-Rex. Any exchange of data between client and A-Rex (including
-also program modules) is done through    HTTP(S) protocol
-   . A URL for accessing input/output
-files is       obtained through
-the WS Local Information Description Interface (LIDI) of A-Rex.
+The SD is also the only place which is controlled by the A-Rex. It
+is accessible by the user from outside through HTTP(S) protocol. Any
+file created outside the SD is not controlled by the A-Rex. Any exchange
+of data between client and A-Rex (including also program modules)
+is done through HTTP(S) protocol. A URL for accessing input/output
+files is  obtained through the WS Local Information Description Interface
+(LIDI) of A-Rex.
 
-Each job gets an identifier (\textit{jobid}). This is a handle which
-identifies the job in the A-Rex and the Information  Interface.
+Each job gets an identifier (\textit{jobid}). This is a handle - WS-Addressing
+\cite{jsdl} XML document - which identifies the job in the A-Rex
+and the Information Interface.
 
-  Jobs are initiated and controlled through   WS interface.
-Complete job descriptions   (JD)   are passed to the
-A-Rex  through       WS in JSDL \cite{jsdl}
-coded description     . Input data files
-and job executables are transferred separately through the same interface,
-as described in the next section.
+Jobs are initiated and controlled through WS interface. Complete job
+descriptions (JD)are passed to the A-Rex through WS in JSDL\cite{jsdl}
+coded description. Input data files and job executables are transferred
+separately through the same interface, as described in the next section.
 
 
 \section{Input/output data\label{sec:input/output data}}
 
-One of the most important tasks   of the A-Rex is to
-take care of processing input and output data (files) of the job.
-Input files are gathered in the SD. There are two ways to put a file
+One of the most important tasks of the A-Rex is to take care of processing
+input and output data (files) of the job. Input files are gathered
+in the SD or associated cache area. There are two ways to put a file
 into the SD:
 
 \begin{itemize}
-\item Download is initiated by the A-Rex --  This is the case
-for files     defined in the JD (with name and source).
-      The A-Rex alone is responsible to
+\item Download is initiated by the A-Rex -- This is the case for files defined
+in the JD (with name and source). The A-Rex alone is responsible to
 make sure that all required files will be available in the SD.\\
-The supported protocols for sources  at the moment are: GridFTP,
-FTP, HTTP, HTTPS (HTTP over SSLv3) and HTTPg (HTTP over GSI). Also
-some nonstandard sources are supported. Those are described below.
+The supported protocols for sources at the moment are (in case of
+full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3). Also
+some less standard sources are supported. Those are described below.
 The A-Rex fully relies on HED framework \cite{hed} for data transfering
 capabilities. Hence actual set of supported protocols depends on installed
 Data Management Components of the HED.
 \item Upload is initiated by the user directly or through the User Interface
 (UI). Because the SD becomes available immediately at the time of
 submission of JD, UI can (and should) use that to upload data files
-which are not otherwise accessible by the A-Rex.  Examples of
-such files  are the main executable of the job,  
-the job's input files, etc. These files can (and
-should) also be specified in the JD.
+which are not otherwise accessible by the A-Rex. Examples of such
+files are the main executable of the job, the job's input files, etc.
+These files can (and should) also be specified in the JD.
 \end{itemize}
 \textbf{There is no} other reliable way for a job to obtain input
-data on the CE based on the A-Rex  . Access to
-AFS, NFS, FTP, HTTP and any other remote data transport during execution
-of a job is not guaranteed (at least not by A-Rex).
+data on the CE based on the A-Rex. Access to AFS, NFS, FTP, HTTP and
+any other remote data transport during execution of a job is not guaranteed
+(at least not by A-Rex).
 
-Jobs should store output files in their SD. Like input files,
-output files  belong into two groups:
+Jobs should store output files in their SD. Like input files, output
+files belong into two groups:
 
 \begin{itemize}
 \item Files which are supposed to be moved to a \emph{Storage Element} (SE)
 and optionally registered in some \emph{Indexing Service} like the
-Globus \emph{Replica Location Service } (RLS)  --
-The A-Rex takes care of these files. They have to be specified
-in the JD. If the job fails during any stage of processing, no attept
-is made to transfer those files to their final destination, unless
-the  option \emph{preserve=yes} is specified in their URLs.
+Globus \emph{Replica Location Service} (RLS) -- The A-Rex takes care
+of these files. They have to be specified in the JD. If the job fails
+during any stage of processing, no attept is made to transfer those
+files to their final destination, unless the option \emph{preserve=yes}
+is specified in their URLs.
 \item Files which are supposed to be fetched by the user -- The user has
 to use a tool like the UI to obtain these files. They \textbf{must}
 also be specified in the JD.
 \end{itemize}
+All files not specified in the JD are deleted after job execution
+finished. If job execution fails for any reason (if exit code of main
+executable is not 0) all files from furst group are transfered to
+second one.
+
 
 \section{\label{Section: Job Flow}Job flow}
 
-From the point of view of the A-Rex a job passes through various
-states. Picture \ref{job states diagram} presents a diagram of the
-possible states of a job.%
+From the point of view of the A-Rex a job passes through various states.
+Picture \ref{job states diagram} presents a diagram of the possible
+states of a job.%
 \begin{figure}[tbh]
 \begin{centering}
 \includegraphics{pic1}
@@ -255,181 +250,173 @@ possible states of a job.%
 \caption{\label{job states diagram}Job states}
 \end{figure}
 A user can examine the state of a job by querying the dedicated Local
-Information Description Interface of A-Rex  
- using the UI or any other suitable tool   
-           
-           
-         
-     or through query method of WS interface. 
+Information Description Interface of A-Rex using the UI or any other
+suitable tool or through query method of WS interface. 
 
 Configuration can put limits on the amout of simultaneous jobs in
 some states. If such a limit is reached, a job ready to enter into
 the state in question will stay in it's current state waiting for
-a free slot. This situation is presented by prepending the prefix
-\textbf{PENDING:} to the current state name  \textbf{}
-in the job's status mark. 
+a free slot. This situation is presented by additional state mark
+\textbf{PENDING} to the current state name in the job's status desription.
 
 Below is the description of all actions taken by the A-Rex at every
 state:
 
 \begin{itemize}
-\item \textbf{Accepted} - In this state the job has been submitted to
-a CE but is not processed yet. The A-Rex will analyze the JD and
-move to the next stage. If the JD can not be processed the job will
-be canceled and moved to the state \textbf{Finishing}.
+\item \textbf{Accepted} - In this state the job has been submitted to a
+CE but is not processed yet. The A-Rex will analyze the JD and move
+to the next stage. If the JD can not be processed the job will be
+canceled and moved to the state \textbf{Finishing}.
 \item \textbf{Preparing} - The input data is being gathered in the SD (stage-in).
 The A-Rex is downloading the files specified in the JD and is waiting
-for files which are supposed to be uploaded by the UI. If
-all files are successfully gathered the job moves to the next state.
-If \textbf{any} file can't be downloaded or it takes the UI too long
-to upload a file,  the job moves to \textbf{Finishing} state. It
-is possible to put a limit on the number of simultaneous \textbf{Preparing}
-jobs. If this limit is exceeded, jobs ready to enter the \textbf{Preparing}
-state      will stay in the \textbf{Accepted}
-state, but prefixed with the PENDING: mark. Exceptions are jobs which
-have no files to be downloaded. These are processed out of limits.
-\item \textbf{Submitting} -      The job is being
-passed for execution to the \emph{Local Resource Management System}
-(LRMS).         The correspoding backends
-for many LRMSs are provided with the default installation.  
-     If the local job submission is successful
-the job moves to the \textbf{InLRMS} state. Otherwise it moves
-to \textbf{Finishing}. It is possible to limit the agregate number
-of jobs in \textbf{Submitting} and  \textbf{InLRMS} states.
-\item \textbf{InLRMS} - The job is queued or being executed in the LRMS.
+for files which are supposed to be uploaded by the UI. If all files
+are successfully gathered the job moves to the next state. If \textbf{any}
+file can't be downloaded or it takes the UI too long to upload a file,
+the job moves to \textbf{Finishing} state. It is possible to put a
+limit on the number of simultaneous \textbf{Preparing} jobs. If this
+limit is exceeded, jobs ready to enter the \textbf{Preparing} state
+ will stay in the \textbf{Accepted} state, but prefixed with the PENDING:
+mark. Exceptions are jobs which have no files to be downloaded. These
+are processed out of limits.
+\item \textbf{Submiting} - The job is being passed for execution to the
+\emph{Local Resource Management System} (LRMS). The correspoding backends
+for many LRMSs are provided with the default installation. If the
+local job submission is successful the job moves to the \textbf{Executing}
+state. Otherwise it moves to \textbf{Finishing}. It is possible to
+limit the agregate number of jobs in \textbf{Submiting} and \textbf{Executing}
+states.
+\item \textbf{Executing} - The job is queued or being executed in the LRMS.
 The A-Rex takes no actions except waiting until the job finishes.
-\item \textbf{Cancelling} - Necessary action to cancel the job in the LRMS
+\item \textbf{Killing} - Necessary action to cancel the job in the LRMS
 is being taken.
 \item \textbf{Finishing} - The output data is being processed (stage-out).
 Specified data files are moved to the specified SEs and are optionally
-registered at  an Indexing Service. The user can download data files
-from the SD by using the UI or  other adequate tool. All the files
+registered at an Indexing Service. The user can download data files
+from the SD by using the UI or other adequate tool. All the files
 not specified as output files are removed from the SD at very beginning
 of this state. It is possible to limit number of simultaneous jobs
 in this state.
 \item \textbf{Finished} - No more processing is performed by the A-Rex.
 The user can continue to download data files from the SD. The SD is
-kept available for some time (default is 1 week). After that the
-job is moved to the state \textbf{Deleted}. The 'deletion' time can
-be obtained by querying the Informatrion Interface of the A-Rex
-      . If a job was moved to \textbf{Finished}
-because of failure, it may be restarted on request of a client. When
-restarted, a job is moved to the state previous to the one in which
-it failed and is assigned mark PENDING. This is needed in order to
-not break the configuration limits. Exception is a job failed in \textbf{InLRMS}
-state and lacking input files specified in JD. Such a job is treated
-like failed in \textbf{Preparing} state.
+kept available for some time (default is 1 week). After that the job
+is moved to the state \textbf{Deleted}. The 'deletion' time can be
+obtained by querying the Informatrion Interface of the A-Rex. If a
+job was moved to \textbf{Finished} because of failure, it may be restarted
+on request of a client. When restarted, a job is moved to the state
+previous to the one in which it failed and is assigned mark PENDING.
+This is needed in order to not break the configuration limits. Exception
+is a job failed in \textbf{Executing} state and lacking input files
+specified in JD. Such a job is treated like failed in \textbf{Preparing}
+state.
 \item \textbf{Deleted} - The job is moved to this state if the user have
 not requested job to be cleaned before the SD's lifetime expires.
 Only minimal subset of information about such job is kept. The SD
 is not available anymore.
 \end{itemize}
-In  case of a failure special processing is applied to output
-files. All specified output files are treated as \textbf{downloadable
-by the user}. No files will be moved to their destination SE.
+In case of a failure special processing is applied to output files.
+All specified output files are treated as \textbf{downloadable by
+the user}. No files will be moved to their destination SE.
 
 
 \section{URLs}
 
-In full installation the A-Rex and it's components support the
-following data transfer protocols and corresponding URLs: \emph{ftp,
-gsiftp, http, httpg, https, se, rc} and \emph{rls.} For more information
-please see {}``The Hosting Environment of the Advanced Resource Connector
-middleware      
-  '' document \cite{hed}.
+In full installation the A-Rex and it's components support the following
+data transfer protocols and corresponding URLs: \emph{ftp, gsiftp,
+http, https, lfc} and \emph{rls.} For more information please see
+{}``The Hosting Environment of the Advanced Resource Connector middleware''
+document \cite{hed}.
 
 
 \section{\label{section: internals}Internals}
 
 
-\subsection{Internal Files of the A-Rex }
+\subsection{Internal Files of the A-Rex}
 
 For each local UNIX user listed in the A-Rex configuration - including
 a generic one which covers all local user identities - a \textit{control
 directory} exists. In this directory the A-Rex stores information
 about jobs belonging to that user. Multiple users can share the same
-\textit{control directory}. To make it easier to recover in  case
-of failure, the A-Rex stores most information in files rather than
-in memory. All files belonging to the same job have names starting
-with \textbf{job.ID.,} where ID is the job identifier.
+\textit{control directory}. In most common configuration case A-Rex
+serves all users defined by Operating System and stores their control
+file in same directory. To make it easier to recover in case of failure,
+the A-Rex stores most information in files rather than in memory.
+All files belonging to the same job have names starting with \textbf{job.ID.,}
+where ID is the job identifier.
 
 The files in the control directory and their formats are described
 below:
 
 \begin{itemize}
 \item \textit{job.ID.status} - current state of the job. This is a plain
-text file containing a single word   representing the current
-state of the job. Possible values are :
+text file containing a single word representing the internal name
+of current state of the job. Possible values and corrsponding external
+job states are :
 
 \begin{itemize}
-\item ACCEPTED
-\item PREPARING
-\item SUBMITTING
-\item INLRMS
-\item FINISHING
-\item FINISHED
-\item CANCELING
-\item DELETED
+\item ACCEPTED/\textbf{Accepted}
+\item PREPARING/\textbf{Preparing}
+\item SUBMITTING/\textbf{Submiting}
+\item INLRMS/\textbf{Executing}
+\item FINISHING/\textbf{Finishing}
+\item FINISHED/\textbf{Finished}
+\item CANCELING/\textbf{Killing}
+\item DELETED/\textbf{Deleted}
 \end{itemize}
 \end{itemize}
 See section \ref{Section: Job Flow} for a description of the various
-states. Additionally each value can be prepended  the prefix
-{}``PENDING:'' (like PENDING:ACCEPTED, see section \ref{Section: Job Flow}).
-This is used to show that a job  is \emph{ready} to be moved
-to the next state but it has to stay in it's current state \emph{only}
-because otherwise some limits set in the configuration would be
-exceeded.
+states. Additionally each value can be prepended the prefix {}``PENDING:''
+(like PENDING:ACCEPTED, see section \ref{Section: Job Flow}). This
+is used to show that a job is \emph{ready} to be moved to the next
+state but it has to stay in it's current state \emph{only} because
+otherwise some limits set in the configuration would be exceeded.
 
 \begin{itemize}
-\item \textit{job.ID.description} - contains the  description of the
-job (JD).
+\item \textit{job.ID.description} - contains the description of the job
+(JD).
 \item \textit{job.ID.local} - information about the job used by the A-Rex.
-It consists of lines of format \textit{{}``name = value''} . Not
+It consists of lines of format \textit{{}``name = value''}. Not
 all of them are always available. The following names are defined:
 
 \begin{itemize}
 \item \textit{subject} - user certificate's subject, also known as the distinguished
 name (DN)
-\item \textit{starttime} -  GMT time when the job was accepted represented
+\item \textit{starttime} - GMT time when the job was accepted represented
 in the Generalized Time format of LDAP 
-\item \textit{lifetime} - time period to  preserve the SD after the
-job has finished in seconds
-\item \textit{cleanuptime} -  GMT time when the job should be removed
-from the cluster and it's SD deleted in Generalized Time format
+\item \textit{lifetime} - time period to preserve the SD after the job has
+finished in seconds
+\item \textit{cleanuptime} - GMT time when the job should be removed from
+the cluster and it's SD deleted in Generalized Time format
 \item \textit{notify} - email addresses and flags to send mail to about
 the job specified status changes
-\item \textit{processtime} -  GMT time when to start processing the job
-in Generalized Time format
-\item \textit{exectime} -  GMT time when to start job execution in Generalized
+\item \textit{processtime} - GMT time when to start processing the job in
+Generalized Time format
+\item \textit{exectime} - GMT time when to start job execution in Generalized
 Time format
-\item \textit{expiretime} -  GMT time when the credentials delegated
-to the job expire in Generalized Time format
+\item \textit{expiretime} - GMT time when the credentials delegated to the
+job expire in Generalized Time format
 \item \textit{rerun} - number of retries left to rerun the job
 \item \textit{jobname} - name of the job as supplied by the user
-\item \textit{lrms} - name of the LRMS backend     to be used
-for local submission
+\item \textit{lrms} - name of the LRMS backend to be used for local submission
 \item \textit{queue} - name of the queue to run the job at
-\item \textit{localid} - job id in LRMS (appears only after the job
- has reached state \textbf{InLRMS})
+\item \textit{localid} - job id in LRMS (appears only after the job has
+reached state \textbf{InLRMS})
 \item \textit{args} - executable name followed by a list of command-line
-arguments   
+arguments
 \item \textit{downloads} - number of files to download into the SD before
 execution
 \item \textit{uploads} - number of files to upload from the SD after execution
 \item \textit{gmlog} - directory name which holds files containing information
 about the job when accessed through GridFTP interface
 \item \textit{clientname} - name (as provided by the user interface) and
-ip address:port of the submitting client machine   
-  
+ip address:port of the submitting client machine
 \item \textit{clientsoftware} - version of software used to submit the job
-\item \textit{sessiondir} - the job's SD  
-\item \textit{failedstate} - state in which job failed (available only
-if it is possible to restart the job)
+\item \textit{sessiondir} - the job's SD
+\item \textit{failedstate} - state in which job failed (available only if
+it is possible to restart the job)
 \item \textit{jobreport} - URL of a user requested \emph{logger service}.
 The GM will also send job records to this service in addition to the
-default logger service configured in the configuration  
-        (This feature does
-not work in current implementation).
+default logger service configured in the configuration (This feature
+does not work in current implementation).
 \end{itemize}
 \end{itemize}
 This file is filled partially during job submission and fully when
@@ -445,9 +432,9 @@ Example:
 
 \hspace*{1cm}\textit{input.dat gsiftp://grid.domain.org/dir/input\_12378.dat}
 
-\textit{url} - ordinary URL for gsiftp, ftp, http, https or httpg
-protocols with the addition of '\textbf{replica catalog url}' (RC
-URL) and '\textbf{replica location service url}' (RLS URL).\\
+\textit{url} - ordinary URL for gsiftp, ftp, http, https protocols
+with the addition of '\textbf{replica location service url}' (RLS
+URL).\\
 Each URL can contain additional options.
 
 \textit{file description} - {[}size]{[}.checksum].
@@ -516,39 +503,15 @@ and other information provided by GNU \emph{time} utility. Note that
 some implementation of \emph{time} insert unrequested information
 in their output. Hence some lines can have broken format.
 
-\item \textit{job.ID.proxy} -delegated X509 credentials .
-\item \textit{job.ID.proxy.tmp} - temporary X509 credentials  with
-different UNIX ownership used by processes run with effective \emph{user
-id} different form job owner's \emph{id}.
+\item \textit{job.ID.proxy} -delegated X509 credentials.
+\item \textit{job.ID.proxy.tmp} - temporary X509 credentials with different
+UNIX ownership used by processes run with effective \emph{user id}
+different form job owner's \emph{id}.
 \end{itemize}
 There are other files with names like job.ID.{*} which are created
-and used by different parts of the A-Rex. Their presence in the
-\textit{control directory} can not be guaranteed and can change depending
-on changes in the A-Rex code.
-
-
-\subsection{ }
-
-         
-          
-           
-        
-    \textit{ }  \textit{}
- 
-
- \textit{}         
-          
-    
-
- \textit{}        
-           
- 
-
- \textit{}       
-           
-          
-        
-   
+and used by different parts of the A-Rex. Their presence in the \textit{control
+directory} can not be guaranteed and can change depending on changes
+in the A-Rex code.
 
 
 \subsection{Web Service Interface}
@@ -568,8 +531,8 @@ The exchange of SOAP messages is performed over the HTTP(S) protocol.
 The BES interface is represented by two port-types - BES-Management
 and BES-Factory. The former is made to control the A-REX service itself
 and thus defines operations to start and stop the functionality of
-the BES service. The A-Rex does not implement remote control of
-service functionality. Hence the BES-Management port-type is not functional.
+the BES service. The A-Rex does not implement remote control of service
+functionality. Hence the BES-Management port-type is not functional.
 The BES-Factory port-type provides operations to submit new jobs (to
 create an activity in terms of BES) and to monitor its state. It also
 has an ability to provide information about the service. A-Rex fully
@@ -583,11 +546,11 @@ are described below.
 
 \subsubsection{Extensions to OGSA BES interface}
 
-A-R introduces a new operation in addition to those provided by
-BES. It does that by defining its own port-type  with the single
-operation \emph{ChangeActivityStatus} (see Appendix D). This operation
-provides a way to request simple transfers between states of jobs
-  and corresponding actions.
+A-Rex introduces a new operation in addition to those provided by
+BES. It does that by defining its own port-type with the single operation
+\emph{ChangeActivityStatus} (see Appendix D). This operation provides
+a way to request simple transfers between states of jobs and corresponding
+actions.
 
 \begin{itemize}
 \item \emph{ChangeActivityStatus}
@@ -627,9 +590,10 @@ corresponding sequence is initiated and fault OperationWillBeAppliedEventuallyFa
 will be returned.
 
 Since BES allows implementators to extend their initial activity states
-with additional sub-states, A-Rex defines a set of sub-states of
-activity processing in addition to those defined by the BES, as listed
-in Table \ref{tab:Job-states-definitions}.
+with additional sub-states, A-Rex defines a set of sub-states of activity
+processing in addition to those defined by the BES, as listed in Table
+\ref{tab:Job-states-definitions}. Their meaning is described in section
+\ref{Section: Job Flow}.
 
 %
 \begin{table}
@@ -660,7 +624,7 @@ Prepared&
 Stage-in process has finished\tabularnewline
 \cline{2-2} \cline{3-3} 
 \multicolumn{1}{|c|}{}&
-Submitting&
+Submiting&
 Communication with local batch system is in process\tabularnewline
 \cline{2-2} \cline{3-3} 
 \multicolumn{1}{|c|}{}&
@@ -696,7 +660,8 @@ limits; this sub-state appears in parallel with other sub-states\tabularnewline
 All&
 Held&
 Job processing is suspended on client request; this sub-state appears
-in parallel with other sub-states\tabularnewline
+in parallel with other sub-states. This state is reserved for future
+and i snot implemented yet.\tabularnewline
 \hline
 \end{tabular}
 \end{table}
@@ -705,12 +670,11 @@ in parallel with other sub-states\tabularnewline
 
 \subsubsection{Delegation Interface}
 
-       The A-Rex
-also supportd  the Delegation Interface (see Appendix E). This
-is a common purpose interface to be used by ARC services which accepts
-delegated credentials from clients. The Delegation Interface implements
-two operations: initiatialization of credentials delegation (DelegateCredentialsInit)
-and update/renewal of credentials (UpdateCredentials).
+The A-Rex also supportd the Delegation Interface (see Appendix E).
+This is a common purpose interface to be used by ARC services which
+accepts delegated credentials from clients. The Delegation Interface
+implements two operations: initiatialization of credentials delegation
+(DelegateCredentialsInit) and update/renewal of credentials (UpdateCredentials).
 
 \begin{itemize}
 \item \emph{DelegateCredentialsInit} operation - this operation performs
@@ -753,7 +717,7 @@ based on the public key from the DelegateCredentialsInit signed by
 the user's proxy certificate. Also includes the Id element which identifies
 the private key stored at the service side associated with these credentials.
 The reference element refers to the object to which these credentials
-should be applied  in a way specific to the service. The same element
+should be applied in a way specific to the service. The same element
 must also be used for delegating credentials as part of other operations
 on service.
 \end{itemize}
@@ -778,27 +742,25 @@ port-type. For this it accepts the element \emph{DelegatedCredentials}
 inside the \emph{CreateActivity} element. The \emph{Id} element of
 \emph{DelegatedCredentials} must contain an identifier obtained in
 response to the previous \emph{DelegateCredentialsInit} operation.
+For more information about delegations and delegation interface refer
+to \cite{wsrf-rp}.
 
 
 \subsubsection{Local Information Description Interface}
 
 The A-REX implements the Local Information Description Interface (LIDI)
-interface  common for all ARC services. This interface is based
-on OASIS Web Services Resource Properties specification\cite{wsrf-rp}.
+interface common for all ARC services. This interface is based on
+OASIS Web Services Resource Properties specification\cite{wsrf-rp}.
 Information about resources and maintained activities/jobs are represented
 in a \emph{WS-Resource Properties} informational XML document. The
 document type is defined in the A-Rex WSDL as a \emph{ResourceInformationDocumentType}.
 It contains the following elements/resources:
 
 \begin{lyxlist}{00.00.0000}
-\item [{\emph{BESFactory}}] - collection of BES Factory attributes as defined
-in the BES specifications.
-\item [{\emph{Glue2Resource}}] \emph{-} description of a computation resource
-that uses Glue2 schema. This one is going to be specified after the
-Glue2 XML bindings will be available.
-\item [{\emph{Activities}}] \emph{-} list of maintained activities. Each
-activity contains an identifier (\emph{ActivityIdentifier}), BES (\emph{ActivityDocument})
-and Glue2 (\emph{Glue2Job}) descriptions of the activity.
+\item [{\emph{nordugrid}}] - desription of computing resource that uses
+NorudGrid LDAP schema {[}] converted to XML document.
+\item [{\emph{Domains}}] \emph{-} description of a computation resource
+that uses Glue2 schema.
 \end{lyxlist}
 All information can be accessed either through requests on particular
 resources or through XPath queries using WS-Resource Properties operations.
@@ -937,37 +899,31 @@ has to be stored on filesystem which has support for files' locking.
 
 \subsection{How it works}
 
-If a job requests an input file which is subject  for
-cacheing, it is stored in the cache directory instead of the SD.
-The file is made available to the job by either  soft-linking it
-  in the SD         
-    or copying it to the SD. The latter option
-is more secure and hence advised.
+If a job requests an input file which is subject for cacheing, it
+is stored in the cache directory instead of the SD. The file is made
+available to the job by either soft-linking it in the SD or copying
+it to the SD. The latter option is more secure and hence advised.
 
 Before downloading a file the GM tries to determine it's size and
 then tries to preallocate space in the cache directory by writing
 a file of the same size. If this fails (possibly because the file
 system has no more space), it tries to the remove oldest cached files
-which are not being used by any job. This means that \textbf{the
-hard limit of cache size is the space available in the file-system}.
-In case cache gets full and it is impossible to free enough space,
-the download fails and then is retried without using cache.
+which are not being used by any job. This means that \textbf{the hard
+limit of cache size is the space available in the file-system}. In
+case cache gets full and it is impossible to free enough space, the
+download fails and then is retried without using cache.
 
 Before giving access to an already cached file, the GM contacts the
-original file source to check if the user     has
-suficient access rights to the file. Not all protocols  
- make this check possible. 
+original file source to check if the user has suficient access rights
+to the file. Not all protocols make this check possible. Also, file
+creation or validity times are checked to make sure the cached file
+is fresh. If it is impossible to obtain creation and invalidation
+times, the file is invalidated 24 hours after it was downloaded.
 
-Also, file creation or validity times are checked to make sure the
-cached file is fresh . If it is impossible to obtain creation
-and invalidation times  , the file is invalidated 24 hours
-after it was downloaded.
-
- The GM checks the cache periodically. If  the space used
-by cache exceeds the high water-mark given in the configuration file
-(\emph{softsize}), it tries to remove the oldest unused files until
-cache size drops below the  low water-mark. This sets the
-soft limit of cache size.
+The GM checks the cache periodically. If the space used by cache exceeds
+the high water-mark given in the configuration file (\emph{softsize}),
+it tries to remove the oldest unused files until cache size drops
+below the low water-mark. This sets the soft limit of cache size.
 
 There are two kinds of caches supported. Files in \textit{private}
 cache are owned by the Unix user to which a grid user is mapped. Those
@@ -981,27 +937,25 @@ the Unix user who started GM and are readable by everyone.
 
 \subsection{Modules}
 
-The GM consists of several separate executable modules. These
-are:
+The GM consists of several separate executable modules. These are:
 
 \begin{itemize}
 \item \textit{grid-manager} - The main module. It is responsible for processing
- jobs, moving them through states and running other modules.
+jobs, moving them through states and running other modules.
 \item \textit{downloader} - This is a module responsible for gathering input
 files in the SD. It processes the \textit{job.ID.input} file and updates
 it.
 \item \textit{uploader} - This module is responsible for delivering output
-files to the specified SEs and registration at  an Indexding
-Service (like RLS) as needed. It processes and updates the \textit{job.ID.output}
+files to the specified SEs and registration at an Indexding Service
+(like RLS) as needed. It processes and updates the \textit{job.ID.output}
 file.
 \item \emph{cache-register} - Utility to register cached data into an Indexing
-Service    . It reads and modifies cache informational
-files \emph{old} and \emph{new} (as described in section \ref{sec:cache}).
-Configuration is read directly from the GM's configuration file (see
-section \ref{SubSection: ConfigFile}). It is run by the GM every
-5 minutes.
+Service. It reads and modifies cache informational files \emph{old}
+and \emph{new} (as described in section \ref{sec:cache}). Configuration
+is read directly from the GM's configuration file (see section \ref{SubSection: ConfigFile}).
+It is run by the GM every 5 minutes.
 \item \emph{frontend-info-collector} - Utility to gather information about
-the frontend  . It puts  collected information into the \emph{job.ID.diag}
+the frontend. It puts collected information into the \emph{job.ID.diag}
 file.
 \item \emph{gm-kick} - Sends a signal to the GM though a FIFO file to wake
 it up. It's used to increase responsiveness of GM.
@@ -1017,16 +971,16 @@ script \textit{smtp-send.sh}.
 \item \textit{submit-{*}-job} - Here {*} stands for the name of the LRMS.
 Curently supported LRMS are PBS/Torque, Condor and SGE. Also \emph{fork}
 pseudo-LRMS is supported for testing purposes. This module is responsible
-for  job submission to the LRMS.
-\item \textit{cancel-{*}-job} - This script is for canceling  jobs
-which have been already submitted to the LRMS.
+for job submission to the LRMS.
+\item \textit{cancel-{*}-job} - This script is for canceling jobs which
+have been already submitted to the LRMS.
 \item \textit{scan-{*}-job} -This shell script is responsible for notifying
-the GM about completion of  jobs. It's implementation for PBS 
-uses server logs to extract information about jobs. If logs are not
-available it uses the less reliable \emph{qstat} command for that.
-Other backends use different techniques.
+the GM about completion of jobs. It's implementation for PBS uses
+server logs to extract information about jobs. If logs are not available
+it uses the less reliable \emph{qstat} command for that. Other backends
+use different techniques.
 \end{itemize}
- In addition, there is also an administration utility:
+In addition, there is also an administration utility:
 
 \begin{itemize}
 \item \textit{gm-jobs} - prints a list of jobs available on the cluster
@@ -1079,42 +1033,37 @@ configuration file is used by default
 The GM also uses following directories:
 
 \begin{itemize}
-\item \textit{session root directory} -  Tthis is the directory under
-which a user's SDs are created. It's location is configurable
-per UNIX user. Several (or even all) users may share the same session
-root directory.        
-    .\\
-There are 2 processes which need to have  permissions to create new
-files and directories in it  : GM and GFS. \\
-If any of these processes  are run under a dedicated user
-account, that account needs full permissions in the \textit{session
-root directory}.\\
+\item \textit{session root directory} - Tthis is the directory under which
+a user's SDs are created. It's location is configurable per UNIX user.
+Several (or even all) users may share the same session root directory..\\
+There are 2 processes which need to have permissions to create new
+files and directories in it: GM and GFS. \\
+If any of these processes are run under a dedicated user account,
+that account needs full permissions in the \textit{session root directory}.\\
 If these processes are run under the \emph{root} account, make sure
-\textit{session root directory}  resides on a filesystem which
-does not limit the capabilities of the \emph{root} user  (as does
-for example NFS with \emph{root\_squash} option).\\
+\textit{session root directory} resides on a filesystem which does
+not limit the capabilities of the \emph{root} user (as does for example
+NFS with \emph{root\_squash} option).\\
 If there is a need to run processes under the \emph{root} account
 (to be able to run jobs in LRMS under different users' accounts, for
 example) but there is no way to provide a suitable \textit{session
 root directory,} use the \emph{norootpower} command in GM's configuration
-  file. In that case GM and GFS will use the identity of the
-local user to which a Grid identity is mapped to access the \textit{session
-root directory}. Hence those users will need full access there.\\
+file. In that case GM and GFS will use the identity of the local user
+to which a Grid identity is mapped to access the \textit{session root
+directory}. Hence those users will need full access there.\\
 The GM creates SDs with proper ownership and permissions for the local
 identity used to run a job. Some filesystems require users to have
-\emph{execute} permission on the \textit{session root directory}
-      in order to access any file or subdirectory
+\emph{execute} permission on the \textit{session root directory} in
+order to access any file or subdirectory there.\\
+In order for jobs to access their input files, session root directories
+should be shared across cluster nodes. Otherwise, LRMS-specific methods
+must be used to transfer files to execution nodes. For more information
+see section \ref{sub:LRMS}.
+\item \textit{control directory} - In this directoryGM and GFS store an
+information about accepted jobs. Both processes must have full permissions
 there.\\
-         In order
-for jobs to access their input files, session root directories should
-be shared across cluster nodes. Otherwise,    LRMS-specific
-methods must be used to transfer files to execution nodes. For more
-information see section \ref{sub:LRMS}.
-\item \textit{control directory} - In this directory  GM and GFS store
-an information about  accepted jobs. Both    processes
-must have full permissions there.\\
-A subdirectory called \textit{log} is created there. It is used
-to accumulate information about started and finished jobs. This information
+A subdirectory called \textit{log} is created there. It is used to
+accumulate information about started and finished jobs. This information
 is periodically sent to the desired \emph{logger service}(s). For
 each job start and stop event, and for each logger service where that
 event must be sent, a separate file is written. Once an event is sent,
@@ -1450,197 +1399,14 @@ value in configuration file),\\
 \hspace*{0.5cm}\emph{-U} - user and gropu id to use for running daemon,\\
 \hspace*{0.5cm}\emph{-F} - do not make process daemon,\\
 \hspace*{0.5cm}\emph{-c} - name od configuration file,\\
-\hspace*{0.5cm}\emph{-C} - remove old information before starting:
-1- remove finished jobs, 2 - remove active jobs too, 3- also remove
-everything that looks like junk.
+\hspace*{0.5cm}\emph{-C} - remove 
 
+old information before starting: 
 
-\subsection{    }
+1- remove finished jobs, 2 - 
 
-        \textit{}
- \textit{}   
-           
-         
-          
-      
-
-\begin{itemize}
-\item \textbf{\textit{}}\textit{}     
-  
-\item \textbf{\textit{}}\textit{}     
-      
-\item \textbf{\textit{}}\textit{}    
-         
-\item \textbf{\textit{}}\textit{}     
-   
-\item \textbf{\textit{}}\textit{}     \emph{}
-         
-       
-\item \textbf{\textit{}}\textit{}      
-\textit{}         
-           
-  \textit{}        
- 
-\item \textbf{\textit{}}\textit{ }    
-          
- \textit{}       
-        \textit{}
-           
-         
-
-\begin{itemize}
-\item \textbf{\textit{}} \textit{}     
-          
-   
-\item \textbf{\textit{}} \textit{}    
-         \textit{}
-             
-\textit{}           
-    
-\item \textbf{\textit{}} \textit{  }  
-      \textit{}    
-        \textit{}
-\textit{}       
-   \textit{}     
-       \textit{}
-          
-\item \textbf{\textit{}} \textit{ } \textit{}
-\textit{}     \emph{}  
-    \emph{}    
- \emph{}          
-     \emph{}     
-         
-     
-
-\begin{itemize}
-\item      
-\item       
-\end{itemize}
-\end{itemize}
-\item \textbf{\textit{}}\textit{ }    \textbf{\textit{}}
-       \textit{}
-\item \textbf{\textit{}}\textit{ }  
-          
-\textit{}       \textbf{\textit{
-}}      \textbf{\textit{}}\textbf{\textit{}}
-           
- \textit{}    \textit{}
- \textit{}          
- 
-\item \textbf{\textit{}}\textit{}     
-         
-            
-      \textbf{\textit{}}
-             
-  
-\end{itemize}
-  \emph{}     
-           
-          \textbf{\textit{}}
-\textit{ }     \textbf{\textit{}}
-     
-
-\begin{itemize}
-\item \textbf{\textit{}}\textit{}    \textit{}
-   
-\item \textbf{\textit{}}\textit{}     
-
-
-     \textit{ } 
-\textit{}
-
-\begin{itemize}
-\item \textit{}        
-          
-            
-  
-
-\begin{itemize}
-\item \textbf{\textit{}}\textit{}   
-    
-\item \textbf{\textit{}}\textit{}     
-     \emph{}
-\item \textbf{\textit{}}\textbf{\textit{}}\textbf{\textit{}}
-          
-         
-\end{itemize}
-\item \textit{}   
-
-\begin{itemize}
-\item \textbf{\textit{}}\textit{}      
-      
-\item \textbf{\textit{}}\textit{ }    
-    \textit{}     
-      \textit{}     
- 
-
-\begin{itemize}
-\item \textbf{\textit{}}         
-     
-\item \textbf{\textit{}}       
-\item \textbf{\textit{}}      
-\item \textbf{\textit{}}      
-\end{itemize}
-           
-    
-
-\begin{itemize}
-\item \textbf{\textit{}}    
-\item \textbf{\textit{}}    
-\item \textbf{\textit{}}        
-\item \textbf{\textit{}}      
-        
-\item \textbf{\textit{}}       
-\item \textbf{\textit{}}       
-\item \textbf{\textit{}} \textit{ }
-          \textit{} 
-    \textit{}      
-           
-   \textit{}  \textit{} 
-       
-\item \textbf{\textit{}} \textit{ }
-    
-\end{itemize}
-\end{itemize}
-\item \textit{}          
-         
-      \textbf{\textit{}}  
-            
-            
-           
-         
-   \textbf{\textit{}}\textit{}  
- \textbf{\textit{}}\textit{}     
-         
-       
-
-\begin{lyxlist}{00.00.0000}
-\item [{\emph{}}]      
-\item [{\emph{}}]      
-\item [{\emph{}}]       
-\item [{\emph{}}]     
-\item [{\emph{}}]     
-\item [{\emph{}}]        
-\end{lyxlist}
-     \emph{}   
-        
-
-\end{itemize}
-\end{itemize}
-         
-  
-
-\emph{         
-          }\emph{}
-  \emph{}   \emph{}    
-    \emph{}    
-       \emph{}
-         \emph{}   
-  \emph{}     \emph{}
-   \emph{}     
- \emph{}        
-   \emph{}      
-     
+remove active jobs too, 3- also remove everything that looks like
+junk.
 
 
 \subsection{Authorization\label{sub:Authorization}}
@@ -1710,12 +1476,12 @@ Figures \ref{fig:no node scratch},\ref{fig:node scratch, not vis on front},\ref{
 present some possible combinations for RUNTIME\_LOCAL\_SCRATCH\_DIR
 and RUNTIME\_FRONTEND\_SEES\_NODE and explain how data movement is
 performed. Pictures a) corresponds to the situation right after all
-input files have been gathered in the session directory and show
-the actions taken right after the job's script starts. Pictures b)
-shows   the situation while the job is running and the actions
-which are taken right after it has finished. Pictures c)  illustrates
-the final situation, when the job's output files are ready to be uploaded
-to an external storage element or be downloaded by the user.
+input files have been gathered in the session directory and show the
+actions taken right after the job's script starts. Pictures b) shows
+the situation while the job is running and the actions which are taken
+right after it has finished. Pictures c) illustrates the final situation,
+when the job's output files are ready to be uploaded to an external
+storage element or be downloaded by the user.
 
 %
 \begin{figure}[tbh]
@@ -1737,8 +1503,8 @@ directly in the session directory prepared by GM on the frontend.}
 
 
 \caption{\label{fig:node scratch, not vis on front}RUNTIME\_LOCAL\_SCRATCH\_DIR
-is set to  the location of the scratch directory
-on the computing node, RUNTIME\_FRONTEND\_SEES\_NODE is undefined.}
+is set to the location of the scratch directory on the computing node,
+RUNTIME\_FRONTEND\_SEES\_NODE is undefined.}
 
 \begin{lyxlist}{00.00.0000}
 \item [{a)}] After the job script starts all input files are moved to 'scratch
@@ -1761,10 +1527,9 @@ to be uploaded/downloaded.
 
 
 \caption{\label{fig:node scratch, vis on front}Both RUNTIME\_LOCAL\_SCRATCH\_DIR
-and RUNTIME\_FRONTEND\_SEES\_NODE are set to the  location
-of the scratch directory on the computing node and    the
-location where this scratch directory is accessible from the frontend,
-respectively .}
+and RUNTIME\_FRONTEND\_SEES\_NODE are set to the location of the scratch
+directory on the computing node and the location where this scratch
+directory is accessible from the frontend, respectively.}
 
 \begin{lyxlist}{00.00.0000}
 \item [{a)}] After the job script starts all input files are moved to 'scratch
@@ -1891,45 +1656,42 @@ Refer to the description of the \emph{User Interface} part \cite{ui}
 and extensions to RSL \cite{xrsl} for using the GM.
 
 
-\subsection{ Running as non-root}
+\subsection{Running as non-root}
 
 Bot GM and GFS are primarily designed to be run by the \emph{root}
-UNIX account and serve multiple    global Grid identities
-mapped to several UNIX accounts. Nevertheless it is possible to use
-\emph{non-root} accounts to run these services   
-at the cost of some functionality loss as described below.
+UNIX account and serve multiple global Grid identities mapped to several
+UNIX accounts. Nevertheless it is possible to use \emph{non-root}
+accounts to run these services at the cost of some functionality loss
+as described below.
 
-There are no drawbacks of running GFS with \emph{gaclplugin}
-or \emph{fileplugin} under a \emph{non-root} account as long as the
-only Grid identity used is that of the user   who runs the services
-and all served files and directories are owned by the server's account. 
+There are no drawbacks of running GFS with \emph{gaclplugin} or \emph{fileplugin}
+under a \emph{non-root} account as long as the only Grid identity
+used is that of the user who runs the services and all served files
+and directories are owned by the server's account. 
 
-  In order for GM and GFS with \emph{jobplugin} to
-be able to cooperate, both services must be run either by the same
-non-root account or one of the services must be run under the \emph{root}
-account. This is needed because the two services communicate over
-a local filesystem, hence they must have \emph{full} access to the
-same set of files.
+In order for GM and GFS with \emph{jobplugin} to be able to cooperate,
+both services must be run either by the same non-root account or one
+of the services must be run under the \emph{root} account. This is
+needed because the two services communicate over a local filesystem,
+hence they must have \emph{full} access to the same set of files.
 
-As long as GFS with \emph{jobplugin} is run under a non-root account
- , no mapping from Grid identity to local UNIX account takes
-place. All alowed Grid users are assigned the server's account and
-are then processes by GM using same account. The only way to overcome
-this limitation is to run one GFS per local account with proper access
-control configured.
+As long as GFS with \emph{jobplugin} is run under a non-root account,
+no mapping from Grid identity to local UNIX account takes place. All
+alowed Grid users are assigned the server's account and are then processes
+by GM using same account. The only way to overcome this limitation
+is to run one GFS per local account with proper access control configured.
 
-Because GM has to impersonate a user's local account while
-communicating with the LRMS, it can serve only the account it is
-run under (unless it is run under the \emph{root} account, of course).
-As in the case of GFS, multiple instances of GM may be run, one
-per local account. This solution   has
-some drawbacks. The GM looses possibility to share cached files among
-serviced users. In addition, it is not  possible to control the
-load on a frontend by limiting the number of simultatenuosly running
-\emph{downloader} and \emph{uploader} modules.
+Because GM has to impersonate a user's local account while communicating
+with the LRMS, it can serve only the account it is run under (unless
+it is run under the \emph{root} account, of course). As in the case
+of GFS, multiple instances of GM may be run, one per local account.
+This solution has some drawbacks. The GM looses possibility to share
+cached files among serviced users. In addition, it is not possible
+to control the load on a frontend by limiting the number of simultatenuosly
+running \emph{downloader} and \emph{uploader} modules.
 
-One  also has to take into account that the private part of the
-GSI infrastructure (private key of a host at least) has to be duplicated
+One also has to take into account that the private part of the GSI
+infrastructure (private key of a host at least) has to be duplicated
 for every account used to run GFS.
 
 
@@ -1940,66 +1702,55 @@ for every account used to run GFS.
 
 Under the mount point of the jobplugin, a user connecting with a gridftp
 client will see virtual directories representing the jobs belonging
-to    him/her. Directory names are job identifiers,
-each representing one job      
-  . These directories are directly connected to
-session directories of jobs and contain the  files and subdirectories
-that are visible on the frontend.     
-          
-         
+to him/her. Directory names are job identifiers, each representing
+one job. These directories are directly connected to session directories
+of jobs and contain the files and subdirectories that are visible
+on the frontend.
 
 If a job's xRSL has \emph{gmlog} specified, then the job's directory
-also contains a virtual subdirectory  of that name 
- holding files with information about the job as created by
-GM. The    'errors' and 'status' files are especially
-usefull for troubleshooting. 'errors' contains the stderr output of
-the various modules run by GM   during job processing
+also contains a virtual subdirectory of that name holding files with
+information about the job as created by GM. The 'errors' and 'status'
+files are especially usefull for troubleshooting. 'errors' contains
+the stderr output of the various modules run by GM during job processing
 stages (downloader, uploader, job's submission to LRMS). 'status'
-contains one word representing the job's state  . 
+contains one word representing the job's state. 
 
 Also under the jobplugin's mount point there is an additional directory
-named \char`\"{}new\char`\"{} -- used to submit new jobs -- and
-another directory named ''info''. The latter has subdirectories
-named after job ids  , each of which contains
-files with information about a job. These are the same files 
- that can be accessed in the subdirectory specified through
-\emph{gmlog}.
+named \char`\"{}new\char`\"{} -- used to submit new jobs -- and another
+directory named ''info''. The latter has subdirectories named after
+job ids, each of which contains files with information about a job.
+These are the same files that can be accessed in the subdirectory
+specified through \emph{gmlog}.
 
 
 \subsection*{Submission}
 
-Each xRSL put into the {}``new'' directory by a gridftp client
-is treated as a new job's description. GFS's jobplugin parses
-the xRSL and returns the client a positive response if there
-were no errors in the request.
+Each xRSL put into the {}``new'' directory by a gridftp client is
+treated as a new job's description. GFS's jobplugin parses the xRSL
+and returns the client a positive response if there were no errors
+in the request.
 
 The new job gets an identifier and a directory with the corresponding
 name appears. If the job's description contains input files which
-should be transferred from the client's machine, the client
-must upload them to that directory under specified names.
+should be transferred from the client's machine, the client must upload
+them to that directory under specified names.
 
-           
-   The job identifier reserved by GFS to a new job must
-be somehow communicated back to the client. Within the bounds of the
-FTP protocol, this is achieved in the following way. Prior to uploading
-the xRSL, the client issues a CWD command to change the current directory
-to {}``new''. In turn, the server responds with a redirect to the
-new session directory named after the reserved identifier. The client
-has now found out the job's id, and proceeds with uploading the xRLS.
-           
-          
-         
-         
-      
+The job identifier reserved by GFS to a new job must be somehow communicated
+back to the client. Within the bounds of the FTP protocol, this is
+achieved in the following way. Prior to uploading the xRSL, the client
+issues a CWD command to change the current directory to {}``new''.
+In turn, the server responds with a redirect to the new session directory
+named after the reserved identifier. The client has now found out
+the job's id, and proceeds with uploading the xRLS.
 
 
 \subsection*{Actions}
 
 Various actions to affect processing of an existing job are requested
 by uploading special xRSL files into directory {}``new''. Such an
-  xRSL may consist of only 2 parameters - \emph{action} for
-action to be performed, and \emph{jobid} to identify the job to be
-affected.  All other parameters are ignored.
+xRSL may consist of only 2 parameters - \emph{action} for action to
+be performed, and \emph{jobid} to identify the job to be affected.
+All other parameters are ignored.
 
 The currently supported actions are:
 
