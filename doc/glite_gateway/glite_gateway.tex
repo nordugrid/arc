@@ -42,7 +42,8 @@
 \begin{titlepage}
 
 \begin{tabular}{rl}
-\resizebox*{3cm}{!}{\includegraphics{logo-knowarc.png}}
+\resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+&\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
 \end{tabular}
 
 \hrulefill
@@ -63,8 +64,8 @@
 \vspace*{1.5cm}
 %%%%---- A list of authors ----
 {\centering \large Mattias Ellert\footnote{mattias.ellert@fysast.uu.se} \large \par}
-{\centering \large Ivan Marton\footnote{martoni@niif.hu} \large \par}
-{\centering \large Peter Stefan\footnote{stefan@niif.hu} \large \par}
+{\centering \large Iv\'{a}n M\'{a}rton\footnote{martoni@niif.hu} \large \par}
+{\centering \large P\'{e}ter Stef\'{a}n\footnote{stefan@niif.hu} \large \par}
 %%%%---- An abstract - if style is article ----
 %\begin{abstract}
 %The abstract
@@ -83,10 +84,10 @@ Interoperability has been one of the most important disciplines in recent grid m
 \item or to explicitly implement the interface of the other side in the client.
 \end{itemize}
 The latter solution was preferred by ARC1 developers, the gLite gateway library module has been implemented in the ARCLIB and the gateway functionality will be transparently offered via the usual NorduGrid command line tools.\par
-An overview of the preferred soulution is presented in figure \ref{fig:Chart 1}. The user will be able to express the job requirements in the job description document using any of the xRSL\cite{xrsl}, JDL or JSDL\cite{jsdl} languages. The ARC client library will perform an automatic transformation. The gLite gateway functionality integrated into the ARCLIB, thus into the ARC client allow the user to transparently access gLite computing resources via the usual ARC command line tools. The gLite modules perform authentication, credential delagation and job submission to the CREAM2 CE. The CREAM2 CE may perform the necessary input file download from the different storage elements. The library module gets job information through CREAM2 and sends management commands, like kill a job or undelegate credentials. Note that not all the functionality described in the overview figure is implemented yet, for the current limitations see section \ref{Current limitations}!\par
+An overview of the preferred soulution is presented in figure \ref{fig:Chart1}. The user will be able to express the job requirements in the job description document using any of the xRSL\cite{xrsl}, JDL or JSDL\cite{jsdl} languages. The ARC client library will perform an automatic transformation. The gLite gateway functionality integrated into the ARCLIB, thus into the ARC client allow the user to transparently access gLite computing resources via the usual ARC command line tools. The gLite modules perform authentication, credential delagation and job submission to the CREAM2 CE. The CREAM2 CE may perform the necessary input file download from the different storage elements. The library module gets job information through CREAM2 and sends management commands, like kill a job or undelegate credentials. Note that not all the functionality described in the overview figure is implemented yet, for the current limitations see section \ref{Current limitations}!\par
 \begin{figure}[ht]
 \centering{\resizebox{\textwidth}{!}{\includegraphics{D3-2-1-figure.png}}
-\caption{\label{fig:Chart 1}This chart illustrates how the ARC1$\rightarrow$gLite gateway library module based approach works.}}
+\caption{\label{fig:Chart1}This chart illustrates how the ARC1$\rightarrow$gLite gateway library module based approach works.}}
 \end{figure}
 \subsection{The supported gLite CE interface: CREAM2}
 The gLite computing element (CE) offers several interfaces. Some of them are only suitabe for the WMS (gLite resource broker) and was not meant to be used by 3rd party clients. Fortunately gLite comes with a webservice based computing element interface, known as the CREAM CE. The CREAM has undergone several major revisions. The current CREAM version has entered the EGEE certification process nevertheless it is a full scale deplomeyment on the EGEE worldwide grid has not taken place yet. CREAM2 is available on several preproduction and testing grid sites, KnowARC has chosen the CREAM version 2\cite{cream} as the gLite computing element interface.\par
@@ -124,8 +125,8 @@ When addressing interoperability it is of paramount importance to transparently 
 JobDescription has tree back-end classes, sometimes are referred to as back-end modules or translator modules, corresponding to the three supported job description languages above. The back-end classes are used for parsing and also for generating the job descriptions. These classes do not store information and are not intended to be used directly, instead, the generic class uses them.\par
 There is a class called JobDescriptionOrderer which tries to find out the format of the input file by pattern matching; the generic class uses this piece of information to choose the appropriate back-end.
 \begin{figure}[ht]
-\centering{\resizebox{255px}{!}{\includegraphics{JobDescriptionExample-XRSLInput.jpg}}
-\caption{\label{fig:Chart 1}The figure shows how the different classes participating in the job description translation process interrelate in an example about xRSL parsing.}}
+\centering{\resizebox{255pt}{!}{\includegraphics{JobDescriptionExample-XRSLInput.jpg}}
+\caption{\label{fig:Chart2}The figure shows how the different classes participating in the job description translation process interrelate in an example about xRSL parsing.}}
 \end{figure}
 \subsection{CREAMClient base class}
 \label{CREAMClient}

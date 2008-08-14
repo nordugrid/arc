@@ -2,9 +2,22 @@
 %  BIBLIOGRAPHY FILE
 % ------------------------------------------------------------------------
 
-@misc{nordugrid,
+@Article{arc,
+  author =	 {M.~Ellert and others},
+  title =	 "{Advanced Resource Connector middleware for
+                  lightweight computational Grids}",
+  journal =	 {Future Gener. Comput. Syst.},
+  volume =	 {23},
+  number =	 {1},
+  year =	 {2007},
+  issn =	 {0167-739X},
+  pages =	 {219-240}
+}
+
+@unpublished{nordugrid,
   title =        "{The NorduGrid Collaboration}",
-  URL =         "http://www.nordugrid.org"
+  URL =         "http://www.nordugrid.org",
+  note =	 "{Web site}"
 }
 
 @Article{globus,
@@ -30,15 +43,10 @@
   author =	 "B. K\'{o}nya",
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The NorduGrid/ARC Information System}",
-  note =	 "{NORDUGRID-TECH-4}"
+  note =	 "{NORDUGRID-TECH-4}",
+  url = "{http://www.nordugrid.org/documents/arc_infosys.pdf}"
 }
 
-@manual{arclib,
-  author =          "M. Ellert",
-  organization =    "{The NorduGrid Collaboration}",
-  title =           "{WS-based ARC Clients, first prototype and final release}",
-  note =            "{Deliverable D1.2-4}"
-}
 @Book{ldap,
   author =	 {M. Smith and T. A. Howes},
   title =	 "{LDAP : Programming Directory-Enabled Applications
@@ -61,25 +69,28 @@
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The NorduGrid Grid Manager And GridFTP Server:
                   Description And Administrator's Manual}",
-  note =	 "{NORDUGRID-TECH-2}"
+  note =	 "{NORDUGRID-TECH-2}",
+  url = "{http://www.nordugrid.org/documents/GM.pdf}"
 }
 
-@misc{vo,
-title = "{Description of the NorduGrid Virtual Organisation}",
-URL = "http://www.nordugrid.org/NorduGridVO/vo-description.html"
+@unpublished{vo,
+  title = "{Description of the NorduGrid Virtual Organisation}",
+  URL = "http://www.nordugrid.org/NorduGridVO/vo-description.html"
 }
 
 @Manual{ui,
-title = "{The NorduGrid toolkit user interface}",
+  title = "{The NorduGrid toolkit user interface}",
   organization = "{The NorduGrid Collaboration}",
-author = "M.~Ellert",
-note = "{NORDUGRID-MANUAL-1}"
+  author = "M.~Ellert",
+  note = "{NORDUGRID-MANUAL-1}",
+  url =  "{http://www.nordugrid.org/documents/ui.pdf}"
 }
 
 @Manual{userguide,
   title =        "{The NorduGrid/ARC User Guide}",
   organization = "{The NorduGrid Collaboration}",
-  note =         "{NORDUGRID-MANUAL-6}"
+  note =         "{NORDUGRID-MANUAL-6}",
+  url = "{http://www.nordugrid.org/documents/userguide.pdf}"
 }
 
 @BOOK{grid,
@@ -89,7 +100,7 @@ note = "{NORDUGRID-MANUAL-1}"
   YEAR =         "1999"
 }
 
-@misc{rsl,
+@unpublished{rsl,
 title = "{The Globus Resource Specification Language RSL v1.0.}",
 URL = "{http://www-fp.globus.org/gram/rsl\_spec1.html}"
 }
@@ -98,10 +109,11 @@ URL = "{http://www-fp.globus.org/gram/rsl\_spec1.html}"
   organization = "{The NorduGrid Collaboration}",
   author =	 {O. Smirnova},
   title =	 "{Extended Resource Specification Language}",
-  note =	 "{NORDUGRID-MANUAL-4}"
+  note =	 "{NORDUGRID-MANUAL-4}",
+  url = "{http://www.nordugrid.org/documents/xrsl.pdf}"
 }
 
-@misc{crypto,
+@unpublished{crypto,
 title = "{RSA Cryptography FAQ}",
 author = "{RSA~Labs}",
 URL = "{http://www.nordugrid.org/documents/rsalabs\_faq41.pdf}"
@@ -112,6 +124,7 @@ URL = "{http://www.nordugrid.org/documents/rsalabs\_faq41.pdf}"
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The Grid Monitor}",
   note =	 "{NORDUGRID-MANUAL-5}",
+  url = "{http://www.nordugrid.org/documents/monitor.pdf}"
 }
 
 @INPROCEEDINGS{nordarch,
@@ -123,19 +136,21 @@ booktitle = "Proc. of PARA 2002, LNCS 2367, p.~76",
 publisher = "Springer-Verlag Berlin Heidelberg"
 }
 
-@misc{rpm,
+@unpublished{rpm,
 title = "{RedHat Package Manager}",
-URL = "http://www.rpm.org"
+URL = "http://www.rpm.org",
+  note =	 "{Web site}"
 }
 
-@misc{x509,
-title = "{Public-Key Infrastructure (X.509) (pkix)}",
-URL = "http://www.ietf.org/html.charters/pkix-charter.html"
+@unpublished{x509,
+title = "{Public-Key Infrastructure (X.509) (PKI), Proxy Certificate Profile}",
+URL = "http://rfc.net/rfc3820.html"
 }
 
-@misc{openssl,
+@unpublished{openssl,
 title = "{The Open Source toolkit for SSL/TLS}",
-URL = "http://www.openssl.org/"
+URL = "http://www.openssl.org/",
+  note =	 "{Web site}"
 }
 
 @InProceedings{gsi,
@@ -143,7 +158,7 @@ URL = "http://www.openssl.org/"
   title =	 "{A Security Architecture for Computational Grids}",
   booktitle =	 "{CCS '98: Proceedings of the 5th ACM conference on
                   Computer and communications security}",
-  ISBN =	 {1-58113-007-4},
+  isbn =	 {1-58113-007-4},
   location =	 {San Francisco, California, United States},
   publisher =	 {ACM Press},
   year =	 "1998",
@@ -169,14 +184,15 @@ URL = "http://www.openssl.org/"
   booktitle =	 {Proceedings of the 13th IEEE International Symposium
                   on High Performance Distributed Computing (HPDC'04)},
   year =	 {2004},
-  ISBN =	 {0-7803-2175-4},
+  isbn =	 {0-7803-2175-4},
   pages =	 {182-191},
   publisher =	 {IEEE Computer Society Press}
 }
 
 @unpublished{gpt,
 title = "{Grid Packaging Tools}",
-URL = "http://www.gridpackagingtools.org"
+URL = "http://www.gridpackagingtools.org",
+  note =	 "{Web site}"
 }
 
 @unpublished{gsoap,
@@ -193,7 +209,7 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   volume =	 {35},
   number =	 {9},
   year =	 {2005},
-  ISSN =	 {0038-0644},
+  issn =	 {0038-0644},
   pages =	 {827--834}
 }
 
@@ -205,7 +221,7 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   volume =	 {21},
   number =	 {4},
   year =	 {2005},
-  ISSN =	 {0167-739X},
+  issn =	 {0167-739X},
   pages =	 {549-558}
 }
 
@@ -213,7 +229,8 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   title =        "{The NorduGrid Smart Storage Element}",
   author = "A.~Konstantinov",
   organization = "{The NorduGrid Collaboration}",
-  note =         "{NORDUGRID-TECH-10}"
+  note =         "{NORDUGRID-TECH-10}",
+  url = "{http://www.nordugrid.org/documents/SE.pdf}"
 }
 
 @Manual{urls,
@@ -221,7 +238,8 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   organization = "{The NorduGrid Collaboration}",
   title =	 "{Protocols, Uniform Resource Locators (URL) and
                   Extensions Supported in ARC}",
-  note =	 "{NORDUGRID-TECH-7}"
+  note =	 "{NORDUGRID-TECH-7}",
+  url = "{http://www.nordugrid.org/documents/URLs.pdf}"
 }
 
 @Article{gridftp,
@@ -232,54 +250,79 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   volume =	 {28},
   number =	 {5},
   year =	 {2002},
-  ISSN =	 {0167-8191},
+  issn =	 {0167-8191},
   pages =	 {749-771}
 }
 
-@misc{gram,
+@unpublished{gram,
   title =        "{The Grid Resource Allocation and Management}",
-  URL =         "http://www.globus.org/toolkit/docs/3.2/gram/"
+  URL =         "http://www.globus.org/toolkit/docs/3.2/gram/",
+  note =	 "{Web site}"
 }
 
 @Manual{config,
   title =        "{Configuration and Authorisation of ARC (NorduGrid) Services}",
   author = "A.~Konstantinov",
   organization = "{The NorduGrid Collaboration}",
-  note =         "{NORDUGRID-TECH-6}"
+  note =         "{NORDUGRID-TECH-6}",
+  url = "{http://www.nordugrid.org/documents/Config_Auth.pdf}"
 }
 
 @Manual{httpsd,
   author =	 "A. Konstantinov",
   organization = "{The NorduGrid Collaboration}",
   title =	 "{The HTTP(s,g) And SOAP Framework}",
-  note =	 "{NORDUGRID-TECH-9}"
+  note =	 "{NORDUGRID-TECH-9}",
+  url = "{http://www.nordugrid.org/documents/HTTP_SOAP.pdf}"
 }
 
-
-@misc{ggf,
+@unpublished{ggf,
   title =        "{Global Grid Forum}",
-  URL =         "http://www.ggf.org/"
+  URL =         "http://www.ggf.org/",
+  note =	 "{Web site}"
 }
 
-@misc{srm,
-  title =        "{Storage Resource Management Working Group}",
-  URL =         "http://sdm.lbl.gov/srm-wg/"
+@unpublished{ogf,
+  title =        "{Openl Grid Forum}",
+  URL =         "http://www.ogf.org/",
+  note =	 "{Web site}"
 }
 
-@misc{glite,
+@unpublished{srm,
+  title =        "{The Storage Resource Manager Interface (SRM) Specification
+v2.2}",
+  author ="{A.~Sim, A.~Shoshani and others}",
+  URL =         "{http://www.ggf.org/documents/GFD.129.pdf}",
+  year =	 "2008",
+  month =	 "May",
+  note =	 "{GFD-R-P.129}"
+}
+
+@unpublished{glite,
   title =        "{gLite, Lightweight Middleware for Grid Computing}",
-  URL =         "http://glite.web.cern.ch/glite/"
+  URL =         "http://glite.web.cern.ch/glite/",
+  note =	 "{Web site}"
+}
+
+@Article{edg,
+author = {E.~Laure anf others},
+title = "{The EU DataGrid Setting the Basis for Production Grids}",
+journal = "{ J. of Grid Computing}",
+year = {2004},
+volume = {2},
+number = {4},
+pages = {299-400}
 }
 
 @InProceedings{para02,
   title =	 "{An Overview of an Architecture Proposal for a High
                   Energy Physics Grid}",
-  author =	 {A.W\"{a}\"{a}n\"{a}nen and others},
+  author =	 {A.~W\"{a}\"{a}n\"{a}nen and others},
   booktitle =	 {PARA '02: Proceedings of the 6th International
                   Conference on Applied Parallel Computing Advanced
                   Scientific Computing},
   year =	 {2002},
-  ISBN =	 {3-540-43786-X},
+  isbn =	 {3-540-43786-X},
   pages =	 {76-88},
   publisher =	 {Springer-Verlag},
   note =	 {Lecture Notes In Computer Science, Vol. 2367}
@@ -295,18 +338,77 @@ URL = "http://www.cs.fsu.edu/~engelen/soap.html"
   pages =	 {407-410}
 }
 
-@misc{jsdl,
-  title =        "Job Submission Description Language (JSDL) Specification v1.0",
+@unpublished{jsdl,
+  title =        "{Job Submission Description Language (JSDL) Specification, Version 1.0 (first errata update)}",
   author =	 {A.~Anjomshoaa and others},
-  note =	 "{GFD-R-P.056}",
-  year =	 "2005",
-  month =	 "December",
-  URL =          "http://www.ggf.org/ggf_docs_final.htm"
+  note =	 "{GFD-R.136}",
+  year =	 "2008",
+  month =	 "July",
+  URL =          "http://www.gridforum.org/documents/GFD.136.pdf"
 }
 
-@misc{cream,
-  title =   "{Job Submission and Management Through Web Services: the Experience with the CREAM Service}",
-  author =  {P. Andreetto et al},
-  URL =     "http://grid.pd.infn.it/cream/Misc/chep07_paper.pdf"
+@unpublished{ogsa-bes,
+  title =        "{OGSA\texttrademark ~Basic Execution Service Version 1.0}",
+  author =	 {I.~Foster and others},
+  note =	 "{GFD-R-P.108}",
+  year =	 "2007",
+  month =	 "August",
+  URL =          "http://www.ogf.org/documents/GFD.108.pdf"
 }
+
+@unpublished{lfc,
+title = "{LHC File Catalog}",
+url = {https://savannah.cern.ch/projects/jra1mdw/},
+  note =	 "{Web site}"
+}
+
+@Manual{arex,
+  author =	 "A. Konstantinov",
+  title =	 "{The ARC Computational Job Management Module - A-REX}",
+  note =	 "{NORDUGRID-TECH-14}",
+  URL =          "http://www.nordugrid.org/documents/a-rex.pdf"
+}
+
+@Unpublished{knowarc,
+title = "{EU KnowARC project}",
+note = "{Web site}",
+url = "{http://www.knowarc.eu}"
+}
+
+@Unpublished{ndgf,
+title = "{Nordic DataGrid Facility}",
+note = "{Web site}",
+url = "{http://www.ndgf.org}"
+}
+
+@Unpublished{swegrid,
+title = "{Swegrid, Swedish National computational resource}",
+note = "{Web site}",
+url = "{http://www.swegrid.se}"
+}
+
+@Unpublished{swing,
+title = "{SwiNG, Swiss National Grid Association}",
+note = "{Web site}",
+url = "{http://www.swing-grid.ch}"
+}
+
+@INPROCEEDINGS{cream,
+  title =   "{Job Submission and Management Through Web Services: the Experience with the CREAM Service}",
+  author =  {C. Aiftimiei and others},
+  year = "2008",
+  editor = "{R.~Sobie, R.~Tafirout and J.~Thomson}",
+  booktitle = "Proc. of CHEP 2007, J. Phys.: Conf. Ser. 119 062004",
+  publisher = "IOP",
+  URL =     "http://dx.doi.org/10.1088/1742-6596/119/6/062004"
+}
+
+@manual{arclib,
+  author =          "M. Ellert and others",
+  organization =    "{The NorduGrid Collaboration}",
+  title =           "{WS-based ARC Clients}",
+  note =            "{NORDUGRID-TECH-20, document in preparation}"
+}
+
+
 % ------------------------------------------------------------------------
