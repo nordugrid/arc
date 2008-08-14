@@ -121,8 +121,11 @@ void RunPump::Add(Run* r) {
   if(!(*this)) return;
   // Take full control over context
   list_lock_.lock();
-  context_->wakeup();
-  pump_lock_.lock();
+  while(true) {
+    context_->wakeup();
+    if(pump_lock_.trylock()) break;
+    sleep(1);
+  };
   try {
     // Add sources to context
     if(r->stdout_str_ && !(r->stdout_keep_))
@@ -148,8 +151,11 @@ void RunPump::Remove(Run* r) {
   if(!(*this)) return;
   // Take full control over context
   list_lock_.lock();
-  context_->wakeup();
-  pump_lock_.lock();
+  while(true) {
+    context_->wakeup();
+    if(pump_lock_.trylock()) break;
+    sleep(1);
+  };
   try {
     // Disconnect sources from context
     r->stdout_conn_.disconnect();
