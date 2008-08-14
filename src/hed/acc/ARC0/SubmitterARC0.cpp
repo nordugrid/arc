@@ -178,6 +178,10 @@ namespace Arc {
     //length of files, checksum etc ...
 
     jobdesc.getProduct(jobdescstring, "XRSL");
+    XMLNode JobDescInXML = jobdesc.getXML();
+
+    std::cout<<"Now printing job desc in XML format"<<std::endl;
+    JobDescInXML.SaveToStream(std::cout);
 
     globus_ftp_control_data_write(&control_handle,
 				  (globus_byte_t *)jobdescstring.c_str(),
@@ -208,8 +212,9 @@ namespace Arc {
 
     //Upload local input files.
     std::vector< std::pair< std::string, std::string > > SourceDestination = jobdesc.getUploadableFiles();
-    putFiles(SourceDestination,jobid.str());
+    std::cout<<" Number of uploadable files: "<< SourceDestination.size() << std::endl;
 
+    putFiles(SourceDestination,jobid.str());
 
     return std::make_pair(jobid, InfoEndpoint);
 
