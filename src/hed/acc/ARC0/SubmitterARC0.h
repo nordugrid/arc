@@ -15,7 +15,6 @@ namespace Arc {
     SubmitterARC0(Config *cfg);
     ~SubmitterARC0();
     static Logger logger;
-    void putFiles(const std::vector< std::pair< std::string, std::string> >& fileList, std::string jobid);
 
   public:
     static ACC *Instance(Config *cfg, ChainContext *cxt);

@@ -165,15 +165,27 @@ namespace Arc {
     logger.msg(DEBUG, "Downloading job: %s", ThisJob.JobID.str());
     bool SuccesfulDownload = true;
 
-    Arc::DataHandle source(ThisJob.JobID);
-    
+    Arc::DataHandle source(ThisJob.JobID);    
     if(source){
       std::list<FileInfo> outputfiles;
       source->ListFiles(outputfiles, true);
-      std::cout<<"Job directory contains:"<<std::endl;
+
+      //loop over directory to identify directories (and subdirectories)
+      std::list<Arc::FileInfo>::iterator i = outputfiles.begin();
+      while(i != outputfiles.end()){
+	if(i->GetType() == 2){
+	  Arc::DataHandle tmpsource(ThisJob.JobID+"/"+i->GetName());
+	  tmpsource->ListFiles(outputfiles, true);
+	  i = outputfiles.erase(i);
+	  continue;
+	}
+	i++;
+      }
+
+      std::cout<<"List of downloadable files:"<<std::endl;      
       //loop over files
       for(std::list<Arc::FileInfo>::iterator i = outputfiles.begin();i != outputfiles.end(); i++){
-	std::cout << i->GetName() <<std::endl;
+	std::cout << i->GetName() <<std::endl;	
 	std::string src = ThisJob.JobID.str() +"/"+ i->GetName();
 	std::string path_temp = ThisJob.JobID.Path(); 
 	size_t slash = path_temp.find_first_of("/");
