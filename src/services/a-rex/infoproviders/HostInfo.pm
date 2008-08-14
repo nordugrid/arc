@@ -77,7 +77,7 @@ sub diskspace ($) {
             my @dfstring =`fs listquota $path 2>/dev/null`;
             if ($? != 0) {
                 $log->warning("Failed running: fs listquota $path");
-            } elsif ($dfstring[1] =~ /^\s*\S+\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
+            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
                 $disktotal = int $1/1024;
                 $diskfree  = int(($1 - $2)/1024);
             } else {
@@ -85,14 +85,17 @@ sub diskspace ($) {
             }
         # "ordinary" disk
         } else {
-            my @dfstring =`df -k -P $path 2>/dev/null`;
+            my @dfstring =`df -k $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed running: df -k -P $path");
-            } elsif ($dfstring[1] =~ /^\s*\S+\s+(\d+)\s+\d+\s+(\d+)\s+\d+%/) {
+                $log->warning("Failed running: df -k $path");
+
+            # The first column may be printed on a separate line.
+            # The relevant numbers are always on the last line.
+            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+\//) {
     	        $disktotal = int $1/1024;
     	        $diskfree  = int $2/1024;
             } else {
-                $log->warning("Failed interpreting output of: df -k -P $path");
+                $log->warning("Failed interpreting output of: df -k $path");
             }
         }
     } else {
