@@ -15,30 +15,39 @@ Condor or SGE etc.
 \versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
    Options:&&\\
-   \texttt{ -c, -cluster}&\verb#[-]#textem{name}&explicitly select or reject a specific site (cluster)\\
-   \texttt{ -C, -clustlist}&\verb#[-]#textem{filename}&list of sites (clusters) to select or reject\\
-   \texttt{ -g, -giisurl}&\textit{url}&URL of a central Information System server (GIIS)\\
-   \texttt{ -G, -giislist}&\textit{filename}&list of GIIS URLs\\
-   \texttt{ -e, -xrsl}&\textit{filename}&string describing the job to be submitted\\
-   \texttt{ -f, -file}&\textit{filename}&file describing the job to be submitted\\
-   \texttt{ -o, -joblist}&\textit{filename}&file where the job IDs will be stored\\
-   \texttt{ ~~~~-dryrun}&&add dryrun option to the job description\\
-   \texttt{ ~~~~-dumpxrsl}&&do not submit -- dump transformed job description to stdout\\
-   \texttt{ -t, -timeout}&\textit{time}&timeout for queries (default 40 sec)\\
-   \texttt{ -d, -debug}&\textit{debuglevel}&debug level, from -3 (quiet) to 3 (verbose) - default 0\\
-   \texttt{ -x, -anonymous}&&use anonymous bind for queries (default)\\
-   \texttt{ -X, -gsi}&&use GSI-GSSAPI bind for queries\\
-   \texttt{ -v, -version}&&print version information\\
-   \texttt{ -h, -help}&&print help page\\
+   \texttt{ -c, --cluster}&\verb#[-]#\textit{url}&explicitly select or reject a specific site (cluster)\\
+   \texttt{ -i, --indexurl}&\textit{url}&URL of an index server\\
+   \texttt{ -e, --jobdescrstring}&\textit{filename}&string describing the job to be submitted\\
+   \texttt{ -f, --jobdescrfile}&\textit{filename}&file describing the job to be submitted\\
+   \texttt{ -j, --joblist}&\textit{filename}&file where the job IDs will be stored\\
+   \texttt{ -D, --dryrun}&&add dryrun option to the job description\\
+   \texttt{ -x, --dumpdescription}&&do not submit -- dump transformed job description to stdout\\
+   \texttt{ -t, --timeout}&\textit{time}&timeout for queries in seconds (default 20)\\
+   \texttt{ -d, --debug}&\textit{debuglevel}&debug level, FATAL, ERROR, WARNING, INFO, DEBUG or VERBOSE - default WARNING\\
+   \texttt{ -U, --unknownattr}&&allow unknown attributes in the job description\\
+   \texttt{ -v, --version}&&print version information\\
+   \texttt{ -?, --help}&&print help page\\
    Arguments:&&\\
    \texttt{ task ...}&&strings or files describing the jobs to be submitted\\
 \end{longtable}
 
+
+
 \begin{framed}
-Some text can be in frames
+The -c and -i arguments accept ``urls'' of the format GRID:URL,
+
+e.g. for index servers:
+
+ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid
+
+CREAM:ldap://cream.grid.upjs.sk:2170/o=grid
+
+or clusters:
+
+ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid
 \end{framed}
 
-A simple \textit{"Hello World"} job would look like
+A simple \textit{"Hello World"} job would look like...
 
 \begin{shaded}
    \uicommand{arcstat [options] [job ...]}

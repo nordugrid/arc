@@ -74,7 +74,7 @@ This command transfers contents of a file between 2 end-points.
 End-points are represented by URLs or meta-URLs. For supported
 endpoints please refer to Section~\ref{sec:urls}.
 
-\texttt{ngcp} can perform multi-stream transfers if \texttt{threads}
+\texttt{arccp} can perform multi-stream transfers if \texttt{threads}
 URL option is specified and server supports it.
 
 Source URL can end with \verb#"/"#. In that case, the whole fileset
@@ -85,11 +85,11 @@ directory name if it is meant to be identical to the source.
 
 \begin{framed}
    Since the job ID is in fact a \verb#gsiftp://# URL of the job
-   top directory, you can use \texttt{ngcp} to copy files from the
+   top directory, you can use \texttt{arccp} to copy files from the
    job directory at any time.
 \end{framed}
 
-Usage examples of \texttt{ngcp} are:
+Usage examples of \texttt{arccp} are:
 
 \begin{verbatim}
     ngcp gsiftp://lscf.nbi.dk:2811/jobs/1323842831451666535/job.out \
@@ -99,10 +99,10 @@ Usage examples of \texttt{ngcp} are:
     ngcp http://www.nordugrid.org/data/somefile gsiftp://hathi.hep.lu.se/data/
 \end{verbatim}
 
-\subsection{ngrm}\label{sec:ngrm}
+\subsection{arcrm}\label{sec:arcrm}
 
-The \texttt{ngrm}\footnote{In ARC $\leq$ 0.5.28 was called
-  \texttt{ngremove}} \index{ngrm}\index{commands:ngrm}
+The \texttt{arcrm}\footnote{In ARC $\leq$ 0.5.28 was called
+  \texttt{arcremove}} \index{arcrm}\index{commands:arcrm}
 command allows users to erase files at any location specified by a
 valid URL.
 \hspace*{0.5cm}
@@ -122,27 +122,27 @@ valid URL.
 \end{longtable}
 
 \begin{framed}
-   A convenient use for \texttt{ngrm} is to erase the files in a data
+   A convenient use for \texttt{ngarc} is to erase the files in a data
    indexing catalog (RC, RLS or such), as it will not only remove the
    physical instance, but also will clean up the database record.
 \end{framed}
 
-Here is an \texttt{ngrm} example:
+Here is an \texttt{arcrm} example:
 
 \begin{verbatim}
     ngrm rc://grid.uio.no/lc=Collection,rc=Catalog/badfile#\\
 \end{verbatim}
 
-\subsection{ngacl}\label{sec:ngacl}
+\subsection{arcacl}\label{sec:arcacl}
 
-\index{ngacl}\index{commands:ngacl}This command retrieves or modifies
+\index{arcacl}\index{commands:arcacl}This command retrieves or modifies
 access control information associated with a stored object if service
 supports GridSite GACL language~\cite{gacl} for access control.
 \hspace*{0.5cm}
 \begin{shaded}
-   \uicommand{ngacl [options] get$|$put $<$URL$>$}
+   \uicommand{arcacl [options] get$|$put $<$URL$>$}
 \end{shaded}
-\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+\versions{ARC 0.9}
 \begin{longtable}{llp{8cm}}
    Options:&&\\
     \texttt{-d, -debug} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
@@ -163,47 +163,6 @@ ACL document (an XML file) is printed to standard output when
     ngacl set gsiftp://se1.ndgf.csc.fi/ndgf/tutorial/dirname/filename $<$ myacl
 \end{verbatim}
 
-\subsection{ngtransfer}\label{sec:ngtransfer}
-\index{ngtransfer}\index{commands:ngtransfer}The \texttt{ngtransfer}
-command\footnote{In ARC $\leq$ 0.5.28, was called \texttt{ngrequest}}
-initiates direct transfer of data between 2 servers (known as
-\textit{third-party transfer}).  
-\hspace*{0.5cm}
-\begin{shaded}
-   \uicommand{ngtransfer [options] $<$destination$>$}
-\end{shaded}
-\versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
-\begin{longtable}{llp{8cm}}
-   Options:&&\\
-    \texttt{-s, -source} & \textit{URL} & source file URL\\
-    \texttt{-d, -debug} & \textit{debuglevel} &debug level: 0 = some, 1 = more, 2 = a lot \\
-    \texttt{-v} && print version information\\
-    \texttt{-h} && short help\\
-   Arguments:&&\\
-    \texttt{destination} && destination URL; currently only se:// and
-    (gsi)ftp:// are supported\\
-\end{longtable}
-
-This command initiates file copy from multiple source instances to a
-destination URL. Destination of \texttt{(gsi)ftp} type accepts only
-similar kinds of sources.  Destination can also be URL of an Indexing
-Service. In such a case, real destinations with suitable protocols are
-chosen, when available. Requests are sent to the corresponding
-services/servers to initiate file transfer from one of the sources.
-
-\begin{framed}
-   Absence of \verb#-s# option is treated as a file replication
-   request. In this case, destination must be an Indexing service or
-   an SRM.
-\end{framed}
-
-Following source URL types are supported: \texttt{http},
-\texttt{https}, \texttt{httpg}, \texttt{ftp}, \texttt{gsiftp},
-\texttt{rc}, \texttt{rls}, \texttt{se}, \texttt{srm}, \texttt{fireman}
-(see Section~\ref{sec:urls} for URL details).
-
-Example:
-\begin{verbatim}
-    ngtransfer -s http://www.host1.org/dat1  -s gsiftp://host2.org/dir/dat1 \
-               se://se.host.org/se_service?new_file_lfn
-\end{verbatim}
+\subsection{arctransfer}\label{sec:arctransfer}
+\index{arctransfer}\index{commands:arctransfer}The \texttt{arctransfer}
+This command is not implemented.
