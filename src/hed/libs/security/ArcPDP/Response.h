@@ -2,7 +2,6 @@
 #define __ARC_SEC_RESPONSE_H__
 
 #include <list>
-#include <vector>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include "EvaluationCtx.h"
@@ -26,16 +25,17 @@ typedef struct{
 class ResponseList {
 public:
   void addItem(ResponseItem* item) {
-    resps.push_back(item);
+    int n = (resps.size());
+    resps.insert(std::pair<int, ResponseItem*>(n, item));
   };
   int size() { return resps.size();};
-  ResponseItem* getItem(int n) { if((n<0) || (n>=resps.size())) return NULL; return resps[n]; };
-  ResponseItem* operator[](int n) { getItem(n); };
+  ResponseItem* getItem(int n) { return resps[n]; };
+  ResponseItem* operator[](int n) { return resps[n]; };
   bool empty() { return resps.empty(); };
   void clear() {
-    std::vector<ResponseItem*>::iterator it;
+    std::map<int, ResponseItem*>::iterator it;
     for(it = resps.begin(); it != resps.end();it = resps.begin()){
-      ResponseItem* item = *it;
+      ResponseItem* item = it->second;
       resps.erase(it);
       if(item) {
         RequestTuple* tpl = item->reqtp;
@@ -48,7 +48,7 @@ public:
     }
   };
 private:
-  std::vector<ResponseItem*> resps;
+  std::map<int, ResponseItem*> resps;
 };
 
 ///Container for the evaluation results
