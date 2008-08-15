@@ -5,6 +5,7 @@
 #define ARCLIB_JOBARC0CONTROLLER
 
 #include <arc/client/JobController.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc{
 
@@ -27,7 +28,8 @@ namespace Arc{
     bool CleanThisJob(Job ThisJob, bool force);
     bool CancelThisJob(Job ThisJob);
     URL GetFileUrlThisJob(Job ThisJob, std::string whichfile);
-
+    std::list<std::string> GetDownloadFiles(Arc::DataHandle& dir, std::string dirname = "");
+    
   };
   
 } //namespace ARC
