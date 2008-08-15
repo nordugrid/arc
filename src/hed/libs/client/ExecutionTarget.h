@@ -58,7 +58,7 @@ namespace Arc {
     std::string HealthState;
     std::string ServingState;
     std::string IssuerCA;
-    std::string TrustedCA;
+    std::string TrustedCA;//shouldn't this be a list?
     Time DowntimeStarts;
     Time DowntimeEnds;
     std::string Staging;
