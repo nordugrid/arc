@@ -116,7 +116,7 @@
 
 
 \begin{center}
-\textsc{\large The ARC Computational Job Management Component - A-Rex}
+\textsc{\large The ARC Computational Job Management Component - A-REX}
 \par\end{center}{\large \par}
 
 \vspace*{0.5cm}
@@ -138,17 +138,17 @@
 
 \section{Introduction\label{sec:intro}}
 
-A-Rex is one of ARC middleware componets implementing functions of
+A-REX is one of ARC middleware componets implementing functions of
 so called \emph{Computing Element} (CE). 
 
-The aim of the A-Rex is to take care of job pre- and post-processing.
+The aim of the A-REX is to take care of job pre- and post-processing.
 It provides functionality to stage-in files containing input data
 and program modules from wide range of sources and transfer or store
 output results.
 
-The A-Rex implements Web Service (WS) interface which provides a way
+The A-REX implements Web Service (WS) interface which provides a way
 to submit and control computational tasks (jobs) to be executed by
-the A-Rex and undelying Local Resource Management System.
+the A-REX and undelying Local Resource Management System.
 
 \textbf{You should use this document for advanced configuration purposes
 and understanding of internals of the aforementioned tools. For general
@@ -165,55 +165,55 @@ a \emph{session}.
 
 Each job gets a directory on the CE called the \emph{session directory}
 (SD). Input files are gathered in the SD. The job is supposed to produce
-new data files in the SD as well. The A-Rex does not guarantee the
+new data files in the SD as well. The A-REX does not guarantee the
 availability of any other places accessible by the job other than
 SD (unless such a place is part of a requested Runtime Environement).
-The SD is also the only place which is controlled by the A-Rex. It
+The SD is also the only place which is controlled by the A-REX. It
 is accessible by the user from outside through HTTP(S) protocol. Any
-file created outside the SD is not controlled by the A-Rex. Any exchange
-of data between client and A-Rex (including also program modules)
+file created outside the SD is not controlled by the A-REX. Any exchange
+of data between client and A-REX (including also program modules)
 is done through HTTP(S) protocol. A URL for accessing input/output
 files is  obtained through the WS Local Information Description Interface
-(LIDI) of A-Rex.
+(LIDI) of A-REX.
 
 Each job gets an identifier (\textit{jobid}). This is a handle - WS-Addressing
-\cite{jsdl} XML document - which identifies the job in the A-Rex
+\cite{jsdl} XML document - which identifies the job in the A-REX
 and the Information Interface.
 
 Jobs are initiated and controlled through WS interface. Complete job
-descriptions (JD)are passed to the A-Rex through WS in JSDL\cite{jsdl}
+descriptions (JD)are passed to the A-REX through WS in JSDL\cite{jsdl}
 coded description. Input data files and job executables are transferred
 separately through the same interface, as described in the next section.
 
 
 \section{Input/output data\label{sec:input/output data}}
 
-One of the most important tasks of the A-Rex is to take care of processing
+One of the most important tasks of the A-REX is to take care of processing
 input and output data (files) of the job. Input files are gathered
 in the SD or associated cache area. There are two ways to put a file
 into the SD:
 
 \begin{itemize}
-\item Download is initiated by the A-Rex -- This is the case for files defined
-in the JD (with name and source). The A-Rex alone is responsible to
+\item Download is initiated by the A-REX -- This is the case for files defined
+in the JD (with name and source). The A-REX alone is responsible to
 make sure that all required files will be available in the SD.\\
 The supported protocols for sources at the moment are (in case of
 full installation): GridFTP, FTP, HTTP, HTTPS (HTTP over SSLv3). Also
 some less standard sources are supported. Those are described below.
-The A-Rex fully relies on HED framework \cite{hed} for data transfering
+The A-REX fully relies on HED framework \cite{hed} for data transfering
 capabilities. Hence actual set of supported protocols depends on installed
 Data Management Components of the HED.
 \item Upload is initiated by the user directly or through the User Interface
 (UI). Because the SD becomes available immediately at the time of
 submission of JD, UI can (and should) use that to upload data files
-which are not otherwise accessible by the A-Rex. Examples of such
+which are not otherwise accessible by the A-REX. Examples of such
 files are the main executable of the job, the job's input files, etc.
 These files can (and should) also be specified in the JD.
 \end{itemize}
 \textbf{There is no} other reliable way for a job to obtain input
-data on the CE based on the A-Rex. Access to AFS, NFS, FTP, HTTP and
+data on the CE based on the A-REX. Access to AFS, NFS, FTP, HTTP and
 any other remote data transport during execution of a job is not guaranteed
-(at least not by A-Rex).
+(at least not by A-REX).
 
 Jobs should store output files in their SD. Like input files, output
 files belong into two groups:
@@ -221,7 +221,7 @@ files belong into two groups:
 \begin{itemize}
 \item Files which are supposed to be moved to a \emph{Storage Element} (SE)
 and optionally registered in some \emph{Indexing Service} like the
-Globus \emph{Replica Location Service} (RLS) -- The A-Rex takes care
+Globus \emph{Replica Location Service} (RLS) -- The A-REX takes care
 of these files. They have to be specified in the JD. If the job fails
 during any stage of processing, no attept is made to transfer those
 files to their final destination, unless the option \emph{preserve=yes}
@@ -238,7 +238,7 @@ second one.
 
 \section{\label{Section: Job Flow}Job flow}
 
-From the point of view of the A-Rex a job passes through various states.
+From the point of view of the A-REX a job passes through various states.
 Picture \ref{job states diagram} presents a diagram of the possible
 states of a job.%
 \begin{figure}[tbh]
@@ -250,7 +250,7 @@ states of a job.%
 \caption{\label{job states diagram}Job states}
 \end{figure}
 A user can examine the state of a job by querying the dedicated Local
-Information Description Interface of A-Rex using the UI or any other
+Information Description Interface of A-REX using the UI or any other
 suitable tool or through query method of WS interface. 
 
 Configuration can put limits on the amout of simultaneous jobs in
@@ -259,16 +259,16 @@ the state in question will stay in it's current state waiting for
 a free slot. This situation is presented by additional state mark
 \textbf{PENDING} to the current state name in the job's status desription.
 
-Below is the description of all actions taken by the A-Rex at every
+Below is the description of all actions taken by the A-REX at every
 state:
 
 \begin{itemize}
 \item \textbf{Accepted} - In this state the job has been submitted to a
-CE but is not processed yet. The A-Rex will analyze the JD and move
+CE but is not processed yet. The A-REX will analyze the JD and move
 to the next stage. If the JD can not be processed the job will be
 canceled and moved to the state \textbf{Finishing}.
 \item \textbf{Preparing} - The input data is being gathered in the SD (stage-in).
-The A-Rex is downloading the files specified in the JD and is waiting
+The A-REX is downloading the files specified in the JD and is waiting
 for files which are supposed to be uploaded by the UI. If all files
 are successfully gathered the job moves to the next state. If \textbf{any}
 file can't be downloaded or it takes the UI too long to upload a file,
@@ -286,7 +286,7 @@ state. Otherwise it moves to \textbf{Finishing}. It is possible to
 limit the agregate number of jobs in \textbf{Submiting} and \textbf{Executing}
 states.
 \item \textbf{Executing} - The job is queued or being executed in the LRMS.
-The A-Rex takes no actions except waiting until the job finishes.
+The A-REX takes no actions except waiting until the job finishes.
 \item \textbf{Killing} - Necessary action to cancel the job in the LRMS
 is being taken.
 \item \textbf{Finishing} - The output data is being processed (stage-out).
@@ -296,11 +296,11 @@ from the SD by using the UI or other adequate tool. All the files
 not specified as output files are removed from the SD at very beginning
 of this state. It is possible to limit number of simultaneous jobs
 in this state.
-\item \textbf{Finished} - No more processing is performed by the A-Rex.
+\item \textbf{Finished} - No more processing is performed by the A-REX.
 The user can continue to download data files from the SD. The SD is
 kept available for some time (default is 1 week). After that the job
 is moved to the state \textbf{Deleted}. The 'deletion' time can be
-obtained by querying the Informatrion Interface of the A-Rex. If a
+obtained by querying the Informatrion Interface of the A-REX. If a
 job was moved to \textbf{Finished} because of failure, it may be restarted
 on request of a client. When restarted, a job is moved to the state
 previous to the one in which it failed and is assigned mark PENDING.
@@ -320,7 +320,7 @@ the user}. No files will be moved to their destination SE.
 
 \section{URLs}
 
-In full installation the A-Rex and it's components support the following
+In full installation the A-REX and it's components support the following
 data transfer protocols and corresponding URLs: \emph{ftp, gsiftp,
 http, https, lfc} and \emph{rls.} For more information please see
 {}``The Hosting Environment of the Advanced Resource Connector middleware''
@@ -330,16 +330,16 @@ document \cite{hed}.
 \section{\label{section: internals}Internals}
 
 
-\subsection{Internal Files of the A-Rex}
+\subsection{Internal Files of the A-REX}
 
-For each local UNIX user listed in the A-Rex configuration - including
+For each local UNIX user listed in the A-REX configuration - including
 a generic one which covers all local user identities - a \textit{control
-directory} exists. In this directory the A-Rex stores information
+directory} exists. In this directory the A-REX stores information
 about jobs belonging to that user. Multiple users can share the same
-\textit{control directory}. In most common configuration case A-Rex
+\textit{control directory}. In most common configuration case A-REX
 serves all users defined by Operating System and stores their control
 file in same directory. To make it easier to recover in case of failure,
-the A-Rex stores most information in files rather than in memory.
+the A-REX stores most information in files rather than in memory.
 All files belonging to the same job have names starting with \textbf{job.ID.,}
 where ID is the job identifier.
 
@@ -373,7 +373,7 @@ otherwise some limits set in the configuration would be exceeded.
 \begin{itemize}
 \item \textit{job.ID.description} - contains the description of the job
 (JD).
-\item \textit{job.ID.local} - information about the job used by the A-Rex.
+\item \textit{job.ID.local} - information about the job used by the A-REX.
 It consists of lines of format \textit{{}``name = value''}. Not
 all of them are always available. The following names are defined:
 
@@ -509,9 +509,9 @@ UNIX ownership used by processes run with effective \emph{user id}
 different form job owner's \emph{id}.
 \end{itemize}
 There are other files with names like job.ID.{*} which are created
-and used by different parts of the A-Rex. Their presence in the \textit{control
+and used by different parts of the A-REX. Their presence in the \textit{control
 directory} can not be guaranteed and can change depending on changes
-in the A-Rex code.
+in the A-REX code.
 
 
 \subsection{Web Service Interface}
@@ -531,14 +531,14 @@ The exchange of SOAP messages is performed over the HTTP(S) protocol.
 The BES interface is represented by two port-types - BES-Management
 and BES-Factory. The former is made to control the A-REX service itself
 and thus defines operations to start and stop the functionality of
-the BES service. The A-Rex does not implement remote control of service
+the BES service. The A-REX does not implement remote control of service
 functionality. Hence the BES-Management port-type is not functional.
 The BES-Factory port-type provides operations to submit new jobs (to
 create an activity in terms of BES) and to monitor its state. It also
-has an ability to provide information about the service. A-Rex fully
+has an ability to provide information about the service. A-REX fully
 implements the functionality of this port-type.
 
-For job descriptions A-Rex accepts the Job Submission Description
+For job descriptions A-REX accepts the Job Submission Description
 Language (JSDL)\cite{jsdl} documents as defined by the OGF Job Submission
 Description Language Working Group. Supported elements and extensions
 are described below.
@@ -546,7 +546,7 @@ are described below.
 
 \subsubsection{Extensions to OGSA BES interface}
 
-A-Rex introduces a new operation in addition to those provided by
+A-REX introduces a new operation in addition to those provided by
 BES. It does that by defining its own port-type with the single operation
 \emph{ChangeActivityStatus} (see Appendix D). This operation provides
 a way to request simple transfers between states of jobs and corresponding
@@ -590,7 +590,7 @@ corresponding sequence is initiated and fault OperationWillBeAppliedEventuallyFa
 will be returned.
 
 Since BES allows implementators to extend their initial activity states
-with additional sub-states, A-Rex defines a set of sub-states of activity
+with additional sub-states, A-REX defines a set of sub-states of activity
 processing in addition to those defined by the BES, as listed in Table
 \ref{tab:Job-states-definitions}. Their meaning is described in section
 \ref{Section: Job Flow}.
@@ -670,7 +670,7 @@ and i snot implemented yet.\tabularnewline
 
 \subsubsection{Delegation Interface}
 
-The A-Rex also supportd the Delegation Interface (see Appendix E).
+The A-REX also supportd the Delegation Interface (see Appendix E).
 This is a common purpose interface to be used by ARC services which
 accepts delegated credentials from clients. The Delegation Interface
 implements two operations: initiatialization of credentials delegation
@@ -736,7 +736,7 @@ token.
 \end{itemize}
 \end{itemize}
 \end{itemize}
-Additionally, A-Rex Web Service Interface allows delegation to be
+Additionally, A-REX Web Service Interface allows delegation to be
 performed as part of the \emph{CreateActivity} operation of the BES-Factory
 port-type. For this it accepts the element \emph{DelegatedCredentials}
 inside the \emph{CreateActivity} element. The \emph{Id} element of
@@ -753,7 +753,7 @@ interface common for all ARC services. This interface is based on
 OASIS Web Services Resource Properties specification\cite{wsrf-rp}.
 Information about resources and maintained activities/jobs are represented
 in a \emph{WS-Resource Properties} informational XML document. The
-document type is defined in the A-Rex WSDL as a \emph{ResourceInformationDocumentType}.
+document type is defined in the A-REX WSDL as a \emph{ResourceInformationDocumentType}.
 It contains the following elements/resources:
 
 \begin{lyxlist}{00.00.0000}
@@ -769,13 +769,14 @@ resources or through XPath queries using WS-Resource Properties operations.
 \subsubsection{Supported JSDL elements}
 
 A-REX supports the following elements from the JSDL version 1.0 specification\cite{jsdl}
-including POSIX Applications extension:
+including POSIX Applications extension and JSDL HPC Profile Application
+Extension {[}]:
 
 \begin{lyxlist}{00.00.0000}
 \item [{\emph{JobName}}] \emph{-} name of the job as assigned by the user.
-\item [{\emph{Executable}\ (POSIX)}] - name of the executable file.
-\item [{\emph{Argument}\ (POSIX)}] - arguments the executable will be
-launched with.
+\item [{\emph{Executable}\ (POSIX,HPC)}] - name of the executable file.
+\item [{\emph{Argument}\ (POSIX,HPC)}] - arguments the executable will
+be launched with.
 \item [{\emph{DataStaging}}]~
 
 \begin{lyxlist}{00.00.0000}
@@ -785,12 +786,12 @@ execution.
 \item [{\emph{Target}}] \emph{-} destination the file will be delivered
 to after execution.
 \end{lyxlist}
-\item [{\emph{Input}\ (POSIX)}] - file to be used as standard input for
-the executable.
-\item [{\emph{Output}\ (POSIX)}] - file to be used as standard output
+\item [{\emph{Input}\ (POSIX,HPC)}] - file to be used as standard input
 for the executable.
-\item [{\emph{Error}\ (POSIX)}] - file to be used as standard error for
-the executable.
+\item [{\emph{Output}\ (POSIX,HPC)}] - file to be used as standard output
+for the executable.
+\item [{\emph{Error}\ (POSIX,HPC)}] - file to be used as standard error
+for the executable.
 \item [{\emph{MemoryLimit}\ (POSIX)}] - amount of physical memory needed
 for execution.
 \item [{\emph{TotalPhysicalMemory}}] - same as MemoryLimit.
@@ -803,6 +804,7 @@ for execution.
 for execution.
 \item [{\emph{TotalCPUCount}}] \emph{-} number of CPUs needed for execution.
 \item [{\emph{IndividualCPUCount}}] - same as TotalCPUCount.
+\item [{\emph{Environment}\ (POSIX)}] - environement variable.
 \end{lyxlist}
 
 \subsubsection{ARC-specific JSDL Extensions}
@@ -840,14 +842,18 @@ of a computing resource.
 
 \section{Cache\label{sec:cache}}
 
-The GM can cache input files. Caching is enabled if corresponding
-command is present in configuration file. The GM does not cache files
-marked as executable in job. Caching can also be explicitly turned
-off by user for each file by using \textit{cache=no} option in URL
-(for URL options read {}``Protocols, Uniform Resource Locators (URL)
-and extensions supported in ARC'' \cite{urls}). The disc space occupied
-by cache is controlled by removing unused files. For more information
-look in section \ref{SubSection: ConfigFile}.
+The A-REX can cache input files. Caching is enabled if corresponding
+command is present in configuration file. The A-REX does not cache
+files marked as executable in job. Caching can also be explicitly
+turned off by user for each file by using \textit{cache=no} option
+in URL (for URL options read {}``Protocols, Uniform Resource Locators
+(URL) and extensions supported in ARC'' \cite{urls}). The disc space
+occupied by cache is controlled by removing unused files. For more
+information look in section \ref{SubSection: ConfigFile}.
+
+\emph{NOTE: The caching algorithm used by A-REX and described above
+is currently being replaced by a better one which is no robust and
+provides better scalability.}
 
 
 \subsection{Structure}
@@ -904,32 +910,32 @@ is stored in the cache directory instead of the SD. The file is made
 available to the job by either soft-linking it in the SD or copying
 it to the SD. The latter option is more secure and hence advised.
 
-Before downloading a file the GM tries to determine it's size and
+Before downloading a file the A-REX tries to determine it's size and
 then tries to preallocate space in the cache directory by writing
-a file of the same size. If this fails (possibly because the file
-system has no more space), it tries to the remove oldest cached files
-which are not being used by any job. This means that \textbf{the hard
-limit of cache size is the space available in the file-system}. In
-case cache gets full and it is impossible to free enough space, the
-download fails and then is retried without using cache.
+an empty file of the same size. If this fails (possibly because the
+file system has no more space), it tries to the remove oldest cached
+files which are not being used by any job. This means that \textbf{the
+real hard limit of cache size is the space available in the file-system}.
+In case cache gets full and it is impossible to free enough space,
+the download fails and then is retried without using cache.
 
-Before giving access to an already cached file, the GM contacts the
-original file source to check if the user has suficient access rights
-to the file. Not all protocols make this check possible. Also, file
-creation or validity times are checked to make sure the cached file
-is fresh. If it is impossible to obtain creation and invalidation
+Before giving access to an already cached file, the A-REX contacts
+the original file source to check if the user has suficient access
+rights to the file. Not all protocols make this check possible. Also,
+file creation or validity times are checked to make sure the cached
+file is fresh. If it is impossible to obtain creation and invalidation
 times, the file is invalidated 24 hours after it was downloaded.
 
-The GM checks the cache periodically. If the space used by cache exceeds
-the high water-mark given in the configuration file (\emph{softsize}),
+The A-REX checks the cache periodically. If the space used by cache
+exceeds the high water-mark given in the configuration file (\emph{softsize}),
 it tries to remove the oldest unused files until cache size drops
 below the low water-mark. This sets the soft limit of cache size.
 
 There are two kinds of caches supported. Files in \textit{private}
-cache are owned by the Unix user to which a grid user is mapped. Those
+cache are owned by the Unix user to which a Grid user is mapped. Those
 files are readable only by that particular Unix user. Another kind
 of cache is \textit{shared}. Files in the shared cache are owned by
-the Unix user who started GM and are readable by everyone.
+the Unix user who started A-REX and are readable by everyone.
 
 
 \section{Files and directories\label{sec:files and directories}}
@@ -937,11 +943,13 @@ the Unix user who started GM and are readable by everyone.
 
 \subsection{Modules}
 
-The GM consists of several separate executable modules. These are:
+The A-REX consists of several separate modules. These are:
 
 \begin{itemize}
-\item \textit{grid-manager} - The main module. It is responsible for processing
-jobs, moving them through states and running other modules.
+\item \textit{libarex.so} - The main module providing main functionality
+and web interface. It is implemented as HTTP and SOAP service inside
+HED. It is responsible for processing jobs, moving them through states
+and running other modules.
 \item \textit{downloader} - This is a module responsible for gathering input
 files in the SD. It processes the \textit{job.ID.input} file and updates
 it.
@@ -957,11 +965,13 @@ It is run by the GM every 5 minutes.
 \item \emph{frontend-info-collector} - Utility to gather information about
 the frontend. It puts collected information into the \emph{job.ID.diag}
 file.
-\item \emph{gm-kick} - Sends a signal to the GM though a FIFO file to wake
-it up. It's used to increase responsiveness of GM.
+\item \emph{gm-kick} - Sends a signal to the A-REX though a FIFO file to
+wake it up. It's used to increase responsiveness of A-REX.
+\item \emph{cluster+qju.pl} - Collects and generates information about computing
+resource as XML document in NoruGrid and Glue 2 format.
 \end{itemize}
 The following modules are always run under the Unix account to which
-a grid user is mapped.
+a Grid user is mapped.
 
 \begin{itemize}
 \item \textit{smtp-send.sh} and \textit{smtp-send} - These are the modules
@@ -975,7 +985,7 @@ for job submission to the LRMS.
 \item \textit{cancel-{*}-job} - This script is for canceling jobs which
 have been already submitted to the LRMS.
 \item \textit{scan-{*}-job} -This shell script is responsible for notifying
-the GM about completion of jobs. It's implementation for PBS uses
+the A-REX about completion of jobs. It's implementation for PBS uses
 server logs to extract information about jobs. If logs are not available
 it uses the less reliable \emph{qstat} command for that. Other backends
 use different techniques.
@@ -990,78 +1000,53 @@ and the number of jobs in each state.\\
 \hspace*{0.5cm}-u -- pretend utility is run by user with id \emph{uid},\\
 \hspace*{0.5cm}-U -- pretend utility is run by user with name \emph{name}.
 \end{itemize}
-GM comes with plugins useable for various authorization purposes (see
-for example the description of \emph{authplugin} command below):
-
-\begin{itemize}
-\item \textit{inputcheck} - checks if all input files specified in job description
-are downloadable.\\
-\hspace*{0.5cm}inputcheck {[}-h] {[}-d debug\_level] RSL\_fle {[}proxy\_file]\\
-\hspace*{0.5cm}- RSL\_file -- file with job description,\\
-\hspace*{0.5cm}- proxy\_file -- credentials proxy.
-\item \textit{lcas} - executes LCAS plugins on credentials and returns 0
-if authorization passed.\\
-\hspace*{0.5cm} lcas credentials description {[}library {[}db {[}directory]]]\\
-\hspace*{0.5cm}- credentials -- path to file with credentials to
-authorize,\\
-\hspace*{0.5cm}- description -- path to file with job description,\\
-\hspace*{0.5cm}- library -- path to LCAS library (full or relative
-to LCAS directory),\\
-\hspace*{0.5cm}- db -- path to LCAS DB file (full or relative to
-LCAS directory),\\
-\hspace*{0.5cm}- directory -- LCAS directory.
-\end{itemize}
 
 \subsection{Directories}
 
-The GM is installed into a single installation point referred as \$NORDUGRID\_LOCATION
-and the following sub-directories are used:
+The A-REX is installed into a single installation point referred as
+\$ARC\_LOCATION and the following sub-directories are used:
 
 \begin{LyXParagraphLeftIndent}{1cm}
-\$NORDUGRID\_LOCATION/bin -- tools
+\$ARC\_LOCATION/bin -- tools
 
-\$NORDUGRID\_LOCATION/libexec -- program modules used by GM
+\$ARC\_LOCATION/libexec -- program modules used by A-REX
 
-\$NORDUGRID\_LOCATION/etc -- configuration files, deprecated, central
-configuration file is used by default
+/etc -- central configuration file - location used by default
 
-\$NORDUGRID\_LOCATION/sbin -- daemons
-
-\$NORDUGRID\_LOCATION/lib -- gridftp server's plugins and API libraries
+\$ARC\_LOCATION/lib/arc -- service module
 
 \end{LyXParagraphLeftIndent}
-The GM also uses following directories:
+The A-REX also uses following directories:
 
 \begin{itemize}
-\item \textit{session root directory} - Tthis is the directory under which
+\item \textit{session root directory} - Tthis is the directory in which
 a user's SDs are created. It's location is configurable per UNIX user.
-Several (or even all) users may share the same session root directory..\\
-There are 2 processes which need to have permissions to create new
-files and directories in it: GM and GFS. \\
-If any of these processes are run under a dedicated user account,
-that account needs full permissions in the \textit{session root directory}.\\
-If these processes are run under the \emph{root} account, make sure
-\textit{session root directory} resides on a filesystem which does
-not limit the capabilities of the \emph{root} user (as does for example
-NFS with \emph{root\_squash} option).\\
-If there is a need to run processes under the \emph{root} account
-(to be able to run jobs in LRMS under different users' accounts, for
-example) but there is no way to provide a suitable \textit{session
-root directory,} use the \emph{norootpower} command in GM's configuration
-file. In that case GM and GFS will use the identity of the local user
-to which a Grid identity is mapped to access the \textit{session root
-directory}. Hence those users will need full access there.\\
-The GM creates SDs with proper ownership and permissions for the local
-identity used to run a job. Some filesystems require users to have
-\emph{execute} permission on the \textit{session root directory} in
-order to access any file or subdirectory there.\\
+Several (or even all) users may share the same session root directory.\\
+The A-REX need to have permission to create new files and directories
+in the session root directory. If A-REX is run under a dedicated user
+account, that account needs full permissions in the \textit{session
+root directory}.\\
+If A-REX is run under the \emph{root} account, make sure \textit{session
+root directory} resides on a filesystem which does not limit the capabilities
+of the \emph{root} user (as does for example NFS with \emph{root\_squash}
+option).\\
+If there is a need to run A-REX under the \emph{root} account (to
+be able to run jobs in LRMS under different users' accounts, for example)
+but there is no way to provide a suitable \textit{session root directory,}
+use the \emph{norootpower} command in configuration file. In that
+case A-REX will use the identity of the local user to which a Grid
+identity is mapped to access the \textit{session root directory}.
+Hence those users will need full access there.\\
+The A-REX creates SDs with proper ownership and permissions for the
+local identity used to run a job. Some filesystems require users to
+have \emph{execute} permission on the \textit{session root directory}
+in order to access any file or subdirectory there.\\
 In order for jobs to access their input files, session root directories
 should be shared across cluster nodes. Otherwise, LRMS-specific methods
 must be used to transfer files to execution nodes. For more information
 see section \ref{sub:LRMS}.
-\item \textit{control directory} - In this directoryGM and GFS store an
-information about accepted jobs. Both processes must have full permissions
-there.\\
+\item \textit{control directory} - In this directory A-REX stores an information
+about accepted jobs. It must have full permissions there.\\
 A subdirectory called \textit{log} is created there. It is used to
 accumulate information about started and finished jobs. This information
 is periodically sent to the desired \emph{logger service}(s). For
@@ -1073,97 +1058,59 @@ the corresponding file is deleted.
 \section{Configuration}
 
 
-\subsection{\label{SubSection: ConfigFile}Configuration of the Grid Manager}
+\subsection{\label{SubSection: ConfigFile}Configuration of the A-REX}
 
-The GM configuration is done through a single configuration file.
-Historically GM supports 2 kinds of configuration files. For old one
-(deprecated) it looks at following places:
+Due to historical resons configuration of the A-REX is split into
+2 parts. The small part is located inside HED configuration (see appendix
+B) for schema and description of supported elements. It refers to
+file containing main part of configuration. The default location of
+main configuration file is \textit{/etc/arc.conf .}
 
-\begin{itemize}
-\item \textit{\$NORDUGRID\_LOCATION/etc/grid-manager.conf}
-\item \textit{/etc/grid-manager.conf}
-\end{itemize}
-And for new one in 
-
-\begin{itemize}
-\item \textit{/etc/arc.conf}
-\end{itemize}
-The old configuration file consists of empty lines, lines containing
-comment (line starts from \#) or configuration commands. Blank spaces
-in arguments must be escaped using '\textbackslash{}' or arguments
-must be enclosed in '\char`\"{}'. Command line starts from command
-followed by arguments separated from command and between them by spaces.
-
-The new configuration file can also contain empty lines and comments
+The configuration file can contain empty lines and comments in lines
 starting from \#. It is separated into sections. Each sections starts
-from string containing 
+from string containing pattern
 
 \begin{itemize}
 \item \emph{{[}section name/subsection name/subsubsection name]}. 
 \end{itemize}
-Each section continues till next section of end of file. One configuration
+Each section continues till next section or end of file. One configuration
 file can have commands for multiple services/modules/programs. Each
-service get it's own section named after it. The GM uses section \emph{{[}grid-manager]}.
-Some services can make use of multiple subsections to reflect their
-internal modular structure. Commands in section \emph{{[}common]}
+service get it's own section named after it. The A-REX uses section
+\emph{{[}grid-manager]}. Some services can make use of multiple subsections
+to reflect their internal modular structure. Commands in section \emph{{[}common]}
 apply to all services. Command lines have format 
 
 \begin{itemize}
 \item \emph{name=''arguments string''.}
 \end{itemize}
-Names are same as in old configuration file. The \emph{argument string}
-consists of same arguments as in old format. And they must obey same
-rules.
-
-Both files support almost same commands. Following commands are defined
-(examples are given for new format):
-
-\noindent Global commads (those which affect global parameters of
-the GM and affect all serviced users, also described in \cite{config}):
-
-\begin{itemize}
-\item \textbf{\textit{daemon}}\textit{=yes|no} - specifies whether the GM
-should go to background after started. Defaults to \emph{yes}.
-\item \textbf{\textit{logfile}}\textit{={[}path]} - specifies name of file
-for logging debug/informational output. Defaults to \emph{/dev/null}
-for daemon mode and \emph{stderr} for foreground mode.
-\item \textbf{\textit{user}}\textit{={[}uid{[}:gid]]} - specifies user id
-(and optionally group id) to which the GM must switch after reading
-configuration. Defaults to \emph{not switch}.
-\item \textbf{\textit{pidfile}}\textit{={[}path]} - specifies file where
-id if GM process will be stored. Defaults to \emph{not write}.
-\item \textbf{\textit{debug}}\textit{=number} - specifies level of debug
-information. More information is printed for higher levels. Currently
-highest effective number is 3 and lowest 0. Defaults to 2.
-\end{itemize}
-All commands above are generic for every daemon-enabled server in
-ARC NorduGrid toolkit (like GFS and HTTPSD).
+Following commands are defined:
 
 \begin{itemize}
 \item \textbf{\textit{joblog}}\textit{={[}path]} - specifies where to store
 log file containing information about started and finished jobs.
 \item \textbf{\textit{jobreport}}\textit{={[}URL ... number]} - specifies
-that GM has to report information about jobs being processed (started,
+that A-REX has to report information about jobs being processed (started,
 finished) to centralized service running at given \textit{URL}. Multiple
 entries and multiple URLs are allowed. \textit{number} specifies how
-long old records have to be kept if failed to be reported. That time
-is in days. Last specified value becomes effective.
+long old records have to be kept if failed to be reported. That value
+is specified in days. Last specified value becomes effective.
 \item \textbf{\textit{securetransfer}}\textit{=yes|no} - specifies whether
 to use encryption while transferring data. Currently works for GridFTP
-only. Default is no. It is overridden by value specified in URL options.
+only. Default is \emph{no}. It is overridden by value specified in
+URL options.
 \item \textbf{\textit{localtransfer}}\textit{=yes|no} - specifies whether
 to pass file downloading/uploading task to computing node. If set
-to yes the GM won't download/upload files. Instead it composes script
-submitted to LRMS in way to make it do that. This requires installation
-of GM and Globus to be accessible from computing nodes and environment
-variables GLOBUS\_LOCATION and NORDUGRID\_LOCATION to be set accordingly.
-Default is no.
+to yes the A-REX won't initiate download/upload files. Instead it
+composes script submitted to LRMS in way to make it do that. This
+requires installation of A-REX and all realted software to be accessible
+from computing nodes and environment variable ARC\_LOCATION to be
+set accordingly. Default is \emph{no}.
 \item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs {[}max\_running\_jobs]]}
-- specifies maximum number of jobs being processed by the GM at different
-stages:\\
+- specifies maximum number of jobs being processed by the A-REX at
+different stages:\\
 \textit{max\_processed\_jobs} - maximal amount of jobs being processed
-by GM. This does not limit amount of jobs, which can be suNOTE:bmitted
-to cluster\\
+by A-REX. This does not limit amount of jobs, which can be submitted
+to A-REX\\
 \textit{max\_running jobs} - maximal amount of jobs passed to Local
 Resource Management System\\
 Missing value or -1 means no limit.
@@ -1182,16 +1129,16 @@ in parallel by every job. Used to decrease load on not so powerful
 frontends.\\
 Missing value or -1 means no limit.
 \item \textbf{\textit{wakeupperiod}}\textit{=time} - specifies how often
-for external changes are performed (like new arrived job, job finished
-in LRMS, etc.). \textit{time} is a minimal time period specified in
-seconds. Default is 3 minutes.
+the A-REX checks for job state changes (like new arrived job, job
+finished in LRMS, etc.). \textit{time} is a minimal time period specified
+in seconds. Default is \emph{3 minutes}.
 \item \textbf{\textit{cacheregistration}}\textit{=yes|no} - enables or disables
 registration of cache data into Indexing Services like RC or RLS.
-The default is \emph{no}. Only files dowmloaded through \emph{meta-url}
+The default is \emph{no}. Only files downloaded through \emph{meta-url}
 are registred. Registration is done to same service used for obtaining
-information about file. For this opeartion credentials of the GM (host
-key and certificate) are used. If required new files storage location
-is registered at Indexing Service with quasi-url \emph{cache://hostname/}
+information about file. For this opeartion credentials of the A-REX
+(host key and certificate) are used. If required new files storage
+location is registered at Indexing Service with quasi-url \emph{cache://hostname/}
 and name \emph{hostname:cache} .
 \item \textbf{\textit{authplugin}}\textit{=state options plugin} - specifies
 \emph{plugin} (external executable) to be run every time job is going
@@ -1218,15 +1165,11 @@ time job has to do something on behalf of local user. Execution of
 function(char{*},char{*},char{*},...)} from shared library \emph{path}
 is called (\emph{timeout} is not functional in that case). If exit
 code is not 0 current operation will fail.
-\item \textbf{\textit{norootpower}}\textit{=yes/no} - if set to yes all
-processes involved in job management will use local identity of a
-user to which Grid identity is mapped in order to access filesystem
+\item \textbf{\textit{norootpower}}\textit{=yes/no} - if set to \emph{yes}
+all processes involved in job management will use local identity of
+a user to which Grid identity is mapped in order to access filesystem
 at path specified in \textbf{\textit{session}} command (see below).
 Sometimes this may involve running temporary external process.
-\item \textbf{\textit{allowsubmit}}\textit{={[}group ...]} - list of authorization
-groups of users allowed to submit new jobs while \char`\"{}allownew=no\char`\"{}
-is active in \emph{jobplugin.so} configuration (see below in section
-\ref{subsec: configfile of the gfs}). Multiple commands are allowed.
 \item \textbf{\textit{speedcontrol}}\textit{=min\_speed min\_time min\_average\_speed
 max\_inactivity} - specifies how long/slow data fransfer is allowed
 to take place. Transfer is canceled if transfer rate (bytes per second)
@@ -1250,7 +1193,7 @@ and \textit{replacement} should not be URLs.
 
 
 NOTE: URLs which fit into \textit{copyurl} or \textit{linkurl} are
-treated as more easily accessible than other URLs. That means if GM
+treated as more easily accessible than other URLs. That means if A-REX
 has to choose between few URLs from which should it download input
 file, these will be tried first.
 
@@ -1272,12 +1215,11 @@ JD). In new configuration file this command is called \textbf{\textit{lrms}}.
 in which the SD is created. If the path is {*} the default one is
 used - \textit{\$HOME/.jobs} . In new configuration file this command
 is called \textbf{\textit{sessiondir}}.
-\item \textbf{\textit{cache}}\textit{dir=path {[}link\_path]} - specifies
+\item \textbf{\textit{cachedir}}\textit{=path {[}link\_path]} - specifies
 the directory to store cached data. Empty \emph{path} disables caching.
 Default is not to cache data. Optional \textit{link\_path} specifies
 the path at which cache is accessible at computing nodes. If \textit{link\_path}
 is set to '.' files are not soft-linked, but copied to session directory.
-In old configuration file this command is called \textbf{\textit{cache}}.
 \item \textbf{\textit{privatecache}}\textit{=path {[}link\_path]} - same
 as \textit{cache} command, but cache belongs (owned) to user. For
 shared caches use 'cache'.
@@ -1297,17 +1239,17 @@ it off explicitly \textit{cachesize} without parameters should be
 specified. If turned off cache will grow up till it fills whole file
 system.
 \item \textbf{\textit{maxrerun}}\textit{=number} - specifies maximal number
-of times job will be allowed to rerun after it failed in LRMS. Default
-value is 2. This only specifies a upper limit. Actual number is provided
-in job description and defaults to 0.
+of times job will be allowed to rerun after it failed at any stage.
+Default value is \emph{5}. This only specifies a upper limit. Actual
+number is provided in job description and defaults to 0.
 \end{itemize}
 All per-user commands should be put before \textit{control} command
 which initiates serviced user.
 
 \begin{itemize}
 \item \textbf{\textit{control}}\textit{=path username {[}username {[}...]]}
-- This option initiates UNIX user as being serviced by the GM. \textit{path}
-refers to the control directory (see section \ref{section: internals}
+- This option initiates UNIX user as being serviced by the A-REX.
+\textit{path} refers to the control directory (see section \ref{section: internals}
 for the description of control directory). If the path is {*} the
 default one is used - \$HOME/.jobstatus . \textit{username} stands
 for UNIX name of the local user. Multiple names can be specified.
@@ -1315,8 +1257,7 @@ If the name is {*} it is substituted by all names found in file /etc/grid-securi
 (for the format of this file one should study the Globus project \cite{globus}).\\
 Also the special name '.'(dot) can be used. Corresponding control
 directory will be used for \textbf{any} user. This option should be
-the last one in the configuration file. In new configuration file
-command \textbf{\textit{controldir}}\textit{=path} is also available.
+the last one in the configuration file. There is also command \textbf{\textit{controldir}}\textit{=path}.
 It uses special username '.' and is always executed last independent
 of placement in file.
 \item \textbf{\textit{helper}}\textit{=username command {[}argument {[}argument
@@ -1328,10 +1269,8 @@ be used: '{*}' - all names from /etc/grid-security/grid-mapfile, '.'
 option (except root, who is always configured). \textit{command} is
 an executable and \textit{argument}s are passed as arguments to it.
 \end{itemize}
-Following are global commands supported only in new configuration
-file. Most of them are specific to underlying LRMS (PBS in this case)
-and are passed in environment variables if old configuration file
-is used.
+Following are global commands specific to communication with underlying
+LRMS (PBS in this case).
 
 \begin{itemize}
 \item \textbf{\textit{pbs\_bin\_path}}\textit{=path} - path to directory
@@ -1343,17 +1282,16 @@ with PBS server's log files.
 files.
 \item \textbf{\textit{runtimedir}}\textit{=path} - path to directory which
 contains \emph{runtimenvironment} scripts.
-\item \textbf{\textit{shared\_filesystem}}\textit{=yes|no} - if compiting
+\item \textbf{\textit{shared\_filesystem}}\textit{=yes|no} - if computing
 nodes have an access to session directory through a shared filesystem
-like NFS. Corresponds to an environement variable RUNTIME\_NODE\_SEES\_FRONTEND.
+like NFS. Corresponds to an environement variable RUNTIME\_NODE\_SEES\_FRONTEND
+(see section \ref{sub:LRMS}).
 \item \textbf{\textit{nodename}}\textit{=command} - command to obtain hostname
 of computing node.
 \item \textbf{\textit{scratchdir}}\textit{=path} - path on computing node
 where to move session directory before execution.
 \item \textbf{\textit{shared\_scratch}}\textit{=path} - path on frontend
 where \textbf{\textit{scratchdir}} can be found.
-\item \textbf{\textit{nodename}}\textit{=command} - command to obtain hostname
-of computing node.
 \end{itemize}
 In the command arguments (paths, executables, ...) following substitutions
 can be used:
@@ -1385,43 +1323,18 @@ Possible reasons are:
 \item [{extern}] - call external program (grid-manager)
 \end{lyxlist}
 \end{lyxlist}
-Some configuration parameters can be specified from command line while
-starting the GM:
-
-\emph{grid-manager {[}-h] {[}-C level] {[}-d level] {[}-c path] {[}-F]
-{[}-U uid{[}:gid]] {[}-L path] {[}-P path]}\\
-\hspace*{0.5cm}\emph{-h} - short help,\\
-\hspace*{0.5cm}\emph{-d} - debug level,\\
-\hspace*{0.5cm}\emph{-L} - name log file (overwrites value in configuration
-file),\\
-\hspace*{0.5cm}\emph{-P} - name for file containing process id (overwrites
-value in configuration file),\\
-\hspace*{0.5cm}\emph{-U} - user and gropu id to use for running daemon,\\
-\hspace*{0.5cm}\emph{-F} - do not make process daemon,\\
-\hspace*{0.5cm}\emph{-c} - name od configuration file,\\
-\hspace*{0.5cm}\emph{-C} - remove 
-
-old information before starting: 
-
-1- remove finished jobs, 2 - 
-
-remove active jobs too, 3- also remove everything that looks like
-junk.
-
 
 \subsection{Authorization\label{sub:Authorization}}
 
-Authorization is performed at GFS by applying set of rules. Each rule
-takes one line in the \emph{group} section. For information about
-supported rules please read {}``Configuration and authorisation of
-ARC (NorduGrid) Services'' \cite{config}.
+Authorization is performed by generic means provided by HED framework.
+Currently A-REX does not implement any internal authorization tecniques.
 
 
 \subsection{\label{sub:LRMS}LRMS support}
 
 The GM comes with support for several LRMS. And this number is slowly
-growing. Features explained below are for \textbf{PBS} backend. This
-support is provided through \textit{submit-pbs-job}, \textit{cancel-pbs-job},
+growing. Features explained below are for \textbf{PBS/Torque} backend.
+This support is provided through \textit{submit-pbs-job}, \textit{cancel-pbs-job},
 \textit{scan-pbs-job} scripts. \textit{submit-pbs-job} creates job's
 script and submits it to PBS. Created job's script is responsible
 for moving data between frontend machine and cluster node (if required)
@@ -1550,15 +1463,15 @@ to be uploaded/downloaded.
 
 \subsection{Runtime environment}
 
-The GM can run specially prepared \emph{BASH} scripts prior creation
+The A-REX can run specially prepared \emph{BASH} scripts prior creation
 of job's script, before and after executing job's main executable.
 Those scripts are requested by user through \emph{runtimeenvironment}
 attribute in RSL and are run with only argument set equal to '0',
 '1' or '2' during creation of job's script, before execution of main
 executable and after main executable finished accordingly. They all
 are run through BASH's 'source' command, and hence can manipulate
-with shell variables. With argument '0' scripts are run by the GM
-on frontend. Some environment variables are defined in that case and
+shell variables. With argument '0' scripts are run by the A-REX on
+frontend. Some environment variables are defined in that case and
 can be changed to influence job's execution later:
 
 \begin{itemize}
@@ -1600,20 +1513,23 @@ Main purpose is to clean possible changes done by scripts run with
 stage also happens on computing node and is not reliable. If the job
 is killed by LRMS they most probably won't be executed.
 
+For publicly available runtime environments please see RTE \url{http://gridrer.csc.fi/}
+.
+
 
 \section{Installation\label{sec:installation}}
 
-To install GM as part of ARC-enabled site please read {}``NorduGrid
-ARC server installation instructions'' at \url{http://www.nordugrid.org/documents/ng-server-install.html}.
+The A-REX is installed as part of ARC 1 middleware and is available
+in NorduGrid download area at ARC1 Download \url{http://download.nordugrid.org/software/nordugrid-arc1/}
+.There are packages available for various Linux distributions. The
+A-REX comes in nordugrid-arc1-arex package. Source code ready for
+compilation is available too.
 
 
 \subsection{Requirements}
 
-The GM is mostly written using C++. It was tested and should compile
-on recent enough \emph{Linux} systems using \emph{gcc} compiler and
-\emph{GNU make} (gcc versions 2.95, 2.96, 3.2, 3.4 were tested). You
-will also need \emph{Globus Toolkit$^{TM}$} of version higher than
-2.2 installed \url{http://www-unix.globus.org/toolkit/}.
+If installed from binary packages all dependencies are handled automatically.
+For compilation from source code please read included README file.
 
 
 \subsection{Setup of the Grid Manager}
@@ -1634,20 +1550,6 @@ by default. . Also file /var/log/gm-jobs.log (default path in configuration
 template, turned off by default) contains information about all started
 and finished jobs, 2 lines per job (1 when job is started and 1 after
 it finished). 
-
-
-\subsection{Setup of the GridFTP Server}
-
-For in-depth information about how to properly setup the GM and related
-software please read {}``NorduGrid ARC server installation instructions''
-at \url{http://www.nordugrid.org/documents/ng-server-install.html}.
-Follow that manual to install GM, configure and run it. Additional
-tips are described here.
-
-To make GFS to interoperate with other parts of the ARC only one \emph{jobplugin.so}
-needs to be configured. It is advisable to use the template configuration
-file. You can leave only part which configures \textit{jobplugin.so}
-plugin.
 
 
 \subsection{Usage}
@@ -1695,7 +1597,7 @@ infrastructure (private key of a host at least) has to be duplicated
 for every account used to run GFS.
 
 
-\section*{Appendix A. Job control over jobplugin.so}
+\section*{Appendix A. Session directory access through HTTP(S) interface}
 
 
 \subsection*{Virtual tree}
@@ -1788,47 +1690,139 @@ of the job. If the validity time of the new credentials is longer,
 the job's current credentials are replaced with the new ones.
 
 
-\section*{Appendix B. Library \textit{libarcdata}}
-
-\emph{libarcdata} is now part of \emph{libngui} library. It's functions
-are declared in a header file \emph{arcdata.h}. They correspond to
-ng{*} utilities meant for data handling - \emph{arcacl}, \emph{arccp},
-\emph{arcls}, \emph{arcrm}, \emph{arctransfer}. It consists of following
-functions:
+\section*{Appendix C. Configuration schema of A-REX}
 
 \begin{lyxcode}
-void~arcacl(const~std::string\&~file\_url,~const~std::string\&~command,~int~timeout~=~0);
+<?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>
 
+<xsd:schema
 
+xmlns:xsd=\char`\"{}http://www.w3.org/2001/XMLSchema\char`\"{}
 
-void~arcregister~(const~std::string\&~source\_url,~const~std::string\&~destination\_url,~bool~secure~=~false,~bool~passive~=~true,~bool~force\_meta~=~false,~int~timeout~=~0);
+xmlns=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
 
+xmlns:arc=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
 
+targetNamespace=\char`\"{}http://www.nordugrid.org/schemas/ArcConfig/2007/arex\char`\"{}
 
-void~arccp~(const~std::string\&~source\_url,~const~std::string\&~destination\_url,~bool~secure~=~false,~bool~passive~=~true,~bool~force\_meta~=~false,~int~recursion~=~0,~bool~verbose~=~false,~int~timeout~=~0);
+elementFormDefault=\char`\"{}qualified\char`\"{}>
 
+~~<xsd:complexType~name=\char`\"{}endpoint\_Type\char`\"{}>
 
+~~~~<!-{}-
 
-void~arcls(const~std::string\&~dir\_url,~bool~show\_details~=~false,~bool~show\_urls~=~false,~int~recursion~=~0,~int~timeout~=~0);
+~~~~This~element~defines~URL~of~A-REX~service~as~seen~from~outside.
 
+~~~~-{}->
 
+~~~~<xsd:simpleContent>
 
-void~arcrm(const~std::string\&~file\_url,~bool~errcont~=~false,~int~timeout~=~0);
+~~~~~~<xsd:extension~base=\char`\"{}xsd:string\char`\"{}>~
 
+~~~~~~</xsd:extension>
 
+~~~~</xsd:simpleContent>
 
-void~arctransfer(const~std::string\&~destination,~std::list<std::string>\&~sources,~int~timeout~=~0);
+~~</xsd:complexType>
+
+~~<xsd:element~name=\char`\"{}endpoint\char`\"{}~type=\char`\"{}endpoint\_Type\char`\"{}/>
+
+~~<xsd:complexType~name=\char`\"{}gmconfig\_Type\char`\"{}>
+
+~~~~<!-{}-
+
+~~~~This~element~defines~path~to~arc0~Grid~Manager~configuartion~file.
+
+~~~~By~default~it~is~/etc/arc.conf.
+
+~~~~-{}->
+
+~~~~<xsd:simpleContent>
+
+~~~~~~<xsd:extension~base=\char`\"{}xsd:string\char`\"{}>
+
+~~~~~~</xsd:extension>
+
+~~~~</xsd:simpleContent>
+
+~~</xsd:complexType>
+
+~~<xsd:element~name=\char`\"{}gmconfig\char`\"{}~type=\char`\"{}gmconfig\_Type\char`\"{}/>
+
+~~<xsd:simpleType~name=\char`\"{}gmrun\_Type\char`\"{}>
+
+~~~~<!-{}-
+
+~~~~This~element~defines~how~grid-manager~part~of~A-Rex~is~run.
+
+~~~~{*}~internal~-~as~a~thread~inside~service~container.
+
+~~~~{*}~none~-~no~grid-manager~is~run.
+
+~~~~{*}~external~-~as~a~separate~executable~(not~supported~anymore).
+
+~~~~Default~is~'internal'.
+
+~~~~-{}->
+
+~~~~<xsd:restriction~base=\char`\"{}xsd:string\char`\"{}>
+
+~~~~~~<xsd:enumeration~value=\char`\"{}internal\char`\"{}/>
+
+~~~~~~<xsd:enumeration~value=\char`\"{}external\char`\"{}/>
+
+~~~~~~<xsd:enumeration~value=\char`\"{}none\char`\"{}/>
+
+~~~~</xsd:restriction>
+
+~~</xsd:simpleType>
+
+~~<xsd:element~name=\char`\"{}gmrun\char`\"{}~type=\char`\"{}gmrun\_Type\char`\"{}/>
+
+~~<xsd:complexType~name=\char`\"{}usermap\_Type\char`\"{}>
+
+~~~~<xsd:sequence>
+
+~~~~~~<xsd:element~name=\char`\"{}defaultLocalName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}~minOccurs=\char`\"{}0\char`\"{}/>
+
+~~~~</xsd:sequence>
+
+~~</xsd:complexType>
+
+~~<xsd:element~name=\char`\"{}usermap\char`\"{}~type=\char`\"{}usermap\_Type\char`\"{}/>
+
+~~<!-{}-~CommonName~attribute~of~bes-factory.~-{}->
+
+~~<xsd:element~name=\char`\"{}commonName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
+
+~~<!-{}-~LongDescription~attribute~of~bes-factory.~-{}->
+
+~~<xsd:element~name=\char`\"{}longDescription\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
+
+~~<!-{}-~Name~of~Local~Resource~Management~System.~-{}->
+
+~~<xsd:element~name=\char`\"{}LRMSName\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
+
+~~<!-{}-
+
+~~Name~of~Operating~System.
+
+~~The~values~are~based~on~the~OSType~field~of~the~CIM\_OperatingSystem~model:
+
+~~http://www.dmtf.org/standards/cim/cim\_schema\_v29
+
+~~-{}->
+
+~~<xsd:element~name=\char`\"{}OperatingSystem\char`\"{}~type=\char`\"{}xsd:string\char`\"{}/>
+
+</xsd:schema>
 \end{lyxcode}
-Additionally this library contains C++ classes used by \emph{ng{*}}
-data management utilities. Those are described in {}``ARC::DataMove
-Reference Manual''.
 
+\section*{Appendix C. Error messages of A-REX}
 
-\section*{Appendix C. Error messages of GM}
-
-If job has not finished successfully the GM put one or more lines
-into \textit{job.ID.failed}. Possible valuesinclude those generated
-by the GM itself:
+If job has not finished successfully the A-REX puts one or more lines
+into \textit{job.ID.failed}. Possible values include those generated
+by the A-REX itself:
 
 \begin{tabular}{|p{2.5in}|p{4in}|}
 \hline 
@@ -2128,7 +2122,7 @@ Submission: Local submission client failed.&
 ~
 \end{lyxcode}
 
-\section*{Appendix D. A-Rex WSDL}
+\section*{Appendix D. A-REX WSDL}
 
 \begin{lyxcode}
 <?xml~version=\char`\"{}1.0\char`\"{}~encoding=\char`\"{}UTF-8\char`\"{}?>

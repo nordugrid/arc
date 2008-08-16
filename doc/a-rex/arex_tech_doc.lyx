@@ -232,7 +232,7 @@ vspace*{2cm}
 
 \shape smallcaps
 \size large
-The ARC Computational Job Management Component - A-Rex
+The ARC Computational Job Management Component - A-REX
 \end_layout
 
 \begin_layout Standard
@@ -339,7 +339,7 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-A-Rex is one of ARC middleware componets implementing functions of so called
+A-REX is one of ARC middleware componets implementing functions of so called
  
 \emph on
 Computing Element
@@ -349,14 +349,14 @@ Computing Element
 \end_layout
 
 \begin_layout Standard
-The aim of the A-Rex is to take care of job pre- and post-processing.
+The aim of the A-REX is to take care of job pre- and post-processing.
  It provides functionality to stage-in files containing input data and program
  modules from wide range of sources and transfer or store output results.
 \end_layout
 
 \begin_layout Standard
-The A-Rex implements Web Service (WS) interface which provides a way to
- submit and control computational tasks (jobs) to be executed by the A-Rex
+The A-REX implements Web Service (WS) interface which provides a way to
+ submit and control computational tasks (jobs) to be executed by the A-REX
  and undelying Local Resource Management System.
 \end_layout
 
@@ -403,16 +403,16 @@ session directory
  (SD).
  Input files are gathered in the SD.
  The job is supposed to produce new data files in the SD as well.
- The A-Rex does not guarantee the availability of any other places accessible
+ The A-REX does not guarantee the availability of any other places accessible
  by the job other than SD (unless such a place is part of a requested Runtime
  Environement).
- The SD is also the only place which is controlled by the A-Rex.
+ The SD is also the only place which is controlled by the A-REX.
  It is accessible by the user from outside through HTTP(S) protocol.
- Any file created outside the SD is not controlled by the A-Rex.
- Any exchange of data between client and A-Rex (including also program modules)
+ Any file created outside the SD is not controlled by the A-REX.
+ Any exchange of data between client and A-REX (including also program modules)
  is done through HTTP(S) protocol.
  A URL for accessing input/output files is  obtained through the WS Local
- Information Description Interface (LIDI) of A-Rex.
+ Information Description Interface (LIDI) of A-REX.
 \end_layout
 
 \begin_layout Standard
@@ -426,13 +426,13 @@ jobid
 
 \end_inset
 
- XML document - which identifies the job in the A-Rex and the Information
+ XML document - which identifies the job in the A-REX and the Information
  Interface.
 \end_layout
 
 \begin_layout Standard
 Jobs are initiated and controlled through WS interface.
- Complete job descriptions (JD)are passed to the A-Rex through WS in JSDL
+ Complete job descriptions (JD)are passed to the A-REX through WS in JSDL
 \begin_inset LatexCommand \cite{jsdl}
 
 \end_inset
@@ -452,16 +452,16 @@ Input/output data
 \end_layout
 
 \begin_layout Standard
-One of the most important tasks of the A-Rex is to take care of processing
+One of the most important tasks of the A-REX is to take care of processing
  input and output data (files) of the job.
  Input files are gathered in the SD or associated cache area.
  There are two ways to put a file into the SD:
 \end_layout
 
 \begin_layout Itemize
-Download is initiated by the A-Rex -- This is the case for files defined
+Download is initiated by the A-REX -- This is the case for files defined
  in the JD (with name and source).
- The A-Rex alone is responsible to make sure that all required files will
+ The A-REX alone is responsible to make sure that all required files will
  be available in the SD.
 \newline
 The supported protocols for sources at the moment
@@ -469,7 +469,7 @@ The supported protocols for sources at the moment
  SSLv3).
  Also some less standard sources are supported.
  Those are described below.
- The A-Rex fully relies on HED framework 
+ The A-REX fully relies on HED framework 
 \begin_inset LatexCommand \cite{hed}
 
 \end_inset
@@ -483,7 +483,7 @@ The supported protocols for sources at the moment
 Upload is initiated by the user directly or through the User Interface (UI).
  Because the SD becomes available immediately at the time of submission
  of JD, UI can (and should) use that to upload data files which are not
- otherwise accessible by the A-Rex.
+ otherwise accessible by the A-REX.
  Examples of such files are the main executable of the job, the job's input
  files, etc.
  These files can (and should) also be specified in the JD.
@@ -495,9 +495,9 @@ Upload is initiated by the user directly or through the User Interface (UI).
 There is no
 \series default
  other reliable way for a job to obtain input data on the CE based on the
- A-Rex.
+ A-REX.
  Access to AFS, NFS, FTP, HTTP and any other remote data transport during
- execution of a job is not guaranteed (at least not by A-Rex).
+ execution of a job is not guaranteed (at least not by A-REX).
 \end_layout
 
 \begin_layout Standard
@@ -518,7 +518,7 @@ Indexing Service
 \emph on
 Replica Location Service
 \emph default
- (RLS) -- The A-Rex takes care of these files.
+ (RLS) -- The A-REX takes care of these files.
  They have to be specified in the JD.
  If the job fails during any stage of processing, no attept is made to transfer
  those files to their final destination, unless the option 
@@ -553,7 +553,7 @@ Job flow
 \end_layout
 
 \begin_layout Standard
-From the point of view of the A-Rex a job passes through various states.
+From the point of view of the A-REX a job passes through various states.
  Picture 
 \begin_inset LatexCommand \ref{job states diagram}
 
@@ -594,7 +594,7 @@ Job states
 \end_inset
 
 A user can examine the state of a job by querying the dedicated Local Informatio
-n Description Interface of A-Rex using the UI or any other suitable tool
+n Description Interface of A-REX using the UI or any other suitable tool
  or through query method of WS interface.
  
 \end_layout
@@ -611,7 +611,7 @@ PENDING
 \end_layout
 
 \begin_layout Standard
-Below is the description of all actions taken by the A-Rex at every state:
+Below is the description of all actions taken by the A-REX at every state:
 \end_layout
 
 \begin_layout Itemize
@@ -621,7 +621,7 @@ Accepted
 \series default
  - In this state the job has been submitted to a CE but is not processed
  yet.
- The A-Rex will analyze the JD and move to the next stage.
+ The A-REX will analyze the JD and move to the next stage.
  If the JD can not be processed the job will be canceled and moved to the
  state 
 \series bold
@@ -636,7 +636,7 @@ Finishing
 Preparing
 \series default
  - The input data is being gathered in the SD (stage-in).
- The A-Rex is downloading the files specified in the JD and is waiting for
+ The A-REX is downloading the files specified in the JD and is waiting for
  files which are supposed to be uploaded by the UI.
  If all files are successfully gathered the job moves to the next state.
  If 
@@ -706,7 +706,7 @@ Executing
 Executing
 \series default
  - The job is queued or being executed in the LRMS.
- The A-Rex takes no actions except waiting until the job finishes.
+ The A-REX takes no actions except waiting until the job finishes.
 \end_layout
 
 \begin_layout Itemize
@@ -737,7 +737,7 @@ Finishing
 \series bold
 Finished
 \series default
- - No more processing is performed by the A-Rex.
+ - No more processing is performed by the A-REX.
  The user can continue to download data files from the SD.
  The SD is kept available for some time (default is 1 week).
  After that the job is moved to the state 
@@ -746,7 +746,7 @@ Deleted
 \series default
 .
  The 'deletion' time can be obtained by querying the Informatrion Interface
- of the A-Rex.
+ of the A-REX.
  If a job was moved to 
 \series bold
 Finished
@@ -793,7 +793,7 @@ URLs
 \end_layout
 
 \begin_layout Standard
-In full installation the A-Rex and it's components support the following
+In full installation the A-REX and it's components support the following
  data transfer protocols and corresponding URLs: 
 \emph on
 ftp, gsiftp, http, https, lfc
@@ -828,26 +828,26 @@ Internals
 \end_layout
 
 \begin_layout Subsection
-Internal Files of the A-Rex
+Internal Files of the A-REX
 \end_layout
 
 \begin_layout Standard
-For each local UNIX user listed in the A-Rex configuration - including a
+For each local UNIX user listed in the A-REX configuration - including a
  generic one which covers all local user identities - a 
 \shape italic
 control directory
 \shape default
  exists.
- In this directory the A-Rex stores information about jobs belonging to
+ In this directory the A-REX stores information about jobs belonging to
  that user.
  Multiple users can share the same 
 \shape italic
 control directory
 \shape default
 .
- In most common configuration case A-Rex serves all users defined by Operating
+ In most common configuration case A-REX serves all users defined by Operating
  System and stores their control file in same directory.
- To make it easier to recover in case of failure, the A-Rex stores most
+ To make it easier to recover in case of failure, the A-REX stores most
  information in files rather than in memory.
  All files belonging to the same job have names starting with 
 \series bold
@@ -967,7 +967,7 @@ job.ID.description
 \shape italic
 job.ID.local
 \shape default
- - information about the job used by the A-Rex.
+ - information about the job used by the A-REX.
  It consists of lines of format 
 \shape italic
 
@@ -1516,12 +1516,12 @@ id
 
 \begin_layout Standard
 There are other files with names like job.ID.* which are created and used
- by different parts of the A-Rex.
+ by different parts of the A-REX.
  Their presence in the 
 \shape italic
 control directory
 \shape default
- can not be guaranteed and can change depending on changes in the A-Rex
+ can not be guaranteed and can change depending on changes in the A-REX
  code.
 \end_layout
 
@@ -1560,16 +1560,16 @@ The job submission and control interface is based on document produced by
  BES-Factory.
  The former is made to control the A-REX service itself and thus defines
  operations to start and stop the functionality of the BES service.
- The A-Rex does not implement remote control of service functionality.
+ The A-REX does not implement remote control of service functionality.
  Hence the BES-Management port-type is not functional.
  The BES-Factory port-type provides operations to submit new jobs (to create
  an activity in terms of BES) and to monitor its state.
  It also has an ability to provide information about the service.
- A-Rex fully implements the functionality of this port-type.
+ A-REX fully implements the functionality of this port-type.
 \end_layout
 
 \begin_layout Standard
-For job descriptions A-Rex accepts the Job Submission Description Language
+For job descriptions A-REX accepts the Job Submission Description Language
  (JSDL)
 \begin_inset LatexCommand \cite{jsdl}
 
@@ -1585,7 +1585,7 @@ Extensions to OGSA BES interface
 \end_layout
 
 \begin_layout Standard
-A-Rex introduces a new operation in addition to those provided by BES.
+A-REX introduces a new operation in addition to those provided by BES.
  It does that by defining its own port-type with the single operation 
 \emph on
 ChangeActivityStatus
@@ -1682,7 +1682,7 @@ On result of this command, the job should be put into the requested state.
 
 \begin_layout Standard
 Since BES allows implementators to extend their initial activity states
- with additional sub-states, A-Rex defines a set of sub-states of activity
+ with additional sub-states, A-REX defines a set of sub-states of activity
  processing in addition to those defined by the BES, as listed in Table
  
 \begin_inset LatexCommand \ref{tab:Job-states-definitions}
@@ -2225,7 +2225,7 @@ Delegation Interface
 \end_layout
 
 \begin_layout Standard
-The A-Rex also supportd the Delegation Interface (see Appendix E).
+The A-REX also supportd the Delegation Interface (see Appendix E).
  This is a common purpose interface to be used by ARC services which accepts
  delegated credentials from clients.
  The Delegation Interface implements two operations: initiatialization of
@@ -2366,7 +2366,7 @@ ProcessingFault
 \end_deeper
 \end_deeper
 \begin_layout Standard
-Additionally, A-Rex Web Service Interface allows delegation to be performed
+Additionally, A-REX Web Service Interface allows delegation to be performed
  as part of the 
 \emph on
 CreateActivity
@@ -2422,7 +2422,7 @@ The A-REX implements the Local Information Description Interface (LIDI)
 WS-Resource Properties
 \emph default
  informational XML document.
- The document type is defined in the A-Rex WSDL as a 
+ The document type is defined in the A-REX WSDL as a 
 \emph on
 ResourceInformationDocumentType
 \emph default
@@ -2464,7 +2464,8 @@ A-REX supports the following elements from the JSDL version 1.0 specification
 
 \end_inset
 
- including POSIX Applications extension:
+ including POSIX Applications extension and JSDL HPC Profile Application
+ Extension []:
 \end_layout
 
 \begin_layout List
@@ -2483,7 +2484,7 @@ JobName -
 Executable
 \emph default
 \InsetSpace \space{}
-(POSIX) - name of the executable file.
+(POSIX,HPC) - name of the executable file.
 \end_layout
 
 \begin_layout List
@@ -2493,7 +2494,7 @@ Executable
 Argument
 \emph default
 \InsetSpace \space{}
-(POSIX) - arguments the executable will be launched with.
+(POSIX,HPC) - arguments the executable will be launched with.
 \end_layout
 
 \begin_layout List
@@ -2535,7 +2536,7 @@ Target -
 Input
 \emph default
 \InsetSpace \space{}
-(POSIX) - file to be used as standard input for the executable.
+(POSIX,HPC) - file to be used as standard input for the executable.
 \end_layout
 
 \begin_layout List
@@ -2545,7 +2546,7 @@ Input
 Output
 \emph default
 \InsetSpace \space{}
-(POSIX) - file to be used as standard output for the executable.
+(POSIX,HPC) - file to be used as standard output for the executable.
 \end_layout
 
 \begin_layout List
@@ -2555,7 +2556,7 @@ Output
 Error
 \emph default
 \InsetSpace \space{}
-(POSIX) - file to be used as standard error for the executable.
+(POSIX,HPC) - file to be used as standard error for the executable.
 \end_layout
 
 \begin_layout List
@@ -2640,6 +2641,16 @@ TotalCPUCount -
 IndividualCPUCount
 \emph default
  - same as TotalCPUCount.
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+
+\emph on
+Environment
+\emph default
+\InsetSpace \space{}
+(POSIX) - environement variable.
 \end_layout
 
 \begin_layout Subsubsection
@@ -2774,10 +2785,10 @@ Cache
 \end_layout
 
 \begin_layout Standard
-The GM can cache input files.
+The A-REX can cache input files.
  Caching is enabled if corresponding command is present in configuration
  file.
- The GM does not cache files marked as executable in job.
+ The A-REX does not cache files marked as executable in job.
  Caching can also be explicitly turned off by user for each file by using
  
 \shape italic
@@ -2804,6 +2815,14 @@ Protocols, Uniform Resource Locators (URL) and extensions supported in ARC
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+NOTE: The caching algorithm used by A-REX and described above is currently
+ being replaced by a better one which is no robust and provides better scalabili
+ty.
 \end_layout
 
 \begin_layout Subsection
@@ -3005,15 +3024,15 @@ If a job requests an input file which is subject for cacheing, it is stored
 \end_layout
 
 \begin_layout Standard
-Before downloading a file the GM tries to determine it's size and then tries
- to preallocate space in the cache directory by writing a file of the same
- size.
+Before downloading a file the A-REX tries to determine it's size and then
+ tries to preallocate space in the cache directory by writing an empty file
+ of the same size.
  If this fails (possibly because the file system has no more space), it
  tries to the remove oldest cached files which are not being used by any
  job.
  This means that 
 \series bold
-the hard limit of cache size is the space available in the file-system
+the real hard limit of cache size is the space available in the file-system
 \series default
 .
  In case cache gets full and it is impossible to free enough space, the
@@ -3021,7 +3040,7 @@ the hard limit of cache size is the space available in the file-system
 \end_layout
 
 \begin_layout Standard
-Before giving access to an already cached file, the GM contacts the original
+Before giving access to an already cached file, the A-REX contacts the original
  file source to check if the user has suficient access rights to the file.
  Not all protocols make this check possible.
  Also, file creation or validity times are checked to make sure the cached
@@ -3031,7 +3050,7 @@ Before giving access to an already cached file, the GM contacts the original
 \end_layout
 
 \begin_layout Standard
-The GM checks the cache periodically.
+The A-REX checks the cache periodically.
  If the space used by cache exceeds the high water-mark given in the configurati
 on file (
 \emph on
@@ -3048,15 +3067,15 @@ There are two kinds of caches supported.
 \shape italic
 private
 \shape default
- cache are owned by the Unix user to which a grid user is mapped.
+ cache are owned by the Unix user to which a Grid user is mapped.
  Those files are readable only by that particular Unix user.
  Another kind of cache is 
 \shape italic
 shared
 \shape default
 .
- Files in the shared cache are owned by the Unix user who started GM and
- are readable by everyone.
+ Files in the shared cache are owned by the Unix user who started A-REX
+ and are readable by everyone.
 \end_layout
 
 \begin_layout Section
@@ -3073,16 +3092,17 @@ Modules
 \end_layout
 
 \begin_layout Standard
-The GM consists of several separate executable modules.
+The A-REX consists of several separate modules.
  These are:
 \end_layout
 
 \begin_layout Itemize
 
 \shape italic
-grid-manager
+libarex.so
 \shape default
- - The main module.
+ - The main module providing main functionality and web interface.
+ It is implemented as HTTP and SOAP service inside HED.
  It is responsible for processing jobs, moving them through states and running
  other modules.
 \end_layout
@@ -3162,12 +3182,21 @@ job.ID.diag
 \emph on
 gm-kick
 \emph default
- - Sends a signal to the GM though a FIFO file to wake it up.
- It's used to increase responsiveness of GM.
+ - Sends a signal to the A-REX though a FIFO file to wake it up.
+ It's used to increase responsiveness of A-REX.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+cluster+qju.pl
+\emph default
+ - Collects and generates information about computing resource as XML document
+ in NoruGrid and Glue 2 format.
 \end_layout
 
 \begin_layout Standard
-The following modules are always run under the Unix account to which a grid
+The following modules are always run under the Unix account to which a Grid
  user is mapped.
 \end_layout
 
@@ -3220,7 +3249,7 @@ cancel-*-job
 \shape italic
 scan-*-job
 \shape default
- -This shell script is responsible for notifying the GM about completion
+ -This shell script is responsible for notifying the A-REX about completion
  of jobs.
  It's implementation for PBS uses server logs to extract information about
  jobs.
@@ -3313,203 +3342,37 @@ name
 .
 \end_layout
 
-\begin_layout Standard
-GM comes with plugins useable for various authorization purposes (see for
- example the description of 
-\emph on
-authplugin
-\emph default
- command below):
-\end_layout
-
-\begin_layout Itemize
-
-\shape italic
-inputcheck
-\shape default
- - checks if all input files specified in job description are downloadable.
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-inputcheck [-h] [-d debug_level] RSL_fle [proxy_file]
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- RSL_file -- file with job description,
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- proxy_file -- credentials proxy.
-\end_layout
-
-\begin_layout Itemize
-
-\shape italic
-lcas
-\shape default
- - executes LCAS plugins on credentials and returns 0 if authorization passed.
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
- lcas credentials description [library [db [directory]]]
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- credentials -- path to file with credentials to authorize,
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- description -- path to file with job description,
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- library -- path to LCAS library (full or relative to LCAS directory),
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- db -- path to LCAS DB file (full or relative to LCAS directory),
-\newline
-
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-- directory -- LCAS directory.
-\end_layout
-
 \begin_layout Subsection
 Directories
 \end_layout
 
 \begin_layout Standard
-The GM is installed into a single installation point referred as $NORDUGRID_LOCA
-TION and the following sub-directories are used:
+The A-REX is installed into a single installation point referred as $ARC_LOCATIO
+N and the following sub-directories are used:
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/bin -- tools
+$ARC_LOCATION/bin -- tools
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/libexec -- program modules used by GM
+$ARC_LOCATION/libexec -- program modules used by A-REX
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/etc -- configuration files, deprecated, central configuratio
-n file is used by default
+/etc -- central configuration file - location used by default
 \end_layout
 
 \begin_layout Standard
 \leftindent 1cm
-$NORDUGRID_LOCATION/sbin -- daemons
+$ARC_LOCATION/lib/arc -- service module
 \end_layout
 
 \begin_layout Standard
-\leftindent 1cm
-$NORDUGRID_LOCATION/lib -- gridftp server's plugins and API libraries
-\end_layout
-
-\begin_layout Standard
-The GM also uses following directories:
+The A-REX also uses following directories:
 \end_layout
 
 \begin_layout Itemize
@@ -3517,23 +3380,21 @@ The GM also uses following directories:
 \shape italic
 session root directory
 \shape default
- - Tthis is the directory under which a user's SDs are created.
+ - Tthis is the directory in which a user's SDs are created.
  It's location is configurable per UNIX user.
- Several (or even all) users may share the same session root directory..
+ Several (or even all) users may share the same session root directory.
 \newline
-There
- are 2 processes which need to have permissions to create new files and
- directories in it: GM and GFS.
- 
-\newline
-If any of these processes are run under a dedicated user account, that
- account needs full permissions in the 
+The
+ A-REX need to have permission to create new files and directories in the
+ session root directory.
+ If A-REX is run under a dedicated user account, that account needs full
+ permissions in the 
 \shape italic
 session root directory
 \shape default
 .
 \newline
-If these processes are run under the 
+If A-REX is run under the 
 \emph on
 root
 \emph default
@@ -3551,7 +3412,7 @@ root_squash
 \emph default
  option).
 \newline
-If there is a need to run processes under the 
+If there is a need to run A-REX under the 
 \emph on
 root
 \emph default
@@ -3564,17 +3425,17 @@ session root directory,
 \emph on
 norootpower
 \emph default
- command in GM's configuration file.
- In that case GM and GFS will use the identity of the local user to which
- a Grid identity is mapped to access the 
+ command in configuration file.
+ In that case A-REX will use the identity of the local user to which a Grid
+ identity is mapped to access the 
 \shape italic
 session root directory
 \shape default
 .
  Hence those users will need full access there.
 \newline
-The GM creates SDs with proper
- ownership and permissions for the local identity used to run a job.
+The A-REX creates SDs with
+ proper ownership and permissions for the local identity used to run a job.
  Some filesystems require users to have 
 \emph on
 execute
@@ -3603,8 +3464,8 @@ In order for jobs to access
 \shape italic
 control directory
 \shape default
- - In this directoryGM and GFS store an information about accepted jobs.
- Both processes must have full permissions there.
+ - In this directory A-REX stores an information about accepted jobs.
+ It must have full permissions there.
 \newline
 A subdirectory called 
 \shape italic
@@ -3631,52 +3492,24 @@ Configuration
 
 \end_inset
 
-Configuration of the Grid Manager
+Configuration of the A-REX
 \end_layout
 
 \begin_layout Standard
-The GM configuration is done through a single configuration file.
- Historically GM supports 2 kinds of configuration files.
- For old one (deprecated) it looks at following places:
-\end_layout
-
-\begin_layout Itemize
-
+Due to historical resons configuration of the A-REX is split into 2 parts.
+ The small part is located inside HED configuration (see appendix B) for
+ schema and description of supported elements.
+ It refers to file containing main part of configuration.
+ The default location of main configuration file is 
 \shape italic
-$NORDUGRID_LOCATION/etc/grid-manager.conf
-\end_layout
-
-\begin_layout Itemize
-
-\shape italic
-/etc/grid-manager.conf
+/etc/arc.conf .
 \end_layout
 
 \begin_layout Standard
-And for new one in 
-\end_layout
-
-\begin_layout Itemize
-
-\shape italic
-/etc/arc.conf
-\end_layout
-
-\begin_layout Standard
-The old configuration file consists of empty lines, lines containing comment
- (line starts from #) or configuration commands.
- Blank spaces in arguments must be escaped using '
-\backslash
-' or arguments must be enclosed in '"'.
- Command line starts from command followed by arguments separated from command
- and between them by spaces.
-\end_layout
-
-\begin_layout Standard
-The new configuration file can also contain empty lines and comments starting
+The configuration file can contain empty lines and comments in lines starting
  from #.
  It is separated into sections.
- Each sections starts from string containing 
+ Each sections starts from string containing pattern
 \end_layout
 
 \begin_layout Itemize
@@ -3689,10 +3522,10 @@ The new configuration file can also contain empty lines and comments starting
 \end_layout
 
 \begin_layout Standard
-Each section continues till next section of end of file.
+Each section continues till next section or end of file.
  One configuration file can have commands for multiple services/modules/programs.
  Each service get it's own section named after it.
- The GM uses section 
+ The A-REX uses section 
 \emph on
 [grid-manager]
 \emph default
@@ -3722,117 +3555,7 @@ arguments string
 \end_layout
 
 \begin_layout Standard
-Names are same as in old configuration file.
- The 
-\emph on
-argument string
-\emph default
- consists of same arguments as in old format.
- And they must obey same rules.
-\end_layout
-
-\begin_layout Standard
-Both files support almost same commands.
- Following commands are defined (examples are given for new format):
-\end_layout
-
-\begin_layout Standard
-\noindent
-Global commads (those which affect global parameters of the GM and affect
- all serviced users, also described in 
-\begin_inset LatexCommand \cite{config}
-
-\end_inset
-
-):
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-daemon
-\series default
-=yes|no
-\shape default
- - specifies whether the GM should go to background after started.
- Defaults to 
-\emph on
-yes
-\emph default
-.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-logfile
-\series default
-=[path]
-\shape default
- - specifies name of file for logging debug/informational output.
- Defaults to 
-\emph on
-/dev/null
-\emph default
- for daemon mode and 
-\emph on
-stderr
-\emph default
- for foreground mode.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-user
-\series default
-=[uid[:gid]]
-\shape default
- - specifies user id (and optionally group id) to which the GM must switch
- after reading configuration.
- Defaults to 
-\emph on
-not switch
-\emph default
-.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-pidfile
-\series default
-=[path]
-\shape default
- - specifies file where id if GM process will be stored.
- Defaults to 
-\emph on
-not write
-\emph default
-.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-debug
-\series default
-=number
-\shape default
- - specifies level of debug information.
- More information is printed for higher levels.
- Currently highest effective number is 3 and lowest 0.
- Defaults to 2.
-\end_layout
-
-\begin_layout Standard
-All commands above are generic for every daemon-enabled server in ARC NorduGrid
- toolkit (like GFS and HTTPSD).
+Following commands are defined:
 \end_layout
 
 \begin_layout Itemize
@@ -3856,7 +3579,7 @@ jobreport
 =[URL ...
  number]
 \shape default
- - specifies that GM has to report information about jobs being processed
+ - specifies that A-REX has to report information about jobs being processed
  (started, finished) to centralized service running at given 
 \shape italic
 URL
@@ -3868,7 +3591,7 @@ URL
 number
 \shape default
  specifies how long old records have to be kept if failed to be reported.
- That time is in days.
+ That value is specified in days.
  Last specified value becomes effective.
 \end_layout
 
@@ -3882,7 +3605,11 @@ securetransfer
 \shape default
  - specifies whether to use encryption while transferring data.
  Currently works for GridFTP only.
- Default is no.
+ Default is 
+\emph on
+no
+\emph default
+.
  It is overridden by value specified in URL options.
 \end_layout
 
@@ -3896,12 +3623,16 @@ localtransfer
 \shape default
  - specifies whether to pass file downloading/uploading task to computing
  node.
- If set to yes the GM won't download/upload files.
+ If set to yes the A-REX won't initiate download/upload files.
  Instead it composes script submitted to LRMS in way to make it do that.
- This requires installation of GM and Globus to be accessible from computing
- nodes and environment variables GLOBUS_LOCATION and NORDUGRID_LOCATION
- to be set accordingly.
- Default is no.
+ This requires installation of A-REX and all realted software to be accessible
+ from computing nodes and environment variable ARC_LOCATION to be set accordingl
+y.
+ Default is 
+\emph on
+no
+\emph default
+.
 \end_layout
 
 \begin_layout Itemize
@@ -3912,15 +3643,15 @@ maxjobs
 \series default
 =[max_processed_jobs [max_running_jobs]]
 \shape default
- - specifies maximum number of jobs being processed by the GM at different
+ - specifies maximum number of jobs being processed by the A-REX at different
  stages:
 \newline
 
 \shape italic
 max_processed_jobs
 \shape default
- - maximal amount of jobs being processed by GM.
- This does not limit amount of jobs, which can be suNOTE:bmitted to cluster
+ - maximal amount of jobs being processed by A-REX.
+ This does not limit amount of jobs, which can be submitted to A-REX
 \newline
 
 \shape italic
@@ -3980,14 +3711,18 @@ wakeupperiod
 \series default
 =time
 \shape default
- - specifies how often for external changes are performed (like new arrived
- job, job finished in LRMS, etc.).
+ - specifies how often the A-REX checks for job state changes (like new
+ arrived job, job finished in LRMS, etc.).
  
 \shape italic
 time
 \shape default
  is a minimal time period specified in seconds.
- Default is 3 minutes.
+ Default is 
+\emph on
+3 minutes
+\emph default
+.
 \end_layout
 
 \begin_layout Itemize
@@ -4005,15 +3740,15 @@ cacheregistration
 no
 \emph default
 .
- Only files dowmloaded through 
+ Only files downloaded through 
 \emph on
 meta-url
 \emph default
  are registred.
  Registration is done to same service used for obtaining information about
  file.
- For this opeartion credentials of the GM (host key and certificate) are
- used.
+ For this opeartion credentials of the A-REX (host key and certificate)
+ are used.
  If required new files storage location is registered at Indexing Service
  with quasi-url 
 \emph on
@@ -4177,9 +3912,13 @@ norootpower
 \series default
 =yes/no
 \shape default
- - if set to yes all processes involved in job management will use local
- identity of a user to which Grid identity is mapped in order to access
- filesystem at path specified in 
+ - if set to 
+\emph on
+yes
+\emph default
+ all processes involved in job management will use local identity of a user
+ to which Grid identity is mapped in order to access filesystem at path
+ specified in 
 \series bold
 \shape italic
 session
@@ -4187,28 +3926,6 @@ session
 \shape default
  command (see below).
  Sometimes this may involve running temporary external process.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-allowsubmit
-\series default
-=[group ...]
-\shape default
- - list of authorization groups of users allowed to submit new jobs while
- "allownew=no" is active in 
-\emph on
-jobplugin.so
-\emph default
- configuration (see below in section 
-\begin_inset LatexCommand \ref{subsec: configfile of the gfs}
-
-\end_inset
-
-).
- Multiple commands are allowed.
 \end_layout
 
 \begin_layout Itemize
@@ -4324,8 +4041,8 @@ copyurl
 linkurl
 \shape default
  are treated as more easily accessible than other URLs.
- That means if GM has to choose between few URLs from which should it download
- input file, these will be tried first.
+ That means if A-REX has to choose between few URLs from which should it
+ download input file, these will be tried first.
 \end_layout
 
 \end_deeper
@@ -4429,9 +4146,9 @@ sessiondir
 
 \series bold
 \shape italic
-cache
+cachedir
 \series default
-dir=path [link_path]
+=path [link_path]
 \shape default
  - specifies the directory to store cached data.
  Empty 
@@ -4450,13 +4167,6 @@ link_path
 link_path
 \shape default
  is set to '.' files are not soft-linked, but copied to session directory.
- In old configuration file this command is called 
-\series bold
-\shape italic
-cache
-\series default
-\shape default
-.
 \end_layout
 
 \begin_layout Itemize
@@ -4550,8 +4260,12 @@ maxrerun
 =number
 \shape default
  - specifies maximal number of times job will be allowed to rerun after
- it failed in LRMS.
- Default value is 2.
+ it failed at any stage.
+ Default value is 
+\emph on
+5
+\emph default
+.
  This only specifies a upper limit.
  Actual number is provided in job description and defaults to 0.
 \end_layout
@@ -4572,7 +4286,7 @@ control
 \series default
 =path username [username [...]]
 \shape default
- - This option initiates UNIX user as being serviced by the GM.
+ - This option initiates UNIX user as being serviced by the A-REX.
  
 \shape italic
 path
@@ -4606,14 +4320,14 @@ any
 \series default
  user.
  This option should be the last one in the configuration file.
- In new configuration file command 
+ There is also command 
 \series bold
 \shape italic
 controldir
 \series default
 =path
 \shape default
- is also available.
+.
  It uses special username '.' and is always executed last independent of
  placement in file.
 \end_layout
@@ -4652,9 +4366,8 @@ s are passed as arguments to it.
 \end_layout
 
 \begin_layout Standard
-Following are global commands supported only in new configuration file.
- Most of them are specific to underlying LRMS (PBS in this case) and are
- passed in environment variables if old configuration file is used.
+Following are global commands specific to communication with underlying
+ LRMS (PBS in this case).
 \end_layout
 
 \begin_layout Itemize
@@ -4728,9 +4441,15 @@ shared_filesystem
 \series default
 =yes|no
 \shape default
- - if compiting nodes have an access to session directory through a shared
+ - if computing nodes have an access to session directory through a shared
  filesystem like NFS.
- Corresponds to an environement variable RUNTIME_NODE_SEES_FRONTEND.
+ Corresponds to an environement variable RUNTIME_NODE_SEES_FRONTEND (see
+ section 
+\begin_inset LatexCommand \ref{sub:LRMS}
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Itemize
@@ -4770,17 +4489,6 @@ scratchdir
 \series default
 \shape default
  can be found.
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-\shape italic
-nodename
-\series default
-=command
-\shape default
- - command to obtain hostname of computing node.
 \end_layout
 
 \begin_layout Standard
@@ -4900,185 +4608,6 @@ extern - call external program (grid-manager)
 \end_layout
 
 \end_deeper
-\begin_layout Standard
-Some configuration parameters can be specified from command line while starting
- the GM:
-\end_layout
-
-\begin_layout Standard
-
-\emph on
-grid-manager [-h] [-C level] [-d level] [-c path] [-F] [-U uid[:gid]] [-L
- path] [-P path]
-\emph default
-
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--h
-\emph default
- - short help,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--d
-\emph default
- - debug level,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--L
-\emph default
- - name log file (overwrites value in configuration file),
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--P
-\emph default
- - name for file containing process id (overwrites value in configuration
- file),
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--U
-\emph default
- - user and gropu id to use for running daemon,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--F
-\emph default
- - do not make process daemon,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--c
-\emph default
- - name od configuration file,
-\newline
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-hspace*{0.5cm}
-\end_layout
-
-\end_inset
-
-
-\emph on
--C
-\emph default
- - remove 
-\end_layout
-
-\begin_layout Standard
-old information before starting: 
-\end_layout
-
-\begin_layout Standard
-1- remove finished jobs, 2 - 
-\end_layout
-
-\begin_layout Standard
-remove active jobs too, 3- also remove everything that looks like junk.
-\end_layout
-
 \begin_layout Subsection
 Authorization
 \begin_inset LatexCommand \label{sub:Authorization}
@@ -5089,26 +4618,8 @@ Authorization
 \end_layout
 
 \begin_layout Standard
-Authorization is performed at GFS by applying set of rules.
- Each rule takes one line in the 
-\emph on
-group
-\emph default
- section.
- For information about supported rules please read 
-\begin_inset Quotes eld
-\end_inset
-
-Configuration and authorisation of ARC (NorduGrid) Services
-\begin_inset Quotes erd
-\end_inset
-
- 
-\begin_inset LatexCommand \cite{config}
-
-\end_inset
-
-.
+Authorization is performed by generic means provided by HED framework.
+ Currently A-REX does not implement any internal authorization tecniques.
 \end_layout
 
 \begin_layout Subsection
@@ -5124,7 +4635,7 @@ The GM comes with support for several LRMS.
  And this number is slowly growing.
  Features explained below are for 
 \series bold
-PBS
+PBS/Torque
 \series default
  backend.
  This support is provided through 
@@ -5544,7 +5055,7 @@ Runtime environment
 \end_layout
 
 \begin_layout Standard
-The GM can run specially prepared 
+The A-REX can run specially prepared 
 \emph on
 BASH
 \emph default
@@ -5558,8 +5069,8 @@ runtimeenvironment
  '2' during creation of job's script, before execution of main executable
  and after main executable finished accordingly.
  They all are run through BASH's 'source' command, and hence can manipulate
- with shell variables.
- With argument '0' scripts are run by the GM on frontend.
+ shell variables.
+ With argument '0' scripts are run by the A-REX on frontend.
  Some environment variables are defined in that case and can be changed
  to influence job's execution later:
 \end_layout
@@ -5696,6 +5207,15 @@ With argument '2' scripts are executed after main executable finished.
  If the job is killed by LRMS they most probably won't be executed.
 \end_layout
 
+\begin_layout Standard
+For publicly available runtime environments please see 
+\begin_inset LatexCommand \url[RTE]{http://gridrer.csc.fi/}
+
+\end_inset
+
+ .
+\end_layout
+
 \begin_layout Section
 Installation
 \begin_inset LatexCommand \label{sec:installation}
@@ -5706,20 +5226,15 @@ Installation
 \end_layout
 
 \begin_layout Standard
-To install GM as part of ARC-enabled site please read 
-\begin_inset Quotes eld
-\end_inset
-
-NorduGrid ARC server installation instructions
-\begin_inset Quotes erd
-\end_inset
-
- at 
-\begin_inset LatexCommand \htmlurl{http://www.nordugrid.org/documents/ng-server-install.html}
+The A-REX is installed as part of ARC 1 middleware and is available in NorduGrid
+ download area at 
+\begin_inset LatexCommand \url[ARC1 Download]{http://download.nordugrid.org/software/nordugrid-arc1/}
 
 \end_inset
 
-.
+ .There are packages available for various Linux distributions.
+ The A-REX comes in nordugrid-arc1-arex package.
+ Source code ready for compilation is available too.
 \end_layout
 
 \begin_layout Subsection
@@ -5727,41 +5242,8 @@ Requirements
 \end_layout
 
 \begin_layout Standard
-The GM is mostly written using C++.
- It was tested and should compile on recent enough 
-\emph on
-Linux
-\emph default
- systems using 
-\emph on
-gcc
-\emph default
- compiler and 
-\emph on
-GNU make
-\emph default
- (gcc versions 2.95, 2.96, 3.2, 3.4 were tested).
- You will also need 
-\emph on
-Globus Toolkit
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-$^{TM}$
-\end_layout
-
-\end_inset
-
-
-\emph default
- of version higher than 2.2 installed 
-\begin_inset LatexCommand \url{http://www-unix.globus.org/toolkit/}
-
-\end_inset
-
-.
+If installed from binary packages all dependencies are handled automatically.
+ For compilation from source code please read included README file.
 \end_layout
 
 \begin_layout Subsection
@@ -5803,44 +5285,6 @@ The GM writes debug information into a file /var/log/grid-manager.log by
  turned off by default) contains information about all started and finished
  jobs, 2 lines per job (1 when job is started and 1 after it finished).
  
-\end_layout
-
-\begin_layout Subsection
-Setup of the GridFTP Server
-\end_layout
-
-\begin_layout Standard
-For in-depth information about how to properly setup the GM and related
- software please read 
-\begin_inset Quotes eld
-\end_inset
-
-NorduGrid ARC server installation instructions
-\begin_inset Quotes erd
-\end_inset
-
- at 
-\begin_inset LatexCommand \htmlurl{http://www.nordugrid.org/documents/ng-server-install.html}
-
-\end_inset
-
-.
- Follow that manual to install GM, configure and run it.
- Additional tips are described here.
-\end_layout
-
-\begin_layout Standard
-To make GFS to interoperate with other parts of the ARC only one 
-\emph on
-jobplugin.so
-\emph default
- needs to be configured.
- It is advisable to use the template configuration file.
- You can leave only part which configures 
-\shape italic
-jobplugin.so
-\shape default
- plugin.
 \end_layout
 
 \begin_layout Subsection
@@ -5967,7 +5411,7 @@ e (private key of a host at least) has to be duplicated for every account
 
 \begin_layout Section*
 Appendix A.
- Job control over jobplugin.so
+ Session directory access through HTTP(S) interface
 \end_layout
 
 \begin_layout Subsection*
@@ -6172,132 +5616,274 @@ If a client requests CWD to a job's session directory, credentials passed
 \end_layout
 
 \begin_layout Section*
-Appendix B.
- Library 
-\shape italic
-libarcdata
-\end_layout
-
-\begin_layout Standard
-
-\emph on
-libarcdata
-\emph default
- is now part of 
-\emph on
-libngui
-\emph default
- library.
- It's functions are declared in a header file 
-\emph on
-arcdata.h
-\emph default
-.
- They correspond to ng* utilities meant for data handling - 
-\emph on
-arcacl
-\emph default
-, 
-\emph on
-arccp
-\emph default
-, 
-\emph on
-arcls
-\emph default
-, 
-\emph on
-arcrm
-\emph default
-, 
-\emph on
-arctransfer
-\emph default
-.
- It consists of following functions:
+Appendix C.
+ Configuration schema of A-REX
 \end_layout
 
 \begin_layout LyX-Code
-void arcacl(const std::string& file_url, const std::string& command, int
- timeout = 0);
+<?xml version="1.0" encoding="UTF-8"?>
 \end_layout
 
 \begin_layout LyX-Code
-
+<xsd:schema
 \end_layout
 
 \begin_layout LyX-Code
-void arcregister (const std::string& source_url, const std::string& destination_
-url, bool secure = false, bool passive = true, bool force_meta = false,
- int timeout = 0);
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 \end_layout
 
 \begin_layout LyX-Code
-
+xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
 \end_layout
 
 \begin_layout LyX-Code
-void arccp (const std::string& source_url, const std::string& destination_url,
- bool secure = false, bool passive = true, bool force_meta = false, int
- recursion = 0, bool verbose = false, int timeout = 0);
+xmlns:arc="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
 \end_layout
 
 \begin_layout LyX-Code
-
+targetNamespace="http://www.nordugrid.org/schemas/ArcConfig/2007/arex"
 \end_layout
 
 \begin_layout LyX-Code
-void arcls(const std::string& dir_url, bool show_details = false, bool show_urls
- = false, int recursion = 0, int timeout = 0);
+elementFormDefault="qualified">
 \end_layout
 
 \begin_layout LyX-Code
-
+  <xsd:complexType name="endpoint_Type">
 \end_layout
 
 \begin_layout LyX-Code
-void arcrm(const std::string& file_url, bool errcont = false, int timeout
- = 0);
+    <!--
 \end_layout
 
 \begin_layout LyX-Code
-
+    This element defines URL of A-REX service as seen from outside.
 \end_layout
 
 \begin_layout LyX-Code
-void arctransfer(const std::string& destination, std::list<std::string>&
- sources, int timeout = 0);
+    -->
 \end_layout
 
-\begin_layout Standard
-Additionally this library contains C++ classes used by 
-\emph on
-ng*
-\emph default
- data management utilities.
- Those are described in 
-\begin_inset Quotes eld
-\end_inset
+\begin_layout LyX-Code
+    <xsd:simpleContent>
+\end_layout
 
-ARC::DataMove Reference Manual
-\begin_inset Quotes erd
-\end_inset
+\begin_layout LyX-Code
+      <xsd:extension base="xsd:string"> 
+\end_layout
 
-.
+\begin_layout LyX-Code
+      </xsd:extension>
+\end_layout
+
+\begin_layout LyX-Code
+    </xsd:simpleContent>
+\end_layout
+
+\begin_layout LyX-Code
+  </xsd:complexType>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="endpoint" type="endpoint_Type"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:complexType name="gmconfig_Type">
+\end_layout
+
+\begin_layout LyX-Code
+    <!--
+\end_layout
+
+\begin_layout LyX-Code
+    This element defines path to arc0 Grid Manager configuartion file.
+\end_layout
+
+\begin_layout LyX-Code
+    By default it is /etc/arc.conf.
+\end_layout
+
+\begin_layout LyX-Code
+    -->
+\end_layout
+
+\begin_layout LyX-Code
+    <xsd:simpleContent>
+\end_layout
+
+\begin_layout LyX-Code
+      <xsd:extension base="xsd:string">
+\end_layout
+
+\begin_layout LyX-Code
+      </xsd:extension>
+\end_layout
+
+\begin_layout LyX-Code
+    </xsd:simpleContent>
+\end_layout
+
+\begin_layout LyX-Code
+  </xsd:complexType>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="gmconfig" type="gmconfig_Type"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:simpleType name="gmrun_Type">
+\end_layout
+
+\begin_layout LyX-Code
+    <!--
+\end_layout
+
+\begin_layout LyX-Code
+    This element defines how grid-manager part of A-Rex is run.
+\end_layout
+
+\begin_layout LyX-Code
+    * internal - as a thread inside service container.
+\end_layout
+
+\begin_layout LyX-Code
+    * none - no grid-manager is run.
+\end_layout
+
+\begin_layout LyX-Code
+    * external - as a separate executable (not supported anymore).
+\end_layout
+
+\begin_layout LyX-Code
+    Default is 'internal'.
+\end_layout
+
+\begin_layout LyX-Code
+    -->
+\end_layout
+
+\begin_layout LyX-Code
+    <xsd:restriction base="xsd:string">
+\end_layout
+
+\begin_layout LyX-Code
+      <xsd:enumeration value="internal"/>
+\end_layout
+
+\begin_layout LyX-Code
+      <xsd:enumeration value="external"/>
+\end_layout
+
+\begin_layout LyX-Code
+      <xsd:enumeration value="none"/>
+\end_layout
+
+\begin_layout LyX-Code
+    </xsd:restriction>
+\end_layout
+
+\begin_layout LyX-Code
+  </xsd:simpleType>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="gmrun" type="gmrun_Type"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:complexType name="usermap_Type">
+\end_layout
+
+\begin_layout LyX-Code
+    <xsd:sequence>
+\end_layout
+
+\begin_layout LyX-Code
+      <xsd:element name="defaultLocalName" type="xsd:string" minOccurs="0"/>
+\end_layout
+
+\begin_layout LyX-Code
+    </xsd:sequence>
+\end_layout
+
+\begin_layout LyX-Code
+  </xsd:complexType>
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="usermap" type="usermap_Type"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <!-- CommonName attribute of bes-factory.
+ -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="commonName" type="xsd:string"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <!-- LongDescription attribute of bes-factory.
+ -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="longDescription" type="xsd:string"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <!-- Name of Local Resource Management System.
+ -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="LRMSName" type="xsd:string"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <!--
+\end_layout
+
+\begin_layout LyX-Code
+  Name of Operating System.
+\end_layout
+
+\begin_layout LyX-Code
+  The values are based on the OSType field of the CIM_OperatingSystem model:
+\end_layout
+
+\begin_layout LyX-Code
+  http://www.dmtf.org/standards/cim/cim_schema_v29
+\end_layout
+
+\begin_layout LyX-Code
+  -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xsd:element name="OperatingSystem" type="xsd:string"/>
+\end_layout
+
+\begin_layout LyX-Code
+</xsd:schema>
 \end_layout
 
 \begin_layout Section*
 Appendix C.
- Error messages of GM
+ Error messages of A-REX
 \end_layout
 
 \begin_layout Standard
-If job has not finished successfully the GM put one or more lines into 
+If job has not finished successfully the A-REX puts one or more lines into
+ 
 \shape italic
 job.ID.failed
 \shape default
 .
- Possible valuesinclude those generated by the GM itself:
+ Possible values include those generated by the A-REX itself:
 \end_layout
 
 \begin_layout Standard
@@ -8078,7 +7664,7 @@ Submission: Local submission client failed.
 
 \begin_layout Section*
 Appendix D.
- A-Rex WSDL
+ A-REX WSDL
 \end_layout
 
 \begin_layout LyX-Code
