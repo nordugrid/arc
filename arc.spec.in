@@ -170,6 +170,10 @@ mkdir -p $RPM_BUILD_ROOT/etc/init.d
 cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
 chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
+# Remove non-executable python objects from bin
+rm -f $RPM_BUILD_ROOT%{_bindir}/arc_storage_cli.pyc
+rm -f $RPM_BUILD_ROOT%{_bindir}/arc_storage_cli.pyo
+
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}/
 
@@ -259,7 +263,7 @@ exit 0
 %doc %{_mandir}/man1/glitedelegate.1*
 %{_bindir}/gliteundelegate
 %doc %{_mandir}/man1/gliteundelegate.1*
-%{_bindir}/arc_storage_cli.py*
+%{_bindir}/arc_storage_cli.py
 %doc %{_mandir}/man1/arc_storage_cli.py.1*
 
 %files server
