@@ -282,6 +282,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libpaul.so
+%{_libdir}/%{pkgdir}/libcount.so
 
 %files arex
 %defattr(-,root,root,-)

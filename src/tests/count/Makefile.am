@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libcount.la
+pkglib_LTLIBRARIES = libcount.la
 noinst_PROGRAMS = test_client test_service
 SOURCES =
 
