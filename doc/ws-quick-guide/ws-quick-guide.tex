@@ -99,19 +99,19 @@ aboveskip=2\medskipamount
 The Advanced Resource Connector (ARC) middleware~\cite{arc}, introduced by
 NorduGrid~\cite{nordugrid}, is an open source software solution
 enabling production quality computational and data grids.
-
 Since the first release (May 2002) the middleware has been deployed and
 been used in production environments. Emphasis is put on scalability,
 stability, reliability and performance of the middleware. A growing
 number of grid projects, like NDGF~\cite{ndgf}, Swegrid~\cite{swegrid} or Swiss
-National Grid Association~\cite{swing} has chosen ARC as their middleware.
+National Grid Association~\cite{swing} have chosen ARC as their middleware.
 
 This document provides a quick usage guide to the new Web Service (WS)
 components of ARC, often referred to as ARC1 components. WS design of ARC is
 based on a service container -- the \textit{Hosting Environment Daemon (HED)},
-and different grid capabilities are implemented as Web Services residing in HED.
+and various capabilities of the grid are implemented as distinct Web Services
+that reside in HED.
 
-Currently included components are:
+At the time of writing, this comprises the following components:
 \begin{itemize}
 \item an OGSA BES~\cite{ogsa-bes} compliant execution service --
 \textit{ARC Resource-coupled EXecution service (A-REX)}~\cite{arex}
@@ -121,10 +121,10 @@ Currently included components are:
 \section{Dependencies}
 \label{sec:deps}
 
-The core part of middleware is written in C/C++. Building the software
-from source or installing a precompiled binary requires different external
-packages, furthermore the client and server packages have different dependencies
-too. Below a list of the explicit requirements is shown:
+The core part of middleware is written in C/C++. To build the software
+from source or installing a precompiled binary requires the prior installation
+of multiple external packages. Client and server packages differ in their
+dependencies to some degree. The following lists the explicit requirements:
 
 \begin{itemize}
 \item Mandatory (on client as well as server side):
@@ -157,6 +157,11 @@ too. Below a list of the explicit requirements is shown:
 \item Berkeley DB C++ interface (build, run)
 \end{itemize}
 \end{itemize}
+
+The developers of ARC have prepared packages for several Linux
+distributions\footnote{The nightly build system current comprises Debian,
+Ubuntu, Fedora, RedHat and OpenSuSE}. As a user of any such operating
+system, the external packages are all readily available.
 
 \begin{framed}
 Please note that depending on operating system distribution in order to build
@@ -663,7 +668,7 @@ globalid>
 \end{lstlisting}
 
 Please note that you can run similar \texttt{apinfo} request against any ARC1
-service except Echo service. Output should always be XML description of service.
+service except Echo service. Output should always be XML description of the service.
 
 A-REX accepts jobs described in JSDL language. Example JSDL jobs are provided in
 \verb|$ARC_LOCATION/share/doc/| in files \verb|jsdl_simple.xml| and
@@ -699,7 +704,7 @@ For more information please see man pages ot those utilities.
 \label{sec:more-info}
 
 Many information about functionality and configuration of various components
-may be found inside corresponding configuratrion XML schemas.
+may be found inside the corresponding configuration XML schemas.
 
 There are several API documents available as well.
 
@@ -707,7 +712,7 @@ There are several API documents available as well.
 \label{sec:contributing}
 
 The open source development of the ARC middleware is coordinated by the
-NorduGrid Collaboration. Currently, the main contributor is the KnowARC
+NorduGrid collaboration. Currently, the main contributor is the KnowARC
 project~\cite{knowarc}, but the Collaboration is open to new members.
 Contributions from the community to the software and the documentation is
 welcomed. Sources can be downloaded from the software repository at:
@@ -727,9 +732,9 @@ tracking system at:
 
 For a more detailed description, write access to the code repository and
 further questions, write to the \texttt{nordugrid-discuss} mailing list (see
-NorduGrid Web site~\cite{nordugrid} for details). Ongoing and completed Grid
-Research projects and student assignments related to the middleware are listed
-on the NorduGrid Web site as well.
+NorduGrid website~\cite{nordugrid} for details). Ongoing and completed Grid
+research projects and student assignments related to the middleware are listed
+on the NorduGrid website as well.
 
 
 \section{Support, documentation, mailing lists, contact}
@@ -749,9 +754,9 @@ reported in the Bugzilla problem tracking system
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
 tutorial materials can be fetched from the documentation section of the
-NorduGrid Web site.
+NorduGrid website.
 
-Contact information is kept updated on the NorduGrid Web site.
+Contact information is kept updated on the NorduGrid website.
 
 \bibliography{grid}
 \end{document}
